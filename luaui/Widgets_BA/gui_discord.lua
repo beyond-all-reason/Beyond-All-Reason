@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local iconTexture = ":n:"..LUAUI_DIRNAME.."Images/discord.png"
+local iconTexture = ":n:LuaUI/Images/discord.png"
 local iconSize = 32
 
 local spGetGameFrame		= Spring.GetGameFrame

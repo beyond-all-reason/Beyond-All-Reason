@@ -37,7 +37,7 @@ local textStartOpacity = 0.6
 
 local fpsDifference 			= (maxFps-minFps)/particleSteps		-- fps difference need before changing the dlist to one with fewer particles
 
-local snowTexFolder = LUAUI_DIRNAME.."Images/snow/"
+local snowTexFolder = "LuaUI/Images/snow/"
 
 local snowKeywords = {'snow','frozen','cold','winter','ice','icy','arctic','frost','melt','glacier','mosh_pit','blindside','northernmountains','amarante'}
 
@@ -322,7 +322,9 @@ function widget:Initialize()
 	end
 	WG['snow'].setMultiplier = function(value)
 		customParticleMultiplier = value
-		CreateParticleLists()
+		if enabled or widgetDisabledSnow  then
+			CreateParticleLists()
+		end
 	end
 	WG['snow'].setAutoReduce = function(value)
 		autoReduce = value
@@ -439,6 +441,7 @@ function widget:GameFrame(gameFrame)
 end
 
 function widget:Shutdown()
+	enabled = false
 	if drawinfolist ~= nil then
 		gl.DeleteList(drawinfolist)
 	end

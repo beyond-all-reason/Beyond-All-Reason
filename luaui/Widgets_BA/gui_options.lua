@@ -14,23 +14,23 @@ end
 --local show = true
 
 local playSounds = true
-local buttonclick = LUAUI_DIRNAME .. 'Sounds/tock.wav'
-local paginatorclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
-local sliderdrag = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
-local selectclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
-local selectunfoldclick = LUAUI_DIRNAME .. 'Sounds/buildbar_hover.wav'
-local selecthoverclick = LUAUI_DIRNAME .. 'Sounds/hover.wav'
-local toggleonclick = LUAUI_DIRNAME .. 'Sounds/switchon.wav'
-local toggleoffclick = LUAUI_DIRNAME .. 'Sounds/switchoff.wav'
+local buttonclick = 'LuaUI/Sounds/tock.wav'
+local paginatorclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
+local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
+local selectclick = 'LuaUI/Sounds/buildbar_click.wav'
+local selectunfoldclick = 'LuaUI/Sounds/buildbar_hover.wav'
+local selecthoverclick = 'LuaUI/Sounds/hover.wav'
+local toggleonclick = 'LuaUI/Sounds/switchon.wav'
+local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
 local loadedFontSize = 32
-local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
-local bgcorner1 = ":n:"..LUAUI_DIRNAME.."Images/bgcorner1.png" -- only used to draw dropdown arrow
-local backwardTex = LUAUI_DIRNAME.."Images/backward.dds"
-local forwardTex = LUAUI_DIRNAME.."Images/forward.dds"
-local glowTex = LUAUI_DIRNAME.."Images/glow.dds"
+local bgcorner = "LuaUI/Images/bgcorner.png"
+local bgcorner1 = ":n:".."LuaUI/Images/bgcorner1.png" -- only used to draw dropdown arrow
+local backwardTex = "LuaUI/Images/backward.dds"
+local forwardTex = "LuaUI/Images/forward.dds"
+local glowTex = "LuaUI/Images/glow.dds"
 
 local bgMargin = 6
 
@@ -92,7 +92,6 @@ local optionGroups = {}
 local optionButtons = {}
 local optionHover = {}
 local optionSelect = {}
-local addedWidgetOptions = false
 
 local widgetOptionColor = '\255\160\160\160'
 
@@ -375,56 +374,6 @@ function getOptionByID(id)
 	return false
 end
 
-function checkWidgets()
-
-	-- bloom
-	--local bloomValue = 0
-	--if widgetHandler.orderList["Bloom Shader"] ~= nil and widgetHandler.orderList["Bloom Shader"] > 0 then
-	--	bloomValue = 1
-	--	if WG['bloom'] ~= nil and WG['bloom'].getAdvBloom() then
-	--		bloomValue = 2
-	--	end
-	--end
-	options[getOptionByID('bloom')].value = bloomValue
-	
-	-- cursors
-	local cursorsets = {}
-	local cursor = 1
-	local cursoroption
-	if (WG['cursors'] ~= nil) then
-		cursorsets = WG['cursors'].getcursorsets()
-		local cursorname = WG['cursors'].getcursor()
-		for i,c in pairs(cursorsets) do
-			if c == cursorname then
-				cursor = i
-				break
-			end
-		end
-		table.insert(options, {id="cursor", group="control", name="Cursor", type="select", options=cursorsets, value=cursor})
-	end
-	-- Icon adjuster
-	if (WG['iconadjuster'] ~= nil) then
-		table.insert(options, {id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=WG['iconadjuster'].getScale(), description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'})
-	end
-	-- Darken map
-	if (WG['darkenmap'] ~= nil) then
-		table.insert(options, {id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=WG['darkenmap'].getMapDarkness(), description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'})
-		if WG['darkenmap'].getDarkenFeatures ~= nil then
-			table.insert(options, {id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   Darken features with map", type="bool", value=WG['darkenmap'].getDarkenFeatures(), description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'})
-		end
-	end
-	-- Highlight Selected Units
-	if (WG['highlightselunits'] ~= nil) then
-		table.insert(options, {id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.002, type="slider", value=WG['highlightselunits'].getOpacity(), description='Set the opacity of the highlight on selected units'})
-	end
-	-- Smart Select
-	if (WG['smartselect'] ~= nil) then
-		table.insert(options, {id="smartselect_includebuildings", group="ui", name="Include buildings in area-selection", type="bool", value=WG['smartselect'].getIncludeBuildings(), description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'})
-	end
-
-	orderOptions()
-end
-
 
 function orderOptions()
 	local groupOptions = {}
@@ -459,13 +408,8 @@ local maxShownColumns = 3
 local maxColumnRows = 0 	-- gets calculated
 local totalColumns = 0 		-- gets calculated
 function DrawWindow()
-	orderOptions()
 
-	-- add widget options
-	if not addedWidgetOptions then
-		addedWidgetOptions = true
-		checkWidgets()
-	end
+	orderOptions()
 
 	local x = screenX --rightwards
 	local y = screenY --upwards
@@ -1012,9 +956,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("XResolutionWindowed ", value)
 		elseif id == 'windowresy' then
 			Spring.SetConfigInt("YResolutionWindowed ", value)
-		elseif id == 'grounddetail' then
-			Spring.SetConfigInt("GroundDetail", value)
-			Spring.SendCommands("GroundDetail "..value)
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
@@ -1034,6 +975,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("MaxNanoParticles",value)
 		elseif id == 'grassdetail' then
 			Spring.SetConfigInt("GrassDetail",value)
+		elseif id == 'grounddetail' then
+			Spring.SetConfigInt("GroundDetail", value)
+			Spring.SendCommands("GroundDetail "..value)
 		elseif id == 'sndvolmaster' then
 			Spring.SetConfigInt("snd_volmaster", value)
 		elseif id == 'sndvolbattle' then
@@ -1063,7 +1007,13 @@ function applyOptionValue(i, skipRedrawWindow)
 				WG['bloom'].setBrightness(value)
 			end
 		elseif id == 'guishaderintensity' then
-			WG['guishader_api'].setBlurIntensity(value)
+			if widgetHandler.configData["GUI-Shader"] == nil then
+				widgetHandler.configData["GUI-Shader"] = {}
+			end
+			widgetHandler.configData["GUI-Shader"].blurIntensity = value
+			if WG['guishader_api'] ~= nil then
+				WG['guishader_api'].setBlurIntensity(value)
+			end
 		elseif id == 'snowamount' then
 			if widgetHandler.configData["Snow"] == nil then
 				widgetHandler.configData["Snow"] = {}
@@ -1582,39 +1532,43 @@ function init()
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
+		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
 		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=6000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
+
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
-
-		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
-		--{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom", type="slider", min=0, max=2, step=1, value=0, description='Bloom will make the map and units glow\n\nSetting the slider all the way will stress your GPU more'},
-		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.75, step=0.05, value=0.4, description=''},
-		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
-		{id="guishader", group="gfx", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
-		{id="guishaderintensity", group="gfx", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
+		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
-		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
+		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
+		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.75, step=0.05, value=0.4, description=''},
+		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
 
-		{id="lighteffects", group="gfx", name="Light Effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
-		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.25, max=1, step=0.05, type="slider", value=0.7, description='lifetime of explosion lights'},
+		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
+		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   Darken features with map", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
+
+		{id="lighteffects", group="gfx", name="Light effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
+		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.25, max=1, step=0.05, type="slider", value=0.65, description='lifetime of explosion lights'},
 		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2.2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
 		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius  (gpu intensive)", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius  (gpu intensive)", min=0.4, max=2, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\nWARNING: the bigger the radius the heavier on the GPU'},
 
+		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
+
+		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
-		{id="outline", group="gfx", widget="Outline", name="Unit Outline (tiny)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
+
+		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
-		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
-		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
+
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)'},
 		{id="snowautoreduce", group="gfx", name=widgetOptionColor.."   auto reduce", type="bool", value=true, description='Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again'},
@@ -1635,12 +1589,16 @@ function init()
 		{id="scrollspeed", group="control", name="Zoom direction/speed", type="slider", min=-45, max=45, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!'},
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: the mouse cursor refresh rate will be the same as your ingame fps"},
+		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
 		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
+
+		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
+		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 
 		{id="oldconsole", group="ui", name="Old console (single)", type="bool", value=GetWidgetToggleValue("Red Console (old)"), description='Enable old console that doesnt separate system and chat messages'},
 
@@ -1668,8 +1626,11 @@ function init()
 		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.005, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
 		{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
+		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.002, type="slider", value=0.15, description='Set the opacity of the highlight on selected units'},
+		{id="smartselect_includebuildings", group="ui", name="Include buildings in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'},
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
+
 		{id="commandsfx", group="ui", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
 
 		{id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
@@ -1688,11 +1649,55 @@ function init()
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
-
 	loadWidgetConfigData()
+
+	-- cursors
+	if (WG['cursors'] == nil) then
+		options[getOptionByID('cursor')] = nil
+	else
+		local cursorsets = {}
+		local cursor = 1
+		local cursoroption
+		cursorsets = WG['cursors'].getcursorsets()
+		local cursorname = WG['cursors'].getcursor()
+		for i,c in pairs(cursorsets) do
+			if c == cursorname then
+				cursor = i
+				break
+			end
+		end
+		options[getOptionByID('cursor')].options = cursorsets
+		options[getOptionByID('cursor')].value = cursor
+	end
+
+	if (WG['iconadjuster'] == nil) then
+		options[getOptionByID('iconadjuster')] = nil
+	else
+		options[getOptionByID('iconadjuster')].value = WG['iconadjuster'].getScale()
+	end
+
+	if (WG['highlightselunits'] == nil) then
+		options[getOptionByID('highlightselunits_opacity')] = nil
+	else
+		options[getOptionByID('highlightselunits_opacity')].value = WG['highlightselunits'].getOpacity()
+	end
+
+	if (WG['smartselect'] == nil) then
+		options[getOptionByID('smartselect_includebuildings')] = nil
+	else
+		options[getOptionByID('smartselect_includebuildings')].value = WG['smartselect'].getIncludeBuildings()
+	end
 
 	if WG['snow'] ~= nil and WG['snow'].getSnowMap ~= nil then
 		options[getOptionByID('snowmap')].value = WG['snow'].getSnowMap()
+	end
+
+	if (WG['darkenmap'] == nil) then
+		options[getOptionByID('darkenmap')] = nil
+		options[getOptionByID('darkenmap_darkenfeatures')] = nil
+	else
+		options[getOptionByID('darkenmap')].value = WG['darkenmap'].getMapDarkness()
+		options[getOptionByID('darkenmap_darkenfeatures')].value = WG['darkenmap'].getDarkenFeatures()
 	end
 
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'

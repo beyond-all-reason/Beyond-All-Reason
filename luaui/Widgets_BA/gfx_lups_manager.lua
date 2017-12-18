@@ -216,7 +216,7 @@ local UnitEffects = {
 }
 
 local t = os.date('*t')
-if (t.yday>350) then --(t.month==12)
+if (t.yday>343) then --(t.month==12)
   UnitEffects[UnitDefNames["armcom"].id] = {
     {class='SantaHat',options={color={1,0.1,0,1}, pos={0,4,0.35}, emitVector={0.3,1,0.2}, width=2.7, height=6, ballSize=0.7, piecenum=8, piece="head"}},
   }

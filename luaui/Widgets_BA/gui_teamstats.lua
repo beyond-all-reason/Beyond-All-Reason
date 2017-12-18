@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local bgcorner	= LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner	= "LuaUI/Images/bgcorner.png"
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -27,7 +27,7 @@ local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
 local playSounds = true
-local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local header = {
 	"frame",

@@ -46,7 +46,7 @@ local generalDuration			= 1.2		-- overall duration
 local ringStartSize				= 9
 local ringScale					= 0.75
 
-local imageDir					= ":n:"..LUAUI_DIRNAME.."Images/mapmarksfx/"
+local imageDir					= ":n:LuaUI/Images/mapmarksfx/"
 
 local types = {
 	map_mark = {

@@ -34,7 +34,7 @@ end
 
 local vsx, vsy   = widgetHandler:GetViewSizes()
 
-local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner				= ":n:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1
 local glText         = gl.Text

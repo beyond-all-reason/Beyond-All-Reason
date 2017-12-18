@@ -46,7 +46,7 @@ local function SetupCommandColors(state)
 end
 
 
-local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
+local texName = 'LuaUI/Images/highlight_strip.png'
 local function HilightModel(unitID)
   gl.DepthTest(true)
   gl.PolygonOffset(-2, -2)

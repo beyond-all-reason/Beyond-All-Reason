@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	local decorationLifeTime = 35*25
+	local decorationLifeTime = 45*25
 	local decorationLifeTimeVariation = 30*15
 
 	local decorations = {}
@@ -95,10 +95,12 @@ if gadgetHandler:IsSyncedCode() then
 				local amount = hasDecoration[data[5]]
 				while i < amount do
 					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, data[4])
-					decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
-					setGaiaUnitSpecifics(uID)
-					Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
-					Spring.AddUnitImpulse(uID, (random()-0.5)*4.2, 1+(random()*5.2), (random()-0.5)*4.2)
+					if uID ~= nil then
+						decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
+						setGaiaUnitSpecifics(uID)
+						Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
+						Spring.AddUnitImpulse(uID, (random()-0.5)*4.2, 1+(random()*5.2), (random()-0.5)*4.2)
+					end
 					i = i + 1
 				end
 			end

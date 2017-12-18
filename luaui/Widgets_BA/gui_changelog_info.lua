@@ -13,9 +13,9 @@ end
 --local show = true
 
 local loadedFontSize = 32
-local font = gl.LoadFont(LUAUI_DIRNAME.."Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = "LuaUI/Images/bgcorner.png"
 
 local changelogFile = VFS.LoadFile("changelog.txt")
 
@@ -28,7 +28,7 @@ local screenWidth = 1050-bgMargin-bgMargin
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines
 
 local playSounds = true
-local buttonclick = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local customScale = 1
 

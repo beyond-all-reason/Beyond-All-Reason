@@ -19,16 +19,16 @@ local buildNextKey = 110
 local buildKeys = {113, 119, 101, 114, 116, 97, 115, 100, 102, 103, 122, 120, 99, 118, 98}
 local buildLetters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 
-local stateTexture		     = LUAUI_DIRNAME.."Images/resbar.dds"
-local buttonTexture		     = LUAUI_DIRNAME.."Images/button.dds"
-local barGlowCenterTexture = LUAUI_DIRNAME.."Images/barglow-center.dds"
-local barGlowEdgeTexture   = LUAUI_DIRNAME.."Images/barglow-edge.dds"
+local stateTexture		     = "LuaUI/Images/resbar.dds"
+local buttonTexture		     = "LuaUI/Images/button.dds"
+local barGlowCenterTexture = "LuaUI/Images/barglow-center.dds"
+local barGlowEdgeTexture   = "LuaUI/Images/barglow-edge.dds"
 
-local oldUnitpicsDir   = LUAUI_DIRNAME.."Images/oldunitpics/"
+local oldUnitpicsDir   = "LuaUI/Images/oldunitpics/"
 
-local sound_queue_add = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
-local sound_queue_rem = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
-local sound_button = LUAUI_DIRNAME .. 'Sounds/buildbar_waypoint.wav'
+local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
+local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
+local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
 local NeededFrameworkVersion = 9
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
@@ -282,7 +282,7 @@ local function CreateGrid(r)
 		color={0.85,0.65,0,0.25},
 		border={0.8,0,0,0},
 		glone=0.12,
-		texture = LUAUI_DIRNAME.."Images/button-pushed.dds",
+		texture = "LuaUI/Images/button-pushed.dds",
 		texturecolor={1,0,0,0.15},
 		
 		active=false,
@@ -294,13 +294,13 @@ local function CreateGrid(r)
 	local mouseoverhighlight = Copy(selecthighlight,true)
 	mouseoverhighlight.color={1,1,1,0.08}
 	mouseoverhighlight.border={1,1,1,0}
-	mouseoverhighlight.texture = LUAUI_DIRNAME.."Images/button-highlight.dds"
+	mouseoverhighlight.texture = "LuaUI/Images/button-highlight.dds"
 	mouseoverhighlight.texturecolor={1,1,1,0.08}
 	
 	local heldhighlight = Copy(selecthighlight,true)
 	heldhighlight.color={1,0.75,0,0.06}
 	heldhighlight.border={1,1,0,0}
-	heldhighlight.texture = LUAUI_DIRNAME.."Images/button-pushed.dds"
+	heldhighlight.texture = "LuaUI/Images/button-pushed.dds"
 	heldhighlight.texturecolor={1,0.75,0,0.06}
 	
 	local icon = {"rectangle",
@@ -435,10 +435,10 @@ local function CreateGrid(r)
 	New(background2)
 	
 	local backward = New(Copy(icon,true))
-	backward.texture = LUAUI_DIRNAME.."Images/backward.dds"
+	backward.texture = "LuaUI/Images/backward.dds"
 
 	local forward = New(Copy(icon,true))
-	forward.texture = LUAUI_DIRNAME.."Images/forward.dds"
+	forward.texture = "LuaUI/Images/forward.dds"
 	
 	local indicator = New({"rectangle",
 		px=0,py=0,

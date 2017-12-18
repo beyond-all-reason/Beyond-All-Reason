@@ -67,8 +67,8 @@ include("colors.h.lua")
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local bgcorner = ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
-local highlightImg = ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
+local bgcorner = ":n:LuaUI/Images/bgcorner.png"
+local highlightImg = ":n:LuaUI/Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 
@@ -102,9 +102,9 @@ local fontSize = iconSizeY * 0.28		-- changed in ViewResize anyway
 local picList
 
 local playSounds = true
-local leftclick = LUAUI_DIRNAME .. 'Sounds/buildbar_add.wav'
-local middleclick = LUAUI_DIRNAME .. 'Sounds/buildbar_click.wav'
-local rightclick = LUAUI_DIRNAME .. 'Sounds/buildbar_rem.wav'
+local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
+local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
+local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

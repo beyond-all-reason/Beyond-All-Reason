@@ -24,7 +24,7 @@ OPTIONS = {
 	opacityVariation		= 0.09,
 }
 
-local haloImg = ':n:'..LUAUI_DIRNAME..'Images/halo.dds'
+local haloImg = ':n:LuaUI/Images/halo.dds'
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

@@ -51,9 +51,9 @@ local spGetCameraPosition    = Spring.GetCameraPosition
 local spWorldToScreenCoords  = Spring.WorldToScreenCoords
 
 
-local glowImg			= ":n:"..LUAUI_DIRNAME.."Images/glow.dds"
-local beamGlowImg = LUAUI_DIRNAME.."Images/barglow-center.dds"
-local beamGlowEndImg = LUAUI_DIRNAME.."Images/barglow-edge.dds"
+local glowImg			= ":n:LuaUI/Images/glow.dds"
+local beamGlowImg = "LuaUI/Images/barglow-center.dds"
+local beamGlowEndImg = "LuaUI/Images/barglow-edge.dds"
 
 local GLSLRenderer = true
 

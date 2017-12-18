@@ -88,7 +88,7 @@ local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 local panelWidth = 200;
 local panelHeight = 55;
 
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = "LuaUI/Images/bgcorner.png"
 local sizeMultiplier = 1
 
 --Internals------------------------------------------------------

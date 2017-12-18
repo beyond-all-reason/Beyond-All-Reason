@@ -57,7 +57,7 @@ local cX, cY
 -- Speedups
 ------------------------------------------------------------------------------------
 
-local bgcorner				= LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner				= "LuaUI/Images/bgcorner.png"
 
 local white = '\255\255\255\255'
 local grey = '\255\190\190\190'

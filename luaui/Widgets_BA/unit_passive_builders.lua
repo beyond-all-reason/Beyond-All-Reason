@@ -21,7 +21,7 @@ end
 
 -- some code was used from "Wind Speed" widget. Thx to Jazcash and Floris!
 
-local bgcorner = LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner = "LuaUI/Images/bgcorner.png"
 
 local CMD_PASSIVE       	= 34571
 local spGetMyTeamID     	= Spring.GetMyTeamID

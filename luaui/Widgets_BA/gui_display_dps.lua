@@ -245,7 +245,7 @@ function widget:DrawWorld()
   glDepthTest(true)
   glAlphaTest(GL_GREATER, 0)
   glBlending(GL_SRC_ALPHA, GL_ONE)
-  gl.Texture(1, LUAUI_DIRNAME .. "images/gradient_alpha_2.png")
+  gl.Texture(1, "LuaUI/images/gradient_alpha_2.png")
 
   for i, damage in pairs(damageTable) do
     if (damage.lifeSpan <= 0) then 

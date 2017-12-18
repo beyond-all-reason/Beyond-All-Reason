@@ -115,7 +115,7 @@ local fontPath  		= "LuaUI/Fonts/ebrima.ttf"
 local font2Path  		= "LuaUI/Fonts/ebrima.ttf"
 local myFont	 		= gl.LoadFont("FreeSansBold.otf",textsize, 1.9, 40) --gl.LoadFont(fontPath,textsize,2,20)
 
-local bgcorner	= LUAUI_DIRNAME.."Images/bgcorner.png"
+local bgcorner	= "LuaUI/Images/bgcorner.png"
 
 local images			= {
 	["arm"]					= "LuaUI/Images/ecostats/arm_default.png",
