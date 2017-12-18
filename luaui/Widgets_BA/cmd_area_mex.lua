@@ -55,6 +55,30 @@ local function Distance(x1,z1,x2,z2)
 	return dis
 end
 
+-- local function GetSpotSize(x, z)
+	-- spotSize = 24
+	-- if WG.metalSpots then
+		-- local bestSpot
+		-- local bestDist = math.huge
+		-- local metalSpots = WG.metalSpots
+		-- for i = 1, #metalSpots do
+			-- local spot = metalSpots[i]
+			-- local dx, dz = x - spot.x, z - spot.z
+			-- local dist = dx*dx + dz*dz
+			-- if dist < bestDist then
+				-- bestSpot = spot
+				-- bestDist = dist
+			-- end
+		-- end
+		-- if bestSpot.maxZ and bestSpot.minZ then
+		-- spotSize = math.abs(bestSpot.maxZ - bestSpot.minZ)/2
+		-- end
+	-- else
+		-- spotSize = 24
+	-- end
+	-- return spotSize
+-- end
+
 function widget:UnitCreated(unitID, unitDefID)
   
 	local ud = UnitDefs[unitDefID]
@@ -152,6 +176,9 @@ function widget:CommandNotify(id, params, options)
 		end
 		end
 		
+		local batchSize = 0
+		local shift = options.shift
+
 		for i, id in pairs(units) do -- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
 			if mexBuilder[id] then
 				if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal == maxbatchextracts then
@@ -160,14 +187,14 @@ function widget:CommandNotify(id, params, options)
 				uz = uz+z
 				us = us+1
 				lastprocessedbestbuilder = id
-				batchMexBuilder[id] = true
+				batchSize = batchSize + 1
+				batchMexBuilder[batchSize] = id
 				else
 					if not shift then 
 					spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
-					shift = true
 					end
+				local cmdQueue = Spring.GetUnitCommands(id, 1)
 				spGiveOrderToUnit(id, CMD.GUARD, {lastprocessedbestbuilder} , {"shift"})
-				batchMexBuilder[id] = nil
 				end
 			end
 		end
@@ -205,23 +232,49 @@ function widget:CommandNotify(id, params, options)
 		end
 	
 		local shift = options.shift
-	
-		for i, id in ipairs(units) do 
-			if batchMexBuilder[id] then -- If not superior builder then skip
-				if not shift then 
-					spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
-					shift = true
-				end
+		local ctrl = options.ctrl
+		for ct, id in pairs(batchMexBuilder) do
+			if not shift then 
+				spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
+			end
+		end
+		
+			local shift = true
+		for ct, id in pairs(batchMexBuilder) do 
+
 				for i, command in ipairs(orderedCommands) do
+					local spotSize = 0 -- GetSpotSize(x, z)
+					if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
 					for j=1, mexBuilder[id].buildings do
 						local buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x,spGetGroundHeight(command.x,command.z),command.z,1)
+						newx, newz = command.x, command.z
 						if not (buildable ~= 0) then -- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
-							for ox = -math.sqrt(Game.extractorRadius-25), math.sqrt(Game.extractorRadius-25) do
-								for oz = -math.sqrt(Game.extractorRadius-25), math.sqrt(Game.extractorRadius-25) do
-									if spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1) then
-										buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
-										command.x = command.x + ox
-										command.z = command.z + oz
+							for ox = 0, Game.extractorRadius do
+								for oz = 0, Game.extractorRadius do
+										if math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1) ~= 0 then
+											buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
+											newx = command.x + ox
+											newz = command.z + oz
+											break
+										elseif math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z + oz),command.z + oz,1) ~= 0 then
+											buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
+											newx = command.x - ox
+											newz = command.z + oz
+											break
+										
+										elseif math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z - oz),command.z - oz,1) ~= 0 then
+											buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
+											newx = command.x + ox
+											newz = command.z - oz
+											break
+										
+										elseif math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z - oz),command.z - oz,1) ~= 0 then
+											buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
+											command.x = command.x - ox
+											command.z = command.z - oz
+											break
+										end			
+									if buildable ~= 0 then
 										break
 									end
 								end
@@ -231,13 +284,13 @@ function widget:CommandNotify(id, params, options)
 							end
 						end
 						if buildable ~= 0 then
-							spGiveOrderToUnit(id, mexBuilder[id].building[j], {command.x,spGetGroundHeight(command.x,command.z),command.z} , {"shift"})
+							spGiveOrderToUnit(id, mexBuilder[id].building[j], {newx,spGetGroundHeight(newx,newz),newz} , {"shift"})
 							break
 						end
 					end
 				end
+				end
 			end
-		end
 		
   
 		return true
