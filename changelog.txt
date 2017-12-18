@@ -43,8 +43,6 @@ Balance changes:
  • AA missile range increased a tiny bit
  • T1 aa: pack0 and sam range increased, missile damage increased slightly and price increased 10%
  • Fighters have been given more range due to slower missile speed and missile turnrate
- • Fighters have been given an a2a and a2g missile, the a2g missile has shorter range
- • Fighters (T1,T2,seaplanes) a2g missiles damages 75% decreased (default) and do 50% less damages than default to commanders.
 
  Long range plasma
  • Plasma shields are 50% weaker to non LRPC shots, 10% more range, cost reduced by 20%.
