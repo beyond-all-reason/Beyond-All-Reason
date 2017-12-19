@@ -81,14 +81,14 @@ function UnitDef_Post(name, uDef)
 		wingsurffactor = tonumber(uDef.customparams and uDef.customparams.wingsurface) or 1
 		uDef.usesmoothmesh = true
 		uDef.wingdrag = 0.07/2 + uDef.brakerate * 2
-		uDef.wingangle = 0.08/2 + turn/2
-		uDef.speedtofront = 0.07*(3/4 + wingsurffactor/4)
+		uDef.wingangle = 0.08*3/4 + turn/4
+		uDef.speedtofront = 0.07*(5/6 + wingsurffactor/6)
 		uDef.turnradius = 64
 		uDef.maxbank = 0.8
 		uDef.maxpitch = 0.8/2 + 0.45/2
-		uDef.maxaileron =0.015/2 + turn/2
-		uDef.maxelevator =0.01/2 + turn/2
-		uDef.maxrudder = 0.004/2 + turn/2
+		uDef.maxaileron =0.015*3/4 + turn/4
+		uDef.maxelevator =0.01*3/4 + turn/4
+		uDef.maxrudder = 0.004*3/4 + turn/4
 		uDef.maxacc = 0.065/2 + uDef.acceleration/2
 	end
 	-- Enable default Nanospray
