@@ -855,17 +855,53 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 			Spring.SendCommands("luarules reloadluaui")
 		elseif id == 'buildmenuoldicons' then
-			WG['red_buildmenu'].setConfigOldUnitIcons(options[i].value)
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].oldUnitpics = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigOldUnitIcons(options[i].value)
+			end
 		elseif id == 'buildmenushortcuts' then
-			WG['red_buildmenu'].setConfigShortcutsInfo(options[i].value)
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].shortcutsInfo = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigShortcutsInfo(options[i].value)
+			end
 		elseif id == 'buildmenuprices' then
-			WG['red_buildmenu'].setConfigUnitPrice(options[i].value)
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].drawPrice = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigUnitPrice(options[i].value)
+			end
 		elseif id == 'buildmenusounds' then
-			WG['red_buildmenu'].setConfigPlaySounds(options[i].value)
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].playSounds = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigPlaySounds(options[i].value)
+			end
 		elseif id == 'buildmenutooltip' then
-			WG['red_buildmenu'].setConfigUnitTooltip(options[i].value)
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].drawTooltip = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigUnitTooltip(options[i].value)
+			end
 		elseif id == 'buildmenubigtooltip' then
-			WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].drawBigTooltip = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
+			end
 		elseif id == 'bloomhighlights' then
 			if widgetHandler.configData["Bloom Shader"] == nil then
 				widgetHandler.configData["Bloom Shader"] = {}
@@ -875,11 +911,29 @@ function applyOptionValue(i, skipRedrawWindow)
 				WG['bloom'].setAdvBloom(options[i].value)
 			end
 		elseif id == 'snowmap' then
-			WG['snow'].setSnowMap(options[i].value)
+			if widgetHandler.configData["Snow"] == nil then
+				widgetHandler.configData["Snow"] = {}
+			end
+			widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] = options[i].value
+			if WG['snow'] ~= nil then
+				WG['snow'].setSnowMap(options[i].value)
+			end
 		elseif id == 'snowautoreduce' then
-			WG['snow'].setAutoReduce(options[i].value)
+			if widgetHandler.configData["Snow"] == nil then
+				widgetHandler.configData["Snow"] = {}
+			end
+			widgetHandler.configData["Snow"].autoReduce = options[i].value
+			if WG['snow'] ~= nil then
+				WG['snow'].setAutoReduce(options[i].value)
+			end
 		elseif id == 'darkenmap_darkenfeatures' then
-			WG['darkenmap'].setDarkenFeatures(options[i].value)
+			if widgetHandler.configData["Darken map"] == nil then
+				widgetHandler.configData["Darken map"] = {}
+			end
+			widgetHandler.configData["Darken map"].darkenFeatures = options[i].value
+			if WG['darkenmap'] ~= nil then
+				WG['darkenmap'].setDarkenFeatures(options[i].value)
+			end
 		elseif id == 'enemyspotter_highlight' then
 			if widgetHandler.configData.EnemySpotter == nil then
 				widgetHandler.configData.EnemySpotter = {}
@@ -889,7 +943,13 @@ function applyOptionValue(i, skipRedrawWindow)
 				WG['enemyspotter'].setHighlight(options[i].value)
 			end
 		elseif id == 'smartselect_includebuildings' then
-			WG['smartselect'].setIncludeBuildings(options[i].value)
+			if widgetHandler.configData["SmartSelect"] == nil then
+				widgetHandler.configData["SmartSelect"] = {}
+			end
+			widgetHandler.configData["SmartSelect"].selectBuildingsWithMobile = options[i].value
+			if WG['smartselect'] ~= nil then
+				WG['smartselect'].setIncludeBuildings(options[i].value)
+			end
 		elseif id == 'lighteffects' then
 			if value ~= 0 then
 				if widgetHandler.orderList["Deferred rendering"] ~= nil then
@@ -995,9 +1055,24 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'crossalpha' then
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
-			WG['darkenmap'].setMapDarkness(value)
+			if widgetHandler.configData["Darken map"] == nil then
+				widgetHandler.configData["Darken map"] = {}
+			end
+			if widgetHandler.configData["Darken map"].maps == nil then
+				widgetHandler.configData["Darken map"].maps = {}
+			end
+			widgetHandler.configData["Darken map"].maps[Game.mapName:lower()] = value
+			if WG['darkenmap'] ~= nil then
+				WG['darkenmap'].setMapDarkness(value)
+			end
 		elseif id == 'iconadjuster' then
-			WG['iconadjuster'].setScale(value)
+			if widgetHandler.configData["Icon adjuster"] == nil then
+				widgetHandler.configData["Icon adjuster"] = {}
+			end
+			widgetHandler.configData["Icon adjuster"].iconScale = value
+			if WG['iconadjuster'] ~= nil then
+				WG['iconadjuster'].setScale(value)
+			end
 		elseif id == 'bloombrightness' then
 			if widgetHandler.configData["Bloom Shader"] == nil then
 				widgetHandler.configData["Bloom Shader"] = {}
@@ -1071,7 +1146,13 @@ function applyOptionValue(i, skipRedrawWindow)
 				WG['enemyspotter'].setOpacity(value)
 			end
 		elseif id == 'highlightselunits_opacity' then
-			WG['highlightselunits'].setOpacity(value)
+			if widgetHandler.configData["Highlight Selected Units"] == nil then
+				widgetHandler.configData["Highlight Selected Units"] = {}
+			end
+			widgetHandler.configData["Highlight Selected Units"].highlightAlpha = value
+			if WG['highlightselunits'] ~= nil then
+				WG['highlightselunits'].setOpacity(value)
+			end
 		elseif id == 'bloom' then
 			if value > 0 then
 				widgetHandler:EnableWidget(options[i].widget)
@@ -1088,7 +1169,7 @@ function applyOptionValue(i, skipRedrawWindow)
 				widgetHandler:DisableWidget(options[i].widget)
 			end
 		end
-		
+
 	elseif options[i].type == 'select' then
 		local value =  options[i].value
 		if id == 'preset' then
@@ -1111,7 +1192,13 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SendCommands('viewfree')
 			end
 		elseif id == 'cursor' then
-			WG['cursors'].setcursor(options[i].options[value])
+			if widgetHandler.configData["Cursors"] == nil then
+				widgetHandler.configData["Cursors"] = {}
+			end
+			widgetHandler.configData["Cursors"].cursorSet = options[i].options[value]
+			if WG['cursors'] ~= nil then
+				WG['cursors'].setcursor(options[i].options[value])
+			end
 		end
 	end
 	if skipRedrawWindow == nil then
@@ -1614,7 +1701,8 @@ function init()
 		--{id="fancyselunits", group="gfx", widget="Fancy Selected Units", name="Fancy Selected Units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description=''},
 
 		--{id="fpstimespeed", group="ui", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
-		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Time/speed/fps on top of playerlist", type="bool", value=GetWidgetToggleValue("AdvPlayersList info"), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
+		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Playerlist time/speed/fps", type="bool", value=GetWidgetToggleValue("AdvPlayersList info"), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
+		{id="mascotte", group="ui", widget="AdvPlayersList mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList mascotte"), description='Shows a mascotte on top of the (adv)playerslist'},
 
 		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=GetWidgetToggleValue("Display DPS"), description='Display the \'Damage Per Second\' done where target are hit'},
 
@@ -1853,7 +1941,8 @@ function widget:Shutdown()
     end
     if windowList then
         glDeleteList(windowList)
-    end
+	end
+	WG['options'] = nil
 end
 
 

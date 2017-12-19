@@ -1078,6 +1078,7 @@ function widget:Shutdown()
 		widgetHandler:ConfigLayoutHandler(true)
 		Spring.ForceLayoutUpdate()
 	end
+	WG['red_buildmenu'] = nil
 end
 
 local function GetCommands()

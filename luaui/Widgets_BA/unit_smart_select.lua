@@ -433,8 +433,13 @@ function init()
 		mobileFilter[udid] = mobile
 	end
 end
+
+function widget:Shutdown()
+	WG['smartselect'] = nil
+end
+
 function widget:Initialize()
-	
+
   WG['smartselect'] = {}
   WG['smartselect'].getIncludeBuildings = function()
   	return selectBuildingsWithMobile

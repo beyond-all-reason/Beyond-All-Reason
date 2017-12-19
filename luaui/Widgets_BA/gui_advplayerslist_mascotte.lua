@@ -182,19 +182,21 @@ function updatePosition(force)
 		else
 			parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
-		usedImgSize = OPTIONS[currentOption]['imageSize'] * parentPos[5]
-		xPos = parentPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * parentPos[5])
-		yPos = parentPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * parentPos[5])
-		
-		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
-			createList(usedImgSize)
+		if parentPos[5] ~= nil then
+			usedImgSize = OPTIONS[currentOption]['imageSize'] * parentPos[5]
+			xPos = parentPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * parentPos[5])
+			yPos = parentPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * parentPos[5])
+
+			if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
+				createList(usedImgSize)
+			end
 		end
 	end
 end
 
 
 function widget:Initialize()
-  loadOption()
+	loadOption()
 	updatePosition()
 end
 

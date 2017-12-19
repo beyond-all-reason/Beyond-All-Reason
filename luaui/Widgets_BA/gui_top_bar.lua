@@ -1631,4 +1631,5 @@ function widget:Shutdown()
 		WG['tooltip'].RemoveTooltip(res..'_storage')
 		WG['tooltip'].RemoveTooltip(res..'_curent')
 	end
+	WG['topbar'] = nil
 end

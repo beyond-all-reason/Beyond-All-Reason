@@ -86,6 +86,7 @@ function widget:Shutdown()
 		    WG['guishader_api'].RemoveRect('tooltip_'..name)
         end
 	end
+	WG['tooltip'] = nil
 end
 
 function init()

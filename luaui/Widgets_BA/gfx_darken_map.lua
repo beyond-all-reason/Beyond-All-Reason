@@ -29,22 +29,26 @@ local gaia = Spring.GetGaiaTeamID()
 local camX, camY, camZ = Spring.GetCameraPosition()
 local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
 
+function widget:Shutdown()
+	WG['darkenmap'] = nil
+end
+
 function widget:Initialize()
-  WG['darkenmap'] = {}
-  WG['darkenmap'].getMapDarkness = function()
-  	return darknessvalue
-  end
-  WG['darkenmap'].setMapDarkness = function(value)
-  	darknessvalue = tonumber(value)
-  	maps[currentMapname] = darknessvalue
-  end
-  WG['darkenmap'].getDarkenFeatures = function()
-  	return darkenFeatures
-  end
-  WG['darkenmap'].setDarkenFeatures = function(value)
-  	darkenFeatures = value
-  end
-  
+	WG['darkenmap'] = {}
+	WG['darkenmap'].getMapDarkness = function()
+		return darknessvalue
+	end
+	WG['darkenmap'].setMapDarkness = function(value)
+		darknessvalue = tonumber(value)
+		maps[currentMapname] = darknessvalue
+	end
+	WG['darkenmap'].getDarkenFeatures = function()
+		return darkenFeatures
+	end
+	WG['darkenmap'].setDarkenFeatures = function(value)
+		darkenFeatures = value
+	end
+
 	widgetHandler:AddAction("mapdarkness", mapDarkness, nil, "t")
 end
 

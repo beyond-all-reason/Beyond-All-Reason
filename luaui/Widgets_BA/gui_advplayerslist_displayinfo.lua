@@ -207,6 +207,7 @@ function widget:Shutdown()
 	Spring.SendCommands("fps 1")
 	Spring.SendCommands("clock 1")
 	Spring.SendCommands("speed 1")
+	WG['displayinfo'] = nil
 end
 
 local passedTime = 0

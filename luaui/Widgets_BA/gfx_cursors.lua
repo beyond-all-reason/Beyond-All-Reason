@@ -27,6 +27,10 @@ function table_invert(t)
 end
 local cursorSetsInv = table_invert(cursorSets)
 
+function widget:Shutdown()
+	WG['cursors'] = nil
+end
+
 function widget:Initialize()
     SetCursor(Settings['cursorSet'])
 	  WG['cursors'] = {}

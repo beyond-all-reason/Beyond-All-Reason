@@ -425,6 +425,7 @@ function widget:Shutdown()
 			gl.DeleteShader(combineShader or 0)
 		end
 	end
+	WG['bloom'] = nil
 end
 
 

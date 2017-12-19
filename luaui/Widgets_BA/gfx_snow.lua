@@ -167,6 +167,7 @@ local startOsClock = os.clock()
 
 function widget:Shutdown()
 	removeSnow()
+	WG['snow'] = nil
 end
 
 function removeSnow()

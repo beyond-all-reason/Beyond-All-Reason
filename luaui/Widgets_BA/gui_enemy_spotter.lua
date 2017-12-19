@@ -294,7 +294,7 @@ end
 
 
 function widget:Shutdown()
-	
+	WG['enemyspotter'] = nil
 	if shader then
 		gl.DeleteShader(shader)
 	end
