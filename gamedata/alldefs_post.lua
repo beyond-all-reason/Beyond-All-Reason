@@ -82,7 +82,7 @@ function UnitDef_Post(name, uDef)
 		uDef.usesmoothmesh = true
 		uDef.wingdrag = 0.07/2 + uDef.brakerate * 2
 		uDef.wingangle = 0.08/2 + turn/2
-		uDef.speedtofront = 0.07*(1/2 + wingsurffactor/2)
+		uDef.speedtofront = 0.07*(3/4 + wingsurffactor/4)
 		uDef.turnradius = 64
 		uDef.maxbank = 0.8
 		uDef.maxpitch = 0.8/2 + 0.45/2
