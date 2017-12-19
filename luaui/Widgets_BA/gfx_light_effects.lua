@@ -47,7 +47,7 @@ local globalLightMult = 1.2
 local globalRadiusMult = 1.2
 local globalLightMultLaser = 1.1
 local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.65
+local globalLifeMult = 0.6
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -612,7 +612,7 @@ function widget:GetConfigData(data)
 	savedTable.globalLightMultLaser = globalLightMultLaser
 	savedTable.globalRadiusMultLaser = globalRadiusMultLaser
 	savedTable.globalLifeMult = globalLifeMult
-	savedTable.resetted = 1.1
+	savedTable.resetted = 1.2
 	return savedTable
 end
 
@@ -629,7 +629,7 @@ function widget:SetConfigData(data)
 	if data.globalRadiusMultLaser ~= nil then
 		globalRadiusMultLaser = data.globalRadiusMultLaser
 	end
-	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.1 then
+	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.2 then
 		globalLifeMult = data.globalLifeMult
 	end
 end
