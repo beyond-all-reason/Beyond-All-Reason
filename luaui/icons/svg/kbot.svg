@@ -15,7 +15,10 @@
    inkscape:version="0.48.4 r9939"
    width="256"
    height="256"
-   sodipodi:docname="kbot.png">
+   sodipodi:docname="kbot.svg"
+   inkscape:export-filename="C:\Users\PtaQ\Documents\GitHub\Balanced-Annihilation\luaui\icons\kbot.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
   <metadata
      id="metadata8">
     <rdf:RDF>
@@ -92,12 +95,12 @@
      inkscape:window-height="1018"
      id="namedview4"
      showgrid="false"
-     inkscape:zoom="0.11523438"
-     inkscape:cx="-1239.3265"
-     inkscape:cy="672.09394"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1"
+     inkscape:zoom="0.921875"
+     inkscape:cx="451.91945"
+     inkscape:cy="-6.2928787"
+     inkscape:window-x="-32000"
+     inkscape:window-y="-32000"
+     inkscape:window-maximized="0"
      inkscape:current-layer="svg2" />
   <path
      sodipodi:type="arc"
