@@ -176,7 +176,7 @@ return {
 				texture1 = "trans",
 				tolerance = 9950,
 				tracks = true,
-				turnrate = 1.5*68000,
+				turnrate = 68000,
 				turret = true,
 				weaponacceleration = 250,
 				weapontimer = 5,
