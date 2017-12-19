@@ -184,7 +184,7 @@ return {
 				texture2 = "armsmoketrail",
 				tolerance = 9000,
 				tracks = true,
-				turnrate = 1.5*63000,
+				turnrate = 63000,
 				turret = true,
 				weaponacceleration = 250,
 				weapontimer = 5,
