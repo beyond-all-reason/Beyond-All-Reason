@@ -120,7 +120,7 @@ function widget:DrawScreen()
 			glCallList(drawlist[1])
 			local mx,my = Spring.GetMouseState()
 			if widget:IsAbove(mx,my) then
-				local textWidth = glGetTextWidth(..discordLink) * 13
+				local textWidth = glGetTextWidth(discordLink) * 13
 				glText(discordLink, -(textWidth+6+iconSize)*parentPos[5], 12*parentPos[5], 13*parentPos[5], "no")
 			end
 		glPopMatrix()
