@@ -13,6 +13,7 @@ static-var  restore_delay;
 #define SIG_AIM				4
 #define SIG_AIM_2			8
 #define SIG_AIM_3			16
+#define SIG_MOVE			32
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -85,7 +86,7 @@ RestoreAfterDelay()
 	turn body to x-axis <0.000000> speed <150.000000>;
 }
 
-StartMoving()
+MoveRate2()
 {
 	spin bladestop around y-axis speed <600.357143> accelerate <50.005495>;
 	spin bladesbottom around y-axis speed <-600.357143> accelerate <50.005495>;
@@ -94,7 +95,15 @@ StartMoving()
 	sleep 1000;
 }
 
-StopMoving()
+MoveRate1()
+{
+	spin bladestop around y-axis speed <300.357143> accelerate <50.005495>;
+	spin bladesbottom around y-axis speed <-300.357143> accelerate <50.005495>;
+	turn wing2top to z-axis <45.016484> speed <30.000000>;
+	turn wing3top to z-axis <-45.016484> speed <30.000000>;
+}
+
+MoveRate0()
 {
 	stop-spin bladestop around y-axis decelerate <20.005495>;
 	stop-spin bladesbottom around y-axis decelerate <20.005495>;
