@@ -1153,21 +1153,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['highlightselunits'] ~= nil then
 				WG['highlightselunits'].setOpacity(value)
 			end
-		elseif id == 'bloom' then
-			if value > 0 then
-				widgetHandler:EnableWidget(options[i].widget)
-				if luaShaders ~= 1 and not enabledLuaShaders then
-					Spring.SetConfigInt("ForceShaders", 1)
-					enabledLuaShaders = true
-				end
-			end
-			if value == 1 then
-				WG['bloom'].setAdvBloom(false)
-			elseif value == 2 then
-				WG['bloom'].setAdvBloom(true)
-			else
-				widgetHandler:DisableWidget(options[i].widget)
-			end
 		end
 
 	elseif options[i].type == 'select' then
@@ -1251,8 +1236,7 @@ end
 
 function widget:GetTooltip(mx, my)
 	if show and widget:IsAbove(mx,my) then
-		return string.format(
-			"")
+		return string.format("")
 	end
 end
 

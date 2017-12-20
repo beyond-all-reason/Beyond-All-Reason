@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local discordLink = 'discord.me/balancedannihilation'
+
 local iconTexture = ":n:LuaUI/Images/discord.png"
 local iconSize = 32
 
@@ -118,8 +120,8 @@ function widget:DrawScreen()
 			glCallList(drawlist[1])
 			local mx,my = Spring.GetMouseState()
 			if widget:IsAbove(mx,my) then
-				local textWidth = glGetTextWidth("discord.gg/aDtX3hW") * 13
-				glText("discord.gg/aDtX3hW", -(textWidth+6+iconSize)*parentPos[5], 12*parentPos[5], 13*parentPos[5], "no")
+				local textWidth = glGetTextWidth(..discordLink) * 13
+				glText(discordLink, -(textWidth+6+iconSize)*parentPos[5], 12*parentPos[5], 13*parentPos[5], "no")
 			end
 		glPopMatrix()
 		mouseover = false
@@ -132,7 +134,7 @@ end
 
 function widget:MousePress(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
-		Spring.SendCommands("say BA's discord server: https://discord.gg/aDtX3hW")
+		Spring.SendCommands("say BA's discord server: "..discordLink)
 		widgetHandler:RemoveWidget(self)
 		return true
 	end
@@ -153,6 +155,6 @@ end
 
 function widget:GetTooltip(mx, my)
 	if widget:IsAbove(mx,my) then
-		return string.format("We have our own Discord server now!\nour central community hub (chat/voice/info)\n\ndiscord.gg/aDtX3hW")
+		return string.format("We have our own Discord server now!\nour central community hub (chat/voice/info)\n\n"..discordLink)
 	end
 end
