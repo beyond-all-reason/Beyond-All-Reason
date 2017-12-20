@@ -317,8 +317,19 @@ local moveDatas = {
 			minHeight = 4,
 			linearCoeff = 0.03,
 			maxValue = 0.7,
-		}
-		
+		}	
+	},
+	KBOT12X2 = {
+		crushstrength = 5,
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 36,
+		maxwaterdepth = 5,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}	
 	},
     KBOT2 = {
         crushstrength = 10,
