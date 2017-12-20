@@ -23,7 +23,7 @@ if gadgetHandler:IsSyncedCode() then
 			xmasballUdefID = udefID
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = 25
+			hasDecoration[udefID] = 30
 		end
 	end
 
@@ -96,7 +96,7 @@ if gadgetHandler:IsSyncedCode() then
 				local amount = hasDecoration[data[5]]
 				while i < amount do
 					local teamID = data[4]
-					if addGaiaBalls and random > 0.5 then
+					if addGaiaBalls and random() > 0.5 then
 						teamID = gaiaTeamID
 					end
 					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, teamID)
