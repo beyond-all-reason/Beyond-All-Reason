@@ -23,9 +23,11 @@ if gadgetHandler:IsSyncedCode() then
 			xmasballUdefID = udefID
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = 11
+			hasDecoration[udefID] = 25
 		end
 	end
+
+	local addGaiaBalls = true
 
 	local decorationLifeTime = 45*25
 	local decorationLifeTimeVariation = 30*15
@@ -37,8 +39,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local candycaneAmount = math.ceil((Game.mapSizeX*Game.mapSizeZ)/1500000)
 	local candycanes = {}
-
-	local GaiaTeam = Spring.GetGaiaTeamID()
+	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local random = math.random
 	local GetGroundHeight = Spring.GetGroundHeight
 
@@ -94,12 +95,16 @@ if gadgetHandler:IsSyncedCode() then
 				local uID
 				local amount = hasDecoration[data[5]]
 				while i < amount do
-					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, data[4])
+					local teamID = data[4]
+					if addGaiaBalls and random > 0.5 then
+						teamID = gaiaTeamID
+					end
+					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, teamID)
 					if uID ~= nil then
 						decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
 						setGaiaUnitSpecifics(uID)
 						Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
-						Spring.AddUnitImpulse(uID, (random()-0.5)*4.2, 1+(random()*5.2), (random()-0.5)*4.2)
+						Spring.AddUnitImpulse(uID, (random()-0.5)*4.7, 1+(random()*9.5), (random()-0.5)*4.7)
 					end
 					i = i + 1
 				end
@@ -116,7 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 				--Spring.SetUnitPosition(unitID,x,y,z)
 				--Spring.SetUnitVelocity(unitID,0,random()*20,0)
 				Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
-				Spring.AddUnitImpulse(unitID, (random()-0.5)*1.5, 2.5+(random()*1), (random()-0.5)*1.5)
+				Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
 			end
 		end
 		createdDecorations = {}

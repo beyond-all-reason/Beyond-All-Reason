@@ -1,5 +1,5 @@
 ﻿9.46 -> 10.00
-XX/12/2017
+20/12/2017
 
 Important:
  • Renamed widget folder to Widgets_BA (if you want custom widgets, (re)name your widget folder)
