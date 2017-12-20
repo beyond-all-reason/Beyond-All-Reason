@@ -43,6 +43,7 @@ local spGetGameSeconds = Spring.GetGameSeconds
 local message = ""
 local message2 = ""
 local message3 = ""
+local message4 = ""
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -74,6 +75,10 @@ function widget:Initialize()
   if (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
 	message2 = "Commanders survive DGuns and commander explosions"
   end
+    
+  if Spring.GetModOptions().mo_unba or "disabled" ~= "disabled" then
+	message4 = "Unbalanced Commanders is enabled: Commander will level up and gain upgrades"
+  end
   
   if (tonumber(Spring.GetModOptions().mo_armageddontime) or -1) > 0 then
     plural = ""
@@ -97,12 +102,14 @@ function widget:DrawScreen()
   local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
   local msg2 = colorStr .. message2
   local msg3 = "\255\255\0\0" .. message3
+  local msg4 = colorStr .. message4
   glPushMatrix()
   glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
   glText(msg, 0, 15*widgetScale, 18*widgetScale, "oc")
   glText(msg2, 0, -35*widgetScale, 12.5*widgetScale, "oc")
   glText(msg3, 0, -55*widgetScale, 11*widgetScale, "oc")
+  glText(msg4, 0, -75*widgetScale, 12.5*widgetScale, "oc")
   glPopMatrix()
 end
 
