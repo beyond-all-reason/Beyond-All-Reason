@@ -15,24 +15,24 @@ Balance changes:
  • Wrecks reclaim speed is more dependant on reclaimer's reclaimSpeed and reclaimSpeeds have been overall reduced (-10%).
 
  Movement
- • Raw unit movement implemented
- • Pathing improvement: units won't get stuck in cliffs any longer
- • Pathing improvement: units won't go back and forth while walking along a cliff
+ • Raw unit movement implemented.
+ • Pathing improvement: units won't get stuck in cliffs any longer.
+ • Pathing improvement: units won't go back and forth while walking along a cliff.
  • Vehicles with tracks can turn-in-place. The angle limit depends on the unit's turnrate (equal to the turn that can be performed in one second). Wheeled vehicles cannot do this (Jeffy/Samson) 
  • Tachyons, artillery and banishers can move in reverse at 60% max speed.
  • Improved Air Units manoeuvrability and lowered TurnRadius (allowing close move commands)
 
  Commanders
  • Diminished blast radius damages versus Commanders, still lethal at dgun range.
- • Torso turnspeed increased 33% + dgun reloadspeed reduced 10%
+ • Torso turnspeed increased 33% + dgun reloadspeed reduced 10%.
  • UWLaser damages increased to 150 dps (default) and 75 dps (subs).
- • Decoy commanders have been given same lasers as regular commanders
+ • Decoy commanders have been given same lasers as regular commanders.
  • Decoy commanders 8% cheaper + same buildpower as com + added Radar, LLT and AA as buildoptions
  
  Air
  • Air transports unload bug fixed: don't have collision enabled anymore
  • Thunder hp increased 560 -> 600 and speed increased 8.15 -> 8.50.
- • Fixed flak doing ludicrous damage to ground units
+ • Fixed flak doing ludicrous damage to ground units.
  • T2 bombers are in between current and right before the nerf of ba v7.92 (now better buildtime and cost less energy)
  • Airlab costs decreased (1500e -> 1370 arm and 1400 core, 900 m -> 850m arm and 1000m -> 870m core).
  • Chainsaw costs 8700e 750m => 7000e/600m, airlos 1000 -> 1200, range 1200 ->1250
