@@ -1095,7 +1095,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['red_chatonlyconsole'] ~= nil then
 				WG['red_chatonlyconsole'].setMaxLines(value)
 			end
-			
+
 			if widgetHandler.configData["Red Console (old)"] == nil then
 				widgetHandler.configData["Red Console (old)"] = {}
 			end
@@ -1108,6 +1108,34 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Red Console (old)"].Config.console.maxlines = value
 			if WG['red_console'] ~= nil then
 				WG['red_console'].setMaxLines(value)
+			end
+		elseif id == 'consolefontsize' then
+			if widgetHandler.configData["Red Console (In-game chat only)"] == nil then
+				widgetHandler.configData["Red Console (In-game chat only)"] = {}
+			end
+			if widgetHandler.configData["Red Console (In-game chat only)"].Config == nil then
+				widgetHandler.configData["Red Console (In-game chat only)"].Config = {}
+			end
+			if widgetHandler.configData["Red Console (In-game chat only)"].Config.console == nil then
+				widgetHandler.configData["Red Console (In-game chat only)"].Config.console = {}
+			end
+			widgetHandler.configData["Red Console (In-game chat only)"].Config.console.fontsize = value
+			if WG['red_chatonlyconsole'] ~= nil then
+				WG['red_chatonlyconsole'].setFontsize(value)
+			end
+
+			if widgetHandler.configData["Red Console (old)"] == nil then
+				widgetHandler.configData["Red Console (old)"] = {}
+			end
+			if widgetHandler.configData["Red Console (old)"].Config == nil then
+				widgetHandler.configData["Red Console (old)"].Config = {}
+			end
+			if widgetHandler.configData["Red Console (old)"].Config.console == nil then
+				widgetHandler.configData["Red Console (old)"].Config.console = {}
+			end
+			widgetHandler.configData["Red Console (old)"].Config.console.fontsize = value
+			if WG['red_console'] ~= nil then
+				WG['red_console'].setFontsize(value)
 			end
 		elseif id == 'guishaderintensity' then
 			if widgetHandler.configData["GUI-Shader"] == nil then
@@ -1547,6 +1575,20 @@ function loadWidgetConfigData()
 		end
 	end
 
+	if widgetHandler.configData["Red Console (In-game chat only)"] ~= nil and widgetHandler.configData["Red Console (In-game chat only)"].Config ~= nil and widgetHandler.configData["Red Console (In-game chat only)"].Config.console ~= nil and widgetHandler.configData["Red Console (In-game chat only)"].Config.console.fontsize ~= nil then
+		if options[getOptionByID("consolefontsize")].value ~= widgetHandler.configData["Red Console (In-game chat only)"].Config.console.fontsize then
+			options[getOptionByID("consolefontsize")].value = widgetHandler.configData["Red Console (In-game chat only)"].Config.console.fontsize
+			changes = true
+		end
+	end
+
+	if widgetHandler.configData["Red Console (old)"] ~= nil and widgetHandler.configData["Red Console (old)"].Config ~= nil and widgetHandler.configData["Red Console (old)"].Config.console ~= nil and widgetHandler.configData["Red Console (old)"].Config.console.fontsize ~= nil then
+		if options[getOptionByID("consolefontsize")].value ~= widgetHandler.configData["Red Console (old)"].Config.console.fontsize then
+			options[getOptionByID("consolefontsize")].value = widgetHandler.configData["Red Console (old)"].Config.console.fontsize
+			changes = true
+		end
+	end
+
 	if widgetHandler.configData["GUI-Shader"] ~= nil and widgetHandler.configData["GUI-Shader"].blurIntensity ~= nil then
 		if options[getOptionByID("guishaderintensity")].value ~= widgetHandler.configData["GUI-Shader"].blurIntensity then
 			options[getOptionByID("guishaderintensity")].value = widgetHandler.configData["GUI-Shader"].blurIntensity
@@ -1715,6 +1757,7 @@ function init()
 
 		{id="oldconsole", group="ui", name="Old console (single)", type="bool", value=GetWidgetToggleValue("Red Console (old)"), description='Enable old console that doesnt separate system and chat messages'},
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
+		{id="consolefontsize", group="ui", name="Console max lines", type="slider", min=8, max=18, step=0.5, value=11.5, description=''},
 
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},

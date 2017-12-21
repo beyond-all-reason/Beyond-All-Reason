@@ -802,6 +802,15 @@ function widget:Initialize()
 			console.vars._forceupdate = true
 		end
 	end
+	WG['red_chatonlyconsole'].getFontsize = function()
+		return Config.console.fontsize/widgetScale
+	end
+	WG['red_chatonlyconsole'].setFontsize = function(value)
+		Config.console.fontsize = value*widgetScale
+		if console ~= nil and console.vars ~= nil then
+			console.vars._forceupdate = true
+		end
+	end
 end
 
 function widget:GameOver()
@@ -827,6 +836,16 @@ function widget:Update()
 	AutoResizeObjects()
 end
 
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+	Config.console.fontsize = Config.console.fontsize/widgetScale
+	widgetScale = (1 + (vsx*vsy / 4000000))
+	Config.console.fontsize = Config.console.fontsize*widgetScale
+	if console ~= nil and console.vars ~= nil then
+		console.vars._forceupdate = true
+	end
+end
+
 --save/load stuff
 --currently only position
 function widget:GetConfigData() --save config
@@ -834,6 +853,7 @@ function widget:GetConfigData() --save config
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
+		Config.console.fontsize = Config.console.fontsize/widgetScale
 		return {Config=Config}
 	end
 end
@@ -843,6 +863,9 @@ function widget:SetConfigData(data) --load config
 		--Config.console.py = data.Config.console.py
 		if data.Config.console.maxlines ~= nil then
 			Config.console.maxlines = data.Config.console.maxlines
+		end
+		if data.Config.console.fontsize ~= nil then
+			Config.console.fontsize = data.Config.console.fontsize*widgetScale
 		end
 	end
 end
