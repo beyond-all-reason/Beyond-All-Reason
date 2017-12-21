@@ -76,7 +76,7 @@ function widget:Initialize()
 	message2 = "Commanders survive DGuns and commander explosions"
   end
     
-  if Spring.GetModOptions().mo_unba or "disabled" ~= "disabled" then
+  if (Spring.GetModOptions().mo_unba or "disabled") ~= "disabled" then
 	message4 = "Unbalanced Commanders is enabled: Commander will level up and gain upgrades"
   end
   
