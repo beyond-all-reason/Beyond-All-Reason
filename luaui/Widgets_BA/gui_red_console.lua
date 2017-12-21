@@ -791,6 +791,17 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
 	AutoResizeObjects()
+
+	WG['red_console'] = {}
+	WG['red_console'].getMaxLines = function()
+		return Config.console.maxlines
+	end
+	WG['red_console'].setMaxLines = function(value)
+		Config.console.maxlines = value
+		if console ~= nil and console.vars ~= nil then
+			console.vars._forceupdate = true
+		end
+	end
 end
 
 function widget:GameOver()
@@ -799,6 +810,7 @@ end
 
 function widget:Shutdown()
 	Spring.SendCommands("console 1")
+	WG['red_console'] = nil
 end
 
 function widget:AddConsoleLine(lines,priority)
@@ -818,7 +830,7 @@ end
 --save/load stuff
 --currently only position
 function widget:GetConfigData() --save config
-	if (PassedStartupCheck) then
+	if (console ~= nil) then
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
@@ -829,5 +841,8 @@ function widget:SetConfigData(data) --load config
 	if (data.Config ~= nil) then
 		--Config.console.px = data.Config.console.px
 		--Config.console.py = data.Config.console.py
+		if data.Config.console.maxlines ~= nil then
+			Config.console.maxlines = data.Config.console.maxlines
+		end
 	end
 end

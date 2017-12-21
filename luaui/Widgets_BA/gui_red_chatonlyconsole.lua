@@ -57,7 +57,7 @@ local Config = {
 		minlines = 2, --minimal number of lines to display
 		maxlines = 6,
 		maxlinesScrollmode = 10,
-		
+
 		maxage = 60, --max time for a message to be displayed, in seconds
 		
 		margin = 7*widgetScale, --distance from background border
@@ -466,15 +466,15 @@ local function processLine(line,g,cfg,newlinecolor)
 	local text = ""
 	local linetype = 0 --other
 	if Initialized == true then
-	ignoreThisMessage = true
+		ignoreThisMessage = true
 	else
-	ignoreThisMessage = false
+		ignoreThisMessage = false
 	end
 	
 	if sfind(line, "My player ID is") and sfind(line, regID) and not nameregistered then
-	-- Spring.SendCommands("say Registration ID found")
-	registermyname = true
-	ignoreThisMessage = true
+		-- Spring.SendCommands("say Registration ID found")
+		registermyname = true
+		ignoreThisMessage = true
 	end
 	
 	if (not newlinecolor) then
@@ -823,7 +823,7 @@ local function updateconsole(g,cfg)
 end
 
 function widget:Initialize()
-regID = tostring(Spring.GetMyPlayerID())
+	regID = tostring(Spring.GetMyPlayerID())
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 	
@@ -831,6 +831,17 @@ regID = tostring(Spring.GetMyPlayerID())
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
 	AutoResizeObjects()
+
+	WG['red_chatonlyconsole'] = {}
+	WG['red_chatonlyconsole'].getMaxLines = function()
+		return Config.console.maxlines
+	end
+	WG['red_chatonlyconsole'].setMaxLines = function(value)
+		Config.console.maxlines = value
+		if console ~= nil and console.vars ~= nil then
+			console.vars._forceupdate = true
+		end
+	end
 end
 
 function widget:GameOver()
@@ -840,10 +851,10 @@ end
 function widget:Shutdown()
 	Initialized = false
 	Spring.SendCommands("console 1")
+	WG['red_chatonlyconsole'] = nil
 end
 
 function widget:AddConsoleLine(lines,priority)
-	-- widget:Initialize()
 	lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 	local textcolor
 	for line in lines:gmatch("[^\n]+") do
@@ -856,19 +867,18 @@ function widget:Update()
 	updateconsole(console,Config.console)
 	AutoResizeObjects()
 	if not Initialized == true then
-	if onelinedone == true then
-	regID = tostring(Spring.GetMyPlayerID())
-Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
-	Initialized = true
+		if onelinedone == true then
+			regID = tostring(Spring.GetMyPlayerID())
+			Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
+			Initialized = true
+		end
 	end
-	end
-
 end
 
 --save/load stuff
 --currently only position
 function widget:GetConfigData() --save config
-	if (PassedStartupCheck) then
+	if (console ~= nil) then
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
@@ -879,5 +889,8 @@ function widget:SetConfigData(data) --load config
 	if (data.Config ~= nil) then
 		--Config.console.px = data.Config.console.px
 		--Config.console.py = data.Config.console.py
+		if data.Config.console.maxlines ~= nil then
+			Config.console.maxlines = data.Config.console.maxlines
+		end
 	end
 end
