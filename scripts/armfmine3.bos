@@ -12,6 +12,11 @@ Create()
 	dont-cache base;
 }
 
+AimWeapon1()
+{
+	return (1);
+}
+
 QueryWeapon1(piecenum)
 {
 	piecenum = base;
