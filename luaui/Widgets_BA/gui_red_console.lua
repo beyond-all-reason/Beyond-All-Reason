@@ -47,12 +47,15 @@ local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
+local fontsize = 11.5
+local fontsizeMultiplier = 1
+
 local Config = {
 	console = {
 		px = vsx*0.31,py = vsy*0.048, --default start position
 		sx = vsx*0.4, --background size
 		
-		fontsize = 11.5*widgetScale,
+		fontsize = fontsize*widgetScale,
 		
 		minlines = 1, --minimal number of lines to display
 		maxlines = 6,
@@ -802,13 +805,14 @@ function widget:Initialize()
 			console.vars._forceupdate = true
 		end
 	end
-	WG['red_chatonlyconsole'].getFontsize = function()
-		return Config.console.fontsize/widgetScale
+	WG['red_console'].getFontsize = function()
+		return fontsizeMultiplier
 	end
-	WG['red_chatonlyconsole'].setFontsize = function(value)
-		Config.console.fontsize = value*widgetScale
+	WG['red_console'].setFontsize = function(value)
+		fontsizeMultiplier = value
+		Config.console.fontsize = fontsize*widgetScale*fontsizeMultiplier
 		if console ~= nil and console.vars ~= nil then
-			console.vars._forceupdate = true
+			console.lines.fontsize = Config.console.fontsize
 		end
 	end
 end
@@ -838,9 +842,8 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	Config.console.fontsize = Config.console.fontsize/widgetScale
 	widgetScale = (1 + (vsx*vsy / 4000000))
-	Config.console.fontsize = Config.console.fontsize*widgetScale
+	Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
 	if console ~= nil and console.vars ~= nil then
 		console.vars._forceupdate = true
 	end
@@ -853,8 +856,7 @@ function widget:GetConfigData() --save config
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
-		Config.console.fontsize = Config.console.fontsize/widgetScale
-		return {Config=Config}
+		return {Config=Config, fontsizeMultiplier=fontsizeMultiplier}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -864,8 +866,9 @@ function widget:SetConfigData(data) --load config
 		if data.Config.console.maxlines ~= nil then
 			Config.console.maxlines = data.Config.console.maxlines
 		end
-		if data.Config.console.fontsize ~= nil then
-			Config.console.fontsize = data.Config.console.fontsize*widgetScale
+		if data.fontsizeMultiplier ~= nil then
+			fontsizeMultiplier = data.fontsizeMultiplier
+			Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
 		end
 	end
 end
