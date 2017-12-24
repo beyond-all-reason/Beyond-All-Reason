@@ -1,4 +1,12 @@
-﻿9.46 -> 10.00
+﻿10.00 -> 10.01
+24/12/2017
+
+ • Options: added console maxlines and fontsize slider
+ • Fixed mines not exploding
+ • Fixed unba coms enabled notification always showing pregame
+
+
+9.46 -> 10.00
 20/12/2017
 
 Important:

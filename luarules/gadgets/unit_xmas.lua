@@ -101,8 +101,8 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, teamID)
 					if uID ~= nil then
-						decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
 						setGaiaUnitSpecifics(uID)
+						decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
 						Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
 						Spring.AddUnitImpulse(uID, (random()-0.5)*4.7, 1+(random()*9.5), (random()-0.5)*4.7)
 					end
