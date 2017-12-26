@@ -1,7 +1,7 @@
 return {
 	armstump = {
-		acceleration = 0.026,
-		brakerate = 0.0894,
+		acceleration = 0.022,
+		brakerate = 0.095,
 		buildcostenergy = 2000,
 		buildcostmetal = 210,
 		buildpic = "ARMSTUMP.DDS",
@@ -39,9 +39,9 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 24,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.914,
-		turnrate = 470*0.8,
+		turnrate = 470*0.6,
 		customparams = {
 			description_long = "A stumpy is a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Stumpies can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Samsons or artillery for a great frontline push or use large pasks for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
 			--ANIMATION DATA
