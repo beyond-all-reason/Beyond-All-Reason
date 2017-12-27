@@ -1,6 +1,6 @@
 return {
 	corraid = {
-		acceleration = 0.020,
+		acceleration = 0.021,
 		brakerate = 0.09,
 		buildcostenergy = 2400,
 		buildcostmetal = 220,
@@ -39,7 +39,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.83678,
-		turnrate = 459*0.6,
+		turnrate = 459*0.7,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			description_long = "The Raider a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Raiders can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Slashers or artillery for a great frontline push or use large packs for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
