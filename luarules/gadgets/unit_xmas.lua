@@ -147,6 +147,12 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
+		if unitDefID == xmasballUdefID then
+			setGaiaUnitSpecifics(unitID)
+		end
+	end
+
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
