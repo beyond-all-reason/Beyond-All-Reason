@@ -1,6 +1,6 @@
 return {
 	armmart = {
-		acceleration = 0.0184,
+		acceleration = 0.015,
 		brakerate = 0.3696,
 		buildcostenergy = 4100,
 		buildcostmetal = 270,
@@ -166,7 +166,7 @@ return {
 				weaponvelocity = 355.28159,
 				damage = {
 					bombers = 15,
-					default = 210,
+					default = 190,
 					fighters = 15,
 					subs = 5,
 					vtol = 15,

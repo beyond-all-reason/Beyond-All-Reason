@@ -1,6 +1,6 @@
 return {
 	cormart = {
-		acceleration = 0.0204,
+		acceleration = 0.017,
 		brakerate = 0.3696,
 		buildcostenergy = 3000,
 		buildcostmetal = 300,
@@ -166,7 +166,7 @@ return {
 				weaponvelocity = 349.5354,
 				damage = {
 					bombers = 17,
-					default = 235,
+					default = 212,
 					fighters = 17,
 					subs = 5,
 					vtol = 17,
