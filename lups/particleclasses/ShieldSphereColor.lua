@@ -1,20 +1,20 @@
--- $Id: ShieldSphere.lua 3171 2008-11-06 09:06:29Z det $
+-- $Id: ShieldSphereColor.lua 3171 2008-11-06 09:06:29Z det $
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local ShieldSphereParticle = {}
-ShieldSphereParticle.__index = ShieldSphereParticle
+local ShieldSphereColorParticle = {}
+ShieldSphereColorParticle.__index = ShieldSphereColorParticle
 
-local sphereList
+local sphereList = {}
 local shieldShader
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-function ShieldSphereParticle.GetInfo()
+function ShieldSphereColorParticle.GetInfo()
   return {
-    name      = "ShieldSphere",
-    backup    = "", --// backup class, if this class doesn't work (old cards,ati's,etc.)
+    name      = "ShieldSphereColor",
+    backup    = "ShieldSphereColorFallback", --// backup class, if this class doesn't work (old cards,ati's,etc.)
     desc      = "",
 
     layer     = -23, --// extreme simply z-ordering :x
@@ -27,21 +27,20 @@ function ShieldSphereParticle.GetInfo()
   }
 end
 
-ShieldSphereParticle.Default = {
+ShieldSphereColorParticle.Default = {
   pos        = {0,0,0}, -- start pos
   layer      = -23,
 
-  life       = 0,
+  life       = math.huge,
 
-  size       = 0,
-  sizeGrowth = 0,
-
+  size       = 10,
   margin     = 1,
 
   colormap1  = { {0, 0, 0, 0} },
   colormap2  = { {0, 0, 0, 0} },
 
   repeatEffect = false,
+  shieldSize = "large",
 }
 
 -----------------------------------------------------------------------------------------------------------------
@@ -50,13 +49,17 @@ ShieldSphereParticle.Default = {
 local glMultiTexCoord = gl.MultiTexCoord
 local glCallList = gl.CallList
 
-function ShieldSphereParticle:BeginDraw()
+function ShieldSphereColorParticle:Visible()
+	return self.visibleToMyAllyTeam
+end
+
+function ShieldSphereColorParticle:BeginDraw()
   gl.DepthMask(false)
   gl.UseShader(shieldShader)
   gl.Culling(GL.FRONT)
 end
 
-function ShieldSphereParticle:EndDraw()
+function ShieldSphereColorParticle:EndDraw()
   gl.DepthMask(false)
   gl.UseShader(0)
 
@@ -69,22 +72,33 @@ function ShieldSphereParticle:EndDraw()
   glMultiTexCoord(4, 1,1,1,1)
 end
 
-function ShieldSphereParticle:Draw()
-  local color = self.color1
-  glMultiTexCoord(1, color[1],color[2],color[3],color[4] or 1)
-  color = self.color2
-  glMultiTexCoord(2, color[1],color[2],color[3],color[4] or 1)
+function ShieldSphereColorParticle:Draw()
+  local col1, col2 = GetShieldColor(self.unit, self)
+  glMultiTexCoord(1, col1[1],col1[2],col1[3],col1[4] or 1)
+  glMultiTexCoord(2, col2[1],col2[2],col2[3],col2[4] or 1)
   local pos = self.pos
-  glMultiTexCoord(3, pos[1],pos[2],pos[3], 0)
+  glMultiTexCoord(3, pos[1], pos[2], pos[3], 0)
   glMultiTexCoord(4, self.margin, self.size, 1, 1)
 
-  glCallList(sphereList)
+  glCallList(sphereList[self.shieldSize])
+  if self.drawBack then
+    gl.Scale(1,1,-1)
+    if pos[3] ~= 0 then
+      glMultiTexCoord(3, pos[1], pos[2], -pos[3], 0)
+    end
+    glMultiTexCoord(1, col1[1],col1[2],col1[3],(col1[4] or 1)*self.drawBack)
+    glMultiTexCoord(2, col2[1],col2[2],col2[3],(col2[4] or 1)*self.drawBack)
+    if self.drawBackMargin then
+      glMultiTexCoord(4, self.drawBackMargin, self.size, 1, 1)
+    end
+    glCallList(sphereList[self.shieldSize])
+  end
 end
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-function ShieldSphereParticle:Initialize()
+function ShieldSphereColorParticle:Initialize()
   shieldShader = gl.CreateShader({
     vertex = [[
       #define pos gl_MultiTexCoord3
@@ -128,65 +142,48 @@ function ShieldSphereParticle:Initialize()
     return false
   end
 
-  sphereList = gl.CreateList(DrawSphere,0,0,0,1,30,false)
+  sphereList = {
+    large = gl.CreateList(DrawSphere,0,0,0,1, 38,false),
+    small = gl.CreateList(DrawSphere,0,0,0,1, 24,false),
+  }
 end
 
-function ShieldSphereParticle:Finalize()
+function ShieldSphereColorParticle:Finalize()
   gl.DeleteShader(shieldShader)
-  gl.DeleteList(sphereList)
-end
-
------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------
-
-function ShieldSphereParticle:CreateParticle()
-  -- needed for repeat mode
-  self.csize  = self.size
-  self.clife  = self.life
-
-  self.size      = self.csize or self.size
-  self.life_incr = 1/self.life
-  self.life      = 0
-  self.color1     = self.colormap1[1]
-  self.color2     = self.colormap2[1]
-
-  self.firstGameFrame = Spring.GetGameFrame()
-  self.dieGameFrame   = self.firstGameFrame + self.clife
-end
-
------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------
-
-function ShieldSphereParticle:Update(n)
-  if (self.life<1) then
-    self.life     = self.life + n*self.life_incr
-    self.size     = self.size + n*self.sizeGrowth
-    self.color1 = {GetColor(self.colormap1,self.life)}
-    self.color2 = {GetColor(self.colormap2,self.life)}
+  for _, list in pairs(sphereList) do
+    gl.DeleteList(list)
   end
 end
 
--- used if repeatEffect=true;
-function ShieldSphereParticle:ReInitialize()
-  self.size     = self.csize
-  self.life     = 0
-  self.color1   = self.colormap1[1]
-  self.color2   = self.colormap2[1]
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
 
-  self.dieGameFrame = self.dieGameFrame + self.clife
+function ShieldSphereColorParticle:CreateParticle()
+  self.dieGameFrame = Spring.GetGameFrame() + self.life
 end
 
-function ShieldSphereParticle.Create(Options)
-  local newObject = MergeTable(Options, ShieldSphereParticle.Default)
-  setmetatable(newObject,ShieldSphereParticle)  -- make handle lookup
+-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
+function ShieldSphereColorParticle:Update()
+end
+
+-- used if repeatEffect=true;
+function ShieldSphereColorParticle:ReInitialize()
+  self.dieGameFrame = self.dieGameFrame + self.life
+end
+
+function ShieldSphereColorParticle.Create(Options)
+  local newObject = MergeTable(Options, ShieldSphereColorParticle.Default)
+  setmetatable(newObject,ShieldSphereColorParticle)  -- make handle lookup
   newObject:CreateParticle()
   return newObject
 end
 
-function ShieldSphereParticle:Destroy()
+function ShieldSphereColorParticle:Destroy()
 end
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-return ShieldSphereParticle
+return ShieldSphereColorParticle

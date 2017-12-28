@@ -50,6 +50,8 @@ return {
 		customparams = {
 			removewait = true,
 			removestop = true,
+			shield_power = 10000,
+			shield_radius = 600,
 		},
 		featuredefs = {
 			dead = {
@@ -146,9 +148,9 @@ return {
 				smartshield = true,
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
-				visibleshield = true,
-				visibleshieldhitframes = 70,
-				visibleshieldrepulse = true,
+				--visibleshield = true,
+				--visibleshieldhitframes = 70,
+				visibleRepulse = true,
 				weapontype = "Shield",
 				damage = {
 					default = 100,
