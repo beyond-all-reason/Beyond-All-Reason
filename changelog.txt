@@ -1,7 +1,11 @@
-﻿10.01 -> ??.??
-??/??/????
+﻿10.01 -> 10.02
+28/12/2017
 
- • Common LUS for mines to handle detonation process. Detonation Range is set in UnitDefs' customParams.detonationrange. Target restrictions will be added if there is a demand for it (cloaked units, underwater or flying units).
+ • Nerfed movement for stumpy/raider/bulldog/reaper, also tiny bit for flash/instigator
+ • T2 vehicle artillery weapon damage decreased with 10%, also lowered turnrate
+ • Mines switched their detonation method (lua LUS instead of weapons). 
+ • Implemented lups plasma shields for better performance (and maybe looks ..when 'lups particle/shader effects' option enabled)
+ • Added lighting to flame effects
 
 
 10.00 -> 10.01
