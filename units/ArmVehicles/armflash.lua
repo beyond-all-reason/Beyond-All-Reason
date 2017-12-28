@@ -1,6 +1,6 @@
 return {
 	armflash = {
-		acceleration = 0.06,
+		acceleration = 0.058,
 		brakerate = 0.195,
 		buildcostenergy = 1000,
 		buildcostmetal = 115,
@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 2.376,
-		turnrate = 592*0.8,
+		turnrate = 580*0.8,
 		customparams = {
 			description_long = "The Flash is a light, fast moving tank with close combat rapid fire weapon. It is slightly more powerful and faster than Peewee and A.K. on flat terrain. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",
 			--ANIMATION DATA

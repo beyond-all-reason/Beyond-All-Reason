@@ -1,7 +1,7 @@
 return {
 	correap = {
 		acceleration = 0.044,
-		brakerate = 0.198,
+		brakerate = 0.21,
 		buildcostenergy = 10000,
 		buildcostmetal = 630,
 		buildpic = "CORREAP.DDS",
@@ -37,7 +37,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 33,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.72656,
 		turnrate = 434*0.8,
 		script = "BASICTANKSCRIPT.LUA",

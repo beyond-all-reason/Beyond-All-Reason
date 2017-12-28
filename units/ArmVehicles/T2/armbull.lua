@@ -1,7 +1,7 @@
 return {
 	armbull = {
 		acceleration = 0.0396,
-		brakerate = 0.165,
+		brakerate = 0.18,
 		buildcostenergy = 13000,
 		buildcostmetal = 900,
 		buildpic = "ARMBULL.DDS",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 40,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.6104,
 		turnrate = 415*0.8,
 		customparams = {
