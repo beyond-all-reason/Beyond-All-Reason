@@ -1,4 +1,10 @@
-﻿10.00 -> 10.01
+﻿10.01 -> ??.??
+??/??/????
+
+ • Common LUS for mines to handle detonation process. Detonation Range is set in UnitDefs' customParams.detonationrange. Target restrictions will be added if there is a demand for it (cloaked units, underwater or flying units).
+
+
+10.00 -> 10.01
 24/12/2017
 
  • Options: added console maxlines and fontsize slider
