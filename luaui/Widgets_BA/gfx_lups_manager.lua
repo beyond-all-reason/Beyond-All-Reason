@@ -213,6 +213,30 @@ local UnitEffects = {
     {class='AirJet',options={color={0.6,0.1,0}, width=3.7, length=15, piece="thrustb1", onActive=true}},
     {class='AirJet',options={color={0.6,0.1,0}, width=3.7, length=15, piece="thrustb2", onActive=true}},
   },
+  
+	[UnitDefNames["corgate"].id] = {
+	--{class='ShieldSphere',options=ShieldSphere550},
+	{class='Bursts',options=shieldBursts550},
+    {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
+  },
+  
+	[UnitDefNames["armgate"].id] = {
+	--{class='ShieldSphere',options=ShieldSphere550},
+	{class='Bursts',options=shieldBursts550},
+    {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
+  },
+  
+	[UnitDefNames["armfgate"].id] = {
+	--{class='ShieldSphere',options=ShieldSphere600},
+	{class='Bursts',options=shieldBursts600},
+    {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=605, precision=0, strength   = 0.001, repeatEffect=true}},
+  },
+  
+	[UnitDefNames["corfgate"].id] = {
+	--{class='ShieldSphere',options=ShieldSphere600},
+	{class='Bursts',options=shieldBursts600},
+    {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=605, precision=0, strength   = 0.001, repeatEffect=true}},
+  },
 }
 
 local t = os.date('*t')

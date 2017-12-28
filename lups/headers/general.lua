@@ -31,6 +31,40 @@ function GetColor(colormap,life)
          col1[3]*ia + col2[3]*aa, col1[4]*ia + col2[4]*aa
 end
 
+local function MergeShieldColor(col, frac)
+	return {
+		frac*col[1][1] + (1 - frac)*col[2][1],
+		frac*col[1][2] + (1 - frac)*col[2][2],
+		frac*col[1][3] + (1 - frac)*col[2][3],
+		frac*col[1][4] + (1 - frac)*col[2][4],
+	}
+end
+
+local hitOpacityMult = {1.2, 1.5, 1.5}
+local HIT_DURATION = 2
+function GetShieldColor(unitID, self)
+	local _, charge = Spring.GetUnitShieldState(unitID)
+	if charge ~= nil then
+		local frac = math.max(0, math.min(1, charge/(self.shieldCapacity or 10000)))
+		
+		local col1 = MergeShieldColor(self.colormap1, frac)
+		local col2 = self.colormap2 and MergeShieldColor(self.colormap2, frac)
+		
+		if self.hitResposeMult ~= 0 then
+			local hitTime = Spring.GetUnitRulesParam(unitID, "shieldHitFrame")
+			local frame = Spring.GetGameFrame()
+			if hitTime and (hitTime + HIT_DURATION > frame) then
+				col1[4] = col1[4]*hitOpacityMult[frame - hitTime + 1]*(self.hitResposeMult or 1)
+				if col2 then
+					col2[4] = col2[4]*hitOpacityMult[frame - hitTime + 1]*(self.hitResposeMult or 1)
+				end
+			end
+		end
+		
+		return col1, col2
+	end
+end
+
 local type  = type
 local pairs = pairs
 function CopyTable(outtable,intable)

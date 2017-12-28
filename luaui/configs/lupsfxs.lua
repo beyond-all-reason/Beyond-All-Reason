@@ -135,6 +135,132 @@ corjamtBursts = {
   count      = 20,
 }
 
+shieldBursts200 = {
+  layer      = -35,
+  life       = math.huge,
+  piece      = "base",
+  rotSpeed   = 0.50,
+  rotSpread  = 0,
+  arc        = 50,
+  arcSpread  = 0,
+  size       = 200,
+  sizeSpread = 50,
+  texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+  --colormap   = { {1, 0.6, 1, 0.8} },
+  colormap   = { {1, 1, 1, 0.1} },
+  directional= true,
+  repeatEffect = true,
+  count      = 20,
+}
+
+shieldBursts300 = {
+  layer      = -35,
+  life       = math.huge,
+  piece      = "base",
+  rotSpeed   = 0.50,
+  rotSpread  = 0,
+  arc        = 50,
+  arcSpread  = 0,
+  size       = 300,
+  sizeSpread = 50,
+  texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+  --colormap   = { {1, 0.6, 1, 0.8} },
+  colormap   = { {1, 1, 1, 0.1} },
+  directional= true,
+  repeatEffect = true,
+  count      = 20,
+}
+
+shieldBursts400 = {
+  layer      = -35,
+  life       = math.huge,
+  piece      = "base",
+  rotSpeed   = 0.50,
+  rotSpread  = 0,
+  arc        = 50,
+  arcSpread  = 0,
+  size       = 400,
+  sizeSpread = 50,
+  texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+  --colormap   = { {1, 0.6, 1, 0.8} },
+  colormap   = { {1, 1, 1, 0.1} },
+  directional= true,
+  repeatEffect = true,
+  count      = 20,
+}
+
+shieldBursts550 = {
+  layer      = -35,
+  life       = math.huge,
+  piece      = "base",
+  rotSpeed   = 0.50,
+  rotSpread  = 0,
+  arc        = 50,
+  arcSpread  = 0,
+  size       = 550,
+  sizeSpread = 50,
+  texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+  --colormap   = { {1, 0.6, 1, 0.8} },
+  colormap   = { {1, 1, 1, 0.1} },
+  directional= true,
+  repeatEffect = true,
+  count      = 20,
+}
+
+shieldBursts600 = {
+  layer      = -35,
+  life       = math.huge,
+  piece      = "base",
+  rotSpeed   = 0.50,
+  rotSpread  = 0,
+  arc        = 50,
+  arcSpread  = 0,
+  size       = 600,
+  sizeSpread = 50,
+  texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+  --colormap   = { {1, 0.6, 1, 0.8} },
+  colormap   = { {1, 1, 1, 0.1} },
+  directional= true,
+  repeatEffect = true,
+  count      = 20,
+}
+
+shieldBursts1500 = {
+  layer      = -35,
+  life       = math.huge,
+  piece      = "base",
+  rotSpeed   = 0.50,
+  rotSpread  = 0,
+  arc        = 50,
+  arcSpread  = 0,
+  size       = 1500,
+  sizeSpread = 50,
+  texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+  --colormap   = { {1, 0.6, 1, 0.8} },
+  colormap   = { {1, 1, 1, 0.1} },
+  directional= true,
+  repeatEffect = true,
+  count      = 10,
+}
+
+shieldBursts2000 = {
+  layer      = -35,
+  life       = math.huge,
+  piece      = "base",
+  rotSpeed   = 0.50,
+  rotSpread  = 0,
+  arc        = 50,
+  arcSpread  = 0,
+  size       = 2000,
+  sizeSpread = 50,
+  texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+  --colormap   = { {1, 0.6, 1, 0.8} },
+  colormap   = { {1, 1, 1, 0.1} },
+  directional= true,
+  repeatEffect = true,
+  count      = 10,
+}
+
 ----------------------------------------------------------------------------
 -- COLORSPHERES ------------------------------------------------------------
 ----------------------------------------------------------------------------
@@ -165,6 +291,26 @@ junoShieldSphere = {
   size=13,
   colormap1 = { {0.55,0.55,0.9, 0.8},{0.55,0.55,0.9, 0.8},{0.55,0.55,0.9, 0.8},{0.55,0.55,0.9, 0.8} },
   colormap2 = { {0, 0, 0, 1},{0, 0, 0, 1},{0, 0, 0, 1},{0, 0, 0, 1} },
+  repeatEffect=true
+}
+
+ShieldSphere550 = {
+  layer=-34,
+  life=20,
+  pos={0,20,0},
+  size=550,
+  colormap1 = { {1, 1, 1, 0.15} },
+  colormap2 = { {0.2, 0.2, 1, 0.0} },
+  repeatEffect=true
+}
+
+ShieldSphere600 = {
+  layer=-34,
+  life=20,
+  pos={0,20,0},
+  size=600,
+  colormap1 = { {1, 1, 1, 0.15} },
+  colormap2 = { {0.2, 0.2, 1, 0.0} },
   repeatEffect=true
 }
 

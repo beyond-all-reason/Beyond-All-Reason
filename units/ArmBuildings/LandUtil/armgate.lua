@@ -41,6 +41,8 @@ return {
 		customparams = {
 			removewait = true,
 			removestop = true,
+			shield_power = 3250,
+			shield_radius = 550,
 		},
 		featuredefs = {
 			dead = {
@@ -140,8 +142,9 @@ return {
 					repulser = true,
 					smart = true,
 					startingpower = 1100,
-					visible = true,
-					visiblehitframes = 70,
+					--visible = true,
+					--visiblehitframes = 70,
+					visibleRepulse = true,
 					badcolor = {
 						[1] = 1,
 						[2] = 0.2,
