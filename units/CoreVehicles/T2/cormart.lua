@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.287,
-		turnrate = 445,
+		turnrate = 330,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			--ANIMATION DATA
