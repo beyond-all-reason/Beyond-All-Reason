@@ -44,7 +44,7 @@ return {
 			removewait = true,
 			detonaterange = "64",
 		},
-		sfxtypes = { 
+		sfxtypes = {
  			pieceExplosionGenerators = { 
 				"deathceg2",
 				"deathceg3",
@@ -72,6 +72,5 @@ return {
 				[1] = "minesel1",
 			},
 		},
-		weapondefs = {
-	},
+	}
 }
