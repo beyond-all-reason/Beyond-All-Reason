@@ -3,12 +3,12 @@
 function gadget:GetInfo()
 	return {
 		name		= "Xmas effects",
-		desc		= "",
+		desc		= "Creates comblast xmasballs and random candycanes on the map",
 		author		= "Floris",
-		date		= "Oct ,2017",
+		date		= "October 2017",
 		license		= "",
 		layer		= 0,
-		enabled		= true,
+		enabled		= false,
 	}
 end
 
@@ -144,6 +144,12 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitDefID == xmasballUdefID then
 			table.insert(createdDecorations, unitID)
+		end
+	end
+
+	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
+		if unitDefID == xmasballUdefID then
+			setGaiaUnitSpecifics(unitID)
 		end
 	end
 
