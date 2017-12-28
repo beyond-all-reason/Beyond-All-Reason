@@ -1,6 +1,6 @@
 return {
 	cormart = {
-		acceleration = 0.017,
+		acceleration = 0.0204,
 		brakerate = 0.3696,
 		buildcostenergy = 3000,
 		buildcostmetal = 300,
