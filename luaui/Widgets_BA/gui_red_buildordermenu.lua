@@ -1105,6 +1105,7 @@ local function GetCommands()
 			(not hiddencmds[cmd.id]) and
 			(cmd.action ~= nil) and
 			--(not cmd.disabled) and
+			(not widgetHandler.commands[index].hidden) and --apparently GetActiveCmdDescs is bugged and returns hidden for every command
 			(cmd.type ~= 21) and
 			(cmd.type ~= 18) and
 			(cmd.type ~= 17)

@@ -81,8 +81,8 @@ local opacityMultiplier		= 1
 local fadeMultiplier		= 1.5		-- lower value: fades out sooner
 local circleDivs			= 64		-- circle detail, when fading out it will lower this aswell (minimum always will be 40 anyway)
 local blastRadius			= 360		-- com explosion
-local showOnEnemyDistance	= 660
-local fadeInDistance		= 360
+local showOnEnemyDistance	= 570
+local fadeInDistance		= 320
 local smoothoutTime			= 2			-- time to smoothout sudden changes (value = time between max and zero opacity)
 
 --------------------------------------------------------------------------------
@@ -379,26 +379,26 @@ function widget:DrawWorldPreUnit()
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+1.2 )
 
 						glLineWidth(3.5-lineWidthMinus)
-						glColor(1, 0, 0, .5*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .47*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange)
 
 						glLineWidth(6.5*lineScale)
-						glColor(1, 0, 0, .225*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.1666))
 
-						glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .175*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.3333))
 
-						glColor(1, 0, 0, .175*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .15*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.5))
 
-						glColor(1, 0, 0, .15*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .125*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.6666))
 
-						glColor(1, 0, 0, .125*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .1*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.8333))
 
-						glColor(1, 0, 0, .1*lineOpacityMultiplier*opacityMultiplier)
+						glColor(1, 0, 0, .075*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius)
 					end)
 				end
