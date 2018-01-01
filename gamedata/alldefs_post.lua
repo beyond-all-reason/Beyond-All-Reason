@@ -188,17 +188,6 @@ function WeaponDef_Post(name, wDef)
 			wDef.beamdecay = 0.55
 		end
 	end
-	
-	--Better visualization of cannon damage
-	if wDef.weapontype == "Cannon" then
-		if wDef.damage.default ~= nil then
-			if wDef.areaofeffect == nil then
-				wDef.areaofeffect = 0
-			end
-			wDef.size = (wDef.damage.default * 0.009) + (wDef.areaofeffect * 0.0025)
-			wDef.stages = (wDef.damage.default * 0.015) + (wDef.areaofeffect * 0.0025)
-		end
-	end
 
 	--Flare texture has been scaled down to half, so correcting the result of that a bit
 	if wDef ~= nil and wDef.laserflaresize ~= nil and wDef.laserflaresize > 0 then
