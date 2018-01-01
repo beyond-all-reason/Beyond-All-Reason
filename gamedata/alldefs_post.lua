@@ -156,7 +156,7 @@ function WeaponDef_Post(name, wDef)
   wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
 
 	-- EdgeEffectiveness global buff to counterbalance smaller hitboxes
-	wDef.edgeeffectiveness = (wDef.edgeeffectiveness or 0) + 0.15
+	wDef.edgeeffectiveness = (tonumber(wDef.edgeeffectiveness) or 0) + 0.15
 	if wDef.edgeeffectiveness >= 1 then
 	wDef.edgeeffectiveness = 1
 	end
@@ -186,6 +186,17 @@ function WeaponDef_Post(name, wDef)
 		if wDef.beamttl == 0 then
 			wDef.beamttl = 5
 			wDef.beamdecay = 0.55
+		end
+	end
+	
+	--Better visualization of cannon damage
+	if wDef.weapontype == "Cannon" then
+		if wDef.damage.default ~= nil then
+			if wDef.areaofeffect == nil then
+				wDef.areaofeffect = 0
+			end
+			wDef.size = (wDef.damage.default * 0.009) + (wDef.areaofeffect * 0.0025)
+			wDef.stages = (wDef.damage.default * 0.015) + (wDef.areaofeffect * 0.0025)
 		end
 	end
 
