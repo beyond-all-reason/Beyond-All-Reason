@@ -132,7 +132,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID)
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if shieldUnitDefs[unitDefID] then
 		AddUnit(unitID, unitDefID)
 	end
@@ -155,7 +155,7 @@ function gadget:GameFrame(n)
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
 			local unitDefID = Spring.GetUnitDefID(unitID)
-			gadget:UnitCreated(unitID, unitDefID)
+			gadget:UnitFinished(unitID, unitDefID)
 		end
 		startup = false
 	end
