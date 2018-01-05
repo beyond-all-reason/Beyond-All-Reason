@@ -7,6 +7,7 @@
  • Decreased Comblast/DgunRange activation distance
  • Lighting effects adjustments
  • Minor Fixes to AdvPlayerList and LockCamera
+ • Fixed Arm Construction Seaplane wings animation overextending
 
 10.01 -> 10.02
 28/12/2017
