@@ -19,7 +19,7 @@ if gadgetHandler:IsSyncedCode() then
 
 -- TS difference required for substitutions 
 -- idealDiff is used if possible, validDiff as fall-back, otherwise no
-local validDiff = 4 
+local validDiff = 4
 local idealDiff = 2
 
 local substitutes = {}
@@ -61,16 +61,9 @@ function gadget:RecvLuaMsg(msg, playerID)
     end
 end
 
-if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
-    function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
-        FindSubs(false)
-        return true
-    end
-else
-    function gadget:AllowStartPosition(x,y,z,playerID,readyState)
-        FindSubs(false)
-        return true
-    end
+function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+    FindSubs(false)
+    return true
 end
 
 function gadget:Initialize()
@@ -114,7 +107,7 @@ function FindSubs(real)
         if not present then
             local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
             local tsMu = customtable.skill
-            ts = tsMu and tonumber(tsMu:match("%d+%.?%d*")) 
+            ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
             if ts then
                 absent[playerID] = ts
                 --Spring.Echo("absent:", playerID, ts)
@@ -135,7 +128,7 @@ function FindSubs(real)
         for subID,subts in pairs(substitutesLocal) do
             local _,active,spec = Spring.GetPlayerInfo(subID)
             if active and spec then
-                if  math.abs(ts-subts)<=validDiff then 
+                if math.abs(ts-subts)<=validDiff then
                     validSubs[#validSubs+1] = subID
                 end
 				if math.abs(ts-subts)<=idealDiff then
@@ -192,7 +185,7 @@ function gadget:GameFrame(n)
         local coopStartPoints = GG.coopStartPoints or {} 
         local revealed = {}
         for pID,p in pairs(coopStartPoints) do --first do the coop starts
-            local name,_,tID = Spring.GetPlayerInfo(pID)
+            local name,_,_,tID = Spring.GetPlayerInfo(pID)
             SendToUnsynced("MarkStartPoint", p[1], p[2], p[3], name, tID)
             revealed[pID] = true
         end
