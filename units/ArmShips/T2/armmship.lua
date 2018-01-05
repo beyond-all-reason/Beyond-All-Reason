@@ -115,7 +115,7 @@ return {
 		},
 		weapondefs = {
 			armmship_rocket = {
-				cegTag = "missiletrailmedium",
+				cegTag = "missiletrailmedium-starburst",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				areaofeffect = 120,
 				avoidfeature = false,
