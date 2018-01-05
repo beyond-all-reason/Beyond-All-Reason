@@ -797,7 +797,7 @@ function widget:Initialize()
     end
     WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
         if playerID ~= nil then
-            lockPlayerID = lockPlayerID
+            lockPlayerID = playerID
         else
             lockPlayerID = nil
             if myLastCameraState ~= nil then

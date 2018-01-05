@@ -64,8 +64,8 @@ local volume
 
 function widget:Initialize()
 	updatePosition()
-	WG['locakcamerainfo'] = {}
-	WG['locakcamerainfo'].GetPosition = function()
+	WG['lockcamerainfo'] = {}
+	WG['lockcamerainfo'].GetPosition = function()
 		return {top,left,bottom,right,widgetScale}
 	end
 	Spring.SendCommands("fps 0")
