@@ -194,6 +194,7 @@ function widget:Initialize()
 	WG['playercolorpalette'].setSameTeamColors = function(value)
 		useSameTeamColors = value
 		SetNewTeamColors()
+		Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
 	end
   
 	widgetHandler:AddAction("shufflecolors", shufflecolors, nil, "t")
