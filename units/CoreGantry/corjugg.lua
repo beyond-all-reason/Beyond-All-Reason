@@ -26,7 +26,7 @@ return {
 		maxvelocity = 0.55,
 		maxwaterdepth = 12,
 		movementclass = "HKBOT5",
-		name = "JuggernautSelfd",
+		name = "Juggernaut",
 		nochasecategory = "VTOL",
 		objectname = "CORJUGG",
 		pushresistant = true,
