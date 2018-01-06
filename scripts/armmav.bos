@@ -1222,7 +1222,6 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	sleep 150;
 	turn torso to y-axis heading speed <250.027473>;
 	while( !Static_Var_1 )
 	{
