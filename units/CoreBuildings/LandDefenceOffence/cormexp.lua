@@ -37,7 +37,7 @@ return {
 		name = "Moho Exploiter",
 		nochasecategory = "MOBILE",
 		objectname = "CORMEXP",
-		onoffable = false,
+		onoffable = true,
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 676,
