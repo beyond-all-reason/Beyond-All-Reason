@@ -472,7 +472,7 @@ function DrawWindow()
 	local drawColumnPos = 1
 	if totalColumns == 0 or maxColumnRows == 0 then
 		maxColumnRows = math.floor((y-yPosMax+oPadding) / (oHeight+oPadding+oPadding))
-		totalColumns = 1 + math.floor(#options / maxColumnRows)
+		totalColumns = math.ceil(#options / maxColumnRows)
 	end
 	optionButtons = {}
 	optionHover = {}
