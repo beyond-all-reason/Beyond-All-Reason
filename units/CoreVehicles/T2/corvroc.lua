@@ -122,7 +122,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
-				cegTag = "missiletrailmedium",
+				cegTag = "missiletrailmedium-starburst",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 12,

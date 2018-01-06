@@ -620,6 +620,48 @@ unitDeaths = {
             expl_light_life_mult = 1.5,
         },
     },
+    juggernaut = {
+        weaponType = "Cannon",
+        areaofeffect = 280,
+        camerashake = 280,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator = "custom:genericbuildingexplosion-huge",
+        damage = {
+            commanders = 900,
+            crawlingbombs = 99,
+            default = 1800,
+        },
+        customparams = {
+            expl_light_color = "1 0.88 0.6",
+            expl_light_mult = 1.22,
+            expl_light_radius_mult = 1.22,
+            expl_light_life_mult = 1.4,
+        },
+    },
+    juggernautSelfd = {
+        weaponType = "Cannon",
+        areaofeffect = 430,
+        camerashake = 430,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplomed4",
+        soundstart = "misicbm1",
+        explosiongenerator = "custom:genericbuildingexplosion-huge",
+        damage = {
+            commanders = 1250,
+            crawlingbombs = 199,
+            default = 3000,
+        },
+        customparams = {
+            expl_light_color = "1 0.88 0.6",
+            expl_light_mult = 1.25,
+            expl_light_radius_mult = 1.25,
+            expl_light_life_mult = 1.5,
+        },
+    },
 
     flagshipExplosion = {
         weaponType = "Cannon",

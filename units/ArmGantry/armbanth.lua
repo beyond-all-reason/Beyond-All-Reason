@@ -159,7 +159,7 @@ return {
 				craterareaofeffect = 96,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
+				cegTag = "missiletrailsmall-starburst",
                 explosiongenerator = "custom:genericshellexplosion-large",
 				firestarter = 70,
 				impulseboost = 0.123,
