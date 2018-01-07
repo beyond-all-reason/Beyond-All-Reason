@@ -7,6 +7,7 @@ ShieldSphereParticle.__index = ShieldSphereParticle
 
 local sphereList
 local shieldShader
+local checkStunned = true
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
@@ -70,6 +71,12 @@ function ShieldSphereParticle:EndDraw()
 end
 
 function ShieldSphereParticle:Draw()
+  if checkStunned then
+    self.stunned = Spring.GetUnitIsStunned(self.unit)
+  end
+  if self.stunned then
+    return
+  end
   local color = self.color1
   glMultiTexCoord(1, color[1],color[2],color[3],color[4] or 1)
   color = self.color2
@@ -157,7 +164,15 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+local time = 0
 function ShieldSphereParticle:Update(n)
+  time = time + n
+  if time > 45 then
+    checkStunned = true
+    time = 0
+  else
+    checkStunned = false
+  end
   if (self.life<1) then
     self.life     = self.life + n*self.life_incr
     self.size     = self.size + n*self.sizeGrowth

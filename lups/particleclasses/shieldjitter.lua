@@ -8,6 +8,7 @@ ShieldJitter.__index = ShieldJitter
 local warpShader
 local timerUniform,strengthUniform
 local sphereList
+local checkStunned = true
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
@@ -65,6 +66,12 @@ function ShieldJitter:EndDrawDistortion()
 end
 
 function ShieldJitter:DrawDistortion()
+  if checkStunned then
+    self.stunned = Spring.GetUnitIsStunned(self.unit)
+  end
+  if self.stunned then
+    return
+  end
   local pos  = self.pos
   local size = self.size
   gl.Uniform(strengthUniform,  self.strength )
@@ -147,7 +154,15 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-function ShieldJitter:Update()
+local time = 0
+function ShieldJitter:Update(dt)
+  time = time + dt
+  if time > 45 then
+    checkStunned = true
+    time = 0
+  else
+    checkStunned = false
+  end
 end
 
 -- used if repeatEffect=true;
