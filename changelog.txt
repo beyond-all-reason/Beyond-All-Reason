@@ -1,5 +1,5 @@
 ﻿10.02 -> 10.03
-??/01/2018
+07/01/2018
 
 Balance changes:
  • Stumpy/Raider turnrate increased from 329/321 to 370/360
@@ -10,7 +10,7 @@ Balance changes:
 
 Other:
  • Options: Added team color palette sub option: same team colors
- • LUPS: Shields properly show when unit is Finished (not created)
+ • LUPS: Shields only show when unit is Finished, and disable the dome when emp-d
  • Decreased Comblast/DgunRange circles activation distance
  • Lighting effects adjustments
  • Starburst missiles have been given a green exhaust trail
