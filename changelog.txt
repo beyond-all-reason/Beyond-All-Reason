@@ -4,7 +4,7 @@
 Balance changes:
  • Stumpy/Raider turnrate increased from 329/321 to 370/360
  • Prevent Combomb gadget is now always active but only cancels comblast damages/reflects dgun damages when the involved commanders are both last commanders.
- • The previously added feature "TargetBorder" has been disabled. It seemed to remain unstable by times and will be disabled until we are completly sure it doesnt have a negative impact on the game.
+ • The previously added feature "TargetBorder" has been disabled. It seemed to remain unstable by times and will be disabled until we are completly sure it doesnt have a negative impact on the game
  • Given t2 mexes are on/off button again
  • Fixed Juggernaut explosion
 
