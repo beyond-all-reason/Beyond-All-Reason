@@ -236,15 +236,6 @@ end
 
 function gadget:PlayerChanged()
 	CheckPlayer(playerID)
-end
-
-function gadget:GameFrame(n)
-
-	if not fixedallies or n == 1 then
-		for _,playerID in ipairs(GetPlayerList()) do
-			CheckPlayer(playerID)	-- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
-		end
-	end
 
 	local winners
 	if sharedDynamicAllianceVictory == 0 then
@@ -255,6 +246,26 @@ function gadget:GameFrame(n)
 
 	if winners then
 		GameOver(winners)
+	end
+end
+
+function gadget:GameFrame(n)
+
+	if not fixedallies or n == 1 then
+		for _,playerID in ipairs(GetPlayerList()) do
+			CheckPlayer(playerID)	-- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
+		end
+
+		local winners
+		if sharedDynamicAllianceVictory == 0 then
+			winners = CheckSingleAllyVictoryEnd()
+		else
+			winners = CheckSharedAllyVictoryEnd()
+		end
+
+		if winners then
+			GameOver(winners)
+		end
 	end
 end
 
