@@ -12,6 +12,7 @@ end
 
 local randomize = false					-- randomize player colors
 local offsetstartcolor = true		-- when false it will always use red as start color, when true it starts with an offset towards center of rgb hue palette more in effect with small playernumbers
+local useSameTeamColors = false
 
 local GaiaTeam = Spring.GetGaiaTeamID()
 local GaiaTeamColor = {255,0,0 }
@@ -122,21 +123,29 @@ end
 local function SetNewTeamColors() 
 	local allyTeamList = Spring.GetAllyTeamList()
 	local numteams = #Spring.GetTeamList() - 1 -- minus gaia
-	--local numallyteams = #Spring.GetAllyTeamList() - 1 -- minus gaia
+	local numallyteams = #Spring.GetAllyTeamList() - 1 -- minus gaia
 	
 	colorOrder = {}
 	local i = 0
+	local r,g,b
 	for _, allyID in ipairs(allyTeamList) do
+		if useSameTeamColors then
+			i = i + 1
+		end
 		for _, teamID in ipairs(Spring.GetTeamList(allyID)) do
 			if teamID == GaiaTeam then
 				Spring.SetTeamColor(teamID, GaiaTeamColor[1],GaiaTeamColor[2],GaiaTeamColor[3])
 			else
-				if randomize then
-					i = GetShuffledNumber(i, numteams)
+				if not useSameTeamColors then
+					if randomize then
+						i = GetShuffledNumber(i, numteams)
+					else
+						i = i + 1
+					end
+					r,g,b = GetColor(i, numteams)
 				else
-					i = i + 1
+					r,g,b = GetColor(i, numallyteams)
 				end
-				local r,g,b = GetColor(i, numteams, numallyteams)
 
 				local _, playerID = Spring.GetTeamInfo(teamID)
 				local name = playerID and Spring.GetPlayerInfo(playerID) or 'noname'
@@ -171,14 +180,22 @@ function shufflecolors(_,_,params)
 end
 
 function widget:Initialize()
-  WG['playercolorpalette'] = {}
-  WG['playercolorpalette'].getRandomize = function()
-  	return randomize
-  end
-  WG['playercolorpalette'].setRandomize = function(value)
-  	randomize = value
-  	SetNewTeamColors()
-  end
+	WG['playercolorpalette'] = {}
+	WG['playercolorpalette'].getRandomize = function()
+		return randomize
+	end
+	WG['playercolorpalette'].setRandomize = function(value)
+		randomize = value
+		SetNewTeamColors()
+	end
+	WG['playercolorpalette'].getSameTeamColors = function()
+		return useSameTeamColors
+	end
+	WG['playercolorpalette'].setSameTeamColors = function(value)
+		useSameTeamColors = value
+		SetNewTeamColors()
+		Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
+	end
   
 	widgetHandler:AddAction("shufflecolors", shufflecolors, nil, "t")
 	widgetHandler:AddAction("ordercolors", ordercolors, nil, "t")
@@ -188,17 +205,22 @@ end
 
 function widget:Shutdown()
 	ResetOldTeamColors()
+	WG['playercolorpalette'] = nil
 end
 
 
 function widget:GetConfigData(data)
     savedTable = {}
     savedTable.randomize = randomize
+	savedTable.useSameTeamColors = useSameTeamColors
     return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.randomize ~= nil then
 		randomize = data.randomize
+	end
+	if data.useSameTeamColors ~= nil then
+		useSameTeamColors = data.useSameTeamColors
 	end
 end

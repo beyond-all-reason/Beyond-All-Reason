@@ -107,10 +107,15 @@ if gadgetHandler:IsSyncedCode() then
 				-- destroy old unit wreckage if any
 				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),70)	-- using radius larger than 1 cause wreckage can fly off a bit
 				for i, featureID in pairs(features) do
-					local wreckageID = FeatureDefNames[UnitDefs[params[2]].wreckName].id
-					if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
-						Spring.DestroyFeature(featureID, false)
-						break
+					if UnitDefs[params[2]] ~= nil then
+						local wreckName = UnitDefs[params[2]].wreckName
+						if wreckName ~= nil then
+							local wreckageID = FeatureDefNames[].id
+							if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
+								Spring.DestroyFeature(featureID, false)
+								break
+							end
+						end
 					end
 				end
 

@@ -31,7 +31,7 @@ return {
 		minwaterdepth = 15,
 		name = "Underwater Moho Mine",
 		objectname = "ARMUWMME",
-		onoffable = false,
+		onoffable = true,
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 182,

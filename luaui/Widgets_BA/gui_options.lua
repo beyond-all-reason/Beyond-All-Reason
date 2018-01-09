@@ -472,7 +472,7 @@ function DrawWindow()
 	local drawColumnPos = 1
 	if totalColumns == 0 or maxColumnRows == 0 then
 		maxColumnRows = math.floor((y-yPosMax+oPadding) / (oHeight+oPadding+oPadding))
-		totalColumns = 1 + math.floor(#options / maxColumnRows)
+		totalColumns = math.ceil(#options / maxColumnRows)
 	end
 	optionButtons = {}
 	optionHover = {}
@@ -901,6 +901,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Red Build/Order Menu"].drawBigTooltip = options[i].value
 			if WG['red_buildmenu'] ~= nil then
 				WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
+			end
+		elseif id == 'sameteamcolors' then
+			if widgetHandler.configData["Player Color Palette"] == nil then
+				widgetHandler.configData["Player Color Palette"] = {}
+			end
+			widgetHandler.configData["Player Color Palette"].useSameTeamColors = options[i].value
+			if WG['playercolorpalette'] ~= nil then
+				WG['playercolorpalette'].setSameTeamColors(options[i].value)
 			end
 		elseif id == 'bloomhighlights' then
 			if widgetHandler.configData["Bloom Shader"] == nil then
@@ -1739,6 +1747,8 @@ function init()
 
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
+		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
+
 		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
@@ -1866,6 +1876,10 @@ function init()
 	end
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigUnitBigTooltip == nil then
 		options[getOptionByID('buildmenubigtooltip')] = nil
+	end
+
+	if WG['playercolorpalette'] == nil or WG['playercolorpalette'].getSameTeamColors == nil then
+		options[getOptionByID('sameteamcolors')] = nil
 	end
 
 	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then

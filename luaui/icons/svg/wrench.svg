@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 16.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0px"
+   y="0px"
+   width="512px"
+   height="512px"
+   viewBox="0 0 512 512"
+   enable-background="new 0 0 512 512"
+   xml:space="preserve"
+   id="svg2"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="wrench.svg"
+   inkscape:export-filename="C:\Users\PtaQ\Documents\GitHub\Balanced-Annihilation\luaui\icons\wrench.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90"><metadata
+   id="metadata12"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs10" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1018"
+   id="namedview8"
+   showgrid="false"
+   inkscape:zoom="0.65186406"
+   inkscape:cx="-23.922705"
+   inkscape:cy="158.36926"
+   inkscape:window-x="-8"
+   inkscape:window-y="-8"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="Layer_1" />
+<g
+   id="Layer_1"
+   transform="matrix(-1.1487054,0,0,1.1487054,550.06796,-38.216238)">
+	
+<path
+   style="fill:#ffffff;fill-opacity:1;stroke:#000000;stroke-width:22.16640663000000100;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+   d="m 166.53581,464.07368 c 21.25321,-2.18698 36.1544,-8.82493 49.78444,-22.17718 20.9473,-20.52047 27.75953,-52.28399 18.23437,-85.0217 l -1.76743,-6.07469 59.70094,-59.36262 c 59.16042,-58.82508 59.73397,-59.3551 63.34455,-58.54167 25.71227,5.79313 35.4693,6.29394 51.42386,2.63948 30.79055,-7.05268 52.94259,-30.33431 58.43977,-61.4197 2.36059,-13.34869 0.59873,-34.05318 -3.89423,-45.76287 -0.58843,-1.53362 -5.61315,2.84722 -24.26505,21.15581 -12.93757,12.69953 -25.17307,23.98141 -27.1899,25.07093 -7.39527,3.99504 -17.68835,4.59091 -26.81217,1.55217 -8.28173,-2.75828 -13.31675,-6.63207 -28.44532,-21.885 -12.38431,-12.48608 -15.07598,-15.71417 -17.41071,-20.88026 -3.69027,-8.16558 -4.62947,-18.2841 -2.40998,-25.96444 1.5039,-5.20408 3.85146,-7.914546 26.4433,-30.531487 13.63614,-13.651204 24.57461,-25.010853 24.30782,-25.243628 -1.62851,-1.420789 -15.24936,-4.189239 -24.6986,-5.019989 -25.99294,-2.285235 -47.69754,4.943606 -64.47922,21.475201 -11.64023,11.466706 -18.89199,25.163063 -21.79685,41.167383 -2.05062,11.29791 -1.00548,29.67784 2.33957,41.1434 l 2.54398,8.71981 -60.14867,59.74361 -60.14867,59.74363 -7.63041,-2.24256 c -8.81,-2.58925 -25.99528,-4.38731 -34.70895,-3.63154 -33.31044,2.88908 -60.529134,25.21585 -68.844759,56.47157 -4.126354,15.50959 -2.890468,40.2999 2.685086,53.85808 0.395688,0.96226 9.540998,-7.29832 25.591157,-23.11549 22.914648,-22.58198 25.458186,-24.75051 30.826466,-26.28158 5.99661,-1.71028 15.5981,-1.53291 21.55868,0.39824 7.69806,2.49407 14.27264,7.41233 27.635,20.67309 17.35864,17.22724 20.1006,21.76667 21.34781,35.34847 1.38045,15.0325 0.59621,16.30073 -27.54387,44.54371 l -23.86318,23.95042 5.0454,1.68915 c 7.69935,2.57767 26.64124,4.65236 34.80576,3.81225 z"
+   id="path3757"
+   inkscape:connector-curvature="0"
+   sodipodi:nodetypes="csscssssssssssssssssscccssscsssssscsc"
+   inkscape:export-filename="C:\Users\PtaQ\Documents\GitHub\Balanced-Annihilation\luaui\icons\path3757.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90" /></g>
+<g
+   id="Layer_2">
+</g>
+</svg>

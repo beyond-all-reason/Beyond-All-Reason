@@ -132,7 +132,8 @@ local icons = {
   {"allterrain_vanguard.user", "LuaUI/Icons/allterrain.png",2.3*iconScale},
 
   {"kbot_t1_flea.user", "LuaUI/Icons/kbot.png",0.51*iconScale},
-  {"kbot_t1_tinyworker.user", "LuaUI/Icons/kbot_worker.png",0.75*iconScale},
+  {"kbot_t1_tinyworker.user", "LuaUI/Icons/worker.png",0.8*iconScale},
+  {"engineer.user", "LuaUI/Icons/wrench.png",1.4*iconScale},
   {"kbot_t1_raid.user", "LuaUI/Icons/kbot.png",0.7*iconScale},
   {"kbot_t1.user", "LuaUI/Icons/kbot.png",0.95*iconScale},
   {"kbot_t1_big.user", "LuaUI/Icons/kbot.png",1.1*iconScale},
@@ -337,9 +338,11 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
     elseif (ud.deathExplosion =="nanoboom") then
       Spring.SetUnitDefIcon(udid, "worker.user")
 
-      -- amphib
+      -- amphib & t2 subs 
     elseif ud.modCategories["phib"] ~= nil or (ud.modCategories["canbeuw"] ~= nil and ud.modCategories["underwater"] == nil) then
-      if (ud.techLevel >= 6) then
+if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name=="corssub") then
+        Spring.SetUnitDefIcon(udid, "sub_t2.user")
+      elseif (ud.techLevel >= 6) then
         Spring.SetUnitDefIcon(udid, "amphib_t3.user")
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if (ud.techLevel >= 4) then
@@ -363,9 +366,7 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
 
       -- submarines
     elseif ((ud.modCategories["underwater"] ~= nil or ud.name=="armsubsurface") and ud.speed > 0) then
-      if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name=="corssub") then
-        Spring.SetUnitDefIcon(udid, "sub_t2.user")
-      elseif (ud.name=="armacsub" or ud.name=="coracsub") then
+      if (ud.name=="armacsub" or ud.name=="coracsub" or ud.name=="armrecl" or ud.name=="correcl" ) then
         Spring.SetUnitDefIcon(udid, "sub_t2_worker.user")
       else
         Spring.SetUnitDefIcon(udid, "sub_t1.user")
@@ -435,7 +436,9 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
       elseif (ud.name=="armpt" or ud.name=="corpt") then
         Spring.SetUnitDefIcon(udid, "ship_tiny.user")
       elseif ud.isBuilder then
-        if ud.techLevel == 4 then
+	if (ud.name=="armmls" or ud.name=="cormls") then
+        Spring.SetUnitDefIcon(udid, "engineer.user")
+      elseif ud.techLevel == 4 then
           Spring.SetUnitDefIcon(udid, "ship_t2_worker.user")
         else
           Spring.SetUnitDefIcon(udid, "ship_t1_worker.user")
@@ -514,7 +517,9 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
       elseif ud.name=="armjanus" or ud.name=="corlevlr" then
         Spring.SetUnitDefIcon(udid, "tank_t1_big.user")
       elseif ud.isBuilder then
-        if ud.techLevel == 4 then
+      if ud.name=="armconsul" then
+        Spring.SetUnitDefIcon(udid, "engineer.user")
+        elseif ud.techLevel == 4 then
           Spring.SetUnitDefIcon(udid, "tank_t2_worker.user")
         else
           Spring.SetUnitDefIcon(udid, "tank_t1_worker.user")
@@ -562,6 +567,8 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
       elseif ud.isBuilder then
         if (ud.name=="cornecro" or ud.name=="armrectr") then
           Spring.SetUnitDefIcon(udid, "kbot_t1_tinyworker.user")
+        elseif (ud.name=="armfark" or ud.name=="armconsul" or ud.name=="corfast") then
+        Spring.SetUnitDefIcon(udid, "engineer.user")
         elseif ud.techLevel == 4 then
           Spring.SetUnitDefIcon(udid, "kbot_t2_worker.user")
         else
