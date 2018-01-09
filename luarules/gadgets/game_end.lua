@@ -234,8 +234,10 @@ if Spring.GetModOptions() and tonumber(Spring.GetModOptions().fixedallies) and (
 	fixedallies = true
 end
 
-function gadget:PlayerChanged()
-	CheckPlayer(playerID)
+function gadget:PlayerChanged(playerID)
+	for _,playerID in ipairs(GetPlayerList()) do
+		CheckPlayer(playerID)	-- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
+	end
 
 	local winners
 	if sharedDynamicAllianceVictory == 0 then
