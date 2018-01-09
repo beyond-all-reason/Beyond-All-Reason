@@ -229,10 +229,23 @@ local function UpdateAllyTeamIsDead(allyTeamID)
 	allyTeamInfos[allyTeamID].dead = dead
 end
 
-function gadget:GameFrame()
-	for _,playerID in ipairs(GetPlayerList()) do
-		CheckPlayer(playerID) -- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
+local fixedallies = false
+if Spring.GetModOptions() and tonumber(Spring.GetModOptions().fixedallies) and (tonumber(Spring.GetModOptions().fixedallies) ~= 0) then
+	fixedallies = true
+	function gadget:PlayerChanged()
+		CheckPlayer(playerID)
 	end
+else
+	fixedallies = false
+end
+
+function gadget:GameFrame(n)
+	if not fixedallies then
+		for _,playerID in ipairs(GetPlayerList()) do
+			CheckPlayer(playerID)	-- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
+		end
+	end
+
 	local winners
 	if sharedDynamicAllianceVictory == 0 then
 		winners = CheckSingleAllyVictoryEnd()
