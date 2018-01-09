@@ -6,13 +6,13 @@ cmdArray =
 		params      = { '1', "Gauss Cannon", "Heavy Plasma" }
 	},
 	sonar = {
-		name        = " On/Off",
-		tooltip     = "Activates/Desactivates Sonar" ,
+		name        = "Radar/Sonar On/Off",
+		tooltip     = "Activates/Deactivates Sonar" ,
 		params      = { '1', "Radar/Sonar Inactive", "Radar/Sonar Active" }
 		},
 	extraction = {
 		name        = "Metal Extraction On/Off",
-		tooltip     = "Activates/Desactivates Metal Extraction" ,
+		tooltip     = "Activates/Deactivates Metal Extraction" ,
 		params      = { '1', "Metal Extraction Inactive", "Metal Extraction Active" }
 		},
 	armor = {
