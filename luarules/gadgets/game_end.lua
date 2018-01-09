@@ -232,15 +232,15 @@ end
 local fixedallies = false
 if Spring.GetModOptions() and tonumber(Spring.GetModOptions().fixedallies) and (tonumber(Spring.GetModOptions().fixedallies) ~= 0) then
 	fixedallies = true
-	function gadget:PlayerChanged()
-		CheckPlayer(playerID)
-	end
-else
-	fixedallies = false
+end
+
+function gadget:PlayerChanged()
+	CheckPlayer(playerID)
 end
 
 function gadget:GameFrame(n)
-	if not fixedallies then
+
+	if not fixedallies or n == 1 then
 		for _,playerID in ipairs(GetPlayerList()) do
 			CheckPlayer(playerID)	-- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
 		end
