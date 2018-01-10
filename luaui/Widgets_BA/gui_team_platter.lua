@@ -39,22 +39,25 @@ local glDrawListAtUnit       = gl.DrawListAtUnit
 local glLineWidth            = gl.LineWidth
 local glPolygonOffset        = gl.PolygonOffset
 local glVertex               = gl.Vertex
-local spDiffTimers           = Spring.DiffTimers
 local spGetAllUnits          = Spring.GetAllUnits
 local spGetGroundNormal      = Spring.GetGroundNormal
 local spGetSelectedUnits     = Spring.GetSelectedUnits
 local spGetTeamColor         = Spring.GetTeamColor
-local spGetTimer             = Spring.GetTimer
 local spGetUnitBasePosition  = Spring.GetUnitBasePosition
-local spGetUnitDefDimensions = Spring.GetUnitDefDimensions
 local spGetUnitDefID         = Spring.GetUnitDefID
-local spGetUnitRadius        = Spring.GetUnitRadius
 local spGetUnitTeam          = Spring.GetUnitTeam
-local spGetUnitViewPosition  = Spring.GetUnitViewPosition
-local spIsUnitSelected       = Spring.IsUnitSelected
 local spIsUnitVisible        = Spring.IsUnitVisible
 local spSendCommands         = Spring.SendCommands
 
+local spIsGUIHidden = Spring.IsGUIHidden
+local acos = math.acos
+local pi = math.pi
+
+local unitConf = {}
+
+-- preferred to keep these values the same as fancy unit selections widget
+local rectangleFactor		= 2.4
+local scalefaktor			= 1.8
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -75,6 +78,22 @@ local function SetupCommandColors(state)
   os.remove('cmdcolors.tmp')
 end
 
+
+function SetUnitConf()
+  for udid, unitDef in pairs(UnitDefs) do
+    local xsize, zsize = unitDef.xsize, unitDef.zsize
+    local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
+    local xscale, zscale
+
+    if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
+      xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
+    else
+      xscale, zscale = scale, scale
+    end
+    unitConf[udid] = 8 + (xscale+zscale)*1.5
+  end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -84,10 +103,8 @@ local trackSlope = true
 
 local circleLines  = 0
 local circlePolys  = 0
-local circleDivs   = 32
+local circleDivs   = 36
 local circleOffset = 0
-
-local startTimer = spGetTimer()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -114,6 +131,7 @@ function widget:Initialize()
   end)
 
   SetupCommandColors(false)
+  SetUnitConf()
 end
 
 
@@ -128,34 +146,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local realRadii = {}
-
-
-local function GetUnitDefRealRadius(udid)
-  local radius = realRadii[udid]
-  if (radius) then
-    return radius
-  end
-
-  local ud = UnitDefs[udid]
-  if (ud == nil) then return nil end
-
-  local dims = spGetUnitDefDimensions(udid)
-  if (dims == nil) then return nil end
-
-  local scale = ud.hitSphereScale -- missing in 0.76b1+
-  scale = ((scale == nil) or (scale == 0.0)) and 1.0 or scale
-  radius = dims.radius / scale
-  realRadii[udid] = radius
-  return radius
-end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local teamColors = {}
-
 
 local function GetTeamColorSet(teamID)
   local colors = teamColors[teamID]
@@ -164,8 +154,8 @@ local function GetTeamColorSet(teamID)
   end
   local r,g,b = spGetTeamColor(teamID)
   
-  colors = {{ r, g, b, 0.4 },
-            { r, g, b, 0.7 }}
+  colors = {{ r, g, b, 0.3 },
+            { r, g, b, 0.4 }}
   teamColors[teamID] = colors
   return colors
 end
@@ -175,25 +165,26 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawWorldPreUnit()
+  if spIsGUIHidden() then return end
+
   glLineWidth(3.0)
 
-  glDepthTest(true)
+  glDepthTest(false)
   
   glPolygonOffset(-50, -2)
 
-  local lastColorSet = nil
   for _,unitID in ipairs(spGetAllUnits()) do
     if (spIsUnitVisible(unitID)) then
       local teamID = spGetUnitTeam(unitID)
       if (teamID and teamID~=GetGaiaTeamID) then	--+++
         local udid = spGetUnitDefID(unitID)
-        local radius = GetUnitDefRealRadius(udid)
+        local radius = unitConf[udid]
         if (radius) then
           local colorSet  = GetTeamColorSet(teamID)
           if (trackSlope and (not UnitDefs[udid].canFly)) then
             local x, y, z = spGetUnitBasePosition(unitID)
             local gx, gy, gz = spGetGroundNormal(x, z)
-            local degrot = math.acos(gy) * 180 / math.pi
+            local degrot = acos(gy) * 180 / pi
             glColor(colorSet[1])
             glDrawListAtUnit(unitID, circlePolys, false,
                              radius, 1.0, radius,
@@ -223,17 +214,17 @@ function widget:DrawWorldPreUnit()
 
   glDepthTest(false)
 
-  local alpha = 0.3
+  local alpha = 0.27
   glColor(1, 1, 1, alpha)
 
   for _,unitID in ipairs(spGetSelectedUnits()) do
     local udid = spGetUnitDefID(unitID)
-    local radius = GetUnitDefRealRadius(udid)
+    local radius = unitConf[udid]
     if (radius) then
       if (trackSlope and (not UnitDefs[udid].canFly)) then
         local x, y, z = spGetUnitBasePosition(unitID)
         local gx, gy, gz = spGetGroundNormal(x, z)
-        local degrot = math.acos(gy) * 180 / math.pi
+        local degrot = acos(gy) * 180 / pi
         glDrawListAtUnit(unitID, circlePolys, false,
                          radius, 1.0, radius,
                           degrot, gz, 0, -gx)
