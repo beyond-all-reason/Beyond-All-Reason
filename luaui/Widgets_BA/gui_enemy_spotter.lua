@@ -29,8 +29,6 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local updateFrame        				= 25		-- only update every X gameframes (... if camera has still the same position)
-
 local drawPlatter						= true
 local useXrayHighlight					= false
 
@@ -53,22 +51,14 @@ local spotterImg			= ":n:LuaUI/Images/enemyspotter.dds"
 --------------------------------------------------------------------------------
 
 local glDrawListAtUnit        = gl.DrawListAtUnit
-local glDrawFuncAtUnit        = gl.DrawFuncAtUnit
-
-local spGetTeamColor          = Spring.GetTeamColor
-local spGetUnitDefDimensions  = Spring.GetUnitDefDimensions
 local spGetUnitDefID          = Spring.GetUnitDefID
-local spIsUnitSelected        = Spring.IsUnitSelected
 local spGetAllyTeamList       = Spring.GetAllyTeamList
-local spGetTeamList           = Spring.GetTeamList
 local spIsGUIHidden           = Spring.IsGUIHidden
 local spGetUnitAllyTeam       = Spring.GetUnitAllyTeam
 local spGetVisibleUnits       = Spring.GetVisibleUnits
 local spGetCameraPosition	  = Spring.GetCameraPosition
-local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetGameFrame	      = Spring.GetGameFrame
-          
-local myTeamID                = Spring.GetLocalTeamID()
+
 local myAllyID                = Spring.GetMyAllyTeamID()
 local gaiaTeamID			  = Spring.GetGaiaTeamID()
 
@@ -286,6 +276,9 @@ function widget:Initialize()
 	if gl.CreateShader ~= nil then
 		CreateHighlightShader()
 	end
+	DrawSpotterList = gl.CreateList(function()
+		gl.TexRect(-1, 1, 1, -1)
+	end)
 end
 
 
@@ -293,6 +286,9 @@ function widget:Shutdown()
 	WG['enemyspotter'] = nil
 	if shader then
 		gl.DeleteShader(shader)
+	end
+	if DrawSpotterList ~= nil then
+		gl.DeleteList(DrawSpotterList)
 	end
 end
 
@@ -318,7 +314,7 @@ function widget:DrawWorldPreUnit()
 				gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],spotterOpacity)
 				if drawUnits[allyID] ~= nil then
 					for unitID, unitScale in pairs(drawUnits[allyID]) do
-						glDrawFuncAtUnit(unitID, false, DrawSpotter, unitScale)
+						glDrawListAtUnit(unitID, DrawSpotterList, false, unitScale,unitScale,unitScale,90,1,0,0)
 					end
 				end
 			end
@@ -327,11 +323,6 @@ function widget:DrawWorldPreUnit()
 		gl.Color(1,1,1,1)
 		gl.PolygonOffset(false)
 	end
-end
-
-function DrawSpotter(iconSize)
-	gl.Rotate(90,1,0,0)
-	gl.TexRect(-iconSize, iconSize, iconSize, -iconSize)
 end
 
 
