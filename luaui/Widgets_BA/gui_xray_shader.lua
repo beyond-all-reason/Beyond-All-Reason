@@ -35,9 +35,6 @@ local zMax = 5000
 local diminishAtFps		= 1
 local disableAtFps		= 1		-- not acurate
 
--- looks a lot nicer, esp. without FSAA  (but eats into the FPS too much)
-local smoothPolys = gl.Smoothing and true
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -194,9 +191,6 @@ end
 
 local teams = {}
 function widget:DrawWorld()
-	if (smoothPolys) then
-		glSmoothing(nil, nil, true)
-	end
 	
 	if usedEdgeExponent > 15 then return end
 	
@@ -226,10 +220,6 @@ function widget:DrawWorld()
 	glDepthTest(false)
 	glUseShader(0)
 	glColor(1, 1, 1, 0.7)
-	
-	if (smoothPolys) then
-		glSmoothing(nil, nil, false)
-	end
 end
               
 

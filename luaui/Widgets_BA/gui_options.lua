@@ -1780,7 +1780,7 @@ function init()
 
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
-		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.005, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
+		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
 		{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
 		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.002, type="slider", value=0.15, description='Set the opacity of the highlight on selected units'},
