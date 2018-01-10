@@ -93,7 +93,7 @@ function widget:DrawWorldPreUnit()
 	local camX, camY, camZ = spGetCameraPosition()
 
     for uID, pos in pairs(antiInLos) do
-        local LosOrRadar, inLos, inRadar = spGetPositionLosState(pos.x, pos.y, pos.z)
+        local LosOrRadar, inLos, inRadar = spGetPositionLosState(pos[1], pos[2], pos[3])
         if not inLos then
             antiOutLos[uID] = pos
             antiInLos[uID] = nil
@@ -104,12 +104,12 @@ function widget:DrawWorldPreUnit()
         local x, y, z = spGetUnitPosition(uID)
         
         if x ~= nil and y ~= nil and z ~= nil then
-			drawCircle(uID, pos.coverageRange, x, y, z, camX, camY, camZ)
+			drawCircle(uID, pos[4], x, y, z, camX, camY, camZ)
         end
     end
 
     for uID, pos in pairs(antiOutLos) do
-        local LosOrRadar, inLos, inRadar = spGetPositionLosState(pos.x, pos.y, pos.z)
+        local LosOrRadar, inLos, inRadar = spGetPositionLosState(pos[1], pos[2], pos[3])
         if inLos then
             antiOutLos[uID] = nil
             antiInLos[uID] = pos
@@ -118,7 +118,7 @@ function widget:DrawWorldPreUnit()
 
     for uID, pos in pairs(antiOutLos) do
         if pos.x ~= nil and pos.y ~= nil and pos.z ~= nil then
-			drawCircle(uID, pos.coverageRange, pos.x, pos.y, pos.z, camX, camY, camZ)
+			drawCircle(uID, pos[4], pos[1], pos[2], pos[3], camX, camY, camZ)
         end
     end
 end
@@ -181,23 +181,20 @@ function processVisibleUnit(unitID)
     if unitDefId == arm_anti or unitDefId == core_anti or unitDefId == arm_mobile_anti or unitDefId == core_mobile_anti
             or unitDefId == arm_mobile_anti_water or unitDefId == core_mobile_anti_water then
         local x, y, z = spGetUnitPosition(unitID)
-        local pos = {}
-        pos["x"] = x
-        pos["y"] = y
-        pos["z"] = z
+        local pos = {x,y,z}
 
         if unitDefId == arm_mobile_anti then
-            pos.coverageRange = coverageRangeArm
+            pos[4] = coverageRangeArm
         elseif unitDefId == arm_anti then
-            pos.coverageRange = coverageRangeArmStatic
+            pos[4] = coverageRangeArmStatic
         elseif unitDefId == core_anti then
-            pos.coverageRange = coverageRangeCoreStatic
+            pos[4] = coverageRangeCoreStatic
         elseif unitDefId == arm_mobile_anti_water then
-            pos.coverageRange = coverageRangeArmWater
+            pos[4] = coverageRangeArmWater
         elseif unitDefId == core_mobile_anti then
-            pos.coverageRange = coverageRangeCore
+            pos[4] = coverageRangeCore
         else
-            pos.coverageRange = coverageRangeCoreWater
+            pos[4] = coverageRangeCoreWater
         end
 
         antiInLos[unitID] = pos
@@ -209,19 +206,16 @@ function widget:UnitLeftLos(unitID)
     local unitDefId = spGetUnitDefID(unitID);
     if unitDefId == arm_anti or unitDefId == core_anti or unitDefId == arm_mobile_anti or unitDefId == core_mobile_anti or unitDefId == arm_mobile_anti_water or unitDefId == core_mobile_anti_water then
         local x, y, z = spGetUnitPosition(unitID)
-        local pos = {}
-        pos["x"] = x or antiInLos[unitID].x
-        pos["y"] = y or antiInLos[unitID].y
-        pos["z"] = z or antiInLos[unitID].z
+        local pos = {(x or antiInLos[unitID][1]), (y or antiInLos[unitID][2]), (z or antiInLos[unitID][3])}
 
         if unitDefId == arm_mobile_anti then
-            pos.coverageRange = coverageRangeArm
+            pos[4] = coverageRangeArm
         elseif unitDefId == arm_mobile_anti_water then
-            pos.coverageRange = coverageRangeArmWater
+            pos[4] = coverageRangeArmWater
         elseif unitDefId == core_mobile_anti then
-            pos.coverageRange = coverageRangeCore
+            pos[4] = coverageRangeCore
         else
-            pos.coverageRange = coverageRangeCoreWater
+            pos[4] = coverageRangeCoreWater
         end
 
         antiOutLos[unitID] = pos

@@ -15,8 +15,10 @@ end
 --------------------------------------------------------------------------------
 
 if gadgetHandler:IsSyncedCode() then
+
 defIDIsShipyard = {}
 shipyard = {}
+
 for id, uDef in pairs(UnitDefs) do
 	if uDef.name == "armsy" or uDef.name == "armasy" or uDef.name == "corsy" or uDef.name == "corasy" then
 		defIDIsShipyard[id] = true
@@ -34,7 +36,7 @@ end
 
 function gadget:Initialize()
 	for ct, unitID in pairs(Spring.GetAllUnits()) do
-	gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 	end
 end
 
@@ -42,7 +44,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 	if defIDIsShipyard[Spring.GetUnitDefID(unitID)] then
 		-- Spring.Echo("shipyardbuilt")
 		local uix, uiy, uiz = Spring.GetUnitPosition(unitID)
-		shipyard[unitID] = {x = uix, y = uiy, z = uiz}
+		shipyard[unitID] = {uix, uiy, uiz}
 	end
 end
 
@@ -51,20 +53,20 @@ function gadget:UnitDestroyed(unitID)
 end
 
 function gadget:UnitUnitCollision(colliderID, collideeID)
-if shipyard[collideeID] or shipyard[colliderID] then
--- Spring.Echo("trigger")
-	if shipyard[colliderID] then
-		shipyardID = colliderID
-		unitID = collideeID
-	elseif shipyard[collideeID] then
-		shipyardID = collideeID
-		unitID = colliderID
-	end
+	if shipyard[collideeID] or shipyard[colliderID] then
+	-- Spring.Echo("trigger")
+		if shipyard[colliderID] then
+			shipyardID = colliderID
+			unitID = collideeID
+		elseif shipyard[collideeID] then
+			shipyardID = collideeID
+			unitID = colliderID
+		end
 		-- Shipyard position
-		local sx, sy, sz = shipyard[shipyardID].x, shipyard[shipyardID].y, shipyard[shipyardID].z
+		local sx, sy, sz = shipyard[shipyardID][1], shipyard[shipyardID][2], shipyard[shipyardID][3]
 		-- Unit position and direction
-		local ux, uy, uz = Spring.GetUnitPosition(unitID)	
-		local udx, udy, udz = Spring.GetUnitDirection(unitID)	
+		local ux, uy, uz = Spring.GetUnitPosition(unitID)
+		local udx, udy, udz = Spring.GetUnitDirection(unitID)
 		-- Unit Velocity
 		-- local vx, vy, vz = Spring.GetUnitVelocity(unitID)
 		-- local velratio = 1
@@ -77,7 +79,7 @@ if shipyard[collideeID] or shipyard[colliderID] then
 		-- Spring.MoveCtrl.Disable(unitID)
 		-- Change its direction (progressively)
 		Spring.SetUnitDirection(unitID, udx*0.8 -ndx * 0.2, udy*0.8 -ndy * 0.2, udz*0.8 -ndz * 0.2)
-		
+
 		--Check UnitCMDQueue to stop when can't reach target
 		-- local cmdQueue = Spring.GetUnitCommands(unitID, 1)
 		-- if cmdQueue[1] and cmdQueue[1].id == CMD.MOVE then
@@ -92,6 +94,6 @@ if shipyard[collideeID] or shipyard[colliderID] then
 				-- end
 			-- end
 		-- end
-end
+	end
 end
 end	

@@ -49,14 +49,16 @@ function gadget:UnitDestroyed(unitID)
 	end
 end
 
-function gadget:GameFrame()
-	for unitID, isbomber in pairs (Bombers) do
-		local cQueue = Spring.GetCommandQueue(unitID,1)
+function gadget:GameFrame(n)
+	if n % 5 == 1 then
+		for unitID, isbomber in pairs (Bombers) do
+			local cQueue = Spring.GetCommandQueue(unitID,1)
 			if (cQueue[1] and cQueue[1].id == CMD.ATTACK) or (not cQueue[1]) then
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
 			else
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
 			end
+		end
 	end
 end
 

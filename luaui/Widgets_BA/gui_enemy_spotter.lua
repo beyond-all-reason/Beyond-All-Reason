@@ -188,7 +188,7 @@ function setColors()
 						if pickTeamColor then
 						-- pick the first team in the allyTeam and take the color from that one
 							if (teamListIndex == 1) then
-								usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3],_       = Spring.GetTeamColor(teamID)
+								usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3] = Spring.GetTeamColor(teamID)
 							end
 						end
 					end
@@ -210,19 +210,16 @@ function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
-		local shape, xscale, zscale
-		
+		local xscale, zscale
+
+		local static = false
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
-			shape = 'square'
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-		elseif (unitDef.isAirUnit) then
-			shape = 'triangle'
-			xscale, zscale = scale, scale
+			static = true
 		else
-			shape = 'circle'
 			xscale, zscale = scale, scale
 		end
-		unitConf[udid] = {shape=shape, xscale=xscale, zscale=zscale}
+		unitConf[udid] = {(xscale+zscale)*1.5, static}
 	end
 end
 
@@ -236,7 +233,6 @@ local function DrawGroundquad(x,y,z,size)
 	gl.TexCoord(1,0)
 	gl.Vertex(x+size,y,z-size)
 end
-
 
 local visibleUnits = {}
 local visibleUnitsCount = 0
@@ -252,15 +248,15 @@ end
 function checkUnit(unitID)
 	local allyID = spGetUnitAllyTeam(unitID)
 	if not skipOwnAllyTeam  or  (skipOwnAllyTeam  and  not (allyID == myAllyID))  then
-		local unitDefIDValue = spGetUnitDefID(unitID)
-		if ignoreUnits[unitDefIDValue] ~= nil then
+		local unitDefID = spGetUnitDefID(unitID)
+		if ignoreUnits[unitDefID] ~= nil then
 			return
 		end
-		if (unitDefIDValue) then
+		if (unitDefID) then
 			if drawUnits[allyID] == nil then
 				drawUnits[allyID] = {}
 			end
-			drawUnits[allyID][unitID] = unitConf[unitDefIDValue].xscale*3
+			drawUnits[allyID][unitID] = unitConf[unitDefID][1]
 		end
 	end
 end
