@@ -26,6 +26,7 @@ local GetProjectilePosition = Spring.GetProjectilePosition
 local GetProjectileDirection = Spring.GetProjectileDirection
 local random = math.random
 
+local missiles = {} --subMissiles that are below the surface still
 local missileWeapons = {}
 
 for weaponID, weaponDef in pairs(WeaponDefs) do
@@ -61,7 +62,6 @@ function gadget:Initialize()
     end
 end
 
-local missiles = {} --subMissiles that are below the surface still
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if missileWeapons[weaponDefID] then
@@ -69,23 +69,24 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     end
 end
 
+
 function gadget:ProjectileDestroyed(proID)
     if missileWeapons[weaponDefID] then
         missiles[proID] = nil
     end
 end
 
-function gadget:GameFrame(gf)
 
+function gadget:GameFrame(gf)
     for proID, missile in pairs(missiles) do
-        local x,y,z = GetProjectilePosition(proID)
-        if y then
-            if y > 0 and random() < 0.95 and gf > missile[1] then
+        if gf > missile[1] then
+            local x,y,z = GetProjectilePosition(proID)
+            if y and y > 0 then
                 local dirX,dirY,dirZ = GetProjectileDirection(proID)
                 Spring.SpawnCEG(missile[2],x,y,z,dirX,dirY,dirZ)
+            else
+                missiles[proID] = nil
             end
-        else
-            missiles[proID] = nil
         end
     end
 end
