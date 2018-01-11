@@ -51,6 +51,7 @@ local spotterImg			= ":n:LuaUI/Images/enemyspotter.dds"
 --------------------------------------------------------------------------------
 
 local glDrawListAtUnit        = gl.DrawListAtUnit
+local glColor			      = gl.Color
 local spGetUnitDefID          = Spring.GetUnitDefID
 local spGetAllyTeamList       = Spring.GetAllyTeamList
 local spIsGUIHidden           = Spring.IsGUIHidden
@@ -158,9 +159,8 @@ function setColors()
 	local allyToSpotterColorCount = 0
 	local allyTeamList = spGetAllyTeamList()
 	local numberOfAllyTeams = #allyTeamList
-	for allyTeamListIndex = 1, numberOfAllyTeams do
-		local allyID = allyTeamList[allyTeamListIndex]
-		
+	for _, allyID in pairs(allyTeamList) do
+
 		if not skipOwnAllyTeam  or  (skipOwnAllyTeam  and  not (allyID == myAllyID))  then
 		
 			allyToSpotterColorCount     = allyToSpotterColorCount+1
@@ -189,6 +189,7 @@ function setColors()
 				teamID = teamList[teamListIndex]
 				if teamID ~= gaiaTeamID then
 					allyColors[allyID] = usedSpotterColor
+					allyColors[allyID][4] = spotterOpacity
 				end
 			end
 		end
@@ -249,6 +250,7 @@ function widget:Initialize()
   end
   WG['enemyspotter'].setOpacity = function(value)
   	spotterOpacity = value
+	setColors()
   end
   WG['enemyspotter'].getHighlight = function()
   	return useXrayHighlight
@@ -292,22 +294,18 @@ function widget:DrawWorldPreUnit()
 		gl.PolygonOffset(-100, -2)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
 		gl.Texture(spotterImg)
-		
-		local allyTeamList = spGetAllyTeamList()
-		local numberOfAllyTeams = #allyTeamList
-		for allyTeamListIndex = 1, numberOfAllyTeams do
-			local allyID = allyTeamList[allyTeamListIndex]
-			if allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
-				gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],spotterOpacity)
-				if drawUnits[allyID] ~= nil then
-					for unitID, unitScale in pairs(drawUnits[allyID]) do
-						glDrawListAtUnit(unitID, DrawSpotterList, false, unitScale,unitScale,unitScale,90,1,0,0)
-					end
+
+		for _, allyID in ipairs(spGetAllyTeamList()) do
+			if allyColors[allyID] ~= nil and drawUnits[allyID] ~= nil then
+				glColor(allyColors[allyID])
+				for unitID, unitScale in pairs(drawUnits[allyID]) do
+					glDrawListAtUnit(unitID, DrawSpotterList, false, unitScale,unitScale,unitScale,90,1,0,0)
 				end
 			end
 		end
+
 		gl.Texture(false)
-		gl.Color(1,1,1,1)
+		glColor(1,1,1,1)
 		gl.PolygonOffset(false)
 	end
 end
@@ -359,11 +357,8 @@ function widget:DrawWorld()
 			gl.DepthTest(true)
 			gl.Blending(GL.SRC_ALPHA, GL.ONE)
 			gl.PolygonOffset(-2, -2)
-			
-			local allyTeamList = spGetAllyTeamList()
-			local numberOfAllyTeams = #allyTeamList
-			for allyTeamListIndex = 1, numberOfAllyTeams do
-				local allyID = allyTeamList[allyTeamListIndex]
+
+			for _, allyID in ipairs(spGetAllyTeamList()) do
 				if drawUnits[allyID] ~= nil and allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
 					gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],opacity)
 					for unitID, unitScale in pairs(drawUnits[allyID]) do

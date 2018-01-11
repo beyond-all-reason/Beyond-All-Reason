@@ -58,8 +58,14 @@ local unitConf = {}
 local lastUpdatedFrame		= 0
 local drawUnits				= {}
 
+local teamColors = {}
+local platterList  = 0
+local circleDivs   = 36
+local circleOffset = 0
+
 local prevCam = {}
 prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
+
 
 -- preferred to keep these values the same as fancy unit selections widget
 local rectangleFactor		= 2.4
@@ -102,17 +108,6 @@ function SetUnitConf()
     unitConf[udid] = 8 + (xscale+zscale)*1.5
   end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local teamColors = {}
-
-local trackSlope = true
-
-local platterList  = 0
-local circleDivs   = 36
-local circleOffset = 0
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -223,19 +218,12 @@ function widget:DrawWorldPreUnit()
   glDepthTest(true)
   glPolygonOffset(-100, -2)
 
-  local allyTeamList = spGetAllyTeamList()
-  local numberOfAllyTeams = #allyTeamList
-  for allyTeamIndex = 1, numberOfAllyTeams do
-    local teamList = spGetTeamList(allyTeamList[allyTeamIndex])
-    local numTeams = #teamList
-    for teamIndex = 1, numTeams do
-      local teamID = teamList[teamIndex]
-      if teamID ~= gaiaTeamID then
+  for _, allyID in ipairs(spGetAllyTeamList()) do
+    for _, teamID in ipairs(spGetTeamList(allyID)) do
+      if teamID ~= gaiaTeamID and drawUnits[teamID] ~= nil then
         glColor(GetTeamColorSet(teamID))
-        if drawUnits[teamID] ~= nil then
-          for unitID, unitScale in pairs(drawUnits[teamID]) do
-            glDrawListAtUnit(unitID, platterList, false,  unitScale, 1.0, unitScale)
-          end
+        for unitID, unitScale in pairs(drawUnits[teamID]) do
+          glDrawListAtUnit(unitID, platterList, false,  unitScale, 1.0, unitScale)
         end
       end
     end
