@@ -202,14 +202,12 @@ function SetUnitConf()
 		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
 		local xscale, zscale
 
-		local static = false
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-			static = true
 		else
 			xscale, zscale = scale, scale
 		end
-		unitConf[udid] = {(xscale+zscale)*1.5, static}
+		unitConf[udid] = (xscale+zscale)*1.5
 	end
 end
 
@@ -246,7 +244,7 @@ function checkUnit(unitID)
 			if drawUnits[allyID] == nil then
 				drawUnits[allyID] = {}
 			end
-			drawUnits[allyID][unitID] = unitConf[unitDefID][1]
+			drawUnits[allyID][unitID] = unitConf[unitDefID]
 		end
 	end
 end

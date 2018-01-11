@@ -40,6 +40,7 @@ local glLineWidth            = gl.LineWidth
 local glPolygonOffset        = gl.PolygonOffset
 local glVertex               = gl.Vertex
 local spGetAllUnits          = Spring.GetAllUnits
+local spGetVisibleUnits      = Spring.GetVisibleUnits
 local spGetGroundNormal      = Spring.GetGroundNormal
 local spGetSelectedUnits     = Spring.GetSelectedUnits
 local spGetTeamColor         = Spring.GetTeamColor
@@ -50,8 +51,6 @@ local spIsUnitVisible        = Spring.IsUnitVisible
 local spSendCommands         = Spring.SendCommands
 
 local spIsGUIHidden = Spring.IsGUIHidden
-local acos = math.acos
-local pi = math.pi
 
 local unitConf = {}
 
@@ -101,8 +100,7 @@ local teamColors = {}
 
 local trackSlope = true
 
-local circleLines  = 0
-local circlePolys  = 0
+local platterList  = 0
 local circleDivs   = 36
 local circleOffset = 0
 
@@ -110,18 +108,15 @@ local circleOffset = 0
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-  circleLines = glCreateList(function()
-    glBeginEnd(GL_LINE_LOOP, function()
+  platterList = glCreateList(function()
+    glBeginEnd(GL_TRIANGLE_FAN, function()
       local radstep = (2.0 * math.pi) / circleDivs
       for i = 1, circleDivs do
         local a = (i * radstep)
         glVertex(math.sin(a), circleOffset, math.cos(a))
       end
     end)
-  end)
-
-  circlePolys = glCreateList(function()
-    glBeginEnd(GL_TRIANGLE_FAN, function()
+    glBeginEnd(GL_LINE_LOOP, function()
       local radstep = (2.0 * math.pi) / circleDivs
       for i = 1, circleDivs do
         local a = (i * radstep)
@@ -136,9 +131,7 @@ end
 
 
 function widget:Shutdown()
-  glDeleteList(circleLines)
-  glDeleteList(circlePolys)
-
+  glDeleteList(platterList)
   SetupCommandColors(true)
 end
 
@@ -154,8 +147,7 @@ local function GetTeamColorSet(teamID)
   end
   local r,g,b = spGetTeamColor(teamID)
   
-  colors = {{ r, g, b, 0.3 },
-            { r, g, b, 0.4 }}
+  colors = {r, g, b, 0.33}
   teamColors[teamID] = colors
   return colors
 end
@@ -173,35 +165,22 @@ function widget:DrawWorldPreUnit()
   
   glPolygonOffset(-50, -2)
 
-  for _,unitID in ipairs(spGetAllUnits()) do
-    if (spIsUnitVisible(unitID)) then
-      local teamID = spGetUnitTeam(unitID)
-      if (teamID and teamID~=GetGaiaTeamID) then	--+++
-        local udid = spGetUnitDefID(unitID)
-        local radius = unitConf[udid]
-        if (radius) then
-          local colorSet  = GetTeamColorSet(teamID)
-          if (trackSlope and (not UnitDefs[udid].canFly)) then
-            local x, y, z = spGetUnitBasePosition(unitID)
-            local gx, gy, gz = spGetGroundNormal(x, z)
-            local degrot = acos(gy) * 180 / pi
-            glColor(colorSet[1])
-            glDrawListAtUnit(unitID, circlePolys, false,
-                             radius, 1.0, radius,
-                             degrot, gz, 0, -gx)
-            glColor(colorSet[2])
-            glDrawListAtUnit(unitID, circleLines, false,
-                             radius, 1.0, radius,
-                             degrot, gz, 0, -gx)
-          else
-            glColor(colorSet[1])
-            glDrawListAtUnit(unitID, circlePolys, false,
-                             radius, 1.0, radius)
-            glColor(colorSet[2])
-            glDrawListAtUnit(unitID, circleLines, false,
-                             radius, 1.0, radius)
-          end
-        end
+  for _,unitID in ipairs(spGetVisibleUnits(-1, 50, false)) do
+    local teamID = spGetUnitTeam(unitID)
+    if (teamID and teamID~=GetGaiaTeamID) then	--+++
+      local udid = spGetUnitDefID(unitID)
+      local radius = unitConf[udid]
+      local colorSet  = GetTeamColorSet(teamID)
+      if (trackSlope and (not UnitDefs[udid].canFly)) then
+        local x, y, z = spGetUnitBasePosition(unitID)
+        local gx, gy, gz = spGetGroundNormal(x, z)
+        glColor(colorSet)
+        glDrawListAtUnit(unitID, platterList, false,
+                         radius, 1.0, radius)
+      else
+        glColor(colorSet)
+        glDrawListAtUnit(unitID, platterList, false,
+                         radius, 1.0, radius)
       end
     end
   end
@@ -224,12 +203,10 @@ function widget:DrawWorldPreUnit()
       if (trackSlope and (not UnitDefs[udid].canFly)) then
         local x, y, z = spGetUnitBasePosition(unitID)
         local gx, gy, gz = spGetGroundNormal(x, z)
-        local degrot = acos(gy) * 180 / pi
-        glDrawListAtUnit(unitID, circlePolys, false,
-                         radius, 1.0, radius,
-                          degrot, gz, 0, -gx)
+        glDrawListAtUnit(unitID, platterList, false,
+                         radius, 1.0, radius)
       else
-        glDrawListAtUnit(unitID, circlePolys, false,
+        glDrawListAtUnit(unitID, platterList, false,
                          radius, 1.0, radius)
       end
     end
