@@ -15,7 +15,7 @@ function widget:GetInfo()
   return {
     name      = "TeamPlatter",
     desc      = "Shows a team color platter above all visible units",
-    author    = "trepan",
+    author    = "Floris (original: trepan)",
     date      = "Apr 16, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = 5,
@@ -39,32 +39,42 @@ local glDrawListAtUnit       = gl.DrawListAtUnit
 local glLineWidth            = gl.LineWidth
 local glPolygonOffset        = gl.PolygonOffset
 local glVertex               = gl.Vertex
-local spGetAllUnits          = Spring.GetAllUnits
 local spGetVisibleUnits      = Spring.GetVisibleUnits
-local spGetGroundNormal      = Spring.GetGroundNormal
 local spGetSelectedUnits     = Spring.GetSelectedUnits
 local spGetTeamColor         = Spring.GetTeamColor
-local spGetUnitBasePosition  = Spring.GetUnitBasePosition
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitTeam          = Spring.GetUnitTeam
-local spIsUnitVisible        = Spring.IsUnitVisible
 local spSendCommands         = Spring.SendCommands
 
-local spIsGUIHidden = Spring.IsGUIHidden
+local spGetCameraPosition	  = Spring.GetCameraPosition
+local spGetGameFrame	      = Spring.GetGameFrame
+local spGetAllyTeamList       = Spring.GetAllyTeamList
+local spIsGUIHidden           = Spring.IsGUIHidden
+local spGetTeamList           = Spring.GetTeamList
+
+local gaiaTeamID = Spring.GetGaiaTeamID()
 
 local unitConf = {}
+local lastUpdatedFrame		= 0
+local drawUnits				= {}
+
+local prevCam = {}
+prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 
 -- preferred to keep these values the same as fancy unit selections widget
 local rectangleFactor		= 2.4
 local scalefaktor			= 1.8
 
+local ignoreUnits = {}
+for udefID,def in ipairs(UnitDefs) do
+  if def.customParams['nohealthbars'] then
+    ignoreUnits[udefID] = true
+  end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local GetGaiaTeamID = Spring.GetGaiaTeamID () --+++
-function widget:PlayerChanged() --+++
-	GetGaiaTeamID = Spring.GetGaiaTeamID () --+++
-end --+++
 
 local function SetupCommandColors(state)
   local alpha = state and 1 or 0
@@ -120,7 +130,7 @@ function widget:Initialize()
       local radstep = (2.0 * math.pi) / circleDivs
       for i = 1, circleDivs do
         local a = (i * radstep)
-        glVertex(math.sin(a), circleOffset, math.cos(a))
+        glVertex(math.sin(a), circleOffset+0.05, math.cos(a))
       end
     end)
   end)
@@ -156,23 +166,81 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
+local visibleUnits = {}
+local visibleUnitsCount = 0
+function checkAllUnits()
+  drawUnits = {}
+  visibleUnits = spGetVisibleUnits(-1, 50, false)
+  visibleUnitsCount = #visibleUnits
+  for i=1, visibleUnitsCount do
+    checkUnit(visibleUnits[i])
+  end
+end
+
+function checkUnit(unitID)
+  local teamID = spGetUnitTeam(unitID)
+  local unitDefID = spGetUnitDefID(unitID)
+  if ignoreUnits[unitDefID] ~= nil then
+    return
+  end
+  if (unitDefID) then
+    if drawUnits[teamID] == nil then
+      drawUnits[teamID] = {}
+    end
+    drawUnits[teamID][unitID] = unitConf[unitDefID]
+  end
+end
+
+
+local sec = 0
+local sceduledCheck = false
+local updateTime = 1
+function widget:Update(dt)
+  sec=sec+dt
+  local camX, camY, camZ = spGetCameraPosition()
+  if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
+    sceduledCheck = true
+  end
+  if (sec>1/updateTime and lastUpdatedFrame ~= spGetGameFrame() or (sec>1/(updateTime*5) and sceduledCheck)) then
+    sec = 0
+    checkAllUnits()
+    lastUpdatedFrame = spGetGameFrame()
+    sceduledCheck = false
+    updateTime = Spring.GetFPS() / 15
+    if updateTime < 0.66 then
+      updateTime = 0.66
+    end
+  end
+  prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
+end
+
+
 function widget:DrawWorldPreUnit()
   if spIsGUIHidden() then return end
 
   glLineWidth(3.0)
-  glDepthTest(false)
-  glPolygonOffset(-50, -2)
+  glDepthTest(true)
+  glPolygonOffset(-100, -2)
 
-  for _,unitID in ipairs(spGetVisibleUnits(-1, 50, false)) do
-    local teamID = spGetUnitTeam(unitID)
-    if (teamID and teamID~=GetGaiaTeamID) then
-      local udid = spGetUnitDefID(unitID)
-      local radius = unitConf[udid]
-      glColor(GetTeamColorSet(teamID))
-      glDrawListAtUnit(unitID, platterList, false,  radius, 1.0, radius)
+  local allyTeamList = spGetAllyTeamList()
+  local numberOfAllyTeams = #allyTeamList
+  for allyTeamIndex = 1, numberOfAllyTeams do
+    local teamList = spGetTeamList(allyTeamList[allyTeamIndex])
+    local numTeams = #teamList
+    for teamIndex = 1, numTeams do
+      local teamID = teamList[teamIndex]
+      if teamID ~= gaiaTeamID then
+        glColor(GetTeamColorSet(teamID))
+        if drawUnits[teamID] ~= nil then
+          for unitID, unitScale in pairs(drawUnits[teamID]) do
+            glDrawListAtUnit(unitID, platterList, false,  unitScale, 1.0, unitScale)
+          end
+        end
+      end
     end
   end
-  
+
   glPolygonOffset(false)
 
   -- Mark selected units
@@ -184,7 +252,7 @@ function widget:DrawWorldPreUnit()
 
   glLineWidth(1.0)
 end
-              
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

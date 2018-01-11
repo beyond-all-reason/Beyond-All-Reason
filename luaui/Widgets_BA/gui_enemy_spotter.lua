@@ -211,17 +211,6 @@ function SetUnitConf()
 	end
 end
 
-local function DrawGroundquad(x,y,z,size)
-	gl.TexCoord(0,0)
-	gl.Vertex(x-size,y,z-size)
-	gl.TexCoord(0,1)
-	gl.Vertex(x-size,y,z+size)
-	gl.TexCoord(1,1)
-	gl.Vertex(x+size,y,z+size)
-	gl.TexCoord(1,0)
-	gl.Vertex(x+size,y,z-size)
-end
-
 local visibleUnits = {}
 local visibleUnitsCount = 0
 function checkAllUnits()
