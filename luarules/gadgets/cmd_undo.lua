@@ -24,7 +24,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
 
-	local authorizedPlayers  = {'[teh]Flow', 'BAAlphatest1', 'FlowerPower'}
+	local authorizedPlayers  = {'[teh]Flow', 'Floris', 'FlowerPower'}
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
@@ -153,7 +153,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local playername, _, spec = Spring.GetPlayerInfo(playerID)
-        Spring.SendMessageToPlayer(playerID, "playerID:"..playerID.."   playerName:"..playername)
 		local authorized = false
 		for _,name in ipairs(authorizedPlayers) do
 			if playername == name then
