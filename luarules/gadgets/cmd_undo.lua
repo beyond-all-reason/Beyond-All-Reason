@@ -110,7 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 					if UnitDefs[params[2]] ~= nil then
 						local wreckName = UnitDefs[params[2]].wreckName
 						if wreckName ~= nil then
-							local wreckageID = FeatureDefNames[].id
+							local wreckageID = FeatureDefNames[wreckName].id
 							if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
 								Spring.DestroyFeature(featureID, false)
 								break
