@@ -153,6 +153,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 
 		local playername, _, spec = Spring.GetPlayerInfo(playerID)
+        Spring.SendMessageToPlayer(playerID, "playerID:"..playerID.."   playerName:"..playername)
 		local authorized = false
 		for _,name in ipairs(authorizedPlayers) do
 			if playername == name then
