@@ -160,56 +160,26 @@ function widget:DrawWorldPreUnit()
   if spIsGUIHidden() then return end
 
   glLineWidth(3.0)
-
   glDepthTest(false)
-  
   glPolygonOffset(-50, -2)
 
   for _,unitID in ipairs(spGetVisibleUnits(-1, 50, false)) do
     local teamID = spGetUnitTeam(unitID)
-    if (teamID and teamID~=GetGaiaTeamID) then	--+++
+    if (teamID and teamID~=GetGaiaTeamID) then
       local udid = spGetUnitDefID(unitID)
       local radius = unitConf[udid]
-      local colorSet  = GetTeamColorSet(teamID)
-      if (trackSlope and (not UnitDefs[udid].canFly)) then
-        local x, y, z = spGetUnitBasePosition(unitID)
-        local gx, gy, gz = spGetGroundNormal(x, z)
-        glColor(colorSet)
-        glDrawListAtUnit(unitID, platterList, false,
-                         radius, 1.0, radius)
-      else
-        glColor(colorSet)
-        glDrawListAtUnit(unitID, platterList, false,
-                         radius, 1.0, radius)
-      end
+      glColor(GetTeamColorSet(teamID))
+      glDrawListAtUnit(unitID, platterList, false,  radius, 1.0, radius)
     end
   end
-
+  
   glPolygonOffset(false)
 
-  --
-  -- Mark selected units 
-  --
-
-  glDepthTest(false)
-
+  -- Mark selected units
   local alpha = 0.27
   glColor(1, 1, 1, alpha)
-
   for _,unitID in ipairs(spGetSelectedUnits()) do
-    local udid = spGetUnitDefID(unitID)
-    local radius = unitConf[udid]
-    if (radius) then
-      if (trackSlope and (not UnitDefs[udid].canFly)) then
-        local x, y, z = spGetUnitBasePosition(unitID)
-        local gx, gy, gz = spGetGroundNormal(x, z)
-        glDrawListAtUnit(unitID, platterList, false,
-                         radius, 1.0, radius)
-      else
-        glDrawListAtUnit(unitID, platterList, false,
-                         radius, 1.0, radius)
-      end
-    end
+    glDrawListAtUnit(unitID, platterList, false, unitConf[spGetUnitDefID(unitID)], 1.0, radius)
   end
 
   glLineWidth(1.0)
