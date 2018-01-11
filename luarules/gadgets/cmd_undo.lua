@@ -161,7 +161,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if playername ~= "UnnamedPlayer" then
-			if authorized == nil then
+			if not authorized then
 				Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
 				return
 			end
