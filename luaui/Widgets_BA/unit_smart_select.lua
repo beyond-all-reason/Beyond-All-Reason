@@ -20,7 +20,7 @@ function widget:GetInfo()
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
 		layer     = 0,
-		enabled   = false
+		enabled   = true
 	}
 end
 
@@ -29,7 +29,7 @@ end
 -----------------------------------------------------------------
 
 -- whether to select buildings when mobile units are inside selection rectangle
-local selectBuildingsWithMobile = false
+local selectBuildingsWithMobile = true
 local includeNanosAsMobile = true
 
 -- only select new units identical to those already selected
