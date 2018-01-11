@@ -32,7 +32,6 @@ end
 local drawPlatter						= true
 local useXrayHighlight					= false
 
-local drawWithHiddenGUI                 = false		-- keep widget enabled when graphical user interface is hidden (when pressing F5)
 local renderAllTeamsAsSpec				= false		-- renders for all teams when spectator
 local renderAllTeamsAsPlayer			= false		-- keep this 'false' if you dont want circles rendered under your own units as player
 
@@ -78,7 +77,6 @@ prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 
 local edgeExponent			= 1.5
 local highlightOpacity		= 2.3
-local smoothPolys			= gl.Smoothing			-- looks a lot nicer, esp. without FSAA  (but eats into the FPS too much)
 
 -- preferred to keep these values the same as fancy unit selections widget
 local rectangleFactor		= 3.3
@@ -288,7 +286,6 @@ function widget:DrawWorldPreUnit()
 	end
 	
 	if drawPlatter then
-		local unitZ = false
 		
 		gl.DepthTest(true)
 		gl.PolygonOffset(-100, -2)
@@ -335,50 +332,36 @@ end
 
 
 function widget:DrawWorld()
-	if useXrayHighlight then
-		if not drawWithHiddenGUI then
-			if spIsGUIHidden() then return end
+	if spIsGUIHidden() then return end
+
+	if useXrayHighlight and visibleUnitsCount > 0 then
+		gl.Color(1, 1, 1, 0.7)
+		if shader then
+			gl.UseShader(shader)
+			opacity = highlightOpacity
+		else
+			opacity = 0.25
 		end
-		
-		local unitZ = false
-		
-		if visibleUnitsCount > 0 then
-			if (smoothPolys) then
-				gl.Smoothing(nil, nil, true)
-			end
+		gl.DepthTest(true)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE)
+		gl.PolygonOffset(-2, -2)
 
-			gl.Color(1, 1, 1, 0.7)
-			if shader then
-				gl.UseShader(shader)
-				opacity = highlightOpacity
-			else
-				opacity = 0.25
-			end
-			gl.DepthTest(true)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			gl.PolygonOffset(-2, -2)
-
-			for _, allyID in ipairs(spGetAllyTeamList()) do
-				if drawUnits[allyID] ~= nil and allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
-					gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],opacity)
-					for unitID, unitScale in pairs(drawUnits[allyID]) do
-						gl.Unit(unitID, true)
-					end
+		for _, allyID in ipairs(spGetAllyTeamList()) do
+			if drawUnits[allyID] ~= nil and allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
+				gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],opacity)
+				for unitID, unitScale in pairs(drawUnits[allyID]) do
+					gl.Unit(unitID, true)
 				end
 			end
-			
-			gl.PolygonOffset(false)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			gl.DepthTest(false)
-			if shader then
-				gl.UseShader(0)
-			end
-			gl.Color(1, 1, 1, 0.7)
-			
-			if (smoothPolys) then
-				gl.Smoothing(nil, nil, false)
-			end
 		end
+
+		gl.PolygonOffset(false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.DepthTest(false)
+		if shader then
+			gl.UseShader(0)
+		end
+		gl.Color(1, 1, 1, 0.7)
 	end
 end
 

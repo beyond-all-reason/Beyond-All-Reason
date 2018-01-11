@@ -123,6 +123,7 @@ local presets = {
 		grounddetail = 60,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
+		teamplatter_highlight = false,
 	},
 	low = {
 		bloom = false,
@@ -147,6 +148,7 @@ local presets = {
 		grounddetail = 90,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
+		teamplatter_highlight = false,
 	},
 	medium = {
 		bloom = true,
@@ -171,6 +173,7 @@ local presets = {
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
+		teamplatter_highlight = false,
 	},
 	high = {
 		bloom = true,
@@ -195,6 +198,7 @@ local presets = {
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
+		teamplatter_highlight = true,
 	},
 	ultra = {
 		bloom = true,
@@ -219,6 +223,7 @@ local presets = {
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
 		enemyspotter_highlight = true,
+		teamplatter_highlight = true,
 	},
 }
 local customPresets = {}
@@ -942,6 +947,22 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['darkenmap'] ~= nil then
 				WG['darkenmap'].setDarkenFeatures(options[i].value)
 			end
+		elseif id == 'teamplatter_highlight' then
+			if widgetHandler.configData.TeamPlatter == nil then
+				widgetHandler.configData.TeamPlatter = {}
+			end
+			widgetHandler.configData.TeamPlatter.useXrayHighlight = options[i].value
+			if WG['teamplatter'] ~= nil then
+				WG['teamplatter'].setHighlight(options[i].value)
+			end
+		elseif id == 'teamplatter_skipownteam' then
+			if widgetHandler.configData.TeamPlatter == nil then
+				widgetHandler.configData.TeamPlatter = {}
+			end
+			widgetHandler.configData.TeamPlatter.skipOwnTeam = options[i].value
+			if WG['teamplatter'] ~= nil then
+				WG['teamplatter'].setSkipOwnTeam(options[i].value)
+			end
 		elseif id == 'enemyspotter_highlight' then
 			if widgetHandler.configData.EnemySpotter == nil then
 				widgetHandler.configData.EnemySpotter = {}
@@ -1188,6 +1209,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Light Effects"].globalLifeMult = value
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLife(value)
+			end
+		elseif id == 'teamplatter_opacity' then
+			if widgetHandler.configData.TeamPlatter == nil then
+				widgetHandler.configData.TeamPlatter = {}
+			end
+			widgetHandler.configData.TeamPlatter.spotterOpacity = value
+			if WG['teamplatter'] ~= nil then
+				WG['teamplatter'].setOpacity(value)
 			end
 		elseif id == 'enemyspotter_opacity' then
 			if widgetHandler.configData.EnemySpotter == nil then
@@ -1610,6 +1639,24 @@ function loadWidgetConfigData()
 			changes = true
 		end
 	end
+	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.spotterOpacity ~= nil then
+		if options[getOptionByID("teamplatter_opacity")].value ~= widgetHandler.configData.TeamPlatter.spotterOpacity then
+			options[getOptionByID("teamplatter_opacity")].value = widgetHandler.configData.TeamPlatter.spotterOpacity
+			changes = true
+		end
+	end
+	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.useXrayHighlight ~= nil then
+		if options[getOptionByID("teamplatter_highlight")].value ~= widgetHandler.configData.TeamPlatter.useXrayHighlight then
+			options[getOptionByID("teamplatter_highlight")].value = widgetHandler.configData.TeamPlatter.useXrayHighlight
+			changes = true
+		end
+	end
+	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.skipOwnTeam ~= nil then
+		if options[getOptionByID("teamplatter_skipownteam")].value ~= widgetHandler.configData.TeamPlatter.skipOwnTeam then
+			options[getOptionByID("teamplatter_skipownteam")].value = widgetHandler.configData.TeamPlatter.skipOwnTeam
+			changes = true
+		end
+	end
 
 	if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.spotterOpacity ~= nil then
 		if options[getOptionByID("enemyspotter_opacity")].value ~= widgetHandler.configData.EnemySpotter.spotterOpacity then
@@ -1779,6 +1826,9 @@ function init()
 		{id="betfrontend", group="ui", widget="Bet-Frontend", name="Bet interface", type="bool", value=GetWidgetToggleValue("Bet-Frontend"), description='When spectator: display a betting interface.\nIt allows betting on when you think a unit will be destroyed.\nBeware... you have a limited supply of chips.'},
 
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
+		{id="teamplatter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters'},
+		{id="teamplatter_highlight", group="ui", name=widgetOptionColor.."   selected unit shader", type="bool", value=false, description='Shades selected unit models'},
+		{id="teamplatter_skipownteam", group="ui", name=widgetOptionColor.."   skip own units", type="bool", value=false, description='Doesnt draw platters for yourself'},
 		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
 		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
 		{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
@@ -1888,6 +1938,12 @@ function init()
 		options[getOptionByID("lighteffects_laserbrightness")] = nil
 		options[getOptionByID("lighteffects_radius")] = nil
 		options[getOptionByID("lighteffects_laserradius")] = nil
+	end
+
+	if widgetHandler.knownWidgets["TeamPlatter"] == nil then
+		options[getOptionByID('teamplatter_opacity')] = nil
+		options[getOptionByID('teamplatter_highlight')] = nil
+		options[getOptionByID('teamplatter_skipownunits')] = nil
 	end
 
 	if widgetHandler.knownWidgets["EnemySpotter"] == nil then
