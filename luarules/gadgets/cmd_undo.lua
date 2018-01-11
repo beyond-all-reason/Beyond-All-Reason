@@ -24,7 +24,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
 
-	local authorizedPlayers  = {'[teh]Flow', 'FlowerPower'}
+	local authorizedPlayers  = {'[teh]Flow', 'BAAlphatest1', 'FlowerPower'}
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
