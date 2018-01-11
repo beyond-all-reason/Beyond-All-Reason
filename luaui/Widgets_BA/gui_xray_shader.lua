@@ -260,14 +260,9 @@ function widget:Update(dt)
 end
 
 
-local visibleUnits = {}
-local visibleUnitsCount = 0
 function checkAllUnits()
 	drawUnits = {}
-	visibleUnits = spGetVisibleUnits(-1,nil,false)
-	visibleUnitsCount = #visibleUnits
-	for i=1, visibleUnitsCount do
-		local unitID = visibleUnits[i]
+	for _, unitID in ipairs(spGetVisibleUnits(-1,nil,false)) do
 		local teamID = spGetUnitTeam(unitID)
 		local unitDefIDValue = spGetUnitDefID(unitID)
 		if (unitDefIDValue) then

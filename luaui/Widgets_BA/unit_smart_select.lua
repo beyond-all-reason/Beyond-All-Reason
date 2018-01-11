@@ -29,7 +29,7 @@ end
 -----------------------------------------------------------------
 
 -- whether to select buildings when mobile units are inside selection rectangle
-local selectBuildingsWithMobile = true
+local selectBuildingsWithMobile = false
 local includeNanosAsMobile = true
 
 -- only select new units identical to those already selected
