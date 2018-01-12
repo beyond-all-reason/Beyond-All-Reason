@@ -1665,7 +1665,7 @@ function loadWidgetConfigData()
 		end
 	end
 	if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.useXrayHighlight ~= nil then
-		if options[getOptionByID("enemyspotter_highlight")].value ~= widgetHandler.configData.EnemySpotter.useXrayHighlight then
+		if options[getOptionByID("enemyspotter_highlight")] ~= nil and options[getOptionByID("enemyspotter_highlight")].value ~= widgetHandler.configData.EnemySpotter.useXrayHighlight then
 			options[getOptionByID("enemyspotter_highlight")].value = widgetHandler.configData.EnemySpotter.useXrayHighlight
 			changes = true
 		end
