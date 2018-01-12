@@ -1427,7 +1427,9 @@ do
         unitID    = visibleUnits[i]
         unitDefID = GetUnitDefID(unitID)
 	    unitDef   = UnitDefs[unitDefID or -1]
-        DrawUnitInfos(unitID, unitDefID, unitDef)
+        if unitDef.id ~= nil then
+          DrawUnitInfos(unitID, unitDefID, unitDef)
+        end
       end
 
       --// draw bars for features
