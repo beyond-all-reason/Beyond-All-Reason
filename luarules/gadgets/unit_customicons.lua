@@ -134,6 +134,7 @@ local icons = {
   {"kbot_t1_flea.user", "LuaUI/Icons/kbot.png",0.51*iconScale},
   {"kbot_t1_tinyworker.user", "LuaUI/Icons/worker.png",0.8*iconScale},
   {"engineer.user", "LuaUI/Icons/wrench.png",1.4*iconScale},
+  {"ship_engineer.user", "LuaUI/Icons/shipengineer.png",1.5*iconScale},
   {"kbot_t1_raid.user", "LuaUI/Icons/kbot.png",0.7*iconScale},
   {"kbot_t1.user", "LuaUI/Icons/kbot.png",0.95*iconScale},
   {"kbot_t1_big.user", "LuaUI/Icons/kbot.png",1.1*iconScale},
@@ -185,7 +186,7 @@ local icons = {
   {"air_t2_transport.user", "LuaUI/Icons/transport.png",1.6*iconScale},
   {"veh_transport.user", "LuaUI/Icons/vehtrans.png",1.7*iconScale},
   {"hover_transport.user", "LuaUI/Icons/hovertrans.png",1.5*iconScale},
-  {"ship_transport.user", "LuaUI/Icons/shiptrans.png",2.2*iconScale},
+  {"ship_transport.user", "LuaUI/Icons/shiptrans.png",2*iconScale},
   {"air_t2_radar_t1.user", "LuaUI/Icons/air_los.png",1.33*iconScale},
   {"air_bladew.user", "LuaUI/Icons/air_hover.png",0.75*iconScale},
   {"air_krow.user", "LuaUI/Icons/air_hover.png",2*iconScale},
@@ -437,7 +438,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
         Spring.SetUnitDefIcon(udid, "ship_tiny.user")
       elseif ud.isBuilder then
 	if (ud.name=="armmls" or ud.name=="cormls") then
-        Spring.SetUnitDefIcon(udid, "engineer.user")
+        Spring.SetUnitDefIcon(udid, "ship_engineer.user")
       elseif ud.techLevel == 4 then
           Spring.SetUnitDefIcon(udid, "ship_t2_worker.user")
         else
