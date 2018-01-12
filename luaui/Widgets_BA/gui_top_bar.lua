@@ -832,11 +832,7 @@ function widget:Update(dt)
 			resbarHover = nil
 			updateResbar('metal')
 		end
-	else
-		resbarHover = nil
-	end
-
-	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
+	elseif spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
 		draggingShareIndicatorValue = {}
 		draggingConversionIndicatorValue = nil
 		updateResbar('metal')
@@ -1369,6 +1365,9 @@ function widget:PlayerChanged()
 	checkStatus()
 	if displayComCounter then
 		countComs()
+	end
+	if spec then
+		resbarHover = nil
 	end
 end
 

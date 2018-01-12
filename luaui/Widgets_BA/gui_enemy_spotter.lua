@@ -29,12 +29,9 @@ end
 -- Config
 --------------------------------------------------------------------------------
 
-local updateFrame        				= 25		-- only update every X gameframes (... if camera has still the same position)
-
 local drawPlatter						= true
 local useXrayHighlight					= false
 
-local drawWithHiddenGUI                 = false		-- keep widget enabled when graphical user interface is hidden (when pressing F5)
 local renderAllTeamsAsSpec				= false		-- renders for all teams when spectator
 local renderAllTeamsAsPlayer			= false		-- keep this 'false' if you dont want circles rendered under your own units as player
 
@@ -53,22 +50,15 @@ local spotterImg			= ":n:LuaUI/Images/enemyspotter.dds"
 --------------------------------------------------------------------------------
 
 local glDrawListAtUnit        = gl.DrawListAtUnit
-local glDrawFuncAtUnit        = gl.DrawFuncAtUnit
-
-local spGetTeamColor          = Spring.GetTeamColor
-local spGetUnitDefDimensions  = Spring.GetUnitDefDimensions
+local glColor			      = gl.Color
 local spGetUnitDefID          = Spring.GetUnitDefID
-local spIsUnitSelected        = Spring.IsUnitSelected
 local spGetAllyTeamList       = Spring.GetAllyTeamList
-local spGetTeamList           = Spring.GetTeamList
 local spIsGUIHidden           = Spring.IsGUIHidden
 local spGetUnitAllyTeam       = Spring.GetUnitAllyTeam
 local spGetVisibleUnits       = Spring.GetVisibleUnits
 local spGetCameraPosition	  = Spring.GetCameraPosition
-local spGetUnitPosition       = Spring.GetUnitPosition
 local spGetGameFrame	      = Spring.GetGameFrame
-          
-local myTeamID                = Spring.GetLocalTeamID()
+
 local myAllyID                = Spring.GetMyAllyTeamID()
 local gaiaTeamID			  = Spring.GetGaiaTeamID()
 
@@ -87,7 +77,6 @@ prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 
 local edgeExponent			= 1.5
 local highlightOpacity		= 2.3
-local smoothPolys			= gl.Smoothing			-- looks a lot nicer, esp. without FSAA  (but eats into the FPS too much)
 
 -- preferred to keep these values the same as fancy unit selections widget
 local rectangleFactor		= 3.3
@@ -168,9 +157,8 @@ function setColors()
 	local allyToSpotterColorCount = 0
 	local allyTeamList = spGetAllyTeamList()
 	local numberOfAllyTeams = #allyTeamList
-	for allyTeamListIndex = 1, numberOfAllyTeams do
-		local allyID = allyTeamList[allyTeamListIndex]
-		
+	for _, allyID in pairs(allyTeamList) do
+
 		if not skipOwnAllyTeam  or  (skipOwnAllyTeam  and  not (allyID == myAllyID))  then
 		
 			allyToSpotterColorCount     = allyToSpotterColorCount+1
@@ -188,7 +176,7 @@ function setColors()
 						if pickTeamColor then
 						-- pick the first team in the allyTeam and take the color from that one
 							if (teamListIndex == 1) then
-								usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3],_       = Spring.GetTeamColor(teamID)
+								usedSpotterColor[1],usedSpotterColor[2],usedSpotterColor[3] = Spring.GetTeamColor(teamID)
 							end
 						end
 					end
@@ -199,6 +187,7 @@ function setColors()
 				teamID = teamList[teamListIndex]
 				if teamID ~= gaiaTeamID then
 					allyColors[allyID] = usedSpotterColor
+					allyColors[allyID][4] = spotterOpacity
 				end
 			end
 		end
@@ -210,33 +199,16 @@ function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
-		local shape, xscale, zscale
-		
+		local xscale, zscale
+
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
-			shape = 'square'
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-		elseif (unitDef.isAirUnit) then
-			shape = 'triangle'
-			xscale, zscale = scale, scale
 		else
-			shape = 'circle'
 			xscale, zscale = scale, scale
 		end
-		unitConf[udid] = {shape=shape, xscale=xscale, zscale=zscale}
+		unitConf[udid] = (xscale+zscale)*1.5
 	end
 end
-
-local function DrawGroundquad(x,y,z,size)
-	gl.TexCoord(0,0)
-	gl.Vertex(x-size,y,z-size)
-	gl.TexCoord(0,1)
-	gl.Vertex(x-size,y,z+size)
-	gl.TexCoord(1,1)
-	gl.Vertex(x+size,y,z+size)
-	gl.TexCoord(1,0)
-	gl.Vertex(x+size,y,z-size)
-end
-
 
 local visibleUnits = {}
 local visibleUnitsCount = 0
@@ -252,15 +224,15 @@ end
 function checkUnit(unitID)
 	local allyID = spGetUnitAllyTeam(unitID)
 	if not skipOwnAllyTeam  or  (skipOwnAllyTeam  and  not (allyID == myAllyID))  then
-		local unitDefIDValue = spGetUnitDefID(unitID)
-		if ignoreUnits[unitDefIDValue] ~= nil then
+		local unitDefID = spGetUnitDefID(unitID)
+		if ignoreUnits[unitDefID] ~= nil then
 			return
 		end
-		if (unitDefIDValue) then
+		if (unitDefID) then
 			if drawUnits[allyID] == nil then
 				drawUnits[allyID] = {}
 			end
-			drawUnits[allyID][unitID] = unitConf[unitDefIDValue].xscale*3
+			drawUnits[allyID][unitID] = unitConf[unitDefID]
 		end
 	end
 end
@@ -276,6 +248,7 @@ function widget:Initialize()
   end
   WG['enemyspotter'].setOpacity = function(value)
   	spotterOpacity = value
+	setColors()
   end
   WG['enemyspotter'].getHighlight = function()
   	return useXrayHighlight
@@ -290,6 +263,9 @@ function widget:Initialize()
 	if gl.CreateShader ~= nil then
 		CreateHighlightShader()
 	end
+	DrawSpotterList = gl.CreateList(function()
+		gl.TexRect(-1, 1, 1, -1)
+	end)
 end
 
 
@@ -297,6 +273,9 @@ function widget:Shutdown()
 	WG['enemyspotter'] = nil
 	if shader then
 		gl.DeleteShader(shader)
+	end
+	if DrawSpotterList ~= nil then
+		gl.DeleteList(DrawSpotterList)
 	end
 end
 
@@ -307,35 +286,25 @@ function widget:DrawWorldPreUnit()
 	end
 	
 	if drawPlatter then
-		local unitZ = false
 		
 		gl.DepthTest(true)
 		gl.PolygonOffset(-100, -2)
 		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
 		gl.Texture(spotterImg)
-		
-		local allyTeamList = spGetAllyTeamList()
-		local numberOfAllyTeams = #allyTeamList
-		for allyTeamListIndex = 1, numberOfAllyTeams do
-			local allyID = allyTeamList[allyTeamListIndex]
-			if allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
-				gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],spotterOpacity)
-				if drawUnits[allyID] ~= nil then
-					for unitID, unitScale in pairs(drawUnits[allyID]) do
-						glDrawFuncAtUnit(unitID, false, DrawSpotter, unitScale)
-					end
+
+		for _, allyID in ipairs(spGetAllyTeamList()) do
+			if allyColors[allyID] ~= nil and drawUnits[allyID] ~= nil then
+				glColor(allyColors[allyID])
+				for unitID, unitScale in pairs(drawUnits[allyID]) do
+					glDrawListAtUnit(unitID, DrawSpotterList, false, unitScale,unitScale,unitScale,90,1,0,0)
 				end
 			end
 		end
+
 		gl.Texture(false)
-		gl.Color(1,1,1,1)
+		glColor(1,1,1,1)
 		gl.PolygonOffset(false)
 	end
-end
-
-function DrawSpotter(iconSize)
-	gl.Rotate(90,1,0,0)
-	gl.TexRect(-iconSize, iconSize, iconSize, -iconSize)
 end
 
 
@@ -363,53 +332,36 @@ end
 
 
 function widget:DrawWorld()
-	if useXrayHighlight then
-		if not drawWithHiddenGUI then
-			if spIsGUIHidden() then return end
-		end
-		
-		local unitZ = false
-		
-		if visibleUnitsCount > 0 then
-			if (smoothPolys) then
-				gl.Smoothing(nil, nil, true)
-			end
+	if spIsGUIHidden() then return end
 
-			gl.Color(1, 1, 1, 0.7)
-			if shader then
-				gl.UseShader(shader)
-				opacity = highlightOpacity
-			else
-				opacity = 0.25
-			end
-			gl.DepthTest(true)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE)
-			gl.PolygonOffset(-2, -2)
-			
-			local allyTeamList = spGetAllyTeamList()
-			local numberOfAllyTeams = #allyTeamList
-			for allyTeamListIndex = 1, numberOfAllyTeams do
-				local allyID = allyTeamList[allyTeamListIndex]
-				if drawUnits[allyID] ~= nil and allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
-					gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],opacity)
-					for unitID, unitScale in pairs(drawUnits[allyID]) do
-						gl.Unit(unitID, true)
-					end
+	if useXrayHighlight and visibleUnitsCount > 0 then
+		gl.Color(1, 1, 1, 0.7)
+		if shader then
+			gl.UseShader(shader)
+			opacity = highlightOpacity
+		else
+			opacity = 0.25
+		end
+		gl.DepthTest(true)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE)
+		gl.PolygonOffset(-2, -2)
+
+		for _, allyID in ipairs(spGetAllyTeamList()) do
+			if drawUnits[allyID] ~= nil and allyColors[allyID] ~= nil and allyColors[allyID][1] ~= nil then
+				gl.Color(allyColors[allyID][1],allyColors[allyID][2],allyColors[allyID][3],opacity)
+				for unitID, unitScale in pairs(drawUnits[allyID]) do
+					gl.Unit(unitID, true)
 				end
 			end
-			
-			gl.PolygonOffset(false)
-			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			gl.DepthTest(false)
-			if shader then
-				gl.UseShader(0)
-			end
-			gl.Color(1, 1, 1, 0.7)
-			
-			if (smoothPolys) then
-				gl.Smoothing(nil, nil, false)
-			end
 		end
+
+		gl.PolygonOffset(false)
+		gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+		gl.DepthTest(false)
+		if shader then
+			gl.UseShader(0)
+		end
+		gl.Color(1, 1, 1, 0.7)
 	end
 end
 
@@ -440,7 +392,7 @@ end
 
 function widget:SetConfigData(data)
     if data.drawPlatter ~= nil				then  drawPlatter				= data.drawPlatter end
-    if data.useXrayHighlight ~= nil			then  useXrayHighlight			= data.useXrayHighlight end
+    --if data.useXrayHighlight ~= nil			then  useXrayHighlight			= data.useXrayHighlight end
     if data.renderAllTeamsAsSpec ~= nil		then  renderAllTeamsAsSpec		= data.renderAllTeamsAsSpec end
     if data.renderAllTeamsAsPlayer ~= nil	then  renderAllTeamsAsPlayer	= data.renderAllTeamsAsPlayer end
     spotterOpacity        = data.spotterOpacity       or spotterOpacity

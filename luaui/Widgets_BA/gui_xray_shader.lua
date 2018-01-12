@@ -35,9 +35,6 @@ local zMax = 5000
 local diminishAtFps		= 1
 local disableAtFps		= 1		-- not acurate
 
--- looks a lot nicer, esp. without FSAA  (but eats into the FPS too much)
-local smoothPolys = gl.Smoothing and true
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -194,9 +191,6 @@ end
 
 local teams = {}
 function widget:DrawWorld()
-	if (smoothPolys) then
-		glSmoothing(nil, nil, true)
-	end
 	
 	if usedEdgeExponent > 15 then return end
 	
@@ -226,10 +220,6 @@ function widget:DrawWorld()
 	glDepthTest(false)
 	glUseShader(0)
 	glColor(1, 1, 1, 0.7)
-	
-	if (smoothPolys) then
-		glSmoothing(nil, nil, false)
-	end
 end
               
 
@@ -270,14 +260,9 @@ function widget:Update(dt)
 end
 
 
-local visibleUnits = {}
-local visibleUnitsCount = 0
 function checkAllUnits()
 	drawUnits = {}
-	visibleUnits = spGetVisibleUnits(-1,nil,false)
-	visibleUnitsCount = #visibleUnits
-	for i=1, visibleUnitsCount do
-		local unitID = visibleUnits[i]
+	for _, unitID in ipairs(spGetVisibleUnits(-1,nil,false)) do
 		local teamID = spGetUnitTeam(unitID)
 		local unitDefIDValue = spGetUnitDefID(unitID)
 		if (unitDefIDValue) then

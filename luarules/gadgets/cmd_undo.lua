@@ -24,7 +24,7 @@ local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
 
-	local authorizedPlayers  = {'[teh]Flow', 'FlowerPower'}
+	local authorizedPlayers  = {'[teh]Flow', 'Floris', 'FlowerPower'}
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
@@ -110,7 +110,7 @@ if gadgetHandler:IsSyncedCode() then
 					if UnitDefs[params[2]] ~= nil then
 						local wreckName = UnitDefs[params[2]].wreckName
 						if wreckName ~= nil then
-							local wreckageID = FeatureDefNames[].id
+							local wreckageID = FeatureDefNames[wreckName].id
 							if wreckageID ~= nil and wreckageID == Spring.GetFeatureDefID(featureID) then
 								Spring.DestroyFeature(featureID, false)
 								break
@@ -161,7 +161,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if playername ~= "UnnamedPlayer" then
-			if authorized == nil then
+			if not authorized then
 				Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
 				return
 			end

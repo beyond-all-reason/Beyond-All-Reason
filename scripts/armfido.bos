@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  gauss, turret, flash, torso, ruparm, luparm, pelvis, lthigh,
+piece  barrel, turret, flare, sleeve, torso, ruparm, luparm, pelvis, lthigh,
        rthigh, rleg, rfoot, lleg, lfoot, lloarm, lhand, rloarm,
        rhand, ground;
 
@@ -236,11 +236,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide flash;
-	dont-cache flash;
+	hide flare;
+	dont-cache flare;
 	restore_delay = 3000;
 	Static_Var_2 = 0;
-	gun_2 = gauss;
+	gun_2 = barrel;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	moveSpeed = get MAX_SPEED;
@@ -261,7 +261,7 @@ Deactivate()
 Reload()
 {
 	sleep 2450;
-	gun_2 = gauss;
+	gun_2 = barrel;
 }
 
 SetMaxReloadTime(Func_Var_1)
@@ -283,7 +283,7 @@ StopMoving()
 
 SweetSpot(piecenum)
 {
-	piecenum = gauss;
+	piecenum = barrel;
 }
 
 RestoreAfterDelay()
@@ -291,23 +291,19 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <90.000000>;
-	turn gauss to x-axis <0.000000> speed <50.000000>;
+	turn sleeve to x-axis <0.000000> speed <50.000000>;
 	wait-for-turn turret around y-axis;
-	wait-for-turn gauss around x-axis;
+	wait-for-turn sleeve around x-axis;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	while( Static_Var_2 == 1 OR gun_2 == 1 )
-	{
-		sleep 100;
-	}
 	turn turret to y-axis heading speed <150.000000>;
-	turn gauss to x-axis <0.000000> - pitch speed <50.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around y-axis;
-	wait-for-turn gauss around x-axis;
+	wait-for-turn sleeve around x-axis;
 	while( Static_Var_2 == 1 OR gun_2 == 1 )
 	{
 		sleep 100;
@@ -320,14 +316,10 @@ AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
-	while( Static_Var_2 == 0 OR gun_2 == 1 )
-	{
-		sleep 100;
-	}
 	turn turret to y-axis heading speed <150.000000>;
-	turn gauss to x-axis <0.000000> - pitch speed <50.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	wait-for-turn turret around y-axis;
-	wait-for-turn gauss around x-axis;
+	wait-for-turn sleeve around x-axis;
 	while( Static_Var_2 == 0 OR gun_2 == 1 )
 	{
 		sleep 100;
@@ -349,36 +341,36 @@ AimFromSecondary(piecenum)
 FirePrimary()
 {
 	gun_2 = turret;
-	emit-sfx 1024 + 0 from flash;
-	move gauss to z-axis [-3.0] now;
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-3.0] now;
 	sleep 150;
-	move gauss to z-axis [0.000000] speed [3.00000];
+	move barrel to z-axis [0.000000] speed [3.00000];
 	start-script Reload();
 }
 
 FireSecondary()
 {
 	gun_2 = turret;
-	emit-sfx 1024 + 0 from flash;
-	move gauss to z-axis [-3.0] now;
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-3.0] now;
 	sleep 150;
-	move gauss to z-axis [0.000000] speed [3.00000];
+	move barrel to z-axis [0.000000] speed [3.00000];
 	start-script Reload();
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = flash;
+	piecenum = flare;
 }
 
 QuerySecondary(piecenum)
 {
-	piecenum = flash;
+	piecenum = flare;
 }
 
 Killed(severity, corpsetype)
 {
-	hide flash;
+	hide flare;
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
@@ -387,8 +379,8 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		explode flash type FALL | BITMAP1 | NOHEATCLOUD;
-		explode gauss type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode flare type FALL | BITMAP1 | NOHEATCLOUD;
+		explode barrel type SHATTER | BITMAP2 | NOHEATCLOUD;
 		explode ground type FALL | BITMAP3 | NOHEATCLOUD;
 		explode lfoot type FALL | BITMAP4 | NOHEATCLOUD;
 		explode lhand type FALL | BITMAP5 | NOHEATCLOUD;
@@ -407,8 +399,8 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode flash type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode gauss type SHATTER | BITMAP2 | NOHEATCLOUD;
+		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+		explode barrel type SHATTER | BITMAP2 | NOHEATCLOUD;
 		explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
@@ -425,8 +417,8 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode flash type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode gauss type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
+	explode barrel type SHATTER | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
 	explode ground type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode lfoot type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode lhand type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;

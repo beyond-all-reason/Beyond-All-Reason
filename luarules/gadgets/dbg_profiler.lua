@@ -216,7 +216,7 @@ else
 
     if (not profile_unsynced) then
       UpdateDrawCallin()
-      UpdateDrawCallin()
+      --UpdateDrawCallin()    -- not sure why they added this line a 2nd time
       startTimer = Spring.GetTimer()
       StartHook()
       profile_unsynced = true
@@ -232,7 +232,7 @@ else
       startTimerSYNCED = Spring.GetTimer()
       profile_synced = true
       UpdateDrawCallin()
-      UpdateDrawCallin()
+      --UpdateDrawCallin()    -- not sure why they added this line a 2nd time
     end
   end
   local show = true
@@ -241,8 +241,12 @@ else
     Start(cmd, msg, words, playerID)
     StartSYNCED(cmd, msg, words, playerID)
   end
+
   local function Hide(cmd, msg, words, playerID)
     show = false
+  end
+  local function Show(cmd, msg, words, playerID)
+    show = true
   end
     
 
@@ -275,6 +279,7 @@ else
     gadgetHandler.actionHandler.AddChatAction(gadget, 'profile', StartSYNCED,"")
     gadgetHandler.actionHandler.AddChatAction(gadget, 'ap', StartBoth,"")
     gadgetHandler.actionHandler.AddChatAction(gadget, 'hideprofile', Hide,"")
+    gadgetHandler.actionHandler.AddChatAction(gadget, 'showprofile', Show,"")
     --StartHook()
   end
 
@@ -304,7 +309,7 @@ local function SortFunc(a,b)
   --end
 end
 
-  function gadget:DrawScreen()
+  function gadget:DrawScreen_()
   	if not show then return end
     if not (next(callinTimes)) then
         --Spring.Echo("no callin times in profiler!")

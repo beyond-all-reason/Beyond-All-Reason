@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  body, turret, flare, barrel, leg4, leg3, leg1, head,
+piece  body, turret, sleeve, flare, barrel, leg4, leg3, leg1, head,
        leg2, foot1, foot2, foot3, foot4, base;
 
 static-var  bMoving, bAiming, Static_Var_3, gun_1;
@@ -57,108 +57,108 @@ MotionControl()
 		if( bAiming )
 		{
 			Static_Var_3 = 1;
-			move leg3 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg2 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <-8.000000> speed 2 * <13.000000>;
-			turn leg4 to y-axis <45.000000> speed 2 * <70.000000>;
-			turn leg3 to y-axis <-30.000000> speed 2 * <124.000000>;
-			turn leg2 to y-axis <0.000000> speed 2 * <80.000000>;
-			turn leg1 to y-axis <0.000000> speed 2 * <35.000000>;
-			turn foot1 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot2 to x-axis <-20.000000> speed 2 * <140.000000>;
-			turn foot3 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot4 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg3 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg2 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <-8.000000> speed 1 * <13.000000>;
+			turn leg4 to y-axis <45.000000> speed 1 * <70.000000>;
+			turn leg3 to y-axis <-30.000000> speed 1 * <124.000000>;
+			turn leg2 to y-axis <0.000000> speed 1 * <80.000000>;
+			turn leg1 to y-axis <0.000000> speed 1 * <35.000000>;
+			turn foot1 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot2 to x-axis <-20.000000> speed 1 * <140.000000>;
+			turn foot3 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot4 to x-axis <0.000000> speed 1 * <60.000000>;
 			sleep 500 / 2;
-			move leg4 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg3 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <8.000000> speed 2 * <13.000000>;
-			turn leg4 to y-axis <15.000000> speed 2 * <124.000000>;
-			turn leg3 to y-axis <-45.000000> speed 2 * <80.000000>;
-			turn leg2 to y-axis <-45.000000> speed 2 * <35.000000>;
-			turn leg1 to y-axis <0.000000> speed 2 * <70.000000>;
-			turn foot2 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot3 to x-axis <-20.000000> speed 2 * <140.000000>;
-			turn foot4 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot1 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg4 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg3 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <8.000000> speed 1 * <13.000000>;
+			turn leg4 to y-axis <15.000000> speed 1 * <124.000000>;
+			turn leg3 to y-axis <-45.000000> speed 1 * <80.000000>;
+			turn leg2 to y-axis <-45.000000> speed 1 * <35.000000>;
+			turn leg1 to y-axis <0.000000> speed 1 * <70.000000>;
+			turn foot2 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot3 to x-axis <-20.000000> speed 1 * <140.000000>;
+			turn foot4 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot1 to x-axis <0.000000> speed 1 * <60.000000>;
 			sleep 500 / 2;
-			move leg1 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg4 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <-8.000000> speed 2 * <13.000000>;
-			turn leg4 to y-axis <0.000000> speed 2 * <80.000000>;
-			turn leg3 to y-axis <0.000000> speed 2 * <35.000000>;
-			turn leg2 to y-axis <-45.000000> speed 2 * <70.000000>;
-			turn leg1 to y-axis <30.000000> speed 2 * <124.000000>;
-			turn foot3 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot4 to x-axis <-20.000000> speed 2 * <110.000000>;
-			turn foot1 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot2 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg1 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg4 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <-8.000000> speed 1 * <13.000000>;
+			turn leg4 to y-axis <0.000000> speed 1 * <80.000000>;
+			turn leg3 to y-axis <0.000000> speed 1 * <35.000000>;
+			turn leg2 to y-axis <-45.000000> speed 1 * <70.000000>;
+			turn leg1 to y-axis <30.000000> speed 1 * <124.000000>;
+			turn foot3 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot4 to x-axis <-20.000000> speed 1 * <110.000000>;
+			turn foot1 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot2 to x-axis <0.000000> speed 1 * <60.000000>;
 			sleep 500 / 2;
-			move leg2 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg1 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <8.000000> speed 2 * <13.000000>;
-			turn leg4 to y-axis <45.000000> speed 2 * <35.000000>;
-			turn leg3 to y-axis <0.000000> speed 2 * <70.000000>;
-			turn leg2 to y-axis <-15.000000> speed 2 * <124.000000>;
-			turn leg1 to y-axis <45.000000> speed 2 * <80.000000>;
-			turn foot4 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot1 to x-axis <-20.000000> speed 2 * <140.000000>;
-			turn foot2 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot3 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg2 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg1 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <8.000000> speed 1 * <13.000000>;
+			turn leg4 to y-axis <45.000000> speed 1 * <35.000000>;
+			turn leg3 to y-axis <0.000000> speed 1 * <70.000000>;
+			turn leg2 to y-axis <-15.000000> speed 1 * <124.000000>;
+			turn leg1 to y-axis <45.000000> speed 1 * <80.000000>;
+			turn foot4 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot1 to x-axis <-20.000000> speed 1 * <140.000000>;
+			turn foot2 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot3 to x-axis <0.000000> speed 1 * <60.000000>;
 		}
 		if( !bAiming )
 		{
 			Static_Var_3 = 0;
-			move leg3 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg2 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <-8.000000> speed 2 * <13.000000>;
-			turn body to z-axis <-5.000000> speed 2 * <9.000000>;
-			turn leg4 to y-axis <45.000000> speed 2 * <70.000000>;
-			turn leg3 to y-axis <-30.000000> speed 2 * <124.000000>;
-			turn leg2 to y-axis <0.000000> speed 2 * <80.000000>;
-			turn leg1 to y-axis <0.000000> speed 2 * <35.000000>;
-			turn foot1 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot2 to x-axis <-20.000000> speed 2 * <140.000000>;
-			turn foot3 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot4 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg3 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg2 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <-8.000000> speed 1 * <13.000000>;
+			turn body to z-axis <-5.000000> speed 1 * <9.000000>;
+			turn leg4 to y-axis <45.000000> speed 1 * <70.000000>;
+			turn leg3 to y-axis <-30.000000> speed 1 * <124.000000>;
+			turn leg2 to y-axis <0.000000> speed 1 * <80.000000>;
+			turn leg1 to y-axis <0.000000> speed 1 * <35.000000>;
+			turn foot1 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot2 to x-axis <-20.000000> speed 1 * <140.000000>;
+			turn foot3 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot4 to x-axis <0.000000> speed 1 * <60.000000>;
 			sleep 500 / 2;
-			move leg4 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg3 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <8.000000> speed 2 * <13.000000>;
-			turn body to z-axis <0.000000> speed 2 * <9.000000>;
-			turn leg4 to y-axis <15.000000> speed 2 * <124.000000>;
-			turn leg3 to y-axis <-45.000000> speed 2 * <80.000000>;
-			turn leg2 to y-axis <-45.000000> speed 2 * <35.000000>;
-			turn leg1 to y-axis <0.000000> speed 2 * <70.000000>;
-			turn foot2 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot3 to x-axis <-20.000000> speed 2 * <140.000000>;
-			turn foot4 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot1 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg4 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg3 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <8.000000> speed 1 * <13.000000>;
+			turn body to z-axis <0.000000> speed 1 * <9.000000>;
+			turn leg4 to y-axis <15.000000> speed 1 * <124.000000>;
+			turn leg3 to y-axis <-45.000000> speed 1 * <80.000000>;
+			turn leg2 to y-axis <-45.000000> speed 1 * <35.000000>;
+			turn leg1 to y-axis <0.000000> speed 1 * <70.000000>;
+			turn foot2 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot3 to x-axis <-20.000000> speed 1 * <140.000000>;
+			turn foot4 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot1 to x-axis <0.000000> speed 1 * <60.000000>;
 			sleep 500 / 2;
-			move leg1 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg4 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <-8.000000> speed 2 * <13.000000>;
-			turn body to z-axis <5.000000> speed 2 * <9.000000>;
-			turn leg4 to y-axis <0.000000> speed 2 * <80.000000>;
-			turn leg3 to y-axis <0.000000> speed 2 * <35.000000>;
-			turn leg2 to y-axis <-45.000000> speed 2 * <70.000000>;
-			turn leg1 to y-axis <30.000000> speed 2 * <124.000000>;
-			turn foot3 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot4 to x-axis <-20.000000> speed 2 * <140.000000>;
-			turn foot1 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot2 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg1 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg4 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <-8.000000> speed 1 * <13.000000>;
+			turn body to z-axis <5.000000> speed 1 * <9.000000>;
+			turn leg4 to y-axis <0.000000> speed 1 * <80.000000>;
+			turn leg3 to y-axis <0.000000> speed 1 * <35.000000>;
+			turn leg2 to y-axis <-45.000000> speed 1 * <70.000000>;
+			turn leg1 to y-axis <30.000000> speed 1 * <124.000000>;
+			turn foot3 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot4 to x-axis <-20.000000> speed 1 * <140.000000>;
+			turn foot1 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot2 to x-axis <0.000000> speed 1 * <60.000000>;
 			sleep 500 / 2;
-			move leg2 to y-axis [1.000000] speed 2 * [1.000000];
-			move leg1 to y-axis [0.000000] speed 2 * [1.000000];
-			turn head to x-axis <8.000000> speed 2 * <13.000000>;
-			turn body to z-axis <0.000000> speed 2 * <9.000000>;
-			turn leg4 to y-axis <45.000000> speed 2 * <35.000000>;
-			turn leg3 to y-axis <0.000000> speed 2 * <70.000000>;
-			turn leg2 to y-axis <-15.000000> speed 2 * <124.000000>;
-			turn leg1 to y-axis <45.000000> speed 2 * <80.000000>;
-			turn foot4 to x-axis <20.000000> speed 2 * <50.000000>;
-			turn foot1 to x-axis <-20.000000> speed 2 * <140.000000>;
-			turn foot2 to x-axis <-30.000000> speed 2 * <80.000000>;
-			turn foot3 to x-axis <0.000000> speed 2 * <60.000000>;
+			move leg2 to y-axis [1.000000] speed 1 * [1.000000];
+			move leg1 to y-axis [0.000000] speed 1 * [1.000000];
+			turn head to x-axis <8.000000> speed 1 * <13.000000>;
+			turn body to z-axis <0.000000> speed 1 * <9.000000>;
+			turn leg4 to y-axis <45.000000> speed 1 * <35.000000>;
+			turn leg3 to y-axis <0.000000> speed 1 * <70.000000>;
+			turn leg2 to y-axis <-15.000000> speed 1 * <124.000000>;
+			turn leg1 to y-axis <45.000000> speed 1 * <80.000000>;
+			turn foot4 to x-axis <20.000000> speed 1 * <50.000000>;
+			turn foot1 to x-axis <-20.000000> speed 1 * <140.000000>;
+			turn foot2 to x-axis <-30.000000> speed 1 * <80.000000>;
+			turn foot3 to x-axis <0.000000> speed 1 * <60.000000>;
 		}
 		sleep 500 / 2;
 	}
@@ -168,10 +168,6 @@ Create()
 {
 	hide flare;
 	dont-cache flare;
-	turn flare to z-axis <-45> now;
-	turn flare to y-axis <45> now;
-	move flare to z-axis [-2.5] now;
-	move flare to x-axis [-1.6] now;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;
@@ -226,7 +222,7 @@ RestoreAfterDelay()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = sleeve;
 }
 
 QueryPrimary(piecenum)
@@ -240,18 +236,10 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask 0;
 	set-signal-mask SIG_AIM;
-	while( !Static_Var_3 )
-	{
-		sleep 400;
-	}
 	turn turret to y-axis heading speed <30.000000>;
-	turn barrel to x-axis <0.000000> - pitch speed <45.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
 	wait-for-turn turret around y-axis;
-	wait-for-turn barrel around x-axis;
-	while( gun_1 )
-	{
-		sleep 250;
-	}
+	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
