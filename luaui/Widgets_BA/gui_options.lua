@@ -1773,7 +1773,7 @@ function init()
 
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 
-		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
+		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
