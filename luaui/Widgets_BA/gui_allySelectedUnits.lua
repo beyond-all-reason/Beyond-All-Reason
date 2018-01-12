@@ -374,7 +374,7 @@ function selectPlayerSelectedUnits(playerID)
 end
 
 local function createGuiList()
-	if guiDlist ~= nil then
+	if guiList ~= nil then
 		gl.DeleteList(guiList)
 	end
 	guiList = gl.CreateList(function()
