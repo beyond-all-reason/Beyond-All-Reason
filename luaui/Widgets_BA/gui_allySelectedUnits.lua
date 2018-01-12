@@ -373,8 +373,11 @@ function selectPlayerSelectedUnits(playerID)
 	Spring.SelectUnitArray(units)
 end
 
-function widget:DrawScreen()
-	if lockPlayerID ~= nil then
+local function createGuiList()
+	if guiDlist ~= nil then
+		gl.DeleteList(guiList)
+	end
+	guiList = gl.CreateList(function()
 		glColor(0, 0, 0, 0.6)
 		RectRound(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 8*sizeMultiplier)
 		glColor(1, 1, 1, 1)
@@ -384,6 +387,15 @@ function widget:DrawScreen()
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'allyselectedunits')
 		end
+	end)
+end
+
+function widget:DrawScreen()
+	if lockPlayerID ~= nil then
+		if not guiList then
+			createGuiList()
+		end
+		glCallList(guiList)
 	else
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].RemoveRect('allyselectedunits')
@@ -587,6 +599,7 @@ function widget:MousePress(mx, my, mb)
 		if mb == 1 then
 			if mx > xPos + (12*sizeMultiplier) and my > yPos + (10*sizeMultiplier) and mx < (xPos + ((panelWidth - 12)*sizeMultiplier)) and my < (yPos + ((10 + 16)*sizeMultiplier)) then
 				selectPlayerUnits = not selectPlayerUnits
+				createGuiList()
 			end
 			if lockPlayerID ~= nil and widget:IsAbove(mx,my) then
 				return false
@@ -609,6 +622,7 @@ function widget:TweakMouseMove(mx, my, dx, dy)
 		yRelPos = yRelPos + dy/vsy
 	end
 	xPos, yPos = xRelPos * vsx,yRelPos * vsy
+	createGuiList()
 end
 
 function widget:GetConfigData()
