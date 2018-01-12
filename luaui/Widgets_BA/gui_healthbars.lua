@@ -1427,7 +1427,7 @@ do
         unitID    = visibleUnits[i]
         unitDefID = GetUnitDefID(unitID)
 	    unitDef   = UnitDefs[unitDefID or -1]
-        if unitDef.id ~= nil then
+        if unitDef ~= nil then
           DrawUnitInfos(unitID, unitDefID, unitDef)
         end
       end
