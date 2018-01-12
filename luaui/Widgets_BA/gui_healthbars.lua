@@ -23,10 +23,12 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local barScale                  = 1
+
 local barHeightOffset           = 34		 -- set value that healthbars for units that can unfold and become larger than its unitdef.height are still visible
 
 local barHeight                 = 2.55
-local barWidth                  = 13         --// (barWidth)x2 total width!!!
+local barWidth                  = 12         --// (barWidth)x2 total width!!!
 local barAlpha                  = 0.86
 local barOutlineAlpha           = 0.8
 local barInnerAlpha             = 0.5
@@ -195,8 +197,9 @@ function drawBarGl()
     heightAddition = outlineSize
   end
   -- add glow
+  gl.PushMatrix()
+  gl.Scale(barScale,barScale,barScale)
   if addGlow then
-	
     gl.BeginEnd(GL.QUADS,function()
       -- bottom mid piece
       gl.Vertex(-barWidth,       (barHeight/2),  0,                   -2);
@@ -435,6 +438,7 @@ function drawBarGl()
       gl.Vertex(barWidth,barHeight,0,         1);
     end)
   end
+  gl.PopMatrix()
   
 end
 
@@ -669,7 +673,10 @@ function init()
 
   --// create bar shader
   if (gl.CreateShader) then
-  
+
+    if (barShader) then
+      gl.DeleteShader(barShader)
+    end
     barShader = gl.CreateShader({
     
       vertex = [[
@@ -757,9 +764,13 @@ function init()
 			glowAlpha = glowAlpha,
 		},
     });
-	
-	
+
+
     if (barShader) then
+      if (barDList) then
+        gl.DeleteList(barDList)
+        gl.DeleteList(barFeatureDList)
+      end
       barDList         = gl.CreateList(drawBarGl)
       barFeatureDList  = gl.CreateList(drawFeatureBarGl)
     end
@@ -783,7 +794,16 @@ function widget:Initialize()
   widgetHandler:AddAction("showhealthbars", showhealthbars)
   Spring.SendCommands({"unbind f9 showhealthbars"})
   Spring.SendCommands({"bind f9 luaui showhealthbars"})
-  
+
+  WG['healthbars'] = {}
+  WG['healthbars'].getScale = function()
+    return barScale
+  end
+  WG['healthbars'].setScale = function(value)
+    barScale = value
+    init()
+  end
+
   init()
 end
 
@@ -938,6 +958,9 @@ do
       local barInfo = bars[i]
       DrawUnitBar(yoffset,barInfo.progress,barInfo.color)
       if (fullText) then
+
+        gl.PushMatrix()
+        gl.Scale(barScale,barScale,barScale)
         if (barShader) then 
           glMyText(1)
         end
@@ -948,6 +971,7 @@ do
           glText(barInfo.title,0,yoffset-outlineSize,2.35,"cd")
         end
         if (barShader) then glMyText(0) end
+        gl.PopMatrix()
       end
       yoffset = yoffset - barHeightL
     end
@@ -1136,7 +1160,7 @@ do
       end
 
       --// PARALYZE
-      if (emp>0.01)and(hp>0.01)and(emp<1e8) then 
+      if (emp>0.01)and(hp>0.01)and(emp<1e8) then
         local stunned = GetUnitIsStunned(unitID)
         local infotext = ''
         if (stunned) then
@@ -1170,7 +1194,7 @@ do
         if (reloaded==false) then
           reload = 1 - ((reloadFrame-gameFrame)/30) / ci.reloadTime;
           reload = math.max(reload,0)
-          
+
           local infotext = ''
           if (fullText and drawBarPercentage > 0) then
             infotext = reload..'%'
@@ -1178,7 +1202,7 @@ do
           AddBar("reload",reload,"reload",infoText or '')
         end
       end
-      
+
       --// DGUN CHARGE
       local charge = GetUnitRulesParam(unitID,"charge")
       if charge and charge<=99 then
@@ -1403,9 +1427,7 @@ do
         unitID    = visibleUnits[i]
         unitDefID = GetUnitDefID(unitID)
 	    unitDef   = UnitDefs[unitDefID or -1]
-        if (unitDef) and sub(unitDef.name, 1, 7) ~= "critter" then
-          DrawUnitInfos(unitID, unitDefID, unitDef)
-        end
+        DrawUnitInfos(unitID, unitDefID, unitDef)
       end
 
       --// draw bars for features
@@ -1414,7 +1436,7 @@ do
         drawFeatureInfo = true
       end
       local wx, wy, wz, dx, dy, dz, dist, featureInfo, resurrect, reclaimLeft
-      
+
       if drawFeatureInfo or (featureResurrectVisibility or featureReclaimVisibility) then
         for i=1,#visibleFeatures do
           featureInfo = visibleFeatures[i]
@@ -1509,6 +1531,7 @@ end --//end do
 
 function widget:GetConfigData(data)
     savedTable = {}
+    savedTable.barScale				            = barScale
     savedTable.drawBarPercentage				= drawBarPercentage
     savedTable.alwaysDrawBarPercentageForComs	= alwaysDrawBarPercentageForComs
     savedTable.addGlow							= addGlow
@@ -1517,10 +1540,11 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-    if data.drawBarPercentage ~= nil    									then  drawBarPercentage	= data.drawBarPercentage end
-    if data.alwaysDrawBarPercentageForComs ~= nil  							then  alwaysDrawBarPercentageForComs = data.alwaysDrawBarPercentageForComs end
-    if data.addGlow ~= nil													then  addGlow = data.addGlow end
-    if data.currentOption ~= nil  and  OPTIONS[data.currentOption] ~= nil	then  currentOption = data.currentOption end
+  barScale = data.barScale or barScale
+  drawBarPercentage = data.drawBarPercentage or drawBarPercentage
+  alwaysDrawBarPercentageForComs = data.alwaysDrawBarPercentageForComs or alwaysDrawBarPercentageForComs
+  addGlow = data.addGlow or addGlow
+  currentOption = data.currentOption or currentOption
 end
 
 function widget:TextCommand(command)

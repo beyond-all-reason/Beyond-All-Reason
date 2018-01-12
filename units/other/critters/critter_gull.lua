@@ -50,6 +50,9 @@ unitDef = {
   mass                = 125,
   blocking            = false,
   capturable          = false,
+    customparams = {
+        nohealthbars = true,
+    },
 }
 
 return lowerkeys({ [unitName] = unitDef })

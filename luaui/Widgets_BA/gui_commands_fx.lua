@@ -76,6 +76,12 @@ local drawUnitHightlightMaxUnits = 50
 local glowImg			= ":n:LuaUI/Images/commandsfx/glow.dds"
 local lineImg			= ":n:LuaUI/Images/commandsfx/line2.dds"
 
+local ignoreUnits = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.customParams['nohealthbars'] then
+		ignoreUnits[udefID] = true
+	end
+end
 
 local mapX = Game.mapSizeX
 local mapZ = Game.mapSizeZ
@@ -430,7 +436,7 @@ end
 
 function addUnitCommand(unitID, unitDefID, cmdID)
   -- record that a command was given (note: cmdID is not used, but useful to record for debugging)
-  if string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then return end
+  if ignoreUnits[unitDefID] then return end
   if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
     maxCommand = maxCommand + 1
     commands[maxCommand] = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=unitDefID} -- command queue is not updated until next gameframe

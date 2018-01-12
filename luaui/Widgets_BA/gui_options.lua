@@ -1102,6 +1102,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['iconadjuster'] ~= nil then
 				WG['iconadjuster'].setScale(value)
 			end
+		elseif id == 'healthbarsscale' then
+			if widgetHandler.configData["Health Bars"] == nil then
+				widgetHandler.configData["Health Bars"] = {}
+			end
+			widgetHandler.configData["Health Bars"].barScale = value
+			if WG['healthbars'] ~= nil then
+				WG['healthbars'].setScale(value)
+			end
 		elseif id == 'bloombrightness' then
 			if widgetHandler.configData["Bloom Shader"] == nil then
 				widgetHandler.configData["Bloom Shader"] = {}
@@ -1573,6 +1581,13 @@ end
 function loadWidgetConfigData()
 	local changes = false
 
+	if widgetHandler.configData["Health Bars"] ~= nil and widgetHandler.configData["Health Bars"].basicAlpha ~= nil then
+		if options[getOptionByID("healthbarsscale")].value ~= widgetHandler.configData["Health Bars"].barScale then
+			options[getOptionByID("healthbarsscale")].value = widgetHandler.configData["Health Bars"].barScale
+			changes = true
+		end
+	end
+
 	if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].basicAlpha ~= nil then
 		if options[getOptionByID("bloombrightness")].value ~= widgetHandler.configData["Bloom Shader"].basicAlpha then
 			options[getOptionByID("bloombrightness")].value = widgetHandler.configData["Bloom Shader"].basicAlpha
@@ -1798,6 +1813,8 @@ function init()
 
 		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
+		{id="healthbarsscale", group="ui", name="Health Bars Scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
+
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 
@@ -1875,6 +1892,12 @@ function init()
 		end
 		options[getOptionByID('cursor')].options = cursorsets
 		options[getOptionByID('cursor')].value = cursor
+	end
+
+	if (WG['healthbars'] == nil) then
+		options[getOptionByID('healthbarsscale')] = nil
+	else
+		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
 	end
 
 	if (WG['iconadjuster'] == nil) then
