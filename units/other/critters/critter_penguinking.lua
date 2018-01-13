@@ -97,6 +97,7 @@ unitDef = {
         default = 2000,
       },
       customparams = {
+        nohealthbars = true,
         light_radius_mult = "1",		-- used by light_effects widget
         light_mult = "1",		-- used by light_effects widget
       },

@@ -45,6 +45,9 @@ unitDef = {
   sonarStealth		       = true,
 	blocking						   = false,
 	capturable             = false,
+  customparams = {
+    nohealthbars = true,
+  },
 }
 
 return lowerkeys({ critter_goldfish = unitDef })

@@ -392,7 +392,7 @@ end
 
 function widget:SetConfigData(data)
     if data.drawPlatter ~= nil				then  drawPlatter				= data.drawPlatter end
-    if data.useXrayHighlight ~= nil			then  useXrayHighlight			= data.useXrayHighlight end
+    --if data.useXrayHighlight ~= nil			then  useXrayHighlight			= data.useXrayHighlight end
     if data.renderAllTeamsAsSpec ~= nil		then  renderAllTeamsAsSpec		= data.renderAllTeamsAsSpec end
     if data.renderAllTeamsAsPlayer ~= nil	then  renderAllTeamsAsPlayer	= data.renderAllTeamsAsPlayer end
     spotterOpacity        = data.spotterOpacity       or spotterOpacity

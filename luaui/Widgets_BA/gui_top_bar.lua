@@ -87,6 +87,10 @@ local windArea = {}
 local comsArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
+local dlistWindText = {}
+local dlistResValues = {metal={},energy={}}
+local currentResCap = {metal=1000,energy=1000}
+local currentResValue = {metal=1000,energy=1000}
 
 local showOverflowTooltip = {}
 
@@ -686,13 +690,11 @@ local function updateResbar(res)
 		WG['tooltip'].AddTooltip(res..'_storage', {resbarDrawinfo[res].textStorage[2]-(resbarDrawinfo[res].textStorage[4]*2.75), resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3]+resbarDrawinfo[res].textStorage[4]}, ""..res.." storage")
 		WG['tooltip'].AddTooltip(res..'_curent', {resbarDrawinfo[res].textCurrent[2]-(resbarDrawinfo[res].textCurrent[4]*1.75), resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[2]+(resbarDrawinfo[res].textCurrent[4]*1.75), resbarDrawinfo[res].textCurrent[3]+resbarDrawinfo[res].textCurrent[4]}, "\255\215\255\215"..string.upper(res).."\n\255\240\240\240Share "..res.." to a specific player by...\n1) Using the (adv)playerlist,\n    dragging up the "..res.." icon at the rightside.\n2) An interface brought up with the H key.")
 	end
-
-    updateResbarText(res)
 end
 
 
 function init()
-	
+
 	topbarArea = {xPos, vsy-(borderPadding*widgetScale)-(height*widgetScale), vsx, vsy}
 	barContentArea = {xPos+(borderPadding*widgetScale), vsy-(height*widgetScale), vsx, vsy}
 	
@@ -756,6 +758,9 @@ function init()
 	WG['topbar'].GetPosition = function()
 		return {topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, barContentArea[2]}
 	end
+
+	updateResbarText('metal')
+	updateResbarText('energy')
 end
 
 function checkStatus()
@@ -832,11 +837,7 @@ function widget:Update(dt)
 			resbarHover = nil
 			updateResbar('metal')
 		end
-	else
-		resbarHover = nil
-	end
-
-	if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
+	elseif spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
 		draggingShareIndicatorValue = {}
 		draggingConversionIndicatorValue = nil
 		updateResbar('metal')
@@ -924,7 +925,7 @@ function widget:Update(dt)
 	end
 end
 
-function drawResValues(res)
+function drawResbarValues(res)
 	local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur, 2 = cap, 3 = pull, 4 = income, 5 = expense, 6 = share
 
 	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
@@ -954,9 +955,22 @@ function drawResValues(res)
 	glTexRect(resbarDrawinfo[res].barGlowLeftTexRect[1], resbarDrawinfo[res].barGlowLeftTexRect[2], resbarDrawinfo[res].barGlowLeftTexRect[3], resbarDrawinfo[res].barGlowLeftTexRect[4])
 	glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
 
-	-- Text: current
-	glColor(1, 1, 1, 1)
-	glText(short(cappedCurRes), resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+	currentResValue[res] = short(cappedCurRes)
+	if currentResCap[res] ~= r[2] then
+		currentResCap[res] = r[2]
+		for n,_ in pairs(dlistResValues[res]) do
+			glDeleteList(dlistResValues[res][n])
+		end
+		dlistResValues[res] = {}
+	end
+	if not dlistResValues[res][currentResValue[res]] then
+		dlistResValues[res][currentResValue[res]] = glCreateList( function()
+			-- Text: current
+			glColor(1, 1, 1, 1)
+			glText(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+		end)
+	end
+	glCallList(dlistResValues[res][currentResValue[res]])
 end
 
 function widget:DrawScreen()
@@ -972,8 +986,8 @@ function widget:DrawScreen()
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
-		drawResValues(res)
-        glCallList(dlistResbar[res][3])
+		drawResbarValues(res)
+     	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
 		--if showOverflowTooltip[res] ~= nil and showOverflowTooltip[res] < now then
 		--	local text = 'Overflowing'
@@ -984,8 +998,8 @@ function widget:DrawScreen()
 	res = 'energy'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
-		drawResValues(res)
-        glCallList(dlistResbar[res][3])
+		drawResbarValues(res)
+      	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
 		--if showOverflowTooltip[res] ~= nil and showOverflowTooltip[res] < now then
 		--	local text = 'Overflowing'
@@ -1003,7 +1017,12 @@ function widget:DrawScreen()
 		-- current wind
 		if gameFrame > 0 then
 			local fontSize = (height/2.66)*widgetScale
-			glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.1)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+			if not dlistWindText[currentWind] then
+				dlistWindText[currentWind] = glCreateList( function()
+					glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.1)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+				end)
+			end
+			glCallList(dlistWindText[currentWind])
 		else
 			if now < 30 and WG['tooltip'] ~= nil then
 				if (minWind + maxWind)/2 < 5.5 then
@@ -1031,7 +1050,7 @@ function widget:DrawScreen()
 		end
 		glCallList(dlistComs2)
 	end
-	
+
 	if dlistRejoin and showRejoinUI then
 		glCallList(dlistRejoin)
 	elseif dlistRejoin ~= nil then
@@ -1370,6 +1389,9 @@ function widget:PlayerChanged()
 	if displayComCounter then
 		countComs()
 	end
+	if spec then
+		resbarHover = nil
+	end
 end
 
 
@@ -1601,6 +1623,16 @@ function widget:Shutdown()
 		glDeleteList(dlistButtons1)
 		glDeleteList(dlistButtons2)
 		glDeleteList(dlistRejoin)
+
+		for n,_ in pairs(dlistWindText) do
+			glDeleteList(dlistWindText[n])
+		end
+		for n,_ in pairs(dlistResValues['metal']) do
+			glDeleteList(dlistResValues['metal'][n])
+		end
+		for n,_ in pairs(dlistResValues['energy']) do
+			glDeleteList(dlistResValues['energy'][n])
+		end
 	end
 	if WG['guishader_api'] ~= nil then
 		WG['guishader_api'].RemoveRect('topbar')

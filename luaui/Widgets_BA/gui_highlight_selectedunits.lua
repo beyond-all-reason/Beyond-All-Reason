@@ -17,16 +17,20 @@ function widget:GetInfo()
   return {
     name      = "Highlight Selected Units",
     desc      = "Highlights the selelected units",
-    author    = "zwzsg, from trepan HighlightUnit",
+    author    = "Floris, zwzsg, from trepan HighlightUnit",
     date      = "Apr 24, 2009",
     license   = "GNU GPL, v2 or later",
-    layer     = 25,
+    layer     = -25,
     enabled   = true
   }
 end
 
 
-highlightAlpha = 0.21
+local highlightAlpha = 0.21
+local useShader = true
+local maxShaderUnits = 150
+local edgeExponent = 2
+
 local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
 
@@ -78,23 +82,90 @@ local function HilightModel(unitID)
 end
 
 
+function CreateHighlightShader()
+  if shader then
+    gl.DeleteShader(shader)
+  end
+  shader = gl.CreateShader({
+
+    uniform = {
+      edgeExponent = edgeExponent,
+      plainAlpha = highlightAlpha*0.5,
+    },
+
+    vertex = [[
+	  // Application to vertex shader
+	  varying vec3 normal;
+	  varying vec3 eyeVec;
+	  varying vec3 color;
+	  uniform mat4 camera;
+	  uniform mat4 caminv;
+
+	  void main()
+	  {
+		vec4 P = gl_ModelViewMatrix * gl_Vertex;
+
+		eyeVec = P.xyz;
+
+		normal  = gl_NormalMatrix * gl_Normal;
+
+		color = gl_Color.rgb;
+
+		gl_Position = gl_ProjectionMatrix * P;
+	  }
+	]],
+
+    fragment = [[
+	  varying vec3 normal;
+	  varying vec3 eyeVec;
+	  varying vec3 color;
+
+	  uniform float edgeExponent;
+	  uniform float plainAlpha;
+
+	  void main()
+	  {
+		float opac = dot(normalize(normal), normalize(eyeVec));
+		opac = 1.0 - abs(opac);
+		opac = pow(opac, edgeExponent)*0.3;
+
+		gl_FragColor.rgb = color;
+		gl_FragColor.a = 0.15 + opac;
+	  }
+	]],
+  })
+end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
   WG['highlightselunits'] = {}
   WG['highlightselunits'].getOpacity = function()
-  	return highlightAlpha
+    return highlightAlpha
   end
   WG['highlightselunits'].setOpacity = function(value)
-  	highlightAlpha = value
+    highlightAlpha = value
+    CreateHighlightShader()
+  end
+  WG['highlightselunits'].getShader = function()
+    return useShader
+  end
+  WG['highlightselunits'].setShader = function(value)
+    useShader = value
+    CreateHighlightShader()
   end
   
   SetupCommandColors(false)
+  if gl.CreateShader ~= nil then
+    CreateHighlightShader()
+  end
 end
 
 
 function widget:Shutdown()
   SetupCommandColors(true)
+  if shader then
+    gl.DeleteShader(shader)
+  end
 end
 
 
@@ -102,30 +173,39 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawWorld()
-    if Spring.IsGUIHidden() then return end
+  if Spring.IsGUIHidden() then return end
 
-	gl.DepthTest(true)
-	gl.PolygonOffset(-2, -2)
-	gl.Blending(GL.SRC_ALPHA, GL.ONE)
+  gl.DepthTest(true)
+  gl.PolygonOffset(-2, -2)
+  gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
-	for _,unitID in ipairs(Spring.GetSelectedUnits()) do
-        if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
-            local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
-            if maxHealth ~= nil then
-              gl.Color(
-              health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
-              health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
-              0, -- blue
-              highlightAlpha) -- alpha
-              gl.Unit(unitID, true)
-            end
-            --HilightModel(unitID)
-        end
-	end
+  local selectedUnits = Spring.GetSelectedUnits()
+  if useShader and shader and #selectedUnits < maxShaderUnits then
+    gl.UseShader(shader)
+  end
 
-	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.PolygonOffset(false)
-	gl.DepthTest(false)
+  for _,unitID in ipairs(selectedUnits) do
+    if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
+      local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
+      if maxHealth ~= nil then
+        gl.Color(
+        health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
+        health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
+        0, -- blue
+        highlightAlpha) -- alpha
+        gl.Unit(unitID, true)
+      end
+      --HilightModel(unitID)
+    end
+  end
+
+  if useShader and shader and #selectedUnits < maxShaderUnits then
+    gl.UseShader(0)
+  end
+
+  gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+  gl.PolygonOffset(false)
+  gl.DepthTest(false)
 end
 
 
@@ -136,11 +216,12 @@ widget.DrawWorldRefraction = widget.DrawWorld
 
 
 function widget:GetConfigData()
-	return {highlightAlpha = highlightAlpha}
+	return {highlightAlpha = highlightAlpha, userShader = useShader}
 end
 
 function widget:SetConfigData(data)
-	highlightAlpha = data.highlightAlpha or highlightAlpha
+  highlightAlpha = data.highlightAlpha or highlightAlpha
+  userShader = data.userShader or userShader
 end
 
 

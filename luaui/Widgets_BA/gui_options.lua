@@ -971,6 +971,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setHighlight(options[i].value)
 			end
+		elseif id == 'highlightselunits_shader' then
+			if widgetHandler.configData["Highlight Selected Units"] == nil then
+				widgetHandler.configData["Highlight Selected Units"] = {}
+			end
+			widgetHandler.configData["Highlight Selected Units"].useShader = options[i].value
+			if WG['highlightselunits'] ~= nil then
+				WG['highlightselunits'].setShader(options[i].value)
+			end
 		elseif id == 'smartselect_includebuildings' then
 			if widgetHandler.configData["SmartSelect"] == nil then
 				widgetHandler.configData["SmartSelect"] = {}
@@ -1101,6 +1109,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Icon adjuster"].iconScale = value
 			if WG['iconadjuster'] ~= nil then
 				WG['iconadjuster'].setScale(value)
+			end
+		elseif id == 'healthbarsscale' then
+			if widgetHandler.configData["Health Bars"] == nil then
+				widgetHandler.configData["Health Bars"] = {}
+			end
+			widgetHandler.configData["Health Bars"].barScale = value
+			if WG['healthbars'] ~= nil then
+				WG['healthbars'].setScale(value)
 			end
 		elseif id == 'bloombrightness' then
 			if widgetHandler.configData["Bloom Shader"] == nil then
@@ -1573,6 +1589,13 @@ end
 function loadWidgetConfigData()
 	local changes = false
 
+	if widgetHandler.configData["Health Bars"] ~= nil and widgetHandler.configData["Health Bars"].basicAlpha ~= nil then
+		if options[getOptionByID("healthbarsscale")].value ~= widgetHandler.configData["Health Bars"].barScale then
+			options[getOptionByID("healthbarsscale")].value = widgetHandler.configData["Health Bars"].barScale
+			changes = true
+		end
+	end
+
 	if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].basicAlpha ~= nil then
 		if options[getOptionByID("bloombrightness")].value ~= widgetHandler.configData["Bloom Shader"].basicAlpha then
 			options[getOptionByID("bloombrightness")].value = widgetHandler.configData["Bloom Shader"].basicAlpha
@@ -1665,7 +1688,7 @@ function loadWidgetConfigData()
 		end
 	end
 	if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.useXrayHighlight ~= nil then
-		if options[getOptionByID("enemyspotter_highlight")].value ~= widgetHandler.configData.EnemySpotter.useXrayHighlight then
+		if options[getOptionByID("enemyspotter_highlight")] ~= nil and options[getOptionByID("enemyspotter_highlight")].value ~= widgetHandler.configData.EnemySpotter.useXrayHighlight then
 			options[getOptionByID("enemyspotter_highlight")].value = widgetHandler.configData.EnemySpotter.useXrayHighlight
 			changes = true
 		end
@@ -1758,7 +1781,7 @@ function init()
 
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 
-		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1200.\nStops rendering outlines when average fps falls below 13.'},
+		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
@@ -1798,6 +1821,8 @@ function init()
 
 		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
+		{id="healthbarsscale", group="ui", name="Health Bars Scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
+
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 
@@ -1829,12 +1854,15 @@ function init()
 		{id="teamplatter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters'},
 		{id="teamplatter_highlight", group="ui", name=widgetOptionColor.."   selected unit shader", type="bool", value=false, description='Shades selected unit models'},
 		{id="teamplatter_skipownteam", group="ui", name=widgetOptionColor.."   skip own units", type="bool", value=false, description='Doesnt draw platters for yourself'},
-		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
-		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
-		{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
-		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.002, type="slider", value=0.15, description='Set the opacity of the highlight on selected units'},
-		{id="smartselect_includebuildings", group="ui", name="Include buildings in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'},
+        {id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
+		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.12, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
+		--{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
+
+		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
+		{id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Shades selected unit models'},
+
+        {id="smartselect_includebuildings", group="ui", name="Include buildings in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'},
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
@@ -1848,11 +1876,14 @@ function init()
 		-- GAME
 		{id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Only fighters obey a factory\'s patrol route after leaving airlab.'},
 		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=GetWidgetToggleValue("Set fighters on Fly mode"), description='Setting fighters on Fly mode when created'},
-		{id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=GetWidgetToggleValue("Passive builders"), description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: You could set your most important builders on active and leave the rest on passive'},
-		{id="factoryguard", group="game", widget="FactoryGuard", name="Factory guard (builders)", type="bool", value=GetWidgetToggleValue("FactoryGuard"), description='Newly created builders will assist their source factory'},
+
+        {id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=GetWidgetToggleValue("Passive builders"), description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: You could set your most important builders on active and leave the rest on passive'},
+
+        {id="factoryguard", group="game", widget="FactoryGuard", name="Factory guard (builders)", type="bool", value=GetWidgetToggleValue("FactoryGuard"), description='Newly created builders will assist their source factory'},
 		{id="factoryholdpos", group="game", widget="Factory hold position", name="Factory hold position", type="bool", value=GetWidgetToggleValue("Factory hold position"), description='Sets new factories, and all units they build, to hold position automatically (not aircraft)'},
 		{id="factoryrepeat", group="game", widget="Factory Auto-Repeat", name="Factory auto-repeat", type="bool", value=GetWidgetToggleValue("Factory Auto-Repeat"), description='Sets new factories on Repeat mode'},
-		{id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
+
+        {id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
@@ -1877,6 +1908,12 @@ function init()
 		options[getOptionByID('cursor')].value = cursor
 	end
 
+	if (WG['healthbars'] == nil) then
+		options[getOptionByID('healthbarsscale')] = nil
+	else
+		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
+	end
+
 	if (WG['iconadjuster'] == nil) then
 		options[getOptionByID('iconadjuster')] = nil
 	else
@@ -1887,6 +1924,12 @@ function init()
 		options[getOptionByID('highlightselunits_opacity')] = nil
 	else
 		options[getOptionByID('highlightselunits_opacity')].value = WG['highlightselunits'].getOpacity()
+	end
+
+	if (WG['highlightselunits'] == nil) then
+		options[getOptionByID('highlightselunits_shader')] = nil
+	else
+		options[getOptionByID('highlightselunits_shader')].value = WG['highlightselunits'].getShader()
 	end
 
 	if (WG['smartselect'] == nil) then
