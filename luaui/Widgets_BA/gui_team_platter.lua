@@ -235,6 +235,9 @@ function widget:Shutdown()
   glDeleteList(platterList)
   glDeleteList(spotterList)
   SetupCommandColors(true)
+  if shader then
+    gl.DeleteShader(shader)
+  end
 end
 
 
@@ -323,6 +326,7 @@ function widget:DrawWorld()
       if shader then
         gl.UseShader(shader)
       end
+
       gl.DepthTest(true)
       gl.Blending(GL.SRC_ALPHA, GL.ONE)
       gl.PolygonOffset(-2, -2)
@@ -341,10 +345,11 @@ function widget:DrawWorld()
       gl.PolygonOffset(false)
       gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
       gl.DepthTest(false)
+
       if shader then
         gl.UseShader(0)
       end
-      gl.Color(1, 1, 1, 0.7)
+      glColor(1, 1, 1, 1)
     end
   end
 end
