@@ -2,7 +2,7 @@ return {
 	cornanotcplat = {
 		acceleration = 0,
 		brakerate = 4.5,
-		buildcostenergy = 2000,
+		buildcostenergy = 2600,
 		buildcostmetal = 230,
 		builddistance = 400,
 		builder = true,
