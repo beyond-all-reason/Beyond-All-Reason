@@ -755,17 +755,20 @@ end
 function DrawSideImages()
 	
 	-- do dynamic stuff without display list
-	
 	local t = GetGameSeconds()
 	
 	for _, data in pairs(allyData) do
 		local aID = data.aID
 		local drawpos = data.drawpos
-		
 		if data.exists and drawpos and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) and data["isAlive"] then
-			
+
 			local posy = tH*(drawpos) + (4*sizeMultiplier)
 			local label, isAlive, hasCom
+
+			if type(data["tE"]) == "number" and drawpos and #(data.teams) > 0 then
+				DrawBackground(posy-(4*sizeMultiplier), aID)
+			end
+
 			-- Player faction images
 			for i, tID  in pairs (data.teams) do
 				if tID ~= gaiaID or haveZombies then
@@ -837,7 +840,7 @@ local function drawListStandard()
 		if aID ~= nil then
 			local drawpos = data.drawpos
 			
-			if data.exists and type(data["tE"]) == "number" and drawpos and #(data.teams) > 0 and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
+			if data.exists and type(data["tE"]) == "number" and drawpos and #(data.teams) > 0 and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
 				
 				if not data["isAlive"] then
 					data["isAlive"] = isTeamAlive(aID)
@@ -845,7 +848,7 @@ local function drawListStandard()
 				
 				local posy = tH*(drawpos)
 				
-				if data["isAlive"] then DrawBackground(posy, aID) end
+				--if data["isAlive"] then DrawBackground(posy, aID) end
 				
 				local t = GetGameSeconds()
 				if data["isAlive"] and t > 0 and gamestarted and not gameover then
@@ -1487,8 +1490,8 @@ function widget:DrawScreen()
 	if not sideImageList then makeSideImageList() end
 	
 	gl.PushMatrix()
-	gl.CallList(drawList)
 	gl.CallList(sideImageList)
+	gl.CallList(drawList)
 	gl.PopMatrix()
 end
 
