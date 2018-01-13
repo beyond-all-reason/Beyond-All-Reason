@@ -1,4 +1,10 @@
-﻿10.02 -> 10.03
+﻿10.03 -> ??.??
+??/??/????
+Balance changes:
+ • Nano Platforms energy costs increased from 2000 to 2600e (arm and core).
+
+
+10.02 -> 10.03
 07/01/2018
 
 Balance changes:
