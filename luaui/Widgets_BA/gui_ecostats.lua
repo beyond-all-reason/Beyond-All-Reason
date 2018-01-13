@@ -1434,23 +1434,19 @@ function widget:GameFrame(frameNum)
 	if frameNum == 15 then
 		UpdateAllTeams()
 	end
-	
-	if frameNum%10 == 1 then 
-		updateButtons()
-		setPlayerResources()
-		UpdateAllies() 
-		makeStandardList()
-	end
-	if frameNum%80 == 5 then 
-		makeSideImageList()
-	end
-	
+
 	if frameNum - lastPlayerChange == 40  then
 		checkDeadTeams()
-		UpdateAllies() 
-		updateButtons()
-		makeStandardList()
+		UpdateAllies()
 		makeSideImageList()
+	elseif frameNum%80 == 5 then
+		makeSideImageList()
+	end
+	if frameNum%15 == 1 then
+		updateButtons()
+		setPlayerResources()
+		UpdateAllies()
+		makeStandardList()
 	end
 	
 	if not gamestarted and frameNum > 0 then gamestarted = true end
