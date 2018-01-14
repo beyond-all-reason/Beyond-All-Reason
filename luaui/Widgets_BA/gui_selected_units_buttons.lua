@@ -60,7 +60,7 @@ local spSelectUnitArray        = Spring.SelectUnitArray
 local spSelectUnitMap          = Spring.SelectUnitMap
 local spSendCommands           = Spring.SendCommands
 local spIsGUIHidden            = Spring.IsGUIHidden
-
+local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 
 include("colors.h.lua")
 
@@ -94,8 +94,6 @@ local rectMaxX = 0
 local rectMinY = 0
 local rectMaxY = 0
 
-
-local enabled = true
 local backgroundDimentions = {}
 local iconMargin = usedIconSizeX / 25		-- changed in ViewResize anyway
 local fontSize = iconSizeY * 0.28		-- changed in ViewResize anyway
@@ -106,14 +104,17 @@ local leftclick = 'LuaUI/Sounds/buildbar_add.wav'
 local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
+local guishaderDisabled = true
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
 
 local function updateGuishader()
 	if (WG['guishader_api'] ~= nil) then
-		if not enabled then
+		if not picList then
 			WG['guishader_api'].RemoveRect('selectionbuttons')
+            guishaderDisabled = true
 		else
 			if backgroundDimentions[1] ~= nil then
 				WG['guishader_api'].InsertRect(
@@ -123,6 +124,7 @@ local function updateGuishader()
 					backgroundDimentions[4],
 					'selectionbuttons'
 				)
+                guishaderDisabled = false
 			end
 		end
 	end
@@ -160,57 +162,67 @@ end
 local prevMouseIcon
 local hoverClock = nil
 function widget:DrawScreen()
-    cacheUnitIcons()    -- else white icon bug happens
-	enabled = false
-	if (not spIsGUIHidden()) then
-	  if picList then
-        local unitCounts = spGetSelectedUnitsCounts()
-        local icon = -1
-        for udid,count in pairs(unitCounts) do
-        icon = icon + 1
+  --cacheUnitIcons()    -- else white icon bug happens
+  if picList then
+    if (spIsGUIHidden()) then return end
+    gl.CallList(picList)
+    -- draw the highlights
+    local x,y,lb,mb,rb = spGetMouseState()
+    mouseIcon = MouseOverIcon(x, y)
+    if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
+      if (lb or mb or rb) then
+        if lb then
+          DrawIconQuad(mouseIcon, leftmouseColor)  --  click highlight
+        elseif mb then
+          DrawIconQuad(mouseIcon, middlemouseColor)  --  click highlight
+        elseif rb then
+          DrawIconQuad(mouseIcon, rightmouseColor)  --  click highlight
         end
-        if icon > 0 then
-        enabled = true
-        gl.CallList(picList)
-        -- draw the highlights
-        local x,y,lb,mb,rb = spGetMouseState()
-        mouseIcon = MouseOverIcon(x, y)
-        if (not widgetHandler:InTweakMode() and (mouseIcon >= 0)) then
-          if (lb or mb or rb) then
-            if lb then
-              DrawIconQuad(mouseIcon, leftmouseColor)  --  click highlight
-            elseif mb then
-              DrawIconQuad(mouseIcon, middlemouseColor)  --  click highlight
-            elseif rb then
-              DrawIconQuad(mouseIcon, rightmouseColor)  --  click highlight
-            end
-          else
-            --DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
-          end
-          if hoverClock == nil then hoverClock = os.clock() end
-          if WG['tooltip'] ~= nil and os.clock() - hoverClock > 0.6 then
-            WG['tooltip'].ShowTooltip('selectedunitbuttons', "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Remove all other unit types\n \255\255\255\255Left click + CTRL\255\210\210\210: Select all units of this type on map\n \255\255\255\255Left click + ALT\255\210\210\210: Remove all by 1 unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove that unit type from the selection\n \255\255\255\255Right click + CTRL\255\210\210\210: Only remove 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to the center location of the selected unit(s)\n \255\255\255\255Middle click + CTRL\255\210\210\210: Move to the center off whole selection")
-          end
-        else
-          hoverClock = nil
-        end
-        if mouseIcon ~= prevMouseIcon then
-          gl.DeleteList(picList)
-          picList = gl.CreateList(DrawPicList)
-          prevMouseIcon = mouseIcon
-        end
-        end
-	  end
-	end
-	updateGuishader()
+      else
+        --DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
+      end
+      if hoverClock == nil then hoverClock = os.clock() end
+      if WG['tooltip'] ~= nil and os.clock() - hoverClock > 0.6 then
+        WG['tooltip'].ShowTooltip('selectedunitbuttons', "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Remove all other unit types\n \255\255\255\255Left click + CTRL\255\210\210\210: Select all units of this type on map\n \255\255\255\255Left click + ALT\255\210\210\210: Remove all by 1 unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove that unit type from the selection\n \255\255\255\255Right click + CTRL\255\210\210\210: Only remove 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to the center location of the selected unit(s)\n \255\255\255\255Middle click + CTRL\255\210\210\210: Move to the center off whole selection")
+      end
+    else
+      hoverClock = nil
+    end
+    if mouseIcon ~= prevMouseIcon then
+      gl.DeleteList(picList)
+      picList = gl.CreateList(DrawPicList)
+      prevMouseIcon = mouseIcon
+    end
+  end
 end
 
 function widget:CommandsChanged()
-  if picList then
+  if spGetSelectedUnitsCount() > 0 then
+    checkSelectedUnits = true
+  elseif picList then
     gl.DeleteList(picList)
+    checkSelectedUnits = nil
   end
-  picList = gl.CreateList(DrawPicList)
+
+  if not picList and not guishaderDisabled then
+    updateGuishader()
+  end
 end
+
+local sec = 0
+function widget:Update(dt)
+  sec = sec + dt
+  if checkSelectedUnits and sec>0.08 then
+    sec = 0
+    if picList then
+      gl.DeleteList(picList)
+    end
+    picList = gl.CreateList(DrawPicList)
+    updateGuishader()
+    checkSelectedUnits = nil
+  end
+end
+
 
 function widget:Initialize()
   widget:ViewResize(vsx, vsy)
@@ -224,8 +236,10 @@ function widget:Shutdown()
   updateGuishader()
 end
 
+
 function DrawPicList()
   unitCounts = spGetSelectedUnitsCounts()
+
   unitTypes = unitCounts.n;
   if (unitTypes <= 0) then
     countsTable = {}
