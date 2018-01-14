@@ -82,6 +82,7 @@ local countsTable = {}
 local activePress = false
 local mouseIcon = -1
 local currentDef = nil
+local prevUnitCount = spGetSelectedUnitsCounts()
 
 local iconSizeX = 64
 local iconSizeY = 64
@@ -141,6 +142,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   iconMargin = usedIconSizeX / 25
   
   if picList then
+    unitCounts = spGetSelectedUnitsCounts()
     gl.DeleteList(picList)
 	picList = gl.CreateList(DrawPicList)
   end
@@ -162,9 +164,15 @@ end
 local prevMouseIcon
 local hoverClock = nil
 function widget:DrawScreen()
-  --cacheUnitIcons()    -- else white icon bug happens
+  cacheUnitIcons()    -- else white icon bug happens
   if picList then
     if (spIsGUIHidden()) then return end
+    if mouseIcon ~= prevMouseIcon then
+      unitCounts = spGetSelectedUnitsCounts()
+      gl.DeleteList(picList)
+      picList = gl.CreateList(DrawPicList)
+      prevMouseIcon = mouseIcon
+    end
     gl.CallList(picList)
     -- draw the highlights
     local x,y,lb,mb,rb = spGetMouseState()
@@ -188,11 +196,6 @@ function widget:DrawScreen()
     else
       hoverClock = nil
     end
-    if mouseIcon ~= prevMouseIcon then
-      gl.DeleteList(picList)
-      picList = gl.CreateList(DrawPicList)
-      prevMouseIcon = mouseIcon
-    end
   end
 end
 
@@ -206,7 +209,6 @@ function widget:CommandsChanged()
   end
 
   if not picList and not guishaderDisabled then
-    Spring.Echo(guishaderDisabled)
     updateGuishader()
   end
 end
@@ -214,14 +216,28 @@ end
 local sec = 0
 function widget:Update(dt)
   sec = sec + dt
-  if checkSelectedUnits and sec>0.08 then
+  if checkSelectedUnits and sec>0.04 then
     sec = 0
-    if picList then
-      gl.DeleteList(picList)
+    unitCounts = spGetSelectedUnitsCounts()
+    local equal = true
+    if unitCounts.n ~= prevUnitCount.n then
+      equal = false
+    else
+      for udid,count in pairs(unitCounts) do
+        if not prevUnitCount[udid] or prevUnitCount[udid] ~= count then
+          equal = false
+          break
+        end
+      end
     end
-    picList = gl.CreateList(DrawPicList)
-    updateGuishader()
-    checkSelectedUnits = nil
+    if not equal then
+      if picList then
+        gl.DeleteList(picList)
+      end
+      picList = gl.CreateList(DrawPicList)
+      updateGuishader()
+      checkSelectedUnits = nil
+    end
   end
 end
 
@@ -240,7 +256,8 @@ end
 
 
 function DrawPicList()
-  unitCounts = spGetSelectedUnitsCounts()
+  --unitCounts = spGetSelectedUnitsCounts()
+  prevUnitCount = spGetSelectedUnitsCounts()
 
   unitTypes = unitCounts.n;
   if (unitTypes <= 0) then
@@ -258,12 +275,8 @@ function DrawPicList()
   rectMaxY = math.floor(rectMinY + usedIconSizeY)
   
   -- draw background bar
-  local icon = -1
-  for udid,count in pairs(unitCounts) do
-    icon = icon + 1
-  end
   local xmin = math.floor(rectMinX)
-  local xmax = math.floor(rectMinX + (usedIconSizeX * icon))
+  local xmax = math.floor(rectMinX + (usedIconSizeX * unitTypes))
   if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
   
   local ymin = rectMinY
