@@ -201,10 +201,12 @@ function widget:CommandsChanged()
     checkSelectedUnits = true
   elseif picList then
     gl.DeleteList(picList)
+    picList = nil
     checkSelectedUnits = nil
   end
 
   if not picList and not guishaderDisabled then
+    Spring.Echo(guishaderDisabled)
     updateGuishader()
   end
 end
