@@ -35,6 +35,7 @@ Other:
  • Starburst missiles have been given a green exhaust trail
  • Fixed Arm Construction Seaplane wings animation overextending
  • Fixed substitute functionality
+ • Fixed blown up flame particles not fading away
 
 
 10.01 -> 10.02

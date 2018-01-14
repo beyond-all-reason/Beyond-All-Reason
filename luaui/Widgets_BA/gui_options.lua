@@ -123,7 +123,6 @@ local presets = {
 		grounddetail = 60,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = false,
 	},
 	low = {
 		bloom = false,
@@ -148,7 +147,6 @@ local presets = {
 		grounddetail = 90,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = false,
 	},
 	medium = {
 		bloom = true,
@@ -173,7 +171,6 @@ local presets = {
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = false,
 	},
 	high = {
 		bloom = true,
@@ -198,7 +195,6 @@ local presets = {
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = true,
 	},
 	ultra = {
 		bloom = true,
@@ -223,7 +219,6 @@ local presets = {
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
 		enemyspotter_highlight = true,
-		teamplatter_highlight = true,
 	},
 }
 local customPresets = {}
@@ -947,14 +942,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['darkenmap'] ~= nil then
 				WG['darkenmap'].setDarkenFeatures(options[i].value)
 			end
-		elseif id == 'teamplatter_highlight' then
-			if widgetHandler.configData.TeamPlatter == nil then
-				widgetHandler.configData.TeamPlatter = {}
-			end
-			widgetHandler.configData.TeamPlatter.useXrayHighlight = options[i].value
-			if WG['teamplatter'] ~= nil then
-				WG['teamplatter'].setHighlight(options[i].value)
-			end
 		elseif id == 'teamplatter_skipownteam' then
 			if widgetHandler.configData.TeamPlatter == nil then
 				widgetHandler.configData.TeamPlatter = {}
@@ -1668,12 +1655,6 @@ function loadWidgetConfigData()
 			changes = true
 		end
 	end
-	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.useXrayHighlight ~= nil then
-		if options[getOptionByID("teamplatter_highlight")].value ~= widgetHandler.configData.TeamPlatter.useXrayHighlight then
-			options[getOptionByID("teamplatter_highlight")].value = widgetHandler.configData.TeamPlatter.useXrayHighlight
-			changes = true
-		end
-	end
 	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.skipOwnTeam ~= nil then
 		if options[getOptionByID("teamplatter_skipownteam")].value ~= widgetHandler.configData.TeamPlatter.skipOwnTeam then
 			options[getOptionByID("teamplatter_skipownteam")].value = widgetHandler.configData.TeamPlatter.skipOwnTeam
@@ -1852,7 +1833,6 @@ function init()
 
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="teamplatter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters'},
-		{id="teamplatter_highlight", group="ui", name=widgetOptionColor.."   selected unit shader", type="bool", value=false, description='Shades selected unit models'},
 		{id="teamplatter_skipownteam", group="ui", name=widgetOptionColor.."   skip own units", type="bool", value=false, description='Doesnt draw platters for yourself'},
 
         {id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
@@ -1985,7 +1965,6 @@ function init()
 
 	if widgetHandler.knownWidgets["TeamPlatter"] == nil then
 		options[getOptionByID('teamplatter_opacity')] = nil
-		options[getOptionByID('teamplatter_highlight')] = nil
 		options[getOptionByID('teamplatter_skipownunits')] = nil
 	end
 
