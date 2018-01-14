@@ -17,7 +17,7 @@ function widget:GetInfo()
   return {
     name      = "Highlight Selected Units",
     desc      = "Highlights the selelected units",
-    author    = "Floris, zwzsg, from trepan HighlightUnit",
+    author    = "Floris (original: zwzsg, from trepan HighlightUnit)",
     date      = "Apr 24, 2009",
     license   = "GNU GPL, v2 or later",
     layer     = -25,
@@ -26,10 +26,10 @@ function widget:GetInfo()
 end
 
 
-local highlightAlpha = 0.21
+local highlightAlpha = 0.2
 local useShader = true
 local maxShaderUnits = 150
-local edgeExponent = 2
+local edgeExponent = 6
 
 local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
@@ -50,38 +50,6 @@ local function SetupCommandColors(state)
 end
 
 
-local texName = 'LuaUI/Images/highlight_strip.png'
-local function HilightModel(unitID)
-  gl.DepthTest(true)
-  gl.PolygonOffset(-2, -2)
-  gl.Blending(GL.SRC_ALPHA, GL.ONE)
-
-  if (smoothPolys) then
-    gl.Smoothing(nil, nil, true)
-  end
-
-  local scale = 35
-  local shift = (2 * widgetHandler:GetHourTimer()) % scale
-  gl.TexCoord(0, 0)
-  gl.TexGen(GL.T, GL.TEXTURE_GEN_MODE, GL.EYE_LINEAR)
-  gl.TexGen(GL.T, GL.EYE_PLANE, 0, (1 / scale), 0, shift)
-  gl.Texture(texName)
-
-  gl.Unit(unitID, true)
-
-  gl.Texture(false)
-  gl.TexGen(GL.T, false)
-
-  if (smoothPolys) then
-    gl.Smoothing(nil, nil, false)
-  end
-
-  gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-  gl.PolygonOffset(false)
-  gl.DepthTest(false)
-end
-
-
 function CreateHighlightShader()
   if shader then
     gl.DeleteShader(shader)
@@ -89,8 +57,8 @@ function CreateHighlightShader()
   shader = gl.CreateShader({
 
     uniform = {
-      edgeExponent = edgeExponent,
-      plainAlpha = highlightAlpha*0.5,
+      edgeExponent = edgeExponent/(0.8+highlightAlpha),
+      plainAlpha = highlightAlpha,
     },
 
     vertex = [[
@@ -127,10 +95,11 @@ function CreateHighlightShader()
 	  {
 		float opac = dot(normalize(normal), normalize(eyeVec));
 		opac = 1.0 - abs(opac);
-		opac = pow(opac, edgeExponent)*0.3;
+		opac = pow(opac, edgeExponent)*0.6;
 
-		gl_FragColor.rgb = color;
-		gl_FragColor.a = 0.15 + opac;
+		gl_FragColor.rgb = color + (opac*1.5);
+		gl_FragColor.a = plainAlpha + opac;
+
 	  }
 	]],
   })
@@ -195,7 +164,6 @@ function widget:DrawWorld()
         highlightAlpha) -- alpha
         gl.Unit(unitID, true)
       end
-      --HilightModel(unitID)
     end
   end
 
