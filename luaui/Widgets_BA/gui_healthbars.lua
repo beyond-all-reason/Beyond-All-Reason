@@ -1065,7 +1065,6 @@ do
         reloadTime    = ud.reloadTime,
         primaryWeapon = ud.primaryWeapon,
       }
-	  
     end
     ux, uy, uz = GetUnitViewPosition(unitID)
     if ux == nil then
@@ -1127,10 +1126,10 @@ do
             infotext = hp100..'%'
           end
           if alwaysDrawBarPercentageForComs then
-				  	local unitName = UnitDefs[GetUnitDefID(unitID)].name
-					  if (unitName == 'corcom'  or  unitName == 'armcom') then
-							infotext = hp100..'%'
-					  end
+			  local unitName = UnitDefs[GetUnitDefID(unitID)].name
+			  if (unitName == 'corcom'  or  unitName == 'armcom') then
+				infotext = hp100..'%'
+			  end
           end
           AddBar("health",hp,nil,infotext or '',bfcolormap[hp100])
         end
@@ -1194,7 +1193,7 @@ do
         if (reloaded==false) then
           reload = 1 - ((reloadFrame-gameFrame)/30) / ci.reloadTime;
           reload = math.max(reload,0)
-
+          
           local infotext = ''
           if (fullText and drawBarPercentage > 0) then
             infotext = reload..'%'
@@ -1229,7 +1228,6 @@ do
         end
       end
 
-			gl.Texture(false)
       --// DRAW BARS
       DrawBars(fullText)
 
@@ -1410,9 +1408,7 @@ do
     --if the camera is too far up, higher than maxDistance on smoothmesh, dont even call any visibility checks or nothing 
     local smoothheight=GetSmoothMeshHeight(cx,cz) --clamps x and z
     if ((cy-smoothheight)^2 < maxUnitDistance) then 
-            
-      --gl.Fog(false)
-      
+    
       if not addGlow then 
 		glDepthTest(true)	-- enabling this will make healthbars opague to other healthbars or mapmarks and lups?, will remain transparant to world. will be serious issue if glow is enabled
       end
@@ -1427,7 +1423,7 @@ do
         unitID    = visibleUnits[i]
         unitDefID = GetUnitDefID(unitID)
 	    unitDef   = UnitDefs[unitDefID or -1]
-        if unitDef ~= nil then
+        if unitDef then
           DrawUnitInfos(unitID, unitDefID, unitDef)
         end
       end

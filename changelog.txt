@@ -13,8 +13,8 @@ Others
  • Options: added health bars scaling slider
  • Options: added team platter opacity slider + skip own units toggle
  • Options: added selected units opacity slider + shader toggle
- • Fixed Gadget profiler
- • Some icon changes...
+ • Fixed gadget profiler
+ • Some more icon changes...
 
 
 10.02 -> 10.03
@@ -34,8 +34,8 @@ Other:
  • Lighting effects adjustments
  • Starburst missiles have been given a green exhaust trail
  • Fixed Arm Construction Seaplane wings animation overextending
- • Fixed substitute functionality
- • Fixed blown up flame particles not fading away
+ • Fixed Offer-to-play button
+ • Fixed flame particles not fading away
 
 
 10.01 -> 10.02

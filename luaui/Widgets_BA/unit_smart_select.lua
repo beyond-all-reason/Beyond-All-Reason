@@ -419,7 +419,7 @@ function init()
 	mobileFilter = {}
 	
 	for udid, udef in pairs(UnitDefs) do
-		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc"))
+		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc" or UnitDefs[udid].name == "armnanotcplat" or UnitDefs[udid].name == "cornanotcplat"))
 		local builder = (udef.canReclaim and udef.reclaimSpeed > 0) or
 						--(udef.builder and udef.buildSpeed > 0) or					-- udef.builder = deprecated it seems
 						(udef.canResurrect and udef.resurrectSpeed > 0) or
