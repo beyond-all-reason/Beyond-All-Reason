@@ -29,7 +29,7 @@ OPTIONS = {
 --------------------------------------------------------------------------------
 
 local givenUnits = {}
-local drawLists = {}
+local drawList
 local unitConf = {}
 
 local glDrawListAtUnit			= gl.DrawListAtUnit
@@ -83,7 +83,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteList(DrawIcon)
+	gl.DeleteList(drawList)
 end
 
 
