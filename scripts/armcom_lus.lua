@@ -123,8 +123,8 @@ function UnitSpeed()
 		if (currentSpeed < 35) then currentSpeed = 35 end
 		local mm, mu, em, eu = Spring.GetUnitResources(unitID)
 		local null, fxp = Spring.GetUnitExperience(unitID)
-		local movexp = (Speed or 0) * 0.000005
-		local xptoadd = (mm * 0.00000005) + (mu * 0.0000005) + ((em/60) * 0.00000005) + ((eu/60)*0.0000005) + movexp
+		local movexp = (Speed or 0) * 0.00001
+		local xptoadd = (mm * 0.0000001) + (mu * 0.000001) + ((em/60) * 0.0000001) + ((eu/60)*0.000001) + movexp
 		Spring.SetUnitExperience(unitID, null + xptoadd)
 		randomness = math.random(-10,10)
 		currentSpeed = currentSpeed + randomness

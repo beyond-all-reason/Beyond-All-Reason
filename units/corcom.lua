@@ -410,6 +410,7 @@ Radar = {700,700,800,1000,1200,1400,1600,2000,2400,2800,3200}
 	}
 if (Spring.GetModOptions) and Spring.GetModOptions().mo_unba and Spring.GetModOptions().mo_unba == "enabled" then
 	tablecorcom.autoheal = 2
+	tablecorcom.power = 15000
 	tablecorcom.weapondefs.armcomlaser.weapontype = "LaserCannon"
 	tablecorcom.weapons = {}
 	tablecorcom.script = "corcom_lus.lua"
