@@ -29,8 +29,6 @@ local haloImg = ':n:LuaUI/Images/halo.dds'
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local myTeamID                = Spring.GetLocalTeamID()
-
 local unitConf				= {}
 local drawLists = {}
 
@@ -117,9 +115,9 @@ end
 
 
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
-	--if Spring.GetUnitRulesParam(unitID, "resurrected") ~= nil then
+	if Spring.GetUnitRulesParam(unitID, "resurrected") ~= nil then
 		AddHaloUnit(unitID)
-	--end
+	end
 end
 
 function widget:UnitEnteredLos(unitID)
