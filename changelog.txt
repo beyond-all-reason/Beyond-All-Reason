@@ -1,7 +1,20 @@
-﻿10.03 -> ??.??
-??/??/????
+﻿10.03 -> 10.04
+??/01/2018
+
 Balance changes:
  • Nano Platforms energy costs increased from 2000 to 2600e (arm and core).
+ • Fixed BlackHydra flagship cost (M and E were swapped)
+
+Others
+ • Lots of performance increases here and there, most noteworthy:
+    Team Platters: 500%
+    Enemy Spotters: 25%
+    Health Bars: 25%
+ • Options: added health bars scaling slider
+ • Options: added team platter opacity slider + skip own units toggle
+ • Options: added selected units opacity slider + shader toggle
+ • Fixed gadget profiler
+ • Some more icon changes...
 
 
 10.02 -> 10.03
@@ -21,6 +34,8 @@ Other:
  • Lighting effects adjustments
  • Starburst missiles have been given a green exhaust trail
  • Fixed Arm Construction Seaplane wings animation overextending
+ • Fixed Offer-to-play button
+ • Fixed flame particles not fading away
 
 
 10.01 -> 10.02

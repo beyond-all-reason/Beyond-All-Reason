@@ -25,12 +25,9 @@ end
 
 local drawDonuts = false
 local spotterOpacity = 0.3
-local useXrayHighlight = true
 local highlightOpacity = 0.25
 local skipOwnTeam  = false
 local useSelections = true
-
-local edgeExponent = 3
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -96,58 +93,6 @@ local myTeamID = spGetMyTeamID()
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function CreateHighlightShader()
-  if shader then
-    gl.DeleteShader(shader)
-  end
-  shader = gl.CreateShader({
-
-    uniform = {
-      edgeExponent = edgeExponent,
-    },
-
-    vertex = [[
-	  // Application to vertex shader
-	  varying vec3 normal;
-	  varying vec3 eyeVec;
-	  varying vec3 color;
-	  uniform mat4 camera;
-	  uniform mat4 caminv;
-
-	  void main()
-	  {
-		vec4 P = gl_ModelViewMatrix * gl_Vertex;
-
-		eyeVec = P.xyz;
-
-		normal  = gl_NormalMatrix * gl_Normal;
-
-		color = gl_Color.rgb;
-
-		gl_Position = gl_ProjectionMatrix * P;
-	  }
-	]],
-
-    fragment = [[
-	  varying vec3 normal;
-	  varying vec3 eyeVec;
-	  varying vec3 color;
-
-	  uniform float edgeExponent;
-
-	  void main()
-	  {
-		float opac = dot(normalize(normal), normalize(eyeVec));
-		opac = 1.0 - abs(opac);
-		opac = pow(opac, edgeExponent);
-
-		gl_FragColor.rgb = color;
-		gl_FragColor.a = opac;
-	  }
-	]],
-  })
-end
-
 
 local function SetupCommandColors(state)
   local alpha = state and 1 or 0
@@ -204,10 +149,6 @@ function widget:Initialize()
   SetupCommandColors(false)
   SetUnitConf()
 
-  if gl.CreateShader ~= nil then
-    CreateHighlightShader()
-  end
-
   WG['teamplatter'] = {}
   WG['teamplatter'].getOpacity = function()
     return spotterOpacity
@@ -215,12 +156,6 @@ function widget:Initialize()
   WG['teamplatter'].setOpacity = function(value)
     spotterOpacity = value
     teamColors = {}
-  end
-  WG['teamplatter'].getHighlight = function()
-    return useXrayHighlight
-  end
-  WG['teamplatter'].setHighlight = function(value)
-    useXrayHighlight = value
   end
   WG['teamplatter'].getSkipOwnTeam = function()
     return skipOwnTeam
@@ -235,9 +170,6 @@ function widget:Shutdown()
   glDeleteList(platterList)
   glDeleteList(spotterList)
   SetupCommandColors(true)
-  if shader then
-    gl.DeleteShader(shader)
-  end
 end
 
 
@@ -313,45 +245,6 @@ function widget:Update(dt)
     end
   end
   prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
-end
-
-
-function widget:DrawWorld()
-  if spIsGUIHidden() then return end
-
-  if useSelections and useXrayHighlight and visibleUnitsCount > 0 then
-    local selUnits = spGetSelectedUnits()
-    if selUnits[1] ~= nil then
-
-      if shader then
-        gl.UseShader(shader)
-      end
-
-      gl.DepthTest(true)
-      gl.Blending(GL.SRC_ALPHA, GL.ONE)
-      gl.PolygonOffset(-2, -2)
-
-      local color = GetTeamColorSet(spGetUnitTeam(selUnits[1]))
-      if isSpec then
-        glColor(0.22 + color[1], 0.22 + color[2], 0.22 + color[3], 1)
-      end
-      for _,unitID in ipairs(selUnits) do
-        if isSpec then
-          glColor(0.22 + color[1], 0.22 + color[2], 0.22 + color[3], 1)
-        end
-        gl.Unit(unitID, true)
-      end
-
-      gl.PolygonOffset(false)
-      gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-      gl.DepthTest(false)
-
-      if shader then
-        gl.UseShader(0)
-      end
-      glColor(1, 1, 1, 1)
-    end
-  end
 end
 
 

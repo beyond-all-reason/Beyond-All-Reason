@@ -57,6 +57,7 @@ local glColor					= gl.Color
 local glDepthTest				= gl.DepthTest
 local glLineWidth				= gl.LineWidth
 local glDrawGroundCircle		= gl.DrawGroundCircle
+local glDrawListAtUnit          = gl.DrawListAtUnit
 
 
 local spGetMyPlayerID			= Spring.GetMyPlayerID
@@ -99,6 +100,8 @@ function widget:DrawWorldPreUnit()
             antiInLos[uID] = nil
         end
     end
+
+    glDepthTest(true)
 
     for uID, pos in pairs(antiInLos) do
         local x, y, z = spGetUnitPosition(uID)
@@ -162,8 +165,7 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 				circleColor = multiStockpileColor
 			end
 		end
-		
-		glDepthTest(true)
+
 		--[[
 		if showLineGlow2 then
 			glLineWidth(10)

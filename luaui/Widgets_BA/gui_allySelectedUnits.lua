@@ -51,6 +51,7 @@ local glBeginEnd			= gl.BeginEnd
 local glScale				= gl.Scale
 local glVertex              = gl.Vertex
 local glCallList   			= gl.CallList
+local glDrawListAtUnit      = gl.DrawListAtUnit
 
 local GL_LINE_LOOP			= GL.LINE_LOOP
 
@@ -59,7 +60,7 @@ local spec = false
 ----------------------------------------------------------------
 
 local scaleMultiplier			= 1.05
-local maxAlpha					= 0.4
+local maxAlpha					= 0.45
 local hotFadeTime				= 0.25
 local lockTeamUnits				= false --disallow selection of units selected by teammates
 local showAlly					= true 		--also show allies (besides coop)
@@ -143,6 +144,14 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('selectedUnitsClear', selectedUnitsClear)
 	widgetHandler:RegisterGlobal('selectedUnitsAdd', selectedUnitsAdd)
 	spec = spGetSpectatingState()
+
+	WG['allyselectedunits'] = {}
+	WG['allyselectedunits'].getOpacity = function()
+		return maxAlpha
+	end
+	WG['allyselectedunits'].setOpacity = function(value)
+		maxAlpha = maxAlpha
+	end
 end
 
 function widget:Shutdown()
@@ -498,6 +507,13 @@ function widget:DrawWorldPreUnit()
 	DrawHotUnits()
 end
 
+--local vsx,vsy = Spring.GetViewGeometry()
+--local lineScale = (0.75 + (vsx*vsy / 7500000))
+--function widget:ViewResize()
+--	local vsx,vsy = Spring.GetViewGeometry()
+--	lineScale = (0.75 + (vsx*vsy / 7500000))
+--end
+
 function DrawSelectedUnits()
 	glColor(0.0, 1.0, 0.0, 1.0)
 	glLineWidth(2)
@@ -508,23 +524,27 @@ function DrawSelectedUnits()
 		if lockPlayerID == nil or lockPlayerID ~= playerID or (lockPlayerID == playerID and not selectPlayerUnits) then
 			if selUnits["todraw"] then
 				glColor( playerColors[ playerID ][1],  playerColors[ playerID ][2],  playerColors[ playerID ][3], maxAlpha)  
-				for unitId, defRadius in pairs( selUnits["units"] ) do
-					local x, y, z = spGetUnitBasePosition(unitId)
+				for unitID, defRadius in pairs( selUnits["units"] ) do
+					local x, y, z = spGetUnitBasePosition(unitID)
 					local inView = false
 					if ( z ~= nil ) then --checking z should be enough insteady of x,y,z
 						inView = spIsSphereInView( x, y, z, defRadius )
 					end
 					if ( inView ) then
-						local lines = circleLinesAlly
+						--glPushMatrix()
+						--glTranslate( x, y, z)
+						--glScale( defRadius, 1, defRadius)
+						--if ( selUnits["coop"] == true and not spec) then
+						--	glCallList(circleLinesCoop)
+						--else
+						--	glCallList(circleLinesAlly)
+						--end
+						--glPopMatrix()
 						if ( selUnits["coop"] == true and not spec) then
-							lines = circleLinesCoop
+							glDrawListAtUnit(unitID, circleLinesCoop, false, defRadius,defRadius,defRadius)
+						else
+							glDrawListAtUnit(unitID, circleLinesAlly, false, defRadius,defRadius,defRadius)
 						end
-
-						glPushMatrix()
-						glTranslate( x, y, z)
-						glScale( defRadius, 1, defRadius)
-						glCallList(lines)
-						glPopMatrix()
 					end
 				end
 			end
@@ -630,19 +650,17 @@ end
 
 function widget:GetConfigData()
     return {
+		maxAlpha = maxAlpha,
         selectPlayerUnits = selectPlayerUnits,
         xRelPos = xRelPos, yRelPos = yRelPos
     }
 end
 
 function widget:SetConfigData(data)
-	if data.selectPlayerUnits ~= nil then
-		selectPlayerUnits = data.selectPlayerUnits
-	end
-	if data.xRelPos ~= nil then
-		xRelPos = data.xRelPos or xRelPos
-		yRelPos = data.yRelPos or yRelPos
-		xPos = xRelPos * vsx
-		yPos = yRelPos * vsy
-	end
+	maxAlpha = data.maxAlpha or maxAlpha
+	selectPlayerUnits = data.selectPlayerUnits or selectPlayerUnits
+	xRelPos = data.xRelPos or xRelPos
+	yRelPos = data.yRelPos or yRelPos
+	xPos = xRelPos * vsx
+	yPos = yRelPos * vsy
 end

@@ -68,13 +68,9 @@ function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = parentPos
 		if WG['displayinfo'] ~= nil then
-			if widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0) then
-				parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-			end
+			parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		elseif WG['music'] ~= nil then
-			if widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
-				parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-			end
+			parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		else
 			parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end

@@ -123,7 +123,6 @@ local presets = {
 		grounddetail = 60,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = false,
 	},
 	low = {
 		bloom = false,
@@ -148,7 +147,6 @@ local presets = {
 		grounddetail = 90,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = false,
 	},
 	medium = {
 		bloom = true,
@@ -173,7 +171,6 @@ local presets = {
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = false,
 	},
 	high = {
 		bloom = true,
@@ -198,7 +195,6 @@ local presets = {
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
-		teamplatter_highlight = true,
 	},
 	ultra = {
 		bloom = true,
@@ -223,7 +219,6 @@ local presets = {
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
 		enemyspotter_highlight = true,
-		teamplatter_highlight = true,
 	},
 }
 local customPresets = {}
@@ -947,14 +942,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['darkenmap'] ~= nil then
 				WG['darkenmap'].setDarkenFeatures(options[i].value)
 			end
-		elseif id == 'teamplatter_highlight' then
-			if widgetHandler.configData.TeamPlatter == nil then
-				widgetHandler.configData.TeamPlatter = {}
-			end
-			widgetHandler.configData.TeamPlatter.useXrayHighlight = options[i].value
-			if WG['teamplatter'] ~= nil then
-				WG['teamplatter'].setHighlight(options[i].value)
-			end
 		elseif id == 'teamplatter_skipownteam' then
 			if widgetHandler.configData.TeamPlatter == nil then
 				widgetHandler.configData.TeamPlatter = {}
@@ -1668,12 +1655,6 @@ function loadWidgetConfigData()
 			changes = true
 		end
 	end
-	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.useXrayHighlight ~= nil then
-		if options[getOptionByID("teamplatter_highlight")].value ~= widgetHandler.configData.TeamPlatter.useXrayHighlight then
-			options[getOptionByID("teamplatter_highlight")].value = widgetHandler.configData.TeamPlatter.useXrayHighlight
-			changes = true
-		end
-	end
 	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.skipOwnTeam ~= nil then
 		if options[getOptionByID("teamplatter_skipownteam")].value ~= widgetHandler.configData.TeamPlatter.skipOwnTeam then
 			options[getOptionByID("teamplatter_skipownteam")].value = widgetHandler.configData.TeamPlatter.skipOwnTeam
@@ -1795,6 +1776,12 @@ function init()
 		{id="snowautoreduce", group="gfx", name=widgetOptionColor.."   auto reduce", type="bool", value=true, description='Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again'},
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
+        {id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+
+        {id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
+        {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
+        {id="rankicons", group="gfx", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
+
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
 		--{id="sndvolgeneral", group="snd", name="General volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volgeneral",1) or 100)},
@@ -1852,7 +1839,6 @@ function init()
 
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="teamplatter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters'},
-		{id="teamplatter_highlight", group="ui", name=widgetOptionColor.."   selected unit shader", type="bool", value=false, description='Shades selected unit models'},
 		{id="teamplatter_skipownteam", group="ui", name=widgetOptionColor.."   skip own units", type="bool", value=false, description='Doesnt draw platters for yourself'},
 
         {id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
@@ -1862,19 +1848,14 @@ function init()
 		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
 		{id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Shades selected unit models'},
 
-        {id="smartselect_includebuildings", group="ui", name="Include buildings in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\nIf disabled: non-mobile units will not be selected\n(nanos always will be selected)'},
-
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
-		{id="commandsfx", group="ui", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+        {id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
-		{id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
-		{id="resurrectionhalos", group="ui", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
-		{id="tombstones", group="ui", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
-		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
+        -- GAME
+        {id="smartselect_includebuildings", group="game", name="Include buildings in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\n\ndisabled: non-mobile units will not be selected\n(except: nanos always will be selected)'},
 
-		-- GAME
-		{id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Only fighters obey a factory\'s patrol route after leaving airlab.'},
+        {id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Only fighters obey a factory\'s patrol route after leaving airlab.'},
 		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=GetWidgetToggleValue("Set fighters on Fly mode"), description='Setting fighters on Fly mode when created'},
 
         {id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=GetWidgetToggleValue("Passive builders"), description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: You could set your most important builders on active and leave the rest on passive'},
@@ -1910,7 +1891,7 @@ function init()
 
 	if (WG['healthbars'] == nil) then
 		options[getOptionByID('healthbarsscale')] = nil
-	else
+	elseif WG['healthbars'].getScale ~= nil then
 		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
 	end
 
@@ -1985,7 +1966,6 @@ function init()
 
 	if widgetHandler.knownWidgets["TeamPlatter"] == nil then
 		options[getOptionByID('teamplatter_opacity')] = nil
-		options[getOptionByID('teamplatter_highlight')] = nil
 		options[getOptionByID('teamplatter_skipownunits')] = nil
 	end
 
