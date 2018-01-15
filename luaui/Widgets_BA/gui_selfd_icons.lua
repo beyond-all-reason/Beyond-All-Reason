@@ -14,8 +14,6 @@ end
 --------------------------------------------------------------------------------
 
 -- preferred to keep these values the same as fancy unit selections widget
-local rectangleFactor		= 3.3
-local scalefaktor			= 2.9
 local unitConf				= {}
 
 --------------------------------------------------------------------------------
@@ -55,15 +53,15 @@ end
 function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
+		local scale = 3*( xsize^2 + zsize^2 )^0.5
 		local xscale, zscale
 
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
-			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
+			xscale, zscale = 3 * xsize, 3 * zsize
 		else
 			xscale, zscale = scale, scale
 		end
-		unitConf[udid] = (xscale+zscale)/2
+		unitConf[udid] = 6 +(xscale+zscale)/2.4
 	end
 end
 
