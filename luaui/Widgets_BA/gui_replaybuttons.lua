@@ -83,19 +83,22 @@ function widget:DrawScreen()
 	end
 	local mousex, mousey = Spring.GetMouseState()
 	local b = speedbuttons
-	for i = 1, #b, 1 do
-		if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
-			gl.Color (0.4,0.4,0.4,0.6)
-			uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
-			uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
+	local topbutton = #speedbuttons
+	if point_in_rect (buttons[1].x, buttons[1].y, b[topbutton].x+b[topbutton].w, b[topbutton].y+b[topbutton].h,  uiX(mousex), uiY(mousey)) then
+		for i = 1, #b, 1 do
+			if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
+				gl.Color (0.4,0.4,0.4,0.6)
+				uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
+				uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
+			end
 		end
-	end
-	b = buttons
-	for i = 1, #b, 1 do
-		if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
-			gl.Color (0.4,0.4,0.4,0.6)
-			uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
-			uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
+		b = buttons
+		for i = 1, #b, 1 do
+			if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
+				gl.Color (0.4,0.4,0.4,0.6)
+				uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
+				uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
+			end
 		end
 	end
 end

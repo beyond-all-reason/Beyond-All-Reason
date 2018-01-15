@@ -5,7 +5,7 @@ function widget:GetInfo()
       author    = "Floris",
       date      = "06.05.2014",
       license   = "GNU GPL, v2 or later",
-      layer     = 5,
+      layer     = -50,
       enabled   = true
    }
 end
@@ -13,22 +13,17 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local myTeamID                = Spring.GetLocalTeamID()
-
 -- preferred to keep these values the same as fancy unit selections widget
 local rectangleFactor		= 3.3
 local scalefaktor			= 2.9
 local unitConf				= {}
 
-
-
-local font = gl.LoadFont('LuaUI/Fonts/FreeSansBold.otf', 50, 4, 3)
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local selfdUnits = {}
-local glDrawFuncAtUnit			= gl.DrawFuncAtUnit
+local drawLists = {}
+local glDrawListAtUnit			= gl.DrawListAtUnit
 
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitDefID			= Spring.GetUnitDefID
@@ -37,6 +32,7 @@ local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
 local spGetAllUnits				= Spring.GetAllUnits
 local spGetUnitCommands			= Spring.GetUnitCommands
 local spIsUnitAllied			= Spring.IsUnitAllied
+local spGetCameraDirection		= Spring.GetCameraDirection
 
 local spec = Spring.GetSpectatingState()
 
@@ -44,19 +40,15 @@ local spec = Spring.GetSpectatingState()
 --------------------------------------------------------------------------------
 
 
-function DrawIcon(posY, posX, iconSize, text)
+function DrawIcon(text)
+	local iconSize = 0.9
+	gl.PushMatrix()
 	gl.Texture(':n:LuaUI/Images/skull.dds')
-	gl.Color(0.9,0.9,0.9,1)
-	gl.Translate(posX*0.9,posY,posX*1.5)
+	gl.Translate(0.32,1,1.4)
 	gl.Billboard()
-	gl.TexRect(-(iconSize/2), 0, (iconSize/2), iconSize)
-	if string.len(text) > 0  and  text ~= 0 then
-		font:Begin()
-		font:SetTextColor({0.88,0.88,0.88,1})
-		font:SetOutlineColor({0,0,0,0.6})
-		font:Print(text, -(iconSize*0.92), 1, iconSize*0.84, "con")
-		font:End()
-	end
+	gl.TexRect(-(iconSize+0.08), 0, -0.08, iconSize)
+	gl.Text(text,0,(iconSize/4),0.67,"oc")
+	gl.PopMatrix()
 end
 
 
@@ -64,19 +56,14 @@ function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
-		local shape, xscale, zscale
-		
+		local xscale, zscale
+
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
-			shape = 'square'
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-		elseif (unitDef.isAirUnit) then
-			shape = 'triangle'
-			xscale, zscale = scale, scale
 		else
-			shape = 'circle'
 			xscale, zscale = scale, scale
 		end
-		unitConf[udid] = {shape=shape, xscale=xscale, zscale=zscale}
+		unitConf[udid] = (xscale+zscale)/2
 	end
 end
 
@@ -114,33 +101,56 @@ function widget:Initialize()
 end
 
 
+function widget:Shutdown()
+	for k,_ in pairs(drawLists) do
+		gl.DeleteList(drawLists[k])
+	end
+end
+
+
+local sec = 0
+local prevCam = {spGetCameraDirection()}
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > 0.15 then
+		sec = 0
+		local camX, camY, camZ = spGetCameraDirection()
+		if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
+			for k,_ in pairs(drawLists) do
+				gl.DeleteList(drawLists[k])
+				drawLists[k] = nil
+			end
+		end
+		prevCam = {camX,camY,camZ}
+	end
+end
+
 -- draw icons
 function widget:DrawWorld()
 	if spIsGUIHidden() then return end
-	
-	local gameSecs = Spring.GetGameSeconds()
-	
-	gl.DepthMask(true)
+
 	gl.DepthTest(true)
-	
-	local unitDefs, unitScale, countdown
-	for unitID, unitEndSecs in pairs(selfdUnits) do
+	gl.Color(0.9,0.9,0.9,1)
+
+	local unitScale, countdown
+	for unitID, unitDefID in pairs(selfdUnits) do
 		if spIsUnitAllied(unitID) or spec then
 			if spIsUnitInView(unitID) then
-				unitDefs = unitConf[spGetUnitDefID(unitID)]
-				unitScale = unitDefs.xscale*1.22 - (unitDefs.xscale/6.6)
+				unitScale = unitConf[unitDefID]
 				countdown = math.ceil(spGetUnitSelfDTime(unitID) / 2)
-				glDrawFuncAtUnit(unitID, false, DrawIcon, 10.1, unitScale, 22, countdown)
+				if not drawLists[countdown] then
+					drawLists[countdown] = gl.CreateList(DrawIcon, countdown)
+				end
+				glDrawListAtUnit(unitID, drawLists[countdown], false, unitScale,unitScale,unitScale)
 			end
 		else
 			selfdUnits[unitID] = nil
 		end
 	end
-	
+
 	gl.Color(1,1,1,1)
 	gl.Texture(false)
 	gl.DepthTest(false)
-	gl.DepthMask(false)
 end
 
 
@@ -167,7 +177,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		if spGetUnitSelfDTime(unitID) > 0 then  	-- since cmd hasnt been cancelled yet
 			selfdUnits[unitID] = nil
 		else
-			selfdUnits[unitID] = true
+			selfdUnits[unitID] = spGetUnitDefID(unitID)
 		end
 	end
 end
