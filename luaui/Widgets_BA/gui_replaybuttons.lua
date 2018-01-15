@@ -21,6 +21,7 @@ local speeds = {0.5, 1, 2, 3, 4, 5, 10, 20}
 wPos = {x=0.00, y=0.15}
 local isPaused = false
 local isActive = true --is the widget shown and reacts to clicks?
+local sceduleUpdate = true
 
 function widget:Initialize()	
 	if (not Spring.IsReplay()) then
@@ -67,8 +68,36 @@ function widget:DrawScreen()
 	end
 	
 	if not isActive then return end
-	draw_buttons(speedbuttons)
-	draw_buttons(buttons)
+	if sceduleUpdate then
+		if speedButtonsList then
+			gl.DeleteList(speedButtonsList)
+			gl.DeleteList(buttonsList)
+		end
+		speedButtonsList = gl.CreateList(draw_buttons, speedbuttons)
+		buttonsList = gl.CreateList(draw_buttons, buttons)
+		sceduleUpdate = false
+	end
+	if speedButtonsList then
+		gl.CallList(speedButtonsList)
+		gl.CallList(buttonsList)
+	end
+	local mousex, mousey = Spring.GetMouseState()
+	local b = speedbuttons
+	for i = 1, #b, 1 do
+		if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
+			gl.Color (0.4,0.4,0.4,0.6)
+			uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
+			uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
+		end
+	end
+	b = buttons
+	for i = 1, #b, 1 do
+		if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
+			gl.Color (0.4,0.4,0.4,0.6)
+			uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
+			uiText (b[i].text, b[i].x, b[i].y+b[i].h/2, (0.0115), 'vo')
+		end
+	end
 end
 
 function widget:MousePress(x,y,button)	
@@ -79,7 +108,8 @@ function widget:MousePress(x,y,button)
 		for i = 1, #speeds do --reset all buttons colors
 			speedbuttons[i].color = speedButtonColor (i)
 		end
-		speedbuttons[i].color = {0.75,0,0,0.66}
+		speedbuttons[i].color = {0.75,0,0,0.66 }
+		sceduleUpdate = true
 	end
 	
 	local cb,i = clicked_button (buttons)	
@@ -98,6 +128,7 @@ function widget:MousePress(x,y,button)
 			Spring.SendCommands ("skip 1")
 			buttons[i].text = "  ||"
 		end
+		sceduleUpdate = true
 	end	
 end
 
@@ -253,9 +284,9 @@ function draw_buttons (b)
 	local mousex, mousey = Spring.GetMouseState()
 	for i = 1, #b, 1 do	
 		if (b[i].color) then gl.Color (unpack(b[i].color)) else gl.Color (1 ,0,0,0.66) end
-		if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
-			gl.Color (0.4,0.4,0.4,0.6)
-		end
+		--if (point_in_rect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h,  uiX(mousex), uiY(mousey)) or i == active_button) then
+		--	gl.Color (0.4,0.4,0.4,0.6)
+		--end
 		if (b[i].name == selected_missionid) then gl.Color (0,1,1,0.66) end --highlight selected mission, bit unnice this way w/e
 		
 		uiRect (b[i].x, b[i].y, b[i].x+b[i].w, b[i].y+b[i].h)
