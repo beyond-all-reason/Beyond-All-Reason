@@ -5,22 +5,26 @@ Balance changes:
  • Nano Platforms energy costs increased from 2000 to 2600e (arm and core).
  • Fixed BlackHydra flagship cost (M and E were swapped)
 
-Others: 
+Unbalanced Commanders (when mo_unba is enabled): 
+ • Experience to power scale increased: Units will earn more exp from killing experienced units, and less exp from killing unexperienced units
+ • HealthScale and ReloadScale increased: Units will earn more bonus HP and firerate from gaining experience
+ • Commander power heavily increased: Commander will overall earn less experience from damaging/killing units
+ • Commander experience from resourcing and moving increased: Gives more viability to commanders in base
+
+Other: 
  • Lots of performance increases here and there, most noteworthy:
     Team Platters: 500%
     Enemy Spotters: 25%
     Health Bars: 25%
+    Top Bar: 100%
+    Self-D icons/Given unit icons: 2000%
+    Selected Unit Buttons: 150%
  • Options: added health bars scaling slider
  • Options: added team platter opacity slider + skip own units toggle
  • Options: added selected units opacity slider + shader toggle
  • Fixed gadget profiler
  • Some more icon changes...
 
-Unbalanced Commanders (Those changes are active only when mo_unba is enabled): 
- • Experience to power scale increased: Units will earn more exp from killing experienced units, and less exp from killing unexperienced units
- • HealthScale and ReloadScale increased: Units will earn more bonus HP and firerate from gaining experience
- • Commander power heavily increased: Commander will overall earn less experience from damaging/killing units
- • Commander experience from resourcing and moving increased: Gives more viability to commanders in base
 
 10.02 -> 10.03
 07/01/2018

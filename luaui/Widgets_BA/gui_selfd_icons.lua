@@ -44,8 +44,8 @@ function DrawIcon(text)
 	gl.Texture(':n:LuaUI/Images/skull.dds')
 	gl.Translate(0.32,1,1.4)
 	gl.Billboard()
-	gl.TexRect(-(iconSize+0.08), 0, -0.08, iconSize)
-	gl.Text(text,0,(iconSize/4),0.67,"oc")
+	gl.TexRect(-(iconSize+0.085), 0, -0.08, iconSize)
+	gl.Text(text,0,(iconSize/4),0.66,"oc")
 	gl.PopMatrix()
 end
 
