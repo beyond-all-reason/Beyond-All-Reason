@@ -25,16 +25,15 @@ local shadowOpacity			= 0.35
 local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 10, 10)
 local shadowFont = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 38, 1.6)
 
+local vsx, vsy = Spring.GetViewGeometry()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local GetUnitTeam        		= Spring.GetUnitTeam
-local GetTeamInfo        		= Spring.GetTeamInfo
 local GetPlayerInfo      		= Spring.GetPlayerInfo
 local GetPlayerList    		    = Spring.GetPlayerList
 local GetTeamColor       		= Spring.GetTeamColor
-local GetVisibleUnits    		= Spring.GetVisibleUnits
 local GetUnitDefID       		= Spring.GetUnitDefID
 local GetAllUnits        		= Spring.GetAllUnits
 local IsUnitInView	 	 		= Spring.IsUnitInView
@@ -45,20 +44,15 @@ local GetSpectatingState		= Spring.GetSpectatingState
 local glDepthTest        		= gl.DepthTest
 local glAlphaTest        		= gl.AlphaTest
 local glColor            		= gl.Color
-local glText             		= gl.Text
 local glTranslate        		= gl.Translate
 local glBillboard        		= gl.Billboard
 local glDrawFuncAtUnit   		= gl.DrawFuncAtUnit
-local glDrawListAtUnit   		= gl.DrawListAtUnit
 local GL_GREATER     	 		= GL.GREATER
 local GL_SRC_ALPHA				= GL.SRC_ALPHA	
 local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
 local glBlending          		= gl.Blending
 local glScale          			= gl.Scale
 
-local glCreateList				= gl.CreateList
-local glBeginEnd				= gl.BeginEnd
-local glDeleteList				= gl.DeleteList
 local glCallList				= gl.CallList
 
 local diag						= math.diag
@@ -66,7 +60,6 @@ local diag						= math.diag
 --------------------------------------------------------------------------------
 
 local comms = {}
-local drawShadow = fontShadow
 local comnameList = {}
 local CheckedForSpec = false
 
@@ -127,7 +120,7 @@ local function createComnameList(attributes)
 	end)
 end
 
-local function DrawName(unitID, attributes, shadow)
+local function DrawName(attributes)
 	if comnameList[attributes[1]] == nil then
 		createComnameList(attributes)
 	end
@@ -143,7 +136,6 @@ local function DrawName(unitID, attributes, shadow)
 	end
 end
 
-local vsx, vsy = Spring.GetViewGeometry()
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
 end
@@ -173,7 +165,7 @@ function widget:DrawWorld()
 		
 	    usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
 	    
-		glDrawFuncAtUnit(unitID, false, DrawName, unitID, attributes, fontShadow)
+		glDrawFuncAtUnit(unitID, false, DrawName, attributes)
 	end
   end
   
