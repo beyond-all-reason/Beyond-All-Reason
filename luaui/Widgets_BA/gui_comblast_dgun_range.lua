@@ -16,6 +16,21 @@ end
 
 --/comranges_nearbyenemy		-- toggles hiding of ranges when enemy is nearby
 
+
+--------------------------------------------------------------------------------
+-- OPTIONS
+--------------------------------------------------------------------------------
+
+local hideOnDistantEnemy	= true
+local fadeOnCameraDistance	= true
+local opacityMultiplier		= 1
+local fadeMultiplier		= 1.5		-- lower value: fades out sooner
+local circleDivs			= 70
+local blastRadius			= 360		-- com explosion
+local showOnEnemyDistance	= 570
+local fadeInDistance		= 320
+local smoothoutTime			= 2			-- time to smoothout sudden changes (value = time between max and zero opacity)
+
 --------------------------------------------------------------------------------
 
 local pairs					= pairs
@@ -33,6 +48,8 @@ local spGetCameraPosition	= Spring.GetCameraPosition
 local spGetUnitNearestEnemy	= Spring.GetUnitNearestEnemy
 local spIsGUIHidden			= Spring.IsGUIHidden
 
+
+local glDrawListAtUnit		= gl.DrawListAtUnit
 local glDepthTest 			= gl.DepthTest
 local glLineWidth 			= gl.LineWidth
 local glColor				= gl.Color
@@ -51,19 +68,15 @@ local glPopMatrix			= gl.PopMatrix
 local diag					= math.diag
 local PI					= math.pi
 
-local floor = math.floor
-local min = math.min
 local huge = math.huge
-local abs = math.abs
 local cos = math.cos
 local sin = math.sin
-local atan2 = math.atan2
 
-local GL_ALWAYS					= GL.ALWAYS
 local GL_SRC_ALPHA				= GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA	= GL.ONE_MINUS_SRC_ALPHA
 
 local comCenters = {}
+local drawLists = {}
 local amSpec = false
 local inSpecFullView = false
 local dgunRange	= WeaponDefNames["armcom_disintegrator"].range --+ WeaponDefNames["armcom_disintegrator"].damageAreaOfEffect
@@ -71,22 +84,8 @@ local dgunRange	= WeaponDefNames["armcom_disintegrator"].range --+ WeaponDefName
 local comCircleDlist = {}
 local prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
 
---------------------------------------------------------------------------------
--- OPTIONS
---------------------------------------------------------------------------------
-
-local hideOnDistantEnemy	= true
-local fadeOnCameraDistance	= true
-local opacityMultiplier		= 1
-local fadeMultiplier		= 1.5		-- lower value: fades out sooner
-local circleDivs			= 64		-- circle detail, when fading out it will lower this aswell (minimum always will be 40 anyway)
-local blastRadius			= 360		-- com explosion
-local showOnEnemyDistance	= 570
-local fadeInDistance		= 320
-local smoothoutTime			= 2			-- time to smoothout sudden changes (value = time between max and zero opacity)
 
 --------------------------------------------------------------------------------
-
 
 
 local vsx,vsy = Spring.GetViewGeometry()
@@ -301,9 +300,7 @@ function drawBlast(x,y,z,range)
 		local sinR = sin( radians )
 		local cosR = cos( radians )
 
-		local posx
-		local posy
-		local posz
+		local posx, posy, posz
 
 		local radius = range
 		local err = huge

@@ -19,12 +19,8 @@ end
 
 -- speed-ups
 local GetUnitDefID         = Spring.GetUnitDefID
-local GetUnitDefDimensions = Spring.GetUnitDefDimensions
 local GetUnitExperience    = Spring.GetUnitExperience
-local GetTeamList          = Spring.GetTeamList
-local GetTeamUnits         = Spring.GetTeamUnits
 local GetAllUnits          = Spring.GetAllUnits
-local GetMyAllyTeamID      = Spring.GetMyAllyTeamID
 local IsUnitAllied         = Spring.IsUnitAllied
 local GetSpectatingState   = Spring.GetSpectatingState
 
@@ -50,8 +46,6 @@ local ranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {} }
 local PWranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {} }
 
 local PWUnits = {}
-
-local myAllyTeamID = 666
 
 local iconsize   = 33
 local iconoffset = 14

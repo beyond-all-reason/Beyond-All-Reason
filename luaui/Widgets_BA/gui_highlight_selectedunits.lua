@@ -29,7 +29,7 @@ end
 local highlightAlpha = 0.2
 local useShader = true
 local maxShaderUnits = 150
-local edgeExponent = 6
+local edgeExponent = 3.5
 
 local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
@@ -95,9 +95,9 @@ function CreateHighlightShader()
 	  {
 		float opac = dot(normalize(normal), normalize(eyeVec));
 		opac = 1.0 - abs(opac);
-		opac = pow(opac, edgeExponent)*0.6;
+		opac = pow(opac, edgeExponent)*0.45;
 
-		gl_FragColor.rgb = color + (opac*1.5);
+		gl_FragColor.rgb = color + (opac*1.33);
 		gl_FragColor.a = plainAlpha + opac;
 
 	  }
@@ -145,7 +145,7 @@ function widget:DrawWorld()
   if Spring.IsGUIHidden() then return end
 
   gl.DepthTest(true)
-  gl.PolygonOffset(-2, -2)
+  gl.PolygonOffset(-0.5, -0.5)
   gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
   local selectedUnits = Spring.GetSelectedUnits()
