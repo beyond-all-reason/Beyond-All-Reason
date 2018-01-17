@@ -16,7 +16,7 @@ Other:
     Team Platters: 500%
     Enemy Spotters: 25%
     Health Bars: 25%
-    Top Bar: 100%
+    Top Bar: 50%
     Self-D icons/Given unit icons: 2000%
     Selected Unit Buttons: 150%
  • Options: added health bars scaling slider

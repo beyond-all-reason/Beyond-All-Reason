@@ -145,8 +145,8 @@ function widget:Initialize()
         opac = (1.0 - abs(opac));
         opac = pow(opac, edgeExponent) * clamp((position.z - fragZMin) / max(fragZMax - fragZMin,0.01),0.0,1.0);
           
-        gl_FragColor.rgb = color;
-        gl_FragColor.a = 0.01+opac;
+        gl_FragColor.rgb = color + (opac*1.1);
+        gl_FragColor.a = 0.015+opac;
       }
     ]],
   })
@@ -198,7 +198,7 @@ function widget:DrawWorld()
 	glUseShader(shader)
 	glDepthTest(true)
 	glBlending(GL_SRC_ALPHA, GL_ONE)
-	glPolygonOffset(-2, -2)
+	glPolygonOffset(-1, -1)
 	
 
 	gl.Uniform(shaderFragZMinLoc, zMin)
