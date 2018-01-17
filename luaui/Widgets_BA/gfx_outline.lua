@@ -223,6 +223,14 @@ function widget:Initialize()
     glTexture(false)
     glUseShader(0)
   end)
+
+  WG['outline'] = {}
+  WG['outline'].getMaxunits = function()
+    return maxOutlineUnits
+  end
+  WG['outline'].setMaxunits = function(value)
+    maxOutlineUnits = value
+  end
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
@@ -364,6 +372,17 @@ function widget:DrawWorldPreUnit()
   glTexture(offscreentex)
   glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
   glCallList(leave2d)
+end
+
+
+function widget:GetConfigData()
+  savedTable = {}
+  savedTable.maxOutlineUnits = maxOutlineUnits
+  return savedTable
+end
+
+function widget:SetConfigData(data)
+  maxOutlineUnits = data.maxOutlineUnits or maxOutlineUnits
 end
 
 --------------------------------------------------------------------------------

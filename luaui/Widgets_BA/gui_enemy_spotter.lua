@@ -72,6 +72,9 @@ local skipOwnAllyTeam		= true
 local lastUpdatedFrame		= 0
 local drawUnits				= {}
 
+local visibleUnits = {}
+local visibleUnitsCount = 0
+
 local prevCam = {}
 prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 
@@ -210,8 +213,6 @@ function SetUnitConf()
 	end
 end
 
-local visibleUnits = {}
-local visibleUnitsCount = 0
 function checkAllUnits()
 	drawUnits = {}
 	visibleUnits = spGetVisibleUnits(skipOwnAllyTeam and Spring.ENEMY_UNITS or Spring.ALL_UNITS, nil, false)
@@ -236,6 +237,7 @@ function checkUnit(unitID)
 		end
 	end
 end
+
 --------------------------------------------------------------------------------
 -- Engine Calls
 --------------------------------------------------------------------------------

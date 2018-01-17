@@ -31,7 +31,6 @@ end
 local GetUnitDefID         = Spring.GetUnitDefID
 local GetUnitDefDimensions = Spring.GetUnitDefDimensions
 local AreTeamsAllied       = Spring.AreTeamsAllied
-local GetMyTeamID          = Spring.GetMyTeamID
 local GetGameSpeed         = Spring.GetGameSpeed
 local GetGameSeconds       = Spring.GetGameSeconds
 local GetUnitViewPosition  = Spring.GetUnitViewPosition
@@ -47,6 +46,7 @@ local glBlending       = gl.Blending
 local glDrawFuncAtUnit = gl.DrawFuncAtUnit
 local glPushMatrix     = gl.PushMatrix
 local glPopMatrix      = gl.PopMatrix
+local glCallList       = gl.CallList
 
 local GL_GREATER             = GL.GREATER
 local GL_SRC_ALPHA           = GL.SRC_ALPHA
@@ -64,9 +64,11 @@ local lastTime = 0
 local paused = false
 local changed = false
 local heightList = {}
+local drawTextLists = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
 
 local function unitHeight(unitDefID)
   if not heightList[unitDefID] then 
@@ -196,14 +198,19 @@ local function drawDeathDPS(damage,ux,uy,uz,textSize,red,alpha)
   glTranslate(ux, uy, uz)
   glBillboard()
   gl.MultiTexCoord(1, 0.25 + (0.5 * alpha))
-  
+
   if red then
     glColor(1, 0, 0)
   else
     glColor(1, 1, 1)
   end
-  
-  glText(damage, 0, 0, textSize, "cno")
+
+  if drawTextLists[damage] == nil then
+    drawTextLists[damage] = gl.CreateList(function()
+      glText(damage, 0, 0, textSize, 'cnO')
+    end)
+  end
+  glCallList(drawTextLists[damage])
   
   glPopMatrix()
 end
@@ -217,7 +224,12 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
     glText(damage, 0, 0, textSize, 'cnO')
   else
     glColor(1, 1, 1)
-    glText(damage, 0, 0, textSize, 'cno')
+    if drawTextLists[damage] == nil then
+      drawTextLists[damage] = gl.CreateList(function()
+        glText(damage, 0, 0, textSize, 'cnO')
+      end)
+    end
+    glCallList(drawTextLists[damage])
   end
 end
 
@@ -284,6 +296,21 @@ function widget:DrawWorld()
   glAlphaTest(false)
   glDepthTest(false)
   glDepthMask(false)
+end
+
+
+--function widget:Initialize()
+--  for damage=1, 200 do
+--    drawTextLists[damage] = gl.CreateList(function()
+--      glText(damage, 0, 0, getTextSize(damage, false), 'cnO')
+--    end)
+--  end
+--end
+
+function widget:Shutdown()
+  for k,_ in pairs(drawTextLists) do
+    gl.DeleteList(drawTextLists[k])
+  end
 end
 
 --------------------------------------------------------------------------------

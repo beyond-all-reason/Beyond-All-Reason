@@ -5,7 +5,7 @@ function widget:GetInfo()
       author    = "Floris",
       date      = "24.04.2014",
       license   = "GNU GPL, v2 or later",
-      layer     = 5,
+      layer     = -50,
       enabled   = true
    }
 end
@@ -20,60 +20,42 @@ end
 --------------------------------------------------------------------------------
 
 OPTIONS = {
-	iconSize				= 32,
 	selectedFadeTime		= 0.75,
-	timeoutTime				= 7,
+	timeoutTime				= 6.5,
 	timeoutFadeTime			= 3,
 }
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local myTeamID                = Spring.GetLocalTeamID()
-
--- preferred to keep these values the same as fancy unit selections widget
-local rectangleFactor		= 3.3
-local scalefaktor			= 2.9
-local unitConf				= {}
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local givenUnits = {}
-local glDrawListAtUnit			= gl.DrawListAtUnit
-local glDrawFuncAtUnit			= gl.DrawFuncAtUnit
+local drawList
+local unitConf = {}
 
+local glDrawListAtUnit			= gl.DrawListAtUnit
 local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetSelectedUnitsCount	= Spring.GetSelectedUnitsCount
-local spGetSelectedUnits		= Spring.GetSelectedUnits
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
+local spGetCameraDirection		= Spring.GetCameraDirection
+
+local myTeamID                = Spring.GetLocalTeamID()
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
-		local shape, xscale, zscale
-		
-		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
-			shape = 'square'
-			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
-		elseif (unitDef.isAirUnit) then
-			shape = 'triangle'
-			xscale, zscale = scale, scale
-		else
-			shape = 'circle'
-			xscale, zscale = scale, scale
-		end
-		unitConf[udid] = {shape=shape, xscale=xscale, zscale=zscale}
+		local scale = 6*( xsize^2 + zsize^2 )^0.5
+		unitConf[udid] = 7 + (scale/2.5)
 	end
 end
 
 
-function DrawIcon(posY, posX, iconSize)
-	gl.Translate(posX*0.9,posY,posX*1.5)
+function DrawIcon()
+	local iconSize = 1
+	gl.Translate(0,1,1.4)
 	gl.Billboard()
 	gl.TexRect(-(iconSize/2), 0, (iconSize/2), iconSize)
 end
@@ -81,12 +63,12 @@ end
 
 -- add unit-icon to unit
 function AddGivenUnit(unitID)
-	local ud = UnitDefs[spGetUnitDefID(unitID)]
-	
+	local unitDefID = spGetUnitDefID(unitID)
 	givenUnits[unitID] = {}
 	givenUnits[unitID].osClock			= os.clock()
 	givenUnits[unitID].lastInViewClock	= os.clock()
-	givenUnits[unitID].unitHeight		= ud.height
+	givenUnits[unitID].unitHeight		= UnitDefs[unitDefID].height
+	givenUnits[unitID].unitScale		= unitConf[unitDefID]
 	--givenUnits[unitID].lastInViewClock	= Spring.GetGameSeconds() + OPTIONS.timeoutTime
 	--givenUnits[unitID].endSecs			= Spring.GetGameSeconds() + OPTIONS.timeoutTime
 end
@@ -96,8 +78,28 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	
 	SetUnitConf()
+	drawList = gl.CreateList(DrawIcon)
+end
+
+function widget:Shutdown()
+	gl.DeleteList(drawList)
+end
+
+
+local sec = 0
+local prevCam = {spGetCameraDirection()}
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > 0.15 then
+		sec = 0
+		local camX, camY, camZ = spGetCameraDirection()
+		if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
+			gl.DeleteList(drawList)
+			drawList = gl.CreateList(DrawIcon)
+		end
+		prevCam = {camX,camY,camZ}
+	end
 end
 
 
@@ -110,9 +112,9 @@ function widget:DrawWorld()
 	gl.DepthMask(true)
 	gl.DepthTest(true)
 	gl.Texture('LuaUI/Images/new.dds')
-	
+
+	local alpha
 	for unitID, unit in pairs(givenUnits) do
-		local alpha = 1
 		if unit.selected then
 			alpha = 1 - ((osClock - unit.selected) / OPTIONS.selectedFadeTime)
 		else
@@ -124,9 +126,7 @@ function widget:DrawWorld()
 				givenUnits[unitID] = nil
 			else
 				gl.Color(1,1,1,alpha)
-				local unitDefs = unitConf[spGetUnitDefID(unitID)]
-				local unitScale = unitDefs.xscale*1.22 - (unitDefs.xscale/6.6)
-				glDrawFuncAtUnit(unitID, false, DrawIcon, 10, unitScale, OPTIONS.iconSize)
+				glDrawListAtUnit(unitID, drawList, false, unit.unitScale, unit.unitScale, unit.unitScale)
 			end
 		else
 			if unit.selected then
@@ -156,11 +156,10 @@ end
 function widget:CommandsChanged()
 	
 	if spGetSelectedUnitsCount() > 0 then
-		local units = Spring.GetSelectedUnitsSorted()
-		for uDID,_ in pairs(units) do
+		for uDID,unit in pairs(Spring.GetSelectedUnitsSorted()) do
 			if uDID ~= 'n' then --'n' returns table size
-				for i=1,#units[uDID] do
-					local unitID = units[uDID][i]
+				for i=1,#unit do
+					local unitID = unit[i]
 					if givenUnits[unitID] then
 						local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (OPTIONS.timeoutTime - OPTIONS.timeoutFadeTime))) / OPTIONS.timeoutFadeTime)
 						if currentAlpha > 1 then

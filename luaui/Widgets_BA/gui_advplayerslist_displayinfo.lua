@@ -20,7 +20,6 @@ function widget:GetInfo()
 		license	= "GNU GPL, v2 or later",
 		layer	= -4,
 		enabled	= true,	--	loaded by default?
- 	  handler = true, 
 	}
 end
 
@@ -28,27 +27,15 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
--- This widget desperately needs to be reorganized
-
-
 local vsx, vsy   = widgetHandler:GetViewSizes()
 
 local bgcorner				= ":n:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1
 local glText         = gl.Text
-local glGetTextWidth = gl.GetTextWidth
-local glBlending     = gl.Blending
-local glScale        = gl.Scale
-local glRotate       = gl.Rotate
-local glTranslate	   = gl.Translate
 local glPushMatrix   = gl.PushMatrix
 local glPopMatrix	   = gl.PopMatrix
 local glColor        = gl.Color
-local glRect         = gl.Rect
-local glTexRect	     = gl.TexRect
-local glTexture      = gl.Texture
 local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
@@ -58,8 +45,6 @@ local advplayerlistPos = {}
 local widgetHeight = 23
 local top, left, bottom, right = 0,0,0,0
 
-local shown = false
-local mouseover = false
 local volume
 
 --------------------------------------------------------------------------------
@@ -226,9 +211,7 @@ function updatePosition(force)
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		
 		if WG['music'] ~= nil then
-			if widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
-				advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-			end
+            advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
 		
 		left = advplayerlistPos[2]

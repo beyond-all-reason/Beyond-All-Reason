@@ -44,8 +44,8 @@ function DrawIcon(text)
 	gl.Texture(':n:LuaUI/Images/skull.dds')
 	gl.Translate(0.32,1,1.4)
 	gl.Billboard()
-	gl.TexRect(-(iconSize+0.08), 0, -0.08, iconSize)
-	gl.Text(text,0,(iconSize/4),0.67,"oc")
+	gl.TexRect(-(iconSize+0.085), 0, -0.08, iconSize)
+	gl.Text(text,0,(iconSize/4),0.66,"oc")
 	gl.PopMatrix()
 end
 
@@ -53,15 +53,8 @@ end
 function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 3*( xsize^2 + zsize^2 )^0.5
-		local xscale, zscale
-
-		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
-			xscale, zscale = 3 * xsize, 3 * zsize
-		else
-			xscale, zscale = scale, scale
-		end
-		unitConf[udid] = 6 +(xscale+zscale)/2.4
+		local scale = 6*( xsize^2 + zsize^2 )^0.5
+		unitConf[udid] = 7 +(scale/2.5)
 	end
 end
 

@@ -169,7 +169,10 @@ end
 function widget:Shutdown()
   glDeleteList(platterList)
   glDeleteList(spotterList)
-  SetupCommandColors(true)
+  if WG['highlightselunits'] == nil then
+    SetupCommandColors(true)
+  end
+  WG['teamplatter'] = nil
 end
 
 
