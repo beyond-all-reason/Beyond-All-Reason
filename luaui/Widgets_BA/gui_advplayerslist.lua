@@ -2448,7 +2448,7 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
 		if m >= 10000 then e = math.floor(m/1000).."k" end
 		if ei >= 10000 then ei = math.floor(ei/1000).."k" end
 		if mi >= 10000 then ei = math.floor(mi/1000).."k" end
-		tipText = "\255\255\255\000+"..ei.."\n"..e.."\n\255\255\255\255"..m.."\n+"..mi
+		tipText = "\255\255\255\000+"..ei.."\n\255\255\255\000"..e.."\n\255\255\255\255"..m.."\n\255\255\255\255+"..mi
 	end
 end
 
