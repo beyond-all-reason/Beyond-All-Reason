@@ -14,7 +14,6 @@ end
 
 local floor = math.floor
 
-local spGetGameFrame = Spring.GetGameFrame
 local spGetSpecState = Spring.GetSpectatingState
 
 local spTestBuildOrder = Spring.TestBuildOrder
@@ -32,7 +31,7 @@ local buildLocs = {}
 local buildCount = 0
 
 function widget:PlayerChanged(playerID)
-    if Spring.GetSpectatingState() then
+    if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget()
     end
 end

@@ -90,7 +90,7 @@ local updateRate = 8/30
 local timeCounter = 0
 
 function widget:PlayerChanged(playerID)
-    if Spring.GetSpectatingState() then
+    if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget()
     end
 end

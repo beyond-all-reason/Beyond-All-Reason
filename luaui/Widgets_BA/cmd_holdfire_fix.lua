@@ -17,7 +17,7 @@ local CMD_STOP = CMD.STOP
 local spGiveOrder = Spring.GiveOrder
 
 function widget:PlayerChanged(playerID)
-    if Spring.GetSpectatingState() then
+    if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget()
     end
 end
