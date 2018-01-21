@@ -264,8 +264,10 @@ if (gadgetHandler:IsSyncedCode()) then
 						end
 					end
 				end
-				popupUnits[unitID].state = stateInt
-				end		
+				if popupUnits[unitID] ~= nil then
+					popupUnits[unitID].state = stateInt
+				end
+			end
 		end
 	end
 	
