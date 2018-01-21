@@ -189,6 +189,7 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx = viewSizeX
 	vsy = viewSizeY
+    sceduleUpdate = true
 end
 ----zeichen funktionen---------
 function uiRect (x,y,x2,y2)

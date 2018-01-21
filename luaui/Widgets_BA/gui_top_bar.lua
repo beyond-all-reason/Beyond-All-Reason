@@ -139,6 +139,19 @@ function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (vsy / height) * 0.043	-- using 734 because redui-console uses this value too
 	xPos = vsx*relXpos
+
+    for n,_ in pairs(dlistWindText) do
+        glDeleteList(dlistWindText[n])
+    end
+    dlistWindText = {}
+    for n,_ in pairs(dlistResValues['metal']) do
+        glDeleteList(dlistResValues['metal'][n])
+    end
+    dlistResValues['metal'] = {}
+    for n,_ in pairs(dlistResValues['energy']) do
+        glDeleteList(dlistResValues['energy'][n])
+    end
+    dlistResValues['energy'] = {}
 	init()
 end
 
