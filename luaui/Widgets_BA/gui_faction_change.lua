@@ -197,7 +197,7 @@ function widget:DrawScreen()
 	if factionChangeList then
 		glCallList(factionChangeList)
 	else 
-		factionChangeList = glCreateList(FactionChangeList)
+		factionChangeList = glCreateList(GenerateFactionChangeList)
 	end
 	glPopMatrix()
 
@@ -209,7 +209,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	widgetScale = (0.50 + (vsx*vsy / 5000000))
 end
 
-function FactionChangeList()
+function GenerateFactionChangeList()
 	-- Panel
 	glColor(0, 0, 0, 0.66)
 	RectRound(0, 0, 128*widgetScale, 80*widgetScale,6*widgetScale)
@@ -218,7 +218,7 @@ function FactionChangeList()
 	
 	
 	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(2*widgetScale, 2*widgetScale, 126*widgetScale, 78*widgetScale, 'factionchange')
+		WG['guishader_api'].InsertRect(px+(2*widgetScale), py+(2*widgetScale), px+(126*widgetScale), py+(78*widgetScale), 'factionchange')
 	end
 	
 		-- Highlight
@@ -280,7 +280,7 @@ function widget:MousePress(mx, my, mButton)
 				if factionChangeList then
 					glDeleteList(factionChangeList)
 				end
-				factionChangeList = glCreateList(FactionChangeList)
+				factionChangeList = glCreateList(GenerateFactionChangeList)
 			
 				return true
 			end
