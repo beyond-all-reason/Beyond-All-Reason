@@ -143,7 +143,7 @@ end
 
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
-        widgetHandler:RemoveWidget()
+        widgetHandler:RemoveWidget(self)
     end
     myTeam = Spring.GetMyTeamID()
 end

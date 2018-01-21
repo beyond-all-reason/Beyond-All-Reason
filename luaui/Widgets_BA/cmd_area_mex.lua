@@ -422,7 +422,7 @@ local function AnalyzeMetalMap()
 				}
 				if #metalData > maxMetalData then -- Probably a metal map, ceases to work
 					Spring.Echo("Area Mex: widget auto-removed, too many spots found in map.")
-					widgetHandler:RemoveWidget()
+					widgetHandler:RemoveWidget(self)
 					return
 				end
 			end
@@ -432,7 +432,7 @@ local function AnalyzeMetalMap()
 --	--Spring.Echo("number of spots " .. #metalData)
 --	if #metalData > maxMetalData then -- ceases to work
 --		Spring.Echo("Removed Area Mex, too many spots.")
---		widgetHandler:RemoveWidget()
+--		widgetHandler:RemoveWidget(self)
 --		return
 --	end
 	
@@ -525,7 +525,7 @@ function widget:Initialize()
     		mexIds[UnitDefNames['core_underwater_metal_extractor'].id] = UnitDefNames['core_underwater_metal_extractor'].id 
 	else
 		Spring.Echo("Removed Area Mex")
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 	end
 
 	Spring.CreateDir(pathToSave)

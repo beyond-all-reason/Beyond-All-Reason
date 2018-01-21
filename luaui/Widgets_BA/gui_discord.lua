@@ -86,7 +86,7 @@ function updatePosition(force)
 end
 
 function widget:Initialize()
-	if spGetGameFrame() > 0 then widgetHandler:RemoveWidget() return end
+	if spGetGameFrame() > 0 then widgetHandler:RemoveWidget(self) return end
 	updatePosition()
 end
 
@@ -98,7 +98,7 @@ end
 
 function widget:GameFrame(n)
 	if n > 0 then
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 	end
 end
 
@@ -130,7 +130,7 @@ end
 function widget:MousePress(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
 		Spring.SendCommands("say BA's discord server: https://"..discordLink)
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 		return true
 	end
 end

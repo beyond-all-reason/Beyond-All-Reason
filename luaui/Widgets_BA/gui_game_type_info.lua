@@ -69,7 +69,7 @@ function widget:Initialize()
   elseif Spring.GetModOptions().deathmode=="killall" then
     message = "Kill all enemy units"
   elseif Spring.GetModOptions().deathmode=="neverend" then
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
   end
   
   if (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
@@ -93,7 +93,7 @@ end
 
 function widget:DrawScreen()
   if (spGetGameSeconds() > 0) then
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
   end
   
   local timer = widgetHandler:GetHourTimer()
@@ -114,6 +114,6 @@ function widget:DrawScreen()
 end
 
 function widget:GameOver()
-  widgetHandler:RemoveWidget()
+  widgetHandler:RemoveWidget(self)
 end
 

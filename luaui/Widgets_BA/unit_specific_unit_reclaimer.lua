@@ -37,7 +37,7 @@ local CMD_STOP = CMD.STOP
 
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
-        widgetHandler:RemoveWidget()
+        widgetHandler:RemoveWidget(self)
     end
 end
 

@@ -192,17 +192,17 @@ function widget:Initialize()
 
   if (depthShader == nil) then
     Spring.Echo("Outline widget: depthcheck shader error: "..gl.GetShaderLog())
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
   if (blurShader_h == nil) then
     Spring.Echo("Outline widget: hblur shader error: "..gl.GetShaderLog())
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
   if (blurShader_v == nil) then
     Spring.Echo("Outline widget: vblur shader error: "..gl.GetShaderLog())
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
 

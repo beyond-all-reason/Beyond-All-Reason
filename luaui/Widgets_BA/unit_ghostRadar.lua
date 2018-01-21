@@ -124,7 +124,7 @@ function widget:Update()
 		local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
 		
 		if ( spec == true ) then
-			widgetHandler:RemoveWidget()
+			widgetHandler:RemoveWidget(self)
 			return false
 		end
 	end

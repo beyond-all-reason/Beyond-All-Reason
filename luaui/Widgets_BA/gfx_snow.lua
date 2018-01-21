@@ -228,7 +228,7 @@ function init()
 	
 	if (glCreateShader == nil) then
 		Spring.Echo("[Snow widget:Initialize] no shader support")
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 		return
 	end
 
@@ -282,7 +282,7 @@ function init()
 	if (shader == nil) then
 		Spring.Echo("[Snow widget:Initialize] particle shader compilation failed")
 		Spring.Echo(glGetShaderLog())
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 		return
 	end
 	

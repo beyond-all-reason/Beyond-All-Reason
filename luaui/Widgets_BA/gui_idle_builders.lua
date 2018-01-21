@@ -143,10 +143,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:PlayerChanged(playerID)
-	if not enabledAsSpec then
-		if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-			widgetHandler:RemoveWidget()
-		end
+	if enabledAsSpec == false and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		widgetHandler:RemoveWidget(self)
 	end
 end
 

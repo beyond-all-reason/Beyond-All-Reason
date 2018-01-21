@@ -119,7 +119,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 
   if (screencopy == nil) then
     Spring.Echo("Depth of Field: texture error")
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
 end
@@ -146,19 +146,19 @@ end
 local function CheckHardware()
   if (not canCTT) then
     Spring.Echo("Depth of Field: your hardware is missing the necessary CopyToTexture feature")
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
 
   if (not canRTT) then
     Spring.Echo("Depth of Field: your hardware is missing the necessary RenderToTexture feature")
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
 
   if (not canShader) then
     Spring.Echo("Depth of Field: your hardware does not support shaders")
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
 
@@ -324,7 +324,7 @@ function widget:Initialize()
   -- debug?
   if (screencopy == nil) then
     Spring.Echo("Depth of Field: texture error")
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return false
   end
 

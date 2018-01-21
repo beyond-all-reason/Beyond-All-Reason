@@ -111,7 +111,7 @@ end
 
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
-        widgetHandler:RemoveWidget()
+        widgetHandler:RemoveWidget(self)
     end
 end
 
@@ -125,7 +125,7 @@ function widget:Initialize()
 	curModID = string.upper(Game.modShortName or "")
 	if ( unitList[curModID] == nil ) then
 		spEcho("<Unit Marker> Unsupported Game, shutting down...")
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 		return
 	else	
 		curUnitList = unitList[curModID] or {}

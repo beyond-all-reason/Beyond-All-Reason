@@ -154,7 +154,7 @@ function widget:Initialize()
   if (shader == nil) then
     spEcho(glGetShaderLog())
     spEcho("Xray shader compilation failed.")
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
   end
   shaderFragZMinLoc = gl.GetUniformLocation(shader, "fragZMin")
   shaderFragZMaxLoc = gl.GetUniformLocation(shader, "fragZMax")

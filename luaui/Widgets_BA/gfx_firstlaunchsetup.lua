@@ -42,5 +42,5 @@ function widget:Initialize()
         end
         firstlaunchsetupDone = true
     end
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
 end

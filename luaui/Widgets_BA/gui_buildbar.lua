@@ -192,7 +192,7 @@ function widget:Initialize()
   self:ViewResize(viewSizeX, viewSizeY)
 
   if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-	widgetHandler:RemoveWidget()
+	widgetHandler:RemoveWidget(self)
   end
 end
 
@@ -810,7 +810,7 @@ end
 
 function widget:PlayerChanged()
 	if Spring.GetSpectatingState() then
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 	end
 end
 

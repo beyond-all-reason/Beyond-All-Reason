@@ -59,11 +59,11 @@ end
 function widget:Initialize()
 	if not Spring.IsCheatingEnabled() then
 		Spring.Echo("This widget requires cheats enabled")
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 	end
 	handle = io.open("MexSpots_" .. Game.mapName, "w")
 	if (handle == nil) then
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 	end
 end
 

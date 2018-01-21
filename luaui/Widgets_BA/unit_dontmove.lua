@@ -121,7 +121,7 @@ local unitArray = {
 
 function widget:PlayerChanged(playerID)
   if Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
   end
 end
 

@@ -125,7 +125,7 @@ end
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
-	--widgetHandler:RemoveWidget()
+	--widgetHandler:RemoveWidget(self)
 end
 
 function reset()

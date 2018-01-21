@@ -48,7 +48,7 @@ function widget:Update(dt)
     if nmx~=mx or nmy~=my then
       --Echo("<autoquit> Autoquit canceled.")
       endTime = false
-      -- widgetHandler:RemoveWidget()
+      -- widgetHandler:RemoveWidget(self)
     elseif DiffTimers(GetTimer(), endTime) > delay then
       Echo("<autoquit> Autoquit sending quit command.")
       SendCommands("quitforce")

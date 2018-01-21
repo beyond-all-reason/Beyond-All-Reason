@@ -32,7 +32,7 @@ function widget:Update()
   local t = Spring.GetGameSeconds()
   _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
   if (spectator or t > 10) then
-    widgetHandler:RemoveWidget()
+    widgetHandler:RemoveWidget(self)
     return
   end
   if (t > 0) then
@@ -44,7 +44,7 @@ function widget:Update()
       go = false
     end
     if (not go) then
-      widgetHandler:RemoveWidget()
+      widgetHandler:RemoveWidget(self)
     end
   end
 end
