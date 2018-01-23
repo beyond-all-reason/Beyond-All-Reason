@@ -19,6 +19,7 @@ end
 
 --Stats Table:
 VFS.Include("units/unba/stats.lua")
+VFS.Include("units/unba/buildoptions.lua")
 
 	tablecorcom = {
 		acceleration = 0.18,
@@ -490,5 +491,6 @@ tablecorcom.weapons[30] ={
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			}
+tablecorcom.buildoptions = CoreDefsBuildOptions
 end
 return { corcom = deepcopy(tablecorcom) }

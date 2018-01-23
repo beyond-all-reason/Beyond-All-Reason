@@ -20,6 +20,7 @@ end
 
 --Stats Table:
 VFS.Include("units/unba/stats.lua")
+VFS.Include("units/unba/buildoptions.lua")
 
 
 tablearmcom = {
@@ -480,7 +481,7 @@ tablearmcom.weapons[30] ={
 				def = "DISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
 			}
-
+tablearmcom.buildoptions = ArmDefsBuildOptions
 end
 return { armcom = deepcopy(tablearmcom) }
 

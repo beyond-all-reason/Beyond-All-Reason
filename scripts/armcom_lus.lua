@@ -25,6 +25,7 @@ lvl1hides = {rthigh5, lthigh5, rleg5, lleg5, biggun4, rbigflash4, nanolath3, nan
 
 --Stats Table:
 VFS.Include("units/unba/stats.lua")
+VFS.Include("units/unba/buildoptions.lua")
 
 local SIG_WALK = 2
 local PlaySoundFile 	= Spring.PlaySoundFile
@@ -277,6 +278,23 @@ function LevelUpStats(curLevel)
 	curHP = Spring.GetUnitHealth(unitID)
 	-- Spring.Echo(maxhealth)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
+	cmdArrays = Spring.GetUnitCmdDescs(unitID)
+	for ct, cmdarray in pairs(cmdArrays) do
+		if cmdarray.id < 0 then
+			if UnitDefs[-cmdarray.id] then
+				local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdarray.id)
+				Spring.Echo(level < ArmBuildOptions[UnitDefs[-cmdarray.id].name])
+				disable = (level < ArmBuildOptions[UnitDefs[-cmdarray.id].name])
+				cmdarray.disabled = disable
+				Spring.EditUnitCmdDesc(unitID, cmdIndex, cmdarray)
+			end
+		elseif cmdarray.id == 31244 or cmdarray.id == 31143 then
+				local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdarray.id)
+				cmdarray.disabled = true
+				Spring.EditUnitCmdDesc(unitID, cmdIndex, cmdarray)
+		end
+	end
+
 end
 
 function LevelUpModel(curLevel)
