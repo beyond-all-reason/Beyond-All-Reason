@@ -20,7 +20,7 @@ function widget:GetInfo()
     author    = "Floris (original: zwzsg, from trepan HighlightUnit)",
     date      = "Apr 24, 2009",
     license   = "GNU GPL, v2 or later",
-    layer     = -25,
+    layer     = -8,
     enabled   = true
   }
 end
