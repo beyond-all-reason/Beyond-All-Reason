@@ -1109,14 +1109,15 @@ local function GetCommands()
 			(cmd.type ~= 18) and
 			(cmd.type ~= 17)
 			) then
-				if ((cmd.type == 20) --build building
-				or (ssub(cmd.action,1,10) == "buildunit_")) then
+				if (((cmd.type == 20) --build building
+				or (ssub(cmd.action,1,10) == "buildunit_"))) and (cmd["disabled"] ~= true) then
+
 					buildcmdscount = buildcmdscount + 1
 					buildcmds[buildcmdscount] = cmd
-				elseif (cmd.type == 5) then
+				elseif (cmd.type == 5) and (cmd["disabled"] ~= true) then
 					statecmdscount = statecmdscount + 1
 					statecmds[statecmdscount] = cmd
-				else
+				elseif (cmd["disabled"] ~= true) then
 					othercmdscount = othercmdscount + 1
 					othercmds[othercmdscount] = cmd
 				end
