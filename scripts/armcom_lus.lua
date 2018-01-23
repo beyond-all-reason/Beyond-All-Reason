@@ -35,7 +35,6 @@ common = include("headers/common_includes_lus.lua")
 
 function Emit(pieceName, effectName)
 local x,y,z,dx,dy,dz	= Spring.GetUnitPiecePosDir(unitID, pieceName)
--- Spring.Echo(ndx, ndy, ndz)
 Spring.SpawnCEG(effectName, x,y,z, dx, dy, dz)
 end
 
@@ -111,10 +110,7 @@ end
 function MotionControl()
 	justmoved = true
 	while (true) do
-	-- Spring.Echo(dgunning)
-	-- Spring.Echo(aiming)
 		if (moving) then
-			-- Spring.Echo("moving")
 			dgunning = false
 			if (aiming) then
 				walklegs()
@@ -149,32 +145,10 @@ function script.Create()
 for ct, piecenum in pairs (lvl1hides) do
 	Hide(piecenum)
 end
-	-- for i = 1, #UnitDefs[Spring.GetUnitDefID(unitID)].weapons do
-		-- Spring.Echo(i.." "..WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
-	-- end
--- Stats = {
--- bp=UnitDefs[Spring.GetUnitDefID(unitID)].buildSpeed,
--- Range = 300,
--- msec=UnitDefs[Spring.GetUnitDefID(unitID)].metalMake,
--- esec=UnitDefs[Spring.GetUnitDefID(unitID)].energyMake,
--- los=UnitDefs[Spring.GetUnitDefID(unitID)].losRadius,
--- airlos=UnitDefs[Spring.GetUnitDefID(unitID)].airLosRadius,
--- radar=UnitDefs[Spring.GetUnitDefID(unitID)].radarRadius,
--- sonar=UnitDefs[Spring.GetUnitDefID(unitID)].sonarRadius,
--- armor=1,
--- }
 	level = 0
-	-- side = math.random(0,1)
 	randomness = math.random(-25,25)
-	-- addheight = 0
 	Hide (rbigflash)
 	Hide (lfirept)
-	-- Turn (lfirept, 1 , (1/(6.28*8))*90 )
-	-- Move (lfirept, 1 , 0.5 )
-	-- Move (lfirept, 3 , 0.25 )
-	-- Turn (rbigflash, 1 , (1/(6.28*8))*90 )
-	-- Move (rbigflash, 1 , 0.5 )
-	-- Move (rbigflash , 2 , -0.35 )
 	Hide (nanospray)
 	moving = false
 	aiming = false
@@ -196,7 +170,6 @@ function HandleLevelUps()
 while(true) do
 local null, fxp = Spring.GetUnitExperience(unitID)
 local realxp = 10 * fxp
--- Spring.Echo(level)
 if realxp > 10 and level == 10 then
 LevelUpModel(10)
 LevelUpStats(10)
@@ -246,27 +219,17 @@ function LevelUpStats(curLevel)
 	Spring.SetUnitArmored(unitID, true, DamageMultiplierNoDgun[level])
 
 	for i = 23, 29 do
-	-- if UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i] then
-		-- Spring.Echo(WeaponDefs[UnitDefs[Spring.GetUnitDefID(unitID)].weapons[i].weaponDef].name)
-	-- end
 		if i - 22 == level - 1 or (i == 29 and i - 22 <= level -1) then
-			-- Spring.Echo(i.."activated")
-
 			Spring.SetUnitShieldState(unitID, i, true)
 		else
-			-- Spring.Echo(i)
 			Spring.SetUnitShieldState(unitID, i, false)
 		end
 	end
 	for i = 1,11 do
 		Spring.SetUnitWeaponState(unitID,i, "range", Range[level])
-		-- Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", AOE[level])
-		-- Spring.SetUnitWeaponState(unitID,i, "reloadTime", ReloadTime[level])
 	end
 	for i = 12,22 do
 		Spring.SetUnitWeaponState(unitID,i, "range", Range2[level])
-		-- Spring.SetUnitWeaponDamages(unitID,i, "damageAreaOfEffect", AOE2[level])
-		-- Spring.SetUnitWeaponState(unitID,i, "reloadTime", ReloadTime2[level])
 	end
 	Spring.SetUnitWeaponState(unitID,30, "reloadTime", ReloadTime3[level])
 	Spring.SetUnitBuildSpeed(unitID, BuildSpeed[level], BuildSpeed[level], BuildSpeed[level]*0.7)
@@ -276,14 +239,12 @@ function LevelUpStats(curLevel)
 	Spring.SetUnitSensorRadius(unitID,"sonar",Sonar[level])
 	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
 	curHP = Spring.GetUnitHealth(unitID)
-	-- Spring.Echo(maxhealth)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
 	cmdArrays = Spring.GetUnitCmdDescs(unitID)
 	for ct, cmdarray in pairs(cmdArrays) do
 		if cmdarray.id < 0 then
 			if UnitDefs[-cmdarray.id] then
 				local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdarray.id)
-				Spring.Echo(level < ArmBuildOptions[UnitDefs[-cmdarray.id].name])
 				disable = (level < ArmBuildOptions[UnitDefs[-cmdarray.id].name])
 				cmdarray.disabled = disable
 				Spring.EditUnitCmdDesc(unitID, cmdIndex, cmdarray)
@@ -444,8 +405,6 @@ end
 function script.StartBuilding(heading, pitch)
 		Spring.UnitScript.Signal(31)
 Spring.UnitScript.StartThread(Restore,3000)
-
-		-- Spring.UnitScript.SetSignalMask(31)
 		dgunning = false
 		aiming = true
 		building = true
