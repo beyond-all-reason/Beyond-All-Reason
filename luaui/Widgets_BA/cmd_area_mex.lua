@@ -83,6 +83,7 @@ function widget:UnitCreated(unitID, unitDefID)
   
 	local ud = UnitDefs[unitDefID]
   
+	if not ((Spring.GetModOptions().mo_unba or "disabled" == "enabled") and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom")) then
 	if mexBuilderDef[ud] then
 		mexBuilder[unitID] = mexBuilderDef[ud]
 		return
@@ -102,6 +103,7 @@ function widget:UnitCreated(unitID, unitDefID)
 		end
 	end
   
+	end
 end
 
 function widget:Update()
