@@ -1,5 +1,5 @@
 ﻿10.04 -> 10.05
-99/99/2099
+99/99/2018
 
 Balance changes: 
 
@@ -12,6 +12,9 @@ Other:
  • Disallowed build commands of disabled build options in the unlikely case user widgets could allow overriding the limitation
  • Red BuildOrder Menu hides disabled commands from the menu.
  • Unit Stats: Show real time values rather than UnitDefs' values when available (maxHP, armor, speed/accel/turnrate)
+ • Faction change widget: guishader should work properly now
+ • Fixed top-bar text elements being out of place after a resize/alt-tab
+ • Fixed highlight selected units failing to show in rare occasions
 
 
 10.03 -> 10.04
