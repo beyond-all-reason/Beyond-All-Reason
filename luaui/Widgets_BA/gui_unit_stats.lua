@@ -203,6 +203,7 @@ end
 function widget:Initialize()
 	if Spring.GetModOptions().mo_unba or "disabled" == "enabled" then
 		VFS.Include("units/unba/stats.lua")
+		unba = true
 	end
 	init()
 end
@@ -257,7 +258,18 @@ function widget:DrawScreen()
 	local uDef = uDefs[uDefID]
 	local uCurHp, uMaxHp, _, _, buildProg = spGetUnitHealth(uID)
 	local uTeam = spGetUnitTeam(uID)
-
+	
+	local unbacom = unba and (UnitDefs[Spring.GetUnitDefID(unitID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(unitID)].name == "corcom")
+	local _, xp = Spring.GetUnitExperience(unitID)
+	if unbacom then
+		if xp then
+			level = math.floor(xp*10) + 1
+			if xp*10 >= 9.9 then level = 11 end
+		else 
+			level = "unknown"
+		end
+	end
+	
 	maxWidth = 0
 
 	cX = mx + xOffset
@@ -342,15 +354,10 @@ function widget:DrawScreen()
 	end
 
 
-	if Spring.GetModOptions().mo_unba or "disabled" == "enabled" and (UnitDefs[Spring.GetUnitDefID(unitID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(unitID)].name == "corcom") then
-		local _, xp = Spring.GetUnitExperience(unitID)
-		if xp then
-			local level = math.floor(xp*10) + 1
-			if xp*10 >= 9.9 then level = 11 end
-			local buildSpeed = BuildSpeed[level] or uDef.buildSpeed
-			DrawText('Build:', yellow .. buildSpeed)
-			DrawText('Level:', green .. level)
-		end
+	if unbacom then
+		local buildSpeed = BuildSpeed[level] or uDef.buildSpeed
+		DrawText('Build:', yellow .. buildSpeed)
+		DrawText('Level:', green .. level)
 	elseif uDef.buildSpeed > 0 then	
 		DrawText('Build:', yellow .. uDef.buildSpeed)
 
@@ -417,18 +424,11 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-		if Spring.GetModOptions().mo_unba or "disabled" == "enabled" and (UnitDefs[Spring.GetUnitDefID(unitID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(unitID)].name == "corcom") then
-			local _, xp = Spring.GetUnitExperience(unitID)
-			if xp then
-				local level = math.floor(xp*10) + 1
-				if xp*10 >= 9.9 then level = 11 end
-				if uDef.weapons[level] and uDef.weapons[level + 11] and uDef.weapons[30] then
+		if unbacom then
+			if uDef.weapons[level] and uDef.weapons[level + 11] and uDef.weapons[30] then
 					uWeps = {uDef.weapons[level], uDef.weapons[level + 11], uDef.weapons[30]}
-				else
-					uWeps = uDef.weapons
-				end
 			else
-				uWeps = uDef.weapons
+					uWeps = uDef.weapons
 			end
 		else
 			uWeps = uDef.weapons
