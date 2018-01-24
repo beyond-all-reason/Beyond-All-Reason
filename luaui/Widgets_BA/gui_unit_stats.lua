@@ -388,8 +388,8 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 
 	DrawText("Armor:", "class " .. Game.armorTypes[uDef.armorType or 0] or '???')
-
-	local maxHP = uDef.health
+	local _, spMaxHP = Spring.GetUnitHealth(unitID)
+	local maxHP = spMaxHP or uDef.health
 	if ctrl then
 		maxHP = uMaxHp or '???'
 	end
