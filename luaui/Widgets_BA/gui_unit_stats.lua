@@ -201,6 +201,9 @@ end
 ------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	if Spring.GetModOptions().mo_unba or "disabled" == "enabled" then
+		VFS.Include("units/unba/stats.lua")
+	end
 	init()
 end
 
@@ -331,8 +334,20 @@ function widget:DrawScreen()
 	end
 
 
+	if Spring.GetModOptions().mo_unba or "disabled" == "enabled" and (UnitDefs[Spring.GetUnitDefID(unitID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(unitID)].name == "corcom") then
+		local _, xp = Spring.GetUnitExperience(unitID)
+		if xp then
+			local level = math.floor(xp*10) + 1
+			if xp*10 >= 9.9 then level = 11 end
+			local buildSpeed = BuildSpeed[level] or uDef.buildSpeed
+			DrawText('Build:', yellow .. buildSpeed)
+			DrawText('Level:', green .. level)
+		end
+	elseif uDef.buildSpeed > 0 then	
+		DrawText('Build:', yellow .. uDef.buildSpeed)
 
-	if uDef.buildSpeed > 0 then	DrawText('Build:', yellow .. uDef.buildSpeed) end
+	end
+
 
 	cY = cY - fontSize
 
@@ -388,8 +403,23 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-
-	local uWeps = uDef.weapons
+		if Spring.GetModOptions().mo_unba or "disabled" == "enabled" and (UnitDefs[Spring.GetUnitDefID(unitID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(unitID)].name == "corcom") then
+			local _, xp = Spring.GetUnitExperience(unitID)
+			if xp then
+				local level = math.floor(xp*10) + 1
+				if xp*10 >= 9.9 then level = 11 end
+				if uDef.weapons[level] and uDef.weapons[level + 11] and uDef.weapons[30] then
+					uWeps = {uDef.weapons[level], uDef.weapons[level + 11], uDef.weapons[30]}
+				else
+					uWeps = uDef.weapons
+				end
+			else
+				uWeps = uDef.weapons
+			end
+		else
+			uWeps = uDef.weapons
+		end
+	local uWeps = uWeps
 	local weaponNums = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
