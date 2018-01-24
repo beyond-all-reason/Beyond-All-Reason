@@ -6,10 +6,12 @@ Balance changes:
 Unbalanced Commanders (when mo_unba is enabled):
  • Fixed modrules loading error when mo_unba is enabled
  • Added evolving build menus: disabled upgrademex/areamex for commanders when mo_unba is enabled
+ • Unit Stats: Shows Commanders' currently used Weapons, current BuildSpeed and current Level when experience is known to the user.
 
 Other:
  • Disallowed build commands of disabled build options in the unlikely case user widgets could allow overriding the limitation
  • Red BuildOrder Menu hides disabled commands from the menu.
+ • Unit Stats: Show real time values rather than UnitDefs' values when available (maxHP, armor, speed/accel/turnrate)
 
 
 10.03 -> 10.04
