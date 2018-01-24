@@ -89,6 +89,8 @@ function widget:IsAbove(x,y)
   local builderID = selectedUnits[1] 
   local upgradePairs = builderDefs[GetUnitDefID(builderID)] 
 
+
+  
   if not upgradePairs then 
     return false 
   end 
@@ -105,5 +107,11 @@ function widget:IsAbove(x,y)
   end 
 
   rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo} 
+    if Spring.GetModOptions().mo_unba or "disabled" == "enabled" then
+		if UnitDefs[Spring.GetUnitDefID(builderID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(builderID)].name == "corcom" then
+			rightClickUpgradeParams = nil
+			return false
+		end
+	end
   return true 
 end
