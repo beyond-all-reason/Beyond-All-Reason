@@ -31,6 +31,10 @@ local SIG_WALK = 2
 local PlaySoundFile 	= Spring.PlaySoundFile
 local GetUnitPosition 	= Spring.GetUnitPosition
 local GetGameFrame 		= Spring.GetGameFrame
+local HealRefreshTime	= 15
+local CEGHeal = "heal"
+local CEGLevelUp = "commander-levelup"
+
 common = include("headers/common_includes_lus.lua")
 
 function Emit(pieceName, effectName)
@@ -71,15 +75,15 @@ x,y,z = Spring.GetUnitPosition(unitID)
 									local workerTime1F = workerTime1S / 30
 									local areaRepairTime1 = 0.1 * workerTime1F
 									local HPRepairPerFrame = (maxhp2 / buildTime2S) * areaRepairTime1
-									local newhp2 = oldhp2 + HPRepairPerFrame
+									local newhp2 = oldhp2 + HPRepairPerFrame * HealRefreshTime
 									if newhp2 > maxhp2*bprog then
 										newhp2 = maxhp2
 									end
 									Spring.SetUnitHealth(uid, newhp2)	
-									if Spring.GetGameFrame() %30 == 0 then
+									if Spring.GetGameFrame() %60 == 0 then
 									x2, y2, z2 = Spring.GetUnitPosition(uid)
 										if newhp2>oldhp2 then
-											Spring.SpawnCEG("steam", x2, y2, z2, 0,1,0)
+											Spring.SpawnCEG(CEGHeal, x2, y2, z2, 0,1,0)
 										end
 									end
 								end
@@ -87,7 +91,7 @@ x,y,z = Spring.GetUnitPosition(unitID)
 						end
 					end
 				end
-Sleep(1)
+Sleep(33 * HealRefreshTime)
 end
 end
 
@@ -259,7 +263,7 @@ function LevelUpStats(curLevel)
 end
 
 function LevelUpModel(curLevel)
-Emit(pelvis, "commander-levelup")
+Emit(pelvis, CEGLevelUp)
 if curLevel == 0 then
 elseif curLevel == 1 then
 	switchpieces(torso1, torso2)
