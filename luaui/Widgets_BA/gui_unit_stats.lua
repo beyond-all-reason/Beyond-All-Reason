@@ -402,8 +402,14 @@ function widget:DrawScreen()
 		
 	end
 	DrawText("Open:", format("maxHP: %d", maxHP) )
-	if uDef.armoredMultiple ~= 1 then DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/uDef.armoredMultiple-1) *100,maxHP/uDef.armoredMultiple)) end
-
+	local _, armoredMultiple = Spring.GetUnitArmored(unitID)
+	
+		if armoredMultiple and armoredMultiple ~= 1 then 
+		DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
+		elseif uDef.armoredMultiple ~= 1 then 
+		DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/uDef.armoredMultiple-1) *100,maxHP/uDef.armoredMultiple)) 
+		end
+		
 	cY = cY - fontSize
 
 	------------------------------------------------------------------------------------
