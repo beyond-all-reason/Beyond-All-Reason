@@ -330,7 +330,15 @@ function widget:DrawScreen()
 			)
 
 	if not (uDef.isBuilding or uDef.isFactory) then
-		DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
+		if not Spring.GetUnitMoveTypeData(unitID) then
+			DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
+		else
+			local mData = Spring.GetUnitMoveTypeData(unitID)
+			local mSpeed = mData.maxSpeed or uDef.speed
+			local mAccel = mData.accRate or uDef.maxAcc
+			local mTurnRate = mData.baseTurnRate or uDef.turnRate
+			DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", mSpeed, 900 * mAccel, simSpeed * mTurnRate * (180 / 32767)))
+		end
 	end
 
 
