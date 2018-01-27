@@ -2588,6 +2588,13 @@ local types = {
   dirty = {
 
   },
+  builder = {
+    explosion = {properties = {colormap = [[0 0 0 0   0.92 1 0.7 0.08   0.77 0.9 0.21 0.06   0.57 0.66 0.04 0.03   0 0 0 0.01]]}},
+    fireglow = { properties = {colormap = [[0.24 0.3 0.04 0.025   0 0 0 0]]}},
+    sparks = { properties = {colormap = [[0.6 0.8 0.2 0.01   0.6 0.9 0.2 0.017   0 0 0 0.01]]}},
+    dirt = { properties = {colormap = [[0.8 1 0.4 0.1   0 0 0 0.01]]}},
+    dirt2 = { properties = {colormap = [[0.7 1 0.3 0.1   0 0 0 0.01]]}},
+  },
   uw = {
     groundflash_small = false,
     groundflash_large = false,
