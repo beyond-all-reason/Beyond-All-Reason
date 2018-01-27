@@ -436,6 +436,23 @@ defs["deathceg4-fire"].fireandsmoke.properties.particlelife = defs["deathceg4-fi
 defs["deathceg4-fire"].fire.properties.particlesize = defs["deathceg4-fire"].fire.properties.particlesize*1.7
 defs["deathceg4-fire"].fire.properties.particlelife = defs["deathceg4-fire"].fire.properties.particlelife*1.7
 
+
+effects = {
+  fire = {
+    properties = {
+      colormap           = [[0.98 1 0.91 0.55   0.85 1 0.3 0.4    0.4 0.6 0.1 0.3   0 0 0 0.01]],
+    },
+  },
+  fireglow = {
+    properties = {
+      colormap           = [[0.12 0.15 0.02 0.015   0 0 0 0.01]],
+    },
+  },
+}
+defs["deathceg2-builder"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
+defs["deathceg3-builder"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
+defs["deathceg4-builder"] = tableMerge(deepcopy(defs["deathceg4"]), deepcopy(effects))
+
 --local effects = {
 --  searingflame = {
 --    air                = true,
