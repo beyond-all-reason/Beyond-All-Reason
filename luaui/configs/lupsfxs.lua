@@ -147,10 +147,10 @@ shieldBursts200 = {
   sizeSpread = 50,
   texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
   --colormap   = { {1, 0.6, 1, 0.8} },
-  colormap   = { {1, 1, 1, 0.1} },
+  colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 20,
+  count      = 13,
 }
 
 shieldBursts300 = {
@@ -165,10 +165,10 @@ shieldBursts300 = {
   sizeSpread = 50,
   texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
   --colormap   = { {1, 0.6, 1, 0.8} },
-  colormap   = { {1, 1, 1, 0.1} },
+  colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 20,
+  count      = 13,
 }
 
 shieldBursts400 = {
@@ -183,10 +183,10 @@ shieldBursts400 = {
   sizeSpread = 50,
   texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
   --colormap   = { {1, 0.6, 1, 0.8} },
-  colormap   = { {1, 1, 1, 0.1} },
+  colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 20,
+  count      = 13,
 }
 
 shieldBursts550 = {
@@ -201,10 +201,10 @@ shieldBursts550 = {
   sizeSpread = 50,
   texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
   --colormap   = { {1, 0.6, 1, 0.8} },
-  colormap   = { {1, 1, 1, 0.1} },
+  colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 20,
+  count      = 13,
 }
 
 shieldBursts600 = {
@@ -219,10 +219,10 @@ shieldBursts600 = {
   sizeSpread = 50,
   texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
   --colormap   = { {1, 0.6, 1, 0.8} },
-  colormap   = { {1, 1, 1, 0.1} },
+  colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 20,
+  count      = 13,
 }
 
 shieldBursts1500 = {
