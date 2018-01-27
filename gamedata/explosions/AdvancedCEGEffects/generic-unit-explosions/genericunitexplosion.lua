@@ -212,7 +212,7 @@ local definitions = {
 	  underwater         = true,
       properties = {
         airdrag            = 1,
-        colormap           = [[1 0.7 0.25 0.01   0.85 0.45 0.15 0.01   0 0 0 0.01]],
+        colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -632,7 +632,7 @@ local definitions = {
 	  underwater         = true,
       properties = {
         airdrag            = 1,
-        colormap           = [[1 0.7 0.25 0.01   0.85 0.45 0.15 0.01   0 0 0 0.01]],
+        colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 45,
         emitrotspread      = 32,
@@ -1051,7 +1051,7 @@ local definitions = {
 	  underwater         = true,
       properties = {
         airdrag            = 1,
-        colormap           = [[1 0.7 0.25 0.01   0.85 0.45 0.15 0.01   0 0 0 0.01]],
+        colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 35,
         emitrotspread      = 35,
@@ -1470,7 +1470,7 @@ local definitions = {
 	  underwater         = true,
       properties = {
         airdrag            = 1,
-        colormap           = [[1 0.7 0.25 0.01   0.85 0.45 0.15 0.01   0 0 0 0.01]],
+        colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 18,
         emitrotspread      = 35,
@@ -1889,7 +1889,7 @@ local definitions = {
       underwater         = true,
       properties = {
         airdrag            = 1,
-        colormap           = [[1 0.7 0.25 0.01   0.85 0.45 0.15 0.01   0 0 0 0.01]],
+        colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 18,
         emitrotspread      = 35,
@@ -2308,7 +2308,7 @@ local definitions = {
       underwater         = true,
       properties = {
         airdrag            = 1,
-        colormap           = [[1 0.7 0.25 0.01   0.85 0.45 0.15 0.01   0 0 0 0.01]],
+        colormap           = [[1 0.88 0.77 0.015   0.8 0.55 0.3 0.01   0 0 0 0]],
         directional        = true,
         emitrot            = 18,
         emitrotspread      = 35,
@@ -2590,10 +2590,8 @@ local types = {
   },
   builder = {
     explosion = {properties = {colormap = [[0 0 0 0   0.92 1 0.7 0.08   0.77 0.9 0.21 0.06   0.57 0.66 0.04 0.03   0 0 0 0.01]]}},
-    fireglow = { properties = {colormap = [[0.24 0.3 0.04 0.025   0 0 0 0]]}},
-    sparks = { properties = {colormap = [[0.6 0.8 0.2 0.01   0.6 0.9 0.2 0.017   0 0 0 0.01]]}},
-    dirt = { properties = {colormap = [[0.8 1 0.4 0.1   0 0 0 0.01]]}},
-    dirt2 = { properties = {colormap = [[0.7 1 0.3 0.1   0 0 0 0.01]]}},
+    fireglow = { properties = {colormap           = [[0.24 0.3 0.04 0.025   0 0 0 0]]}},
+    sparks = { properties = {colormap           = [[0.93 1 0.77 0.015   0.6 0.8 0.3 0.01   0 0 0 0]]}},
   },
   uw = {
     groundflash_small = false,
@@ -2772,7 +2770,7 @@ definitions['decoycommander'].sparks = {
   underwater         = true,
   properties = {
     airdrag            = 0.96,
-    colormap           = [[0.8 0.5 0.2 0.01   0.9 0.5 0.2 0.017   0 0 0 0.01]],
+    colormap           = [[0.8 0.65 0.4 0.01   0.9 0.65 0.33 0.015   0 0 0 0.01]],
     directional        = true,
     emitrot            = 14,
     emitrotspread      = 40,
@@ -2857,7 +2855,7 @@ definitions['decoycommander-selfd'].sparks = {
   underwater         = true,
   properties = {
     airdrag            = 0.96,
-    colormap           = [[0.8 0.5 0.2 0.01   0.9 0.5 0.2 0.017   0 0 0 0.01]],
+    colormap           = [[0.8 0.65 0.4 0.01   0.9 0.65 0.33 0.015   0 0 0 0.01]],
     directional        = true,
     emitrot            = 14,
     emitrotspread      = 40,
