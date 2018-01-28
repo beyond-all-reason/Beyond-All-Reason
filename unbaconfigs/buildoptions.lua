@@ -341,7 +341,8 @@ CoreBuildOptions =
 			coruwfus = 5,
 			coruwmme = 5,
 			coruwmmm = 5,	
-}armlevel1buildoptions = {
+}
+armlevel1buildoptions = {
 			"armsolar",
 			"armwin",
 			"armmstor",

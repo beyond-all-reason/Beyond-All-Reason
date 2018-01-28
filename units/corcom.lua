@@ -18,8 +18,8 @@ function deepcopy(orig)
 end
 
 --Stats Table:
-VFS.Include("units/unba/stats.lua")
-VFS.Include("units/unba/buildoptions.lua")
+VFS.Include("unbaconfigs/stats.lua")
+VFS.Include("unbaconfigs/buildoptions.lua")
 
 	tablecorcom = {
 		acceleration = 0.18,

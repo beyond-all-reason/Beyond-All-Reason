@@ -24,8 +24,8 @@ lvl1hides = {}
 lvl1hides = {rthigh5, lthigh5, rleg5, lleg5, rfoot5, lfoot5, biggun4, bigflsh4, nanogun3, nanospray3, mlasflsh3, torso2}
 
 --Stats Table:
-VFS.Include("units/unba/stats.lua")
-VFS.Include("units/unba/buildoptions.lua")
+VFS.Include("unbaconfigs/stats.lua")
+VFS.Include("unbaconfigs/buildoptions.lua")
 
 local SIG_WALK = 2
 local PlaySoundFile 	= Spring.PlaySoundFile

@@ -23,7 +23,7 @@ end
 ------------------------------------------------------------
 -- Panel
 
-VFS.Include("units/unba/buildoptions.lua")
+VFS.Include("unbaconfigs/buildoptions.lua")
 
 for ct,name in pairs (armlevel1buildoptions) do
 	armlevel1buildoptions[ct] = UnitDefNames[name].id

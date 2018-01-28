@@ -202,7 +202,7 @@ end
 
 function widget:Initialize()
 	if Spring.GetModOptions().mo_unba or "disabled" == "enabled" then
-		VFS.Include("units/unba/stats.lua")
+		VFS.Include("unbaconfigs/stats.lua")
 		unba = true
 	end
 	init()
