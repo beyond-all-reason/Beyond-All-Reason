@@ -19,7 +19,7 @@ return {
 		energymake = 14,
 		energystorage = 100,
 		energyuse = 14,
-		explodeas = "smallexplosiongeneric",
+		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -35,7 +35,7 @@ return {
 		objectname = "CORACK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 318.5,
 		terraformspeed = 900,
 		turninplace = 1,
@@ -124,9 +124,9 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+				"deathceg2-builder",
+				"deathceg3-builder",
+				"deathceg4-builder",
 			},
 		},
 		sounds = {

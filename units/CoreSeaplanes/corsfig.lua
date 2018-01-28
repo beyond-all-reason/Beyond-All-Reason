@@ -94,7 +94,7 @@ return {
 				texture2 = "coresmoketrail",
 				tolerance = 8000,
 				tracks = true,
-				turnrate = 19000,
+				turnrate = 22000,
 				weaponacceleration = 425,
 				weapontimer = 9,
 				weapontype = "MissileLauncher",

@@ -19,7 +19,7 @@ return {
 		energymake = 20,
 		energystorage = 100,
 		energyuse = 20,
-		explodeas = "mediumexplosiongeneric",
+		explodeas = "mediumexplosiongeneric-builder",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -36,7 +36,7 @@ return {
 		objectname = "CORACV",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGenericSelfd",
+		selfdestructas = "mediumExplosionGenericSelfd-builder",
 		sightdistance = 295.10001,
 		terraformspeed = 1250,
 		trackstrength = 6,
@@ -127,9 +127,9 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+				"deathceg2-builder",
+				"deathceg3-builder",
+				"deathceg4-builder",
 			},
 		},
 		sounds = {

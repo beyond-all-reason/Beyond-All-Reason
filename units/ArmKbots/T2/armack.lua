@@ -19,7 +19,7 @@ return {
 		energymake = 14,
 		energystorage = 100,
 		energyuse = 14,
-		explodeas = "mediumexplosiongeneric",
+		explodeas = "mediumexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
 		idleautoheal = 5,
@@ -35,7 +35,7 @@ return {
 		objectname = "ARMACK",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "mediumExplosionGenericSelfd",
+		selfdestructas = "mediumExplosionGenericSelfd-builder",
 		sightdistance = 323.70001,
 		terraformspeed = 900,
 		turninplace = 1,
@@ -125,9 +125,9 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+				"deathceg2-builder",
+				"deathceg3-builder",
+				"deathceg4-builder",
 			},
 		},
 		sounds = {

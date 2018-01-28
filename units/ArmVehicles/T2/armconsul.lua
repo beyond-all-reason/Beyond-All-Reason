@@ -19,7 +19,7 @@ return {
 		energymake = 15,
 		energystorage = 100,
 		energyuse = 15,
-		explodeas = "smallexplosiongeneric",
+		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -35,7 +35,7 @@ return {
 		name = "Consul",
 		objectname = "ARMCONSUL",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 500,
 		terraformspeed = 750,
 		trackoffset = 6,
@@ -121,9 +121,9 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+				"deathceg2-builder",
+				"deathceg3-builder",
+				"deathceg4-builder",
 			},
 		},
 		sounds = {

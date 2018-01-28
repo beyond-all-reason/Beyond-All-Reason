@@ -19,7 +19,7 @@ return {
 		energymake = 11,
 		energystorage = 75,
 		energyuse = 11,
-		explodeas = "smallexplosiongeneric",
+		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 3,
 		footprintz = 3,
 		idleautoheal = 5,
@@ -35,7 +35,7 @@ return {
 		objectname = "CORCH",
 		radardistance = 50,
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 338,
 		terraformspeed = 550,
 		turninplace = 1,
@@ -138,8 +138,8 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+				"deathceg2-builder",
+				"deathceg3-builder",
 			},
 		},
 		sounds = {

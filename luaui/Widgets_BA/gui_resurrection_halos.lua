@@ -29,7 +29,7 @@ local haloImg = ':n:LuaUI/Images/halo.dds'
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local unitConf				= {}
+local unitConf = {}
 local drawLists = {}
 
 --------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ function widget:DrawWorld()
 					if alpha1 <= 0 then
 						haloUnits[unitID] = nil
 						haloUnitsCount = haloUnitsCount - 1
-					else
+					elseif unitConf[spGetUnitDefID(unitID)] then
 						gl.Color(1,1,1,alpha*opacityMultiplier)
 						local iconsize = unitConf[spGetUnitDefID(unitID)].iconSize * (1+unit.sizeAddition)
 						local unitHeight = unitConf[spGetUnitDefID(unitID)].height

@@ -18,7 +18,7 @@ return {
 		energymake = 5,
 		energystorage = 25,
 		energyuse = 5,
-		explodeas = "smallexplosiongeneric",
+		explodeas = "smallexplosiongeneric-builder",
 		footprintx = 2,
 		footprintz = 2,
 		hoverattack = true,
@@ -34,7 +34,7 @@ return {
 		name = "Construction Aircraft",
 		objectname = "ARMCA",
 		seismicsignature = 0,
-		selfdestructas = "smallExplosionGenericSelfd",
+		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 390,
 		terraformspeed = 225,
 		turninplaceanglelimit = 360,
@@ -82,8 +82,8 @@ return {
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg2",
+				"deathceg3-builder",
+				"deathceg2-builder",
 			},
 		},
 		sounds = {
