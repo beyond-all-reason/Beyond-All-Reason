@@ -299,7 +299,7 @@ ShieldSphere550 = {
   life=20,
   pos={0,20,0},
   size=550,
-  colormap1 = { {1, 1, 1, 0.15} },
+  colormap1 = { {1, 1, 1, 0.12} },
   colormap2 = { {0.2, 0.2, 1, 0.0} },
   repeatEffect=true
 }
@@ -309,7 +309,7 @@ ShieldSphere600 = {
   life=20,
   pos={0,20,0},
   size=600,
-  colormap1 = { {1, 1, 1, 0.15} },
+  colormap1 = { {1, 1, 1, 0.12} },
   colormap2 = { {0.2, 0.2, 1, 0.0} },
   repeatEffect=true
 }
