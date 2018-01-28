@@ -150,7 +150,7 @@ shieldBursts200 = {
   colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 13,
+  count      = 12,
 }
 
 shieldBursts300 = {
@@ -168,7 +168,7 @@ shieldBursts300 = {
   colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 13,
+  count      = 12,
 }
 
 shieldBursts400 = {
@@ -186,7 +186,7 @@ shieldBursts400 = {
   colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 13,
+  count      = 12,
 }
 
 shieldBursts550 = {
@@ -204,7 +204,7 @@ shieldBursts550 = {
   colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 13,
+  count      = 12,
 }
 
 shieldBursts600 = {
@@ -222,7 +222,7 @@ shieldBursts600 = {
   colormap   = { {1, 1, 1, 0.07} },
   directional= true,
   repeatEffect = true,
-  count      = 13,
+  count      = 12,
 }
 
 shieldBursts1500 = {
@@ -240,7 +240,7 @@ shieldBursts1500 = {
   colormap   = { {1, 1, 1, 0.1} },
   directional= true,
   repeatEffect = true,
-  count      = 10,
+  count      = 12,
 }
 
 shieldBursts2000 = {
@@ -258,7 +258,7 @@ shieldBursts2000 = {
   colormap   = { {1, 1, 1, 0.1} },
   directional= true,
   repeatEffect = true,
-  count      = 10,
+  count      = 12,
 }
 
 ----------------------------------------------------------------------------
