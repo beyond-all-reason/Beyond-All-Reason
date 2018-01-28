@@ -2,6 +2,7 @@
 99/99/2018
 
 Balance changes: 
+ • Fix: HLT's, corvp/corap/coralab have larger explosion 
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Fixed modrules loading error when mo_unba is enabled
@@ -9,12 +10,16 @@ Unbalanced Commanders (when mo_unba is enabled):
  • Unit Stats: Shows Commanders' currently used Weapons, current BuildSpeed and current Level when experience is known to the user.
 
 Other:
+ • Units that only can shoot at surface category units wont chase non-surface units (bladewings benefit from this)
  • Disallowed build commands of disabled build options in the unlikely case user widgets could allow overriding the limitation
  • Red BuildOrder Menu hides disabled commands from the menu.
  • Unit Stats: Show real time values rather than UnitDefs' values when available (maxHP, armor, speed/accel/turnrate)
- • Faction change widget: guishader should work properly now
- • Fixed top-bar text elements being out of place after a resize/alt-tab
+ • Shields are more transparant and have less 'burst'-lines parts
+ • Worker type units explosion is green tinted
+ • Fixed Faction change widget: guishader works now
+ • Fixed Top-bar text elements being out of place after a resize/alt-tab
  • Fixed highlight selected units failing to show in rare occasions
+ • Fixed tombstone color-shifting at certain angles
 
 
 10.03 -> 10.04
