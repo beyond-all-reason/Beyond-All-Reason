@@ -170,7 +170,7 @@ Create()
 	dont-shade tower;
 	dont-shade base;
 	restore_delay = 3000;
-	start-script NanoEmit();
+	//start-script NanoEmit();
 	start-script SmokeUnit();
 	call-script InitState();
 }

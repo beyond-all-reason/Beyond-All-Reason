@@ -171,7 +171,7 @@ Create()
 	dont-shade base;
 	restore_delay = 3000;
 	start-script SmokeUnit();
-	start-script NanoEmit();
+	//start-script NanoEmit();
 	call-script InitState();
 }
 
