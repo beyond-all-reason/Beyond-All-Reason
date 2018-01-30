@@ -259,8 +259,8 @@ function widget:DrawScreen()
 	local uCurHp, uMaxHp, _, _, buildProg = spGetUnitHealth(uID)
 	local uTeam = spGetUnitTeam(uID)
 	
-	local unbacom = unba and (UnitDefs[Spring.GetUnitDefID(unitID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(unitID)].name == "corcom")
-	local _, xp = Spring.GetUnitExperience(unitID)
+	local unbacom = unba and (UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(uID)].name == "corcom")
+	local _, xp = Spring.GetUnitExperience(uID)
 	if unbacom then
 		if xp then
 			level = math.floor(xp*10) + 1
@@ -342,10 +342,10 @@ function widget:DrawScreen()
 			)
 
 	if not (uDef.isBuilding or uDef.isFactory) then
-		if not Spring.GetUnitMoveTypeData(unitID) then
+		if not Spring.GetUnitMoveTypeData(uID) then
 			DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
 		else
-			local mData = Spring.GetUnitMoveTypeData(unitID)
+			local mData = Spring.GetUnitMoveTypeData(uID)
 			local mSpeed = mData.maxSpeed or uDef.speed
 			local mAccel = mData.accRate or uDef.maxAcc
 			local mTurnRate = mData.baseTurnRate or uDef.turnRate
@@ -395,7 +395,7 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 
 	DrawText("Armor:", "class " .. Game.armorTypes[uDef.armorType or 0] or '???')
-	local _, spMaxHP = Spring.GetUnitHealth(unitID)
+	local _, spMaxHP = Spring.GetUnitHealth(uID)
 	local maxHP = spMaxHP or uDef.health
 	if ctrl then
 		maxHP = uMaxHp or '???'
@@ -409,7 +409,7 @@ function widget:DrawScreen()
 		
 	end
 	DrawText("Open:", format("maxHP: %d", maxHP) )
-	local _, armoredMultiple = Spring.GetUnitArmored(unitID)
+	local _, armoredMultiple = Spring.GetUnitArmored(uID)
 	
 		if armoredMultiple and armoredMultiple ~= 1 then 
 		DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
