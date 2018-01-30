@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  torso, head, firept, belly, lthigh, lleg, rleg, gun,
+piece  torso, head, sleeve, firept, belly, lthigh, lleg, rleg, gun,
        pelvis, rthigh, lfoot, rfoot, ground;
 
 static-var  restore_delay;
@@ -300,7 +300,7 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	turn head to y-axis <0.000000> speed <135.000000>;
-	turn gun to x-axis <0.000000> speed <85.000000>;
+	turn sleeve to x-axis <0.000000> speed <85.000000>;
 	return (0);
 }
 
@@ -309,9 +309,9 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	turn head to y-axis heading speed <270.000000>;
-	turn gun to x-axis <0.000000> - pitch speed <170.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <170.000000>;
 	wait-for-turn head around y-axis;
-	wait-for-turn gun around x-axis;
+	wait-for-turn sleeve around x-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
