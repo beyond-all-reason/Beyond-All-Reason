@@ -18,6 +18,7 @@ Other:
  • Red BuildOrder Menu hides disabled commands from the menu.
  • Unit Stats: Show real time values rather than UnitDefs' values when available (maxHP, armor, speed/accel/turnrate)
  • Shields are more transparant and have less 'burst'-lines parts
+ • Starburst missiletrail color changed from red (was green)
  • Worker type units explosion is green tinted
  • Fixed Faction change widget: guishader works now
  • Fixed Top-bar text elements being out of place after a resize/alt-tab

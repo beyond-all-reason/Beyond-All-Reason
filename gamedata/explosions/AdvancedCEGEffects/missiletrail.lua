@@ -1812,22 +1812,22 @@ definitions["missiletraillarge-red"].sparks.properties.colormap = [[0.9 0.44 0.4
 
 
 definitions["missiletrailsmall-starburst"] = deepcopy(definitions["missiletrailsmall"])
-definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
-definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[0.6 0.9 0.4 0.01   0.5 0.9 0.1 0.007  0.2 0.4 0.05 0.007   0 0 0 0.01]]
+--definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
+--definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[0.6 0.9 0.4 0.01   0.5 0.9 0.1 0.007  0.2 0.4 0.05 0.007   0 0 0 0.01]]
 
---definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.5 0.4 0.01   1.0 0.27 0.2 0.01   1.0 0.14 0.1 0.01   0 0 0 0.01]]
---definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[0.9 0.3 0.4 0.01   0.9 0.2 0.1 0.007  0.4 0.08 0.05 0.007   0 0 0 0.01]]
+definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.12 0.01   1.0 0.09 0.07 0.01   1.0 0.06 0.05 0.01   0 0 0 0.01]]
+definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.15 0.01   1 0.15 0.1 0.007  0.55 0.05 0.04 0.007   0 0 0 0.01]]
 
 definitions["missiletrailmedium-starburst"] = deepcopy(definitions["missiletrailmedium"])
-definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.066 0.09 0.01 0.01   0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[0.6 0.9 0.4 0.01   0.5 0.9 0.1 0.007  0.2 0.4 0.05 0.007   0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.4 0.4 0.008    0.7 1 0.48 0.02    0.44 0.66 0.28 0.17    0.33 0.5 0.19 0.16    0.2 0.33 0.13 0.15    0 0 0 0.01]]
+--definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.066 0.09 0.01 0.01   0 0 0 0.01]]
+--definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
+--definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[0.6 0.9 0.4 0.01   0.5 0.9 0.1 0.007  0.2 0.4 0.05 0.007   0 0 0 0.01]]
+--definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.4 0.4 0.008    0.7 1 0.48 0.02    0.44 0.66 0.28 0.17    0.33 0.5 0.19 0.16    0.2 0.33 0.13 0.15    0 0 0 0.01]]
 
---definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[1 0.5 0.4 0.01   1.0 0.27 0.2 0.01   1.0 0.14 0.1 0.01   0 0 0 0.01]]
---definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[0.9 0.3 0.4 0.01   0.9 0.2 0.1 0.007  0.4 0.08 0.05 0.007   0 0 0 0.01]]
---definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.4 0.4 0.008    1 0.55 0.48 0.02    0.66 0.36 0.28 0.17    0.5 0.25 0.19 0.16    0.33 0.16 0.13 0.15    0 0 0 0.01]]
---definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.1 0.025 0.01 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[1 0.15 0.12 0.01   1.0 0.09 0.07 0.01   1.0 0.06 0.05 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2 0.15 0.01   1 0.15 0.1 0.007  0.55 0.05 0.04 0.007   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.4 0.4 0.008    1 0.5 0.4 0.02    0.66 0.33 0.27 0.17    0.5 0.22 0.19 0.16    0.33 0.16 0.13 0.15    0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.1 0.02 0.01 0.01   0 0 0 0.01]]
 
 definitions["cruisemissiletrail-emp"] = deepcopy(definitions["cruisemissiletrail"])
 definitions["cruisemissiletrail-emp"].smokeandfire.properties.colormap = [[0.65 0.6 0.7 0.2   0.4 0.36 0.5 0.2    0.24 0.22 0.4 0.15    0.064 0.06 0.11 0.11     0.032 0.03 0.065 0.09   0.053 0.05 0.2 0.06   0 0 0 0.01]]
