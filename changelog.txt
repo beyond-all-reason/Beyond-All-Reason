@@ -6,6 +6,20 @@ Balance changes:
  • Reduced ArmRoy damages to submarines (390 -> 300) and corroys damages to submarines (410 -> 315)
  • Reduced Support Frigates AA missiles reload time (2 -> 1.5s) and increased damages (110 -> 140)
  • Arm EMP building has 10% less range
+ • Flash -3% maxvelocity 3.6 > 3.49
+   Instigator -3% maxvelocity 3.24 > 3.14
+   
+   Raiders -6% maxvelocity 2.78 > 2.61
+   Stumpy -6% maxvelocity 2.9 > 2.73
+   
+   Panther -5% maxvelocity 3.3 > 3.135  
+   Croc -5% maxvelocity 2.65 > 2.52
+   
+   Bulldog -5% maxvelocity 2.44 > 2.318
+   Reapers -5% maxvelocity 2.615 > 2.48
+   
+   Scouts -2% maxvelocity 5.5 > 5.39   
+   Weasel -2% maxvelocity 5 > 4.9
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Fixed modrules loading error when mo_unba is enabled

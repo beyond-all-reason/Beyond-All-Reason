@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 80,
 		maxslope = 26,
-		maxvelocity = 5.5,
+		maxvelocity = 5.39,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Jeffy",
