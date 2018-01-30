@@ -5,6 +5,7 @@ Balance changes:
  • Fix: HLT's, corvp/corap/coralab have larger explosion 
  • Reduced ArmRoy damages to submarines (390 -> 300) and corroys damages to submarines (410 -> 315)
  • Reduced Support Frigates AA missiles reload time (2 -> 1.5s) and increased damages (110 -> 140)
+ • Arm EMP building has 10% less range
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Fixed modrules loading error when mo_unba is enabled

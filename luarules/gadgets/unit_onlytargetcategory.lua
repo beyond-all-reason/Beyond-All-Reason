@@ -26,7 +26,7 @@ for udid, unitDef in pairs(UnitDefs) do
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-	if cmdID == CMD.ATTACK and cmdParams[2] == nil and onlyTargetsSurface[unitDefID] and not UnitDefs[Spring.GetUnitDefID(cmdParams[1])].modCategories['surface'] then
+	if cmdID == CMD.ATTACK and cmdParams[2] == nil and onlyTargetsSurface[unitDefID] and type(cmdParams[1]) == 'number' and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil and not UnitDefs[Spring.GetUnitDefID(cmdParams[1])].modCategories['surface'] then
 		return false
 	else
 		return true

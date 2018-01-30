@@ -61,7 +61,7 @@ function ShieldSphereColorFallback:Draw()
   gl.Translate(pos[1],pos[2],pos[3])
   
   local col = GetShieldColor(self.unit, self)
-  col[4] = col[4]*0.26
+  col[4] = col[4]*0.2
   
   gl.Color(1, 1, 1, 1)
   gl.Material({
