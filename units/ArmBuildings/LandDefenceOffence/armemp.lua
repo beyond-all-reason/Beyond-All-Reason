@@ -131,7 +131,7 @@ return {
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 35,
-				range = 4100,
+				range = 4050,
 				reloadtime = 2,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
