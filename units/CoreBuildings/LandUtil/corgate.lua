@@ -43,6 +43,7 @@ return {
 			removestop = true,
 			shield_power = 3250,
 			shield_radius = 550,
+			shield_color_mult = 0.6,
 		},
 		featuredefs = {
 			dead = {
