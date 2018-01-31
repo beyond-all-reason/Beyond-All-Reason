@@ -6,6 +6,7 @@
 
 local Bursts = {}
 Bursts.__index = Bursts
+local checkStunned = true
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
@@ -91,7 +92,7 @@ function Bursts:UpdatePartList(partList,n)
   partList.size     = partList.size  + n*self.sizeGrowth
   partList.life     = partList.life  + n*partList.life_incr
   local r,g,b,a     = GetColor(self.colormap,partList.life)
-  partList.color    = {r,g,b,a}
+  partList.color    = {r,g,b,a }
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -110,6 +111,12 @@ function Bursts:EndDraw()
 end
 
 function Bursts:Draw()
+  if checkStunned then
+    self.stunned = Spring.GetUnitIsStunned(self.unit)
+  end
+  if self.stunned then
+    return
+  end
   if (lasttexture ~= self.texture) then
     gl.Texture(self.texture)
     lasttexture = self.texture
@@ -225,7 +232,16 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+local time = 0
 function Bursts:Update(n)
+  time = time + n
+  if time > 40 then
+    checkStunned = true
+    time = 0
+  else
+    checkStunned = false
+  end
+
   local l = self.lists
   for i=1,#l do
     local partList = l[i]

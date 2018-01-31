@@ -1812,14 +1812,14 @@ definitions["missiletraillarge-red"].sparks.properties.colormap = [[0.9 0.44 0.4
 
 
 definitions["missiletrailsmall-starburst"] = deepcopy(definitions["missiletrailsmall"])
-definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.12 0.01   1.0 0.09 0.07 0.01   1.0 0.06 0.05 0.01   0 0 0 0.01]]
-definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.15 0.01   1 0.15 0.1 0.007  0.55 0.05 0.04 0.007   0 0 0 0.01]]
+definitions["missiletrailsmall-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
+definitions["missiletrailsmall-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 
 definitions["missiletrailmedium-starburst"] = deepcopy(definitions["missiletrailmedium"])
-definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[1 0.15 0.12 0.01   1.0 0.09 0.07 0.01   1.0 0.06 0.05 0.01   0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2 0.15 0.01   1 0.15 0.1 0.007  0.55 0.05 0.04 0.007   0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.4 0.4 0.008    1 0.5 0.4 0.02    0.66 0.33 0.27 0.17    0.5 0.22 0.19 0.16    0.33 0.16 0.13 0.15    0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.1 0.02 0.01 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.1 0.02 0.008 0.01   0 0 0 0.01]]
 
 definitions["missiletrail-juno"] = deepcopy(definitions["missiletrailmedium"])
 definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.066 0.09 0.01 0.01   0 0 0 0.01]]

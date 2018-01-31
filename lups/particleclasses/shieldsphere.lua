@@ -167,7 +167,7 @@ end
 local time = 0
 function ShieldSphereParticle:Update(n)
   time = time + n
-  if time > 45 then
+  if time > 40 then
     checkStunned = true
     time = 0
   else
