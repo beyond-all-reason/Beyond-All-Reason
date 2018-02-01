@@ -89,10 +89,10 @@ local function GetColor(i, teams)
 			useHueRGB = false
 		end
 	end
-	if teams > 15 then
+	if teams > 19 then
 		hueteams = hueteams - 1
 		if i == teams-2 then
-			r,g,b = 0, 0, 0
+			r,g,b = 0.15, 0.15, 0.15
 			useHueRGB = false
 		end
 	end
