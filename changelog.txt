@@ -6,6 +6,8 @@ Balance changes:
  • Reduced ArmRoy damages to submarines (390 -> 300) and corroys damages to submarines (410 -> 315)
  • Reduced Support Frigates AA missiles reload time (2 -> 1.5s) and increased damages (110 -> 140)
  • Arm EMP building has 10% less range
+ • Arm and Core Advanced Torpedo Launchers HP buffed (approx 1500 to 2500) and reloadTime reduced (3.1 -> 1.75 arm and 5.6 -> 3.16 core)
+	Total = +66% hp and +78% dps buff
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Fixed modrules loading error when mo_unba is enabled
