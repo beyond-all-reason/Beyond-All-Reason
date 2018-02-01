@@ -577,9 +577,9 @@ function widget:GetConfigData()
 		local sDefID = UnitDefNames[startUnitName].id
 		local sBuilds = UnitDefs[sDefID].buildOptions
 		if Spring.GetModOptions() or "disabled" == "enabled" then
-			if sDef.name == "armcom" then 
+			if UnitDefs[sDefID].name == "armcom" then
 				sBuilds = armlevel1buildoptions
-			elseif sDef.name == "corcom" then
+			elseif UnitDefs[sDefID].name == "corcom" then
 				sBuilds = corlevel1buildoptions
 			end
 		end
