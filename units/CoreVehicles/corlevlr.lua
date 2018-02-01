@@ -174,7 +174,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "CORLEVLR_WEAPON",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "SURFACE",
 			},
 		},
 	},
