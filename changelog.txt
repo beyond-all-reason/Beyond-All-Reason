@@ -8,6 +8,8 @@ Balance changes:
  • Arm EMP building has 10% less range
  • Arm and Core Advanced Torpedo Launchers HP buffed (approx 1500 to 2500) and reloadTime reduced (3.1 -> 1.75 arm and 5.6 -> 3.16 core)
 	Total = +66% hp and +78% dps buff
+ • Reduced Maverick dps 5%, and gets less range when gaining experience
+ • Reduced vehicle max-speed: Flash 3%, Instigator 3%, Raiders 6%, Stumpy 6%, Panther 5%, Croc 5%, Bulldog 5%, Reapers 5%, Scouts 2%, Weasel 2%
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Fixed modrules loading error when mo_unba is enabled
@@ -17,10 +19,10 @@ Unbalanced Commanders (when mo_unba is enabled):
 Other:
  • Units that only can shoot at surface category units wont chase non-surface units (bladewings benefit from this)
  • Disallowed build commands of disabled build options in the unlikely case user widgets could allow overriding the limitation
- • Red BuildOrder Menu hides disabled commands from the menu.
  • Unit Stats: Show real time values rather than UnitDefs' values when available (maxHP, armor, speed/accel/turnrate)
- • Shields are more transparant and have less 'burst'-lines parts
- • Worker type units explosion is green tinted
+ • Shields are more transparant and have less 'burst'-line parts (and bursts dissapear when emp'd)
+ • Starburst missiletrail color changed from red (was green)
+ • Worker type unit explosion is green tinted
  • Fixed Faction change widget: guishader works now
  • Fixed Top-bar text elements being out of place after a resize/alt-tab
  • Fixed highlight selected units failing to show in rare occasions

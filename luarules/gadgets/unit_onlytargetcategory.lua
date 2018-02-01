@@ -12,6 +12,8 @@ end
 
 local onlyTargetsSurface = {}
 for udid, unitDef in pairs(UnitDefs) do
+	local skip = false
+	local add = false
 	for wid, weapon in ipairs(unitDef.weapons) do
 		if weapon.onlyTargets['surface'] then
 			local i = 0
@@ -19,9 +21,14 @@ for udid, unitDef in pairs(UnitDefs) do
 				i = i + 1
 			end
 			if i == 1 then
-				onlyTargetsSurface[udid] = true
+				add = true
 			end
+		else
+			skip = true
 		end
+	end
+	if not skip and add then
+		onlyTargetsSurface[udid] = true
 	end
 end
 

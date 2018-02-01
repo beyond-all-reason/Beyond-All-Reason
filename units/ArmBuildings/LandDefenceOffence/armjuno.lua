@@ -119,8 +119,8 @@ return {
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				energypershot = 12000,
-				cegTag = "missiletrailmedium",
-				explosiongenerator = "custom:junoflash",
+				cegTag = "missiletrail-juno",
+				explosiongenerator = "custom:genericshellexplosion-juno-lightning",
 				flighttime = 400,
 				impulseboost = 0,
 				impulsefactor = 0,
@@ -157,11 +157,12 @@ return {
 					vtol = 1,
 				},
 				customparams = {
+                    light_color = "0.6 1 0.4",		-- used by light_effects widget
 					light_radius_mult = "0.66",		-- used by light_effects widget
 					light_mult = "0.66",		-- used by light_effects widget
-                    expl_light_radius_mult = "0.66",		-- used by light_effects widget
+                    expl_light_radius_mult = "0.6",		-- used by light_effects widget
                     expl_light_color = "0.6 1 0.4",		-- used by light_effects widget
-                    expl_light_mult = "0.28",		-- used by light_effects widget
+                    expl_light_mult = "0.3",		-- used by light_effects widget
                     expl_light_life_mult = "2.2",		-- used by light_effects widget
 				},
 			},

@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 4900,
 		maxslope = 12,
-		maxvelocity = 2.615,
+		maxvelocity = 2.48,
 		maxwaterdepth = 100,
 		movementclass = "HTANK3",
 		name = "Reaper",

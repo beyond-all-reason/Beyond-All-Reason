@@ -41,7 +41,7 @@ return {
 		trackwidth = 42,
 		transportcapacity = 20,
 		transportsize = 4,
-		transportunloadmethod = 2,
+		transportunloadmethod = 0,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.24872,
