@@ -50,6 +50,7 @@ local mexBuilderDef = {}
 
 local mexBuilder = {}
 
+
 local function Distance(x1,z1,x2,z2)
 	local dis = (x1-x2)*(x1-x2)+(z1-z2)*(z1-z2)
 	return dis
@@ -82,8 +83,10 @@ end
 function widget:UnitCreated(unitID, unitDefID)
   
 	local ud = UnitDefs[unitDefID]
-  
-	if not ((Spring.GetModOptions().mo_unba or "disabled" == "enabled") and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom")) then
+	Spring.Echo((Spring.GetModOptions().mo_unba or "disabled") == "enabled")
+	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
+		return
+	else
 	if mexBuilderDef[ud] then
 		mexBuilder[unitID] = mexBuilderDef[ud]
 		return
