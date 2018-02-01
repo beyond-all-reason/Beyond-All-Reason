@@ -15,6 +15,7 @@ Unbalanced Commanders (when mo_unba is enabled):
  • Fixed modrules loading error when mo_unba is enabled
  • Added evolving build menus: disabled upgrademex/areamex for commanders when mo_unba is enabled
  • Unit Stats: Shows Commanders' currently used Weapons, current BuildSpeed and current Level when experience is known to the user.
+ • Using lower values for ResourcesUse to Exp ratios, higher for ResourcesMake to Exp ratios, and a better Damages to Exp ratio.
 
 Other:
  • Units that only can shoot at surface category units wont chase non-surface units (bladewings benefit from this)
