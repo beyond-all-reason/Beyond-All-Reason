@@ -29,7 +29,7 @@ function gadget:GameFrame(n)
 	for unitID in pairs(updateList) do
 		local curExp = GetUnitExperience(unitID)
         if curExp then
-            local limExp = curExp/(1+curExp)
+            local limExp = (curExp/(1+curExp))*0.6
             local newRange = maverickOriginalRange * ( 1 + limExp )
             SetUnitWeaponState(unitID, 1, "range", newRange)
             SetUnitMaxRange(unitID,newRange)
