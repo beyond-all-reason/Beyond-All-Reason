@@ -72,7 +72,7 @@ function widget:Update(dt)
 	camX, camY, camZ = Spring.GetCameraPosition()
     camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
 	if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
-		features = Spring.GetVisibleFeatures(gaia, 250, false)
+		features = Spring.GetVisibleFeatures(-1, 250, false)
 	end
 end
 
@@ -94,9 +94,8 @@ end
 local spGetFeatureDefID = Spring.GetFeatureDefID
 function widget:DrawWorld()
 	if darkenFeatures and darknessvalue >= 0.01 then
-		
 		if features == nil then
-			features = Spring.GetVisibleFeatures(gaia, 250, false)
+			features = Spring.GetVisibleFeatures(-1, 250, false)
 		end
 		
 		if features ~= nil then
@@ -104,8 +103,11 @@ function widget:DrawWorld()
 			gl.PolygonOffset(-2, -2)
 			gl.Color(0,0,0,darknessvalue)
 			for i, featureID in pairs(features) do
-				gl.Texture('%-'..spGetFeatureDefID(featureID)..':1')
-				gl.Feature(featureID, true)
+				local fdefID = spGetFeatureDefID(featureID)
+				if fdefID then
+					gl.Texture('%-'..fdefID..':1')
+					gl.Feature(featureID, true)
+				end
 			end
 			gl.PolygonOffset(false)
 			gl.DepthTest(false)
