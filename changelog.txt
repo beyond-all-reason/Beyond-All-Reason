@@ -23,6 +23,7 @@ Other:
  • Shields are more transparant and have less 'burst'-line parts (and bursts dissapear when emp'd)
  • Starburst missiletrail color changed from red (was green)
  • Worker type unit explosion is green tinted
+ • Added option: 'use teamcolor' option for highlighted selected units
  • Fixed Faction change widget: guishader works now
  • Fixed Top-bar text elements being out of place after a resize/alt-tab
  • Fixed highlight selected units failing to show in rare occasions

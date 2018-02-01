@@ -958,14 +958,22 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setHighlight(options[i].value)
 			end
-		elseif id == 'highlightselunits_shader' then
-			if widgetHandler.configData["Highlight Selected Units"] == nil then
-				widgetHandler.configData["Highlight Selected Units"] = {}
-			end
-			widgetHandler.configData["Highlight Selected Units"].useShader = options[i].value
-			if WG['highlightselunits'] ~= nil then
-				WG['highlightselunits'].setShader(options[i].value)
-			end
+        elseif id == 'highlightselunits_shader' then
+            if widgetHandler.configData["Highlight Selected Units"] == nil then
+                widgetHandler.configData["Highlight Selected Units"] = {}
+            end
+            widgetHandler.configData["Highlight Selected Units"].useHighlightShader = options[i].value
+            if WG['highlightselunits'] ~= nil then
+                WG['highlightselunits'].setShader(options[i].value)
+            end
+        elseif id == 'highlightselunits_teamcolor' then
+            if widgetHandler.configData["Highlight Selected Units"] == nil then
+                widgetHandler.configData["Highlight Selected Units"] = {}
+            end
+            widgetHandler.configData["Highlight Selected Units"].useTeamcolor = options[i].value
+            if WG['highlightselunits'] ~= nil then
+                WG['highlightselunits'].setTeamcolor(options[i].value)
+            end
 		elseif id == 'smartselect_includebuildings' then
 			if widgetHandler.configData["SmartSelect"] == nil then
 				widgetHandler.configData["SmartSelect"] = {}
@@ -1845,10 +1853,11 @@ function init()
 		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.12, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
 		--{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
-		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.15, max=0.3, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
-		{id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Shades selected unit models'},
+		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.08, max=0.3, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
+        {id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
+        {id="highlightselunits_teamcolor", group="ui", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
 
-		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
+        {id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
         {id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
@@ -1907,11 +1916,17 @@ function init()
 		options[getOptionByID('highlightselunits_opacity')].value = WG['highlightselunits'].getOpacity()
 	end
 
-	if (WG['highlightselunits'] == nil) then
-		options[getOptionByID('highlightselunits_shader')] = nil
-	else
-		options[getOptionByID('highlightselunits_shader')].value = WG['highlightselunits'].getShader()
-	end
+    if (WG['highlightselunits'] == nil) then
+        options[getOptionByID('highlightselunits_shader')] = nil
+    else
+        options[getOptionByID('highlightselunits_shader')].value = WG['highlightselunits'].getShader()
+    end
+
+    if (WG['highlightselunits'] == nil) then
+        options[getOptionByID('highlightselunits_teamcolor')] = nil
+    else
+        options[getOptionByID('highlightselunits_teamcolor')].value = WG['highlightselunits'].getTeamcolor()
+    end
 
 	if (WG['smartselect'] == nil) then
 		options[getOptionByID('smartselect_includebuildings')] = nil
