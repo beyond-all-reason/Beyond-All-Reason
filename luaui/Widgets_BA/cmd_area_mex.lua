@@ -83,7 +83,7 @@ end
 function widget:UnitCreated(unitID, unitDefID)
   
 	local ud = UnitDefs[unitDefID]
-	Spring.Echo((Spring.GetModOptions().mo_unba or "disabled") == "enabled")
+	--Spring.Echo((Spring.GetModOptions().mo_unba or "disabled") == "enabled")
 	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
 		return
 	else
