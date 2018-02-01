@@ -25,14 +25,16 @@ function widget:GetInfo()
   }
 end
 
-
+local useTeamcolor = false
 local highlightAlpha = 0.2
-local useShader = true
+local useHighlightShader = true
 local maxShaderUnits = 150
-local edgeExponent = 3.5
+local edgeExponent = 3
 
 local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
+local spGetTeamColor = Spring.GetTeamColor
+local spGetUnitTeam = Spring.GetUnitTeam
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -58,7 +60,7 @@ function CreateHighlightShader()
 
     uniform = {
       edgeExponent = edgeExponent/(0.8+highlightAlpha),
-      plainAlpha = highlightAlpha,
+      plainAlpha = highlightAlpha*0.8,
     },
 
     vertex = [[
@@ -95,7 +97,7 @@ function CreateHighlightShader()
 	  {
 		float opac = dot(normalize(normal), normalize(eyeVec));
 		opac = 1.0 - abs(opac);
-		opac = pow(opac, edgeExponent)*0.45;
+		opac = pow(opac, edgeExponent)*0.5;
 
 		gl_FragColor.rgb = color + (opac*1.33);
 		gl_FragColor.a = plainAlpha + opac;
@@ -116,10 +118,17 @@ function widget:Initialize()
     CreateHighlightShader()
   end
   WG['highlightselunits'].getShader = function()
-    return useShader
+    return useHighlightShader
   end
   WG['highlightselunits'].setShader = function(value)
-    useShader = value
+    useHighlightShader = value
+    CreateHighlightShader()
+  end
+  WG['highlightselunits'].getTeamcolor = function()
+    return useTeamcolor
+  end
+  WG['highlightselunits'].setTeamcolor = function(value)
+    useTeamcolor = value
     CreateHighlightShader()
   end
   
@@ -152,25 +161,35 @@ function widget:DrawWorld()
   gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
   local selectedUnits = Spring.GetSelectedUnits()
-  if useShader and shader and #selectedUnits < maxShaderUnits then
+  if useHighlightShader and shader and #selectedUnits < maxShaderUnits then
     gl.UseShader(shader)
   end
-
+  local teamID, prevTeamID, r,g,b
   for _,unitID in ipairs(selectedUnits) do
     if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
       local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
       if maxHealth ~= nil then
-        gl.Color(
-        health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
-        health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
-        0, -- blue
-        highlightAlpha) -- alpha
+        if useTeamcolor then
+          teamID = spGetUnitTeam(unitID)
+          if teamID ~= prevTeamID then
+            r,g,b = spGetTeamColor(teamID)
+          end
+          prevTeamID = teamID
+          gl.Color(r,g,b,highlightAlpha)
+        else
+          gl.Color(
+            health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
+            health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
+            0, -- blue
+            highlightAlpha
+          )
+        end
         gl.Unit(unitID, true)
       end
     end
   end
 
-  if useShader and shader and #selectedUnits < maxShaderUnits then
+  if useHighlightShader and shader and #selectedUnits < maxShaderUnits then
     gl.UseShader(0)
   end
 
@@ -187,12 +206,13 @@ widget.DrawWorldRefraction = widget.DrawWorld
 
 
 function widget:GetConfigData()
-	return {highlightAlpha = highlightAlpha, userShader = useShader}
+	return {highlightAlpha=highlightAlpha, useHighlightShader=useHighlightShader, useTeamcolor=useTeamcolor}
 end
 
 function widget:SetConfigData(data)
-  highlightAlpha = data.highlightAlpha or highlightAlpha
-  userShader = data.userShader or userShader
+  if data.useHighlightShader ~= nil then highlightAlpha = data.highlightAlpha end
+  if data.useHighlightShader ~= nil then useHighlightShader = data.useHighlightShader end
+  if data.useHighlightShader ~= nil then useTeamcolor = data.useTeamcolor end
 end
 
 
