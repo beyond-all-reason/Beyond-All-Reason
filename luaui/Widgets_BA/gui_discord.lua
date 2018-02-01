@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local discordLink = 'discord.me/balancedannihilation'
+local discordLink = 'balancedannihilation.com/discord'
 
 local iconTexture = ":n:LuaUI/Images/discord.png"
 local iconSize = 32
