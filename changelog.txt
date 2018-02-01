@@ -6,6 +6,7 @@ Balance changes:
  • Reduced ArmRoy damages to submarines (390 -> 300) and corroys damages to submarines (410 -> 315)
  • Reduced Support Frigates AA missiles reload time (2 -> 1.5s) and increased damages (110 -> 140)
  • Arm EMP building has 10% less range
+ • Reduced Maverick dps 10%
  • Reduced vehicle max-speed: Flash 3%, Instigator 3%, Raiders 6%, Stumpy 6%, Panther 5%, Croc 5%, Bulldog 5%, Reapers 5%, Scouts 2%, Weasel 2%
 
 Unbalanced Commanders (when mo_unba is enabled):
