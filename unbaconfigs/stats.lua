@@ -30,3 +30,16 @@ MoveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
 ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}
 HealOnLevelUp = {0,250,250,500,500,750,750,1000,1000,1000,1000}
 DamageMultiplierNoDgun = {1,1,1,1,1,1,0.95,0.9,0.85,0.8,0.75}
+
+DestroyedPowerToLevelTwo = 3500
+ResourcesUsedToLevelTwo = 5000
+ResourcesMadeToLevelTwo = 10000
+WalkedDistanceToLevelTwo = 12000
+
+ResourcesUseExpPerSecond = 1/(9*ResourcesUsedToLevelTwo)
+ResourcesMakeExpPerSecond = 1/(9*ResourcesMadeToLevelTwo)
+
+CommanderPower = DestroyedPowerToLevelTwo*1.8
+ResourcesUseExp = ResourcesUseExpPerSecond/30
+ResourcesMakeExp = ResourcesMakeExpPerSecond/30
+WalkToExpRatio = 1/(9*WalkedDistanceToLevelTwo)
