@@ -449,7 +449,6 @@ end
 
 function addUnitCommand(unitID, unitDefID, cmdID)
   -- record that a command was given (note: cmdID is not used, but useful to record for debugging)
-  if ignoreUnits[unitDefID] then return end
   if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
     maxCommand = maxCommand + 1
     commands[maxCommand] = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=unitDefID} -- command queue is not updated until next gameframe
@@ -458,11 +457,13 @@ end
 
 local newUnitCommands = {}
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
-	if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
-    	addUnitCommand(unitID, unitDefID, cmdID)
-    	newUnitCommands[unitID] = true
-    else
-		newUnitCommands[unitID] = {unitDefID, cmdID}
+	if ignoreUnits[unitDefID] == nil then
+		if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
+			addUnitCommand(unitID, unitDefID, cmdID)
+			newUnitCommands[unitID] = true
+		else
+			newUnitCommands[unitID] = {unitDefID, cmdID}
+		end
 	end
 end
 
@@ -517,7 +518,7 @@ function widget:Update(dt)
 		
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
 		for i, v in pairs(newUnitCommands) do
-			if v ~= true then
+			if v ~= true and ignoreUnits[v[1]] == nil then
 				addUnitCommand(i, v[1], v[2])
 			end
 		end
