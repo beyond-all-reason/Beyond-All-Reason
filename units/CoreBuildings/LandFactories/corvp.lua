@@ -23,7 +23,7 @@ return {
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 7,
-		footprintz = 7,
+		footprintz = 6,
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
@@ -41,7 +41,7 @@ return {
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
 		workertime = 100,
-		yardmap = "yyyyyyyyyoooyyooooooooocccoooocccoooocccoooocccoo",
+		yardmap = "yyoooyy ooooooo oocccoo oocccoo oocccoo oocccoo",
 		buildoptions = {
 			[1] = "corcv",
 			[2] = "cormuskrat",

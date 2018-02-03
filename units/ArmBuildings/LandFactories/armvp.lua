@@ -21,7 +21,7 @@ return {
 		description = "Produces Level 1 Vehicles",
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
-		footprintx = 8,
+		footprintx = 7,
 		footprintz = 6,
 		icontype = "building",
 		idleautoheal = 5,
@@ -40,7 +40,7 @@ return {
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
 		workertime = 100,
-		yardmap = "ooooooooooccccooooccccooooccccooooccccooyoccccoy",
+		yardmap = "ooooooo oocccoo oocccoo oocccoo oocccoo yocccoy",
 		buildoptions = {
 			[1] = "armcv",
 			[2] = "armbeaver",
