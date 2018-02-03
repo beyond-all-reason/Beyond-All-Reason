@@ -1683,6 +1683,25 @@ function loadWidgetConfigData()
 		end
 	end
 
+	if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].highlightAlpha ~= nil then
+		if options[getOptionByID("highlightselunits_opacity")].value ~= widgetHandler.configData["Highlight Selected Units"].highlightAlpha then
+			options[getOptionByID("highlightselunits_opacity")].value = widgetHandler.configData["Highlight Selected Units"].highlightAlpha
+			changes = true
+		end
+	end
+	if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useHighlightShader ~= nil then
+		if options[getOptionByID("highlightselunits_shader")].value ~= widgetHandler.configData["Highlight Selected Units"].useHighlightShader then
+			options[getOptionByID("highlightselunits_shader")].value = widgetHandler.configData["Highlight Selected Units"].useHighlightShader
+			changes = true
+		end
+	end
+	if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useTeamcolor ~= nil then
+		if options[getOptionByID("highlightselunits_teamcolor")].value ~= widgetHandler.configData["Highlight Selected Units"].useTeamcolor then
+			options[getOptionByID("highlightselunits_teamcolor")].value = widgetHandler.configData["Highlight Selected Units"].useTeamcolor
+			changes = true
+		end
+	end
+
 	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
 		if options[getOptionByID("lighteffects_brightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMult then
 			options[getOptionByID("lighteffects_brightness")].value = widgetHandler.configData["Light Effects"].globalLightMult
@@ -1853,11 +1872,14 @@ function init()
 		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.12, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
 		--{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
-		{id="highlightselunits_opacity", group="ui", name="Selected units opacity", min=0.08, max=0.3, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
+		{id="highlightselunits", group="ui", widget="Highlight Selected Units", name="Highlight selected units", type="bool", value=GetWidgetToggleValue("Highlight Selected Units"), description='Highlights unit models when selected'},
+		{id="highlightselunits_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.08, max=0.3, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
         {id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
         {id="highlightselunits_teamcolor", group="ui", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
 
-        {id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
+		{id="fancyselectedunits", group="ui", widget="Fancy Selected Units", name="Fancy selected units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description='Draws a platter under selected units'},
+
+		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
         {id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
@@ -1877,6 +1899,7 @@ function init()
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
+	-- loads values via stored game config in luaui/configs
 	loadWidgetConfigData()
 
 	-- cursors
@@ -1910,23 +1933,23 @@ function init()
 		options[getOptionByID('iconadjuster')].value = WG['iconadjuster'].getScale()
 	end
 
-	if (WG['highlightselunits'] == nil) then
-		options[getOptionByID('highlightselunits_opacity')] = nil
-	else
-		options[getOptionByID('highlightselunits_opacity')].value = WG['highlightselunits'].getOpacity()
-	end
-
-    if (WG['highlightselunits'] == nil) then
-        options[getOptionByID('highlightselunits_shader')] = nil
-    else
-        options[getOptionByID('highlightselunits_shader')].value = WG['highlightselunits'].getShader()
-    end
-
-    if (WG['highlightselunits'] == nil) then
-        options[getOptionByID('highlightselunits_teamcolor')] = nil
-    else
-        options[getOptionByID('highlightselunits_teamcolor')].value = WG['highlightselunits'].getTeamcolor()
-    end
+--	if (WG['highlightselunits'] == nil) then
+--		options[getOptionByID('highlightselunits_opacity')] = nil
+--	else
+--		options[getOptionByID('highlightselunits_opacity')].value = WG['highlightselunits'].getOpacity()
+--	end
+--
+--    if (WG['highlightselunits'] == nil) then
+--        options[getOptionByID('highlightselunits_shader')] = nil
+--    else
+--        options[getOptionByID('highlightselunits_shader')].value = WG['highlightselunits'].getShader()
+--    end
+--
+--    if (WG['highlightselunits'] == nil) then
+--        options[getOptionByID('highlightselunits_teamcolor')] = nil
+--    else
+--        options[getOptionByID('highlightselunits_teamcolor')].value = WG['highlightselunits'].getTeamcolor()
+--    end
 
 	if (WG['smartselect'] == nil) then
 		options[getOptionByID('smartselect_includebuildings')] = nil
