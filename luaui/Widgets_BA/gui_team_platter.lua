@@ -77,9 +77,6 @@ prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 
 local isSpec = Spring.GetSpectatingState()
 
--- preferred to keep these values the same as fancy unit selections widget
-local rectangleFactor		= 2.2
-local scalefaktor			= 1.65
 
 local ignoreUnits = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -107,6 +104,10 @@ end
 
 
 function SetUnitConf()
+  -- preferred to keep these values the same as fancy unit selections widget
+  local scalefaktor			= 2.6   --1.65
+  local rectangleFactor		= 3.3
+
   for udid, unitDef in pairs(UnitDefs) do
     local xsize, zsize = unitDef.xsize, unitDef.zsize
     local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
@@ -117,7 +118,12 @@ function SetUnitConf()
     else
       xscale, zscale = scale, scale
     end
-    unitConf[udid] = 8 + (xscale+zscale)*1.5
+
+    local radius = Spring.GetUnitDefDimensions(udid).radius
+    xscale = (xscale*0.7) + (radius/5)
+    zscale = (zscale*0.7) + (radius/5)
+
+    unitConf[udid] = (xscale+zscale)*1.5
   end
 end
 
@@ -126,18 +132,19 @@ end
 
 function widget:Initialize()
   platterList = glCreateList(function()
+    local radius = 0.6
     glBeginEnd(GL_TRIANGLE_FAN, function()
       local radstep = (2.0 * math.pi) / circleDivs
       for i = 1, circleDivs do
         local a = (i * radstep)
-        glVertex(math.sin(a), circleOffset, math.cos(a))
+        glVertex(radius*math.sin(a), circleOffset, radius*math.cos(a))
       end
     end)
     glBeginEnd(GL_LINE_LOOP, function()
       local radstep = (2.0 * math.pi) / circleDivs
       for i = 1, circleDivs do
         local a = (i * radstep)
-        glVertex(math.sin(a), circleOffset+0.05, math.cos(a))
+        glVertex(radius*math.sin(a), circleOffset+0.05, radius*math.cos(a))
       end
     end)
   end)

@@ -76,9 +76,9 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 
 	-- opacity
 	spotterOpacity					= 0.9,
-	baseOpacity						= 0.2,
+	baseOpacity						= 0.22,
 	firstLineOpacity				= 1,
-	secondLineOpacity				= 1.1,
+	secondLineOpacity				= 1,
 
 	-- animation
 	selectionStartAnimation			= true,
@@ -97,10 +97,6 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	maxAnimationMultiplier			= 1.012,
 	minAnimationMultiplier			= 0.99,
 
-	-- prefer not to change because other widgets use these values too  (highlight_units, given_units, selfd_icons, ...)
-	scaleFactor						= 2.9,
-	rectangleFactor					= 3.3,
-
 	-- circle shape
 	solidCirclePieces				= 32,
 	circlePieces					= 24,
@@ -112,7 +108,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	scaleMultiplier					= 1.04,
 	innersize						= 1.7,
 	selectinner						= 1.66,
-	outersize						= 1.79,
+	outersize						= 1.8,
 }
 table.insert(OPTIONS, {
 	name							= "Cheap Fill",
@@ -242,8 +238,7 @@ end
 
 
 local function SetupCommandColors(state)
-	local alpha = state and 1 or 0
-	spLoadCmdColorsConfig('unitBox  0 1 0 ' .. alpha)
+	spLoadCmdColorsConfig('unitBox  0 1 0 ' .. (state and 1 or 0))
 end
 
 --------------------------------------------------------------------------------
@@ -537,6 +532,13 @@ function widget:Initialize()
 		OPTIONS.defaults.teamcolorOpacity = value
 		OPTIONS[currentOption].teamcolorOpacity = value
 	end
+	WG['fancyselectedunits'].getSecondLine = function()
+		return OPTIONS.defaults.showSecondLine
+	end
+	WG['fancyselectedunits'].setSecondLine = function(value)
+		OPTIONS.defaults.showSecondLine = value
+		OPTIONS[currentOption].showSecondLine = value
+	end
 	WG['fancyselectedunits'].getStyle = function()
 		return currentOption
 	end
@@ -576,16 +578,21 @@ end
 
 
 function SetUnitConf()
-	local name, shape, xscale, zscale, scale, xsize, zsize, weaponcount
+	-- prefer not to change because other widgets use these values too  (highlight_units, given_units, selfd_icons, ...)
+	local scaleFactor						= 2.6
+	local rectangleFactor					= 3.3
+
+	local name, shape, xscale, zscale, scale, xsize, zsize, weaponcount, shapeName
 	for udid, unitDef in pairs(UnitDefs) do
 		xsize, zsize = unitDef.xsize, unitDef.zsize
-		scale = OPTIONS[currentOption].scaleFactor*( xsize^2 + zsize^2 )^0.5
+		scale = scaleFactor*( xsize^2 + zsize^2 )^0.5
 		name = unitDef.name
+
 
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
 			shapeName = 'square'
 			shape = shapes.square
-			xscale, zscale = OPTIONS[currentOption].rectangleFactor * xsize, OPTIONS[currentOption].rectangleFactor * zsize
+			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
 		elseif (unitDef.isAirUnit) then
 			shapeName = 'triangle'
 			shape = shapes.triangle
@@ -595,6 +602,10 @@ function SetUnitConf()
 			shape = shapes.circle
 			xscale, zscale = scale, scale
 		end
+
+		local radius = Spring.GetUnitDefDimensions(udid).radius
+		xscale = (xscale*0.7) + (radius/5)
+		zscale = (zscale*0.7) + (radius/5)
 
 		weaponcount = table.getn(unitDef.weapons)
 
@@ -960,6 +971,7 @@ function widget:GetConfigData(data)
 	savedTable.spotterOpacity					= OPTIONS.defaults.spotterOpacity
 	savedTable.baseOpacity						= OPTIONS.defaults.baseOpacity
 	savedTable.teamcolorOpacity					= OPTIONS.defaults.teamcolorOpacity
+	savedTable.showSecondLine					= OPTIONS.defaults.showSecondLine
 
     return savedTable
 end
@@ -969,5 +981,6 @@ function widget:SetConfigData(data)
 	OPTIONS.defaults.spotterOpacity				= data.spotterOpacity			or OPTIONS.defaults.spotterOpacity
 	OPTIONS.defaults.baseOpacity				= data.baseOpacity				or OPTIONS.defaults.baseOpacity
 	OPTIONS.defaults.teamcolorOpacity			= data.teamcolorOpacity			or OPTIONS.defaults.teamcolorOpacity
+	OPTIONS.defaults.showSecondLine				= data.showSecondLine			or OPTIONS.defaults.showSecondLine
 end
 

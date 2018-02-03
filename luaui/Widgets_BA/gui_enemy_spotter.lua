@@ -81,10 +81,6 @@ prevCam[1],prevCam[2],prevCam[3] = spGetCameraPosition()
 local edgeExponent			= 1.5
 local highlightOpacity		= 2.3
 
--- preferred to keep these values the same as fancy unit selections widget
-local rectangleFactor		= 3.3
-local scalefaktor			= 2.9
-
 local ignoreUnits = {}
 for udefID,def in ipairs(UnitDefs) do
 	if def.customParams['nohealthbars'] then
@@ -199,6 +195,10 @@ function setColors()
 end
 
 function SetUnitConf()
+	-- preferred to keep these values the same as fancy unit selections widget
+	local scalefaktor			= 2.6
+	local rectangleFactor		= 3.3
+
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
@@ -209,6 +209,11 @@ function SetUnitConf()
 		else
 			xscale, zscale = scale, scale
 		end
+
+		local radius = Spring.GetUnitDefDimensions(udid).radius
+		xscale = (xscale*0.7) + (radius/5)
+		zscale = (zscale*0.7) + (radius/5)
+
 		unitConf[udid] = (xscale+zscale)*1.5
 	end
 end

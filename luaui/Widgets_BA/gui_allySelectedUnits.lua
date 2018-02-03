@@ -103,15 +103,16 @@ local circleLinesCoop
 local circleLinesAlly
 local lockPlayerID
 
--- preferred to keep these values the same as other widgets
-local rectangleFactor		= 3.3
-local scalefaktor			= 2.9
 local unitConf ={}
 ------------------------------------------------------------------
 
 
 
 function SetUnitConf()
+	-- preferred to keep these values the same as other widgets
+	local rectangleFactor		= 3.3
+	local scalefaktor			= 2.6
+
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
@@ -127,6 +128,11 @@ function SetUnitConf()
 			shape = 'circle'
 			xscale, zscale = scale, scale
 		end
+
+		local radius = Spring.GetUnitDefDimensions(udid).radius
+		xscale = (xscale*0.7) + (radius/5)
+		zscale = (zscale*0.7) + (radius/5)
+
 		unitConf[udid] = {shape=shape, xscale=xscale, zscale=zscale}
 	end
 end
