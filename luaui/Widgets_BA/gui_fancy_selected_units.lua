@@ -72,7 +72,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	showExtraComLine				= true,		-- extra circle lines for the commander unit
 	showExtraBuildingWeaponLine		= true,
 
-	teamcolorOpacity				= 0.4,		-- teamcolor use for the base platter
+	teamcolorOpacity				= 0.1,		-- teamcolor use for the base platter
 
 	-- opacity
 	spotterOpacity					= 0.9,
@@ -92,9 +92,9 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 
 	-- animation
 	rotationSpeed					= 1,
-	animationSpeed					= 0.0006,	-- speed of scaling up/down inner and outer lines
+	animationSpeed					= 0.00045,	-- speed of scaling up/down inner and outer lines
 	animateSpotterSize				= true,
-	maxAnimationMultiplier			= 1.014,
+	maxAnimationMultiplier			= 1.012,
 	minAnimationMultiplier			= 0.99,
 
 	-- prefer not to change because other widgets use these values too  (highlight_units, given_units, selfd_icons, ...)
@@ -280,11 +280,11 @@ local function DrawCircleLine(innersize, outersize)
 				a4 = ((i+OPTIONS[currentOption].circleInnerOffset+detailPartWidth) * radstep)
 
 				--outer (fadein)
-				gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
-				gl.Vertex(math.sin(a3)*innersize, 0, math.cos(a3)*innersize)
+				gl.Vertex(math.sin(a4)*innersize, 1, math.cos(a4)*innersize)
+				gl.Vertex(math.sin(a3)*innersize, 1, math.cos(a3)*innersize)
 				--outer (fadeout)
-				gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
-				gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
+				gl.Vertex(math.sin(a1)*outersize, 1, math.cos(a1)*outersize)
+				gl.Vertex(math.sin(a2)*outersize, 1, math.cos(a2)*outersize)
 			end
 		end
 	end)
@@ -298,10 +298,10 @@ local function DrawCircleSolid(size)
 		if (color) then
 			gl.Color(color)
 		end
-		gl.Vertex(0, 0, 0)
+		gl.Vertex(0, 1, 0)
 		for i = 0, pieces do
 			a1 = (i * radstep)
-			gl.Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
+			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 		end
 	end)
 end
@@ -334,11 +334,11 @@ local function DrawSquareLine(innersize, outersize)
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2)*innersize, 0, math.cos(a2)*innersize)
-			gl.Vertex(math.sin(a1)*innersize, 0, math.cos(a1)*innersize)
+			gl.Vertex(math.sin(a2)*innersize, 1, math.cos(a2)*innersize)
+			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
 
-			gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
-			gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
+			gl.Vertex(math.sin(a1)*outersize, 1, math.cos(a1)*outersize)
+			gl.Vertex(math.sin(a2)*outersize, 1, math.cos(a2)*outersize)
 
 			-- corner piece
 			width = 0.3
@@ -348,11 +348,11 @@ local function DrawSquareLine(innersize, outersize)
 			i = i -0.6
 			a2_2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2_2)*innersize, 0, math.cos(a2_2)*innersize)
-			gl.Vertex(math.sin(a1)*innersize, 0, math.cos(a1)*innersize)
+			gl.Vertex(math.sin(a2_2)*innersize, 1, math.cos(a2_2)*innersize)
+			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
 
-			gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
-			gl.Vertex(math.sin(a2_2)*outersize, 0, math.cos(a2_2)*outersize)
+			gl.Vertex(math.sin(a1)*outersize, 1, math.cos(a1)*outersize)
+			gl.Vertex(math.sin(a2_2)*outersize, 1, math.cos(a2_2)*outersize)
 		end
 	end)
 end
@@ -371,8 +371,8 @@ local function DrawSquareSolid(size)
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2)*size, 0, math.cos(a2)*size)
-			gl.Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
+			gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
+			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 
 			--corner piece
 			width = 0.3
@@ -382,8 +382,8 @@ local function DrawSquareSolid(size)
 			i = i -0.6
 			a2_2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2_2)*size, 0, math.cos(a2_2)*size)
-			gl.Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
+			gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
+			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 		end
 
 	end)
@@ -417,11 +417,11 @@ local function DrawTriangleLine(innersize, outersize)
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2)*innersize, 0, math.cos(a2)*innersize)
-			gl.Vertex(math.sin(a1)*innersize, 0, math.cos(a1)*innersize)
+			gl.Vertex(math.sin(a2)*innersize, 1, math.cos(a2)*innersize)
+			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
 
-			gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
-			gl.Vertex(math.sin(a2)*outersize, 0, math.cos(a2)*outersize)
+			gl.Vertex(math.sin(a1)*outersize, 1, math.cos(a1)*outersize)
+			gl.Vertex(math.sin(a2)*outersize, 1, math.cos(a2)*outersize)
 
 			-- corner piece
 			width = 0.3
@@ -431,11 +431,11 @@ local function DrawTriangleLine(innersize, outersize)
 			i = i -0.6
 			a2_2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2_2)*innersize, 0, math.cos(a2_2)*innersize)
-			gl.Vertex(math.sin(a1)*innersize, 0, math.cos(a1)*innersize)
+			gl.Vertex(math.sin(a2_2)*innersize, 1, math.cos(a2_2)*innersize)
+			gl.Vertex(math.sin(a1)*innersize, 1, math.cos(a1)*innersize)
 
-			gl.Vertex(math.sin(a1)*outersize, 0, math.cos(a1)*outersize)
-			gl.Vertex(math.sin(a2_2)*outersize, 0, math.cos(a2_2)*outersize)
+			gl.Vertex(math.sin(a1)*outersize, 1, math.cos(a1)*outersize)
+			gl.Vertex(math.sin(a2_2)*outersize, 1, math.cos(a2_2)*outersize)
 		end
 
 	end)
@@ -448,7 +448,7 @@ local function DrawTriangleSolid(size)
 		local width, a1,a2,a2_2
 		local radstep = (2.0 * math.pi) / 3
 
-		gl.Vertex(0, 0, 0)
+		gl.Vertex(0, 1, 0)
 
 		for i = 1, 3 do
 			-- straight piece
@@ -457,8 +457,8 @@ local function DrawTriangleSolid(size)
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2)*size, 0, math.cos(a2)*size)
-			gl.Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
+			gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
+			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 
 			-- corner piece
 			width = 0.3
@@ -468,8 +468,8 @@ local function DrawTriangleSolid(size)
 			i = i -0.6
 			a2_2 = ((i+width) * radstep)
 
-			gl.Vertex(math.sin(a2_2)*size, 0, math.cos(a2_2)*size)
-			gl.Vertex(math.sin(a1)*size, 0, math.cos(a1)*size)
+			gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
+			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 		end
 
 	end)
@@ -960,7 +960,6 @@ function widget:GetConfigData(data)
 	savedTable.spotterOpacity					= OPTIONS.defaults.spotterOpacity
 	savedTable.baseOpacity						= OPTIONS.defaults.baseOpacity
 	savedTable.teamcolorOpacity					= OPTIONS.defaults.teamcolorOpacity
-    savedTable.showSecondLine					= OPTIONS.defaults.showSecondLine
 
     return savedTable
 end
@@ -969,7 +968,6 @@ function widget:SetConfigData(data)
     currentOption								= data.currentOption			or currentOption
 	OPTIONS.defaults.spotterOpacity				= data.spotterOpacity			or OPTIONS.defaults.spotterOpacity
 	OPTIONS.defaults.baseOpacity				= data.baseOpacity				or OPTIONS.defaults.baseOpacity
-	OPTIONS.defaults.teamcolorOpacity			= data.teamcolorOpacity				or OPTIONS.defaults.teamcolorOpacity
-    OPTIONS.defaults.showSecondLine				= data.showSecondLine			or OPTIONS.defaults.showSecondLine
+	OPTIONS.defaults.teamcolorOpacity			= data.teamcolorOpacity			or OPTIONS.defaults.teamcolorOpacity
 end
 

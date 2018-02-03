@@ -1961,7 +1961,7 @@ function init()
 		{id="fancyselectedunits_style", group="ui", name=widgetOptionColor.."   style", type="select", options={}, value=1},
 		{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.5, max=1, step=0.01, type="slider", value=0.9, description='Set the opacity of the highlight on selected units'},
 		{id="fancyselectedunits_baseopacity", group="ui", name=widgetOptionColor.."   base opacity", min=0.1, max=0.5, step=0.01, type="slider", value=0.25, description='Set the opacity of the highlight on selected units'},
-		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor opacity", min=0, max=1, step=0.01, type="slider", value=0.25, description='Set the amount of teamcolor used for the base platter'},
+		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor opacity", min=0, max=1, step=0.01, type="slider", value=0.1, description='Set the amount of teamcolor used for the base platter'},
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
