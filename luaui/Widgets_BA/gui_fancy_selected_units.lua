@@ -158,6 +158,10 @@ table.insert(OPTIONS, {
 	circleInnerOffset				= 0,
 	rotationSpeed					= 2.5,
 })
+local styleList = {}
+for i,_ in ipairs(OPTIONS) do
+	styleList[i] = OPTIONS[i].name
+end
 
 function table.shallow_copy(t)
 	local t2 = {}
@@ -171,15 +175,6 @@ OPTIONS_original.defaults = nil
 
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
-
-
-local function toggleOptions()
-	currentOption = currentOption + 1
-	if not OPTIONS[currentOption] then
-		currentOption = 1
-	end
-	loadConfig()
-end
 
 
 local function updateSelectedUnitsData()
@@ -527,6 +522,16 @@ function widget:Initialize()
 	WG['fancyselectedunits'].setOpacity = function(value)
 		OPTIONS[currentOption].spotterOpacity = value
 	end
+	WG['fancyselectedunits'].getStyle = function()
+		return currentOption
+	end
+	WG['fancyselectedunits'].getStyleList = function()
+		return styleList
+	end
+	WG['fancyselectedunits'].setStyle = function(value)
+		currentOption = value
+		loadConfig()
+	end
 
 	SetupCommandColors(false)
 end
@@ -585,7 +590,7 @@ end
 
 
 function widget:Shutdown()
-	if WG['teamplatter'] == nil and WG['fancyselectedunits'] == nil then
+	if WG['teamplatter'] == nil and WG['highlightselunits'] == nil then
 		SetupCommandColors(true)
 	end
 	WG['fancyselectedunits'] = nil
@@ -946,8 +951,8 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-    --currentOption								= data.currentOption			or currentOption
-    --OPTIONS.defaults.spotterOpacity				= data.spotterOpacity			or OPTIONS.defaults.spotterOpacity
-    --OPTIONS.defaults.showSecondLine				= data.showSecondLine			or OPTIONS.defaults.showSecondLine
+    currentOption								= data.currentOption			or currentOption
+    OPTIONS.defaults.spotterOpacity				= data.spotterOpacity			or OPTIONS.defaults.spotterOpacity
+    OPTIONS.defaults.showSecondLine				= data.showSecondLine			or OPTIONS.defaults.showSecondLine
 end
 

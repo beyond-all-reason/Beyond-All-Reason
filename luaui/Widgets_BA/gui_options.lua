@@ -1011,6 +1011,9 @@ function applyOptionValue(i, skipRedrawWindow)
 				if widgetHandler.orderList[options[i].widget] < 0.5 then
 					widgetHandler:EnableWidget(options[i].widget)
 				end
+				if id == "fancyselectedunits" then
+					options[getOptionByID('fancyselectedunits_style')].options = WG['fancyselectedunits'].getStyleList()
+				end
 			else
 				if widgetHandler.orderList[options[i].widget] > 0 then
 					widgetHandler:ToggleWidget(options[i].widget)
@@ -1275,6 +1278,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Cursors"].cursorSet = options[i].options[value]
 			if WG['cursors'] ~= nil then
 				WG['cursors'].setcursor(options[i].options[value])
+			end
+		elseif id == 'fancyselectedunits_style' then
+			if widgetHandler.configData["Fancy Selected Units"] == nil then
+				widgetHandler.configData["Fancy Selected Units"] = {}
+			end
+			widgetHandler.configData["Fancy Selected Units"].currentOption = value
+			if WG['fancyselectedunits'] ~= nil then
+				WG['fancyselectedunits'].setStyle(value)
 			end
 		end
 	end
@@ -1581,6 +1592,7 @@ function GetWidgetToggleValue(widgetname)
 end
 
 
+-- loads values via stored game config in luaui/configs
 function loadWidgetConfigData()
 	local changes = false
 
@@ -1591,16 +1603,18 @@ function loadWidgetConfigData()
 		end
 	end
 
-	if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].basicAlpha ~= nil then
-		if options[getOptionByID("bloombrightness")].value ~= widgetHandler.configData["Bloom Shader"].basicAlpha then
-			options[getOptionByID("bloombrightness")].value = widgetHandler.configData["Bloom Shader"].basicAlpha
-			changes = true
+	if widgetHandler.knownWidgets["Bloom Shader"] ~= nil then
+		if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].basicAlpha ~= nil then
+			if options[getOptionByID("bloombrightness")].value ~= widgetHandler.configData["Bloom Shader"].basicAlpha then
+				options[getOptionByID("bloombrightness")].value = widgetHandler.configData["Bloom Shader"].basicAlpha
+				changes = true
+			end
 		end
-	end
-	if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].drawHighlights ~= nil then
-		if options[getOptionByID("bloomhighlights")].value ~= widgetHandler.configData["Bloom Shader"].drawHighlights then
-			options[getOptionByID("bloomhighlights")].value = widgetHandler.configData["Bloom Shader"].drawHighlights
-			changes = true
+		if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].drawHighlights ~= nil then
+			if options[getOptionByID("bloomhighlights")].value ~= widgetHandler.configData["Bloom Shader"].drawHighlights then
+				options[getOptionByID("bloomhighlights")].value = widgetHandler.configData["Bloom Shader"].drawHighlights
+				changes = true
+			end
 		end
 	end
 
@@ -1639,99 +1653,123 @@ function loadWidgetConfigData()
 		end
 	end
 
-	if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].customParticleMultiplier ~= nil then
-		if options[getOptionByID("snowamount")].value ~= widgetHandler.configData["Snow"].customParticleMultiplier then
-			options[getOptionByID("snowamount")].value = widgetHandler.configData["Snow"].customParticleMultiplier
-			changes = true
+	if widgetHandler.knownWidgets["Snow"] ~= nil then
+		if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].customParticleMultiplier ~= nil then
+			if options[getOptionByID("snowamount")].value ~= widgetHandler.configData["Snow"].customParticleMultiplier then
+				options[getOptionByID("snowamount")].value = widgetHandler.configData["Snow"].customParticleMultiplier
+				changes = true
+			end
 		end
-	end
-	if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].snowMaps ~= nil and widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] ~= nil then
-		if options[getOptionByID("snowmap")].value ~= widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] then
-			options[getOptionByID("snowmap")].value = widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()]
-			changes = true
+		if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].snowMaps ~= nil and widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] ~= nil then
+			if options[getOptionByID("snowmap")].value ~= widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] then
+				options[getOptionByID("snowmap")].value = widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()]
+				changes = true
+			end
 		end
-	end
-	if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].autoReduce ~= nil then
-		if options[getOptionByID("snowautoreduce")].value ~= widgetHandler.configData["Snow"].autoReduce then
-			options[getOptionByID("snowautoreduce")].value = widgetHandler.configData["Snow"].autoReduce
-			changes = true
-		end
-	end
-	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.spotterOpacity ~= nil then
-		if options[getOptionByID("teamplatter_opacity")].value ~= widgetHandler.configData.TeamPlatter.spotterOpacity then
-			options[getOptionByID("teamplatter_opacity")].value = widgetHandler.configData.TeamPlatter.spotterOpacity
-			changes = true
-		end
-	end
-	if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.skipOwnTeam ~= nil then
-		if options[getOptionByID("teamplatter_skipownteam")].value ~= widgetHandler.configData.TeamPlatter.skipOwnTeam then
-			options[getOptionByID("teamplatter_skipownteam")].value = widgetHandler.configData.TeamPlatter.skipOwnTeam
-			changes = true
+		if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].autoReduce ~= nil then
+			if options[getOptionByID("snowautoreduce")].value ~= widgetHandler.configData["Snow"].autoReduce then
+				options[getOptionByID("snowautoreduce")].value = widgetHandler.configData["Snow"].autoReduce
+				changes = true
+			end
 		end
 	end
 
-	if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.spotterOpacity ~= nil then
-		if options[getOptionByID("enemyspotter_opacity")].value ~= widgetHandler.configData.EnemySpotter.spotterOpacity then
-			options[getOptionByID("enemyspotter_opacity")].value = widgetHandler.configData.EnemySpotter.spotterOpacity
-			changes = true
+	if widgetHandler.knownWidgets["TeamPlatter"] ~= nil then
+		if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.spotterOpacity ~= nil then
+			if options[getOptionByID("teamplatter_opacity")].value ~= widgetHandler.configData.TeamPlatter.spotterOpacity then
+				options[getOptionByID("teamplatter_opacity")].value = widgetHandler.configData.TeamPlatter.spotterOpacity
+				changes = true
+			end
 		end
-	end
-	if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.useXrayHighlight ~= nil then
-		if options[getOptionByID("enemyspotter_highlight")] ~= nil and options[getOptionByID("enemyspotter_highlight")].value ~= widgetHandler.configData.EnemySpotter.useXrayHighlight then
-			options[getOptionByID("enemyspotter_highlight")].value = widgetHandler.configData.EnemySpotter.useXrayHighlight
-			changes = true
-		end
-	end
-
-	if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].highlightAlpha ~= nil then
-		if options[getOptionByID("highlightselunits_opacity")].value ~= widgetHandler.configData["Highlight Selected Units"].highlightAlpha then
-			options[getOptionByID("highlightselunits_opacity")].value = widgetHandler.configData["Highlight Selected Units"].highlightAlpha
-			changes = true
-		end
-	end
-	if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useHighlightShader ~= nil then
-		if options[getOptionByID("highlightselunits_shader")].value ~= widgetHandler.configData["Highlight Selected Units"].useHighlightShader then
-			options[getOptionByID("highlightselunits_shader")].value = widgetHandler.configData["Highlight Selected Units"].useHighlightShader
-			changes = true
-		end
-	end
-	if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useTeamcolor ~= nil then
-		if options[getOptionByID("highlightselunits_teamcolor")].value ~= widgetHandler.configData["Highlight Selected Units"].useTeamcolor then
-			options[getOptionByID("highlightselunits_teamcolor")].value = widgetHandler.configData["Highlight Selected Units"].useTeamcolor
-			changes = true
+		if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.skipOwnTeam ~= nil then
+			if options[getOptionByID("teamplatter_skipownteam")].value ~= widgetHandler.configData.TeamPlatter.skipOwnTeam then
+				options[getOptionByID("teamplatter_skipownteam")].value = widgetHandler.configData.TeamPlatter.skipOwnTeam
+				changes = true
+			end
 		end
 	end
 
-	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
-		if options[getOptionByID("lighteffects_brightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMult then
-			options[getOptionByID("lighteffects_brightness")].value = widgetHandler.configData["Light Effects"].globalLightMult
-			changes = true
+	if widgetHandler.knownWidgets["EnemySpotter"] ~= nil then
+		if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.spotterOpacity ~= nil then
+			if options[getOptionByID("enemyspotter_opacity")].value ~= widgetHandler.configData.EnemySpotter.spotterOpacity then
+				options[getOptionByID("enemyspotter_opacity")].value = widgetHandler.configData.EnemySpotter.spotterOpacity
+				changes = true
+			end
+		end
+		if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.useXrayHighlight ~= nil then
+			if options[getOptionByID("enemyspotter_highlight")] ~= nil and options[getOptionByID("enemyspotter_highlight")].value ~= widgetHandler.configData.EnemySpotter.useXrayHighlight then
+				options[getOptionByID("enemyspotter_highlight")].value = widgetHandler.configData.EnemySpotter.useXrayHighlight
+				changes = true
+			end
 		end
 	end
-	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
-		if options[getOptionByID("lighteffects_radius")].value ~= widgetHandler.configData["Light Effects"].globalRadiusMult then
-			options[getOptionByID("lighteffects_radius")].value = widgetHandler.configData["Light Effects"].globalRadiusMult
-			changes = true
+
+	if widgetHandler.knownWidgets["Highlight Selected Units"] ~= nil then
+		if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].highlightAlpha ~= nil then
+			if options[getOptionByID("highlightselunits_opacity")].value ~= widgetHandler.configData["Highlight Selected Units"].highlightAlpha then
+				options[getOptionByID("highlightselunits_opacity")].value = widgetHandler.configData["Highlight Selected Units"].highlightAlpha
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useHighlightShader ~= nil then
+			if options[getOptionByID("highlightselunits_shader")].value ~= widgetHandler.configData["Highlight Selected Units"].useHighlightShader then
+				options[getOptionByID("highlightselunits_shader")].value = widgetHandler.configData["Highlight Selected Units"].useHighlightShader
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useTeamcolor ~= nil then
+			if options[getOptionByID("highlightselunits_teamcolor")].value ~= widgetHandler.configData["Highlight Selected Units"].useTeamcolor then
+				options[getOptionByID("highlightselunits_teamcolor")].value = widgetHandler.configData["Highlight Selected Units"].useTeamcolor
+				changes = true
+			end
 		end
 	end
-	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMultLaser ~= nil then
-		if options[getOptionByID("lighteffects_laserbrightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMultLaser then
-			options[getOptionByID("lighteffects_laserbrightness")].value = widgetHandler.configData["Light Effects"].globalLightMultLaser
-			changes = true
+
+	if widgetHandler.knownWidgets["Fancy Selected Units"] ~= nil then
+		if widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].currentOption ~= nil then
+			if WG['fancyselectedunits'] ~= nil then
+				options[getOptionByID('fancyselectedunits_style')].options = WG['fancyselectedunits'].getStyleList()
+			end
+			if options[getOptionByID("fancyselectedunits_style")].value ~= widgetHandler.configData["Fancy Selected Units"].currentOption then
+				options[getOptionByID("fancyselectedunits_style")].value = widgetHandler.configData["Fancy Selected Units"].currentOption
+				changes = true
+			end
 		end
 	end
-	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalRadiusMultLaser ~= nil then
-		if options[getOptionByID("lighteffects_laserradius")].value ~= widgetHandler.configData["Light Effects"].globalRadiusMultLaser then
-			options[getOptionByID("lighteffects_laserradius")].value = widgetHandler.configData["Light Effects"].globalRadiusMultLaser
-			changes = true
+
+	if widgetHandler.knownWidgets["Light Effects"] ~= nil then
+		if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
+			if options[getOptionByID("lighteffects_brightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMult then
+				options[getOptionByID("lighteffects_brightness")].value = widgetHandler.configData["Light Effects"].globalLightMult
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
+			if options[getOptionByID("lighteffects_radius")].value ~= widgetHandler.configData["Light Effects"].globalRadiusMult then
+				options[getOptionByID("lighteffects_radius")].value = widgetHandler.configData["Light Effects"].globalRadiusMult
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMultLaser ~= nil then
+			if options[getOptionByID("lighteffects_laserbrightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMultLaser then
+				options[getOptionByID("lighteffects_laserbrightness")].value = widgetHandler.configData["Light Effects"].globalLightMultLaser
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalRadiusMultLaser ~= nil then
+			if options[getOptionByID("lighteffects_laserradius")].value ~= widgetHandler.configData["Light Effects"].globalRadiusMultLaser then
+				options[getOptionByID("lighteffects_laserradius")].value = widgetHandler.configData["Light Effects"].globalRadiusMultLaser
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLifeMult ~= nil then
+			if options[getOptionByID("lighteffects_life")].value ~= widgetHandler.configData["Light Effects"].globalLifeMult then
+				options[getOptionByID("lighteffects_life")].value = widgetHandler.configData["Light Effects"].globalLifeMult
+				changes = true
+			end
 		end
 	end
-	if widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLifeMult ~= nil then
-		if options[getOptionByID("lighteffects_life")].value ~= widgetHandler.configData["Light Effects"].globalLifeMult then
-			options[getOptionByID("lighteffects_life")].value = widgetHandler.configData["Light Effects"].globalLifeMult
-			changes = true
-		end
-	end
+
 	return changes
 end
 
@@ -1878,6 +1916,7 @@ function init()
         {id="highlightselunits_teamcolor", group="ui", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
 
 		{id="fancyselectedunits", group="ui", widget="Fancy Selected Units", name="Fancy selected units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description='Draws a platter under selected units'},
+		{id="fancyselectedunits_style", group="ui", name=widgetOptionColor.."   style", type="select", options={}, value=1},
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
@@ -1933,24 +1972,6 @@ function init()
 		options[getOptionByID('iconadjuster')].value = WG['iconadjuster'].getScale()
 	end
 
---	if (WG['highlightselunits'] == nil) then
---		options[getOptionByID('highlightselunits_opacity')] = nil
---	else
---		options[getOptionByID('highlightselunits_opacity')].value = WG['highlightselunits'].getOpacity()
---	end
---
---    if (WG['highlightselunits'] == nil) then
---        options[getOptionByID('highlightselunits_shader')] = nil
---    else
---        options[getOptionByID('highlightselunits_shader')].value = WG['highlightselunits'].getShader()
---    end
---
---    if (WG['highlightselunits'] == nil) then
---        options[getOptionByID('highlightselunits_teamcolor')] = nil
---    else
---        options[getOptionByID('highlightselunits_teamcolor')].value = WG['highlightselunits'].getTeamcolor()
---    end
-
 	if (WG['smartselect'] == nil) then
 		options[getOptionByID('smartselect_includebuildings')] = nil
 	else
@@ -1992,6 +2013,20 @@ function init()
 
 	if WG['playercolorpalette'] == nil or WG['playercolorpalette'].getSameTeamColors == nil then
 		options[getOptionByID('sameteamcolors')] = nil
+	end
+
+
+	-- disable options when widget isnt availible
+	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
+		options[getOptionByID('fancyselectedunits')] = nil
+		options[getOptionByID("fancyselectedunits_style")] = nil
+	end
+
+	if widgetHandler.knownWidgets["Highlight Selected Units"] == nil then
+		options[getOptionByID('highlightselunits')] = nil
+		options[getOptionByID("highlightselunits_opacity")] = nil
+		options[getOptionByID("highlightselunits_shader")] = nil
+		options[getOptionByID("highlightselunits_teamcolor")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then
