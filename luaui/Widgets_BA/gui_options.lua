@@ -966,14 +966,14 @@ function applyOptionValue(i, skipRedrawWindow)
             if WG['highlightselunits'] ~= nil then
                 WG['highlightselunits'].setShader(options[i].value)
             end
-        elseif id == 'highlightselunits_teamcolor' then
-            if widgetHandler.configData["Highlight Selected Units"] == nil then
-                widgetHandler.configData["Highlight Selected Units"] = {}
-            end
-            widgetHandler.configData["Highlight Selected Units"].useTeamcolor = options[i].value
-            if WG['highlightselunits'] ~= nil then
-                WG['highlightselunits'].setTeamcolor(options[i].value)
-            end
+		elseif id == 'highlightselunits_teamcolor' then
+			if widgetHandler.configData["Highlight Selected Units"] == nil then
+				widgetHandler.configData["Highlight Selected Units"] = {}
+			end
+			widgetHandler.configData["Highlight Selected Units"].useTeamcolor = options[i].value
+			if WG['highlightselunits'] ~= nil then
+				WG['highlightselunits'].setTeamcolor(options[i].value)
+			end
 		elseif id == 'smartselect_includebuildings' then
 			if widgetHandler.configData["SmartSelect"] == nil then
 				widgetHandler.configData["SmartSelect"] = {}
@@ -1247,6 +1247,30 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Highlight Selected Units"].highlightAlpha = value
 			if WG['highlightselunits'] ~= nil then
 				WG['highlightselunits'].setOpacity(value)
+			end
+		elseif id == 'fancyselectedunits_opacity' then
+			if widgetHandler.configData["Fancy Selected Units"] == nil then
+				widgetHandler.configData["Fancy Selected Units"] = {}
+			end
+			widgetHandler.configData["Fancy Selected Units"].spotterOpacity = value
+			if WG['fancyselectedunits'] ~= nil then
+				WG['fancyselectedunits'].setOpacity(value)
+			end
+		elseif id == 'fancyselectedunits_baseopacity' then
+			if widgetHandler.configData["Fancy Selected Units"] == nil then
+				widgetHandler.configData["Fancy Selected Units"] = {}
+			end
+			widgetHandler.configData["Fancy Selected Units"].baseOpacity = value
+			if WG['fancyselectedunits'] ~= nil then
+				WG['fancyselectedunits'].setBaseOpacity(value)
+			end
+		elseif id == 'fancyselectedunits_teamcoloropacity' then
+			if widgetHandler.configData["Fancy Selected Units"] == nil then
+				widgetHandler.configData["Fancy Selected Units"] = {}
+			end
+			widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity = value
+			if WG['fancyselectedunits'] ~= nil then
+				WG['fancyselectedunits'].setTeamcolorOpacity(value)
 			end
 		end
 
@@ -1735,6 +1759,24 @@ function loadWidgetConfigData()
 				changes = true
 			end
 		end
+		if widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].spotterOpacity ~= nil then
+			if options[getOptionByID("fancyselectedunits_opacity")].value ~= widgetHandler.configData["Fancy Selected Units"].spotterOpacity then
+				options[getOptionByID("fancyselectedunits_opacity")].value = widgetHandler.configData["Fancy Selected Units"].spotterOpacity
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].baseOpacity ~= nil then
+			if options[getOptionByID("fancyselectedunits_baseopacity")].value ~= widgetHandler.configData["Fancy Selected Units"].baseOpacity then
+				options[getOptionByID("fancyselectedunits_baseopacity")].value = widgetHandler.configData["Fancy Selected Units"].baseOpacity
+				changes = true
+			end
+		end
+		if widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity ~= nil then
+			if options[getOptionByID("fancyselectedunits_teamcoloropacity")].value ~= widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity then
+				options[getOptionByID("fancyselectedunits_teamcoloropacity")].value = widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity
+				changes = true
+			end
+		end
 	end
 
 	if widgetHandler.knownWidgets["Light Effects"] ~= nil then
@@ -1812,7 +1854,7 @@ function init()
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
 		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
-		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.75, step=0.05, value=0.4, description=''},
+		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.55, step=0.05, value=0.4, description=''},
 		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
@@ -1917,6 +1959,9 @@ function init()
 
 		{id="fancyselectedunits", group="ui", widget="Fancy Selected Units", name="Fancy selected units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description='Draws a platter under selected units'},
 		{id="fancyselectedunits_style", group="ui", name=widgetOptionColor.."   style", type="select", options={}, value=1},
+		{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.5, max=1, step=0.01, type="slider", value=0.9, description='Set the opacity of the highlight on selected units'},
+		{id="fancyselectedunits_baseopacity", group="ui", name=widgetOptionColor.."   base opacity", min=0.1, max=0.5, step=0.01, type="slider", value=0.25, description='Set the opacity of the highlight on selected units'},
+		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor opacity", min=0, max=1, step=0.01, type="slider", value=0.25, description='Set the amount of teamcolor used for the base platter'},
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
@@ -2020,6 +2065,9 @@ function init()
 	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
 		options[getOptionByID('fancyselectedunits')] = nil
 		options[getOptionByID("fancyselectedunits_style")] = nil
+		options[getOptionByID("fancyselectedunits_opacity")] = nil
+		options[getOptionByID("fancyselectedunits_baseopacity")] = nil
+		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Highlight Selected Units"] == nil then
