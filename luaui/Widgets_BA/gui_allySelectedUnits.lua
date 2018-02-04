@@ -110,12 +110,12 @@ local unitConf ={}
 
 function SetUnitConf()
 	-- preferred to keep these values the same as other widgets
-	local rectangleFactor		= 3.3
-	local scalefaktor			= 2.6
+	local scaleFactor = 2.6
+	local rectangleFactor = 3.25
 
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = scalefaktor*( xsize^2 + zsize^2 )^0.5
+		local scale = scaleFactor*( xsize^2 + zsize^2 )^0.5
 		local shape, xscale, zscale
 		
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then

@@ -36,7 +36,7 @@ local perfSelectedUnits				= {}
 local maxSelectTime					= 0				--time at which units "new selection" animation will end
 local maxDeselectedTime				= -1			--time at which units deselection animation will end
 
-local currentOption					= 5
+local currentOption					= 2
 
 local glCallList					= gl.CallList
 local glDrawListAtUnit				= gl.DrawListAtUnit
@@ -407,8 +407,8 @@ local function DrawTriangleLine(innersize, outersize)
 
 		for i = 1, 3 do
 			--straight piece
-			width = 0.7
-			i = i + 0.65
+			width = 0.75
+			i = i + 0.625
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
@@ -419,7 +419,7 @@ local function DrawTriangleLine(innersize, outersize)
 			gl.Vertex(math.sin(a2)*outersize, 1, math.cos(a2)*outersize)
 
 			-- corner piece
-			width = 0.3
+			width = 0.35
 			i = i + 3
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
@@ -447,8 +447,8 @@ local function DrawTriangleSolid(size)
 
 		for i = 1, 3 do
 			-- straight piece
-			width = 0.7
-			i = i + 0.65
+			width = 0.75
+			i = i + 0.625
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
@@ -456,7 +456,7 @@ local function DrawTriangleSolid(size)
 			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 
 			-- corner piece
-			width = 0.3
+			width = 0.35
 			i = i + 3
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
@@ -579,8 +579,8 @@ end
 
 function SetUnitConf()
 	-- prefer not to change because other widgets use these values too  (highlight_units, given_units, selfd_icons, ...)
-	local scaleFactor						= 2.6
-	local rectangleFactor					= 3.3
+	local scaleFactor = 2.6
+	local rectangleFactor = 3.25
 
 	local name, shape, xscale, zscale, scale, xsize, zsize, weaponcount, shapeName
 	for udid, unitDef in pairs(UnitDefs) do

@@ -1,4 +1,15 @@
-﻿10.04 -> 10.05
+﻿10.05 -> 10.06
+99/99/2018
+
+Balance changes: 
+ • Footprints adjusted: armfus 7x4->6x5, armvp 8x6->7x6, corvp 7x7->7x6
+
+Other:
+ • Fancy Selected Units widget added (default disabled)
+ • You can now toggle off Highlight Selected Units option
+
+
+10.04 -> 10.05
 02/02/2018
 
 Balance changes: 
