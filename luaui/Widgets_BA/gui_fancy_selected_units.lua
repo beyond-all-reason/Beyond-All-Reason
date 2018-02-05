@@ -76,7 +76,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	teamcolorOpacity				= 0.7,		-- how much teamcolor used for the base platter
 
 	-- opacity
-	spotterOpacity					= 0.94,
+	spotterOpacity					= 0.95,
 	baseOpacity						= 0.25,
 	firstLineOpacity				= 1,
 	secondLineOpacity				= 0.2,
@@ -540,7 +540,7 @@ function SetUnitConf()
 		elseif (unitDef.isAirUnit) then
 			shapeName = 'triangle'
 			shape = shapes.triangle
-			xscale, zscale = scale, scale
+			xscale, zscale = scale*1.07, scale*1.07
 		elseif (unitDef.modCategories["ship"]) then
 			shapeName = 'circle'
 			shape = shapes.circle
