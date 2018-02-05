@@ -22,7 +22,22 @@ end
 
 ------------------------------------------
 
+-- Random tips we can show
+local tips = {"Tip #294:\n Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
+"Tip #15: Some other tip."}
+-- Random unit descriptions we can show
+local unit_descs = {"armacv.dds ARM Amphibious Constructor\nDescription comes here after the image. Image must end to dds. Image must be in unitpics",
+"armamb.dds Some other unit."}
+
+-- Since math.random is not random and always the same, we use os.time.
+rand = os.time()
+local random_tip_or_desc = unit_descs[(rand % #unit_descs) + 1]
+if rand%2 == 1 then
+	random_tip_or_desc = tips[(rand % #tips) + 1]
+end
+
 local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
+
 
 function DrawRectRound(px,py,sx,sy,cs)
 
@@ -103,6 +118,7 @@ function RectRound(px,py,sx,sy,cs)
 	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
 	
 	gl.Texture(":n:luaui/Images/bgcorner.png")
+	--gl.Texture(":n:luaui/Images/bgcorner.png")
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
 	gl.Texture(false)
 end
@@ -157,8 +173,7 @@ function addon.DrawLoadScreen()
 	gl.Texture(":n:luaui/Images/barglow-edge.dds")
 	gl.TexRect(0.2-(glowSize*1.3), 0.1-glowSize, 0.2, 0.15+glowSize)
 	gl.TexRect(loadvalue+(glowSize*1.3), 0.1-glowSize, loadvalue, 0.15+glowSize)
-	
-	
+
 	-- progressbar text
 	gl.PushMatrix()
 	gl.Scale(1/vsx,1/vsy,1)
@@ -172,6 +187,33 @@ function addon.DrawLoadScreen()
 		else
 			font:Print("Loading...", vsx * 0.5, vsy * 0.165, barTextSize, "oc")
 		end
+
+	gl.PopMatrix()
+
+	-- Tip/unit description
+	-- Background
+	gl.Color(0.06,0.06,0.06,0.8)
+	RectRound(0.2-paddingW,0.7-paddingH,0.8+paddingW,0.25+paddingH,0.007)
+
+	-- Text
+	gl.PushMatrix()
+	gl.Scale(1/vsx,1/vsy,1)
+	-- In this format, there can be an optional image before the tip/description.
+	-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
+	local i, j = string.find(random_tip_or_desc, ".dds")
+	local text_to_show = random_tip_or_desc
+	local image_text = nil
+
+	if i ~= nil then
+		image_text = string.sub(random_tip_or_desc, 0, j)
+		text_to_show = string.sub(random_tip_or_desc, j+2)
+		gl.Texture(":n:unitpics/" .. image_text)
+		gl.Color(1.0,1.0,1.0,0.8)
+		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.59, barTextSize * 0.67, "oa")
+	else
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.68, barTextSize * 0.67, "oa")
+	end
 
 	gl.PopMatrix()
 end

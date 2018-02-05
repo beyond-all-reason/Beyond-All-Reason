@@ -13,7 +13,7 @@ end
 
 ------------------------------------------
 
-require "savetable.lua"
+local tips = require "savetable.lua"
 
 local startTime = -1
 local cachedLoadTimes = VFS.FileExists("loadprogress_cached.lua") and VFS.Include("loadprogress_cached.lua") or { }
