@@ -1209,10 +1209,14 @@ local function getMostDefendedArea()
 		local k = next(defenseMap)
 		if k then
 			local x,z = string.match(k, "(%d+),(%d+)")
-			x = x * DMAREA
-			z = z * DMAREA
-			local y = GetGroundHeight(x,z)
-			return x,y,z
+            if x ~= nil and z ~= nil then
+                x = x * DMAREA
+                z = z * DMAREA
+                local y = GetGroundHeight(x,z)
+                return x,y,z
+            else
+                return nil, nil, nil
+            end
 		else
 			return nil,nil,nil
 		end
