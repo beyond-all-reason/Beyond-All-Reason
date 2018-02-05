@@ -90,8 +90,8 @@ local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
 local borderPadding					= 4
-	
-local avgFrames 					= 18
+
+local avgFrames 					= 8
 
 local xRelPos, yRelPos				= 1, 1
 local widgetPosX, widgetPosY        = xRelPos*vsx, yRelPos*vsy
@@ -99,13 +99,13 @@ local widgetRight			 	    = widgetPosX + widgetWidth
 
 local sizeMultiplier   = 1
 
-	Options = {}
-	Options["resText"] = {}
-	Options["resText"]["On"] = false
-	Options["sticktotopbar"] = {}
-	Options["sticktotopbar"]["On"] = true
-	Options["removeDead"] = {}
-	Options["removeDead"]["On"] = false
+Options = {}
+Options["resText"] = {}
+Options["resText"]["On"] = false
+Options["sticktotopbar"] = {}
+Options["sticktotopbar"]["On"] = true
+Options["removeDead"] = {}
+Options["removeDead"]["On"] = false
 	
 ---------------------------------------------------------------------------------------------------
 
@@ -1551,7 +1551,7 @@ function widget:GameFrame(frameNum)
 	elseif frameNum%80 == 5 then
 		makeSideImageList()
 	end
-	if frameNum%15 == 1 then
+	if frameNum%10 == 1 then
 		updateButtons()
 		setPlayerResources()
 		UpdateAllies()
