@@ -28,6 +28,7 @@ local spotterOpacity = 0.3
 local highlightOpacity = 0.25
 local skipOwnTeam  = false
 local useSelections = true
+local noOverlap = true
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -67,7 +68,9 @@ local lastUpdatedFrame		= 0
 local drawUnits				= {}
 
 local teamColors = {}
-local platterList  = 0
+local platterCircleList  = 0
+local platterSquareList  = 0
+local platterTriangleList  = 0
 local circleDivs   = 36
 local circleOffset = 0
 
@@ -111,11 +114,19 @@ function SetUnitConf()
   for udid, unitDef in pairs(UnitDefs) do
     local xsize, zsize = unitDef.xsize, unitDef.zsize
     local scale = scaleFactor*( xsize^2 + zsize^2 )^0.5
-    local xscale, zscale
+    local xscale, zscale, shape
 
     if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
+      shape = 'square'
       xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
+    elseif (unitDef.isAirUnit) then
+      shape = 'triangle'
+      xscale, zscale = scale*1.07, scale*1.07
+    elseif (unitDef.modCategories["ship"]) then
+      shape = 'circle'
+      xscale, zscale = scale*0.82, scale*0.82
     else
+      shape = 'circle'
       xscale, zscale = scale, scale
     end
 
@@ -123,15 +134,81 @@ function SetUnitConf()
     xscale = (xscale*0.7) + (radius/5)
     zscale = (zscale*0.7) + (radius/5)
 
-    unitConf[udid] = (xscale+zscale)*1.5
+    unitConf[udid] = {scale=(xscale+zscale)*1.5, shape=shape}
   end
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function DrawTriangleSolid(size)
+
+  gl.BeginEnd(GL.TRIANGLE_FAN, function()
+
+    local width, a1,a2,a2_2
+    local radstep = (2.0 * math.pi) / 3
+
+    for i = 1, 3 do
+      -- straight piece
+      width = 0.75
+      i = i + 0.625
+      a1 = (i * radstep)
+      a2 = ((i+width) * radstep)
+
+      gl.Vertex(0, 0, 0)
+      gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
+      gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
+
+      -- corner piece
+      width = 0.35
+      i = i + 3
+      a1 = (i * radstep)
+      a2 = ((i+width) * radstep)
+      i = i -0.6
+      a2_2 = ((i+width) * radstep)
+
+      gl.Vertex(0, 0, 0)
+      gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
+      gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
+    end
+
+  end)
+end
+
+local function DrawSquareSolid(size)
+  gl.BeginEnd(GL.TRIANGLE_FAN, function()
+    local width, a1,a2,a2_2
+    local radstep = (2.0 * math.pi) / 4
+
+    for i = 1, 4 do
+      --straight piece
+      width = 0.7
+      i = i + 0.65
+      a1 = (i * radstep)
+      a2 = ((i+width) * radstep)
+
+      gl.Vertex(0, 0, 0)
+      gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
+      gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
+
+      --corner piece
+      width = 0.3
+      i = i + 3
+      a1 = (i * radstep)
+      a2 = ((i+width) * radstep)
+      i = i -0.6
+      a2_2 = ((i+width) * radstep)
+
+      gl.Vertex(0, 0, 0)
+      gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
+      gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
+    end
+
+  end)
+end
+
 function widget:Initialize()
-  platterList = glCreateList(function()
+  platterCircleList = glCreateList(function()
     local radius = 0.6
     glBeginEnd(GL_TRIANGLE_FAN, function()
       local radstep = (2.0 * math.pi) / circleDivs
@@ -148,6 +225,17 @@ function widget:Initialize()
       end
     end)
   end)
+
+  platterSquareList = glCreateList(function()
+    local radius = 0.6
+    DrawSquareSolid(radius)
+  end)
+
+  platterTriangleList = glCreateList(function()
+    local radius = 0.6
+    DrawTriangleSolid(radius)
+  end)
+
 
   spotterList = gl.CreateList(function()
     gl.TexRect(-1, 1, 1, -1)
@@ -174,7 +262,9 @@ end
 
 
 function widget:Shutdown()
-  glDeleteList(platterList)
+  glDeleteList(platterCircleList)
+  glDeleteList(platterSquareList)
+  glDeleteList(platterTriangleList)
   glDeleteList(spotterList)
   if WG['highlightselunits'] == nil and WG['fancyselectedunits'] == nil then
     SetupCommandColors(true)
@@ -225,7 +315,7 @@ function checkUnit(unitID)
     if drawUnits[teamID] == nil then
       drawUnits[teamID] = {}
     end
-    drawUnits[teamID][unitID] = unitConf[unitDefID]
+    drawUnits[teamID][unitID] = unitConf[unitDefID].scale
   end
 end
 
@@ -276,7 +366,13 @@ function widget:DrawWorldPreUnit()
           if drawDonuts then
             glDrawListAtUnit(unitID, spotterList, false,  unitScale, unitScale, unitScale, 90, 1,0,0)
           else
-            glDrawListAtUnit(unitID, platterList, false,  unitScale, 1.0, unitScale)
+            --if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
+            --  glDrawListAtUnit(unitID, platterSquareList, false,  unitScale, 1.0, unitScale)
+            --elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
+            --  glDrawListAtUnit(unitID, platterTriangleList, false,  unitScale, 1.0, unitScale)
+            --else
+              glDrawListAtUnit(unitID, platterCircleList, false,  unitScale, 1.0, unitScale)
+            --end
           end
         end
       end
@@ -287,11 +383,17 @@ function widget:DrawWorldPreUnit()
   if useSelections then
     glColor(1, 1, 1, highlightOpacity)
     for _,unitID in ipairs(spGetSelectedUnits()) do
-      local unitScale = unitConf[spGetUnitDefID(unitID)]
+      local unitScale = unitConf[spGetUnitDefID(unitID)].scale
       if drawDonuts then
         glDrawListAtUnit(unitID, spotterList, false,  unitScale, unitScale, unitScale, 90, 1,0,0)
       else
-        glDrawListAtUnit(unitID, platterList, false,  unitScale, 1.0, unitScale)
+        --if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
+        --  glDrawListAtUnit(unitID, platterSquareList, false,  unitScale, 1.0, unitScale)
+        --elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
+        --  glDrawListAtUnit(unitID, platterTriangleList, false,  unitScale, 1.0, unitScale)
+        --else
+          glDrawListAtUnit(unitID, platterCircleList, false,  unitScale, 1.0, unitScale)
+        --end
       end
     end
   end
@@ -303,18 +405,14 @@ end
 
 function widget:GetConfigData(data)
   savedTable = {}
-  savedTable.drawDonuts				= drawDonuts
   savedTable.skipOwnTeam			= skipOwnTeam
   savedTable.spotterOpacity			= spotterOpacity
-  savedTable.useXrayHighlight		= useXrayHighlight
   return savedTable
 end
 
 function widget:SetConfigData(data)
-  --drawDonuts        = data.drawDonuts or drawDonuts
-  skipOwnTeam  = data.skipOwnTeam or skipOwnTeam
-  useXrayHighlight  = data.useXrayHighlight or useXrayHighlight
-  spotterOpacity    = data.spotterOpacity or spotterOpacity
+  skipOwnTeam = data.skipOwnTeam or skipOwnTeam
+  spotterOpacity = data.spotterOpacity or spotterOpacity
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

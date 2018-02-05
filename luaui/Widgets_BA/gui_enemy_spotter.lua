@@ -206,6 +206,10 @@ function SetUnitConf()
 
 		if (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0) then
 			xscale, zscale = rectangleFactor * xsize, rectangleFactor * zsize
+		elseif (unitDef.modCategories["ship"]) then
+			xscale, zscale = scale*0.82, scale*0.82
+		elseif (unitDef.isAirUnit) then
+			xscale, zscale = scale*1.07, scale*1.07
 		else
 			xscale, zscale = scale, scale
 		end
