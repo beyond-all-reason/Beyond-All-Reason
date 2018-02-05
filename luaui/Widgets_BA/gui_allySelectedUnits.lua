@@ -124,6 +124,9 @@ function SetUnitConf()
 		elseif (unitDef.isAirUnit) then
 			shape = 'triangle'
 			xscale, zscale = scale, scale
+		elseif (unitDef.modCategories["ship"]) then
+			shape = 'circle'
+			xscale, zscale = scale*0.82, scale*0.82
 		else
 			shape = 'circle'
 			xscale, zscale = scale, scale

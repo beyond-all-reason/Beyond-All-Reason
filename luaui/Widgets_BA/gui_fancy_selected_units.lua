@@ -73,13 +73,13 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	showExtraComLine				= true,		-- extra circle lines for the commander unit
 	showExtraBuildingWeaponLine		= true,
 
-	teamcolorOpacity				= 0.15,		-- teamcolor use for the base platter
+	teamcolorOpacity				= 0.7,		-- how much teamcolor used for the base platter
 
 	-- opacity
-	spotterOpacity					= 0.9,
+	spotterOpacity					= 0.94,
 	baseOpacity						= 0.25,
 	firstLineOpacity				= 1,
-	secondLineOpacity				= 1,
+	secondLineOpacity				= 0.2,
 
 	-- animation
 	selectionStartAnimation			= true,
@@ -92,7 +92,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	--selectionEndAnimationScale	= 1.17,
 
 	-- animation
-	rotationSpeed					= 1,
+	rotationSpeed					= 2.5,
 	animationSpeed					= 0.00045,	-- speed of scaling up/down inner and outer lines
 	animateSpotterSize				= true,
 	maxAnimationMultiplier			= 1.012,
@@ -106,7 +106,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	circleInnerOffset				= 0.45,
 
 	-- size
-	scaleMultiplier					= 1.04,
+	scaleMultiplier					= 1,
 	innersize						= 1.7,
 	selectinner						= 1.66,
 	outersize						= 1.8,
@@ -118,6 +118,13 @@ table.insert(OPTIONS, {
 	baseOpacity						= 0.4,
 })
 table.insert(OPTIONS, {
+	name							= "Solid Line",
+	circlePieces					= 64,
+	circlePieceDetail				= 1,
+	circleSpaceUsage				= 1,
+	circleInnerOffset				= 0,
+})
+table.insert(OPTIONS, {
 	name							= "Tilted Blocky Dots",
 	circlePieces					= 36,
 	circlePieceDetail				= 1,
@@ -126,9 +133,9 @@ table.insert(OPTIONS, {
 })
 table.insert(OPTIONS, {
 	name							= "Blocky Dots",
-	circlePieces					= 40,
+	circlePieces					= 35,
 	circlePieceDetail				= 1,
-	circleSpaceUsage				= 0.55,
+	circleSpaceUsage				= 0.5,
 	circleInnerOffset				= 0,
 	rotationSpeed					= 1,
 })
@@ -294,8 +301,6 @@ local function DrawSquareSolid(size)
 		local width, a1,a2,a2_2
 		local radstep = (2.0 * math.pi) / 4
 
-		gl.Vertex(0, 0, 0)
-
 		for i = 1, 4 do
 			--straight piece
 			width = 0.7
@@ -303,6 +308,7 @@ local function DrawSquareSolid(size)
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
+			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
 			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 
@@ -314,6 +320,7 @@ local function DrawSquareSolid(size)
 			i = i -0.6
 			a2_2 = ((i+width) * radstep)
 
+			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
 			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 		end
@@ -380,8 +387,6 @@ local function DrawTriangleSolid(size)
 		local width, a1,a2,a2_2
 		local radstep = (2.0 * math.pi) / 3
 
-		gl.Vertex(0, 1, 0)
-
 		for i = 1, 3 do
 			-- straight piece
 			width = 0.75
@@ -389,6 +394,7 @@ local function DrawTriangleSolid(size)
 			a1 = (i * radstep)
 			a2 = ((i+width) * radstep)
 
+			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2)*size, 1, math.cos(a2)*size)
 			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 
@@ -400,6 +406,7 @@ local function DrawTriangleSolid(size)
 			i = i -0.6
 			a2_2 = ((i+width) * radstep)
 
+			gl.Vertex(0, 0, 0)
 			gl.Vertex(math.sin(a2_2)*size, 1, math.cos(a2_2)*size)
 			gl.Vertex(math.sin(a1)*size, 1, math.cos(a1)*size)
 		end
@@ -534,6 +541,10 @@ function SetUnitConf()
 			shapeName = 'triangle'
 			shape = shapes.triangle
 			xscale, zscale = scale, scale
+		elseif (unitDef.modCategories["ship"]) then
+			shapeName = 'circle'
+			shape = shapes.circle
+			xscale, zscale = scale*0.82, scale*0.82
 		else
 			shapeName = 'circle'
 			shape = shapes.circle
@@ -768,7 +779,7 @@ do
 							if drawUnitStyles and OPTIONScurrentOption.showExtraBuildingWeaponLine and unit.shapeName == 'square' then
 								if (unit.weaponcount > 0) then
 									gl.Color(r,g,b,usedAlpha*(usedAlpha+0.2))
-									usedScale = scale * 1.11
+									usedScale = scale * 1.1
 									glDrawListAtUnit(unitID, unit.shape.select, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/7.5), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/7.5), usedRotationAngle, 0, degrot[unitID], 0)
 								end
 								gl.Color(r,g,b,usedAlpha)
@@ -862,7 +873,7 @@ function widget:DrawWorldPreUnit()
 		scale = 1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplierInner
 		scaleBase = scale * 1.133
 		if OPTIONS[currentOption].showSecondLine then
-			scaleOuter = (1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplier) * 1.18
+			scaleOuter = (1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplier) * 1.16
 			scaleBase = scaleOuter * 1.08
 		end
 
@@ -874,7 +885,7 @@ function widget:DrawWorldPreUnit()
 
 		-- draw base background layer
 		if OPTIONS[currentOption].showBase then
-			if OPTIONS[currentOption].teamcolorOpacity <= 0.02 then
+			if OPTIONS[currentOption].teamcolorOpacity < 0.02 then
 				baseR,baseG,baseB = 1,1,1
 			else
 				baseR,baseG,baseB = spGetTeamColor(teamID)
@@ -937,25 +948,25 @@ function widget:DrawWorldPreUnit()
 
 
 		-- draw 2nd line layer
-		if OPTIONS[currentOption].showSecondLine then
-			a = 1 - (OPTIONS[currentOption].secondLineOpacity * OPTIONS[currentOption].spotterOpacity)
-
-			gl.ColorMask(false, false, false, true)
-			gl.BlendFunc(GL.ONE_MINUS_SRC_ALPHA, GL.SRC_ALPHA)
-
-			--  Here the inner of the selected spotters are removed
-			gl.BlendFunc(GL.ONE, GL.ZERO)
-			gl.Color(r,g,b,1)
-			DrawSelectionSpottersPart(teamID, 'solid overlap', r,g,b,a,scaleOuter, false, true, false, true)
-
-			--  Really draw the spotters now  (This could be optimised if we could say Draw as much as DST_ALPHA * SRC_ALPHA is)
-			-- (without protecting form drawing them twice)
-			gl.ColorMask(true, true, true, true)
-			gl.BlendFunc(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA)
-
-			-- Does not need to be drawn per Unit anymore
-			glCallList(clearquad)
-		end
+--		if OPTIONS[currentOption].showSecondLine then
+--			--a = 1 - (OPTIONS[currentOption].secondLineOpacity * OPTIONS[currentOption].spotterOpacity)
+--
+--			gl.ColorMask(false, false, false, true)
+--			--gl.BlendFunc(GL.ONE_MINUS_SRC_ALPHA, GL.SRC_ALPHA)
+--
+--			--  Here the inner of the selected spotters are removed
+--			gl.BlendFunc(GL.ONE, GL.ZERO)
+--			gl.Color(r,g,b,1)
+--			DrawSelectionSpottersPart(teamID, 'solid overlap', r,g,b,a,scaleOuter, false, true, false, true)
+--
+--			--  Really draw the spotters now  (This could be optimised if we could say Draw as much as DST_ALPHA * SRC_ALPHA is)
+--			-- (without protecting form drawing them twice)
+--			gl.ColorMask(true, true, true, true)
+--			gl.BlendFunc(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA)
+--
+--			-- Does not need to be drawn per Unit anymore
+--			glCallList(clearquad)
+--		end
 	end
 
 	gl.ColorMask(false,false,false,false)
