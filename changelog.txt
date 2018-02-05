@@ -7,6 +7,7 @@ Balance changes:
 Other:
  • Fancy Selected Units widget added (default disabled)
  • You can now toggle off Highlight Selected Units option
+ • Ignore Ships vs Shipyard colisions for the just finished ships (15 seconds): They wont be rotated anymore when just exiting lab.
 
 
 10.04 -> 10.05
