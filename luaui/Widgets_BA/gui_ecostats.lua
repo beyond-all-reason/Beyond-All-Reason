@@ -867,12 +867,12 @@ local function drawListStandard()
 			if avgData[aID] == nil then
 				avgData[aID] = {}
 				avgData[aID]["tE"] = data["tE"]
-				avgData[aID]["tEp"] = data["tEp"]
+				avgData[aID]["tEr"] = data["tEr"]
 				avgData[aID]["tM"] = data["tM"]
 				avgData[aID]["tMr"] = data["tMr"]
 			else
 				avgData[aID]["tE"] = avgData[aID]["tE"] + ((data["tE"] - avgData[aID]["tE"])/avgFrames)
-				avgData[aID]["tEp"] = avgData[aID]["tEp"] + ((data["tEp"] - avgData[aID]["tEp"])/avgFrames)
+				avgData[aID]["tEr"] = avgData[aID]["tEr"] + ((data["tEr"] - avgData[aID]["tEr"])/avgFrames)
 				avgData[aID]["tM"] = avgData[aID]["tM"] + ((data["tM"] - avgData[aID]["tM"])/avgFrames)
 				avgData[aID]["tMr"] = avgData[aID]["tMr"] + ((data["tMr"] - avgData[aID]["tMr"])/avgFrames)
 			end
@@ -902,7 +902,7 @@ local function drawListStandard()
 				
 				local t = GetGameSeconds()
 				if data["isAlive"] and t > 0 and gamestarted and not gameover then
-					DrawEBar(avgData[aID]["tE"]/maxEnergy,avgData[aID]["tEp"]/maxEnergy,posy-1)
+					DrawEBar(avgData[aID]["tE"]/maxEnergy,(avgData[aID]["tE"]-avgData[aID]["tEr"])/maxEnergy,posy-1)
 					DrawEText(avgData[aID]["tE"],posy-1)
 				end
 				if data["isAlive"] and t > 5 and not gameover then
@@ -953,23 +953,8 @@ function UpdateAlly(allyID)
 end
 
 
-local energyUnitDefs = {}
-local energyUnitDefsToggable = {}
-local windUnitDefs = {}
 local reclaimerUnitDefs = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.energyMake > 0 then
-		energyUnitDefs[udefID] = def.energyMake
-	end
-	if def.energyUpkeep < 0 then
-		energyUnitDefsToggable[udefID] = -def.energyUpkeep
-	end
-	if def.windGenerator > 0 then
-		windUnitDefs[udefID] = true
-	end
-	--if def.extractsMetal > 0 then
-	--	metalUnitDefs[udefID] = def.extractsMetal
-	--end
 	if def.isBuilder and not def.isFactory then
 		reclaimerUnitDefs[udefID] = def.metalMake
 	end
@@ -977,7 +962,7 @@ end
 
 
 function getTeamProduction(teamID)
-	local totalEnergy = 0
+	local totalEnergyReclaim = 0
 	local totalMetalReclaim = 0
 
 	if Spring.GetGameFrame() > 0 then
@@ -985,36 +970,26 @@ function getTeamProduction(teamID)
 
 		local teamUnits = Spring.GetTeamUnitsSorted(teamID)
 		for unitDefID, units in pairs(teamUnits) do
-			if energyUnitDefs[unitDefID] or energyUnitDefsToggable[unitDefID] or windUnitDefs[unitDefID] then -- or metalUnitDefs[unitDefID]
+			if reclaimerUnitDefs[unitDefID] then -- or metalUnitDefs[unitDefID]
 				for i, unitID in ipairs(units) do
-					if not Spring.GetUnitIsStunned(unitID) then
-						if energyUnitDefs[unitDefID] then
-							totalEnergy = totalEnergy + energyUnitDefs[unitDefID]
-						end
-						if energyUnitDefsToggable[unitDefID] and Spring.GetUnitIsActive(unitID) then
-							totalEnergy = totalEnergy + energyUnitDefsToggable[unitDefID]
-						end
-						if windUnitDefs[unitDefID] then
-							totalEnergy = totalEnergy + currentWind
-						end
-						if reclaimerUnitDefs[unitDefID] then
-							local metalMake,metalUse,energyMake,energyUse = Spring.GetUnitResources(unitID)
-							if metalMake > 0 then
-								totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID])
-							end
-						end
+					local metalMake,metalUse,energyMake,energyUse = Spring.GetUnitResources(unitID)
+					if metalMake > 0 then
+						totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID])
+					end
+					if energyMake > 0 then
+						totalEnergyReclaim = totalEnergyReclaim + (energyMake-reclaimerUnitDefs[unitDefID])
 					end
 				end
 			end
 		end
 	end
-	return totalEnergy, totalMetalReclaim
+	return totalEnergyReclaim, totalMetalReclaim
 end
 
 
 function setTeamTable(teamID)
 	
-	local side, aID, isDead, commanderAlive, minc, mrecl, einc, eprod, x, y, leaderName, leaderID, active, spectator
+	local side, aID, isDead, commanderAlive, minc, mrecl, einc, erecl, x, y, leaderName, leaderID, active, spectator
 	
 	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID)
 	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID)
@@ -1037,7 +1012,7 @@ function setTeamTable(teamID)
 	
 	_,_,_,minc 					= GetTeamResources(teamID,"metal")
 	_,_,_,einc 					= GetTeamResources(teamID,"energy")
-	eprod,mrecl					= getTeamProduction(teamID)
+	erecl,mrecl					= getTeamProduction(teamID)
 	x,_,y 						= Spring.GetTeamStartPosition(teamID)
 	commanderAlive 				= checkCommander(teamID)
 	if Game.gameShortName == "EvoRTS" then side = "outer_colonies" end
@@ -1074,7 +1049,7 @@ function setTeamTable(teamID)
 	teamData[teamID]["minc"]			= minc
 	teamData[teamID]["mrecl"]			= minc
 	teamData[teamID]["einc"] 			= einc
-	teamData[teamID]["eprod"] 			= eprod
+	teamData[teamID]["erecl"] 			= erecl
 	teamData[teamID]["leaderID"]		= leaderID
 	teamData[teamID]["leaderName"]		= leaderName
 	teamData[teamID]["active"]			= active
@@ -1108,7 +1083,7 @@ function setAllyData(allyID)
 	
 	allyData[index]["teams"]			= teamList
 	allyData[index]["tE"] 				= getTeamSum(index,"einc")
-	allyData[index]["tEp"] 				= getTeamSum(index,"eprod")
+	allyData[index]["tEr"] 				= getTeamSum(index,"erecl")
 	allyData[index]["tM"] 				= getTeamSum(index,"minc")
 	allyData[index]["tMr"] 				= getTeamSum(index,"mrecl")
 	allyData[index]["isAlive"]			= isTeamAlive(allyID)
@@ -1232,7 +1207,7 @@ function setPlayerResources()
 	for teamID,data in pairs(teamData) do
 		data.minc = select(4,GetTeamResources(teamID,"metal")) or 0
 		data.einc = select(4,GetTeamResources(teamID,"energy")) or 0
-		data.eprod,data.mrecl = getTeamProduction(teamID)
+		data.erecl,data.mrecl = getTeamProduction(teamID)
 	end
 end
 
