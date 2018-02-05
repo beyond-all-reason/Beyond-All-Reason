@@ -5,7 +5,7 @@ return {
 	desc    = "",
 	author  = "Floris",
 	date    = "September 2016",
-	layer   = 2,
+	layer   = 20000,
 	enabled = true,
 	handler = true,
 }
