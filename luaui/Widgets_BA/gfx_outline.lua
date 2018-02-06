@@ -32,6 +32,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local customSize = 1
+
 --//textures
 local offscreentex
 local depthtex
@@ -41,7 +43,7 @@ local blurtex
 local depthShader
 local blurShader_h
 local blurShader_v
-local uniformScreenXY, uniformScreenX, uniformScreenY
+local uniformScreenXY, uniformScreenX, uniformScreenY,uniformSizeX,uniformSizeY
 
 --// geometric
 local vsx, vsy = 0,0
@@ -52,6 +54,7 @@ local enter2d,leave2d
 
 local averageFps = minFps + fpsDiff + 6
 local show = true
+local outlineSize = 2
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -95,8 +98,17 @@ local glPopMatrix     = gl.PopMatrix
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
+
 function widget:Initialize()
+
   vsx, vsy = widgetHandler:GetViewSizes()
+
+  if depthShader then
+    gl.DeleteShader(depthShader)
+    gl.DeleteShader(blurShader_h)
+    gl.DeleteShader(blurShader_v)
+  end
 
   depthShader = gl.CreateShader({
     fragment = [[
@@ -126,6 +138,7 @@ function widget:Initialize()
     fragment = [[
       uniform sampler2D tex0;
       uniform int screenX;
+      uniform float size;
 
       const vec2 kernel = vec2(0.6,0.7);
 
@@ -137,7 +150,7 @@ function widget:Initialize()
         int n = 1;
         float pixelsize = 1.0/float(screenX);
         for(i = 1; i < 3; ++i){
-          gl_FragColor += kernel[n] * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
+          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
           --n;
         }
 
@@ -145,7 +158,7 @@ function widget:Initialize()
 
         n = 0;
         for(i = -2; i < 0; ++i){
-          gl_FragColor += kernel[n] * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
+          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
           ++n;
         }
       }
@@ -156,10 +169,10 @@ function widget:Initialize()
     },
   })
 
-
   blurShader_v = gl.CreateShader({
     fragment = [[      uniform sampler2D tex0;
       uniform int screenY;
+      uniform float size;
 
       const vec2 kernel = vec2(0.6,0.7);
 
@@ -171,7 +184,7 @@ function widget:Initialize()
         int n = 1;
         float pixelsize = 1.0/float(screenY);
         for(i = 0; i < 2; ++i){
-          gl_FragColor += kernel[n] * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
+          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
           --n;
         }
 
@@ -179,7 +192,7 @@ function widget:Initialize()
 
         n = 0;
         for(i = -2; i < 0; ++i){
-          gl_FragColor += kernel[n] * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
+          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
           ++n;
         }
       }
@@ -208,7 +221,9 @@ function widget:Initialize()
 
   uniformScreenXY = gl.GetUniformLocation(depthShader,  'screenXY')
   uniformScreenX  = gl.GetUniformLocation(blurShader_h, 'screenX')
+  uniformSizeX  = gl.GetUniformLocation(blurShader_h, 'size')
   uniformScreenY  = gl.GetUniformLocation(blurShader_v, 'screenY')
+  uniformSizeY  = gl.GetUniformLocation(blurShader_v, 'size')
 
   self:ViewResize(widgetHandler:GetViewSizes())
 
@@ -231,11 +246,20 @@ function widget:Initialize()
   WG['outline'].setMaxunits = function(value)
     maxOutlineUnits = value
   end
+  WG['outline'].getSize = function()
+    return customSize
+  end
+  WG['outline'].setSize = function(value)
+    customSize = value
+    resChanged = true
+  end
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
   vsy = viewSizeY
+
+  outlineSize = (0.85 + (vsx*vsy / 25000000))
 
   gl.DeleteTexture(depthtex or 0)
   gl.DeleteTextureFBO(offscreentex or 0)
@@ -286,6 +310,8 @@ function widget:Shutdown()
 
   gl.DeleteList(enter2d)
   gl.DeleteList(leave2d)
+
+  WG['outline'] = nil
 end
 
 
@@ -342,22 +368,25 @@ function widget:Update(dt)
 	end
 end
 
+
 function widget:DrawWorldPreUnit()
 	if not show then return end
  	gl.ResetState()		-- to prevent on/off flicker induced by other widgets maybe (i tried single out which thing included in gl.ResetSate fixed it but it kept doing it)
  	
   glCopyToTexture(depthtex,  0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)
-	
+
   if (resChanged) then
     resChanged = false
     if (vsx==1) or (vsy==1) then return end
     glUseShader(depthShader)
-    glUniform(uniformScreenXY,   vsx,vsy )
-     glUseShader(blurShader_h)
-    glUniformInt(uniformScreenX, vsx )
-     glUseShader(blurShader_v)
-    glUniformInt(uniformScreenY, vsy )
+     glUniform(uniformScreenXY,   vsx,vsy )
+    glUseShader(blurShader_h)
+     glUniformInt(uniformScreenX, vsx )
+     glUniform(uniformSizeX, outlineSize*customSize)
+    glUseShader(blurShader_v)
+     glUniformInt(uniformScreenY, vsy )
+     glUniform(uniformSizeY, outlineSize*customSize)
   end
 	
   glUseShader(depthShader)
@@ -378,11 +407,13 @@ end
 function widget:GetConfigData()
   savedTable = {}
   savedTable.maxOutlineUnits = maxOutlineUnits
+  savedTable.customSize = customSize
   return savedTable
 end
 
 function widget:SetConfigData(data)
-  maxOutlineUnits = data.maxOutlineUnits or maxOutlineUnits
+  if data.maxOutlineUnits then maxOutlineUnits = data.maxOutlineUnits or maxOutlineUnits end
+  if data.customSize then customSize = data.customSize or customSize end
 end
 
 --------------------------------------------------------------------------------

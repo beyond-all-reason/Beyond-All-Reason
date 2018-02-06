@@ -1248,6 +1248,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['enemyspotter'] ~= nil then
 				WG['enemyspotter'].setOpacity(value)
 			end
+		elseif id == 'outline_size' then
+			if widgetHandler.configData["Outline"] == nil then
+				widgetHandler.configData["Outline"] = {}
+			end
+			widgetHandler.configData["Outline"].customSize = value
+			if WG['outline'] ~= nil then
+				WG['outline'].setSize(value)
+			end
 		elseif id == 'highlightselunits_opacity' then
 			if widgetHandler.configData["Highlight Selected Units"] == nil then
 				widgetHandler.configData["Highlight Selected Units"] = {}
@@ -1736,6 +1744,15 @@ function loadWidgetConfigData()
 		end
 	end
 
+	if widgetHandler.knownWidgets["Outline"] ~= nil then
+		if getOptionByID("outline_size") and widgetHandler.configData["Outline"] ~= nil and widgetHandler.configData["Outline"].customSize ~= nil then
+			if options[getOptionByID("outline_size")].value ~= widgetHandler.configData["Outline"].customSize then
+				options[getOptionByID("outline_size")].value = widgetHandler.configData["Outline"].customSize
+				changes = true
+			end
+		end
+	end
+
 	if widgetHandler.knownWidgets["Highlight Selected Units"] ~= nil then
 		if getOptionByID("highlightselunits_opacity") and widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].highlightAlpha ~= nil then
 			if options[getOptionByID("highlightselunits_opacity")].value ~= widgetHandler.configData["Highlight Selected Units"].highlightAlpha then
@@ -1884,6 +1901,8 @@ function init()
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
+		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.75, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
+
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
@@ -1927,8 +1946,6 @@ function init()
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 
-		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
-
 		{id="healthbarsscale", group="ui", name="Health Bars Scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
 
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
@@ -1955,6 +1972,8 @@ function init()
 
 		{id="idlebuilders", group="ui", widget="Idle Builders", name="List Idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row containing a list of idle builder units (if there are any)'},
 		{id="betfrontend", group="ui", widget="Bet-Frontend", name="Bet interface", type="bool", value=GetWidgetToggleValue("Bet-Frontend"), description='When spectator: display a betting interface.\nIt allows betting on when you think a unit will be destroyed.\nBeware... you have a limited supply of chips.'},
+		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
+		{id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
 		{id="teamplatter", group="ui", widget="TeamPlatter", name="Unit team platters", type="bool", value=GetWidgetToggleValue("TeamPlatter"), description='Shows a team color platter above all visible units'},
 		{id="teamplatter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters'},
@@ -1976,12 +1995,12 @@ function init()
 		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor opacity", min=0, max=1, step=0.01, type="slider", value=0.1, description='Set the amount of teamcolor used for the base platter'},
 		--{id="fancyselectedunits_secondline", group="ui", name=widgetOptionColor.."   add second line", type="bool", value=false, description='Adds a second line'},
 
-		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 
-        {id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
         -- GAME
-        {id="smartselect_includebuildings", group="game", name="Include buildings in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\n\ndisabled: non-mobile units will not be selected\n(except: nanos always will be selected)'},
+		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
+
+		{id="smartselect_includebuildings", group="game", name="Include buildings in area-selection", type="bool", value=false, description='When rectangle-drag-selecting an area, include building units too?\n\ndisabled: non-mobile units will not be selected\n(except: nanos always will be selected)'},
 
         {id="onlyfighterspatrol", group="game", widget="OnlyFightersPatrol", name="Only fighters patrol", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Only fighters obey a factory\'s patrol route after leaving airlab.'},
 		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=GetWidgetToggleValue("Set fighters on Fly mode"), description='Setting fighters on Fly mode when created'},
@@ -2075,6 +2094,11 @@ function init()
 
 
 	-- disable options when widget isnt availible
+	if widgetHandler.knownWidgets["Outline"] == nil then
+		options[getOptionByID('outline')] = nil
+		options[getOptionByID("outline_size")] = nil
+	end
+
 	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
 		options[getOptionByID('fancyselectedunits')] = nil
 		options[getOptionByID("fancyselectedunits_style")] = nil

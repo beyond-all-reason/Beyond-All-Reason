@@ -143,7 +143,7 @@ function widget:Initialize()
 		Spring.Echo("Ecostats: widget loaded in spectator mode")
 	end
 	if GetGameSeconds() > 0 then gamestarted = true end
-	
+
 	Init()
 end
 
@@ -920,7 +920,6 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function UpdateAllTeams()
-
 	for _,data in ipairs (allyData) do
 		for _,teamID in pairs(data.teams) do
 			if inSpecMode or teamData[teamID].allyID == myAllyID then
@@ -1223,7 +1222,6 @@ end
 
 function updateButtons()
 	
-	
 	if widgetPosX < 0 then
 		widgetPosX = 0
 	elseif widgetPosX + widgetWidth > vsx then
@@ -1436,6 +1434,8 @@ end
 
 
 function widget:MousePress(x, y, button)
+	if not inSpecMode then return end
+
 	if button == 1 then	
 		
 		for name, buttonType in pairs(Button) do
@@ -1512,7 +1512,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:GameFrame(frameNum)
-	
+
 	if not inSpecMode then return end
 	
 	if frameNum == 15 then
