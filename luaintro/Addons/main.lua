@@ -23,21 +23,37 @@ end
 ------------------------------------------
 
 -- Random tips we can show
-local tips = {"Tip #294:\n Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
+local tips = {"Tip #294:\n\nHave trouble finding metal spots?\nPress F4 to switch to the metal map.",
 "Tip #15: Some other tip."}
 -- Random unit descriptions we can show
 local unit_descs = {"armacv.dds ARM Amphibious Constructor\nDescription comes here after the image. Image must end to dds. Image must be in unitpics",
 "armamb.dds Some other unit."}
 
--- Since math.random is not random and always the same, we use os.time.
-rand = os.time()
-local random_tip_or_desc = unit_descs[(rand % #unit_descs) + 1]
-if rand%2 == 1 then
-	random_tip_or_desc = tips[(rand % #tips) + 1]
+-- Since math.random is not random and always the same, we save a counter to a file and use that.
+filename = "LuaUI/Config/randomseed.data"
+k = os.time() % 1500
+if VFS.FileExists(filename) then
+    local file = assert(io.open(filename,'r'), "Unable to load latest randomseed from "..filename)
+    k = math.floor(tonumber(file:read())) % 1500
+    file:close()
+end
+k = k + 1
+local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+    file:write(k)
+    file:close()
+file = nil
+
+local random_tip_or_desc = unit_descs[((k/2) % #unit_descs) + 1]
+if k%2 == 1 then
+    random_tip_or_desc = tips[((math.ceil(k/2)) % #tips) + 1]
 end
 
-local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
+--local random_tip_or_desc = unit_descs[(math.random(rand, rand+#unit_descs)-rand) + 1]
+--if rand%2 == 1 then
+--	random_tip_or_desc = tips[(math.random(rand, rand+#tips)-rand) + 1]
+--end
 
+local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
 function DrawRectRound(px,py,sx,sy,cs)
 
@@ -209,7 +225,9 @@ function addon.DrawLoadScreen()
 		text_to_show = string.sub(random_tip_or_desc, j+2)
 		gl.Texture(":n:unitpics/" .. image_text)
 		gl.Color(1.0,1.0,1.0,0.8)
+		-- From X position, from Y position, to X position, to Y position
 		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
+		-- text, X position, Y position, text size.
 		font:Print(text_to_show, vsx * 0.21, vsy * 0.59, barTextSize * 0.67, "oa")
 	else
 		font:Print(text_to_show, vsx * 0.21, vsy * 0.68, barTextSize * 0.67, "oa")
