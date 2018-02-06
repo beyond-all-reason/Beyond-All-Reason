@@ -3,11 +3,12 @@
 
 Balance changes: 
  • Footprints adjusted: armfus 7x4->6x5, armvp 8x6->7x6, corvp 7x7->7x6
+ • Bantha speed reduced 8%
 
 Other:
  • Fancy Selected Units widget added (default disabled)
  • You can now toggle off Highlight Selected Units option
- • EcoStats shows reclaimed metal/energy income part of the bar less vibrant
+ • EcoStats shows reclaimed metal/energy income (as less vibrant part of the bar)
  • Ignore Ships vs Shipyard colisions for the just finished ships (15 seconds): They wont be rotated anymore when just exiting lab.
 
 
