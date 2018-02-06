@@ -25,8 +25,10 @@ local animationMultiplierAdd		= true
 
 local clearquad
 local shapes = {}
+local degrot = {}
 
 local rad_con						= 180 / math.pi
+local math_acos						= math.acos
 
 local UNITCONF						= {}
 
@@ -579,30 +581,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local degrot = {}
-function widget:GameFrame(frame)
-
-	if frame%1~=0 then return end
-
-	-- logs current unit direction	(needs regular updates for air units, and for buildings only once)	for teamID,_ in pairs(perfSelectedUnits) do
-	--for teamID,_ in pairs(perfSelectedUnits) do
-	--for unitKey=1, perfSelectedUnits[teamID]['totalUnits'] do
-	--unitID = perfSelectedUnits[teamID][unitKey]
-	for teamID,_ in pairs(selectedUnits) do
-		for unitID,_ in pairs(selectedUnits[teamID]) do
-			local dirx, _, dirz = spGetUnitDirection(unitID)
-			if (dirz ~= nil) then
-				degrot[unitID] = 180 - math.acos(dirz) * rad_con
-				if dirx < 0 then
-					degrot[unitID] = 180 - math.acos(dirz) * rad_con
-				else
-					degrot[unitID] = 180 + math.acos(dirz) * rad_con
-				end
-			end
-		end
-	end
-end
-
 
 function GetUsedRotationAngle(unitID, shapeName, opposite)
 	if (shapeName == 'circle') then
@@ -624,7 +602,7 @@ end
 
 local function updateSelectedUnitsData()
 
-	-- add selected units that became visible again
+	-- re-add selected units that became visible again
 	for unitID, unitParams in pairs(selectedUnitsInvisible) do
 		if spIsUnitVisible(unitID) then
 			selectedUnits[unitParams.teamID][unitID] = unitParams
@@ -632,6 +610,8 @@ local function updateSelectedUnitsData()
 		end
 	end
 
+	-- remove deselected and out-of-view units
+	-- adjust unit direction
 	local clockDifference
 	for teamID,_ in pairs(selectedUnits) do
 		for unitID,_ in pairs(selectedUnits[teamID]) do
@@ -653,6 +633,17 @@ local function updateSelectedUnitsData()
 				selectedUnitsInvisible[unitID] = selectedUnits[teamID][unitID]
 				selectedUnitsInvisible[unitID].teamID = teamID
 				selectedUnits[teamID][unitID] = nil
+			else
+				-- logs current unit direction	(needs regular updates for air units, and for buildings only once)	for teamID,_ in pairs(perfSelectedUnits) do
+				local dirx, _, dirz = spGetUnitDirection(unitID)
+				if (dirz ~= nil) then
+					degrot[unitID] = 180 - math_acos(dirz) * rad_con
+					if dirx < 0 then
+						degrot[unitID] = 180 - math_acos(dirz) * rad_con
+					else
+						degrot[unitID] = 180 + math_acos(dirz) * rad_con
+					end
+				end
 			end
 		end
 	end
@@ -748,6 +739,7 @@ do
 							end
 						else
 							selectedUnits[teamID][unitID] = nil
+							degrot[unitID] = nil
 						end
 
 					-- check if the unit is newly selected
