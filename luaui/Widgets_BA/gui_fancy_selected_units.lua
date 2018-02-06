@@ -863,25 +863,25 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 
+
+	local baseR, baseG, baseB, a, scale, scaleBase, scaleOuter
+	scale = 1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplierInner
+	scaleBase = scale * 1.133
+	if OPTIONS[currentOption].showSecondLine then
+		scaleOuter = (1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplier) * 1.16
+		scaleBase = scaleOuter * 1.08
+	end
+
 	gl.PushAttrib(GL.COLOR_BUFFER_BIT)
 	gl.DepthTest(false)
 
 	-- loop teams
-	local baseR, baseG, baseB, r, g, b, a, scale, scaleBase, scaleOuter
 	for teamID,_ in pairs(selectedUnits) do
-		r,g,b = 1,1,1
-		scale = 1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplierInner
-		scaleBase = scale * 1.133
-		if OPTIONS[currentOption].showSecondLine then
-			scaleOuter = (1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplier) * 1.16
-			scaleBase = scaleOuter * 1.08
-		end
 
 		gl.ColorMask(false, false, false, true)
 		gl.BlendFunc(GL.ONE, GL.ONE)
-		gl.Color(r,g,b,1)
+		gl.Color(1,1,1,1)
 		glCallList(clearquad)
-
 
 		-- draw base background layer
 		if OPTIONS[currentOption].showBase then
@@ -919,23 +919,20 @@ function widget:DrawWorldPreUnit()
 			if OPTIONS[currentOption].showFirstLineDetails then
 				if OPTIONS[currentOption].showNoOverlap then
 					-- draw normal spotters solid
-					gl.Color(r,g,b,0)
-					DrawSelectionSpottersPart(teamID, 'normal solid', r,g,b,a,scale, false, false, false, false)
+					gl.Color(1,1,1,0)
+					DrawSelectionSpottersPart(teamID, 'normal solid', 1,1,1,a,scale, false, false, false, false)
 
 					--  Here the spotters are given the alpha level (this step makes sure overlappings dont have different alpha level)
 					gl.BlendFunc(GL.ONE, GL.ZERO)
-					gl.Color(r,g,b,a)
-					DrawSelectionSpottersPart(teamID, 'normal alpha', r,g,b,a,scale, false, false, true, false)
-				else
-					gl.Color(r,g,b,a)
-					DrawSelectionSpottersPart(teamID, 'normal alpha', r,g,b,a,scale, false, false, true, false)
 				end
+				gl.Color(1,1,1,a)
+				DrawSelectionSpottersPart(teamID, 'normal alpha', 1,1,1,a,scale, false, false, true, false)
 			end
 
 			--  Here the inner of the selected spotters are removed
 			gl.BlendFunc(GL.ONE, GL.ZERO)
-			gl.Color(r,g,b,1)
-			DrawSelectionSpottersPart(teamID, 'solid overlap', r,g,b,a,scale, opposite, relativeScaleSchrinking, false, drawUnitStyles)
+			gl.Color(1,1,1,1)
+			DrawSelectionSpottersPart(teamID, 'solid overlap', 1,1,1,a,scale, opposite, relativeScaleSchrinking, false, drawUnitStyles)
 
 			--  Really draw the spotters now  (This could be optimised if we could say Draw as much as DST_ALPHA * SRC_ALPHA is)
 			-- (without protecting form drawing them twice)
@@ -956,8 +953,8 @@ function widget:DrawWorldPreUnit()
 --
 --			--  Here the inner of the selected spotters are removed
 --			gl.BlendFunc(GL.ONE, GL.ZERO)
---			gl.Color(r,g,b,1)
---			DrawSelectionSpottersPart(teamID, 'solid overlap', r,g,b,a,scaleOuter, false, true, false, true)
+--			gl.Color(1,1,1,1)
+--			DrawSelectionSpottersPart(teamID, 'solid overlap', 1,1,1,a,scaleOuter, false, true, false, true)
 --
 --			--  Really draw the spotters now  (This could be optimised if we could say Draw as much as DST_ALPHA * SRC_ALPHA is)
 --			-- (without protecting form drawing them twice)
