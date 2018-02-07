@@ -63,6 +63,16 @@ StopMoving()
 	sleep 150;
 }
 
+AimWeapon1()
+{
+	return (TRUE);
+}
+
+AimWeapon2()
+{
+	return (TRUE);
+}
+
 QueryWeapon1(piecenum)
 {
 	piecenum = base;

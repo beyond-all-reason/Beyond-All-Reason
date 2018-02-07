@@ -9,6 +9,7 @@ Other:
  • You can now toggle off Highlight Selected Units option
  • EcoStats shows reclaimed metal/energy income part of the bar less vibrant
  • Ignore Ships vs Shipyard colisions for the just finished ships (15 seconds): They wont be rotated anymore when just exiting lab.
+ • Fixed T2 crawling bombs not blowing on attack commands.
 
 
 10.04 -> 10.05

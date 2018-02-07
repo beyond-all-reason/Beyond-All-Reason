@@ -120,6 +120,15 @@ StopMoving()
 {
 	bMoving = FALSE;
 }
+AimWeapon1()
+{
+	return (TRUE);
+}
+
+AimWeapon2()
+{
+	return (TRUE);
+}
 
 FireWeapon1()
 {
