@@ -23,21 +23,44 @@ end
 ------------------------------------------
 
 -- Random tips we can show
-local tips = {"Tip #294:\n Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
-"Tip #15: Some other tip."}
+local tips = {"Tip #1:\n\nHave trouble finding metal spots?\nPress F4 to switch to the metal map.",
+"Tip #2: Radars are cheap, make them in early game to effectively counter early strikes.",
+"Tip #3: Commanders rule the early stages of the battle, whith their Dgun manual weapon they can decimate every unit with one blow.\nPress D to quckly initiate aiming.",
+"Tip #3: Spread your buildings, to prevent chained-explosions.\nPress ALT+Z and ALT+X to set automatic spacing.",
+"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints."}
 -- Random unit descriptions we can show
-local unit_descs = {"armacv.dds ARM Amphibious Constructor\nDescription comes here after the image. Image must end to dds. Image must be in unitpics",
-"armamb.dds Some other unit."}
+local unit_descs = {"ARMATLAS.DDS The Atlas is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti-air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your buildpower where you currently need it.",
+"ARMCA.DDS A Construction Aircraft is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Aircraft Plant. Due to their speed, the highest amongst constructors, it may be used for quick expansions and reclaiming in areas far from your base. It can also access the whole map, as it doesn't care about any natural obstacles. It has a very low HP, so keep away from enemy's anti air units. Due to little build power you may want to use multiple air cons at once. Each Construction Aircraft increases the player's energy and metal storage capacity by 25.",
+"ARMFIG.DDS The Freedom Fighter is a fast moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs, it is also able to destroy weak land-based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in the vicinity. Send fighters with your bombing runs to disable opponent's fighter wall before your bombers come to deliver the final blow.",
+"ARMKAM.DDS The Banshee is a light gunship that can deal damage to land based units. It has very weak armor, that can be shattered by T1 anti air with ease, so always send them in packs and scout before striking. It is a weapon of surprise, try to keep it away from your foe's radars before attacking. If you succeed to put your gunships into an unguarded base, or over hostile Commander it will have no chance to survive. An effective attacking order is: nano towers -> AA towers,units -> eco and labs.",
+"ARMPEEP.DDS The Peeper is a cheap and fast moving air scout, that is not armed with any weapons, but a huge line of sight. It is used to gain intelligence on what your enemy is planning, and where he keeps his most important units. Information is the most valuable asset on the battlefield, knowing your opponent's plans you can prepare your counter strikes early, making his moves inefficient. In lategame a constant stream of scouts helps your artillery units, improving their aim.",
+"ARMTHUND.DDS The Thunder is a bomber, designed for destroying buildings. A little bit weaker than its CORE counterpart - Shadow. It drops bombs over the target and makes a flyby to reload its ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle." }
 
--- Since math.random is not random and always the same, we use os.time.
-rand = os.time()
-local random_tip_or_desc = unit_descs[(rand % #unit_descs) + 1]
-if rand%2 == 1 then
-	random_tip_or_desc = tips[(rand % #tips) + 1]
+-- Since math.random is not random and always the same, we save a counter to a file and use that.
+filename = "LuaUI/Config/randomseed.data"
+k = os.time() % 1500
+if VFS.FileExists(filename) then
+    local file = assert(io.open(filename,'r'), "Unable to load latest randomseed from "..filename)
+    k = math.floor(tonumber(file:read())) % 1500
+    file:close()
+end
+k = k + 1
+local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
+    file:write(k)
+    file:close()
+file = nil
+
+local random_tip_or_desc = unit_descs[((k/2) % #unit_descs) + 1]
+if k%2 == 1 then
+    random_tip_or_desc = tips[((math.ceil(k/2)) % #tips) + 1]
 end
 
-local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
+--local random_tip_or_desc = unit_descs[(math.random(rand, rand+#unit_descs)-rand) + 1]
+--if rand%2 == 1 then
+--	random_tip_or_desc = tips[(math.random(rand, rand+#tips)-rand) + 1]
+--end
 
+local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
 function DrawRectRound(px,py,sx,sy,cs)
 
@@ -209,7 +232,9 @@ function addon.DrawLoadScreen()
 		text_to_show = string.sub(random_tip_or_desc, j+2)
 		gl.Texture(":n:unitpics/" .. image_text)
 		gl.Color(1.0,1.0,1.0,0.8)
+		-- From X position, from Y position, to X position, to Y position
 		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
+		-- text, X position, Y position, text size.
 		font:Print(text_to_show, vsx * 0.21, vsy * 0.59, barTextSize * 0.67, "oa")
 	else
 		font:Print(text_to_show, vsx * 0.21, vsy * 0.68, barTextSize * 0.67, "oa")

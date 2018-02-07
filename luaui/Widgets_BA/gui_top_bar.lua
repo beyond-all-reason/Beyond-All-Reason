@@ -1589,6 +1589,7 @@ function widget:Initialize()
 	Spring.SendCommands("resbar 0")
 
 	-- determine if we want to show comcounter
+	local comCount = 0
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _,allyTeamID in ipairs(allyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeamID)
@@ -1601,6 +1602,10 @@ function widget:Initialize()
 			displayComCounter = true
 			break
 		end
+	end
+
+	if enemyComs > 1 then
+		displayComCounter = true
 	end
 
 	if displayComCounter and gameFrame > 0 then

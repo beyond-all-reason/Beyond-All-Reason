@@ -24,7 +24,7 @@ return {
 		mass = 999999995904,
 		maxdamage = 62000,
 		maxslope = 17,
-		maxvelocity = 1.65,
+		maxvelocity = 1.52,
 		maxwaterdepth = 12,
 		movementclass = "VKBOT3",
 		name = "Bantha",

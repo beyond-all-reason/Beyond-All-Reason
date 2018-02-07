@@ -184,47 +184,47 @@ function Init()
 	teamData = {}
 	allyData = {}
 	comTable = {}
-	
+
 	Button["player"] 		= {}
 	iPosX = {}
 	iPosY = {}
-	
+
 	right = widgetPosX/vsx > 0.5
 	widgetHeight = getNbTeams()*tH+(2*sizeMultiplier)
-	
+
 	for id,unitDef in ipairs(UnitDefs) do
 		if unitDef.customParams.iscommander then
 			table.insert(comTable,id)
 			comDefs[id] = true
 		end
-	end	
-	
+	end
+
 	allyData  = {}
-	for _, allyID in ipairs (Spring.GetAllyTeamList() ) do		
+	for _, allyID in ipairs (Spring.GetAllyTeamList() ) do
 		if allyID ~= gaiaAllyID or haveZombies then
-		
+
 			local teamList = GetTeamList(allyID)
-			
+
 			local allyDataIndex = allyID +1
 			allyData[allyDataIndex]						= {}
 			allyData[allyDataIndex]["teams"]			= teamList
 			allyData[allyDataIndex].exists				= #teamList > 0
-			
+
 			for _,teamID in pairs(teamList) do
 				local myAllyID = select(6,GetTeamInfo(teamID))
-				
+
 				setTeamTable(teamID)
 				Button["player"][teamID] = {}
 			end
-			
+
 			setAllyData(allyID)
-			
+
 			local nbPlayers 							= #teamList
 		end
 	end
-	
+
 	maxPlayers 	= getMaxPlayers()
-	
+
 	if maxPlayers == 1 then
 		WBadge = 18
 	elseif maxPlayers == 2 or maxPlayers == 3 then
@@ -233,18 +233,17 @@ function Init()
 		WBadge = 14
 	end
 	WBadge = WBadge*sizeMultiplier
-	
-	if maxPlayers * WBadge + (20*sizeMultiplier) > widgetWidth then 
-		widgetWidth = (20*sizeMultiplier) + maxPlayers * WBadge	
-	end 
-	
+
+	if maxPlayers * WBadge + (20*sizeMultiplier) > widgetWidth then
+		widgetWidth = (20*sizeMultiplier) + maxPlayers * WBadge
+	end
+
 	processScaling()
 	updateButtons()
 	UpdateAllies()
-	
+
 	local frame = GetGameFrame()
 	lastPlayerChange = frame
-	
 end
 
 function Reinit()
@@ -964,9 +963,9 @@ function getTeamProduction(teamID)
 	local totalEnergyReclaim = 0
 	local totalMetalReclaim = 0
 
-	if Spring.GetGameFrame() > 0 then
-		local currentWind = string.format('%.1f', select(4,Spring.GetWind()))
+	local currentWind = string.format('%.1f', select(4,Spring.GetWind()))
 
+	if inSpecMode then
 		local teamUnits = Spring.GetTeamUnitsSorted(teamID)
 		for unitDefID, units in pairs(teamUnits) do
 			if reclaimerUnitDefs[unitDefID] then -- or metalUnitDefs[unitDefID]

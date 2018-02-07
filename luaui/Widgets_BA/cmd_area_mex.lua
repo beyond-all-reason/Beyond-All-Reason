@@ -518,6 +518,8 @@ function widget:Initialize()
 		mexIds[UnitDefNames['cormoho'].id] = UnitDefNames['cormoho'].id 		
 		mexIds[UnitDefNames['armuwmex'].id] = UnitDefNames['armuwmex'].id 
 		mexIds[UnitDefNames['coruwmex'].id] = UnitDefNames['coruwmex'].id 
+		mexIds[UnitDefNames['armuwmme'].id] = UnitDefNames['armuwmme'].id 
+		mexIds[UnitDefNames['coruwmme'].id] = UnitDefNames['coruwmme'].id 
 	elseif Gname == 'ca' then
 		Spring.Echo("Area Mex: Loaded for CA")
 		mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
