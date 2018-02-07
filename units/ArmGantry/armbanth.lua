@@ -41,7 +41,7 @@ return {
 		upright = true,
 		customparams = {
 			
-			paralyzemultiplier = 1.3,
+			paralyzemultiplier = 0.9,
 		},
 		featuredefs = {
 			dead = {
