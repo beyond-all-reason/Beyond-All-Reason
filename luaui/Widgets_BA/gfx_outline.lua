@@ -54,17 +54,12 @@ local enter2d,leave2d
 
 local averageFps = minFps + fpsDiff + 6
 local show = true
-local outlineSize = 2
+local outlineSize = 1
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local GL_DEPTH_BITS = 0x0D56
-
-local GL_DEPTH_COMPONENT   = 0x1902
-local GL_DEPTH_COMPONENT16 = 0x81A5
 local GL_DEPTH_COMPONENT24 = 0x81A6
-local GL_DEPTH_COMPONENT32 = 0x81A7
 
 --// speed ups
 local ALL_UNITS       = Spring.ALL_UNITS
@@ -83,7 +78,6 @@ local glUseShader  = gl.UseShader
 local glUniform    = gl.Uniform
 local glUniformInt = gl.UniformInt
 
-local glBlending  = gl.Blending
 local glClear    = gl.Clear
 local glTexRect  = gl.TexRect
 local glColor    = gl.Color
@@ -140,8 +134,6 @@ function widget:Initialize()
       uniform int screenX;
       uniform float size;
 
-      const vec2 kernel = vec2(0.6,0.7);
-
       void main(void) {
         vec2 texCoord  = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
         gl_FragColor = vec4(0.0);
@@ -150,7 +142,7 @@ function widget:Initialize()
         int n = 1;
         float pixelsize = 1.0/float(screenX);
         for(i = 1; i < 3; ++i){
-          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
+          gl_FragColor += size * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
           --n;
         }
 
@@ -158,7 +150,7 @@ function widget:Initialize()
 
         n = 0;
         for(i = -2; i < 0; ++i){
-          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
+          gl_FragColor += size * texture2D(tex0, vec2(texCoord.s + i*pixelsize,texCoord.t) );
           ++n;
         }
       }
@@ -174,8 +166,6 @@ function widget:Initialize()
       uniform int screenY;
       uniform float size;
 
-      const vec2 kernel = vec2(0.6,0.7);
-
       void main(void) {
         vec2 texCoord  = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
         gl_FragColor = vec4(0.0);
@@ -184,7 +174,7 @@ function widget:Initialize()
         int n = 1;
         float pixelsize = 1.0/float(screenY);
         for(i = 0; i < 2; ++i){
-          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
+          gl_FragColor += size * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
           --n;
         }
 
@@ -192,7 +182,7 @@ function widget:Initialize()
 
         n = 0;
         for(i = -2; i < 0; ++i){
-          gl_FragColor += kernel[n] * size * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
+          gl_FragColor += size * texture2D(tex0, vec2(texCoord.s,texCoord.t + i*pixelsize) );
           ++n;
         }
       }
@@ -259,7 +249,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
   vsy = viewSizeY
 
-  outlineSize = (0.85 + (vsx*vsy / 25000000))
+  outlineSize = (0.85 + (vsx*vsy / 25000000))*0.6
 
   gl.DeleteTexture(depthtex or 0)
   gl.DeleteTextureFBO(offscreentex or 0)

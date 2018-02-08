@@ -876,7 +876,7 @@ function widget:DrawWorldPreUnit()
 		glCallList(clearquad)
 
 		-- draw base background layer
-		if OPTIONS[currentOption].showBase then
+		if OPTIONS[currentOption].showBase and OPTIONS[currentOption].baseOpacity > 0.009 then
 			if OPTIONS[currentOption].teamcolorOpacity < 0.02 then
 				baseR,baseG,baseB = 1,1,1
 			else
