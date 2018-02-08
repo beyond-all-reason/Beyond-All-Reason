@@ -5,6 +5,12 @@ Balance changes:
  • Footprints adjusted: armfus 7x4->6x5, armvp 8x6->7x6, corvp 7x7->7x6
  • Bantha speed reduced 8%
 
+Unbalanced Commanders (when mo_unba is enabled):
+ • Dgun reloadTime reduced by 0.025s at each level (0.9 -> 0.65)
+ • Laser reloadTime reduced by 0.025 at each level, capped at 0.2 (0.4 -> 0.2)
+ • UWLaser reloadTime reduced by 0.05 at each level, capped at 0.5 (1.0 -> 0.5)
+ • Commander BuildSpeed increased by 50 at each level until level 7, then increased by 100 at each level (300 -> 1000)
+
 Other:
  • Fancy Selected Units widget added (default disabled)
  • You can now toggle off Highlight Selected Units option
