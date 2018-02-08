@@ -204,7 +204,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 0.85,
-				explosiongenerator = "custom:genericshellexplosion-medium-aa",
+				explosiongenerator = "custom:genericshellexplosion-large-air",
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,

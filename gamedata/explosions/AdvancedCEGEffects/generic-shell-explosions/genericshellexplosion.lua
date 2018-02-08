@@ -2383,7 +2383,7 @@ local colors = {
     clouddust = {ground=false, water=false},
     explosion = {ground=false, water=false, properties={colormap=[[0 0 0 0   1 0.9 0.8 0.09   0.9 0.5 0.55 0.066   0.66 0.28 0.35 0.033   0 0 0 0]]}},
     explosion2 = {ground=false, water=false, properties={colormap=[[0 0 0 0   1 0.6 0.4 0.09   0.6 0.3 0.45 0.066   0.46 0.18 0.25 0.033   0 0 0 0]]}},
-    sparks = {ground=false, water=false},
+    dustparticles = {ground=false, water=false, properties={colormap=[[1 0.65 0.85 0.22  1 0.5 0.77 0.12  1 0.4 0.7 0.06   0 0 0 0.01]]}},
     outerflash = {ground=false, water=false},
   },
   uw = {
@@ -2418,6 +2418,16 @@ for color, effects in pairs(colors) do
     end
   end
 end
+
+-- adjust ceg used for flak
+definitions[root.."-large-aa"].explosion.properties.particlesize = definitions[root.."-large-aa"].explosion.properties.particlesize * 0.5
+definitions[root.."-large-aa"].explosion.properties.numparticles = math.floor(definitions[root.."-large-aa"].explosion.properties.numparticles * 0.5)
+definitions[root.."-large-aa"].explosion2.properties.particlesize2 = definitions[root.."-large-aa"].explosion2.properties.particlesize * 0.5
+definitions[root.."-large-aa"].explosion2.properties.numparticles = math.floor(definitions[root.."-large-aa"].explosion2.properties.numparticles * 0.5)
+definitions[root.."-small-aa"].sparks = nil
+definitions[root.."-medium-aa"].sparks = nil
+definitions[root.."-large-aa"].sparks = nil
+definitions[root.."-huge-aa"].sparks = nil
 
 -- adjust for beam weapons
 local devideBy = 12
