@@ -6,7 +6,23 @@
 piece  base, float1, float2, float3, float4, float5, float6, door1,
        door2, door3, door4, glow;
        
-static-var Active, mmState;
+static-var Active, mmState, rockframe, Xrot, Zrot, Ymove;
+
+RockOnWaves()
+{
+rockframe = 1;
+while ( TRUE )
+{
+	Xrot = (get KCOS (rockframe * 690)) * 360 / 1024 ;
+	Ymove = (get KSIN (rockframe * 650)) * 2;
+	Zrot = (get KSIN (rockframe * 560)) * 360 / 1024;
+	turn base to x-axis Xrot now;
+	turn base to z-axis Zrot now;
+	move base to y-axis Ymove now;
+	rockframe = rockframe + 1;
+	sleep 1;
+}
+};
 
 activatescr()
 {
@@ -183,6 +199,7 @@ Create()
 	dont-shade glow;
 	start-script SmokeUnit();
 	start-script ImAMetalMaker();
+	start-script RockOnWaves();
 }
 
 SweetSpot(piecenum)

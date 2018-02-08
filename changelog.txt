@@ -17,6 +17,7 @@ Other:
  • EcoStats shows reclaimed metal/energy income (as less vibrant part of the bar)
  • Ignore Ships vs Shipyard colisions for the just finished ships (15 seconds): They wont be rotated anymore when just exiting lab.
  • Fixed T2 crawling bombs not blowing on attack commands.
+ • Added more "RockOnWaves" animations to t1 sea floating buildings (tidals/floating makers/dragonteeth)
 
 
 10.04 -> 10.05
