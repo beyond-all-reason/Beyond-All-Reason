@@ -66,6 +66,7 @@ end
 --	random_tip_or_desc = tips[(math.random(rand, rand+#tips)-rand) + 1]
 --end
 
+local loadedFontSize = 70
 local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
 function DrawRectRound(px,py,sx,sy,cs)
@@ -232,6 +233,7 @@ function addon.DrawLoadScreen()
 	local i, j = string.find(random_tip_or_desc, ".dds")
 	local text_to_show = random_tip_or_desc
 	local image_text = nil
+	local fontSize = barTextSize * 0.67
 
 	if i ~= nil then
 		image_text = string.sub(random_tip_or_desc, 0, j)
@@ -242,13 +244,13 @@ function addon.DrawLoadScreen()
 		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
 		-- text, X position, Y position, text size.
 
-		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
+		local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
 		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, fontSize, "oa")
 	else
-		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
+		local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
 		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, fontSize, "oa")
 	end
 
 	gl.PopMatrix()
