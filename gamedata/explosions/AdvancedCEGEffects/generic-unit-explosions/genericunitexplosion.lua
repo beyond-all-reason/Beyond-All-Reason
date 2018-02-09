@@ -2621,7 +2621,7 @@ local types = {
       properties = {
         delay              = [[1 r6]],
         explosiongenerator = [[custom:burnblack]],
-        pos                = [[-12 r24, 2, -12 r24]],
+        pos                = [[-9 r18, 2, -9 r18]],
       },
     },
     groundfire2 = {
@@ -2634,7 +2634,7 @@ local types = {
       properties = {
         delay              = [[1 r6]],
         explosiongenerator = [[custom:burnblack]],
-        pos                = [[-20 r30, 2, -20 r30]],
+        pos                = [[-15 r25, 2, -15 r25]],
       },
     },
   }

@@ -64,17 +64,17 @@ local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
 function DrawRectRound(px,py,sx,sy,cs)
 
-	local csx = cs
-	local csy = cs
-	if sx-px < (cs*2) then
-		csx = (sx-px)/2
-		if csx < 0 then csx = 0 end
-	end
-	if sy-py < (cs*2) then
-		csy = (sy-py)/2
-		if csy < 0 then csy = 0 end
-	end
-	cs = math.min(csx, csy)
+	--local csx = cs
+	--local csy = cs
+	--if sx-px < (cs*2) then
+	--	csx = (sx-px)/2
+	--	if csx < 0 then csx = 0 end
+	--end
+	--if sy-py < (cs*2) then
+	--	csy = (sy-py)/2
+	--	if csy < 0 then csy = 0 end
+	--end
+	--cs = math.min(cs, csy)
 
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
@@ -216,7 +216,7 @@ function addon.DrawLoadScreen()
 	-- Tip/unit description
 	-- Background
 	gl.Color(0.06,0.06,0.06,0.8)
-	RectRound(0.2-paddingW,0.7-paddingH,0.8+paddingW,0.25+paddingH,0.007)
+	RectRound(0.2-paddingW,0.25+paddingH,0.8+paddingW,0.7-paddingH,0.007)
 
 	-- Text
 	gl.PushMatrix()
@@ -224,20 +224,25 @@ function addon.DrawLoadScreen()
 	-- In this format, there can be an optional image before the tip/description.
 	-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
 	local i, j = string.find(random_tip_or_desc, ".dds")
-	local text_to_show = random_tip_or_desc
+	local text_to_show = random_tip_or_desc..' Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet. '
 	local image_text = nil
 
 	if i ~= nil then
 		image_text = string.sub(random_tip_or_desc, 0, j)
-		text_to_show = string.sub(random_tip_or_desc, j+2)
+		text_to_show = string.sub(random_tip_or_desc, j+2)..' Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet.  Lorem ipsum dolor set amet. '
 		gl.Texture(":n:unitpics/" .. image_text)
 		gl.Color(1.0,1.0,1.0,0.8)
 		-- From X position, from Y position, to X position, to Y position
 		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
 		-- text, X position, Y position, text size.
+
+		--local maxWidth = ((0.8+paddingW) - (0.2-paddingW) * vsx) / (barTextSize * 0.67)
+		--local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
 		font:Print(text_to_show, vsx * 0.21, vsy * 0.59, barTextSize * 0.67, "oa")
 	else
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.68, barTextSize * 0.67, "oa")
+		--local maxWidth = vsx
+		--local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)		-- function returns unreliable values when using different window resolutions
+		font:Print(maxWidth..' '..text_to_show, vsx * 0.21, vsy * 0.59, barTextSize * 0.67, "oa")
 	end
 
 	gl.PopMatrix()
