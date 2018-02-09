@@ -224,7 +224,7 @@ function addon.DrawLoadScreen()
 	-- In this format, there can be an optional image before the tip/description.
 	-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
 	local i, j = string.find(random_tip_or_desc, ".dds")
-	local text_to_show = random_tip_or_desc..' Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fringilla orci a sodales aliquet. Phasellus pellentesque interdum ultrices. Curabitur sit amet ornare neque. Mauris laoreet, risus eget tempus suscipit, augue augue imperdiet massa, non imperdiet ipsum tortor eu ipsum. Suspendisse lorem sem, ullamcorper fringilla vehicula eu, lobortis et nunc.'
+	local text_to_show = random_tip_or_desc
 	local image_text = nil
 
 	if i ~= nil then
