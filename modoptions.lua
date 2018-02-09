@@ -65,6 +65,19 @@ local options={
 	},	
 	
 	{
+		key="seamex",
+		name="Sea Metal Extractors",
+		desc="Defines the use of either surface or underwater mexes",
+		type="list",
+		def="underwater",
+		section="ba_modes",
+		items={
+			{key="underwater", name="Underwater", desc="Use underwater mexes"},
+			{key="surface", name="Surface", desc="Use surface mexes"},
+		}
+	},	
+	
+	{
 		key="map_terraintype",
 		name="Map TerrainTypes",
 		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
