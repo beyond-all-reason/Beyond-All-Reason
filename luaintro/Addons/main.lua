@@ -224,7 +224,7 @@ function addon.DrawLoadScreen()
 	-- In this format, there can be an optional image before the tip/description.
 	-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
 	local i, j = string.find(random_tip_or_desc, ".dds")
-	local text_to_show = random_tip_or_desc
+	local text_to_show = random_tip_or_desc..' Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam fringilla orci a sodales aliquet. Phasellus pellentesque interdum ultrices. Curabitur sit amet ornare neque. Mauris laoreet, risus eget tempus suscipit, augue augue imperdiet massa, non imperdiet ipsum tortor eu ipsum. Suspendisse lorem sem, ullamcorper fringilla vehicula eu, lobortis et nunc.'
 	local image_text = nil
 
 	if i ~= nil then
@@ -236,13 +236,13 @@ function addon.DrawLoadScreen()
 		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
 		-- text, X position, Y position, text size.
 
-		--local maxWidth = ((0.8+paddingW) - (0.2-paddingW) * vsx) / (barTextSize * 0.67)
-		--local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.67, barTextSize * 0.67, "oa")
+		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
+		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
 	else
-		--local maxWidth = vsx
-		--local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)		-- function returns unreliable values when using different window resolutions
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.67, barTextSize * 0.67, "oa")
+		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
+		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
 	end
 
 	gl.PopMatrix()
