@@ -242,13 +242,13 @@ function addon.DrawLoadScreen()
 		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
 		-- text, X position, Y position, text size.
 
-		--local maxWidth = ((0.8+paddingW) - (0.2-paddingW) * vsx) / (barTextSize * 0.67)
-		--local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.67, barTextSize * 0.67, "oa")
+		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
+		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
 	else
-		--local maxWidth = vsx
-		--local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)		-- function returns unreliable values when using different window resolutions
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.67, barTextSize * 0.67, "oa")
+		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
+		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
 	end
 
 	gl.PopMatrix()
