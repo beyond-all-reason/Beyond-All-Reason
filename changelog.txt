@@ -5,6 +5,7 @@ Balance changes:
  • Footprints adjusted: armfus 7x4->6x5, armvp 8x6->7x6, corvp 7x7->7x6
  • Bantha speed reduced 8%, harder to paralyze 30%
  • Fixed T2 crawling bombs not blowing on attack commands. (issue on maintenance engines)
+ • Reduced Comblast Edgeeffectiveness from 0.40 to 0.317 for 3.5k damages to commanders at dgunRange (vs 3.850k).
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Dgun reloadTime reduced by 0.025s at each level (0.9 -> 0.65)
@@ -20,7 +21,7 @@ Other:
  • Added more "RockOnWaves" animations to t1 sea floating buildings (tidals/floating makers/dragonteeth)
  • Flak and mercyry/screamer projectile explosions are bigger visually
  • (unit)Outline widget has thickness slider added to options widget
-
+ • More accurate Comblast and Dgun Range widget. It is now showing ranges for key damage values: 3.5k, 3k, 2k, 1k and 0 damages.
 
 10.04 -> 10.05
 02/02/2018
