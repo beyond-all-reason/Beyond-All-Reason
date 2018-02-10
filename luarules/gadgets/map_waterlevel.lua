@@ -23,6 +23,7 @@ function gadget:Initialize()
 		local miny, maxy = Spring.GetGroundExtremes()
 				if Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel == "-1" then
 					Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -miny+100)
+					Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -miny+100)
 				else
 					local waterlevel1 = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel))/100)
 					if miny >= 0 then						
@@ -30,14 +31,18 @@ function gadget:Initialize()
 						waterlevel = miny + (math.abs(delta*waterlevel1))
 						if waterlevel1 == 1 then
 						Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel-50)
+						Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel-50)
 						else
 						Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+						Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 						end
 					elseif miny < 0 then
 						Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -miny)
+						Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -miny)
 						local delta = maxy - miny
 						waterlevel = 0 + (math.abs(delta*waterlevel1))
 						Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
+						Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 				end
 			end
 		featuretable = Spring.GetAllFeatures()
