@@ -24,17 +24,23 @@ end
 
 -- Random tips we can show
 local tips = {"Tip #1:\n\nHave trouble finding metal spots?\nPress F4 to switch to the metal map.",
-"Tip #2: Radars are cheap, make them in early game to effectively counter early strikes.",
-"Tip #3: Commanders rule the early stages of the battle, whith their Dgun manual weapon they can decimate every unit with one blow.\nPress D to quckly initiate aiming.",
-"Tip #3: Spread your buildings, to prevent chained-explosions.\nPress ALT+Z and ALT+X to set automatic spacing.",
-"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints."}
+"Tip #2: \n\nYou can tweak graphic preferences in options - in top right corner of the screen.\nWhen your FPS drops, switch to a lower graphic preset.",
+"Tip #3: \n\nRadars are cheap, make them in early game to effectively counter early strikes.",
+"Tip #4: \n\nCommanders rule the early stages of the battle, with their Dgun manual weapon they can decimate every unit with one blow.\nPress D to quckly initiate aiming.",
+"Tip #5: \n\nSpread your buildings to prevent chained-explosions.\nPress ALT+Z and ALT+X to set automatic spacing.",
+"Tip #6: \n\nIt is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
+"Tip #7: \n\nT2 factories are expensive, reclaim T1 lab for metal to fund it",
+"Tip #8: \n\nAir strikes or airdrops may come anytime in the game, always have at least one anti-air unit in your base.",
+"Tip #9: \n\nBA interface enables you to put labels on the map for other players to see.\n~(tilde)+doubleclick places a label with text.\n~(tilde)+middle mouse button puts an empty label.\n~(tilde)+mouse drag draws lines over the map. Use this for conducting coordinated team strategies and penises.",
+"Tip #10: \n\nExpanding your territory essential in gaining economic advantage over your opponent. Always try to reach for as many metal spots and geo vents as you can.",
+"Tip #11: \n\nAlways watch out for your Commander.\nTo quickly select and center camera on your Commander press CRTL+C."}
 -- Random unit descriptions we can show
-local unit_descs = {"ARMATLAS.DDS The Atlas is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti-air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your buildpower where you currently need it.",
-"ARMCA.DDS A Construction Aircraft is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Aircraft Plant. Due to their speed, the highest amongst constructors, it may be used for quick expansions and reclaiming in areas far from your base. It can also access the whole map, as it doesn't care about any natural obstacles. It has a very low HP, so keep away from enemy's anti air units. Due to little build power you may want to use multiple air cons at once. Each Construction Aircraft increases the player's energy and metal storage capacity by 25.",
-"ARMFIG.DDS The Freedom Fighter is a fast moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs, it is also able to destroy weak land-based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in the vicinity. Send fighters with your bombing runs to disable opponent's fighter wall before your bombers come to deliver the final blow.",
-"ARMKAM.DDS The Banshee is a light gunship that can deal damage to land based units. It has very weak armor, that can be shattered by T1 anti air with ease, so always send them in packs and scout before striking. It is a weapon of surprise, try to keep it away from your foe's radars before attacking. If you succeed to put your gunships into an unguarded base, or over hostile Commander it will have no chance to survive. An effective attacking order is: nano towers -> AA towers,units -> eco and labs.",
-"ARMPEEP.DDS The Peeper is a cheap and fast moving air scout, that is not armed with any weapons, but a huge line of sight. It is used to gain intelligence on what your enemy is planning, and where he keeps his most important units. Information is the most valuable asset on the battlefield, knowing your opponent's plans you can prepare your counter strikes early, making his moves inefficient. In lategame a constant stream of scouts helps your artillery units, improving their aim.",
-"ARMTHUND.DDS The Thunder is a bomber, designed for destroying buildings. A little bit weaker than its CORE counterpart - Shadow. It drops bombs over the target and makes a flyby to reload its ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle." }
+local unit_descs = {"armatlas.dds The Atlas is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti-air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your buildpower where you currently need it.",
+"armca.dds A Construction Aircraft is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Aircraft Plant. Due to their speed, the highest amongst constructors, it may be used for quick expansions and reclaiming in areas far from your base. It can also access the whole map, as it doesn't care about any natural obstacles. It has a very low HP, so keep away from enemy's anti air units. Due to little build power you may want to use multiple air cons at once. Each Construction Aircraft increases the player's energy and metal storage capacity by 25.",
+"armfig.dds The Freedom Fighter is a fast moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs, it is also able to destroy weak land-based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in the vicinity. Send fighters with your bombing runs to disable opponent's fighter wall before your bombers come to deliver the final blow.",
+"armkam.dds The Banshee is a light gunship that can deal damage to land based units. It has very weak armor, that can be shattered by T1 anti air with ease, so always send them in packs and scout before striking. It is a weapon of surprise, try to keep it away from your foe's radars before attacking. If you succeed to put your gunships into an unguarded base, or over hostile Commander it will have no chance to survive. An effective attacking order is: nano towers -> AA towers,units -> eco and labs.",
+"armpeep.dds The Peeper is a cheap and fast moving air scout, that is not armed with any weapons, but a huge line of sight. It is used to gain intelligence on what your enemy is planning, and where he keeps his most important units. Information is the most valuable asset on the battlefield, knowing your opponent's plans you can prepare your counter strikes early, making his moves inefficient. In lategame a constant stream of scouts helps your artillery units, improving their aim.",
+"armthund.dds The Thunder is a bomber, designed for destroying buildings. A little bit weaker than its CORE counterpart - Shadow. It drops bombs over the target and makes a flyby to reload its ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle." }
 
 -- Since math.random is not random and always the same, we save a counter to a file and use that.
 filename = "LuaUI/Config/randomseed.data"
@@ -60,21 +66,22 @@ end
 --	random_tip_or_desc = tips[(math.random(rand, rand+#tips)-rand) + 1]
 --end
 
+local loadedFontSize = 70
 local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
 function DrawRectRound(px,py,sx,sy,cs)
 
-	local csx = cs
-	local csy = cs
-	if sx-px < (cs*2) then
-		csx = (sx-px)/2
-		if csx < 0 then csx = 0 end
-	end
-	if sy-py < (cs*2) then
-		csy = (sy-py)/2
-		if csy < 0 then csy = 0 end
-	end
-	cs = math.min(csx, csy)
+	--local csx = cs
+	--local csy = cs
+	--if sx-px < (cs*2) then
+	--	csx = (sx-px)/2
+	--	if csx < 0 then csx = 0 end
+	--end
+	--if sy-py < (cs*2) then
+	--	csy = (sy-py)/2
+	--	if csy < 0 then csy = 0 end
+	--end
+	--cs = math.min(cs, csy)
 
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
@@ -216,7 +223,7 @@ function addon.DrawLoadScreen()
 	-- Tip/unit description
 	-- Background
 	gl.Color(0.06,0.06,0.06,0.8)
-	RectRound(0.2-paddingW,0.7-paddingH,0.8+paddingW,0.25+paddingH,0.007)
+	RectRound(0.2-paddingW,0.25+paddingH,0.8+paddingW,0.7-paddingH,0.007)
 
 	-- Text
 	gl.PushMatrix()
@@ -226,6 +233,7 @@ function addon.DrawLoadScreen()
 	local i, j = string.find(random_tip_or_desc, ".dds")
 	local text_to_show = random_tip_or_desc
 	local image_text = nil
+	local fontSize = barTextSize * 0.67
 
 	if i ~= nil then
 		image_text = string.sub(random_tip_or_desc, 0, j)
@@ -235,9 +243,14 @@ function addon.DrawLoadScreen()
 		-- From X position, from Y position, to X position, to Y position
 		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
 		-- text, X position, Y position, text size.
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.59, barTextSize * 0.67, "oa")
+
+		local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
+		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, fontSize, "oa")
 	else
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.68, barTextSize * 0.67, "oa")
+		local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
+		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, fontSize, "oa")
 	end
 
 	gl.PopMatrix()
