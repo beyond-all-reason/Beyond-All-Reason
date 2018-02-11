@@ -162,7 +162,7 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "CRAWL_DETONATOR",
+				def = "CRAWL_DETONATOR",		-- gadget uses this name to filter targetting on air
 				onlytargetcategory = "NOTSUB",
 			},
 		},
