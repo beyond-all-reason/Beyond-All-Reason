@@ -26,6 +26,14 @@ for udid, unitDef in pairs(UnitDefs) do
 		else
 			skip = true
 		end
+		-- add crawling bombs
+		local length = string.len(WeaponDefs[weapon.weaponDef].name)
+		if length > 14 then
+			if string.sub(WeaponDefs[weapon.weaponDef].name, length-14, length) == 'crawl_detonator' then
+				skip = false
+				add = true
+			end
+		end
 	end
 	if not skip and add then
 		onlyTargetsSurface[udid] = true
