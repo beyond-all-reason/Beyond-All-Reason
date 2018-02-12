@@ -24,9 +24,6 @@ walk()
 			move rleg to y-axis [0.000000] now;
 			move torso to y-axis [-1.000000] speed 2 * [6.644295];
 			move gun to y-axis [0.000000] now;
-			move firept to x-axis [0.000000] now;
-			move firept to y-axis [0.000000] now;
-			move firept to z-axis [0.000000] now;
 			turn pelvis to z-axis <2.807692> speed 2 * <18.655135>;
 			turn belly to x-axis <-5.967033> speed 2 * <39.646729>;
 			turn rthigh to x-axis <14.412088> speed 2 * <95.758169>;
@@ -43,9 +40,6 @@ walk()
 			move lthigh to y-axis [1.500000] speed 2 * [9.966443];
 			move lleg to y-axis [0.000000] speed 2 * [9.966443];
 			move torso to y-axis [0.000000] speed 2 * [6.644295];
-			move firept to x-axis [1.750000] speed 2 * [11.627517];
-			move firept to y-axis [0.250000] speed 2 * [1.661074];
-			move firept to z-axis [-6.750000] speed 2 * [44.848993];
 			turn pelvis to z-axis <6.670330> speed 2 * <25.664508>;
 			turn belly to x-axis <-4.565934> speed 2 * <9.309316>;
 			turn rthigh to x-axis <21.445055> speed 2 * <46.729110>;

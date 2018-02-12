@@ -89,6 +89,7 @@ end
 --	random_tip_or_desc = tips[(math.random(rand, rand+#tips)-rand) + 1]
 --end
 
+local loadedFontSize = 70
 local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
 function DrawRectRound(px,py,sx,sy,cs)
@@ -242,36 +243,54 @@ function addon.DrawLoadScreen()
 
 	gl.PopMatrix()
 
-	-- Tip/unit description
-	-- Background
-	gl.Color(0.06,0.06,0.06,0.8)
-	RectRound(0.2-paddingW,0.25+paddingH,0.8+paddingW,0.7-paddingH,0.007)
 
-	-- Text
-	gl.PushMatrix()
-	gl.Scale(1/vsx,1/vsy,1)
 	-- In this format, there can be an optional image before the tip/description.
 	-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
 	local i, j = string.find(random_tip_or_desc, ".dds")
 	local text_to_show = random_tip_or_desc
+	local numLines = 1
+	local fontSize = barTextSize * 0.67
 	local image_text = nil
+	local image_size = 0.04
+	local height = 0.1
+
+	if i ~= nil then
+		text_to_show = string.sub(random_tip_or_desc, j+2)
+		local maxWidth = ((0.585-image_size-0.012) * vsx) * (loadedFontSize/fontSize)
+		text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		local textHeight, textDescender = font:GetTextHeight(text_to_show)
+		height = (textHeight+math.abs(textDescender)*fontSize) / vsy
+		if height < image_size then
+			height = image_size
+		end
+	else
+		local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
+		text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		local textHeight, textDescender = font:GetTextHeight(text_to_show)
+		height = (textHeight+math.abs(textDescender)*fontSize) / vsy
+	end
+
+
+	height = 0.27	-- done manually cause height calcs are wrong still
+
+
+	-- Tip/unit description
+	-- Background
+	gl.Color(0.06,0.06,0.06,0.8)
+	RectRound(0.2-paddingW,0.69-height-paddingH,0.8+paddingW,0.69+paddingH,0.007)
+
+	-- Text
+	gl.PushMatrix()
+	gl.Scale(1/vsx,1/vsy,1)
 
 	if i ~= nil then
 		image_text = string.sub(random_tip_or_desc, 0, j)
-		text_to_show = string.sub(random_tip_or_desc, j+2)
 		gl.Texture(":n:unitpics/" .. image_text)
 		gl.Color(1.0,1.0,1.0,0.8)
-		-- From X position, from Y position, to X position, to Y position
-		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*0.27, vsy*0.6)
-		-- text, X position, Y position, text size.
-
-		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
-		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
+		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*(0.21+image_size), (vsy*0.67)-(vsx*image_size))
+		font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * 0.675, fontSize, "oa")
 	else
-		local maxWidth = (0.585 * vsx) * (70/(barTextSize * 0.67))
-		local text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, barTextSize * 0.67, "oa")
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, fontSize, "oa")
 	end
 
 	gl.PopMatrix()
