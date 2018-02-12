@@ -116,10 +116,10 @@ return {
 				turnrate = 1700,
 				turret = true,
 				waterweapon = true,
-				weaponacceleration = 5,
+				weaponacceleration = 20,
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
-				weaponvelocity = 100,
+				weaponvelocity = 135,
 				damage = {
 					default = 250,
 				},

@@ -4,7 +4,7 @@ return {
 		craterboost = 4,
 		cratermult = 1.25,
 		edgeeffectiveness = 0.30000001192093,
-		explosiongenerator = "custom:genericunitexplosion-huge",
+		explosiongenerator = "custom:genericunitexplosion-huge-dirty",
 		impulseboost = 0.12300000339746,
 		impulsefactor = 0.12300000339746,
 		name = "Skuttle",

@@ -6,6 +6,8 @@ Balance changes:
  • Bantha speed reduced 8%, harder to paralyze 30%
  • Fixed T2 crawling bombs not blowing on attack commands. (issue on maintenance engines)
  • Reduced Comblast Edgeeffectiveness from 0.40 to 0.317 for 3.5k damages to commanders at dgunRange (vs 3.850k).
+ • Increased Gimp's torpedos acceleration (5 -> 20) and max velocity (100 -> 135). Start velocity is unchanged.
+ • Arm/Core destroyers: Increased default depthcharge damages +25% (arm 150 -> 187, core 170 -> 212).
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Dgun reloadTime reduced by 0.025s at each level (0.9 -> 0.65)
@@ -22,6 +24,7 @@ Other:
  • Flak and mercyry/screamer projectile explosions are bigger visually
  • (unit)Outline widget has thickness slider added to options widget
  • More accurate Comblast and Dgun Range widget. It is now showing ranges for key damage values: 3.5k, 3k, 2k, 1k and 0 damages.
+ • Fixed Air mesh not refreshing when map_waterlevel is used.
 
 
 10.04 -> 10.05
