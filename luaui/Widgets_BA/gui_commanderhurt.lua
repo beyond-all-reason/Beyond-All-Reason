@@ -1,6 +1,6 @@
 function widget:GetInfo()
     return {
-        name      = "Commander hurt vignette",
+        name      = "Commander Hurt Vignette",
         desc      = "Shows a red vignette when commander is out of view and gets damaged",
         author    = "Floris",
         date      = "February 2018",
