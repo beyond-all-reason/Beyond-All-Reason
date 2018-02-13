@@ -16,102 +16,66 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetGameSeconds      = Spring.GetGameSeconds
-local spGetMouseState       = Spring.GetMouseState
-local spEcho                = Spring.Echo
 
-local spGetGameSpeed         = Spring.GetGameSpeed
-
-local max                    = math.max
+local spGetGameSpeed        = Spring.GetGameSpeed
 
 local glColor               = gl.Color
 local glTexture             = gl.Texture
-local glScale                = gl.Scale
+local glScale               = gl.Scale
 local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate
-local glBeginEnd            = gl.BeginEnd
 local glTexRect             = gl.TexRect
 local glLoadFont            = gl.LoadFont
-local glDeleteFont            = gl.DeleteFont
+local glDeleteFont          = gl.DeleteFont
 local glRect                = gl.Rect
 local glLineWidth           = gl.LineWidth
 local glDepthTest           = gl.DepthTest
+local glUseShader           = gl.UseShader
+local glCopyToTexture       = gl.CopyToTexture
+local glUniform             = gl.Uniform
+local glGetUniformLocation  = gl.GetUniformLocation
 
-local osClock                = os.clock
+local osClock               = os.clock
 
 ----------------------------------------------------------------------------------
 
 -- CONFIGURATION
 
-local sizeMultiplier     = 1
-local maxAlpha           = 0.6
-local maxShaderAlpha		 = 0.2
-local maxNonShaderAlpha  = 0.1			--background alpha when shaders arent availible
-local boxWidth           = 200
-local boxHeight          = 35
-local slideTime          = 0.4
-local fadeTime           = 0.22
-local fadeToAlpha        = 0
-local fadeToTextAlpha    = 0.22
-local fontSizeHeadline   = 24
-local fontSizeAddon      = 15
-local fontPath           = "LuaUI/Fonts/MicrogrammaDBold.ttf"
-local autoFadeTime       = 1
-local forceHideWindow    = false
+local sizeMultiplier        = 1
+local maxAlpha              = 0.6
+local maxShaderAlpha        = 0.2
+local maxNonShaderAlpha     = 0.1			--background alpha when shaders arent availible
+local boxWidth              = 200
+local boxHeight             = 35
+local slideTime             = 0.4
+local fadeToTextAlpha       = 0.4
+local fontSizeHeadline      = 24
+local fontPath              = "LuaUI/Fonts/MicrogrammaDBold.ttf"
+local autoFadeTime          = 1
 
-local blurScreen				 = false 	-- makes use of guishader api widget
+local blurScreen            = false 	-- makes use of guishader api widget
 
---Color config in drawPause function
-    
-----------------
 local vsx, vsy
 local myFont
-local autoFadeTimestamp = 0
 local pauseTimestamp = -10 --start or end of pause
 local lastPause = false
-local screenCenterX = nil
-local screenCenterY = nil
 local wndX1 = nil
 local wndY1 = nil
 local wndX2 = nil
 local wndY2 = nil
 local textX = nil
 local textY = nil
-local mouseOverClose = false
-local checkedWindowSize = false
 local usedSizeMultiplier = 1
 local vsx, vsy = Spring.GetWindowGeometry()
 local widgetInitTime = osClock()
 local previousDrawScreenClock = osClock()
 local paused = false
 
-
 local shaderAlpha = 0
-
-local glColor       = gl.Color
-local glTexture     = gl.Texture
-local glScale				= gl.Scale
-local glPopMatrix   = gl.PopMatrix
-local glPushMatrix  = gl.PushMatrix
-local glTranslate   = gl.Translate
-local glBeginEnd		= gl.BeginEnd
-local glTexRect 		= gl.TexRect
-local glLoadFont		= gl.LoadFont
-local glDeleteFont	= gl.DeleteFont
-local glRect				= gl.Rect
-local glDepthTest		= gl.DepthTest
-
-local vsx, vsy
 local screencopy
 local shaderProgram
 
-local glUseShader = gl.UseShader
-local glCopyToTexture = gl.CopyToTexture
-local glTexture = gl.Texture
-local glTexRect = gl.TexRect
-local glUniform = gl.Uniform
-local glGetUniformLocation = gl.GetUniformLocation
 
 --intensity formula based on http://alienryderflex.com/hsp.html
 local fragmentShaderSource = {
@@ -156,7 +120,6 @@ function widget:Initialize()
   widget:ViewResize(vsx, vsy)
   
   myFont = glLoadFont( fontPath, fontSizeHeadline )
-  checkedWindowSize = true
    
    
   local _, _, isPaused = spGetGameSpeed()
@@ -195,11 +158,8 @@ end
 function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
     local now = osClock()
-    local drawScreenDelay = now - previousDrawScreenClock
     previousDrawScreenClock = now
     
-    local diffPauseTime = ( now - pauseTimestamp)
-
     local diffPauseTime = ( now - pauseTimestamp)
     
     if ( ( not paused and lastPause ) or ( paused and not lastPause ) ) then
@@ -212,9 +172,7 @@ function widget:DrawScreen()
     
     if ( paused and not lastPause ) then
         --new pause
-        autoFadeTimestamp = nil
         if widgetInitTime + 5 > now then        -- so if you do /luaui reload when paused, it wont re-animate
-            autoFadeTimestamp = now - autoFadeTime
             pauseTimestamp = now - (slideTime + autoFadeTime)
         end
     end
@@ -222,15 +180,15 @@ function widget:DrawScreen()
     lastPause = paused
     
     if ( paused or ( ( now - pauseTimestamp) <= slideTime ) ) then
-    		showPauseScreen = true
+        showPauseScreen = true
         drawPause()
         if blurScreen and WG['guishader_api'] ~= nil then
-					WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'pausescreen')
+            WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'pausescreen')
         end
     else
-    		showPauseScreen = false
+        showPauseScreen = false
         if blurScreen and WG['guishader_api'] ~= nil then
-					WG['guishader_api'].RemoveRect('pausescreen')
+            WG['guishader_api'].RemoveRect('pausescreen')
         end
     end
     
@@ -295,12 +253,10 @@ function drawPause()
 end
 
 function updateWindowCoords()
-    screenCenterX = vsx / 2
-    screenCenterY = vsy / 2
-    wndX1 = screenCenterX - boxWidth
-    wndY1 = screenCenterY + boxHeight
-    wndX2 = screenCenterX + boxWidth
-    wndY2 = screenCenterY - boxHeight
+    wndX1 = (vsx / 2) - boxWidth
+    wndY1 = (vsy / 2) + boxHeight
+    wndX2 = (vsx / 2) + boxWidth
+    wndY2 = (vsy / 2) - boxHeight
 
     textX = wndX1 + ( wndX2 - wndX1 ) * 0.33
     textY = wndY2 + ( wndY1 - wndY2 ) * 0.4
