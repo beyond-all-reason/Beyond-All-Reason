@@ -14,7 +14,7 @@ return {
 		collisionvolumescales = "28 28 71",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Support Frigate (Depthcharge/AntiAir)",
+		description = "Support Frigate (Depthcharge)",
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
@@ -193,21 +193,22 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 190,
 				damage = {
-					default = 240,
+					subs = 216,
+					default = 140,
 					commanders = 140,
 				},
 			},
 		},
 		weapons = {
-			[1] = {
-				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "AAMISSILE",
-				onlytargetcategory = "VTOL",
-			},
+			-- [1] = {
+				-- badtargetcategory = "LIGHTAIRSCOUT",
+				-- def = "AAMISSILE",
+				-- onlytargetcategory = "VTOL",
+			-- },
 			[2] = {
 				badtargetcategory = "NOTAIR",
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "UNDERWATER CANBEUW",		
+				onlytargetcategory = "NOTHOVER",		
 			},
 		},
 	},
