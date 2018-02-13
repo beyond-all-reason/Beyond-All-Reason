@@ -28,7 +28,7 @@ local tips = {
 	"Queue-up multiple consecutive unit actions by holding SHIFT.",
 	"Tweak graphic preferences in options (top right corner of the screen).\nWhen your FPS drops, switch to a lower graphic preset.",
 	"Radars are cheap, make them early in the game to effectively counter initial strikes.",
-	"To see detailed info about each unit in-game switch on "Extensive unit info"",
+	"To see detailed info about each unit in-game switch on \"Extensive unit info\"",
 	"In general, vehicles are a good choice for flat and open battlefields. Kbots are better on hills.",
 	"If your economy is based on wind generators, always build an E storage to have a reserve, when the wind speed drops.",
 	"Commanders have a manual Dgun weapon, which can decimate every unit with one blow.\nPress D to quickly initiate aiming.",
@@ -68,7 +68,7 @@ local tips = {
 -- Random unit descriptions we can show
 local unit_descs = {
 	"armck.dds Construction Kbot is able to build basic T1 structures like the ones made by the Commander and advanced land and air defense towers, advanced solars and most importantly the T2 Kbot lab. It is slightly slower and weaker than vehicle constructor, but it can climb steeper hills, so it is effective in expansion on mountainous terrain.",
-	"armflea.dds Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion! ",
+	"armflea.dds Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion!",
 	"armham.dds Hammer is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has slightly higher HP than rocket Kbots, hence it can be used in big numbers to destroy T1 defensive structures. Combine with resurrection Kbots (Rectors), for an effective front push. Useful for defending mountain tops.",
 	"armjeth.dds Jethro is a cheap amphibious mobile anti-air (AA) Kbot, that can easily take down light aircrafts. Always send a few with your army to protect it from EMP drones/gunships. It has no land-to-land weapons.",
 	"armpw.dds Peewee is a basic infantry Kbot. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Peewees can be used for ambushing Commanders and speedy skirmishing.",
