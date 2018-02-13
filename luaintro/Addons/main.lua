@@ -23,32 +23,33 @@ end
 ------------------------------------------
 
 -- Random tips we can show
-local tips = {"Tip #1:\n\nHave trouble finding metal spots?\nPress F4 to switch to the metal map.",
-"Tip #:\n\nYou can queue-up multiple consecutive unit actions by holding SHIFT.",
-"Tip #2: \n\nYou can tweak graphic preferences in options - in top right corner of the screen.\nWhen your FPS drops, switch to a lower graphic preset.",
-"Tip #3: \n\nRadars are cheap, make them early in the game to effectively counter initial strikes.",
-"Tip #4: \n\nCommanders rule the early stages of the battle, with their Dgun manual weapon they can decimate every unit with one blow.\nPress D to quckly initiate aiming.",
-"Tip #5: \n\nSpread your buildings to prevent chained-explosions.\nPress ALT+Z and ALT+X to adjust auto-spacing.",
-"Tip #6: \n\nIt is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
-"Tip #7: \n\nT2 factories are expensive, reclaim T1 lab for metal to fund it",
-"Tip #8: \n\nAir strikes and airdrops may come anytime in the game, always have at least one anti-air unit in your base.",
-"Tip #9: \n\nBA interface enables you to put labels on the map for other players to see.\n~(tilde)+doubleclick places a label with text.\n~(tilde)+middle mouse button puts an empty label.\n~(tilde)+mouse drag draws lines over the map. Use this for conducting coordinated team strategies and penises.",
-"Tip #10: \n\nExpanding your territory is essential in gaining economic advantage over your opponent. Always try to reach for as many metal spots and geothermal vents as you can.",
-"Tip #11:\n\nAlways think in advance about reclaiming the metal from wrecks piling up at the front.",
-"Tip #12:\n\nIf your excessing energy build metal makers to convert it to metal.",
-"Tip #13:\n\nYou can select all units of the same type by pressing CTRL+Z.",
-"Tip #14: \n\nAlways watch out for your Commander.\nTo quickly select and center camera on your Commander press CRTL+C.",
-"Tip #15: \n\nSingle-unit spam is easy to counter. Always try to include anti-air and support units in your army.",
-"Tip #16:\n\nUnits and resources can be shared between team members. \n Double-click on tank icon next to the player's name to share units\nClick on metal/energy bar next to player's name to share resources.\nPress H to share an exact amount",
-"Tip #17:\n\nIt is efficient to support your lab with constructors increasing its build-power. Right click on the factory with a constructor selected to guard (assist) with it",
-"Tip #18:\n\nFor optimized expansion always try to keep all your builders busy.\nPress CTRL+B to select and center camera on your idle con.",
-"Tip #19:\n\nThe best way to prevent air strikes is building fighters and putting them on PATROL in front of your base.",
-"Tip #20:\n\nUse jammers to hide your units from enemy radars and hinder artillery strikes.",
-"Tip #21:\n\nYou can cloak your Commander but remember it drains 500E every second and it's still visible to radars.\nPress C to turn CLOAK on.",
-"Tip #22:\n\nCombine CLOAK with radar jamming to make your units fully stealth.",
-"Tip #23:\n\nLong-ranged units need scouting for proper aiming. Accompany your artillery with a constant stream of quick/cheap units for better vision.",
-"Tip #24:\n\nYou can assign units to groups by pressing CTRL+num. Select the group using numbers (from 1 to 9).",
-"Tip #25:\n\nMastering hotkeys is the key to proficiency in BA.\nUse Z,X,C to quickly cycle between most frequently built structures, like mexes and defenses."}
+local tips = {"Have trouble finding metal spots?\nPress F4 to switch to the metal map.",
+"Queue-up multiple consecutive unit actions by holding SHIFT.",
+"Tweak graphic preferences in options (top right corner of the screen).\nWhen your FPS drops, switch to a lower graphic preset.",
+"Radars are cheap, make them early in the game to effectively counter initial strikes.",
+"Commanders have a manual Dgun weapon, which can decimate every unit with one blow.\nPress D to quckly initiate aiming.",
+"Spread out buildings to prevent chain-explosions.\nPress ALT+Z and ALT+X to adjust auto-spacing.",
+"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
+"T2 factories are expensive, reclaim T1 lab for metal to fund it",
+"Air strikes and airdrops may come anytime in the game, always have at least one anti-air unit in your base.",
+"With ~(tilde)+doubleclick you can place a label with text on the map.\n~(tilde)+middle mouse button for an empty label.\n~(tilde)+mouse drag to draw lines",
+"Expanding territory is essential to gain economic advantage.\nTry to reach for as many metal spots and geothermal vents as you can.",
+"Think in advance about reclaiming metal from wrecks piling up at the front.",
+"When your excessing energy... build metal makers to convert the excess to metal.",
+"Select all units of the same type by pressing CTRL+Z.",
+"To quickly select and center camera on your Commander: press CRTL+C.",
+"Think ahead and include anti-air and support units in your army.",
+"Howto share resources to teammates:\n - Double-click tank icon next to the player's name to share units\n - Click-drag metal/energy bar next to player's name to share resources.\n - Press H to share an exact amount",
+"It is efficient to support your lab with constructors increasing its build-power.\nRight click on the factory with a constructor selected to guard (assist) with it",
+"Keep all your builders busy.\nPress CTRL+B to select and center camera on your idle con.",
+"The best way to prevent air strikes is building fighters and putting them on PATROL in front of your base.",
+"Use jammers to hide your units from enemy radars and hinder artillery strikes.",
+"Cloaking your Commander drains 100E stationary and 1000E when walking (every second)",
+"Combine CLOAK with radar jamming to make your units fully stealth.",
+"Long-ranged units need scouting for acurate aiming.\nGenerate a constant stream of quick/cheap units for better vision.",
+"You can assign units to groups by pressing CTRL+num.\nSelect the group using numbers (1-9).",
+"Mastering hotkeys is the key to proficiency in BA.\nUse Z,X,C to quickly cycle between most frequently built structures."}
+
 -- Random unit descriptions we can show
 local unit_descs = {"armck.dds Construction Kbot is able to build basic T1 structures like the ones made by the Commander and advanced land and air defense towers, advanced solars and most importantly the T2 Kbot lab. It is slightly slower and weaker than vehicle constructor, but it can climb steeper hills, so it is effective in expansion on mountainous terrain.",
 "armflea.dds Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion! ",
@@ -256,7 +257,7 @@ function addon.DrawLoadScreen()
 
 	if i ~= nil then
 		text_to_show = string.sub(random_tip_or_desc, j+2)
-		local maxWidth = ((0.585-image_size-0.012) * vsx) * (loadedFontSize/fontSize)
+		local maxWidth = ((0.58-image_size-0.012) * vsx) * (loadedFontSize/fontSize)
 		text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
 		local textHeight, textDescender = font:GetTextHeight(text_to_show)
 		height = (textHeight+math.abs(textDescender)*fontSize) / vsy
@@ -271,7 +272,7 @@ function addon.DrawLoadScreen()
 	end
 
 
-	height = 0.27	-- done manually cause height calcs are wrong still
+	height = 0.105	-- done manually cause height calcs are wrong still
 
 
 	-- Tip/unit description
@@ -287,10 +288,10 @@ function addon.DrawLoadScreen()
 		image_text = string.sub(random_tip_or_desc, 0, j)
 		gl.Texture(":n:unitpics/" .. image_text)
 		gl.Color(1.0,1.0,1.0,0.8)
-		gl.TexRect(vsx * 0.21, vsy*0.67, vsx*(0.21+image_size), (vsy*0.67)-(vsx*image_size))
-		font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * 0.675, fontSize, "oa")
+		gl.TexRect(vsx * 0.21, vsy*0.675, vsx*(0.21+image_size), (vsy*0.675)-(vsx*image_size))
+		font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * 0.6725, fontSize, "oa")
 	else
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.675, fontSize, "oa")
+		font:Print(text_to_show, vsx * 0.21, vsy * 0.6725, fontSize, "oa")
 	end
 
 	gl.PopMatrix()
