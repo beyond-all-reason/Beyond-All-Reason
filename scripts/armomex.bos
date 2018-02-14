@@ -3,9 +3,25 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, arms, level34, level68, level102, level136, level170, level204, level238;
+piece  base, arms, level34, level68, level102, level136, level170, level204, level238, bottom;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, rockframe, Xrot, Zrot, Ymove;
+
+RockOnWaves()
+{
+rockframe = 1;
+while ( TRUE )
+{
+	Xrot = (get KCOS (rockframe * 690)) * 360 / 1024 ;
+	Ymove = (get KSIN (rockframe * 650)) * 8;
+	Zrot = (get KSIN (rockframe * 560)) * 360 / 1024;
+	turn base to x-axis Xrot now;
+	turn base to z-axis Zrot now;
+	move base to y-axis Ymove now;
+	rockframe = rockframe + 1;
+	sleep 1;
+}
+}
 
 HidePieces(groundlevel)
 {
@@ -16,6 +32,7 @@ HidePieces(groundlevel)
 	move level102 to y-axis [-68] now;
 	move level68 to y-axis [-34] now;
 	move level34 to y-axis [0] now;
+	move bottom to y-axis [34] - (groundlevel * 65536) now;
 	if (groundlevel < 204)
 	{
 		hide level238;
@@ -123,6 +140,7 @@ Create()
 	dont-cache arms;
 	call-script InitState();
 	start-script SmokeUnit();
+	start-script RockOnWaves();
 }
 
 Activate()
