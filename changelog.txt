@@ -7,7 +7,7 @@ Balance changes:
  • Fixed T2 crawling bombs not blowing on attack commands. (issue on maintenance engines)
  • Reduced Comblast Edgeeffectiveness from 0.40->0.317 Does 3.5k damage to commanders at dgunRange (was 3.850k)
  • Increased Gimp's torpedos speed/acceleration
- • Arm/Core destroyers: Increased default depthcharge damages +25%
+ • Arm/Core destroyers: Increased default depthcharge damages +25% and decreased submarine damages -10%
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Dgun reloadTime reduced by 0.025s at each level (0.9 -> 0.65)

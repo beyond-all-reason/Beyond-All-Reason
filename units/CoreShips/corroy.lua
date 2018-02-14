@@ -127,7 +127,6 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				-- movingaccuracy = 8,
 				name = "HeavyCannon",
 				noselfdamage = true,
 				proximitypriority = -0.1,
@@ -183,7 +182,7 @@ return {
 				weaponvelocity = 140,
 				damage = {
 					default = 212,
-					subs = 315,
+					subs = 283,
 				},
 			},
 		},
