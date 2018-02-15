@@ -18,9 +18,11 @@ Unbalanced Commanders (when mo_unba is enabled):
 Other:
  • Added widget: Fancy Selected Units (options widget has various options for it)
  • Added widget: Commander Hurt Vignette - shows red screen vignette when com is out of view and gets damaged
+ • Added widget: Unit Reclaimer (Reclaim of units in an area, when giving the cmd, a unit is under the mouse cursor)
  • You can now toggle off Highlight Selected Units via options widget
  • Unit Outline has thickness slider added to options widget
  • EcoStats shows reclaimed metal/energy income (as less vibrant part of the bar)
+ • Loadscreen shows tips, unitinfo and quotes
  • More accurate Comblast and Dgun Range widget. It is now showing ranges for key damage values: 3.5k, 3k, 2k, 1k and 0 damages.
  • Ignore Ships vs Shipyard colisions for the just finished ships (15 seconds): They wont be rotated anymore when just exiting lab.
  • Added more "RockOnWaves" animations to t1 sea floating buildings (tidals/floating makers/dragonteeth)
