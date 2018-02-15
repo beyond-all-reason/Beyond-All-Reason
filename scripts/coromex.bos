@@ -140,7 +140,6 @@ Create()
 	dont-cache arms;
 	call-script InitState();
 	start-script SmokeUnit();
-	start-script RockOnWaves();
 }
 
 Activate()
