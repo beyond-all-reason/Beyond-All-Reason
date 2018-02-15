@@ -117,7 +117,7 @@ local quotes = {
 	{"War is a game that is played with a smile. If you can't smile, grin. If you can't grin, keep out of the way till you can.", "Winston Churchill"},
 	{"War can only be abolished through war, and in order to get rid of the gun it is necessary to take up the gun.", "Mao zedong"},
 	{"The quickest way of ending a war is to lose it.", "George Orwell"},
-	{"Heaven cannot brook two suns, nor earth two masters.", "Alaxander the great"},
+	{"Heaven cannot brook two suns, nor earth two masters.", "Alexander the Great"},
 	{"People always make war when they say they love peace.", "D H Lawrence"},
 	{"This is totally awesome. Wow. great job guys!!", "Chris Taylor"},
 	{"War is like love; it always finds a way.", "Bertolt Brecht"},
@@ -147,7 +147,7 @@ local quotes = {
 	{"If everyone is thinking alike, then somebody isn't thinking.", "George S Patton"},
 	{"Ignorance is bold and knowledge reserved.", "Thucydides"},
 	{"Don't find fault, find a remedy.", "Henry Ford"},
-	{"There is nothing impossible to him who will try.", "Alaxander the great"},
+	{"There is nothing impossible to him who will try.", "Alexander the Great"},
 	{"Peace is produced by war", "Pierre Corneille"},
 }
 

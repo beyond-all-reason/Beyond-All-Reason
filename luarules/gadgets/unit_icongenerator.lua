@@ -83,7 +83,9 @@ if (gadgetHandler:IsSyncedCode()) then
 
 			local env = Spring.UnitScript.GetScriptEnv(uid)
 			if env then lus = true end
-			
+			local undefid = Spring.GetUnitDefID(uid)
+				
+			Spring.Echo("Processing unit :- ",undefid)
 			if lus then
 				if env.Activate then Spring.UnitScript.CallAsUnit(uid, env.Activate) end
 			else Spring.CallCOBScript(uid,"Activate",0) end
@@ -651,7 +653,8 @@ local function DrawIcon(udid,teamID,uid)
     gl.UnitTextures(uid, false)
   else
 		gl.UnitShapeTextures(udid, true)
-		gl.UnitShape(udid, teamID, true);
+        gl.UnitShape(udid, teamID, true)
+        --gl.UnitShape(udid, teamID, false, false, true))
 		gl.UnitShapeTextures(udid, false)
   end
 	
@@ -1042,10 +1045,10 @@ local schemes,resolutions,ratios = {},{},{}
       Spring.Echo("Cheating must be enabled");
       return false;
     end;
-    if (not Spring.GetModUICtrl()) then
-      Spring.Echo("ModUICtrl is needed (type /luamoduictrl 1)");
-      return false;
-    end;
+    --if (not Spring.GetModUICtrl()) then
+    --  Spring.Echo("ModUICtrl is needed (type /luamoduictrl 1)");
+    --  return false;
+    --end;
     if (final_tex or #jobs>0) then
       Spring.Echo("Wait until current process is finished");
       return false;
