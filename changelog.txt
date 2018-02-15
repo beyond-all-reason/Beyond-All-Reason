@@ -18,7 +18,7 @@ Unbalanced Commanders (when mo_unba is enabled):
 Other:
  • Added widget: Fancy Selected Units (options widget has various options for it)
  • Added widget: Commander Hurt Vignette - shows red screen vignette when com is out of view and gets damaged
- • Added widget: Unit Reclaimer (Reclaim of units in an area, when giving the cmd, a unit is under the mouse cursor)
+ • Added widget: Unit Reclaimer (Reclaim units in an area. Hover over a unit and drag an area-reclaim circle)
  • You can now toggle off Highlight Selected Units via options widget
  • Unit Outline has thickness slider added to options widget
  • EcoStats shows reclaimed metal/energy income (as less vibrant part of the bar)

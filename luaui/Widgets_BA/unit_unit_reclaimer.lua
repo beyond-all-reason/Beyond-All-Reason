@@ -2,7 +2,7 @@
 function widget:GetInfo()
   return {
     name      = "Unit Reclaimer",
-    desc      = "Reclaim of units in an area, when giving the cmd, a unit is under the mouse cursor",
+    desc      = "Reclaim units in an area. Hover over a unit and drag an area-reclaim circle",
     author    = "Google Frog",
     date      = "Dec 16, 2008",
     license   = "GNU GPL, v2 or later",
