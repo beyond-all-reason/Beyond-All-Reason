@@ -11,6 +11,8 @@ function widget:GetInfo()
     }
 end
 
+local removeAsSpec = false
+
 -- project page on github: https://github.com/jamerlan/unit_showbuild
 
 --Changelog
@@ -82,7 +84,7 @@ function checkBuilders()
 end
 
 function widget:Initialize()
-	if Spring.GetSpectatingState() or Spring.IsReplay() then
+	if removeAsSpec and Spring.GetSpectatingState() or Spring.IsReplay() then
     	widgetHandler:RemoveWidget(self)
 	end
 	if Spring.GetGameFrame() > 0 then
