@@ -22,6 +22,7 @@ end
 
 local command = {}
 local watchBuilders = {}
+local updateTime = 1		-- dont bother editing: updateTime dynamically changing
 
 local glPushMatrix		= gl.PushMatrix
 local glPopMatrix		= gl.PopMatrix
@@ -76,18 +77,21 @@ function checkBuilders()
 			checkBuilder(unitID)
 		end
 	end
+	updateTime = 0.05 + (#allUnits/3300)
+	if updateTime > 1 then updateTime = 1 end
 end
 
 function widget:Initialize()
 	if Spring.GetSpectatingState() or Spring.IsReplay() then
     	widgetHandler:RemoveWidget(self)
 	end
-	checkBuilders()
+	if Spring.GetGameFrame() > 0 then
+		checkBuilders()
+	end
 end
 
 local sec = 0
 local sceduledCheck = false
-local updateTime = 1
 function widget:Update(dt)
 	sec=sec+dt
 	if sec>updateTime or (sec>1/(updateTime*5) and sceduledCheck) then
