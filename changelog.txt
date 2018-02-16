@@ -20,6 +20,7 @@ Other:
  • Added widget: Commander Hurt Vignette - shows red screen vignette when com is out of view and gets damaged
  • Added widget: Unit Reclaimer (Hover over a unit and drag an area-reclaim circle to reclaim all units within)
  • Added widget: Show Builder Queue - Shows ghosted queued up buildings (for all allied teams)
+ • Added widget: Auto Cloak Popups - (default disabled)- Auto cloaks Pit Bull and Ambusher
  • You can now toggle off Highlight Selected Units via options widget
  • Auto Group: disabled immediate mode (like 9.46), re-enable via options widget
  • Unit Outline has thickness slider added to options widget
