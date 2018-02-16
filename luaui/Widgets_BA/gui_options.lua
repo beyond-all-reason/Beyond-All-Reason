@@ -2035,7 +2035,7 @@ function init()
 
 		{id="unitreclaimer", group="game", widget="Unit Reclaimer", name="Unit Reclaimer", type="bool", value=GetWidgetToggleValue("Unit Reclaimer"), description='Reclaim units in an area. Hover over a unit and drag an area-reclaim circle'},
 
-		{id="autogroup_immediate", group="game", name="Autogroup immediate mode", type="bool", value=false, description='Units built/resurrected/received are added to autogroups immediately instead of waiting them to be idle.\n\n(add units to autogroup with ALT+number)'},
+		{id="autogroup_immediate", group="game", name="Autogroup immediate mode", type="bool", value=(WG['autogroup']~=nil and WG['autogroup'].getImmediate~=nil and WG['autogroup'].getImmediate()), description='Units built/resurrected/received are added to autogroups immediately instead of waiting them to be idle.\n\n(add units to autogroup with ALT+number)'},
 
 		{id="factoryguard", group="game", widget="FactoryGuard", name="Factory guard (builders)", type="bool", value=GetWidgetToggleValue("FactoryGuard"), description='Newly created builders will assist their source factory'},
 		{id="factoryholdpos", group="game", widget="Factory hold position", name="Factory hold position", type="bool", value=GetWidgetToggleValue("Factory hold position"), description='Sets new factories, and all units they build, to hold position automatically (not aircraft)'},
@@ -2140,8 +2140,6 @@ function init()
 
 	if widgetHandler.knownWidgets["Auto Group"] == nil then
 		options[getOptionByID("autogroup_immediate")] = nil
-	else
-		options[getOptionByID("autogroup_immediate")].value = WG['autogroup'].getImmediate()
 	end
 
 	if widgetHandler.knownWidgets["Highlight Selected Units"] == nil then
