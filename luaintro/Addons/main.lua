@@ -115,7 +115,7 @@ local quotes = {
 	{"Quickness is the essence of the war.", "Sun Tzu"},
 	{"The whole art of war consists of guessing at what is on the other side of the hill.", "Arthur Wellesley"},
 	{"War is a game that is played with a smile. If you can't smile, grin. If you can't grin, keep out of the way till you can.", "Winston Churchill"},
-	{"War can only be abolished through war, and in order to get rid of the gun it is necessary to take up the gun.", "Mao zedong"},
+	{"War can only be abolished through war, and in order to get rid of the gun it is necessary to take up the gun.", "Mao Zedong"},
 	{"The quickest way of ending a war is to lose it.", "George Orwell"},
 	{"Heaven cannot brook two suns, nor earth two masters.", "Alexander the Great"},
 	{"People always make war when they say they love peace.", "D H Lawrence"},
