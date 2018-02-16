@@ -21,6 +21,7 @@ Other:
  • Added widget: Unit Reclaimer (Hover over a unit and drag an area-reclaim circle to reclaim all units within)
  • Added widget: Show Builder Queue - Shows ghosted queued up buildings (for all allied teams)
  • You can now toggle off Highlight Selected Units via options widget
+ • Auto Group: disabled immediate mode (like 9.46), re-enable via options widget
  • Unit Outline has thickness slider added to options widget
  • EcoStats shows reclaimed metal/energy income (as less vibrant part of the bar)
  • Loadscreen shows tips, unitinfo and quotes

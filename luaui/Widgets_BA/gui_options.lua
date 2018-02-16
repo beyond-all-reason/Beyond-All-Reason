@@ -1002,6 +1002,18 @@ function applyOptionValue(i, skipRedrawWindow)
 				end
 				widgetHandler:DisableWidget("Light Effects")
 			end
+		elseif id == 'autogroup_immediate' then
+			if widgetHandler.configData["Auto Group"] == nil then
+				widgetHandler.configData["Auto Group"] = {}
+			end
+			if widgetHandler.configData["Auto Group"].config == nil then
+				widgetHandler.configData["Auto Group"].config = {immediate={value=options[i].value}}
+			else
+				widgetHandler.configData["Auto Group"].config.immediate.value = options[i].value
+			end
+			if WG['autogroup'] ~= nil then
+				WG['autogroup'].setImmediate(options[i].value)
+			end
 		elseif id == 'resourceprompts' then
 			Spring.SetConfigInt("evo_resourceprompts",value)
 		end
@@ -1841,6 +1853,15 @@ function loadWidgetConfigData()
 				changes = true
 			end
 		end
+
+		if widgetHandler.knownWidgets["Auto Group"] ~= nil then
+			if getOptionByID("autogroup_immediate") and widgetHandler.configData["Auto Group"] ~= nil and widgetHandler.configData["Auto Group"].config ~= nil and widgetHandler.configData["Auto Group"].config.immediate ~= nil and widgetHandler.configData["Auto Group"].config.immediate.value ~= nil then
+				if options[getOptionByID("autogroup_immediate")].value ~= widgetHandler.configData["Auto Group"].config.immediate.value then
+					options[getOptionByID("autogroup_immediate")].value = widgetHandler.configData["Auto Group"].config.immediate.value
+					changes = true
+				end
+			end
+		end
 	end
 
 	return changes
@@ -2012,6 +2033,8 @@ function init()
 
 		{id="unitreclaimer", group="game", widget="Unit Reclaimer", name="Unit Reclaimer", type="bool", value=GetWidgetToggleValue("Unit Reclaimer"), description='Reclaim units in an area. Hover over a unit and drag an area-reclaim circle'},
 
+		{id="autogroup_immediate", group="game", name="Autogroup immediate mode", type="bool", value=false, description='Units built/resurrected/received are added to autogroups immediately instead of waiting them to be idle.\n\n(add units to autogroup with ALT+number)'},
+
 		{id="factoryguard", group="game", widget="FactoryGuard", name="Factory guard (builders)", type="bool", value=GetWidgetToggleValue("FactoryGuard"), description='Newly created builders will assist their source factory'},
 		{id="factoryholdpos", group="game", widget="Factory hold position", name="Factory hold position", type="bool", value=GetWidgetToggleValue("Factory hold position"), description='Sets new factories, and all units they build, to hold position automatically (not aircraft)'},
 		{id="factoryrepeat", group="game", widget="Factory Auto-Repeat", name="Factory auto-repeat", type="bool", value=GetWidgetToggleValue("Factory Auto-Repeat"), description='Sets new factories on Repeat mode'},
@@ -2111,6 +2134,12 @@ function init()
 		options[getOptionByID("fancyselectedunits_baseopacity")] = nil
 		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
 		options[getOptionByID("fancyselectedunits_secondline")] = nil
+	end
+
+	if widgetHandler.knownWidgets["Auto Group"] == nil then
+		options[getOptionByID("autogroup_immediate")] = nil
+	else
+		options[getOptionByID("autogroup_immediate")].value = WG['autogroup'].getImmediate()
 	end
 
 	if widgetHandler.knownWidgets["Highlight Selected Units"] == nil then
