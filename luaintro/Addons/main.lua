@@ -107,7 +107,6 @@ local quotes = {
 	{"Great is the guilt of an unnecessary war.", "John Adams"},
 	{"I have never advocated war except as a means of peace.", "Ulysses S Grant"},
 	{"War is not only a matter of equipment, artillery, group troops or air force; it is largely a matter of spirit, or morale.", "Chiang Kai-Shek"},
-	{"I know not with what weapons World War III will be fought, but World War IV will be fought with sticks and stones.", "Albert Einstein"},
 	{"In nuclear war all men are cremated equal.", "Dexter Gordon"},
 	{"There are no absolute rules of conduct, either in peace or war. Everything depends on circumstances.", "Leon Trotsky"},
 	{"Weapons are an important factor in war, but not the decisive one; it is man and not materials that counts.", "Mao Zedong"},
@@ -279,93 +278,86 @@ function addon.DrawLoadScreen()
 	local vbw = 3.5/vsy
 	local hsw = 0.2
 	local vsw = 0.2
-	
+	local yPos = 0.125
+	local yPosTips = 0.2333
 	local loadvalue = 0.2 + (math.max(0, loadProgress) * 0.6)
 	
 	--bar bg
 	local paddingH = 0.004
 	local paddingW = paddingH * (vsy/vsx)
-	gl.Color(0.06,0.06,0.06,0.8)
-	RectRound(0.2-paddingW,0.1-paddingH,0.8+paddingW,0.15+paddingH,0.007)
+	gl.Color(0.1,0.1,0.1,0.93)
+	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.007)
+
+	gl.Color(0,0,0,0.77)
+	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.007)
 	
 	-- loadvalue
 	gl.Color(0.4-(loadProgress/7),loadProgress*0.4,0,0.4)
-	RectRound(0.2,0.1,loadvalue,0.15,0.0055)
+	RectRound(0.2,yPos-0.05,loadvalue,yPos,0.0055)
 	
 	-- loadvalue gradient
 	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, gradienth, 0.2,0.1,loadvalue,0.15, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
+	gl.BeginEnd(GL.QUADS, gradienth, 0.2,yPos-0.05,loadvalue,yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
 	
 	-- loadvalue inner glow
 	gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.085)
 	gl.Texture(":n:luaui/Images/barglow-center.dds")
-	gl.TexRect(0.2,0.1,loadvalue,0.15)
+	gl.TexRect(0.2,yPos-0.05,loadvalue,yPos)
 	
 	-- loadvalue glow
 	local glowSize = 0.045
 	gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.07)
 	gl.Texture(":n:luaui/Images/barglow-center.dds")
-	gl.TexRect(0.2,	0.1-glowSize,	loadvalue,	0.15+glowSize)
+	gl.TexRect(0.2,	yPos-0.05-glowSize,	loadvalue,	yPos+glowSize)
 	
 	gl.Texture(":n:luaui/Images/barglow-edge.dds")
-	gl.TexRect(0.2-(glowSize*1.3), 0.1-glowSize, 0.2, 0.15+glowSize)
-	gl.TexRect(loadvalue+(glowSize*1.3), 0.1-glowSize, loadvalue, 0.15+glowSize)
+	gl.TexRect(0.2-(glowSize*1.3), yPos-0.05-glowSize, 0.2, yPos+glowSize)
+	gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.05-glowSize, loadvalue, yPos+glowSize)
 
 	-- progressbar text
 	gl.PushMatrix()
-	gl.Scale(1/vsx,1/vsy,1)
+		gl.Scale(1/vsx,1/vsy,1)
 		local barTextSize = vsy * 0.026
 
 		--font:Print(lastLoadMessage, vsx * 0.5, vsy * 0.3, 50, "sc")
 		--font:Print(Game.gameName, vsx * 0.5, vsy * 0.95, vsy * 0.07, "sca")
-		font:Print(lastLoadMessage, vsx * 0.21, vsy * 0.133, barTextSize * 0.67, "oa")
+		font:Print(lastLoadMessage, vsx * 0.21, vsy * (yPos-0.017), barTextSize * 0.67, "oa")
 		if loadProgress>0 then
-			font:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * 0.1175, barTextSize, "oc")
+			font:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.0325), barTextSize, "oc")
 		else
-			font:Print("Loading...", vsx * 0.5, vsy * 0.165, barTextSize, "oc")
+			font:Print("Loading...", vsx * 0.5, vsy * (yPos+0.015), barTextSize, "oc")
 		end
-
 	gl.PopMatrix()
 
 
 	-- In this format, there can be an optional image before the tip/description.
 	-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
 	local text_to_show = random_tip_or_desc
+	yPos = yPosTips
 	if random_tip_or_desc[2] then
 		text_to_show = random_tip_or_desc[1]
 	else
 		i, j = string.find(random_tip_or_desc, ".dds")
 	end
 	local numLines = 1
-	local fontSize = barTextSize * 0.67
 	local image_text = nil
+	local fontSize = barTextSize * 0.67
 	local image_size = 0.04
-	local height = 0.1
+	local height = 0.104
 
 	if i ~= nil then
 		text_to_show = string.sub(text_to_show, j+2)
 		local maxWidth = ((0.58-image_size-0.012) * vsx) * (loadedFontSize/fontSize)
 		text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		local textHeight, textDescender = font:GetTextHeight(text_to_show)
-		height = (textHeight+math.abs(textDescender)*fontSize) / vsy
-		if height < image_size then
-			height = image_size
-		end
 	else
 		local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
 		text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-		local textHeight, textDescender = font:GetTextHeight(text_to_show)
-		height = (textHeight+math.abs(textDescender)*fontSize) / vsy
 	end
-
-
-	height = 0.104	-- done manually cause height calcs are wrong still
-
 
 	-- Tip/unit description
 	-- Background
-	gl.Color(0.06,0.06,0.06,0.8)
-	RectRound(0.2-paddingW,0.69-height-paddingH,0.8+paddingW,0.69+paddingH,0.007)
+	--gl.Color(1,1,1,0.033)
+	--RectRound(0.2,yPos-height,0.8,yPos,0.005)
 
 	-- Text
 	gl.PushMatrix()
@@ -375,14 +367,14 @@ function addon.DrawLoadScreen()
 		image_text = string.sub(random_tip_or_desc, 0, j)
 		gl.Texture(":n:unitpics/" .. image_text)
 		gl.Color(1.0,1.0,1.0,0.8)
-		gl.TexRect(vsx * 0.21, vsy*0.675, vsx*(0.21+image_size), (vsy*0.675)-(vsx*image_size))
-		font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * 0.6725, fontSize, "oa")
+		gl.TexRect(vsx * 0.21, vsy*(yPos-0.015), vsx*(0.21+image_size), (vsy*(yPos-0.015))-(vsx*image_size))
+		font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * (yPos-0.0175), fontSize, "oa")
 	else
-		font:Print(text_to_show, vsx * 0.21, vsy * 0.6725, fontSize, "oa")
+		font:Print(text_to_show, vsx * 0.21, vsy * (yPos-0.0175), fontSize, "oa")
 	end
 
 	if random_tip_or_desc[2] then
-		font:Print('\255\255\222\155'..random_tip_or_desc[2], vsx * 0.79, (vsy * (0.6725-height)) +(fontSize*2.66) , fontSize, "oar")
+		font:Print('\255\255\222\155'..random_tip_or_desc[2], vsx * 0.79, (vsy * ((yPos-0.0175)-height)) +(fontSize*2.66) , fontSize, "oar")
 	end
 	gl.PopMatrix()
 end

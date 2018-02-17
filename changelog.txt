@@ -18,10 +18,10 @@ Unbalanced Commanders (when mo_unba is enabled):
 
 Other:
  • Added widget: Fancy Selected Units (options widget has various options for it)
- • Added widget: Commander Hurt Vignette - shows red screen vignette when com is out of view and gets damaged
+ • Added widget: Commander Hurt Vignette - shows red screen vignette when com is out of view and gets damaged 
  • Added widget: Unit Reclaimer (Hover over a unit and drag an area-reclaim circle to reclaim all units within)
  • Added widget: Show Builder Queue - Shows ghosted queued up buildings (for all allied teams)
- • Added widget: Auto Cloak Popups - (default disabled)- Auto cloaks Pit Bull and Ambusher
+ • Added widget: Auto Cloak Popups - (default disabled) - Auto cloaks Pit Bull and Ambusher
  • You can now toggle off Highlight Selected Units via options widget
  • Auto Group: disabled immediate mode (like 9.46), re-enable via options widget
  • Unit Outline has thickness slider added to options widget
@@ -31,7 +31,7 @@ Other:
  • Ignore Ships vs Shipyard colisions for the just finished ships (15 seconds): They wont be rotated anymore when just exiting lab.
  • Added more "RockOnWaves" animations to t1 sea floating buildings (tidals/floating makers/dragonteeth)
  • Fixed Air mesh not refreshing when map_waterlevel is used.
- • Flak and mercyry/screamer projectile explosions are bigger visually
+ • Flak and mercury/screamer projectile explosions are bigger visually
  • Added "Scroll inversed" toggle to options widget
 
 
