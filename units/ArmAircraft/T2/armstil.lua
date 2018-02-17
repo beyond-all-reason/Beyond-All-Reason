@@ -2,8 +2,8 @@ return {
 	armstil = {
 		acceleration = 0.25,
 		brakerate = 0.04,
-		buildcostenergy = 18000,
-		buildcostmetal = 180,
+		buildcostenergy = 20000,
+		buildcostmetal = 240,
 		buildpic = "ARMSTIL.DDS",
 		buildtime = 21522,
 		canfly = true,

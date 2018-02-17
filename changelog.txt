@@ -3,6 +3,7 @@
 
 Balance changes: 
  • Bantha speed reduced 8%, harder to paralyze 30%
+ • EMP bomber more expensive: metal 33%, energy 11%
  • Footprints adjusted: armfus 7x4->6x5, armvp 8x6->7x6, corvp 7x7->7x6
  • Fixed T2 crawling bombs not blowing on attack commands. (issue on maintenance engines)
  • Reduced Comblast Edgeeffectiveness from 0.40->0.317 Does 3.5k damage to commanders at dgunRange (was 3.850k)
