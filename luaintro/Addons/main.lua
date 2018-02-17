@@ -67,19 +67,19 @@ local tips = {
 
 -- Random unit descriptions we can show
 local unit_descs = {
-	"armck.dds Construction Kbot is able to build basic T1 structures like the ones made by the Commander and advanced land and air defense towers, advanced solars and most importantly the T2 Kbot lab. It is slightly slower and weaker than vehicle constructor, but it can climb steeper hills, so it is effective in expansion on mountainous terrain.",
-	"armflea.dds Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion!",
-	"armham.dds Hammer is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has slightly higher HP than rocket Kbots, hence it can be used in big numbers to destroy T1 defensive structures. Combine with resurrection Kbots (Rectors), for an effective front push. Useful for defending mountain tops.",
-	"armjeth.dds Jethro is a cheap amphibious mobile anti-air (AA) Kbot, that can easily take down light aircrafts. Always send a few with your army to protect it from EMP drones/gunships. It has no land-to-land weapons.",
-	"armpw.dds Peewee is a basic infantry Kbot. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Peewees can be used for ambushing Commanders and speedy skirmishing.",
-	"armrectr.dds Rector is a resurrection Kbot which can turn wrecks into brand new army members or reclaim them to get back your metal! It is fast and cheap to build, therefore it works great for reclaiming trees, rocks etc. Good for repairing damaged units too.",
-	"armrock.dds Rocko is a light rocket Kbot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets. Not effective against mobile units, watch out for A.K./Peewees!",
-	"armwar.dds Warrior is a durable Kbot armed with a rapid firing double laser. It has a relatively high HP for T1 and can easily take down multiple light assault units. Always combine with resurrection Kbots for healing and resurrecting fallen ones.",
-	"corak.dds A.K. is a light infantry Kbot which is cheap and quick to build. Proves useful for scouting and taking down unguarded structures like metal extractors and early eco. It is armed with light, but precise laser with a little longer range than PeeWee, so with  little microing skills you can outrange them eaisily.",
-	"corcrash.dds Crasher is a cheap amphibious mobile anti-air (AA) Kbot, that can easily take down light aircrafts. Always send a few with your army to protect it from EMP drones/gunships. It has no land-to-land weapons.",
-	"corstorm.dds Storm is a light rocket Kbot used to push the frontline towards opponent's base. It can outrange light laser turrets. Hopeless against fast mobile units. Slower, but stronger than ARM counterparts.",
-	"cornecro.dds Necro is a resurrection Kbot which can turn wrecks into brand new army members or reclaim them to get back your metal! It is fast and cheap to build, therefore it works great for reclaiming trees, rocks etc. Good for repairing damaged units too.",
-	"corthud.dds Thud is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has a shorter range than rocket Kbots. Combine with resurrection Kbots (Necros), for healing and resurrecting fallen ones, to quickly push the frontline. Useful for defending mountain tops.",
+	"armck.dds Construction ARM T1 Kbot\nIt is slightly slower and weaker than vehicle constructor, but it can climb steeper hills, effective at expansion on mountainous terrain.",
+	"armflea.dds Flea ARM T1 Kbot\nSupercheap and fast, used for scouting and damaging the early enemy structures. Evade laser towers and destroy metal extractors to slow down your foe’s expansion!",
+	"armham.dds Hammer ARM T1 Kbot\nDeals sizeable damage with relatively low cost. Used in big numbers to destroy T1 defences. Combine with resurrection Kbots (Rector), for an effective front push.",
+	"armjeth.dds Jethro ARM T1 Kbot\nAmphibious mobile anti-air to take down light aircrafts. Always send a few with your army to protect it from EMP drones/gunships.",
+	"armpw.dds Peewee ARM T1 Kbot\nCheap and having high top speeds but low health. Can be useful for scouting and taking down unguarded metal extractors and eco. Also used to ambush Commanders.",
+	"armrectr.dds Rector ARM T1 Kbot\nResurrection Kbot that can turn wrecks alive again, also can reclaim and repair units.",
+	"armrock.dds Rocko ARM T1 Kbot\nLight rocket Kbot used to push the frontline towards opponent's base. Outranges light laser turrets. Not effective against mobile units, watch out for A.K./Peewees!",
+	"armwar.dds Warrior ARM T1 Kbot\nDurable Kbot armed with a rapid firing double laser. Has high health and can take down multiple light assault units. Combine with resurrection Kbots to heal and resurrect.",
+	"corak.dds A.K. CORE T1 Kbot\nLight infantry Kbot which is cheap and quick to build. It is armed with light, but precise laser with a little longer range than PeeWee.",
+	"corcrash.dds Crasher CORE T1 Kbot\nAmphibious mobile anti-air (AA) Kbot, that can easily take down light aircrafts. Send a few with your army to protect it from EMP drones/gunships.",
+	"corstorm.dds Storm CORE T1 Kbot\nLight rocket Kbot used to push the frontline towards opponent's base. Outranges light laser turrets. Slow but stronger than the ARM counterpart.",
+	"cornecro.dds Necro CORE T1 Kbot\nResurrection Kbot that can turn wrecks alive again, also can reclaim and repair units.",
+	"corthud.dds Thud CORE T1 Kbot\nDeals sizeable damage with relatively low cost. Used in big numbers to destroy T1 defences. Combine with resurrection Kbots (Necro), for an effective front push.",
 	"armfav.dds Jeffies are supercheap and fast to build vehicles used for scouting and damaging the early eco structures. It is the fastest moving unit in the whole game but due to light armor any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe's expansion.",
 	"armflash.dds Flash is a light, fast moving tank with close combat rapid fire weapon. It is slightly more powerful and faster than Peewee and A.K. on flat terrain. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco.",
 	"armart.dds Shellshocker is an artillery vehicle used to take down T1 defenses, esp. High Laser Turrets. It can outrange all T1 defense towers. Always keep them protected by Stumpies/Flashes, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
@@ -285,10 +285,10 @@ function addon.DrawLoadScreen()
 	--bar bg
 	local paddingH = 0.004
 	local paddingW = paddingH * (vsy/vsx)
-	gl.Color(0.1,0.1,0.1,0.93)
+	gl.Color(0.085,0.085,0.085,0.94)
 	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.007)
 
-	gl.Color(0,0,0,0.77)
+	gl.Color(0,0,0,0.75)
 	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.007)
 	
 	-- loadvalue
