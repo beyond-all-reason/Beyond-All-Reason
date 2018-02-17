@@ -249,7 +249,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   vsx = viewSizeX
   vsy = viewSizeY
 
-  outlineSize = (0.85 + (vsx*vsy / 30000000))*0.55
+  outlineSize = (0.85 + (vsx*vsy / 25000000))*0.55
 
   gl.DeleteTexture(depthtex or 0)
   gl.DeleteTextureFBO(offscreentex or 0)
@@ -360,8 +360,8 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	if not show then return end
- 	gl.ResetState()		-- to prevent on/off flicker induced by other widgets maybe (i tried single out which thing included in gl.ResetSate fixed it but it kept doing it)
+  if not show then return end
+  gl.ResetState()		-- to prevent on/off flicker induced by other widgets maybe (i tried single out which thing included in gl.ResetSate fixed it but it kept doing it)
  	
   glCopyToTexture(depthtex,  0, 0, 0, 0, vsx, vsy)
   glTexture(depthtex)

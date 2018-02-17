@@ -31,6 +31,7 @@ Other:
  • Added more "RockOnWaves" animations to t1 sea floating buildings (tidals/floating makers/dragonteeth)
  • Fixed Air mesh not refreshing when map_waterlevel is used.
  • Flak and mercyry/screamer projectile explosions are bigger visually
+ • Added "Scroll inversed" toggle to options widget
 
 
 10.04 -> 10.05

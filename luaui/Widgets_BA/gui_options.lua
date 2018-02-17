@@ -836,6 +836,12 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'screenedgemove' then
 			Spring.SetConfigInt("FullscreenEdgeMove",value)
 			Spring.SetConfigInt("WindowedEdgeMove",value)
+		elseif id == 'scrollinverse' then
+			if value then
+				Spring.SetConfigInt("ScrollWheelSpeed",-options[getOptionByID('scrollspeed')].value)
+			else
+				Spring.SetConfigInt("ScrollWheelSpeed",options[getOptionByID('scrollspeed')].value)
+			end
 		elseif id == 'hwcursor' then
 			Spring.SendCommands("HardwareCursor "..value)
 			Spring.SetConfigInt("HardwareCursor",value)
@@ -1076,7 +1082,11 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("GroundDecals "..value)
 			Spring.SetConfigInt("GroundScarAlphaFade", 1)
 		elseif id == 'scrollspeed' then
-			Spring.SetConfigInt("ScrollWheelSpeed",value)
+			if options[getOptionByID('scrollinverse')].value then
+				Spring.SetConfigInt("ScrollWheelSpeed",-value)
+			else
+				Spring.SetConfigInt("ScrollWheelSpeed",value)
+			end
 		elseif id == 'disticon' then
 			if Spring.GetConfigInt("distdraw",1) < 10000 then
 				Spring.SendCommands("distdraw 10000")
@@ -1958,7 +1968,9 @@ function init()
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
-		{id="scrollspeed", group="control", name="Zoom direction/speed", type="slider", min=-45, max=45, step=1, value=tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25), description='Leftside of the slider means inversed scrolling direction!\nNOTE: Having the slider centered means no mousewheel zooming at all!'},
+
+		{id="scrollspeed", group="control", name="Scroll zoom speed", type="slider", min=1, max=45, step=1, value=math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25)), description=''},
+		{id="scrollinverse", group="control", name="Scroll inversed", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description=""},
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: the mouse cursor refresh rate will be the same as your ingame fps"},
 		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1},
