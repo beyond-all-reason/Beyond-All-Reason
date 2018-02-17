@@ -279,7 +279,7 @@ function addon.DrawLoadScreen()
 	local hsw = 0.2
 	local vsw = 0.2
 	local yPos = 0.125
-	local yPosTips = 0.2333
+	local yPosTips = 0.2495
 	local loadvalue = 0.2 + (math.max(0, loadProgress) * 0.6)
 	
 	--bar bg
@@ -341,9 +341,9 @@ function addon.DrawLoadScreen()
 	end
 	local numLines = 1
 	local image_text = nil
-	local fontSize = barTextSize * 0.67
-	local image_size = 0.04
-	local height = 0.104
+	local fontSize = barTextSize * 0.77
+	local image_size = 0.0485
+	local height = 0.118
 
 	if i ~= nil then
 		text_to_show = string.sub(text_to_show, j+2)
