@@ -150,8 +150,8 @@ function widget:DrawWorld()
 		local myCmd = units.id
 		local params = myCmd.params
 
-		local x, y, z, h = params[1], params[2], params[3], params[4]
-		local degrees = params[4] or 0	-- mex command doesnt supply param 4
+		local x, y, z = params[1], params[2], params[3]
+		local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
 		if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
 			glPushMatrix()
 				glLoadIdentity()
