@@ -79,7 +79,7 @@ function checkBuilders()
 			checkBuilder(unitID)
 		end
 	end
-	updateTime = 0.05 + (#allUnits/3300)
+	updateTime = 0.15 + (#allUnits/3300)
 	if updateTime > 1 then updateTime = 1 end
 end
 
@@ -96,7 +96,7 @@ local sec = 0
 local sceduledCheck = false
 function widget:Update(dt)
 	sec=sec+dt
-	if sec>updateTime or (sec>1/(updateTime*5) and sceduledCheck) then
+	if sec>updateTime or (sec>1/0.25) and sceduledCheck) then
 		sec = 0
 		sceduledCheck = false
 		checkBuilders()

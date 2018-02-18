@@ -39,6 +39,7 @@ return {
 		customparams = {
 			removewait = true,
 			removestop = true,
+			paralyzemultiplier = 0,
 		},
 		featuredefs = {
 			rockteethx = {
