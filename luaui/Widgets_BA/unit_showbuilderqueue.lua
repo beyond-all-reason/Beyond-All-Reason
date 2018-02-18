@@ -102,7 +102,7 @@ function checkBuilder(unitID)
 				}
 				local id = Spring.GetUnitTeam(unitID)..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..cmd.params[2]..'_'..cmd.params[3]
 				if command[id] == nil then
-					command[id] = {id = myCmd}
+					command[id] = {id = myCmd }
 				end
 				command[id][unitID] = true
 				if commandOrdered[unitID] == nil then
@@ -151,16 +151,14 @@ function widget:DrawWorld()
 		local params = myCmd.params
 
 		local x, y, z, h = params[1], params[2], params[3], params[4]
-		if(h ~= nil) then
-			local degrees = h * 90
-			if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
-				glPushMatrix()
-					glLoadIdentity()
-					glTranslate( x, y, z )
-					glRotate( degrees, 0, 1.0, 0 )
-					glUnitShape(myCmd.id, myCmd.teamid, false, false, false)
-				glPopMatrix()
-			end
+		local degrees = params[4] or 0	-- mex command doesnt supply param 4
+		if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
+			glPushMatrix()
+				glLoadIdentity()
+				glTranslate( x, y, z )
+				glRotate( degrees, 0, 1.0, 0 )
+				glUnitShape(myCmd.id, myCmd.teamid, false, false, false)
+			glPopMatrix()
 		end
 	end
 	glDepthTest(false)
