@@ -75,8 +75,7 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-function checkBuilder(unitID)
-	local queue = Spring.GetCommandQueue(unitID, 200)
+function clearBuilderCommands(unitID)
 	if commandOrdered[unitID] then
 		for id, _ in pairs(commandOrdered[unitID]) do
 			if command[id] and command[id][unitID] then
@@ -88,6 +87,11 @@ function checkBuilder(unitID)
 		end
 		commandOrdered[unitID] = nil
 	end
+end
+
+function checkBuilder(unitID)
+	clearBuilderCommands(unitID)
+	local queue = Spring.GetCommandQueue(unitID, 200)
 	if(queue and #queue > 0) then
 		for _, cmd in ipairs(queue) do
 			if ( cmd.id < 0 ) then
@@ -134,12 +138,13 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	if builders[unitID] then
 		buildersOrdered[builders[unitID]][unitID] = nil
 		builders[unitID] = nil
+		clearBuilderCommands(unitID)
 	end
 end
 
 function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
-	
+
 	glDepthTest(true)
 	for id, units in pairs(command) do
 		local myCmd = units.id
@@ -150,10 +155,6 @@ function widget:DrawWorld()
 			local degrees = h * 90
 			if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
 				glPushMatrix()
-					--glTranslate( x, y, z )
-					--glRotate( degrees, 0, 1.0, 0 )
-					--glColor(0,0,0,0.15)
-					--glUnitShape(myCmd.id, myCmd.teamid, true, false, false)
 					glLoadIdentity()
 					glTranslate( x, y, z )
 					glRotate( degrees, 0, 1.0, 0 )
