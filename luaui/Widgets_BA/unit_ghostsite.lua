@@ -21,19 +21,18 @@ end
 local lastUpdate
 local ghostSites = {}
 
-local floor                 = math.floor
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
 local glTexture             = gl.Texture
-local glTexEnv				= gl.TexEnv
 local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate
 local glRotate              = gl.Rotate
 local glUnitShape           = gl.UnitShape
+local glLoadIdentity       	= gl.LoadIdentity
 
 local spGetUnitDefID        = Spring.GetUnitDefID
-local spValidUnitID       = Spring.ValidUnitID
+local spValidUnitID       	= Spring.ValidUnitID
 local spIsUnitAllied		= Spring.IsUnitAllied
 local spGetUnitDirection    = Spring.GetUnitDirection
 local spGetUnitBasePosition = Spring.GetUnitBasePosition
@@ -94,9 +93,10 @@ function DrawGhostSites()
 			--gl.Blending(GL.SRC_ALPHA, GL.ONE)
             
 			glPushMatrix()
-            glTranslate( x, y, z)
-            glRotate(ghost.angle,0,y,0)			
-            glUnitShape(ghost.uDID, ghost.teamID, false, true, false)
+				glLoadIdentity()
+            	glTranslate( x, y, z)
+            	glRotate(ghost.angle,0,y,0)
+            	glUnitShape(ghost.uDID, ghost.teamID, false, false, false)
 			glPopMatrix()
 		end
 	end

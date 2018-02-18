@@ -9,6 +9,8 @@ Balance changes:
  • Reduced Comblast Edgeeffectiveness from 0.40->0.317 Does 3.5k damage to commanders at dgunRange (was 3.850k)
  • Increased Gimp's torpedos speed/acceleration
  • Arm/Core destroyers: Increased default depthcharge damages +25% and decreased damages vs subs  -10%
+ • Prevents paralyzer units attacking anything other than EMP-able units
+ • Dragonteeth and Fortification walls are no long EMP-able
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Dgun reloadTime reduced by 0.025s at each level (0.9 -> 0.65)

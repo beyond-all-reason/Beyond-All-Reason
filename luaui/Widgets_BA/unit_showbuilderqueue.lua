@@ -123,12 +123,6 @@ function widget:GameFrame(gameframe)
 	end
 end
 
---function widget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams)
---	if cmdID == 70 and builderUnitDefs[unitDefID] then
---		checkBuilder(unitID)
---	end
---end
-
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderUnitDefs[unitDefID] then
 		local random = math.random(1,10)
@@ -144,6 +138,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 end
 
 function widget:DrawWorld()
+	if Spring.IsGUIHidden() then return end
+	
 	glDepthTest(true)
 	for id, units in pairs(command) do
 		local myCmd = units.id
@@ -154,6 +150,10 @@ function widget:DrawWorld()
 			local degrees = h * 90
 			if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
 				glPushMatrix()
+					--glTranslate( x, y, z )
+					--glRotate( degrees, 0, 1.0, 0 )
+					--glColor(0,0,0,0.15)
+					--glUnitShape(myCmd.id, myCmd.teamid, true, false, false)
 					glLoadIdentity()
 					glTranslate( x, y, z )
 					glRotate( degrees, 0, 1.0, 0 )

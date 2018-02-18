@@ -35,6 +35,8 @@ local glUnitShape			= gl.UnitShape
 local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate
+local glLoadIdentity       	= gl.LoadIdentity
+
 ----------------------------------------------------------------
 
 local debug = false
@@ -101,8 +103,9 @@ function widget:DrawWorld()
 			local x, y, z = spGetUnitPosition(unitID)
 			if x and ( spIsUnitInView(unitID) ) then
 				glPushMatrix()
-				glTranslate( x, y + 5 , z)
-				glUnitShape( dot["unitDefId"], dot["teamId"], false, true, false)					      
+					glLoadIdentity()
+					glTranslate( x, y + 5 , z)
+					glUnitShape( dot["unitDefId"], dot["teamId"], false, false, false)
 				glPopMatrix()
 			end
 		end
