@@ -8,7 +8,7 @@ Balance changes:
  • Dragonteeth and Fortification walls are no long EMP-able
  • Fixed T2 crawling bombs not blowing on attack commands. (issue on maintenance engines)
  • Footprints adjusted: armfus 7x4->6x5, armvp 8x6->7x6, corvp 7x7->7x6
- • Increased Gimp's torpedos speed/acceleration
+ • Increased Gimp's torpedos max speed 30% and acceleration 400%
  • Arm/Core destroyers: Increased default depthcharge damages +25% and decreased damages vs subs -10%
  • Reduced Comblast Edgeeffectiveness from 0.40->0.317 Does 3.5k damage to commanders at dgunRange (was 3.850k)
 
@@ -34,7 +34,8 @@ Other:
  • Ignore Ships vs Shipyard colisions when finished for 15 seconds: No more rotation when exiting lab.
  • More "RockOnWaves" animations to t1 sea floating buildings (tidals/floating makers/dragonteeth)
  • Fixed Air mesh not refreshing when map_waterlevel is used.
- • Flak and mercury/screamer projectile explosions are visually bigger 
+ • Flak and mercury/screamer projectile explosions are visually bigger
+ • Vehicle minimap/overview icon adjusted to match kbots icon design 
 
 
 10.04 -> 10.05
