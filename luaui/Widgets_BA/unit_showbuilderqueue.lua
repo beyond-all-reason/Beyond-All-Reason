@@ -11,18 +11,19 @@ function widget:GetInfo()
     }
 end
 
-
--- project page on github: https://github.com/jamerlan/unit_showbuild
+local showForCreatedUnits = true		-- keep drawing unitshape for building when it has a nanoframe but isnt finished
 
 --Changelog
 -- before v2 developed outside of BA by WarXperiment
 -- v2 [teh]decay - fixed crash: Error in DrawWorld(): [string "LuaUI/Widgets/unit_showbuild.lua"]:82: bad argument #1 to 'GetTeamColor' (number expected, got no value)
--- v3 [teh]decay - updated for spring 98 engine
+-- v3 [teh]decay - updated for spring 98 engine -- project page on github: https://github.com/jamerlan/unit_showbuild
 -- v4 Floris - lots of performance increases
 -- v5 Floris - cleanup, polishing and fixes
 
 local command = {}
 local commandOrdered = {}
+local commandCreatedUnits = {}
+local commandCreatedUnitsIDs = {}
 local builders = {}
 local buildersOrdered = {{},{},{},{},{},{},{},{},{},{}}
 local myPlayerID = Spring.GetMyPlayerID()
@@ -53,12 +54,13 @@ end
 function addBuilders()
 	command = {}
 	local allUnits = Spring.GetAllUnits()
-	for _, unitID in pairs(allUnits) do
+	for _, unitID in ipairs(allUnits) do
 		local uDefID = spGetUnitDefID(unitID)
 		if builderUnitDefs[uDefID] then
 			local random = math.random(1,10)
 			buildersOrdered[random][unitID] = true
 			builders[unitID] = random
+			checkBuilder(unitID)
 		end
 	end
 end
@@ -101,14 +103,16 @@ function checkBuilder(unitID)
 					params = cmd.params
 				}
 				local id = Spring.GetUnitTeam(unitID)..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..cmd.params[2]..'_'..cmd.params[3]
-				if command[id] == nil then
-					command[id] = {id = myCmd }
+				if showForCreatedUnits or commandCreatedUnits[id] == nil then
+					if command[id] == nil then
+						command[id] = {id = myCmd }
+					end
+					command[id][unitID] = true
+					if commandOrdered[unitID] == nil then
+						commandOrdered[unitID] = {}
+					end
+					commandOrdered[unitID][id] = true
 				end
-				command[id][unitID] = true
-				if commandOrdered[unitID] == nil then
-					commandOrdered[unitID] = {}
-				end
-				commandOrdered[unitID][id] = true
 			end
 		end
 	end
@@ -127,18 +131,34 @@ function widget:GameFrame(gameframe)
 	end
 end
 
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+	if commandCreatedUnitsIDs[unitID] then
+		commandCreatedUnits[commandCreatedUnitsIDs[unitID]] = nil
+	end
+end
+
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	local x,y,z = Spring.GetUnitPosition(unitID)
+	if command[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] then
+		command[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] = nil
+		commandCreatedUnitsIDs[unitID] = unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z
+		commandCreatedUnits[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] = true
+	end
 	if builderUnitDefs[unitDefID] then
 		local random = math.random(1,10)
 		buildersOrdered[random][unitID] = true
 		builders[unitID] = random
 	end
 end
+
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	if builders[unitID] then
 		buildersOrdered[builders[unitID]][unitID] = nil
 		builders[unitID] = nil
 		clearBuilderCommands(unitID)
+	end
+	if commandCreatedUnitsIDs[unitID] then
+		commandCreatedUnits[commandCreatedUnitsIDs[unitID]] = nil
 	end
 end
 
