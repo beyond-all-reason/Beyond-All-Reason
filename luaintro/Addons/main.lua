@@ -53,7 +53,7 @@ local tips = {
 	"The best way to prevent air strikes is building fighters and putting them on PATROL in front of your base.",
 	"Use jammers to hide your units from enemy radars and hinder artillery strikes.",
 	"Cloaking your Commander drains 100E stationary and 1000E when walking (every second)",
-	"Combine CLOAK with radar jamming to make your units fully stealthy.",
+	"Combine CLOAK with radar jamming to make your units fully stealth.",
 	"Long-ranged units need scouting for accurate aiming.\nGenerate a constant stream of quick/cheap units for better vision.",
 	"You can assign units to groups by pressing CTRL+[num].\nSelect the group using numbers (1-9).",
 	"When performing a bombing run fly your fighters first to eliminate enemy's fighter-wall. Use FIGHT or PATROL command for that.",
@@ -343,7 +343,7 @@ function addon.DrawLoadScreen()
 	local image_text = nil
 	local fontSize = barTextSize * 0.77
 	local image_size = 0.0485
-	local height = 0.118
+	local height = 0.123
 
 	if i ~= nil then
 		text_to_show = string.sub(text_to_show, j+2)
