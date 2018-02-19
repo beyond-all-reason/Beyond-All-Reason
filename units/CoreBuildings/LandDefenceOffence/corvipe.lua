@@ -35,7 +35,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
 		customparams = {
-
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

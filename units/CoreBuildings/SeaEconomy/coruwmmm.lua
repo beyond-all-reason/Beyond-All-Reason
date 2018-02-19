@@ -38,6 +38,7 @@ return {
 		waterline = 17,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 			removestop = true,
 		},

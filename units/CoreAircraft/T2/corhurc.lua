@@ -34,6 +34,7 @@ return {
 		turnrate = 400,
 		blocking = false,
 		customparams = {
+			techlevel = 2,
 		    wingsurface = 0.4,
 		},
 		sfxtypes = { 

@@ -38,7 +38,7 @@ return {
 		turninplacespeedlimit = 0.99,
 		turnrate = 583,
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

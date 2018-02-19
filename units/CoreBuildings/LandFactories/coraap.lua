@@ -50,7 +50,7 @@ return {
 			[8] = "corcrw",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

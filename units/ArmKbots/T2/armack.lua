@@ -77,7 +77,7 @@ return {
 			-- [30] = "seaplatform",
 		},
 		customparams = {
-			
+			techlevel = 2,
 			area_mex_def = "armmoho",
 		},
 		featuredefs = {

@@ -61,7 +61,7 @@ return {
 			[17] = "cormando",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

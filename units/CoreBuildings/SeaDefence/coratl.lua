@@ -30,6 +30,7 @@ return {
 		waterline = 10,
 		yardmap = "ooooooooo",
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 			removestop = true,
 		},

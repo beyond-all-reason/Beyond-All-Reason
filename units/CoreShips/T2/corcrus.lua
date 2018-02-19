@@ -43,7 +43,7 @@ return {
 		--end move
 		waterline = 0,
 		customparams = {
-
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

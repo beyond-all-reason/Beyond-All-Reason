@@ -55,7 +55,7 @@ return {
 			"armsjam",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

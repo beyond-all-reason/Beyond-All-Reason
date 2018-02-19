@@ -58,7 +58,7 @@ return {
 			[14] = "corvrad",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

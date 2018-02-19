@@ -40,7 +40,7 @@ return {
 		turnrate = 1056,
 		upright = true,
 		customparams = {
-			
+			techlevel = 3,
 			paralyzemultiplier = 0.9,
 		},
 		featuredefs = {

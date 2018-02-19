@@ -56,7 +56,7 @@ return {
 			[7] = "corjamt",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

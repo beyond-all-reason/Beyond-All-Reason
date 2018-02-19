@@ -48,6 +48,7 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 			removestop = true,
 			shield_power = 10000,

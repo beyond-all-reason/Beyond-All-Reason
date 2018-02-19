@@ -61,7 +61,7 @@ return {
 			[18] = "armmark",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

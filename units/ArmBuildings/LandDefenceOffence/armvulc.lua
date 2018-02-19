@@ -34,6 +34,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 		},
 		featuredefs = {

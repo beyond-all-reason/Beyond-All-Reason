@@ -37,7 +37,7 @@ return {
 		turnrate = 1145,
 		upright = true,
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			heap = {

@@ -47,7 +47,7 @@ return {
 		--end move
 		waterline = 0,
 		customparams = {
-
+			techlevel = 2,
 			paralyzemultiplier = 0,
 		},
 		featuredefs = {

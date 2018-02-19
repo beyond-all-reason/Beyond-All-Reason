@@ -51,7 +51,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

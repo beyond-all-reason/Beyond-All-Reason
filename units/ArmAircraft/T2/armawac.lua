@@ -35,6 +35,7 @@ return {
 		blocking = false,
 		customparams = {
 			wingsurface = 0.50,
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

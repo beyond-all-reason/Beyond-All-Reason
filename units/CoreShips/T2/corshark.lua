@@ -43,7 +43,7 @@ return {
 		upright = true,
 		waterline = 40,
 		customparams = {
-
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

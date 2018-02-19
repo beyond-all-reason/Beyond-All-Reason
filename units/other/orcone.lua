@@ -40,7 +40,7 @@ return {
 		turnrate = 396,
 		upright = true,
 		customparams = {
-			
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

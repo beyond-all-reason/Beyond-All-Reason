@@ -74,6 +74,7 @@ return {
 			-- [29] = "seaplatform",
 		},
 		customparams = {
+			techlevel = 2,
 			wingsurface = 0.7,
 			area_mex_def = "cormoho",
 		},

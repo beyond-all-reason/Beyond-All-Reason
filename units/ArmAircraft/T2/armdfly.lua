@@ -48,6 +48,7 @@ return {
 		customparams = {
 		wingsurface = 0.35,
 			paralyzemultiplier = 0.025,
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

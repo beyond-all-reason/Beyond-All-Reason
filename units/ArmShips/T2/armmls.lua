@@ -65,7 +65,7 @@ return {
 			"armfmine3",
 		},
 		customparams = {
-			
+			techlevel = 2,
 			area_mex_def = "armuwmex",
 		},
 		featuredefs = {

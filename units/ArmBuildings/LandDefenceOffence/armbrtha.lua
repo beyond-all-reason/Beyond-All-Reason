@@ -33,6 +33,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 			canareaattack = 1,
 		},

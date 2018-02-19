@@ -56,7 +56,7 @@ return {
 			-- [8] = "seaplatform",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

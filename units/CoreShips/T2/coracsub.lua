@@ -64,7 +64,7 @@ return {
 			--"seaplatform",
 		},
 		customparams = {
-
+			techlevel = 2,
 			area_mex_def = "coruwmme",
 		},
 		featuredefs = {

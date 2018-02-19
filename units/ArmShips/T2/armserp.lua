@@ -43,7 +43,7 @@ return {
 		turnrate = 240,	
 		--end move
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

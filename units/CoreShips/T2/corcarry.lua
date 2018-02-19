@@ -58,7 +58,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
-
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

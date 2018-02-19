@@ -50,7 +50,7 @@ return {
 			[6] = "corsok",
 		},
 		customparams = {
-			
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

@@ -77,7 +77,7 @@ return {
 			-- [18] = "seaplatform",
 		},
 		customparams = {
-			
+			techlevel = 2,
 			area_mex_def = "cormex",
 			paralyzemultiplier = 0.025,
 		},

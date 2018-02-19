@@ -43,6 +43,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 			removestop = true,
 		},

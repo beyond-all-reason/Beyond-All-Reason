@@ -77,6 +77,7 @@ return {
 		customparams = {
 			wingsurface = 0.25,
 			area_mex_def = "armmoho",
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 1.32,
 		turnrate = 433,
 		customparams = {
+			techlevel = 2,
 			--ANIMATION DATA
 				--PIECENAMES HERE
 					basename = "base",

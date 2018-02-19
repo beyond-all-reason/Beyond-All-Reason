@@ -38,6 +38,7 @@ return {
 		turnrate = 990,
 		customparams = {
 			onoffname = "gauss",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

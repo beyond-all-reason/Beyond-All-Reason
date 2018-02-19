@@ -38,6 +38,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			techlevel = 2,
 			cvBuildable = true,
 			metal_extractor = 4,
 			removewait = true,

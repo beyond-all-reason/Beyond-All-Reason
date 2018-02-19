@@ -40,7 +40,7 @@ return {
 		turninplacespeedlimit = 1.848,
 		turnrate = 1540,
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			corpse = {

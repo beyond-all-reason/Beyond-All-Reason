@@ -34,7 +34,8 @@ return {
 		turnrate = 540,
 		blocking = false,
 		customparams = {
-		wingsurface = 0.8,
+			wingsurface = 0.8,
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

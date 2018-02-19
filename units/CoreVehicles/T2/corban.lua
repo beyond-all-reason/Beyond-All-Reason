@@ -45,6 +45,7 @@ return {
 		turnrate = 375*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
+			techlevel = 2,
 			--ANIMATION DATA
 				--PIECENAMES HERE
 					basename = "base",

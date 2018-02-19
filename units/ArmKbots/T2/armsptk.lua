@@ -35,7 +35,7 @@ return {
 		turninplacespeedlimit = 1.1352,
 		turnrate = 1122,
 		customparams = {
-			
+			techlevel = 2,
 			paralyzemultiplier = 0.125,
 		},
 		featuredefs = {

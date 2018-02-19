@@ -35,6 +35,7 @@ return {
 		sightdistance = 273,
 		yardmap = "oooooooooooooooooooo",
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 			removestop = true,
 		},

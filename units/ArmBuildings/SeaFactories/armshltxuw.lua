@@ -48,7 +48,7 @@ return {
 			[3] = "armcroc",
 		},
 		customparams = {
-			
+			techlevel = 3,
 		},
 		featuredefs = {
 			armshlt_dead = {

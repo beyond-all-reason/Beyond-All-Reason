@@ -33,6 +33,7 @@ return {
 		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			techlevel = 2,
 			removewait = true,
 		},
 		featuredefs = {

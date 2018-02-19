@@ -114,6 +114,7 @@ tablearmcom = {
 			-- [28] = "seaplatform",
 		},
 		customparams = {
+			techlevel = 2,
 			--death_sounds = "commander",
 			area_mex_def = "armmex",
 			iscommander = true,

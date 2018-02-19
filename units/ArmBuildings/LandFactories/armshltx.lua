@@ -47,7 +47,7 @@ return {
 			[5] = "armlun",
 		},
 		customparams = {
-			
+			techlevel = 3,
 		},
 		featuredefs = {
 			armshlt_dead = {

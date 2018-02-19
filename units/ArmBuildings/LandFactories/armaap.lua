@@ -52,7 +52,7 @@ return {
 			[10] = "armliche",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

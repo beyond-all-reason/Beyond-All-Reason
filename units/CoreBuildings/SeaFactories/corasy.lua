@@ -56,7 +56,7 @@ return {
 			"corsjam",
 		},
 		customparams = {
-			
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {

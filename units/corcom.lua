@@ -112,6 +112,7 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 			-- [28] = "seaplatform",
 		},
 		customparams = {
+			techlevel = 2,
 			--death_sounds = "commander",
 			iscommander = true,
 			paralyzemultiplier = 0.025,

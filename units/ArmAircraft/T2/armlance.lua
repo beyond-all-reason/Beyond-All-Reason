@@ -32,7 +32,8 @@ return {
 		sightdistance = 455,
 		turnrate = 700,
 		customparams = {
-		wingsurface = 0.5,
+			wingsurface = 0.5,
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

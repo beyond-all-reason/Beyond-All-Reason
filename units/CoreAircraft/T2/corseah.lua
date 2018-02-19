@@ -43,6 +43,7 @@ return {
 		upright = true,
 		blocking = false,
 		customparams = {
+			techlevel = 2,
 			wingsurface = 0.50,
 			paralyzemultiplier = 0.025,
 		},

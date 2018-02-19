@@ -73,7 +73,7 @@ return {
 			-- [23] = "seaplatform",
 		},
 		customparams = {
-			
+			techlevel = 2,
 			area_mex_def = "armmex",
 		},
 		featuredefs = {

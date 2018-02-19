@@ -51,7 +51,7 @@ return {
 			[4] = "corparrow",
 		},
 		customparams = {
-			
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {

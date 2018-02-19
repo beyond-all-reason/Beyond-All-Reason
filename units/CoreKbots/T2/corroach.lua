@@ -39,7 +39,7 @@ return {
 		turninplacespeedlimit = 1.782,
 		turnrate = 1507,
 		customparams = {
-			
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 

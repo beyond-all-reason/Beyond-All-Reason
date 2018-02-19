@@ -43,7 +43,7 @@ return {
 		turnrate = 1122,
 		upright = true,
 		customparams = {
-			
+			techlevel = 2,
 		},
 		sfxtypes = { 
  			pieceExplosionGenerators = { 
