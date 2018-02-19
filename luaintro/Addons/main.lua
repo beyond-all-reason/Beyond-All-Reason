@@ -157,9 +157,7 @@ local quotes = {
 filename = "LuaUI/Config/randomseed.data"
 k = os.time() % 1500
 if VFS.FileExists(filename) then
-    local file = assert(io.open(filename,'r'), "Unable to load latest randomseed from "..filename)
-    k = math.floor(tonumber(file:read())) % 1500
-    file:close()
+	k = VFS.LoadFile(filename)
 end
 k = k + 1
 local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
