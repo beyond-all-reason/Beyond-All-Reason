@@ -26,25 +26,23 @@ function widget:GetInfo()
 end
 
 local drawFeatureHighlight	= false
-local unitAlpha				= 0.16
+local unitAlpha				= 0.2
 local featureAlpha			= 0.14
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local useShader = true
+local edgeExponent = 1.25
+local shaderUnitAlphaMultiplier = 0.7
 
--- Automatically generated local definitions
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 local GL_BACK                   = GL.BACK
 local GL_EYE_LINEAR             = GL.EYE_LINEAR
 local GL_EYE_PLANE              = GL.EYE_PLANE
-local GL_FILL                   = GL.FILL
 local GL_FRONT                  = GL.FRONT
-local GL_FRONT_AND_BACK         = GL.FRONT_AND_BACK
 local GL_INVERT                 = GL.INVERT
-local GL_LINE                   = GL.LINE
 local GL_ONE                    = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA    = GL.ONE_MINUS_SRC_ALPHA
-local GL_POINT                  = GL.POINT
 local GL_QUAD_STRIP             = GL.QUAD_STRIP
 local GL_SRC_ALPHA              = GL.SRC_ALPHA
 local GL_T                      = GL.T
@@ -57,45 +55,31 @@ local glColor                   = gl.Color
 local glCreateList              = gl.CreateList
 local glCulling                 = gl.Culling
 local glDeleteList              = gl.DeleteList
-local glDeleteTexture           = gl.DeleteTexture
 local glDepthTest               = gl.DepthTest
 local glFeature                 = gl.Feature
-local glGetTextWidth            = gl.GetTextWidth
-local glLineWidth               = gl.LineWidth
 local glLogicOp                 = gl.LogicOp
-local glPointSize               = gl.PointSize
-local glPolygonMode             = gl.PolygonMode
 local glPolygonOffset           = gl.PolygonOffset
 local glPopMatrix               = gl.PopMatrix
 local glPushMatrix              = gl.PushMatrix
 local glScale                   = gl.Scale
-local glSmoothing               = gl.Smoothing
 local glTexCoord                = gl.TexCoord
 local glTexGen                  = gl.TexGen
-local glText                    = gl.Text
 local glTexture                 = gl.Texture
 local glTranslate               = gl.Translate
 local glUnit                    = gl.Unit
 local glVertex                  = gl.Vertex
 local spDrawUnitCommands        = Spring.DrawUnitCommands
-local spGetFeatureAllyTeam      = Spring.GetFeatureAllyTeam
 local spGetFeatureDefID         = Spring.GetFeatureDefID
 local spGetFeaturePosition      = Spring.GetFeaturePosition
 local spGetFeatureRadius        = Spring.GetFeatureRadius
-local spGetFeatureTeam          = Spring.GetFeatureTeam
 local spGetModKeyState          = Spring.GetModKeyState
 local spGetMouseState           = Spring.GetMouseState
 local spGetMyAllyTeamID         = Spring.GetMyAllyTeamID
 local spGetMyPlayerID           = Spring.GetMyPlayerID
 local spGetMyTeamID             = Spring.GetMyTeamID
 local spGetPlayerControlledUnit = Spring.GetPlayerControlledUnit
-local spGetPlayerInfo           = Spring.GetPlayerInfo
-local spGetTeamColor            = Spring.GetTeamColor
-local spGetTeamInfo             = Spring.GetTeamInfo
 local spGetUnitAllyTeam         = Spring.GetUnitAllyTeam
-local spGetUnitIsCloaked        = Spring.GetUnitIsCloaked
 local spGetUnitTeam             = Spring.GetUnitTeam
-local spIsCheatingEnabled       = Spring.IsCheatingEnabled
 local spTraceScreenRay          = Spring.TraceScreenRay
 
 --------------------------------------------------------------------------------
@@ -113,7 +97,59 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   vsy = viewSizeY
 end
 
-local smoothPolys = (glSmoothing ~= nil) and false
+
+function CreateHighlightShader()
+  if shader then
+    gl.DeleteShader(shader)
+  end
+  shader = gl.CreateShader({
+
+    uniform = {
+      edgeExponent = edgeExponent,
+    },
+
+    vertex = [[
+	  // Application to vertex shader
+	  varying vec3 normal;
+	  varying vec3 eyeVec;
+	  varying vec3 color;
+	  uniform mat4 camera;
+	  uniform mat4 caminv;
+
+	  void main()
+	  {
+		vec4 P = gl_ModelViewMatrix * gl_Vertex;
+
+		eyeVec = P.xyz;
+
+		normal  = gl_NormalMatrix * gl_Normal;
+
+		color = gl_Color.rgb;
+
+		gl_Position = gl_ProjectionMatrix * P;
+	  }
+	]],
+
+    fragment = [[
+	  varying vec3 normal;
+	  varying vec3 eyeVec;
+	  varying vec3 color;
+
+	  uniform float edgeExponent;
+
+	  void main()
+	  {
+		float opac = dot(normalize(normal), normalize(eyeVec));
+		opac = 1.0 - abs(opac);
+		opac = pow(opac, edgeExponent)*0.4;
+
+		gl_FragColor.rgb = color + (opac*1.3);
+		gl_FragColor.a = opac;
+
+	  }
+	]],
+  })
+end
 
 
 --------------------------------------------------------------------------------
@@ -121,6 +157,9 @@ local smoothPolys = (glSmoothing ~= nil) and false
 
 function widget:Initialize()
   cylList = glCreateList(DrawCylinder, cylDivs)
+  if gl.CreateShader ~= nil then
+    CreateHighlightShader()
+  end
 end
 
 
@@ -169,10 +208,6 @@ local function HilightModel(drawFunc, drawData)
   glPolygonOffset(-2, -2)
   glBlending(GL_SRC_ALPHA, GL_ONE)
 
-  if (smoothPolys) then
-    glSmoothing(nil, nil, true)
-  end
-
   local scale = 35
   local shift = (2 * widgetHandler:GetHourTimer()) % scale
   glTexCoord(0, 0)
@@ -184,10 +219,6 @@ local function HilightModel(drawFunc, drawData)
 
   glTexture(false)
   glTexGen(GL_T, false)
-
-  if (smoothPolys) then
-    glSmoothing(nil, nil, false)
-  end
 
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glPolygonOffset(false)
@@ -238,13 +269,13 @@ end
 
 local function HilightUnit(unitID)
   --local outline = (spGetUnitIsCloaked(unitID) ~= true)
-  SetUnitColor(unitID, unitAlpha)
+  SetUnitColor(unitID, (useShader and shader) and unitAlpha*shaderUnitAlphaMultiplier or unitAlpha)
   HilightModel(UnitDrawFunc, unitID)
 end
 
 
 local function HilightFeatureModel(featureID)
-  SetFeatureColor(featureID, featureAlpha)
+  SetFeatureColor(featureID, (useShader and shader) and featureAlpha*shaderUnitAlphaMultiplier or featureAlpha)
   HilightModel(FeatureDrawFunc, featureID, true)
 end
 
@@ -306,10 +337,22 @@ function widget:DrawWorld()
   if Spring.IsGUIHidden() then return end
   if drawFeatureHighlight and (type == 'feature') then
     HilightFeature(data)
+    if useShader and shader then
+      gl.UseShader(shader)
+      HilightModel(FeatureDrawFunc, data)
+      gl.UseShader(0)
+    end
   elseif (type == 'unit') then
     local unitID = spGetPlayerControlledUnit(spGetMyPlayerID())
     if data ~= unitID and not Spring.IsUnitIcon(data) then
+
       HilightUnit(data)
+
+      if useShader and shader then
+        gl.UseShader(shader)
+        HilightModel(UnitDrawFunc, data)
+        gl.UseShader(0)
+      end
       -- also draw the unit's command queue
       local a,c,m,s = spGetModKeyState()
       if (m) then
