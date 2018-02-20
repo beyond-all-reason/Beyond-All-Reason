@@ -1,0 +1,350 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, doorl, doorr, launcher, flare1, wake, turret, sleeve, flare2, dish ;
+
+static-var  Static_Var_1, Static_Var_2, restore_delay, Static_Var_4, gun_1,
+            statechg_DesiredState, statechg_StateChanging, oldHead;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_3			4
+#define SIG_MOVE			8
+
+
+activatescr()
+{
+		turn doorr to z-axis [-175] speed [300];
+		turn doorl to z-axis [175] speed [300];
+		
+		sleep 371;
+		
+		turn launcher to x-axis [-90] speed [120];
+		sleep 800;
+}
+
+deactivatescr()
+{
+		turn launcher to x-axis [0] speed [120];
+		sleep 800;	
+		
+
+		turn doorr to z-axis [0] speed [300];
+		turn doorl to z-axis [0] speed [300];
+		
+		sleep 371;
+		
+
+}
+
+
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.31> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn base to x-axis rockAng speed rockSpeed*4;
+			wait-for-turn base around x-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	start-script RockOnWaves();
+	spin dish around y-axis speed <150.000000>;
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+go()
+{
+	call-script activatescr();
+	Static_Var_1 = 1;
+}
+
+stop()
+{
+	Static_Var_1 = 0;
+	call-script deactivatescr();
+	if( Static_Var_4 )
+	{
+	}
+	Static_Var_4 = 0;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	gun_1 = flare1;
+	Static_Var_4 = 0;
+	Static_Var_2 = 1;
+	Static_Var_1 = 0;
+	restore_delay = 3000;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 3;
+}
+
+abaim()
+{
+	sleep 4000;
+	signal SIG_AIM_3;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	Static_Var_4 = 0;
+	start-script RequestState(1);
+	turn turret to y-axis <0.000000> speed <70.000000>;
+	turn sleeve to x-axis <0.000000> speed <30.000000>;
+
+	turn launcher to x-axis <0> speed <90>;
+	wait-for-turn launcher around x-axis;	
+
+	turn doorr to z-axis <0> speed <180>;
+	turn doorl to z-axis <0> speed <180>;
+	wait-for-turn doorr around z-axis;
+
+}
+
+Activate()
+{
+	spin dish around y-axis speed <150.000000>;
+}
+
+Deactivate()
+{
+	spin dish around y-axis speed <0.000000>;
+}
+
+waveSplash()
+{
+	while( TRUE )
+	{
+		turn base to x-axis <-3.0> speed <3.0>;
+		move base to y-axis [0.35] speed [0.23];
+		wait-for-turn base around x-axis;
+		turn base to x-axis <0.0> speed <3.0>;
+		move base to y-axis [0.0] speed [0.23];
+		wait-for-turn base around x-axis;
+	}
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	var waketime;
+	start-script waveSplash();
+	while( TRUE )
+	{
+		emit-sfx 2 from wake;
+		waketime = (get CURRENT_SPEED) * 100 / get MAX_SPEED;
+		if( waketime < 50 ) waketime = 50;
+		sleep 12000 / waketime;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	turn base to x-axis <0.0> speed <3.0>;
+	move base to y-axis [0.0] speed [0.23];
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_1 )
+	{
+		sleep 250;
+	}
+	turn doorr to z-axis <-90> speed <180>;
+	turn doorl to z-axis <90> speed <180>;
+	wait-for-turn doorr around z-axis;
+	turn launcher to x-axis <-90> speed <90>;
+	wait-for-turn launcher around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn turret to y-axis heading speed <170.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <130.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn sleeve around x-axis;
+	start-script abaim();
+	return (1);
+}
+
+TargetCleared(Func_Var_1)
+{
+	signal SIG_AIM_3;
+}
+
+/*
+FireTertiary()
+{
+	return (1);
+}
+*/
+
+FirePrimary()
+{
+		gun_1 = flare1;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = launcher;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = sleeve;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare1;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = flare2;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode doorr type FIRE | SMOKE | FALL;
+		explode doorl type FIRE | SMOKE | FALL;
+		explode launcher type BITMAPONLY;
+		explode flare1 type BITMAPONLY;
+		explode dish type BITMAPONLY;
+		explode turret type BITMAPONLY;
+		explode sleeve type BITMAPONLY;
+		explode flare2 type BITMAPONLY;
+		explode wake type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode doorr type FIRE | SMOKE | FALL;
+		explode doorl type FALL;
+		explode launcher type FIRE | SMOKE | FALL;
+		explode flare1 type FALL;
+		explode dish type FIRE | SMOKE | FALL;
+		explode turret type FALL;
+		explode sleeve type FIRE | SMOKE | FALL;
+		explode flare2 type FIRE | SMOKE | FALL;
+		explode wake type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode doorr type SHATTER;
+		explode doorl type SHATTER;
+		explode launcher type FIRE | SMOKE | FALL;
+		explode flare1 type FIRE | SMOKE | FALL;
+		explode dish type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode turret type FIRE | SMOKE | FALL;
+		explode sleeve type FIRE | SMOKE | FALL;
+		explode flare2 type FIRE | SMOKE | FALL;
+		explode wake type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode doorr type SHATTER;
+		explode doorl type SHATTER;
+		explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode dish type EXPLODE_ON_HIT | FIRE | FALL;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL;
+		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

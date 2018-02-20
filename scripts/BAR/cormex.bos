@@ -1,0 +1,147 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base,stand;
+
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+fixGo()
+{
+	set ARMORED to 0;
+	move stand to y-axis [20.000000] speed [10.000000];
+	wait-for-move stand along y-axis;
+	spin stand around y-axis speed Static_Var_1 accelerate Static_Var_2;
+}
+
+Stop()
+{
+	stop-spin stand around y-axis decelerate Static_Var_3;
+	wait-for-turn stand around y-axis;
+	turn stand to y-axis <0.000000> speed <70.000000>;
+	wait-for-turn stand around y-axis;
+	move stand to y-axis [0.000000] speed [10.000000];
+	set ARMORED to 1;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script fixGo();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	Static_Var_1 = 500;
+	Static_Var_2 = 80;
+	Static_Var_3 = 160;
+	call-script InitState();
+	start-script SmokeUnit();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SetSpeed(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1 * 20;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode stand type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode stand type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode stand type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode stand type EXPLODE_ON_HIT | FIRE | FALL;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

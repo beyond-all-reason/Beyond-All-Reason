@@ -43,8 +43,96 @@ local kbotAdditionalAcceleration = 0
 local kbotAccelerationMultiplier = 0.75
 local kbotBrakerateMultiplier = 0.75
 
+local oldUnitName = {
+	armvang = 'armshock',
+	coramsub = 'csubpen',
+	corhllt = 'hllt',
+	corafus = 'cafus',
+	armafus = 'aafus',
+	corageo = 'cmgeo',
+	armageo = 'amgeo',
+	corjuno = 'cjuno',
+	armjuno = 'ajuno',
+	armamsub = 'asubpen',
+	armmercury = 'mercury',
+	corscreamer = 'screamer',
+	armpacko = 'packo',
+	cormadsam = 'madsam',
+	corban = 'tawf114',
+	armserp = 'tawf009',
+	armliche = 'armcybr',
+	armstil = 'corgripn',
+	armblade = 'blade',
+	armmar = 'marauder',
+	armepoch = 'aseadragon',
+	armdecade = 'decade',
+	armconsul = 'consul',
+	corbw = 'bladew',
+	corshiva = 'shiva',
+	corjugg = 'gorg',
+	corcat = 'armraven',
+	corhal = 'nsaclash',
+	cormando = 'commando',
+	corintr = 'intruder',
+	cortrem = 'trem',
+	corseah = 'armsl',
+	armart = 'tawf013',
+	armbeamer = 'tawf001',
 
+	armdecom = 'armcom',
+	cordecom = 'corcom',
+	armdf = 'armfus',
+	corgantuw = 'corgant',
+	armuwmmm = 'armfmmm',
+	coruwmmm = 'corfmmm',
+}
 function UnitDef_Post(name, uDef)
+	-- load BAR models
+	if Spring.GetModOptions and (Spring.GetModOptions().barmodels ~= nil and Spring.GetModOptions().barmodels ~= "disabled") then
+	--if true then
+		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
+		if VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
+			uDef.objectname = 'BAR/'..barUnitName..'.s3o'
+			if uDef.featuredefs ~= nil then
+				for fDefID,featureDef in pairs(uDef.featuredefs) do
+					if featureDef.object ~= nil then
+						local object = string.gsub(featureDef.object, ".3do", ".s3o")
+						if VFS.FileExists('objects3d/BAR/'..object) then
+							uDef.featuredefs[fDefID].object = 'BAR/'..object
+						end
+					end
+				end
+			end
+			if VFS.FileExists('scripts/BAR/'..barUnitName..'.lua') then
+				uDef.script = 'BAR/'..barUnitName..'.lua'
+			elseif VFS.FileExists('scripts/BAR/'..barUnitName..'.cob') then
+				uDef.script = 'BAR/'..barUnitName..'.cob'
+			end
+			if uDef.buildinggrounddecaltype ~= nil then
+				local decalname = oldUnitName[name] and string.gsub(uDef.buildinggrounddecaltype, name, barUnitName) or uDef.buildinggrounddecaltype
+				if VFS.FileExists('unittextures/BAR/'..decalname) then
+					uDef.buildinggrounddecaltype = 'BAR/'..decalname
+			 	end
+			end
+			if uDef.buildpic ~= nil then
+				local buildpicname = oldUnitName[name] and string.gsub(uDef.buildpic, name, barUnitName) or uDef.buildpic
+				if VFS.FileExists('unitpics/BAR/'..buildpicname) then
+					uDef.buildpic = 'BAR/'..buildpicname
+				end
+			end
+
+			if string.find(name, 'arm') or string.find(name, 'core') or string.find(name, 'chicken') then
+				uDef.customparams.normalmaps = "yes"
+				if string.find(name, 'arm') then
+					uDef.customparams.normaltex = "unittextures/Arm_normals.dds"
+				elseif string.find(name, 'core') then
+					uDef.customparams.normaltex = "unittextures/Core_normals.dds"
+				elseif string.find(name, 'chicken') then
+					uDef.customparams.normaltex = "unittextures/Core_normals.dds"
+				end
+			end
+		end
+	end
 
 	if uDef.category['chicken'] ~= nil then	-- doesnt seem to work
 		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy

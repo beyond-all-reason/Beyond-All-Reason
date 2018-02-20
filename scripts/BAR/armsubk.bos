@@ -1,0 +1,104 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, doorr, doorl, flare, prop;
+
+static-var  currentSpeed, moveSpeed;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+Propcontrol()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
+		spin prop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		sleep 33;
+	}
+}
+
+Create()
+{
+	moveSpeed = get MAX_SPEED;
+	start-script Propcontrol();
+	return (0);
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		emit-sfx 256 | 3 from prop;
+		sleep 250;
+	}
+	return (0);
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	return (0);
+}
+
+FirePrimary()
+{
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode doorr type FIRE | SMOKE | FALL;
+		explode doorl type BITMAPONLY;
+		explode prop type BITMAPONLY;
+		explode flare type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode doorr type FALL;
+		explode doorl type FALL;
+		explode prop type FIRE | SMOKE | FALL;
+		explode flare type FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode doorr type FIRE | SMOKE | FALL;
+		explode doorl type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode prop type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode flare type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode doorr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode doorl type EXPLODE_ON_HIT | FIRE | FALL;
+		explode prop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

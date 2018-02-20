@@ -1,0 +1,154 @@
+//            * Header Info *
+// VersionSignature                     4
+// NumberOfScripts                     10
+// NumberOfPieces                      2
+// LengthOfScripts                     148
+// NumberOfStaticVars                  2
+// UKZero                              0
+// OffsetToScriptCodeIndexArray        54c
+// OffsetToScriptNameOffsetArray       574
+// OffsetToPieceNameOffsetArray        59c
+// OffsetToScriptCode                  2c
+// OffsetToNameArray                   5a4
+
+// OffsetToFirstName                   5a4
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, dish;
+
+static-var  statechg_DesiredState, statechg_StateChanging;
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+/*     3:*/{
+/*     6:*/	while( get BUILD_PERCENT_LEFT )
+/*     8:*/	{
+/*     a:*/		sleep 400;
+/*     d:*/	}
+/*     f:*/	while( TRUE )
+/*    11:*/	{
+/*    14:*/		healthpercent = get HEALTH;
+/*    1b:*/		if( healthpercent < 66 )
+/*    1d:*/		{
+/*    22:*/			smoketype = 256 | 2;
+/*    2c:*/			if( Rand( 1, 66 ) < healthpercent )
+/*    2e:*/			{
+/*    33:*/				smoketype = 256 | 1;
+/*    35:*/			}
+/*    37:*/			emit-sfx smoketype from base;
+/*    39:*/		}
+/*    3e:*/		sleeptime = healthpercent * 50;
+/*    45:*/		if( sleeptime < 200 )
+/*    47:*/		{
+/*    49:*/			sleeptime = 200;
+/*    4b:*/		}
+/*    4d:*/		sleep sleeptime;
+/*    50:*/	}
+/*    52:*/	return (0);
+/*    53:*/}
+
+Go()
+/*    53:*/{
+/*    57:*/	spin dish around y-axis speed <40.005495>;
+/*    5c:*/	return (0);
+/*    5d:*/}
+
+Stop()
+/*    5d:*/{
+/*    5f:*/	stop-spin dish around y-axis;
+/*    64:*/	return (0);
+/*    65:*/}
+
+InitState()
+/*    65:*/{
+/*    67:*/	statechg_DesiredState = TRUE;
+/*    6b:*/	statechg_StateChanging = FALSE;
+/*    6f:*/	return (0);
+/*    70:*/}
+
+RequestState(requestedstate, currentstate)
+/*    72:*/{
+/*    74:*/	if( statechg_StateChanging )
+/*    76:*/	{
+/*    78:*/		statechg_DesiredState = requestedstate;
+/*    7c:*/		return (0);
+/*    7d:*/	}
+/*    7f:*/	statechg_StateChanging = TRUE;
+/*    83:*/	currentstate = statechg_DesiredState;
+/*    87:*/	statechg_DesiredState = requestedstate;
+/*    8e:*/	while( statechg_DesiredState != currentstate )
+/*    90:*/	{
+/*    95:*/		if( statechg_DesiredState == 0 )
+/*    97:*/		{
+/*    97:*/			call-script Go();
+/*    9c:*/			currentstate = 0;
+/*    9e:*/		}
+/*    a3:*/		if( statechg_DesiredState == 1 )
+/*    a5:*/		{
+/*    a5:*/			call-script Stop();
+/*    aa:*/			currentstate = 1;
+/*    ac:*/		}
+/*    ae:*/	}
+/*    b0:*/	statechg_StateChanging = FALSE;
+/*    b4:*/	return (0);
+/*    b5:*/}
+
+Create()
+/*    b5:*/{
+/*    b5:*/	dont-shade dish;
+/*    b7:*/	dont-cache dish;
+/*    b9:*/	call-script InitState();
+/*    bc:*/	start-script SmokeUnit();
+/*    c1:*/	return (0);
+/*    c2:*/}
+
+Activate()
+/*    c2:*/{
+/*    c4:*/	start-script RequestState(0);
+/*    c9:*/	return (0);
+/*    ca:*/}
+
+Deactivate()
+/*    ca:*/{
+/*    cc:*/	start-script RequestState(1);
+/*    d1:*/	return (0);
+/*    d2:*/}
+
+SweetSpot(piecenum)
+/*    d3:*/{
+/*    d5:*/	piecenum = base;
+/*    d9:*/	return (0);
+/*    da:*/}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode dish type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode dish type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode dish type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

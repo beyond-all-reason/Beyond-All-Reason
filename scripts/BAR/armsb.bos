@@ -1,0 +1,197 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base,thrusta, thrustb,thrustc,doorl,doorr,drop;
+
+static-var  Static_Var_1, bMoving, statechg_DesiredState, statechg_StateChanging;
+
+Go()
+{
+
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+Stop()
+{
+	turn doorl to z-axis <0.000000> speed <25.000000>;
+	turn doorr to z-axis <0.000000> speed <25.000000>;
+	wait-for-turn doorr around z-axis;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <15.000000>;
+	turn base to x-axis <0.000000> speed <15.000000>;
+}
+
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+
+MotionControl()
+{
+
+}
+
+Create()
+{
+	Static_Var_1 = 0;
+	bMoving = FALSE;
+	call-script InitState();
+	start-script SmokeUnit();
+	start-script MotionControl();
+}
+
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+setSFXoccupy(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1;
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = drop;
+}
+
+AimPrimary()
+{
+	turn doorl to z-axis <-90.000000> speed <25.000000>;
+	turn doorr to z-axis <90.000000> speed <25.000000>;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode doorr type FIRE | SMOKE | FALL;
+		explode doorl type BITMAPONLY;
+		explode thrusta type BITMAPONLY;
+		explode thrustb type BITMAPONLY;
+		explode thrustc type BITMAPONLY;
+		explode drop type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode doorr type FIRE | SMOKE | FALL;
+		explode doorl type FALL;
+		explode thrusta type FIRE | SMOKE | FALL;
+		explode thrustb type FIRE | SMOKE | FALL;
+		explode thrustc type FALL;
+		explode drop type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode doorl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode thrusta type FIRE | SMOKE | FALL;
+		explode thrustb type SMOKE | FALL;
+		explode thrustc type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode doorl type EXPLODE_ON_HIT | FIRE | FALL;
+		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL;
+		explode thrustc type EXPLODE_ON_HIT | FIRE | FALL;
+		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

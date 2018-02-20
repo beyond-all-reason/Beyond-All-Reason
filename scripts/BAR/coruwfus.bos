@@ -1,0 +1,60 @@
+//            * Header Info *
+// VersionSignature                     4
+// NumberOfScripts                     4
+// NumberOfPieces                      2
+// LengthOfScripts                     71
+// NumberOfStaticVars                  0
+// UKZero                              0
+// OffsetToScriptCodeIndexArray        1f0
+// OffsetToScriptNameOffsetArray       200
+// OffsetToPieceNameOffsetArray        210
+// OffsetToScriptCode                  2c
+// OffsetToNameArray                   218
+
+// OffsetToFirstName                   218
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base;
+
+
+Create()
+/*     0:*/{
+
+/*     6:*/	return (0);
+/*     7:*/}
+
+
+SweetSpot(piecenum)
+/*    1b:*/{
+/*    1d:*/	piecenum = base;
+/*    21:*/	return (0);
+/*    22:*/}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+	return corpsetype;
+}

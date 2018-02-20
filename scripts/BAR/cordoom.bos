@@ -1,0 +1,409 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, flarer1, flarer2, body1, body2, turretg, boreg, barrelg, flareg, neck,
+ turretb, boreb, barrelb, flareb, turretr, borer, barrelr, aimpoint;
+
+static-var  gun_3, restore_delay, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_2			4
+#define SIG_AIM_3			8
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move body1 to y-axis [0] speed [90];
+		move body2 to y-axis [0] speed [90];
+		wait-for-move body1 along y-axis;
+	}
+	if( TRUE )
+	{
+		move body2 to y-axis [0] speed [90];
+		wait-for-move body2 along y-axis;
+	}
+	if( TRUE )
+	{
+		move borer to z-axis [0] speed [30];
+		move barrelr to z-axis [0] speed [20];
+
+		turn turretg to x-axis <0> speed <180>;
+		
+		move boreg to z-axis [0] speed [24];
+		move barrelg to z-axis [0] speed [10];
+
+		turn turretb to x-axis <0> speed <180>;
+
+		move boreb to z-axis [0] speed [14];
+		move barrelb to z-axis [0] speed [10];
+		wait-for-turn turretb around x-axis;
+		wait-for-move borer along y-axis;
+		wait-for-turn turretg around x-axis;
+	}
+	sleep 22;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn turretb to x-axis <0> speed <180>;
+		turn turretg to x-axis <0> speed <180>;
+		turn turretr to y-axis <0> speed <180>;	
+		turn body1 to y-axis <0> speed <180>;	
+		turn body2 to y-axis <0> speed <180>;	
+		wait-for-turn turretb around x-axis;
+		wait-for-turn turretg around x-axis;
+		wait-for-turn turretr around x-axis;
+	}
+	if( TRUE )
+	{
+		turn turretb to x-axis <180> speed <180>;
+		
+		move boreb to z-axis [-9] speed [14];
+		move barrelb to z-axis [-10] speed [10];
+
+		turn turretg to x-axis <180> speed <180>;
+		
+		move boreg to z-axis [-12] speed [24];
+		move barrelg to z-axis [-4] speed [10];
+
+		move borer to z-axis [-15] speed [30];
+		move barrelr to z-axis [-10] speed [20];
+		wait-for-turn turretb around x-axis;
+		wait-for-move borer along y-axis;
+		wait-for-turn turretg around x-axis;
+	}
+	if( TRUE )
+	{
+		move body2 to y-axis [-7] speed [90];
+		wait-for-move body2 along y-axis;
+	}
+	if( TRUE )
+	{
+		move body1 to y-axis [-14] speed [90];
+		move body2 to y-axis [-24] speed [90];
+		wait-for-move body1 along y-axis;
+	}
+
+	wait-for-turn body1 around x-axis;
+	wait-for-turn body2 around x-axis;
+	sleep 22;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Go()
+{
+
+	set ARMORED to 0;
+	if( !Static_Var_3 )
+	{
+		call-script activatescr();
+	}
+	Static_Var_3 = 1;
+}
+
+Stop()
+{
+	Static_Var_3 = 0;
+	call-script deactivatescr();
+	set ARMORED to 1;
+
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+
+	gun_3 = flareb;
+	call-script InitState();
+	Static_Var_3 = 0;
+	restore_delay = 2000;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 250;
+	}
+	start-script SmokeUnit();
+	start-script RequestState(0);
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_AIM;
+	signal SIG_AIM_2;
+	signal SIG_AIM_3;
+	start-script RequestState(1);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 4;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_3 )
+	{
+		sleep 250;
+	}
+	turn body2 to y-axis heading speed <50.000000>;
+	turn turretb to x-axis <0.0> - pitch speed <50.000000>;
+	wait-for-turn body2 around y-axis;
+	wait-for-turn turretb around x-axis;
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	while( !Static_Var_3 )
+	{
+		sleep 250;
+	}
+	turn body1 to y-axis heading speed <200.000000>;
+	turn turretg to x-axis <0.000000> - pitch speed <200.000000>;
+	wait-for-turn body1 around y-axis;
+	wait-for-turn turretg around x-axis;
+	return (1);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	while( !Static_Var_3 )
+	{
+		sleep 250;
+	}
+	turn turretr to y-axis heading speed <500.000000>;
+	wait-for-turn turretr around y-axis;
+
+	return (1);
+}
+
+FirePrimary()
+{
+	sleep 150;
+}
+
+FireSecondary()
+{
+	sleep 150;
+}
+
+FireTertiary()
+{
+	if( gun_3 == 1 )
+	{
+		gun_3 = flarer1;
+		return (0);
+	}
+	if( gun_3 != 1 )
+	{
+		
+		gun_3 = flarer2;
+		return (0);
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = aimpoint;
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = body1;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = turretr;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flareb;
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = flareg;
+}
+
+QueryTertiary(piecenum)
+{
+	if( gun_3 == 1 )
+	{
+		piecenum = flarer1;
+		//gun_3=2;
+	}
+	if( gun_3 ==2  )
+	{
+		piecenum = flarer2;
+		//gun_3=1;
+	}
+	
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode body1 type BITMAPONLY;
+		explode turretg type BITMAPONLY;
+		explode boreg type BITMAPONLY;
+		explode barrelg type FIRE | SMOKE | FALL;
+		explode flareg type BITMAPONLY;
+		explode neck type BITMAPONLY;
+		explode turretr type BITMAPONLY;
+		explode borer type BITMAPONLY;
+		explode barrelr type BITMAPONLY;
+		explode flarer1 type BITMAPONLY;
+		explode flarer2 type BITMAPONLY;
+		explode body2 type BITMAPONLY;
+		explode turretb type BITMAPONLY;
+		explode boreb type BITMAPONLY;
+		explode barrelb type BITMAPONLY;
+		explode flareb type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode turretg type FALL;
+		explode boreg type FIRE | SMOKE | FALL;
+		explode barrelg type FIRE | SMOKE | FALL;
+		explode flareg type FALL;
+		explode neck type FIRE | SMOKE | FALL;
+		explode turretr type FIRE | SMOKE | FALL;
+		explode borer type FIRE | SMOKE | FALL;
+		explode barrelr type FIRE | SMOKE | FALL;
+		explode flarer1 type FALL;
+		explode flarer2 type FIRE | SMOKE | FALL;
+		explode turretb type FIRE | SMOKE | FALL;
+		explode boreb type FALL;
+		explode barrelb type FALL;
+		explode flareb type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode body1 type BITMAPONLY;
+		explode turretg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode boreg type FIRE | SMOKE | FALL;
+		explode barrelg type FIRE | SMOKE | FALL;
+		explode flareg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode neck type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode turretr type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode borer type FIRE | SMOKE | FALL;
+		explode barrelr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flarer1 type FIRE | SMOKE | FALL;
+		explode flarer2 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode body2 type BITMAPONLY;
+		explode turretb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode boreb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrelb type FIRE | SMOKE | FALL;
+		explode flareb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode body1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode turretg type EXPLODE_ON_HIT | FIRE | FALL;
+		explode boreg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrelg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flareg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode neck type EXPLODE_ON_HIT | FIRE | FALL;
+		explode turretr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode borer type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrelr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flarer1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode flarer2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode body2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode turretb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode boreb type EXPLODE_ON_HIT | FIRE | FALL;
+		explode barrelb type EXPLODE_ON_HIT | FIRE | FALL;
+		explode flareb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

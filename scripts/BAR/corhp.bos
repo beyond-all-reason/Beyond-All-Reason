@@ -1,0 +1,312 @@
+//            * Header Info *
+// VersionSignature                     4
+// NumberOfScripts                     19
+// NumberOfPieces                      10
+// LengthOfScripts                     46e
+// NumberOfStaticVars                  4
+// UKZero                              0
+// OffsetToScriptCodeIndexArray        11e4
+// OffsetToScriptNameOffsetArray       1230
+// OffsetToPieceNameOffsetArray        127c
+// OffsetToScriptCode                  2c
+// OffsetToNameArray                   12a4
+
+// OffsetToFirstName                   12a4
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, head1, head2, head3, head4, nano1, nano2, nano3, nano4;
+
+static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+activatescr()
+/*     0:*/{
+/*     2:*/	if( TRUE )
+/*     4:*/	{
+/*     6:*/		turn head1 to y-axis <0.000000> now;
+				turn head1 to y-axis <-60.000000> speed <225.000000>;
+				turn head2 to y-axis <0.000000> now;
+				turn head2 to y-axis <60.000000> speed <225.000000>;
+				turn head3 to y-axis <0.000000> now;
+				turn head3 to y-axis <-60.000000> speed <225.000000>;
+				turn head4 to y-axis <0.000000> now;
+				turn head4 to y-axis <60.000000> speed <225.000000>;
+				wait-for-turn head1 around y-axis;
+/*    1f:*/	}
+/*    60:*/	sleep 20;
+/*    63:*/	return (0);
+/*    64:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+/*    91:*/}
+
+deactivatescr()
+/*    89:*/{
+/*     2:*/	if( TRUE )
+/*     4:*/	{
+/*     6:*/		turn head1 to y-axis <0.000000> speed <225.000000>;
+				turn head2 to y-axis <0.000000> speed <225.000000>;
+				turn head3 to y-axis <0.000000> speed <225.000000>;
+				turn head4 to y-axis <0.000000> speed <225.000000>;
+				wait-for-turn head1 around y-axis;
+/*    1f:*/	}
+/*    60:*/	sleep 20;
+/*    63:*/	return (0);
+/*   10b:*/}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+/*   10e:*/{
+/*   111:*/	while( get BUILD_PERCENT_LEFT )
+/*   113:*/	{
+/*   115:*/		sleep 400;
+/*   118:*/	}
+/*   11a:*/	while( TRUE )
+/*   11c:*/	{
+/*   11f:*/		healthpercent = get HEALTH;
+/*   126:*/		if( healthpercent < 66 )
+/*   128:*/		{
+/*   12d:*/			smoketype = 256 | 2;
+/*   137:*/			if( Rand( 1, 66 ) < healthpercent )
+/*   139:*/			{
+/*   13e:*/				smoketype = 256 | 1;
+/*   140:*/			}
+/*   142:*/			emit-sfx smoketype from base;
+/*   144:*/		}
+/*   149:*/		sleeptime = healthpercent * 50;
+/*   150:*/		if( sleeptime < 200 )
+/*   152:*/		{
+/*   154:*/			sleeptime = 200;
+/*   156:*/		}
+/*   158:*/		sleep sleeptime;
+/*   15b:*/	}
+/*   15d:*/	return (0);
+/*   15e:*/}
+
+OpenYard()
+/*   15e:*/{
+/*   162:*/	set YARD_OPEN to 1;
+/*   167:*/	while( !get YARD_OPEN )
+/*   169:*/	{
+/*   16d:*/		set BUGGER_OFF to 1;
+/*   170:*/		sleep 1500;
+/*   175:*/		set YARD_OPEN to 1;
+/*   178:*/	}
+/*   17c:*/	set BUGGER_OFF to 0;
+/*   17f:*/	return (0);
+/*   180:*/}
+
+CloseYard()
+/*   180:*/{
+/*   184:*/	set YARD_OPEN to 0;
+/*   188:*/	while( get YARD_OPEN )
+/*   18a:*/	{
+/*   18e:*/		set BUGGER_OFF to 1;
+/*   191:*/		sleep 1500;
+/*   196:*/		set YARD_OPEN to 0;
+/*   199:*/	}
+/*   19d:*/	set BUGGER_OFF to 0;
+/*   1a0:*/	return (0);
+/*   1a1:*/}
+
+Go()
+/*   1a1:*/{
+
+/*   1b1:*/	call-script activatescr();
+/*   1b4:*/	call-script OpenYard();
+/*   1bb:*/	set INBUILDSTANCE to 1;
+/*   1be:*/	return (0);
+/*   1bf:*/}
+
+Stop()
+/*   1bf:*/{
+/*   1c3:*/	set INBUILDSTANCE to 0;
+/*   1c4:*/	call-script CloseYard();
+/*   1c7:*/	call-script deactivatescr();
+/*   1dc:*/	return (0);
+/*   1dd:*/}
+
+InitState()
+/*   1dd:*/{
+/*   1df:*/	statechg_DesiredState = TRUE;
+/*   1e3:*/	statechg_StateChanging = FALSE;
+/*   1e7:*/	return (0);
+/*   1e8:*/}
+
+RequestState(requestedstate, currentstate)
+/*   1ea:*/{
+/*   1ec:*/	if( statechg_StateChanging )
+/*   1ee:*/	{
+/*   1f0:*/		statechg_DesiredState = requestedstate;
+/*   1f4:*/		return (0);
+/*   1f5:*/	}
+/*   1f7:*/	statechg_StateChanging = TRUE;
+/*   1fb:*/	currentstate = statechg_DesiredState;
+/*   1ff:*/	statechg_DesiredState = requestedstate;
+/*   206:*/	while( statechg_DesiredState != currentstate )
+/*   208:*/	{
+/*   20d:*/		if( statechg_DesiredState == 0 )
+/*   20f:*/		{
+/*   20f:*/			call-script Go();
+/*   214:*/			currentstate = 0;
+/*   216:*/		}
+/*   21b:*/		if( statechg_DesiredState == 1 )
+/*   21d:*/		{
+/*   21d:*/			call-script Stop();
+/*   222:*/			currentstate = 1;
+/*   224:*/		}
+/*   226:*/	}
+/*   228:*/	statechg_StateChanging = FALSE;
+/*   22c:*/	return (0);
+/*   22d:*/}
+
+Create()
+/*   22d:*/{
+/*   22d:*/	hide pad;
+/*   241:*/	unitviewer = FALSE;
+/*   245:*/	Static_Var_1 = 0;
+/*   247:*/	call-script InitState();
+/*   24a:*/	start-script SmokeUnit();
+/*   24f:*/	return (0);
+/*   250:*/}
+
+QueryNanoPiece(piecenum)
+/*   251:*/{
+/*   256:*/	if( Static_Var_1 == 0 )
+/*   258:*/	{
+/*   25a:*/		piecenum = nano1;
+/*   263:*/	}
+/*   256:*/	if( Static_Var_1 == 1 )
+/*   258:*/	{
+/*   25a:*/		piecenum = nano2;
+/*   263:*/	}
+/*   256:*/	if( Static_Var_1 == 2 )
+/*   258:*/	{
+/*   25a:*/		piecenum = nano3;
+/*   263:*/	}
+/*   256:*/	if( Static_Var_1 == 3 )
+/*   258:*/	{
+/*   25a:*/		piecenum = nano4;
+/*   263:*/	}
+			Static_Var_1=Static_Var_1+1;
+			if( Static_Var_1 >3 )
+/*   258:*/	{
+/*   25a:*/		Static_Var_1=0;
+/*   263:*/	}
+/*   274:*/	return (0);
+/*   275:*/}
+
+Demo()
+/*   275:*/{
+/*   277:*/	unitviewer = TRUE;
+/*   27b:*/	return (0);
+/*   27c:*/}
+
+Activate()
+/*   27c:*/{
+/*   27e:*/	signal SIG_ACTIVATE;
+/*   281:*/	start-script RequestState(0);
+/*   286:*/	return (0);
+/*   287:*/}
+
+Deactivate()
+/*   287:*/{
+/*   289:*/	signal SIG_ACTIVATE;
+/*   28c:*/	set-signal-mask SIG_ACTIVATE;
+/*   290:*/	if( !unitviewer )
+/*   292:*/	{
+/*   294:*/		sleep 5000;
+/*   295:*/	}
+/*   297:*/	set-signal-mask 0;
+/*   29a:*/	start-script RequestState(1);
+/*   29f:*/	return (0);
+/*   2a0:*/}
+
+StartBuilding()
+/*   2a0:*/{
+/*   2a2:*/	sleep 150;
+/*   2a5:*/	return (0);
+/*   2a6:*/}
+
+StopBuilding()
+/*   2a6:*/{
+/*   2a8:*/	sleep 150;
+/*   2ab:*/	return (0);
+/*   2ac:*/}
+
+QueryBuildInfo(piecenum)
+/*   2ad:*/{
+/*   2af:*/	piecenum = pad;
+/*   2b3:*/	return (0);
+/*   2b4:*/}
+
+SweetSpot(piecenum)
+/*   2b5:*/{
+/*   2b7:*/	piecenum = base;
+/*   2bb:*/	return (0);
+/*   2bc:*/}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode head2 type FIRE | SMOKE | FALL;
+		explode nano2 type BITMAPONLY;
+		explode head3 type BITMAPONLY;
+		explode nano3 type BITMAPONLY;
+		explode head4 type BITMAPONLY;
+		explode nano4 type BITMAPONLY;
+		explode head1 type BITMAPONLY;
+		explode nano1 type BITMAPONLY;
+		explode pad type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode head2 type FALL;
+		explode nano2 type FIRE | SMOKE | FALL;
+		explode head3 type FIRE | SMOKE | FALL;
+		explode nano3 type FALL;
+		explode head4 type FIRE | SMOKE | FALL;
+		explode nano4 type FIRE | SMOKE | FALL;
+		explode head1 type FIRE | SMOKE | FALL;
+		explode nano1 type FALL;
+		explode pad type FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode head2 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode nano2 type FIRE | SMOKE | FALL;
+		explode head3 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode nano3 type FIRE | SMOKE | FALL;
+		explode head4 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode nano4 type SMOKE | FALL;
+		explode head1 type SMOKE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode pad type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode head2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode head3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode head4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano4 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode head1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode pad type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

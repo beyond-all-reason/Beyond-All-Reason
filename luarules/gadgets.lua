@@ -104,20 +104,25 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  Reverse integer iterator for drawing
+--  array-table reverse iterator
 --
+--  all callin handlers use this so that gadgets can
+--  RemoveGadget() themselves (during iteration over
+--  a callin list) without causing a miscount
+--
+--  c.f. Array{Insert,Remove}
+--
+local function r_ipairs(tbl)
+  local function r_iter(tbl, key)
+    if (key <= 1) then
+      return nil
+    end
 
-local function rev_iter(t, key)
-  if (key <= 1) then
-    return nil
-  else
-    local nkey = key - 1
-    return nkey, t[nkey]
+    -- next idx, next val
+    return (key - 1), tbl[key - 1]
   end
-end
 
-local function ripairs(t)
-  return rev_iter, t, (1 + #t)
+  return r_iter, tbl, (1 + #tbl)
 end
 
 
@@ -1271,11 +1276,27 @@ function gadgetHandler:UnitFromFactory(unitID, unitDefID, unitTeam,
 end
 
 
+function gadgetHandler:UnitReverseBuilt(unitID, unitDefID, unitTeam)
+  for _,g in r_ipairs(self.UnitReverseBuiltList) do
+    g:UnitReverseBuilt(unitID, unitDefID, unitTeam)
+  end
+  return
+end
+
+
 function gadgetHandler:UnitDestroyed(unitID,     unitDefID,     unitTeam,
                                      attackerID, attackerDefID, attackerTeam)
   for _,g in ipairs(self.UnitDestroyedList) do
     g:UnitDestroyed(unitID,     unitDefID,     unitTeam,
                     attackerID, attackerDefID, attackerTeam)
+  end
+  return
+end
+
+
+function gadgetHandler:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
+  for _,g in r_ipairs(self.RenderUnitDestroyedList) do
+    g:RenderUnitDestroyed(unitID, unitDefID, unitTeam)
   end
   return
 end

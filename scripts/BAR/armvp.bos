@@ -1,0 +1,221 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, head, wheel1, wheel2, nano;
+
+static-var  Static_Var_1, Static_Var_2, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+activatescr()
+{
+
+	set ARMORED to 0;
+	spin wheel1 around x-axis speed <120> accelerate <30>;
+	spin wheel2 around x-axis speed <120> accelerate <30>;
+	sleep 431;
+}
+
+deactivatescr()
+{
+	set ARMORED to 1;
+	
+	stop-spin wheel1 around x-axis decelerate <30>;
+	stop-spin wheel2 around x-axis decelerate <30>;
+	sleep 734;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+}
+
+Go()
+{
+
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+
+	Static_Var_2 = 0;
+	Static_Var_1 = 0;
+	set ARMORED to 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	start-script SmokeUnit();
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = nano;
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !Static_Var_2 )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+StartBuilding()
+{
+	spin pad around y-axis speed <0.000000>;
+}
+
+StopBuilding()
+{
+	stop-spin pad around y-axis;
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode wheel1 type FIRE | SMOKE | FALL;
+		explode wheel2 type BITMAPONLY;
+		explode head type BITMAPONLY;
+		explode nano type BITMAPONLY;
+		explode pad type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode wheel1 type FIRE | SMOKE | FALL;
+		explode wheel2 type FALL;
+		explode head type FIRE | SMOKE | FALL;
+		explode nano type FIRE | SMOKE | FALL;
+		explode pad type FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode wheel1 type FIRE | SMOKE | FALL;
+		explode wheel2 type SMOKE | FALL;
+		explode head type FIRE | SMOKE | FALL;
+		explode nano type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode pad type EXPLODE_ON_HIT | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode wheel1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wheel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode head type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode pad type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

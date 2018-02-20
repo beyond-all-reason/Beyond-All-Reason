@@ -1,0 +1,13 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base;
+
+
+Create()
+{
+	dont-shade base;
+	dont-cache base;
+}

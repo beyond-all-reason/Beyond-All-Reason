@@ -1,0 +1,281 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, turret, barrel, flare, wake, fan1, fan2,sleeve;
+static-var  Static_Var_1, restore_delay, Wobble_status;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_AIM				4
+
+WobbleUnit()
+{
+	while( TRUE )
+	{
+		if( Wobble_status)
+		{
+			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
+			{
+				move base to y-axis [0.500000] speed [0.50000];
+			}
+			else
+			{
+				move base to y-axis [1.500000] speed [0.50000];
+			}
+		}
+		else
+		{
+			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
+			{
+				move base to y-axis [-0.500000] speed [0.50000];
+			}
+			else
+			{
+				move base to y-axis [0.500000] speed [0.50000];
+			}
+		}
+		Wobble_status = !Wobble_status;
+		sleep 260;
+	}
+}
+
+BankControl()
+{
+	var lastHeading, currHeading, diffHeading;
+	lastHeading = GET HEADING;
+	while (TRUE)
+	{
+		currHeading = GET HEADING;
+		diffHeading = currHeading - lastHeading;
+		// Set values for tilt
+
+		//Remove Extreme values
+		if ( diffHeading > 1500 ) diffHeading = 1500;
+		if ( diffHeading < -1500 ) diffHeading = -1500;
+		//get PRINT(diffHeading);
+		turn base to z-axis 1.0 * diffHeading speed <23>;
+		
+		lastHeading = currHeading;
+		sleep 67;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script BankControl();
+	start-script WobbleUnit();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <50.000000>;
+	turn base to z-axis <0> - anglez speed <50.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <30.000000>;
+	turn base to x-axis <0.000000> speed <30.000000>;
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		if( Static_Var_1 == 1 )
+		{
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+		}
+		if( Static_Var_1 == 2 )
+		{
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+		}
+		sleep 300;
+	}
+}
+
+StopMoving()
+{
+	sleep 150;
+}
+
+setSFXoccupy(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1;
+}
+
+Create()
+{
+	hide flare;
+	spin fan1 around y-axis speed <300>;
+	
+	spin fan2 around y-axis speed <300>;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn turret to x-axis <0.000000> speed <45.000000>;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <90.000000>;
+	turn turret to x-axis <0.000000> - pitch speed <45.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn turret around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	show flare;
+	sleep 150;
+	hide flare;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode turret type BITMAPONLY;
+		explode sleeve type BITMAPONLY;
+		explode barrel type FIRE | SMOKE | FALL;
+		explode flare type BITMAPONLY;
+		explode fan1 type BITMAPONLY;
+		explode fan2 type BITMAPONLY;
+		explode wake type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode turret type FALL;
+		explode sleeve type FIRE | SMOKE | FALL;
+		explode barrel type FALL;
+		explode flare type FIRE | SMOKE | FALL;
+		explode fan1 type FALL;
+		explode fan2 type FALL;
+		explode wake type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode sleeve type SMOKE | FALL;
+		explode barrel type SMOKE | FALL;
+		explode flare type FIRE | SMOKE | FALL;
+		explode fan1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode fan2 type SMOKE | FALL;
+		explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode sleeve type EXPLODE_ON_HIT | FIRE | FALL;
+		explode barrel type EXPLODE_ON_HIT | FIRE | FALL;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
+		explode fan1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode fan2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

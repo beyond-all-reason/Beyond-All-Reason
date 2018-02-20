@@ -1,0 +1,85 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  tube1, tube2, base, wake;
+
+static-var  gun_1;
+
+// Signal definitions
+#define SIG_MOVE			2
+
+
+Create()
+{
+	gun_1 = tube1;
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		emit-sfx 256 | 3 from wake;
+		sleep 250;
+	}
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+}
+
+FirePrimary()
+{
+	gun_1 = !gun_1;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = gun_1;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode tube1 type BITMAPONLY;
+		explode tube2 type BITMAPONLY;
+		explode wake type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode tube1 type FIRE | SMOKE | FALL;
+		explode tube2 type FIRE | SMOKE | FALL;
+		explode wake type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode tube1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode tube2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wake type EXPLODE_ON_HIT | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode tube1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode tube2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

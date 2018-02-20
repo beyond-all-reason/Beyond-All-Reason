@@ -1,0 +1,234 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, lflare, lturret, wheels, mturret, mbarrel, mflare, emit_spark;
+
+static-var  restore_delay, bAiming;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_AIM_3			4
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <50.000000>;
+	turn base to z-axis <0> - anglez speed <50.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+	return (0);
+}
+
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <65.000000>;
+	turn base to x-axis <0> - anglex speed <65.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+
+Sparks()
+{
+	while( TRUE )
+	{
+		while( !bAiming )
+		{
+			sleep 100;
+		}
+		emit-sfx 1025 + 0 from emit_spark;
+		sleep 200;
+	}
+}
+
+Create()
+{
+	restore_delay = 3000;
+	bAiming = FALSE;
+	hide emit_spark;
+	start-script SmokeUnit();
+	start-script Sparks();
+	return (0);
+}
+
+StartMoving()
+{
+	spin wheels around x-axis speed <140.000000> accelerate <5.000000>;
+}
+
+StopMoving()
+{
+	stop-spin wheels around x-axis decelerate <24.000000>;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	turn lturret to y-axis <0.000000> speed <150.000000>;
+	turn mturret to y-axis <0.000000> speed <150.000000>;
+	turn mbarrel to x-axis <0.000000> speed <150.000000>;
+	bAiming = FALSE;
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	turn lturret to y-axis heading speed <150.000000>;
+	wait-for-turn lturret around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn mturret to y-axis heading speed <300.000000>;
+	turn mbarrel to x-axis <0.000000> - pitch speed <300.000000>;
+	wait-for-turn mturret around y-axis;
+	wait-for-turn mbarrel around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	emit-sfx 1024+0 from lflare;
+	sleep 100;
+	return (0);
+}
+
+FireTertiary()
+{
+	sleep 100;
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = lturret;
+	return (0);
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = mbarrel;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = lflare;
+	return (0);
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = mflare;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode mturret type BITMAPONLY;
+		explode mbarrel type FIRE | SMOKE | FALL;
+		explode mflare type BITMAPONLY;
+		explode wheels type BITMAPONLY;
+		explode lturret type BITMAPONLY;
+		explode lflare type BITMAPONLY;
+		explode emit_spark type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode mturret type FIRE | SMOKE | FALL;
+		explode mbarrel type FIRE | SMOKE | FALL;
+		explode mflare type FALL;
+		explode wheels type FIRE | SMOKE | FALL;
+		explode lturret type FIRE | SMOKE | FALL;
+		explode lflare type FALL;
+		explode emit_spark type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode mturret type SMOKE | FALL;
+		explode mbarrel type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode mflare type SMOKE | FALL;
+		explode wheels type SMOKE | FALL;
+		explode lturret type FIRE | SMOKE | FALL;
+		explode lflare type FIRE | SMOKE | FALL;
+		explode emit_spark type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode mturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode mbarrel type EXPLODE_ON_HIT | FIRE | FALL;
+		explode mflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wheels type EXPLODE_ON_HIT | FIRE | FALL;
+		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lflare type EXPLODE_ON_HIT | FIRE | FALL;
+		explode emit_spark type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

@@ -1,0 +1,378 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, turret, fan, wake, flare1, flare2;
+
+static-var  Static_Var_1, gun_1, Static_Var_3, restore_delay, statechg_DesiredState,
+            statechg_StateChanging, Wobble_status;
+
+// Signal definitions
+#define SIG_AIM				2
+#define SIG_MOVE			4
+#define SIG_RESTORE			8
+
+activatescr()
+{
+
+	if( TRUE )
+	{
+		turn turret to x-axis <-90> speed <30>;
+		turn base to x-axis <-2.000000> speed <3.000000>;
+		
+		wait-for-turn turret around x-axis;
+	}
+	if( TRUE )
+	{
+		turn base to x-axis <0.000000> speed <15.000000>;
+		sleep 90;
+	}
+	sleep 20;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn turret to x-axis <0> speed <30>;
+		turn base to x-axis <-2.000000> speed <3.000000>;
+
+		sleep 469;
+	}
+	if( TRUE )
+	{
+		turn base to x-axis <0.000000> speed <15.000000>;
+		sleep 90;
+	}
+	sleep 20;
+	return (0);
+}
+
+WobbleUnit()
+{
+	while( TRUE )
+	{
+		if( Wobble_status)
+		{
+			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
+			{
+				move base to y-axis [-0.250000] speed [0.50000];
+			}
+			else
+			{
+				move base to y-axis [1.000000] speed [0.50000];
+			}
+		}
+		else
+		{
+			if( get GROUND_WATER_HEIGHT(get UNIT_XZ) < 0 ) //Over Water
+			{
+				move base to y-axis [-1.250000] speed [0.50000];
+			}
+			else
+			{
+				move base to y-axis [0.000000] speed [0.50000];
+			}
+		}
+		Wobble_status = !Wobble_status;
+		sleep 260;
+	}
+}
+
+BankControl()
+{
+	var lastHeading, currHeading, diffHeading;
+	lastHeading = GET HEADING;
+	while (TRUE)
+	{
+		currHeading = GET HEADING;
+		diffHeading = currHeading - lastHeading;
+		// Set values for tilt
+
+		//Remove Extreme values
+		if ( diffHeading > 1500 ) diffHeading = 1500;
+		if ( diffHeading < -1500 ) diffHeading = -1500;
+		//get PRINT(diffHeading);
+		turn base to z-axis 1.0 * diffHeading speed <23>;
+		
+		lastHeading = currHeading;
+		sleep 67;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script BankControl();
+	start-script WobbleUnit();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <30.000000>;
+	turn base to x-axis <0.000000> speed <30.000000>;
+	return (0);
+}
+
+Go()
+{
+	call-script activatescr();
+	Static_Var_1 = 1;
+	return (0);
+}
+
+Stop()
+{
+	Static_Var_1 = 0;
+	call-script deactivatescr();
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+	gun_1 = 0;
+	spin fan around z-axis speed <300>;
+	Static_Var_1 = 0;
+	restore_delay = 3000;
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	signal SIG_RESTORE;
+	set-signal-mask SIG_RESTORE;
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	while( TRUE )
+	{
+		if( Static_Var_3 == 1 )
+		{
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+		}
+		if( Static_Var_3 == 2 )
+		{
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 5 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+			emit-sfx 3 from wake;
+		}
+		sleep 300;
+	}
+	return (0);
+}
+
+StopMoving()
+{
+	sleep 150;
+	return (0);
+}
+
+setSFXoccupy(Func_Var_1)
+{
+	Static_Var_3 = Func_Var_1;
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !Static_Var_1 )
+	{
+		sleep 200;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		gun_1 = 1;
+		return (0);
+	}
+	if( gun_1 == 1 )
+	{
+		gun_1 = 0;
+		return (0);
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 0 )
+	{
+		piecenum = flare1;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = flare2;
+	}
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode turret type FIRE | SMOKE | FALL;
+		explode flare1 type BITMAPONLY;
+		explode flare2 type BITMAPONLY;
+		explode fan type BITMAPONLY;
+		explode wake type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode turret type FIRE | SMOKE | FALL;
+		explode flare1 type FIRE | SMOKE | FALL;
+		explode flare2 type FALL;
+		explode fan type FIRE | SMOKE | FALL;
+		explode wake type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode turret type SMOKE | FALL;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare2 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode fan type SMOKE | FALL;
+		explode wake type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode fan type EXPLODE_ON_HIT | FIRE | FALL;
+		explode wake type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

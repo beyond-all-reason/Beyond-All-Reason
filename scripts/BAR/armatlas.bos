@@ -1,0 +1,248 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, link, arml1, arml2, armr1, armr2, bodyl, bodyr, thrust;
+
+static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <15.000000>;
+	turn base to x-axis <0.000000> speed <15.000000>;
+}
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move bodyl to x-axis [-5] speed [5];
+		move bodyr to x-axis [5] speed [5];
+		turn arml1 to z-axis <-90> speed <90>;
+		turn arml2 to z-axis <-90> speed <90>;
+		turn armr1 to z-axis <90> speed <90>;
+		turn armr2 to z-axis <90> speed <90>;
+		sleep 998;
+	}
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move bodyl to x-axis [0] speed [5];
+		move bodyr to x-axis [0] speed [5];
+		turn arml1 to z-axis <0> speed <90>;
+		turn arml2 to z-axis <0> speed <90>;
+		turn armr1 to z-axis <0> speed <90>;
+		turn armr2 to z-axis <0> speed <90>;
+		sleep 998;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	unitviewer = FALSE;
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script SmokeUnit();
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+QueryTransport(Func_Var_1)
+{
+	Func_Var_1 = 1;
+}
+
+Activate()
+{
+	if( unitviewer )
+	{
+		start-script RequestState(0);
+	}
+}
+
+BeginTransport(Func_Var_1)
+{
+	move link to y-axis [0.000000] - Func_Var_1 now;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	if( unitviewer )
+	{
+		start-script RequestState(1);
+	}
+}
+
+EndTransport()
+{
+	start-script RequestState(1);
+}
+
+ProcessFlames()
+{
+
+}
+
+StopMoving()
+{
+	signal 2;
+	Static_Var_1 = 0;
+}
+
+MoveRate1()
+{
+	signal 2;
+	set-signal-mask 2;
+	start-script ProcessFlames();
+	Static_Var_1 = 1;
+}
+
+MoveRate2()
+{
+	signal 2;
+	set-signal-mask 2;
+	start-script ProcessFlames();
+	Static_Var_1 = 2;
+}
+
+MoveRate3()
+{
+	signal 2;
+	set-signal-mask 2;
+	start-script ProcessFlames();
+	Static_Var_1 = 3;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode bodyr type BITMAPONLY;
+		explode armr1 type FIRE | SMOKE | FALL;
+		explode armr2 type BITMAPONLY;
+		explode bodyl type BITMAPONLY;
+		explode arml1 type BITMAPONLY;
+		explode arml2 type BITMAPONLY;
+		explode thrust type BITMAPONLY;
+		explode link type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode bodyr type FIRE | SMOKE | FALL;
+		explode armr1 type FALL;
+		explode armr2 type FIRE | SMOKE | FALL;
+		explode bodyl type FALL;
+		explode arml1 type FIRE | SMOKE | FALL;
+		explode arml2 type FIRE | SMOKE | FALL;
+		explode thrust type FIRE | SMOKE | FALL;
+		explode link type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode bodyr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode armr1 type SMOKE | FALL;
+		explode armr2 type FIRE | SMOKE | FALL;
+		explode bodyl type SMOKE | FALL;
+		explode arml1 type SMOKE | FALL;
+		explode arml2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode thrust type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode link type EXPLODE_ON_HIT | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode bodyr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode armr1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode armr2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode bodyl type EXPLODE_ON_HIT | FIRE | FALL;
+		explode arml1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode arml2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode link type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

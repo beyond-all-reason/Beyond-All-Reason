@@ -1,0 +1,198 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  wingl, wingr, finl, finr, base, thrusta, thrustb, doorr, doorl, bombr1,bombr2,bombl1, bombl2, cowl, fan, arml, armr;
+
+static-var  Static_Var_1, gun_3;
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	var Func_Var_4;
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			Func_Var_4 = Rand( 1, 3 );
+			if( Func_Var_4 == 1 )
+			{
+				emit-sfx smoketype from base;
+			}
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <15.000000>;
+	turn base to x-axis <0.000000> speed <15.000000>;
+}
+
+MoveRate2()
+{
+	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )
+	{
+		Static_Var_1 = 1;
+		turn base to z-axis <240.000000> speed <120.000000>;
+		wait-for-turn base around z-axis;
+		turn base to z-axis <120.000000> speed <180.000000>;
+		wait-for-turn base around z-axis;
+		turn base to z-axis <0.000000> speed <120.000000>;
+		Static_Var_1 = 0;
+	}
+}
+
+Create()
+{
+	gun_3=0;
+	Static_Var_1 = 0;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script SmokeUnit();
+	sleep 2000;
+}
+
+Activate()
+{
+	spin fan around y-axis speed <200> accelerate <20>;
+	turn wingl to z-axis <90> speed <90>;
+	turn wingr to z-axis <-90> speed <90>;
+	sleep 1500;
+	turn cowl to x-axis <90> speed <45>;
+}
+
+Deactivate()
+{
+	turn cowl to x-axis <0> speed <45>;
+
+	sleep 1500;
+	stop-spin fan around y-axis decelerate <2>;
+	turn wingl to z-axis <0> speed <90>;
+	turn wingr to z-axis <0> speed <90>;
+}
+
+
+QueryPrimary(piecenum)
+{
+	piecenum = fan;
+}
+
+FirePrimary(Func_Var_1)
+{
+	sleep 5;
+	sleep 1000;
+}
+
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode thrustb type BITMAPONLY;
+		explode thrusta type BITMAPONLY;
+		explode wingl type BITMAPONLY;
+		explode cowl type BITMAPONLY;
+		explode fan type BITMAPONLY;
+		explode wingr type BITMAPONLY;
+		explode finl type BITMAPONLY;
+		explode doorl type BITMAPONLY;
+		explode arml type BITMAPONLY;
+		explode bombl2 type FIRE | SMOKE | FALL;
+		explode bombl1 type BITMAPONLY;
+		explode finr type BITMAPONLY;
+		explode doorr type BITMAPONLY;
+		explode armr type BITMAPONLY;
+		explode bombr2 type BITMAPONLY;
+		explode bombr1 type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode thrustb type FIRE | SMOKE | FALL;
+		explode thrusta type FIRE | SMOKE | FALL;
+		explode wingl type FALL;
+		explode cowl type FALL;
+		explode fan type FIRE | SMOKE | FALL;
+		explode wingr type FIRE | SMOKE | FALL;
+		explode finl type FALL;
+		explode doorl type FIRE | SMOKE | FALL;
+		explode arml type FALL;
+		explode bombl2 type FIRE | SMOKE | FALL;
+		explode bombl1 type FIRE | SMOKE | FALL;
+		explode finr type FIRE | SMOKE | FALL;
+		explode doorr type FALL;
+		explode armr type FIRE | SMOKE | FALL;
+		explode bombr2 type FIRE | SMOKE | FALL;
+		explode bombr1 type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode thrustb type FIRE | SMOKE | FALL;
+		explode thrusta type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode wingl type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode cowl type FIRE | SMOKE | FALL;
+		explode fan type FIRE | SMOKE | FALL;
+		explode wingr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode finl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode doorl type SHATTER;
+		explode arml type SMOKE | FALL;
+		explode bombl2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode bombl1 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode finr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode doorr type SHATTER;
+		explode armr type SMOKE | FALL;
+		explode bombr2 type SMOKE | FALL;
+		explode bombr1 type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL;
+		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wingl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode cowl type EXPLODE_ON_HIT | FIRE | FALL;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wingr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode finl type EXPLODE_ON_HIT | FIRE | FALL;
+		explode doorl type SHATTER;
+		explode arml type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode bombl2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode bombl1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode finr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode doorr type SHATTER;
+		explode armr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode bombr2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode bombr1 type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

@@ -1,0 +1,267 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12;
+
+static-var  Static_Var_1, Static_Var_2, Static_Var_3;
+
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1000;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1000;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+}
+
+activatescr()
+{
+	turn d2 to y-axis <30> speed <30>;
+	turn d3 to y-axis <60> speed <30>;
+	turn d5 to y-axis <30> speed <30>;
+	turn d6 to y-axis <60> speed <30>;
+	turn d8 to y-axis <30> speed <30>;
+	turn d9 to y-axis <60> speed <30>;
+	turn d11 to y-axis <30> speed <30>;
+	turn d12 to y-axis <60> speed <30>;
+	wait-for-turn d3 around y-axis;
+	turn d1 to z-axis <-90> speed <30>;
+	turn d4 to x-axis <-90> speed <30>;
+	turn d7 to z-axis <90> speed <30>;
+	turn d10 to x-axis <90> speed <30>;
+	wait-for-turn d4 around y-axis;
+	hide d1;
+	hide d2;
+	hide d3;
+	hide d4;
+	hide d5;
+	hide d6;
+	hide d7;
+	hide d8;
+	hide d9;
+	hide d10;
+	hide d11;
+	hide d12;
+}
+
+deactivatescr()
+{
+	show d1;
+	show d2;
+	show d3;
+	show d4;
+	show d5;
+	show d6;
+	show d7;
+	show d8;
+	show d9;
+	show d10;
+	show d11;
+	show d12;
+	turn d1 to z-axis <0> speed <30>;
+	turn d4 to x-axis <0> speed <30>;
+	turn d7 to z-axis <0> speed <30>;
+	turn d10 to x-axis <0> speed <30>;
+	wait-for-turn d4 around y-axis;
+	turn d2 to y-axis <0> speed <30>;
+	turn d3 to y-axis <0> speed <30>;
+	turn d5 to y-axis <0> speed <30>;
+	turn d6 to y-axis <0> speed <30>;
+	turn d8 to y-axis <0> speed <30>;
+	turn d9 to y-axis <0> speed <30>;
+	turn d11 to y-axis <0> speed <30>;
+	turn d12 to y-axis <0> speed <30>;
+	wait-for-turn d3 around y-axis;
+
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( Static_Var_3 )
+	{
+		Static_Var_2 = requestedstate;
+		return (0);
+	}
+	Static_Var_3 = 1;
+	currentstate = Static_Var_2;
+	Static_Var_2 = requestedstate;
+	while( Static_Var_2 != currentstate )
+	{
+		if( Static_Var_2 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+		else
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+	}
+	Static_Var_3 = 0;
+}
+
+Create()
+{
+	Static_Var_2 = 1;
+	Static_Var_3 = 0;
+	start-script SmokeUnit();
+	Static_Var_1 = 0;
+}
+
+Activate()
+{
+	if( Static_Var_1 )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	set ARMORED to 0;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	set ARMORED to 1;
+	start-script RequestState(1);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	if( get ACTIVATION )
+	{
+		Static_Var_1 = 1;
+	}
+	if( Static_Var_1 )
+	{
+		signal 2;
+		set-signal-mask 2;
+		set ACTIVATION to 0;
+		sleep 8000;
+		Static_Var_1 = 0;
+		set ACTIVATION to 100;
+	}
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode d10 type BITMAPONLY;
+		explode d11 type FIRE | SMOKE | FALL;
+		explode d12 type BITMAPONLY;
+		explode d1 type BITMAPONLY;
+		explode d2 type BITMAPONLY;
+		explode d3 type BITMAPONLY;
+		explode d7 type BITMAPONLY;
+		explode d9 type BITMAPONLY;
+		explode d8 type BITMAPONLY;
+		explode d4 type BITMAPONLY;
+		explode d6 type BITMAPONLY;
+		explode d5 type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode d10 type FIRE | SMOKE | FALL;
+		explode d11 type FIRE | SMOKE | FALL;
+		explode d12 type FALL;
+		explode d1 type FALL;
+		explode d2 type FALL;
+		explode d3 type FIRE | SMOKE | FALL;
+		explode d7 type FIRE | SMOKE | FALL;
+		explode d9 type FIRE | SMOKE | FALL;
+		explode d8 type FIRE | SMOKE | FALL;
+		explode d4 type FIRE | SMOKE | FALL;
+		explode d6 type FIRE | SMOKE | FALL;
+		explode d5 type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode d10 type SMOKE | FALL;
+		explode d11 type SMOKE | FALL;
+		explode d12 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode d1 type FIRE | SMOKE | FALL;
+		explode d2 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode d3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d7 type FIRE | SMOKE | FALL;
+		explode d9 type SMOKE | FALL;
+		explode d8 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode d4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d6 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode d5 type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode d10 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d11 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode d12 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode d1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode d2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode d3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode d7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d9 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d8 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode d6 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode d5 type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

@@ -1,0 +1,311 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, dishbase1,dishbase2, dish1, dish2, nano1, nano2, nano3, nano4, nano5, nano6, nano7, nano8;
+
+static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+
+activatescr()
+{
+
+}
+
+deactivatescr()
+{
+
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+}
+
+Go()
+{
+
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+
+	unitviewer = FALSE;
+	spray = base;
+	call-script InitState();
+	start-script SmokeUnit();
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 1000;
+	}
+	turn dishbase1 to x-axis <45> speed <100>;
+	
+	turn dishbase2 to x-axis <-45> speed <100>;
+	move dishbase1 to y-axis [-5] speed [10];
+	move dishbase2 to y-axis [-5] speed [10];
+	spin dish1 around z-axis speed <150.027473>;
+	
+	spin dish2 around z-axis speed <150.027473>;
+}
+
+QueryNanoPiece(piecenum)
+{
+	if( spray == 0 )
+	{
+		piecenum = nano1;
+		
+	}
+	if( spray == 1 )
+	{
+		piecenum = nano2;
+		
+	}
+		if( spray == 2 )
+	{
+		piecenum = nano3;
+		
+	}
+		if( spray == 3 )
+	{
+		piecenum = nano4;
+		
+	}
+		if( spray == 4 )
+	{
+		piecenum = nano5;
+		
+	}
+		if( spray == 5 )
+	{
+		piecenum = nano6;
+		
+	}
+		if( spray == 6 )
+	{
+		piecenum = nano7;
+		
+	}
+		if( spray == 7 )
+	{
+		piecenum = nano8;
+		
+	}
+
+	spray = spray+1;
+	if( spray==8){
+		spray=0;
+	}
+}
+
+Demo()
+{
+	unitviewer = TRUE;
+}
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+StartBuilding()
+{
+	spin pad around y-axis speed <10.005495>;
+}
+
+StopBuilding()
+{
+	stop-spin pad around y-axis;
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode pad type BITMAPONLY;
+		explode nano1 type BITMAPONLY;
+		explode nano2 type BITMAPONLY;
+		explode nano3 type BITMAPONLY;
+		explode nano4 type BITMAPONLY;
+		explode nano5 type BITMAPONLY;
+		explode nano6 type BITMAPONLY;
+		explode nano7 type BITMAPONLY;
+		explode nano8 type BITMAPONLY;
+		explode dishbase1 type BITMAPONLY;
+		explode dish1 type FIRE | SMOKE | FALL;
+		explode dishbase2 type BITMAPONLY;
+		explode dish2 type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode pad type FIRE | SMOKE | FALL;
+		explode nano1 type FIRE | SMOKE | FALL;
+		explode nano2 type FIRE | SMOKE | FALL;
+		explode nano3 type FIRE | SMOKE | FALL;
+		explode nano4 type FALL;
+		explode nano5 type FALL;
+		explode nano6 type FIRE | SMOKE | FALL;
+		explode nano7 type FIRE | SMOKE | FALL;
+		explode nano8 type FIRE | SMOKE | FALL;
+		explode dishbase1 type FIRE | SMOKE | FALL;
+		explode dish1 type FIRE | SMOKE | FALL;
+		explode dishbase2 type FIRE | SMOKE | FALL;
+		explode dish2 type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode pad type FIRE | SMOKE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode nano2 type SMOKE | FALL;
+		explode nano3 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode nano4 type FIRE | SMOKE | FALL;
+		explode nano5 type FIRE | SMOKE | FALL;
+		explode nano6 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano7 type FIRE | SMOKE | FALL;
+		explode nano8 type SMOKE | FALL;
+		explode dishbase1 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode dish1 type FIRE | SMOKE | FALL;
+		explode dishbase2 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode dish2 type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | FALL;
+		explode pad type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano5 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano6 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano7 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano8 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode dishbase1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode dish1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode dishbase2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode dish2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

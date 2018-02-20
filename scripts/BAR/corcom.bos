@@ -1,0 +1,744 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece torso, lfirept, rbigflash, nanospray, nanolathe, luparm, ruparm, pelvis,
+    rthigh, lthigh, biggun, lleg, l_foot, rleg, r_foot, head, teleport;
+
+static-var bMoving, bAiming, Busy, gun_3, gun_2, counter,
+      bIsBuilding, buildPitch, buildHeading, maxSpeed, currentSpeed, animSpeed, justMoved;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+walk()
+{
+
+	if (bMoving)
+	{
+		//step 1
+		turn rthigh to x-axis <46> speed <197.142857> *  animSpeed / 100;
+		turn rleg to x-axis <-31> speed <132.857143> *  animSpeed / 100;
+		turn r_foot to x-axis <-14> speed <60.000000> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-49> speed <60.000000> *  animSpeed / 100;
+		turn lleg to x-axis <31> speed <85.714286> *  animSpeed / 100;
+		turn l_foot to x-axis <0> speed <30.000000> *  animSpeed / 100;
+
+		turn luparm to x-axis <5> speed <21.428571> *  animSpeed / 100;
+		turn nanolathe to x-axis <15> speed <64.285714> *  animSpeed / 100;
+		turn ruparm to x-axis <-25> speed <107.142857> *  animSpeed / 100;
+		turn biggun to x-axis <0> now;
+
+		move pelvis to y-axis [-2] speed [8.571429] *  animSpeed / 100;
+		turn torso to x-axis <0> now;
+		turn torso to y-axis <-3> speed <12.857143> *  animSpeed / 100;
+		turn head to y-axis <2> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <-1> speed <4.285714> *  animSpeed / 100;
+		
+		//sleep 215 * currentSpeed / 100;
+		sleep 215;// * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 2
+		turn rthigh to x-axis <52> speed <25.714286> *  animSpeed / 100;
+		turn rleg to x-axis <-5> speed <111.428571> *  animSpeed / 100;
+		turn r_foot to x-axis <-8> speed <25.714286> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-28> speed <90.000000> *  animSpeed / 100;
+		turn lleg to x-axis <-35> speed <282.857143> *  animSpeed / 100;
+		turn l_foot to x-axis <32> speed <137.142857> *  animSpeed / 100;
+
+		turn luparm to x-axis <15> speed <42.857143> *  animSpeed / 100;
+		turn nanolathe to x-axis <45> speed <128.571429> *  animSpeed / 100;
+
+		turn ruparm to x-axis <-40> speed <64.285714> *  animSpeed / 100;
+		turn biggun to x-axis <15> speed <64.285714> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn torso to x-axis <4> speed <17.142857> *  animSpeed / 100;
+		turn torso to y-axis <-5> speed <8.571429> *  animSpeed / 100;
+		turn head to y-axis <3> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <-2> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+
+	}
+	if (bMoving)
+	{
+
+		//step 3
+		turn rthigh to x-axis <-6> speed <248.571429> *  animSpeed / 100;
+		turn rleg to x-axis <64> speed <295.714286> *  animSpeed / 100;
+		turn r_foot to x-axis <-11> speed <12.857143> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-20> speed <34.285714> *  animSpeed / 100;
+		turn lleg to x-axis <-23> speed <51.428571> *  animSpeed / 100;
+		turn l_foot to x-axis <43> speed <47.142857> *  animSpeed / 100;
+
+		turn luparm to x-axis <5> speed <42.857143> *  animSpeed / 100;
+		turn nanolathe to x-axis <15> speed <128.571429> *  animSpeed / 100;
+		turn ruparm to x-axis <-25> speed <64.285714> *  animSpeed / 100;
+		turn biggun to x-axis <0> speed <64.285714> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn torso to x-axis <2> speed <8.571429> *  animSpeed / 100;
+		turn torso to y-axis <-3> speed <8.571429> *  animSpeed / 100;
+		turn head to y-axis <2> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <-1> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 4
+		turn rthigh to x-axis <-35> speed <124.285714> *  animSpeed / 100;
+		turn rleg to x-axis <51> speed <55.714286> *  animSpeed / 100;
+		turn r_foot to x-axis <-7> speed <17.142857> *  animSpeed / 100;
+		turn lthigh to x-axis <0> speed <85.714286> *  animSpeed / 100;
+		turn lleg to x-axis <0> speed <98.571429> *  animSpeed / 100;
+		turn l_foot to x-axis <0> speed <184.285714> *  animSpeed / 100;
+
+		turn luparm to x-axis <0> speed <21.428571> *  animSpeed / 100;
+		turn nanolathe to x-axis <0> speed <64.285714> *  animSpeed / 100;
+		turn ruparm to x-axis <0> speed <107.142857> *  animSpeed / 100;
+		turn biggun to x-axis <0> now;
+
+		move pelvis to y-axis [0] speed [8.571429] *  animSpeed / 100;
+		turn torso to x-axis <0> speed <8.571429> *  animSpeed / 100;
+		turn torso to y-axis <0> speed <12.857143> *  animSpeed / 100;
+		turn head to y-axis <0> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <0> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 5
+		turn rthigh to x-axis <-49> speed <60.000000> *  animSpeed / 100;
+		turn rleg to x-axis <31> speed <85.714286> *  animSpeed / 100;
+		turn r_foot to x-axis <0> speed <30.000000> *  animSpeed / 100;
+
+		turn lthigh to x-axis <46> speed <197.142857> *  animSpeed / 100;
+		turn lleg to x-axis <-31> speed <132.857143> *  animSpeed / 100;
+		turn l_foot to x-axis <-14> speed <60.000000> *  animSpeed / 100;
+
+		turn luparm to x-axis <-25> speed <107.142857> *  animSpeed / 100;
+		turn nanolathe to x-axis <0> now;
+		turn ruparm to x-axis <5> speed <21.428571> *  animSpeed / 100;
+		turn biggun to x-axis <15> speed <64.285714> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] speed [8.571429] *  animSpeed / 100;
+		turn torso to x-axis <0> now;
+		turn torso to y-axis <3> speed <12.857143> *  animSpeed / 100;
+		turn head to y-axis <-2> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <1> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 6
+		turn rthigh to x-axis <-28> speed <90.000000> *  animSpeed / 100;
+		turn rleg to x-axis <-35> speed <282.857143> *  animSpeed / 100;
+		turn r_foot to x-axis <32> speed <137.142857> *  animSpeed / 100;
+
+		turn lthigh to x-axis <52> speed <25.714286> *  animSpeed / 100;
+		turn lleg to x-axis <-5> speed <111.428571> *  animSpeed / 100;
+		turn l_foot to x-axis <-8> speed <25.714286> *  animSpeed / 100;
+
+		turn luparm to x-axis <-40> speed <64.285714> *  animSpeed / 100;
+		turn nanolathe to x-axis <15> speed <64.285714> *  animSpeed / 100;
+		turn ruparm to x-axis <15> speed <42.857143> *  animSpeed / 100;
+		turn biggun to x-axis <45> speed <128.571429> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn torso to x-axis <4> speed <17.142857> *  animSpeed / 100;
+		turn torso to y-axis <5> speed <8.571429> *  animSpeed / 100;
+		turn head to y-axis <-3> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <2> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+
+	}
+	if (bMoving)
+	{
+
+		//step 7
+		turn rthigh to x-axis <-20> speed <34.285714> *  animSpeed / 100;
+		turn rleg to x-axis <-23> speed <51.428571> *  animSpeed / 100;
+		turn r_foot to x-axis <43> speed <47.142857> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-6> speed <248.571429> *  animSpeed / 100;
+		turn lleg to x-axis <64> speed <295.714286> *  animSpeed / 100;
+		turn l_foot to x-axis <-11> speed <12.857143> *  animSpeed / 100;
+
+		turn luparm to x-axis <-25> speed <64.285714> *  animSpeed / 100;
+		turn nanolathe to x-axis <0> speed <64.285714> *  animSpeed / 100;
+		turn ruparm to x-axis <5> speed <42.857143> *  animSpeed / 100;
+		turn biggun to x-axis <15> speed <128.571429> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn torso to x-axis <2> speed <8.571429> *  animSpeed / 100;
+		turn torso to y-axis <3> speed <8.571429> *  animSpeed / 100;
+		turn head to y-axis <-2> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <1> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+
+	}
+
+	if (bMoving)
+	{
+		//step 0
+		turn rthigh to x-axis <0> speed <85.714286> *  animSpeed / 100;
+		turn rleg to x-axis <0> speed <98.571429> *  animSpeed / 100;
+		turn r_foot to x-axis <0> speed <184.285714> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-35> speed <124.285714> *  animSpeed / 100;
+		turn lleg to x-axis <51> speed <55.714286> *  animSpeed / 100;
+		turn l_foot to x-axis <-7> speed <17.142857> *  animSpeed / 100;
+
+		turn luparm to x-axis <0> speed <107.142857> *  animSpeed / 100;
+		turn nanolathe to x-axis <0> now;
+
+		turn ruparm to x-axis <0> speed <21.428571> *  animSpeed / 100;
+		turn biggun to x-axis <0> speed <64.285714> *  animSpeed / 100;
+
+		move pelvis to y-axis [0] speed [8.571429] *  animSpeed / 100;
+		turn torso to x-axis <0> speed <8.571429> *  animSpeed / 100;
+		turn torso to y-axis <0> speed <12.857143> *  animSpeed / 100;
+		turn head to y-axis <0> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <0> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+
+}
+
+walklegs()
+{
+
+	if (bMoving)
+	{
+		//step 0
+		turn rthigh to x-axis <0> speed <85.714286> *  animSpeed / 100;
+		turn rleg to x-axis <0> speed <98.571429> *  animSpeed / 100;
+		turn r_foot to x-axis <0> speed <184.285714> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-35> speed <124.285714> *  animSpeed / 100;
+		turn lleg to x-axis <51> speed <55.714286> *  animSpeed / 100;
+		turn l_foot to x-axis <-7> speed <17.142857> *  animSpeed / 100;
+
+
+		move pelvis to y-axis [0] speed [8.571429] *  animSpeed / 100;
+		turn head to y-axis <0> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <0> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+		//step 1
+		turn rthigh to x-axis <46> speed <197.142857> *  animSpeed / 100;
+		turn rleg to x-axis <-31> speed <132.857143> *  animSpeed / 100;
+		turn r_foot to x-axis <-14> speed <60.000000> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-49> speed <60.000000> *  animSpeed / 100;
+		turn lleg to x-axis <31> speed <85.714286> *  animSpeed / 100;
+		turn l_foot to x-axis <0> speed <30.000000> *  animSpeed / 100;
+		move pelvis to y-axis [-2] speed [8.571429] *  animSpeed / 100;
+		turn head to y-axis <2> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <-1> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 2
+		turn rthigh to x-axis <52> speed <25.714286> *  animSpeed / 100;
+		turn rleg to x-axis <-5> speed <111.428571> *  animSpeed / 100;
+		turn r_foot to x-axis <-8> speed <25.714286> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-28> speed <90.000000> *  animSpeed / 100;
+		turn lleg to x-axis <-35> speed <282.857143> *  animSpeed / 100;
+		turn l_foot to x-axis <32> speed <137.142857> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn head to y-axis <3> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <-2> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+
+	}
+	if (bMoving)
+	{
+
+		//step 3
+		turn rthigh to x-axis <-6> speed <248.571429> *  animSpeed / 100;
+		turn rleg to x-axis <64> speed <295.714286> *  animSpeed / 100;
+		turn r_foot to x-axis <-11> speed <12.857143> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-20> speed <34.285714> *  animSpeed / 100;
+		turn lleg to x-axis <-23> speed <51.428571> *  animSpeed / 100;
+		turn l_foot to x-axis <43> speed <47.142857> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn head to y-axis <2> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <-1> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 4
+		turn rthigh to x-axis <-35> speed <124.285714> *  animSpeed / 100;
+		turn rleg to x-axis <51> speed <55.714286> *  animSpeed / 100;
+		turn r_foot to x-axis <-7> speed <17.142857> *  animSpeed / 100;
+		turn lthigh to x-axis <0> speed <85.714286> *  animSpeed / 100;
+		turn lleg to x-axis <0> speed <98.571429> *  animSpeed / 100;
+		turn l_foot to x-axis <0> speed <184.285714> *  animSpeed / 100;
+
+	
+		move pelvis to y-axis [0] speed [8.571429] *  animSpeed / 100;
+		turn head to y-axis <0> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <0> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 5
+		turn rthigh to x-axis <-49> speed <60.000000> *  animSpeed / 100;
+		turn rleg to x-axis <31> speed <85.714286> *  animSpeed / 100;
+		turn r_foot to x-axis <0> speed <30.000000> *  animSpeed / 100;
+
+		turn lthigh to x-axis <46> speed <197.142857> *  animSpeed / 100;
+		turn lleg to x-axis <-31> speed <132.857143> *  animSpeed / 100;
+		turn l_foot to x-axis <-14> speed <60.000000> *  animSpeed / 100;
+
+	
+		move pelvis to y-axis [-2] speed [8.571429] *  animSpeed / 100;
+		turn head to y-axis <-2> speed <8.571429> *  animSpeed / 100;
+		turn pelvis to z-axis <1> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+	}
+	if (bMoving)
+	{
+
+
+		//step 6
+		turn rthigh to x-axis <-28> speed <90.000000> *  animSpeed / 100;
+		turn rleg to x-axis <-35> speed <282.857143> *  animSpeed / 100;
+		turn r_foot to x-axis <32> speed <137.142857> *  animSpeed / 100;
+
+		turn lthigh to x-axis <52> speed <25.714286> *  animSpeed / 100;
+		turn lleg to x-axis <-5> speed <111.428571> *  animSpeed / 100;
+		turn l_foot to x-axis <-8> speed <25.714286> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn head to y-axis <-3> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <2> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+
+	}
+	if (bMoving)
+	{
+
+		//step 7
+		turn rthigh to x-axis <-20> speed <34.285714> *  animSpeed / 100;
+		turn rleg to x-axis <-23> speed <51.428571> *  animSpeed / 100;
+		turn r_foot to x-axis <43> speed <47.142857> *  animSpeed / 100;
+
+		turn lthigh to x-axis <-6> speed <248.571429> *  animSpeed / 100;
+		turn lleg to x-axis <64> speed <295.714286> *  animSpeed / 100;
+		turn l_foot to x-axis <-11> speed <12.857143> *  animSpeed / 100;
+
+		move pelvis to y-axis [-2] now;
+		turn head to y-axis <-2> speed <4.285714> *  animSpeed / 100;
+		turn pelvis to z-axis <1> speed <4.285714> *  animSpeed / 100;
+
+		sleep 215 * currentSpeed / 100;
+
+	}
+}
+
+stand()
+{
+	
+		turn rthigh to x-axis <0> speed <200>;
+		turn rleg to x-axis  <0> speed <200>;
+		turn r_foot to x-axis <0> speed <200>;
+
+		turn lthigh to x-axis  <0> speed <200>;
+		turn lleg to x-axis  <0> speed <200>;
+		turn l_foot to x-axis <0> speed <200>;
+
+		move pelvis to y-axis [0] speed [20];
+		turn head to y-axis <-2> speed <4.285714>;
+		turn pelvis to z-axis <1> speed <4.285714>;
+
+	sleep 200;
+	return (0);
+}
+
+bigfire()
+{
+	turn ruparm to x-axis <40> now;
+	turn biggun to x-axis <-40> now;
+	turn ruparm to x-axis <0> speed <80>;
+	turn biggun to x-axis <0> speed <80>;
+	sleep 100;
+	return (0);
+}
+
+UnitSpeed()
+{
+	while( TRUE )
+	{
+		currentSpeed = (get CURRENT_SPEED) * 100 / maxSpeed;
+		
+		//get PRINT(currentSpeed, maxSpeed, animSpeed);
+		if( currentSpeed < 40 )
+		{
+			currentSpeed = 40;
+		}
+		animSpeed=currentSpeed;
+		
+		currentSpeed = 10000/currentSpeed; 
+		sleep 60;
+	}
+	return (0);
+}
+
+MotionControl(Func_Var_1, Func_Var_2)
+{
+	while( TRUE )
+	{
+		Func_Var_1 = bMoving;
+		Func_Var_2 = bAiming;
+		if( Func_Var_1 )
+		{
+			gun_3 = torso;
+			if( Func_Var_2 )
+			{
+				Busy = 1;
+				call-script walklegs();
+			}
+			else
+			{
+				Busy = 0;
+				call-script walk();
+			}
+			justmoved = TRUE;
+		}
+		else
+		{
+			Busy = 1;
+			if( justmoved ) 
+			{
+			 	call-script stand();
+				justmoved=FALSE;
+			}
+			else
+			{
+				sleep 30;
+			}
+		}
+	}
+	return (0);
+}
+
+TeleportControl()
+{
+	move teleport to y-axis [700.000000] now;
+	turn teleport to x-axis <90.000000> now;
+	sleep 100;
+	emit-sfx 1025 from teleport;
+	sleep 2200;
+	emit-sfx 1026 from pelvis;
+	sleep 100;
+	while (counter < 23) 
+	{
+		emit-sfx 2051 from teleport;
+	    sleep 65;
+	    ++counter;
+	}
+	sleep 1000;
+	move teleport to y-axis [0.000000] now;
+}
+
+Create()
+{
+	hide rbigflash;
+	hide lfirept;
+	bMoving = FALSE;
+	bAiming = FALSE;
+	bIsBuilding = 0;
+	gun_2 = torso;
+	Busy = 1;
+	gun_3 = torso;
+	buildHeading = 0;
+	buildPitch = 0;
+	counter = 0;
+	//maxSpeed = get UNKNOWN_UNIT_VALUE(75);
+	maxSpeed = get MAX_SPEED;
+	currentSpeed = 100;
+	start-script MotionControl();
+	start-script UnitSpeed();
+	//call-script TeleportControl();
+	return (0);
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	gun_3 = torso;
+	return (0);
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = torso;
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = nanospray;
+	return (0);
+}
+
+RestorePosition()
+{
+	gun_3 = torso;
+	turn torso to y-axis <0.000000> speed <90.000000>;
+	wait-for-turn torso around y-axis;
+	bAiming = FALSE;
+	return (0);
+}
+
+ResumeBuilding()
+{
+	sleep 400;
+	if( bIsBuilding AND ( !gun_2 ) )
+	{
+		turn torso to y-axis buildHeading speed <150.000000>;
+		turn luparm to x-axis <-30.000000> - buildPitch speed <45.000000>;
+	}
+	return (0);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = torso;
+	return (0);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = lfirept;
+	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	if( gun_3 == 1 )
+	{
+		return (0);
+	}
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	turn torso to y-axis heading speed <300.000000>;
+	turn luparm to x-axis <-5.000000> - pitch speed <250.000000>;
+	turn nanolathe to x-axis <000000> speed <250.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn luparm around x-axis;
+	gun_2 = lfirept;
+	if( bIsBuilding == 1 )
+	{
+		start-script ResumeBuilding();
+	}
+	return (1);
+}
+
+FirePrimary()
+{
+	show lfirept;
+	sleep 100;
+	hide lfirept;
+	sleep 400;
+	gun_2 = torso;
+	return (0);
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = biggun;
+	return (0);
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = rbigflash;
+	return (0);
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	gun_3 = lfirept;
+	bAiming = TRUE;
+	turn torso to y-axis heading speed <300.000000>;
+	turn biggun to x-axis <0.000000> - pitch speed <150.000000>;
+	turn ruparm to x-axis <0> speed <300>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn biggun around x-axis;
+	return (1);
+}
+
+FireTertiary()
+{
+	show rbigflash;
+	sleep 30;
+	hide rbigflash;
+	gun_3 = torso;
+	call-script bigfire();
+	return (0);
+}
+
+AimFromSecondary(piecenum)
+{
+	piecenum = lfirept;
+	return (0);
+}
+
+QuerySecondary(piecenum)
+{
+	piecenum = lfirept;
+	return (0);
+}
+
+AimSecondary(heading, pitch)
+{
+	if( get PIECE_Y(head) > 0 )
+	{
+		return (0);
+	}
+	if( gun_3 == 1 )
+	{
+		return (0);
+	}
+	if( bIsBuilding )
+	{
+		return (0);
+	}
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	turn torso to y-axis heading speed <300.000000>;
+	turn luparm to x-axis <-5.000000> - pitch speed <250.000000>;
+	turn nanolathe to x-axis <000000> speed <250.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn luparm around x-axis;
+	gun_2 = lfirept;
+	if( bIsBuilding == 1 )
+	{
+		start-script ResumeBuilding();
+	}
+	return (1);
+}
+
+FireSecondary()
+{
+	show lfirept;
+	emit-sfx 1024 + 0 from lfirept;
+	sleep 100;
+	hide lfirept;
+	emit-sfx 1024 + 0 from lfirept;
+	sleep 400;
+	gun_2 = torso;
+	return (0);
+}
+
+AimFromWeapon4(piecenum)
+{
+	piecenum = torso;
+}
+
+QueryWeapon4(piecenum)
+{
+	piecenum = torso;
+}
+
+StartBuilding(heading, pitch)
+{
+	gun_3 = torso;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	bAiming = TRUE;
+	bIsBuilding = 1;
+	while( !Busy )
+	{
+		sleep 30;
+	}
+	buildHeading = heading;
+	buildPitch = pitch;
+	turn torso to y-axis heading speed <300.000000>;
+	turn luparm to x-axis <-30.000000> - pitch speed <90.000000>;
+	wait-for-turn torso around y-axis;
+	wait-for-turn luparm around x-axis;
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+TargetCleared(Func_Var_1)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	call-script RestorePosition();
+	return (0);
+}
+
+StopBuilding()
+{
+	bIsBuilding = 0;
+	set INBUILDSTANCE to 0;
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	call-script RestorePosition();
+	return (0);
+}
+
+Killed( severity, corpsetype )
+{
+	corpsetype = 1;
+	return(corpsetype);
+}

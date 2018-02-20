@@ -1,0 +1,215 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, column, turret, barrel1,barrel2;
+
+static-var  Static_Var_1, restore_delay, Static_Var_3, Static_Var_4, Static_Var_5,
+            gun_1, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+fixGo()
+{
+	spin column around y-axis speed Static_Var_3 accelerate Static_Var_4;
+}
+
+Stop()
+{
+	stop-spin column around y-axis decelerate Static_Var_5;
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script fixGo();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	Static_Var_3 = 0;
+	Static_Var_4 = 91;
+	Static_Var_5 = 182;
+	Static_Var_7 = 0;
+	Static_Var_8 = 0;
+	gun_1 = base;
+	Static_Var_1 = 1;
+	call-script InitState();
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 8;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+SetSpeed(Func_Var_1)
+{
+	Static_Var_3 = Func_Var_1 * 45;
+	Static_Var_7 = Func_Var_1 * 400;
+	Static_Var_8 = Func_Var_1 * 400;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed Static_Var_7;
+	turn turret to x-axis <0.000000> - pitch speed Static_Var_8;
+	wait-for-turn turret around y-axis;
+	wait-for-turn turret around x-axis;
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		sleep 150;
+	}
+	if( gun_1 == 1 )
+	{
+		sleep 150;
+	}
+	++gun_1;
+	if( gun_1 == 2 )
+	{
+		gun_1 = 0;
+	}
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 0 )
+	{
+		piecenum = barrel1;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = barrel2;
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode turret type BITMAPONLY;
+		explode barrel1 type FIRE | SMOKE | FALL;
+		explode barrel2 type BITMAPONLY;
+		explode column type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode turret type FIRE | SMOKE | FALL;
+		explode barrel1 type FIRE | SMOKE | FALL;
+		explode barrel2 type FIRE | SMOKE | FALL;
+		explode column type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode turret type FIRE | SMOKE | FALL;
+		explode barrel1 type SHATTER;
+		explode barrel2 type SHATTER;
+		explode column type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrel1 type SHATTER;
+		explode barrel2 type SHATTER;
+		explode column type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

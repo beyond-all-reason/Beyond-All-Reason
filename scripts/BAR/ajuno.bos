@@ -1,0 +1,265 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, collar, tower, emit1, emit2, emit3, emit4,
+       flare;
+
+static-var  gun_1, restore_delay, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+NanoEmit()
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+	
+		emit-sfx 1024 from tower;
+		sleep 1200;
+	}
+}
+
+Activatescr()
+{
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	sleep 250;
+	spin tower around y-axis speed <85.016484>;
+	spin collar around y-axis speed <-65.010989>;
+	sleep 250;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit4;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit4;
+	sleep 250;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+deactivatescr()
+{
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit4;
+	sleep 250;
+	spin tower around y-axis speed <25.005495>;
+	spin collar around y-axis speed <15.000000>;
+	emit-sfx 257 from emit1;
+	emit-sfx 257 from emit2;
+	emit-sfx 257 from emit3;
+	emit-sfx 257 from emit4;
+	sleep 40;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+Go()
+{
+	call-script Activatescr();
+	gun_1 = flare;
+}
+
+Stop()
+{
+	gun_1 = base;
+	sleep 4000;
+	call-script deactivatescr();
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	gun_1 = flare;
+	restore_delay = 3000;
+	start-script NanoEmit();
+	start-script SmokeUnit();
+	call-script InitState();
+	
+	spin tower around y-axis speed <25.005495>;
+	spin collar around y-axis speed <15.000000>;
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	start-script RequestState(1);
+}
+
+AimPrimary(heading, pitch)
+{
+	start-script RequestState(0);
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	while( !gun_1 )
+	{
+		sleep 250;
+	}
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	explode flare type BITMAPONLY | BITMAP5;
+	gun_1 = base;
+	start-script RequestState(1);
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = flare;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = flare;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode tower type BITMAPONLY;
+		explode collar type FIRE | SMOKE | FALL;
+		explode emit1 type BITMAPONLY;
+		explode emit2 type BITMAPONLY;
+		explode emit3 type BITMAPONLY;
+		explode emit4 type BITMAPONLY;
+		explode flare type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode collar type FIRE | SMOKE | FALL;
+		explode emit1 type FIRE | SMOKE | FALL;
+		explode emit2 type FIRE | SMOKE | FALL;
+		explode emit3 type FIRE | SMOKE | FALL;
+		explode emit4 type FIRE | SMOKE | FALL;
+		explode flare type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode tower type BITMAPONLY;
+		explode collar type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode emit1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode emit2 type SMOKE | FALL;
+		explode emit3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode emit4 type SMOKE | FALL;
+		explode flare type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode tower type EXPLODE_ON_HIT | FIRE | FALL;
+		explode collar type EXPLODE_ON_HIT | FIRE | FALL;
+		explode emit1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode emit2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode emit3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode emit4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

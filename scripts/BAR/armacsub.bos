@@ -1,0 +1,201 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, rfin, lfin, door, prop, turret, gun, nano1, nano2;
+
+static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, currentSpeed, moveSpeed;
+
+// Signal definitions
+#define SIG_MOVE		2
+#define SIG_BUILD		4	
+
+Propcontrol()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
+		spin prop around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		sleep 33;
+	}
+}
+
+activatescr()
+{
+	move turret to y-axis [4.400000] speed [8.800000];
+	sleep 500;
+}
+
+deactivatescr()
+{
+	set INBUILDSTANCE to 0;
+	turn gun to y-axis <0.000000> speed <160.038462>;
+	wait-for-turn gun around y-axis;
+	move turret to y-axis [0.000000] speed [8.800000];
+	sleep 500;
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	move door to y-axis [1.000000] speed [4.000000];
+	move lfin to x-axis [-5.600000] speed [5.600000];
+	move rfin to x-axis [5.600000] speed [5.600000];
+	while( TRUE )
+	{
+		emit-sfx 259 from prop;
+		sleep 250;
+	}
+}
+
+StopMoving()
+{	
+	signal SIG_MOVE;
+	move door to y-axis [0.000000] speed [4.000000];
+	move lfin to x-axis [0.000000] speed [5.600000];
+	move rfin to x-axis [0.000000] speed [5.600000];
+
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState )
+		{
+			call-script deactivatescr();
+			notBuilding = 1;
+			currentstate = 1;
+		}
+		else
+		{
+			call-script activatescr();
+			notBuilding = 0;
+			currentstate = 0;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	notBuilding = 1;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	moveSpeed = get MAX_SPEED;
+	start-script Propcontrol();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+StartBuilding(heading, pitch)
+{
+	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn gun to y-axis heading speed <160.038462>;
+	wait-for-turn gun around y-axis;
+	set INBUILDSTANCE to 1;
+}
+
+StopBuilding()
+{
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
+	start-script RequestState(1);
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = nano1;
+}
+
+/*
+TargetHeading(Func_Var_1)
+{
+	Static_Var_1 = 0 - Func_Var_1;
+}
+*/
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode rfin type BITMAPONLY;
+		explode door type BITMAPONLY;
+		explode prop type BITMAPONLY;
+		explode turret type BITMAPONLY;
+		explode gun type FIRE | SMOKE | FALL;
+		explode nano1 type BITMAPONLY;
+		explode nano2 type BITMAPONLY;
+		explode lfin type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode rfin type FIRE | SMOKE | FALL;
+		explode door type FIRE | SMOKE | FALL;
+		explode prop type FALL;
+		explode turret type FIRE | SMOKE | FALL;
+		explode gun type FIRE | SMOKE | FALL;
+		explode nano1 type FALL;
+		explode nano2 type FIRE | SMOKE | FALL;
+		explode lfin type FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode rfin type FIRE | SMOKE | FALL;
+		explode door type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode prop type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode turret type SMOKE | FALL;
+		explode gun type FIRE | SMOKE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano2 type FIRE | SMOKE | FALL;
+		explode lfin type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode rfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode door type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode prop type EXPLODE_ON_HIT | FIRE | FALL;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL;
+		explode gun type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

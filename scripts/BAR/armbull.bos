@@ -1,0 +1,263 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  lflare, rflare, turret, base, rsleeve, lsleeve, rbarrel, lbarrel, rwheel, lwheel, laxle, raxle, smoke1, smoke2;
+
+static-var  bMoving, moveSpeed, currentSpeed, animSpeed, terrain, restore_delay, gun_1;
+
+// Signal definitions
+#define SIG_AIM				2
+
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		if (currentSpeed<4) currentSpeed=4;
+		animSpeed = 1800 / currentSpeed;
+		sleep 142;
+	}
+}
+
+Smoke()
+{
+	while( TRUE )
+	{
+		if ( bMoving )
+		{
+			if( terrain == 4 )
+			{
+				emit-sfx 1024 + 1 from smoke1;
+				emit-sfx 1024 + 1 from smoke2;
+			}
+		}
+		sleep animSpeed;
+	}
+}
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script Smoke();
+	start-script UnitSpeed();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <65.000000>;
+	turn base to x-axis <0> - anglex speed <65.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+
+RockUnit(anglex, anglez)
+{
+	turn base to x-axis anglex speed <50.000000>;
+	turn base to z-axis <0> - anglez speed <50.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <20.000000>;
+	turn base to x-axis <0.000000> speed <20.000000>;
+}
+
+Create()
+{
+	bMoving = FALSE;
+	moveSpeed = get (MAX_SPEED);
+	animSpeed = 100;
+	gun_1 = lflare;
+	restore_delay = 3000;
+	start-script SmokeUnit();
+}
+
+setSFXoccupy(state)
+{
+	terrain = state;
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 2;
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	spin lwheel around x-axis speed <110> accelerate <5>;
+	spin rwheel around x-axis speed <110> accelerate <5>;
+}
+
+
+StopMoving()
+{
+	bMoving = FALSE;
+	stop-spin lwheel around x-axis;
+	stop-spin rwheel around x-axis;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	turn turret to y-axis <0.000000> speed <50.000000>;
+	turn rsleeve to x-axis <0.000000> speed <25.000000>;
+	turn lsleeve to x-axis <0.000000> speed <25.000000>;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn turret to y-axis heading speed <105.000000>;
+	turn rsleeve to x-axis <0.000000> - pitch speed <65.000000>;
+	turn lsleeve to x-axis <0.000000> - pitch speed <65.000000>;
+	wait-for-turn turret around y-axis;
+	wait-for-turn rsleeve around x-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		move lbarrel to z-axis [-2.400000] speed [500.000000];
+		emit-sfx 1024 + 0 from lflare;
+		sleep 150;
+		wait-for-move lbarrel along z-axis;
+		move lbarrel to z-axis [0.000000] speed [3.000000];
+		gun_1 = rflare;
+		return (0);
+	}
+	if( gun_1 == 1 )
+	{
+		move rbarrel to z-axis [-2.400000] speed [500.000000];
+		emit-sfx 1024 + 0 from rflare;
+		sleep 150;
+		wait-for-move rbarrel along z-axis;
+		move rbarrel to z-axis [0.000000] speed [3.000000];
+		gun_1 = lflare;
+	}
+}
+
+QueryPrimary(piecenum)
+{
+	if( gun_1 == 0 )
+	{
+		piecenum = lflare;
+	}
+	if( gun_1 == 1 )
+	{
+		piecenum = rflare;
+	}
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = turret;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode raxle type BITMAPONLY;
+		explode rwheel type BITMAPONLY;
+		explode turret type BITMAPONLY;
+		explode rsleeve type BITMAPONLY;
+		explode rbarrel type FIRE | SMOKE | FALL;
+		explode rflare type BITMAPONLY;
+		explode lsleeve type BITMAPONLY;
+		explode lbarrel type BITMAPONLY;
+		explode lflare type BITMAPONLY;
+		explode laxle type BITMAPONLY;
+		explode lwheel type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode raxle type FIRE | SMOKE | FALL;
+		explode rwheel type FIRE | SMOKE | FALL;
+		explode turret type FIRE | SMOKE | FALL;
+		explode rsleeve type FALL;
+		explode rbarrel type FIRE | SMOKE | FALL;
+		explode rflare type FALL;
+		explode lsleeve type FALL;
+		explode lbarrel type FALL;
+		explode lflare type FIRE | SMOKE | FALL;
+		explode laxle type FALL;
+		explode lwheel type FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode raxle type FIRE | SMOKE | FALL;
+		explode rwheel type SMOKE | FALL;
+		explode turret type FIRE | SMOKE | FALL;
+		explode rsleeve type FIRE | SMOKE | FALL;
+		explode rbarrel type SMOKE | FALL;
+		explode rflare type SMOKE | FALL;
+		explode lsleeve type SMOKE | FALL;
+		explode lbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lflare type SMOKE | FALL;
+		explode laxle type FIRE | SMOKE | FALL;
+		explode lwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode raxle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rwheel type EXPLODE_ON_HIT | FIRE | FALL;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rsleeve type EXPLODE_ON_HIT | FIRE | FALL;
+		explode rbarrel type EXPLODE_ON_HIT | FIRE | FALL;
+		explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lsleeve type EXPLODE_ON_HIT | FIRE | FALL;
+		explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL;
+		explode lflare type EXPLODE_ON_HIT | FIRE | FALL;
+		explode laxle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lwheel type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

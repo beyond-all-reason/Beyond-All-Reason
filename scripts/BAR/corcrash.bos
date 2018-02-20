@@ -1,0 +1,349 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  rflare, lflare, torso, pelvis, lleg, rleg, lbarrel,
+       rbarrel,head,lthigh,rthigh;
+
+static-var  gun_3, notMoving, restore_delay, currentSpeed, moveSpeed, maxpitch;
+
+// Signal definitions
+#define SIG_MOVE			2
+#define SIG_WALK			4
+#define SIG_AIM_3			8
+
+
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		if (currentSpeed<4) currentSpeed=4;
+		sleep 142;
+	}
+}
+
+walk()
+{
+	signal SIG_WALK;
+	set-signal-mask SIG_WALK;
+	notMoving = FALSE;
+	start-script UnitSpeed();
+	while( TRUE )
+	{
+		move pelvis to y-axis [0.000000] now;
+		move lleg to y-axis [0.000000] now;
+		move lleg to z-axis [4.375000] speed [3.281250] *currentSpeed;
+		move rleg to y-axis [0.000000] now;
+		move rleg to z-axis [-4.000000] speed [3.000000] *currentSpeed;
+		turn pelvis to x-axis <6.000000> speed <4.500000> *currentSpeed;
+		turn lleg to x-axis <-6.000000> speed <4.500000> *currentSpeed;
+		turn rleg to x-axis <0.000000> now;
+		sleep 1200 / currentSpeed;
+
+		move pelvis to y-axis [-1.250000] speed [1.875000] *currentSpeed;
+		move lleg to y-axis [1.250000] speed [1.875000] *currentSpeed;
+		move rleg to y-axis [1.250000] speed [1.875000] *currentSpeed;
+		turn pelvis to x-axis <4.912088> speed <1.631868> *currentSpeed;
+		turn lleg to x-axis <-4.912088> speed <1.631868> *currentSpeed;
+		turn rleg to x-axis <1.049451> speed <1.574176> *currentSpeed;
+		sleep 600 / currentSpeed;
+
+		move pelvis to y-axis [-0.750000] speed [0.750000] *currentSpeed;
+		move lleg to y-axis [0.750000] speed [0.750000] *currentSpeed;
+		move rleg to y-axis [0.750000] speed [0.750000] *currentSpeed;
+		turn pelvis to x-axis <2.093407> speed <4.228021> *currentSpeed;
+		turn lleg to x-axis <-2.093407> speed <4.228021> *currentSpeed;
+		turn rleg to x-axis <2.802198> speed <2.629121> *currentSpeed;
+		sleep 400 / currentSpeed;
+
+		move pelvis to y-axis [-0.250000] speed [0.750000] *currentSpeed;
+		move lleg to y-axis [0.250000] speed [0.750000] *currentSpeed;
+		move rleg to y-axis [0.250000] speed [0.750000] *currentSpeed;
+		turn pelvis to x-axis <1.049451> speed <1.565934> *currentSpeed;
+		turn lleg to x-axis <-1.038462> speed <1.582418> *currentSpeed;
+		turn rleg to x-axis <3.159341> speed <0.535714> *currentSpeed;
+		sleep 200 / currentSpeed;
+
+		move pelvis to y-axis [0.000000] speed [0.187500] *currentSpeed;
+		move lleg to y-axis [0.000000] speed [0.187500] *currentSpeed;
+		move rleg to y-axis [2.750000] speed [1.875000] *currentSpeed;
+		move rleg to z-axis [-4.625000] speed [0.468750] *currentSpeed;
+		turn pelvis to x-axis <0.000000> speed <0.787088> *currentSpeed;
+		turn lleg to x-axis <0.000000> speed <0.778846> *currentSpeed;
+		turn rleg to x-axis <0.000000> speed <2.369506> *currentSpeed;
+		sleep 1200 / currentSpeed;
+
+		move lleg to z-axis [2.500000] speed [1.406250] *currentSpeed;
+		move rleg to z-axis [-0.875000] speed [2.812500] *currentSpeed;
+		sleep 1200 / currentSpeed;
+
+		move lleg to y-axis [0.000000] now;
+		move lleg to z-axis [0.000000] speed [1.875000] *currentSpeed;
+		move rleg to z-axis [0.000000] speed [0.656250] *currentSpeed;
+		turn pelvis to x-axis <0.000000> now;
+		turn lleg to x-axis <0.000000> now;
+		turn rleg to x-axis <0.000000> now;
+		sleep 1200 / currentSpeed;
+
+		move lleg to z-axis [-1.500000] speed [0.562500] *currentSpeed;
+		move rleg to z-axis [2.125000] speed [0.796875] *currentSpeed;
+		turn rleg to x-axis <-9.137363> speed <3.426511> *currentSpeed;
+		sleep 2000 / currentSpeed;
+
+		move lleg to z-axis [-3.000000] speed [1.125000] *currentSpeed;
+		move rleg to y-axis [0.000000] speed [2.062500] *currentSpeed;
+		turn pelvis to x-axis <6.000000> speed <4.500000> *currentSpeed;
+		turn rleg to x-axis <-6.000000> speed <2.353022> *currentSpeed;
+		sleep 1200 / currentSpeed;
+
+		move pelvis to y-axis [-1.224991] speed [1.837487] *currentSpeed;
+		move lleg to y-axis [1.250000] speed [1.875000] *currentSpeed;
+		move rleg to y-axis [1.250000] speed [1.875000] *currentSpeed;
+		turn pelvis to x-axis <4.560440> speed <2.159340> *currentSpeed;
+		turn lleg to x-axis <0.692308> speed <1.038462> *currentSpeed;
+		turn rleg to x-axis <-4.912088> speed <1.631868> *currentSpeed;
+		sleep 600 / currentSpeed;
+
+		move pelvis to y-axis [-0.699997] speed [0.787491] *currentSpeed;
+		move lleg to y-axis [0.750000] speed [0.750000] *currentSpeed;
+		move rleg to y-axis [0.750000] speed [0.750000] *currentSpeed;
+		turn pelvis to x-axis <2.093407> speed <3.700549> *currentSpeed;
+		turn lleg to x-axis <2.802198> speed <3.164835> *currentSpeed;
+		turn rleg to x-axis <-2.093407> speed <4.228021> *currentSpeed;
+		sleep 400 / currentSpeed;
+
+		move pelvis to y-axis [-0.250000] speed [0.674995] *currentSpeed;
+		move lleg to y-axis [0.250000] speed [0.750000] *currentSpeed;
+		move rleg to y-axis [0.250000] speed [0.750000] *currentSpeed;
+		turn pelvis to x-axis <1.049451> speed <1.565934> *currentSpeed;
+		turn lleg to x-axis <2.456044> speed <0.519231> *currentSpeed;
+		turn rleg to x-axis <-1.038462> speed <1.582418> *currentSpeed;
+		sleep 200 / currentSpeed;
+
+		move lleg to y-axis [2.750000] speed [1.875000] *currentSpeed;
+		move lleg to z-axis [-3.875000] speed [0.656250] *currentSpeed;
+		move rleg to y-axis [1.250000] speed [0.750000] *currentSpeed;
+		turn pelvis to x-axis <0.000000> speed <0.787088> *currentSpeed;
+		turn lleg to x-axis <0.000000> speed <1.842033> *currentSpeed;
+		turn rleg to x-axis <0.000000> speed <0.778846> *currentSpeed;
+		sleep 1200 / currentSpeed;
+
+		move lleg to z-axis [-1.750000] speed [1.593750] *currentSpeed;
+		move rleg to z-axis [0.500000] speed [1.218750] *currentSpeed;
+		sleep 1200 / currentSpeed;
+
+		move lleg to z-axis [1.125000] speed [2.156250] *currentSpeed;
+		move rleg to y-axis [0.000000] speed [0.937500] *currentSpeed;
+		move rleg to z-axis [-0.750000] speed [0.937500] *currentSpeed;
+		turn rleg to x-axis <0.000000> now;
+		sleep 1200 / currentSpeed;
+
+		move lleg to z-axis [2.500000] speed [0.515625] *currentSpeed;
+		move rleg to y-axis [0.000000] now;
+		move rleg to z-axis [-3.250000] speed [0.937500] *currentSpeed;
+		turn lleg to x-axis <-10.192308> speed <3.822116> *currentSpeed;
+		turn rleg to x-axis <0.000000> now;
+		sleep 2000 / currentSpeed;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from torso;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn pelvis to z-axis anglez speed <105.000000>;
+	turn pelvis to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn pelvis around z-axis;
+	wait-for-turn pelvis around x-axis;
+	turn pelvis to z-axis <0.000000> speed <30.000000>;
+	turn pelvis to x-axis <0.000000> speed <30.000000>;
+}
+
+StartMoving()
+{
+	signal SIG_MOVE;
+	if( notMoving ) start-script walk();
+}
+
+StopMoving()
+{
+	signal SIG_MOVE;
+	set-signal-mask SIG_MOVE;
+	sleep 120;
+	signal SIG_WALK;
+	notMoving = TRUE;
+}
+
+Create()
+{
+	gun_3 = lflare;
+	restore_delay = 3000;
+	notMoving = TRUE;
+	moveSpeed = get MAX_SPEED;
+	currentSpeed = 100;
+	start-script StopMoving();
+	start-script SmokeUnit();
+}
+
+SetMaxReloadTime(Func_Var_1)
+{
+	restore_delay = Func_Var_1 * 5;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = pelvis;
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = head;
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = rflare + gun_3;
+}
+
+AimFromTertiary(piecenum)
+{
+	piecenum = head;
+}
+
+QueryTertiary(piecenum)
+{
+	piecenum = rflare + gun_3;
+}
+
+RestoreAfterDelay()
+{
+	sleep restore_delay;
+	set-signal-mask 0;
+	turn torso to y-axis <0.000000> speed <90.000000>;
+}
+
+AimTertiary(heading, pitch)
+{
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn torso to y-axis heading speed <225.000000>;
+	maxpitch=pitch;
+	if (maxpitch > <50>) 
+	{
+		maxpitch = <50>;
+	}
+	turn head to x-axis <0> - maxpitch speed <225>;
+	wait-for-turn head around x-axis;
+	wait-for-turn torso around y-axis;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+FireTertiary()
+{
+	if( gun_3 )
+	{
+		move lbarrel to z-axis [-3.750000] speed [62.500000];
+		wait-for-move rbarrel along z-axis;
+		move lbarrel to z-axis [0.000000] speed [7.500000];
+	}
+	else
+	{
+		move rbarrel to z-axis [-3.750000] speed [62.500000];
+		wait-for-move lbarrel along z-axis;
+		move rbarrel to z-axis [0.000000] speed [7.500000];
+	}
+	gun_3 = !gun_3;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode pelvis type BITMAPONLY;
+		explode torso type BITMAPONLY;
+		explode head type BITMAPONLY;
+		explode lbarrel type FIRE | SMOKE | FALL;
+		explode lflare type BITMAPONLY;
+		explode rbarrel type BITMAPONLY;
+		explode rflare type BITMAPONLY;
+		explode rthigh type BITMAPONLY;
+		explode rleg type BITMAPONLY;
+		explode lthigh type BITMAPONLY;
+		explode lleg type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode pelvis type BITMAPONLY;
+		explode torso type FIRE | SMOKE | FALL;
+		explode head type FIRE | SMOKE | FALL;
+		explode lbarrel type FALL;
+		explode lflare type FALL;
+		explode rbarrel type FALL;
+		explode rflare type FIRE | SMOKE | FALL;
+		explode rthigh type FIRE | SMOKE | FALL;
+		explode rleg type FIRE | SMOKE | FALL;
+		explode lthigh type FIRE | SMOKE | FALL;
+		explode lleg type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode pelvis type FIRE | SMOKE | FALL;
+		explode torso type SMOKE | FALL;
+		explode head type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode lbarrel type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode lflare type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rflare type FIRE | SMOKE | FALL;
+		explode rthigh type FIRE | SMOKE | FALL;
+		explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lthigh type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode lleg type EXPLODE_ON_HIT | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode torso type EXPLODE_ON_HIT | FIRE | FALL;
+		explode head type EXPLODE_ON_HIT | FIRE | FALL;
+		explode lbarrel type EXPLODE_ON_HIT | FIRE | FALL;
+		explode lflare type EXPLODE_ON_HIT | FIRE | FALL;
+		explode rbarrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rflare type EXPLODE_ON_HIT | FIRE | FALL;
+		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | FALL;
+		explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

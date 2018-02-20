@@ -1,0 +1,227 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, wingl, wingr, doorl,doorr, rails, bomba, drop, thrusta, thrustb;
+
+static-var  Static_Var_1, gun_1, statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		turn wingl to x-axis <90.000000> now;
+		turn wingl to x-axis <0.0> speed <90>;
+		turn wingr to x-axis <90.000000> now;
+		turn wingr to x-axis <0> speed <90>;
+		sleep 1458;
+	}
+	sleep 66;
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		turn wingl to x-axis <90> speed <90>;
+		turn wingr to x-axis <90> speed <90>;
+		sleep 1458;
+	}
+	sleep 66;
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <15.000000>;
+	turn base to x-axis <0.000000> speed <15.000000>;
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+MoveRate2()
+{
+	if( Rand( 1, 10 ) == 1 AND ( !Static_Var_1 ) )
+	{
+		Static_Var_1 = 1;
+		turn base to z-axis <240.049451> speed <120.027473>;
+		wait-for-turn base around z-axis;
+		turn base to z-axis <120.027473> speed <180.038462>;
+		wait-for-turn base around z-axis;
+		turn base to z-axis <0.000000> speed <120.027473>;
+		Static_Var_1 = 0;
+	}
+}
+
+Create()
+{
+	Static_Var_1 = 0;
+	call-script InitState();
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+AimPrimary(pitch,heading){
+	show bomba;
+	move doorr to x-axis [5] speed [10];
+	move doorl to x-axis [-5] speed [10];
+	move rails to z-axis [-19] speed [19];
+	move bomba to z-axis [-19] speed [19];
+	sleep 998;
+	turn bomba to x-axis <-90.0> speed <180>;
+	sleep 500;
+	
+}
+FirePrimary()
+{
+	hide bomba;
+	
+	move doorr to x-axis [0] speed [10];
+	move doorl to x-axis [0] speed [10];
+	move rails to z-axis [0] speed [19];
+	move bomba to z-axis [0] speed [19];
+	sleep 998;
+
+	
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum = drop;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode bomba type FIRE | SMOKE | FALL;
+		explode wingl type BITMAPONLY;
+		explode wingr type BITMAPONLY;
+		explode doorr type BITMAPONLY;
+		explode doorl type BITMAPONLY;
+		explode rails type BITMAPONLY;
+		explode drop type BITMAPONLY;
+		explode thrusta type BITMAPONLY;
+		explode thrustb type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode bomba type FIRE | SMOKE | FALL;
+		explode wingl type FIRE | SMOKE | FALL;
+		explode wingr type FIRE | SMOKE | FALL;
+		explode doorr type FALL;
+		explode doorl type FIRE | SMOKE | FALL;
+		explode rails type FALL;
+		explode drop type FIRE | SMOKE | FALL;
+		explode thrusta type FALL;
+		explode thrustb type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode bomba type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wingl type FIRE | SMOKE | FALL;
+		explode wingr type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode doorr type FIRE | SMOKE | FALL;
+		explode doorl type FIRE | SMOKE | FALL;
+		explode rails type SMOKE | FALL;
+		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode thrusta type FIRE | SMOKE | FALL;
+		explode thrustb type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode bomba type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wingl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wingr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode doorl type EXPLODE_ON_HIT | FIRE | FALL;
+		explode rails type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

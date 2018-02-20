@@ -1,0 +1,129 @@
+//            * Header Info *
+// VersionSignature                     4
+// NumberOfScripts                     8
+// NumberOfPieces                      4
+// LengthOfScripts                     1d4
+// NumberOfStaticVars                  1
+// UKZero                              0
+// OffsetToScriptCodeIndexArray        77c
+// OffsetToScriptNameOffsetArray       79c
+// OffsetToPieceNameOffsetArray        7bc
+// OffsetToScriptCode                  2c
+// OffsetToNameArray                   7cc
+
+// OffsetToFirstName                   7cc
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, turret, flare;
+
+static-var  gun_1;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+/*     3:*/{
+/*     6:*/	while( get BUILD_PERCENT_LEFT )
+/*     8:*/	{
+/*     a:*/		sleep 400;
+/*     d:*/	}
+/*     f:*/	while( TRUE )
+/*    11:*/	{
+/*    14:*/		healthpercent = get HEALTH;
+/*    1b:*/		if( healthpercent < 66 )
+/*    1d:*/		{
+/*    22:*/			smoketype = 256 | 2;
+/*    2c:*/			if( Rand( 1, 66 ) < healthpercent )
+/*    2e:*/			{
+/*    33:*/				smoketype = 256 | 1;
+/*    35:*/			}
+/*    37:*/			emit-sfx smoketype from base;
+/*    39:*/		}
+/*    3e:*/		sleeptime = healthpercent * 50;
+/*    45:*/		if( sleeptime < 200 )
+/*    47:*/		{
+/*    49:*/			sleeptime = 200;
+/*    4b:*/		}
+/*    4d:*/		sleep sleeptime;
+/*    50:*/	}
+/*    52:*/	return (0);
+/*    53:*/	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+/*    80:*/}
+
+Create()
+/*    78:*/{
+/*    86:*/	gun_1 = turret;
+/*    88:*/	start-script SmokeUnit();
+/*    8d:*/	return (0);
+/*    8e:*/}
+
+AimPrimary(heading, pitch)
+/*    90:*/{
+/*    92:*/	signal SIG_AIM;
+/*    95:*/	set-signal-mask SIG_AIM;
+/*    9a:*/	turn turret to y-axis heading speed <200.000000>;
+/*    9d:*/	wait-for-turn turret around y-axis;
+/*    a2:*/	return (1);
+/*    a3:*/}
+
+FirePrimary()
+/*    a3:*/{
+/*    a5:*/	sleep 500;
+/*    f2:*/	return (0);
+/*    f3:*/}
+
+AimFromPrimary(piecenum)
+/*    f4:*/{
+/*    f6:*/	piecenum = flare;
+/*    fa:*/	return (0);
+/*    fb:*/}
+
+QueryPrimary(piecenum)
+/*    fc:*/{
+/*    fe:*/	piecenum = flare;
+/*   102:*/	return (0);
+/*   103:*/}
+
+SweetSpot(piecenum)
+/*   104:*/{
+/*   106:*/	piecenum = turret;
+/*   10a:*/	return (0);
+/*   10b:*/}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode turret type BITMAPONLY;
+		explode flare type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode turret type FIRE | SMOKE | FALL;
+		explode flare type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode turret type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode flare type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

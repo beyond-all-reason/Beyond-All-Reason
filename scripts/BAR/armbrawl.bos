@@ -1,0 +1,267 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+#define SIG_AIM				2
+piece  flare1, flare2, base, wingl, wingr, finl, finr, fan, flare3, flare4,pivot;
+
+static-var  gun_1, statechg_DesiredState, statechg_StateChanging;
+
+
+activatescr()
+{
+	if( TRUE )
+	{
+		spin fan around y-axis speed <200> accelerate <20>;
+		sleep 998;
+	}
+	if( TRUE )
+	{
+		turn pivot to x-axis <90> speed <90>;
+		sleep 498;
+	}
+	if( TRUE )
+	{
+		turn finl to z-axis <90> speed <90>;
+		turn finr to z-axis <-90> speed <90>;
+		turn wingl to y-axis <-30> speed <30>;
+		turn wingr to y-axis <30> speed <30>;
+		sleep 998;
+	}
+	sleep 102;
+	return (0);
+	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <30.000000>;
+	turn base to x-axis <0.000000> speed <30.000000>;
+}
+
+
+deactivatescr()
+{
+
+
+	if( TRUE )
+	{
+		turn pivot to x-axis <0> speed <90>;
+		sleep 498;
+	}	
+	if( TRUE )
+	{
+		turn finl to z-axis <0> speed <90>;
+		turn finr to z-axis <0> speed <90>;
+		turn wingl to y-axis <0> speed <30>;
+		turn wingr to y-axis <0> speed <30>;
+		sleep 998;
+	}
+	if( TRUE )
+	{
+		stop-spin fan around y-axis decelerate <1>;
+		sleep 998;
+	}
+	sleep 102;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script activatescr();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script deactivatescr();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+RestoreAfterDelay()
+{
+	sleep 500;
+	turn pivot to x-axis <90> speed <180>;
+}
+Create()
+{
+	gun_1 = flare1;
+	call-script InitState();
+	start-script SmokeUnit();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+FirePrimary()
+{
+	if( gun_1 == 0 )
+	{
+		gun_1 = flare1;
+		return (0);
+	}
+	if( gun_1 == 1 )
+	{
+		gun_1 = flare2;
+		return (0);
+	}
+	if( gun_1 == 2 )
+	{
+		gun_1 = flare3;
+		return (0);
+	}
+	if( gun_1 == 3 )
+	{
+		gun_1 = flare4;
+		return (0);
+	}
+}
+
+QueryPrimary(piecenum)
+{
+	piecenum=base;
+}
+
+AimPrimary(heading, pitch)
+{
+	signal SIG_AIM;
+	set-signal-mask SIG_AIM;
+	turn pivot to x-axis <0> speed <180>;
+	start-script RestoreAfterDelay();
+	return (1);
+}
+
+AimFromPrimary(piecenum)
+{
+	piecenum = base;
+
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode pivot type BITMAPONLY;
+		explode fan type FIRE | SMOKE | FALL;
+		explode flare4 type BITMAPONLY;
+		explode flare3 type BITMAPONLY;
+		explode flare2 type BITMAPONLY;
+		explode flare1 type BITMAPONLY;
+		explode finr type BITMAPONLY;
+		explode wingr type BITMAPONLY;
+		explode finl type BITMAPONLY;
+		explode wingl type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode pivot type FIRE | SMOKE | FALL;
+		explode fan type FIRE | SMOKE | FALL;
+		explode flare4 type FIRE | SMOKE | FALL;
+		explode flare3 type FALL;
+		explode flare2 type FIRE | SMOKE | FALL;
+		explode flare1 type FIRE | SMOKE | FALL;
+		explode finr type FIRE | SMOKE | FALL;
+		explode wingr type FIRE | SMOKE | FALL;
+		explode finl type FIRE | SMOKE | FALL;
+		explode wingl type FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode pivot type SMOKE | FALL;
+		explode fan type SMOKE | FALL;
+		explode flare4 type FIRE | SMOKE | FALL;
+		explode flare3 type SMOKE | FALL;
+		explode flare2 type FIRE | SMOKE | FALL;
+		explode flare1 type FIRE | SMOKE | FALL;
+		explode finr type SMOKE | FALL;
+		explode wingr type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode finl type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode wingl type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode pivot type EXPLODE_ON_HIT | FIRE | FALL;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare4 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode flare3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode finr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wingr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode finl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode wingl type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

@@ -1,0 +1,401 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, lthigh, rthigh, rleg, rfoot, lleg, lfoot,shoulder, elbow, spindle, arm1,arm2,arm3,arm4,head,eye;
+
+static-var  bMoving, Static_Var_3, Static_Var_4, Static_Var_5, keepspinning;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+spinarms()
+{
+	while (TRUE){
+		while (keepspinning){
+			turn spindle to x-axis <90> speed <90>;
+			turn arm1 	 to z-axis <90> speed <90>;
+			turn arm2 	 to y-axis <90> speed <135>;
+			sleep 1000;
+			
+			turn spindle to x-axis <180> speed <90>;
+			turn arm3 	 to z-axis <90> speed <135>;
+			turn arm2 	 to y-axis <0> speed <90>;
+			sleep 1000;
+			
+			
+			turn spindle to x-axis <-90> speed <90>;
+			turn arm3 	 to z-axis <0> speed <90>;
+			turn arm4 	 to y-axis <-90> speed <135>;
+			sleep 1000;
+			
+			
+			turn spindle to x-axis <0> speed <90>;
+			turn arm1 	 to z-axis <0> speed <135>;
+			turn arm4 	 to y-axis <0> speed <90>;
+			sleep 1000;
+		}
+		sleep 200;
+	}
+
+}
+
+walk()
+{
+//maxvel=1.61 at 30 fps -> 48 elmos/sec movement, 48 elmos/cycle anim
+
+	//step 0
+
+	if (bMoving)
+	{
+		turn rthigh to x-axis <0> speed <205.000000>;
+		turn rleg to x-axis <0> now;
+		turn rfoot to x-axis <0> speed <200.000000>;
+		turn lthigh to x-axis <-57> speed <445.000000>;
+		turn lleg to x-axis <114> speed <265.000000>;
+		turn lfoot to x-axis <40> speed <85.000000>;
+
+		move base to y-axis [0] speed [8.000000];
+		turn base to x-axis <0> speed <25.000000>;
+		turn base to z-axis <0> speed <20.000000>;
+
+		sleep 165;
+	}
+	//step 1
+	if (bMoving)
+	{
+		turn rthigh to x-axis <37> speed <185.000000>;
+		turn rleg to x-axis <0> now;
+		turn rfoot to x-axis <-37> speed <185.000000>;
+		turn lthigh to x-axis <-77> speed <100.000000>;
+		turn lleg to x-axis <26> speed <440.000000>;
+		turn lfoot to x-axis <0> speed <200.000000>;
+
+
+		move base to y-axis [-1.6] speed [8.000000];
+		turn base to x-axis <3> speed <15.000000>; //lean forward
+		turn base to z-axis <2> speed <10.000000>; //lean left
+
+		sleep 165;
+	}
+
+	//step 2
+	if (bMoving)
+	{
+		turn rthigh to x-axis <32> speed <25.000000>;
+		turn rleg to x-axis <61> speed <305.000000>;
+		turn rfoot to x-axis <23> speed <300.000000>;
+		turn lthigh to x-axis <-41> speed <180.000000>;
+		turn lleg to x-axis <0> speed <130.000000>;
+		turn lfoot to x-axis <40> speed <200.000000>;
+
+		move base to y-axis [-1.6] now;
+		turn base to x-axis <5> speed <10.000000>;
+		turn base to z-axis <4> speed <10.000000>;
+
+		sleep 165;
+	}
+
+	//step 3
+	if (bMoving)
+	{
+		turn rthigh to x-axis <-57> speed <445.000000>;
+		turn rleg to x-axis <114> speed <265.000000>;
+		turn rfoot to x-axis <40> speed <85.000000>;
+		turn lthigh to x-axis <0> speed <205.000000>;
+		turn lleg to x-axis <0> now;
+		turn lfoot to x-axis <0> speed <200.000000>;
+
+
+		move base to y-axis [0] speed [8.000000];
+		turn base to x-axis <0> speed <25.000000>;
+		turn base to z-axis <0> speed <20.000000>;
+
+		sleep 165;
+	}
+
+	//step 4
+	if (bMoving)
+	{
+		turn rthigh to x-axis <-77> speed <100.000000>;
+		turn rleg to x-axis <26> speed <440.000000>;
+		turn rfoot to x-axis <0> speed <200.000000>;
+		turn lthigh to x-axis <37> speed <185.000000>;
+		turn lleg to x-axis <0> now;
+		turn lfoot to x-axis <-37> speed <185.000000>;
+
+
+		move base to y-axis [-1.6] speed [8.000000];
+		turn base to x-axis <3> speed <15.000000>;
+		turn base to z-axis <-2> speed <10.000000>;
+
+		sleep 165;
+	}
+
+	//step 5
+	if (bMoving)
+	{
+		turn rthigh to x-axis <-41> speed <180.000000>;
+		turn rleg to x-axis <0> speed <130.000000>;
+		turn rfoot to x-axis <40> speed <200.000000>;
+		turn lthigh to x-axis <32> speed <25.000000>;
+		turn lleg to x-axis <61> speed <305.000000>;
+		turn lfoot to x-axis <23> speed <300.000000>;
+
+		move base to y-axis [-1.6] now;
+		turn base to x-axis <5> speed <10.000000>;
+		turn base to z-axis <-4> speed <10.000000>;
+
+		sleep 65;
+	}
+
+
+}
+
+open()
+{
+	keepspinning = 1;
+	sleep 17;
+	return (0);
+}
+
+close()
+{
+	keepspinning = 0;
+	sleep 21;
+	return (0);
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+MotionControl(moving, aiming, justmoved)
+{
+	justmoved = TRUE;
+	while( TRUE )
+	{
+		moving = bMoving;
+		if( moving )
+		{
+			Static_Var_3 = 0;
+			call-script walk();
+			justmoved = TRUE;
+			sleep 98;
+		}
+		if( !moving )
+		{
+			Static_Var_3 = 1;
+			if( justmoved )
+			{
+				turn rthigh to x-axis <0> speed <205.000000>;
+				turn rleg to x-axis <0> speed <200>;
+				turn rfoot to x-axis <0> speed <200.000000>;
+				turn lthigh to x-axis <0> speed <445.000000>;
+				turn lleg to x-axis <0> speed <265.000000>;
+				turn lfoot to x-axis <0> speed <85.000000>;
+		
+				move base to y-axis [0] speed [8.000000];
+				turn base to x-axis <0> speed <25.000000>;
+				turn base to z-axis <0> speed <20.000000>;
+				justmoved = FALSE;
+			}
+			sleep 100;
+		}
+	}
+	return (0);
+}
+
+Create()
+{
+	bMoving = FALSE;
+	Static_Var_3 = 1;
+	Static_Var_4 = 3000;
+	start-script MotionControl();
+	start-script SmokeUnit();
+	start-script spinarms();
+	Static_Var_5 = 0;
+	return (0);
+}
+
+Activate()
+{
+	if( Static_Var_5 )
+	{
+		set ACTIVATION to 0;
+		return (0);
+	}
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	call-script open();
+	return (0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	call-script close();
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <105.000000>;
+	turn base to x-axis <0> - anglex speed <105.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <30.000000>;
+	turn base to x-axis <0.000000> speed <30.000000>;
+	if( get ACTIVATION )
+	{
+		Static_Var_5 = 1;
+	}
+
+	if( Static_Var_5 )
+	{
+		signal 4;
+		set-signal-mask 4;
+		set ACTIVATION to 0;
+		sleep 8000;
+		Static_Var_5 = 0;
+		set ACTIVATION to 100;
+	}
+	return (0);
+
+
+}
+
+StartMoving()
+{
+	bMoving = TRUE;
+	return (0);
+}
+
+StopMoving()
+{
+	bMoving = FALSE;
+	return (0);
+}
+
+RestoreAfterDelay()
+{
+	sleep Static_Var_4;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode lthigh type BITMAPONLY;
+		explode lleg type BITMAPONLY;
+		explode lfoot type BITMAPONLY;
+		explode shoulder type BITMAPONLY;
+		explode elbow type BITMAPONLY;
+		explode spindle type BITMAPONLY;
+		explode arm1 type FIRE | SMOKE | FALL;
+		explode arm2 type FIRE | SMOKE | FALL;
+		explode arm3 type BITMAPONLY;
+		explode arm4 type BITMAPONLY;
+		explode head type BITMAPONLY;
+		explode eye type BITMAPONLY;
+		explode rthigh type BITMAPONLY;
+		explode rleg type BITMAPONLY;
+		explode rfoot type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode lthigh type FIRE | SMOKE | FALL;
+		explode lleg type FIRE | SMOKE | FALL;
+		explode lfoot type FIRE | SMOKE | FALL;
+		explode shoulder type FIRE | SMOKE | FALL;
+		explode elbow type FIRE | SMOKE | FALL;
+		explode spindle type FIRE | SMOKE | FALL;
+		explode arm1 type FIRE | SMOKE | FALL;
+		explode arm2 type FIRE | SMOKE | FALL;
+		explode arm3 type FIRE | SMOKE | FALL;
+		explode arm4 type FIRE | SMOKE | FALL;
+		explode head type FALL;
+		explode eye type FIRE | SMOKE | FALL;
+		explode rthigh type FIRE | SMOKE | FALL;
+		explode rleg type FALL;
+		explode rfoot type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode lthigh type FIRE | SMOKE | FALL;
+		explode lleg type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode lfoot type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode shoulder type FIRE | SMOKE | FALL;
+		explode elbow type FIRE | SMOKE | FALL;
+		explode spindle type SMOKE | FALL;
+		explode arm1 type FIRE | SMOKE | FALL;
+		explode arm2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode arm3 type FIRE | SMOKE | FALL;
+		explode arm4 type SMOKE | FALL;
+		explode head type SMOKE | FALL;
+		explode eye type FIRE | SMOKE | FALL;
+		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rleg type FIRE | SMOKE | FALL;
+		explode rfoot type EXPLODE_ON_HIT | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode shoulder type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode elbow type EXPLODE_ON_HIT | FIRE | FALL;
+		explode spindle type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode arm1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode arm2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode arm3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode arm4 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode head type EXPLODE_ON_HIT | FIRE | FALL;
+		explode eye type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rfoot type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

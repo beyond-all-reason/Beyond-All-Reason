@@ -19,6 +19,14 @@ local options={
        type="section",
     },
 	{
+		key    = "barmodels",
+		name   = "Use Remodelled BA units",
+		desc   = "BAR unit model integration",
+		type   = "bool",
+		section= 'ba_enhancements_misc',
+		def = "disabled",
+	},
+	{
 		key="deathmode",
 		name="Game End Mode",
 		desc="What it takes to eliminate a team",

@@ -1,0 +1,228 @@
+
+
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, dbl, dbr, dtr, dtl, dummy;
+
+static-var  Static_Var_1, restore_delay, gun_1, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_AIM				2
+
+
+activatescr()
+/*     0:*/{
+/*     2:*/	if( TRUE )
+/*     4:*/	{
+			move dbl to x-axis [-8] speed [8];
+			move dbl to z-axis [-8] speed [8];
+			move dbr to x-axis [8] speed [8];
+			move dbr to z-axis [-8] speed [8];
+			move dtl to x-axis [-8] speed [8];
+			move dtl to z-axis [8] speed [8];
+			move dtr to x-axis [8] speed [8];
+			move dtr to z-axis [8] speed [8];/*   11d:*/	
+/*    36:*/	sleep 1768;
+/*    3e:*/	}
+/*    40:*/	sleep 3;
+/*    43:*/	return (0);
+/*    44:*/}
+
+deactivatescr()
+/*    44:*/{
+/*    46:*/	if( TRUE )
+/*    48:*/	{
+			move dbl to x-axis [0] speed [8];
+			move dbl to z-axis [0] speed [8];
+			move dbr to x-axis [0] speed [8];
+			move dbr to z-axis [0] speed [8];
+			move dtl to x-axis [0] speed [8];
+			move dtl to z-axis [0] speed [8];
+			move dtr to x-axis [0] speed [8];
+			move dtr to z-axis [0] speed [8];/*   11d:*/	
+/*    7a:*/		sleep 1762;
+/*    7b:*/	}
+/*    7d:*/	sleep 14;
+/*    80:*/	return (0);
+/*    81:*/}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+/*   12a:*/{
+/*   12d:*/	while( get BUILD_PERCENT_LEFT )
+/*   12f:*/	{
+/*   131:*/		sleep 400;
+/*   134:*/	}
+/*   136:*/	while( TRUE )
+/*   138:*/	{
+/*   13b:*/		healthpercent = get HEALTH;
+/*   142:*/		if( healthpercent < 66 )
+/*   144:*/		{
+/*   149:*/			smoketype = 256 | 2;
+/*   153:*/			if( Rand( 1, 66 ) < healthpercent )
+/*   155:*/			{
+/*   15a:*/				smoketype = 256 | 1;
+/*   15c:*/			}
+/*   15e:*/			emit-sfx smoketype from base;
+/*   160:*/		}
+/*   165:*/		sleeptime = healthpercent * 50;
+/*   16c:*/		if( sleeptime < 200 )
+/*   16e:*/		{
+/*   170:*/			sleeptime = 200;
+/*   172:*/		}
+/*   174:*/		sleep sleeptime;
+/*   177:*/	}
+/*   179:*/	return (0);
+/*   17a:*/}
+
+Go()
+/*   104:*/{
+/*   114:*/	call-script activatescr();
+/*   119:*/	Static_Var_1 = 1;
+/*   11d:*/	return (0);
+/*   11e:*/}
+
+Stop()
+/*   11e:*/{
+/*   120:*/	Static_Var_1 = 0;
+/*   122:*/	call-script deactivatescr();
+/*   137:*/	return (0);
+/*   138:*/}
+
+InitState()
+/*   138:*/{
+/*   13a:*/	statechg_DesiredState = TRUE;
+/*   13e:*/	statechg_StateChanging = FALSE;
+/*   142:*/	return (0);
+/*   143:*/}
+
+RequestState(requestedstate, currentstate)
+/*   145:*/{
+/*   147:*/	if( statechg_StateChanging )
+/*   149:*/	{
+/*   14b:*/		statechg_DesiredState = requestedstate;
+/*   14f:*/		return (0);
+/*   150:*/	}
+/*   152:*/	statechg_StateChanging = TRUE;
+/*   156:*/	currentstate = statechg_DesiredState;
+/*   15a:*/	statechg_DesiredState = requestedstate;
+/*   161:*/	while( statechg_DesiredState != currentstate )
+/*   163:*/	{
+/*   168:*/		if( statechg_DesiredState == 0 )
+/*   16a:*/		{
+/*   16a:*/			call-script Go();
+/*   16f:*/			currentstate = 0;
+/*   171:*/		}
+/*   176:*/		if( statechg_DesiredState == 1 )
+/*   178:*/		{
+/*   178:*/			call-script Stop();
+/*   17d:*/			currentstate = 1;
+/*   17f:*/		}
+/*   181:*/	}
+/*   183:*/	statechg_StateChanging = FALSE;
+/*   187:*/	return (0);
+/*   188:*/}
+
+Create()
+/*   188:*/{
+/*   19a:*/	Static_Var_1 = 0;
+/*   1a2:*/	restore_delay = 3000;
+/*   1a4:*/	call-script InitState();
+/*   1a7:*/	start-script SmokeUnit();
+/*   1ac:*/	return (0);
+/*   1ad:*/}
+
+Activate()
+/*   1ad:*/{
+/*   1af:*/	start-script RequestState(0);
+/*   1b4:*/	return (0);
+/*   1b5:*/}
+
+Deactivate()
+/*   1b5:*/{
+/*   1b7:*/	start-script RequestState(1);
+/*   1bc:*/	return (0);
+/*   1bd:*/}
+
+SetMaxReloadTime(Func_Var_1)
+/*   1be:*/{
+/*   1c3:*/	restore_delay = Func_Var_1 * 2;
+/*   1c7:*/	return (0);
+/*   1c8:*/}
+
+AimPrimary(heading, pitch)
+/*   1ca:*/{
+/*   1cc:*/	start-script RequestState(0);
+/*   1d1:*/	signal SIG_AIM;
+/*   1d4:*/	set-signal-mask SIG_AIM;
+/*   1d7:*/	return (1);
+/*   1d8:*/}
+
+FirePrimary()
+/*   1d8:*/{
+/*   213:*/	return (0);
+/*   214:*/}
+
+QueryPrimary(piecenum)
+/*   215:*/{
+			piecenum=dummy;
+/*   238:*/	return (0);
+/*   239:*/}
+
+AimFromPrimary(piecenum)
+/*   23a:*/{
+			piecenum=dummy;
+/*   25e:*/}
+
+SweetSpot(piecenum)
+/*   25f:*/{
+/*   261:*/	piecenum = base;
+/*   265:*/	return (0);
+/*   266:*/}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode dbr type FIRE | SMOKE | FALL;
+		explode dtr type BITMAPONLY;
+		explode dtl type BITMAPONLY;
+		explode dbl type BITMAPONLY;
+		explode dummy type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode dbr type FIRE | SMOKE | FALL;
+		explode dtr type FALL;
+		explode dtl type FALL;
+		explode dbl type FIRE | SMOKE | FALL;
+		explode dummy type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode dbr type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode dtr type SMOKE | FALL;
+		explode dtl type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode dbl type SMOKE | FALL;
+		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode dbr type EXPLODE_ON_HIT | FIRE | FALL;
+		explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode dtl type EXPLODE_ON_HIT | FIRE | FALL;
+		explode dbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}

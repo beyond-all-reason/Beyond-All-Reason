@@ -1,0 +1,203 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, flare, barrel, ldoor, rdoor, lfin, rfin, screw;
+
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging, currentSpeed, moveSpeed;
+
+Propcontrol()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*1000/moveSpeed;
+		spin screw around z-axis speed <1.000000>*currentSpeed accelerate <10.000000>;
+		sleep 33;
+	}
+}
+
+activatescr()
+{
+	if( TRUE )
+	{
+		move barrel to z-axis [2.000000] speed [2.000000];
+		sleep 200;
+	}
+	if( TRUE )
+	{
+		move ldoor to x-axis [-1.200000] speed [2.000000];
+		move rdoor to x-axis [1.200000] speed [2.000000];
+		sleep 300;
+	}
+}
+
+deactivatescr()
+{
+	if( TRUE )
+	{
+		move ldoor to x-axis [0.000000] speed [2.000000];
+		move rdoor to x-axis [0.000000] speed [2.000000];
+		sleep 300;
+	}
+	if( TRUE )
+	{
+		move barrel to z-axis [0.000000] speed [2.000000];
+		sleep 200;
+	}
+}
+
+StartMoving()
+{
+	move lfin to x-axis [-4.000000] speed [4.000000];
+	move rfin to x-axis [4.000000] speed [4.000000];
+	sleep 1000;
+}
+
+StopMoving()
+{
+	move lfin to x-axis [0.000000] speed [4.000000];
+	move rfin to x-axis [0.000000] speed [4.000000];
+	sleep 1000;
+}
+
+Go()
+{
+	call-script activatescr();
+	set INBUILDSTANCE to 1;
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script deactivatescr();
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+}
+
+Create()
+{
+	Static_Var_1 = 0;
+	moveSpeed = get MAX_SPEED;
+	start-script Propcontrol();
+	call-script InitState();
+}
+
+Activate()
+{
+	start-script RequestState(0);
+}
+
+Deactivate()
+{
+	start-script RequestState(1);
+}
+
+StartBuilding(Func_Var_1)
+{
+	Static_Var_1 = Func_Var_1;
+	start-script RequestState(0);
+}
+
+StopBuilding()
+{
+	start-script RequestState(1);
+}
+
+QueryNanoPiece(piecenum)
+{
+	piecenum = flare;
+}
+
+TargetHeading(Func_Var_1)
+{
+	Static_Var_1 = 0 - Func_Var_1;
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode rfin type FIRE | SMOKE | FALL;
+		explode rdoor type BITMAPONLY;
+		explode lfin type BITMAPONLY;
+		explode barrel type BITMAPONLY;
+		explode flare type BITMAPONLY;
+		explode ldoor type BITMAPONLY;
+		explode screw type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode rfin type FIRE | SMOKE | FALL;
+		explode rdoor type FIRE | SMOKE | FALL;
+		explode lfin type FIRE | SMOKE | FALL;
+		explode barrel type FALL;
+		explode flare type FALL;
+		explode ldoor type FIRE | SMOKE | FALL;
+		explode screw type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type FIRE | SMOKE | FALL;
+		explode rfin type SMOKE | FALL;
+		explode rdoor type SMOKE | FALL;
+		explode lfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode ldoor type SMOKE | FALL;
+		explode screw type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode rfin type EXPLODE_ON_HIT | FIRE | FALL;
+		explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode lfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
+		explode ldoor type EXPLODE_ON_HIT | FIRE | FALL;
+		explode screw type EXPLODE_ON_HIT | FIRE | FALL;
+	return corpsetype;
+}

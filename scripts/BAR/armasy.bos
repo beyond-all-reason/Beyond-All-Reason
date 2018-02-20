@@ -1,0 +1,363 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+piece  base, pad, main1, mid1, end1, nano1, main2, mid2, end2, nano2, main3, mid3, end3, nano3, main4, mid4, end4, nano4,beam1,beam2,beam3,beam4;
+static-var  spray, unitviewer, Static_Var_3, statechg_DesiredState, statechg_StateChanging;
+
+// Signal definitions
+#define SIG_ACTIVATE			2
+
+
+activatescr()
+{
+
+	
+
+	turn main1 to y-axis <-135> speed <135>;
+	turn mid1 to z-axis <100> speed <100>;
+	turn end1 to z-axis <110> speed <110>;
+	turn nano1 to y-axis <180> speed <180>;
+	
+	turn main2 to y-axis <135> speed <135>;
+	turn mid2 to z-axis <-100> speed <100>;
+	turn end2 to z-axis <-110> speed <110>;
+	turn nano2 to y-axis <180> speed <180>;
+	
+	turn main3 to y-axis <-135> speed <135>;
+	turn mid3 to z-axis <-100> speed <100>;
+	turn end3 to z-axis <-110> speed <110>;
+	turn nano3 to y-axis <180> speed <180>;
+	
+	turn main4 to y-axis <135> speed <135>;
+	turn mid4 to z-axis <100> speed <100>;
+	turn end4 to z-axis <110> speed <110>;
+	turn nano4 to y-axis <180> speed <180>;
+	sleep 1000;
+	return (0);
+}
+
+deactivatescr()
+{
+	turn main1 to y-axis <0> speed <135>;
+	turn mid1 to z-axis <0> speed <100>;
+	turn end1 to z-axis <0> speed <110>;
+	turn nano1 to y-axis <0> speed <180>;
+	
+	turn main2 to y-axis <0> speed <135>;
+	turn mid2 to z-axis <0> speed <100>;
+	turn end2 to z-axis <0> speed <110>;
+	turn nano2 to y-axis <0> speed <180>;
+	
+	turn main3 to y-axis <0> speed <135>;
+	turn mid3 to z-axis <0> speed <100>;
+	turn end3 to z-axis <0> speed <110>;
+	turn nano3 to y-axis <0> speed <180>;
+	
+	turn main4 to y-axis <0> speed <135>;
+	turn mid4 to z-axis <0> speed <100>;
+	turn end4 to z-axis <0> speed <110>;
+	turn nano4 to y-axis <0> speed <180>;
+	sleep 1000;
+	return (0);
+	return (0);
+}
+
+HitByWeapon(anglex, anglez)
+{
+	turn base to z-axis anglez speed <30.000000>;
+	turn base to x-axis <0> - anglex speed <30.000000>;
+	wait-for-turn base around z-axis;
+	wait-for-turn base around x-axis;
+	turn base to z-axis <0.000000> speed <10.000000>;
+	turn base to x-axis <0.000000> speed <10.000000>;
+}
+
+RockOnWaves()
+{
+	var rockDir, rockAng, rockSpeed;
+	rockDir = <-0.1>;
+	rockAng = <-0.1>;
+	while( TRUE )
+	{
+		while( get ABS(rockAng) < <1.11> )
+		{
+			rockSpeed = <1.45> - get ABS(rockAng);
+			turn base to x-axis rockAng speed rockSpeed*1.5;
+			turn base to z-axis rockAng speed rockSpeed*1.5;
+			wait-for-turn base around x-axis;
+			wait-for-turn base around z-axis;
+			rockAng = rockAng + rockDir;
+		}
+		rockDir = 0 - rockDir;
+		rockAng = rockAng + rockDir + rockDir;
+	}
+}
+
+SmokeUnit(healthpercent, sleeptime, smoketype)
+{
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 400;
+	}
+	start-script RockOnWaves();
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 256 | 2;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 256 | 1;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
+	return (0);
+}
+
+OpenYard()
+{
+	set YARD_OPEN to 1;
+	while( !get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 1;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+CloseYard()
+{
+	set YARD_OPEN to 0;
+	while( get YARD_OPEN )
+	{
+		set BUGGER_OFF to 1;
+		sleep 1500;
+		set YARD_OPEN to 0;
+	}
+	set BUGGER_OFF to 0;
+	return (0);
+}
+
+Go()
+{
+
+	call-script activatescr();
+	call-script OpenYard();
+	set INBUILDSTANCE to 1;
+	return (0);
+}
+
+Stop()
+{
+	set INBUILDSTANCE to 0;
+	call-script CloseYard();
+	call-script deactivatescr();
+
+	return (0);
+}
+
+InitState()
+{
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+RequestState(requestedstate, currentstate)
+{
+	if( statechg_StateChanging )
+	{
+		statechg_DesiredState = requestedstate;
+		return (0);
+	}
+	statechg_StateChanging = TRUE;
+	currentstate = statechg_DesiredState;
+	statechg_DesiredState = requestedstate;
+	while( statechg_DesiredState != currentstate )
+	{
+		if( statechg_DesiredState == 0 )
+		{
+			call-script Go();
+			currentstate = 0;
+		}
+		if( statechg_DesiredState == 1 )
+		{
+			call-script Stop();
+			currentstate = 1;
+		}
+	}
+	statechg_StateChanging = FALSE;
+	return (0);
+}
+
+Create()
+{
+
+	spray = 0;
+	unitviewer = FALSE;
+	call-script InitState();
+	start-script SmokeUnit();
+	return (0);
+}
+
+QueryNanoPiece(piecenum)
+{
+
+	piecenum=beam1+spray;
+	spray=spray+1;
+	if (spray>3) spray=0;
+}
+
+
+Activate()
+{
+	signal SIG_ACTIVATE;
+	start-script RequestState(0);
+	return (0);
+}
+
+Deactivate()
+{
+	signal SIG_ACTIVATE;
+	set-signal-mask SIG_ACTIVATE;
+	if( !unitviewer )
+	{
+		sleep 5000;
+	}
+	set-signal-mask 0;
+	start-script RequestState(1);
+	return (0);
+}
+
+QueryBuildInfo(piecenum)
+{
+	piecenum = pad;
+	return (0);
+}
+
+SweetSpot(piecenum)
+{
+	piecenum = base;
+	return (0);
+}
+
+Killed(severity, corpsetype)
+{
+	if( severity <= 25 )
+	{
+		corpsetype = 1 ;
+		explode base type BITMAPONLY;
+		explode pad type BITMAPONLY;
+		explode main1 type BITMAPONLY;
+		explode mid1 type BITMAPONLY;
+		explode end1 type BITMAPONLY;
+		explode nano1 type FIRE | SMOKE | FALL;
+		explode beam1 type BITMAPONLY;
+		explode main2 type BITMAPONLY;
+		explode mid2 type BITMAPONLY;
+		explode end2 type BITMAPONLY;
+		explode nano2 type BITMAPONLY;
+		explode beam2 type BITMAPONLY;
+		explode main3 type BITMAPONLY;
+		explode mid3 type BITMAPONLY;
+		explode end3 type BITMAPONLY;
+		explode nano3 type BITMAPONLY;
+		explode beam3 type BITMAPONLY;
+		explode main4 type BITMAPONLY;
+		explode mid4 type BITMAPONLY;
+		explode end4 type BITMAPONLY;
+		explode nano4 type BITMAPONLY;
+		explode beam4 type BITMAPONLY;
+		return(corpsetype);
+	}
+	if( severity <= 50 )
+	{
+		corpsetype = 2 ;
+		explode base type BITMAPONLY;
+		explode pad type FIRE | SMOKE | FALL;
+		explode main1 type FIRE | SMOKE | FALL;
+		explode mid1 type FIRE | SMOKE | FALL;
+		explode end1 type FIRE | SMOKE | FALL;
+		explode nano1 type FIRE | SMOKE | FALL;
+		explode beam1 type FALL;
+		explode main2 type FALL;
+		explode mid2 type FALL;
+		explode end2 type FALL;
+		explode nano2 type FALL;
+		explode beam2 type FALL;
+		explode main3 type FIRE | SMOKE | FALL;
+		explode mid3 type FIRE | SMOKE | FALL;
+		explode end3 type FIRE | SMOKE | FALL;
+		explode nano3 type FIRE | SMOKE | FALL;
+		explode beam3 type FIRE | SMOKE | FALL;
+		explode main4 type FIRE | SMOKE | FALL;
+		explode mid4 type FIRE | SMOKE | FALL;
+		explode end4 type FIRE | SMOKE | FALL;
+		explode nano4 type FIRE | SMOKE | FALL;
+		explode beam4 type FIRE | SMOKE | FALL;
+		return(corpsetype);
+	}
+	if( severity <= 99 )
+	{
+		corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode pad type SMOKE | FALL;
+		explode main1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode mid1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode end1 type SMOKE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode beam1 type SMOKE | FALL;
+		explode main2 type FIRE | SMOKE | FALL;
+		explode mid2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode end2 type FIRE | SMOKE | FALL;
+		explode nano2 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode beam2 type FIRE | SMOKE | FALL;
+		explode main3 type SMOKE | FALL;
+		explode mid3 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode end3 type SMOKE | FALL;
+		explode nano3 type SMOKE | FALL;
+		explode beam3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode main4 type FIRE | SMOKE | FALL;
+		explode mid4 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode end4 type FIRE | SMOKE | FALL;
+		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode beam4 type SMOKE | FALL;
+		return(corpsetype);
+	}
+	corpsetype = 3 ;
+		explode base type BITMAPONLY;
+		explode pad type EXPLODE_ON_HIT | FIRE | FALL;
+		explode main1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode mid1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode end1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode beam1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode main2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode mid2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode end2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode beam2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode main3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode mid3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode end3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode beam3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode main4 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode mid4 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode end4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode nano4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode beam4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+	return corpsetype;
+}
