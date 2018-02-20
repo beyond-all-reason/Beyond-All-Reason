@@ -24,7 +24,7 @@ local options={
 		desc   = "BAR unit model integration",
 		type   = "bool",
 		section= 'ba_enhancements_misc',
-		def = "disabled",
+		def = false,
 	},
 	{
 		key="deathmode",

@@ -72,7 +72,7 @@ end
 --------------------------------------------------------------------------------
 local UnitEffects = {}
 
-if Spring.GetModOptions and (Spring.GetModOptions().barmodels ~= nil and Spring.GetModOptions().barmodels ~= "disabled") then
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 --if true then
 
 UnitEffects = {

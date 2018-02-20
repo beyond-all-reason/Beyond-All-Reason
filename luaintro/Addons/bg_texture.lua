@@ -14,7 +14,7 @@ end
 
 ------------------------------------------
 local loadscreens
-if Spring.GetModOptions and (Spring.GetModOptions().barmodels ~= nil and Spring.GetModOptions().barmodels ~= "disabled") then
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 	loadscreens = VFS.DirList("bitmaps/loadpicturesBAR/")
 else
 	loadscreens = VFS.DirList("bitmaps/loadpictures/")

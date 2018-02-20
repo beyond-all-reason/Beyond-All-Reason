@@ -88,7 +88,7 @@ local oldUnitName = {
 }
 function UnitDef_Post(name, uDef)
 	-- load BAR models
-	if Spring.GetModOptions and (Spring.GetModOptions().barmodels ~= nil and Spring.GetModOptions().barmodels ~= "disabled") then
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 	--if true then
 		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
 		if VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
