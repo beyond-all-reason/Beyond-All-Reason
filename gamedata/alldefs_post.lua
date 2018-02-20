@@ -284,6 +284,24 @@ function WeaponDef_Post(name, wDef)
 end
 
 
+-- process effects
+function ExplosionDef_Post(name, eDef)
+	--[[
+    -- WIP on #645
+    Spring.Echo(name)
+    for k,v in pairs(eDef) do
+        Spring.Echo(" ", k, v, type(k), type(v))
+        if type(v)=="table" then
+            for k1,v1 in pairs(v) do
+                Spring.Echo("  ", k1,v1)
+            end
+        end
+    end
+    if eDef.usedefaultexplosions=="1" then
+
+    end
+    ]]
+end
 
 
 

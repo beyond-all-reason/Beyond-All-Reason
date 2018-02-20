@@ -30,7 +30,7 @@ local unitAlpha				= 0.2
 local featureAlpha			= 0.14
 
 local useShader = true
-local edgeExponent = 1.25
+local edgeExponent = 1.2
 local shaderUnitAlphaMultiplier = 0.7
 
 --------------------------------------------------------------------------------
@@ -141,9 +141,9 @@ function CreateHighlightShader()
 	  {
 		float opac = dot(normalize(normal), normalize(eyeVec));
 		opac = 1.0 - abs(opac);
-		opac = pow(opac, edgeExponent)*0.4;
+		opac = pow(opac, edgeExponent)*0.35;
 
-		gl_FragColor.rgb = color + (opac*1.3);
+		gl_FragColor.rgb = color + opac;
 		gl_FragColor.a = opac;
 
 	  }

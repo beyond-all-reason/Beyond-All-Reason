@@ -74,7 +74,7 @@ for id, featureDef in pairs(FeatureDefs) do
 	Spring.PreloadFeatureDefModel(id)
 	-- how to check if its a wreck or a heap?
 
-	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and (featureDef.modelpath and featureDef.modelpath:find("%.3ds")) or (featureDef.model ~= nil and featureDef.model.path ~= nil and featureDef.model.path:find("%.3ds") == nil) then --its likely a proper feature
+	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and ((featureDef.modelpath and featureDef.modelpath:find("%.3ds")) or (featureDef.model ~= nil and featureDef.model.path ~= nil and featureDef.model.path:find("%.3ds") == nil)) then --its likely a proper feature
 		if  featureDef.name:find("_dead") then 
 			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then 
 				--ignore these two edge cases.
@@ -83,10 +83,10 @@ for id, featureDef in pairs(FeatureDefs) do
 			elseif featureDef.model.textures.tex1:find("Arm_wreck") then
 				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Arm_wreck_color_normal.dds"}
 				--Spring.Echo('Featuredef info for', featureDef.name, to_string(featureDef.model))
-			elseif featureDef.model.textures.tex1:find("Core_color_wreck") then 
+			elseif featureDef.model.textures.tex1:find("Core_color_wreck") then
 				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/Core_color_wreck_normal.dds"}
 			else
-				Spring.Echo("3_feature_wrecks: featureDef.name has _dead but doesnt have the correct tex1 defined!",featureDef.name, featureDef.model.textures.tex1,featureDef.model.textures.tex2)
+				--Spring.Echo("3_feature_wrecks: featureDef.name has _dead but doesnt have the correct tex1 defined!",featureDef.name, featureDef.model.textures.tex1,featureDef.model.textures.tex2)
 			end
 		elseif featureDef.model.textures.tex1 and featureDef.model.textures.tex2 then
 			if FindNormalmap(featureDef.model.textures.tex1,featureDef.model.textures.tex2) then

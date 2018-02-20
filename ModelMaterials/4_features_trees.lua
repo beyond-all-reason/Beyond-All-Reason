@@ -104,12 +104,13 @@ local featureMaterials = {}
 local featureNameStubs = {"ad0_", "btree", "art"} -- all of the 0ad, beherith and artturi features start with these.
 local tex1_to_normaltex = {}
 -- All feature defs that contain the string "aleppo" will be affected by it
+local echoline = ''
 for id, featureDef in pairs(FeatureDefs) do
 	Spring.PreloadFeatureDefModel(id)
 	for _,stub in ipairs (featureNameStubs) do
 		if featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.name:find(stub) and featureDef.name:find(stub) == 1 then --also starts with
 			--if featureDef.customParam.normaltex then
-				Spring.Echo('Feature',featureDef.name,'seems like a nice tree, assigning the default normal texture to it.')
+				echoline = echoline..(echoline ~= '' and ', ' or '')..featureDef.name
 				if featureDef.name:find('btree') == 1 then --beherith's old trees suffer if they get shitty normals
 					featureMaterials[featureDef.name] = {"feature_tree", NORMALTEX = "unittextures/blank_normal.tga"}
 				else
@@ -124,6 +125,9 @@ for id, featureDef in pairs(FeatureDefs) do
 
 		end
 	end
+end
+if echoline ~= '' then
+	Spring.Echo('Adding normal texture to trees: '..echoline)
 end
 
 
