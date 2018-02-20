@@ -13,8 +13,13 @@ if addon.InGetInfo then
 end
 
 ------------------------------------------
+local loadscreens
+if Spring.GetModOptions and (Spring.GetModOptions().barmodels ~= nil and Spring.GetModOptions().barmodels ~= "disabled") then
+	loadscreens = VFS.DirList("bitmaps/loadpicturesBAR/")
+else
+	loadscreens = VFS.DirList("bitmaps/loadpictures/")
+end
 
-local loadscreens = VFS.DirList("bitmaps/loadpictures/")
 local screenNum = math.random(#loadscreens) 
 --local backgroundTexture = loadscreens[screenNum]
 local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
