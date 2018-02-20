@@ -36,6 +36,7 @@ Other:
  • Fixed Air mesh not refreshing when map_waterlevel is used.
  • Flak and mercury/screamer projectile explosions are visually bigger
  • Vehicle minimap/overview icon adjusted to match kbots icon design 
+ • Trees wave in the wind and fall when they die due to damage (only centain tree types)
 
 
 10.04 -> 10.05
