@@ -96,17 +96,17 @@ function UnitDef_Post(name, uDef)
 			if uDef.featuredefs ~= nil then
 				for fDefID,featureDef in pairs(uDef.featuredefs) do
 					if featureDef.object ~= nil then
-						local object = string.gsub(featureDef.object, ".3do", ".s3o")
-						if VFS.FileExists('objects3d/BAR/'..object) then
-							uDef.featuredefs[fDefID].object = 'BAR/'..object
+						local object = string.gsub(featureDef.object, ".3do", "")
+						if VFS.FileExists('objects3d/BAR/'..object:lower()..".s3o") then
+							uDef.featuredefs[fDefID].object = 'BAR/'..object:lower()..".s3o"
 						end
 					end
 				end
 			end
-			if VFS.FileExists('scripts/BAR/'..barUnitName..'.lua') then
-				uDef.script = 'BAR/'..barUnitName..'.lua'
-			elseif VFS.FileExists('scripts/BAR/'..barUnitName..'.cob') then
-				uDef.script = 'BAR/'..barUnitName..'.cob'
+			if VFS.FileExists('scripts/BAR/bar_'..barUnitName..'.lua') then
+				uDef.script = 'BAR/bar_'..barUnitName..'.lua'
+			elseif VFS.FileExists('scripts/BAR/bar_'..barUnitName..'.cob') then
+				uDef.script = 'BAR/bar_'..barUnitName..'.cob'
 			end
 			if uDef.buildinggrounddecaltype ~= nil then
 				local decalname = oldUnitName[name] and string.gsub(uDef.buildinggrounddecaltype, name, barUnitName) or uDef.buildinggrounddecaltype
