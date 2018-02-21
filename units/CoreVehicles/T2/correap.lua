@@ -115,6 +115,7 @@ return {
  			}, 
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+				[2] = "custom:DUST_CLOUD",
 			},
 		},
 		sounds = {

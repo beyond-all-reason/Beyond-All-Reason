@@ -30,8 +30,8 @@ Smoke()
 		{
 			if( terrain == 4 )
 			{
-				emit-sfx 1024 + 0 from wake1;
-				emit-sfx 1024 + 0 from wake2;
+				emit-sfx 1024 + 1 from wake1;
+				emit-sfx 1024 + 1 from wake2;
 			}
 		}
 		sleep animSpeed;
