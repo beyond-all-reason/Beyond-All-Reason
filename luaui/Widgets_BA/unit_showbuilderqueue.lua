@@ -27,6 +27,7 @@ local commandCreatedUnitsIDs = {}
 local builders = {}
 local buildersOrdered = {{},{},{},{},{},{},{},{},{},{}}
 local myPlayerID = Spring.GetMyPlayerID()
+local _, _, isPaused = Spring.GetGameSpeed()
 
 local glPushMatrix		= gl.PushMatrix
 local glPopMatrix		= gl.PopMatrix
@@ -121,13 +122,17 @@ end
 local currentBatch = 1
 function widget:GameFrame(gameframe)
 	if gameframe % 3 == 1 then
-		for unitID, random in pairs(buildersOrdered[currentBatch]) do
-			checkBuilder(unitID)
-		end
-		currentBatch = currentBatch + 1
-		if currentBatch > 10 then
-			currentBatch = 1
-		end
+		processNextBatch()
+	end
+end
+
+function processNextBatch()
+	for unitID, random in pairs(buildersOrdered[currentBatch]) do
+		checkBuilder(unitID)
+	end
+	currentBatch = currentBatch + 1
+	if currentBatch > 10 then
+		currentBatch = 1
 	end
 end
 
@@ -159,6 +164,22 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	end
 	if commandCreatedUnitsIDs[unitID] then
 		commandCreatedUnits[commandCreatedUnitsIDs[unitID]] = nil
+	end
+end
+
+local sec = 0
+local lastUpdate = 0
+function widget:Update(dt)
+	if Spring.IsGUIHidden() then return end
+
+	sec = sec + dt
+	if sec > lastUpdate + 0.1 then
+		lastUpdate = sec
+
+		local _, _, isPaused = Spring.GetGameSpeed()
+		if isPaused then
+			processNextBatch()
+		end
 	end
 end
 
