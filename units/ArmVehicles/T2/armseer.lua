@@ -44,6 +44,7 @@ return {
 		turninplacespeedlimit = 1.33584,
 		turnrate = 605,
 		customparams = {
+			arm_tank = "1",
 			techlevel = 2,
 		},
 		featuredefs = {
