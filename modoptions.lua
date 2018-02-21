@@ -20,8 +20,8 @@ local options={
     },
 	{
 		key    = "barmodels",
-		name   = "Use Remodelled BA units",
-		desc   = "BAR unit model integration",
+		name   = "Remodelled units",
+		desc   = "Activate BAR unit model integration",
 		type   = "bool",
 		section= 'ba_enhancements_misc',
 		def = false,
