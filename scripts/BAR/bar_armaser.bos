@@ -291,6 +291,16 @@ HitByWeapon(anglex, anglez)
 
 }
 
+QueryWeapon1(piecenum)
+{
+	piecenum = eye;
+}
+
+AimFromWeapon1(piecenum)
+{
+	piecenum = eye;
+}
+
 StartMoving()
 {
 	bMoving = TRUE;

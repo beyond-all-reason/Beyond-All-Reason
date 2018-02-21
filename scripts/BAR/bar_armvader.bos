@@ -112,6 +112,16 @@ StopMoving()
 	bMoving = FALSE;
 }
 
+AimWeapon1()
+{
+	return (TRUE);
+}
+
+AimWeapon2()
+{
+	return (TRUE);
+}
+
 FireWeapon1()
 {
 	emit-sfx 4097 from leg1; //Weapon2 detonates the crawling bomb once weapon1 fires

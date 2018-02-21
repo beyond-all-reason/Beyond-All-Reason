@@ -131,16 +131,15 @@ Deactivate()
 {
 	start-script RequestState(1);
 }
+
 AimPrimary(pitch,heading){
 	show bomba;
 	move doorr to x-axis [5] speed [10];
 	move doorl to x-axis [-5] speed [10];
 	move rails to z-axis [-19] speed [19];
 	move bomba to z-axis [-19] speed [19];
-	sleep 998;
 	turn bomba to x-axis <-90.0> speed <180>;
-	sleep 500;
-	
+	return (1);
 }
 FirePrimary()
 {
@@ -150,7 +149,6 @@ FirePrimary()
 	move doorl to x-axis [0] speed [10];
 	move rails to z-axis [0] speed [19];
 	move bomba to z-axis [0] speed [19];
-	sleep 998;
 
 	
 }

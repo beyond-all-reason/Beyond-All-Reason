@@ -266,6 +266,28 @@ QueryTertiary(piecenum)
 	piecenum = base;
 }
 
+
+
+AimWeapon4(heading, pitch)
+{
+	return (1);
+}
+
+FireWeapon4()
+{
+	sleep 150;
+}
+
+AimFromWeapon4(piecenum)
+{
+	piecenum = base;
+}
+
+QueryWeapon4(piecenum)
+{
+	piecenum = base;
+}
+
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;

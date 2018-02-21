@@ -76,6 +76,11 @@ AimFromPrimary(piecenum)
 	piecenum = base;
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
 QueryPrimary(piecenum)
 {
 	if (gun_1==0)
