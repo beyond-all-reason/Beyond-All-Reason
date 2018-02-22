@@ -63,30 +63,34 @@ FirePrimary()
 {
 	if( gun_1 == 0 )
 	{
+	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-10.000000] now;
-		sleep 150;
+		sleep 100;
 		move barrel1 to z-axis [0.000000] speed [37.500000];
 		gun_1 = flare2;
 		return (0);
 	}
 	if( gun_1 == 1 )
 	{
+	    emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-10.000000] now;
-		sleep 150;
+		sleep 100;
 		move barrel2 to z-axis [0.000000] speed [37.500000];
 		gun_1 = flare3;
 	}
 	if( gun_1 == 2 )
 	{
+	    emit-sfx 1024 + 0 from flare3;
 		move barrel3 to z-axis [-10.000000] now;
-		sleep 150;
+		sleep 100;
 		move barrel3 to z-axis [0.000000] speed [37.500000];
 		gun_1 = flare4;
 	}
 	if( gun_1 == 3 )
 	{
+	    emit-sfx 1024 + 0 from flare4;
 		move barrel4 to z-axis [-10.000000] now;
-		sleep 150;
+		sleep 100;
 		move barrel4 to z-axis [0.000000] speed [37.500000];
 		gun_1 = flare1;
 	}

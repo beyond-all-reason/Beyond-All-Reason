@@ -356,7 +356,7 @@ AimWeapon5(heading, pitch)
 
 FireWeapon5()
 {
-
+	emit-sfx 1024 + 0 from torso;
 }
 
 Killed(severity, corpsetype)

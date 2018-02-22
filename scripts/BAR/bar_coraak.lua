@@ -166,7 +166,7 @@ function script.FireWeapon(num)
 		gun_1 = gun_1 + 1
 		if gun_1 > 4 then gun_1 = 1 end
 	elseif num == 2 then
-		
+		EmitSfx(flareflak, 1024+0)
 	end
 end
 function script.Shot(num)
