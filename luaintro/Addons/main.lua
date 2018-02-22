@@ -14,6 +14,11 @@ end
 
 ------------------------------------------
 
+local showTips = true
+if (Spring.GetConfigInt("LoadscreenTips",1) or 1) == 0 then
+	showTips = false
+end
+
 local lastLoadMessage = ""
 
 function addon.LoadProgress(message, replaceLastLine)
@@ -281,7 +286,12 @@ function addon.DrawLoadScreen()
 	local yPos = 0.125
 	local yPosTips = 0.2495
 	local loadvalue = 0.2 + (math.max(0, loadProgress) * 0.6)
-	
+
+	if not showTips then
+		yPos = 0.165
+		yPosTips = yPos
+	end
+
 	--bar bg
 	local paddingH = 0.004
 	local paddingW = paddingH * (vsy/vsx)
@@ -330,53 +340,55 @@ function addon.DrawLoadScreen()
 	gl.PopMatrix()
 
 
-	-- In this format, there can be an optional image before the tip/description.
-	-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
-	local text_to_show = random_tip_or_desc
-	yPos = yPosTips
-	if random_tip_or_desc[2] then
-		text_to_show = random_tip_or_desc[1]
-	else
-		i, j = string.find(random_tip_or_desc, ".dds")
+	if showTips then
+		-- In this format, there can be an optional image before the tip/description.
+		-- Any image ends in .dss, so if such a text piece is found, we extract that and show it as an image.
+		local text_to_show = random_tip_or_desc
+		yPos = yPosTips
+		if random_tip_or_desc[2] then
+			text_to_show = random_tip_or_desc[1]
+		else
+			i, j = string.find(random_tip_or_desc, ".dds")
+		end
+		local numLines = 1
+		local image_text = nil
+		local fontSize = barTextSize * 0.77
+		local image_size = 0.0485
+		local height = 0.123
+
+		if i ~= nil then
+			text_to_show = string.sub(text_to_show, j+2)
+			local maxWidth = ((0.58-image_size-0.012) * vsx) * (loadedFontSize/fontSize)
+			text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		else
+			local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
+			text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
+		end
+
+		-- Tip/unit description
+		-- Background
+		--gl.Color(1,1,1,0.033)
+		--RectRound(0.2,yPos-height,0.8,yPos,0.005)
+
+		-- Text
+		gl.PushMatrix()
+		gl.Scale(1/vsx,1/vsy,1)
+
+		if i ~= nil then
+			image_text = string.sub(random_tip_or_desc, 0, j)
+			gl.Texture(":n:unitpics/" .. image_text)
+			gl.Color(1.0,1.0,1.0,0.8)
+			gl.TexRect(vsx * 0.21, vsy*(yPos-0.015), vsx*(0.21+image_size), (vsy*(yPos-0.015))-(vsx*image_size))
+			font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * (yPos-0.0175), fontSize, "oa")
+		else
+			font:Print(text_to_show, vsx * 0.21, vsy * (yPos-0.0175), fontSize, "oa")
+		end
+
+		if random_tip_or_desc[2] then
+			font:Print('\255\255\222\155'..random_tip_or_desc[2], vsx * 0.79, (vsy * ((yPos-0.0175)-height)) +(fontSize*2.66) , fontSize, "oar")
+		end
+		gl.PopMatrix()
 	end
-	local numLines = 1
-	local image_text = nil
-	local fontSize = barTextSize * 0.77
-	local image_size = 0.0485
-	local height = 0.123
-
-	if i ~= nil then
-		text_to_show = string.sub(text_to_show, j+2)
-		local maxWidth = ((0.58-image_size-0.012) * vsx) * (loadedFontSize/fontSize)
-		text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-	else
-		local maxWidth = (0.585 * vsx) * (loadedFontSize/fontSize)
-		text_to_show, numLines = font:WrapText(text_to_show, maxWidth)
-	end
-
-	-- Tip/unit description
-	-- Background
-	--gl.Color(1,1,1,0.033)
-	--RectRound(0.2,yPos-height,0.8,yPos,0.005)
-
-	-- Text
-	gl.PushMatrix()
-	gl.Scale(1/vsx,1/vsy,1)
-
-	if i ~= nil then
-		image_text = string.sub(random_tip_or_desc, 0, j)
-		gl.Texture(":n:unitpics/" .. image_text)
-		gl.Color(1.0,1.0,1.0,0.8)
-		gl.TexRect(vsx * 0.21, vsy*(yPos-0.015), vsx*(0.21+image_size), (vsy*(yPos-0.015))-(vsx*image_size))
-		font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * (yPos-0.0175), fontSize, "oa")
-	else
-		font:Print(text_to_show, vsx * 0.21, vsy * (yPos-0.0175), fontSize, "oa")
-	end
-
-	if random_tip_or_desc[2] then
-		font:Print('\255\255\222\155'..random_tip_or_desc[2], vsx * 0.79, (vsy * ((yPos-0.0175)-height)) +(fontSize*2.66) , fontSize, "oar")
-	end
-	gl.PopMatrix()
 end
 
 
