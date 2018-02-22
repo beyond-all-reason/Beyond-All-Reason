@@ -87,14 +87,14 @@ function UnitDef_Post(name, uDef)
 				end
 			end
 
-			if string.find(name, 'arm') or string.find(name, 'core') or string.find(name, 'chicken') then
+			if string.find(name, 'arm') or string.find(name, 'cor') or string.find(name, 'chicken') then
 				uDef.customparams.normalmaps = "yes"
 				if string.find(name, 'arm') then
 					uDef.customparams.normaltex = "unittextures/Arm_normals.dds"
-				elseif string.find(name, 'core') then
-					uDef.customparams.normaltex = "unittextures/Core_normals.dds"
+				elseif string.find(name, 'cor') then
+					uDef.customparams.normaltex = "unittextures/Core_normal.dds"
 				elseif string.find(name, 'chicken') then
-					uDef.customparams.normaltex = "unittextures/Core_normals.dds"
+					uDef.customparams.normaltex = "unittextures/chicken_normal.tga"
 				end
 			end
 		end

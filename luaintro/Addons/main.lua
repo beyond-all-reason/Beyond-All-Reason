@@ -283,8 +283,8 @@ function addon.DrawLoadScreen()
 	local vbw = 3.5/vsy
 	local hsw = 0.2
 	local vsw = 0.2
-	local yPos = 0.125
-	local yPosTips = 0.2495
+	local yPos =  0.125 --0.054
+	local yPosTips = yPos + 0.1245
 	local loadvalue = 0.2 + (math.max(0, loadProgress) * 0.6)
 
 	if not showTips then
