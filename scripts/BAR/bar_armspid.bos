@@ -321,11 +321,8 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
-	show flare;
-	sleep 60;
-	hide flare;
+	emit-sfx 1024 + 0 from flare;
 	return(1);
-	
 }
 
 

@@ -104,8 +104,8 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide flare;
-	restore_delay = 2000;
-	OpenClosed = 0;
+	restore_delay = 1600;
+	OpenClosed = 1;
 	statechg_DesiredState = FALSE;
 	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
@@ -153,9 +153,10 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flare;
-	sleep 150;
-	hide flare;
+	emit-sfx 1024 + 0 from flare;
+	move barrel to z-axis [-2.600000] speed [500.000000];
+	sleep 50;
+	move barrel to z-axis [0.000000] speed [6.000000];
 }
 
 QueryPrimary(piecenum)

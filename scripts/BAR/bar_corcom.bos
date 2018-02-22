@@ -626,9 +626,7 @@ AimTertiary(heading, pitch)
 
 FireTertiary()
 {
-	show rbigflash;
-	sleep 30;
-	hide rbigflash;
+	emit-sfx 1024 + 0 from rbigflash;
 	gun_3 = torso;
 	call-script bigfire();
 	return (0);

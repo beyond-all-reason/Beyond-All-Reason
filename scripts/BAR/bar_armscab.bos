@@ -310,9 +310,7 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flare;
-	sleep 30;
-	hide flare;
+	emit-sfx 1024 + 0 from flare;
 	return (0);
 }
 

@@ -32,6 +32,16 @@ StopMoving()
 	signal SIG_MOVE;
 }
 
+AimFromPrimary(piecenum)
+{
+	piecenum = gun_1;
+}
+
+AimPrimary(heading, pitch)
+{
+	return(1);
+}
+
 FirePrimary()
 {
 	gun_1 = !gun_1;

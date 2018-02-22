@@ -376,18 +376,14 @@ AimFromSecondary(piecenum)
 FirePrimary()
 {
 	gun_2 = 1;
-	show flare;
-	sleep 150;
-	hide flare;
+	emit-sfx 1024 + 0 from flare;
 	start-script Reload();
 }
 
 FireSecondary()
 {
 	gun_2 = 1;
-	show flare;
-	sleep 150;
-	hide flare;
+	emit-sfx 1024 + 0 from flare;
 	start-script Reload();
 }
 

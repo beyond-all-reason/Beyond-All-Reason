@@ -1136,17 +1136,13 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-		if( gun_1 )
+	if( gun_1 )
 	{
-		show lflare;
-		sleep 150;
-		hide lflare;
+	    emit-sfx 1024 + 0 from lflare;
 	}
 	else
 	{
-		show rflare;
-		sleep 150;
-		hide rflare;
+	    emit-sfx 1024 + 0 from rflare;
 	}
 	gun_1 = !gun_1;
 }

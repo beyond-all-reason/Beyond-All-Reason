@@ -1087,10 +1087,9 @@ AimPrimary(heading, pitch)
 
 FirePrimary()
 {
-	show flare;
+	emit-sfx 1024 + 0 from flare;
 	turn rloarm to x-axis <-45.010989> speed <200.000000>;
-	sleep 150;
-	hide flare;
+	sleep 50;
 	turn rloarm to x-axis <-23.005495> speed <50.000000>;
 
 }

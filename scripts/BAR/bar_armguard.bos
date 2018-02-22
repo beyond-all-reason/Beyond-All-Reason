@@ -89,18 +89,16 @@ FireWeapon1()
 	start-script Reload1();
 	if( Static_Var_1 == 0 )
 	{
+	    emit-sfx 1024 + 0 from flare1;
 		move barrel1 to z-axis [-6.250000] now;
-		show flare1;
-		sleep 150;
-		hide flare1;
+		sleep 100;
 		move barrel1 to z-axis [0.000000] speed [2.500000];
 	}
 	if( Static_Var_1 == 1 )
 	{
+	    emit-sfx 1024 + 0 from flare2;
 		move barrel2 to z-axis [-6.250000] now;
-		show flare2;
-		sleep 150;
-		hide flare2;
+		sleep 100;
 		move barrel2 to z-axis [0.000000] speed [2.500000];
 	}
 	Static_Var_1 = !Static_Var_1;

@@ -65,7 +65,7 @@ Create()
 {
 	hide shell;
 	hide flare;
-	move flare to z-axis [1] now;
+	turn flare to y-axis <70.00000> now;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	return (0);
