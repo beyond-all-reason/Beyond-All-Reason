@@ -102,11 +102,11 @@ StopMoving()
 	stop-spin base around x-axis;
 	turn base to x-axis <0> speed <270>;
 	wait-for-turn base around x-axis;	
-	move leg1 to y-axis [-6] speed [18];
-	move leg2 to y-axis [-6] speed [18];
-	move leg4 to y-axis [-6] speed [18];
-	move leg3 to y-axis [-6] speed [18];
-	move base to y-axis [6] speed [18];
+	move leg1 to y-axis [-2.1] speed [18];
+	move leg2 to y-axis [-2.1] speed [18];
+	move leg4 to y-axis [-2.1] speed [18];
+	move leg3 to y-axis [-2.1] speed [18];
+	move base to y-axis [2] speed [18];
 
 	
 	bMoving = FALSE;
@@ -137,7 +137,6 @@ AimFromWeapon1(piecenum)
 	piecenum = base;
 }
 
-
 QueryWeapon2(piecenum)
 {
 	piecenum = base;
@@ -162,42 +161,42 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode leg1 type FIRE | SMOKE | FALL;
-		explode leg2 type BITMAPONLY;
-		explode leg3 type BITMAPONLY;
-		explode leg4 type BITMAPONLY;
-		explode body type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode leg1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg2 type BITMAPONLY | NOHEATCLOUD;
+		explode leg3 type BITMAPONLY | NOHEATCLOUD;
+		explode leg4 type BITMAPONLY | NOHEATCLOUD;
+		explode body type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type FIRE | SMOKE | FALL;
-		explode leg1 type FIRE | SMOKE | FALL;
-		explode leg2 type FIRE | SMOKE | FALL;
-		explode leg3 type FIRE | SMOKE | FALL;
-		explode leg4 type FIRE | SMOKE | FALL;
-		explode body type FIRE | SMOKE | FALL;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg3 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode body type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL;
-		explode leg1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode leg2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode leg3 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode leg4 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg3 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode leg4 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode leg1 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode leg2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode leg3 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode leg4 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode leg3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode leg4 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode body type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

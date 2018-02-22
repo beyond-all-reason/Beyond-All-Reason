@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 1.32,
 		turnrate = 433,
 		customparams = {
+			arm_tank = "1",
 			techlevel = 2,
 			--ANIMATION DATA
 				--PIECENAMES HERE
