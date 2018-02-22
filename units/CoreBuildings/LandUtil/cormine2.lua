@@ -42,6 +42,7 @@ return {
 		stealth = true,
 		customparams = {
 			removewait = true,
+			removestop = true,
 			detonaterange = "64",
 		},
 		sfxtypes = { 

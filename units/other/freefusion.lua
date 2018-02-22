@@ -24,7 +24,7 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 0,
 		name = "Free Fusion Reactor",
-		objectname = "freefusion.s3o",
+		objectname = "BAR/freefusion.s3o",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 250,
@@ -47,7 +47,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 30,
-				object = "freefusion_dead.s3o",
+				object = "BAR/freefusion_dead.s3o",
 				reclaimable = true,
 				customparams = {
 					faction = "none",

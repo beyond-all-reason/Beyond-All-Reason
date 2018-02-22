@@ -27,7 +27,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Command Tower",
-		objectname = "mission_command_tower.s3o",
+		objectname = "BAR/mission_command_tower.s3o",
 		reclaimable = false,
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",

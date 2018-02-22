@@ -42,6 +42,7 @@ return {
 		waterline = 1,
 		customparams = {
 			removewait = true,
+			removestop = true,
 			detonaterange = "64",
 		},
 		sfxtypes = { 
