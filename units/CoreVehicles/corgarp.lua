@@ -45,7 +45,7 @@ return {
 		turnrate = 387,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
-			description_long = "The Garpike  is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way. ",  
+			description_long = "Garpike  is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way. ",  
 			paralyzemultiplier = 0.125,
 			--ANIMATION DATA
 				--PIECENAMES HERE
