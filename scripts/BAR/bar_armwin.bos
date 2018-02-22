@@ -130,30 +130,30 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode turbine type BITMAPONLY;
-		explode blades type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turbine type BITMAPONLY | NOHEATCLOUD;
+		explode blades type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode turbine type FIRE | SMOKE | FALL;
-		explode blades type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turbine type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode blades type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode turbine type SMOKE | FALL;
-		explode blades type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turbine type SMOKE | FALL | NOHEATCLOUD;
+		explode blades type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode turbine type EXPLODE_ON_HIT | FIRE | FALL;
-		explode blades type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turbine type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode blades type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

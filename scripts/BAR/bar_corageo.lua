@@ -32,21 +32,21 @@ function script.Killed(recentDamage, maxHealth)
 	local severity = recentDamage / maxHealth
 
 	if (severity <= .25) then
-		Explode(fan1, SFX.EXPLODE)
-		Explode(fan2, SFX.EXPLODE)
-		Explode(fan3, SFX.EXPLODE)
+		Explode(fan1,SFX.EXPLODE + SFX.NO_HEATCLOUD)
+		Explode(fan2,SFX.EXPLODE + SFX.NO_HEATCLOUD)
+		Explode(fan3,SFX.EXPLODE + SFX.NO_HEATCLOUD)
 		return 1 -- corpsetype
 
 	elseif (severity <= .5) then
-		Explode(fan1, SFX.EXPLODE)
-		Explode(fan2, SFX.EXPLODE)
-		Explode(fan3, SFX.EXPLODE)
+		Explode(fan1,SFX.EXPLODE + SFX.NO_HEATCLOUD)
+		Explode(fan2,SFX.EXPLODE + SFX.NO_HEATCLOUD)
+		Explode(fan3,SFX.EXPLODE + SFX.NO_HEATCLOUD)
 		return 2 -- corpsetype
 	else
 		Explode(base, SFX.SHATTER)
-		Explode(fan1, SFX.EXPLODE)
-		Explode(fan2, SFX.EXPLODE)
-		Explode(fan3, SFX.EXPLODE)
+		Explode(fan1,SFX.EXPLODE + SFX.NO_HEATCLOUD)
+		Explode(fan2,SFX.EXPLODE + SFX.NO_HEATCLOUD)
+		Explode(fan3,SFX.EXPLODE + SFX.NO_HEATCLOUD)
 		return 3 -- corpsetype
 	end
 end

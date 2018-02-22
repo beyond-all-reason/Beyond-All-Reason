@@ -210,54 +210,54 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode rdoor type BITMAPONLY;
-		explode rplate type BITMAPONLY;
-		explode rturret type FIRE | SMOKE | FALL;
-		explode rnano type BITMAPONLY;
-		explode ldoor type BITMAPONLY;
-		explode lplate type BITMAPONLY;
-		explode lturret type BITMAPONLY;
-		explode lnano type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rdoor type BITMAPONLY | NOHEATCLOUD;
+		explode rplate type BITMAPONLY | NOHEATCLOUD;
+		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rnano type BITMAPONLY | NOHEATCLOUD;
+		explode ldoor type BITMAPONLY | NOHEATCLOUD;
+		explode lplate type BITMAPONLY | NOHEATCLOUD;
+		explode lturret type BITMAPONLY | NOHEATCLOUD;
+		explode lnano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode rdoor type FIRE | SMOKE | FALL;
-		explode rplate type FIRE | SMOKE | FALL;
-		explode rturret type FALL;
-		explode rnano type FIRE | SMOKE | FALL;
-		explode ldoor type FIRE | SMOKE | FALL;
-		explode lplate type FIRE | SMOKE | FALL;
-		explode lturret type FALL;
-		explode lnano type FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rplate type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rturret type FALL | NOHEATCLOUD;
+		explode rnano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lplate type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lturret type FALL | NOHEATCLOUD;
+		explode lnano type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode rdoor type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode rplate type FIRE | SMOKE | FALL;
-		explode rturret type FIRE | SMOKE | FALL;
-		explode rnano type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode ldoor type FIRE | SMOKE | FALL;
-		explode lplate type SMOKE | FALL;
-		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lnano type SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rdoor type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rplate type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rnano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lplate type SMOKE | FALL | NOHEATCLOUD;
+		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lnano type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rplate type EXPLODE_ON_HIT | FIRE | FALL;
-		explode rturret type EXPLODE_ON_HIT | FIRE | FALL;
-		explode rnano type EXPLODE_ON_HIT | FIRE | FALL;
-		explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lplate type EXPLODE_ON_HIT | FIRE | FALL;
-		explode lturret type EXPLODE_ON_HIT | FIRE | FALL;
-		explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rplate type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rnano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lplate type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lnano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

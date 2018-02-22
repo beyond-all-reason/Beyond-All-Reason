@@ -351,62 +351,62 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode turret type BITMAPONLY;
-		explode flare type BITMAPONLY;
-		explode lrupleg type FIRE | SMOKE | FALL;
-		explode lrleg type FIRE | SMOKE | FALL;
-		explode lfupleg type BITMAPONLY;
-		explode lfleg type BITMAPONLY;
-		explode rfupleg type BITMAPONLY;
-		explode rfleg type BITMAPONLY;
-		explode rrupleg type BITMAPONLY;
-		explode rrleg type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		explode lrupleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfupleg type BITMAPONLY | NOHEATCLOUD;
+		explode lfleg type BITMAPONLY | NOHEATCLOUD;
+		explode rfupleg type BITMAPONLY | NOHEATCLOUD;
+		explode rfleg type BITMAPONLY | NOHEATCLOUD;
+		explode rrupleg type BITMAPONLY | NOHEATCLOUD;
+		explode rrleg type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode turret type FALL;
-		explode flare type FALL;
-		explode lrupleg type FALL;
-		explode lrleg type FIRE | SMOKE | FALL;
-		explode lfupleg type FIRE | SMOKE | FALL;
-		explode lfleg type FIRE | SMOKE | FALL;
-		explode rfupleg type FALL;
-		explode rfleg type FALL;
-		explode rrupleg type FALL;
-		explode rrleg type FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FALL | NOHEATCLOUD;
+		explode flare type FALL | NOHEATCLOUD;
+		explode lrupleg type FALL | NOHEATCLOUD;
+		explode lrleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfupleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfupleg type FALL | NOHEATCLOUD;
+		explode rfleg type FALL | NOHEATCLOUD;
+		explode rrupleg type FALL | NOHEATCLOUD;
+		explode rrleg type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL;
-		explode turret type SMOKE | FALL;
-		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lrupleg type SMOKE | FALL;
-		explode lrleg type SHATTER;
-		explode lfupleg type SMOKE | FALL;
-		explode lfleg type SHATTER;
-		explode rfupleg type FIRE | SMOKE | FALL;
-		explode rfleg type SHATTER;
-		explode rrupleg type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode rrleg type SHATTER;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lrupleg type SMOKE | FALL | NOHEATCLOUD;
+		explode lrleg type SHATTER | NOHEATCLOUD;
+		explode lfupleg type SMOKE | FALL | NOHEATCLOUD;
+		explode lfleg type SHATTER | NOHEATCLOUD;
+		explode rfupleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfleg type SHATTER | NOHEATCLOUD;
+		explode rrupleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode rrleg type SHATTER | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
-		explode lrupleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lrleg type SHATTER;
-		explode lfupleg type EXPLODE_ON_HIT | FIRE | FALL;
-		explode lfleg type SHATTER;
-		explode rfupleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rfleg type SHATTER;
-		explode rrupleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rrleg type SHATTER;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lrupleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lrleg type SHATTER | NOHEATCLOUD;
+		explode lfupleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lfleg type SHATTER | NOHEATCLOUD;
+		explode rfupleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfleg type SHATTER | NOHEATCLOUD;
+		explode rrupleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rrleg type SHATTER | NOHEATCLOUD;
 	return corpsetype;
 }

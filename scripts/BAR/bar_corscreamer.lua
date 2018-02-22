@@ -50,34 +50,34 @@ function script.Killed(recentDamage, maxHealth)
 	local corpsetype;
 	
 	Spring.UnitScript.Hide(flare);
-	if (severity <= 25) then
+	if severity <= 25 then
 		corpsetype = 1;
-		Spring.UnitScript.Explode(flare, SFX.NONE);
-		Spring.UnitScript.Explode(base, SFX.NONE);
-		Spring.UnitScript.Explode(barrel, SFX.NONE);
-		Spring.UnitScript.Explode(turret, SFX.NONE);
+		Spring.UnitScript.Explode(flare, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(base, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(barrel, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(turret, SFX.NONE + SFX.NO_HEATCLOUD);
 		return corpsetype;
 	end
-	if (severity <= 50) then
+	if severity <= 50 then
 		corpsetype = 2;
-		Spring.UnitScript.Explode(flare, SFX.NONE);
-		Spring.UnitScript.Explode(base, SFX.NONE);
-		Spring.UnitScript.Explode(barrel, SFX.NONE);
-		Spring.UnitScript.Explode(turret, SFX.NONE);
+		Spring.UnitScript.Explode(flare, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(base, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(barrel, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(turret, SFX.NONE + SFX.NO_HEATCLOUD);
 		return corpsetype;	
 	end
-	if (severity <= 99) then
+	if severity <= 99 then
 		corpsetype = 3;
-		Spring.UnitScript.Explode(flare, SFX.NONE);
-		Spring.UnitScript.Explode(base, SFX.NONE);
-		Spring.UnitScript.Explode(barrel, SFX.NONE);
-		Spring.UnitScript.Explode(turret, SFX.NONE);
+		Spring.UnitScript.Explode(flare, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(base, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(barrel, SFX.NONE + SFX.NO_HEATCLOUD);
+		Spring.UnitScript.Explode(turret, SFX.NONE + SFX.NO_HEATCLOUD);
 		return corpsetype;	
 	end	
 	corpsetype = 3;
-	Spring.UnitScript.Explode(flare, SFX.NONE);
-	Spring.UnitScript.Explode(base, SFX.NONE);
-	Spring.UnitScript.Explode(barrel, SFX.NONE);
-	Spring.UnitScript.Explode(turret, SFX.NONE);
+	Spring.UnitScript.Explode(flare, SFX.NONE + SFX.NO_HEATCLOUD);
+	Spring.UnitScript.Explode(base, SFX.NONE + SFX.NO_HEATCLOUD);
+	Spring.UnitScript.Explode(barrel, SFX.NONE + SFX.NO_HEATCLOUD);
+	Spring.UnitScript.Explode(turret, SFX.NONE + SFX.NO_HEATCLOUD);
 	return corpsetype;	
 end

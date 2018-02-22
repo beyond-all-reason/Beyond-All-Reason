@@ -133,22 +133,18 @@ Killed(severity, corpsetype)
 /*   12f:*/	if( severity <= 25 )
 /*   131:*/	{
 /*   133:*/		corpsetype = 1;
-/*   13a:*/		explode base type BITMAPONLY | BITMAP1;
 /*   14c:*/		return (corpsetype);
 /*   14d:*/	}
 /*   152:*/	if( severity <= 50 )
 /*   154:*/	{
 /*   156:*/		corpsetype = 2;
-/*   15d:*/		explode base type BITMAPONLY | BITMAP1;
 /*   16f:*/		return (corpsetype);
 /*   170:*/	}
 /*   175:*/	if( severity <= 99 )
 /*   177:*/	{
 /*   179:*/		corpsetype = 3;
-/*   180:*/		explode base type BITMAPONLY | BITMAP1;
 /*   19b:*/		return (corpsetype);
 /*   19c:*/	}
 /*   19e:*/	corpsetype = 3;
-/*   1a5:*/	explode base type BITMAPONLY | BITMAP1;
 /*   1c0:*/	return (corpsetype);
 /*   1c1:*/}

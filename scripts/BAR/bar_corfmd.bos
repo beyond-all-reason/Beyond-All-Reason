@@ -187,42 +187,42 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode dbr type FIRE | SMOKE | FALL;
-		explode dtr type BITMAPONLY;
-		explode dtl type BITMAPONLY;
-		explode dbl type BITMAPONLY;
-		explode dummy type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dtr type BITMAPONLY | NOHEATCLOUD;
+		explode dtl type BITMAPONLY | NOHEATCLOUD;
+		explode dbl type BITMAPONLY | NOHEATCLOUD;
+		explode dummy type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode dbr type FIRE | SMOKE | FALL;
-		explode dtr type FALL;
-		explode dtl type FALL;
-		explode dbl type FIRE | SMOKE | FALL;
-		explode dummy type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dtr type FALL | NOHEATCLOUD;
+		explode dtl type FALL | NOHEATCLOUD;
+		explode dbl type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dummy type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode dbr type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode dtr type SMOKE | FALL;
-		explode dtl type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode dbl type SMOKE | FALL;
-		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode dtr type SMOKE | FALL | NOHEATCLOUD;
+		explode dtl type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode dbl type SMOKE | FALL | NOHEATCLOUD;
+		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode dbr type EXPLODE_ON_HIT | FIRE | FALL;
-		explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode dtl type EXPLODE_ON_HIT | FIRE | FALL;
-		explode dbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dbr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dtr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dtl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dbl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dummy type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

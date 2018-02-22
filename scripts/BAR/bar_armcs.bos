@@ -218,50 +218,50 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode ground type BITMAPONLY;
-		explode base type BITMAPONLY;
-		explode doorlb type FIRE | SMOKE | FALL;
-		explode doorrf type BITMAPONLY;
-		explode turret type BITMAPONLY;
-		explode nano type FIRE | SMOKE | FALL;
-		explode doorrb type BITMAPONLY;
-		explode doorlf type BITMAPONLY;
+		explode ground type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorlb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorrf type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorrb type BITMAPONLY | NOHEATCLOUD;
+		explode doorlf type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode ground type FALL;
-		explode base type BITMAPONLY;
-		explode doorlb type FIRE | SMOKE | FALL;
-		explode doorrf type FIRE | SMOKE | FALL;
-		explode turret type FIRE | SMOKE | FALL;
-		explode nano type FIRE | SMOKE | FALL;
-		explode doorrb type FIRE | SMOKE | FALL;
-		explode doorlf type FIRE | SMOKE | FALL;
+		explode ground type FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorlb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorrf type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorrb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorlf type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode ground type FIRE | SMOKE | FALL;
-		explode base type BITMAPONLY;
-		explode doorlb type SMOKE | FALL;
-		explode doorrf type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode nano type FIRE | SMOKE | FALL;
-		explode doorrb type FIRE | SMOKE | FALL;
-		explode doorlf type SMOKE | FALL;
+		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorlb type SMOKE | FALL | NOHEATCLOUD;
+		explode doorrf type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorrb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorlf type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode base type BITMAPONLY;
-		explode doorlb type EXPLODE_ON_HIT | FIRE | FALL;
-		explode doorrf type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode turret type EXPLODE_ON_HIT | FIRE | FALL;
-		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode doorrb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode doorlf type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorlb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode doorrf type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorrb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorlf type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

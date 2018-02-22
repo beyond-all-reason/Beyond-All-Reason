@@ -206,34 +206,21 @@ Killed(severity, corpsetype)
 /*   26d:*/	if( severity <= 25 )
 /*   26f:*/	{
 /*   271:*/		corpsetype = 1;
-/*   278:*/		explode base type BITMAPONLY | BITMAP1;
-/*   27f:*/		explode door1 type BITMAPONLY | BITMAP2;
-/*   286:*/		explode door2 type BITMAPONLY | BITMAP3;
-/*   29b:*/		explode flare type BITMAPONLY | BITMAP1;
 /*   2b4:*/		return (corpsetype);
 /*   2b5:*/	}
 /*   2ba:*/	if( severity <= 50 )
 /*   2bc:*/	{
 /*   2be:*/		corpsetype = 2;
-/*   2c5:*/		explode base type BITMAPONLY | BITMAP1;
-/*   2cc:*/		explode door1 type BITMAPONLY | BITMAP2;
-/*   2d3:*/		explode door2 type BITMAPONLY | BITMAP3;
-/*   2e8:*/		explode flare type FALL | BITMAP1;
+/*   2e8:*/		explode flare type FALL | BITMAP1 | NOHEATCLOUD;
 /*   301:*/		return (corpsetype);
 /*   302:*/	}
 /*   307:*/	if( severity <= 99 )
 /*   309:*/	{
 /*   30b:*/		corpsetype = 3;
-/*   312:*/		explode base type BITMAPONLY | BITMAP1;
-/*   319:*/		explode door1 type BITMAPONLY | BITMAP2;
-/*   320:*/		explode door2 type BITMAPONLY | BITMAP3;
-/*   33e:*/		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+/*   33e:*/		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 /*   369:*/		return (corpsetype);
 /*   36a:*/	}
 /*   36c:*/	corpsetype = 3;
-/*   373:*/	explode base type BITMAPONLY | BITMAP1;
-/*   37a:*/	explode door1 type BITMAPONLY | BITMAP2;
-/*   381:*/	explode door2 type BITMAPONLY | BITMAP3;
-/*   39f:*/	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1;
+/*   39f:*/	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 /*   3cd:*/	return (corpsetype);
 /*   3ce:*/}

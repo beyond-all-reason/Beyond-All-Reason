@@ -129,38 +129,38 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode bombs type BITMAPONLY;
-		explode thrustb type BITMAPONLY;
-		explode thrusta1 type BITMAPONLY;
-		explode thrusta2 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode bombs type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta1 type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode bombs type FIRE | SMOKE | FALL;
-		explode thrustb type FIRE | SMOKE | FALL;
-		explode thrusta1 type FIRE | SMOKE | FALL;
-		explode thrusta2 type FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode bombs type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta2 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode bombs type SMOKE | FALL;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrusta1 type SMOKE | FALL;
-		explode thrusta2 type SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode bombs type SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta1 type SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta2 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode bombs type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrusta1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrusta2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode bombs type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -216,61 +216,61 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode post type BITMAPONLY;
-		explode turret type BITMAPONLY;
-		explode sleeve type BITMAPONLY;
-		explode antenna type FIRE | SMOKE | FALL;
-		explode light type BITMAPONLY;
-		explode dish type FIRE | SMOKE | FALL;
-		explode barrel type BITMAPONLY;
-		explode flare type BITMAPONLY;
-		explode door type BITMAPONLY;
-		explode doorl type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode post type BITMAPONLY | NOHEATCLOUD;
+		explode turret type BITMAPONLY | NOHEATCLOUD;
+		explode sleeve type BITMAPONLY | NOHEATCLOUD;
+		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode light type BITMAPONLY | NOHEATCLOUD;
+		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type BITMAPONLY | NOHEATCLOUD;
+		explode flare type BITMAPONLY | NOHEATCLOUD;
+		explode door type BITMAPONLY | NOHEATCLOUD;
+		explode doorl type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode turret type FIRE | SMOKE | FALL;
-		explode sleeve type FALL;
-		explode antenna type FALL;
-		explode light type FIRE | SHATTER | SMOKE | FALL;
-		explode dish type FALL;
-		explode barrel type FIRE | SMOKE | FALL;
-		explode flare type FIRE | SMOKE | FALL;
-		explode door type FALL;
-		explode doorl type FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type FALL | NOHEATCLOUD;
+		explode antenna type FALL | NOHEATCLOUD;
+		explode light type FIRE | SHATTER | SMOKE | FALL | NOHEATCLOUD;
+		explode dish type FALL | NOHEATCLOUD;
+		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode door type FALL | NOHEATCLOUD;
+		explode doorl type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode post type BITMAPONLY;
-		explode turret type FIRE | SMOKE | FALL;
-		explode sleeve type SMOKE | FALL;
-		explode antenna type FIRE | SMOKE | FALL;
-		explode light type SHATTER;
-		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode flare type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode door type SHATTER;
-		explode doorl type SHATTER;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode post type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type SMOKE | FALL | NOHEATCLOUD;
+		explode antenna type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode light type SHATTER | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode door type SHATTER | NOHEATCLOUD;
+		explode doorl type SHATTER | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode post type EXPLODE_ON_HIT | FIRE | FALL;
-		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode light type SHATTER;
-		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode flare type EXPLODE_ON_HIT | FIRE | FALL;
-		explode door type SHATTER;
-		explode doorl type SHATTER;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode post type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode antenna type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode light type SHATTER | NOHEATCLOUD;
+		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode door type SHATTER | NOHEATCLOUD;
+		explode doorl type SHATTER | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -127,34 +127,34 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode fan type FIRE | SMOKE | FALL;
-		explode tank1 type BITMAPONLY;
-		explode tank2 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tank1 type BITMAPONLY | NOHEATCLOUD;
+		explode tank2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode fan type FALL;
-		explode tank1 type BITMAPONLY;
-		explode tank2 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan type FALL | NOHEATCLOUD;
+		explode tank1 type BITMAPONLY | NOHEATCLOUD;
+		explode tank2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode fan type SMOKE | FALL;
-		explode tank1 type BITMAPONLY;
-		explode tank2 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan type SMOKE | FALL | NOHEATCLOUD;
+		explode tank1 type BITMAPONLY | NOHEATCLOUD;
+		explode tank2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode tank1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode tank2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tank1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode tank2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

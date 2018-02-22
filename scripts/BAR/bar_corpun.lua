@@ -92,27 +92,27 @@
 	function script.Killed(recentDamage, maxHealth)
 		local severity = recentDamage / maxHealth
 
-		if (severity <= .25) then
-			--Explode(base, SFX.SHATTER)
-			Explode(turret, SFX.EXPLODE)
-			Explode(sleeves, SFX.EXPLODE)
-			Explode(barrel1, SFX.EXPLODE)
-			Explode(barrel2, SFX.EXPLODE)
+		if severity <= .25 then
+			--Explode(base, SFX.SHATTER + SFX.NO_HEATCLOUD)
+			Explode(turret, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(sleeves, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(barrel1, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(barrel2, SFX.EXPLODE + SFX.NO_HEATCLOUD)
 			return 1 -- corpsetype
 
-		elseif (severity <= .5) then
-			--Explode(base, SFX.SHATTER)
-			Explode(turret, SFX.EXPLODE)
-			Explode(sleeves, SFX.EXPLODE)
-			Explode(barrel1, SFX.EXPLODE)
-			Explode(barrel2, SFX.EXPLODE)
+		elseif severity <= .5 then
+			--Explode(base, SFX.SHATTER + SFX.NO_HEATCLOUD)
+			Explode(turret, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(sleeves, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(barrel1, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(barrel2, SFX.EXPLODE + SFX.NO_HEATCLOUD)
 			return 2 -- corpsetype
 		else
-			--Explode(base, SFX.SHATTER)
-			Explode(turret, SFX.EXPLODE)
-			Explode(sleeves, SFX.EXPLODE)
-			Explode(barrel1, SFX.EXPLODE)
-			Explode(barrel2, SFX.EXPLODE)
+			--Explode(base, SFX.SHATTER + SFX.NO_HEATCLOUD)
+			Explode(turret, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(sleeves, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(barrel1, SFX.EXPLODE + SFX.NO_HEATCLOUD)
+			Explode(barrel2, SFX.EXPLODE + SFX.NO_HEATCLOUD)
 			return 3 -- corpsetype
 		end
 	end

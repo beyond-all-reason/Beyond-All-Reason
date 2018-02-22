@@ -131,30 +131,30 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode cradle type BITMAPONLY;
-		explode fan type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode cradle type BITMAPONLY | NOHEATCLOUD;
+		explode fan type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode cradle type BITMAPONLY;
-		explode fan type SHATTER;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode cradle type BITMAPONLY | NOHEATCLOUD;
+		explode fan type SHATTER | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode cradle type BITMAPONLY;
-		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode cradle type BITMAPONLY | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode cradle type BITMAPONLY;
-		explode fan type EXPLODE_ON_HIT | SHATTER;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode cradle type BITMAPONLY | NOHEATCLOUD;
+		explode fan type EXPLODE_ON_HIT | SHATTER | NOHEATCLOUD;
 	return corpsetype;
 }

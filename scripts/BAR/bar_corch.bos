@@ -236,34 +236,34 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode wake type BITMAPONLY;
-		explode turret type FIRE | SMOKE | FALL;
-		explode nano type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wake type BITMAPONLY | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode wake type FALL;
-		explode turret type FALL;
-		explode nano type FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wake type FALL | NOHEATCLOUD;
+		explode turret type FALL | NOHEATCLOUD;
+		explode nano type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL;
-		explode wake type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode turret type FIRE | SMOKE | FALL;
-		explode nano type FIRE | SMOKE | FALL;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wake type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode turret type EXPLODE_ON_HIT | FIRE | FALL;
-		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wake type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode nano type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

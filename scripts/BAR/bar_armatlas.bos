@@ -195,54 +195,54 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode bodyr type BITMAPONLY;
-		explode armr1 type FIRE | SMOKE | FALL;
-		explode armr2 type BITMAPONLY;
-		explode bodyl type BITMAPONLY;
-		explode arml1 type BITMAPONLY;
-		explode arml2 type BITMAPONLY;
-		explode thrust type BITMAPONLY;
-		explode link type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode bodyr type BITMAPONLY | NOHEATCLOUD;
+		explode armr1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode armr2 type BITMAPONLY | NOHEATCLOUD;
+		explode bodyl type BITMAPONLY | NOHEATCLOUD;
+		explode arml1 type BITMAPONLY | NOHEATCLOUD;
+		explode arml2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode link type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode bodyr type FIRE | SMOKE | FALL;
-		explode armr1 type FALL;
-		explode armr2 type FIRE | SMOKE | FALL;
-		explode bodyl type FALL;
-		explode arml1 type FIRE | SMOKE | FALL;
-		explode arml2 type FIRE | SMOKE | FALL;
-		explode thrust type FIRE | SMOKE | FALL;
-		explode link type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode bodyr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode armr1 type FALL | NOHEATCLOUD;
+		explode armr2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bodyl type FALL | NOHEATCLOUD;
+		explode arml1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode arml2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode link type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL;
-		explode bodyr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode armr1 type SMOKE | FALL;
-		explode armr2 type FIRE | SMOKE | FALL;
-		explode bodyl type SMOKE | FALL;
-		explode arml1 type SMOKE | FALL;
-		explode arml2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrust type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode link type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bodyr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode armr1 type SMOKE | FALL | NOHEATCLOUD;
+		explode armr2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bodyl type SMOKE | FALL | NOHEATCLOUD;
+		explode arml1 type SMOKE | FALL | NOHEATCLOUD;
+		explode arml2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode link type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode bodyr type EXPLODE_ON_HIT | FIRE | FALL;
-		explode armr1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode armr2 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode bodyl type EXPLODE_ON_HIT | FIRE | FALL;
-		explode arml1 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode arml2 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode link type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode bodyr type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode armr1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode armr2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode bodyl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode arml1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode arml2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode link type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

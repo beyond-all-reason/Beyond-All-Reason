@@ -52,30 +52,30 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode ring2 type FIRE | SMOKE | FALL;
-		explode ring1 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ring2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ring1 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode ring2 type FIRE | SMOKE | FALL;
-		explode ring1 type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ring2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ring1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode ring2 type FIRE | SMOKE | FALL;
-		explode ring1 type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ring2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ring1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode ring2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode ring1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ring2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ring1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -478,25 +478,25 @@ function script.Killed(recentDamage, maxHealth)
 	else
 
 		Explode(torso, SFX.SHATTER)
-		Explode(tail, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
+		Explode(tail, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
 
-		Explode(turret, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(lbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(rbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
+		Explode(turret, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(lbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(rbarrel, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
 
-		Explode(llaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(rlaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
-        Explode(toplaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE)
+		Explode(llaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(rlaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
+        Explode(toplaser, SFX.SMOKE + SFX.FIRE + SFX.EXPLODE + SFX.NO_HEATCLOUD)
 
-        Explode(lbleg, SFX.SHATTER)
-        Explode(lbfoot, SFX.SHATTER)
-        Explode(lfleg, SFX.SHATTER)
-        Explode(lffoot, SFX.SHATTER)
+        Explode(lbleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(lbfoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(lfleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(lffoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
 
-        Explode(rbleg, SFX.SHATTER)
-        Explode(rbfoot, SFX.SHATTER)
-        Explode(rfleg, SFX.SHATTER)
-        Explode(rffoot, SFX.SHATTER)
+        Explode(rbleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(rbfoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(rfleg, SFX.SHATTER + SFX.NO_HEATCLOUD)
+        Explode(rffoot, SFX.SHATTER + SFX.NO_HEATCLOUD)
 
 		return 3
 	end

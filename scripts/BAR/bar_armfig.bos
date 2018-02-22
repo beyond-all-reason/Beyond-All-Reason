@@ -156,42 +156,42 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode wing1 type FIRE | SMOKE | FALL;
-		explode wing2 type BITMAPONLY;
-		explode thrust type BITMAPONLY;
-		explode flare1 type BITMAPONLY;
-		explode flare2 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wing2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
+		explode flare1 type BITMAPONLY | NOHEATCLOUD;
+		explode flare2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode wing1 type FIRE | SMOKE | FALL;
-		explode wing2 type FIRE | SMOKE | FALL;
-		explode thrust type FALL;
-		explode flare1 type FIRE | SMOKE | FALL;
-		explode flare2 type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wing2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type FALL | NOHEATCLOUD;
+		explode flare1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL;
-		explode wing1 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode wing2 type SMOKE | FALL;
-		explode thrust type SMOKE | FALL;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wing1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode wing2 type SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode wing1 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode wing2 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode flare2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wing1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode wing2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode flare1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode flare2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

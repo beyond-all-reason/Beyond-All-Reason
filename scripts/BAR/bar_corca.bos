@@ -146,62 +146,62 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode duct1 type BITMAPONLY;
-		explode fan1 type FIRE | SMOKE | FALL;
-		explode support type BITMAPONLY;
-		explode beam type BITMAPONLY;
-		explode nano type BITMAPONLY;
-		explode door2 type BITMAPONLY;
-		explode door1 type BITMAPONLY;
-		explode duct2 type BITMAPONLY;
-		explode fan2 type BITMAPONLY;
-		explode thrust type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode duct1 type BITMAPONLY | NOHEATCLOUD;
+		explode fan1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode support type BITMAPONLY | NOHEATCLOUD;
+		explode beam type BITMAPONLY | NOHEATCLOUD;
+		explode nano type BITMAPONLY | NOHEATCLOUD;
+		explode door2 type BITMAPONLY | NOHEATCLOUD;
+		explode door1 type BITMAPONLY | NOHEATCLOUD;
+		explode duct2 type BITMAPONLY | NOHEATCLOUD;
+		explode fan2 type BITMAPONLY | NOHEATCLOUD;
+		explode thrust type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode duct1 type FIRE | SMOKE | FALL;
-		explode fan1 type FALL;
-		explode support type FALL;
-		explode beam type FIRE | SMOKE | FALL;
-		explode nano type FIRE | SMOKE | FALL;
-		explode door2 type FALL;
-		explode door1 type FALL;
-		explode duct2 type FIRE | SMOKE | FALL;
-		explode fan2 type FIRE | SMOKE | FALL;
-		explode thrust type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode duct1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan1 type FALL | NOHEATCLOUD;
+		explode support type FALL | NOHEATCLOUD;
+		explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode door2 type FALL | NOHEATCLOUD;
+		explode door1 type FALL | NOHEATCLOUD;
+		explode duct2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode duct1 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode fan1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode support type SHATTER;
-		explode beam type FIRE | SMOKE | FALL;
-		explode nano type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode door2 type SHATTER;
-		explode door1 type SHATTER;
-		explode duct2 type FIRE | SMOKE | FALL;
-		explode fan2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrust type SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode duct1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode fan1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode support type SHATTER | NOHEATCLOUD;
+		explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode door2 type SHATTER | NOHEATCLOUD;
+		explode door1 type SHATTER | NOHEATCLOUD;
+		explode duct2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode duct1 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode fan1 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode support type SHATTER;
-		explode beam type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode nano type EXPLODE_ON_HIT | FIRE | FALL;
-		explode door2 type SHATTER;
-		explode door1 type SHATTER;
-		explode duct2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode fan2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode duct1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode fan1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode support type SHATTER | NOHEATCLOUD;
+		explode beam type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode nano type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode door2 type SHATTER | NOHEATCLOUD;
+		explode door1 type SHATTER | NOHEATCLOUD;
+		explode duct2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fan2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

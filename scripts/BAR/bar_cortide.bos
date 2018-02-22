@@ -137,33 +137,33 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode frame type BITMAPONLY;
-		explode wheel type BITMAPONLY;
-		explode wheel2 type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode frame type BITMAPONLY | NOHEATCLOUD;
+		explode wheel type BITMAPONLY | NOHEATCLOUD;
+		explode wheel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode wheel type FALL;
-		explode wheel2 type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode wheel type FALL | NOHEATCLOUD;
+		explode wheel2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode frame type BITMAPONLY;
-		explode wheel type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode wheel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode frame type BITMAPONLY | NOHEATCLOUD;
+		explode wheel type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode wheel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode frame type EXPLODE_ON_HIT | FIRE | FALL;
-		explode wheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode wheel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode frame type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode wheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode wheel2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

@@ -184,26 +184,26 @@ function script.Killed(recentDamage, maxHealth)
 	local severity = recentDamage/maxHealth
 	local parts={ lfleg, rfleg, lbleg, rbleg ,lffoot, rffoot, lbfoot, rbfoot,flakgun, barrel1, barrel2, barrel3, barrel4, flare1, flare2, flare3, flare4}
 	if severity <= .25  then
-		Explode(pelvis, sfxNone)
+		Explode(pelvis, sfxNone + SFX.NO_HEATCLOUD)
 		
 		return 1
 	elseif (severity <= .50 ) then
-		Explode(pelvis, sfxNone)
+		Explode(pelvis, sfxNone + SFX.NO_HEATCLOUD)
 		
 		for i=1, #parts do
-			Explode(parts[i], sfxFall + sfxSmoke + sfxFire + sfxExplode)
+			Explode(parts[i], sfxFall + sfxSmoke + sfxExplode + SFX.NO_HEATCLOUD)
 		end
 		return 1
 	elseif (severity <= .99 ) then
 		Explode(pelvis, sfxShatter)		
 		for i=1, #parts do
-			Explode(parts[i], sfxFall + sfxSmoke + sfxFire + sfxExplode)
+			Explode(parts[i], sfxFall + sfxSmoke + sfxExplode + SFX.NO_HEATCLOUD)
 		end
 		return 2
 	else
 		Explode(pelvis, sfxShatter)
 		for i=1, #parts do
-			Explode(parts[i], sfxFall + sfxSmoke + sfxFire + sfxExplode)
+			Explode(parts[i], sfxFall + sfxSmoke + sfxExplode + SFX.NO_HEATCLOUD)
 		end
 		return 3
 	end

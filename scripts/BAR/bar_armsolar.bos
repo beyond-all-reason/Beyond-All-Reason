@@ -172,38 +172,38 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode dish4 type FIRE | SMOKE | FALL;
-		explode dish1 type BITMAPONLY;
-		explode dish2 type BITMAPONLY;
-		explode dish3 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish1 type BITMAPONLY | NOHEATCLOUD;
+		explode dish2 type BITMAPONLY | NOHEATCLOUD;
+		explode dish3 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode dish4 type FIRE | SMOKE | FALL;
-		explode dish1 type FIRE | SMOKE | FALL;
-		explode dish2 type FIRE | SMOKE | FALL;
-		explode dish3 type FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish4 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish3 type FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode dish4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode dish1 type FIRE | SMOKE | FALL;
-		explode dish2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode dish3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish3 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode dish4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode dish1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode dish2 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode dish3 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode dish4 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode dish2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode dish3 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

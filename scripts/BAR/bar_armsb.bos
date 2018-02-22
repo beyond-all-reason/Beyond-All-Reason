@@ -152,46 +152,46 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode doorr type FIRE | SMOKE | FALL;
-		explode doorl type BITMAPONLY;
-		explode thrusta type BITMAPONLY;
-		explode thrustb type BITMAPONLY;
-		explode thrustc type BITMAPONLY;
-		explode drop type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode thrustc type BITMAPONLY | NOHEATCLOUD;
+		explode drop type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode doorr type FIRE | SMOKE | FALL;
-		explode doorl type FALL;
-		explode thrusta type FIRE | SMOKE | FALL;
-		explode thrustb type FIRE | SMOKE | FALL;
-		explode thrustc type FALL;
-		explode drop type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorr type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type FALL | NOHEATCLOUD;
+		explode thrusta type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustc type FALL | NOHEATCLOUD;
+		explode drop type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode doorl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrusta type FIRE | SMOKE | FALL;
-		explode thrustb type SMOKE | FALL;
-		explode thrustc type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type SMOKE | FALL | NOHEATCLOUD;
+		explode thrustc type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode doorl type EXPLODE_ON_HIT | FIRE | FALL;
-		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL;
-		explode thrustc type EXPLODE_ON_HIT | FIRE | FALL;
-		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode doorr type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode doorl type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrustc type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode drop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

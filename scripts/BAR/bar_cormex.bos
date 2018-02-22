@@ -123,25 +123,25 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode stand type FIRE | SMOKE | FALL;
-		explode base type BITMAPONLY;
+		explode stand type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode stand type FIRE | SMOKE | FALL;
+		explode stand type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode stand type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode base type BITMAPONLY;
+		explode stand type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode stand type EXPLODE_ON_HIT | FIRE | FALL;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
+		explode stand type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

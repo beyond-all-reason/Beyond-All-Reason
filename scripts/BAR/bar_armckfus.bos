@@ -121,38 +121,38 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode ball1 type BITMAPONLY;
-		explode collar1 type FIRE | SMOKE | FALL;
-		explode ball2 type BITMAPONLY;
-		explode collar2 type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ball1 type BITMAPONLY | NOHEATCLOUD;
+		explode collar1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ball2 type BITMAPONLY | NOHEATCLOUD;
+		explode collar2 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode ball1 type FIRE | SMOKE | FALL;
-		explode collar1 type FIRE | SMOKE | FALL;
-		explode ball2 type FIRE | SMOKE | FALL;
-		explode collar2 type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ball1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode collar1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ball2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode collar2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode ball1 type FIRE | SMOKE | FALL;
-		explode collar1 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode ball2 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode collar2 type SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ball1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode collar1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode ball2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode collar2 type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type BITMAPONLY;
-		explode ball1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode collar1 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode ball2 type EXPLODE_ON_HIT | FIRE | FALL;
-		explode collar2 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode ball1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode collar1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode ball2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode collar2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

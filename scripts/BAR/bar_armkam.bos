@@ -138,58 +138,58 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode base type BITMAPONLY;
-		explode rfin type FIRE | SMOKE | FALL;
-		explode engines type BITMAPONLY;
-		explode thrustb type BITMAPONLY;
-		explode thrusta type BITMAPONLY;
-		explode rturret type BITMAPONLY;
-		explode rflare type BITMAPONLY;
-		explode lfin type BITMAPONLY;
-		explode lturret type BITMAPONLY;
-		explode lflare type BITMAPONLY;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode engines type BITMAPONLY | NOHEATCLOUD;
+		explode thrustb type BITMAPONLY | NOHEATCLOUD;
+		explode thrusta type BITMAPONLY | NOHEATCLOUD;
+		explode rturret type BITMAPONLY | NOHEATCLOUD;
+		explode rflare type BITMAPONLY | NOHEATCLOUD;
+		explode lfin type BITMAPONLY | NOHEATCLOUD;
+		explode lturret type BITMAPONLY | NOHEATCLOUD;
+		explode lflare type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode base type BITMAPONLY;
-		explode rfin type FIRE | SMOKE | FALL;
-		explode engines type FIRE | SMOKE | FALL;
-		explode thrustb type FIRE | SMOKE | FALL;
-		explode thrusta type FIRE | SMOKE | FALL;
-		explode rturret type FIRE | SMOKE | FALL;
-		explode rflare type FALL;
-		explode lfin type FIRE | SMOKE | FALL;
-		explode lturret type FIRE | SMOKE | FALL;
-		explode lflare type FIRE | SMOKE | FALL;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode rfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode engines type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rflare type FALL | NOHEATCLOUD;
+		explode lfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lturret type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode base type FIRE | SMOKE | FALL;
-		explode rfin type FIRE | SMOKE | FALL;
-		explode engines type SMOKE | FALL;
-		explode thrustb type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rflare type FIRE | SMOKE | FALL;
-		explode lfin type FIRE | SMOKE | FALL;
-		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lflare type EXPLODE_ON_HIT | SMOKE | FALL;
+		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode engines type SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rflare type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lturret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lflare type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode engines type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL;
-		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode rturret type EXPLODE_ON_HIT | FIRE | FALL;
-		explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode lfin type EXPLODE_ON_HIT | FIRE | FALL;
-		explode lturret type EXPLODE_ON_HIT | FIRE | FALL;
-		explode lflare type EXPLODE_ON_HIT | FIRE | FALL;
+		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rfin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode engines type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode thrustb type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode thrusta type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rflare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lfin type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lturret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lflare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

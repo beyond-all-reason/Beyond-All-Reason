@@ -79,38 +79,38 @@ function script.Killed(recentDamage, maxHealth)
 	if (severity <= 25) then
 		if (not is_open) then corpsetype = 1; end
 		if (is_open) then corpsetype = 2; end
-		UnitScript.Explode(base, SFX.NONE);
-		UnitScript.Explode(door1, SFX.NONE);
-		UnitScript.Explode(door2, SFX.NONE);
-		UnitScript.Explode(turret, SFX.NONE);
-		UnitScript.Explode(flare, SFX.NONE);
+		UnitScript.Explode(base,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(door1,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(door2,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(turret,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(flare,SFX.NONE + SFX.NO_HEATCLOUD);
 		return corpsetype;
 	end
 	if (severity <= 50) then
 		if (not is_open) then corpsetype = 2; end
 		if (is_open) then corpsetype = 3; end
-		UnitScript.Explode(base, SFX.NONE);
-		UnitScript.Explode(door1, SFX.NONE);
-		UnitScript.Explode(door2, SFX.NONE);
-		UnitScript.Explode(turret, SFX.NONE);
-		UnitScript.Explode(flare, SFX.NONE);
+		UnitScript.Explode(base,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(door1,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(door2,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(turret,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(flare,SFX.NONE + SFX.NO_HEATCLOUD);
 		return corpsetype;
 	end
 	if (severity <= 99) then
 		if (not is_open) then corpsetype = 3; end
 		if (is_open) then corpsetype = 3; end
-		UnitScript.Explode(base, SFX.NONE);
-		UnitScript.Explode(door1, SFX.NONE);
-		UnitScript.Explode(door2, SFX.NONE);
-		UnitScript.Explode(turret, SFX.NONE);
-		UnitScript.Explode(flare, SFX.NONE);
+		UnitScript.Explode(base,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(door1,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(door2,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(turret,SFX.NONE + SFX.NO_HEATCLOUD);
+		UnitScript.Explode(flare,SFX.NONE + SFX.NO_HEATCLOUD);
 		return corpsetype;
 	end
 	corpsetype = 3;
-	UnitScript.Explode(base, SFX.NONE);
-	UnitScript.Explode(door1, SFX.NONE);
-	UnitScript.Explode(door2, SFX.NONE);
-	UnitScript.Explode(turret, SFX.NONE);
-	UnitScript.Explode(flare, SFX.NONE);
+	UnitScript.Explode(base,SFX.NONE + SFX.NO_HEATCLOUD);
+	UnitScript.Explode(door1,SFX.NONE + SFX.NO_HEATCLOUD);
+	UnitScript.Explode(door2,SFX.NONE + SFX.NO_HEATCLOUD);
+	UnitScript.Explode(turret,SFX.NONE + SFX.NO_HEATCLOUD);
+	UnitScript.Explode(flare,SFX.NONE + SFX.NO_HEATCLOUD);
 	return corpsetype;
 end

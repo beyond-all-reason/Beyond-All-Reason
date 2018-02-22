@@ -153,33 +153,33 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
-		explode ground type BITMAPONLY;
-		explode base type BITMAPONLY;
-		explode fork2 type FIRE | SMOKE | FALL;
-		explode fork1 type BITMAPONLY;
+		explode ground type BITMAPONLY | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fork2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fork1 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
-		explode ground type FIRE | SMOKE | FALL;
-		explode fork2 type FALL;
-		explode fork1 type FIRE | SMOKE | FALL;
+		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fork2 type FALL | NOHEATCLOUD;
+		explode fork1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
-		explode ground type FIRE | SMOKE | FALL;
-		explode base type BITMAPONLY;
-		explode fork2 type EXPLODE_ON_HIT | SMOKE | FALL;
-		explode fork1 type FIRE | SMOKE | FALL;
+		explode ground type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type BITMAPONLY | NOHEATCLOUD;
+		explode fork2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode fork1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
-		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode base type EXPLODE_ON_HIT | FIRE | FALL;
-		explode fork2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL;
-		explode fork1 type EXPLODE_ON_HIT | FIRE | FALL;
+		explode ground type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode base type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode fork2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fork1 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
