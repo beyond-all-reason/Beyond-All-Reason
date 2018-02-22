@@ -346,7 +346,7 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 					alpha = 0.25,
 					energyuse = 0,
 					force = 2.5,
-					intercepttype = 511,
+					intercepttype = 479,
 					power = 1000,
 					powerregen = 20,
 					powerregenenergy = 0,

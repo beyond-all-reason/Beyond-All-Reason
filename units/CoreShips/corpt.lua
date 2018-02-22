@@ -191,9 +191,9 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 30,
-					fighters = 30,
-					vtol = 30,
+					bombers = 45,
+					fighters = 45,
+					vtol = 45,
 				},
 				customparams = {
 					light_skip = true,		-- used by light_effects widget

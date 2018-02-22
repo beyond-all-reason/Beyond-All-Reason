@@ -10,6 +10,8 @@ Balance changes:
  • Footprints adjusted: armfus 7x4->6x5, armvp 8x6->7x6, corvp 7x7->7x6
  • Increased Gimp's torpedos max speed 30% and acceleration 400%
  • Arm/Core destroyers: Increased default depthcharge damages +25% and decreased damages vs subs -10%
+ • Arm/Core Support Frigates: Disabled AA, enabled surface units targetting. Damages vs subs: 216 (vs 240) and damages vs default and commander: 100 (vs 140)
+ • Arm/Core patrol boats: buffed range (450 -> 700) and damages (+50%) as they now become the only t1 aa ship available.
  • Reduced Comblast Edgeeffectiveness from 0.40->0.317 Does 3.5k damage to commanders at dgunRange (was 3.850k)
 
 Unbalanced Commanders (when mo_unba is enabled):
@@ -17,6 +19,7 @@ Unbalanced Commanders (when mo_unba is enabled):
  • Laser reloadTime reduced by 0.025 at each level, capped at 0.2 (0.4->0.2)
  • UWLaser reloadTime reduced by 0.05 at each level, capped at 0.5 (1.0->0.5)
  • Commander BuildSpeed increased by 50 at each level until level 7, then increased by 100 (300->1000)
+ • Commander Shield wont block torpedos anymore
 
 Other:
  • Added widget: Fancy Selected Units (options widget has various options for it)
@@ -37,6 +40,7 @@ Other:
  • Flak and mercury/screamer projectile explosions are visually bigger
  • Vehicle minimap/overview icon adjusted to match kbots icon design 
  • Trees wave in the wind and fall when they die due to damage (only centain tree types)
+ • Added a test option "seamex": underwater|surface (default underwater)
 
 
 10.04 -> 10.05
