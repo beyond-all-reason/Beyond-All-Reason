@@ -33,7 +33,7 @@ local tips = {
 	"Queue-up multiple consecutive unit actions by holding SHIFT.",
 	"Tweak graphic preferences in options (top right corner of the screen).\nWhen your FPS drops, switch to a lower graphic preset.",
 	"Radars are cheap. Make them early in the game to effectively counter initial strikes.",
-	"To see detailed info about each unit in-game switch on \"Extensive unit info\"",
+	"To see detailed info about each unit in-game switch on \"Extensive unit info\" via Options menu",
 	"In general, vehicles are a good choice for flat and open battlefields. Kbots are better on hills.",
 	"For wind generators to be worth building, the average wind speed should be over 7. Current, minimum, and maximum wind speeds are shown to the right of the energy bar.",
 	"If your economy is based on wind generators, always build an E storage to have a reserve for when the wind speed drops.",
@@ -41,8 +41,8 @@ local tips = {
 	"Spread buildings to prevent chain explosions.\nPress ALT+Z and ALT+X to adjust auto-spacing.",
 	"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
 	"Artillery vehicles can move in reverse if you put waypoints close to their backs. Use this to keep shooting during a retreat.",
-	"T2 factories are expensive. Reclaim you T1 lab for metal to fund it",
-	"Air strikes and airdrops may come anytime in the game, always have at least one anti-air unit in your base.",
+	"T2 factories are expensive. Reclaim your T1 lab for metal to fund it",
+	"Air strikes and airdrops may come at any time, always have at least one anti-air unit in your base.",
 	"With ~(tilde)+doubleclick you can place a label with text on the map.\n~(tilde)+middle mouse button for an empty label.\n~(tilde)+mouse drag to draw lines",
 	"Always check your Com-counter (next to resource bars). If you have the last Commander you better hide it quick!",
 	"Expanding territory is essential for gaining economic advantage.\nTry to secure as many metal spots and geothermal vents as you can.",
@@ -68,10 +68,11 @@ local tips = {
 	"You can disable enemy's anti-nukes using EMP missiles (built by ARM T2 cons).",
 	"Don't build too much stuff around your Moho-geothermal powerplants or everything will go boom!",
 	"Build long range anti-air on an extended front line to slowly dismantle enemy's fighter-wall.",
-	"Your commander's Dgun can be used for insta-killing T3 units. Don't forget to CLOAK first.\nFor quickly cloaking press C.",
+	"Your commander's Dgun can be used for insta-killing T3 units. Don't forget to CLOAK first.\nFor quickly cloaking press K.",
 	"If you are certain of losing some unit in enemy territory, self-destruct it to prevent him from getting the metal. \nPress CTRL+D to initiate the self-destruct countdown.",
 	"Mines are super-cheap and quick to build. Remember to make them away from enemy's line of sight.",
 	"Enemy's mines, radars, and jammers may be disabled using the Juno - built by both factions with T1 constructors.",
+    "Use Alt+0-9 sets autogroup# for selected unit type(s). Newly built units get added to group# equal to their autogroup#. Alt BACKQUOTE (~) remove units.",
 }
 
 -- Random unit descriptions we can show

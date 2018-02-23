@@ -1,0 +1,14 @@
+hotspot topleft
+frame  anims/cursorpatrol_0.png  0.1
+frame  anims/cursorpatrol_1.png  0.1
+frame  anims/cursorpatrol_2.png  0.1
+frame  anims/cursorpatrol_3.png  0.1
+frame  anims/cursorpatrol_4.png  0.1
+frame  anims/cursorpatrol_5.png  0.1
+frame  anims/cursorpatrol_6.png  0.1
+frame  anims/cursorpatrol_7.png  0.1
+frame  anims/cursorpatrol_8.png  0.1
+frame  anims/cursorpatrol_9.png  0.1
+frame  anims/cursorpatrol_10.png  0.1
+frame  anims/cursorpatrol_11.png  0.1
+frame  anims/cursorpatrol_12.png  0.2

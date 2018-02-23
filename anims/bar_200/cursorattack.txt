@@ -1,0 +1,20 @@
+hotspot center
+frame  anims/cursorattack_0.png  0.4
+frame  anims/cursorattack_1.png  0.05
+frame  anims/cursorattack_2.png  0.05
+frame  anims/cursorattack_3.png  0.05
+frame  anims/cursorattack_4.png  0.05
+frame  anims/cursorattack_5.png  0.05
+frame  anims/cursorattack_6.png  0.05
+frame  anims/cursorattack_7.png  0.05
+frame  anims/cursorattack_8.png  0.05
+frame  anims/cursorattack_9.png  0.05
+frame  anims/cursorattack_10.png  0.05
+frame  anims//cursorattack_11.png  0.05
+frame  anims/cursorattack_12.png  0.05
+frame  anims/cursorattack_13.png  0.05
+frame  anims/cursorattack_14.png  0.05
+frame  anims/cursorattack_15.png  0.05
+frame  anims/cursorattack_16.png  0.05
+frame  anims/cursorattack_17.png  0.05
+frame  anims/cursorattack_18.png  0.05
