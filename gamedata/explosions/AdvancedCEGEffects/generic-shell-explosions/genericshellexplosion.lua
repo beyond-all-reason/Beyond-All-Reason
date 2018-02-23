@@ -2422,7 +2422,7 @@ end
 -- adjust ceg used for flak
 definitions[root.."-large-aa"].explosion.properties.particlesize = definitions[root.."-large-aa"].explosion.properties.particlesize * 0.5
 definitions[root.."-large-aa"].explosion.properties.numparticles = math.floor(definitions[root.."-large-aa"].explosion.properties.numparticles * 0.5)
-definitions[root.."-large-aa"].explosion2.properties.particlesize2 = definitions[root.."-large-aa"].explosion2.properties.particlesize * 0.5
+definitions[root.."-large-aa"].explosion2.properties.particlesize = definitions[root.."-large-aa"].explosion2.properties.particlesize * 0.5
 definitions[root.."-large-aa"].explosion2.properties.numparticles = math.floor(definitions[root.."-large-aa"].explosion2.properties.numparticles * 0.5)
 definitions[root.."-small-aa"].sparks = nil
 definitions[root.."-medium-aa"].sparks = nil

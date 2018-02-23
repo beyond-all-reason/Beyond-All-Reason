@@ -41,7 +41,7 @@ Other:
  • Flak and mercury/screamer projectile explosions are visually bigger
  • Vehicle minimap/overview icon adjusted to match kbots icon design 
  • Trees wave in the wind and fall when they die due to damage (only centain tree types)
- • Included barmodels modoption (default disabled) Remodelled Units!
+ • Included barmodels modoption (default disabled) Remodeled Units!
 
 
 10.04 -> 10.05
