@@ -1,5 +1,5 @@
 ﻿10.05 -> 10.06
-99/99/2018
+23/02/2018
 
 Balance changes: 
  • Bantha speed reduced 8%, harder to paralyze 30%
@@ -13,11 +13,12 @@ Balance changes:
  • Arm/Core Support Frigates: Disabled AA, enabled surface units targetting. Damages vs subs: 216 (vs 240) and damages vs default and commander: 100 (vs 140)
  • Arm/Core patrol boats: buffed range (450 -> 700) and damages (+50%) as they now become the only t1 aa ship available.
  • Reduced Comblast Edgeeffectiveness from 0.40->0.317 Does 3.5k damage to commanders at dgunRange (was 3.850k)
+ • Added a test option "seamex": underwater|surface (default underwater)
 
 Unbalanced Commanders (when mo_unba is enabled):
  • Dgun reloadTime reduced by 0.025s at each level (0.9->0.65)
- • Laser reloadTime reduced by 0.025 at each level, capped at 0.2 (0.4->0.2)
- • UWLaser reloadTime reduced by 0.05 at each level, capped at 0.5 (1.0->0.5)
+ • Laser reloadTime reduced by 0.025 at each level, capped at 0.2 (was 0.4)
+ • UWLaser reloadTime reduced by 0.05 at each level, capped at 0.5 (was 1)
  • Commander BuildSpeed increased by 50 at each level until level 7, then increased by 100 (300->1000)
  • Commander Shield wont block torpedos anymore
 
@@ -35,12 +36,12 @@ Other:
  • Added "Scroll inversed" toggle to options widget
  • Loadscreen shows tips, unitinfo and quotes
  • Ignore Ships vs Shipyard colisions when finished for 15 seconds: No more rotation when exiting lab.
- • More "RockOnWaves" animations to t1 sea floating buildings (tidals/floating makers/dragonteeth)
+ • More "RockOnWaves" animations to t1 sea floating buildings (tidals/metalmakers/dragonteeth)
  • Fixed Air mesh not refreshing when map_waterlevel is used.
  • Flak and mercury/screamer projectile explosions are visually bigger
  • Vehicle minimap/overview icon adjusted to match kbots icon design 
  • Trees wave in the wind and fall when they die due to damage (only centain tree types)
- • Added a test option "seamex": underwater|surface (default underwater)
+ • Included barmodels modoption (default disabled) Remodelled Units!
 
 
 10.04 -> 10.05
