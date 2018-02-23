@@ -105,12 +105,12 @@ local unit_descs = {
 	"corfav.dds "..titleColor.."Weasel (CORE T1 Vehicle)\n"..contentColor.."Cheap and very fast unit used for scouting and early strikes. Evade laser towers and destroy metal extractors to slow down your foe's expansion.",
 	"corgarp.dds "..titleColor.."Garpike (CORE T1 Amphibious Vehicle)\n"..contentColor.."Light amphibious tank which can travel on land and underwater. Weaker than most tanks. Avoid direct fire exchange and try to surprise enemies by destroying undefended targets near the shoreline.",
 	"corgator.dds "..titleColor.."Instigator (CORE T1 Vehicle)\n"..contentColor.."Fight, fast moving tank armed with a precise laser weapon. Slower than its ARM counterpart - Flash, but it has a greater range, so always try to keep the distance.",
-	"corlevlr.dds "..titlecolor.."Leveler (CORE T1 Vehicle) \n"..contentColor.."Powerful tank armed with an impulse weapon that deals AoE damage and repels light units. It makes it highly effective against swarms of peewees, flashes etc.",
-	"cormist.dds "..titlecolor.."Slasher (CORE T1 Vehicle)\n"..contentColor.."Long-range light missile truck. Able to outrange most T1 defensive units. They can also serve as basic anti-air defense. Very ineffective in close combat.",
-	"cormlv.dds "..titlecolor.."Spoiler (CORE T1 Vehicle)\n"..contentColor.."Stealthy mine-layer and minesweeper. Use the attack command to clear mines in an area. REMEMBER that mines use energy to remain cloaked!",
-	"cormuskrat.dds "..titlecolor.."Muskrat (CORE T1 Amphibious Vehicle)\n"..contentColor.."Construction vehicle, which can travel on land and underwater. Builds basic defenses and economy for both land and sea. Useful for expansion in water when you don't have ships.",
-	"corraid.dds "..titlecolor.."Raider (CORE T1 Vehicle)\n"..contentColor.."A general purpose assault tank. Thanks to good armor, it works great as a brute-force skirmish unit.",
-	"corwolv.dds "..titlecolor.."Wolverine (CORE T1 Vehicle)\n"..contentColor.."The Wolverine is an artillery vehicle used to take down T1 defenses, especially Heavy Laser Turrets. Helpless in close quarters combat.",
+	"corlevlr.dds "..titleColor.."Leveler (CORE T1 Vehicle) \n"..contentColor.."Powerful tank armed with an impulse weapon that deals AoE damage and repels light units. It makes it highly effective against swarms of peewees, flashes etc.",
+	"cormist.dds "..titleColor.."Slasher (CORE T1 Vehicle)\n"..contentColor.."Long-range light missile truck. Able to outrange most T1 defensive units. They can also serve as basic anti-air defense. Very ineffective in close combat.",
+	"cormlv.dds "..titleColor.."Spoiler (CORE T1 Vehicle)\n"..contentColor.."Stealthy mine-layer and minesweeper. Use the attack command to clear mines in an area. REMEMBER that mines use energy to remain cloaked!",
+	"cormuskrat.dds "..titleColor.."Muskrat (CORE T1 Amphibious Vehicle)\n"..contentColor.."Construction vehicle, which can travel on land and underwater. Builds basic defenses and economy for both land and sea. Useful for expansion in water when you don't have ships.",
+	"corraid.dds "..titleColor.."Raider (CORE T1 Vehicle)\n"..contentColor.."A general purpose assault tank. Thanks to good armor, it works great as a brute-force skirmish unit.",
+	"corwolv.dds "..titleColor.."Wolverine (CORE T1 Vehicle)\n"..contentColor.."The Wolverine is an artillery vehicle used to take down T1 defenses, especially Heavy Laser Turrets. Helpless in close quarters combat.",
 	"armatlas.dds "..titleColor.."Atlas ARM T1 Aircraft\n"..contentColor.."Transportation unit. It can pick up all T1 land based units and smaller T2 units. Cannot load units like the Fatboy or Goliath. Can be used for transporting nano turrets too.",
 	"armca.dds "..titleColor.."Construction Aircraft (ARM T1)\n"..contentColor.."Can make basic T1 defences, economy structures and most importantly the T2 Aircraft Plant. Useful for building and reclaiming in remote areas.",
 	"armfig.dds "..titleColor.."Freedom Fighter (ARM T1 Aircraft)\n"..contentColor.."A fighter jet that is designed for eliminating aircraft. Always put your fighters on patrol in front of your base, so they attack any incoming aircraft.",
@@ -320,29 +320,31 @@ function addon.DrawLoadScreen()
 
 	gl.Color(0,0,0,0.75)
 	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.007)
-	
-	-- loadvalue
-	gl.Color(0.4-(loadProgress/7),loadProgress*0.4,0,0.4)
-	RectRound(0.2,yPos-0.05,loadvalue,yPos,0.0055)
-	
-	-- loadvalue gradient
-	gl.Texture(false)
-	gl.BeginEnd(GL.QUADS, gradienth, 0.2,yPos-0.05,loadvalue,yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
-	
-	-- loadvalue inner glow
-	gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.085)
-	gl.Texture(":n:luaui/Images/barglow-center.dds")
-	gl.TexRect(0.2,yPos-0.05,loadvalue,yPos)
-	
-	-- loadvalue glow
-	local glowSize = 0.045
-	gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.07)
-	gl.Texture(":n:luaui/Images/barglow-center.dds")
-	gl.TexRect(0.2,	yPos-0.05-glowSize,	loadvalue,	yPos+glowSize)
-	
-	gl.Texture(":n:luaui/Images/barglow-edge.dds")
-	gl.TexRect(0.2-(glowSize*1.3), yPos-0.05-glowSize, 0.2, yPos+glowSize)
-	gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.05-glowSize, loadvalue, yPos+glowSize)
+
+    if loadvalue > 0.215 then
+	    -- loadvalue
+        gl.Color(0.4-(loadProgress/7),loadProgress*0.4,0,0.4)
+        RectRound(0.2,yPos-0.05,loadvalue,yPos,0.0055)
+
+        -- loadvalue gradient
+        gl.Texture(false)
+        gl.BeginEnd(GL.QUADS, gradienth, 0.2,yPos-0.05,loadvalue,yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
+
+        -- loadvalue inner glow
+        gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.085)
+        gl.Texture(":n:luaui/Images/barglow-center.dds")
+        gl.TexRect(0.2,yPos-0.05,loadvalue,yPos)
+
+        -- loadvalue glow
+        local glowSize = 0.045
+        gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.07)
+        gl.Texture(":n:luaui/Images/barglow-center.dds")
+        gl.TexRect(0.2,	yPos-0.05-glowSize,	loadvalue,	yPos+glowSize)
+
+        gl.Texture(":n:luaui/Images/barglow-edge.dds")
+        gl.TexRect(0.2-(glowSize*1.3), yPos-0.05-glowSize, 0.2, yPos+glowSize)
+        gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.05-glowSize, loadvalue, yPos+glowSize)
+    end
 
 	-- progressbar text
 	gl.PushMatrix()
@@ -355,7 +357,7 @@ function addon.DrawLoadScreen()
 		if loadProgress>0 then
 			font:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.0325), barTextSize, "oc")
 		else
-			font:Print("Loading...", vsx * 0.5, vsy * (yPos+0.015), barTextSize, "oc")
+			font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.031), barTextSize, "oc")
 		end
 	gl.PopMatrix()
 
