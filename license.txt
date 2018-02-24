@@ -1,4 +1,5 @@
-All contents are under the CC-BY-NC-SA 4.0 license, unless otherwise marked in the content file. 
+All contents are under the CC-BY-NC-SA 4.0 license, unless otherwise marked in the content file.  (Most LUA falls under GPL, for example).
+
 
 BAR models are copyrighted to Peter Sarkozy <mysterme@gmail.com>
 
