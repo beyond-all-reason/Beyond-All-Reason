@@ -1,14 +1,13 @@
 -- Default Spring Treedef
 
+--(map_tree_replacer will replace these, but with various size and rotation)
+
+local treeDefs = {}
 
 
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
     local DRAWTYPE = { NONE = -1, MODEL = 0, TREE = 1 }
 
-    local treeDefs = {}
-
-    local randomTrees = {'LowpolyPineTrees/pinetree1-pine.s3o','LowpolyPineTrees/pinetree2-pine.s3o','LowpolyPineTrees/pinetree3-pine.s3o'}
-    local numRandomTrees = table.getn(randomTrees)
     local function CreateTreeDef(type)
       treeDefs["treetype" .. type] = {
          name 		 = "tree",
@@ -22,7 +21,7 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
 
          damage      = 5,
          metal = 0,
-         object	= randomTrees[3], --math.random() doesnt seem to work
+         object	= 'LowpolyPineTrees/pinetree3-pine.s3o', --math.random() doesnt seem to work
 
          reclaimTime = 25,
          mass        = 5,
@@ -43,12 +42,5 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
       CreateTreeDef(i)
     end
 
-    --------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------
-
-    return lowerkeys( treeDefs )
-
-    --------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------
-
-end
+--end
+return lowerkeys( treeDefs )
