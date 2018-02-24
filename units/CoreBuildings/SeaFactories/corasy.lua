@@ -56,6 +56,8 @@ return {
 			"corsjam",
 		},
 		customparams = {
+			bar_collisionvolumeoffsets = "0 10 -2",
+			bar_collisionvolumescales = "186 78 183",
 			techlevel = 2,
 		},
 		featuredefs = {

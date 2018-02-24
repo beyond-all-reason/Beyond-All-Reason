@@ -30,7 +30,9 @@ return {
 		sightdistance = 550,
 		waterline = 0.3,
 		yardmap = "wwwwwwwww",
-		customparams = {
+		customparams = {,
+			bar_collisionvolumeoffsets = "0 -10 0",
+			bar_collisionvolumescales = "42 64 42",
 			techlevel = 2,
 			removewait = true,
 		},

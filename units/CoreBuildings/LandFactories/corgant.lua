@@ -50,6 +50,8 @@ return {
 			[6] = "corsok",
 		},
 		customparams = {
+			bar_buildinggrounddecalsizex = 10,
+			bar_buildinggrounddecalsizey = 10,
 			techlevel = 3,
 		},
 		featuredefs = {

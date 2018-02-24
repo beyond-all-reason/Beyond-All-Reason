@@ -54,7 +54,11 @@ return {
 			[10] = "armsam",
 		},
 		customparams = {
-			
+			bar_buildinggrounddecalsizex = 8,
+			bar_buildinggrounddecalsizey = 8,
+			bar_footprintx = 6,
+			bar_footprintz = 7,
+			bar_yardmap = "oooooooooooooooooooooooooccccooccccoocccco",
 		},
 		featuredefs = {
 			dead = {

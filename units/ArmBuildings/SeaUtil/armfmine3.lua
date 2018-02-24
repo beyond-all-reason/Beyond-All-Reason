@@ -41,6 +41,8 @@ return {
 		stealth = true,
 		waterline = 1,
 		customparams = {
+			bar_collisionvolumescales = "18 5 18",
+			bar_yardmap = "w",
 			removewait = true,
 			removestop = true,
 			detonaterange = "64",

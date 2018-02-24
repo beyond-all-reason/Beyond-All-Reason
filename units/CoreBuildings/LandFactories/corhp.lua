@@ -49,7 +49,8 @@ return {
 			[7] = "corthovr",
 		},
 		customparams = {
-			
+			bar_buildinggrounddecalsizex = 9,
+			bar_buildinggrounddecalsizey = 8,
 		},
 		featuredefs = {
 			dead = {

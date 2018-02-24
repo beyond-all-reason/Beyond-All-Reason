@@ -52,6 +52,10 @@ return {
 			[10] = "armliche",
 		},
 		customparams = {
+			bar_buildinggrounddecalsizex = 9,
+			bar_buildinggrounddecalsizey = 7,
+			bar_collisionvolumeoffsets = "-8 4 0",
+			bar_collisionvolumescales = "130 70 70",
 			techlevel = 2,
 		},
 		featuredefs = {

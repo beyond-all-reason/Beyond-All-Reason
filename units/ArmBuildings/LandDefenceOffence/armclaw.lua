@@ -40,6 +40,9 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
+			bar_collisionvolumeoffsets = "0 -24 0",
+			bar_collisionvolumescales = "30 51 30",
+			bar_collisionvolumetype = "Ell",
 			removewait = true,
 		},
 		featuredefs = {

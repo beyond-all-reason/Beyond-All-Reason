@@ -52,7 +52,10 @@ return {
 			[8] = "armflea",
 		},
 		customparams = {
-
+			bar_buildinggrounddecalsizex = 7,
+			bar_buildinggrounddecalsizey = 7,
+			bar_collisionvolumescales = "95 22 95",
+			bar_yardmap = "oooooooooooooooooocccccccccccccccccc",
 		},
 		featuredefs = {
 			dead = {

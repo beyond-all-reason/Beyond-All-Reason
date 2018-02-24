@@ -50,6 +50,10 @@ return {
 			[8] = "corcrw",
 		},
 		customparams = {
+			bar_buildinggrounddecalsizex = 9,
+			bar_buildinggrounddecalsizey = 7,
+			bar_collisionvolumeoffsets = "0 10 -2",
+			bar_collisionvolumescales = "113 43 89",
 			techlevel = 2,
 		},
 		featuredefs = {

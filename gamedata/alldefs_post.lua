@@ -97,6 +97,17 @@ function UnitDef_Post(name, uDef)
 					uDef.customparams.normaltex = "unittextures/chicken_normal.tga"
 				end
 			end
+
+			for paramName, paramValue in pairs(uDef.customparams) do
+				if paramName:sub(1,4) == "bar_" then
+					local param = string.sub(paramName, 5)
+					if tonumber(param) then
+						uDef[param] = tonumber(paramValue)
+					else
+						uDef[param] = paramValue
+					end
+				end
+			end
 		end
 	end
 

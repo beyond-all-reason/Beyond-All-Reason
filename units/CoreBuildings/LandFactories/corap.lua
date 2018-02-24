@@ -51,7 +51,8 @@ return {
 			[6] = "corbw",
 		},
 		customparams = {
-			
+			bar_buildinggrounddecalsizex = 9,
+			bar_buildinggrounddecalsizey = 7,
 		},
 		featuredefs = {
 			dead = {

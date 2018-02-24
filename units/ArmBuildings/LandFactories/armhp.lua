@@ -48,7 +48,9 @@ return {
 			[6] = "armthovr",
 		},
 		customparams = {
-			
+			bar_buildinggrounddecalsizex = 9,
+			bar_buildinggrounddecalsizey = 8,
+			bar_collisionvolumescales = "100 40 90",
 		},
 		featuredefs = {
 			dead = {

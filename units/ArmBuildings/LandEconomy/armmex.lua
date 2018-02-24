@@ -41,6 +41,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			bar_collisionvolumescales = "48 80 48",
 			cvBuildable = true,
 			metal_extractor = 1,
 			removewait = true,

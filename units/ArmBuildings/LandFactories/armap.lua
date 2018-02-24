@@ -50,7 +50,13 @@ return {
 			[6] = "armkam",
 		},
 		customparams = {
-			
+			bar_buildinggrounddecalsizex = 10,
+			bar_buildinggrounddecalsizey = 7,
+			bar_collisionvolumeoffsets = "0 8 1",
+			bar_collisionvolumescales = "134 49 82",
+			bar_yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
+			bar_footprintx = 9,
+			bar_footprintz = 6,
 		},
 		featuredefs = {
 			dead = {

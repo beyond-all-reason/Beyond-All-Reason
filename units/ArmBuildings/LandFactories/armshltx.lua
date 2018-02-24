@@ -47,6 +47,8 @@ return {
 			[5] = "armlun",
 		},
 		customparams = {
+			bar_collisionvolumescales = "137 58 145",
+			bar_yardmap = "ooooooooooooooooooooooooooooooooooooooooooooocccccccccccccccccccccccccccccccccccc",
 			techlevel = 3,
 		},
 		featuredefs = {

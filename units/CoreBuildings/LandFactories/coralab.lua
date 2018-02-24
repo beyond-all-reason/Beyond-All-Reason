@@ -61,6 +61,8 @@ return {
 			[17] = "cormando",
 		},
 		customparams = {
+			bar_buildinggrounddecalsizex = 8,
+			bar_buildinggrounddecalsizey = 7,
 			techlevel = 2,
 		},
 		featuredefs = {
