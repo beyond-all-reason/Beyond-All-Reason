@@ -294,11 +294,39 @@ function gradienth(px,py,sx,sy, c1,c2)
 	gl.Vertex(px, sy, 0)
 end
 
+
+local lastLoadMessage = ""
+local lastProgress = {0, 0}
+
+local progressByLastLine = {
+	["Parsing Map Information"] = {0, 20},
+	["Loading Weapon Definitions"] = {10, 50},
+	["Loading LuaRules"] = {40, 80},
+	["Loading LuaUI"] = {70, 95},
+	["Finalizing"] = {100, 100}
+}
+for name,val in pairs(progressByLastLine) do
+	progressByLastLine[name] = {val[1]*0.01, val[2]*0.01}
+end
+
+function addon.LoadProgress(message, replaceLastLine)
+	lastLoadMessage = message
+	if message:find("Path") then -- pathing has no rigid messages so cant use the table
+		lastProgress = {0.8, 1.0}
+	end
+	lastProgress = progressByLastLine[message] or lastProgress
+end
+
 function addon.DrawLoadScreen()
 	local loadProgress = SG.GetLoadProgress()
+	if loadProgress == 0 then
+		loadProgress = lastProgress[1]
+	else
+		loadProgress = math.min(math.max(loadProgress, lastProgress[1]), lastProgress[2])
+	end
 
 	local vsx, vsy = gl.GetViewSizes()
-	
+
 	-- draw progressbar
 	local hbw = 3.5/vsx
 	local vbw = 3.5/vsy
