@@ -1821,6 +1821,12 @@ definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2
 definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
 definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.1 0.02 0.008 0.01   0 0 0 0.01]]
 
+definitions["missiletraillarge-starburst"] = deepcopy(definitions["missiletraillarge"])
+definitions["missiletraillarge-starburst"].fire.properties.colormap = [[1 0.5 0.15 0.15   0.55 0.2 0.05 0.2    0.14 0.03 0 0.17    0.02 0.005 0.006 0.1	 0 0 0 0.01]]
+definitions["missiletraillarge-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
+definitions["missiletraillarge-starburst"].dustparticles.properties.colormap = [[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
+definitions["missiletraillarge-starburst"].fireglow.properties.colormap = [[0.1 0.02 0.008 0.01   0 0 0 0.01]]
+
 definitions["missiletrail-juno"] = deepcopy(definitions["missiletrailmedium"])
 definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.066 0.09 0.01 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]

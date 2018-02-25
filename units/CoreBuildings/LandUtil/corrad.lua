@@ -44,7 +44,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			bar_collisionvolumeoffsets = "0 -12 0",
-			bar_collisionvolumescales = "32 99 32"
+			bar_collisionvolumescales = "32 99 32",
 			removewait = true,
 			removestop = true,
 		},
