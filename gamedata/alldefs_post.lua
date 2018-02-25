@@ -404,4 +404,18 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 		
 	end
+	
+	-- Make BeamLasers do their damage up front instead of over time
+	-- Do this at the end so that we don't mess up any magic math
+	for id,wDef in pairs(WeaponDefs) do
+		-- Beamlasers do damage up front
+		if wDef.beamtime ~= nil then
+			beamTimeInFrames = wDef.beamtime * 30
+			--Spring.Echo(wDef.name)
+			--Spring.Echo(beamTimeInFrames)
+			wDef.beamttl = beamTimeInFrames
+			--Spring.Echo(wDef.beamttl)
+			wDef.beamtime = 0.01		
+		end
+	end
 end
