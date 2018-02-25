@@ -30,11 +30,17 @@ local missileWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'StarburstLauncher' then
         if weaponDef.cegTag == 'missiletrailsmall-starburst' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletrailmedium-starburst', 'missilegroundsmall-starburst'}
+            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletrailmedium-starburst', 'missilegroundsmall-liftoff'}
         elseif weaponDef.cegTag == 'missiletrailmedium-starburst' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletraillarge-starburst', 'missilegroundmedium-starburst'}
+            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletraillarge-starburst', 'missilegroundmedium-liftoff'}
         elseif weaponDef.cegTag == 'missiletraillarge-starburst' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletraillarge-starburst', 'missilegroundlarge-starburst'}
+            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletraillarge-starburst', 'missilegroundlarge-liftoff'}
+        elseif weaponDef.cegTag == 'cruisemissiletrail-emp' then
+            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'cruisemissiletrail-starburst', 'missilegroundlarge-liftoff'}
+        elseif weaponDef.cegTag == 'cruisemissiletrail-tacnuke' then
+            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'cruisemissiletrail-starburst', 'missilegroundlarge-liftoff'}
+        elseif weaponDef.cegTag == 'NUKETRAIL' then
+            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'nuketrail-starburst', 'missilegroundhuge-liftoff'}
         end
     end
 end
