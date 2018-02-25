@@ -33,6 +33,8 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			bar_collisionvolumeoffsets = "0 10 0",
+			bar_collisionvolumescales = "40 59 40",
 			removewait = true,
 		},
 		featuredefs = {

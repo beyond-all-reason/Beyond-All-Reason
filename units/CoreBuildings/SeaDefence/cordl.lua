@@ -37,6 +37,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
+			bar_collisionvolumeoffsets = "0 3 0",
+			bar_collisionvolumescales = "38 52 38",
 			removewait = true,
 		},
 		featuredefs = {
