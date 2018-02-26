@@ -136,15 +136,17 @@ local glTexture       = gl.Texture
 
 
 function PostDistortion:BeginDraw()
-  glActiveFBO(fbo, gl.Clear, GL_COLOR_BUFFER_BIT, 0,0,0,0) --//clear jitterTex
+  if depthTex then
+    glActiveFBO(fbo, gl.Clear, GL_COLOR_BUFFER_BIT, 0,0,0,0) --//clear jitterTex
 
-  --// copy depthbuffer to a seperated depth texture, so we can use it in the MRT
-  if (pd.copyDepthBuffer) then
-    glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy)
+    --// copy depthbuffer to a seperated depth texture, so we can use it in the MRT
+    if (pd.copyDepthBuffer) then
+      glCopyToTexture(depthTex, 0, 0, vpx, vpy, vsx, vsy)
+    end
+
+    --// update screen copy
+    glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
   end
-
-  --// update screen copy
-  glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 end
 
 function PostDistortion:EndDraw()

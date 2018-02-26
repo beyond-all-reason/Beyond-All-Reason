@@ -363,7 +363,7 @@ function addon.DrawLoadScreen()
 	--bar bg
 	local paddingH = 0.004
 	local paddingW = paddingH * (vsy/vsx)
-	gl.Color(0.085,0.085,0.085,0.94)
+	gl.Color(0.085,0.085,0.085,0.925)
 	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.007)
 
 	gl.Color(0,0,0,0.75)

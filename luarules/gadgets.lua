@@ -1128,6 +1128,27 @@ function gadgetHandler:AllowUnitBuildStep(builderID, builderTeam,
 end
 
 
+function gadgetHandler:AllowUnitCloak(unitID, enemyID)
+  for _,g in ipairs(self.AllowUnitCloakList) do
+    if (not g:AllowUnitCloak(unitID, enemyID)) then
+      return false
+    end
+  end
+  return true
+end
+
+
+function gadgetHandler:AllowUnitDecloak(unitID, objectID, weaponID)
+  for _,g in ipairs(self.AllowUnitDecloakList) do
+    if (not g:AllowUnitDecloak(unitID, objectID, weaponID)) then
+      return false
+    end
+  end
+  return true
+end
+
+
+
 function gadgetHandler:AllowFeatureBuildStep(builderID, builderTeam,
                                              featureID, featureDefID, part)
   for _,g in ipairs(self.AllowFeatureBuildStepList) do

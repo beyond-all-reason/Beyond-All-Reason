@@ -48,6 +48,8 @@ CallInsList = {
   "UnitLeftLos",
   "UnitLoaded",
   "UnitUnloaded",
+  "UnitCloaked",
+  "UnitDecloaked",
   
   "ShieldPreDamaged",
 
@@ -78,6 +80,8 @@ CallInsList = {
   "AllowUnitCreation",
   "AllowUnitTransfer",
   "AllowUnitBuildStep",
+  "AllowUnitCloak",
+  "AllowUnitDecloak",
   "AllowFeatureCreation",
   "AllowFeatureBuildStep",
   "AllowResourceLevel",
