@@ -30,17 +30,47 @@ local missileWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'StarburstLauncher' then
         if weaponDef.cegTag == 'missiletrailsmall-starburst' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletrailmedium-starburst', 'missilegroundsmall-liftoff'}
+            missileWeapons[weaponDef.id] = {
+                0,
+                'missiletrailmedium-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missilegroundsmall-liftoff', 60, 90,
+                'missilegroundsmall-liftoff-fire', 25, 45
+            }
         elseif weaponDef.cegTag == 'missiletrailmedium-starburst' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletraillarge-starburst', 'missilegroundmedium-liftoff'}
-        elseif weaponDef.cegTag == 'missiletraillarge-starburst' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'missiletraillarge-starburst', 'missilegroundlarge-liftoff'}
+            missileWeapons[weaponDef.id] = {
+                0,
+                'missiletraillarge-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missilegroundmedium-liftoff', 80, 120,
+                'missilegroundmedium-liftoff-fire', 35, 55
+            }
+        elseif weaponDef.cegTag == 'missiletrail-juno' then
+            missileWeapons[weaponDef.id] = {
+                0,
+                'missiletraillarge-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missilegroundlarge-liftoff', 80, 120,
+                'missilegroundlarge-liftoff-fire', 40, 80
+            }elseif weaponDef.cegTag == 'missiletrail-juno' then
         elseif weaponDef.cegTag == 'cruisemissiletrail-emp' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'cruisemissiletrail-starburst', 'missilegroundlarge-liftoff'}
+            missileWeapons[weaponDef.id] = {
+                0,
+                'cruisemissiletrail-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missilegroundlarge-liftoff', 90, 135,
+                'missilegroundlarge-liftoff-fire', 50, 90
+            }
         elseif weaponDef.cegTag == 'cruisemissiletrail-tacnuke' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'cruisemissiletrail-starburst', 'missilegroundlarge-liftoff'}
+            missileWeapons[weaponDef.id] = {
+                15,
+                'cruisemissiletrail-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missilegroundlarge-liftoff', 90, 135,
+                'missilegroundlarge-liftoff-fire', 50, 110
+            }
         elseif weaponDef.cegTag == 'NUKETRAIL' then
-            missileWeapons[weaponDef.id] = {((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30), 'nuketrail-starburst', 'missilegroundhuge-liftoff'}
+            missileWeapons[weaponDef.id] = {
+                0,
+                'nuketrail-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missilegroundhuge-liftoff', 130, 170,
+                'missilegroundhuge-liftoff-fire', 80, 150
+            }
         end
     end
 end
@@ -57,7 +87,23 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if missileWeapons[weaponDefID] then
         local x,y,z = GetProjectilePosition(proID)
         local groundHeight = GetGroundHeight(x,z)
-        missiles[proID] = {Spring.GetGameFrame(), Spring.GetGameFrame() + missileWeapons[weaponDefID][1], Spring.GetGameFrame() + missileWeapons[weaponDefID][2], missileWeapons[weaponDefID][3], groundHeight, missileWeapons[weaponDefID][4]}
+        local gf = Spring.GetGameFrame()
+        missiles[proID] = {
+            weaponDefID,
+            groundHeight + missileWeapons[weaponDefID][1],
+            gf,
+            missileWeapons[weaponDefID][2],
+            gf + missileWeapons[weaponDefID][3],
+            gf + missileWeapons[weaponDefID][4],
+
+            missileWeapons[weaponDefID][5],
+            groundHeight + missileWeapons[weaponDefID][6],
+            groundHeight + missileWeapons[weaponDefID][7],
+
+            missileWeapons[weaponDefID][8],
+            groundHeight + missileWeapons[weaponDefID][9],
+            groundHeight + missileWeapons[weaponDefID][10],
+        }
     end
 end
 
@@ -71,23 +117,25 @@ end
 
 function gadget:GameFrame(gf)
     for proID, missile in pairs(missiles) do
-        if gf <= missile[3] then
+        if gf <= missile[6] then
             local x,y,z = GetProjectilePosition(proID)
             if y and y > 0 then
-                if gf <= missile[2] or gf % 2 == 1 then
-                    local dirX,dirY,dirZ = GetProjectileDirection(proID)
+                local dirX,dirY,dirZ = GetProjectileDirection(proID)
+                if gf <= missile[5] or gf % 2 == 1 then
+                    -- add extra missiletrail
                     Spring.SpawnCEG(missile[4],x,y,z,dirX,dirY,dirZ)
-                    if missile[6] ~= '' and gf - missile[1] < 120 and y - missile[5] < 110 then
-                        if y - missile[5] < 50 or gf % 2 == 1 then
-                            Spring.SpawnCEG(missile[6],x,missile[5],z,dirX,dirY,dirZ)
-                        end
+                    if y <= missile[8] or (y <= missile[9] and gf % 2 == 1) then
+                        -- add ground dust
+                        Spring.SpawnCEG(missile[7],x,missile[2],z,dirX,dirY,dirZ)
+                    end
+                    if y <= missile[11] or (y <= missile[12] and gf % 2 == 1) then
+                        --add ground fire
+                        Spring.SpawnCEG(missile[10],x,missile[2],z,dirX,dirY,dirZ)
                     end
                 end
             else
                 missiles[proID] = nil
             end
-        else
-            missiles[proID] = nil
         end
     end
 end
