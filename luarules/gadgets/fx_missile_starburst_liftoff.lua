@@ -46,7 +46,7 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
         elseif weaponDef.cegTag == 'missiletrail-juno' then
             missileWeapons[weaponDef.id] = {
                 0,
-                'missiletraillarge-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missiletrail-juno-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
                 'missilegroundlarge-liftoff', 80, 120,
                 'missilegroundlarge-liftoff-fire', 40, 80
             }elseif weaponDef.cegTag == 'missiletrail-juno' then
@@ -54,22 +54,22 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
             missileWeapons[weaponDef.id] = {
                 0,
                 'cruisemissiletrail-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
-                'missilegroundlarge-liftoff', 90, 135,
-                'missilegroundlarge-liftoff-fire', 50, 90
+                'missilegroundlarge-liftoff', 90, 166,
+                'missilegroundlarge-liftoff-fire', 55, 120
             }
         elseif weaponDef.cegTag == 'cruisemissiletrail-tacnuke' then
             missileWeapons[weaponDef.id] = {
                 15,
                 'cruisemissiletrail-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
-                'missilegroundlarge-liftoff', 90, 135,
-                'missilegroundlarge-liftoff-fire', 50, 110
+                'missilegroundlarge-liftoff', 90, 166,
+                'missilegroundlarge-liftoff-fire', 55, 120
             }
         elseif weaponDef.cegTag == 'NUKETRAIL' then
             missileWeapons[weaponDef.id] = {
                 0,
                 'nuketrail-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
-                'missilegroundhuge-liftoff', 130, 170,
-                'missilegroundhuge-liftoff-fire', 80, 150
+                'missilegroundhuge-liftoff', 150, 220,
+                'missilegroundhuge-liftoff-fire', 80, 190
             }
         end
     end

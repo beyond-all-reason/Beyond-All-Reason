@@ -151,8 +151,8 @@ return {
 					default = 2500,
 				},
 				customparams = {
-					light_mult = 1.5,
-					light_radius_mult = 1.75,
+					light_mult = 3.3,
+					light_radius_mult = 1.8,
 					expl_light_color = "1 0.9 0.7",
 					expl_light_mult = 1.25,
 					expl_light_radius_mult = 1.5,
