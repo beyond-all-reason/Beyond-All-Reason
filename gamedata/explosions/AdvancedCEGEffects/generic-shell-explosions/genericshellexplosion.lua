@@ -1358,7 +1358,7 @@ local definitions = {
     groundflash_small = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
-      air                = false,
+      air                = true,
       ground             = true,
       water              = true,
       properties = {
@@ -1372,7 +1372,7 @@ local definitions = {
     groundflash_large = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
-      air                = false,
+      air                = true,
       ground             = true,
       water              = true,
       properties = {
@@ -1386,7 +1386,7 @@ local definitions = {
     groundflash_white = {
       class              = [[CSimpleGroundFlash]],
       count              = 1,
-      air                = false,
+      air                = true,
       ground             = true,
       water              = true,
       properties = {
@@ -2467,9 +2467,6 @@ for size, e in pairs(sizes) do
 end
 
 definitions['antinukeexplosion'] = deepcopy(definitions[root.."-large"])
-
-
-definitions['genericshellexplosion-debris'].explosion
 
 definitions['genericshellexplosion-debris'] = deepcopy(definitions[root.."-tiny"])
 definitions['genericshellexplosion-debris'].explosion.properties.colormap = [[0 0 0 0   1 0.77 0.44 0.06   0.75 0.38 0.14 0.045   0.55 0.22 0.04 0.02   0 0 0 0]]
