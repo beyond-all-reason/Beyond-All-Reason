@@ -47,22 +47,6 @@ local definitions = {
                 texture            = [[groundflash]],
             },
         },
-        heatedgroundflash = {
-            class              = [[CSimpleGroundFlash]],
-            count              = 1,
-            air                = false,
-            ground             = false,
-            unit               = false,
-            nounit             = true,
-            water              = false,
-            properties = {
-                colormap           = [[1 0.15 0.05 0.4   1 0.15 0.05 0.25   0 0 0 0.01]],
-                size               = 120,
-                sizegrowth         = 0,
-                ttl                = 80,
-                texture            = [[groundflash]],
-            },
-        },
         kickedupwater = {
             class              = [[CSimpleParticleSystem]],
             count              = 1,
@@ -538,7 +522,6 @@ definitions['cornuke'].dirt2.properties.particlespeedspread = math.floor(definit
 definitions['cornuke'].centerflare.properties.size = math.floor(definitions['cornuke'].centerflare.properties.size * size)
 definitions['cornuke'].groundflash_large.properties.size = math.floor(definitions['cornuke'].groundflash_large.properties.size * size)
 definitions['cornuke'].groundflash_white.properties.size = math.floor(definitions['cornuke'].groundflash_white.properties.size * size)
-definitions['cornuke'].heatedgroundflash.properties.size = math.floor(definitions['cornuke'].heatedgroundflash.properties.size * size)
 
 
 
@@ -576,6 +559,5 @@ definitions['chickennuke'].dirt2.properties.particlespeedspread = math.floor(def
 definitions['chickennuke'].centerflare.properties.size = math.floor(definitions['chickennuke'].centerflare.properties.size * size)
 definitions['chickennuke'].groundflash_large.properties.size = math.floor(definitions['chickennuke'].groundflash_large.properties.size * size)
 definitions['chickennuke'].groundflash_white.properties.size = math.floor(definitions['chickennuke'].groundflash_white.properties.size * size)
-definitions['chickennuke'].heatedgroundflash.properties.size = math.floor(definitions['chickennuke'].heatedgroundflash.properties.size * size)
 
 return definitions

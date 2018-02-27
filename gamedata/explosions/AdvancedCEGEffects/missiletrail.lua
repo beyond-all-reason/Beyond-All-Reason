@@ -2478,6 +2478,13 @@ function deepcopy(orig)
 end
 
 
+definitions["antimissiletrail"] = deepcopy(definitions["cruisemissiletrail"])
+definitions["antimissiletrail"].smokeandfire.properties.colormap  = [[0.7 0.45 0.45 0.2   0.44 0.25 0.25 0.2    0.34 0.12 0.12 0.15    0.09 0.023 0.023 0.11     0.05 0.008 0.008 0.09   0.02 0.006 0.01 0.06   0 0 0 0.01]]
+definitions["antimissiletrail"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.3 0.3 0.007  0.5 0.07 0.07 0]]
+definitions["antimissiletrail-starburst"] = deepcopy(definitions["cruisemissiletrail-starburst"])
+definitions["antimissiletrail-starburst"].smokeandfire.properties.colormap = [[0.7 0.45 0.45 0.2   0.44 0.25 0.25 0.2    0.34 0.12 0.12 0.15    0.09 0.023 0.023 0.11     0.05 0.008 0.008 0.09   0.02 0.006 0.01 0.06   0 0 0 0.01]]
+definitions["antimissiletrail-starburst"].sparks.properties.colormap = [[0.9 0.4 0.4 0.01   0.9 0.3 0.3 0.007  0.5 0.07 0.07 0]]
+
 definitions["missiletrailsmall-red"] = deepcopy(definitions["missiletrailsmall-simple"])
 definitions["missiletrailsmall-red"].engine.properties.colormap = [[1 0.33 0.17 0.01   1.0 0.25 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
 definitions["missiletrailsmall-red"].engine.properties.length = [[-21 r6]]

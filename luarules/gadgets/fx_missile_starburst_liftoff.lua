@@ -49,7 +49,14 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
                 'missiletrail-juno-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
                 'missilegroundlarge-liftoff', 80, 120,
                 'missilegroundlarge-liftoff-fire', 40, 80
-            }elseif weaponDef.cegTag == 'missiletrail-juno' then
+            }
+        elseif weaponDef.cegTag == 'antimissiletrail' then
+            missileWeapons[weaponDef.id] = {
+                0,
+                'antimissiletrail-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missilegroundlarge-liftoff', 80, 120,
+                'missilegroundlarge-liftoff-fire', 40, 80
+            }
         elseif weaponDef.cegTag == 'cruisemissiletrail-emp' then
             missileWeapons[weaponDef.id] = {
                 0,

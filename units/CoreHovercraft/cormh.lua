@@ -145,6 +145,15 @@ return {
 					default = 550,
 					subs = 5,
 				},
+				customparams = {
+					light_mult = 3.6,
+					light_radius_mult = 1,
+					light_color = "1 0.66 0.25",
+					expl_light_mult = 1.1,
+					expl_light_radius_mult = 1.1,
+					expl_light_life_mult = 1.1,
+					expl_light_color = "1 0.5 0.05",
+				},
 			},
 		},
 		weapons = {
