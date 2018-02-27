@@ -34,6 +34,7 @@ local GetGameFrame 		= Spring.GetGameFrame
 local HealRefreshTime	= 15
 local CEGHeal = "heal"
 local CEGLevelUp = "commander-levelup"
+local ValidID = Spring.ValidUnitID
 
 
 common = include("headers/common_includes_lus.lua")
@@ -61,6 +62,7 @@ end
 
 function PassiveRepairs()
 while true do
+if ValidID(unitID) then
 x,y,z = Spring.GetUnitPosition(unitID)
 			local unittable = Spring.GetUnitsInSphere(x, y, z, repairRange)
 				for _, uid in pairs(unittable) do
@@ -95,9 +97,12 @@ x,y,z = Spring.GetUnitPosition(unitID)
 Sleep(33 * HealRefreshTime)
 end
 end
+end
 
 function UnitSpeed()
 	while (true) do
+	if ValidID(unitID) then
+
 		vx,vy,vz,Speed = Spring.GetUnitVelocity(unitID)
 		currentSpeed = Speed*100*30/moveSpeed
 		if (currentSpeed < 35) then currentSpeed = 35 end
@@ -110,11 +115,13 @@ function UnitSpeed()
 		currentSpeed = currentSpeed + randomness
 		Sleep (1)
 	end
+	end
 end
 
 function MotionControl()
 	justmoved = true
 	while (true) do
+	if ValidID(unitID) then
 		if (moving) then
 			dgunning = false
 			if (aiming) then
@@ -143,10 +150,12 @@ function MotionControl()
 			Sleep (100)
 		end
 		Sleep (1)
+		end
 	end
 end
 
 function script.Create()
+if ValidID(unitID) then
 for ct, piecenum in pairs (lvl1hides) do
 	Hide(piecenum)
 end
@@ -170,9 +179,11 @@ end
 	Spring.UnitScript.StartThread(PassiveRepairs)
 	Spring.SetUnitNanoPieces(unitID, {mlasflsh})
 end
+end
 
 function HandleLevelUps()
 while(true) do
+if ValidID(unitID) then
 local null, fxp = Spring.GetUnitExperience(unitID)
 local realxp = 10 * fxp
 if realxp > 10 and level == 10 then
@@ -212,6 +223,7 @@ end
 Sleep(1)
 end
 end
+end
 
 function switchpieces(piecenum1, piecenum2)
 Hide(piecenum1)
@@ -219,6 +231,7 @@ Show(piecenum2)
 end
 
 function LevelUpStats(curLevel)
+if ValidID(unitID) then
 	level = curLevel + 1
 	Spring.SetUnitMaxRange(unitID, Range[level])
 	Spring.SetUnitArmored(unitID, true, DamageMultiplierNoDgun[level])
@@ -260,8 +273,10 @@ function LevelUpStats(curLevel)
 		end
 	end
 end
+end
 
 function LevelUpModel(curLevel)
+if ValidID(unitID) then
 Emit(pelvis, CEGLevelUp)
 if curLevel == 0 then
 elseif curLevel == 1 then
@@ -285,6 +300,7 @@ elseif curLevel == 4 then
 
 elseif curLevel == 5 then
 
+end
 end
 end
 
