@@ -160,8 +160,8 @@ return {
 				},
 				customparams = {
 					light_color = "0.3 1 0.2",		-- used by light_effects widget
-					light_radius_mult = "1.1",		-- used by light_effects widget
-					light_mult = "5",		-- used by light_effects widget
+					light_radius_mult = "1",		-- used by light_effects widget
+					light_mult = "6",		-- used by light_effects widget
 					expl_light_radius_mult = "0.6",		-- used by light_effects widget
 					expl_light_color = "0.6 1 0.4",		-- used by light_effects widget
 					expl_light_mult = "0.3",		-- used by light_effects widget

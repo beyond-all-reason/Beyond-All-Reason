@@ -301,23 +301,27 @@ definitions["barrelshot-small-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013
 definitions["barrelshot-small-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-small-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 definitions["barrelshot-small-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
+definitions["barrelshot-small-aa"].smoke2 = nil
 
 definitions["barrelshot-medium-aa"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-medium-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-medium-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-medium-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 definitions["barrelshot-medium-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
+definitions["barrelshot-small-aa"].smoke2 = nil
 
 definitions["barrelshot-large-aa"] = deepcopy(definitions["barrelshot-large"])
 definitions["barrelshot-large-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-large-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-large-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 definitions["barrelshot-large-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
+definitions["barrelshot-small-aa"].smoke2 = nil
 
 definitions["barrelshot-huge-aa"] = deepcopy(definitions["barrelshot-huge"])
 definitions["barrelshot-huge-aa"].fire.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-huge-aa"].fire2.properties.colormap = [[1 0.6 0.85 0.013   0.6 0.2 0.5 0.01   0.4 0.06 0.033 0.006   0 0 0 0.01]]
 definitions["barrelshot-huge-aa"].fireglow.properties.colormap = [[0.122 0.066 0.09 0.04   0 0 0 0.01]]
 definitions["barrelshot-huge-aa"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.12 0.2    0.48 0.26 0.40 0.44    0.2 0.135 0.17 0.4     0.16 0.12 0.145 0.4    0.145 0.11 0.13 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
+definitions["barrelshot-small-aa"].smoke2 = nil
 
 return definitions
