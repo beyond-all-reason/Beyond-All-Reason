@@ -59,6 +59,12 @@ Create()
 	hide flare4;
 	hide flare5;
 	hide flare6;
+	turn flare1 to x-axis <5> now;
+	turn flare2 to x-axis <-54> now;
+	turn flare3 to x-axis <-115> now;
+	turn flare4 to x-axis <-175> now;
+	turn flare5 to x-axis <-235> now;
+	turn flare6 to x-axis <-295> now;
 	gun_1 = flare1;
 	start-script SmokeUnit();
 	return (0);
