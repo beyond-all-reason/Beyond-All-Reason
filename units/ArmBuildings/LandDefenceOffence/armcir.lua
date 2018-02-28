@@ -1,7 +1,7 @@
 return {
 	armcir = {
 		acceleration = 0,
-		airsightdistance = 1200,
+		airsightdistance = 1060,
 		brakerate = 0,
 		buildangle = 65536,
 		buildcostenergy = 7000,

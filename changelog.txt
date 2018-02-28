@@ -1,4 +1,17 @@
-﻿10.05 -> 10.06
+﻿10.06 -> 10.07
+XX/XX/2018
+
+Balance changes: 
+ • Long range T1 AA airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
+
+Other:
+ • Auto replacing engine trees with custom trees
+ • Vertical launched missiles have an ground dust/fire effect added
+ • Changed barrel fire smoke effect
+ • Fixed the occasional white loadscreen
+
+
+10.05 -> 10.06
 23/02/2018
 
 Balance changes: 
