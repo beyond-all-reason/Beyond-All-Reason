@@ -506,9 +506,9 @@ FireSecondary()
 
 FireTertiary()
 {
-	show missleflare;
-	sleep 100;
-	hide missleflare;
+	//show missleflare;
+	//sleep 100;
+	//hide missleflare;
 }
 
 AimFromPrimary(piecenum)

@@ -686,6 +686,8 @@ Create()
 	hide eyeflare;
 	hide lgunflare;
 	hide rgunflare;
+	turn lgunflare to x-axis <90> now;
+	turn rgunflare to x-axis <-90> now;
 	dont-cache eyegun;
 	dont-shade eyegun;
 	bMoving = FALSE;
