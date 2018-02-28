@@ -9,7 +9,7 @@ Other:
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
  • Fixed the occasional white loadscreen
-
+ • Fixed mines detonating before they are completly built
 
 10.05 -> 10.06
 23/02/2018
