@@ -43,10 +43,10 @@ local FADE_TIME = 5
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
-local globalLightMult = 1.2
+local globalLightMult = 1.5
 local globalRadiusMult = 1.2
-local globalLightMultLaser = 1.1
-local globalRadiusMultLaser = 1.1	-- gets applied on top op globalRadiusMult
+local globalLightMultLaser = 1.4
+local globalRadiusMultLaser = 0.8	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.6
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
@@ -464,6 +464,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	-- add explosion lights
 	for i, params in pairs(explosionLights) do
 		local progress = 1-((frame-params.frame)/params.life)
+		progress = progress - ((progress*progress)*0.3)
 		params.colMult = params.orgMult * progress
 		if params.colMult <= 0 then
 			explosionLights[i] = nil
@@ -531,6 +532,7 @@ function loadWeaponDefs()
 	end
 end
 loadWeaponDefs()
+
 
 -- function called by explosion_lights gadget
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
@@ -616,24 +618,26 @@ function widget:GetConfigData(data)
 	savedTable.globalLightMultLaser = globalLightMultLaser
 	savedTable.globalRadiusMultLaser = globalRadiusMultLaser
 	savedTable.globalLifeMult = globalLifeMult
-	savedTable.resetted = 1.2
+	savedTable.resetted = 1.3
 	return savedTable
 end
 
 function widget:SetConfigData(data)
-	if data.globalLightMult ~= nil then
-		globalLightMult = data.globalLightMult
-	end
-	if data.globalRadiusMult ~= nil then
-		globalRadiusMult = data.globalRadiusMult
-	end
-	if data.globalLightMultLaser ~= nil then
-		globalLightMultLaser = data.globalLightMultLaser
-	end
-	if data.globalRadiusMultLaser ~= nil then
-		globalRadiusMultLaser = data.globalRadiusMultLaser
-	end
-	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.2 then
-		globalLifeMult = data.globalLifeMult
+	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.3 then
+		if data.globalLightMult ~= nil then
+			globalLightMult = data.globalLightMult
+		end
+		if data.globalRadiusMult ~= nil then
+			globalRadiusMult = data.globalRadiusMult
+		end
+		if data.globalLightMultLaser ~= nil then
+			globalLightMultLaser = data.globalLightMultLaser
+		end
+		if data.globalRadiusMultLaser ~= nil then
+			globalRadiusMultLaser = data.globalRadiusMultLaser
+		end
+		if data.globalLifeMult ~= nil then
+			globalLifeMult = data.globalLifeMult
+		end
 	end
 end
