@@ -150,6 +150,10 @@ function widget:CommandNotify(id, params, options)
 	if (id == CMD_AREA_MEX) then
 
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
+		if (not cr) or (cr < Game.extractorRadius) then
+			cr = Game.extractorRadius
+		end
+		local cr = cr
 		
 		local xmin = cx-cr
 		local xmax = cx+cr
