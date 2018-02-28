@@ -237,7 +237,7 @@ function widget:CommandNotify(id, params, options)
 		end
 	
 		local shift = options.shift
-		local ctrl = options.ctrl
+		local ctrl = options.ctrl or options.meta
 		for ct, id in pairs(batchMexBuilder) do
 			if not shift then 
 				spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
