@@ -460,11 +460,19 @@ FirePrimary()
 {
 	if( gun_1 )
 	{
-	    emit-sfx 1024 + 0 from lfire;
+		emit-sfx 1024 + 0 from lfire;
+		sleep 100;
+		emit-sfx 1024 + 0 from lfire;
+		sleep 100;
+		emit-sfx 1024 + 0 from lfire;
 	}
 	else
 	{
-	    emit-sfx 1024 + 0 from rfire;
+		emit-sfx 1024 + 0 from rfire;
+		sleep 100;
+		emit-sfx 1024 + 0 from rfire;
+		sleep 100;
+		emit-sfx 1024 + 0 from rfire;
 	}
 	gun_1 = !gun_1;
 }

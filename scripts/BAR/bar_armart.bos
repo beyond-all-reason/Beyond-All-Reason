@@ -64,7 +64,8 @@ RockUnit(anglex, anglez)
 Create()
 {
 	restore_delay = 3000;
-	//turn flare to z-axis <70.00000> now;
+	turn flare to z-axis <-45.00000> now;
+	turn flare to x-axis <-45.00000> now;
 	start-script SmokeUnit();
 	return (0);
 }

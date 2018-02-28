@@ -1085,6 +1085,8 @@ Create()
 	ReadyToAim = 0;
 	hide lhandgun;
 	hide rhandgun;
+	turn lflare to x-axis <90> now;
+	turn rflare to x-axis <90> now;
 	restore_delay = 2000;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;

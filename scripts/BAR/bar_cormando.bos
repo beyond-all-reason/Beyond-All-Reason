@@ -488,6 +488,7 @@ Create()
 {
 	bMoving = FALSE;
 	notBuilding = 1;
+	turn flare to x-axis <90> now;
 	spray = 0;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
