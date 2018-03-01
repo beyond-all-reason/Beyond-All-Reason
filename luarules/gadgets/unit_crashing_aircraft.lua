@@ -21,7 +21,6 @@ local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local SetUnitNoMinimap	= Spring.SetUnitNoMinimap
 local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 local SetUnitWeaponState = Spring.SetUnitWeaponState
-local SetUnitCollisionVolumeData = Spring.SetUnitCollisionVolumeData
 local DestroyUnit = Spring.DestroyUnit
 
 local COB_CRASHING = COB.CRASHING
@@ -31,7 +30,6 @@ local crashable  = {}
 local crashing = {}
 local crashingCount = 0
 
-local totalUnits = 0
 local totalUnitsTime = 0
 local percentage = 0.5	-- is reset somewhere else
 
@@ -65,7 +63,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
-			totalUnits = #Spring.GetAllUnits()
+			local totalUnits = #Spring.GetAllUnits()
 			percentage = 0.7 * (1 - (totalUnits/5000))
 			if percentage < 0.25 then
 				percentage = 0.25
@@ -81,7 +79,6 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
 				SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
 			end
-			--SetUnitCollisionVolumeData(unitID, 0.01,0.01,0.01 ,0,0,0, -1,0,0)
 			-- remove sensors
 			SetUnitSensorRadius(unitID, "los", 0)
 			SetUnitSensorRadius(unitID, "airLos", 0)
@@ -93,7 +90,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 end
 
 function gadget:GameFrame(gf)
-	if crashingCount > 0 and gf % 20 == 1 then
+	if crashingCount > 0 and gf % 44 == 1 then
 		for unitID,deathGameFrame in pairs(crashing) do
 			if gf >= deathGameFrame then
 				DestroyUnit(unitID, false, false)
