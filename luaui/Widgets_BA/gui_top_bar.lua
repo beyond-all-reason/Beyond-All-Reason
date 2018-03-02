@@ -1590,7 +1590,7 @@ function widget:Initialize()
 
 	-- determine if we want to show comcounter
     local allteams   = Spring.GetTeamList()
-    teamN = table.maxn(allteams) - 1               --remove gaia
+    local teamN = table.maxn(allteams) - 1               --remove gaia
 	if teamN > 2 then
 		displayComCounter = true
 	end
