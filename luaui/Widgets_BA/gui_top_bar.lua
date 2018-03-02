@@ -1593,18 +1593,13 @@ function widget:Initialize()
 	local allyTeamList = Spring.GetAllyTeamList()
 	for _,allyTeamID in ipairs(allyTeamList) do
 		local teamList = Spring.GetTeamList(allyTeamID)
-		local allyComCount = 0
+		local comCount = 0
 		for _,teamID in ipairs(teamList) do
-			allyComCount = allyComCount + 1
-			enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
-		end
-		if allyComCount > 1 then
-			displayComCounter = true
-			break
+            comCount = comCount + 1
 		end
 	end
 
-	if enemyComs > 1 then
+	if comCount > 2 then
 		displayComCounter = true
 	end
 
