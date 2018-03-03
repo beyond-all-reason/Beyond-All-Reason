@@ -293,6 +293,14 @@ function widget:Initialize()
 	spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
 	
 	setCmdLineColors(0.5)
+
+	WG['commandsfx'] = {}
+	WG['commandsfx'].getOpacity = function()
+		return opacity
+	end
+	WG['commandsfx'].setOpacity = function(value)
+		opacity = value
+	end
 end
 
 function widget:Shutdown()
@@ -764,4 +772,15 @@ function widget:DrawWorld()
 		gl.PolygonOffset(false)
 		gl.DepthTest(false)
 	end
+end
+
+
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.opacity = opacity
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.opacity ~= nil 	then  opacity	= data.opacity end
 end

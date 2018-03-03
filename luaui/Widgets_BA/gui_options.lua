@@ -1223,6 +1223,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['snow'] ~= nil then
 				WG['snow'].setMultiplier(value)
 			end
+		elseif id == 'commandsfxopacity' then
+			if widgetHandler.configData["Commands FX"] == nil then
+				widgetHandler.configData["Commands FX"] = {}
+			end
+			widgetHandler.configData["Commands FX"].opacity = value
+			if WG['commandsfx'] ~= nil then
+				WG['commandsfx'].setOpacity(value)
+			end
 		elseif id == 'lighteffects_brightness' then
 			if widgetHandler.configData["Light Effects"] == nil then
 				widgetHandler.configData["Light Effects"] = {}
@@ -1745,6 +1753,15 @@ function loadWidgetConfigData()
 		end
 	end
 
+	if widgetHandler.knownWidgets["Commands FX"] ~= nil then
+		if widgetHandler.configData["Commands FX"] ~= nil and widgetHandler.configData["Commands FX"].opacity ~= nil then
+			if options[getOptionByID("commandsfxopacity")].value ~= widgetHandler.configData["Commands FX"].opacity then
+				options[getOptionByID("commandsfxopacity")].value = widgetHandler.configData["Commands FX"].opacity
+				changes = true
+			end
+		end
+	end
+
 	if widgetHandler.knownWidgets["TeamPlatter"] ~= nil then
 		if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.spotterOpacity ~= nil then
 			if options[getOptionByID("teamplatter_opacity")].value ~= widgetHandler.configData.TeamPlatter.spotterOpacity then
@@ -1958,6 +1975,7 @@ function init()
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		{id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.2, max=1, step=0.1, value=1, description=''},
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
