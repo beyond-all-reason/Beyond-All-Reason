@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "19.0",
+		version   = "20.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -40,6 +40,7 @@ end
 -- v17	 (Floris): Added alliances display and button and /cputext option
 -- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 -- v19   (Floris): added player resource bars
+-- v20   (Floris): added /alwayshidespecs
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -50,6 +51,8 @@ local customScaleStep		= 0.025
 local pointDuration    		= 40
 local cpuText				= false
 local drawAlliesLabel = false
+local alwaysHideSpecs = false
+
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -755,7 +758,7 @@ function widget:Initialize()
 	
 	mySpecStatus,_,_ = Spring.GetSpectatingState()
 	if Spring.GetGameFrame() <= 0 then
-		if mySpecStatus then 
+		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
 			specListShow = false
@@ -810,7 +813,7 @@ end
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		mySpecStatus,_,_ = Spring.GetSpectatingState()
-		if mySpecStatus then
+		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
 			specListShow = false
@@ -3131,7 +3134,8 @@ function widget:GetConfigData(data)      -- save
 			lockPlayerID       = lockPlayerID,
 			specListShow       = specListShow,
 			gameFrame          = Spring.GetGameFrame(),
-			lastSystemData     = lastSystemData
+			lastSystemData     = lastSystemData,
+			alwaysHideSpecs    = alwaysHideSpecs
 		}
 		
 		return settings
@@ -3142,9 +3146,13 @@ function widget:SetConfigData(data)      -- load
 	if data.customScale ~= nil then
 		customScale = data.customScale
 	end
-	
+
 	if data.specListShow ~= nil then
 		specListShow = data.specListShow
+	end
+
+	if data.alwaysHideSpecs ~= nil then
+		alwaysHideSpecs = data.alwaysHideSpecs
 	end
 	
 	--view
@@ -3225,8 +3233,17 @@ function widget:SetConfigData(data)      -- load
 end
 
 function widget:TextCommand(command)
-	if (string.find(command, "cputext") == 1  and  string.len(command) == 7) then 
+	if (string.find(command, "cputext") == 1  and  string.len(command) == 7) then
 		cpuText = not cpuText
+	end
+	if (string.find(command, "alwayshidespecs") == 1  and  string.len(command) == 15) then
+		alwaysHideSpecs = not alwaysHideSpecs
+		if alwaysHideSpecs then
+			Spring.Echo("AdvPlayersList: always hiding specs")
+			specListShow = false
+		else
+			Spring.Echo("AdvPlayersList: not always hiding specs")
+		end
 	end
 end
 

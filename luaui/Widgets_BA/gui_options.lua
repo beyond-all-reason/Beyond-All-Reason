@@ -97,7 +97,7 @@ local widgetOptionColor = '\255\160\160\160'
 
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
-local minimapIconsize = 2	-- spring wont remember what you set with '/minimap iconssize #'
+local minimapIconsize = 2.5	-- spring wont remember what you set with '/minimap iconssize #'
 
 local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
