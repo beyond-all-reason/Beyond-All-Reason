@@ -76,13 +76,13 @@ end
 
 function widget:SetConfigData(data)
     if data and type(data) == 'table' then
-   			if 'number' == type(data['cursorSet']) then -- correct legacy settings
-   				data['cursorSet'] = 'bar'
-   				if data['cursorSet'] == 1 then data['cursorSet'] = 'old' end
-   			end
-				if not cursorSetsInv[data['cursorSet']] then
-					data['cursorSet'] = Settings['defaultCursorSet']
-				end
+		if 'number' == type(data['cursorSet']) then -- correct legacy settings
+			data['cursorSet'] = 'bar'
+			if data['cursorSet'] == 1 then data['cursorSet'] = 'old' end
+		end
+		if not cursorSetsInv[data['cursorSet']] then
+			data['cursorSet'] = Settings['defaultCursorSet']
+		end
         Settings = data
     end
 end
