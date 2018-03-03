@@ -6,7 +6,9 @@ Balance changes:
 
 Other:
  • Auto replacing engine trees with custom trees
- • Added "Simple minimap colors" option to (interface) options
+ • Added "Minimap icon size" slider to options
+ • Added "Simple minimap colors" option to options
+ • Added opacity slider for Commands FX option
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
  • Fixed the occasional white loadscreen

@@ -97,6 +97,7 @@ local widgetOptionColor = '\255\160\160\160'
 
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
+local minimapIconsize = 2	-- spring wont remember what you set with '/minimap iconssize #'
 
 local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
@@ -850,7 +851,8 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SetConfigInt("ScrollWheelSpeed",options[getOptionByID('scrollspeed')].value)
 			end
 		elseif id == 'simpleminimapcolors' then
-				Spring.SetConfigInt("SimpleMiniMapColors",value)
+			Spring.SendCommands("minimap simplecolors  "..value)
+			Spring.SetConfigInt("SimpleMiniMapColors",value)
 		elseif id == 'hwcursor' then
 			Spring.SendCommands("HardwareCursor "..value)
 			Spring.SetConfigInt("HardwareCursor",value)
@@ -1231,6 +1233,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['commandsfx'] ~= nil then
 				WG['commandsfx'].setOpacity(value)
 			end
+		elseif id == 'minimapiconsize' then
+			minimapIconsize = value
+			Spring.SendCommands("minimap unitsize "..value)
 		elseif id == 'lighteffects_brightness' then
 			if widgetHandler.configData["Light Effects"] == nil then
 				widgetHandler.configData["Light Effects"] = {}
@@ -1975,7 +1980,7 @@ function init()
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		{id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
-		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.2, max=1, step=0.1, value=1, description=''},
+		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.1, value=1, description=''},
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
@@ -2006,7 +2011,9 @@ function init()
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
-		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\n\nChanges applied next game"},
+
+		{id="minimapiconsize", group="ui", name="Minimap icon size", type="slider", min=2, max=3.5, step=0.25, value=minimapIconsize, description=''},
+		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
 		{id="showbuilderqueue", group="ui", widget="Show Builder Queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
@@ -2292,6 +2299,8 @@ function widget:Initialize()
 		Spring.SetConfigInt("UsePBO",0)
 	--end
 
+	--Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
+
 	-- making sure a redui console is displayed without the alternatives in play
 	if widgetHandler.orderList['Red Console (old)'] ~= nil and widgetHandler.orderList['Red Console (In-game chat only)'] ~= nil and widgetHandler.orderList['Red Console (Battle and autohosts)'] ~= nil then
 		if widgetHandler.orderList['Red Console (old)'] == 0 and (widgetHandler.orderList['Red Console (In-game chat only)'] == 0 or widgetHandler.orderList['Red Console (Battle and autohosts)'] == 0) then
@@ -2362,11 +2371,15 @@ end
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.customPresets = customPresets
+	savedTable.minimapIconsize = minimapIconsize
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.customPresets ~= nil then
 		customPresets = data.customPresets
+	end
+	if data.minimapIconsize ~= nil then
+		minimapIconsize = data.minimapIconsize
 	end
 end
