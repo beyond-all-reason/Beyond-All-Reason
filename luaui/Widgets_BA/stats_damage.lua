@@ -12,18 +12,20 @@ end
 
 --[[
 This writes a file in /luaui/config for every user, containing statistics on which units were built, and various other stats,
-summarizing all (complete, non-replay) games seen by the user, of the most recent game version.
+summarizing all (non-aborted, non-replay, non-$VERSION) games seen by the user, since they last deleted the stats file.
 
-The statistics are stored as a lua table which can be loaded in the normal way (see widget part). the format of the stats 
-table is self-explanatory: stats[game][mode][unitName] = { various statistics }. All statistics are mean averages, except for 'n', 
-which is the number of samples of the given unit.
+The statistics are stored as a lua table which can be loaded in the normal way, see below.
+The format of the stats table is self-explanatory: 
+    stats[game][mode][unitName] = { various statistics }. 
+All statistics are mean averages, except for 'n', which is the number of samples of the given unit.
 ]]
 
 local info
-local writeInfo = false
 local STATS_FILE = 'LuaUI/Config/BA_damageStats.lua'
+local INTERNAL_VERSION = 1 -- bump to reset stats file (user can delete file with same effect)
 
-local game = Game.gameShortName .. " " .. Game.gameVersion
+local game = Game.gameName 
+local version = Game.gameVersion
 
 local chunk, err = loadfile(STATS_FILE)
 if chunk then
@@ -32,36 +34,29 @@ if chunk then
     stats = chunk()    
 end
 
-function widget:GameStart()
+    
+function widget:Initialize()
 	widgetHandler:RegisterGlobal('SendStats', RecieveStats)
-	widgetHandler:RegisterGlobal('SendStats_GameMode', RecieveGameMode)    
+	widgetHandler:RegisterGlobal('SendStats_GameMode', RecieveGameMode)  
 end
 
 function RecieveGameMode(mode)
     mode = mode or "unknown"
     
     stats = stats or {}
-    stats[game] = stats[game] or {}
-    stats[game].versionNumber = Game.gameVersion ~= "$VERSION" and string.sub(Game.gameVersion,2)
+    if not stats.internal_version or stats.internal_version < INTERNAL_VERSION then stats = {} end
+    stats.internal_version = INTERNAL_VERSION
     
-    -- remove any versions that are not the current max version
-    local max_version = -1
-    for k,_ in pairs(stats) do
-        if tonumber(stats[k].versionNumber) then
-            max_version = math.max(max_version, tonumber(stats[k].versionNumber))
-        end
-    end
-    for k,_ in pairs(stats) do
-        if (not stats[k].versionNumber) or (not tonumber(stats[k].versionNumber)) or (tonumber(stats[k].versionNumber) < max_version) then
-            stats[k] = nil
-        end
-    end
-
     stats[game] = stats[game] or {}
     stats[game][mode] = stats[game][mode] or {}
-    
+
     info = stats[game][mode]
     info.games = info.games or 0
+    info.games = info.games + 1
+
+    info["_games_per_version"] = info["_games_per_version"] or {}
+    info["_games_per_version"][version] = info["_games_per_version"][version] or 0
+    info["_games_per_version"][version] = info["_games_per_version"][version] + 1
 end
 
 function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
@@ -85,8 +80,9 @@ end
 
 function widget:GameOver()
     if not info or Spring.IsReplay() then return end
-    info.games = info.games + 1
-    table.save(stats, STATS_FILE, '-- ' .. Game.gameName .. ' Damage Stats')
+    if Game.gameVersion == "$VERSION" then return end
+    
+    table.save(stats, STATS_FILE, '-- Damage Stats')
 end
 
 function widget:Shutdown()

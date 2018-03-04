@@ -1589,22 +1589,9 @@ function widget:Initialize()
 	Spring.SendCommands("resbar 0")
 
 	-- determine if we want to show comcounter
-	local comCount = 0
-	local allyTeamList = Spring.GetAllyTeamList()
-	for _,allyTeamID in ipairs(allyTeamList) do
-		local teamList = Spring.GetTeamList(allyTeamID)
-		local allyComCount = 0
-		for _,teamID in ipairs(teamList) do
-			allyComCount = allyComCount + 1
-			enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
-		end
-		if allyComCount > 1 then
-			displayComCounter = true
-			break
-		end
-	end
-
-	if enemyComs > 1 then
+    local allteams   = Spring.GetTeamList()
+    local teamN = table.maxn(allteams) - 1               --remove gaia
+	if teamN > 2 then
 		displayComCounter = true
 	end
 

@@ -23,6 +23,8 @@ if (gadgetHandler:IsSyncedCode()) then
 
 --SYNCED
 
+local allyTeamKilledBy = {} -- record which attackerID killed the last commander of each allyTeam, and treat as though that unit killed them all
+
 local destroyQueue = {}
 
 local destroyUnitQueue = {}
@@ -40,7 +42,7 @@ local SpawnCEG = Spring.SpawnCEG
 
 local DISTANCE_LIMIT = (math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ))
 local min = math.min
-local deathWave = false
+local deathWave = false -- is the death wave happening right now?
 local deathTimeBoost = 1
 local modeComEnds = true
 
@@ -132,7 +134,8 @@ function gadget:GameFrame(t)
 								x = x,
 								y = y,
 								z = z,
-								spark = false
+								spark = false,
+                                a = allyTeamKilledBy[at]
 							}
 						end
 					end
@@ -151,7 +154,7 @@ function gadget:GameFrame(t)
 				destroyUnitQueue[unitID].spark = true
 			end
 			if (dt > defs.time) then
-				DestroyUnit(unitID, true)
+				DestroyUnit(unitID, true, nil, defs.a)
 				destroyUnitQueue[unitID] = nil
 			end
 		end
@@ -179,7 +182,7 @@ function gadget:UnitGiven(u, ud, team)
 	end
 end
 
-function gadget:UnitDestroyed(u, ud, team)
+function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
 	if modeComEnds then
 		isAlive[u] = nil
 		if UnitDefs[ud].customParams.iscommander then
@@ -188,18 +191,20 @@ function gadget:UnitDestroyed(u, ud, team)
 			if aliveCount[allyTeam] <= 0 then
 				local x,y,z = Spring.GetUnitPosition(u)
 				destroyQueue[allyTeam] = {x = x, y = y, z = z}
-			end
+                allyTeamKilledBy[allyTeam] = a
+            end
 		end
 	end
 end
 
-function gadget:UnitTaken(u, ud, team)
+function gadget:UnitTaken(u, ud, team, a, ad, ateam)
 	if modeComEnds and isAlive[u] and UnitDefs[ud].customParams.iscommander then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
 			local x,y,z = Spring.GetUnitPosition(u)
 			destroyQueue[allyTeam] = {x = x, y = y, z = z}
+            allyTeamKilledBy[allyTeam] = a
 		end
 	end
 end

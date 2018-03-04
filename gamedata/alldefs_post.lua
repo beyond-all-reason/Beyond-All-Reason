@@ -52,10 +52,28 @@ local oldUnitName = {	-- mostly duplicates
 	armuwmmm = 'armfmmm',
 	coruwmmm = 'corfmmm',
 }
+
+
+function getBarSound(name)
+	if name == nil or name == '' then
+		return name
+	end
+	local filename = string.gsub(name, ".wav", "")
+	filename = string.gsub(name, ".ogg", "")
+	if VFS.FileExists('sounds/BAR/'..filename..".wav") then
+		return 'BAR/'..filename
+	elseif VFS.FileExists('sounds/BAR/'..filename..".ogg") then
+		return 'BAR/'..filename..".ogg"
+	else
+		return name
+	end
+end
+
+
 function UnitDef_Post(name, uDef)
-	-- load BAR models
+	-- load BAR stuff
 	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
-	--if true then
+		-- BAR models
 		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
 		if VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
 			uDef.objectname = 'BAR/'..barUnitName..'.s3o'
@@ -109,7 +127,25 @@ function UnitDef_Post(name, uDef)
 				end
 			end
 		end
+
+		-- BAR sounds
+		if uDef.sounds and type(uDef.sounds) == 'table' then
+			for sound, soundParams in pairs(uDef.sounds) do
+				if type(soundParams) == 'string' then
+					uDef.sounds[sound] = getBarSound(soundParams)
+				elseif type(soundParams) == 'table' then
+					for i, value in pairs(soundParams) do
+						if type(value) == 'string' then
+							uDef.sounds[sound][value] = getBarSound(value)
+						elseif type(value) == 'table' then
+							uDef.sounds[sound][value].file = getBarSound(value.file)
+						end
+					end
+				end
+			end
+		end
 	end
+
 
 	if uDef.category['chicken'] ~= nil then	-- doesnt seem to work
 		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy
@@ -258,8 +294,24 @@ function WeaponDef_Post(name, wDef)
 	if wDef ~= nil and wDef.laserflaresize ~= nil and wDef.laserflaresize > 0 then
 		wDef.laserflaresize = wDef.laserflaresize * 1.1
 	end
-end
 
+
+	-- load BAR alternative sound
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+		if wDef.soundstart ~= '' then
+			wDef.soundstart = getBarSound(wDef.soundstart)
+		end
+		if wDef.soundhit ~= '' then
+			wDef.soundhit = getBarSound(wDef.soundhit)
+		end
+		if wDef.soundhitdry ~= '' then
+			wDef.soundhitdry = getBarSound(wDef.soundhitdry)
+		end
+		if wDef.soundhitwet ~= '' then
+			wDef.soundhitwet = getBarSound(wDef.soundhitwet)
+		end
+	end
+end
 
 -- process effects
 function ExplosionDef_Post(name, eDef)

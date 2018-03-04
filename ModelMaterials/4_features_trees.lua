@@ -33,7 +33,7 @@ local materials = {
 					vec2 wind;
 					wind.x = sin(period * 5.0);
 					wind.y = cos(period * 5.0);
-					return wind * 10.0f;
+					return wind * 12.0f;
 				}
 			]],
 			VERTEX_PRE_TRANSFORM = [[

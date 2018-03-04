@@ -188,7 +188,7 @@ local icons = {
   {"hover_transport.user", "LuaUI/Icons/hovertrans.png",1.5*iconScale},
   {"ship_transport.user", "LuaUI/Icons/shiptrans.png",2*iconScale},
   {"air_t2_radar_t1.user", "LuaUI/Icons/air_los.png",1.33*iconScale},
-  {"air_bladew.user", "LuaUI/Icons/air_hover.png",0.75*iconScale},
+  {"air_bladew.user", "LuaUI/Icons/air_hover_bw.png",0.75*iconScale},
   {"air_krow.user", "LuaUI/Icons/air_hover.png",2*iconScale},
   {"air_liche.user", "LuaUI/Icons/air_bomber.png",2*iconScale},
 
@@ -343,15 +343,15 @@ elseif ud.name=="armadvsol" or ud.name=="coradvsol" then
     elseif ud.modCategories["phib"] ~= nil or (ud.modCategories["canbeuw"] ~= nil and ud.modCategories["underwater"] == nil) then
 if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name=="corssub") then
         Spring.SetUnitDefIcon(udid, "sub_t2.user")
-      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 3) then
+      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
         Spring.SetUnitDefIcon(udid, "amphib_t3.user")
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "amphib_t2_aa.user")
         else
           Spring.SetUnitDefIcon(udid, "amphib_t1_aa.user")
         end
-      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
         if (ud.isBuilder) then
           Spring.SetUnitDefIcon(udid, "amphib_t2_worker.user")
         else
@@ -397,7 +397,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
       elseif (ud.name=="armawac" or ud.name=="corawac" or ud.name=="armsehak" or ud.name=="corhunt") then
         Spring.SetUnitDefIcon(udid, "air_t2_radar_t1.user")
       elseif ud.isBuilder then
-        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "air_t2_worker.user")
         else
           Spring.SetUnitDefIcon(udid, "air_t1_worker.user")
@@ -405,7 +405,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
       elseif (ud.hoverAttack) then
         if (ud.name=="corbw") then
           Spring.SetUnitDefIcon(udid, "air_bladew.user")
-        elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "air_t2_hover_t1.user")
         else
           Spring.SetUnitDefIcon(udid, "air_t1_hover_t1.user")
@@ -417,7 +417,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
           Spring.SetUnitDefIcon(udid, "air_t1_bomber.user")
         end
       else
-        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "air_t2.user")
         else
           Spring.SetUnitDefIcon(udid, "air_t1.user")
@@ -439,19 +439,19 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
       elseif ud.isBuilder then
 	if (ud.name=="armmls" or ud.name=="cormls") then
         Spring.SetUnitDefIcon(udid, "ship_engineer.user")
-      elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2 then
+      elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "ship_t2_worker.user")
         else
           Spring.SetUnitDefIcon(udid, "ship_t1_worker.user")
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-        if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2 then
+        if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "ship_t2_aa1.user")
         else
           Spring.SetUnitDefIcon(udid, "ship_aa1.user")
         end
       else
-        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "ship_t2.user")
         else
           Spring.SetUnitDefIcon(udid, "ship.user")
@@ -477,7 +477,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
       -- defenders and other buildings
     elseif (ud.isBuilding or (ud.speed <= 0)) then
       if (#ud.weapons <= 0) then
-        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "building_t2.user")
         else
           Spring.SetUnitDefIcon(udid, "building_t1.user")
@@ -496,7 +496,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
         else
           if (ud.name=="armanni" or ud.name=="cordoom") then
             Spring.SetUnitDefIcon(udid, "defence_3")
-          elseif ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) or ud.name=="armguard" or ud.name=="corpun") then
+          elseif ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or ud.name=="armguard" or ud.name=="corpun") then
             Spring.SetUnitDefIcon(udid, "defence_2")
           elseif (ud.name=="armhlt" or ud.name=="corhlt" or ud.name=="armfhlt" or ud.name=="corfhlt") then
             Spring.SetUnitDefIcon(udid, "defence_1")
@@ -520,19 +520,19 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
       elseif ud.isBuilder then
       if ud.name=="armconsul" then
         Spring.SetUnitDefIcon(udid, "engineer.user")
-        elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2 then
+        elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "tank_t2_worker.user")
         else
           Spring.SetUnitDefIcon(udid, "tank_t1_worker.user")
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-        if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2 then
+        if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "tank_t2_aa1.user")
         else
           Spring.SetUnitDefIcon(udid, "tank_aa1.user")
         end
       else
-        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "tank_t2.user")
         else
           Spring.SetUnitDefIcon(udid, "tank_t1.user")
@@ -546,9 +546,9 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
         Spring.SetUnitDefIcon(udid, "allterrain_vanguard.user")
       elseif ud.name=="armspid" then
         Spring.SetUnitDefIcon(udid, "allterrain_t1.user")
-      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 3) then
+      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
         Spring.SetUnitDefIcon(udid, "allterrain_t3.user")
-      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+      elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
         Spring.SetUnitDefIcon(udid, "allterrain_t2.user")
       else
         Spring.SetUnitDefIcon(udid, "allterrain_t1.user")
@@ -570,21 +570,21 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
           Spring.SetUnitDefIcon(udid, "kbot_t1_tinyworker.user")
         elseif (ud.name=="armfark" or ud.name=="armconsul" or ud.name=="corfast") then
         Spring.SetUnitDefIcon(udid, "engineer.user")
-        elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2 then
+        elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "kbot_t2_worker.user")
         else
           Spring.SetUnitDefIcon(udid, "kbot_t1_worker.user")
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-        if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2 then
+        if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "kbot_t2_aa1.user")
         else
           Spring.SetUnitDefIcon(udid, "kbot_aa1.user")
         end
       else
-        if ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 3) or ud.name=="orcone" or ud.name=="krogtaar") then
+        if ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') or ud.name=="orcone" or ud.name=="krogtaar") then
           Spring.SetUnitDefIcon(udid, "kbot_t3.user")
-        elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == 2) then
+        elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "kbot_t2.user")
         else
           Spring.SetUnitDefIcon(udid, "kbot_t1.user")

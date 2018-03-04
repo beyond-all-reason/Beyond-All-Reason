@@ -21,14 +21,15 @@ local SetUnitNoSelect	= Spring.SetUnitNoSelect
 local SetUnitNoMinimap	= Spring.SetUnitNoMinimap
 local SetUnitSensorRadius = Spring.SetUnitSensorRadius
 local SetUnitWeaponState = Spring.SetUnitWeaponState
+local DestroyUnit = Spring.DestroyUnit
 
 local COB_CRASHING = COB.CRASHING
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local crashable  = {}
 local crashing = {}
+local crashingCount = 0
 
-local totalUnits = 0
 local totalUnitsTime = 0
 local percentage = 0.5	-- is reset somewhere else
 
@@ -62,36 +63,45 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 	if crashable[unitDefID] and (damage>GetUnitHealth(unitID)) and weaponDefID ~= COM_BLAST then
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
-			totalUnits = #Spring.GetAllUnits()
+			local totalUnits = #Spring.GetAllUnits()
 			percentage = 0.7 * (1 - (totalUnits/5000))
 			if percentage < 0.25 then
 				percentage = 0.25
 			end
 		end
 		if random() < percentage then
-		-- make it crash
-		crashing[unitID] = true
-		SetUnitCOBValue(unitID, COB_CRASHING, 1)
-		SetUnitNoSelect(unitID,true)
-		SetUnitNoMinimap(unitID,true)
-		for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
-			SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
-		end
-        -- remove sensors
-        SetUnitSensorRadius(unitID, "los", 0)
-        SetUnitSensorRadius(unitID, "airLos", 0)
-        SetUnitSensorRadius(unitID, "radar", 0)
-        SetUnitSensorRadius(unitID, "sonar", 0)
---        SetUnitSensorRadius(unitID, "seismic", 0)
---        SetUnitSensorRadius(unitID, "radarJammer", 0)
---        SetUnitSensorRadius(unitID, "sonarJammer", 0)
+			-- make it crash
+			crashingCount = crashingCount + 1
+			crashing[unitID] = Spring.GetGameFrame() + 300
+			SetUnitCOBValue(unitID, COB_CRASHING, 1)
+			SetUnitNoSelect(unitID,true)
+			SetUnitNoMinimap(unitID,true)
+			for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
+				SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
+			end
+			-- remove sensors
+			SetUnitSensorRadius(unitID, "los", 0)
+			SetUnitSensorRadius(unitID, "airLos", 0)
+			SetUnitSensorRadius(unitID, "radar", 0)
+			SetUnitSensorRadius(unitID, "sonar", 0)
 		end
 	end
 	return damage,1
 end
 
+function gadget:GameFrame(gf)
+	if crashingCount > 0 and gf % 44 == 1 then
+		for unitID,deathGameFrame in pairs(crashing) do
+			if gf >= deathGameFrame then
+				DestroyUnit(unitID, false, false)
+			end
+		end
+	end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 	if crashing[unitID] then
+		crashingCount = crashingCount - 1
 		crashing[unitID]=nil
 	end
 end

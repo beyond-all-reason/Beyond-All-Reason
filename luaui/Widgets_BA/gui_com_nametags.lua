@@ -62,6 +62,8 @@ local diag						= math.diag
 local comms = {}
 local comnameList = {}
 local CheckedForSpec = false
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
 
 --------------------------------------------------------------------------------
 
@@ -91,6 +93,9 @@ local function GetCommAttributes(unitID, unitDefID)
 end
 
 local function createComnameList(attributes)
+    if comnameList[attributes[1]] ~= nil then
+        gl.DeleteList(comnameList[attributes[1]])
+    end
 	comnameList[attributes[1]] = gl.CreateList( function()
 		local outlineColor = {0,0,0,1}
 		if (attributes[2][1] + attributes[2][2]*1.2 + attributes[2][3]*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
@@ -118,6 +123,25 @@ local function createComnameList(attributes)
 		font:Print(attributes[1], 0, 0, fontSize, "con")
 		font:End()
 	end)
+end
+
+function widget:Update(dt)
+    if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+        if myTeamID ~= Spring.GetMyTeamID() then
+            -- old
+            local name = GetPlayerInfo(myPlayerID)
+            if comnameList[name] ~= nil then
+                gl.DeleteList(comnameList[name])
+            end
+            -- new
+            myTeamID = Spring.GetMyTeamID()
+            myPlayerID = Spring.GetMyPlayerID()
+            local name = GetPlayerInfo(myPlayerID)
+            if comnameList[name] ~= nil then
+                gl.DeleteList(comnameList[name])
+            end
+        end
+    end
 end
 
 local function DrawName(attributes)

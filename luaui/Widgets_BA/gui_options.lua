@@ -97,6 +97,7 @@ local widgetOptionColor = '\255\160\160\160'
 
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
+local minimapIconsize = 2.5	-- spring wont remember what you set with '/minimap iconssize #'
 
 local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
@@ -807,9 +808,16 @@ function applyOptionValue(i, skipRedrawWindow)
 		if id == 'advmapshading' then
 			Spring.SendCommands("AdvMapShading "..value)
 			Spring.SetConfigInt("AdvMapShading",value)
+
 		elseif id == 'advmodelshading' then
 			Spring.SendCommands("AdvModelShading "..value)
 			Spring.SetConfigInt("AdvModelShading",value)
+		elseif id == 'normalmapping' then
+			Spring.SendCommands("luarules normalmapping "..value)
+			Spring.SetConfigInt("NormalMapping",value)
+			if value == 1 then
+				Spring.SendCommands("luarules reloadluaui")		-- becaue sometimes it ends in too bright unit shading but fixed after a luaui reload
+			end
 		elseif id == 'advsky' then
 			Spring.SetConfigInt("AdvSky",value)
 		elseif id == 'shadows' then
@@ -842,6 +850,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				Spring.SetConfigInt("ScrollWheelSpeed",options[getOptionByID('scrollspeed')].value)
 			end
+		elseif id == 'simpleminimapcolors' then
+			Spring.SendCommands("minimap simplecolors  "..value)
+			Spring.SetConfigInt("SimpleMiniMapColors",value)
 		elseif id == 'hwcursor' then
 			Spring.SendCommands("HardwareCursor "..value)
 			Spring.SetConfigInt("HardwareCursor",value)
@@ -1214,6 +1225,17 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['snow'] ~= nil then
 				WG['snow'].setMultiplier(value)
 			end
+		elseif id == 'commandsfxopacity' then
+			if widgetHandler.configData["Commands FX"] == nil then
+				widgetHandler.configData["Commands FX"] = {}
+			end
+			widgetHandler.configData["Commands FX"].opacity = value
+			if WG['commandsfx'] ~= nil then
+				WG['commandsfx'].setOpacity(value)
+			end
+		elseif id == 'minimapiconsize' then
+			minimapIconsize = value
+			Spring.SendCommands("minimap unitsize "..value)
 		elseif id == 'lighteffects_brightness' then
 			if widgetHandler.configData["Light Effects"] == nil then
 				widgetHandler.configData["Light Effects"] = {}
@@ -1238,7 +1260,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['lighteffects'] ~= nil then
 				WG['lighteffects'].setLaserBrightness(value)
 			end
-		elseif id == 'lighteffects_radius' then
+		elseif id == 'lighteffects_laserradius' then
 			if widgetHandler.configData["Light Effects"] == nil then
 				widgetHandler.configData["Light Effects"] = {}
 			end
@@ -1736,6 +1758,15 @@ function loadWidgetConfigData()
 		end
 	end
 
+	if widgetHandler.knownWidgets["Commands FX"] ~= nil then
+		if widgetHandler.configData["Commands FX"] ~= nil and widgetHandler.configData["Commands FX"].opacity ~= nil then
+			if options[getOptionByID("commandsfxopacity")].value ~= widgetHandler.configData["Commands FX"].opacity then
+				options[getOptionByID("commandsfxopacity")].value = widgetHandler.configData["Commands FX"].opacity
+				changes = true
+			end
+		end
+	end
+
 	if widgetHandler.knownWidgets["TeamPlatter"] ~= nil then
 		if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.spotterOpacity ~= nil then
 			if options[getOptionByID("teamplatter_opacity")].value ~= widgetHandler.configData.TeamPlatter.spotterOpacity then
@@ -1903,6 +1934,7 @@ function init()
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
+		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
@@ -1923,11 +1955,11 @@ function init()
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   Darken features with map", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
 
 		{id="lighteffects", group="gfx", name="Light effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
-		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.25, max=1, step=0.05, type="slider", value=0.65, description='lifetime of explosion lights'},
+		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.3, max=0.7, step=0.05, type="slider", value=0.65, description='lifetime of explosion lights'},
 		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2.2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
 		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius  (gpu intensive)", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above'},
-		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius  (gpu intensive)", min=0.4, max=2, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\nWARNING: the bigger the radius the heavier on the GPU'},
+		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius  (gpu intensive)", min=0.5, max=2, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\nWARNING: the bigger the radius the heavier on the GPU'},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 
@@ -1948,6 +1980,7 @@ function init()
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		{id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.1, value=1, description=''},
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
@@ -1979,6 +2012,9 @@ function init()
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 
+		{id="minimapiconsize", group="ui", name="Minimap icon size", type="slider", min=2, max=3.5, step=0.25, value=minimapIconsize, description=''},
+		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
+
 		{id="showbuilderqueue", group="ui", widget="Show Builder Queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
 		{id="healthbarsscale", group="ui", name="Health Bars Scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
@@ -1988,7 +2024,7 @@ function init()
 
 		{id="oldconsole", group="ui", name="Old console (single)", type="bool", value=GetWidgetToggleValue("Red Console (old)"), description='Enable old console that doesnt separate system and chat messages'},
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
-		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.1, step=0.05, value=1, description=''},
+		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
 
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
@@ -2077,6 +2113,10 @@ function init()
 		end
 		options[getOptionByID('cursor')].options = cursorsets
 		options[getOptionByID('cursor')].value = cursor
+	end
+
+	if Spring.GetModOptions == nil or (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
+		options[getOptionByID('normalmapping')] = nil
 	end
 
 	if (WG['healthbars'] == nil) then
@@ -2259,6 +2299,8 @@ function widget:Initialize()
 		Spring.SetConfigInt("UsePBO",0)
 	--end
 
+	--Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
+
 	-- making sure a redui console is displayed without the alternatives in play
 	if widgetHandler.orderList['Red Console (old)'] ~= nil and widgetHandler.orderList['Red Console (In-game chat only)'] ~= nil and widgetHandler.orderList['Red Console (Battle and autohosts)'] ~= nil then
 		if widgetHandler.orderList['Red Console (old)'] == 0 and (widgetHandler.orderList['Red Console (In-game chat only)'] == 0 or widgetHandler.orderList['Red Console (Battle and autohosts)'] == 0) then
@@ -2329,11 +2371,15 @@ end
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.customPresets = customPresets
+	savedTable.minimapIconsize = minimapIconsize
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.customPresets ~= nil then
 		customPresets = data.customPresets
+	end
+	if data.minimapIconsize ~= nil then
+		minimapIconsize = data.minimapIconsize
 	end
 end

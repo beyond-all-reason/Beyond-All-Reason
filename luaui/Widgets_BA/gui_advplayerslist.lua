@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "19.0",
+		version   = "20.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -40,6 +40,7 @@ end
 -- v17	 (Floris): Added alliances display and button and /cputext option
 -- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 -- v19   (Floris): added player resource bars
+-- v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -50,6 +51,8 @@ local customScaleStep		= 0.025
 local pointDuration    		= 40
 local cpuText				= false
 local drawAlliesLabel = false
+local alwaysHideSpecs = false
+
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -755,7 +758,7 @@ function widget:Initialize()
 	
 	mySpecStatus,_,_ = Spring.GetSpectatingState()
 	if Spring.GetGameFrame() <= 0 then
-		if mySpecStatus then 
+		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
 			specListShow = false
@@ -810,7 +813,7 @@ end
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		mySpecStatus,_,_ = Spring.GetSpectatingState()
-		if mySpecStatus then
+		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
 			specListShow = false
@@ -1929,7 +1932,7 @@ end
 function DrawTakeSignal(posY)
 
 	if blink == true then -- Draws a blinking rectangle if the player of the same team left (/take option)
-		if right == true then
+		if right then
 			gl_Color(0.7,0.7,0.7)
 			gl_Texture(pics["arrowPic"])
 			DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
@@ -2365,10 +2368,10 @@ function DrawPoint(posY,pointtime)
 		leftPosX = widgetPosX + widgetWidth
 		gl_Color(1,0,0,pointtime/pointDuration)
 		gl_Texture(pics["arrowPic"])
-		DrawRect(leftPosX + 158, posY, leftPosX + 2, posY + 14)
+		DrawRect(leftPosX + 18, posY, leftPosX + 2, posY + 14)
 		gl_Color(1,1,1,pointtime/pointDuration)
 		gl_Texture(pics["pointPic"])
-		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)	
+		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)
 	end
 	gl_Color(1,1,1,1)
 end
@@ -2513,8 +2516,7 @@ function DrawTip(mouseX, mouseY)
 		
 		local lineHeight = fontSize + (fontSize/4.5)
 		local th = lineHeight * lines + (fontSize*0.75)
-		
-		if right ~= true then tw = -tw end
+
 		local oldWidgetScale = widgetScale
 		widgetScale = 1
 
@@ -2523,13 +2525,24 @@ function DrawTip(mouseX, mouseY)
 		if bottomY < 0 then ycorrection = (15*widgetScale)-bottomY end
 		
 		local padding = -1.8*oldWidgetScale
-		gl_Color(0.8,0.8,0.8,0.75)
-		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding,4.5*oldWidgetScale)
-		
-		padding = 0*oldWidgetScale
-		gl_Color(0,0,0,0.28)
-		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
-		
+
+		local xoffset = -15*oldWidgetScale
+		if right then
+			gl_Color(0.8,0.8,0.8,0.75)
+			RectRound(mouseX-tw+padding+xoffset, bottomY+ycorrection+padding, mouseX+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+
+			padding = 0*oldWidgetScale
+			gl_Color(0,0,0,0.28)
+			RectRound(mouseX-tw+padding+xoffset, bottomY+ycorrection+padding, mouseX+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+		else
+			xoffset = 22*oldWidgetScale
+			gl_Color(0.8,0.8,0.8,0.75)
+			RectRound(mouseX+padding+xoffset, bottomY+ycorrection+padding, mouseX+tw+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+
+			padding = 0*oldWidgetScale
+			gl_Color(0,0,0,0.28)
+			RectRound(mouseX+padding+xoffset, bottomY+ycorrection+padding, mouseX+tw+xoffset+padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+		end
 		widgetScale = oldWidgetScale
 	
 		-- draw text
@@ -2537,7 +2550,12 @@ function DrawTip(mouseX, mouseY)
 		th = 0
 		gl.BeginText()
 		for i, line in ipairs(textLines) do
-			gl_Text('\255\244\244\244'..line, mouseX+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+
+			if right then
+				gl_Text('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+			else
+				gl_Text('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale), mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+			end
 			th = th - lineHeight
 		end
 		gl.EndText()
@@ -3131,7 +3149,8 @@ function widget:GetConfigData(data)      -- save
 			lockPlayerID       = lockPlayerID,
 			specListShow       = specListShow,
 			gameFrame          = Spring.GetGameFrame(),
-			lastSystemData     = lastSystemData
+			lastSystemData     = lastSystemData,
+			alwaysHideSpecs    = alwaysHideSpecs
 		}
 		
 		return settings
@@ -3142,9 +3161,13 @@ function widget:SetConfigData(data)      -- load
 	if data.customScale ~= nil then
 		customScale = data.customScale
 	end
-	
+
 	if data.specListShow ~= nil then
 		specListShow = data.specListShow
+	end
+
+	if data.alwaysHideSpecs ~= nil then
+		alwaysHideSpecs = data.alwaysHideSpecs
 	end
 	
 	--view
@@ -3225,8 +3248,17 @@ function widget:SetConfigData(data)      -- load
 end
 
 function widget:TextCommand(command)
-	if (string.find(command, "cputext") == 1  and  string.len(command) == 7) then 
+	if (string.find(command, "cputext") == 1  and  string.len(command) == 7) then
 		cpuText = not cpuText
+	end
+	if (string.find(command, "alwayshidespecs") == 1  and  string.len(command) == 15) then
+		alwaysHideSpecs = not alwaysHideSpecs
+		if alwaysHideSpecs then
+			Spring.Echo("AdvPlayersList: always hiding specs")
+			specListShow = false
+		else
+			Spring.Echo("AdvPlayersList: not always hiding specs")
+		end
 	end
 end
 

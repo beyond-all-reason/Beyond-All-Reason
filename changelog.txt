@@ -6,10 +6,14 @@ Balance changes:
 
 Other:
  • Auto replacing engine trees with custom trees
+ • Added "Minimap icon size" slider to options
+ • Added "Simple minimap colors" option to options
+ • Added opacity slider for Commands FX option
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
  • Fixed the occasional white loadscreen
  • Fixed mines detonating before they are completly built
+ • Fixed some T2 and T3 dist-icon sizes
 
 10.05 -> 10.06
 23/02/2018
