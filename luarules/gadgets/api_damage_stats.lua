@@ -51,7 +51,8 @@ function gadget:Initialize()
         return
     end
     
-    if nHumanTeams <= 2 then gameType = "single player" -- and gaia
+    if nHumanTeams <= 1 then gameType = "single player" -- and gaia
+    elseif nHumanTeams == 2 and nAITeams == 0 then gameType = "1v1" 
     else gameType = "team" 
     end
 end
