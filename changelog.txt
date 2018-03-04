@@ -12,7 +12,7 @@ Other:
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
  • Fixed the occasional white loadscreen
- • Fixed T2 and T3 dist-iconsizes
+ • Fixed some T2 and T3 dist-icon sizes
 
 
 10.05 -> 10.06

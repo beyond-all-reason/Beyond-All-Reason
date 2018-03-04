@@ -2371,7 +2371,7 @@ function DrawPoint(posY,pointtime)
 		DrawRect(leftPosX + 18, posY, leftPosX + 2, posY + 14)
 		gl_Color(1,1,1,pointtime/pointDuration)
 		gl_Texture(pics["pointPic"])
-		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)	
+		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)
 	end
 	gl_Color(1,1,1,1)
 end
@@ -2526,20 +2526,22 @@ function DrawTip(mouseX, mouseY)
 		
 		local padding = -1.8*oldWidgetScale
 
+		local xoffset = -15*oldWidgetScale
 		if right then
 			gl_Color(0.8,0.8,0.8,0.75)
-			RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+			RectRound(mouseX-tw+padding+xoffset, bottomY+ycorrection+padding, mouseX+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
 
 			padding = 0*oldWidgetScale
 			gl_Color(0,0,0,0.28)
-			RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+			RectRound(mouseX-tw+padding+xoffset, bottomY+ycorrection+padding, mouseX+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
 		else
+			xoffset = 22*oldWidgetScale
 			gl_Color(0.8,0.8,0.8,0.75)
-			RectRound(mouseX+padding, bottomY+ycorrection+padding, mouseX+tw-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+			RectRound(mouseX+padding+xoffset, bottomY+ycorrection+padding, mouseX+tw+xoffset-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
 
 			padding = 0*oldWidgetScale
 			gl_Color(0,0,0,0.28)
-			RectRound(mouseX+padding, bottomY+ycorrection+padding, mouseX+tw+padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+			RectRound(mouseX+padding+xoffset, bottomY+ycorrection+padding, mouseX+tw+xoffset+padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
 		end
 		widgetScale = oldWidgetScale
 	
@@ -2550,9 +2552,9 @@ function DrawTip(mouseX, mouseY)
 		for i, line in ipairs(textLines) do
 
 			if right then
-				gl_Text('\255\244\244\244'..line, mouseX+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+				gl_Text('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
 			else
-				gl_Text('\255\244\244\244'..line, mouseX+(8*widgetScale), mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+				gl_Text('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale), mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
 			end
 			th = th - lineHeight
 		end
