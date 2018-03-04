@@ -40,7 +40,7 @@ end
 -- v17	 (Floris): Added alliances display and button and /cputext option
 -- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 -- v19   (Floris): added player resource bars
--- v20   (Floris): added /alwayshidespecs
+-- v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -1932,7 +1932,7 @@ end
 function DrawTakeSignal(posY)
 
 	if blink == true then -- Draws a blinking rectangle if the player of the same team left (/take option)
-		if right == true then
+		if right then
 			gl_Color(0.7,0.7,0.7)
 			gl_Texture(pics["arrowPic"])
 			DrawRect(widgetPosX - 14, posY, widgetPosX, posY + 16)
@@ -2368,7 +2368,7 @@ function DrawPoint(posY,pointtime)
 		leftPosX = widgetPosX + widgetWidth
 		gl_Color(1,0,0,pointtime/pointDuration)
 		gl_Texture(pics["arrowPic"])
-		DrawRect(leftPosX + 158, posY, leftPosX + 2, posY + 14)
+		DrawRect(leftPosX + 18, posY, leftPosX + 2, posY + 14)
 		gl_Color(1,1,1,pointtime/pointDuration)
 		gl_Texture(pics["pointPic"])
 		DrawRect(leftPosX + 33, posY-1, leftPosX + 17, posY + 15)	
@@ -2516,8 +2516,7 @@ function DrawTip(mouseX, mouseY)
 		
 		local lineHeight = fontSize + (fontSize/4.5)
 		local th = lineHeight * lines + (fontSize*0.75)
-		
-		if right ~= true then tw = -tw end
+
 		local oldWidgetScale = widgetScale
 		widgetScale = 1
 
@@ -2526,13 +2525,22 @@ function DrawTip(mouseX, mouseY)
 		if bottomY < 0 then ycorrection = (15*widgetScale)-bottomY end
 		
 		local padding = -1.8*oldWidgetScale
-		gl_Color(0.8,0.8,0.8,0.75)
-		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding,4.5*oldWidgetScale)
-		
-		padding = 0*oldWidgetScale
-		gl_Color(0,0,0,0.28)
-		RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
-		
+
+		if right then
+			gl_Color(0.8,0.8,0.8,0.75)
+			RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+
+			padding = 0*oldWidgetScale
+			gl_Color(0,0,0,0.28)
+			RectRound(mouseX-tw+padding, bottomY+ycorrection+padding, mouseX-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+		else
+			gl_Color(0.8,0.8,0.8,0.75)
+			RectRound(mouseX+padding, bottomY+ycorrection+padding, mouseX+tw-padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 4.5*oldWidgetScale)
+
+			padding = 0*oldWidgetScale
+			gl_Color(0,0,0,0.28)
+			RectRound(mouseX+padding, bottomY+ycorrection+padding, mouseX+tw+padding, (mouseY+(26*oldWidgetScale)+ycorrection)-padding, 3.5*oldWidgetScale)
+		end
 		widgetScale = oldWidgetScale
 	
 		-- draw text
@@ -2540,7 +2548,12 @@ function DrawTip(mouseX, mouseY)
 		th = 0
 		gl.BeginText()
 		for i, line in ipairs(textLines) do
-			gl_Text('\255\244\244\244'..line, mouseX+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+
+			if right then
+				gl_Text('\255\244\244\244'..line, mouseX+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+			else
+				gl_Text('\255\244\244\244'..line, mouseX+(8*widgetScale), mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+			end
 			th = th - lineHeight
 		end
 		gl.EndText()
