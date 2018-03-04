@@ -20,24 +20,40 @@ local info = {}
 local gameType
 
 function gadget:Initialize()
+    local tList = Spring.GetTeamList()
+
     if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then 
         gameType = "free for all"
         return
     end
 
-    local CHICKENS_CONFIG_FILE = "LuaRules/Configs/spawn_defs.lua"
-    if VFS.FileExists(CHICKENS_CONFIG_FILE) then 
+    local nHumanTeams = 0
+    local nAITeams = 0
+    local nChickenTeams = 0
+    for _,teamID in pairs(tList) do
+        local luaAI = Spring.GetTeamLuaAI(teamID)
+        local aiChicken = (luaAI:find("Chicken") ~= nil)
+        local _,_,_,aiTeam = Spring.GetTeamInfo(teamID)
+        local gaiaTeam = (teamID == Spring.GetGaiaTeamID())
+        if aiChicken then
+            nChickenTeams = nChickenTeams + 1
+        end
+        if aiTeam then
+            nAITeams = nAITeams + 1
+        end
+        if not aiTeam and not aiChicken and not gaiaTeam then
+            nHumanTeams = nHumanTeams + 1
+        end
+    end
+    
+    if nChickenTeams >=1 then
         gameType = "chicken defence"
         return
     end
     
-    local tList = Spring.GetTeamList()
-    local aList = Spring.GetAllyTeamList()
-    local playersPerTeam = #tList / #aList
-    if #tList <= 2 then gameType = "single player" -- and gaia
-    elseif playersPerTeam <=3 then gameType = "small team" 
-    elseif  playersPerTeam <= 5 then gameType = "medium team"
-    else gameType = "large team" 
+    if nHumanTeams <= 1 then gameType = "single player" -- and gaia
+    elseif nHumanTeams == 2 and nAITeams == 0 then gameType = "1v1" 
+    else gameType = "team" 
     end
 end
 
