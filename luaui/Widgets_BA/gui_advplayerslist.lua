@@ -780,7 +780,6 @@ function widget:Initialize()
 	
 	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetPosition = function()
-	
 		local margin = backgroundMargin
 	
 		local BLcornerX = widgetPosX - margin
@@ -788,12 +787,12 @@ function widget:Initialize()
 		local TRcornerX = widgetPosX + widgetWidth + margin
 		local TRcornerY = widgetPosY + widgetHeight - 1 + margin
 		
-		local left		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
-		local bottom	= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
-		local right		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
-		local top		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
+		local leftPos		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
+		local bottomPos		= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
+		local rightPos		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
+		local topPos		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
 		
-		return {top,left,bottom,right,widgetScale}
+		return {topPos,leftPos,bottomPos,rightPos,widgetScale,right}
 	end
     WG['advplayerlist_api'].GetLockPlayerID = function()
         return lockPlayerID

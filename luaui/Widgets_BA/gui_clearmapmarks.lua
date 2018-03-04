@@ -13,13 +13,6 @@ end
 local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
 local iconSize = 16
 
-local spGetGameFrame			= Spring.GetGameFrame
-local myPlayerID				= Spring.GetMyPlayerID()
-
-local glText	          		= gl.Text
-local glBlending          		= gl.Blending
-local glScale          			= gl.Scale
-local glRotate					= gl.Rotate
 local glTranslate				= gl.Translate
 local glPushMatrix          	= gl.PushMatrix
 local glPopMatrix				= gl.PopMatrix
@@ -32,7 +25,6 @@ local drawlist = {}
 local xPos = 0
 local yPos = 0
 
-local shown = false
 local mouseover = false
 
 local usedImgSize = iconSize
@@ -76,8 +68,12 @@ function updatePosition(force)
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		usedImgSize = iconSize * advplayerlistPos[5]
-		xPos = advplayerlistPos[2] - 5
-		yPos = 5 --advplayerlistPos[1] - iconSize
+		if advplayerlistPos[6] == nil or advplayerlistPos[6] then
+			xPos = advplayerlistPos[2] - 5
+		else
+			xPos = advplayerlistPos[4] + 5 + usedImgSize
+		end
+		yPos = 5 + advplayerlistPos[3]
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList(usedImgSize)
 		end
