@@ -3,17 +3,22 @@ XX/XX/2018
 
 Balance changes: 
  • Long range T1 AA airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
+ • Plasma shield starting power reduced to 20% instead of 33%
 
 Other:
  • Auto replacing engine trees with custom trees
  • Added "Minimap icon size" slider to options
  • Added "Simple minimap colors" option to options
+ • Team colors based on palette suboption: "same team colors": your own team has a lighter color
  • Added opacity slider for Commands FX option
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
  • Fixed the occasional white loadscreen
  • Fixed mines detonating before they are completly built
  • Fixed some T2 and T3 dist-icon sizes
+ • More acurate math behind 3rd award from awards screen
+ • More deathmessages
+
 
 10.05 -> 10.06
 23/02/2018
