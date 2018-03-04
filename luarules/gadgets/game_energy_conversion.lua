@@ -90,6 +90,33 @@ local spSetUnitResourcing = Spring.SetUnitResourcing
 -- Functions
 ----------------------------------------------------------------
 
+MExtractors = {}
+for id, defs in pairs(UnitDefs) do
+	if defs.extractsMetal > 0 then
+		MExtractors[id] = true
+	end
+end
+
+local function GetAllyTeamMetalExtraction(unitTeam)
+	local allyteamlist = Spring.GetAllyTeamList()
+	local teamsInAllyID = {}
+	local _,_,_,_,_,currentAllyTeamID = Spring.GetTeamInfo(unitTeam)
+
+	for ct, allyTeamID in pairs(allyteamlist) do
+		teamsInAllyID[allyTeamID] = Spring.GetTeamList(allyTeamID) -- [1] = teamID,
+	end
+	metal = 0
+	for _, teamID in pairs(teamsInAllyID[currentAllyTeamID]) do -- [_] = teamID, 
+		for id, extractor in pairs(MExtractors) do
+			mexes = Spring.GetTeamUnitsByDefs(teamID, id)
+			for ct, unitID in pairs(mexes) do
+				metal = metal + Spring.GetUnitResources(unitID)
+			end
+		end
+	end
+	return metal
+end
+
 local function prototype(t)
   local u = { }
   for k, v in pairs(t) do u[k] = v end
@@ -163,7 +190,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 		if diminishModifier > 1.0 then
 			diminishModifier = 1.0
 		end
-		updateUnitConversion(unitID, data.c, data.e * diminishModifier)
+		updateUnitConversion(unitID, data.c, math.max(data.e * diminishModifier, data.e * diminishModifier * (GetAllyTeamMetalExtraction(teamID)/100)))
 	end
 end
 
