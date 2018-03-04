@@ -1,12 +1,13 @@
 function widget:GetInfo()
 	return {
 		name = "Player Color Palette",
-		desc = "Applies an evenly distributed color palette among players. Toggle randomized colors with /shufflecolors, order by hue with /ordercolors",
+		desc = "Applies an evenly distributed color palette among players. Toggle randomized colors with",
 		author = "Floris",
 		date = "March 2017",
 		license = "GPL v2",
 		layer = -10001,
 		enabled = true,
+		handler = true,
 	}
 end
 
@@ -16,6 +17,8 @@ local useSameTeamColors = false
 
 local GaiaTeam = Spring.GetGaiaTeamID()
 local GaiaTeamColor = {255,0,0 }
+
+local myTeamID = Spring.GetMyTeamID()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -144,7 +147,17 @@ local function SetNewTeamColors()
 					end
 					r,g,b = GetColor(i, numteams)
 				else
-					r,g,b = GetColor(i, numallyteams)
+					if teamID == myTeamID then
+						r,g,b = GetColor(i, numallyteams)
+						r = (r * 1.33) + 0.33
+						g = (g * 1.33) + 0.33
+						b = (b * 1.33) + 0.33
+					else
+						r,g,b = GetColor(i, numallyteams)
+						r = r * 0.9
+						g = g * 0.9
+						b = b * 0.9
+					end
 				end
 
 				local _, playerID = Spring.GetTeamInfo(teamID)
@@ -161,6 +174,20 @@ local function ResetOldTeamColors()
 	end
 end
 
+-- cause several widgets are still using old colors
+function reloadWidgets()
+	if not useSameTeamColors then
+		if widgetHandler.orderList["Commander Name Tags"] ~= 0 then
+			widgetHandler:DisableWidget("Commander Name Tags")
+			widgetHandler:EnableWidget("Commander Name Tags")
+		end
+		if widgetHandler.orderList["Ecostats"] ~= 0 then
+			widgetHandler:DisableWidget("Ecostats")
+			widgetHandler:EnableWidget("Ecostats")
+		end
+	end
+	--Spring.SendCommands("luarules reloadluaui")	-- slow method
+end
 
 function ordercolors(_,_,params)
 	local oldRandomize = randomize
@@ -168,16 +195,26 @@ function ordercolors(_,_,params)
 	if oldRandomize == randomize then
 		Spring.Echo("Player Color Palette:  Player colors are already ordered by hue")
 	else
-  	SetNewTeamColors()
-  	Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
-  end
+		SetNewTeamColors()
+		reloadWidgets()
+	end
 end
 
 function shufflecolors(_,_,params)
 	randomize = true
 	SetNewTeamColors()
-	Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
+	reloadWidgets()
 end
+
+
+function widget:Update(dt)
+	if useSameTeamColors and myTeamID ~= Spring.GetMyTeamID() then
+		myTeamID = Spring.GetMyTeamID()
+		SetNewTeamColors()
+		reloadWidgets()
+	end
+end
+
 
 function widget:Initialize()
 	WG['playercolorpalette'] = {}
@@ -194,11 +231,8 @@ function widget:Initialize()
 	WG['playercolorpalette'].setSameTeamColors = function(value)
 		useSameTeamColors = value
 		SetNewTeamColors()
-		Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
+		reloadWidgets()
 	end
-  
-	widgetHandler:AddAction("shufflecolors", shufflecolors, nil, "t")
-	widgetHandler:AddAction("ordercolors", ordercolors, nil, "t")
   
 	SetNewTeamColors()
 end
@@ -224,3 +258,4 @@ function widget:SetConfigData(data)
 		useSameTeamColors = data.useSameTeamColors
 	end
 end
+

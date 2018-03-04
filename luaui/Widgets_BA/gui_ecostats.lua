@@ -82,6 +82,9 @@ local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic gra
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
 
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+
 local vsx,vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
 	
@@ -98,6 +101,7 @@ local widgetPosX, widgetPosY        = xRelPos*vsx, yRelPos*vsy
 local widgetRight			 	    = widgetPosX + widgetWidth
 
 local sizeMultiplier   = 1
+
 
 Options = {}
 Options["resText"] = {}
@@ -1559,6 +1563,16 @@ function widget:TweakDrawScreen()
 	DrawOptionRibbon()
 	updateButtons()
 	makeStandardList()
+end
+
+
+function widget:Update(dt)
+	if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+		if myTeamID ~= Spring.GetMyTeamID() then
+			UpdateAllTeams()
+			makeSideImageList()
+		end
+	end
 end
 
 function widget:DrawScreen()
