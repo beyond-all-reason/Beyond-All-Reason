@@ -161,7 +161,7 @@ else
 	end
 
 	function BroadcastEvent(_,event, player)
-	    if Script.LuaUI("EventBroadcast") and tonumber(player) and tonumer(player) == Spring.GetMyPlayerID() then
+	    if Script.LuaUI("EventBroadcast") and tonumber(player) and tonumber(player) == Spring.GetMyPlayerID() then
 			Script.LuaUI.EventBroadcast("SoundEvents "..event.." "..player)
 		end
 	end
