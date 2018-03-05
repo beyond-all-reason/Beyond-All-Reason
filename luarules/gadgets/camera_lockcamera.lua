@@ -276,7 +276,7 @@ else
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("cameraBroadcast", handleCameraBroadcastEvent)
 	end
-	
+
 	function gadget:Shutdown()
 		SendLuaRulesMsg(PACKET_HEADER)
 		gadgetHandler:RemoveSyncAction("cameraBroadcast")
@@ -309,6 +309,10 @@ else
     end
 
 	function gadget:Update()
+		if Spring.GetGameFrame() == 0 then
+			return
+		end
+
 		local dt = GetLastUpdateSeconds()
 		totalTime = totalTime + dt 
 		timeSinceBroadcast = timeSinceBroadcast + dt
