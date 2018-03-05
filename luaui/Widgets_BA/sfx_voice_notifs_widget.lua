@@ -18,37 +18,37 @@ LastPlay = {}
 Sound = {}
 
 	UnitsReceived = 'UnitsReceived'
-	SdUnitsReceived = "LuaUI/Sounds/unitsreceived.wav"
+	SdUnitsReceived = "LuaUI/Sounds/VoiceNotifs\UnitReceived.wav"
 	Sound[UnitsReceived] = SdUnitsReceived
 	minDelay[UnitsReceived] = 30
 	
 	PlayerLeft = "PlayerLeft"
-	SdPlayerLeft = ""
+	SdPlayerLeft = "LuaUI/Sounds/VoiceNotifs\PlayerLeft.wav"
 	Sound[PlayerLeft] = SdPlayerLeft
 	minDelay[PlayerLeft] = 1
 	
 	GamePause = "GamePause"
-	SdGamePause = ""
+	SdGamePause = "LuaUI/Sounds/VoiceNotifs\GamePause.wav"
 	Sound[GamePause] = SdGamePause
 	minDelay[GamePause] = 60
 	
 	GameStarted = "GameStarted"
-	SdGameStarted = ""
+	SdGameStarted = "LuaUI/Sounds/VoiceNotifs\GameSarted.wav"
 	Sound[GameStarted] = SdGameStarted
 	minDelay[GameStarted] = 1
 
 	UnitLost = "UnitLost"
-	SdUnitLost = ""
+	SdUnitLost = "LuaUI/Sounds/VoiceNotifs\UnitLost.wav"
 	Sound[UnitLost] = SdUnitLost
 	minDelay[UnitLost] = 30
 
 	IdleBuilder = "IdleBuilder"
-	SdIdleBuilder = ""
+	SdIdleBuilder = "LuaUI/Sounds/VoiceNotifs\IdleBuilder.wav"
 	Sound[IdleBuilder] = SdIdleBuilder
 	minDelay[IdleBuilder] = 30
 	
 	NukeLaunched = "NukeLaunched"
-	SdNukeLaunched = ""
+	SdNukeLaunched = "LuaUI/Sounds/VoiceNotifs\NukeLaunched.wav"
 	Sound[NukeLaunched] = SdNukeLaunched
 	minDelay[NukeLaunched] = 1
 

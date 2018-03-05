@@ -9,7 +9,7 @@ function gadget:GetInfo()
         license   = "GNU GPL, v2 or later",
         version   = 1,
         layer     = 5,
-        enabled   = false  --  loaded by default?
+        enabled   = true  --  loaded by default?
     }
 end
 
