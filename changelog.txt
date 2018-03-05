@@ -12,7 +12,7 @@ Other:
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
  • Fixed the occasional white loadscreen
- • Fixed mines detonating before they are completly built
+ • Fixed mines detonating before they are completly built, added dummy weapon to show detonation range, hold fire properly prevents detonation
  • Fixed some T2 and T3 dist-icon sizes
 
 10.05 -> 10.06

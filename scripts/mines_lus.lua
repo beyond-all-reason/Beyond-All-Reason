@@ -24,6 +24,21 @@ function distance(x1,y1,z1,x2,y2,z2)
 	return dist
 end
 
+function script.AimWeapon()
+	return false
+end
+
+function script.QueryWeapon()
+	return base
+end
+
+function script.AimFromWeapon()
+	return base
+end
+
+function script.FireWeapon()
+end
+
 function script.Create()
 	ux,uy,uz = Spring.GetUnitPosition(unitID)
 	StartThread(EnemyDetect)

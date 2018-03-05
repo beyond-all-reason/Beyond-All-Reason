@@ -76,5 +76,34 @@ return {
 				[1] = "minesel1",
 			},
 		},
+		weapondefs = {
+			minerange = {
+					areaofeffect = 0,
+					craterareaofeffect = 0,
+					craterboost = 0,
+					cratermult = 0,
+					edgeeffectiveness = 0,
+					explosiongenerator = "",
+					firesubmersed = false,
+					impulseboost = 0,
+					impulsefactor = 0,
+					name = "Crawlingbomb Dummy Weapon",
+					range = 64,
+					reloadtime = 1,
+					soundhitwet = "",
+					soundhitwetvolume = 0,
+					tolerance = 1000000,
+					weapontype = "Melee",
+					weaponvelocity = 100000,
+					damage = {
+						default = 0,
+					},
+			},
+		},
+		weapons = {
+		[1] = {
+			def = "MINERANGE",
+			},
+		},
 	},
 }
