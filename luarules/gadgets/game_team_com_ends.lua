@@ -23,8 +23,6 @@ if (gadgetHandler:IsSyncedCode()) then
 
 --SYNCED
 
-local allyTeamKilledBy = {} -- record which attackerID killed the last commander of each allyTeam, and treat as though that unit killed them all
-
 local destroyQueue = {}
 
 local destroyUnitQueue = {}
@@ -135,7 +133,7 @@ function gadget:GameFrame(t)
 								y = y,
 								z = z,
 								spark = false,
-                                a = allyTeamKilledBy[at]
+                                a = defs.a,
 							}
 						end
 					end
@@ -154,7 +152,9 @@ function gadget:GameFrame(t)
 				destroyUnitQueue[unitID].spark = true
 			end
 			if (dt > defs.time) then
-				DestroyUnit(unitID, true, nil, defs.a)
+                if defs.a then DestroyUnit(unitID, true, nil, defs.a)
+                    else DestroyUnit(unitID, true) -- if 4th arg is given, it cannot be nil (or engine complains)                
+                end
 				destroyUnitQueue[unitID] = nil
 			end
 		end
@@ -190,8 +190,7 @@ function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
 			aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 			if aliveCount[allyTeam] <= 0 then
 				local x,y,z = Spring.GetUnitPosition(u)
-				destroyQueue[allyTeam] = {x = x, y = y, z = z}
-                allyTeamKilledBy[allyTeam] = a
+				destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a}
             end
 		end
 	end
@@ -203,8 +202,7 @@ function gadget:UnitTaken(u, ud, team, a, ad, ateam)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
 			local x,y,z = Spring.GetUnitPosition(u)
-			destroyQueue[allyTeam] = {x = x, y = y, z = z}
-            allyTeamKilledBy[allyTeam] = a
+			destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a}
 		end
 	end
 end
