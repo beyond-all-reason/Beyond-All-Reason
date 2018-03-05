@@ -20,6 +20,11 @@ local GaiaTeamColor = {255,0,0 }
 
 local myTeamID = Spring.GetMyTeamID()
 
+local singleTeams = false
+if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+	singleTeams = true
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -147,7 +152,9 @@ local function SetNewTeamColors()
 					end
 					r,g,b = GetColor(i, numteams)
 				else
-					if teamID == myTeamID then
+					if singleTeams then
+						r,g,b = GetColor(i, numallyteams)
+					elseif teamID == myTeamID then
 						r,g,b = GetColor(i, numallyteams)
 						r = (r * 1.33) + 0.33
 						g = (g * 1.33) + 0.33
@@ -233,7 +240,7 @@ function widget:Initialize()
 		SetNewTeamColors()
 		reloadWidgets()
 	end
-  
+
 	SetNewTeamColors()
 end
 

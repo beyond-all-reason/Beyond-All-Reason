@@ -23,6 +23,9 @@ end
 local screenNum = math.random(#loadscreens) 
 --local backgroundTexture = loadscreens[screenNum]
 local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
+if not VFS.FileExists(backgroundTexture) then	-- because encountering white loadscreens once in a while (this is not a real fix ofc)
+	backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
+end
 local aspectRatio
 
 function addon.DrawLoadScreen()

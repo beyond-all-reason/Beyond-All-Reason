@@ -27,6 +27,11 @@ local shadowFont = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 38, 1.6)
 
 local vsx, vsy = Spring.GetViewGeometry()
 
+local singleTeams = false
+if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+    singleTeams = true
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -126,7 +131,7 @@ local function createComnameList(attributes)
 end
 
 function widget:Update(dt)
-    if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+    if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
         if myTeamID ~= Spring.GetMyTeamID() then
             -- old
             local name = GetPlayerInfo(myPlayerID)
