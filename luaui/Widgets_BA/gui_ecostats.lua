@@ -102,6 +102,10 @@ local widgetRight			 	    = widgetPosX + widgetWidth
 
 local sizeMultiplier   = 1
 
+local singleTeams = false
+if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+	singleTeams = true
+end
 
 Options = {}
 Options["resText"] = {}
@@ -1567,7 +1571,7 @@ end
 
 
 function widget:Update(dt)
-	if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
 			UpdateAllTeams()
 			makeSideImageList()
