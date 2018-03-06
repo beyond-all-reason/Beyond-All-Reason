@@ -63,7 +63,7 @@ local allowBroadcast = true
 local PACKET_HEADER = "="
 local PACKET_HEADER_LENGTH = strLen(PACKET_HEADER)
 local numBroadcasts = {}
-local maxNumBroadcasts = 15
+local maxNumBroadcasts = 25
 local plannedGameFrame = 1
 if gadgetHandler:IsSyncedCode() then
 
@@ -83,7 +83,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameFrame(gf)
 		if gf >= plannedGameFrame then
-			plannedGameFrame = gf + (broadcastPeriod*10)
+			plannedGameFrame = gf + (broadcastPeriod*5)
 			maxNumBroadcasts = maxNumBroadcasts + 1
 		end
 	end
