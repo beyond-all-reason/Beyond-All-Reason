@@ -17,6 +17,7 @@ Other:
  • Fixed mines detonating before they are completly built, added dummy weapon to show detonation range, hold fire properly prevents detonation
  • Fixed some T2 and T3 dist-icon sizes
  • More acurate math behind 3rd award from awards screen
+ • Removed widget: "Unit Reclaimer": add CTRL modifier key to "Specific Unit Reclaimer" widget instead
  • More deathmessages
 
 
