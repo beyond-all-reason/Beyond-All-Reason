@@ -39,6 +39,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*relXpos
 local currentWind = 0
+local currentMetalmaker = 0
 local gameStarted = false
 local displayComCounter = false
 
@@ -85,6 +86,7 @@ local dlistResbar = {metal={}, energy={}}
 local energyconvArea = {}
 local windArea = {}
 local comsArea = {}
+local metalmakerArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
 local dlistWindText = {}
@@ -402,6 +404,51 @@ local function updateButtons()
 end
 
 
+local function updateMetalmaker(forceText)
+	local area = metalmakerArea
+
+	if dlistMetalmaker1 ~= nil then
+		glDeleteList(dlistMetalmaker1)
+	end
+	dlistMetalmaker1 = glCreateList( function()
+
+		-- background
+		glColor(0,0,0,0.7)
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
+		local bgpadding = 3*widgetScale
+		glColor(1,1,1,0.03)
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
+
+		if (WG['guishader_api'] ~= nil) then
+			guishaderEnabled = true
+			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_metalmaker')
+		end
+	end)
+
+	if dlistMetalmaker2 ~= nil then
+		glDeleteList(dlistMetalmaker2)
+	end
+	dlistMetalmaker2 = glCreateList( function()
+		-- icon
+		local sizeHalf = (height/2.75)*widgetScale
+		--glTexture(comTexture)
+		--glTexRect(area[1]+((area[3]-area[1])/2)-sizeHalf, area[2]+((area[4]-area[2])/2)-sizeHalf, area[1]+((area[3]-area[1])/2)+sizeHalf, area[2]+((area[4]-area[2])/2)+sizeHalf)
+		--glTexture(false)
+
+		-- Text
+		local metalmakerEff = '?'
+		local fontSize = (height/2.66)*widgetScale
+		glText("\255\200\200\200"..currentMetalmaker, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
+
+	end)
+	metalmakerChanged = nil
+
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].AddTooltip('metalmaker', area, "\255\215\255\215Metalmaker conversion value\nDisplays the number of ......")
+	end
+end
+
+
 local function updateComs(forceText)
 	local area = comsArea
 	
@@ -447,7 +494,7 @@ local function updateComs(forceText)
 			glText('\255\255\000\000'..usedEnemyComs, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
 			fontSize = (height/2.15)*widgetScale
-			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2)-(fontSize/5), fontSize, 'oc')
+			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
 		end
 	end)
 	comcountChanged = nil
@@ -460,33 +507,33 @@ end
 
 local function updateWind()
 	local area = windArea
-		
-	local xPos =  area[1] 
+
+	local xPos =  area[1]
 	local yPos =  area[2] + ((area[4] - area[2])/3.5)
 	local oorx = 10*widgetScale
 	local oory = 13*widgetScale
-	
+
 	local bgpadding = 3*widgetScale
-	
+
 	local poleWidth = 6 * widgetScale
 	local poleHeight = 14 * widgetScale
-	
+
 	if dlistWind1 ~= nil then
 		glDeleteList(dlistWind1)
 	end
 	dlistWind1 = glCreateList( function()
-		
+
 		-- background
 		glColor(0,0,0,0.7)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		glColor(1,1,1,0.03)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
-		
+
 		if (WG['guishader_api'] ~= nil) then
             guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_wind')
 		end
-		
+
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
 			glTranslate(11*widgetScale, -((height*widgetScale)/4.4), 0) -- Spacing of icon
@@ -494,7 +541,7 @@ local function updateWind()
 				glTranslate(1*widgetScale, 9*widgetScale, 0)
 				glTranslate(oorx, oory, 0)
 	end)
-	
+
 	if dlistWind2 ~= nil then
 		glDeleteList(dlistWind2)
 	end
@@ -505,13 +552,13 @@ local function updateWind()
 				glTexRect(0, 0, 27*widgetScale, 28*widgetScale)
 				glTexture(false)
 			glPopMatrix()
-			
+
 			x,y = 9*widgetScale, 2*widgetScale -- Pole
 			glTexture(poleTexture)
 			glTexRect(x, y, (7*widgetScale)+x, y+(18*widgetScale))
 			glTexture(false)
 		glPopMatrix()
-		
+
 		-- min and max wind
 		local fontsize = (height/3.7)*widgetScale
 		glText("\255\130\130\130"..minWind, area[3]-(2.8*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
@@ -748,6 +795,12 @@ function init()
 	windArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
 	filledWidth = filledWidth + width + areaSeparator
 	updateWind()
+
+	-- metalmaker
+	width = ((height*1.18)*widgetScale)
+	metalmakerArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
+	filledWidth = filledWidth + width + areaSeparator
+	updateMetalmaker()
 	
 	-- coms
 	if displayComCounter then
@@ -856,10 +909,15 @@ function widget:Update(dt)
 		updateResbar('energy')
 	end
 
-	-- wind
 	if (gameFrame ~= lastFrame) then
+
+		-- wind
 		currentWind = sformat('%.1f', select(4,spWind()))
+
+		-- metalmaker
+		currentMetalmaker = 0
 	end
+
 
  	-- coms
 	if displayComCounter then
@@ -1030,7 +1088,7 @@ function widget:DrawScreen()
 			local fontSize = (height/2.66)*widgetScale
 			if not dlistWindText[currentWind] then
 				dlistWindText[currentWind] = glCreateList( function()
-					glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.1)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+					glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.05)-(fontSize/5), fontSize, 'oc') -- Wind speed text
 				end)
 			end
 			glCallList(dlistWindText[currentWind])
@@ -1052,6 +1110,11 @@ function widget:DrawScreen()
 			end
 		end
 	end
+	if dlistMetalmaker1 then
+		glCallList(dlistMetalmaker1)
+		glCallList(dlistMetalmaker2)
+	end
+
 	if displayComCounter and dlistComs1 then
 		glCallList(dlistComs1)
 		if allyComs == 1 and (gameFrame % 12 < 6) then
@@ -1605,6 +1668,11 @@ function widget:Initialize()
 
 	-- used for rejoin progress functionality
 	functionContainer = RemoveLUARecvMsg
+
+	WG['topbar'] = {}
+	WG['topbar'].showingRejoining = function()
+		return showRejoinUI
+	end
 
 	init()
 end
