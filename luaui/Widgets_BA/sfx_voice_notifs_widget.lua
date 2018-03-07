@@ -9,7 +9,7 @@ function widget:GetInfo()
         license   = "GNU GPL, v2 or later",
         version   = 1,
         layer     = 5,
-        enabled   = false  --  loaded by default?
+        enabled   = true  --  loaded by default?
     }
 end
 
@@ -33,7 +33,7 @@ Sound = {}
 	minDelay[GamePause] = 60
 	
 	GameStarted = "GameStarted"
-	SdGameStarted = "LuaUI/Sounds/VoiceNotifs/GameSarted.wav"
+	SdGameStarted = "LuaUI/Sounds/VoiceNotifs/GameStarted.wav"
 	Sound[GameStarted] = SdGameStarted
 	minDelay[GameStarted] = 1
 

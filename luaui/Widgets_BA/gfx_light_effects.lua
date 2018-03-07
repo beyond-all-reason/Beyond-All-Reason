@@ -139,7 +139,9 @@ local function GetLightsFromUnitDefs()
 			lightMultiplier = 0.01 + (weaponDef.size/55)
 			recalcRGB = true
 		elseif (weaponDef.type == 'StarburstLauncher') then
-			weaponData.radius = 400
+			weaponData.radius = 250
+			weaponData.radius1 = weaponData.radius
+			weaponData.radius2 = weaponData.radius*0.6
 		elseif (weaponDef.type == 'Flame') then
 			weaponData.radius = 70 * weaponDef.size
 			lightMultiplier = 0.05
@@ -184,6 +186,10 @@ local function GetLightsFromUnitDefs()
 
 		if customParams.light_radius_mult then
 			weaponData.radius = weaponData.radius * tonumber(customParams.light_radius_mult)
+			if weaponData.radius1 and weaponData.radius2 then
+				weaponData.radius1 = weaponData.radius * tonumber(customParams.light_radius_mult)
+				weaponData.radius2 = weaponData.radius * tonumber(customParams.light_radius_mult)
+			end
 		end
 
 		if customParams.light_ground_height then
@@ -410,6 +416,14 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 				else -- point type
 					if not (lightParams.groundHeightLimit and lightParams.groundHeightLimit < (y - math.max(Spring.GetGroundHeight(y, y), 0))) then
 						local drawParams = GetProjectileLight(lightParams, pID, x, y, z)
+						if lightParams.radius2 ~= nil then
+							local dirX,dirY,dirZ = Spring.GetProjectileDirection(pID)
+							if dirX == 0 and dirZ == 0 then
+								drawParams.param.radius = lightParams.radius1
+							else
+								drawParams.param.radius = lightParams.radius2
+							end
+						end
 						pointLightCount = pointLightCount + 1
 						pointLights[pointLightCount] = drawParams
 						if projectileDrawParams then

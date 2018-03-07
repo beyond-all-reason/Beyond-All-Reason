@@ -18,6 +18,7 @@ end
 ------------------------------------------------
 
 --broadcast
+
 local broadcastPeriod = 1 --will send packet in this interval (s)
 
 ------------------------------------------------
@@ -54,22 +55,37 @@ local vfsPackU8 = VFS.PackU8
 local vfsPackF32 = VFS.PackF32
 local vfsUnpackU8 = VFS.UnpackU8
 local vfsUnpackF32 = VFS.UnpackF32
+local allowBroadcast = true
 
 ------------------------------------------------
 --const
 ------------------------------------------------
 local PACKET_HEADER = "="
 local PACKET_HEADER_LENGTH = strLen(PACKET_HEADER)
-
-
+local numBroadcasts = {}
+local maxNumBroadcasts = 25
+local plannedGameFrame = 1
 if gadgetHandler:IsSyncedCode() then
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
-			return
+		if numBroadcasts[playerID] == nil then
+			numBroadcasts[playerID] = 0
 		end
-		SendToUnsynced("cameraBroadcast",playerID,msg)
-		return true
+		numBroadcasts[playerID] = numBroadcasts[playerID] + 1
+		if numBroadcasts[playerID] < maxNumBroadcasts then
+			if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+				return
+			end
+			SendToUnsynced("cameraBroadcast",playerID,msg)
+			return true
+		end
+	end
+
+	function gadget:GameFrame(gf)
+		if gf >= plannedGameFrame then
+			plannedGameFrame = gf + (broadcastPeriod*5)
+			maxNumBroadcasts = maxNumBroadcasts + 1
+		end
 	end
 else
 	local totalTime = 0
@@ -260,7 +276,7 @@ else
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("cameraBroadcast", handleCameraBroadcastEvent)
 	end
-	
+
 	function gadget:Shutdown()
 		SendLuaRulesMsg(PACKET_HEADER)
 		gadgetHandler:RemoveSyncAction("cameraBroadcast")
@@ -293,6 +309,10 @@ else
     end
 
 	function gadget:Update()
+		if Spring.GetGameFrame() == 0 then
+			return
+		end
+
 		local dt = GetLastUpdateSeconds()
 		totalTime = totalTime + dt 
 		timeSinceBroadcast = timeSinceBroadcast + dt

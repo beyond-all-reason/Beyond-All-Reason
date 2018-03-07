@@ -94,6 +94,9 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
     if missileWeapons[weaponDefID] then
         local x,y,z = GetProjectilePosition(proID)
         local groundHeight = GetGroundHeight(x,z)
+        if groundHeight < 0 then
+            groundHeight = 0
+        end
         local gf = Spring.GetGameFrame()
         missiles[proID] = {
             weaponDefID,
