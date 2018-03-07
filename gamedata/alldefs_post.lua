@@ -254,7 +254,16 @@ end
 
 -- process weapondef
 function WeaponDef_Post(name, wDef)
-  wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
+
+	--Use targetborderoverride in weapondef customparams to override this global setting
+	--Controls whether the weapon aims for the center or the edge of its target's collision volume. Clamped between -1.0 - target the far border, and 1.0 - target the near border.
+	if wDef.customparams and wDef.customparams.targetborderoverride == nil then
+		wDef.targetborder = 0.75 --Aim for just inside the hitsphere
+	elseif wDef.customparams and wDef.customparams.targetborderoverride ~= nil then
+		wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
+	end
+
+	wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
 
 	-- EdgeEffectiveness global buff to counterbalance smaller hitboxes
 	wDef.edgeeffectiveness = (tonumber(wDef.edgeeffectiveness) or 0) + 0.15
@@ -454,7 +463,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			--	weaponDef.collideFeature = true
 			--end
 		end
-		
 	end
 	
 	-- Make BeamLasers do their damage up front instead of over time
