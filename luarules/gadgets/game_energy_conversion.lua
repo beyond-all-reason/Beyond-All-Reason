@@ -97,7 +97,18 @@ for id, defs in pairs(UnitDefs) do
 	end
 end
 
+local function GetMapTheoricMaxExtraction()
+	metalAmount = 0
+	for i = 0, Game.mapSizeX/16 do
+		for j = 0, Game.mapSizeZ/16 do
+			metalAmount = metalAmount + Spring.GetMetalAmount(i,j)
+		end
+	end
+	metalAmount = metalAmount * 0.004
+end
+
 local function GetAllyTeamMetalExtraction(unitTeam)
+	if metalAmount > 20 and metalAmount <= 10000 then
 	local allyteamlist = Spring.GetAllyTeamList()
 	local teamsInAllyID = {}
 	local _,_,_,_,_,currentAllyTeamID = Spring.GetTeamInfo(unitTeam)
@@ -114,7 +125,10 @@ local function GetAllyTeamMetalExtraction(unitTeam)
 			end
 		end
 	end
-	return metal
+	return metal -- (metal*250/(0.5*metalAmount)) -- scale on metalAmount to scale on team map control rather than brute metal extraction
+	else -- If metal map or no metal map use original (1/58, 1/64 and 1/70) metal making ratios
+	return (200)
+	end
 end
 
 local function prototype(t)
@@ -281,6 +295,7 @@ end
 -- Callins
 ----------------------------------------------------------------
 function gadget:Initialize()
+	GetMapTheoricMaxExtraction()
     SetMMRulesParams()
     BuildeSteps()
     local i = 1

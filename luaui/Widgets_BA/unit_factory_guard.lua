@@ -111,7 +111,17 @@ local function GuardFactory(unitID, unitDefID, factID, factDefID)
   local OrderUnit = spGiveOrderToUnit
 
   OrderUnit(unitID, CMD_MOVE,  { x + dx, y, z + dz }, { "" })
-  OrderUnit(unitID, CMD_MOVE,  { x + rx, y, z + rz }, { "shift" })
+  if Spring.TestMoveOrder(unitDefID, x + dx + rx, y, z + dz + rz) then
+	OrderUnit(unitID, CMD_MOVE,  { x + dx + rx, y, z + dz + rz }, { "shift" })
+		  if Spring.TestMoveOrder(unitDefID, x + rx, y, z + rz ) then
+			OrderUnit(unitID, CMD_MOVE,  { x + rx, y, z + rz }, { "shift" })
+		  end
+  elseif Spring.TestMoveOrder(unitDefID, x + dx - rx, y, z + dz - rz) then
+    OrderUnit(unitID, CMD_MOVE,  { x + dx - rx, y, z + dz - rz }, { "shift" })
+		  if Spring.TestMoveOrder(unitDefID, x - rx, y, z - rz ) then
+			OrderUnit(unitID, CMD_MOVE,  { x - rx, y, z - rz  }, { "shift" })
+		  end
+  end
   OrderUnit(unitID, CMD_GUARD, { factID },            { "shift" })
 end
 

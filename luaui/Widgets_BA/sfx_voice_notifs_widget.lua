@@ -51,6 +51,17 @@ Sound = {}
 	SdNukeLaunched = "LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav"
 	Sound[NukeLaunched] = SdNukeLaunched
 	minDelay[NukeLaunched] = 1
+	
+	aCommLost = "aCommLost"
+	SdaCommLost = "LuaUI/Sounds/VoiceNotifs/aCommLost.wav"
+	Sound[aCommLost] = SdaCommLost
+	minDelay[aCommLost] = 1
+	
+	eCommDestroyed = "eCommDestroyed"
+	SdeCommDestroyed = "LuaUI/Sounds/VoiceNotifs/eCommDestroyed.wav"
+	Sound[eCommDestroyed] = SdeCommDestroyed
+	minDelay[eCommDestroyed] = 1
+
 
 function widget:Initialize()
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
