@@ -111,13 +111,32 @@ end
 	end
 	
 -- Unit Lost send to all in team
-	function gadget:UnitDestroyed(unitID)
-		local event = "UnitLost"
-		local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))
-		for ct, player in pairs (players) do
-			if tostring(player) then
-			SendToUnsynced("EventBroadcast", event, tostring(player))
+	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
+		if not (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
+			if attackerID or attackerDefID or attackerTeam then
+				local event = "UnitLost"
+				local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))
+				for ct, player in pairs (players) do
+					if tostring(player) then
+					SendToUnsynced("EventBroadcast", event, tostring(player))
+					end
+				end
 			end
+		else
+			local event = "aCommLost"
+			local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+			for ct, player in pairs (players) do
+				if tostring(player) then
+					SendToUnsynced("EventBroadcast", event, tostring(player))
+				end
+			end
+			local event = "eCommDestroyed"
+			local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
+			for ct, player in pairs (players) do
+				if tostring(player) then
+					SendToUnsynced("EventBroadcast", event, tostring(player))
+				end
+			end			
 		end
 	end
 	
