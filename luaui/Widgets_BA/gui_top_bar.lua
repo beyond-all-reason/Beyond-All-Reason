@@ -916,6 +916,8 @@ function widget:Update(dt)
 
 		-- metalmaker
 		currentMetalmaker = 0
+		currentMetalmaker = Spring.GetTeamRulesParam(myTeamID, "MMFactor")*0.5
+		updateMetalmaker()
 	end
 
 
