@@ -454,17 +454,10 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 				--Spring.Echo(unitDef.collisionvolumetype)
 				--unitDef.useFootPrintCollisionVolume = true
 			end
-		else
-			-- forbs setting was:
-			--for id,weaponDef in pairs(WeaponDefs) do
-			--	weaponDef.avoidFriendly = true
-			--	weaponDef.collideFriendly = false
-			--	weaponDef.avoidFeature = true
-			--	weaponDef.collideFeature = true
-			--end
 		end
 	end
-	
+
+	--[[
 	-- Make BeamLasers do their damage up front instead of over time
 	-- Do this at the end so that we don't mess up any magic math
 	for id,wDef in pairs(WeaponDefs) do
@@ -478,4 +471,5 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 			wDef.beamtime = 0.01		
 		end
 	end
+	]]--
 end
