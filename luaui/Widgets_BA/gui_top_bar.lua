@@ -438,12 +438,7 @@ local function updateMetalmaker()
 		-- Text
 		--local fontSize = (height/2.66)*widgetScale
 		--glText("\255\200\200\200"..currentMetalmaker, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
-
 	end)
-
-	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('metalmaker', area, "\255\215\255\215Metalmaker conversion value\nDisplays the number of ......")
-	end
 end
 
 
@@ -884,6 +879,9 @@ function widget:GameFrame(n)
 				local fontSize = (height/2.66)*widgetScale
 				glText("\255\200\200\200"..currentMetalmaker, metalmakerArea[1]+((metalmakerArea[3]-metalmakerArea[1])/2), metalmakerArea[2]+((metalmakerArea[4]-metalmakerArea[2])/2.05)-(fontSize/5), fontSize, 'oc')
 			end)
+			if WG['tooltip'] ~= nil then
+				WG['tooltip'].AddTooltip('metalmaker', metalmakerArea, "\255\215\255\215Metalmaker conversion value\nDisplays the number of ......")
+			end
 		end
 	end
 end
