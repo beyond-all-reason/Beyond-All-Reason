@@ -43,11 +43,11 @@ local FADE_TIME = 5
 local overrideParam = {r = 1, g = 1, b = 1, radius = 200}
 local doOverride = false
 
-local globalLightMult = 1.5
-local globalRadiusMult = 1.2
-local globalLightMultLaser = 1.5	-- gets applied on top op globalRadiusMult
+local globalLightMult = 1.3
+local globalRadiusMult = 1.3
+local globalLightMultLaser = 1.4	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.5
+local globalLifeMult = 0.65
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -478,7 +478,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	-- add explosion lights
 	for i, params in pairs(explosionLights) do
 		local progress = 1-((frame-params.frame)/params.life)
-		progress = progress - ((progress*progress)*0.3)
+		progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4
 		params.colMult = params.orgMult * progress
 		if params.colMult <= 0 then
 			explosionLights[i] = nil
@@ -632,12 +632,12 @@ function widget:GetConfigData(data)
 	savedTable.globalLightMultLaser = globalLightMultLaser
 	savedTable.globalRadiusMultLaser = globalRadiusMultLaser
 	savedTable.globalLifeMult = globalLifeMult
-	savedTable.resetted = 1.3
+	savedTable.resetted = 1.4
 	return savedTable
 end
 
 function widget:SetConfigData(data)
-	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.3 then
+	if data.globalLifeMult ~= nil and data.resetted ~= nil and data.resetted == 1.4 then
 		if data.globalLightMult ~= nil then
 			globalLightMult = data.globalLightMult
 		end
