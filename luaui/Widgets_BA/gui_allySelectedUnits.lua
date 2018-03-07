@@ -82,7 +82,7 @@ playerColorPool[6] = { 1.0, 0.0, 1.0 }
 playerColorPool[7] = { 1.0, 0.0, 0.0 }
 playerColorPool[8] = { 1.0, 0.0, 0.0 }
 
-local xRelPos, yRelPos		= 0.8, 0.8	-- (only used here for now)
+local xRelPos, yRelPos		= 0.835, 0.88	-- (only used here for now)
 local vsx, vsy				= gl.GetViewSizes()
 local xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 
@@ -661,15 +661,18 @@ function widget:GetConfigData()
     return {
 		maxAlpha = maxAlpha,
         selectPlayerUnits = selectPlayerUnits,
-        xRelPos = xRelPos, yRelPos = yRelPos
+        xRelPos = xRelPos, yRelPos = yRelPos,
+        version = 1.1
     }
 end
 
 function widget:SetConfigData(data)
-	maxAlpha = data.maxAlpha or maxAlpha
-	selectPlayerUnits = data.selectPlayerUnits or selectPlayerUnits
-	xRelPos = data.xRelPos or xRelPos
-	yRelPos = data.yRelPos or yRelPos
-	xPos = xRelPos * vsx
-	yPos = yRelPos * vsy
+    if data.version ~= nil and data.version == 1.1 then
+        maxAlpha = data.maxAlpha or maxAlpha
+        selectPlayerUnits = data.selectPlayerUnits or selectPlayerUnits
+        xRelPos = data.xRelPos or xRelPos
+        yRelPos = data.yRelPos or yRelPos
+        xPos = xRelPos * vsx
+        yPos = yRelPos * vsy
+    end
 end
