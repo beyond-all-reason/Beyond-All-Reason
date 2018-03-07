@@ -62,30 +62,13 @@ local allowBroadcast = true
 ------------------------------------------------
 local PACKET_HEADER = "="
 local PACKET_HEADER_LENGTH = strLen(PACKET_HEADER)
-local numBroadcasts = {}
-local maxNumBroadcasts = 25
-local plannedGameFrame = 1
 if gadgetHandler:IsSyncedCode() then
-
 	function gadget:RecvLuaMsg(msg, playerID)
-		if numBroadcasts[playerID] == nil then
-			numBroadcasts[playerID] = 0
+		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+			return
 		end
-		numBroadcasts[playerID] = numBroadcasts[playerID] + 1
-		if numBroadcasts[playerID] < maxNumBroadcasts then
-			if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
-				return
-			end
-			SendToUnsynced("cameraBroadcast",playerID,msg)
-			return true
-		end
-	end
-
-	function gadget:GameFrame(gf)
-		if gf >= plannedGameFrame then
-			plannedGameFrame = gf + (broadcastPeriod*5)
-			maxNumBroadcasts = maxNumBroadcasts + 1
-		end
+		SendToUnsynced("cameraBroadcast",playerID,msg)
+		return true
 	end
 else
 	local totalTime = 0
