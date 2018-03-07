@@ -39,7 +39,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*relXpos
 local currentWind = 0
-local currentMetalmaker = 0
+local currentMetalmaker = ''
 local gameStarted = false
 local displayComCounter = false
 
@@ -404,7 +404,7 @@ local function updateButtons()
 end
 
 
-local function updateMetalmaker(forceText)
+local function updateMetalmaker()
 	local area = metalmakerArea
 
 	if dlistMetalmaker1 ~= nil then
@@ -436,12 +436,10 @@ local function updateMetalmaker(forceText)
 		--glTexture(false)
 
 		-- Text
-		local metalmakerEff = '?'
-		local fontSize = (height/2.66)*widgetScale
-		glText("\255\200\200\200"..currentMetalmaker, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
+		--local fontSize = (height/2.66)*widgetScale
+		--glText("\255\200\200\200"..currentMetalmaker, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
 
 	end)
-	metalmakerChanged = nil
 
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].AddTooltip('metalmaker', area, "\255\215\255\215Metalmaker conversion value\nDisplays the number of ......")
@@ -797,11 +795,13 @@ function init()
 	updateWind()
 
 	-- metalmaker
-	width = ((height*1.18)*widgetScale)
-	metalmakerArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-	filledWidth = filledWidth + width + areaSeparator
-	updateMetalmaker()
-	
+	if currentMetalmaker ~= '' then
+		width = ((height*1.18)*widgetScale)
+		metalmakerArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
+		filledWidth = filledWidth + width + areaSeparator
+		updateMetalmaker()
+	end
+
 	-- coms
 	if displayComCounter then
 		comsArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
@@ -857,6 +857,14 @@ end
 function widget:GameFrame(n)
 	spec = spGetSpectatingState()
 
+	if n == 1 then
+		currentMetalmaker = getCurrentMetalmaker()
+		if currentMetalmaker ~= '' then
+			init()
+		end
+	end
+
+
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
 
@@ -865,6 +873,18 @@ function widget:GameFrame(n)
 	if n % 30 == 1 then
 		updateResbarText('metal')
 		updateResbarText('energy')
+
+		-- metalmaker
+		if currentMetalmaker ~= '' then
+			currentMetalmaker = getCurrentMetalmaker()
+			if dlistMetalmaker3 ~= nil then
+				glDeleteList(dlistMetalmaker3)
+			end
+			dlistMetalmaker3 = glCreateList( function()
+				local fontSize = (height/2.66)*widgetScale
+				glText("\255\200\200\200"..currentMetalmaker, metalmakerArea[1]+((metalmakerArea[3]-metalmakerArea[1])/2), metalmakerArea[2]+((metalmakerArea[4]-metalmakerArea[2])/2.05)-(fontSize/5), fontSize, 'oc')
+			end)
+		end
 	end
 end
 
@@ -909,15 +929,9 @@ function widget:Update(dt)
 		updateResbar('energy')
 	end
 
+	-- wind
 	if (gameFrame ~= lastFrame) then
-
-		-- wind
 		currentWind = sformat('%.1f', select(4,spWind()))
-
-		-- metalmaker
-		currentMetalmaker = 0
-		currentMetalmaker = Spring.GetTeamRulesParam(myTeamID, "MMFactor")*0.5
-		updateMetalmaker()
 	end
 
 
@@ -1112,9 +1126,10 @@ function widget:DrawScreen()
 			end
 		end
 	end
-	if dlistMetalmaker1 then
+	if currentMetalmaker ~= '' and dlistMetalmaker1 then
 		glCallList(dlistMetalmaker1)
 		glCallList(dlistMetalmaker2)
+		glCallList(dlistMetalmaker3)
 	end
 
 	if displayComCounter and dlistComs1 then
@@ -1607,6 +1622,22 @@ function widget:RecvLuaMsg(bigMsg, playerID) --this function run 2nd. It read th
 end
 
 
+function getCurrentMetalmaker()
+	local value = Spring.GetTeamRulesParam(myTeamID, "MMFactor")
+	if value == nil then
+		return ''
+	else
+		value = value*0.5
+	end
+
+	local decimalValue, floatValue = math.modf(value)
+	if floatValue ~= 0 then
+		value = string.format("%."..string.len(string.sub('0.00', 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+	end
+	return value
+end
+
+
 -- used for rejoin progress functionality
 local function RemoveLUARecvMsg(n)
 	if n > 150 then
@@ -1670,6 +1701,8 @@ function widget:Initialize()
 
 	-- used for rejoin progress functionality
 	functionContainer = RemoveLUARecvMsg
+
+	currentMetalmaker = getCurrentMetalmaker()
 
 	WG['topbar'] = {}
 	WG['topbar'].showingRejoining = function()
