@@ -91,6 +91,8 @@ if  (gadgetHandler:IsSyncedCode()) then
             
             if gf-featureinfo.frame~= 0 then
                 local factor = (gf-featureinfo.frame)/fallspeed
+                local fx,fy,fz = GetFeaturePosition(featureID)
+                SetFeaturePosition(featureID, fx,fy-0.5,fz, false)
                 SetFeatureDirection( featureID, featureinfo.dirx , factor*factor , featureinfo.dirz/(gf-featureinfo.frame) )
 
                 --local fx,fy,fz = GetFeaturePosition(featureID)
@@ -102,9 +104,17 @@ if  (gadgetHandler:IsSyncedCode()) then
             end
             
             if (featureinfo.frame +falltime < gf) then
-                treesdying[featureID]=nil 
-                -- Echo('removing feature',featureID)
-                DestroyFeature(featureID)
+
+                local fx,fy,fz = GetFeaturePosition(featureID)
+                local dx, dy ,dz= GetFeatureDirection( featureID)
+                SetFeaturePosition(featureID, fx,fy-0.66,fz, false)
+                SetFeatureDirection(featureID,dx, dy ,dz)
+
+                if fy < - 50 or featureinfo.frame +falltime+120 < gf then
+                    treesdying[featureID]=nil
+                    -- Echo('removing feature',featureID)
+                    DestroyFeature(featureID)
+                end
             end
         end
     end
