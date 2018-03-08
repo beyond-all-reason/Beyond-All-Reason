@@ -407,6 +407,8 @@ end
 --local currentGroupTab = 'ui'
 
 function mouseoverGroupTab(id)
+	if optionGroups[id].id == currentGroupTab then return end
+	
 	local tabFontSize = 16
 	local groupMargin = bgMargin/1.7
 	gl.Color(0.4,0.4,0.4,0.3)
