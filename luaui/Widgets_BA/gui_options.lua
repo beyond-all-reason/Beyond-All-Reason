@@ -1658,6 +1658,7 @@ function mouseEvent(x, y, button, release)
 				for id,group in pairs(optionGroups) do
 					if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
 						currentGroupTab = group.id
+						startColumn = 1
 						tabClicked = true
 						if windowList then gl.DeleteList(windowList) end
 						windowList = gl.CreateList(DrawWindow)
@@ -1739,6 +1740,7 @@ function mouseEvent(x, y, button, release)
 			-- on title
 			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 				currentGroupTab = nil
+				startColumn = 1
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 			elseif not tabClicked then
