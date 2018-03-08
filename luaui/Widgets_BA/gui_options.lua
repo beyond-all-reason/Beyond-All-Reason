@@ -432,7 +432,11 @@ function DrawWindow()
 	gl.Color(0,0,0,0.8)
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
-	gl.Color(0.33,0.33,0.33,0.15)
+	if currentGroupTab then
+		gl.Color(0.4,0.4,0.4,0.15)
+	else
+		gl.Color(0.33,0.33,0.33,0.15)
+	end
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
 	
 	--[[ close button
@@ -463,7 +467,7 @@ function DrawWindow()
 		if currentGroupTab == nil or currentGroupTab ~= group.id then
 			gl.Color(0,0,0,0.8)
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
-			gl.Color(0.62,0.5,0.22,0.14)
+			gl.Color(0.62,0.5,0.22,0.18)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, 8, 1,1,0,0)
 			font:Begin()
 			font:SetTextColor(0.6,0.51,0.38,1)
@@ -473,7 +477,7 @@ function DrawWindow()
 		else
 			gl.Color(0,0,0,0.8)
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
-			gl.Color(0.33,0.33,0.33,0.15)
+			gl.Color(0.4,0.4,0.4,0.15)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, 8, 1,1,0,0)
 			font:Begin()
 			font:SetTextColor(1,0.75,0.4,1)
@@ -737,6 +741,24 @@ function widget:DrawScreen()
 				WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options')
 				--WG['guishader_api'].setBlurIntensity(0.0017)
 				--WG['guishader_api'].setScreenBlur(true)
+
+				if (WG['guishader_api'] ~= nil and titleRect ~= nil) then
+					rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+					rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+					if groupRect ~= nil then
+						local lastID = false
+						for id,rect in pairs(groupRect) do
+							lastID = id
+						end
+						if lastID then
+							rectX2 = (groupRect[lastID][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+							rectY2 = (groupRect[lastID][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+						end
+					end
+					WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options_top')
+				end
 			end
 			showOnceMore = false
 			
@@ -848,6 +870,7 @@ function widget:DrawScreen()
 	else
 		if (WG['guishader_api'] ~= nil) then
 			local removed = WG['guishader_api'].RemoveRect('options')
+			local removed = WG['guishader_api'].RemoveRect('options_top')
 			if removed then
 				--WG['guishader_api'].setBlurIntensity()
 			  WG['guishader_api'].setScreenBlur(false)
