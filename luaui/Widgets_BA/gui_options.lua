@@ -408,7 +408,7 @@ end
 
 function mouseoverGroupTab(id)
 	if optionGroups[id].id == currentGroupTab then return end
-	
+
 	local tabFontSize = 16
 	local groupMargin = bgMargin/1.7
 	gl.Color(0.4,0.4,0.4,0.3)
@@ -1662,8 +1662,6 @@ function mouseEvent(x, y, button, release)
 						currentGroupTab = group.id
 						startColumn = 1
 						tabClicked = true
-						if windowList then gl.DeleteList(windowList) end
-						windowList = gl.CreateList(DrawWindow)
 					end
 				end
 			end
@@ -1743,8 +1741,6 @@ function mouseEvent(x, y, button, release)
 			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 				currentGroupTab = nil
 				startColumn = 1
-				if windowList then gl.DeleteList(windowList) end
-				windowList = gl.CreateList(DrawWindow)
 			elseif not tabClicked then
 				if release and draggingSlider == nil then
 					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it

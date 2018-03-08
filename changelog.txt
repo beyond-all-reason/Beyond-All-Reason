@@ -2,7 +2,7 @@
 XX/XX/2018
 
 Balance changes: 
- • Long range T1 AA airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
+ • Long range T1 AA range reduced 10% and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
  • Plasma shield starting power reduced to 20% instead of 33%
 
 Other:
