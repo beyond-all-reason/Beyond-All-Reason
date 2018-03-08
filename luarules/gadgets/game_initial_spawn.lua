@@ -194,6 +194,15 @@ function gadget:Initialize()
         nSpawnTeams = nSpawnTeams + 1
     end
     
+    -- create the ffaStartPoints table, if we need it & can get it
+    if useFFAStartPoints then
+        GetFFAStartPoints() 
+    end
+	-- make the relevant part of ffaStartPoints accessible to all, if it is use-able
+    if ffaStartPoints then
+		GG.ffaStartPoints = ffaStartPoints[nAllyTeams] -- NOT indexed by allyTeamID
+    end
+    
 	-- mark all players as 'not yet placed'	
 	local initState 
 	if Game.startPosType ~= 2 or ffaStartPoints then
@@ -398,7 +407,6 @@ end
 ----------------------------------------------------------------
 
 function gadget:GameStart()
-        GetFFAStartPoints()		
 
     -- ffa mode spawning
     if useFFAStartPoints and ffaStartPoints and ffaStartPoints[nAllyTeams] and #(ffaStartPoints[nAllyTeams])==nAllyTeams then
