@@ -2,7 +2,7 @@
 XX/XX/2018
 
 Balance changes: 
- • Long range T1 AA airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
+ • Long range T1 AA range reduced 10% and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
  • Plasma shield starting power reduced to 20% instead of 33%
  • Metal makers rates and maximum inputs changed:
 	Input: The maximal energy input of metal makers is 70/77/600/660 e/s vs old 70/70/600/650 (T1/T1sea/T2/T2sea).
@@ -16,6 +16,7 @@ Balance changes:
 
 Other:
  • Auto replacing engine trees with custom trees
+ • Options menu has tabs
  • Added "Minimap icon size" slider to options
  • Added "Simple minimap colors" option to options
  • Team colors based on palette suboption: "same team colors": your own team has a lighter color
@@ -25,6 +26,7 @@ Other:
  • Fixed the occasional white loadscreen
  • Fixed mines detonating before they are completly built, added dummy weapon to show detonation range, hold fire properly prevents detonation
  • Fixed some T2 and T3 dist-icon sizes
+ • Trees not only fall, but fall and dissapear through the ground
  • More acurate math behind 3rd award from awards screen
  • Removed widget: "Unit Reclaimer": add CTRL modifier key to "Specific Unit Reclaimer" widget instead
  • More deathmessages

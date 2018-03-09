@@ -22,6 +22,7 @@ local selectunfoldclick = 'LuaUI/Sounds/buildbar_hover.wav'
 local selecthoverclick = 'LuaUI/Sounds/hover.wav'
 local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
+local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
 local loadedFontSize = 32
 local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
@@ -403,6 +404,21 @@ function orderOptions()
 	options = deepcopy(newOptions)
 end
 
+--local currentGroupTab = 'ui'
+
+function mouseoverGroupTab(id)
+	if optionGroups[id].id == currentGroupTab then return end
+
+	local tabFontSize = 16
+	local groupMargin = bgMargin/1.7
+	gl.Color(0.4,0.4,0.4,0.3)
+	RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, 8, 1,1,0,0)
+	font:Begin()
+	font:SetTextColor(1,0.88,0.6,1)
+	font:SetOutlineColor(0,0,0,0.4)
+	font:Print(optionGroups[id].name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), screenY+bgMargin+8, tabFontSize, "con")
+	font:End()
+end
 
 local startColumn = 1		-- used for navigation
 local maxShownColumns = 3
@@ -418,7 +434,11 @@ function DrawWindow()
 	gl.Color(0,0,0,0.8)
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
-	gl.Color(0.33,0.33,0.33,0.15)
+	if currentGroupTab then
+		gl.Color(0.4,0.4,0.4,0.15)
+	else
+		gl.Color(0.33,0.33,0.33,0.15)
+	end
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
 	
 	--[[ close button
@@ -432,12 +452,45 @@ function DrawWindow()
   	gl.Rotate(90,0,0,1)
   	gl.Rect(-width,size/2,width,-size/2)
 	gl.PopMatrix()]]--
-	
+
 	-- title
 	local title = "Options"
 	local titleFontSize = 18
+	titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37 }
+
+	-- group tabs
+	local tabFontSize = 16
+	local xpos = titleRect[3]
+	local groupMargin = bgMargin/1.7
+	groupRect = {}
+	for id,group in pairs(optionGroups) do
+		groupRect[id] = {xpos, y+(bgMargin/2), xpos+(glGetTextWidth(group.name)*tabFontSize)+27, y+37}
+		xpos = groupRect[id][3]
+		if currentGroupTab == nil or currentGroupTab ~= group.id then
+			gl.Color(0,0,0,0.8)
+			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
+			gl.Color(0.62,0.5,0.22,0.18)
+			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, 8, 1,1,0,0)
+			font:Begin()
+			font:SetTextColor(0.6,0.51,0.38,1)
+			font:SetOutlineColor(0,0,0,0.4)
+			font:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
+			font:End()
+		else
+			gl.Color(0,0,0,0.8)
+			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
+			gl.Color(0.4,0.4,0.4,0.15)
+			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, 8, 1,1,0,0)
+			font:Begin()
+			font:SetTextColor(1,0.75,0.4,1)
+			font:SetOutlineColor(0,0,0,0.4)
+			font:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
+			font:End()
+		end
+	end
+
+	-- title drawing
 	gl.Color(0,0,0,0.8)
-	titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	
 	font:Begin()
@@ -471,10 +524,19 @@ function DrawWindow()
 	local rows = 0
 	local column = 1
 	local drawColumnPos = 1
-	if totalColumns == 0 or maxColumnRows == 0 then
-		maxColumnRows = math.floor((y-yPosMax+oPadding) / (oHeight+oPadding+oPadding))
-		totalColumns = math.ceil(#options / maxColumnRows)
+
+	maxColumnRows = math.floor((y-yPosMax+oPadding) / (oHeight+oPadding+oPadding))
+	local numOptions = #options
+	if currentGroupTab ~= nil then
+		numOptions = 0
+		for oid,option in pairs(options) do
+			if option.group == currentGroupTab then
+				numOptions = numOptions + 1
+			end
+		end
 	end
+	totalColumns = math.ceil(numOptions / maxColumnRows)
+
 	optionButtons = {}
 	optionHover = {}
 
@@ -516,89 +578,91 @@ function DrawWindow()
 
 	-- draw options
 	for oid,option in pairs(options) do
-		yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
-		if yPos-oHeight < yPosMax then
-			i = 0
-		  	column = column + 1
-			if column >= startColumn and rows > 0 then
-				drawColumnPos = drawColumnPos + 1
-			end
-			if drawColumnPos > 3 then
-				break
-			end
-			if rows > 0 then
-				xPos = x + (( (screenWidth/3))*(drawColumnPos-1))
-				xPosMax = xPos + oWidth
-			end
+		if currentGroupTab == nil or option.group == currentGroupTab then
 			yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
+			if yPos-oHeight < yPosMax then
+				i = 0
+				column = column + 1
+				if column >= startColumn and rows > 0 then
+					drawColumnPos = drawColumnPos + 1
+				end
+				if drawColumnPos > 3 then
+					break
+				end
+				if rows > 0 then
+					xPos = x + (( (screenWidth/3))*(drawColumnPos-1))
+					xPosMax = xPos + oWidth
+				end
+				yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
+			end
+
+			if column >= startColumn then
+				rows = rows + 1
+				--option name
+				color = '\255\225\225\225  '
+				if option.type == 'label' then
+					color = '\255\235\200\125'
+				end
+				glText(color..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
+
+				-- define hover area
+				optionHover[oid] = {xPos, yPos-oHeight-oPadding, xPosMax, yPos+oPadding}
+
+				-- option controller
+				local rightPadding = 4
+				if option.type == 'bool' then
+					optionButtons[oid] = {}
+					optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
+					glColor(1,1,1,0.11)
+					RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
+					if option.value == true then
+						glColor(0.66,0.92,0.66,1)
+						RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+						local boolGlow = boolPadding*1.3
+						glColor(0.66,1,0.66,0.23)
+						glTexture(glowTex)
+						glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
+						glColor(0.55,1,0.55,0.09)
+						glTexture(glowTex)
+						glTexRect(xPosMax-oHeight+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
+					elseif option.value == 0.5 then
+						glColor(0.91,0.82,0.66,1)
+						RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+					else
+						glColor(0.9,0.66,0.66,1)
+						RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+				   end
+
+				elseif option.type == 'slider' then
+					local sliderSize = oHeight*0.75
+					local sliderPos = (option.value-option.min) / (option.max-option.min)
+					glColor(1,1,1,0.11)
+					RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
+					glColor(0.8,0.8,0.8,1)
+					RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 3)
+					optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
+					optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
+
+				elseif option.type == 'select' then
+					optionButtons[oid] = {xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
+					glColor(1,1,1,0.11)
+					RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
+					if option.options[tonumber(option.value)] ~= nil then
+					glText(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
+				end
+					glColor(1,1,1,0.11)
+					RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
+					glColor(1,1,1,0.16)
+					glTexture(bgcorner1)
+					glPushMatrix()
+					glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
+						glRotate(-45,0,0,1)
+						glTexRect(-(oHeight*0.25),-(oHeight*0.25),(oHeight*0.25),(oHeight*0.25))
+					glPopMatrix()
+				end
+			end
+			i = i + 1
 		end
-
-		if column >= startColumn then
-			rows = rows + 1
-			--option name
-			color = '\255\225\225\225  '
-			if option.type == 'label' then
-				color = '\255\235\200\125'
-			end
-			glText(color..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
-
-			-- define hover area
-			optionHover[oid] = {xPos, yPos-oHeight-oPadding, xPosMax, yPos+oPadding}
-
-			-- option controller
-			local rightPadding = 4
-			if option.type == 'bool' then
-				optionButtons[oid] = {}
-				optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
-				glColor(1,1,1,0.11)
-				RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
-				if option.value == true then
-					glColor(0.66,0.92,0.66,1)
-					RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-					local boolGlow = boolPadding*1.3
-					glColor(0.66,1,0.66,0.23)
-					glTexture(glowTex)
-					glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
-					glColor(0.55,1,0.55,0.09)
-					glTexture(glowTex)
-					glTexRect(xPosMax-oHeight+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
-				elseif option.value == 0.5 then
-					glColor(0.91,0.82,0.66,1)
-					RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-				else
-					glColor(0.9,0.66,0.66,1)
-					RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-               end
-
-			elseif option.type == 'slider' then
-				local sliderSize = oHeight*0.75
-				local sliderPos = (option.value-option.min) / (option.max-option.min)
-				glColor(1,1,1,0.11)
-				RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
-				glColor(0.8,0.8,0.8,1)
-				RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 3)
-				optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
-				optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
-
-			elseif option.type == 'select' then
-				optionButtons[oid] = {xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
-				glColor(1,1,1,0.11)
-				RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
-				if option.options[tonumber(option.value)] ~= nil then
-				glText(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
-			end
-				glColor(1,1,1,0.11)
-				RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
-				glColor(1,1,1,0.16)
-				glTexture(bgcorner1)
-				glPushMatrix()
-				glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
-					glRotate(-45,0,0,1)
-					glTexRect(-(oHeight*0.25),-(oHeight*0.25),(oHeight*0.25),(oHeight*0.25))
-				glPopMatrix()
-			end
-		end
-		i = i + 1
 	end
 end
 
@@ -679,6 +743,24 @@ function widget:DrawScreen()
 				WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options')
 				--WG['guishader_api'].setBlurIntensity(0.0017)
 				--WG['guishader_api'].setScreenBlur(true)
+
+				if (WG['guishader_api'] ~= nil and titleRect ~= nil) then
+					rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+					rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+					if groupRect ~= nil then
+						local lastID = false
+						for id,rect in pairs(groupRect) do
+							lastID = id
+						end
+						if lastID then
+							rectX2 = (groupRect[lastID][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+							rectY2 = (groupRect[lastID][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+						end
+					end
+					WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options_top')
+				end
 			end
 			showOnceMore = false
 			
@@ -692,6 +774,13 @@ function widget:DrawScreen()
 			local x,y,ml = Spring.GetMouseState()
 			local cx, cy = correctMouseForScaling(x,y)
 
+		  if groupRect ~= nil then
+			  for id,group in pairs(optionGroups) do
+				  if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+					  mouseoverGroupTab(id)
+				  end
+			  end
+		  end
 		  if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
 			  if ml then
 				glColor(1,0.91,0.66,0.36)
@@ -783,6 +872,7 @@ function widget:DrawScreen()
 	else
 		if (WG['guishader_api'] ~= nil) then
 			local removed = WG['guishader_api'].RemoveRect('options')
+			local removed = WG['guishader_api'].RemoveRect('options_top')
 			if removed then
 				--WG['guishader_api'].setBlurIntensity()
 			  WG['guishader_api'].setScreenBlur(false)
@@ -1564,12 +1654,28 @@ function mouseEvent(x, y, button, release)
 				end
 			end
 
+
+			local tabClicked = false
+			if show and groupRect ~= nil then
+				for id,group in pairs(optionGroups) do
+					if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						currentGroupTab = group.id
+						startColumn = 1
+						tabClicked = true
+						showSelectOptions = nil
+						selectClickAllowHide = nil
+					end
+				end
+			end
+
 			-- on window
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			if tabClicked then
+
+			elseif IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
 
 
 				if release then
@@ -1602,6 +1708,7 @@ function mouseEvent(x, y, button, release)
 						end
 					end
 				else -- mousepress
+
 					if not showSelectOptions then
 						for i, o in pairs(optionButtons) do
 							if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
@@ -1632,7 +1739,11 @@ function mouseEvent(x, y, button, release)
 				if button == 1 or button == 3 then
 					return true
 				end
-			elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
+			-- on title
+			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
+				currentGroupTab = nil
+				startColumn = 1
+			elseif not tabClicked then
 				if release and draggingSlider == nil then
 					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
 					show = false
@@ -1912,16 +2023,15 @@ end
 function init()
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
-		{id='preset', name='Preset'},
 		{id='gfx', name='Graphics'},
-		{id='control', name='Control'},
-		{id='snd', name='Sound'},
 		{id='ui', name='Interface'},
+		{id='snd', name='Sound'},
+		{id='control', name='Control'},
 		{id='game', name='Game'},
 	}
 	options = {
 		-- PRESET
-		{id="preset", group="preset", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset'},
+		{id="preset", group="gfx", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset'},
 
 		--GFX
 		--{id="windowposx", group="gfx", name="Window position X", type="slider", min=0, max=math.ceil(ssx/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosX",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
