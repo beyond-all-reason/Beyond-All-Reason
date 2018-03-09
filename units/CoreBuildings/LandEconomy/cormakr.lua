@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "46 22 35",
 		collisionvolumetype = "Box",
-		description = "Converts up to 70 energy into 1 metal per second",
+		description = "Converts up to 70 energy into 0.5% of your team's metal extraction each second",
 		explodeas = "metalmaker",
 		footprintx = 4,
 		footprintz = 3,

@@ -4,6 +4,15 @@ XX/XX/2018
 Balance changes: 
  • Long range T1 AA airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
  • Plasma shield starting power reduced to 20% instead of 33%
+ • Metal makers rates and maximum inputs changed:
+	Input: The maximal energy input of metal makers is 70/77/600/660 e/s vs old 70/70/600/650 (T1/T1sea/T2/T2sea).
+
+	Rate: Each metal maker produces 1% of total team metal extraction (minimum 1 metal) for 140/120 energy (T1/T2). 
+		On non metal and metalmaps, the rates are fixed to 1 m per 70/60 energy.
+		Old values were 1 metal per 70/64/58/58 energy.
+
+	Output: The output (input x rate) is 0.5/0.55/5.0/5.5 % of total team metal extraction, minimal 0.5/0.55/5.0/5.5 m/s.
+		Old values were 1/1.1/10.3/11.2 m/s.
 
 Other:
  • Auto replacing engine trees with custom trees
