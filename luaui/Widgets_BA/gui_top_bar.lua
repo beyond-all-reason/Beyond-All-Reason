@@ -1124,7 +1124,7 @@ function widget:DrawScreen()
 			end
 		end
 	end
-	if currentMetalmaker ~= '' and dlistMetalmaker1 then
+	if currentMetalmaker ~= '' and dlistMetalmaker1 and dlistMetalmaker2 and dlistMetalmaker3 then
 		glCallList(dlistMetalmaker1)
 		glCallList(dlistMetalmaker2)
 		glCallList(dlistMetalmaker3)
