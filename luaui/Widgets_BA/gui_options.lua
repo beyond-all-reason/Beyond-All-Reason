@@ -1662,6 +1662,8 @@ function mouseEvent(x, y, button, release)
 						currentGroupTab = group.id
 						startColumn = 1
 						tabClicked = true
+						showSelectOptions = nil
+						selectClickAllowHide = nil
 					end
 				end
 			end
