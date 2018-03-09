@@ -2220,26 +2220,30 @@ function init()
 	loadWidgetConfigData()
 
 	-- add sound notification widget sound toggle options
+	if  widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
 		if WG['voicenotifs'] ~= nil then
 			soundList =  WG['voicenotifs'].getSoundList()
 		elseif widgetHandler.configData["Voice Notifs"] ~= nil and widgetHandler.configData["Voice Notifs"].soundList ~= nil then
 			soundList = widgetHandler.configData["Voice Notifs"].soundList
 		end
-		local newOptions = {}
-		local count = 0
-		for i, option in pairs(options) do
-			count = count + 1
-			newOptions[count] = option
-			if option.id == 'voicenotifications' then
-				for sound, enabled in pairs(soundList) do
-					count = count + 1
-					newOptions[count] = {id="voicenotifications_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
+		if type(soundList) == 'table' then
+			local newOptions = {}
+			local count = 0
+			for i, option in pairs(options) do
+				count = count + 1
+				newOptions[count] = option
+				if option.id == 'voicenotifications' then
+					for sound, enabled in pairs(soundList) do
+						count = count + 1
+						newOptions[count] = {id="voicenotifications_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
+					end
 				end
 			end
+			options = newOptions
 		end
-		options = newOptions
-
+	end
+	
 	-- cursors
 	if (WG['cursors'] == nil) then
 		options[getOptionByID('cursor')] = nil
