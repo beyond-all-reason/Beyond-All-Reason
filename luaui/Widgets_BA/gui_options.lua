@@ -1123,6 +1123,18 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 		elseif id == 'resourceprompts' then
 			Spring.SetConfigInt("evo_resourceprompts",value)
+		elseif string.sub(id, 1, 19) == 'voicenotifications_' then
+			local sound = string.sub(id, 20)
+			if widgetHandler.configData["Voice Notifs"] == nil then
+				widgetHandler.configData["Voice Notifs"] = {}
+			end
+			if widgetHandler.configData["Voice Notifs"].soundList == nil then
+				widgetHandler.configData["Voice Notifs"].soundList = {}
+			end
+			widgetHandler.configData["Voice Notifs"].soundList[sound] = options[i].value
+			if WG['voicenotifs'] ~= nil then
+				WG['voicenotifs']['setSound'..sound](options[i].value)
+			end
 		end
 		
 		if options[i].widget ~= nil then
@@ -2104,10 +2116,11 @@ function init()
 		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
 		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
-        {id="voicenotifications", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications'},
         {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Shown on top of (adv)playerlist'},
+		{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
+		{id="voicenotifications", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
 
-        -- CONTROL
+		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
 
@@ -2140,7 +2153,6 @@ function init()
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
-		{id="buildmenusounds", group="ui", name="Buildmenu sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitTooltip~=nil and WG['red_buildmenu'].getConfigUnitTooltip()), description='Enables unit tooltip when hovering over unit in buildmenu'},
 		{id="buildmenubigtooltip", group="ui", name=widgetOptionColor.."   extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
 
@@ -2207,6 +2219,31 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadWidgetConfigData()
 
+	-- add sound notification widget sound toggle options
+	if  widgetHandler.knownWidgets["Voice Notifs"] then
+		local soundList
+		if WG['voicenotifs'] ~= nil then
+			soundList =  WG['voicenotifs'].getSoundList()
+		elseif widgetHandler.configData["Voice Notifs"] ~= nil and widgetHandler.configData["Voice Notifs"].soundList ~= nil then
+			soundList = widgetHandler.configData["Voice Notifs"].soundList
+		end
+		if type(soundList) == 'table' then
+			local newOptions = {}
+			local count = 0
+			for i, option in pairs(options) do
+				count = count + 1
+				newOptions[count] = option
+				if option.id == 'voicenotifications' then
+					for sound, enabled in pairs(soundList) do
+						count = count + 1
+						newOptions[count] = {id="voicenotifications_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
+					end
+				end
+			end
+			options = newOptions
+		end
+	end
+	
 	-- cursors
 	if (WG['cursors'] == nil) then
 		options[getOptionByID('cursor')] = nil
