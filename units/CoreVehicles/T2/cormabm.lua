@@ -139,7 +139,7 @@ return {
 				model = "fmdmisl",
 				name = "Rocket",
 				noselfdamage = true,
-				range = 7200,
+				range = 72000,
 				reloadtime = 2,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",
