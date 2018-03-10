@@ -14,6 +14,7 @@ Balance changes:
 
      Output: The output (input x rate) is 0.5/0.55/5.0/5.5 % of total team metal extraction, minimal 0.5/0.55/5.0/5.5 m/s.
        Old values were 1/1.1/10.3/11.2 m/s.
+ • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
 Other:
  • Auto replacing engine trees with custom trees
@@ -31,6 +32,7 @@ Other:
  • More acurate math behind 3rd award from awards screen
  • Removed widget: "Unit Reclaimer": add CTRL modifier key to "Specific Unit Reclaimer" widget instead
  • More deathmessages
+ • Various script tweaks for kbots.
 
 
 10.05 -> 10.06

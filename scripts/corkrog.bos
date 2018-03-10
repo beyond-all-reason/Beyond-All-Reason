@@ -879,11 +879,11 @@ AimWeapon1(heading, pitch)
 	start-script RequestState(0);
 	signal 2;
 	set-signal-mask 2;
+	turn torso to y-axis heading speed <50.000000>;
 	while( !Static_Var_8 )
 	{
 		sleep 250;
 	}
-	turn torso to y-axis heading speed <50.000000>;
 	wait-for-turn torso around y-axis;
 	start-script RestoreBody();
 	return (1);

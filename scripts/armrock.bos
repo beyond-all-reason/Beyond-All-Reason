@@ -465,7 +465,7 @@ RestoreAfterDelay()
 {
 	sleep restore_delay;
 	turn torso to y-axis <0.000000> speed <90.021978>;
-	turn lmisspod to x-axis <0.000000> speed <45.010989>;
+	turn lmisspod to x-axis <0.000000> speed <90.010989>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn lmisspod around x-axis;
 	bAiming = FALSE;
@@ -491,7 +491,7 @@ AimPrimary(heading, pitch)
 		sleep 100;
 	}
 	turn torso to y-axis heading speed <130.027473>;
-	turn lmisspod to x-axis <-90.021978> speed <95.021978>;
+	turn lmisspod to x-axis <-90.021978> speed <180.021978>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn lmisspod around x-axis;
 	start-script RestoreAfterDelay();
