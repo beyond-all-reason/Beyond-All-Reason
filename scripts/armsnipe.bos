@@ -1076,12 +1076,12 @@ AimPrimary(heading, pitch)
 	start-script RequestState(0);
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
+	turn torso to y-axis heading speed <210.000000>;
+	turn rarm to x-axis <-23.005495> speed <50.000000>;
 	while( !Static_Var_1 )
 	{
 		sleep 200;
 	}
-	turn torso to y-axis heading speed <210.000000>;
-	turn rarm to x-axis <-23.005495> speed <50.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn rarm around x-axis;
 	start-script RestoreAfterDelay();
