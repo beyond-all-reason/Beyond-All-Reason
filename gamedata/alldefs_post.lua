@@ -209,21 +209,15 @@ function UnitDef_Post(name, uDef)
 			uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
 		end
 
+		
 	end
 
 	-- kbots
 	if uDef.category and string.find(uDef.category, "KBOT") then
-		if uDef.turnrate and uDef.acceleration and uDef.brakerate and uDef.maxvelocity then
-			local time2stop = uDef.maxvelocity / uDef.brakerate --> frames
-			local time2full = uDef.maxvelocity / uDef.acceleration --> frames
-			uDef.turnrate = (180/0.16)/((time2stop + time2full)/30)
-			uDef.maxreversevelocity = uDef.maxvelocity
-			-- Spring.Echo(name..": "..(uDef.turnrate/uDef.maxvelocity))
+		if uDef.turnrate ~= nil then
+			uDef.turnrate = (uDef.turnrate + kbotAdditionalTurnrate) * kbotTurnrateMultiplier
 		end
-		
-		uDef.turninplace = true
-		uDef.turninplaceanglelimit = 180
-		
+
 		if uDef.acceleration ~= nil then
 			uDef.acceleration = (uDef.acceleration + kbotAdditionalAcceleration) * kbotAccelerationMultiplier
 		end
