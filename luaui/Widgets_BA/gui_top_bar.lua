@@ -1744,12 +1744,14 @@ function widget:Shutdown()
 		WG['guishader_api'].RemoveRect('topbar_metal')
 		WG['guishader_api'].RemoveRect('topbar_wind')
 		WG['guishader_api'].RemoveRect('topbar_coms')
+		WG['guishader_api'].RemoveRect('topbar_metalmaker')
 		WG['guishader_api'].RemoveRect('topbar_buttons')
 		WG['guishader_api'].RemoveRect('topbar_rejoin')
 	end
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].RemoveTooltip('coms')
 		WG['tooltip'].RemoveTooltip('wind')
+		WG['tooltip'].RemoveTooltip('metalmaker')
 		WG['tooltip'].RemoveTooltip('rejoin')
 		local res = 'energy'
 		WG['tooltip'].RemoveTooltip(res..'_share_slider')
