@@ -30,18 +30,18 @@ local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.0
 
 local vehAdditionalAcceleration = 0.00
-local vehAccelerationMultiplier = 0.92
+local vehAccelerationMultiplier = 1
 
 local vehAdditionalVelocity = 0
-local vehVelocityMultiplier = 0.92
+local vehVelocityMultiplier = 1
 local vehRSpeedFactor = 0.35
 
 local kbotAdditionalTurnrate = 0
 local kbotTurnrateMultiplier = 1
 
 local kbotAdditionalAcceleration = 0
-local kbotAccelerationMultiplier = 0.75
-local kbotBrakerateMultiplier = 0.75
+local kbotAccelerationMultiplier = 1
+local kbotBrakerateMultiplier = 1
 
 local oldUnitName = {	-- mostly duplicates
 	armdecom = 'armcom',
@@ -196,7 +196,7 @@ function UnitDef_Post(name, uDef)
 	uDef.shownanospray = true
 
 	-- vehicles
-	if uDef.category["tank"] ~= nil then
+	if uDef.category and string.find(uDef.category, "TANK") then
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
 		end
@@ -209,25 +209,11 @@ function UnitDef_Post(name, uDef)
 			uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
 		end
 
-		if uDef.turninplace == 0 then
-			uDef.turninplacespeedlimit = uDef.maxvelocity * 0.82
-		end
-		
-		-- if (uDef.maxreversevelocity == nil or uDef.maxreversevelocity == 0) then --and not (name == "armcv" or name == "armacv" or name == "armconsul" or name == "armbeaver" or name == "corcv" or name == "coracv" or name == "cormuskrat") then
-			-- uDef.maxreversevelocity = (uDef.maxvelocity) * vehRSpeedFactor
-		-- end
-		if uDef.turnrate ~= nil then
-			uDef.turninplaceanglelimit = uDef.turnrate*30/180
-		end
-		
-		if uDef.turninplaceanglelimit then
-			uDef.customparams.anglelimit = uDef.turninplaceanglelimit
-		end
 		
 	end
 
 	-- kbots
-	if uDef.category["kbot"] ~= nil then
+	if uDef.category and string.find(uDef.category, "KBOT") then
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + kbotAdditionalTurnrate) * kbotTurnrateMultiplier
 		end
@@ -240,9 +226,6 @@ function UnitDef_Post(name, uDef)
 			uDef.brakerate = uDef.brakerate * kbotBrakerateMultiplier
 		end
 
-		if uDef.turninplace ~= 0 then
-			uDef.turninplaceanglelimit = uDef.turninplaceanglelimit * 0.75
-		end
 	end
 
 	--Set a minimum for builddistance
