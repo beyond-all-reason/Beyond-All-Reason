@@ -34,7 +34,16 @@ for sound, params in pairs(Sound) do
 	soundList[sound] = true
 end
 
+function widget:PlayerChanged(playerID)
+	if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
+		widgetHandler:RemoveWidget(self)
+	end
+end
+
 function widget:Initialize()
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		widget:PlayerChanged()
+	end
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
 
 	WG['voicenotifs'] = {}

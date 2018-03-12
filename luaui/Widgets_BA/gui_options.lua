@@ -935,7 +935,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("FullscreenEdgeMove",value)
 			Spring.SetConfigInt("WindowedEdgeMove",value)
 		elseif id == 'scrollinverse' then
-			if value then
+			if value == 1 then
 				Spring.SetConfigInt("ScrollWheelSpeed",-options[getOptionByID('scrollspeed')].value)
 			else
 				Spring.SetConfigInt("ScrollWheelSpeed",options[getOptionByID('scrollspeed')].value)
