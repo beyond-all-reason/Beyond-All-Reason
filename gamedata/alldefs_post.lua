@@ -37,11 +37,11 @@ local vehVelocityMultiplier = 1
 local vehRSpeedFactor = 0.35
 
 local kbotAdditionalTurnrate = 0
-local kbotTurnrateMultiplier = 1
+local kbotTurnrateMultiplier = 1.15
 
 local kbotAdditionalAcceleration = 0
-local kbotAccelerationMultiplier = 1
-local kbotBrakerateMultiplier = 1
+local kbotAccelerationMultiplier = 1.15
+local kbotBrakerateMultiplier = 1.15
 
 local oldUnitName = {	-- mostly duplicates
 	armdecom = 'armcom',
@@ -225,7 +225,9 @@ function UnitDef_Post(name, uDef)
 		if uDef.brakerate ~= nil then
 			uDef.brakerate = uDef.brakerate * kbotBrakerateMultiplier
 		end
-
+		
+		uDef.turninplace = true
+		uDef.turninplaceanglelimit = 90
 	end
 
 	--Set a minimum for builddistance
