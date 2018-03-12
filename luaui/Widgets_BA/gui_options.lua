@@ -1676,6 +1676,9 @@ function mouseEvent(x, y, button, release)
 						tabClicked = true
 						showSelectOptions = nil
 						selectClickAllowHide = nil
+						if playSounds then
+							Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
+						end
 					end
 				end
 			end

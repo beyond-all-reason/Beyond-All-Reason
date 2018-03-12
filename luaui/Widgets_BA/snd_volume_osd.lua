@@ -43,7 +43,7 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 --------------------------------------------------------------------------------
 local TEST_SOUND 							= 'LuaUI/sounds/volume_osd/pop.wav'
 local font         							= "luaui/fonts/freesansbold_14"
-local step 									= 4 -- how many steps to change sound volume on one key press
+local step 									= 8 -- how many steps to change sound volume on one key press
 local dtime									= 3 --How long time the volume display is drawn, in seconds
 local ftime 								= 2.5 --How long time before the volume display starts fading, in seconds
 local widgetWidth							= vsx/4.5 -- in pixels (changed from 400)
@@ -62,20 +62,20 @@ end
 
 function widget:KeyPress(key, mods, isRepeat)
 	if (key == pluskey or key == pluskey2 or key == equalskey) and (not mods.alt) and (not mods.shift) then -- KEY = pluskey
-		volume = Spring.GetConfigInt("snd_volmaster", 60)
+		volume = Spring.GetConfigInt("snd_volmaster", 80)
 		volume = volume + step
 		if volume < 0 then volume = 0 end
-		if volume > 100 then volume = 100 end
+		if volume > 200 then volume = 200 end
 		Spring.SetConfigInt("snd_volmaster", volume)
 		--Spring.Echo("Volume = " .. volume)
 		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui') end
 		dt = os.clock()
 		return true		
 	elseif (key == minuskey or key == minuskey2) and (not mods.alt) and (not mods.shift) then -- KEY = minuskey
-		volume = Spring.GetConfigInt("snd_volmaster", 60)
+		volume = Spring.GetConfigInt("snd_volmaster", 80)
 		volume = volume - step
 		if volume < 0 then volume = 0 end
-		if volume > 100 then volume = 100 end
+		if volume > 200 then volume = 200 end
 		Spring.SetConfigInt("snd_volmaster", volume)
 		--Spring.Echo("Volume = " .. volume)
 		if not isRepeat then Spring.PlaySoundFile(TEST_SOUND, 1.0, 'ui') end
@@ -127,14 +127,14 @@ function widget:DrawScreen()
 			alpha = 3*(dtime-t)/dtime
 		end
 		
-		gl.Color(0,0.15,0,0.18*alpha)                              -- draws empty rectangles
+		gl.Color(0,0,0,0.25*alpha)                              -- draws empty rectangles
 		for i = 1,rectangles do
 			local u1 = x1+(i-1)*boxwidth
 			local u2= u1+boxwidth-boxspacing
 			--gl.Rect(u1,y1,u2,y2)
 			RectRound(u1,y1,u2,y2,(u2-u1)/3)
 		end
-		local vol2 = math.floor(volume/(100/rectangles))
+		local vol2 = math.floor((volume/(100/rectangles))/2)
 		gl.Color(0,0.85,0,alpha)                              -- draws filled rectangles
 		local spacer2 = boxwidth / 10
 		gl.Color(0.2,1,0.2,alpha*0.8)   
