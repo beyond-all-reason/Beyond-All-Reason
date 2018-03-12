@@ -7,13 +7,7 @@ Balance changes:
  • Metal makers rates and maximum inputs changed:
      Input: Max energy consumption is 70/77/600/660 energy.
        Old: values: 70/70/600/650 (T1/T1sea/T2/T2sea).
-
-     Rate: Each metal maker produces 1% of total team metal extraction (minimum 1 metal) for 140/120 energy (T1/T2). 
-       Fixed 1 metal rate per 70/60 energy on non metal and metal maps.
-       Old values: 1 metal per 70/64/58/58 energy
-
-     Output: The output (input x rate) is 0.5/0.55/5.0/5.5 % of total team metal extraction, minimal 0.5/0.55/5.0/5.5 m/s.
-       Old values were 1/1.1/10.3/11.2 m/s.
+     Rate: Each metal maker produces 1.5 metal + 0.5% of total team metal for 140/120 energy (T1/T2). 
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
 Other:
