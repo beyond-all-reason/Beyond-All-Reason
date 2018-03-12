@@ -1,6 +1,6 @@
 
-local AC0 = 1/140
-local AC2 = 1/120
+local AC0 = 140
+local AC2 = 120
 
 local convertCapacities = {
 	[UnitDefNames.armmakr.id]  = { c = (70), e = (AC0) }, 

@@ -10,7 +10,7 @@ return {
 		buildtime = 2958,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
-		description = "Converts up to 77 energy into 0.55% of your team's metal extraction each second",
+		description = "Converts up to 77 energy into 0.825 metal + 0.275% of your team's metal extraction each second",
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,

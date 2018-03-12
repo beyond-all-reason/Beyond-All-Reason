@@ -204,7 +204,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 		if diminishModifier > 1.0 then
 			diminishModifier = 1.0
 		end
-		updateUnitConversion(unitID, data.c, math.max(data.e * diminishModifier, data.e * diminishModifier * (GetAllyTeamMetalExtraction(teamID)/100)))
+		updateUnitConversion(unitID, data.c, (1.5 +(0.5*GetAllyTeamMetalExtraction(teamID))/100)/data.e)
 	end
 end
 
@@ -351,7 +351,7 @@ function gadget:GameFrame(n)
 		local TeamList = Spring.GetTeamList()
 		for ct, teamID in pairs(TeamList) do
 			local metal = GetAllyTeamMetalExtraction(teamID)
-			Spring.SetTeamRulesParam(teamID, "MMFactor", math.max(1, metal/100), {public = true})
+			Spring.SetTeamRulesParam(teamID, "MMFactor", ((1.5 +(0.5*metal)/100)/120)/(1/120), {public = true})
 		end
 	end
 	
