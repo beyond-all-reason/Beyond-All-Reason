@@ -17,6 +17,12 @@ Balance changes:
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
 Other:
+ • Reverse move: Units that are able to move backwards can now queue reverse/normal commands.
+     The key modifier "Ctrl" can be used to allow reverse move for commands. This means the unit will move backwards if the command is behind it. 
+     You can queue commands with or without ctrl modifier to queue reverse and normal moves.
+     A command without the ctrl modifier can never be performed backwards.
+ • Autoreplace move orders that cannot be performed if the unit cannot stand on goal's position. It doesn't check the path but only the goal.
+     The gadget will attemp to modify the move command into one that can be reached (closest to goal). If it cannot find a new goal, it will simply discard the move command.
  • Auto replacing engine trees with custom trees
  • Options menu has tabs
  • Added "Minimap icon size" slider to options
