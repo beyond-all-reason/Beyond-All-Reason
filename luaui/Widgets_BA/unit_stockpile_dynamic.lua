@@ -53,6 +53,10 @@ function ChangeMaxStockPile(_,_,words)
 	UpdateStockPileAllUnits()
 end
 
+function widget:GameStart()
+	widget:PlayerChanged()
+end
+
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget(self)
@@ -68,10 +72,6 @@ function widget:Initialize()
 
 	-- stockpile all existing units
 	UpdateStockPileAllUnits()
-end
-
-function widget:GameStart()
-	widget:PlayerChanged()
 end
 
 function UpdateStockPileAllUnits()

@@ -45,6 +45,10 @@ local CMD_WAIT = CMD.WAIT
 -- Callins
 ----------------------------------------------------------------
 
+function widget:GameStart()
+	widget:PlayerChanged()
+end
+
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget(self)
@@ -64,10 +68,6 @@ function widget:Initialize()
 			end
 		end
 	end
-end
-
-function widget:GameStart()
-	widget:PlayerChanged()
 end
 
 function widget:Update(dt)

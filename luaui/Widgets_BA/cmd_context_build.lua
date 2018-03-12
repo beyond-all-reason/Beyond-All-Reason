@@ -89,6 +89,11 @@ local alternative_units = {}-- unit def id --> list of alternative unit def ids
 local updateRate = 8/30
 local timeCounter = 0
 
+
+function widget:GameStart()
+	widget:PlayerChanged()
+end
+
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget(self)
@@ -118,10 +123,6 @@ function widget:Initialize()
 		end
 
 	end
-end
-
-function widget:GameStart()
-    widget:PlayerChanged()
 end
 
 

@@ -75,6 +75,10 @@ local function UpdateUnitsList()
 	end
 end
 
+function widget:GameStart()
+	widget:PlayerChanged()
+end
+
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget(self)
@@ -103,10 +107,6 @@ function widget:Initialize()
 		end
 	end
 	UpdateUnitsList()
-end
-
-function widget:GameStart()
-    widget:PlayerChanged()
 end
 
 local current_team=1234567

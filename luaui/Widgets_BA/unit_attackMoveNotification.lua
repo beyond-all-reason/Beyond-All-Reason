@@ -30,6 +30,10 @@ local armcomID=UnitDefNames["armcom"].id
 local corcomID=UnitDefNames["corcom"].id
 
 
+function widget:GameStart()
+    widget:PlayerChanged()
+end
+
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget(self)

@@ -121,6 +121,11 @@ function printDebug( value )
 	if ( debug ) then Echo( value ) end
 end
 
+
+function widget:GameStart()
+	widget:PlayerChanged()
+end
+
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget(self)
@@ -145,10 +150,6 @@ end
 
 function widget:Shutdown()
 	WG['autogroup'] = nil
-end
-
-function widget:GameStart()
-    widget:PlayerChanged()
 end
 
 function widget:DrawWorld()

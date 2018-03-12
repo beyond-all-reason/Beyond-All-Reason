@@ -109,6 +109,10 @@ local function GetTeamName(teamID) --need to rewrite this sloppy functionality
   return name or "Gaia"
 end
 
+function widget:GameStart()
+	widget:PlayerChanged()
+end
+
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
         widgetHandler:RemoveWidget(self)
@@ -131,10 +135,6 @@ function widget:Initialize()
 		curUnitList = unitList[curModID] or {}
 	end
 	myLang = myLang or string.lower(select(8,Spring.GetPlayerInfo(Spring.GetMyPlayerID())))
-end
-
-function widget:GameStart()
-    widget:PlayerChanged()
 end
 
 function colourNames(teamID) 
