@@ -69,9 +69,9 @@ function updatePosition(force)
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		usedImgSize = iconSize * advplayerlistPos[5]
 		if advplayerlistPos[6] == nil or advplayerlistPos[6] then
-			xPos = advplayerlistPos[2] - (6*advplayerlistPos[5])
+			xPos = advplayerlistPos[2] - (5.3*advplayerlistPos[5])
 		else
-			xPos = advplayerlistPos[4] + (6*advplayerlistPos[5]) + usedImgSize
+			xPos = advplayerlistPos[4] + (5.3*advplayerlistPos[5]) + usedImgSize
 		end
 		yPos = advplayerlistPos[3] + (4*advplayerlistPos[5])
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then

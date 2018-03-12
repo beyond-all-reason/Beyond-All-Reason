@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 ----------------------------------------------------------------------------
 local alarmInterval                 = 15        --seconds
-local commanderAlarmInterval		= 10
 ----------------------------------------------------------------------------                
 local spGetLocalTeamID              = Spring.GetLocalTeamID
 local spPlaySoundFile               = Spring.PlaySoundFile
@@ -21,7 +20,6 @@ local spDiffTimers                  = Spring.DiffTimers
 local spIsUnitInView                = Spring.IsUnitInView
 local spGetUnitPosition             = Spring.GetUnitPosition
 local spSetLastMessagePosition      = Spring.SetLastMessagePosition
-local spGetSpectatingState   		= Spring.GetSpectatingState
 local random                        = math.random
 ----------------------------------------------------------------------------
 local lastAlarmTime                 = nil
@@ -32,8 +30,18 @@ local armcomID=UnitDefNames["armcom"].id
 local corcomID=UnitDefNames["corcom"].id
 
 
+function widget:PlayerChanged(playerID)
+    if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
+        widgetHandler:RemoveWidget(self)
+    end
+    localTeamID = spGetLocalTeamID()
+end
+
 function widget:Initialize()
-    setTeamId()    
+    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+        widget:PlayerChanged()
+    end
+    localTeamID = spGetLocalTeamID()
     lastAlarmTime = spGetTimer()
 	lastCommanderAlarmTime =  spGetTimer()
     math.randomseed( os.time() )
@@ -83,24 +91,4 @@ end
 function widget:UnitMoveFailed(unitID, unitDefID, unitTeam)
     local udef = UnitDefs[unitDefID]
     spEcho( udef.humanName  .. ": Can't reach destination!" )
-end 
-
-function setTeamId()
-    localTeamID = spGetLocalTeamID()    
-end
-
---changing teams, rejoin, becoming spec etc
-function widget:PlayerChanged(playerID)
-    setTeamId()
-	CheckSpecState()
-end
-
-
-function CheckSpecState()
-	if ( spGetSpectatingState() == true ) then
-		widgetHandler:RemoveWidget(self)
-		return false
-	end
-	
-	return true	
 end
