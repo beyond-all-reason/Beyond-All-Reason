@@ -4,8 +4,8 @@ end
 
 function gadget:GetInfo()
   return {
-	name 	= "Ships move fix",
-	desc	= "Blocks move commands on land",
+	name 	= "Move commands fix",
+	desc	= "Blocks move commands if not reachable",
 	author	= "Doo",
 	date	= "2018",
 	license	= "GNU GPL, v2 or later",
@@ -17,7 +17,7 @@ attempt = {}
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
 
-	if cmdID == CMD.MOVE or cmdID == CMD.RAWMOVE then
+	if (cmdID == CMD.MOVE or cmdID == CMD.RAWMOVE) and UnitDefs[unitDefID].canFly == false then
 		-- if UnitDefs[unitDefID].moveDef and UnitDefs[unitDefID].moveDef.name and string.find(UnitDefs[unitDefID].moveDef.name, "boat") then -- unquote if you want this for ships only
 			if #cmdParams == 6 then
 				if Spring.TestMoveOrder(unitDefID, cmdParams[4],cmdParams[5],cmdParams[6],0,0,0,true,false,false) then
