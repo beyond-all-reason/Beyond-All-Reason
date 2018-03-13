@@ -11,6 +11,7 @@ Balance changes:
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
 Other:
+ • When a buildcommand is selected, click and drag with (shift + left mouse button + middle mouse button) or (left mouse button alone) to orientate the construction.
  • Reverse move: Units that are able to move backwards can now queue reverse/normal commands.
      The key modifier "Ctrl" can be used to allow reverse move for commands. This means the unit will move backwards if the command is behind it. 
      You can queue commands with or without ctrl modifier to queue reverse and normal moves.
