@@ -23,11 +23,12 @@ local GetPlayerInfo = Spring.GetPlayerInfo
 local CMD_MOVE = CMD.MOVE
 
 function widget:GameStart()
-	widget:PlayerChanged()
+    gameStarted = true
+    widget:PlayerChanged()
 end
 
 function widget:PlayerChanged(playerID)
-    if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
+    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget(self)
     end
 end
