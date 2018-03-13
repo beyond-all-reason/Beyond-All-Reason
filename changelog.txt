@@ -4,10 +4,10 @@ XX/XX/2018
 Balance changes: 
  • Long range T1 AA range reduced 10% and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
  • Plasma shield starting power reduced to 20% instead of 33%
- • Metal makers rates and maximum inputs changed:
-     Input: Max energy consumption is 70/77/600/660 energy.
-       Old: values: 70/70/600/650 (T1/T1sea/T2/T2sea).
-     Rate: Each metal maker produces 1.5 metal + 0.5% of total team metal for 140/120 energy (T1/T2). 
+ • Metal makers rates and maximum inputs changed: 
+    T1 maker converts 70 e into 0.5m + 0.3% of metal extraction
+    T2 maker converts 600 e into 5m + 3% of metal extraction
+    Sea and land makers are now alike
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
 Other:
