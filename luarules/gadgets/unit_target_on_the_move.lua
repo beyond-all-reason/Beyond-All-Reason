@@ -198,8 +198,13 @@ end
 local function setTarget(unitID, targetData)
 	local unitData = unitTargets[unitID]
 	if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
-		Spring.SetUnitTarget(unitID, nil)
-		return false
+		local commands = Spring.GetUnitCommands(unitID, 1)
+		if commands and commands[1] and commands[1].id == CMD.ATTACK then
+			return false
+		else
+			Spring.SetUnitTarget(unitID, nil)
+			return false
+		end
 	end
 	if tonumber(targetData.target) then
 		if not spSetUnitTarget(unitID, targetData.target,false,targetData.userTarget) then
