@@ -19,7 +19,7 @@ end
 
 --broadcast
 
-local broadcastPeriod = 1 --will send packet in this interval (s)
+local broadcastPeriod = 0.2 --will send packet in this interval (s)
 
 ------------------------------------------------
 --speedups
