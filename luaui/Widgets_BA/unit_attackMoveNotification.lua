@@ -30,21 +30,25 @@ local armcomID=UnitDefNames["armcom"].id
 local corcomID=UnitDefNames["corcom"].id
 
 
-function widget:GameStart()
-    gameStarted = true
-    widget:PlayerChanged()
-end
-
-function widget:PlayerChanged(playerID)
+function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget(self)
     end
+end
+
+function widget:GameStart()
+    gameStarted = true
+    maybeRemoveSelf()
+end
+
+function widget:PlayerChanged(playerID)
+    maybeRemoveSelf()
     localTeamID = spGetLocalTeamID()
 end
 
 function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        widget:PlayerChanged()
+        maybeRemoveSelf()
     end
     localTeamID = spGetLocalTeamID()
     lastAlarmTime = spGetTimer()

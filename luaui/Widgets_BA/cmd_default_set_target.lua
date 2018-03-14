@@ -24,20 +24,24 @@ local SendCommmands = Spring.SendCommands
 local hotKeys = {}
 
 
-function widget:GameStart()
-    gameStarted = true
-    widget:PlayerChanged()
-end
-
-function widget:PlayerChanged(playerID)
+function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget(self)
     end
 end
 
+function widget:GameStart()
+    gameStarted = true
+    maybeRemoveSelf()
+end
+
+function widget:PlayerChanged(playerID)
+    maybeRemoveSelf()
+end
+
 function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        widget:PlayerChanged()
+        maybeRemoveSelf()
     end
 	if rebindKeys then
 		for _, keycombo in ipairs(GetActionHotKeys("attack")) do
