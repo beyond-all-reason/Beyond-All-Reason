@@ -47,21 +47,6 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
-    heatedgroundflash = {
-      class              = [[CSimpleGroundFlash]],
-      count              = 1,
-      air                = false,
-      ground             = true,
-      unit               = false,
-      water              = false,
-      properties = {
-        colormap           = [[1 0.15 0.05 0.4   1 0.15 0.05 0.3   0 0 0 0.01]],
-        size               = 16,
-        sizegrowth         = 0,
-        ttl                = 33,
-        texture            = [[groundflash]],
-      },
-    },
     --kickedupwater = {
     --  class              = [[CSimpleParticleSystem]],
     --  count              = 1,
@@ -499,12 +484,6 @@ local sizes = {
         ttl                = 5,
       },
     },
-    heatedgroundflash = {
-      properties = {
-        size = 8,
-        ttl = 28,
-      },
-    },
 	explosion = {
       properties = {
         numparticles       = 6,
@@ -647,12 +626,6 @@ local sizes = {
         ttl                = 6,
       },
     },
-    heatedgroundflash = {
-      properties = {
-        size = 22,
-        ttl = 36,
-      },
-    },
 	explosion = {
       properties = {
         numparticles       = 12,
@@ -789,12 +762,6 @@ local sizes = {
         colormap           = [[1 0.9 0.75 0.38   0 0 0 0.01]],
         size               = 200,
         ttl                = 7,
-      },
-    },
-    heatedgroundflash = {
-      properties = {
-        size = 30,
-        ttl = 43,
       },
     },
 	explosion = {
@@ -935,12 +902,6 @@ local sizes = {
         ttl                = 7.5,
       },
     },
-    heatedgroundflash = {
-      properties = {
-        size = 36,
-        ttl = 47,
-      },
-    },
     explosion = {
       properties = {
         numparticles       = 20,
@@ -1077,12 +1038,6 @@ local sizes = {
         colormap           = [[1 0.9 0.75 0.43   0 0 0 0.01]],
         size               = 330,
         ttl                = 8,
-      },
-    },
-    heatedgroundflash = {
-      properties = {
-        size = 45,
-        ttl = 53,
       },
     },
     explosion = {
@@ -1248,7 +1203,6 @@ definitions[root..'-advmetalmakerselfd'].sparks.properties.numparticles = defini
 definitions['genericshellexplosion-meteor'] = deepcopy(definitions[root.."-huge"])
 definitions['genericshellexplosion-meteor'].groundflash_large.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].groundflash_white.alwaysvisible = true
-definitions['genericshellexplosion-meteor'].heatedgroundflash.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].explosion.properties.alwaysvisible = true
 definitions['genericshellexplosion-meteor'].explosion.properties.particlespeed = 1.5
 definitions['genericshellexplosion-meteor'].explosion.properties.particlespeedspread = 11

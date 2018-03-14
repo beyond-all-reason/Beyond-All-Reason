@@ -43,21 +43,6 @@ local definitions = {
         texture            = [[groundflash]],
       },
     },
-    heatedgroundflash = {
-      class              = [[CSimpleGroundFlash]],
-      count              = 1,
-      air                = false,
-      ground             = true,
-      unit               = false,
-      water              = false,
-      properties = {
-        colormap           = [[1 0.15 0.05 0.4   1 0.15 0.05 0.35   0 0 0 0.01]],
-        size               = 4.5,
-        sizegrowth         = 0,
-        ttl                = 17,
-        texture            = [[groundflash]],
-      },
-    },
     centerflare = {
       air                = true,
       class              = [[heatcloud]],
@@ -476,21 +461,6 @@ local definitions = {
         size               = 41,
         sizegrowth         = 0,
         ttl                = 3,
-        texture            = [[groundflash]],
-      },
-    },
-    heatedgroundflash = {
-      class              = [[CSimpleGroundFlash]],
-      count              = 1,
-      air                = false,
-      ground             = true,
-      unit               = false,
-      water              = false,
-      properties = {
-        colormap           = [[1 0.15 0.05 0.45   1 0.15 0.05 0.4   0 0 0 0.01]],
-        size               = 7,
-        sizegrowth         = 0,
-        ttl                = 20,
         texture            = [[groundflash]],
       },
     },
@@ -932,21 +902,6 @@ local definitions = {
         size               = 55,
         sizegrowth         = 0,
         ttl                = 4,
-        texture            = [[groundflash]],
-      },
-    },
-    heatedgroundflash = {
-      class              = [[CSimpleGroundFlash]],
-      count              = 1,
-      air                = false,
-      ground             = true,
-      unit               = false,
-      water              = false,
-      properties = {
-        colormap           = [[1 0.15 0.05 0.5   1 0.15 0.05 0.45   0 0 0 0.01]],
-        size               = 12,
-        sizegrowth         = 0,
-        ttl                = 24,
         texture            = [[groundflash]],
       },
     },
@@ -1394,21 +1349,6 @@ local definitions = {
         size               = 110,
         sizegrowth         = 0,
         ttl                = 4,
-        texture            = [[groundflash]],
-      },
-    },
-    heatedgroundflash = {
-      class              = [[CSimpleGroundFlash]],
-      count              = 1,
-      air                = false,
-      ground             = true,
-      unit               = false,
-      water              = false,
-      properties = {
-        colormap           = [[1 0.15 0.05 0.5   1 0.15 0.05 0.45   0 0 0 0.01]],
-        size               = 18,
-        sizegrowth         = 0,
-        ttl                = 28,
         texture            = [[groundflash]],
       },
     },
@@ -1884,21 +1824,6 @@ local definitions = {
         size               = 160,
         sizegrowth         = 0,
         ttl                = 5,
-        texture            = [[groundflash]],
-      },
-    },
-    heatedgroundflash = {
-      class              = [[CSimpleGroundFlash]],
-      count              = 1,
-      air                = false,
-      ground             = true,
-      unit               = false,
-      water              = false,
-      properties = {
-        colormap           = [[1 0.15 0.05 0.55   1 0.15 0.05 0.48   0 0 0 0.01]],
-        size               = 23,
-        sizegrowth         = 0,
-        ttl                = 33,
         texture            = [[groundflash]],
       },
     },
@@ -2487,7 +2412,6 @@ definitions['genericshellexplosion-debris'].explosion2 = nil
 definitions['genericshellexplosion-debris'].outersmoke = nil
 definitions['genericshellexplosion-debris'].sparks = nil
 definitions['genericshellexplosion-debris'].groundflash_large = nil
-definitions['genericshellexplosion-debris'].heatedgroundflash = nil
 definitions['genericshellexplosion-debris'].centerflare = nil
 definitions['genericshellexplosion-debris'].dustparticles = nil
 definitions['genericshellexplosion-debris'].dirt = nil
