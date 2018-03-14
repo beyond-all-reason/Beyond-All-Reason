@@ -1,13 +1,17 @@
 ﻿10.06 -> 10.07
 XX/XX/2018
 
-Balance changes: 
- • Long range T1 AA range reduced 10% and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
- • Plasma shield starting power reduced to 20% instead of 33%
+Currently testing:
+ • Thuds/Storms/Hammers/Rockos +4% projectile speed and +4% projectile start speed
+ • Kbots global buff: +15% turnrate, +15% acceleration, +15% brakerate, turninplace = true, reduced slopeMod (slows on slopes)
  • Metal makers rates and maximum inputs changed: 
     T1 maker converts 70 e into 0.5m + 0.3% of metal extraction
     T2 maker converts 600 e into 5m + 3% of metal extraction
     Sea and land makers are now alike
+
+Balance changes: 
+ • Long range T1 AA range reduced 10% and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
+ • Plasma shield starting power reduced to 20% instead of 33%
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
 Other:
