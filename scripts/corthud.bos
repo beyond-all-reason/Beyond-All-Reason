@@ -487,13 +487,15 @@ Create()
 {
 	hide rfirept;
 	hide lfirept;
+	//turn lfirept to x-axis <180> now;
+	//turn rfirept to x-axis <180> now;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Aim1 = TRUE;
 	Aim2 = FALSE;
 	Static_Var_3 = 1;
-	gun_1 = torso;
-	gun_2 = torso;
+	gun_1 = 0;
+	gun_2 = 0;
 	start-script MotionControl();
 	start-script SmokeUnit();
 }
@@ -520,8 +522,6 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if ( Aim2 == TRUE )
-	{
 	if( gun_1 == 0 )
 	{
 		piecenum = rfirept;
@@ -529,11 +529,6 @@ QueryPrimary(piecenum)
 	if( gun_1 == 1 )
 	{
 		piecenum = lfirept;
-	}
-	}
-	else
-	{
-	piecenum = torso;
 	}
 }
 
@@ -544,8 +539,6 @@ AimFromSecondary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	if ( Aim1 == TRUE )
-	{
 	if( gun_1 == 0 )
 	{
 		piecenum = rfirept;
@@ -553,11 +546,6 @@ QuerySecondary(piecenum)
 	if( gun_1 == 1 )
 	{
 		piecenum = lfirept;
-	}
-	}
-	else
-	{
-	piecenum = torso;
 	}
 }
 
@@ -584,12 +572,12 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	while( !Static_Var_3 )
+	turn torso to y-axis heading speed <112>;
+	turn gun to x-axis <0.000000> - pitch speed <60>;
+		while( !Static_Var_3 )
 	{
 		sleep 100;
 	}
-	turn torso to y-axis heading speed <112>;
-	turn gun to x-axis <0.000000> - pitch speed <60>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
@@ -608,7 +596,7 @@ FirePrimary()
 		move rgun to z-axis [-2.000000] speed [60.000000];
 		emit-sfx 1024 + 0 from rfirept;
 		wait-for-move rgun along z-axis;
-		gun_1 = gun;
+		gun_1 = 1;
 		move rgun to z-axis [0.000000] speed [4.000000];
 		wait-for-move rgun along z-axis;
 		return (0);
@@ -618,7 +606,7 @@ FirePrimary()
 		move lgun to z-axis [-2.000000] speed [60.000000];
 		emit-sfx 1024 + 0 from lfirept;
 		wait-for-move lgun along z-axis;
-		gun_1 = torso;
+		gun_1 = 0;
 		move lgun to z-axis [0.000000] speed [4.000000];
 		wait-for-move lgun along z-axis;
 		return (0);
@@ -632,12 +620,12 @@ AimSecondary(heading, pitch)
 	signal SIG_AIM_2;
 	set-signal-mask SIG_AIM_2;
 	bAiming = TRUE;
+	turn torso to y-axis heading speed <112>;
+	turn gun to x-axis <0.000000> - pitch speed <60>;
 	while( !Static_Var_3 )
 	{
 		sleep 100;
 	}
-	turn torso to y-axis heading speed <112>;
-	turn gun to x-axis <0.000000> - pitch speed <60>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn gun around x-axis;
 	start-script RestoreAfterDelay();
@@ -656,7 +644,7 @@ FireSecondary()
 		move rgun to z-axis [-2.000000] speed [60.000000];
 		emit-sfx 1024 + 0 from rfirept;
 		wait-for-move rgun along z-axis;
-		gun_1 = gun;
+		gun_1 = 1;
 		move rgun to z-axis [0.000000] speed [4.000000];
 		wait-for-move rgun along z-axis;
 		return (0);
@@ -666,7 +654,7 @@ FireSecondary()
 		move lgun to z-axis [-2.000000] speed [60.000000];
 		emit-sfx 1024 + 0 from lfirept;
 		wait-for-move lgun along z-axis;
-		gun_1 = torso;
+		gun_1 = 0;
 		move lgun to z-axis [0.000000] speed [4.000000];
 		wait-for-move lgun along z-axis;
 		return (0);
