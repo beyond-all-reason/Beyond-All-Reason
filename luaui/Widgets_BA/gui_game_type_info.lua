@@ -77,7 +77,7 @@ function widget:Initialize()
   end
     
   if (Spring.GetModOptions().mo_unba or "disabled") ~= "disabled" then
-	message4 = "Unbalanced Commanders is enabled: Commander will level up and gain upgrades"
+	message4 = "Unbalanced Commanders is enabled: Commander levels up and gain upgrades"
   end
   
   if (tonumber(Spring.GetModOptions().mo_armageddontime) or -1) > 0 then
@@ -102,14 +102,14 @@ function widget:DrawScreen()
   local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
   local msg2 = colorStr .. message2
   local msg3 = "\255\255\0\0" .. message3
-  local msg4 = colorStr .. message4
+  local msg4 = "\255\255\222\111" .. message4
   glPushMatrix()
   glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
   glText(msg, 0, 15*widgetScale, 18*widgetScale, "oc")
   glText(msg2, 0, -35*widgetScale, 12.5*widgetScale, "oc")
   glText(msg3, 0, -55*widgetScale, 11*widgetScale, "oc")
-  glText(msg4, 0, -75*widgetScale, 12.5*widgetScale, "oc")
+  glText(msg4, 0, 60*widgetScale, 18*widgetScale, "oc")
   glPopMatrix()
 end
 

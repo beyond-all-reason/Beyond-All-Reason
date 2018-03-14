@@ -73,7 +73,11 @@ function updatePosition(force)
 		else
 			xPos = advplayerlistPos[4] + (5.3*advplayerlistPos[5]) + usedImgSize
 		end
-		yPos = advplayerlistPos[3] + (4*advplayerlistPos[5])
+		yPos = advplayerlistPos[3]
+		if advplayerlistPos[3] < 0 then
+			yPos = 0
+		end
+		yPos = yPos + (4*advplayerlistPos[5])
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList(usedImgSize)
 		end

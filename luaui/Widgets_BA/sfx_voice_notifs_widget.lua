@@ -35,11 +35,12 @@ for sound, params in pairs(Sound) do
 end
 
 function widget:GameStart()
+	gameStarted = true
 	widget:PlayerChanged()
 end
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetSpectatingState() and Spring.GetGameFrame() > 0 then
+	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
 		widgetHandler:RemoveWidget(self)
 	end
 end
