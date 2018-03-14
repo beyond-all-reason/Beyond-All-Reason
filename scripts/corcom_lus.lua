@@ -262,7 +262,7 @@ if ValidID(unitID) then
 		if cmdarray.id < 0 then
 			if UnitDefs[-cmdarray.id] then
 				local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdarray.id)
-				disable = (level < CoreBuildOptions[UnitDefs[-cmdarray.id].name])
+				 disable = (level < CoreBuildOptions[UnitDefs[-cmdarray.id].name]) or (level >= (CoreBuildOptionsStop[UnitDefs[-cmdarray.id].name] or 12))
 				cmdarray.disabled = disable
 				Spring.EditUnitCmdDesc(unitID, cmdIndex, cmdarray)
 			end

@@ -14,6 +14,14 @@ Balance changes:
  • Plasma shield starting power reduced to 20% instead of 33%
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
+Unbalanced Commanders:
+ • Commander buildmenu upgrades changed and now consist of:
+     Economy: Advanced Solars (lvl3), Geo (lvl3), Moho extractor (lvl3), Underwater Moho extractor (lvl3). Replaces t1 equivalents.
+     Factories: T1.5 (amphibs) labs (lvl3), T2 kbot lab (lvl3), T2 Shipyard (lvl3), Nano towers (lvl3). Doesn't replace t1 labs.
+     Defence/Utilitary:  Fortification Wall (lvl5), T2 Popup (lvl5), Flak (lvl5), Advanced Torpedo Launcher (lvl 5). Replaces t1 equivalents.
+     Mobile Units: Crawling Bombs (lvl2), Spies (lvl2), Maverick/Commando (lvl 3), Fatboy/Dominator (lvl4), Sniper/Sumo (lvl5)     
+  The Fully upgraded buildmenus allows a total of 40 units.
+
 Other:
  • When a buildcommand is selected, click and drag with (shift + left mouse button + middle mouse button) or (left mouse button alone) to orientate the construction.
  • Reverse move: Units that are able to move backwards can now queue reverse/normal commands.
