@@ -98,9 +98,9 @@ ArmBuildOptions =
 			armfrad= 1,
 			-- MOBILE UNITS
 			armvader = 3,
-			armspy = 3,
-			armmav = 4,
-			armfboy = 5,
+			armspy = 4,
+			armmav = 5,
+			armfboy = 6,
 			armsnipe = 6,
 }
 ArmBuildOptionsStop = 
@@ -213,9 +213,9 @@ CoreBuildOptions =
 			coruwmme = 4,
 			-- MOBILE UNITS
 			corroach = 3,
-			corspy = 3,
-			cormando = 4,
-			corhrk = 5,
+			corspy = 4,
+			cormando = 5,
+			corhrk = 6,
 			corsumo = 6,
 }
 CoreBuildOptionsStop = 
