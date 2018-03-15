@@ -80,7 +80,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	local validation = randomString(2)
 	local validationLength = strLen(validation)
-	_G.validation = validation
+	_G.validationCam = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER or strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+validationLength) ~= validation then
@@ -113,7 +113,7 @@ else
 	local CAMERA_NAMES = {}
 	local CAMERA_STATE_FORMATS = {}
 
-	local validation = SYNCED.validation
+	local validation = SYNCED.validationCam
 
 	------------------------------------------------
 	--H4X
@@ -226,9 +226,6 @@ else
 		local cameraID = CAMERA_IDS[name]
 
 		if not stateFormat or not cameraID then return nil end
-		--if validation == nil then
-		--	validation = SYNCED.validation
-		--end
 		local result = PACKET_HEADER .. validation .. CustomPackU8(cameraID) .. CustomPackU8(s.mode)
 
 		for i=1, #stateFormat do

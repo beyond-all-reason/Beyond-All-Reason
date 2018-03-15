@@ -27,7 +27,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local validation = randomString(2)
-	_G.validation = validation
+	_G.validationSys = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,3)=="$y$" and msg:sub(4,5)==validation then
@@ -45,7 +45,7 @@ else
 	local GetMyPlayerID					= Spring.GetMyPlayerID
 	local myPlayerID					= GetMyPlayerID()
 	local systems						= {}
-	local validation = SYNCED.validation
+	local validation = SYNCED.validationSys
 	
 	function lines(str)
 	  local t = {}

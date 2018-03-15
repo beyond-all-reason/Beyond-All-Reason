@@ -34,7 +34,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local validation = randomString(2)
-	_G.validation = validation
+	_G.validationSelunits = validation
 
 	function gadget:RecvLuaMsg(inMsg, playerID)	
 		if inMsg:sub(1,2)==validation and (inMsg:sub(3,HEADER_LENGHT)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(3,HEADER_LENGHT)==HEADER_SEL_COMPRESSED) then
@@ -60,7 +60,7 @@ else
 	local time = 0
 	local timeSeconds = 0
 	local myLastSelectedUnits = {}
-	local validation = SYNCED.validation
+	local validation = SYNCED.validationSelunits
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("selectionUpdate", handleSelectionUpdateEvent)

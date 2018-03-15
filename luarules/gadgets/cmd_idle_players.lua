@@ -44,7 +44,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
     local initialQueueTime
 
     local mx,my = GetMouseState()
-    local validation = SYNCED.validation
+    local validation = SYNCED.validationIdle
 
     function gadget:Initialize()
         gadgetHandler:AddSyncAction("onGameStart", onGameStart)
@@ -231,7 +231,7 @@ else
     end
 
     local validation = randomString(2)
-    _G.validation = validation
+    _G.validationIdle = validation
 
     local function CheckPlayerState(playerID)
         local newval = playerInfoTable[playerID]

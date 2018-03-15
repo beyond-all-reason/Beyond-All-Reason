@@ -76,7 +76,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local validation = randomString(2)
-	_G.validation = validation
+	_G.validationMouse = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,2)=="£" and msg:sub(2,3)==validation then
@@ -98,7 +98,7 @@ else
 --------------------------------------------------------------------------------
 
 local myPlayerID = GetMyPlayerID()
-local validation = SYNCED.validation
+local validation = SYNCED.validationMouse
 
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)

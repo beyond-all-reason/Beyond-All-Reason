@@ -33,7 +33,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local validation = randomString(2)
-	_G.validation = validation
+	_G.validationFps = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,1)=="@" and msg:sub(2,3)==validation then
@@ -54,7 +54,7 @@ else
 	local updateTimer					= 0
 	local avgFps							= GetFPS()
 	local numframes						= 0
-	local validation = SYNCED.validation
+	local validation = SYNCED.validationFps
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("fpsBroadcast", handleFpsEvent)

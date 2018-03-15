@@ -32,7 +32,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local validation = randomString(2)
-	_G.validation = validation
+	_G.validationActivity = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,1)=="^" and msg:sub(2,3)==validation then
@@ -55,7 +55,7 @@ else
 	local old_mx,old_my					= 0,0
 	local updateTimer						= 0
 	local prevCameraState				= GetCameraState()
-	local validation = SYNCED.validation
+	local validation = SYNCED.validationActivity
 	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("activityBroadcast", handleActivityEvent)
