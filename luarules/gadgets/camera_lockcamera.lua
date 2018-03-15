@@ -66,30 +66,43 @@ local numBroadcasts = {}
 local maxNumBroadcasts = 20
 local plannedGameFrame = 1
 if gadgetHandler:IsSyncedCode() then
-	local validation = '' .. math.random(0,9) .. math.random(0,9) .. math.random(0,9)
+
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		--math.randomseed(os.clock()^5)
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+
+	local validation = randomString(2)
 	local validationLength = strLen(validation)
 	_G.validation = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER and strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+validationLength) ~= validation then
+		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER or strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+validationLength) ~= validation then
 			return
 		end
-		--if numBroadcasts[playerID] == nil then
-		--	numBroadcasts[playerID] = 0
-		--end
-		--numBroadcasts[playerID] = numBroadcasts[playerID] + 1
-		--if numBroadcasts[playerID] < maxNumBroadcasts then
+		--Spring.Echo(msg)
+		if numBroadcasts[playerID] == nil then
+			numBroadcasts[playerID] = 0
+		end
+		numBroadcasts[playerID] = numBroadcasts[playerID] + 1
+		if numBroadcasts[playerID] < maxNumBroadcasts then
 			SendToUnsynced("cameraBroadcast",playerID,msg)
 			return true
-		--end
+		end
 	end
 
-	--function gadget:GameFrame(gf)
-	--	if gf >= plannedGameFrame then
-	--		plannedGameFrame = gf + (broadcastPeriod*30)
-	--		maxNumBroadcasts = maxNumBroadcasts + 1
-	--	end
-	--end
+	function gadget:GameFrame(gf)
+		if gf >= plannedGameFrame then
+			plannedGameFrame = gf + (broadcastPeriod*30)
+			maxNumBroadcasts = maxNumBroadcasts + 1
+		end
+	end
 else
 	local totalTime = 0
 	local timeSinceBroadcast = 0

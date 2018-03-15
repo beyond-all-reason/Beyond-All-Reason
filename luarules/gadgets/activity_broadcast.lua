@@ -20,9 +20,22 @@ local sendPacketEvery	= 2
 -- synced
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		--math.randomseed(os.clock()^5)
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+
+	local validation = randomString(2)
+	_G.validation = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,1)=="^" then
+		if msg:sub(1,1)=="^" and msg:sub(2,3)==validation then
 			SendToUnsynced("activityBroadcast",playerID)
 			return true
 		end
@@ -42,6 +55,7 @@ else
 	local old_mx,old_my					= 0,0
 	local updateTimer						= 0
 	local prevCameraState				= GetCameraState()
+	local validation = SYNCED.validation
 	
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("activityBroadcast", handleActivityEvent)
@@ -52,9 +66,9 @@ else
 	end
 	
 	function handleActivityEvent(_,playerID)
-    if Script.LuaUI("ActivityEvent") then
-    	Script.LuaUI.ActivityEvent(playerID)
-    end
+		if Script.LuaUI("ActivityEvent") then
+			Script.LuaUI.ActivityEvent(playerID)
+		end
 	end
 	
 	function gadget:Update()
@@ -79,7 +93,7 @@ else
 			prevCameraState = cameraState
 			
 			if activity then
-				SendLuaRulesMsg("^")
+				SendLuaRulesMsg("^"..validation)
 			end
 			activity = false
 			updateTimer = 0
