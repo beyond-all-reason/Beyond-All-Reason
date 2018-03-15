@@ -19,7 +19,7 @@ end
 
 --broadcast
 
-local broadcastPeriod = 0.2 --will send packet in this interval (s)
+local broadcastPeriod = 0.5 --will send packet in this interval (s)
 
 ------------------------------------------------
 --speedups
@@ -66,27 +66,30 @@ local numBroadcasts = {}
 local maxNumBroadcasts = 20
 local plannedGameFrame = 1
 if gadgetHandler:IsSyncedCode() then
+	local validation = '' .. math.random(0,9) .. math.random(0,9) .. math.random(0,9)
+	local validationLength = strLen(validation)
+	_G.validation = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
+		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER and strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+validationLength) ~= validation then
 			return
 		end
-		if numBroadcasts[playerID] == nil then
-			numBroadcasts[playerID] = 0
-		end
-		numBroadcasts[playerID] = numBroadcasts[playerID] + 1
-		if numBroadcasts[playerID] < maxNumBroadcasts then
+		--if numBroadcasts[playerID] == nil then
+		--	numBroadcasts[playerID] = 0
+		--end
+		--numBroadcasts[playerID] = numBroadcasts[playerID] + 1
+		--if numBroadcasts[playerID] < maxNumBroadcasts then
 			SendToUnsynced("cameraBroadcast",playerID,msg)
 			return true
-		end
+		--end
 	end
 
-	function gadget:GameFrame(gf)
-		if gf >= plannedGameFrame then
-			plannedGameFrame = gf + (broadcastPeriod*30)
-			maxNumBroadcasts = maxNumBroadcasts + 1
-		end
-	end
+	--function gadget:GameFrame(gf)
+	--	if gf >= plannedGameFrame then
+	--		plannedGameFrame = gf + (broadcastPeriod*30)
+	--		maxNumBroadcasts = maxNumBroadcasts + 1
+	--	end
+	--end
 else
 	local totalTime = 0
 	local timeSinceBroadcast = 0
@@ -96,6 +99,9 @@ else
 	local CAMERA_IDS = GetCameraNames()
 	local CAMERA_NAMES = {}
 	local CAMERA_STATE_FORMATS = {}
+
+	local validation = SYNCED.validation
+
 	------------------------------------------------
 	--H4X
 	------------------------------------------------
@@ -207,8 +213,10 @@ else
 		local cameraID = CAMERA_IDS[name]
 
 		if not stateFormat or not cameraID then return nil end
-
-		local result = PACKET_HEADER .. CustomPackU8(cameraID) .. CustomPackU8(s.mode)
+		--if validation == nil then
+		--	validation = SYNCED.validation
+		--end
+		local result = PACKET_HEADER .. validation .. CustomPackU8(cameraID) .. CustomPackU8(s.mode)
 
 		for i=1, #stateFormat do
 			local num = s[stateFormat[i]]
@@ -220,7 +228,7 @@ else
 	end
 
 	local function PacketToCameraState(p)
-		local offset = PACKET_HEADER_LENGTH + 1
+		local offset = PACKET_HEADER_LENGTH + 1 + strLen(validation)
 		local cameraID = CustomUnpackU8(p, offset)
 		local mode = CustomUnpackU8(p, offset + 1)
 		local name = CAMERA_NAMES[cameraID]
