@@ -79,19 +79,18 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	local validation = randomString(2)
-	local validationLength = strLen(validation)
 	_G.validationCam = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER or strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+validationLength) ~= validation then
+		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER or strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+1) ~= validation then
 			return
 		end
-		--Spring.Echo(msg)
 		if numBroadcasts[playerID] == nil then
 			numBroadcasts[playerID] = 0
 		end
 		numBroadcasts[playerID] = numBroadcasts[playerID] + 1
 		if numBroadcasts[playerID] < maxNumBroadcasts then
+
 			SendToUnsynced("cameraBroadcast",playerID,msg)
 			return true
 		end
@@ -238,7 +237,7 @@ else
 	end
 
 	local function PacketToCameraState(p)
-		local offset = PACKET_HEADER_LENGTH + 1 + strLen(validation)
+		local offset = PACKET_HEADER_LENGTH + 1 + 2
 		local cameraID = CustomUnpackU8(p, offset)
 		local mode = CustomUnpackU8(p, offset + 1)
 		local name = CAMERA_NAMES[cameraID]
@@ -246,7 +245,6 @@ else
 		if not (cameraID and mode and name and stateFormat) then
 			return nil
 		end
-
 		local result = {
 			name = name,
 			mode = mode,

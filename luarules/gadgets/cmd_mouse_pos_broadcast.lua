@@ -79,7 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 	_G.validationMouse = validation
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)=="£" and msg:sub(2,3)==validation then
+		if msg:sub(1,2)=="£" and msg:sub(3,4)==validation then
 			local xz = msg:sub(6)
 			local l = xz:len()*0.25
 			if l == numMousePos then
