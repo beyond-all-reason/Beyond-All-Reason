@@ -211,7 +211,7 @@ function manipulateFacing()
 	local udef = udefTab[unitDefID]
 
 	--if (lmb and (mmb or (not shift or (udef ~= nil and udef["isFactory"])))) then
-	if lmb and ((not shift) or (mmb)) then
+	if (lmb and mmb) then
 		--in
         if not inDrag then
             mouseDeltaX = 0
