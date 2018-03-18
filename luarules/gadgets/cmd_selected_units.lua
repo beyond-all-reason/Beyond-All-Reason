@@ -22,9 +22,23 @@ local HEADER_LENGHT = string.len(HEADER_SEL_UNCOMPRESSED)
 
 
 if gadgetHandler:IsSyncedCode() then
-	function gadget:RecvLuaMsg(inMsg, playerID)	
-		if inMsg:sub(1,HEADER_LENGHT)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(1,HEADER_LENGHT)==HEADER_SEL_COMPRESSED then
-			SendToUnsynced("selectionUpdate",playerID,inMsg:sub(5),inMsg:sub(4,4) == "c")
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		--math.randomseed(os.clock()^5)
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+
+	local validation = randomString(2)
+	_G.validationSelunits = validation
+
+	function gadget:RecvLuaMsg(inMsg, playerID)
+		if inMsg:sub(1,2)==validation and (inMsg:sub(3,HEADER_LENGHT+2)==HEADER_SEL_UNCOMPRESSED or inMsg:sub(3,HEADER_LENGHT+2)==HEADER_SEL_COMPRESSED) then
+			SendToUnsynced("selectionUpdate",playerID,inMsg:sub(7),inMsg:sub(6,6) == "c")
 			return true
 		end
 	end
@@ -46,7 +60,7 @@ else
 	local time = 0
 	local timeSeconds = 0
 	local myLastSelectedUnits = {}
-
+	local validation = SYNCED.validationSelunits
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("selectionUpdate", handleSelectionUpdateEvent)
@@ -143,7 +157,7 @@ else
 			header = HEADER_SEL_COMPRESSED
 		end
 		
-		SendLuaRulesMsg( header .. finalMsg)
+		SendLuaRulesMsg(validation .. header .. finalMsg)
 	end
 
 	function sendSelectedUnits()

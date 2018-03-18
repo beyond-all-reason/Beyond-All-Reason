@@ -44,6 +44,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
     local initialQueueTime
 
     local mx,my = GetMouseState()
+    local validation = SYNCED.validationIdle
 
     function gadget:Initialize()
         gadgetHandler:AddSyncAction("onGameStart", onGameStart)
@@ -74,7 +75,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
 
     function WentIdle()
         if not isIdle then
-            SendLuaRulesMsg(AFKMessage .. "1")
+            SendLuaRulesMsg(validation..AFKMessage.. "1")
             isIdle = true
         end
     end
@@ -82,7 +83,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
     function NotIdle()
         lastActionTime = max(timer,lastActionTime)
         if isIdle then
-            SendLuaRulesMsg(AFKMessage .. "0")
+            SendLuaRulesMsg(validation..AFKMessage.. "0")
             isIdle = false
         end
     end
@@ -218,6 +219,20 @@ else
     local min = math.min
     local max = math.max
 
+    local charset = {}  do -- [0-9a-zA-Z]
+        for c = 48, 57  do table.insert(charset, string.char(c)) end
+        for c = 65, 90  do table.insert(charset, string.char(c)) end
+        for c = 97, 122 do table.insert(charset, string.char(c)) end
+    end
+    local function randomString(length)
+        if not length or length <= 0 then return '' end
+        --math.randomseed(os.clock()^5)
+        return randomString(length - 1) .. charset[math.random(1, #charset)]
+    end
+
+    local validation = randomString(2)
+    _G.validationIdle = validation
+
     local function CheckPlayerState(playerID)
         local newval = playerInfoTable[playerID]
         if not newval then
@@ -318,10 +333,10 @@ else
     end
 
     function gadget:RecvLuaMsg(msg, playerID)
-        if msg:sub(1,AFKMessageSize) ~= AFKMessage then --invalid message
+        if msg:sub(1,2)~=validation and msg:sub(3,AFKMessageSize) ~= AFKMessage then --invalid message
             return
         end
-        local afk = tonumber(msg:sub(AFKMessageSize+1))
+        local afk = tonumber(msg:sub(2+AFKMessageSize+1))
         local playerInfoTableEntry = playerInfoTable[playerID] or {}
         local previousPresent = playerInfoTableEntry.present
         playerInfoTableEntry.present = afk == 0

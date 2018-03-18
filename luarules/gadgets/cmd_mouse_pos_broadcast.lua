@@ -64,15 +64,29 @@ local n = 0
 local lastclick = 0
 
 if gadgetHandler:IsSyncedCode() then
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		--math.randomseed(os.clock()^5)
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+
+	local validation = randomString(2)
+	_G.validationMouse = validation
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,2)=="£" then
-			local xz = msg:sub(4)
+		if msg:sub(1,2)=="£" and msg:sub(3,4)==validation then
+			local xz = msg:sub(6)
 			local l = xz:len()*0.25
 			if l == numMousePos then
 				for i=0,numMousePos-1 do
 					local x = UnpackU16(xz:sub(i*4+1,i*4+2))
 					local z = UnpackU16(xz:sub(i*4+3,i*4+4))
-					local click = msg:sub(2,2) == "1"
+					local click = msg:sub(4,4) == "1"
 					SendToUnsynced("mouseBroadcast",playerID,x,z,click)
 				end
 			end
@@ -84,7 +98,7 @@ else
 --------------------------------------------------------------------------------
 
 local myPlayerID = GetMyPlayerID()
-
+local validation = SYNCED.validationMouse
 
 function gadget:Initialize()
 	gadgetHandler:AddSyncAction("mouseBroadcast", handleMousePosEvent)
@@ -142,7 +156,7 @@ function gadget:Update()
 				posStr = posStr .. xStr .. zStr
 			end
 		end
-		SendLuaRulesMsg("£" .. posStr)
+		SendLuaRulesMsg("£" .. validation .. posStr)
 	 
 	end
 end
@@ -175,7 +189,7 @@ function gadget:MousePress(x,y,button)
 				posStr = posStr .. xStr .. zStr
 			end
 		end
-		SendLuaRulesMsg("£" .. posStr)
+		SendLuaRulesMsg("£" .. validation .. posStr)
 	end
 end
 

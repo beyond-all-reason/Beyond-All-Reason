@@ -15,9 +15,23 @@ end
 --------------------------------------------------------------------------------
 if gadgetHandler:IsSyncedCode() then
 
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		--math.randomseed(os.clock()^5)
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+
+	local validation = randomString(2)
+	_G.validationSys = validation
+
 	function gadget:RecvLuaMsg(msg, playerID)
-		if msg:sub(1,3)=="$y$" then
-			SendToUnsynced("systemBroadcast",playerID,msg:sub(4))
+		if msg:sub(1,3)=="$y$" and msg:sub(4,5)==validation then
+			SendToUnsynced("systemBroadcast",playerID,msg:sub(6))
 			return true
 		end
 	end
@@ -31,6 +45,7 @@ else
 	local GetMyPlayerID					= Spring.GetMyPlayerID
 	local myPlayerID					= GetMyPlayerID()
 	local systems						= {}
+	local validation = SYNCED.validationSys
 	
 	function lines(str)
 	  local t = {}
@@ -183,7 +198,7 @@ else
 
 		system = string.sub(system, 2)
 		if system ~= '' then
-			SendLuaRulesMsg("$y$"..system)
+			SendLuaRulesMsg("$y$"..validation..system)
 		end
 	end
 
