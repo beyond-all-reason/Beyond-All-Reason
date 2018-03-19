@@ -470,6 +470,7 @@ end
 
 -- saving metalmap
 local function SaveMetalMap(filename)
+	if not dynamicMex then
 	local file = assert(io.open(filename,'w'), "Unable to save mexmap to "..filename)
 	
 	for k, mex in pairs(mexes) do
@@ -481,9 +482,11 @@ local function SaveMetalMap(filename)
 	
 	file:close()
 	Spring.Echo("mexmap exported to ".. filename);
+	end
 end
 
 local function LoadMetalMap(filename)
+	if not dynamicMex then
 	local file = assert(io.open(filename,'r'), "Unable to load mexmap from "..filename)
 	mexes = {}
 	index = 1
@@ -498,10 +501,14 @@ local function LoadMetalMap(filename)
 		index = index+1
 	end
 	Spring.Echo("mexmap imported from ".. filename);
+	end
 	
 end
 
 function widget:Initialize()
+if Game.mapDescription then
+dynamicMex = string.find(Game.mapDescription, "DynamicMexes")
+end
 	
 	local Gname = Game.modShortName
 	
@@ -554,5 +561,63 @@ function widget:Initialize()
 	local units = spGetTeamUnits(spGetMyTeamID())
 	for i, id in ipairs(units) do 
 		widget:UnitCreated(id, spGetUnitDefID(id))
+	end
+end
+
+function widget:GameStart()
+	if dynamicMex then
+	
+	local Gname = Game.modShortName
+	
+	if Gname == 'EvoRTS' then
+		Spring.Echo("Area Mex: Loaded for Evo")
+		mexIds[UnitDefNames['tmex2'].id] = UnitDefNames['tmex2'].id 
+		mexIds[UnitDefNames['emex2'].id] = UnitDefNames['emex2'].id 
+	elseif Gname == '' then
+		Spring.Echo("Area Mex: Loaded for EE")
+		mexIds[UnitDefNames['urcmex2'].id] = UnitDefNames['urcmex2'].id 
+		mexIds[UnitDefNames['alienmex'].id] = UnitDefNames['alienmex'].id 
+		mexIds[UnitDefNames['gdmex2'].id] = UnitDefNames['gdmex2'].id 
+	elseif Gname == 'BA' or Gname == 'nota' then
+		Spring.Echo("Area Mex: Loaded for BA or NOTA")
+		mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
+		mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
+		mexIds[UnitDefNames['armmoho'].id] = UnitDefNames['armmoho'].id 
+		mexIds[UnitDefNames['cormoho'].id] = UnitDefNames['cormoho'].id 		
+		mexIds[UnitDefNames['armuwmex'].id] = UnitDefNames['armuwmex'].id 
+		mexIds[UnitDefNames['coruwmex'].id] = UnitDefNames['coruwmex'].id 
+		mexIds[UnitDefNames['armuwmme'].id] = UnitDefNames['armuwmme'].id 
+		mexIds[UnitDefNames['coruwmme'].id] = UnitDefNames['coruwmme'].id 
+	elseif Gname == 'ca' then
+		Spring.Echo("Area Mex: Loaded for CA")
+		mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
+		mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
+  	elseif Gname == 'XTA'  then
+    		Spring.Echo("Area Mex: Loaded for XTA")
+    		mexIds[UnitDefNames['arm_metal_extractor'].id] = UnitDefNames['arm_metal_extractor'].id 
+    		mexIds[UnitDefNames['core_metal_extractor'].id] = UnitDefNames['core_metal_extractor'].id 
+    		mexIds[UnitDefNames['arm_underwater_metal_extractor'].id] = UnitDefNames['arm_underwater_metal_extractor'].id 
+    		mexIds[UnitDefNames['core_underwater_metal_extractor'].id] = UnitDefNames['core_underwater_metal_extractor'].id 
+	else
+		Spring.Echo("Removed Area Mex")
+		widgetHandler:RemoveWidget(self)
+	end
+
+	Spring.CreateDir(pathToSave)
+	local filename = (pathToSave.. string.lower(string.gsub(Game.mapName, ".smf", "")) .. ".springmexmap")
+	file = io.open(filename,'r')
+	if file ~= nil then -- file exists?
+		Spring.Echo("Mexmap detected - loading...")
+		LoadMetalMap(filename)
+	else
+		Spring.Echo("Calculating mexmap")
+		AnalyzeMetalMap()
+		SaveMetalMap(filename)
+	end
+  
+	local units = spGetTeamUnits(spGetMyTeamID())
+	for i, id in ipairs(units) do 
+		widget:UnitCreated(id, spGetUnitDefID(id))
+	end
 	end
 end
