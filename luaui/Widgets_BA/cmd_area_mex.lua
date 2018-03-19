@@ -1,4 +1,4 @@
-local versionNumber = "v2.3 - Doo Edit"
+local versionNumber = "v2.4 - Doo Edit, BA specific"
 
 function widget:GetInfo()
   return {
@@ -12,6 +12,12 @@ function widget:GetInfo()
     enabled   = true  --  loaded by default?
   }
 end
+
+--changelog (starting from 2.4)
+-- v2.4 (03/19/18 - Doo)
+-- Using WG.metalSpots instead of analyzing map at initialize()
+-- Erased non BA configs (since this version is only packed within BA)
+
 
 local maxMetalData = 40000 --2500000
 local pathToSave = "LuaUI/Widgets_BA/MetalMaps/" -- where to store mexmaps (MaDDoX: edited for BA 9.5x)
@@ -56,34 +62,9 @@ local function Distance(x1,z1,x2,z2)
 	return dis
 end
 
--- local function GetSpotSize(x, z)
-	-- spotSize = 24
-	-- if WG.metalSpots then
-		-- local bestSpot
-		-- local bestDist = math.huge
-		-- local metalSpots = WG.metalSpots
-		-- for i = 1, #metalSpots do
-			-- local spot = metalSpots[i]
-			-- local dx, dz = x - spot.x, z - spot.z
-			-- local dist = dx*dx + dz*dz
-			-- if dist < bestDist then
-				-- bestSpot = spot
-				-- bestDist = dist
-			-- end
-		-- end
-		-- if bestSpot.maxZ and bestSpot.minZ then
-		-- spotSize = math.abs(bestSpot.maxZ - bestSpot.minZ)/2
-		-- end
-	-- else
-		-- spotSize = 24
-	-- end
-	-- return spotSize
--- end
-
 function widget:UnitCreated(unitID, unitDefID)
   
 	local ud = UnitDefs[unitDefID]
-	--Spring.Echo((Spring.GetModOptions().mo_unba or "disabled") == "enabled")
 	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
 		return
 	else
@@ -146,7 +127,7 @@ function NoAlliedMex(x,z, batchextracts) -- Is there any better and allied mex a
 end
 
 function widget:CommandNotify(id, params, options)	
-	
+	mexes = WG.metalSpots
 	if (id == CMD_AREA_MEX) then
 
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
@@ -217,7 +198,6 @@ function widget:CommandNotify(id, params, options)
 		end
 	
 		for k, mex in pairs(mexes) do		
-			--if (mex.x > xmin) and (mex.x < xmax) and (mex.z > zmin) and (mex.z < zmax) then -- square area, should be faster
 			if (Distance(cx,cz,mex.x,mex.z) < cr^2) then -- circle area, slower
 				if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
 					commands[#commands+1] = {x = mex.x, z = mex.z, d = Distance(aveX,aveZ,mex.x,mex.z)}
@@ -312,7 +292,6 @@ end
 
 function widget:CommandsChanged()
 	local units=spGetSelectedUnits()
-	
 	for i, id in pairs(units) do 
 		if mexBuilder[id] then
 			local customCommands = widgetHandler.customCommands
@@ -330,294 +309,21 @@ function widget:CommandsChanged()
 	end
 end
 
-
-----------------------
--- Mex detection from easymetal by carrepairer
-
-local floor = math.floor
-
-local spGetGroundInfo   = Spring.GetGroundInfo
-local spGetGroundHeight = Spring.GetGroundHeight
-
-local gridSize			= 4
-local threshFraction		= 0.4
-local metalExtraction		= 0.004
-
-local mapWidth 			= floor(Game.mapSizeX)
-local mapHeight 		= floor(Game.mapSizeZ)
-local mapWidth2 		= floor(Game.mapSizeX / gridSize)
-local mapHeight2 		= floor(Game.mapSizeZ / gridSize)
-
-local metalMap 			= {}
-local maxMetal 			= 0
-
-local metalData 		= {}
-local metalDataCount 		= 0
-
-local snapDist			= 10000
-local mexSize			= 25
-local mexRad			= Game.extractorRadius > 125 and Game.extractorRadius or 125
-
-local flagCount			= 0
-
-local function NearFlag(px, pz, dist)
-	if not mexes then return false end
-	for k, flag in pairs(mexes) do		
-		local fx, fz = flag.x, flag.z
-		if (px-fx)^2 + (pz-fz)^2 < dist then
-			return k
-		end
-	end
-	return false
-end
-
-local function round(num, idp)
-  local mult = 10^(idp or 0)
-  return floor(num * mult + 0.5) / mult
-end
-
-local function mergeToFlag(flagNum, px, pz, pWeight)
-
-	local fx = mexes[flagNum].x
-	local fz = mexes[flagNum].z
-	local fWeight = mexes[flagNum].weight
-	
-	local avgX, avgZ
-	
-	if fWeight > pWeight then
-		local fStrength = round(fWeight / pWeight)
-		avgX = (fx*fStrength + px) / (fStrength +1)
-		avgZ = (fz*fStrength + pz) / (fStrength +1)
-	else
-		local pStrength = (pWeight / fWeight)
-		avgX = (px*pStrength + fx) / (pStrength +1)
-		avgZ = (pz*pStrength + fz) / (pStrength +1)		
-	end
-	
-	mexes[flagNum].x = avgX
-	mexes[flagNum].z = avgZ
-	mexes[flagNum].weight = fWeight + pWeight
-end
-
-local function AnalyzeMetalMap()
-	for mx_i = 1, mapWidth2 do
-		metalMap[mx_i] = {}
-		for mz_i = 1, mapHeight2 do
-			local mx = mx_i * gridSize
-			local mz = mz_i * gridSize
-			local _, curMetal, curMetal2 = spGetGroundInfo(mx, mz)
-            if type(curMetal) == 'string' then	-- Spring > v104
-                curMetal = curMetal2
-            end
-			curMetal = floor(curMetal * 100)
-			metalMap[mx_i][mz_i] = curMetal
-			if (curMetal > maxMetal) then
-				maxMetal = curMetal
-			end
-		end
-	end
-
-	local lowMetalThresh = floor(maxMetal * threshFraction)
-	
-	for mx_i = 1, mapWidth2 do
-		for mz_i = 1, mapHeight2 do
-			local mCur = metalMap[mx_i][mz_i]
-			if mCur > lowMetalThresh then
-				metalDataCount = metalDataCount +1
-				metalData[metalDataCount] = {
-					x = mx_i * gridSize,
-					z = mz_i * gridSize,
-					metal = mCur
-				}
-				if #metalData > maxMetalData then -- Probably a metal map, ceases to work
-					Spring.Echo("Area Mex: widget auto-removed, too many spots found in map.")
-					widgetHandler:RemoveWidget(self)
-					return
-				end
-			end
-		end
-	end
-
---	--Spring.Echo("number of spots " .. #metalData)
---	if #metalData > maxMetalData then -- ceases to work
---		Spring.Echo("Removed Area Mex, too many spots.")
---		widgetHandler:RemoveWidget(self)
---		return
---	end
-	
-	table.sort(metalData, function(a,b) return a.metal > b.metal end)
-	
-	for index = 1, metalDataCount do
-		
-		local mx = metalData[index].x
-		local mz = metalData[index].z
-		local mCur = metalData[index].metal
-		
-		local nearFlagNum = NearFlag(mx, mz, mexRad*mexRad)
-	
-		if nearFlagNum then
-			mergeToFlag(nearFlagNum, mx, mz, mCur)
-		else
-			flagCount = flagCount + 1
-			mexes[flagCount] = {
-				x = mx,
-				z = mz,
-				weight = mCur
-			}
-		end
-	end
-end
-
--- saving metalmap
-local function SaveMetalMap(filename)
-	if not dynamicMex then
-	local file = assert(io.open(filename,'w'), "Unable to save mexmap to "..filename)
-	
-	for k, mex in pairs(mexes) do
-		file:write(mex.x)
-		file:write("\n")
-		file:write(mex.z)
-		file:write("\n")
-	end
-	
-	file:close()
-	Spring.Echo("mexmap exported to ".. filename);
-	end
-end
-
-local function LoadMetalMap(filename)
-	if not dynamicMex then
-	local file = assert(io.open(filename,'r'), "Unable to load mexmap from "..filename)
-	mexes = {}
-	index = 1
-	while true do
-		l1 = file:read()
-		if not l1 then break end
-		l2 = file:read()
-		mexes[index] = {
-			x = l1,
-			z = l2
-		}
-		index = index+1
-	end
-	Spring.Echo("mexmap imported from ".. filename);
-	end
-	
-end
-
 function widget:Initialize()
-if Game.mapDescription then
-dynamicMex = string.find(Game.mapDescription, "DynamicMexes")
-end
-	
-	local Gname = Game.modShortName
-	
-	if Gname == 'EvoRTS' then
-		Spring.Echo("Area Mex: Loaded for Evo")
-		mexIds[UnitDefNames['tmex2'].id] = UnitDefNames['tmex2'].id 
-		mexIds[UnitDefNames['emex2'].id] = UnitDefNames['emex2'].id 
-	elseif Gname == '' then
-		Spring.Echo("Area Mex: Loaded for EE")
-		mexIds[UnitDefNames['urcmex2'].id] = UnitDefNames['urcmex2'].id 
-		mexIds[UnitDefNames['alienmex'].id] = UnitDefNames['alienmex'].id 
-		mexIds[UnitDefNames['gdmex2'].id] = UnitDefNames['gdmex2'].id 
-	elseif Gname == 'BA' or Gname == 'nota' then
-		Spring.Echo("Area Mex: Loaded for BA or NOTA")
-		mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
-		mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
-		mexIds[UnitDefNames['armmoho'].id] = UnitDefNames['armmoho'].id 
-		mexIds[UnitDefNames['cormoho'].id] = UnitDefNames['cormoho'].id 		
-		mexIds[UnitDefNames['armuwmex'].id] = UnitDefNames['armuwmex'].id 
-		mexIds[UnitDefNames['coruwmex'].id] = UnitDefNames['coruwmex'].id 
-		mexIds[UnitDefNames['armuwmme'].id] = UnitDefNames['armuwmme'].id 
-		mexIds[UnitDefNames['coruwmme'].id] = UnitDefNames['coruwmme'].id 
-	elseif Gname == 'ca' then
-		Spring.Echo("Area Mex: Loaded for CA")
-		mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
-		mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
-  	elseif Gname == 'XTA'  then
-    		Spring.Echo("Area Mex: Loaded for XTA")
-    		mexIds[UnitDefNames['arm_metal_extractor'].id] = UnitDefNames['arm_metal_extractor'].id 
-    		mexIds[UnitDefNames['core_metal_extractor'].id] = UnitDefNames['core_metal_extractor'].id 
-    		mexIds[UnitDefNames['arm_underwater_metal_extractor'].id] = UnitDefNames['arm_underwater_metal_extractor'].id 
-    		mexIds[UnitDefNames['core_underwater_metal_extractor'].id] = UnitDefNames['core_underwater_metal_extractor'].id 
-	else
-		Spring.Echo("Removed Area Mex")
+	if not WG.metalSpots then
+		Spring.Echo("<Area Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget(self)
 	end
-
-	Spring.CreateDir(pathToSave)
-	local filename = (pathToSave.. string.lower(string.gsub(Game.mapName, ".smf", "")) .. ".springmexmap")
-	file = io.open(filename,'r')
-	if file ~= nil then -- file exists?
-		Spring.Echo("Mexmap detected - loading...")
-		LoadMetalMap(filename)
-	else
-		Spring.Echo("Calculating mexmap")
-		AnalyzeMetalMap()
-		SaveMetalMap(filename)
-	end
-  
+	mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
+	mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
+	mexIds[UnitDefNames['armmoho'].id] = UnitDefNames['armmoho'].id 
+	mexIds[UnitDefNames['cormoho'].id] = UnitDefNames['cormoho'].id 		
+	mexIds[UnitDefNames['armuwmex'].id] = UnitDefNames['armuwmex'].id 
+	mexIds[UnitDefNames['coruwmex'].id] = UnitDefNames['coruwmex'].id 
+	mexIds[UnitDefNames['armuwmme'].id] = UnitDefNames['armuwmme'].id 
+	mexIds[UnitDefNames['coruwmme'].id] = UnitDefNames['coruwmme'].id 
 	local units = spGetTeamUnits(spGetMyTeamID())
 	for i, id in ipairs(units) do 
 		widget:UnitCreated(id, spGetUnitDefID(id))
-	end
-end
-
-function widget:GameStart()
-	if dynamicMex then
-	
-	local Gname = Game.modShortName
-	
-	if Gname == 'EvoRTS' then
-		Spring.Echo("Area Mex: Loaded for Evo")
-		mexIds[UnitDefNames['tmex2'].id] = UnitDefNames['tmex2'].id 
-		mexIds[UnitDefNames['emex2'].id] = UnitDefNames['emex2'].id 
-	elseif Gname == '' then
-		Spring.Echo("Area Mex: Loaded for EE")
-		mexIds[UnitDefNames['urcmex2'].id] = UnitDefNames['urcmex2'].id 
-		mexIds[UnitDefNames['alienmex'].id] = UnitDefNames['alienmex'].id 
-		mexIds[UnitDefNames['gdmex2'].id] = UnitDefNames['gdmex2'].id 
-	elseif Gname == 'BA' or Gname == 'nota' then
-		Spring.Echo("Area Mex: Loaded for BA or NOTA")
-		mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
-		mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
-		mexIds[UnitDefNames['armmoho'].id] = UnitDefNames['armmoho'].id 
-		mexIds[UnitDefNames['cormoho'].id] = UnitDefNames['cormoho'].id 		
-		mexIds[UnitDefNames['armuwmex'].id] = UnitDefNames['armuwmex'].id 
-		mexIds[UnitDefNames['coruwmex'].id] = UnitDefNames['coruwmex'].id 
-		mexIds[UnitDefNames['armuwmme'].id] = UnitDefNames['armuwmme'].id 
-		mexIds[UnitDefNames['coruwmme'].id] = UnitDefNames['coruwmme'].id 
-	elseif Gname == 'ca' then
-		Spring.Echo("Area Mex: Loaded for CA")
-		mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
-		mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
-  	elseif Gname == 'XTA'  then
-    		Spring.Echo("Area Mex: Loaded for XTA")
-    		mexIds[UnitDefNames['arm_metal_extractor'].id] = UnitDefNames['arm_metal_extractor'].id 
-    		mexIds[UnitDefNames['core_metal_extractor'].id] = UnitDefNames['core_metal_extractor'].id 
-    		mexIds[UnitDefNames['arm_underwater_metal_extractor'].id] = UnitDefNames['arm_underwater_metal_extractor'].id 
-    		mexIds[UnitDefNames['core_underwater_metal_extractor'].id] = UnitDefNames['core_underwater_metal_extractor'].id 
-	else
-		Spring.Echo("Removed Area Mex")
-		widgetHandler:RemoveWidget(self)
-	end
-
-	Spring.CreateDir(pathToSave)
-	local filename = (pathToSave.. string.lower(string.gsub(Game.mapName, ".smf", "")) .. ".springmexmap")
-	file = io.open(filename,'r')
-	if file ~= nil then -- file exists?
-		Spring.Echo("Mexmap detected - loading...")
-		LoadMetalMap(filename)
-	else
-		Spring.Echo("Calculating mexmap")
-		AnalyzeMetalMap()
-		SaveMetalMap(filename)
-	end
-  
-	local units = spGetTeamUnits(spGetMyTeamID())
-	for i, id in ipairs(units) do 
-		widget:UnitCreated(id, spGetUnitDefID(id))
-	end
 	end
 end
