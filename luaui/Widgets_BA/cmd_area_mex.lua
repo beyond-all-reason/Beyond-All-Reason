@@ -127,8 +127,8 @@ function NoAlliedMex(x,z, batchextracts) -- Is there any better and allied mex a
 end
 
 function widget:CommandNotify(id, params, options)	
-	mexes = WG.metalSpots
 	if (id == CMD_AREA_MEX) then
+	mexes = WG.metalSpots
 
 		local cx, cy, cz, cr = params[1], params[2], params[3], params[4]
 		if (not cr) or (cr < Game.extractorRadius) then
