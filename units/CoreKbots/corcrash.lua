@@ -26,7 +26,7 @@ return {
 		maxvelocity = 1.783,
 		movementclass = "AKBOT2",
 		name = "Crasher",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "CORCRASH",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",

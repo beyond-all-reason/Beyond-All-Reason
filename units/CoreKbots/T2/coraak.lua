@@ -23,7 +23,7 @@ return {
 		maxvelocity = 1.15,
 		movementclass = "AKBOT2",
 		name = "Manticore",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "CORAAK",
 		seismicsignature = 1,
 		selfdestructas = "smallExplosionGenericSelfd-phib",

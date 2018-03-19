@@ -27,7 +27,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Swatter",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "ARMAH",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",

@@ -24,7 +24,7 @@ return {
 		maxvelocity = 1.58,
 		movementclass = "AKBOT2",
 		name = "Archangel",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "ARMAAK",
 		seismicsignature = 1,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",

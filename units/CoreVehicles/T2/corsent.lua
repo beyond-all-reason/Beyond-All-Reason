@@ -28,7 +28,7 @@ return {
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Copperhead",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "CORSENT",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",

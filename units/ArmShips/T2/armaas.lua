@@ -26,7 +26,7 @@ return {
 		minwaterdepth = 30,
 		movementclass = "BOAT44X4",
 		name = "Archer",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "ARMAAS",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd-uw",

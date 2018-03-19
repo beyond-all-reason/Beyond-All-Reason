@@ -26,7 +26,7 @@ return {
 		maxvelocity = 1.875,
 		movementclass = "AKBOT2",
 		name = "Jethro",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "ARMJETH",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",

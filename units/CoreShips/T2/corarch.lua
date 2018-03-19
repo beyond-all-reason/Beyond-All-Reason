@@ -26,7 +26,7 @@ return {
 		minwaterdepth = 30,
 		movementclass = "BOAT44X4",
 		name = "Shredder",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "CORARCH",
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",

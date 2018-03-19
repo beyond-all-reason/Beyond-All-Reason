@@ -27,7 +27,7 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Slinger",
-		nochasecategory = "ALL",
+		nochasecategory = "NOTAIR",
 		objectname = "CORAH",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
