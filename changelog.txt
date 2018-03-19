@@ -45,6 +45,7 @@ Other:
  • Removed widget: "Unit Reclaimer": add CTRL modifier key to "Specific Unit Reclaimer" widget instead
  • More deathmessages
  • Various script tweaks for kbots.
+ • Fixed Mobile AA not targetting at full range without an attack command.
 
 
 10.05 -> 10.06
