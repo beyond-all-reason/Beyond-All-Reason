@@ -22,7 +22,7 @@ local volume = ((configVolume or 100) / 100)
 function widget:Initialize()
   for unitDefID,defs in pairs(UnitDefs) do
     if defs["sounds"]["select"][1] and (not (defs["sounds"]["activate"][1])) then
-      activateSounds[unitDefID] = ("sounds/" .. defs["sounds"]["select"][1]["name"] .. ".wav")
+      activateSounds[unitDefID] = (defs["sounds"]["select"][1]["name"])
     end
   end
 end

@@ -1,141 +1,20 @@
 local Sounds = {
 	SoundItems = {
 		IncomingChat = {
-			file = "sounds/blank.wav",
+			file = "sounds/ui/blank.wav",
 			in3d = "false",
 		},
 		MultiSelect = {
-			file = "sounds/button9.wav",
+			file = "sounds/ui/button9.wav",
 			in3d = "false",
 		},
 		MapPoint = {
-			file = "sounds/beep6.wav",
+			file = "sounds/ui/beep6.wav",
 			rolloff = 0.3,
 			dopplerscale = 0,       
 		},
 		FailedCommand = {
-			file = "sounds/cantdo4.wav",       
-		},
-		warning2 = {
-			file = "sounds/warning2.wav",
-			rolloff = 0.2,
-			dopplerscale = 0,      
-		},
-		lasrfir1 = {
-			file = "sounds/lasrfir1.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-		},
-		uwlasrfir1 = {
-			file = "sounds/uwlasrfir1.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-		},
-		lasrfir2 = {
-			file = "sounds/lasrfir2.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-		},
-		lasrfir3 = {
-			file = "sounds/lasrfir3.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-		},
-		bertha1 = {
-			file = "sounds/bertha1.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		bertha6 = {
-			file = "sounds/bertha6.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		flakhit = {
-			file = "sounds/flakhit.wav",
-			pitch = 1,
-			pitchmod = 0.075,
-		},
-		flakfire = {
-			file = "sounds/flakfire.wav",
-			gainmod = 0.1,
-		},
-		canlite3 = {
-			file = "sounds/canlite3.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-		},
-		xplosml3 = {
-			file = "sounds/xplosml3.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-		},
-		servlrg3 = {
-			file = "sounds/servlrg3.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servlrg4 = {
-			file = "sounds/servlrg4.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servmed1 = {
-			file = "sounds/servmed1.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servmed2 = {
-			file = "sounds/servmed2.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servroc1 = {
-			file = "sounds/servroc1.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servsml5 = {
-			file = "sounds/servsml5.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servsml6 = {
-			file = "sounds/servsml6.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servtny1 = {
-			file = "sounds/servtny1.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		servtny2 = {
-			file = "sounds/servtny2.wav",
-			pitch = 1,
-			pitchmod = 0.025,
-		},
-		xplomas2 = {
-			file = "sounds/xplomas2.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-			maxconcurrent = 3,	   
-		},
-		hackshot = {
-			file = "sounds/hackshot.wav",
-			pitch = 1,
-			pitchmod = 0.02,
-			maxconcurrent = 5,	   
-		},
-		kroggie2 = {
-			file = "sounds/kroggie2.wav",
-			maxconcurrent = 1,	  
-		},
-		xplomed2 = {
-			file = "sounds/xplomed2.wav",
-			pitch = 1,
-			pitchmod = 0.05,
-			maxconcurrent = 4,	  
+			file = "sounds/ui/cantdo4.wav",       
 		},
 	},
 }
@@ -163,6 +42,67 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
 			Sounds.SoundItems[sound][soundParams.file] = getBarSound(Sounds.SoundItems[sound][soundParams.file])
 		end
 	end
+end
+
+-- UI SOUNDS
+local files = VFS.DirList("sounds/ui/")
+local t = Sounds.SoundItems
+for i=1,#files do
+   local fileName = files[i]
+   fileNames = string.sub(fileName, 11, string.find(fileName, ".wav") -1)
+   t[fileNames] = {
+      file     = fileName;
+	  gain = 0.8,
+      pitchmod = 0,
+      gainmod  = 0,
+	  dopplerscale = 0,
+      maxconcurrent = 1,
+	  rolloff = 0,
+   }
+end
+
+-- WEAPON SOUNDS
+local files = VFS.DirList("sounds/weapons/")
+local t = Sounds.SoundItems
+for i=1,#files do
+   local fileName = files[i]
+   fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+   t[fileNames] = {
+      file     = fileName;
+	  gain = 0.8,
+      pitchmod = 0.01,
+      gainmod  = 0.2,
+	  dopplerscale = 1.0,
+      maxconcurrent = 4,
+	  rolloff = 3.0,
+   }
+   
+   if fileNames == "disigun1" then
+	t[fileNames].gain = 0.05
+	end
+   if fileNames == "xplomas2" then
+	t[fileNames].gain = 0.15
+	end
+   if fileNames == "newboom" then
+	t[fileNames].gain = 0.03
+	end
+end
+
+-- REPLY SOUNDS
+local files = VFS.DirList("sounds/replies/")
+local t = Sounds.SoundItems
+for i=1,#files do
+   local fileName = files[i]
+   fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+   t[fileNames] = {
+      file     = fileName;
+	  gain = 0.8,
+      pitchmod = 0.01,
+      gainmod  = 0.2,
+	  dopplerscale = 1.0,
+      maxconcurrent = 2,
+	  rolloff = 1.0,
+   }
 end
 
 

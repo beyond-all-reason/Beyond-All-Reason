@@ -19,7 +19,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 4000000))
 
 local NeededFrameworkVersion = 8
-local SoundIncomingChat  = 'sounds/beep4.wav'
+local SoundIncomingChat  = 'beep4'
 local SoundIncomingChatVolume = 1.0
 
 local gameOver = false

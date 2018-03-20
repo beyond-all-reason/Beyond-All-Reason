@@ -87,11 +87,7 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
         id = random(1, #udef.sounds.underattack) --pick a sound from the table by random --(id 138, name warning2, volume 1)
             
         soundFile = udef.sounds.underattack[id].name
-        if ( string.find(soundFile, "%.") == nil ) then
-            soundFile = soundFile .. ".wav" --append .wav if no extension is found
-        end
-            
-        spPlaySoundFile( "sounds/" .. soundFile, udef.sounds.underattack[id].volume, nil, "sfx" )
+        spPlaySoundFile( soundFile, udef.sounds.underattack[id].volume, nil, "sfx" )
     end
         
     if (x and y and z) then spSetLastMessagePosition(x,y,z) end
