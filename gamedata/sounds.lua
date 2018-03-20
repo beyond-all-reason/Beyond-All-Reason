@@ -14,7 +14,7 @@ local Sounds = {
 			dopplerscale = 0,       
 		},
 		FailedCommand = {
-			file = "sounds/ui/cantdo4.wav",       
+			file = "sounds/replies/cantdo4.wav",       
 		},
 	},
 }
@@ -69,7 +69,7 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 0.8,
+	  gain = 1.2,
       pitchmod = 0.01,
       gainmod  = 0.2,
 	  dopplerscale = 1.0,
@@ -78,13 +78,13 @@ for i=1,#files do
    }
    
    if fileNames == "disigun1" then
-	t[fileNames].gain = 0.05
+	t[fileNames].gain = 0.075
 	end
    if fileNames == "xplomas2" then
-	t[fileNames].gain = 0.15
+	t[fileNames].gain = 0.225
 	end
    if fileNames == "newboom" then
-	t[fileNames].gain = 0.03
+	t[fileNames].gain = 0.045
 	end
 end
 
@@ -96,7 +96,7 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 0.8,
+	  gain = 1.2,
       pitchmod = 0.01,
       gainmod  = 0.2,
 	  dopplerscale = 1.0,
