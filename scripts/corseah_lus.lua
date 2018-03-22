@@ -1,4 +1,4 @@
-base, patch, link0, link1, link2, link3, link4, jets, jet2, jet1, leg6, leg5, leg4, leg3, leg2, leg1, wing2, wing1, flare = piece('base', 'patch', 'link0', 'link1', 'link2', 'link3', 'link4', 'jets', 'jet2', 'jet1', 'leg6', 'leg5', 'leg4', 'leg3', 'leg2', 'leg1', 'wing2', 'wing1', 'flare')
+base, link0, link1, link2, link3, link4, arm1, arm2, arm3, arm4, thrust1, thrust2 = piece('base', 'link0', 'link1', 'link2', 'link3', 'link4', 'arm1', 'arm2', 'arm3', 'arm4', 'thrust1', 'thrust2')
 local SIG_AIM = {}
 
 -- state variables
@@ -40,10 +40,8 @@ function WatchLoad()
 end
 
 function script.Create()
-	StartThread(common.SmokeUnit, {base, patch, wing4, jets, link, wing2, wing1})
+	StartThread(common.SmokeUnit, {base, thrust1, thrust2, arm1, arm2, arm3, arm4})
 	StartThread(WatchLoad)
-	StartThread(MoveRate)
-	Hide(flare)
 	Move(link0, y_axis, 0, 5000)
 	Move(link1, y_axis, 0, 5000)
 	Move(link2, y_axis, 0, 5000)
@@ -53,30 +51,12 @@ function script.Create()
 	-- Turn(link2, 2, math.pi/2)
 	-- Turn(link3, 2, math.pi/2)
 	-- Turn(link4, 2, -math.pi/2)
-	script.CloseWingsInstantly()
 	link = {}
 end
 
 common = include("headers/common_includes_lus.lua")
 
 --This is unfortunately necessary due to the fact that the model is a 3do
-function script.CloseWingsInstantly()
-	Turn(jets, 1, math.rad(-90), 20)
-end
-
-function script.CloseWings()
-	Turn(jets, 1, math.rad(-90), 1)
-end
-
-function script.OpenWingsPartially()
-	Turn(jets, 1, math.rad(-45), 1)
-	
-end
-
-function script.OpenWings()
-	Turn(jets, 1, math.rad(0), 1)
-end
-
 
 function script.StartMoving()
    isMoving = true
@@ -86,45 +66,22 @@ function script.StopMoving()
    isMoving = false
 end   
 
-function MoveRate()
-	while true do
-		gravity = (Game.gravity)/900 -- -> elmos/(frame²)
-		vx,vy,vz,vw = Spring.GetUnitVelocity(unitID)
-		if vx < 0.5 and vx > -0.5 then vx = 0 end
-		if vy < 0.5 and vy > -0.5 then vy = 0 end
-		if vz < 0.5 and vz > -0.5 then vz = 0 end
-		
-		local dx, dy, dz = Spring.GetUnitDirection(unitID)
-		local rx, ry, rz = Spring.GetUnitRotation(unitID)
-		if isMoving and vx and vy and vz and vw and vx0 and vy0 and vz0 and vw0 then
-			ax = (vx - vx0) + vx/200 -- elmos/frame²
-			ay = (vy - vy0 + gravity) --> Always fighting gravity -> elmos/frame²
-			az = (vz - vz0) + vz/200 --> elmos/frame²
-			if (dx*vx + dz*vz) > 0 then
-				aZu = math.sqrt(ax^2 + az^2) --> unit's Z axis
-			else
-				aZu = -math.sqrt(ax^2 + az^2) --> unit's Z axis
-			end
-		else
-			ax = 0
-			ay = 0
-			az = 0
-			aYu = 0
-			aZu = 0
-		end
-			if aZu ~= 0 then
-				angle = math.atan(ay/aZu) - math.pi/2 - rz
-			else
-				angle = -math.pi/2 - rz
-			end
-		Turn(jets, 1, angle,3)	
-		vx0, vy0, vz0, vw0 = vx, vy, vz, vw
-		Sleep(1)
-	end
+function OpenHook()
+	Turn(arm1, 2, math.rad(50), 1)
+	Turn(arm2, 2, math.rad(-50), 1)
+	Turn(arm3, 2, math.rad(-50), 1)
+	Turn(arm4, 2, math.rad(50), 1)
 end
 
+function CloseHook()
+	Turn(arm1, 2, math.rad(0), 1)
+	Turn(arm2, 2, math.rad(0), 1)
+	Turn(arm3, 2, math.rad(0), 1)
+	Turn(arm4, 2, math.rad(0), 1)
+end
 
 function script.QueryTransport ( passengerID )
+	OpenHook()
 	Spring.SetUnitRulesParam(passengerID, "IsTranported", "true")
 	local fp = UnitDefs[Spring.GetUnitDefID(passengerID)].xsize
 	local height = UnitDefs[Spring.GetUnitDefID(passengerID)].height
@@ -156,41 +113,11 @@ function script.QueryTransport ( passengerID )
 	return false
 end
 
-
-
-
-local function RestoreAfterDelay()
-	Sleep(2000)
-end		
-
-function script.AimFromWeapon(weaponID)
-	--Spring.Echo("AimFromWeapon: FireWeapon")
-	return base
-end
-
-function script.QueryWeapon(weaponID)
-	--Spring.Echo("QueryWeapon: FireWeapon")
-	return flare
-end
-
-function script.AimWeapon(weaponID, heading, pitch)
-	Signal(SIG_AIM)
-	SetSignalMask(SIG_AIM)
-	StartThread(RestoreAfterDelay)
-	--Spring.Echo("AimWeapon: FireWeapon")
-	return true
-end
-
-function script.FireWeapon(weaponID)
-	--Spring.Echo("FireWeapon: FireWeapon")
-	--EmitSfx (firepoint1, 1024)
-end
-
 function script.Killed()
 		Explode(base, SFX.EXPLODE_ON_HIT + SFX.SMOKE + SFX.FIRE + SFX.FALL + SFX.NO_HEATCLOUD)
-		Explode(jets, SFX.SHATTER + SFX.NO_HEATCLOUD)
-		Explode(patch, SFX.SHATTER + SFX.NO_HEATCLOUD)
-		Explode(leg1, SFX.EXPLODE_ON_HIT + SFX.SMOKE + SFX.FIRE + SFX.FALL + SFX.NO_HEATCLOUD)
-		Explode(leg3, SFX.EXPLODE_ON_HIT + SFX.SMOKE + SFX.FIRE + SFX.FALL + SFX.NO_HEATCLOUD)
+		Explode(thrust1, SFX.SHATTER + SFX.NO_HEATCLOUD)
+		Explode(arm2, SFX.SHATTER + SFX.NO_HEATCLOUD)
+		Explode(arm4, SFX.EXPLODE_ON_HIT + SFX.SMOKE + SFX.FIRE + SFX.FALL + SFX.NO_HEATCLOUD)
+		Explode(arm1, SFX.EXPLODE_ON_HIT + SFX.SMOKE + SFX.FIRE + SFX.FALL + SFX.NO_HEATCLOUD)
 		return 1   -- spawn ARMSTUMP_DEAD corpse / This is the equivalent of corpsetype = 1; in bos
 end

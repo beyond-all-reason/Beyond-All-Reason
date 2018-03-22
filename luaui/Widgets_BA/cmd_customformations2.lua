@@ -30,6 +30,7 @@ end
 local dotImage			= "LuaUI/Images/formationDot.dds"
 
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 -- User Configurable Constants
 --------------------------------------------------------------------------------
 -- Minimum spacing between commands (Squared) when drawing a path for a single unit, must be >16*16 (Or orders overlap and cancel)
@@ -600,7 +601,8 @@ function widget:MouseRelease(mx, my, mButton)
 
         -- Single click ? (no line drawn)
         --if (#fNodes == 1) then
-        if fDists[#fNodes] < minFormationLength then
+		local unitCount = spGetSelectedUnitsCount()		
+        if fDists[#fNodes] < minFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(unitCount)) then
             -- We should check if any units are able to execute it,
             -- but the order is small enough network-wise that the tiny bug potential isn't worth it.
 
@@ -789,6 +791,12 @@ end
 
 local function DrawFilledCircleOutFading(pos, size, cornerCount)
     SetColor(usingCmd, 1)
+	local unitCount = spGetSelectedUnitsCount()
+	local lengthPerUnit = lineLength / (unitCount-1)
+    local lengthUnitNext = lengthPerUnit
+	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
+		glColor(1.0,0.3,0.0,1.0)
+	end
     gl.Texture(dotImage)
     gl.BeginEnd(GL.QUADS,DrawGroundquad, pos[1], pos[2], pos[3], size)
     gl.Texture(false)
@@ -802,6 +810,9 @@ local function DrawFormationDots(vertFunction, zoomY, unitCount)
     local dotSize = sqrt(zoomY*0.24)
     if (#fNodes > 1) and (unitCount > 1) then
         SetColor(usingCmd, 0.6)
+		if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
+			glColor(1.0,0.3,0.0,0.6)
+		end
         DrawFilledCircleOutFading(fNodes[1], dotSize)
         if (#fNodes > 2) then
             for i=1, #fNodes-1 do

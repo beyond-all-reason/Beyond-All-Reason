@@ -8,6 +8,11 @@ Currently testing:
     T1 maker converts 70 e into 0.5m + 0.3% of metal extraction
     T2 maker converts 600 e into 5m + 3% of metal extraction
     Sea and land makers are now alike
+ • T1 air transport: Pretty much unchanged, erased the move command when using unload.
+ • T2 air transport: Can transport up to four 2x2 footprint units, or one 3x3 or more. Unloads all at once.
+    CORE: In addition, core transport allows units that are transported to fire their weapons.
+    ARM: Has its usual EMP weapon, unchanged.
+ • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
 
 Balance changes: 
  • Long range T1 AA range reduced 10% (1250 -> 1125) and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
