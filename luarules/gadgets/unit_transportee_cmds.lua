@@ -11,7 +11,7 @@ function gadget:GetInfo()
 end
 
 if (gadgetHandler:IsSyncedCode()) then
-	notallowed = {[CMD.MOVE] = true,[CMD.REPAIR] = true,[CMD.FIGHT] = true,[CMD.PATROL] = true,[CMD.GUARD] = true}
+	notallowed = {[CMD.MOVE] = true,[CMD.REPAIR] = true,[CMD.FIGHT] = true,[CMD.PATROL] = true,[CMD.GUARD] = true,[CMD.RECLAIM] = true,[CMD.RESURRECT] = true,[CMD.CAPTURE] = true}
 
 	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, synced)
 		if (Spring.GetUnitRulesParam(unitID, "IsTranported") and Spring.GetUnitRulesParam(unitID, "IsTranported") == "true" ) then
