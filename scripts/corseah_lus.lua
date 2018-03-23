@@ -15,7 +15,12 @@ function WatchLoad()
 		end
 	end
 	if #unitsToDetach and oldunitsToDetach then
-		if#unitsToDetach < oldunitsToDetach then
+		for ct, punitID in pairs(link) do
+			if not Spring.ValidUnitID(punitID) then
+				unitDied = true
+			end
+		end
+		if (#unitsToDetach < oldunitsToDetach) and (not unitDied) then
 			for ct, punitID in pairs (unitsToDetach) do
 			Spring.UnitDetach(punitID)
 			end
@@ -35,6 +40,7 @@ function WatchLoad()
 		end
 	end
 	oldunitsToDetach = #unitsToDetach
+	unitDied = nil
 	Sleep(33)
 	end
 end
