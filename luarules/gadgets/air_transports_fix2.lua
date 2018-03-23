@@ -22,7 +22,6 @@ Positions = {}
 	function gadget:UnitCreated(unitID) -- get all air transports
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		if AirTransports[unitDefID] then
-			Spring.Echo("true")
 			Trans[unitID] = true
 		end
 	end
