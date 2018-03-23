@@ -31,7 +31,6 @@ function WatchLoad()
 			Move(link3, y_axis, 0, 5000)
 			Move(link4, y_axis, 0, 5000)
 			full = false
-			CloseHook()
 		end
 	end
 	oldunitsToDetach = #unitsToDetach
