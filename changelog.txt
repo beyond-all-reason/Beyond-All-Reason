@@ -19,6 +19,7 @@ Balance changes:
  • Plasma shield starting power reduced to 20% instead of 33%
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
  • Halberd +9% range (275 -> 300)
+ • Reduced support frigates damages to subs (216 -> 150), to default (100 -> 60) and to commanders (100 -> 70)
 
 Unbalanced Commanders:
  • Commander buildmenu upgrades changed and now consist of:
