@@ -130,7 +130,7 @@ local quotes = {
 	{"The two most powerful warriors are patience and time.", "Leo Tolstoy"},
 	{"Know thy self, know thy enemy. A thousand battles, a thousand victories.", "Sun Tzu"},
 	{"People never lie so much as after a hunt, during a war or before an election.", "Otto von Bismarck"},
-	{"The best weapon against an enemy is another enemy.", "frederich Nietzsche"},
+	{"The best weapon against an enemy is another enemy.", "Friedrich Nietzsche"},
 	{"Thus, what is of supreme importance in war is to attack the enemy's strategy.", "Sun Tzu"},
 	{"Great is the guilt of an unnecessary war.", "John Adams"},
 	{"I have never advocated war except as a means of peace.", "Ulysses S Grant"},
