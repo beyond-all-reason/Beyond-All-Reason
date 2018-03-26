@@ -24,10 +24,11 @@ Balance changes:
 Unbalanced Commanders:
  • Commander buildmenu upgrades changed and now consist of:
      Economy: Advanced Solars (lvl3), Geo (lvl3), Moho extractor (lvl4), Underwater Moho extractor (lvl4). Replaces t1 equivalents.
-     Factories: T1.5 (amphibs) labs (lvl3), T2 kbot lab (lvl3), T2 Shipyard (lvl3), Nano towers (lvl3). Doesn't replace t1 labs.
-     Defence/Utilitary:  Fortification Wall (lvl5), T2 Popup (lvl5), Flak (lvl5), Advanced Torpedo Launcher (lvl 5). Replaces t1 equivalents.
+     Factories: T1.5 (amphibs), Arm Adv Vehicle Plant / Core Adv Kbots Lab (lvl3), T2 kbot lab (lvl3), T2 Shipyard (lvl3), Nano towers (lvl3). Doesn't replace t1 labs.
+     Defence/Utilitary:  Fortification Wall (lvl5), Beamer/HLLT (lvl 3), T2 Popup (lvl5), Flak (lvl5), Advanced Torpedo Launcher (lvl 5). Replaces t1 equivalents.
      Mobile Units: Crawling Bombs (lvl3), Spies (lvl4), Maverick/Commando (lvl5), Fatboy/Dominator (lvl6), Sniper/Sumo (lvl6)     
   The Fully upgraded buildmenus allows a total of 40 units.
+ • Commander's metal and energy production increases by 25e/s and 0.5m/s at each level (maximum 275e/s, 6.5m/s at level 11)
 
 Other:
  • When a buildcommand is selected, click and drag with left mouse button and middle mouse button to orientate the construction.

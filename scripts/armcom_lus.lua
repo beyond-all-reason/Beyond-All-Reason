@@ -256,6 +256,8 @@ if ValidID(unitID) then
 	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
+	Spring.SetUnitResourcing(unitID, "ume", EnergyMake[level])
+	Spring.SetUnitResourcing(unitID, "umm", MetalMake[level])	
 	cmdArrays = Spring.GetUnitCmdDescs(unitID)
 	for ct, cmdarray in pairs(cmdArrays) do
 		if cmdarray.id < 0 then
