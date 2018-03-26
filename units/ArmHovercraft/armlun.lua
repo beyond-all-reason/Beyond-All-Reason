@@ -192,7 +192,7 @@ return {
 				def = "ARMLUN_CANNON",
 				maindir = "0 1 0",
 				maxangledif = 270,
-				onlytargetcategory = "NOTSUB",	
+				onlytargetcategory = "",	
 			},
 		},
 	},
