@@ -29,28 +29,29 @@ local trees = {
 }
 
 local function CreateTreeDef(i)
-  treeDefs["lowpoly_tree_"..trees[i][1]] = {
-     name               = trees[i][1],
-     description        = [[Pine Tree]],
-     blocking           = false,
-     burnable           = true,
-     reclaimable        = true,
-     upright            = true,
-     category           = "vegetation",
-     energy             = 250,
-     damage             = 25,
-     metal              = 0,
-     object             = trees[i][2], --math.random() doesnt seem to work
-     reclaimTime        = 1100,
-     mass               = 10,
-     drawType           = 0,
-     footprintX         = 2,
-     footprintZ         = 2,
-     collisionVolumeTest = 0,
-     customParams = {
+    treeDefs["lowpoly_tree_"..trees[i][1]] = {
+        name               = trees[i][1],
+        description        = [[Pine Tree]],
+        blocking           = true,
+        flammable          = false,
+        reclaimable        = true,
+        upright            = true,
+        indestructible     = false,
+        category           = "vegetation",
+        energy             = 250,
+        damage             = 5,
+        metal              = 0,
+        object             = trees[i][2], --math.random() doesnt seem to work
+        reclaimTime        = 1500,
+        mass               = 20,
+        drawType           = 1,
+        footprintX         = 2,
+        footprintZ         = 2,
+        collisionVolumeTest = 0,
+        customParams = {
 
-     },
-  }
+        },
+    }
 end
 
 

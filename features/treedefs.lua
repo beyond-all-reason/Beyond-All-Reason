@@ -11,19 +11,19 @@ local function CreateTreeDef(type)
   treeDefs["treetype" .. type] = {
      name 		 = "tree",
      description = [[Tree]],
-     blocking    = false,
-     burnable    = true,
+     blocking    = true,
+     flammable    = false,
      reclaimable = true,
      upright = true,
      category = "vegetation",
-     energy = 0,
+     energy = 250,
 
      damage      = 5,
      metal = 0,
      object	= 'LowpolyPineTrees/pinetree3-pine.s3o', --math.random() doesnt seem to work
 
-     reclaimTime = 25,
-     mass        = 5,
+     reclaimTime = 1500,
+     mass        = 20,
      drawType    = DRAWTYPE.MODEL,
      footprintX  = 2,
      footprintZ  = 2,

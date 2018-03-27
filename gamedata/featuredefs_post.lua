@@ -60,23 +60,22 @@ local function ProcessUnitDef(udName, ud)
     end
   end
 
---Make small map features and wrecks non-blocking  
-if Spring.GetModOptions and Spring.GetModOptions().smallfeaturenoblock ~= "disabled" then
-	for id,featureDef in pairs(FeatureDefs) do
-		if featureDef.name ~= "rockteeth" and 
-		   featureDef.name ~= "rockteethx" then
-			if featureDef.footprintx ~= nil and featureDef.footprintz ~= nil then
-				if tonumber(featureDef.footprintx) <= 2 and tonumber(featureDef.footprintz) <= 2 then
-					--Spring.Echo(featureDef.name)
-					--Spring.Echo(featureDef.footprintx .. "x" .. featureDef.footprintz)
-					featureDef.blocking = false
-					--Spring.Echo(featureDef.blocking)
-				end
-			end
-		end
-	end
-end
-  
+  --Make small map features and wrecks non-blocking
+  if Spring.GetModOptions and Spring.GetModOptions().smallfeaturenoblock ~= "disabled" then
+  	for id,featureDef in pairs(FeatureDefs) do
+  		if featureDef.name ~= "rockteeth" and
+  		   featureDef.name ~= "rockteethx" then
+  			if featureDef.footprintx ~= nil and featureDef.footprintz ~= nil then
+  				if tonumber(featureDef.footprintx) <= 2 and tonumber(featureDef.footprintz) <= 2 then
+  					--Spring.Echo(featureDef.name)
+  					--Spring.Echo(featureDef.footprintx .. "x" .. featureDef.footprintz)
+  					featureDef.blocking = false
+  					--Spring.Echo(featureDef.blocking)
+  				end
+  			end
+  		end
+  	end
+  end
 end
 
 
