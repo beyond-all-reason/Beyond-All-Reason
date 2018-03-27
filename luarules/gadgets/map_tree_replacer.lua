@@ -66,7 +66,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			local featuretable = Spring.GetAllFeatures()
 			for i = 1,#featuretable do
 				local featureDefID = Spring.GetFeatureDefID(featuretable[i])
-				if allTreeTypes or string.find(FeatureDefs[featureDefID].name, "treetype") then
+				if allTreeTypes or FeatureDefs[featureDefID].name:sub(1,8) == 'treetype' then
 					local x,y,z = Spring.GetFeaturePosition(featuretable[i])
 					if Spring.GetGroundHeight(x,z) >= 0 then
 						Spring.DestroyFeature(featuretable[i])
@@ -77,6 +77,32 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		end
 	end
+--else
+--
+--	function gadget:GameFrame(gf)
+--		 if gf%30 == 1 then
+--				Spring.Echo('-------------------------')
+--				for i, def in pairs(FeatureDefs) do
+--					if def.name:sub(1,8) == 'treetype' then
+--						Spring.Echo(def.name..':')
+--						for name,param in def:pairs() do
+--							Spring.Echo(name,param)
+--							if name == 'collisionVolume' then
+--								for k,v in pairs(param) do
+--									if type(v) == 'number' or type(v) == 'string' or type(v) == 'boolean' then
+--									Spring.Echo('  '..k..',  '..tostring(v))
+--									else
+--									Spring.Echo('  '..k..'  '..type(v))
+--									end
+--								end
+--							end
+--						end
+--						break
+--					end
+--				end
+--				Spring.Echo('---------------------------')
+--
+--		 end
+--	end
 end
-
 
