@@ -36,7 +36,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local keyInfo --glList for keybind info
 local amNewbie 		
 local myPlayerID = Spring.GetMyPlayerID()
-local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
+local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID)
 local show = false
 local gameStarted = false
 
@@ -61,7 +61,10 @@ end
 
 -- remove when countdown starts
 function gadget:GameSetup()
-    amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) and not Spring.GetSpectatingState()
+	amNewbie = false
+	if myTeamID ~= nil then
+    	amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1) and not Spring.GetSpectatingState()
+	end
     show = show or amNewbie
     
 	if (Spring.GetPlayerTraffic(-1, 4) or 0) > 0 then
