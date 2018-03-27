@@ -92,7 +92,7 @@ function script.QueryTransport ( passengerID )
 	Spring.SetUnitRulesParam(passengerID, "IsTranported", "true")
 	local fp = UnitDefs[Spring.GetUnitDefID(passengerID)].xsize
 	local height = UnitDefs[Spring.GetUnitDefID(passengerID)].height
-		if fp == 4 then
+		if fp <= 4 then
 			if not link[1] then
 				link[1] = passengerID
 				Move(link1, 2, -height + 4.5)
