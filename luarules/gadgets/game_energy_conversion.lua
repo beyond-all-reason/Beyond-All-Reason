@@ -347,14 +347,7 @@ end
 
 function gadget:GameFrame(n)
 
-	if (n % 150) then
-		local TeamList = Spring.GetTeamList()
-		for ct, teamID in pairs(TeamList) do
-			local metal = GetAllyTeamMetalExtraction(teamID)
-			Spring.SetTeamRulesParam(teamID, "MMFactor", math.max(1, metal/100), {public = true})
-		end
-	end
-	
+
 	-- process emped in the least likely used frame by the actual per team maker computations
 	if (n % resourceRefreshRate == resourceRefreshRate - 1) then
 		currentFrameStamp = currentFrameStamp + 1
