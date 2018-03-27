@@ -21,7 +21,7 @@ end
 ----------------------------------------------------------------
 -- Config
 ----------------------------------------------------------------
-local convertCapacities, convertRates = include("LuaRules/Configs/maker_defs.lua")
+local convertCapacities = include("LuaRules/Configs/maker_defs.lua")
 
 local alterLevelRegex = '^' .. string.char(137) .. '(%d+)$'
 local mmLevelParamName = 'mmLevel'
@@ -32,13 +32,11 @@ local mmAvgEffiParamName = 'mmAvgEffi'
 local function SetMMRulesParams()
     -- make convertCapacities accessible to all
     for uDID,conv in pairs(convertCapacities) do
-		if UnitDefs[uDID] then
         local unitName = UnitDefs[uDID].name or ""
         local capacity = conv.c
         local ratio = conv.e
         Spring.SetGameRulesParam(unitName .. "_mm_capacity", capacity)
-        Spring.SetGameRulesParam(unitName .. "_mm_ratio", ratio)    
-		end
+        Spring.SetGameRulesParam(unitName .. "_mm_ratio", ratio)        
     end
 end
 
@@ -47,9 +45,9 @@ local resourceRefreshRate = 15 -- In Frames
 local resourceFraction = resourceRefreshRate / frameRate
 local resourceUpdatesPerGameSec = frameRate / resourceRefreshRate
 
+
 local currentFrameStamp = 0
-local flatmetal = convertRates["flat"]
-local scalemetal = convertRates["scale"]
+
 ----------------------------------------------------------------
 -- Vars
 ----------------------------------------------------------------
@@ -206,7 +204,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 		if diminishModifier > 1.0 then
 			diminishModifier = 1.0
 		end
-		updateUnitConversion(unitID, data.c, (flatmetal +(scalemetal*GetAllyTeamMetalExtraction(teamID))/100)/data.e)
+		updateUnitConversion(unitID, data.c, (1.5 +(0.5*GetAllyTeamMetalExtraction(teamID))/100)/data.e)
 	end
 end
 
@@ -353,7 +351,7 @@ function gadget:GameFrame(n)
 		local TeamList = Spring.GetTeamList()
 		for ct, teamID in pairs(TeamList) do
 			local metal = GetAllyTeamMetalExtraction(teamID)
-			Spring.SetTeamRulesParam(teamID, "MMFactor", ((flatmetal +(scalemetal*metal)/100)/120)/(1/120), {public = true})
+			Spring.SetTeamRulesParam(teamID, "MMFactor", ((1.5 +(0.5*metal)/100)/120)/(1/120), {public = true})
 		end
 	end
 	
