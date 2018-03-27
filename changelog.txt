@@ -4,10 +4,6 @@ XX/XX/2018
 Currently testing:
  • Thuds/Storms/Hammers/Rockos +4% start and maxspeed
  • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes)
- • Metal makers rates and maximum inputs changed: 
-    T1 maker converts 70e into 0.5m + 0.3% of metal extraction
-    T2 maker converts 600e into 5m + 3% of metal extraction
-    Sea and land makers are now alike
  • T1 air transport: Erased the move command when using unload.
  • T2 air transport: Can transport up to four 2x2 footprint units, or one 3x3 or more. Unloads all at once.
     CORE: allows units that are transported to fire their weapons.
