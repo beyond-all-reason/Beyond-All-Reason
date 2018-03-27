@@ -18,7 +18,7 @@ return {
 		collisionvolumescales = "120 120 120",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-		description = "Converts up to 660 energy into 5.5% of your team's metal extraction each second",
+		description = "Converts up to 650 energy into 11.2 metal per second",
 		explodeas = "hugeBuildingExplosionGeneric",
 		floater = true,
 		footprintx = 5,

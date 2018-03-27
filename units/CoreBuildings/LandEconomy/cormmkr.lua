@@ -15,7 +15,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
-		description = "Converts up to 600 energy into 5% of your team's metal extraction each second",
+		description = "Converts up to 600 energy into 10.3 metal per second",
 		explodeas = "advmetalmaker",
 		footprintx = 4,
 		footprintz = 4,
