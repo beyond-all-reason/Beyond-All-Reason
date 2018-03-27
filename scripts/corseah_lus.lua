@@ -27,7 +27,7 @@ function WatchLoad()
 			end
 			for ct, punitID in pairs(link) do
 				if Spring.ValidUnitID(punitID) then
-				Spring.SetUnitRulesParam(punitID, "IsTranported", "false")
+				-- Spring.SetUnitRulesParam(punitID, "IsTranported", "false")
 				end
 			end
 			link = {}
@@ -89,7 +89,7 @@ end
 
 function script.QueryTransport ( passengerID )
 	OpenHook()
-	Spring.SetUnitRulesParam(passengerID, "IsTranported", "true")
+	-- Spring.SetUnitRulesParam(passengerID, "IsTranported", "true")
 	local fp = UnitDefs[Spring.GetUnitDefID(passengerID)].xsize
 	local height = UnitDefs[Spring.GetUnitDefID(passengerID)].height
 		if fp <= 4 then

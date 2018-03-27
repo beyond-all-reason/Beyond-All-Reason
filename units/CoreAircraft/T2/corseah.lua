@@ -38,7 +38,7 @@ return {
 		transportsize = 4,
 		transportunloadmethod = 0,
 		turninplaceanglelimit = 360,
-		isfireplatform = true,
+		-- isfireplatform = true,
 		turnrate = 380,
 		upright = true,
 		unloadspread = 0,

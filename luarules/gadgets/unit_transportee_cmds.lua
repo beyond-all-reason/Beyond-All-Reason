@@ -1,12 +1,12 @@
 function gadget:GetInfo()
   return {
-    name      = "Transportee Commands and friendly damages",
+    name      = "Transportee Commands and friendly damages", -- Disabled because no transports use fireplatform in current BA versions
     desc      = "Allows/disallows certain damages and/or cmds on transported units",
     author    = "Doo",
     date      = "03/22/18",
     license   = "GNU GPL v2",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 

@@ -5,9 +5,7 @@ Currently testing:
  • Thuds/Storms/Hammers/Rockos +4% start and maxspeed
  • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes)
  • T1 air transport: Erased the move command when using unload.
- • T2 air transport: Can transport up to four 2x2 footprint units, or one 3x3 or more. Unloads all at once.
-    CORE: allows units that are transported to fire their weapons.
-    ARM: has its usual EMP weapon.
+ • T2 air transport: Can transport up to four 2x2 footprint or less units, or one 3x3 or more. Unloads all at once.
  • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
 
 Balance changes: 
