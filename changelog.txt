@@ -2,41 +2,38 @@
 XX/XX/2018
 
 Currently testing:
- • Thuds/Storms/Hammers/Rockos +4% projectile speed and +4% projectile start speed
- • Kbots global buff: +15% turnrate, +15% acceleration, +15% brakerate, turninplace = true, reduced slopeMod (slows on slopes)
+ • Thuds/Storms/Hammers/Rockos +4% start and maxspeed
+ • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes)
  • Metal makers rates and maximum inputs changed: 
-    T1 maker converts 70 e into 0.5m + 0.3% of metal extraction
-    T2 maker converts 600 e into 5m + 3% of metal extraction
+    T1 maker converts 70e into 0.5m + 0.3% of metal extraction
+    T2 maker converts 600e into 5m + 3% of metal extraction
     Sea and land makers are now alike
- • T1 air transport: Pretty much unchanged, erased the move command when using unload.
+ • T1 air transport: Erased the move command when using unload.
  • T2 air transport: Can transport up to four 2x2 footprint units, or one 3x3 or more. Unloads all at once.
-    CORE: In addition, core transport allows units that are transported to fire their weapons.
-    ARM: Has its usual EMP weapon, unchanged.
+    CORE: allows units that are transported to fire their weapons.
+    ARM: has its usual EMP weapon.
  • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
 
 Balance changes: 
  • Long range T1 AA range reduced 10% (1250 -> 1125) and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
  • Plasma shield starting power reduced to 20% instead of 33%
- • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
  • Halberd +9% range (275 -> 300)
- • Reduced support frigates damages to subs (216 -> 150), to default (100 -> 60) and to commanders (100 -> 70)
+ • Reduced support frigates damages to subs (216 -> 150), to default (100 -> 60), to commanders (100 -> 70)
+ • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
 
 Unbalanced Commanders:
+ • Commander's M and E production increases by 25e/s and 0.5m/s at each level (maximum 275e/s, 6.5m/s at level 11)
  • Commander buildmenu upgrades changed and now consist of:
      Economy: Advanced Solars (lvl3), Geo (lvl3), Moho extractor (lvl4), Underwater Moho extractor (lvl4). Replaces t1 equivalents.
      Factories: T1.5 (amphibs), Arm Adv Vehicle Plant / Core Adv Kbots Lab (lvl3), T2 kbot lab (lvl3), T2 Shipyard (lvl3), Nano towers (lvl3). Doesn't replace t1 labs.
      Defence/Utilitary:  Fortification Wall (lvl5), Beamer/HLLT (lvl 3), T2 Popup (lvl5), Flak (lvl5), Advanced Torpedo Launcher (lvl 5). Replaces t1 equivalents.
      Mobile Units: Crawling Bombs (lvl3), Spies (lvl4), Maverick/Commando (lvl5), Fatboy/Dominator (lvl6), Sniper/Sumo (lvl6)     
   The Fully upgraded buildmenus allows a total of 40 units.
- • Commander's metal and energy production increases by 25e/s and 0.5m/s at each level (maximum 275e/s, 6.5m/s at level 11)
 
 Other:
- • When a buildcommand is selected, click and drag with left mouse button and middle mouse button to orientate the construction.
- • Reverse move: Units that are able to move backwards can now queue reverse/normal commands.
-     The key modifier "Ctrl" can be used to allow reverse move for commands. This means the unit will move backwards if the command is behind it. 
-     You can queue commands with or without ctrl modifier to queue reverse and normal moves.
-     A command without the ctrl modifier can never be performed backwards.
- • Auto replacing engine trees with custom trees
+ • When a buildcommand is selected, click and drag with left and middle mouse button to orientate the construction.
+ • Reverse move: Units able to move backwards must use CTRL key and order it anywhere behind the unit. 
+ • Replacing engine trees with custom trees
  • Options menu has tabs
  • Added "Minimap icon size" slider to options
  • Added "Simple minimap colors" option to options
@@ -44,15 +41,14 @@ Other:
  • Added opacity slider for Commands FX option
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
- • Fixed the occasional white loadscreen
- • Fixed mines detonating before they are completly built, added dummy weapon to show detonation range, hold fire properly prevents detonation
- • Fixed some T2 and T3 dist-icon sizes
- • Trees not only fall, but fall and dissapear through the ground
- • More acurate math behind 3rd award from awards screen
+ • Trees not only fall, but also dissapear through the ground
  • Removed widget: "Unit Reclaimer": add CTRL modifier key to "Specific Unit Reclaimer" widget instead
+ • More acurate math behind 3rd award from awards screen
  • More deathmessages
  • Various script tweaks for kbots.
- • Fixed Mobile AA not targetting at full range without an attack command.
+ • Fixed mines detonating before they are completly built, added dummy weapon to show detonation range
+ • Fixed some T2 and T3 dist-icon sizes
+ • Fixed mobile AA not targetting at full range without an attack command.
 
 
 10.05 -> 10.06
