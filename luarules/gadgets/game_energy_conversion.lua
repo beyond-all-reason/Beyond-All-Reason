@@ -90,47 +90,6 @@ local spSetUnitResourcing = Spring.SetUnitResourcing
 -- Functions
 ----------------------------------------------------------------
 
-MExtractors = {}
-for id, defs in pairs(UnitDefs) do
-	if defs.extractsMetal > 0 then
-		MExtractors[id] = true
-	end
-end
-
-local function GetMapTheoricMaxExtraction()
-	metalAmount = 0
-	for i = 0, Game.mapSizeX/16 do
-		for j = 0, Game.mapSizeZ/16 do
-			metalAmount = metalAmount + Spring.GetMetalAmount(i,j)
-		end
-	end
-	metalAmount = metalAmount * 0.004
-end
-
-local function GetAllyTeamMetalExtraction(unitTeam)
-	if metalAmount > 20 and metalAmount <= 10000 then
-	local allyteamlist = Spring.GetAllyTeamList()
-	local teamsInAllyID = {}
-	local _,_,_,_,_,currentAllyTeamID = Spring.GetTeamInfo(unitTeam)
-
-	for ct, allyTeamID in pairs(allyteamlist) do
-		teamsInAllyID[allyTeamID] = Spring.GetTeamList(allyTeamID) -- [1] = teamID,
-	end
-	metal = 0
-	for _, teamID in pairs(teamsInAllyID[currentAllyTeamID]) do -- [_] = teamID, 
-		for id, extractor in pairs(MExtractors) do
-			mexes = Spring.GetTeamUnitsByDefs(teamID, id)
-			for ct, unitID in pairs(mexes) do
-				metal = metal + Spring.GetUnitResources(unitID)
-			end
-		end
-	end
-	return metal -- (metal*250/(0.5*metalAmount)) -- scale on metalAmount to scale on team map control rather than brute metal extraction
-	else -- If metal map or no metal map use original (1/58, 1/64 and 1/70) metal making ratios
-	return (200)
-	end
-end
-
 local function prototype(t)
   local u = { }
   for k, v in pairs(t) do u[k] = v end
@@ -204,7 +163,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 		if diminishModifier > 1.0 then
 			diminishModifier = 1.0
 		end
-		updateUnitConversion(unitID, data.c, math.max(data.e * diminishModifier, data.e * diminishModifier * (GetAllyTeamMetalExtraction(teamID)/100)))
+		updateUnitConversion(unitID, data.c, data.e * diminishModifier)
 	end
 end
 
@@ -295,7 +254,6 @@ end
 -- Callins
 ----------------------------------------------------------------
 function gadget:Initialize()
-	GetMapTheoricMaxExtraction()
     SetMMRulesParams()
     BuildeSteps()
     local i = 1
