@@ -1423,6 +1423,35 @@ function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams
 end
 
 
+function gadgetHandler:UnitEnteredWater(unitID, unitDefID, unitTeam)
+  for _,g in ipairs(self.UnitEnteredWaterList) do
+    g:UnitEnteredWater(unitID, unitDefID, unitTeam)
+  end
+  return
+end
+
+function gadgetHandler:UnitLeftWater(unitID, unitDefID, unitTeam)
+  for _,g in ipairs(self.UnitLeftWaterList) do
+    g:UnitLeftWater(unitID, unitDefID, unitTeam)
+  end
+  return
+end
+
+
+function gadgetHandler:UnitEnteredAir(unitID, unitDefID, unitTeam)
+  for _,g in ipairs(self.UnitEnteredAirList) do
+    g:UnitEnteredAir(unitID, unitDefID, unitTeam)
+  end
+  return
+end
+
+function gadgetHandler:UnitLeftAir(unitID, unitDefID, unitTeam)
+  for _,g in ipairs(self.UnitLeftAirList) do
+    g:UnitLeftAir(unitID, unitDefID, unitTeam)
+  end
+  return
+end
+
 function gadgetHandler:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
   for _,g in ipairs(self.UnitEnteredRadarList) do
     g:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
