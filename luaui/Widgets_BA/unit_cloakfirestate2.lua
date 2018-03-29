@@ -44,7 +44,10 @@ local exceptionList = { --add exempt units here
 	"cormine3",
 	"cormine4",
 	"corfmine3",
+	"corsktl",
 	"armpb",
+	"armamb",
+	"armpacko",
 }
 
 local exceptionArray = {}
