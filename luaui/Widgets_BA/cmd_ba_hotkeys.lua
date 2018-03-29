@@ -40,6 +40,8 @@ function MakeBindsTable (swapYZ)
     
     local _binds = {
         -- building hotkeys
+		"bind k wantcloak",
+		"bind any+k wantcloak",
         "bind "..Z.." buildunit_armmex",
         "bind shift+"..Z.." buildunit_armmex",
         "bind "..Z.." buildunit_armamex",
