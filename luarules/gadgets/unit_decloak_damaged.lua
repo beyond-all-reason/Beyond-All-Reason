@@ -130,14 +130,14 @@ GG.PokeDecloakUnit = PokeDecloakUnit
 
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
                             weaponID, attackerID, attackerDefID, attackerTeam)
-	if damage > 0 and
-		not (attackerTeam and
-		weaponID and
-		noFFWeaponDefs[weaponID] and
-		attackerID ~= unitID and
-		spAreTeamsAllied(unitTeam, attackerTeam)) then
-		PokeDecloakUnit(unitID)
-	end
+	-- if damage > 0 and
+		-- not (attackerTeam and
+		-- weaponID and
+		-- noFFWeaponDefs[weaponID] and
+		-- attackerID ~= unitID and
+		-- spAreTeamsAllied(unitTeam, attackerTeam)) then
+		-- PokeDecloakUnit(unitID)
+	-- end
 end
 
 local function CheckWaterBlockCloak(unitID, pos)
