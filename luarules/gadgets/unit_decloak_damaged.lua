@@ -301,7 +301,7 @@ function gadget:UnitCreated(unitID, unitDefID)
 			Spring.InsertUnitCmdDesc(unitID, unitWantCloakCommandDesc)
 			Spring.RemoveUnitCmdDesc(unitID, cloakDescID)
 			spSetUnitRulesParam(unitID, "wantcloak", 0, alliedTrueTable)
-			if ud.customParams.initcloaked then
+			if ud.customParams.initcloaked or ud.startCloaked then
 				SetWantedCloaked(unitID, 1)
 			end
 			return
