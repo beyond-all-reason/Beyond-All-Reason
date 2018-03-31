@@ -13,7 +13,7 @@
 
 function widget:GetInfo()
 	return {
-		name      = "SmartAreaReclaim",
+		name      = "Smart Area Reclaim",
 		desc      = "Area reclaims only metal or energy depending on the center feature",
 		author    = "aegis",
 		date      = "Jun 25, 2010",
