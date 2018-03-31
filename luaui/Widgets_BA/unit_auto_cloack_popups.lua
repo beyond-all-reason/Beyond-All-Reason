@@ -10,7 +10,29 @@ function widget:GetInfo()
     }
 end
 
-local CMD_WANT_CLOAK = 37382
+local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+if Engine and Engine.version then
+    local function Split(s, separator)
+        local results = {}
+        for part in s:gmatch("[^"..separator.."]+") do
+            results[#results + 1] = part
+        end
+        return results
+    end
+    engineVersion = Split(Engine.version, '-')
+    if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
+        engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
+    else
+        engineVersion = tonumber(Engine.version)
+    end
+elseif Game and Game.version then
+    engineVersion = tonumber(Game.version)
+end
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion > 10401151 then
+    CMD_CLOAK = 37382
+else
+    CMD_CLOAK = CMD.CLOAK
+end
 
 local clockingUnitDefs = {[UnitDefNames["armpb"].id]=true, [UnitDefNames["armamb"].id]=true}
 local cloakunits = {}
@@ -18,7 +40,7 @@ local cloakunits = {}
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
 end
 
@@ -31,21 +53,21 @@ end
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
 end
 
