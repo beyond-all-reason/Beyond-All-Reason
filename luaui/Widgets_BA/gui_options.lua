@@ -1905,7 +1905,7 @@ function loadWidgetConfigData()
 		end
 	end
 
-	if widgetHandler.knownWidgets["Depth of Field"] ~= nil then
+	if widgetHandler.knownWidgets["Depth of Field"] ~= nil and options[getOptionByID("dofintensity")] ~= nil then
 		if widgetHandler.configData["Depth of Field"] ~= nil and widgetHandler.configData["Depth of Field"].intensity ~= nil then
 			if options[getOptionByID("dofintensity")].value ~= widgetHandler.configData["Depth of Field"].intensity then
 				options[getOptionByID("dofintensity")].value = widgetHandler.configData["Depth of Field"].intensity
@@ -2349,7 +2349,7 @@ function init()
 	end
 
 	if (WG['dof'] == nil) then
-		options[getOptionByID('dofintensity') = nil
+		options[getOptionByID('dofintensity')] = nil
 	end
 
 
