@@ -1537,9 +1537,12 @@ function gadgetHandler:UnitUnitCollision(colliderID, collideeID)
 end
 
 function gadgetHandler:UnitFeatureCollision(colliderID, collideeID)
-	for _,g in ipairs(self.UnitFeatureCollisionList) do
-		g:UnitFeatureCollision(colliderID, collideeID)
-	end
+  for _,g in r_ipairs(self.UnitFeatureCollisionList) do
+    if (g:UnitFeatureCollision(colliderID, collideeID)) then
+      return true
+    end
+  end
+  return false
 end
 
 
@@ -1664,14 +1667,16 @@ end
 --  Misc call-ins
 --
 
-function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID)
-  local noGfx = false
-  for _,g in ipairs(self.ExplosionList) do
-    noGfx = noGfx or g:Explosion(weaponID, px, py, pz, ownerID)
+function gadgetHandler:Explosion(weaponID, px, py, pz, ownerID, projectileID)
+  -- "noGfx = noGfx or ..." short-circuits, so equivalent to this
+  for _,g in r_ipairs(self.ExplosionList) do
+    if (g:Explosion(weaponID, px, py, pz, ownerID, projectileID)) then
+      return true
+    end
   end
-  return noGfx
-end
 
+  return false
+end
 
 --------------------------------------------------------------------------------
 --
@@ -1686,9 +1691,9 @@ function gadgetHandler:Update(deltaTime)
 end
 
 
-function gadgetHandler:DefaultCommand(type, id)
+function gadgetHandler:DefaultCommand(type, id, cmd)
   for _,g in ipairs(self.DefaultCommandList) do
-    local id = g:DefaultCommand(type, id)
+    local id = g:DefaultCommand(type, id, cmd)
     if (id) then
       return id
     end

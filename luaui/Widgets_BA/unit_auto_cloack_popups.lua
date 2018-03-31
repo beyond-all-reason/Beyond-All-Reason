@@ -10,13 +10,15 @@ function widget:GetInfo()
     }
 end
 
+local CMD_WANT_CLOAK = 37382
+
 local clockingUnitDefs = {[UnitDefNames["armpb"].id]=true, [UnitDefNames["armamb"].id]=true}
 local cloakunits = {}
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD.CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
     end
 end
 
@@ -29,21 +31,21 @@ end
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD.CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
     end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD.CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
     end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
     if clockingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
-        Spring.GiveOrderToUnit(unitID, CMD.CLOAK, {1}, {})
+        Spring.GiveOrderToUnit(unitID, CMD_WANT_CLOAK, {1}, {})
     end
 end
 
