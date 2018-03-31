@@ -25,6 +25,8 @@ Unbalanced Commanders:
   The Fully upgraded buildmenus allows a total of 40 units.
 
 Other:
+ • F10 toggles options (F8 toggles DoF when widget enabled)
+ • Smart Area Reclaim widget enabled by default. (Area reclaims only metal or energy depending on the center feature)
  • When a buildcommand is selected, click and drag with left and middle mouse button to orientate the construction.
  • Reverse move: Units able to move backwards must use CTRL key and order it anywhere behind the unit. 
  • Replacing engine trees with custom trees
