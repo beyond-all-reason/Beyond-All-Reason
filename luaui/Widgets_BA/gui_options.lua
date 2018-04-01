@@ -1013,6 +1013,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['red_buildmenu'] ~= nil then
 				WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
 			end
+		elseif id == 'buildmenulargeicons' then
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].largeUnitIons = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigLargeUnitIcons(options[i].value)
+			end
 		elseif id == 'sameteamcolors' then
 			if widgetHandler.configData["Player Color Palette"] == nil then
 				widgetHandler.configData["Player Color Palette"] = {}
@@ -1691,6 +1699,7 @@ function mouseEvent(x, y, button, release)
 						if playSounds then
 							Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
 						end
+						return true
 					end
 				end
 			end
@@ -1770,6 +1779,7 @@ function mouseEvent(x, y, button, release)
 			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 				currentGroupTab = nil
 				startColumn = 1
+				return true
 			elseif not tabClicked then
 				if release and draggingSlider == nil then
 					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
@@ -2179,6 +2189,7 @@ function init()
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenulargeicons", group="ui", name="Buildmenu large icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons'},
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitTooltip~=nil and WG['red_buildmenu'].getConfigUnitTooltip()), description='Enables unit tooltip when hovering over unit in buildmenu'},
 		{id="buildmenubigtooltip", group="ui", name=widgetOptionColor.."   extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
 
@@ -2342,6 +2353,9 @@ function init()
 	end
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigUnitBigTooltip == nil then
 		options[getOptionByID('buildmenubigtooltip')] = nil
+	end
+	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigLargeUnitIcons == nil then
+		options[getOptionByID('buildmenulargeicons')] = nil
 	end
 
 	if WG['playercolorpalette'] == nil or WG['playercolorpalette'].getSameTeamColors == nil then
