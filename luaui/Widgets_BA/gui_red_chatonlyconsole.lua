@@ -700,7 +700,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		local lineID = #history+1	
 		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
         
-        if ( playSound ) and (not ignoreThisMessage == true) then
+        if ( playSound ) and (not ignoreThisMessage == true) and not Spring.IsGUIHidden() then
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end
