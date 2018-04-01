@@ -78,36 +78,14 @@ local units = {}
 local spectatorMode = false
 local notInSpecfullmode = false
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
-if Engine and Engine.version then
-    local function Split(s, separator)
-        local results = {}
-        for part in s:gmatch("[^"..separator.."]+") do
-            results[#results + 1] = part
-        end
-        return results
-    end
-    engineVersion = Split(Engine.version, '-')
-    if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
-        engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
-    else
-        engineVersion = tonumber(Engine.version)
-    end
-elseif Game and Game.version then
-    engineVersion = tonumber(Game.version)
-end
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion > 10401151 then
-    cmdCloak = 37382
-else
-    cmdCloak = CMD.CLOAK
-end
-
+local cmdCloak = 37382
 
 function cloackSpy(unitID)
     spGiveOrderToUnit(unitID, cmdCloak, { 1 }, {})
 end
 
 function processGremlin(unitID)
+    Spring.Echo(engineVersion)
     spGiveOrderToUnit(unitID, cmdCloak, { 1 }, {})
     spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, {}) -- 0 == hold pos
     spGiveOrderToUnit(unitID, cmdFireState, { 0 }, {}) -- hold fire
