@@ -1699,7 +1699,7 @@ function mouseEvent(x, y, button, release)
 						if playSounds then
 							Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
 						end
-						return true
+						returnTrue = true
 					end
 				end
 			end
@@ -1779,7 +1779,7 @@ function mouseEvent(x, y, button, release)
 			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 				currentGroupTab = nil
 				startColumn = 1
-				return true
+				returnTrue = true
 			elseif not tabClicked then
 				if release and draggingSlider == nil then
 					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
@@ -1791,6 +1791,9 @@ function mouseEvent(x, y, button, release)
 			if show then
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
+			end
+			if returnTrue then
+				return true
 			end
 		end
 	elseif showOptionsToggleButton then
