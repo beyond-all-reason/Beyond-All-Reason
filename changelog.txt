@@ -31,6 +31,7 @@ Other:
  • Reverse move: Units able to move backwards must use CTRL key and order it anywhere behind the unit. 
  • Replacing engine trees with custom trees
  • Options menu has tabs
+ • Added Defense Ranges toggles to options
  • Added "Minimap icon size" slider to options
  • Added "Simple minimap colors" option to options
  • Team colors based on palette suboption: "same team colors": your own team has a lighter color
