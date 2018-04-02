@@ -46,7 +46,7 @@ function WatchLoad()
 end
 
 function script.Create()
-	StartThread(common.SmokeUnit, {base, patch, jets, link, wing2, wing1})
+	StartThread(common.SmokeUnit, {base, patch, jets, link0, wing2, wing1})
 	StartThread(WatchLoad)
 	StartThread(MoveRate)
 	Hide(flare)
