@@ -192,10 +192,10 @@ local file = assert(io.open(filename,'w'), "Unable to save latest randomseed fro
 file = nil
 
 local random_tip_or_desc = unit_descs[((k/3) % #unit_descs) + 1]
-if k%3 == 1 then
+if k%2 == 1 then
 	random_tip_or_desc = tips[((math.ceil(k/3)) % #tips) + 1]
-elseif k%3 == 2 then
-	random_tip_or_desc = quotes[((math.ceil(k/3)) % #quotes) + 1]
+--elseif k%3 == 2 then
+--	random_tip_or_desc = quotes[((math.ceil(k/3)) % #quotes) + 1]
 end
 
 local loadedFontSize = 70
