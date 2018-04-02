@@ -2,7 +2,7 @@
 XX/XX/2018
 
 Currently testing:
- • Thuds/Storms/Hammers/Rockos +4% start and maxspeed
+ • Thuds/Storms/Hammers/Rockos +4% projectile start/max speed
  • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes)
  • T1 air transport: Erased the move command when using unload.
  • T2 air transport: Can transport up to four 2x2 footprint or less units, or one 3x3 or more. Unloads all at once.
