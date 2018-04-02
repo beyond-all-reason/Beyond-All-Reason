@@ -722,7 +722,7 @@ function widget:DrawScreen()
 
   -- draw the window
   if not windowList then
-    windowList = gl.CreateList(DrawWindow)
+    --windowList = gl.CreateList(DrawWindow)
   end
   
   -- update new slider value
@@ -1100,6 +1100,72 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Fancy Selected Units"].showSecondLine = options[i].value
 			if WG['fancyselectedunits'] ~= nil then
 				WG['fancyselectedunits'].setSecondLine(options[i].value)
+			end
+		elseif id == 'defrange_allyair' then
+			if widgetHandler.configData["Defense Range"] == nil then
+				widgetHandler.configData["Defense Range"] = {}
+			end
+			if widgetHandler.configData["Defense Range"].enabled == nil then
+				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
+			end
+			widgetHandler.configData["Defense Range"].enabled.ally.air = options[i].value
+			if WG['defrange'] ~= nil then
+				WG['defrange'].setAllyAir(options[i].value)
+			end
+		elseif id == 'defrange_allyground' then
+			if widgetHandler.configData["Defense Range"] == nil then
+				widgetHandler.configData["Defense Range"] = {}
+			end
+			if widgetHandler.configData["Defense Range"].enabled == nil then
+				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
+			end
+			widgetHandler.configData["Defense Range"].enabled.ally.ground = options[i].value
+			if WG['defrange'] ~= nil then
+				WG['defrange'].setAllyGround(options[i].value)
+			end
+		elseif id == 'defrange_allynuke' then
+			if widgetHandler.configData["Defense Range"] == nil then
+				widgetHandler.configData["Defense Range"] = {}
+			end
+			if widgetHandler.configData["Defense Range"].enabled == nil then
+				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
+			end
+			widgetHandler.configData["Defense Range"].enabled.ally.nuke = options[i].value
+			if WG['defrange'] ~= nil then
+				WG['defrange'].setAllyNuke(options[i].value)
+			end
+		elseif id == 'defrange_enemyair' then
+			if widgetHandler.configData["Defense Range"] == nil then
+				widgetHandler.configData["Defense Range"] = {}
+			end
+			if widgetHandler.configData["Defense Range"].enabled == nil then
+				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
+			end
+			widgetHandler.configData["Defense Range"].enabled.enemy.air = options[i].value
+			if WG['defrange'] ~= nil then
+				WG['defrange'].setEnemyAir(options[i].value)
+			end
+		elseif id == 'defrange_enemyground' then
+			if widgetHandler.configData["Defense Range"] == nil then
+				widgetHandler.configData["Defense Range"] = {}
+			end
+			if widgetHandler.configData["Defense Range"].enabled == nil then
+				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
+			end
+			widgetHandler.configData["Defense Range"].enabled.enemy.ground = options[i].value
+			if WG['defrange'] ~= nil then
+				WG['defrange'].setEnemyGround(options[i].value)
+			end
+		elseif id == 'defrange_enemynuke' then
+			if widgetHandler.configData["Defense Range"] == nil then
+				widgetHandler.configData["Defense Range"] = {}
+			end
+			if widgetHandler.configData["Defense Range"].enabled == nil then
+				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
+			end
+			widgetHandler.configData["Defense Range"].enabled.enemy.nuke = options[i].value
+			if WG['defrange'] ~= nil then
+				WG['defrange'].setEnemyNuke(options[i].value)
 			end
 		elseif id == 'smartselect_includebuildings' then
 			if widgetHandler.configData["SmartSelect"] == nil then
@@ -2023,6 +2089,35 @@ function loadWidgetConfigData()
 		end
 	end
 
+	if widgetHandler.knownWidgets["Defense Range"] ~= nil then
+		if widgetHandler.configData["Defense Range"] ~= nil and widgetHandler.configData["Defense Range"].enabled ~= nil then
+			if getOptionByID("defrange_allyair") then
+				options[getOptionByID("defrange_allyair")].value = widgetHandler.configData["Defense Range"].enabled.ally.air
+				changes = true
+			end
+			if getOptionByID("defrange_allyground") then
+				options[getOptionByID("defrange_allyground")].value = widgetHandler.configData["Defense Range"].enabled.ally.ground
+				changes = true
+			end
+			if getOptionByID("defrange_allynuke") then
+				options[getOptionByID("defrange_allynuke")].value = widgetHandler.configData["Defense Range"].enabled.ally.nuke
+				changes = true
+			end
+			if getOptionByID("defrange_enemyair") then
+				options[getOptionByID("defrange_enemyair")].value = widgetHandler.configData["Defense Range"].enabled.enemy.air
+				changes = true
+			end
+			if getOptionByID("defrange_enemyground") then
+				options[getOptionByID("defrange_enemyground")].value = widgetHandler.configData["Defense Range"].enabled.enemy.ground
+				changes = true
+			end
+			if getOptionByID("defrange_enemynuke") then
+				options[getOptionByID("defrange_enemynuke")].value = widgetHandler.configData["Defense Range"].enabled.enemy.nuke
+				changes = true
+			end
+		end
+	end
+
 	if widgetHandler.knownWidgets["Light Effects"] ~= nil then
 		if getOptionByID("lighteffects_brightness") and widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
 			if options[getOptionByID("lighteffects_brightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMult then
@@ -2231,6 +2326,14 @@ function init()
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 		{id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
+		{id="defrange", group="ui", widget="Defense Range", name="Defense Ranges", type="bool", value=GetWidgetToggleValue("Defense Range"), description='Displays range of defenses (enemy and ally)'},
+		{id="defrange_allyair", group="ui", name=widgetOptionColor.."   Ally Air", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getAllyAir~=nil and WG['defrange'].getAllyAir()), description='Show Range For Ally Air'},
+		{id="defrange_allyground", group="ui", name=widgetOptionColor.."   Ally Ground", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getAllyGround~=nil and WG['defrange'].getAllyGround()), description='Show Range For Ally Ground'},
+		{id="defrange_allynuke", group="ui", name=widgetOptionColor.."   Ally Nuke", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getAllyNuke~=nil and WG['defrange'].getAllyNuke()), description='Show Range For Ally Air Nuke'},
+		{id="defrange_enemyair", group="ui", name=widgetOptionColor.."   Enemy Air", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getEnemyAir~=nil and WG['defrange'].getEnemyAir()), description='Show Range For Enemy Air'},
+		{id="defrange_enemyground", group="ui", name=widgetOptionColor.."   Enemy Ground", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getEnemyGround~=nil and WG['defrange'].getEnemyGround()), description='Show Range For Enemy Ground'},
+		{id="defrange_enemynuke", group="ui", name=widgetOptionColor.."   Enemy Nuke", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getEnemyNuke~=nil and WG['defrange'].getEnemyNuke()), description='Show Range For Enemy Nuke'},
+
 
 		-- GAME
 		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
@@ -2383,6 +2486,16 @@ function init()
 		options[getOptionByID("fancyselectedunits_baseopacity")] = nil
 		options[getOptionByID("fancyselectedunits_teamcoloropacity")] = nil
 		options[getOptionByID("fancyselectedunits_secondline")] = nil
+	end
+
+	if widgetHandler.knownWidgets["Defense Range"] == nil then
+		options[getOptionByID('defrange')] = nil
+		options[getOptionByID("defrange_allyair")] = nil
+		options[getOptionByID("defrange_allyground")] = nil
+		options[getOptionByID("defrange_allynuke")] = nil
+		options[getOptionByID("defrange_enemyair")] = nil
+		options[getOptionByID("defrange_enemyground")] = nil
+		options[getOptionByID("defrange_enemynuke")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Auto Group"] == nil then
