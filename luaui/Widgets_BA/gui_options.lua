@@ -1013,6 +1013,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['red_buildmenu'] ~= nil then
 				WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
 			end
+		elseif id == 'buildmenulargeicons' then
+			if widgetHandler.configData["Red Build/Order Menu"] == nil then
+				widgetHandler.configData["Red Build/Order Menu"] = {}
+			end
+			widgetHandler.configData["Red Build/Order Menu"].largeUnitIons = options[i].value
+			if WG['red_buildmenu'] ~= nil then
+				WG['red_buildmenu'].setConfigLargeUnitIcons(options[i].value)
+			end
 		elseif id == 'sameteamcolors' then
 			if widgetHandler.configData["Player Color Palette"] == nil then
 				widgetHandler.configData["Player Color Palette"] = {}
@@ -1338,6 +1346,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			widgetHandler.configData["Commands FX"].opacity = value
 			if WG['commandsfx'] ~= nil then
 				WG['commandsfx'].setOpacity(value)
+			end
+		elseif id == 'dofintensity' then
+			if widgetHandler.configData["Depth of Field"] == nil then
+				widgetHandler.configData["Depth of Field"] = {}
+			end
+			widgetHandler.configData["Depth of Field"].intensity = value
+			if WG['dof'] ~= nil then
+				WG['dof'].setIntensity(value)
 			end
 		elseif id == 'minimapiconsize' then
 			minimapIconsize = value
@@ -1683,6 +1699,7 @@ function mouseEvent(x, y, button, release)
 						if playSounds then
 							Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
 						end
+						returnTrue = true
 					end
 				end
 			end
@@ -1762,6 +1779,7 @@ function mouseEvent(x, y, button, release)
 			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 				currentGroupTab = nil
 				startColumn = 1
+				returnTrue = true
 			elseif not tabClicked then
 				if release and draggingSlider == nil then
 					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
@@ -1773,6 +1791,9 @@ function mouseEvent(x, y, button, release)
 			if show then
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
+			end
+			if returnTrue then
+				return true
 			end
 		end
 	elseif showOptionsToggleButton then
@@ -1892,6 +1913,15 @@ function loadWidgetConfigData()
 		if widgetHandler.configData["Commands FX"] ~= nil and widgetHandler.configData["Commands FX"].opacity ~= nil then
 			if options[getOptionByID("commandsfxopacity")].value ~= widgetHandler.configData["Commands FX"].opacity then
 				options[getOptionByID("commandsfxopacity")].value = widgetHandler.configData["Commands FX"].opacity
+				changes = true
+			end
+		end
+	end
+
+	if widgetHandler.knownWidgets["Depth of Field"] ~= nil and options[getOptionByID("dofintensity")] ~= nil then
+		if widgetHandler.configData["Depth of Field"] ~= nil and widgetHandler.configData["Depth of Field"].intensity ~= nil then
+			if options[getOptionByID("dofintensity")].value ~= widgetHandler.configData["Depth of Field"].intensity then
+				options[getOptionByID("dofintensity")].value = widgetHandler.configData["Depth of Field"].intensity
 				changes = true
 			end
 		end
@@ -2111,6 +2141,8 @@ function init()
 		{id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
 		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.1, value=1, description=''},
 
+		{id="dofintensity", group="gfx", name="DoF intensity", type="slider", min=0.05, max=5, step=0.01, value=1.5, description='Enable Depth of Field with F8 first'},
+
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
         {id="rankicons", group="gfx", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
@@ -2160,6 +2192,7 @@ function init()
 		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenulargeicons", group="ui", name="Buildmenu large icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons'},
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitTooltip~=nil and WG['red_buildmenu'].getConfigUnitTooltip()), description='Enables unit tooltip when hovering over unit in buildmenu'},
 		{id="buildmenubigtooltip", group="ui", name=widgetOptionColor.."   extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
 
@@ -2324,9 +2357,16 @@ function init()
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigUnitBigTooltip == nil then
 		options[getOptionByID('buildmenubigtooltip')] = nil
 	end
+	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigLargeUnitIcons == nil then
+		options[getOptionByID('buildmenulargeicons')] = nil
+	end
 
 	if WG['playercolorpalette'] == nil or WG['playercolorpalette'].getSameTeamColors == nil then
 		options[getOptionByID('sameteamcolors')] = nil
+	end
+
+	if (WG['dof'] == nil) then
+		options[getOptionByID('dofintensity')] = nil
 	end
 
 
@@ -2468,6 +2508,8 @@ function widget:Initialize()
 			Spring.SendCommands("luarules reloadluaui")
 		end
 	end
+
+	Spring.SendCommands({"bind f10 options"})
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)

@@ -25,6 +25,8 @@ Unbalanced Commanders:
   The Fully upgraded buildmenus allows a total of 40 units.
 
 Other:
+ • F10 toggles options (F8 toggles DoF when widget enabled)
+ • Smart Area Reclaim widget enabled by default. (Area reclaims only metal or energy depending on the center feature)
  • When a buildcommand is selected, click and drag with left and middle mouse button to orientate the construction.
  • Reverse move: Units able to move backwards must use CTRL key and order it anywhere behind the unit. 
  • Replacing engine trees with custom trees
@@ -33,6 +35,7 @@ Other:
  • Added "Simple minimap colors" option to options
  • Team colors based on palette suboption: "same team colors": your own team has a lighter color
  • Added opacity slider for Commands FX option
+ • Added options: Buildmenu large icons
  • Vertical launched missiles have an ground dust/fire effect added
  • Changed barrel fire smoke effect
  • Trees not only fall, but also dissapear through the ground

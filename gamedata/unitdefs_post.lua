@@ -2,6 +2,10 @@
 -- basically, DONT TOUCH this! 
 
 
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+    Spring.Echo("barmodels modoption is enabled")  -- notify that barmodels is enabled so infolog shows this
+end
+
 -- see alldefs.lua for documentation
 -- load the games _Post functions for defs, and find out if saving to custom params is wanted
 VFS.Include("gamedata/alldefs_post.lua")

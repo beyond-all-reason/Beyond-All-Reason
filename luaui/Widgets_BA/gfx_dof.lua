@@ -4,7 +4,7 @@
 function widget:GetInfo()
   return {
     name      = "Depth of Field",
-    desc      = "f10 toggles on/off,   ctrl+] or [ to change intensity,   /dofQuality #",
+    desc      = "f8 toggles on/off,   ctrl+] or [ to change intensity,   /dofQuality #",
     author    = "jK, Satirik (shortcuts: BD & Floris)",
     date      = "March, 2013",
     license   = "GNU GPL, v2 or later",
@@ -17,7 +17,7 @@ end
 options = {
 	fadeInOut = 2,		-- seconds
 	shortcuts = {
-		toggle = 'f10',
+		toggle = 'f8',
 		intensityIncrease = 'Ctrl+]',
 		intensityDecrease = 'Ctrl+[',
 	},
@@ -233,7 +233,14 @@ function widget:Initialize()
   
   widgetHandler:AddAction("dofQuality", dofQuality, nil, "t")
   widgetHandler:AddAction("dofIntensity", dofIntensity, nil, "t")
-  
+
+  WG['dof'] = {}
+  WG['dof'].getIntensity = function()
+      return options.intensity.value
+  end
+  WG['dof'].setIntensity = function(value)
+      options.intensity.value = value
+  end
   
   dofShader = gl.CreateShader({
     fragment = [[
@@ -343,6 +350,7 @@ end
 
 
 function widget:Shutdown()
+  WG['dof'] = nil
   Spring.SendCommands({"DofEnable 0"})
   widgetHandler:RemoveAction("DofEnable", DofEnable)
   

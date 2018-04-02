@@ -1073,6 +1073,7 @@ local function Initialize()
   GG.Lups.RemoveParticles   = RemoveParticles
   GG.Lups.AddParticlesArray = AddParticlesArray
   GG.Lups.HasParticleClass  = HasParticleClass
+  GG.Lups.IsPosInLos        = IsPosInLos
 
   for fncname,fnc in pairs(GG.Lups) do
     handler:RegisterGlobal('Lups_'..fncname,fnc)

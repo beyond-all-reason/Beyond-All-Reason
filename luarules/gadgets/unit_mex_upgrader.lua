@@ -444,9 +444,9 @@ end
 local ON, OFF = 1, 0 
 
 function addLayoutCommands(unitID) 
-  local insertID = 
-    FindUnitCmdDesc(unitID, CMD.CLOAK)      or 
-    FindUnitCmdDesc(unitID, CMD.ONOFF)      or 
+  local insertID =
+    FindUnitCmdDesc(unitID, CMD.CLOAK)      or
+    FindUnitCmdDesc(unitID, CMD.ONOFF)      or
     FindUnitCmdDesc(unitID, CMD.TRAJECTORY) or 
     FindUnitCmdDesc(unitID, CMD.REPEAT)     or 
     FindUnitCmdDesc(unitID, CMD.MOVE_STATE) or 

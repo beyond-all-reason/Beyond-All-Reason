@@ -202,11 +202,16 @@ end
 function widget:CommandsChanged()
   if spGetSelectedUnitsCount() > 0 then
     checkSelectedUnits = true
+    if picList then
+      gl.DeleteList(picList)
+    end
+    picList = gl.CreateList(DrawPicList)
   elseif picList then
     gl.DeleteList(picList)
     picList = nil
     checkSelectedUnits = nil
   end
+
 
   if not picList and not guishaderDisabled then
     updateGuishader()
@@ -256,7 +261,7 @@ end
 
 
 function DrawPicList()
-  --unitCounts = spGetSelectedUnitsCounts()
+  unitCounts = spGetSelectedUnitsCounts()
   prevUnitCount = spGetSelectedUnitsCounts()
 
   unitTypes = unitCounts.n;
