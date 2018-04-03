@@ -33,7 +33,7 @@ return {
 		sightdistance = 260,
 		terraformspeed = 2000,
 		waterline = 2,
-		workertime = 400,
+		workertime = 200,
 		--move
 		acceleration = 2.20/90,
 		brakerate = 2.20/25,
@@ -48,6 +48,7 @@ return {
 			"armuwmex",
 			"armfrad",
 			-- [4] = "armsonar",
+			"armnanotcplat",
 			"armsy",
 			"armfhp",
 			"armamsub",

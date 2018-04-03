@@ -14,6 +14,7 @@ Balance changes:
  • Halberd +9% range (275 -> 300)
  • Reduced support frigates damages to subs (216 -> 150), to default (100 -> 60), to commanders (100 -> 70)
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
+ • Naval engineer buildpower reduced from 400 to 200 for arm and core
 
 Unbalanced Commanders:
  • Commander's M and E production increases by 25e/s and 0.5m/s at each level (maximum 275e/s, 6.5m/s at level 11)

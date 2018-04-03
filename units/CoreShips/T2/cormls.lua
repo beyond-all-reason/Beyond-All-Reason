@@ -42,7 +42,7 @@ return {
 		turnrate = 262,
 		--end move
 		waterline = 0,
-		workertime = 400,
+		workertime = 200,
 		buildoptions = {
             "coreyes",
             "coramph",
@@ -50,6 +50,7 @@ return {
 			"coruwmex",
 			"corfrad",
 			-- "corsonar",
+			"cornanotcplat",
 			"corsy",
 			"corfhp",
 			"coramsub",
