@@ -7,6 +7,10 @@ terrainType = "terrainType"
 
 function WatchLoad()
 	while true do
+	if surplus then -- Make sure there is no extra unit loaded, if there is one, unload it
+		Spring.UnitDetach(surplus)
+		surplus = nil
+	end
 	local unitsToDetach = Spring.GetUnitIsTransporting(unitID)
 	if full == true then
 		local cmd = Spring.GetUnitCommands(unitID, 1)
@@ -117,7 +121,14 @@ function script.QueryTransport ( passengerID )
 			full = true
 			return link0
 		end
-	return false
+		if full == true then -- Transport is full, do not attemps to load more units
+			local cmd = Spring.GetUnitCommands(unitID, 1)
+			if cmd[1] and cmd[1].id == CMD.LOAD_UNITS then
+				Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {CMD.LOAD_UNITS}, {"alt"})
+			end
+		end
+	surplus = passengerID
+	return link0
 end
 
 function script.Killed()
