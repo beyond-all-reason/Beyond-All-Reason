@@ -105,6 +105,39 @@ for i=1,#files do
    }
 end
 
+local files = VFS.DirList("sounds/weapons/ChickenDefenseSounds/")
+local t = Sounds.SoundItems
+for i=1,#files do
+   local fileName = files[i]
+   fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+   t[fileNames] = {
+      file     = fileName;
+	  gain = 1.2,
+      pitchmod = 0.01,
+      gainmod  = 0.2,
+	  dopplerscale = 1.0,
+      maxconcurrent = 4,
+	  rolloff = 3.0,
+   }
+
+end
+
+local files = VFS.DirList("sounds/weapons/critters/")
+local t = Sounds.SoundItems
+for i=1,#files do
+   local fileName = files[i]
+   fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+   t[fileNames] = {
+      file     = fileName;
+	  gain = 1.2,
+      pitchmod = 0.01,
+      gainmod  = 0.2,
+	  dopplerscale = 1.0,
+      maxconcurrent = 4,
+	  rolloff = 3.0,
+   }
+
+end
 
 return Sounds
 
