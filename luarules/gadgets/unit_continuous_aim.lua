@@ -28,7 +28,7 @@ if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401354 
         date      = "April 2018",
         license   = "Whatever works",
         layer     = 0,
-        enabled   = true, -- When we will move on 105 :)
+        enabled   = false, -- When we will move on 105 :)
       }
     end
 
