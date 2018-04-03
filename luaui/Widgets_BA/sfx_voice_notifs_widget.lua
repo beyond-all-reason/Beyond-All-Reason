@@ -13,6 +13,8 @@ function widget:GetInfo()
     }
 end
 
+local volume = 1
+
 local Sound = {
 	eCommDestroyed = {
 		"LuaUI/Sounds/VoiceNotifs/eCommDestroyed.wav",
@@ -29,7 +31,7 @@ local Sound = {
 }
 
 local LastPlay = {}
-local soundList = {}	-- stores if sound is enabled/disabled
+local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
 for sound, params in pairs(Sound) do
 	soundList[sound] = true
 end
@@ -67,6 +69,12 @@ function widget:Initialize()
 	WG['voicenotifs'].getSoundList = function()
 		return soundList
 	end
+	WG['voicenotifs'].getVolume = function()
+		return volume
+	end
+	WG['voicenotifs'].setVolume = function(value)
+		volume = value
+	end
 end
 
 function widget:Shutdown()
@@ -87,10 +95,10 @@ end
 function Sd(event)
 	if soundList[event] and Sound[event] then
 		if not LastPlay[event] then
-			Spring.PlaySoundFile(Sound[event][1], 1.0, 'ui')
+			Spring.PlaySoundFile(Sound[event][1], volume, 'ui')
 			LastPlay[event] = Spring.GetGameFrame()
 		elseif LastPlay[event] and (Spring.GetGameFrame() >= (LastPlay[event] + Sound[event][2] * 30)) then
-			Spring.PlaySoundFile(Sound[event][1], 1.0, 'ui')
+			Spring.PlaySoundFile(Sound[event][1], volume, 'ui')
 			LastPlay[event] = Spring.GetGameFrame()
 		end
 	end
@@ -98,7 +106,7 @@ end
 
 
 function widget:GetConfigData(data)
-	return {soundList = soundList}
+	return {soundList = soundList, volume = volume}
 end
 
 function widget:SetConfigData(data)
@@ -108,5 +116,8 @@ function widget:SetConfigData(data)
 				soundList[sound] = enabled
 			end
 		end
+	end
+	if data.volume ~= nil then
+		volume = data.volume
 	end
 end

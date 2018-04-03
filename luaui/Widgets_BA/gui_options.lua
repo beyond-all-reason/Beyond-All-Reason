@@ -1196,12 +1196,13 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				widgetHandler.configData["Auto Group"].config.immediate.value = options[i].value
 			end
+			
 			if WG['autogroup'] ~= nil then
 				WG['autogroup'].setImmediate(options[i].value)
 			end
 		elseif id == 'resourceprompts' then
 			Spring.SetConfigInt("evo_resourceprompts",value)
-		elseif string.sub(id, 1, 19) == 'voicenotifications_' then
+		elseif string.sub(id, 1, 19) == 'voicenotifs_' then
 			local sound = string.sub(id, 20)
 			if widgetHandler.configData["Voice Notifs"] == nil then
 				widgetHandler.configData["Voice Notifs"] = {}
@@ -1520,6 +1521,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			if WG['fancyselectedunits'] ~= nil then
 				WG['fancyselectedunits'].setTeamcolorOpacity(value)
 			end
+		elseif id == 'voicenotifs_volume' then
+			if widgetHandler.configData["Voice Notifs"] == nil then
+				widgetHandler.configData["Voice Notifs"] = {}
+			end
+			widgetHandler.configData["Voice Notifs"].volume = value
+			if WG['voicenotifs'] ~= nil then
+				WG['voicenotifs'].setVolume(value)
+			end
 		end
 
 	elseif options[i].type == 'select' then
@@ -1754,21 +1763,23 @@ function mouseEvent(x, y, button, release)
 
 
 			local tabClicked = false
-			if show and groupRect ~= nil then
-				for id,group in pairs(optionGroups) do
-					if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-						currentGroupTab = group.id
-						startColumn = 1
-						tabClicked = true
-						showSelectOptions = nil
-						selectClickAllowHide = nil
-						if playSounds then
-							Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
-						end
-						returnTrue = true
-					end
-				end
-			end
+            if show and groupRect ~= nil then
+                for id,group in pairs(optionGroups) do
+                    if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+                        if not release then
+                            currentGroupTab = group.id
+                            startColumn = 1
+                            showSelectOptions = nil
+                            selectClickAllowHide = nil
+                            if playSounds then
+                                Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
+                            end
+                        end
+                        tabClicked = true
+                        returnTrue = true
+                    end
+                end
+            end
 
 			-- on window
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
@@ -2089,12 +2100,21 @@ function loadWidgetConfigData()
 		end
 	end
 
-	if widgetHandler.knownWidgets["Defense Range"] ~= nil then
-		if widgetHandler.configData["Defense Range"] ~= nil and widgetHandler.configData["Defense Range"].enabled ~= nil then
-			if getOptionByID("defrange_allyair") then
-				options[getOptionByID("defrange_allyair")].value = widgetHandler.configData["Defense Range"].enabled.ally.air
-				changes = true
-			end
+    if widgetHandler.knownWidgets["Voice Notifs"] ~= nil then
+        if widgetHandler.configData["Voice Notifs"] ~= nil and widgetHandler.configData["Voice Notifs"].volume ~= nil then
+            if getOptionByID("voicenotifs_volume") then
+                options[getOptionByID("voicenotifs_volume")].value = widgetHandler.configData["Voice Notifs"].volume
+                changes = true
+            end
+        end
+    end
+
+    if widgetHandler.knownWidgets["Defense Range"] ~= nil then
+        if widgetHandler.configData["Defense Range"] ~= nil and widgetHandler.configData["Defense Range"].enabled ~= nil then
+            if getOptionByID("defrange_allyair") then
+                options[getOptionByID("defrange_allyair")].value = widgetHandler.configData["Defense Range"].enabled.ally.air
+                changes = true
+            end
 			if getOptionByID("defrange_allyground") then
 				options[getOptionByID("defrange_allyground")].value = widgetHandler.configData["Defense Range"].enabled.ally.ground
 				changes = true
@@ -2252,7 +2272,9 @@ function init()
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
         {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Shown on top of (adv)playerlist'},
 		{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
-		{id="voicenotifications", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+
+        {id="voicenotifs", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+		{id="voicenotifs_volume", group="snd", name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel'},
 
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
@@ -2363,7 +2385,7 @@ function init()
 	loadWidgetConfigData()
 
 	-- add sound notification widget sound toggle options
-	if  widgetHandler.knownWidgets["Voice Notifs"] then
+	if widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
 		if WG['voicenotifs'] ~= nil then
 			soundList =  WG['voicenotifs'].getSoundList()
@@ -2376,15 +2398,18 @@ function init()
 			for i, option in pairs(options) do
 				count = count + 1
 				newOptions[count] = option
-				if option.id == 'voicenotifications' then
+				if option.id == 'voicenotifs_volume' then
 					for sound, enabled in pairs(soundList) do
 						count = count + 1
-						newOptions[count] = {id="voicenotifications_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
+						newOptions[count] = {id="voicenotifs_snd_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
 					end
 				end
 			end
 			options = newOptions
 		end
+	else
+		options[getOptionByID('voicenotifs')] = nil
+		options[getOptionByID('voicenotifs_volume')] = nil
 	end
 	
 	-- cursors
