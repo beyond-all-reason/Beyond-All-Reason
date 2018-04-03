@@ -82,6 +82,7 @@ function AddAirBase(unitID)
          airbasePads[pieceNum] = false -- value is whether or not the pad is reserved
       end
    end
+   Spring.SetUnitRadiusAndHeight(unitID, 20, 24)
    airbases[unitID] = airbasePads
 end
 
