@@ -45,6 +45,7 @@ return {
 		--end move
 		customparams = {
 			maxrange = "260",
+			paralyzemultiplier = 0.1,
 		},
 		featuredefs = {
 			dead = {

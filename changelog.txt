@@ -10,6 +10,7 @@ Balance changes:
  • Reduced support frigates damages to subs (216 -> 150), to default (100 -> 60), to commanders (100 -> 70)
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
  • Naval engineer buildpower reduced from 400 to 200 for arm and core, added sea nano to their buildlist
+ • T1 scout boats paralyze multiplier reduced from 1 to 0.1 (2 bw paralyzer shot to EMP instead of 1  bw paralyzer shot)
  • T1 air transport: Erased the move command when using unload.
  • T2 air transport: Can transport up to four 2x2 footprint or less units, or one 3x3 or more. Unloads all units at once.
  • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
