@@ -1,20 +1,18 @@
 ﻿10.06 -> 10.07
-XX/XX/2018
-
-Currently testing:
- • Storms/Rockos +4% projectile start/max speed
- • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes)
- • T1 air transport: Erased the move command when using unload.
- • T2 air transport: Can transport up to four 2x2 footprint or less units, or one 3x3 or more. Unloads all at once.
- • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
+05/05/2018
 
 Balance changes: 
  • Long range T1 AA range reduced 10% (1250 -> 1125) and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
+ • Storms/Rockos +4% projectile start/max speed
+ • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes)Unloads all at once.
  • Plasma shield starting power reduced to 20% instead of 33%
  • Halberd +9% range (275 -> 300)
  • Reduced support frigates damages to subs (216 -> 150), to default (100 -> 60), to commanders (100 -> 70)
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
  • Naval engineer buildpower reduced from 400 to 200 for arm and core, added sea nano to their buildlist
+ • T1 air transport: Erased the move command when using unload.
+ • T2 air transport: Can transport up to four 2x2 footprint or less units, or one 3x3 or more. 
+ • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
 
 Unbalanced Commanders:
  • Commander's M and E production increases by 25e/s and 0.5m/s at each level (maximum 275e/s, 6.5m/s at level 11)
