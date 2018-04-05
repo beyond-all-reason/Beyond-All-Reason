@@ -2,7 +2,7 @@ return {
 	armstump = {
 		acceleration = 0.023,
 		brakerate = 0.095,
-		buildcostenergy = 2000,
+		buildcostenergy = 2100,
 		buildcostmetal = 210,
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 2904,
