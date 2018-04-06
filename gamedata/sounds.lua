@@ -69,22 +69,22 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2*0.4,
+	  gain = 1.2*0.3,
       pitchmod = 0.01,
-      gainmod  = 0.2*0.4,
+      gainmod  = 0.2*0.3,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
 	  rolloff = 0.5,
    }
    
    if fileNames == "disigun1" then
-	t[fileNames].gain = 0.075*0.4
+	t[fileNames].gain = 0.075*0.3
 	end
    if fileNames == "xplomas2" then
-	t[fileNames].gain = 0.225*0.4
+	t[fileNames].gain = 0.225*0.3
 	end
    if fileNames == "newboom" then
-	t[fileNames].gain = 0.045*0.4
+	t[fileNames].gain = 0.045*0.3
 	end
 end
 
@@ -96,9 +96,9 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2*0.4,
+	  gain = 1.2*0.3,
       pitchmod = 0.01,
-      gainmod  = 0.2*0.4,
+      gainmod  = 0.2*0.3,
 	  dopplerscale = 1.0,
       maxconcurrent = 2,
 	  rolloff = 0.2,
@@ -112,9 +112,9 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2*0.4,
+	  gain = 1.2*0.3,
       pitchmod = 0.01,
-      gainmod  = 0.2*0.4,
+      gainmod  = 0.2*0.3,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
 	  rolloff = 0.2,
@@ -129,9 +129,9 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2*0.4,
+	  gain = 1.2*0.3,
       pitchmod = 0.01,
-      gainmod  = 0.2*0.4,
+      gainmod  = 0.2*0.3,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
 	  rolloff = 0.2,
