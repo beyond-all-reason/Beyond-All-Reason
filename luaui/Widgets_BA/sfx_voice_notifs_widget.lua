@@ -19,15 +19,16 @@ local Sound = {
 	eCommDestroyed = {
 		"LuaUI/Sounds/VoiceNotifs/eCommDestroyed.wav",
 		1, 		-- min delay
+		1,		-- relative volume
 	},
-	aCommLost = {"LuaUI/Sounds/VoiceNotifs/aCommLost.wav", 1},
-	NukeLaunched = {"LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav", 1},
-	IdleBuilder = {"LuaUI/Sounds/VoiceNotifs/IdleBuilder.wav", 30},
-	UnitLost = {"LuaUI/Sounds/VoiceNotifs/UnitLost.wav", 30},
-	GameStarted = {"LuaUI/Sounds/VoiceNotifs/GameStarted.wav", 1},
-	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 60},
-	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1},
-	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 30},
+	aCommLost = {"LuaUI/Sounds/VoiceNotifs/aCommLost.wav", 1, 1},
+	NukeLaunched = {"LuaUI/Sounds/VoiceNotifs/NukeLaunched.wav", 1, 1},
+	IdleBuilder = {"LuaUI/Sounds/VoiceNotifs/IdleBuilder.wav", 30, 1},
+	UnitLost = {"LuaUI/Sounds/VoiceNotifs/UnitLost.wav", 30, 1},
+	GameStarted = {"LuaUI/Sounds/VoiceNotifs/GameStarted.wav", 1, 1},
+	GamePause = {"LuaUI/Sounds/VoiceNotifs/GamePause.wav", 60, 1},
+	PlayerLeft = {"LuaUI/Sounds/VoiceNotifs/PlayerLeft.wav", 1, 1},
+	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 30, 1},
 }
 
 local LastPlay = {}
@@ -95,10 +96,10 @@ end
 function Sd(event)
 	if soundList[event] and Sound[event] then
 		if not LastPlay[event] then
-			Spring.PlaySoundFile(Sound[event][1], volume, 'ui')
+			Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
 			LastPlay[event] = Spring.GetGameFrame()
 		elseif LastPlay[event] and (Spring.GetGameFrame() >= (LastPlay[event] + Sound[event][2] * 30)) then
-			Spring.PlaySoundFile(Sound[event][1], volume, 'ui')
+			Spring.PlaySoundFile(Sound[event][1], volume * Sound[event][3], 'ui')
 			LastPlay[event] = Spring.GetGameFrame()
 		end
 	end
