@@ -69,22 +69,22 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2,
+	  gain = 1.2*0.4,
       pitchmod = 0.01,
-      gainmod  = 0.2,
+      gainmod  = 0.2*0.4,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
-	  rolloff = 3.0,
+	  rolloff = 0.5,
    }
    
    if fileNames == "disigun1" then
-	t[fileNames].gain = 0.075
+	t[fileNames].gain = 0.075*0.4
 	end
    if fileNames == "xplomas2" then
-	t[fileNames].gain = 0.225
+	t[fileNames].gain = 0.225*0.4
 	end
    if fileNames == "newboom" then
-	t[fileNames].gain = 0.045
+	t[fileNames].gain = 0.045*0.4
 	end
 end
 
@@ -96,45 +96,45 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2,
+	  gain = 1.2*0.4,
       pitchmod = 0.01,
-      gainmod  = 0.2,
+      gainmod  = 0.2*0.4,
 	  dopplerscale = 1.0,
       maxconcurrent = 2,
-	  rolloff = 1.0,
+	  rolloff = 0.2,
    }
 end
 
-local files = VFS.DirList("sounds/weapons/ChickenDefenseSounds/")
+local files = VFS.DirList("sounds/ChickenDefenseSounds/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2,
+	  gain = 1.2*0.4,
       pitchmod = 0.01,
-      gainmod  = 0.2,
+      gainmod  = 0.2*0.4,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
-	  rolloff = 3.0,
+	  rolloff = 0.2,
    }
 
 end
 
-local files = VFS.DirList("sounds/weapons/critters/")
+local files = VFS.DirList("sounds/critters/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2,
+	  gain = 1.2*0.4,
       pitchmod = 0.01,
-      gainmod  = 0.2,
+      gainmod  = 0.2*0.4,
 	  dopplerscale = 1.0,
       maxconcurrent = 4,
-	  rolloff = 3.0,
+	  rolloff = 0.2,
    }
 
 end
