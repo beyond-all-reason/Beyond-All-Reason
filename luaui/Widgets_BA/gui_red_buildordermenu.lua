@@ -58,6 +58,14 @@ local largeUnitIconSize = {
 	isx = 50,isy = 45, --icon size
 	ix = 5,iy = 7, --icons x/y
 }
+local normalOrderIconSize = {
+	isx = 45,isy = 33, --icon size
+	ix = 5,iy = 4, --icons x/y
+}
+local largeOrderIconSize = {
+	isx = 50,isy = 33, --icon size
+	ix = 5,iy = 4, --icons x/y
+}
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
@@ -990,8 +998,10 @@ function widget:Initialize()
 
 	if largeUnitIcons then
 		Config.buildmenu = tableMerge(deepcopy(Config.buildmenu), deepcopy(largeUnitIconSize))
+		Config.ordermenu = tableMerge(deepcopy(Config.ordermenu), deepcopy(largeOrderIconSize))
 	else
 		Config.buildmenu = tableMerge(deepcopy(Config.buildmenu), deepcopy(normalUnitIconSize))
+		Config.ordermenu = tableMerge(deepcopy(Config.ordermenu), deepcopy(normalOrderIconSize))
 	end
 
 	ordermenu = CreateGrid(Config.ordermenu)
