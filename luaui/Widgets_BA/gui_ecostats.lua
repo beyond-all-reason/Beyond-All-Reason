@@ -969,21 +969,20 @@ end
 function getTeamProduction(teamID)
 	local totalEnergyReclaim = 0
 	local totalMetalReclaim = 0
-
-	local currentWind = string.format('%.1f', select(4,Spring.GetWind()))
-
 	if inSpecMode then
 		local teamUnits = Spring.GetTeamUnitsSorted(teamID)
 		for unitDefID, units in pairs(teamUnits) do
 			if reclaimerUnitDefs[unitDefID] then -- or metalUnitDefs[unitDefID]
 				for i, unitID in ipairs(units) do
 					local metalMake,metalUse,energyMake,energyUse = Spring.GetUnitResources(unitID)
-					if metalMake > 0 then
-						totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID][1])
-					end
-					if energyMake > 0 then
-						totalEnergyReclaim = totalEnergyReclaim + (energyMake-reclaimerUnitDefs[unitDefID][2])
-					end
+                    if metalMake ~= nil then
+                        if metalMake > 0 then
+                            totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID][1])
+                        end
+                        if energyMake > 0 then
+                            totalEnergyReclaim = totalEnergyReclaim + (energyMake-reclaimerUnitDefs[unitDefID][2])
+                        end
+                    end
 				end
 			end
 		end
