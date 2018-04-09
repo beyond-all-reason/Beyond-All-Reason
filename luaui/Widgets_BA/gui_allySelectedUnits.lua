@@ -167,9 +167,14 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('selectedUnitsRemove')
 	widgetHandler:DeregisterGlobal('selectedUnitsClear')
 	widgetHandler:DeregisterGlobal('selectedUnitsAdd')
-	gl.DeleteList(circleLines)
 	if guiList ~= nil then
 		gl.DeleteList(guiList)
+	end
+	if circleLinesCoop ~= nil then
+		gl.DeleteList(circleLinesCoop)
+	end
+	if circleLinesAlly ~= nil then
+		gl.DeleteList(circleLinesAlly)
 	end
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('allyselectedunits')

@@ -269,6 +269,11 @@ function widget:TextCommand(command)
 	return false
 end
 
+function widget:Shutdown()
+	if rangeCircleList then
+		gl.DeleteList(rangeCircleList)
+	end
+end
 
 function widget:Initialize()
 	state["myPlayerID"] = spGetLocalTeamID()

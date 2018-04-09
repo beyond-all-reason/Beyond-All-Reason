@@ -149,9 +149,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-  gl.DeleteList(displayList)
-  enabled = false
-  updateGuishader()
+    if (displayList) then gl.DeleteList(displayList) end
+    if (staticList) then gl.DeleteList(staticList) end
+    enabled = false
+    updateGuishader()
 end
 
 local function setUpTeam()

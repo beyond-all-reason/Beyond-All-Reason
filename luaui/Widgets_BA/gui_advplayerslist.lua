@@ -834,8 +834,17 @@ function widget:Shutdown()
 	WG['advplayerlist_api'] = nil
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	widgetHandler:DeregisterGlobal('ActivityEvent')
-  widgetHandler:DeregisterGlobal('FpsEvent')
-  widgetHandler:DeregisterGlobal('SystemEvent')
+	widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('SystemEvent')
+	if ShareSlider then
+		gl_DeleteList(ShareSlider)
+	end
+	if MainList then
+		gl_DeleteList(MainList)
+	end
+	if Background then
+		gl_DeleteList(Background)
+	end
 end
 
 
@@ -1652,7 +1661,6 @@ function CreateMainList(tip)
 	if MainList then
 		gl_DeleteList(MainList)
 	end
-	
 	MainList = gl_CreateList(function()
 		drawTipText = nil
 		for i, drawObject in ipairs(drawList) do

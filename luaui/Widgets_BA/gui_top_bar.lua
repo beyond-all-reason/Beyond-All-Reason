@@ -1727,6 +1727,10 @@ function widget:Shutdown()
 		glDeleteList(dlistButtons1)
 		glDeleteList(dlistButtons2)
 		glDeleteList(dlistRejoin)
+		if dlistMetalmaker1 then
+			glDeleteList(dlistMetalmaker1)
+			glDeleteList(dlistMetalmaker2)
+		end
 
 		for n,_ in pairs(dlistWindText) do
 			glDeleteList(dlistWindText[n])

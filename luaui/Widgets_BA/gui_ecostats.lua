@@ -181,7 +181,6 @@ end
 function widget:Shutdown()
 	removeGuiShaderRects()
 	if (drawList) then 			gl.DeleteList(drawList) end
-	if (drawListDynamic) then 	gl.DeleteList(drawListDynamic) end
 	if (sideImageList) then		gl.DeleteList(sideImageList) end
 end
 
