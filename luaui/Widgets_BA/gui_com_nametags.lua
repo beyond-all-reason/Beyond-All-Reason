@@ -134,17 +134,20 @@ function widget:Update(dt)
     if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
         if myTeamID ~= Spring.GetMyTeamID() then
             -- old
-            local name = GetPlayerInfo(myPlayerID)
+            local name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
+                comnameList[name] = nil
             end
             -- new
             myTeamID = Spring.GetMyTeamID()
             myPlayerID = Spring.GetMyPlayerID()
-            local name = GetPlayerInfo(myPlayerID)
+            name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
+                comnameList[name] = nil
             end
+            CheckAllComs()
         end
     end
 end
@@ -159,7 +162,7 @@ local function DrawName(attributes)
 		glScale(usedFontSize/fontSize,usedFontSize/fontSize,usedFontSize/fontSize)
 	end
 	glCallList(comnameList[attributes[1]])
-	
+
 	if nameScaling then
 		glScale(1,1,1)
 	end
