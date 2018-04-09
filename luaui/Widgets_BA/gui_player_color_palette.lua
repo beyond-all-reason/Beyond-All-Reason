@@ -184,16 +184,11 @@ end
 -- cause several widgets are still using old colors
 function reloadWidgets()
 	if not useSameTeamColors then
-		if widgetHandler.orderList["Commander Name Tags"] ~= 0 then
-			widgetHandler:DisableWidget("Commander Name Tags")
-			widgetHandler:EnableWidget("Commander Name Tags")
-		end
 		if widgetHandler.orderList["Ecostats"] ~= 0 then
 			widgetHandler:DisableWidget("Ecostats")
 			widgetHandler:EnableWidget("Ecostats")
 		end
 	end
-	--Spring.SendCommands("luarules reloadluaui")	-- slow method
 end
 
 function ordercolors(_,_,params)

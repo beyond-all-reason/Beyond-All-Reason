@@ -70,6 +70,11 @@ local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
+local sameTeamColors = false
+if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil then
+    sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+end
+
 --------------------------------------------------------------------------------
 
 --gets the name, color, and height of the commander
@@ -95,6 +100,13 @@ local function GetCommAttributes(unitID, unitDefID)
   
   local height = UnitDefs[unitDefID].height + heightOffset
   return {name, {r, g, b, a}, height, bgColor}
+end
+
+local function RemoveLists()
+    for name, list in pairs(comnameList) do
+        gl.DeleteList(comnameList[name])
+    end
+    comnameList = {}
 end
 
 local function createComnameList(attributes)
@@ -131,6 +143,17 @@ local function createComnameList(attributes)
 end
 
 function widget:Update(dt)
+    if WG['playercolorpalette'] ~= nil then
+        if WG['playercolorpalette'].getSameTeamColors and sameTeamColors ~= WG['playercolorpalette'].getSameTeamColors() then
+            sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+            RemoveLists()
+            CheckAllComs()
+        end
+    elseif sameTeamColors == true then
+        sameTeamColors = false
+        RemoveLists()
+        CheckAllComs()
+    end
     if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
         if myTeamID ~= Spring.GetMyTeamID() then
             -- old
@@ -225,7 +248,11 @@ function CheckAllComs()
 end
 
 function widget:Initialize()
-  CheckAllComs()
+    CheckAllComs()
+end
+
+function widget:Shutdown()
+    RemoveLists()
 end
 
 function widget:PlayerChanged(playerID)
