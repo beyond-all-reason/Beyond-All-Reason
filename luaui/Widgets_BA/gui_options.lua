@@ -11,7 +11,17 @@ return {
 }
 end
 
---local show = true
+--[[
+--   Add option, at:
+--   function init
+--
+--   Apply new option value:
+--   function applyOptionValue
+--
+--	 Load widget data (to get settings for when widget is disabled):
+--   function loadAllWidgetData
+--
+]]--
 
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/tock.wav'
@@ -990,6 +1000,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("luarules reloadluaui")
 		elseif id == 'allyselunits_select' then
 			saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', {'selectPlayerUnits'}, options[i].value)
+		elseif id == 'voicenotifs_playtrackedplayernotifs' then
+			saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, options[i].value)
 		elseif id == 'buildmenuoldicons' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigOldUnitIcons', {'oldUnitpics'}, options[i].value)
 		elseif id == 'buildmenushortcuts' then
@@ -1648,6 +1660,10 @@ function loadAllWidgetData()
 
 	loadWidgetData("Red Console (old)", "consolefontsize", {'fontsizeMultiplier'})
 
+	loadWidgetData("Ally Selected Units", "allyselunits_select", {'selectPlayerUnits'})
+
+	loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'})
+
 	loadWidgetData("GUI-Shader", "guishaderintensity", {'blurIntensity'})
 
 	loadWidgetData("Snow", "snowamount", {'customParticleMultiplier'})
@@ -1787,6 +1803,7 @@ function init()
 		{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
 
         {id="voicenotifs", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+		{id="voicenotifs_playtrackedplayernotifs", group="snd", name=widgetOptionColor.."   tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player'},
 		{id="voicenotifs_volume", group="snd", name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel'},
 
 		-- CONTROL

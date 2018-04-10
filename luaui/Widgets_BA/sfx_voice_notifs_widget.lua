@@ -14,6 +14,8 @@ function widget:GetInfo()
 end
 
 local volume = 1
+local isSpec = Spring.GetSpectatingState()
+local playTrackedPlayerNotifs = true
 
 local Sound = {
 	eCommDestroyed = {
@@ -31,31 +33,22 @@ local Sound = {
 	UnitsReceived = {"LuaUI/Sounds/VoiceNotifs/UnitReceived.wav", 10, 1},
 }
 
+
+local myTeamID = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
+local isSpec = Spring.GetSpectatingState()
+
 local LastPlay = {}
 local soundList = {UnitLost=false}	-- stores if sound is enabled/disabled
 for sound, params in pairs(Sound) do
 	soundList[sound] = true
 end
 
-function maybeRemoveSelf()
-	if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
-		widgetHandler:RemoveWidget(self)
-	end
-end
-
-function widget:GameStart()
-	gameStarted = true
-	maybeRemoveSelf()
-end
-
 function widget:PlayerChanged(playerID)
-	maybeRemoveSelf()
+	isSpec = Spring.GetSpectatingState()
 end
 
 function widget:Initialize()
-	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-		maybeRemoveSelf()
-	end
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
 
 	WG['voicenotifs'] = {}
@@ -70,26 +63,50 @@ function widget:Initialize()
 	WG['voicenotifs'].getSoundList = function()
 		return soundList
 	end
-	WG['voicenotifs'].getVolume = function()
-		return volume
-	end
-	WG['voicenotifs'].setVolume = function(value)
-		volume = value
-	end
+    WG['voicenotifs'].getVolume = function()
+        return volume
+    end
+    WG['voicenotifs'].setVolume = function(value)
+        volume = value
+    end
+    WG['voicenotifs'].getPlayTrackedPlayerNotifs = function()
+        return playTrackedPlayerNotifs
+    end
+    WG['voicenotifs'].setPlayTrackedPlayerNotifs = function(value)
+        playTrackedPlayerNotifs = value
+    end
 end
 
 function widget:Shutdown()
 	WG['voicenotifs'] = nil
 end
 
+local passedTime = 0
+function widget:Update(dt)
+
+    myTeamID = Spring.GetMyTeamID()
+    myPlayerID = Spring.GetMyPlayerID()
+    isSpec = Spring.GetSpectatingState()
+
+    passedTime = passedTime + dt
+    if passedTime > 0.2 then
+        passedTime = passedTime - 0.2
+        if WG['advplayerlist_api'].GetLockPlayerID ~= nil then
+            lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
+        end
+    end
+end
+
 function EventBroadcast(msg)
-	if string.find(msg, "SoundEvents") then
-		msg = string.sub(msg, 13)
-		event = string.sub(msg, 1, string.find(msg, " ")-1)
-		player = string.sub(msg, string.find(msg, " ")+1, string.len(msg))
-		if tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID()) then
-			Sd(event)
-		end
+	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
+        if string.find(msg, "SoundEvents") then
+            msg = string.sub(msg, 13)
+            event = string.sub(msg, 1, string.find(msg, " ")-1)
+            player = string.sub(msg, string.find(msg, " ")+1, string.len(msg))
+            if (tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID())) or (isSpec and tonumber(player) == lockPlayerID) then
+                Sd(event)
+            end
+        end
 	end
 end
 
@@ -107,7 +124,7 @@ end
 
 
 function widget:GetConfigData(data)
-	return {soundList = soundList, volume = volume}
+	return {soundList = soundList, volume = volume, playTrackedPlayerNotifs = playTrackedPlayerNotifs}
 end
 
 function widget:SetConfigData(data)
@@ -118,7 +135,10 @@ function widget:SetConfigData(data)
 			end
 		end
 	end
-	if data.volume ~= nil then
-		volume = data.volume
-	end
+    if data.volume ~= nil then
+        volume = data.volume
+    end
+    if data.playTrackedPlayerNotifs ~= nil then
+        playTrackedPlayerNotifs = data.playTrackedPlayerNotifs
+    end
 end

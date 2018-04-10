@@ -79,7 +79,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = PlayersInTeamID(newTeam)
 		for ct, player in pairs (players) do
 			if tostring(player) then
-			SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", event, tostring(player))
 			end
 		end
 	end
@@ -90,9 +90,9 @@ if gadgetHandler:IsSyncedCode() then
 			local event = "NukeLaunched"
 			local players = AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(proOwnerID)))
 			for ct, player in pairs (players) do
-			if tostring(player) then
-			SendToUnsynced("EventBroadcast", event, tostring(player))
-			end
+				if tostring(player) then
+					SendToUnsynced("EventBroadcast", event, tostring(player))
+				end
 			end
 		end
 	end
@@ -147,7 +147,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
 			if tostring(player) then
-			SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", event, tostring(player))
 			end
 		end
 	end
@@ -158,7 +158,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = AllPlayers()
 		for ct, player in pairs (players) do
 			if tostring(player) then
-			SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", event, tostring(player))
 			end
 		end
 	end
@@ -169,7 +169,7 @@ if gadgetHandler:IsSyncedCode() then
 		local players = PlayersInAllyTeamID(GetPlayerTeamID(playerID))
 		for ct, player in pairs (players) do
 			if tostring(player) then
-			SendToUnsynced("EventBroadcast", event, tostring(player))
+				SendToUnsynced("EventBroadcast", event, tostring(player))
 			end
 		end
 	end
@@ -181,7 +181,7 @@ else
 	end
 
 	function BroadcastEvent(_,event, player)
-	    if Script.LuaUI("EventBroadcast") and tonumber(player) and tonumber(player) == Spring.GetMyPlayerID() then
+		if Script.LuaUI("EventBroadcast") and tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID()) then
 			Script.LuaUI.EventBroadcast("SoundEvents "..event.." "..player)
 		end
 	end

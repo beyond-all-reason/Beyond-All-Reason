@@ -1,5 +1,14 @@
-﻿10.06 -> 10.07
-05/05/2018
+﻿10.07 -> 10.08
+XX/XX/2018
+
+ • Voice Notifs play along when tracking a players camera when speccing
+ • When large unit icons option enabled: buildorders get enlarged alongside with buildicons
+ • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account 
+ • Ecostats /specfullview crash fix
+
+
+10.06 -> 10.07
+06/05/2018
 
 Balance changes: 
  • Long range T1 AA range reduced 10% (1250 -> 1125) and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
