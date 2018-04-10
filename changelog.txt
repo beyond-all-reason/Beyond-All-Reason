@@ -1,9 +1,11 @@
 ﻿10.07 -> 10.08
 XX/XX/2018
 
+ • Fixed Juggernaut main weapon firing
  • Voice Notifs play along when tracking a players camera when speccing
  • When large unit icons option enabled: buildorders get enlarged alongside with buildicons
- • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account 
+ • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account
+ • When tracking player camera, ally selected units gui is now integrated in option window 
  • Ecostats /specfullview crash fix
 
 
