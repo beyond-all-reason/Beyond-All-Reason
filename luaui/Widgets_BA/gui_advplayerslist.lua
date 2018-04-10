@@ -2466,7 +2466,10 @@ end
 function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system, name)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
-			pingLvl = pingLvl.." ms"
+            if pingLvl == 0 then
+                pingLvl = 0.1
+            end
+            pingLvl = round(pingLvl/33) .." ms"
 		elseif pingLvl >= 2000 and pingLvl < 60000 then
 			pingLvl = round(pingLvl/1000,0).." sec"
 		elseif pingLvl >= 60000 then

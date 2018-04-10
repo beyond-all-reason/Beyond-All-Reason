@@ -951,7 +951,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("Shadows "..value)
 		elseif id == 'vsync' then
 			Spring.SendCommands("Vsync "..value)
-			Spring.SetConfigInt("Vsync",value)
+			Spring.SetConfigInt("VSync",value)
 		elseif id == 'fullscreen' then
 			Spring.SendCommands("Fullscreen "..value)
 			Spring.SetConfigInt("Fullscreen",value)
