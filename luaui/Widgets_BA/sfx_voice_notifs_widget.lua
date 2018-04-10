@@ -98,6 +98,9 @@ function widget:Update(dt)
 end
 
 function EventBroadcast(msg)
+	if string.find(msg, "SoundEvents") then
+		Spring.Echo(msg)
+	end
 	if not isSpec or (isSpec and playTrackedPlayerNotifs and lockPlayerID ~= nil) then
         if string.find(msg, "SoundEvents") then
             msg = string.sub(msg, 13)

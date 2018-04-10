@@ -178,10 +178,15 @@ else
 
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("EventBroadcast", BroadcastEvent)
+		isSpec = Spring.GetSpectatingState()
+	end
+
+	function gadget:Update()
+		isSpec = Spring.GetSpectatingState()
 	end
 
 	function BroadcastEvent(_,event, player)
-		if Script.LuaUI("EventBroadcast") and tonumber(player) and (tonumber(player) == Spring.GetMyPlayerID()) then
+		if Script.LuaUI("EventBroadcast") and tonumber(player) and ((tonumber(player) == Spring.GetMyPlayerID()) or isSpec) then
 			Script.LuaUI.EventBroadcast("SoundEvents "..event.." "..player)
 		end
 	end
@@ -205,7 +210,6 @@ else
 				local players = PlayersInTeamID(Spring.GetUnitTeam(unitID))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						--SendToUnsynced("EventBroadcast", event, tostring(player))
 						BroadcastEvent("EventBroadcast", event, tostring(player))
 					end
 				end
@@ -222,7 +226,6 @@ else
 					local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))
 					for ct, player in pairs (players) do
 						if tostring(player) then
-							--SendToUnsynced("EventBroadcast", event, tostring(player))
 							BroadcastEvent("EventBroadcast", event, tostring(player))
 						end
 					end
@@ -232,7 +235,6 @@ else
 				local players =  PlayersInAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						--SendToUnsynced("EventBroadcast", event, tostring(player))
 						BroadcastEvent("EventBroadcast", event, tostring(player))
 					end
 				end
@@ -240,7 +242,6 @@ else
 				local players =  AllButAllyTeamID(GetAllyTeamID(Spring.GetUnitTeam(unitID)))
 				for ct, player in pairs (players) do
 					if tostring(player) then
-						--SendToUnsynced("EventBroadcast", event, tostring(player))
 						BroadcastEvent("EventBroadcast", event, tostring(player))
 					end
 				end
