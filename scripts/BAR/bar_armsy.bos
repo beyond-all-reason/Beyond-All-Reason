@@ -173,7 +173,7 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-
+	//move base to y-axis [25] now;
 	unitviewer = FALSE;
 	spray = 0;
 	call-script InitState();

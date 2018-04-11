@@ -51,6 +51,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 0 2",
 			bar_collisionvolumescales = "124 59 122",
+			bar_waterline = 1,
 		},
 		featuredefs = {
 			dead = {

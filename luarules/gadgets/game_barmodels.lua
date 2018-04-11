@@ -15,6 +15,8 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
     if (gadgetHandler:IsSyncedCode()) then return end
 
     function gadget:Initialize()
-        Spring.SendLuaRulesMsg('barmodels enabled')
+        if Spring.GetGameFrame() == 0 then
+            Spring.SendLuaRulesMsg('barmodels enabled')
+        end
     end
 end

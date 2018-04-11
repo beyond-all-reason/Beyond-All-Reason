@@ -50,7 +50,7 @@ return {
 			"armtship",
 		},
 		customparams = {
-			
+			bar_waterline = 1,
 		},
 		featuredefs = {
 			dead = {

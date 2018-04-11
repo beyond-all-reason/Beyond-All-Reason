@@ -42,7 +42,7 @@ return {
 			[6] = "armsehak",
 		},
 		customparams = {
-			
+			bar_waterline = 39,
 		},
 		featuredefs = {
 			dead = {
