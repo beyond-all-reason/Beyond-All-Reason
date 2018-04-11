@@ -29,6 +29,7 @@ MoveSpeed = {1.25,1.275,1.3,1.35,1.40,1.45,1.5,1.5,1.5,1.5,1.5}
 --RESOURCES PRODUCTION
 EnergyMake = {0,25,50,75,100,125,150,175,200,225,250}
 MetalMake = {0,0.5,1.0,1.5,2,2.5,3,3.5,4,4.5,5}
+WreckMetal = {0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.25, 2.5, 2.75, 3.0} -- wreck metal = WreckMetal[level] * Spring.GetModOptions().comm_wreck_metal or 2500
 
 -- SHIELDS/ARMOR/HEALS
 ShieldPower = {1000,1250,1500,2000,2500,3000,4000,4000,4000,4000,4000}

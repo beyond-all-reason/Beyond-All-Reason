@@ -483,6 +483,15 @@ tablearmcom.weapons[30] ={
 				onlytargetcategory = "NOTSUB",
 			}
 tablearmcom.buildoptions = ArmDefsBuildOptions
+for i = 1,11 do
+tablearmcom.featuredefs["dead"..tostring(i)] = deepcopy(tablearmcom.featuredefs.dead)
+tablearmcom.featuredefs["heap"..tostring(i)] = deepcopy(tablearmcom.featuredefs.heap)
+tablearmcom.featuredefs["dead"..tostring(i)].metal = tablearmcom.featuredefs["dead"].metal * WreckMetal[i]
+tablearmcom.featuredefs["heap"..tostring(i)].metal = tablearmcom.featuredefs["heap"].metal * WreckMetal[i]
+tablearmcom.featuredefs["dead"..tostring(i)].featuredead = "heap"..tostring(i)
+tablearmcom.featuredefs["dead"..tostring(i)].resurrectable = 1
+end
+
 end
 return { armcom = deepcopy(tablearmcom) }
 

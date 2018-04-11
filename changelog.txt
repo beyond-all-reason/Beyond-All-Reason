@@ -12,6 +12,8 @@ XX/XX/2018
  • When tracking player camera, ally selected units gui is now integrated in option window 
  • Ecostats /specfullview crash fix
 
+Unbalanced Commanders:
+ • Commander's wreck metal value scales on commander's level: 50% of full value at level1, +25% per level for 100% at level3 and max 300% at level 11.
 
 10.06 -> 10.07
 06/05/2018

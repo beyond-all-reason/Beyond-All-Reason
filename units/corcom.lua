@@ -493,5 +493,13 @@ tablecorcom.weapons[30] ={
 				onlytargetcategory = "NOTSUB",
 			}
 tablecorcom.buildoptions = CoreDefsBuildOptions
+for i = 1,11 do
+tablecorcom.featuredefs["dead"..tostring(i)] = deepcopy(tablecorcom.featuredefs.dead)
+tablecorcom.featuredefs["heap"..tostring(i)] = deepcopy(tablecorcom.featuredefs.heap)
+tablecorcom.featuredefs["dead"..tostring(i)].metal = tablecorcom.featuredefs["dead"].metal * WreckMetal[i]
+tablecorcom.featuredefs["heap"..tostring(i)].metal = tablecorcom.featuredefs["heap"].metal * WreckMetal[i]
+tablecorcom.featuredefs["dead"..tostring(i)].featuredead = "heap"..tostring(i)
+tablecorcom.featuredefs["dead"..tostring(i)].resurrectable = 1
+end
 end
 return { corcom = deepcopy(tablecorcom) }

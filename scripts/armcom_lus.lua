@@ -811,5 +811,9 @@ function walklegs()
 end
 
 function script.Killed()
-return 1
+local x,y,z = Spring.GetUnitPosition(unitID)
+local head = Spring.GetUnitHeading(unitID)
+local featureID = Spring.CreateFeature(("armcom_dead"..level), x, y, z, head)
+Spring.SetFeatureResurrect(featureID, "armcom", "s", 0)
+return nil
 end
