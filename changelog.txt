@@ -2,6 +2,9 @@
 XX/XX/2018
 
  • Fixed Juggernaut main weapon firing
+ • Fixed Line Unload behaviour (was discarding orders that were shown as possible)
+ • Fixed sniper auto hold fire when cloaked
+ • Added deterministic area unload distribution (no mindistance check) via widget "Area Unload"
  • Voice Notifs play along when tracking a players camera when speccing
  • When large unit icons option enabled: buildorders get enlarged alongside with buildicons
  • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account
