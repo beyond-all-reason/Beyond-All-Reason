@@ -169,6 +169,14 @@ local options={
         def    = true,
         section= "ba_others",
     },
+	{
+		key    = "mo_allowuserwidgets",
+		name   = "Allow user widgets",
+		desc   = "Allow custom user widgets or disallow them",
+		type   = "bool",
+		def    = true,
+		section= 'ba_others',
+	},
     {
         key    = 'FixedAllies',
         name   = 'Fixed ingame alliances',
