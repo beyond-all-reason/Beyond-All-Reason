@@ -184,6 +184,8 @@ end
 function HandleLevelUps()
 while(true) do
 if ValidID(unitID) then
+local hp = Sring.GetUnitHealth(unitID)
+if hp and hp > 1 and (not Spring.GetUnitIsDead(unitID)) then
 local null, fxp = Spring.GetUnitExperience(unitID)
 local realxp = 10 * fxp
 if realxp > 10 and level == 10 then
@@ -219,6 +221,7 @@ LevelUpStats(1)
 elseif realxp >= 0 and level == 0 then
 LevelUpModel(0)
 LevelUpStats(0)
+end
 end
 Sleep(1)
 end
