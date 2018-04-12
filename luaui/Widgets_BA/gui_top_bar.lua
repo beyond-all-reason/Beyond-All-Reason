@@ -469,9 +469,10 @@ local function updateComs(forceText)
 	dlistComs2 = glCreateList( function()
 		-- Commander icon
 		local sizeHalf = (height/2.75)*widgetScale
+
 		glTexture(comTexture)
 		glTexRect(area[1]+((area[3]-area[1])/2)-sizeHalf, area[2]+((area[4]-area[2])/2)-sizeHalf, area[1]+((area[3]-area[1])/2)+sizeHalf, area[2]+((area[4]-area[2])/2)+sizeHalf)
-		glTexture(false)
+        glTexture(false)
 
 		-- Text
 		if gameFrame > 0 or forceText then
@@ -801,7 +802,7 @@ function init()
 	if displayComCounter then
 		comsArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
 		filledWidth = filledWidth + width + areaSeparator
-		updateComs()
+        updateComs()
 	end
 
 	-- rejoin
@@ -837,15 +838,18 @@ function widget:GameStart()
 
 	if displayComCounter then
 		countComs()
-		updateComs(true)
+        if comsArea[1] ~= nil then
+		    updateComs(true)
+        end
 	end
 
 	-- code for rejoin
 	local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
 	local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
 	local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
-	Spring.SendLuaUIMsg(timestampMsg) --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-	myTimestamp = systemSecond
+    Spring.SendLuaUIMsg(timestampMsg, 's') --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
+    Spring.SendLuaUIMsg(timestampMsg, 'a') --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
+    myTimestamp = systemSecond
 end
 
 
