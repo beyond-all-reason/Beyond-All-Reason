@@ -1,19 +1,25 @@
 ﻿10.07 -> 10.08
 XX/XX/2018
 
+Balance changes:
  • Fixed Juggernaut main weapon firing
  • Fixed Line Unload behaviour (was discarding orders that were shown as possible)
  • Fixed sniper auto hold fire when cloaked
  • Fixed transported units using selfd explosion rather than death explosion when their transport is shot down / self destructs / is reclaimed
+
+Unbalanced Commanders:
+ • Commander's wreck metal value scales on commander's level: 50% of full value at level1, +25% per level for 100% at level3 and max 300% at level 11.
+
+Other:
  • Added deterministic area unload distribution (no mindistance check) via widget "Area Unload"
  • Voice Notifs play along when tracking a players camera when speccing
  • When large unit icons option enabled: buildorders get enlarged alongside with buildicons
  • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account
  • When tracking player camera, ally selected units gui is now integrated in option window 
  • Ecostats /specfullview crash fix
+ • Added option to disable specfullview when tracking player camera (default enabled)
+ • Added modoption 'mo_allowuserwidgets' to be able to disable user widgets
 
-Unbalanced Commanders:
- • Commander's wreck metal value scales on commander's level: 50% of full value at level1, +25% per level for 100% at level3 and max 300% at level 11.
 
 10.06 -> 10.07
 06/05/2018

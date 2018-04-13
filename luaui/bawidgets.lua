@@ -63,7 +63,7 @@ Spring.SendCommands({
 --
 
 local mo_allowuserwidgets = true
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().mo_allowuserwidgets) or 0) == 0 then
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().mo_allowuserwidgets) or 1) == 0 then
   mo_allowuserwidgets = false
 end
 

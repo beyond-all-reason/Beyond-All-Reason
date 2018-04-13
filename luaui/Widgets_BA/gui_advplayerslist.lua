@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "20.0",
+		version   = "21.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -41,6 +41,7 @@ end
 -- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 -- v19   (Floris): added player resource bars
 -- v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
+-- v21   (Floris): added specfullview toggle when tracking player
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -52,6 +53,7 @@ local pointDuration    		= 40
 local cpuText				= false
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
+local lockcameraHideEnemies = true
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -236,7 +238,7 @@ local tipText
 -- local player info
 local myAllyTeamID
 local myTeamID
-local mySpecStatus,_,_ = Spring.GetSpectatingState()
+local mySpecStatus,fullView,_ = Spring.GetSpectatingState()
 
 --General players/spectator count and tables
 local player = {}
@@ -552,9 +554,28 @@ m_seespec = {
 }
 
 
-
 local specsLabelOffset = 0
 local teamsizeVersusText = ""
+
+
+local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+if Engine and Engine.version then
+	local function Split(s, separator)
+		local results = {}
+		for part in s:gmatch("[^"..separator.."]+") do
+			results[#results + 1] = part
+		end
+		return results
+	end
+	engineVersion = Split(Engine.version, '-')
+	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
+		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
+	else
+		engineVersion = tonumber(Engine.version)
+	end
+elseif Game and Game.version then
+	engineVersion = tonumber(Game.version)
+end
 
 ---------------------------------------------------------------------------------------------------
 --  Geometry
@@ -681,6 +702,9 @@ end
 local function LockCamera(playerID)
 	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID then
 		lockPlayerID = playerID
+		if lockcameraHideEnemies and ((engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401400) then
+			Spring.SendCommands("specfullview 0")
+		end
 		myLastCameraState = myLastCameraState or GetCameraState()
 		local info = lastBroadcasts[lockPlayerID]
 		if info then
@@ -692,6 +716,9 @@ local function LockCamera(playerID)
 			myLastCameraState = nil
 		end
 		lockPlayerID = nil
+		if lockcameraHideEnemies and ((engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401400) then
+			Spring.SendCommands("specfullview 1")
+		end
 	end
 	UpdateRecentBroadcasters()
 end
@@ -756,7 +783,7 @@ function widget:Initialize()
   widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	UpdateRecentBroadcasters()
 	
-	mySpecStatus,_,_ = Spring.GetSpectatingState()
+	mySpecStatus,fullView,_ = Spring.GetSpectatingState()
 	if Spring.GetGameFrame() <= 0 then
 		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
@@ -806,12 +833,24 @@ function widget:Initialize()
                 SetCameraState(myLastCameraState, transitionTime)
             end
         end
-    end
+	end
+	WG['advplayerlist_api'].GetLockHideEnemies = function()
+		return lockcameraHideEnemies
+	end
+	WG['advplayerlist_api'].SetLockHideEnemies = function(value)
+		lockcameraHideEnemies = value
+		if not lockcameraHideEnemies then
+			Spring.SendCommands("specfullview 1")
+		elseif lockPlayerID ~= nil then
+			Spring.SendCommands("specfullview 0")
+		end
+	end
+
 end
 
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
-		mySpecStatus,_,_ = Spring.GetSpectatingState()
+		mySpecStatus,fullView,_ = Spring.GetSpectatingState()
 		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
@@ -3157,7 +3196,8 @@ function widget:GetConfigData(data)      -- save
 			specListShow       = specListShow,
 			gameFrame          = Spring.GetGameFrame(),
 			lastSystemData     = lastSystemData,
-			alwaysHideSpecs    = alwaysHideSpecs
+			alwaysHideSpecs    = alwaysHideSpecs,
+			lockcameraHideEnemies = lockcameraHideEnemies,
 		}
 		
 		return settings
@@ -3176,7 +3216,11 @@ function widget:SetConfigData(data)      -- load
 	if data.alwaysHideSpecs ~= nil then
 		alwaysHideSpecs = data.alwaysHideSpecs
 	end
-	
+
+	if data.lockcameraHideEnemies ~= nil then
+		lockcameraHideEnemies = data.lockcameraHideEnemies
+	end
+
 	--view
 	if data.expandDown ~= nil and data.widgetRight ~= nil then
 		expandDown   = data.expandDown
