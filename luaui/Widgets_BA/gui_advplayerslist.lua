@@ -557,26 +557,6 @@ m_seespec = {
 local specsLabelOffset = 0
 local teamsizeVersusText = ""
 
-
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
-if Engine and Engine.version then
-	local function Split(s, separator)
-		local results = {}
-		for part in s:gmatch("[^"..separator.."]+") do
-			results[#results + 1] = part
-		end
-		return results
-	end
-	engineVersion = Split(Engine.version, '-')
-	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
-		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
-	else
-		engineVersion = tonumber(Engine.version)
-	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
-end
-
 ---------------------------------------------------------------------------------------------------
 --  Geometry
 ---------------------------------------------------------------------------------------------------
@@ -702,7 +682,7 @@ end
 local function LockCamera(playerID)
 	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID then
 		lockPlayerID = playerID
-		if lockcameraHideEnemies and ((engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401400) then
+		if lockcameraHideEnemies then
 			Spring.SendCommands("specfullview 0")
 		end
 		myLastCameraState = myLastCameraState or GetCameraState()
@@ -716,7 +696,7 @@ local function LockCamera(playerID)
 			myLastCameraState = nil
 		end
 		lockPlayerID = nil
-		if lockcameraHideEnemies and ((engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401400) then
+		if lockcameraHideEnemies then
 			Spring.SendCommands("specfullview 1")
 		end
 	end
@@ -829,6 +809,9 @@ function widget:Initialize()
             lockPlayerID = playerID
         else
             lockPlayerID = nil
+			if lockcameraHideEnemies then
+				Spring.SendCommands("specfullview 1")
+			end
             if myLastCameraState ~= nil then
                 SetCameraState(myLastCameraState, transitionTime)
             end
@@ -3255,6 +3238,9 @@ function widget:SetConfigData(data)      -- load
 	end
 	if data.lockPlayerID ~= nil and Spring.GetGameFrame()>0 then
 		lockPlayerID = data.lockPlayerID
+		if lockPlayerID ~= nil and lockcameraHideEnemies then
+			Spring.SendCommands("specfullview 0")
+		end
 	end
 	if data.cpuText ~= nil then
 		cpuText = data.cpuText

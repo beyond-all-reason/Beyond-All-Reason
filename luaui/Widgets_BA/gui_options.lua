@@ -1940,10 +1940,6 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
-	if (engineVersion < 105 or (engineVersion > 10401000 and engineVersion < 10401400)) then
-		options[getOptionByID('lockcamera_hideenemies')] = nil
-	end
-
 	-- add sound notification widget sound toggle options
 	if widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
