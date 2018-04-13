@@ -283,7 +283,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		if cloakUnitDefID[unitDefID] then
 			SetWantedCloaked(unitID,cmdParams[1])
 		end
-		return false
+		return true
 	elseif cmdID == CMD_CLOAK then
 		return false
 	end
