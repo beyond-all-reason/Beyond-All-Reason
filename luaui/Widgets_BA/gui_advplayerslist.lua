@@ -831,21 +831,21 @@ function widget:Initialize()
 	end
 	WG['advplayerlist_api'].SetLockHideEnemies = function(value)
 		lockcameraHideEnemies = value
-		if not lockcameraHideEnemies and lockPlayerID == nil then
-			Spring.SendCommands("specfullview")
-			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
-				Spring.SendCommands("togglelos")
-			end
-		elseif lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
-			if not fullView then
-				sceduledSpecFullView = 1
-				Spring.SendCommands("specfullview")
+		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+			if not lockcameraHideEnemies then
+				if not fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
 			else
-				sceduledSpecFullView = 2
-				Spring.SendCommands("specfullview")
-			end
-			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
-				Spring.SendCommands("togglelos")
+				if fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
 			end
 		end
 	end
@@ -854,12 +854,10 @@ function widget:Initialize()
 	end
 	WG['advplayerlist_api'].SetLockLos = function(value)
 		lockcameraLos = value
-		if not lockcameraHideEnemies and lockPlayerID == nil then
-			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+			if lockcameraLos and Spring.GetMapDrawMode()~="los" then
 				Spring.SendCommands("togglelos")
-			end
-		elseif lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
-			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+			elseif not lockcameraLos and Spring.GetMapDrawMode()=="los" then
 				Spring.SendCommands("togglelos")
 			end
 		end
@@ -3280,17 +3278,21 @@ function widget:SetConfigData(data)      -- load
 	end
 	if data.lockPlayerID ~= nil and Spring.GetGameFrame()>0 then
 		lockPlayerID = data.lockPlayerID
-		if lockPlayerID ~= nil and lockcameraHideEnemies and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
-			if not fullView then
-				sceduledSpecFullView = 1
-				Spring.SendCommands("specfullview")
+		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+			if not lockcameraHideEnemies then
+				if not fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
 			else
-				sceduledSpecFullView = 2
-				Spring.SendCommands("specfullview")
-			end
-			Spring.SendCommands("specfullview")
-			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
-				Spring.SendCommands("togglelos")
+				if fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
 			end
 		end
 	end
