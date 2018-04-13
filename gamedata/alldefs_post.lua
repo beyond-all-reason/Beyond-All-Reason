@@ -234,7 +234,10 @@ function UnitDef_Post(name, uDef)
 	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
 		uDef.builddistance = minimumbuilddistancerange
 	end
-end
+    if uDef.maxvelocity then
+        uDef.maxreversevelocity = 0.35*uDef.maxvelocity
+    end
+	end
 
 
 -- process weapondef
