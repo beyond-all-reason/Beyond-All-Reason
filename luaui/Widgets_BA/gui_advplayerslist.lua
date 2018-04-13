@@ -196,8 +196,8 @@ local now             = 0
 -- LockCamera variables
 --------------------------------------------------------------------------------
 
-local transitionTime	= 2 --how long it takes the camera to move
-local listTime			= 15 --how long back to look for recent broadcasters
+local transitionTime	= 1 --how long it takes the camera to move when trackign a player
+local listTime			= 14 --how long back to look for recent broadcasters
 
 local myPlayerID = Spring.GetMyPlayerID()
 local lockPlayerID
@@ -3457,7 +3457,10 @@ function widget:Update(delta) --handles takes & related messages
 	totalTime = totalTime + delta 
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
-	
+
+	if lockPlayerID ~= nil then
+		Spring.SetCameraState(Spring.GetCameraState(), transitionTime)
+	end
 	
 	if energyPlayer ~= nil or metalPlayer ~= nil then
 		CreateShareSlider()
