@@ -146,6 +146,8 @@ function gadget:GameFrame(gf)
             else
                 missiles[proID] = nil
             end
+        else
+            missiles[proID] = nil
         end
     end
 end
