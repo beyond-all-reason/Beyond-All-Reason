@@ -17,7 +17,6 @@ Other:
  • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account
  • When tracking player camera, ally selected units gui is now integrated in option window 
  • Ecostats /specfullview crash fix
- • Toggling LoS and limits view when camera tracking a players perspective
  • Added modoption 'mo_allowuserwidgets' to be able to disable user widgets
 
 

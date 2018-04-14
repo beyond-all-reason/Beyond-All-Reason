@@ -53,8 +53,8 @@ local pointDuration    		= 40
 local cpuText				= false
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
-local lockcameraHideEnemies = true
-local lockcameraLos = true
+local lockcameraHideEnemies = false --true
+local lockcameraLos = false --true
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -3215,8 +3215,8 @@ function widget:GetConfigData(data)      -- save
 			gameFrame          = Spring.GetGameFrame(),
 			lastSystemData     = lastSystemData,
 			alwaysHideSpecs    = alwaysHideSpecs,
-			lockcameraHideEnemies = lockcameraHideEnemies,
-			lockcameraLos      = lockcameraLos,
+			--lockcameraHideEnemies = lockcameraHideEnemies,
+			--lockcameraLos      = lockcameraLos,
 		}
 		
 		return settings
@@ -3237,11 +3237,11 @@ function widget:SetConfigData(data)      -- load
 	end
 
 	if data.lockcameraHideEnemies ~= nil then
-		lockcameraHideEnemies = data.lockcameraHideEnemies
+		--lockcameraHideEnemies = data.lockcameraHideEnemies
 	end
 
 	if data.lockcameraLos ~= nil then
-		lockcameraLos = data.lockcameraLos
+		--lockcameraLos = data.lockcameraLos
 	end
 
 	--view
