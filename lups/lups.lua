@@ -895,7 +895,6 @@ local function GameFrame(_,n)
 	thisGameFrame = n
 	if ((not next(particles)) and (not effectsInDelay[1])) then return end
 
-	UpdateAllyTeamStatus()
 	--// create delayed FXs
 	if (effectsInDelay[1]) then
 		local remaingFXs,cnt={},1
@@ -954,6 +953,8 @@ local function GameFrame(_,n)
 end
 
 local function Update(_,dt)
+	UpdateAllyTeamStatus()
+
 	--// update frameoffset
 	frameOffset = spGetFrameTimeOffset()
 
