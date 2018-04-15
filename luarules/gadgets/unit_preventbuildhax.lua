@@ -13,11 +13,15 @@ function gadget:GetInfo()
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-	local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdID)
-	local cmdArrays = Spring.GetUnitCmdDescs(unitID, cmdIndex, cmdIndex)
-	local cmdArray = cmdArrays[1]
-	if cmdID < 0 and cmdArray.disabled == true then
-		return false
+	if UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" then
+		local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdID)
+		local cmdArrays = Spring.GetUnitCmdDescs(unitID, cmdIndex, cmdIndex)
+		local cmdArray = cmdArrays[1]
+		if cmdID < 0 and cmdArray.disabled == true then
+			return false
+		else
+			return true
+		end
 	else
 		return true
 	end
