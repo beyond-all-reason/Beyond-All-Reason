@@ -103,7 +103,7 @@ local buttons = { --see MouseRelease for which functions are called by which but
 }
 
 local mo_allowuserwidgets = true
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().mo_allowuserwidgets) or 0) == 0 then
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().mo_allowuserwidgets) or 1) == 0 then
   mo_allowuserwidgets = false
   buttons[3] = ''
 end
