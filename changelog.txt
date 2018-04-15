@@ -3,6 +3,7 @@ xx/xx/2018
 
 Balance changes:
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
+ • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%
 
 10.07 -> 10.08
 15/04/2018
