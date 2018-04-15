@@ -53,7 +53,7 @@ function widget:Update(dt)
 		
 		spySelected = false
 		local count = GetSelectedUnitsCount()
-		if count <= 15 then  -- above a little amount we aren't micro-ing spies anymore...
+		if count > 0 and count <= 12 then  -- above a little amount we aren't micro-ing spies anymore...
 			local selectedUnittypes = GetSelectedUnitsSorted()
 			for spyDefID in pairs(spies) do
 				if selectedUnittypes[spyDefID] then

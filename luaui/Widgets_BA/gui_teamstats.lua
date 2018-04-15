@@ -265,22 +265,6 @@ function viewResize(scalingVec,guiData)
 	return guiData
 end
 
-function tweakMousePress(mouseCoords,guiData)
-	local boxType, border, masks = isAbove(mouseCoords,guiData)
-	if not boxType then
-		return false, guiData
-	end
-	for boxName in pairs(guiData) do
-		guiData[boxName].changing = {}
-	end
-	if border then
-		guiData[boxType].changing.resizing = masks
-	else
-		guiData[boxType].changing.dragging = true
-	end
-	return boxType, guiData
-end
-
 function convertCoords(sourceCoords,scalingVec)
 	local newCoords = {}
 	for coordName, coordData in pairs(sourceCoords) do
@@ -292,51 +276,6 @@ function convertCoords(sourceCoords,scalingVec)
 	return newCoords
 end
 
-function tweakMouseRelease(guiData)
-	local vsx,vsy = widgetHandler:GetViewSizes()
-	local scalingVec = {x=1/vsx,y=1/vsy}
-	for boxType, boxData in pairs(guiData) do
-		guiData[boxType].relSizes = convertCoords(boxData.absSizes,scalingVec)
-		guiData[boxType].changing = {}
-	end
-	return guiData
-end
-
-function tweakMouseMove(mouseDelta, guiData)
-	local changed
-	for boxType, boxData in pairs(guiData) do
-		for changeType,changeVal in pairs(boxData.changing) do
-			if changeType == "dragging" then
-				changed = boxType
-				for coordName,coordData in pairs(boxData.absSizes) do
-					for absname,minMax in pairs(coordData) do
-						if absname ~= "length" then
-							guiData[boxType].absSizes[coordName][absname] = minMax + mouseDelta[coordName]
-						end
-					end
-				end
-			elseif changeType == "resizing" then
-				changed = boxType
-				local borderMasks = changeVal
-				local boxSizes = boxData.absSizes
-				local minSize = boxData.draggingBorderSize*3
-				for borderName, borderVal in pairs(borderMasks) do
-					if borderVal then
-						local coordName = borderRemap[borderName][1]
-						local coordDir = borderRemap[borderName][2]
-						local dir = borderRemap[borderName][3]
-						if boxSizes[coordName].length + mouseDelta[coordName]*dir > minSize then
-							boxSizes[coordName][coordDir] = boxSizes[coordName][coordDir] + mouseDelta[coordName]
-							boxSizes[coordName].length = boxSizes[coordName].max - boxSizes[coordName].min
-						end
-					end
-				end
-				guiData[boxType].absSizes = boxSizes
-			end
-		end
-	end
-	return changed,guiData
-end
 
 local teamData={}
 local maxColumnTextSize = 0
@@ -565,7 +504,6 @@ function widget:GameFrame(n,forceupdate)
 	sort(teamData,compareAllyTeams)
 	if totalNumLines ~= prevNumLines then
 		guiData.mainPanel.absSizes.y.min = guiData.mainPanel.absSizes.y.max - totalNumLines*fontSize
-		guiData = tweakMouseRelease(guiData)
 	end
 	prevNumLines = totalNumLines
 	glDeleteList(textDisplayList)
@@ -583,21 +521,22 @@ function widget:GameOver()
 	end
 end
 
-
-function widget:IsAbove(x,y)
-	return isAbove({x=x,y=y},guiData)
-end
-
 function widget:MousePress(mx,my,button)
+	if not guiData.mainPanel.visible then
+		return
+	end
 	return mouseEvent(mx,my,button)
 end
 
 function widget:MouseRelease(mx,my,button)
+	if not guiData.mainPanel.visible then
+		return
+	end
 	return mouseEvent(mx,my,button,true)
 end
 
 function mouseEvent(mx,my,button,release)
-	local boxType = widget:IsAbove(mx,my)
+	local boxType = isAbove({x=mx,y=my},guiData)
 	if not boxType and guiData.mainPanel.visible then
 	  	if release then
 			guiData.mainPanel.visible = false
@@ -643,7 +582,10 @@ function updateFontSize()
 end
 
 function widget:MouseMove(mx,my,dx,dy)
-	local boxType = widget:IsAbove(mx,my)
+	if not guiData.mainPanel.visible then
+		return
+	end
+	local boxType = isAbove({x=mx,y=my},guiData)
 	local newLine,newColumn
 	if boxType == "mainPanel" then
 		newLine,newColumn = getLineAndColumn(mx,my)
