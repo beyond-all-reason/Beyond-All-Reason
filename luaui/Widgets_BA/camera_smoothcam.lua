@@ -14,17 +14,7 @@ function widget:GetInfo()
 end
 
 
---------------------------------------------------------------------------------
-----------------------------Configuration---------------------------------------
-local camSpeed   = 0.3
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-local spGetCameraState   	= Spring.GetCameraState
-local spSetCameraState   	= Spring.SetCameraState
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 function widget:Update(dt)
-  local cs = spGetCameraState()
-  spSetCameraState(cs, camSpeed)
+    Spring.SetCameraState(Spring.GetCameraState(), 0.3)
 end
 
