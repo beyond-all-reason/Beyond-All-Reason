@@ -1,16 +1,15 @@
 ﻿10.07 -> 10.08
-XX/XX/2018
+15/04/2018
 
 Balance changes:
+ • Speed -2% for: Stumpy, Raider, Bulldog, Reaper
+ • Janus -2% Brakerate / - 2% acceleration
+ • Bulldog -7 weapon AoE
+ • Reapers -100 HP
  • Fixed Juggernaut main weapon firing
  • Fixed Line Unload behaviour (was discarding orders that were shown as possible)
  • Fixed sniper auto hold fire when cloaked
  • Fixed transported units using selfd explosion rather than death explosion when their transport is shot down / self destructs / is reclaimed
- • Janus -2% Brakerate / - 2% acceleration
- • Stumpy -2% max velocity
- • Raider -2% max velocity
- • Bulldog -2% max velocity / - 7% aoe
- • Reapers -2% max velocity / -100 hp
 
 Unbalanced Commanders:
  • Commander's wreck metal value scales on commander's level: 70% of full value at level 1, 100% at level 2, 120% at level 3, 140% at level 4, 
@@ -23,7 +22,7 @@ Other:
  • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account
  • When tracking player camera, ally selected units gui is now integrated in option window 
  • Ecostats /specfullview crash fix
- • Added modoption 'mo_allowuserwidgets' to be able to disable user widgets
+ • Added modoption 'mo_allowuserwidgets' to be able to disable user widgets (plain level field for tournaments and other competitive setups)
 
 
 10.06 -> 10.07
