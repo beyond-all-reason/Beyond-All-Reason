@@ -20,95 +20,10 @@ local usePrefixedNames = true
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
--- make a table of the names of user widgets 
-local userWidgets = {}
-function widget:Initialize()
-	for name,wData in pairs(widgetHandler.knownWidgets) do
-		userWidgets[name] = (not wData.fromZip)
-	end
-end
+local callinStats       = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-local callinTimes       = {}
-
-local oldUpdateWidgetCallIn
-local oldInsertWidget
-
-local listOfHooks = {}
-setmetatable(listOfHooks, { __mode = 'k' })
-
-local inHook = false
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local SCRIPT_DIR = Script.GetName() .. '/'
-
-local function IsHook(func)
-	return listOfHooks[func]
-end
-
-local prefixedWnames = {}
-local function ConstructPrefixedName (ghInfo)
-	local gadgetName = ghInfo.name
-	local baseName = ghInfo.basename
-	local _pos = baseName:find("_", 1)
-	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
-	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
-	
-	prefixedWnames[gadgetName] = prefixedGadgetName
-	return prefixedWnames[gadgetName]
-end
-
-local function Hook(w,name) -- name is the callin
-	local spGetTimer = Spring.GetTimer
-	local spDiffTimers = Spring.DiffTimers
-	local widgetName = w.whInfo.name
-
-		local wname = prefixedWnames[widgetName] or ConstructPrefixedName(w.whInfo)
-
-	local realFunc = w[name]
-	w["_old" .. name] = realFunc
-
-	if (widgetName=="Widget Profiler") then
-		return realFunc -- don't profile ourselves
-	end
-
-	local widgetCallinTime = callinTimes[wname] or {}
-	callinTimes[wname] = widgetCallinTime
-	widgetCallinTime[name] = widgetCallinTime[name] or {0,0,0,0}
-	local callinStats = widgetCallinTime[name]
-
-	local t
-
-	local helper_func = function(...)
-		local dt = spDiffTimers(spGetTimer(),t)    
-		local ds = collectgarbage("count") - s
-		callinStats[1] = callinStats[1] + dt
-		callinStats[2] = callinStats[2] + dt
-		callinStats[3] = callinStats[3] + ds 
-		callinStats[4] = callinStats[4] + ds
-		inHook = nil
-		return ...
-	end
-
-	local hook_func = function(...)
-		if (inHook) then
-			return realFunc(...)
-		end
-
-		inHook = true
-		t = spGetTimer()
-		s = collectgarbage("count")
-		return helper_func(realFunc(...))
-	end
-
-	listOfHooks[hook_func] = true
-
-	return hook_func
-end
 
 local function ArrayInsert(t, f, g)
 	if (f) then
@@ -136,7 +51,98 @@ local function ArrayRemove(t, g)
 	end
 end
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
+-- make a table of the names of user widgets 
+local userWidgets = {}
+function widget:Initialize()
+	for name,wData in pairs(widgetHandler.knownWidgets) do
+		userWidgets[name] = (not wData.fromZip)
+	end
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local oldUpdateWidgetCallIn
+local oldInsertWidget
+
+local listOfHooks = {}
+setmetatable(listOfHooks, { __mode = 'k' })
+
+local inHook = false
+local function IsHook(func)
+	return listOfHooks[func]
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
+local spGetLuaMemUsage = Spring.GetLuaMemUsage
+
+local prefixedWnames = {}
+local function ConstructPrefixedName (ghInfo)
+	local gadgetName = ghInfo.name
+	local baseName = ghInfo.basename
+	local _pos = baseName:find("_", 1)
+	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
+	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
+	
+	prefixedWnames[gadgetName] = prefixedGadgetName
+	return prefixedWnames[gadgetName]
+end
+
+local function Hook(w,name) -- name is the callin
+	local widgetName = w.whInfo.name
+
+	local wname = prefixedWnames[widgetName] or ConstructPrefixedName(w.whInfo)
+
+	local realFunc = w[name]
+	w["_old" .. name] = realFunc
+
+	if (widgetName=="Widget Profiler") then
+		return realFunc -- don't profile ourselves
+	end
+
+	local widgetCallinTime = callinStats[wname] or {}
+	callinStats[wname] = widgetCallinTime
+	widgetCallinTime[name] = widgetCallinTime[name] or {0,0,0,0}
+	local c = widgetCallinTime[name]
+
+	local t
+
+	local helper_func = function(...)
+		local dt = spDiffTimers(spGetTimer(),t)    
+		local _,_,new_s,_ = spGetLuaMemUsage() 
+		local ds = new_s - s
+		c[1] = c[1] + dt
+		c[2] = c[2] + dt
+		c[3] = c[3] + ds 
+		c[4] = c[4] + ds
+		inHook = nil
+		return ...
+	end
+
+	local hook_func = function(...)
+		if (inHook) then
+			return realFunc(...)
+		end
+
+		inHook = true
+		t = spGetTimer()
+		local _,_,new_s,_ = spGetLuaMemUsage() 		
+		s = new_s
+		--Spring.Echo(s, collectgarbage("count"))
+		return helper_func(realFunc(...))
+	end
+
+	listOfHooks[hook_func] = true
+
+	return hook_func
+end
 
 local function StartHook()
 	Spring.Echo("start profiling")
@@ -363,8 +369,10 @@ function DrawWidgetList(list,name,x,y,j)
 	return x,j
 end
 
+local lm,_,gm,_ = spGetLuaMemUsage()
+
 function widget:DrawScreen()
-	if not (next(callinTimes)) then
+	if not (next(callinStats)) then
 		return --// nothing to do
 	end
 
@@ -373,35 +381,35 @@ function widget:DrawScreen()
 
 	-- sort & count timing
 	if (deltaTime>=tick) then
-	startTimer = Spring.GetTimer()
-	sortedList = {}
+		startTimer = Spring.GetTimer()
+		sortedList = {}
 
-	maximum = 0
-	avg = 0
-	allOverTime = 0
-	allOverSpace = 0
-	local n = 1
-	for wname,callins in pairs(callinTimes) do
-		local t = 0 -- would call it time, but protected
-		local cmax_t = 0
-		local cmaxname_t = "-"
-		local space = 0
-		local cmax_space = 0
-		local cmaxname_space = "-"
-		for cname,callinStats in pairs(callins) do
-		t = t + callinStats[1]
-		if (callinStats[2]>cmax_t) then
-			cmax_t = callinStats[2]
-			cmaxname_t = cname
-		end
-		callinStats[1] = 0
-		
-		space = space + callinStats[3]
-		if (callinStats[4]>cmax_space) then 
-			cmax_space = callinStats[4]
-			cmaxname_space = cname
-		end
-		callinStats[3] = 0
+		maximum = 0
+		avg = 0
+		allOverTime = 0
+		allOverSpace = 0
+		local n = 1
+		for wname,callins in pairs(callinStats) do
+			local t = 0 -- would call it time, but protected
+			local cmax_t = 0
+			local cmaxname_t = "-"
+			local space = 0
+			local cmax_space = 0
+			local cmaxname_space = "-"
+			for cname,c in pairs(callins) do
+			t = t + c[1]
+			if (c[2]>cmax_t) then
+				cmax_t = c[2]
+				cmaxname_t = cname
+			end
+			c[1] = 0
+			
+			space = space + c[3]
+			if (c[4]>cmax_space) then 
+				cmax_space = c[4]
+				cmaxname_space = cname
+			end
+			c[3] = 0
 		end
 
 		local relTime = 100 * t / deltaTime
@@ -419,19 +427,21 @@ function widget:DrawScreen()
 		allOverSpace = allOverSpace + sLoad
 		avg = avg + tLoad
 		if (maximum<tLoad) then maximum=tLoad end
-		n = n + 1
-	end
-	avg = avg/n
+			n = n + 1
+		end
+		avg = avg/n
 
-	table.sort(sortedList,SortFunc)
-	
-	for i=1,#sortedList do
-		GetRedColourStrings(sortedList[i])
-	end
+		table.sort(sortedList,SortFunc)
+		
+		for i=1,#sortedList do
+			GetRedColourStrings(sortedList[i])
+		end
+
+		lm,_,gm,_ = spGetLuaMemUsage()
 	end
 
 	if (not sortedList[1]) then
-	return --// nothing to do
+		return --// nothing to do
 	end
 
 	-- add to category and set colour
@@ -469,7 +479,7 @@ function widget:DrawScreen()
 		x,j = DrawWidgetList(gameList,"GAME",x,y,j)
 		x,j = DrawWidgetList(userList,"USER",x,y,j)
 
-		if j>=maxLines-11 then x = x - 350; j = 0; end
+		if j>=maxLines-12 then x = x - 350; j = 0; end
 		j = j + 1
 		gl.Text(title_colour.."ALL", x+152, y-1-(12)*j, 10, "no")
 		j = j + 1
@@ -480,6 +490,8 @@ function widget:DrawScreen()
 		j = j + 1
 		gl.Text(info_colour.."total rate of mem allocation by luaui callins", x+152, y-1-(12)*j, 10, "no")
 		gl.Text(info_colour..('%.0f'):format(allOverSpace) .. 'kB/s', x+105, y-1-(12)*j, 10, "no")
+		j = j + 2
+		gl.Text(info_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which ' .. ('%.0f'):format(100*lm/gm) .. '% is from luaui', x+65, y-1-(12)*j, 10, "no")
 		
 		--j = j + 1
 		--gl.Text(totals_colour.."total time", x+150, y-1-(12)*j, 10, "no")
