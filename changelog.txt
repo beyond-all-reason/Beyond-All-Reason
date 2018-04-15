@@ -14,6 +14,9 @@ Balance changes:
 Unbalanced Commanders:
  • Commander's wreck metal value scales on commander's level: 70% of full value at level 1, 100% at level 2, 120% at level 3, 140% at level 4, 
  170% at level 5, 200% at level 6, 220% at level 7, 250% at level 8, 300% at level 9, 400% at level 10 and 500% at level 11
+ • MoveSpeed reduced by 0.025 when level increases ( 1.25 -> 1.0 )
+ • EnergyMake = Base + {0,25,50,75,100,150,200,250,300,400,500}
+ • MetalMake = Base + {0,0.5,1.0,2,3,4,5,7.5,10,12.5,15}
 
 Other:
  • Added deterministic area unload distribution (no mindistance check) via widget "Area Unload"

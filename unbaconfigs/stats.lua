@@ -24,11 +24,11 @@ BuildSpeed = {300,350,400,450,500,550,600,700,800,900,1000}
 repairRange = 300
 
 -- MOVEMENT
-MoveSpeed = {1.25,1.20,1.20,1.15,1.10,1.05,1,1,1,1,1}
+MoveSpeed = {1.25,1.225,1.20,1.175,1.15,1.125,1.1,1.075,1.05,1.025,1}
 
 --RESOURCES PRODUCTION
-EnergyMake = {0,50,100,150,200,300,400,500,1000,2000,3000}
-MetalMake = {0,1.0,2.0,4.0,8.0,12.0,16.0,20.0,24.0,28.0,40.0}
+EnergyMake = {0,25,50,75,100,150,200,250,300,400,500}
+MetalMake = {0,0.5,1.0,2,3,4,5,7.5,10,12.5,15}
 WreckMetal = {0.7, 1.0, 1.2, 1.4, 1.7, 2, 2.2, 2.5, 3, 4, 5} -- wreck metal = WreckMetal[level] * Spring.GetModOptions().comm_wreck_metal or 2500
 
 -- SHIELDS/ARMOR/HEALS
