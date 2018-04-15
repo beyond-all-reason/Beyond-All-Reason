@@ -1,3 +1,5 @@
+local enablegadget = (Spring.GetModOptions().mo_unba or "disabled") == "enabled"
+
 function gadget:GetInfo()
 	return {
 		name	= "Prevent build Hax",
@@ -6,7 +8,7 @@ function gadget:GetInfo()
 		date	= "2018-01-23",
 		license	= "GNU GPL, v2 or later",
 		layer	= 0,
-		enabled	= true,
+		enabled	= enablegadget,
 	}
 end
 
