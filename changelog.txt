@@ -6,9 +6,15 @@ Balance changes:
  • Fixed Line Unload behaviour (was discarding orders that were shown as possible)
  • Fixed sniper auto hold fire when cloaked
  • Fixed transported units using selfd explosion rather than death explosion when their transport is shot down / self destructs / is reclaimed
+ • Janus -2% Brakerate / - 2% acceleration
+ • Stumpy -2% max velocity
+ • Raider -2% max velocity
+ • Bulldog -2% max velocity / - 7% aoe
+ • Reapers -2% max velocity / -100 hp
 
 Unbalanced Commanders:
- • Commander's wreck metal value scales on commander's level: 50% of full value at level1, +25% per level for 100% at level3 and max 300% at level 11.
+ • Commander's wreck metal value scales on commander's level: 70% of full value at level 1, 100% at level 2, 120% at level 3, 140% at level 4, 
+ 170% at level 5, 200% at level 6, 220% at level 7, 250% at level 8, 300% at level 9, 400% at level 10 and 500% at level 11
 
 Other:
  • Added deterministic area unload distribution (no mindistance check) via widget "Area Unload"
