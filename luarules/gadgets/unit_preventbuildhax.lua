@@ -12,8 +12,12 @@ function gadget:GetInfo()
 	}
 end
 
+com = {}
+com[UnitDefNames["armcom"].id] = true
+com[UnitDefNames["corcom"].id] = true
+
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-	if UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" then
+	if com[unitDefID] then
 		local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdID)
 		local cmdArrays = Spring.GetUnitCmdDescs(unitID, cmdIndex, cmdIndex)
 		local cmdArray = cmdArrays[1]
