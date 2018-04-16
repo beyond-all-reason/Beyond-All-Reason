@@ -26,6 +26,13 @@ if UnitDefNames["chip"] ~= nil then
 end
 
 
+local featureList = {}
+for featureDefID, fdef in pairs(FeatureDefs) do
+   if (fdef.model ~= nil) then
+	   featureList[featureDefID] = {minx=fdef.model.minx, maxx=fdef.model.maxx, miny=fdef.model.miny, maxy=fdef.model.maxy, minz=fdef.model.minz, maxz=fdef.model.maxz}
+   end
+end
+
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 	if attackerID == nil and ignoreUnits[unitDefID] == nil then -- if reclaimed
 		local ux,uy,uz = Spring.GetUnitPosition(unitID)
@@ -54,28 +61,27 @@ function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, wea
 		if (fx ~= nil) then
 			local x,y,z = fx,fy,fz
 			local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+			local fdef = featureList[featureDefID]
 			if me ~= nil and me > 0 then
-				local fdef = FeatureDefs[featureDefID]
-				local numFx = math.floor(me/200)
+				local numFx = math.floor(me/250)
 				local posMultiplier = 0.5
 				Spring.SpawnCEG("energyshards1", x, y, z)
 				for i=1, numFx, 1 do
-					x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-					z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-					y = fy + (random() * fdef.model.maxy*posMultiplier)
+					x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+					z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+					y = fy + (random() * fdef.maxy*posMultiplier)
 					Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
 				end
 				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 			end
 			if mm ~= nil and mm > 0 then
-				local fdef = FeatureDefs[featureDefID]
-				local numFx = math.floor(mm/75)
+				local numFx = math.floor(mm/90)
 				local posMultiplier = 0.5
 				Spring.SpawnCEG("metalshards1", x, y, z)
 				for i=1, numFx, 1 do
-					x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-					z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-					y = fy + (random() * fdef.model.maxy*posMultiplier)
+					x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+					z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+					y = fy + (random() * fdef.maxy*posMultiplier)
 					Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
 				end
 				--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
@@ -94,29 +100,28 @@ function gadget:FeatureDestroyed(featureID, allyteam)
 		local x,y,z = fx,fy,fz
 		--local featureDefID = Spring.GetFeatureDefID(featureID)
 		local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
-			
+		local fdef = featureList[Spring.GetFeatureDefID(featureID)]
+
 		if me ~= nil and me > 0 then
-			local fdef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
-			local numFx = math.floor(me/200)
+			local numFx = math.floor(me/250)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("energyshards1", x, y, z)
 			for i=1, numFx, 1 do
-				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = fy + (random(fdef.model.miny, fdef.model.maxy)*posMultiplier)
+				x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+				z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+				y = fy + (random(fdef.miny, fdef.maxy)*posMultiplier)
 				Spring.SpawnCEG("energyshards"..(((i+1)%3)+1), x, y, z)
 			end
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)
 		end
 		if mm ~= nil and mm > 0 then
-			local fdef = FeatureDefs[Spring.GetFeatureDefID(featureID)]
-			local numFx = math.floor(mm/75)
+			local numFx = math.floor(mm/90)
 			local posMultiplier = 0.5
 			Spring.SpawnCEG("metalshards1", x, y, z)
 			for i=1, numFx, 1 do
-				x = fx + (random(fdef.model.minx, fdef.model.maxx)*posMultiplier)
-				z = fz + (random(fdef.model.minz, fdef.model.maxz)*posMultiplier)
-				y = fy + (random(fdef.model.miny, fdef.model.maxy)*posMultiplier)
+				x = fx + (random(fdef.minx, fdef.maxx)*posMultiplier)
+				z = fz + (random(fdef.minz, fdef.maxz)*posMultiplier)
+				y = fy + (random(fdef.miny, fdef.maxy)*posMultiplier)
 				Spring.SpawnCEG("metalshards"..(((i+1)%3)+1), x, y, z)
 			end
 			--Spring.Echo(numFxE..'  '..FeatureDefs[featureDefID].energy)

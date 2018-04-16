@@ -22,11 +22,8 @@ end
 
 local SetFeatureReclaim = Spring.SetFeatureReclaim
 local GetFeaturePosition = Spring.GetFeaturePosition
-local GetFeatureDefID = Spring.GetFeatureDefID
 local GetUnitDefID = Spring.GetUnitDefID
 local GetFeatureResources = Spring.GetFeatureResources
-local GetFeatureResources = Spring.GetFeatureResources
-local CMD_RESURRECT = CMD.RESURRECT
 
 
 local unitList = {}
@@ -48,7 +45,7 @@ for featureDefID, fdefs in pairs(FeatureDefs) do
         end
     end
 end
-local unitList = nil
+unitList = nil
 
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
