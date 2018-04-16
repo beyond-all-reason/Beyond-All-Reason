@@ -117,6 +117,28 @@ unitDeaths = {
             expl_light_life_mult = 1.08,
         },
 	},
+	
+	nanoselfd = {
+		weaponType = "Cannon",
+		areaofeffect = 128,
+		camerashake = 128,
+		edgeeffectiveness = 0.75,
+		impulseboost = impulseboost,
+		impulsefactor = impulsefactor,
+		soundhit = "xplosml3",
+		soundstart = "largegun",
+		explosiongenerator = "custom:genericbuildingexplosion-nano",
+		damage = {
+			default = 10,
+			nanos = 140,
+		},
+        customparams = {
+            expl_light_color = "0.8 1 0.3",
+            expl_light_mult = 1.05,
+            expl_light_radius_mult = 1.05,
+            expl_light_life_mult = 1.08,
+        },
+	},
 
     smallbuilder = {
         weaponType = "Cannon",
