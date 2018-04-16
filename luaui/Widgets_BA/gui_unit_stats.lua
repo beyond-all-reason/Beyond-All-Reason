@@ -5,7 +5,7 @@ function widget:GetInfo()
 		desc      = "Shows detailed unit stats",
 		author    = "Niobium + Doo",
 		date      = "Jan 11, 2009",
-		version   = 1.6,
+		version   = 1.7,
 		license   = "GNU GPL, v2 or later",
 		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
@@ -13,6 +13,10 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
+----v1.7 by Doo changes
+-- Reverted "Added beamtime to oRld value to properly count dps of BeamLaser weapons" because reload starts at the beginning of the beamtime
+-- Reduced the "minimal" reloadTime to properly calculate dps for low reloadtime weapons
+-- Hid range from gui for explosion (death/selfd) as it is irrelevant.
 
 ----v1.6 by Doo changes
 -- Fixed crashing when hovering some enemy units
