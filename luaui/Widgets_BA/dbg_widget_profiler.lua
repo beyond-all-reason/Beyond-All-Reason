@@ -20,7 +20,26 @@ local usePrefixedNames = true
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local prefixedWnames = {}
+local function ConstructPrefixedName (ghInfo)
+	local gadgetName = ghInfo.name
+	local baseName = ghInfo.basename
+	local _pos = baseName:find("_", 1)
+	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
+	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
+	
+	prefixedWnames[gadgetName] = prefixedGadgetName
+	return prefixedWnames[gadgetName]
+end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
 local callinStats       = {}
+
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
+local spGetLuaMemUsage = Spring.GetLuaMemUsage
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -76,25 +95,6 @@ local function IsHook(func)
 	return listOfHooks[func]
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spGetLuaMemUsage = Spring.GetLuaMemUsage
-
-local prefixedWnames = {}
-local function ConstructPrefixedName (ghInfo)
-	local gadgetName = ghInfo.name
-	local baseName = ghInfo.basename
-	local _pos = baseName:find("_", 1)
-	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
-	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
-	
-	prefixedWnames[gadgetName] = prefixedGadgetName
-	return prefixedWnames[gadgetName]
-end
-
 local function Hook(w,name) -- name is the callin
 	local widgetName = w.whInfo.name
 
@@ -104,7 +104,7 @@ local function Hook(w,name) -- name is the callin
 	w["_old" .. name] = realFunc
 
 	if (widgetName=="Widget Profiler") then
-		return realFunc -- don't profile ourselves
+		return realFunc -- don't profile the profilers callins (it works, but it is better that our DrawScreen call is unoptimized and expensive anyway!)
 	end
 
 	local widgetCallinTime = callinStats[wname] or {}
@@ -135,7 +135,6 @@ local function Hook(w,name) -- name is the callin
 		t = spGetTimer()
 		local _,_,new_s,_ = spGetLuaMemUsage() 		
 		s = new_s
-		--Spring.Echo(s, collectgarbage("count"))
 		return helper_func(realFunc(...))
 	end
 
@@ -168,7 +167,6 @@ local function StartHook()
 	Spring.Echo("hooked all callins")
 
 	--// hook the UpdateCallin function
-
 	oldUpdateWidgetCallIn =  wh.UpdateWidgetCallIn
 	wh.UpdateWidgetCallIn = function(self,name,w)
 		local listName = name .. 'List'
@@ -189,6 +187,9 @@ local function StartHook()
 		end
 	end
 
+	Spring.Echo("hooked UpdateCallin")
+
+	--// hook the InsertWidget function
 	oldInsertWidget =  wh.InsertWidget
 	widgetHandler.InsertWidget = function(self,widget)
 		if (widget == nil) then
@@ -205,7 +206,7 @@ local function StartHook()
 		end
 	end
 
-	Spring.Echo("hooked UpdateCallin")
+	Spring.Echo("hooked InsertWidget")
 end
 
 
@@ -224,8 +225,8 @@ local function StopHook()
 
 	--// unhook all existing callins
 	for _,callin in ipairs(CallInsList) do
-		local callinGadgets = wh[callin .. "List"]
-		for _,w in ipairs(callinGadgets or {}) do
+		local callinWidgets = wh[callin .. "List"]
+		for _,w in ipairs(callinWidgets or {}) do
 			if (w["_old" .. callin]) then
 				w[callin] = w["_old" .. callin]
 			end
@@ -234,34 +235,20 @@ local function StopHook()
 
 	Spring.Echo("unhooked all callins")
 
-	--// unhook the UpdateCallin function
+	--// unhook the UpdateCallin and InsertWidget functions
 	wh.UpdateWidgetCallIn = oldUpdateWidgetCallIn
-	wh.InsertWidget = oldInsertWidget
-
 	Spring.Echo("unhooked UpdateCallin")
+	wh.InsertWidget = oldInsertWidget
+	Spring.Echo("unhooked InsertWidget")
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local green = '\255\0\255\0'
-local red = '\255\255\0\0'
-local grey = '\255\150\150\150'
-local white = '\255\255\255\255'
-local grey = "\255\200\200\255"
-local darkgrey = "\255\100\100\255"
-local yellow = "\255\255\255\0"
-local lilac = "\255\200\162\200"
-local tomato = "\255\255\99\71"
-local turqoise = "\255\48\213\200"
-local lightgreen = "\255\160\255\160"
 
-local title_colour = lightgreen
-local totals_colour = grey
-local info_colour = "\255\1\1\1"
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-
+local tick = 0.2
+local averageTime = 2
+local timeLoadAverages = {}
+local spaceLoadAverages = {}
 local startTimer
 
 function widget:Update()
@@ -274,15 +261,10 @@ function widget:Shutdown()
 	StopHook()
 end
 
-local tick = 0.2
-local averageTime = 2
-local timeLoadAverages = {}
-local spaceLoadAverages = {}
+local lm,_,gm,_,um,_,sm,_ = spGetLuaMemUsage()
 
-local maximum = 0
-local avg = 0
 local allOverTime = 0
-local allOverTimeSec = 0
+local allOverTimeSec = 0 -- currently unused
 local allOverSpace = 0
 local totalSpace = {}
 
@@ -291,9 +273,17 @@ local function SortFunc(a,b)
 	return a.plainname < b.plainname
 end
 
-local maxLines = 50
 local deltaTime
 local redStrength = {}
+
+local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
+local maxPerc = 0.02 -- above this value, we mark a widget as red 
+local minSpace = 10 -- Kb
+local maxSpace = 100
+
+local title_colour = "\255\160\255\160"
+local totals_colour = "\255\200\200\255"
+local maxLines = 50
 
 local function CalcLoad(old_load, new_load, t)
 	return old_load*math.exp(-tick/t) + new_load*(1 - math.exp(-tick/t)) 
@@ -308,11 +298,6 @@ function ColourString(R,G,B)
 	if (B255%10 == 0) then B255 = B255+1 end
 	return "\255"..string.char(R255)..string.char(G255)..string.char(B255)
 end
-
-local minPerc = 0.005 -- above this value, we fade in how red we mark a widget
-local maxPerc = 0.02 -- above this value, we mark a widget as red 
-local minSpace = 10 -- Kb
-local maxSpace = 100
 
 function GetRedColourStrings(v) --tLoad is %
 	local tTime = v.tTime
@@ -369,8 +354,6 @@ function DrawWidgetList(list,name,x,y,j)
 	return x,j
 end
 
-local lm,_,gm,_ = spGetLuaMemUsage()
-
 function widget:DrawScreen()
 	if not (next(callinStats)) then
 		return --// nothing to do
@@ -384,8 +367,6 @@ function widget:DrawScreen()
 		startTimer = Spring.GetTimer()
 		sortedList = {}
 
-		maximum = 0
-		avg = 0
 		allOverTime = 0
 		allOverSpace = 0
 		local n = 1
@@ -397,39 +378,37 @@ function widget:DrawScreen()
 			local cmax_space = 0
 			local cmaxname_space = "-"
 			for cname,c in pairs(callins) do
-			t = t + c[1]
-			if (c[2]>cmax_t) then
-				cmax_t = c[2]
-				cmaxname_t = cname
+				t = t + c[1]
+				if (c[2]>cmax_t) then
+					cmax_t = c[2]
+					cmaxname_t = cname
+				end
+				c[1] = 0
+				
+				space = space + c[3]
+				if (c[4]>cmax_space) then 
+					cmax_space = c[4]
+					cmaxname_space = cname
+				end
+				c[3] = 0
 			end
-			c[1] = 0
+
+			local relTime = 100 * t / deltaTime
+			timeLoadAverages[wname] = CalcLoad(timeLoadAverages[wname] or relTime, relTime, averageTime)
 			
-			space = space + c[3]
-			if (c[4]>cmax_space) then 
-				cmax_space = c[4]
-				cmaxname_space = cname
-			end
-			c[3] = 0
-		end
+			local relSpace = space / deltaTime
+			spaceLoadAverages[wname] = CalcLoad(spaceLoadAverages[wname] or relSpace, relSpace, averageTime)
 
-		local relTime = 100 * t / deltaTime
-		timeLoadAverages[wname] = CalcLoad(timeLoadAverages[wname] or relTime, relTime, averageTime)
-		
-		local relSpace = space / deltaTime
-		spaceLoadAverages[wname] = CalcLoad(spaceLoadAverages[wname] or relSpace, relSpace, averageTime)
+			allOverTimeSec = allOverTimeSec + t
 
-		allOverTimeSec = allOverTimeSec + t
+			local tLoad = timeLoadAverages[wname]
+			local sLoad = spaceLoadAverages[wname]
+			sortedList[n] = {plainname=wname, fullname=wname..' \255\200\200\200('..cmaxname_t..','..cmaxname_space..')', tLoad=tLoad, sLoad=sLoad, tTime=t/deltaTime}
+			allOverTime = allOverTime + tLoad
+			allOverSpace = allOverSpace + sLoad
 
-		local tLoad = timeLoadAverages[wname]
-		local sLoad = spaceLoadAverages[wname]
-		sortedList[n] = {plainname=wname, fullname=wname..' \255\200\200\200('..cmaxname_t..','..cmaxname_space..')', tLoad=tLoad, sLoad=sLoad, tTime=t/deltaTime}
-		allOverTime = allOverTime + tLoad
-		allOverSpace = allOverSpace + sLoad
-		avg = avg + tLoad
-		if (maximum<tLoad) then maximum=tLoad end
 			n = n + 1
 		end
-		avg = avg/n
 
 		table.sort(sortedList,SortFunc)
 		
@@ -437,7 +416,7 @@ function widget:DrawScreen()
 			GetRedColourStrings(sortedList[i])
 		end
 
-		lm,_,gm,_ = spGetLuaMemUsage()
+		lm,_,gm,_,um,_,sm,_ = spGetLuaMemUsage()
 	end
 
 	if (not sortedList[1]) then
@@ -465,7 +444,7 @@ function widget:DrawScreen()
 
 	-- draw
 	local vsx, vsy = gl.GetViewSizes()
-	local x,y = vsx-400, vsy-150
+	local x,y = vsx-400, vsy-175
 	local widgetScale = (1 + (vsx*vsy / 7500000))
 
 	gl.PushMatrix()
@@ -479,25 +458,29 @@ function widget:DrawScreen()
 		x,j = DrawWidgetList(gameList,"GAME",x,y,j)
 		x,j = DrawWidgetList(userList,"USER",x,y,j)
 
-		if j>=maxLines-12 then x = x - 350; j = 0; end
+		if j>=maxLines-15 then x = x - 350; j = 0; end
 		j = j + 1
 		gl.Text(title_colour.."ALL", x+152, y-1-(12)*j, 10, "no")
 		j = j + 1
 
 		j = j + 1
-		gl.Text(info_colour.."total percentage of running time spent in luaui callins", x+152, y-1-(12)*j, 10, "no")
-		gl.Text(info_colour..('%.1f%%'):format(allOverTime), x+65, y-1-(12)*j, 10, "no")
+		gl.Text(totals_colour.."total percentage of running time spent in luaui callins", x+152, y-1-(12)*j, 10, "no")
+		gl.Text(totals_colour..('%.1f%%'):format(allOverTime), x+65, y-1-(12)*j, 10, "no")
 		j = j + 1
-		gl.Text(info_colour.."total rate of mem allocation by luaui callins", x+152, y-1-(12)*j, 10, "no")
-		gl.Text(info_colour..('%.0f'):format(allOverSpace) .. 'kB/s', x+105, y-1-(12)*j, 10, "no")
-		j = j + 2
-		gl.Text(info_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which ' .. ('%.0f'):format(100*lm/gm) .. '% is from luaui', x+65, y-1-(12)*j, 10, "no")
+		gl.Text(totals_colour.."total rate of mem allocation by luaui callins", x+152, y-1-(12)*j, 10, "no")
+		gl.Text(totals_colour..('%.0f'):format(allOverSpace) .. 'kB/s', x+105, y-1-(12)*j, 10, "no")
 		
-		--j = j + 1
-		--gl.Text(totals_colour.."total time", x+150, y-1-(12)*j, 10, "no")
-		--gl.Text(totals_colour..('%.2fs'):format(allOverTimeSec), x+65, y-1-(12)*j, 10, "no")
 		j = j + 2
-		gl.Text(title_colour.."All data excludes load from executing GL calls", x+65, y-1-(12)*j, 10, "no")
+		gl.Text(totals_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which:', x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(totals_colour..'  '..('%.0f'):format(100*lm/gm) .. '% is from luaui', x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(totals_colour..'  '..('%.0f'):format(100*um/gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(totals_colour..'  '..('%.0f'):format(100*sm/gm) .. '% is from synced states (luarules+luagaia)', x+65, y-1-(12)*j, 10, "no")
+		
+		j = j + 2
+		gl.Text(title_colour.."All data excludes load from garbage collection & executing GL calls", x+65, y-1-(12)*j, 10, "no")
 		j = j + 1
 		gl.Text(title_colour.."Callins in brackets are heaviest per widget for (time,allocs)", x+65, y-1-(12)*j, 10, "no")
 
