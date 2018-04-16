@@ -28,21 +28,40 @@ local GetFeatureResources = Spring.GetFeatureResources
 local GetFeatureResources = Spring.GetFeatureResources
 local CMD_RESURRECT = CMD.RESURRECT
 
--- implement reclaim 
+
+local unitList = {}
+for unitDefID, defs in pairs(UnitDefs) do
+    if defs.reclaimSpeed > 0 then
+        unitList[unitDefID] = defs.reclaimSpeed
+    end
+end
+
+local featureList = {}
+for featureDefID, fdefs in pairs(FeatureDefs) do
+    local maxResource = math.max(fdefs.metal, fdefs.energy)
+    if (maxResource > 0) then
+        featureList[featureDefID] = {}
+        for unitDefID, reclaimSpeed in pairs(unitList) do
+            local oldformula = ((reclaimSpeed*0.70 + 10*0.30)*1.5  / fdefs.reclaimTime)
+            local newformula = (reclaimSpeed  / fdefs.reclaimTime)
+            featureList[featureDefID][unitDefID] = ((((maxResource * oldformula) * 1) - (maxResource * newformula)) / maxResource)
+        end
+    end
+end
+local unitList = nil
+
 
 function gadget:AllowFeatureBuildStep(builderID, builderTeam, featureID, featureDefID, step)
-  if step > 0 then return true end
-  local reclaimspeed = (UnitDefs[GetUnitDefID(builderID)].reclaimSpeed / 30)
-  local reclaimtime = FeatureDefs[featureDefID].reclaimTime
-  local oldformula = ((reclaimspeed*0.70 + 10*0.30)*1.5  / reclaimtime)
-  local newformula = (reclaimspeed  / reclaimtime)
-  local resource = math.max(FeatureDefs[featureDefID].metal,FeatureDefs[featureDefID].energy)
-  if (resource <= 0) then
+    if step > 0 or featureList[featureDefID] == nil then
+        return true
+    end
+    local unitDefID = GetUnitDefID(builderID)
+    if featureList[featureDefID][unitDefID] == nil then
+        return true
+    end
+    local newpercent = select(5,GetFeatureResources(featureID)) - featureList[featureDefID][unitDefID]
+    SetFeatureReclaim(featureID, newpercent)
     return true
-  end
-  local newpercent = select(5,GetFeatureResources(featureID)) - ((((resource * oldformula) * 1) - (resource * newformula)) / resource)
-  SetFeatureReclaim(featureID, newpercent) 
-  return true
 end
 
 
