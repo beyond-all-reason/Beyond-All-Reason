@@ -7,6 +7,10 @@ Balance changes:
  • Arm/Core Assult Frigates damages + 3%
  • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
 
+Other:
+ • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
+ • Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
+
 10.07 -> 10.08
 15/04/2018
 
