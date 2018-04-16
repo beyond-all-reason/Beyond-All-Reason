@@ -11,23 +11,41 @@ return {
 }
 end
 
--- switch on this profiler with the chat action 'luarules profile'
-
--- once switched on, the data recording cannot be disabled without restarting spring (i.e. once hooked, there is currently no function to unhook)
--- once switched on, future use of 'luarules profile' act as a toggle to show/hide the on-screen profiling data
+-- use 'luarules profile' to switch on the profiler 
+-- future use of 'luarules profile' acts as a toggle to show/hide the on-screen profiling data (without touching the hooks)
+-- use 'luarules kill_profiler' to switch off the profiler for *everyone* currently using it (and remove the hooks)
 
 -- the DrawScreen call of this profiler has a performance impact, but note that this profiler does not profile its own time/allocation loads
 
--- running this profiler during a multi-player game, with the profiler contained within the game archive, will (also) have a small performance impact on *all* players 
--- nobody will notice, but don't do it if you don't need too!
+-- if switched on during a multi-player game, and included within the game archive, the profiler will (also) have a very small performance impact on *all* players (-> synced callin hooks run in synced code!)
+-- nobody will notice, but don't profile if you don't need too
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 local usePrefixedNames = true
+
+local prefixedGnames = {}
+local function ConstructPrefixedName (ghInfo)
+	local gadgetName = ghInfo.name
+	local baseName = ghInfo.basename
+	local _pos = baseName:find("_", 1)
+	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
+	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
+	
+	prefixedGnames[gadgetName] = prefixedGadgetName
+	return prefixedGnames[gadgetName]
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local callinStats       = {}
 local callinStatsSYNCED = {}
+
+local spGetTimer = Spring.GetTimer
+local spDiffTimers = Spring.DiffTimers
+local spGetLuaMemUsage = Spring.GetLuaMemUsage
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -48,7 +66,6 @@ local function ArrayInsert(t, f, g)
 	end
 end
 
-
 local function ArrayRemove(t, g)
 	for k,v in ipairs(t) do
 		if (v == g) then
@@ -61,11 +78,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local spGetTimer = Spring.GetTimer
-local spDiffTimers = Spring.DiffTimers
-local spGetLuaMemUsage = Spring.GetLuaMemUsage
-
-local Hook = function(g,name) return function(...) return g[name](...) end end -- placeholder
+local Hook = function(g,name) return function(...) return g[name](...) end end -- place-holder
+local oldUpdateGadgetCallIn
 
 local inHook = false
 local listOfHooks = {}
@@ -75,58 +89,43 @@ local function IsHook(func)
 	return listOfHooks[func]
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local prefixedGnames = {}
-local function ConstructPrefixedName (ghInfo)
-	local gadgetName = ghInfo.name
-	local baseName = ghInfo.basename
-	local _pos = baseName:find("_", 1)
-	local prefix = ((_pos and usePrefixedNames) and (baseName:sub(1, _pos-1)..": ") or "")
-	local prefixedGadgetName = "\255\200\200\200" .. prefix .. "\255\255\255\255" .. gadgetName
-	
-	prefixedGnames[gadgetName] = prefixedGadgetName
-	return prefixedGnames[gadgetName]
-end
-
-
 if (gadgetHandler:IsSyncedCode()) then
 	Hook = function (g,name)
-		local origFunc = g[name]
 		local gadgetName = g.ghInfo.name
+		local realFunc = g[name]
+		g['_old'..name] = realFunc
 
 		if (gadgetName=="Gadget Profiler") then 
-			return origFunc -- don't profile ourselves
+			return realFunc -- don't profile the profilers callins within synced (nothing to profile!)
 		end
 
 		local hook_func = function(...)
 		if (inHook) then
-			return origFunc(...)
+			return realFunc(...)
 		end
 		
 		local gname = prefixedGnames[gadgetName] or ConstructPrefixedName(g.ghInfo)
 
 		inHook = true
-		SendToUnsynced("prf_started", gname, name)
-		local results = {origFunc(...)}
-			SendToUnsynced("prf_finished", gname, name)
+		SendToUnsynced("prf_started_from_synced", gname, name)
+		local results = {realFunc(...)}
+			SendToUnsynced("prf_finished_from_synced", gname, name)
 			inHook = false
 		return unpack(results)
 		end
 
-		listOfHooks[hook_func] = true -- note: using function in keys is unsafe in synced code!!! 
+		listOfHooks[hook_func] = true -- !!!note: using functions as keys is unsafe in synced code!!!
 
 		return hook_func
 	end
 else
 	Hook = function (g,name)
 		local gadgetName = g.ghInfo.name
-
 		local realFunc = g[name]
+		g['_old'..name] = realFunc
 
 		if (gadgetName=="Gadget Profiler") then 
-			return realFunc -- don't profile ourselves
+			return g['_old'..name] -- don't profile the profilers callins (it works, but it is better that our DrawScreen call is unoptimized and expensive anyway!)
 		end
 		
 		local gname = prefixedGnames[gadgetName] or ConstructPrefixedName(g.ghInfo)
@@ -140,7 +139,8 @@ else
 
 		local helper_func = function(...)
 			local dt = spDiffTimers(spGetTimer(),t)    
-			local _,_,new_s,_ = spGetLuaMemUsage() 
+			local local_s,_,new_s,_ = spGetLuaMemUsage() 
+			--Spring.Echo(gadgetName,name,"after",local_s,new_s, collectgarbage("count"))
 			local ds = new_s - s
 			c[1] = c[1] + dt
 			c[2] = c[2] + dt
@@ -157,9 +157,9 @@ else
 
 			inHook = true
 			t = spGetTimer()
-			local _,_,new_s,_ = spGetLuaMemUsage() 		
+			local local_s,_,new_s,_ = spGetLuaMemUsage() 		
 			s = new_s
-			--Spring.Echo(s, collectgarbage("count"))
+			--Spring.Echo(gadgetName,name,"before",local_s,new_s, collectgarbage("count"))
 			return helper_func(realFunc(...))
 		end
 
@@ -197,6 +197,7 @@ local function StartHook(a,b,c,d)
 
 	Spring.Echo("hooked all callins")
 
+	--// hook the UpdateCallin function
 	oldUpdateGadgetCallIn = gh.UpdateGadgetCallIn
 	gh.UpdateGadgetCallIn = function(self,name,g)
 		local listName = name .. 'List'
@@ -224,18 +225,54 @@ local function StartHook(a,b,c,d)
 		SendToUnsynced("Start_from_synced")
 	end
 
-	return false
+	return false -- allow the unsynced chataction to execute too
+end
+
+function KillHook()
+	if not (hookset) then return true end
+	
+	Spring.Echo("stop profiling (" .. (SendToUnsynced~=nil and "synced" or "unsynced") .. ")")
+
+	local gh = gadgetHandler
+	
+	local CallInsList = {}
+	for name,e in pairs(gh) do
+		local i = name:find("List")
+		if (i)and(type(e)=="table") then
+			CallInsList[#CallInsList+1] = name:sub(1,i-1)
+		end
+	end
+
+	--// unhook all existing callins
+	for _,callin in ipairs(CallInsList) do
+		local callinGadgets = gh[callin .. "List"]
+		for _,g in ipairs(callinGadgets or {}) do
+			if (g["_old" .. callin]) then
+				g[callin] = g["_old" .. callin]
+			end
+		end
+	end
+	
+	Spring.Echo("unhooked all callins")
+
+	--// unhook the UpdateCallin function
+	gh.UpdateGadgetCallIn = oldUpdateGadgetCallIn
+
+	Spring.Echo("unhooked UpdateCallin")	
+	
+	hookset = false
+	return false -- allow the unsynced chataction to execute too
 end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 if (gadgetHandler:IsSyncedCode()) then
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 function gadget:Initialize()
 	gadgetHandler.actionHandler.AddChatAction(gadget, 'profile', StartHook, " : starts the gadget profiler" ) -- first hook the synced callins, then synced will come back and tell us to (really) start
+	gadgetHandler.actionHandler.AddChatAction(gadget, 'kill_profiler', KillHook, " : kills the gadget profiler" ) -- removes the profiler for everyone currently running it
 end
 
 --------------------------------------------------------------------------------
@@ -250,33 +287,31 @@ local validated = false
 
 local timersSynced = {}
 local startTickTimer
-local memUsage  = {} 
+local memUsageSynced  = {} 
 
-local function UpdateDrawCallin() -- when the profiler isn't running, the profiler gadget should have *no* draw callin
+local function StartDrawCallin() -- when the profiler isn't running, the profiler gadget should have *no* draw callin
 	gadget.DrawScreen = gadget.DrawScreen_
 	gadgetHandler:UpdateGadgetCallIn("DrawScreen", gadget)
 end
 
-local function Start(cmd)
-	StartHook() -- the unsynced one!
-	startTickTimer = Spring.GetTimer()
-	
-	UpdateDrawCallin()
-	startedProfiler = true
+local function KillDrawCallin() 
+	gadget.DrawScreen_ = gadget.DrawScreen
+	gadget.DrawScreen = nil
+	gadgetHandler:UpdateGadgetCallIn("DrawScreen", gadget)
 end
 
 function SyncedCallinStarted(_,gname,cname)
 	timersSynced[#timersSynced+1] = spGetTimer() -- callins may call each other -> we need a FIFO queue 
 	local _,_,s,_ = spGetLuaMemUsage() 
-	memUsage[#memUsage+1] = s
+	memUsageSynced[#memUsageSynced+1] = s
 end
 
 function SyncedCallinFinished(_,gname,cname)
 	local dt = spDiffTimers(spGetTimer(),timersSynced[#timersSynced])
 	timersSynced[#timersSynced] = nil
 	local _,_,new_s,_ = spGetLuaMemUsage() 
-	local ds = new_s - memUsage[#memUsage] 
-	memUsage[#memUsage] = nil
+	local ds = new_s - memUsageSynced[#memUsageSynced] 
+	memUsageSynced[#memUsageSynced] = nil
 
 	local gadgetCallinStats = callinStatsSYNCED[gname] or {}
 	callinStatsSYNCED[gname] = gadgetCallinStats
@@ -289,27 +324,50 @@ function SyncedCallinFinished(_,gname,cname)
 	c[4] = c[4] + ds
 end
 
-function Validate (_,_,_,pID,_)
-	if pID~=Spring.GetMyPlayerID() then return end
-	validated = true
-	show = not show 
+function Start (_,_,_,pID,_)
+	if pID==Spring.GetMyPlayerID() or validated then 
+		validated = true
+		
+		StartHook() -- the unsynced one!
+		startTickTimer = Spring.GetTimer()
+		
+		StartDrawCallin()
+		show = not show 
+		
+		Spring.Echo("luarules profiler started (player " .. pID .. ")")
+	end
+end
+
+function Kill (_,_,_,pID,_)
+	if validated then 
+		KillDrawCallin()
+		KillHook()	
+
+		show = false
+		validated = false
+		
+		startTickTimer = nil
+		timersSynced = {}
+		memUsageSynced = {}	
+		
+		Spring.Echo("luarules profiler killed (player " .. pID .. ")")
+	end
 end
 
 function gadget:Initialize()
-	gadgetHandler.actionHandler.AddChatAction(gadget, "profile", Validate) 
+	gadgetHandler.actionHandler.AddChatAction(gadget, "profile", Start) 
+	gadgetHandler.actionHandler.AddChatAction(gadget, "kill_profiler", Kill) 
 	
-	gadgetHandler.actionHandler.AddSyncAction(gadget, "prf_started",SyncedCallinStarted) -- internal, not meant to be called by user
-	gadgetHandler.actionHandler.AddSyncAction(gadget, "prf_finished",SyncedCallinFinished) -- internal, not meant to be called by user 
-	gadgetHandler.actionHandler.AddSyncAction(gadget, "Start_from_synced",Start) -- internal, not meant to be called by user 
+	gadgetHandler.actionHandler.AddSyncAction(gadget, "prf_started_from_synced",SyncedCallinStarted) -- internal, not meant to be called by user
+	gadgetHandler.actionHandler.AddSyncAction(gadget, "prf_finished_from_synced",SyncedCallinFinished) -- internal, not meant to be called by user 
 end
 
-
----------------------------
--- data reporting code
----------------------------
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 local tick = 0.2
 local averageTime = 2
+
 local timeLoadAverages = {}
 local spaceLoadAverages = {}
 local redStrength = {}
@@ -317,12 +375,14 @@ local timeLoadAveragesSYNCED = {}
 local spaceLoadAveragesSYNCED = {}
 local redStrengthSYNCED = {}
 
+local lm,_,gm,_,um,_,sm,_ = spGetLuaMemUsage()
+
 local function CalcLoad(old_load, new_load, t)
-return old_load*math.exp(-tick/t) + new_load*(1 - math.exp(-tick/t)) 
+	return old_load*math.exp(-tick/t) + new_load*(1 - math.exp(-tick/t)) 
 end
 
 local totalLoads = {}
-local allOverTimeSec = 0
+local allOverTimeSec = 0 -- currently unused  
 
 local sortedList = {}
 local sortedListSYNCED = {}
@@ -334,6 +394,10 @@ local minPerc = 0.005 -- above this value, we fade in how red we mark a widget (
 local maxPerc = 0.02 -- above this value, we mark a widget as red
 local minSpace = 10 -- Kb
 local maxSpace = 100
+
+local title_colour = "\255\160\255\160"
+local totals_colour = "\255\200\200\255"
+local maxLines = 50
 
 local function ColourString(R,G,B)
 	R255 = math.floor(R*255)
@@ -428,12 +492,6 @@ local function ProcessCallinStats (stats, timeLoadAvgs, spaceloadAvgs, redStr, d
 	return sorted
 end
 
-local title_colour = "\255\160\255\160"
-local totals_colour = "\255\200\200\255"
-local info_colour = "\255\1\1\1"
-
-local maxLines = 50
-
 local function DrawSortedList(list, name, x,y,j)
 	if #list==0 then return 0,0 end
 
@@ -468,10 +526,8 @@ local function DrawSortedList(list, name, x,y,j)
 	return x,j
 end
 
-local lm,_,gm,_ = spGetLuaMemUsage()
-
 function gadget:DrawScreen_()
-	if not (startedProfiler and validated and show) then return end
+	if not (validated and show) then return end
 	
 	if not (next(callinStats)) and not (next(callinStatsSYNCED)) then
 		Spring.Echo("no data in profiler!")
@@ -485,57 +541,66 @@ function gadget:DrawScreen_()
 		sortedList = ProcessCallinStats(callinStats, timeLoadAverages, spaceLoadAverages, redStrength, deltaTime)
 		sortedListSYNCED = ProcessCallinStats(callinStatsSYNCED, timeLoadAveragesSYNCED, spaceLoadAveragesSYNCED, redStrengthSYNCED, deltaTime)		
 
-		lm,_,gm,_ = spGetLuaMemUsage()
+		lm,_,gm,_,um,_,sm,_ = spGetLuaMemUsage()
 	end
 
 	local vsx, vsy = gl.GetViewSizes()
-	local x,y = vsx-400, vsy-150
+	local x,y = vsx-400, vsy-175
 	local orig_x = x
 	local j = 0 -- line#
 
 	local widgetScale = (1 + (vsx*vsy / 7500000))
 	gl.PushMatrix()
-	gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)
-	gl.Scale(widgetScale,widgetScale,1)
-	
-	gl.Color(1,1,1,1)
-	gl.BeginText()
-	
-	x,j = DrawSortedList(sortedList, "UNSYNCED", x,y,j)
+		gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)
+		gl.Scale(widgetScale,widgetScale,1)
+		
+		gl.Color(1,1,1,1)
+		gl.BeginText()
+		
+		x,j = DrawSortedList(sortedList, "UNSYNCED", x,y,j)
 
-	if j>=maxLines-15 or x==orig_x then
-		j=0
-		x = x - 375
-	end
-	
-	x,j = DrawSortedList(sortedListSYNCED, "SYNCED", x,y,j)
+		if j>=maxLines-15 or x==orig_x then
+			j=0
+			x = x - 375
+		end
+		
+		x,j = DrawSortedList(sortedListSYNCED, "SYNCED", x,y,j)
 
-	if j>=maxLines-12 then x = x - 375; j = 0; end
-	j = j + 1
-	gl.Text(title_colour.."ALL", x+152, y-1-(12)*j, 10, "no")
-	j = j + 1
+		if j>=maxLines-15 then x = x - 375; j = 0; end
+		j = j + 1
+		gl.Text(title_colour.."ALL", x+152, y-1-(12)*j, 10, "no")
+		j = j + 1
 
-	j = j + 1
-	gl.Text(info_colour.."total percentage of running time spent in luarules callins", x+152, y-1-(12)*j, 10, "no")
-	gl.Text(info_colour..('%.1f%%'):format((sortedList.allOverTime or 0)+(sortedListSYNCED.allOverTime or 0)), x+65, y-1-(12)*j, 10, "no")
-	j = j + 1
-	gl.Text(info_colour.."total rate of mem allocation by luarules callins", x+152, y-1-(12)*j, 10, "no")
-	gl.Text(info_colour..('%.0f'):format((sortedList.allOverSpace or 0)+(sortedListSYNCED.allOverSpace or 0)) .. 'kB/s', x+105, y-1-(12)*j, 10, "no")
-	j = j + 2
-	gl.Text(info_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which ' .. ('%.0f'):format(100*lm/gm) .. '% is from luarules', x+65, y-1-(12)*j, 10, "no")
-	
-	j = j + 2
-	gl.Text(title_colour.."All data excludes load from executing GL calls", x+65, y-1-(12)*j, 10, "no")
-	j = j + 1
-	gl.Text(title_colour.."Callins in brackets are heaviest per gadget for (time,allocs)", x+65, y-1-(12)*j, 10, "no")
-	
-	j = j + 2
-	gl.Text(title_colour.."Tick time: " .. tick .. "s", x+65, y-1-(12)*j, 10, "no")
-	j = j + 1
-	gl.Text(title_colour.."Smoothing time: " .. averageTime .. "s", x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(totals_colour.."total percentage of running time spent in luarules callins", x+152, y-1-(12)*j, 10, "no")
+		gl.Text(totals_colour..('%.1f%%'):format((sortedList.allOverTime or 0)+(sortedListSYNCED.allOverTime or 0)), x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(totals_colour.."total rate of mem allocation by luarules callins", x+152, y-1-(12)*j, 10, "no")
+		gl.Text(totals_colour..('%.0f'):format((sortedList.allOverSpace or 0)+(sortedListSYNCED.allOverSpace or 0)) .. 'kB/s', x+105, y-1-(12)*j, 10, "no")
+		
+		j = j + 2
+		gl.Text(totals_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which:', x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(totals_colour..'  '..('%.0f'):format(100*lm/gm) .. '% is from unsynced luarules', x+65, y-1-(12)*j, 10, "no")
+		--note: it's not currently possible to callout the footprint of (specifically) synced luarules
+		j = j + 1
+		gl.Text(totals_colour..'  '..('%.0f'):format(100*um/gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(totals_colour..'  '..('%.0f'):format(100*sm/gm) .. '% is from synced states (luarules+luagaia)', x+65, y-1-(12)*j, 10, "no")
 
-	gl.EndText()
-	
+
+		j = j + 2
+		gl.Text(title_colour.."All data excludes load from garbage collection & executing GL calls", x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(title_colour.."Callins in brackets are heaviest per gadget for (time,allocs)", x+65, y-1-(12)*j, 10, "no")
+		
+		j = j + 2
+		gl.Text(title_colour.."Tick time: " .. tick .. "s", x+65, y-1-(12)*j, 10, "no")
+		j = j + 1
+		gl.Text(title_colour.."Smoothing time: " .. averageTime .. "s", x+65, y-1-(12)*j, 10, "no")
+
+		gl.EndText()
+		
 	gl.PopMatrix()
 end
 
