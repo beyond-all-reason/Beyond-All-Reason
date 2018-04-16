@@ -88,6 +88,7 @@ function widget:SetConfigData(data)
     end
 end
 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -117,8 +118,17 @@ local usedCursorSize		= cursorSize
 local prevMouseX,prevMouseY = 0
 local allycursorDrawList	= {}
 local myPlayerID            = Spring.GetMyPlayerID()
-local camRotX, camRotY, camRotZ = spGetCameraDirection()
 
+
+local specList = {}
+function updateSpecList()
+    specList = {}
+    local t = Spring.GetPlayerList()
+    for _,playerID in ipairs(t) do
+        local _,_,spec = spGetPlayerInfo(playerID)
+        specList[playerID] = spec
+    end
+end
 
 function widget:Initialize()
     widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
@@ -126,6 +136,7 @@ function widget:Initialize()
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
     end
+    updateSpecList()
     
     WG['allycursor_api'] = {}
     WG['allycursor_api'].GetCursorTimes = function()
@@ -247,8 +258,7 @@ local function SetTeamColor(teamID,playerID,a)
     
     --make color
     local r, g, b = spGetTeamColor(teamID)
-    local _, _, isSpec = spGetPlayerInfo(playerID)
-    if isSpec then
+    if specList[playerID] then
         color = {1, 1, 1, 0.6}
     elseif r and g and b then
         color = {r, g, b, 0.75}
@@ -258,9 +268,19 @@ local function SetTeamColor(teamID,playerID,a)
     return
 end
 
+local sec = 0
+local updateTime = 2
+function widget:Update(dt)
+    sec = sec+dt
+    if sec > updateTime then
+        sec = 0
+        updateSpecList()
+    end
+end
 
 function widget:PlayerChanged(playerID)
     local _, _, isSpec, teamID = spGetPlayerInfo(playerID)
+    specList[playerID] = isSpec
     local r, g, b = spGetTeamColor(teamID)
     local color
     if isSpec then
@@ -270,6 +290,7 @@ function widget:PlayerChanged(playerID)
     end
     teamColors[playerID] = color
     allycursorDrawList[playerID] = nil
+
 end
 
 
@@ -357,7 +378,6 @@ local function DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
 			allycursorDrawList[playerID][opacityMultiplier] = glCreateList(createCursorDrawList, playerID, opacityMultiplier)
 		end
 
-		--local rotValue = (-camRotX * 180 / math.pi)
 		local rotValue = 0
 		gl.PushMatrix()
 		gl.Translate(wx, gy, wz)
@@ -381,43 +401,41 @@ function widget:DrawWorldPreUnit()
     time = clock()
     
     local camX,camY,camZ = spGetCameraPosition()
-    camRotX, camRotY, camRotZ = spGetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
+    --local camRotX, camRotY, camRotZ = spGetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
     --Spring.Echo(camRotX.."   "..camRotY.."   "..camRotZ)
     for playerID,data in pairs(alliedCursorsPos) do 
-			name,_,spec,teamID = spGetPlayerInfo(playerID)
+        local wx,wz = data[1],data[2]
+        local lastUpdatedDiff = time-data[#data-2] + 0.025
 
-			wx,wz = data[1],data[2]
-			lastUpdatedDiff = time-data[#data-2] + 0.025
+        if (lastUpdatedDiff<sendPacketEvery) then
+            local scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
+            local iscale = min(floor(scale),numMousePos-1)
+            local fscale = scale-iscale
+            wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
+            wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
+        end
 
-			if (lastUpdatedDiff<sendPacketEvery) then
-				scale  = (1-(lastUpdatedDiff/sendPacketEvery))*numMousePos
-				iscale = min(floor(scale),numMousePos-1)
-				fscale = scale-iscale
-				wx = CubicInterpolate2(data[iscale*2+1],data[(iscale+1)*2+1],fscale)
-				wz = CubicInterpolate2(data[iscale*2+2],data[(iscale+1)*2+2],fscale)
-			end
+        if notIdle[playerID] and alliedCursorsTime[playerID] > (time-idleCursorTime) then
+            local opacity = 1
+            if specList[playerID] then
+                opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
+                if opacity > 1 then opacity = 1 end
+            end
+            if opacity > 0.1 then
+                DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
+            end
+        else
+            --mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
+            if wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
+              notIdle[playerID] = true
+              wx_old = nil
+              wz_old = nil
+            else
+              wx_old = wx
+              wz_old = wz
+            end
 
-			if notIdle[playerID] and alliedCursorsTime[playerID] > (time-idleCursorTime) then
-				local opacity = 1
-				if spec then
-					opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
-					if opacity > 1 then opacity = 1 end
-				end
-				if opacity > 0.1 then
-					DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
-				end
-			else
-				--mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
-				if wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
-				  notIdle[playerID] = true
-				  wx_old = nil
-				  wz_old = nil
-				else
-				  wx_old = wx
-				  wz_old = wz
-				end
-
-			end
+        end
     end
     --gl.EndText
     gl.PolygonOffset(false)

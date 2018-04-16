@@ -229,7 +229,7 @@ local function UpdateAllyTeamIsDead(allyTeamID)
 	allyTeamInfos[allyTeamID].dead = dead
 end
 
-function gadget:GameFrame()
+function gadget:GameFrame(gf)
 	for _,playerID in ipairs(GetPlayerList()) do
 		CheckPlayer(playerID) -- because not all events that we want to test call gadget:PlayerChanged (e.g. allying)
 	end
@@ -247,8 +247,7 @@ end
 
 
 function CheckPlayer(playerID)
-	local _,active,spectator,teamID = GetPlayerInfo(playerID) 
-	local allyTeamID = teamToAllyTeam[teamID] 
+	local _,active,spectator,teamID,allyTeamID = GetPlayerInfo(playerID)
 	local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
 	teamInfo.players[playerID] = active and not spectator
 	teamInfo.hasLeader = select(2,GetTeamInfo(teamID)) >= 0
