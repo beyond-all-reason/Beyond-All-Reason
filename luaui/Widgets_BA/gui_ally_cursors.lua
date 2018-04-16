@@ -278,6 +278,7 @@ function widget:Update(dt)
     end
 end
 
+
 function widget:PlayerChanged(playerID)
     local _, _, isSpec, teamID = spGetPlayerInfo(playerID)
     specList[playerID] = isSpec
@@ -290,7 +291,12 @@ function widget:PlayerChanged(playerID)
     end
     teamColors[playerID] = color
     allycursorDrawList[playerID] = nil
-
+end
+function widget:PlayerAdded(playerID)
+    widget:PlayerChanged(playerID)
+end
+function widget:PlayerRemoved(playerID, reason)
+    specList[playerID] = nil
 end
 
 

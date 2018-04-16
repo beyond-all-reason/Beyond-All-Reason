@@ -202,26 +202,33 @@ end
 function widget:CommandsChanged()
   if spGetSelectedUnitsCount() > 0 then
     checkSelectedUnits = true
-    if picList then
-      gl.DeleteList(picList)
-    end
-    picList = gl.CreateList(DrawPicList)
+    --updateDlist = true
   elseif picList then
     gl.DeleteList(picList)
     picList = nil
     checkSelectedUnits = nil
   end
-
-
   if not picList and not guishaderDisabled then
     updateGuishader()
+  end
+  sec = 0
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+  if unitCounts ~= nil and unitCounts[unitDefID] ~= nil then
+    if unitCounts[unitDefID] > 1 then
+      unitCounts[unitDefID] = unitCounts[unitDefID] - 1
+    else
+      unitCounts[unitDefID] = nil
+    end
+    updateDlist = true
   end
 end
 
 local sec = 0
 function widget:Update(dt)
   sec = sec + dt
-  if checkSelectedUnits and sec>0.04 then
+  if (checkSelectedUnits and sec>0.09) then
     sec = 0
     unitCounts = spGetSelectedUnitsCounts()
     local equal = true
@@ -236,19 +243,25 @@ function widget:Update(dt)
       end
     end
     if not equal then
-      if picList then
-        gl.DeleteList(picList)
-      end
-      picList = gl.CreateList(DrawPicList)
-      updateGuishader()
-      checkSelectedUnits = nil
+      updateDlist = true
     end
+  end
+  if updateDlist then
+    sec = 0
+    checkSelectedUnits = nil
+    updateDlist = nil
+    if picList then
+      gl.DeleteList(picList)
+    end
+    picList = gl.CreateList(DrawPicList)
+    updateGuishader()
   end
 end
 
 
 function widget:Initialize()
   widget:ViewResize(vsx, vsy)
+  checkSelectedUnits = true
 end
 
 function widget:Shutdown()
@@ -261,8 +274,9 @@ end
 
 
 function DrawPicList()
+  --Spring.Echo(Spring.GetGameFrame()..'  '..math.random())
+  prevUnitCount = unitCounts
   unitCounts = spGetSelectedUnitsCounts()
-  prevUnitCount = spGetSelectedUnitsCounts()
 
   unitTypes = unitCounts.n;
   if (unitTypes <= 0) then
@@ -476,6 +490,7 @@ end
 
 
 -------------------------------------------------------------------------------
+
 
 function widget:MouseRelease(x, y, button)
   if (not activePress) then
