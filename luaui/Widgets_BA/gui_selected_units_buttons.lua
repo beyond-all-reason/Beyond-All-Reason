@@ -106,7 +106,9 @@ local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local guishaderDisabled = true
-
+if spGetSelectedUnitsCount() > 0 then
+  local checkSelectedUnits = true
+end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -261,7 +263,6 @@ end
 
 function widget:Initialize()
   widget:ViewResize(vsx, vsy)
-  checkSelectedUnits = true
 end
 
 function widget:Shutdown()

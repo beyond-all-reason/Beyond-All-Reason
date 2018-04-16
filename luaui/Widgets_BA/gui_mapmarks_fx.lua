@@ -22,12 +22,8 @@ local mapEraseNicknameTime		= {}
 local ownPlayerID				= Spring.GetMyPlayerID()
 
 -- spring vars
-local spGetCameraPosition		= Spring.GetCameraPosition
 local spGetPlayerInfo			= Spring.GetPlayerInfo
-local spTraceScreenRay			= Spring.TraceScreenRay
-local spLoadCmdColorsConfig		= Spring.LoadCmdColorsConfig
 local spGetTeamColor			= Spring.GetTeamColor
-local spGetMouseState			= Spring.GetMouseStates
 
 local glCreateList				= gl.CreateList
 local glDeleteList				= gl.DeleteList
@@ -37,7 +33,6 @@ local glCallList				= gl.CallList
 --------------------------------------------------------------------------------
 
 local nicknameOpacityMultiplier	= 6		-- multiplier applied to the given color opacity of the type: 'map_draw'
-local showMouseclicks			= true
 
 local generalSize 				= 28		-- overall size
 local generalOpacity 			= 0.8		-- overall opacity
