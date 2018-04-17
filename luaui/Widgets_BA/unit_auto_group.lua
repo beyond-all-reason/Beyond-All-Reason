@@ -96,7 +96,6 @@ local options = {
 local finiGroup = {}
 local myTeam = Spring.GetMyTeamID()
 local createdFrame = {}
-local textColor = {0.7, 1.0, 0.7, 1.0} -- r g b alpha
 local textSize = 13.0
 
 -- gr = groupe selected/wanted
@@ -146,11 +145,23 @@ function widget:Initialize()
 	end
 	WG['autogroup'].setImmediate = function(value)
 		options.immediate.value = value
-	end
+    end
+
+    dlists = {}
+    for i=0, 9 do
+        dlists[i] = gl.CreateList(function()
+            gl.Text("\255\200\255\200" .. i, 20.0, -10.0, textSize, "cns")
+        end)
+    end
 end
 
 function widget:Shutdown()
 	WG['autogroup'] = nil
+
+    dlists = {}
+    for i,_ in ipairs(dlists) do
+        gl.DeleteList(dlists[i])
+    end
 end
 
 function widget:DrawWorld()
@@ -158,15 +169,14 @@ function widget:DrawWorld()
 		local existingGroups = GetGroupList()
 		if options.groupnumbers.value then
 			for inGroup, _ in pairs(existingGroups) do
-				units = GetGroupUnits(inGroup)
+				local units = GetGroupUnits(inGroup)
 				for _, unit in ipairs(units) do
 					if Spring.IsUnitInView(unit) then
 						local ux, uy, uz = Spring.GetUnitViewPosition(unit)
 						gl.PushMatrix()
 						gl.Translate(ux, uy, uz)
 						gl.Billboard()
-						gl.Color(textColor)--unused anyway when gl.Text have option 's' (and b & w)
-						gl.Text("" .. inGroup, 20.0, -10.0, textSize, "cns")
+                        gl.CallList(dlists[inGroup])
 						gl.PopMatrix()
 					end
 				end

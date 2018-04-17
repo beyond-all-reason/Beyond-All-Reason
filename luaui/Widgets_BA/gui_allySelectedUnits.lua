@@ -266,7 +266,7 @@ function widget:CommandsChanged( id, params, options )
 	end
 end
 
-function widget:UnitDestroyed(unitID, attacker )
+function widget:UnitDestroyed(unitID)
 	hotUnits[ unitID ] = nil
 	
 	for playerID, selUnits in pairs( playerSelectedUnits ) do
