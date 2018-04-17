@@ -16,9 +16,9 @@ activatescr()
 	if( TRUE )
 	{
 		move LWing to x-axis [0.00000] now;
-		move LWing to x-axis [-12.00000] speed [12.04819];
+		move LWing to x-axis [-11.00000] speed [12.04819];
 		move RWing to x-axis [0.00000] now;
-		move RWing to x-axis [11.99998] speed [12.04819];
+		move RWing to x-axis [11.00000] speed [12.04819];
 		sleep 996;
 	}
 	sleep 6;
@@ -29,9 +29,9 @@ deactivatescr()
 {
 	if( TRUE )
 	{
-		move LWing to x-axis [-12.00000] now;
+		move LWing to x-axis [-11.00000] now;
 		move LWing to x-axis [0.00000] speed [14.58080];
-		move RWing to x-axis [11.99998] now;
+		move RWing to x-axis [11.00000] now;
 		move RWing to x-axis [0.00000] speed [14.58080];
 		sleep 823;
 	}
@@ -48,7 +48,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
+		if( healthpercent < 66 and  healthpercent > 0 )
 		{
 			smoketype = 256 | 2;
 			if( Rand( 1, 66 ) < healthpercent )
