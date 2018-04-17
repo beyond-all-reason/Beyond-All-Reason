@@ -79,7 +79,6 @@ end
 function gadget:UnitUnitCollision(colliderID, collideeID)
 	if not (boat[colliderID] or boat[collideeID]) then
 		if shipyard[collideeID] or shipyard[colliderID] then	
-			Spring.Echo("fuckingshit")
 			if shipyard[colliderID] then
 				shipyardID = colliderID
 				unitID = collideeID
