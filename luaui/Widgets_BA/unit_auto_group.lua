@@ -116,12 +116,6 @@ local GetGameFrame		= Spring.GetGameFrame
 local IsGuiHidden		= Spring.IsGUIHidden
 local Echo				= Spring.Echo
 
-local glPushMatrix = gl.PushMatrix
-local glTranslate = gl.Translate
-local glBillboard = gl.Billboard
-local glCallList = gl.CallList
-local glPopMatrix = gl.PopMatrix
-
 function printDebug( value )
 	if ( debug ) then Echo( value ) end
 end
@@ -163,6 +157,11 @@ end
 
 function widget:Shutdown()
 	WG['autogroup'] = nil
+
+    dlists = {}
+    for i,_ in ipairs(dlists) do
+        gl.DeleteList(dlists[i])
+    end
 end
 
 function widget:DrawWorld()
