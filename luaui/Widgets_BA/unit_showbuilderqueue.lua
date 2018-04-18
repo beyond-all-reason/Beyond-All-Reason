@@ -155,9 +155,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		commandCreatedUnits[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] = true
 	end
 	if builderUnitDefs[unitDefID] then
-		local random = math.random(1,10)
-		buildersOrdered[random][unitID] = true
-		builders[unitID] = random
+		builders[unitID] = true
 	end
 end
 
