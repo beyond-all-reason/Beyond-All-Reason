@@ -3,14 +3,20 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  torso, ruparm, luparm, rbigflash, nanospray, pelvis, lfirept, head,
-       lthigh, rthigh, nanolath, biggun, rleg, lleg;
+piece  torso, ruparm, luparm, rbigflash, nanospray, pelvis, lfirept, head, lthigh, rthigh, nanolath, biggun, rleg, lleg, crown, head1;
 
 static-var  bMoving, bAiming, Static_Var_3, Static_Var_4, justfired,
 			building, buildx, buildy, moveSpeed, currentSpeed;
 
 // Signal definitions
 #define SIG_AIM				2
+
+showcrown()
+{
+	hide head1;
+	show crown;
+}
+
 
 walk()
 {
@@ -415,6 +421,8 @@ MotionControl(moving, aiming, justmoved)
 
 Create()
 {
+	hide crown;
+	move crown to y-axis [8] now;
 	hide rbigflash;
 	hide lfirept;
 	turn lfirept to x-axis <90> now;
