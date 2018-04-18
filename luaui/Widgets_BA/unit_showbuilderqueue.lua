@@ -25,20 +25,7 @@ local commandOrdered = {}
 local commandCreatedUnits = {}
 local commandCreatedUnitsIDs = {}
 local builders = {}
-local buildersOrdered = {{},{},{},{},{},{},{},{},{},{}}
 local myPlayerID = Spring.GetMyPlayerID()
-local _, _, isPaused = Spring.GetGameSpeed()
-
-local glPushMatrix		= gl.PushMatrix
-local glPopMatrix		= gl.PopMatrix
-local glTranslate		= gl.Translate
-local glColor			= gl.Color
-local glDepthTest		= gl.DepthTest
-local glRotate			= gl.Rotate
-local glUnitShape		= gl.UnitShape
-local glLoadIdentity	= gl.LoadIdentity
-
-local spGetUnitDefID	= Spring.GetUnitDefID
 
 
 local builderUnitDefs = {}
@@ -52,15 +39,19 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+function updateBuilders()
+	for unitID, _ in pairs(builders) do
+		checkBuilder(unitID)
+	end
+end
+
 function addBuilders()
 	command = {}
 	local allUnits = Spring.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
-		local uDefID = spGetUnitDefID(unitID)
+		local uDefID = Spring.GetUnitDefID(unitID)
 		if builderUnitDefs[uDefID] then
-			local random = math.random(1,10)
-			buildersOrdered[random][unitID] = true
-			builders[unitID] = random
+			builders[unitID] = true
 			checkBuilder(unitID)
 		end
 	end
@@ -75,6 +66,7 @@ end
 function widget:PlayerChanged(playerID)
 	if playerID == myPlayerID and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		addBuilders()
+		updateBuilders()
 	end
 end
 
@@ -89,6 +81,36 @@ function clearBuilderCommands(unitID)
 			end
 		end
 		commandOrdered[unitID] = nil
+	end
+end
+
+local gameFrame = Spring.GetGameFrame()
+function widget:GameFrame(gf)
+	gameFrame = gf
+end
+
+local newUnitCommands = {}
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
+	if builderUnitDefs[unitDefID] then
+		newUnitCommands[unitID] = os.clock() + 0.05
+	end
+end
+
+local sec = 0
+local lastUpdate = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > lastUpdate + 0.1 then
+		lastUpdate = sec
+
+		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
+		local clock =  os.clock()
+		for unitID, cmdClock in pairs(newUnitCommands) do
+			if clock > cmdClock then
+				checkBuilder(unitID)
+				newUnitCommands[unitID] = nil
+			end
+		end
 	end
 end
 
@@ -119,23 +141,6 @@ function checkBuilder(unitID)
 	end
 end
 
-local currentBatch = 1
-function widget:GameFrame(gameframe)
-	if gameframe % 3 == 1 then
-		processNextBatch()
-	end
-end
-
-function processNextBatch()
-	for unitID, random in pairs(buildersOrdered[currentBatch]) do
-		checkBuilder(unitID)
-	end
-	currentBatch = currentBatch + 1
-	if currentBatch > 10 then
-		currentBatch = 1
-	end
-end
-
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if commandCreatedUnitsIDs[unitID] then
 		commandCreatedUnits[commandCreatedUnitsIDs[unitID]] = nil
@@ -150,16 +155,14 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		commandCreatedUnits[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] = true
 	end
 	if builderUnitDefs[unitDefID] then
-		local random = math.random(1,10)
-		buildersOrdered[random][unitID] = true
-		builders[unitID] = random
+		builders[unitID] = true
 	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	if builders[unitID] then
-		buildersOrdered[builders[unitID]][unitID] = nil
 		builders[unitID] = nil
+		newUnitCommands[unitID] = nil
 		clearBuilderCommands(unitID)
 	end
 	if commandCreatedUnitsIDs[unitID] then
@@ -167,42 +170,27 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-local sec = 0
-local lastUpdate = 0
-function widget:Update(dt)
-	if Spring.IsGUIHidden() then return end
-
-	sec = sec + dt
-	if sec > lastUpdate + 0.1 then
-		lastUpdate = sec
-
-		local _, _, isPaused = Spring.GetGameSpeed()
-		if isPaused then
-			processNextBatch()
-		end
-	end
-end
 
 function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
 
-	glDepthTest(true)
-	for id, units in pairs(command) do
+	gl.DepthTest(true)
+	for _, units in pairs(command) do
 		local myCmd = units.id
 		local params = myCmd.params
 
 		local x, y, z = params[1], params[2], params[3]
 		local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
 		if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
-			glPushMatrix()
-				glLoadIdentity()
-				glTranslate( x, y, z )
-				glRotate( degrees, 0, 1.0, 0 )
-				glUnitShape(myCmd.id, myCmd.teamid, false, false, false)
-			glPopMatrix()
+			gl.PushMatrix()
+				gl.LoadIdentity()
+				gl.Translate( x, y, z )
+				gl.Rotate( degrees, 0, 1.0, 0 )
+				gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
+			gl.PopMatrix()
 		end
 	end
-	glDepthTest(false)
-	glColor(1, 1, 1, 1)
+	gl.DepthTest(false)
+	gl.Color(1, 1, 1, 1)
 end
 
