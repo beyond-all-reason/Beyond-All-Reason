@@ -84,11 +84,35 @@ function clearBuilderCommands(unitID)
 	end
 end
 
-
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
-	checkBuilder(unitID)
+local gameFrame = Spring.GetGameFrame()
+function widget:GameFrame(gf)
+	gameFrame = gf
 end
 
+local newUnitCommands = {}
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
+	if builderUnitDefs[unitDefID] then
+		newUnitCommands[unitID] = os.clock() + 0.05
+	end
+end
+
+local sec = 0
+local lastUpdate = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > lastUpdate + 0.1 then
+		lastUpdate = sec
+
+		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
+		local clock =  os.clock()
+		for unitID, cmdClock in pairs(newUnitCommands) do
+			if clock > cmdClock then
+				checkBuilder(unitID)
+				newUnitCommands[unitID] = nil
+			end
+		end
+	end
+end
 
 function checkBuilder(unitID)
 	clearBuilderCommands(unitID)
@@ -140,6 +164,7 @@ end
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	if builders[unitID] then
 		builders[unitID] = nil
+		newUnitCommands[unitID] = nil
 		clearBuilderCommands(unitID)
 	end
 	if commandCreatedUnitsIDs[unitID] then
