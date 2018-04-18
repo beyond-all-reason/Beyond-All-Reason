@@ -17,49 +17,98 @@ end
 
 
 if (gadgetHandler:IsSyncedCode()) then  --Sync?
+	
+	VFS.Include("unbaconfigs/categories.lua")
+	VFS.Include("unbaconfigs/taxvalues.lua")
+	expvalues = {}
+	taxvalue = {}	
+	
+	for unitDefID, uDef in pairs(UnitDefs) do
+		categories[unitDefID] = categories[UnitDefs[unitDefID].name] or 'other'
+		categories[UnitDefs[unitDefID].name] = nil
+		expvalues[unitDefID] = math.sqrt(uDef.metalCost + uDef.energyCost/60)/500
+		Spring.Echo(expvalues[unitDefID])
+		taxvalues[unitDefID] = taxvalues[categories[unitDefID]] or 1.025
+		taxvalues[categories[unitDefID]] = nil
+	end
+	
+	experiences = {}
+	taxes = {}
 
-	local count = {}
-	local exponentfactor = 1 + (2.5/100) -- For each active unit, the cost is increased by 2.5% (exponential, nth unit costs cost[n-1]*1.025)
-	local experiencePerBuild = 0.1 / 10 -- Each new build of a unit type is built with +0.1 experience (max 100 units = 10.0)
-	-- exceptionNames = {
-	-- NO EXCEPTIONS YET, have to discuss wether or not economy buildings should be an exception
-	-- Possibly, the exponent could vary depending on unitType
-	-- }
-	-- for unitDefID, uDef in pairs(UnitDefs) do
-		-- if exceptionNames[uDef.name] then
-			-- exceptions[unitDefID] = true
-		-- end
-	-- end
-
-	function gadget:UnitFinished(unitID,unitDefID,unitTeam)
-		-- if not exceptions[unitDefID] then
-			if not count[unitTeam] then
-				count[unitTeam] = {}
-			end
-			if not count[unitTeam][unitDefID] then
-				count[unitTeam][unitDefID] = 1
-			else
-				count[unitTeam][unitDefID] = count[unitTeam][unitDefID] + 1
-			end
-			local ct = (count[unitTeam][unitDefID] - 1) * experiencePerBuild
+	local function AddExperienceValue(team, cat, value)
+		if not experiences[team] then 
+			experiences[team] = {} 
+		end
+		if not experiences[team][cat] then 
+			experiences[team][cat] = 0 
+		else
+			experiences[team][cat] = experiences[team][cat] + value
+		end
+		if experiences[team][cat] < 0 then 
+			experiences[team][cat] = 0
+		end
+	end
+	
+	local function SetUnitExp(unitID, team, cat)
+		if experiences[team] and experiences[team][cat] then
+			local ct = experiences[team][cat]
 			if ct < 1.0 then
 				Spring.SetUnitExperience(unitID, (1/((1/ct) - 1))) -- TooltipExperience = 10*(exp /(exp + 1))
 			else
 				Spring.SetUnitExperience(unitID, (1/((1/0.9999999) - 1))) -- (using ct = 1 returns NaN, use 0.999999... instead for 10.0 tooltip experience)
 			end
-			-- _,curExp = Spring.GetUnitExperience(unitID)
-			-- if curExp >= 0.99 then  -- OPTIONAL, display a message when a player has mastered (tooltipExp = 10.0) a unittype
-				-- a, leader = Spring.GetTeamInfo(unitTeam)
-				-- name = Spring.GetPlayerInfo(leader)
-				-- ud = UnitDefs[unitDefID].humanName
-				-- Spring.Echo("Player " .. name .." has mastered " ..ud.." technology.")
-			-- end
-		-- end
+		end
+	end
+			
+	local function AddTax(team, cat, value)
+		if not taxes[team] then 
+			taxes[team] = {} 
+		end
+		if not taxes[team][cat] then 
+			taxes[team][cat] = 1 
+		else
+			taxes[team][cat] = taxes[team][cat] * value
+		end
+		if taxes[team][cat] < 0 then 
+			taxes[team][cat] = 0
+		end
+	end
+	
+	local function SetUnitTax(unitID, team, cat)
+		if taxes[team] and taxes[team][cat] then
+			local ct = taxes[team][cat]
+			local unitDefID = Spring.GetUnitDefID(unitID)
+			Spring.SetUnitCosts(unitID, { metalCost = UnitDefs[unitDefID].metalCost*ct, energyCost = UnitDefs[unitDefID].energyCost*ct, buildTime = UnitDefs[unitDefID].buildTime*ct})
+		end
+	end
+
+	function gadget:UnitFinished(unitID,unitDefID,unitTeam)
+		local category = categories[unitDefID]
+		local expvalue = expvalues[unitDefID]
+			AddExperienceValue(unitTeam, category, expvalue)
+			SetUnitExp(unitID, unitTeam, category)
 	end
 	
 	function gadget:UnitCreated(unitID,unitDefID,unitTeam)
-		local ct = Spring.GetTeamUnitDefCount(unitTeam, unitDefID) - 1
-		Spring.SetUnitCosts(unitID, { metalCost = UnitDefs[unitDefID].metalCost*exponentfactor^ct, energyCost = UnitDefs[unitDefID].energyCost*exponentfactor^ct, buildTime = UnitDefs[unitDefID].buildTime*exponentfactor^ct})
+		local category = categories[unitDefID]
+		local taxvalue = taxvalues[unitDefID]
+			AddTax(unitTeam, category, taxvalue)
+			SetUnitTax(unitID, unitTeam, category)
+	end
+	
+	function gadget:UnitDestroyed(unitID,unitDefID,unitTeam)
+		local category = categories[unitDefID]
+		local taxvalue = taxvalues[unitDefID]
+		local invtaxvalue = 1/taxvalue
+			AddTax(unitTeam, category, invtaxvalue)
+	end
+	
+	function gadget:UnitGiven(unitID,unitDefID,newTeam, oldTeam)
+		local category = categories[unitDefID]
+		local taxvalue = taxvalues[unitDefID]
+		local invtaxvalue = 1/taxvalue
+			AddTax(newTeam, category, taxvalue)
+			AddTax(oldTeam, category, invtaxvalue)
 	end
 	
 end

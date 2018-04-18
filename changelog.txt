@@ -8,8 +8,8 @@ Balance changes:
  • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
 
 Unbalanced Commanders:
- • Incremental buildcosts: Adds a tax when stacking units of a same unit type. The tax grows exponentially (= 1.025) and only counts active/finished units per team.
- • Incremental experience: The more you use a unit type, the greater the experience it will have when just being built. Each new unit adds 0.10 experience to the base experience of that unit type, per team.
+ • Incremental buildcosts: Adds a tax when stacking units of a same category. The tax grows exponentially (= 1.025) and only counts active/finished units per team (some buildings add a 1.05 or 1.1 factor).
+ • Incremental experience: The more you use a unit category, the greater the experience it will have when just being built. Each new unit adds experience to the base experience of that category, depending on its costs.
 
 Other:
  • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
