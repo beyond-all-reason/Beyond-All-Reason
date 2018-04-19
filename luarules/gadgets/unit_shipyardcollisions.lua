@@ -20,7 +20,6 @@ defIDIsShipyard = {}
 shipyard = {}
 defIDIsBoat = {}
 boat = {}
-ToUnblock = {}
 
 for id, uDef in pairs(UnitDefs) do
 	if uDef.name == "armsy" or uDef.name == "armasy" or uDef.name == "corsy" or uDef.name == "corasy" then
@@ -63,17 +62,11 @@ function gadget:GameFrame(f)
 			boat[unitID] = nil
 		end
 	end
-	for unitID, frame in pairs(ToUnblock) do
-		if Spring.GetGameFrame() >= frame then
-			Spring.SetUnitBlocking(unitID, true)
-		end
-	end
 end
 
 function gadget:UnitDestroyed(unitID)
 	shipyard[unitID] = nil
 	boat[unitID] = nil
-	ToUnblock[unitID] = nil
 end
 
 function gadget:UnitUnitCollision(colliderID, collideeID)
@@ -91,11 +84,7 @@ function gadget:UnitUnitCollision(colliderID, collideeID)
 			local udx, udy, udz = Spring.GetUnitDirection(unitID)
 			local dx, dy, dz = sx - ux, sy - uy, sz - uz
 			local ndx, ndy, ndz = Norm3D(dx, dy, dz)
-			Spring.SetUnitDirection(unitID, udx*0.2 -ndx * 0.8, udy, udz*0.2 -ndz * 0.8)
-			Spring.SetUnitBlocking(collideeID, false)
-			Spring.SetUnitBlocking(colliderID, false)	
-			ToUnblock[collideeID] = Spring.GetGameFrame() + 15
-			ToUnblock[colliderID] = Spring.GetGameFrame() + 15
+			Spring.SetUnitDirection(unitID, udx*0.8 -ndx * 0.2, udy, udz*0.8 -ndz * 0.2)
 		end
 	end
 end

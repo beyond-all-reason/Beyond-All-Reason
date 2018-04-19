@@ -11,6 +11,7 @@ return {
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		cruisealt = 78,
+		cantbetransported = false,
 		description = "Light Paralyzer Drone",
 		energymake = 2,
 		explodeas = "tinyExplosionGeneric",
