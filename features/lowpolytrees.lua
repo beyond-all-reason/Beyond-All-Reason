@@ -37,6 +37,7 @@ local function CreateTreeDef(i)
         reclaimable        = true,
         upright            = true,
         indestructible     = false,
+        crushResistance    = 12,
         category           = "vegetation",
         energy             = 250,
         damage             = 5,
