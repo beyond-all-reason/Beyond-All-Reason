@@ -14,6 +14,9 @@ Unbalanced Commanders:
 Other:
  • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
  • Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
+ • Engine replacement trees now are crushable as well
+ • Various widget and gadget performance improvements
+
 
 10.07 -> 10.08
 15/04/2018
@@ -47,7 +50,7 @@ Other:
 
 
 10.06 -> 10.07
-06/05/2018
+06/04/2018
 
 Balance changes: 
  • Long range T1 AA range reduced 10% (1250 -> 1125) and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060

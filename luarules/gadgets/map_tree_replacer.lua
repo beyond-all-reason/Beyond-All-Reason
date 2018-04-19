@@ -72,6 +72,7 @@ if (gadgetHandler:IsSyncedCode()) then
 						Spring.DestroyFeature(featuretable[i])
 						local newFeatureID = Spring.CreateFeature(replacementTrees[math.random(1,table.getn(replacementTrees))], x, Spring.GetGroundHeight(x,z), z)
 						Spring.SetFeatureRotation(newFeatureID, 0, math.random(1,360), 0)
+						Spring.SetFeatureBlocking(newFeatureID, true, true, true, true, true, false, false)
 					end
 				end
 			end

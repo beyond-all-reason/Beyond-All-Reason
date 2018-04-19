@@ -56,11 +56,11 @@ end
 
 local damagedFeatures = {}
 function gadget:FeatureDamaged(featureID, featureDefID, featureTeam, damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
-	if damage > 1 and (damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15) then
+	if damage > 4 and (damagedFeatures[featureID] == nil or Spring.GetGameFrame() - damagedFeatures[featureID] > 15) and select(1,Spring.GetFeatureHealth(featureID)) > 0 then		-- not sure if "select(1,Spring.GetFeatureHealth(featureID)) > 0" is needed because if featuredestroyed, featuredamaged wont be called probably
 		local fx,fy,fz = Spring.GetFeaturePosition(featureID)
 		if (fx ~= nil) then
 			local x,y,z = fx,fy,fz
-			local rm, mm, re, me, rl = Spring.GetFeatureResources(featureID)
+			local _, mm, _, me, _ = Spring.GetFeatureResources(featureID)
 			local fdef = featureList[featureDefID]
 			if me ~= nil and me > 0 then
 				local numFx = math.floor(me/250)
