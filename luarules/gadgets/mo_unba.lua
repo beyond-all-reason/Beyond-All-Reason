@@ -11,7 +11,7 @@ function gadget:GetInfo()
       date         = "17/04/2018",
       license      = "GPL 2.0 or later", -- should be compatible with Spring
       layer        = 0,
-      enabled      = enablegadget
+      enabled      = false
    }
 end
 
@@ -22,6 +22,7 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 	VFS.Include("unbaconfigs/taxvalues.lua")
 	expvalues = {}
 	taxvalue = {}	
+	oldteams = {}
 	
 	for unitDefID, uDef in pairs(UnitDefs) do
 		categories[unitDefID] = categories[UnitDefs[unitDefID].name] or 'other'
@@ -100,15 +101,26 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 		local category = categories[unitDefID]
 		local taxvalue = taxvalues[unitDefID]
 		local invtaxvalue = 1/taxvalue
-			AddTax(unitTeam, category, invtaxvalue)
+		if oldteams[unitID] then
+			team = oldteams[unitID]
+		else
+			team = unitTeam
+		end
+			AddTax(team, category, invtaxvalue)
+			oldteams[unitID] = nil
 	end
 	
 	function gadget:UnitGiven(unitID,unitDefID,newTeam, oldTeam)
-		local category = categories[unitDefID]
-		local taxvalue = taxvalues[unitDefID]
-		local invtaxvalue = 1/taxvalue
-			AddTax(newTeam, category, taxvalue)
-			AddTax(oldTeam, category, invtaxvalue)
+		if Spring.AreTeamsAllied(newTeam, oldTeam) == true then
+			if not oldteams[unitID] then
+				oldteams[unitID] = oldTeam
+			else
+				oldteams[unitID] = oldteams[unitID]
+			end		
+		else
+			gadget:UnitDestroyed(unitID, unitDefID, oldTeam)
+			gadget:UnitCreated(unitID, unitDefID, newTeam)
+		end
 	end
 	
 end
