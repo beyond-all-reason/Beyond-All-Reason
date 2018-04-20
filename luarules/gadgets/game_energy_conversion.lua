@@ -345,11 +345,11 @@ function gadget:GameFrame(n)
 				spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
 			end
 		end
-	if (splitMMPointer == resourceRefreshRate) then
-		splitMMPointer = 1
-	else
-		splitMMPointer = splitMMPointer + 1
-	end
+		if (splitMMPointer == resourceRefreshRate) then
+			splitMMPointer = 1
+		else
+			splitMMPointer = splitMMPointer + 1
+		end
 	end
 end
 
@@ -396,15 +396,16 @@ end
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
     local cDefs = convertCapacities[uDefID]
     if cDefs then
-        if teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built then
-			if (teamMMList[uTeam][cDefs.e][uID].status == 1) then
-				teamActiveMM[uTeam] = teamActiveMM[uTeam] - 1
+        if teamMMList[uTeam][cDefs.e][uID] then
+			if teamMMList[uTeam][cDefs.e][uID].built then
+				if (teamMMList[uTeam][cDefs.e][uID].status == 1) then
+					teamActiveMM[uTeam] = teamActiveMM[uTeam] - 1
+				end
+
+				if not teamMMList[uTeam][cDefs.e][uID].emped then
+					AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
+				end
 			end
-			
-			if not teamMMList[uTeam][cDefs.e][uID].emped then
-				AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
-			end
-			
             teamMMList[uTeam][cDefs.e][uID] = nil
         end
     end
@@ -413,17 +414,19 @@ end
 function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
     local cDefs = convertCapacities[uDefID]
     if cDefs then
-        if teamMMList[oldTeam][cDefs.e][uID] and teamMMList[oldTeam][cDefs.e][uID].built then
-			
-			if not teamMMList[oldTeam][cDefs.e][uID].emped then
-				AdjustTeamCapacity(oldTeam, -cDefs.c, cDefs.e)
-				AdjustTeamCapacity(newTeam,  cDefs.c, cDefs.e)
+        if teamMMList[oldTeam][cDefs.e][uID] then
+			if teamMMList[oldTeam][cDefs.e][uID].built then
+
+				if not teamMMList[oldTeam][cDefs.e][uID].emped then
+					AdjustTeamCapacity(oldTeam, -cDefs.c, cDefs.e)
+					AdjustTeamCapacity(newTeam,  cDefs.c, cDefs.e)
+				end
+				if (teamMMList[oldTeam][cDefs.e][uID].status == 1) then
+					teamActiveMM[oldTeam] = teamActiveMM[oldTeam] - 1
+					teamActiveMM[newTeam] = teamActiveMM[newTeam] + 1
+				end
 			end
-            if (teamMMList[oldTeam][cDefs.e][uID].status == 1) then
-				teamActiveMM[oldTeam] = teamActiveMM[oldTeam] - 1
-				teamActiveMM[newTeam] = teamActiveMM[newTeam] + 1
-			end
-			
+
 			teamMMList[newTeam][cDefs.e][uID] = {}
 			teamMMList[newTeam][cDefs.e][uID].capacity = teamMMList[oldTeam][cDefs.e][uID].capacity
 			teamMMList[newTeam][cDefs.e][uID].status = teamMMList[oldTeam][cDefs.e][uID].status
