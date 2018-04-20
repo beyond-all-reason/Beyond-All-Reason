@@ -254,8 +254,8 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
    if IsPlane(unitDefID) then
       InsertLandAtAirbaseCommands(unitID)
+      planes[unitID] = true
    end
-   planes[unitID] = true
    local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
    if buildProgress == 1.0 then
       gadget:UnitFinished(unitID, unitDefID, unitTeam)
