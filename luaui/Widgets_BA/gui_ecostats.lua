@@ -969,6 +969,10 @@ end
 
 function setReclaimerUnits()
 	reclaimerUnits = {}
+	local teamList = GetTeamList()
+	for _, tID in pairs (teamList) do
+		reclaimerUnits[tID] = {}
+	end
 	local allUnits = Spring.GetAllUnits()
 	for _, unitID in ipairs(allUnits) do
 		local uDefID = Spring.GetUnitDefID(unitID)
@@ -1103,7 +1107,7 @@ function setAllyData(allyID)
 		
 	local teamList = allyData[index].teams	
 	local team1 = teamList[1] --leader id
-	
+
 	for _, tID in pairs (teamList) do
 		if not teamData[tID] then
 			setTeamTable(tID)
