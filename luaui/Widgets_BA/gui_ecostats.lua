@@ -53,6 +53,8 @@ local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
 
+local reclaimerUnits = {}
+
 local Button 						= {}
 Button["player"] 					= {}
 Button["team"] 						= {}
@@ -84,6 +86,7 @@ local maxPlayers					= 0
 
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
+local amSpec = Spring.GetSpectatingState()
 
 local vsx,vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
@@ -143,12 +146,13 @@ local images			= {
 ---------------------------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if not (Spring.GetSpectatingState() or isReplay) then
+	if not (amSpec or isReplay) then
 		inSpecMode = false
 		Spring.Echo("Ecostats: widget loaded in active player mode")
 	else
 		inSpecMode = true
 		Spring.Echo("Ecostats: widget loaded in spectator mode")
+		setReclaimerUnits()
 	end
 	if GetGameSeconds() > 0 then gamestarted = true end
 
@@ -185,7 +189,6 @@ function widget:Shutdown()
 end
 
 function Init()
-
 	setDefaults()
 	
 	teamData = {}
@@ -253,8 +256,8 @@ function Init()
 	lastPlayerChange = frame
 end
 
+
 function Reinit()
-	
 	maxPlayers = getMaxPlayers()
 	
 	if maxPlayers == 1 then
@@ -965,24 +968,47 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+function setReclaimerUnits()
+	reclaimerUnits = {}
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in ipairs(allUnits) do
+		local uDefID = Spring.GetUnitDefID(unitID)
+		if reclaimerUnitDefs[uDefID] then
+			local unitTeam = Spring.GetUnitTeam(unitID)
+			if not reclaimerUnits[unitTeam] then
+				reclaimerUnits[unitTeam] = {}
+			end
+			reclaimerUnits[unitTeam][unitID] = uDefID
+		end
+	end
+end
+
+function widget:UnitCreated(uID, uDefID, uTeam, builderID)
+	if not amSpec and reclaimerUnitDefs[uDefID] then
+		reclaimerUnits[uTeam][uID] = uDefID
+	end
+end
+
+function widget:UnitDestroyed(uID, uDefID, uTeam)
+	if not amSpec and reclaimerUnitDefs[uDefID] then
+		reclaimerUnits[uTeam][uID] = nil
+	end
+end
+
 
 function getTeamProduction(teamID)
 	local totalEnergyReclaim = 0
 	local totalMetalReclaim = 0
-	if inSpecMode then
-		local teamUnits = Spring.GetTeamUnitsSorted(teamID)
-		for unitDefID, units in pairs(teamUnits) do
-			if reclaimerUnitDefs[unitDefID] then -- or metalUnitDefs[unitDefID]
-				for i, unitID in ipairs(units) do
-					local metalMake,metalUse,energyMake,energyUse = Spring.GetUnitResources(unitID)
-                    if metalMake ~= nil then
-                        if metalMake > 0 then
-                            totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID][1])
-                        end
-                        if energyMake > 0 then
-                            totalEnergyReclaim = totalEnergyReclaim + (energyMake-reclaimerUnitDefs[unitDefID][2])
-                        end
-                    end
+	if inSpecMode and reclaimerUnits[teamID] ~= nil  then
+		local teamUnits = reclaimerUnits[teamID]
+		for unitID, unitDefID in pairs(teamUnits) do
+			local metalMake,metalUse,energyMake,energyUse = Spring.GetUnitResources(unitID)
+			if metalMake ~= nil then
+				if metalMake > 0 then
+					totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID][1])
+				end
+				if energyMake > 0 then
+					totalEnergyReclaim = totalEnergyReclaim + (energyMake-reclaimerUnitDefs[unitDefID][2])
 				end
 			end
 		end
@@ -1306,13 +1332,15 @@ end
 function widget:PlayerChanged(playerID)
 	local frame = GetGameFrame()
 	lastPlayerChange = frame
-	if not (Spring.GetSpectatingState() or isReplay) then
+	amSpec = Spring.GetSpectatingState()
+	if not (amSpec or isReplay) then
 		if inSpecMode then Spring.Echo("Ecostats: widget now in active player mode.") end
 		inSpecMode = false
 		UpdateAllies()
 	else
 		if not inSpecMode then Spring.Echo("Ecostats: widget now in spectator mode.") end
 		inSpecMode = true
+		setReclaimerUnits()
 		Reinit()
 	end
 	makeStandardList()
@@ -1334,8 +1362,9 @@ function widget:TeamDied(teamID)
 	lastPlayerChange = frame
 	
 	removeGuiShaderRects()
+	reclaimerUnits[teamID] = nil
 	
-	if not (Spring.GetSpectatingState() or isReplay) then
+	if not (amSpec or isReplay) then
 		if inSpecMode then Spring.Echo("Ecostats: widget now in active player mode.") end
 		inSpecMode = false
 		UpdateAllies()
@@ -1571,6 +1600,7 @@ end
 function widget:Update(dt)
 	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
+			amSpec = Spring.GetSpectatingState()
 			UpdateAllTeams()
 			makeSideImageList()
 		end
