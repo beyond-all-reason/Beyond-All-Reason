@@ -86,7 +86,6 @@ local maxPlayers					= 0
 
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
-local amSpec = Spring.GetSpectatingState()
 
 local vsx,vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
@@ -146,7 +145,7 @@ local images			= {
 ---------------------------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if not (amSpec or isReplay) then
+	if not (Spring.GetSpectatingState() or isReplay) then
 		inSpecMode = false
 		Spring.Echo("Ecostats: widget loaded in active player mode")
 	else
@@ -984,13 +983,13 @@ function setReclaimerUnits()
 end
 
 function widget:UnitCreated(uID, uDefID, uTeam, builderID)
-	if not amSpec and reclaimerUnitDefs[uDefID] then
+	if inSpecMode and reclaimerUnitDefs[uDefID] then
 		reclaimerUnits[uTeam][uID] = uDefID
 	end
 end
 
 function widget:UnitDestroyed(uID, uDefID, uTeam)
-	if not amSpec and reclaimerUnitDefs[uDefID] then
+	if inSpecMode and reclaimerUnitDefs[uDefID] then
 		reclaimerUnits[uTeam][uID] = nil
 	end
 end
@@ -1332,8 +1331,7 @@ end
 function widget:PlayerChanged(playerID)
 	local frame = GetGameFrame()
 	lastPlayerChange = frame
-	amSpec = Spring.GetSpectatingState()
-	if not (amSpec or isReplay) then
+	if not (Spring.GetSpectatingState() or isReplay) then
 		if inSpecMode then Spring.Echo("Ecostats: widget now in active player mode.") end
 		inSpecMode = false
 		UpdateAllies()
@@ -1364,7 +1362,7 @@ function widget:TeamDied(teamID)
 	removeGuiShaderRects()
 	reclaimerUnits[teamID] = nil
 	
-	if not (amSpec or isReplay) then
+	if not (Spring.GetSpectatingState() or isReplay) then
 		if inSpecMode then Spring.Echo("Ecostats: widget now in active player mode.") end
 		inSpecMode = false
 		UpdateAllies()
@@ -1600,7 +1598,6 @@ end
 function widget:Update(dt)
 	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
-			amSpec = Spring.GetSpectatingState()
 			UpdateAllTeams()
 			makeSideImageList()
 		end
