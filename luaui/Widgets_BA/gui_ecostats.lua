@@ -978,9 +978,6 @@ function setReclaimerUnits()
 		local uDefID = Spring.GetUnitDefID(unitID)
 		if reclaimerUnitDefs[uDefID] then
 			local unitTeam = Spring.GetUnitTeam(unitID)
-			if not reclaimerUnits[unitTeam] then
-				reclaimerUnits[unitTeam] = {}
-			end
 			reclaimerUnits[unitTeam][unitID] = uDefID
 		end
 	end
