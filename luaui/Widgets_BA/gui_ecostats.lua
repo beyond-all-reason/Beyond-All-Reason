@@ -998,7 +998,7 @@ end
 function widget:UnitGiven(uID, uDefID, uTeamNew, uTeam)
 	if inSpecMode and reclaimerUnitDefs[uDefID] then
 		reclaimerUnits[uTeam][uID] = nil
-		reclaimerUnits[uTeamNew][uID] = nil
+		reclaimerUnits[uTeamNew][uID] = uDefID
 	end
 end
 
