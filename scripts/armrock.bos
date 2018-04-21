@@ -379,6 +379,8 @@ MotionControl(moving, aiming, justmoved)
 				turn lthigh to x-axis <0.000000> speed <200.043956>;
 				turn lleg to x-axis <0.000000> speed <200.043956>;
 				turn lfoot to x-axis <0.000000> speed <200.043956>;
+				turn torso to x-axis <0.000000> speed <90.021978>;
+				turn torso to z-axis <0.000000> speed <90.021978>;
 				if( !aiming )
 				{
 					turn torso to y-axis <0.000000> speed <90.021978>;
