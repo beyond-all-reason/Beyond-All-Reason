@@ -26,7 +26,7 @@ local commandCreatedUnits = {}
 local commandCreatedUnitsIDs = {}
 local builders = {}
 local myPlayerID = Spring.GetMyPlayerID()
-
+local maxDisplayed = 150
 
 local builderUnitDefs = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -175,6 +175,7 @@ function widget:DrawWorld()
 	if Spring.IsGUIHidden() then return end
 
 	gl.DepthTest(true)
+	local commandVisible = 0
 	for _, units in pairs(command) do
 		local myCmd = units.id
 		local params = myCmd.params
@@ -188,6 +189,10 @@ function widget:DrawWorld()
 				gl.Rotate( degrees, 0, 1.0, 0 )
 				gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
 			gl.PopMatrix()
+			commandVisible = commandVisible + 1
+			if commandVisible > maxDisplayed then
+				break
+			end
 		end
 	end
 	gl.DepthTest(false)

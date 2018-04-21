@@ -223,7 +223,8 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
     else
       unitCounts[unitDefID] = nil
     end
-    updateDlist = true
+    checkSelectedUnits = true
+    skipGetUnitCounts = true
   end
 end
 
@@ -232,19 +233,24 @@ function widget:Update(dt)
   sec = sec + dt
   if (checkSelectedUnits and sec>0.09) then
     sec = 0
-    unitCounts = spGetSelectedUnitsCounts()
-    local equal = true
-    if unitCounts.n ~= prevUnitCount.n then
-      equal = false
-    else
-      for udid,count in pairs(unitCounts) do
-        if not prevUnitCount[udid] or prevUnitCount[udid] ~= count then
-          equal = false
-          break
+    if not skipGetUnitCounts then
+      unitCounts = spGetSelectedUnitsCounts()
+      local equal = true
+      if unitCounts.n ~= prevUnitCount.n then
+        equal = false
+      else
+        for udid,count in pairs(unitCounts) do
+          if not prevUnitCount[udid] or prevUnitCount[udid] ~= count then
+            equal = false
+            break
+          end
         end
       end
+      skipGetUnitCounts = nil
+    else
+      equal = false
     end
-    if not equal then
+    if not equal and spGetSelectedUnitsCount() > 0 then
       updateDlist = true
     end
   end
