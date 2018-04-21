@@ -475,12 +475,12 @@ RestoreAfterDelay()
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = lbarrel;
 }
 
 QueryPrimary(piecenum)
 {
-	piecenum = lbarrel;
+	piecenum = lfirept2;
 }
 
 AimPrimary(heading, pitch)
@@ -493,7 +493,7 @@ AimPrimary(heading, pitch)
 		sleep 100;
 	}
 	turn torso to y-axis heading speed <130.027473>;
-	turn lmisspod to x-axis <-90.021978> speed <180.021978>;
+	turn lmisspod to x-axis <-90> - pitch speed <180.021978>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn lmisspod around x-axis;
 	start-script RestoreAfterDelay();
