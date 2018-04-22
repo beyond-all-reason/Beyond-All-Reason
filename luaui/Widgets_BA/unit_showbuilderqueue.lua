@@ -75,7 +75,8 @@ function clearBuilderCommands(unitID)
 		for id, _ in pairs(commandOrdered[unitID]) do
 			if command[id] and command[id][unitID] then
 				command[id][unitID] = nil
-				if #command[id] == 0 then
+				command[id].builders = command[id].builders - 1
+				if command[id].builders == 0 then
 					command[id] = nil
 				end
 			end
@@ -128,9 +129,10 @@ function checkBuilder(unitID)
 				local id = Spring.GetUnitTeam(unitID)..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..cmd.params[2]..'_'..cmd.params[3]
 				if showForCreatedUnits or commandCreatedUnits[id] == nil then
 					if command[id] == nil then
-						command[id] = {id = myCmd }
+						command[id] = {id = myCmd, builders = 0}
 					end
 					command[id][unitID] = true
+					command[id].builders = command[id].builders + 1
 					if commandOrdered[unitID] == nil then
 						commandOrdered[unitID] = {}
 					end
@@ -144,6 +146,7 @@ end
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
 	if commandCreatedUnitsIDs[unitID] then
 		commandCreatedUnits[commandCreatedUnitsIDs[unitID]] = nil
+		commandCreatedUnitsIDs[unitID] = nil
 	end
 end
 
