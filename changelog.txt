@@ -12,6 +12,7 @@ Unbalanced Commanders:
  • Incremental experience: The more you use a unit category, the greater the experience it will have when just being built. Each new unit adds experience to the base experience of that category, depending on its costs.
 
 Other:
+ • Fixed cloaking units underwater.
  • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
  • Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
  • Engine replacement trees now are crushable as well
