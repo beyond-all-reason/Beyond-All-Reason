@@ -173,7 +173,7 @@ return {
 				cratermult = 0,
 				duration = 1,
 				energypershot = 5,
-				explosiongenerator = "custom:genericshellexplosion-medium-lightning",
+				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,
