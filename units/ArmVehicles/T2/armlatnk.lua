@@ -165,11 +165,13 @@ return {
 			armlatnk_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				beamttl = 10,
+				beamttl = 1,
+				burst = 10,
+				burstrate = 0.03,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				duration = 10,
+				duration = 1,
 				energypershot = 5,
 				explosiongenerator = "custom:genericshellexplosion-medium-lightning",
 				firestarter = 50,
@@ -191,8 +193,8 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				damage = {
-					default = 227,
-					subs = 5,
+					default = 22.7,
+					subs = 0.5,
 				},
 				customparams = {
 					light_mult = "0.38",		-- used by light_effects widget
