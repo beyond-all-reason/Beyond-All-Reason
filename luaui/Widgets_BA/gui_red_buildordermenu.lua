@@ -655,8 +655,8 @@ local function UpdateGrid(g,cmds,ordertype)
 			
 			if (not cmd.disabled) then
 				local text = g.texts[i]
-				text.px = icon.px+(icon.sx/20)
-				text.py = icon.py-(icon.sy/15)
+				text.px = icon.px+(icon.sx/45)
+				text.py = icon.py-(icon.sy/25)
 				
 				local captionColor = "\255\175\175\175"
 				
