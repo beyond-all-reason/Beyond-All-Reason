@@ -1000,8 +1000,13 @@ end
 
 function widget:UnitGiven(uID, uDefID, uTeamNew, uTeam)
 	if inSpecMode and reclaimerUnitDefs[uDefID] then
-		reclaimerUnits[uTeam][uID] = nil
-		reclaimerUnits[uTeamNew][uID] = uDefID
+		if reclaimerUnits[uTeam] then
+			reclaimerUnits[uTeam][uID] = nil
+			if not reclaimerUnits[uTeamNew] then
+				reclaimerUnits[uTeamNew] = {}
+			end
+			reclaimerUnits[uTeamNew][uID] = uDefID
+		end
 	end
 end
 
