@@ -55,7 +55,7 @@ return {
 		turninplacespeedlimit = 0.64*2.008,
 		turnrate = 120,
 		--end move
-		waterline = 0,
+		waterline = 8,
 		workertime = 1000,
 		customparams = {
 			techlevel = 2,
