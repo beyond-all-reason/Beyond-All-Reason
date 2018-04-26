@@ -528,8 +528,6 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if ( Aim2 == TRUE )
-	{
 	if( gun_1 == 0 )
 	{
 		piecenum = rfirept;
@@ -537,11 +535,6 @@ QueryPrimary(piecenum)
 	if( gun_1 == 1 )
 	{
 		piecenum = lfirept;
-	}
-	}
-	else
-	{
-	piecenum = torso;
 	}
 }
 
@@ -552,8 +545,6 @@ AimFromSecondary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	if ( Aim1 == TRUE )
-	{
 	if( gun_1 == 0 )
 	{
 		piecenum = rfirept;
@@ -561,11 +552,6 @@ QuerySecondary(piecenum)
 	if( gun_1 == 1 )
 	{
 		piecenum = lfirept;
-	}
-	}
-	else
-	{
-	piecenum = torso;
 	}
 }
 
