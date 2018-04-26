@@ -1,3 +1,8 @@
+enabled = true
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+enabled = false
+end
+
 function gadget:GetInfo()
   return {
     name      = "Commander Crowns",
@@ -6,7 +11,7 @@ function gadget:GetInfo()
     date      = "April 2018",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = enabled  --  loaded by default?
   }
 end
 
