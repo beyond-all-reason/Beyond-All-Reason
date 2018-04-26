@@ -985,20 +985,28 @@ end
 
 function widget:UnitCreated(uID, uDefID, uTeam, builderID)
 	if inSpecMode and reclaimerUnitDefs[uDefID] then
+		if not reclaimerUnits[uTeam] then
+			reclaimerUnits[uTeam] = {}
+		end
 		reclaimerUnits[uTeam][uID] = uDefID
 	end
 end
 
 function widget:UnitDestroyed(uID, uDefID, uTeam)
-	if inSpecMode and reclaimerUnitDefs[uDefID] then
+	if inSpecMode and reclaimerUnitDefs[uDefID] and reclaimerUnits[uTeam] then
 		reclaimerUnits[uTeam][uID] = nil
 	end
 end
 
 function widget:UnitGiven(uID, uDefID, uTeamNew, uTeam)
 	if inSpecMode and reclaimerUnitDefs[uDefID] then
-		reclaimerUnits[uTeam][uID] = nil
-		reclaimerUnits[uTeamNew][uID] = uDefID
+		if reclaimerUnits[uTeam] then
+			reclaimerUnits[uTeam][uID] = nil
+			if not reclaimerUnits[uTeamNew] then
+				reclaimerUnits[uTeamNew] = {}
+			end
+			reclaimerUnits[uTeamNew][uID] = uDefID
+		end
 	end
 end
 
