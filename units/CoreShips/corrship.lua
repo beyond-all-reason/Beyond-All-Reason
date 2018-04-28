@@ -35,12 +35,11 @@ return {
 		sightdistance = 600,
 		sonardistance = 450,
 		waterline = 0,
-		acceleration = 2.15/120,
-		brakerate = 2.15/25,
+		acceleration = 0.035,
+		brakerate = 0.086,
 		maxvelocity = 2.15,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.15,
 		turnrate = 240,
 		customparams = {
 			

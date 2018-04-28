@@ -37,12 +37,11 @@ return {
 		unloadspread = 1,
 		waterline = 8,
 		--move
-		brakerate =  2.00/40,
-		acceleration = 1.75/180,
+		brakerate =  0.05,
+		acceleration = 0.019,
 		maxvelocity = 2.40,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.00,
 		turnrate = 180,	
 		--end move
 		customparams = {

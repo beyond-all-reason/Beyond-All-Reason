@@ -47,12 +47,11 @@ return {
 		sonardistance = 740,
 		terraformspeed = 5000,
 		--move
-		acceleration = 2.008/270,
-		brakerate = 2.008/35,
+		acceleration = 0.014,
+		brakerate = 0.057,
 		maxvelocity = 2.008,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.008,
 		turnrate = 120,
 		--end move
 		waterline = 8,

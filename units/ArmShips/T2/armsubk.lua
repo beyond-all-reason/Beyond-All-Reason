@@ -32,12 +32,11 @@ return {
 		sightdistance = 390,
 		sonardistance = 525,
 		--move
-		brakerate =  2.80/20,
-		acceleration = 2.80/150,
+		brakerate =  0.14,
+		acceleration = 0.037,
 		maxvelocity = 3.08,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.80,
 		turnrate = 150,	
 		--end move
 		upright = true,

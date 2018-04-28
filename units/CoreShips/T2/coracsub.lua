@@ -36,12 +36,11 @@ return {
 		sightdistance = 156,
 		terraformspeed = 1500,
 				--move
-		brakerate =  2.16/20,
-		acceleration = 2.16/120,
+		brakerate = 0.108,
+		acceleration = 0.036,
 		maxvelocity = 2.16,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.16,
 		turnrate = 257,	
 		--end move
 		waterline = 30,

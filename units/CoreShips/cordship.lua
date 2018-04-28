@@ -35,7 +35,7 @@ return {
 		sightdistance = 500,
 		sonardistance = 320,
 		waterline = 1.5,
-		acceleration = 3.60/60,
+		acceleration = 2*3.60/60,
 		brakerate = 3.60/15,
 		maxvelocity = 3.60,
 		turninplace = true,
