@@ -148,25 +148,21 @@ AimPrimary(heading, pitch)
 	return (1);
 }
 
-FirePrimary()
+Shot1()
 {
 	if( gun_1 )
 	{
 		move abarrelb to z-axis [-1.] speed [500.];
 		wait-for-move abarrelb along z-axis;
 		move abarrelb to z-axis [0.] speed [5.];
-		show flare12;
-		sleep 150;
-		hide flare12;
+		emit-sfx 1024 + 0 from flare12;
 	}
 	else
 	{
 		move abarrela to z-axis [-1.] speed [500.];
 		wait-for-move abarrela along z-axis;
 		move abarrela to z-axis [0.] speed [5.];
-		show flare11;
-		sleep 150;
-		hide flare11;
+		emit-sfx 1024 + 0 from flare11;
 	}
 	gun_1 = !gun_1;
 }
@@ -190,25 +186,21 @@ AimSecondary(heading, pitch)
 	return (1);
 }
 
-FireSecondary()
+Shot2()
 {
 	if( gun_2 )
 	{
 		move bbarrelb to z-axis [-1.] speed [500.];
 		wait-for-move bbarrelb along z-axis;
 		move bbarrelb to z-axis [0.] speed [5.];
-		show flare22;
-		sleep 150;
-		hide flare22;
+		emit-sfx 1024 + 0 from flare22;
 	}
 	else
 	{
 		move bbarrela to z-axis [-1.] speed [500.];
 		wait-for-move bbarrela along z-axis;
 		move bbarrela to z-axis [0.] speed [5.];
-		show flare21;
-		sleep 150;
-		hide flare21;
+		emit-sfx 1024 + 0 from flare21;
 	}
 	gun_2 = !gun_2;
 }
