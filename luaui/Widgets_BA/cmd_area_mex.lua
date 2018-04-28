@@ -93,6 +93,18 @@ function widget:UnitCreated(unitID, unitDefID)
 	end
 end
 
+function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+	if not mexBuilder[unitID] then
+	widget:UnitCreated(unitID, unitDefID, newTeam)
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
+	if not mexBuilder[unitID] then
+	widget:UnitCreated(unitID, unitDefID, newTeam)
+	end
+end
+
 function widget:Update()
 	local _,cmd,_ = spGetActiveCommand()
 	if (cmd == CMD_AREA_MEX) then
