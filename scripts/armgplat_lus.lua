@@ -11,7 +11,7 @@ function script.Create()
 	COBrockStrength = 5
 	COBrockSpeed = 30
 	COBrockRestoreSpeed = 30
-	firingCEG = "barrelshot-medium"
+	firingCEG = "barrelshot-tiny"
 	rockStrength = ProcessAngularSpeeds(COBrockStrength)
 	rockSpeed = ProcessAngularSpeeds(COBrockSpeed)
 	rockRestoreSpeed = ProcessAngularSpeeds(COBrockRestoreSpeed)
@@ -101,7 +101,7 @@ function Norm3DVectr(dx, dy, dz)
 ndx = (math.abs(dx)/dx)*math.sqrt((dx^2)/(dx^2 + dy^2 + dz^2))
 ndy = (math.abs(dy)/dy)*math.sqrt((dy^2)/(dx^2 + dy^2 + dz^2))
 ndz = (math.abs(dz)/dz)*math.sqrt((dz^2)/(dx^2 + dy^2 + dz^2))
-if dx == 0 then ndz = 0 end
+if dx == 0 then ndx = 0 end
 if dy == 0 then ndy = 0 end
 if dz == 0 then ndz = 0 end
 return ndx, ndy, ndz

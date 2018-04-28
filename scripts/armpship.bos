@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, ground, wake1, wake2, turret1, sleeve1, barrel11, flare11, barrel12, flare12, turret2, sleeve2, barrel21, flare21, barrel22, flare22;
+piece  base, ground, wake1, wake2, turret1, sleeve1, barrel11, flare11, flare12, barrel12, turret2, sleeve2, barrel21, flare21, flare22, barrel22;
 		
 static-var  gun_1, gun_2, restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead;
 
