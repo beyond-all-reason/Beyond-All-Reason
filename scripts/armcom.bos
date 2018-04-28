@@ -404,6 +404,7 @@ MotionControl(moving, aiming, justmoved)
 			if( justmoved )
 			{
 				move pelvis to y-axis [0.000000] speed [1.000000];
+				turn pelvis to x-axis <0.000000> speed <200.000000>;
 				turn rthigh to x-axis <0.000000> speed <200.000000>;
 				turn rleg to x-axis <0.000000> speed <200.000000>;
 				turn lthigh to x-axis <0.000000> speed <200.000000>;
