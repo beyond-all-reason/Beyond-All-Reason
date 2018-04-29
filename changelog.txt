@@ -8,6 +8,7 @@ Balance changes:
  • Arm/Core gun platform special damages towards "heavyunits" erased.
  • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
  • Global acceleration buff for ships (+100%)
+ • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
 
 Other:
  • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
