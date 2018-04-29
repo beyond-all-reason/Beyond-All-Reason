@@ -15,7 +15,8 @@ Other:
  • Fixed cloaking units underwater
  • Fixed Console in scroll mode being glitchy when an ignored line is added.
  • Fixed Set Target command giving away exact target position
- • Added widget: "Dgun no ally", will make dgun not snap to ally units when near
+ • Added widget: "Dgun no ally", will make dgun not snap to own/ally units when near
+ • Added widget: "Attack no ally", will make attack command not snap to own/ally units when near
  • Disabled unit_shipyardcollisions.lua which poorly handled ships vs shipyards collisions
  • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
  • Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
