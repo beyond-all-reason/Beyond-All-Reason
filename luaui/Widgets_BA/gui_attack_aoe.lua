@@ -109,14 +109,14 @@ local function VertexList(points)
   end
 end
 
-local function GetMouseTargetPosition()
+local function GetMouseTargetPosition(dgun)
   local mx, my = GetMouseState()
   local mouseTargetType, mouseTarget = TraceScreenRay(mx, my)
   
   if (mouseTargetType == "ground") then
     return mouseTarget[1], mouseTarget[2], mouseTarget[3]
   elseif (mouseTargetType == "unit") then
-    if WG['dgunnoally'] ~= nil and Spring.IsUnitAllied(mouseTarget) then
+    if dgun and WG['dgunnoally'] ~= nil and Spring.IsUnitAllied(mouseTarget) then
       mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
       return mouseTarget[1], mouseTarget[2], mouseTarget[3]
     else
@@ -606,7 +606,7 @@ function widget:DrawWorld()
   
   if (cmd == CMD_DGUN and dgunUnitDefID) then
     mouseDistance = GetMouseDistance() or 1000
-    local tx, ty, tz = GetMouseTargetPosition()
+    local tx, ty, tz = GetMouseTargetPosition(true)
     if (not tx) then return end
     local info = dgunInfo[dgunUnitDefID]
     local fx, fy, fz = GetUnitPosition(dgunUnitID)   
