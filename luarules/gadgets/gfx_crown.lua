@@ -2,7 +2,9 @@ enabled = true
 if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 enabled = false
 end
-
+if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+enabled = false
+end
 function gadget:GetInfo()
   return {
     name      = "Commander Crowns",
@@ -21,9 +23,8 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-crown  = {
-	 ["Raghna"] = true
-	}
+
+VFS.Include('luarules/configs/champions.lua')
 	
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 	if UnitDefNames["armcom"].id == unitDefID or UnitDefNames["corcom"].id == unitDefID then

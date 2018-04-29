@@ -155,6 +155,17 @@ function MotionControl()
 end
 
 function script.Create()
+VFS.Include('luarules/configs/champions.lua')
+local unitTeam = Spring.GetUnitTeam(unitID)
+local unitDefID = Spring.GetUnitDefID(unitID)
+local _, leader = Spring.GetTeamInfo(unitTeam)
+local leader = Spring.GetPlayerInfo(leader)
+if crown[leader] then
+		Hide(head1)
+		Show(piece("crown"))
+		head1 = piece("crown")
+		Move(head1, 2, 10)
+end
 if ValidID(unitID) then
 for ct, piecenum in pairs (lvl1hides) do
 	Hide(piecenum)
