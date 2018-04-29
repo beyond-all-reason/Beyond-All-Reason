@@ -9,6 +9,7 @@ Balance changes:
  • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
  • Global acceleration buff for ships (+100%)
  • Removed Passive energy/metal (15/0.5 -> 0/0) making from T1 Shipyards, lowered energy/metal storages (125->100), erased armsy's radarsight range (50 -> 0)
+ • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
 
 Other:
  • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
