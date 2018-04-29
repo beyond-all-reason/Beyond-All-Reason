@@ -22,7 +22,7 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 crown  = {
-	 ["UnnamedPlayer"] = true
+	 ["Raghna"] = true
 	}
 	
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
