@@ -12,6 +12,7 @@ Balance changes:
  • Lowered energy/metal storages for T1 shipyards (125->100)
  • Erased T1/T2 Shipyards' radarsight
  • Reduced Construction Ships Energy/Metal production (15/0.115 -> 7/0.1) and increased Energy/Metal storages (15 -> 50)
+ • Reduced Construction Ships HP -15%
  • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
 
 Other:

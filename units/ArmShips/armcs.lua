@@ -23,7 +23,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1105,
+		maxdamage = 940,
 		metalmake = 0.1,
 		metalstorage = 50,
 		minwaterdepth = 15,
