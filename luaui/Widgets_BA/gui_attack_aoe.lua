@@ -116,7 +116,7 @@ local function GetMouseTargetPosition(dgun)
   if (mouseTargetType == "ground") then
     return mouseTarget[1], mouseTarget[2], mouseTarget[3]
   elseif (mouseTargetType == "unit") then
-    if dgun and WG['dgunnoally'] ~= nil and Spring.IsUnitAllied(mouseTarget) then
+    if ((dgun and WG['dgunnoally'] ~= nil) or (not dgun and WG['attacknoally'] ~= nil)) and Spring.IsUnitAllied(mouseTarget) then
       mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
       return mouseTarget[1], mouseTarget[2], mouseTarget[3]
     else

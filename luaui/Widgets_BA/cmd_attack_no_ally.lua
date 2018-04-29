@@ -10,6 +10,15 @@ function widget:GetInfo()
    }
 end
 
+
+function widget:Initialize()
+	WG['attacknoally'] = true
+end
+
+function widget:Shutdown()
+	WG['attacknoally'] = nil
+end
+
 function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	if cmdID ~= CMD.ATTACK then
 		return false
