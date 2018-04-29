@@ -116,9 +116,16 @@ local function GetMouseTargetPosition()
   if (mouseTargetType == "ground") then
     return mouseTarget[1], mouseTarget[2], mouseTarget[3]
   elseif (mouseTargetType == "unit") then
-    return GetUnitPosition(mouseTarget)
+    if WG['dgunnoally'] ~= nil and Spring.IsUnitAllied(mouseTarget) then
+      mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
+      return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+    else
+      return GetUnitPosition(mouseTarget)
+    end
   elseif (mouseTargetType == "feature") then
-    return GetFeaturePosition(mouseTarget)
+    local mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
+    return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+    --return GetFeaturePosition(mouseTarget)
   else
     return nil
   end
