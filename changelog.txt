@@ -1,6 +1,11 @@
 ﻿10.08 -> 10.09
 xx/xx/2018
 
+Sub/Ships separation branch changes:
+ • T1 Shipyard: Transport and sub made unavailable in t1 shipyard
+ • Amphibious Complex: Turned into a Tech 2 Underwater Plant, costs increased by 125%, lost pincer/garp/t1aakbot and given sub/subkiller/battlesub/advConSub. Increased bp to 300, metal storage to 200.
+ • T2 shipyards: Transport available, Adv construction sub unavailable, subkiller/battlesub unavailable
+
 Balance changes:
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
  • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%

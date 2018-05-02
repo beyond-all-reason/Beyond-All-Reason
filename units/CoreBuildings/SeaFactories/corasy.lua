@@ -35,21 +35,14 @@ return {
 		workertime = 300,
 		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
 		buildoptions = {
-			"coracsub",
 			"cormls",
-			-- "corsnap",
-			"corshark",
-			"corssub",
 			"corarch",
 			"corcrus",
-			-- "corhal",
-			-- "corsok",
 			"corbats",
-			-- "cormh",
 			"cormship",
 			"corblackhy",
 			"corcarry",
-			-- "corthovr",
+			"cortship"
 			"corsjam",
 		},
 		customparams = {
