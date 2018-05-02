@@ -14,8 +14,8 @@ return {
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Tech Level 2",
-		energymake = 0.5,
-		energyuse = 0.5,
+		energymake = 20,
+		energystorage = 100,
 		explodeas = "mediumexplosiongeneric",
 		floater = true,
 		footprintx = 3,
@@ -24,6 +24,8 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 1438,
+		metalmake = 0.2,
+		metalstorage = 100,
 		minwaterdepth = 15,
 		movementclass = "BOAT43X3",
 		name = "Advanced Construction Ship",
@@ -41,7 +43,7 @@ return {
 		turnrate = 262,
 		--end move
 		waterline = 0,
-		workertime = 200,
+		workertime = 300,
 		buildoptions = {
             "coreyes",
             "coramph",
