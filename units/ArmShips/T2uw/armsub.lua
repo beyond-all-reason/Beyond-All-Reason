@@ -25,6 +25,7 @@ return {
 		name = "Lurker",
 		nochasecategory = "VTOL",
 		objectname = "ARMSUB",
+		script = "armsub_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-uw",
 		sightdistance = 400,
@@ -33,19 +34,18 @@ return {
 		waterline = 30,
 		--move
 		
-		canfly = true,
-		cansubmerge = true,
-		cruisealt = 0,
-		hoverattack = true,
-		airstrafe = false,
-		usesmoothmesh = false,
+		-- canfly = true,
+		-- cansubmerge = true,
+		-- cruisealt = 0,
+		-- hoverattack = true,
+		-- airstrafe = false,
+		-- usesmoothmesh = false,
 		brakerate =  0.105,
 		acceleration = 0.035,
 		maxvelocity = 2.10,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 320,	
-		maxreversevelocity = 2.10*0.40,
 		--end move
 		customparams = {
 			

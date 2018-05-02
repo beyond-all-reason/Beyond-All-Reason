@@ -38,12 +38,12 @@ return {
 		workertime = 300,
 		--move
 		
-		canfly = true,
-		cansubmerge = true,
-		cruisealt = 0,
-		hoverattack = true,
-		airstrafe = false,
-		usesmoothmesh = false,
+		-- canfly = true,
+		-- cansubmerge = true,
+		-- cruisealt = 0,
+		-- hoverattack = true,
+		-- airstrafe = false,
+		-- usesmoothmesh = false,
 		brakerate =  0.12,
 		acceleration = 0.053,
 		maxvelocity = 2.40,

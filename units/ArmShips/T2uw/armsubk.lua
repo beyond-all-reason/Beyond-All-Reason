@@ -33,12 +33,12 @@ return {
 		sonardistance = 525,
 		--move
 		
-		canfly = true,
-		cansubmerge = true,
-		cruisealt = 0,
-		hoverattack = true,
-		airstrafe = false,
-		usesmoothmesh = false,
+		-- canfly = true,
+		-- cansubmerge = true,
+		-- cruisealt = 0,
+		-- hoverattack = true,
+		-- airstrafe = false,
+		-- usesmoothmesh = false,
 		brakerate =  0.14,
 		acceleration = 0.037,
 		maxvelocity = 3.08,

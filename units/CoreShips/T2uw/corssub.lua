@@ -35,12 +35,12 @@ return {
 		waterline = 45,
 				--move
 				
-		canfly = true,
-		cansubmerge = true,
-		cruisealt = 0,
-		hoverattack = true,
-		airstrafe = false,
-		usesmoothmesh = false,
+		-- canfly = true,
+		-- cansubmerge = true,
+		-- cruisealt = 0,
+		-- hoverattack = true,
+		-- airstrafe = false,
+		-- usesmoothmesh = false,
 		brakerate =  2.052/20,
 		acceleration = 0.102,
 		maxvelocity = 2.257,
