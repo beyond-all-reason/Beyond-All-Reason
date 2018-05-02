@@ -39,6 +39,8 @@ return {
 		customparams = {
 			removewait = true,
 			removestop = true,
+			bar_buildinggrounddecalsizex = 4.5,
+			bar_buildinggrounddecalsizey = 4.5,
 		},
 		featuredefs = {
 			dead = {
