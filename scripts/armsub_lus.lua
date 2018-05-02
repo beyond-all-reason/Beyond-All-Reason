@@ -16,7 +16,6 @@ function script.Create()
 	Spring.SetUnitMaxRange(unitID, 310)
 	StartThread(SpeedLimit)
 	StartThread(Steam)
-	StartThread(FrequentlyCheckHeight)
 	-- Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, {0}, {})
 	Spring.SetUnitArmored(unitID, true, 0.5)
 end
