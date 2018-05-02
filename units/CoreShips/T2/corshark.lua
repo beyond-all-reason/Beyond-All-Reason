@@ -37,7 +37,6 @@ return {
 		maxvelocity = 3.01,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.745
 		turnrate = 145,	
 		--end move
 		upright = true,
