@@ -7,6 +7,7 @@ Sub/Ships separation branch changes:
  • T2 shipyards: Transport available, Adv construction sub unavailable, subkiller/battlesub unavailable
  • T1 resurrection sub becomes a t1 resurrection ship
  • Turn Muskrat/beaver into Amphibious engineers, disallow vehicle plant to build them (replaced with construction hovercraft in vp), made hover platform unavailable from kbots.
+ • Turned MineLayerShips into T2 construction ships
 
 
 Balance changes:
