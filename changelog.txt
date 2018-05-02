@@ -6,7 +6,7 @@ Sub/Ships separation branch changes:
  • Amphibious Complex: Turned into a Tech 2 Underwater Plant, costs increased by 125%, lost pincer/garp/t1aakbot and given sub/subkiller/battlesub/advConSub. Increased bp to 300, metal storage to 200.
  • T2 shipyards: Transport available, Adv construction sub unavailable, subkiller/battlesub unavailable
  • T1 resurrection sub becomes a t1 resurrection ship
- • Turn Muskrat/beaver into Amphibious engineers, disallow vehicle plant to build them (replaced with construction hovercraft in vp)
+ • Turn Muskrat/beaver into Amphibious engineers, disallow vehicle plant to build them (replaced with construction hovercraft in vp), made hover platform unavailable from kbots.
 
 
 Balance changes:
