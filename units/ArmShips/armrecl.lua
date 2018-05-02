@@ -74,10 +74,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "sucormov",
+				[1] = "sharmmov",
 			},
 			select = {
-				[1] = "sucorsel",
+				[1] = "sharmsel",
 			},
 		},
 	},

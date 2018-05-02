@@ -71,10 +71,10 @@ return {
 				[6] = "count1",
 			},
 			ok = {
-				[1] = "suarmmov",
+				[1] = "shcormov",
 			},
 			select = {
-				[1] = "suarmsel",
+				[1] = "shcorsel",
 			},
 		},
 	},
