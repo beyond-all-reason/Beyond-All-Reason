@@ -110,7 +110,7 @@ return {
 					vtol = 15,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
+					bar_model = "cormissile2fast.s3o",
 				}
 			},
 		},

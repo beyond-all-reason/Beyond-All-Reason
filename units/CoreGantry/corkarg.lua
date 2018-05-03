@@ -227,7 +227,7 @@ return {
 					vtol = 150,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
+					bar_model = "cormissile2.s3o",
 				}
 			},
 			kargkick = {

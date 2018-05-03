@@ -155,7 +155,7 @@ return {
 					vtol = 26,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
+					bar_model = "cormissile3fast.s3o",
 					expl_light_color = "1 0.5 0.05",
 				},
 			},
