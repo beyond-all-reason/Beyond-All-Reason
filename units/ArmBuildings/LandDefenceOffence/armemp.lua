@@ -34,8 +34,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
-            bar_buildinggrounddecalsizex = 9,
-            bar_buildinggrounddecalsizey = 9,
+            bar_buildinggrounddecalsizex = 6,
+            bar_buildinggrounddecalsizey = 6,
             bar_collisionvolumescales = "112 80 80",
             yardmap = "ooooooo ooooooo ooooooo ooooooo ooooooo ooooooo",
 			techlevel = 2,

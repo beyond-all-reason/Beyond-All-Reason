@@ -36,6 +36,8 @@ return {
 		customparams = {
 			techlevel = 2,
 			removewait = true,
+			bar_buildinggrounddecalsizex = 7.5,
+			bar_buildinggrounddecalsizey = 7.5,
 		},
 		featuredefs = {
 			dead = {
