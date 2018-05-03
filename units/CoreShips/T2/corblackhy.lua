@@ -199,7 +199,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
-				explosiongenerator = "custom:genericshellexplosion-medium",
+				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				gravityaffected = "true",
 				impulseboost = 0.123,
@@ -226,6 +226,9 @@ return {
 					default = 125,
 					subs = 5,
 				},
+				customparams = {
+					bar_model = "cormissile.s3o",
+				}
 			},
 		},
 		weapons = {

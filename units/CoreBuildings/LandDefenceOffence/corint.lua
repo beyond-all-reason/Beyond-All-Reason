@@ -36,6 +36,8 @@ return {
 			techlevel = 2,
 			removewait = true,
 			canareaattack = 1,
+			bar_buildinggrounddecalsizex = 7.5,
+			bar_buildinggrounddecalsizey = 7.5,
 		},
 		featuredefs = {
 			dead = {

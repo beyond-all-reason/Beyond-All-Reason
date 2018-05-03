@@ -159,6 +159,7 @@ return {
 					vtol = 1,
 				},
 				customparams = {
+					bar_model = "epulse.s3o",
 					light_color = "0.3 1 0.2",		-- used by light_effects widget
 					light_radius_mult = "1.4",		-- used by light_effects widget
 					light_mult = "3.5",		-- used by light_effects widget

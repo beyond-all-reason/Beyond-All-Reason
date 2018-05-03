@@ -153,7 +153,8 @@ return {
 					default = 1700,
 					subs = 5,
 				},
-                customparams = {
+				customparams = {
+					bar_model = "corvrocket.s3o",
                     light_mult = 3.5,
 					light_radius_mult = 1.25,
 					light_color = "1 0.6 0.15",

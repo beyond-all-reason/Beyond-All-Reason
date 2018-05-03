@@ -106,6 +106,9 @@ return {
 				damage = {
 					default = 175,
 				},
+				customparams = {
+					bar_model = "AgamAutoBurst.s3o",
+				}
 			},
 			weapon = {
 				interceptedByShieldType   = 4,

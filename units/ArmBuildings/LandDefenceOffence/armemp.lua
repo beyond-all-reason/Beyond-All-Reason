@@ -158,6 +158,7 @@ return {
 					default = 50000,
 				},
 				customparams = {
+					bar_model = "cortronmissile.s3o",
 					light_mult = 3.5,
 					light_radius_mult = 1.4,
 					light_color = "0.7 0.7 1",

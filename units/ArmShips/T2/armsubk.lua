@@ -147,6 +147,9 @@ return {
 					default = 250,
 					subs = 400,
 				},
+				customparams = {
+					bar_model = "torpedo.s3o",
+				}
 			},
 		},
 		weapons = {

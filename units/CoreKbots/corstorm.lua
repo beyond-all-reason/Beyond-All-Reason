@@ -146,6 +146,9 @@ return {
 					default = 157,
 					subs = 5,
 				},
+				customparams = {
+					bar_model = "cormissile.s3o",
+				}
 			},
 		},
 		weapons = {

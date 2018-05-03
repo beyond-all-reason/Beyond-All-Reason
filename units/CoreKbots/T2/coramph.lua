@@ -123,6 +123,9 @@ return {
 				damage = {
 					default = 250,
 				},
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				}
 			},
 			coramph_weapon2 = {
 				areaofeffect = 12,

@@ -107,6 +107,9 @@ return {
 					fighters = 15,
 					vtol = 15,
 				},
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				}
 			},
 		},
 		weapons = {

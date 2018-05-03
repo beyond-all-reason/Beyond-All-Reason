@@ -183,6 +183,9 @@ return {
 					default = 187,
 					subs = 270,
 				},
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				}
 			},
 		},
 		weapons = {

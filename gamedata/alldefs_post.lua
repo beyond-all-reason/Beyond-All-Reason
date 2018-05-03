@@ -304,6 +304,24 @@ function WeaponDef_Post(name, wDef)
 		if wDef.soundhitwet ~= '' then
 			wDef.soundhitwet = getBarSound(wDef.soundhitwet)
 		end
+
+		-- load bar alternative defs
+		if wDef.customparams then
+			for paramName, paramValue in pairs(wDef.customparams) do
+				if paramName:sub(1,4) == "bar_" then
+					local param = string.sub(paramName, 5)
+
+					--if param == 'model' and VFS.FileExists('objects3d/'..paramValue) then
+					--	wDef.model = 'objects3d/bar_'..paramValue
+					--end
+					if tonumber(param) then
+						wDef[param] = tonumber(paramValue)
+					else
+						wDef[param] = paramValue
+					end
+				end
+			end
+		end
 	end
 end
 

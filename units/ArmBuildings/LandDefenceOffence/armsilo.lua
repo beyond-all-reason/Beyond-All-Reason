@@ -152,6 +152,7 @@ return {
 					default = 9500,
 				},
 				customparams = {
+					bar_model = "crblmssl.s3o",
 					light_color = "1 0.6 0.2",
 					light_mult = 7,
 					light_radius_mult = 2,
