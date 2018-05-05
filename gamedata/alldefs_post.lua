@@ -127,6 +127,23 @@ function UnitDef_Post(name, uDef)
 				end
 			end
 		end
+		if name == 'corraid' then
+			Spring.Echo(' --- corraid: ---')
+		end
+		-- BAR heap models
+		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.object then
+
+			if name == 'corraid' then
+				Spring.Echo(' --- heap object: '..uDef.featuredefs.heap.object)
+			end
+			local faction = 'cor'
+			if string.find(name, 'arm') then
+				faction = 'arm'
+			end
+			if VFS.FileExists('objects3d/BAR/'..faction..uDef.featuredefs.heap.object..".s3o") then
+				uDef.featuredefs.heap.object = 'BAR/'..faction..uDef.featuredefs.heap.object..".s3o"
+			end
+		end
 
 		-- BAR sounds
 		if uDef.sounds and type(uDef.sounds) == 'table' then
