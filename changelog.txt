@@ -15,6 +15,7 @@ Balance changes:
  • Reduced Construction Ships HP -15%
  • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
+ • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%.
 
 Other:
  • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
