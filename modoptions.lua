@@ -69,6 +69,7 @@ local options={
 		items={
 			{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
 			{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
+			{key="exponly", name="ExperienceOnly", desc="Enable Unbalanced Commanders experience to power, health and reload multipliers"},
 		}
 	},	
 	
