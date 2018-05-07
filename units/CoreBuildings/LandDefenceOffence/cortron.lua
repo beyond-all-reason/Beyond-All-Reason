@@ -36,6 +36,8 @@ return {
 		customparams = {
 			techlevel = 2,
 			removewait = true,
+			bar_buildinggrounddecalsizex = 7.5,
+			bar_buildinggrounddecalsizey = 7.5,
 		},
 		featuredefs = {
 			dead = {
@@ -151,6 +153,7 @@ return {
 					default = 2500,
 				},
 				customparams = {
+					bar_model = "cortronmissile.s3o",
 					light_mult = 4.5,
 					light_radius_mult = 1.4,
 					light_color = "1 0.6 0.2",

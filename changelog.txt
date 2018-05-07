@@ -12,7 +12,8 @@ Sub/Ships separation branch changes:
 
 Balance changes:
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
- • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%
+ • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%,
+ • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health)
  • Arm/Core Assult Frigates damages + 3%
  • Arm/Core gun platform special damages towards "heavyunits" erased.
  • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
@@ -24,8 +25,10 @@ Balance changes:
  • Reduced Construction Ships HP -15%
  • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
+ • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%.
 
 Other:
+ • mo_unba = "exponly" added to allow the use of Unbalanced Commanders' experience health/reload/power multipliers with the classic Balanced Annihilation commander.
  • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
  • Fixed command "Area Mex" not being available for captured builders, also improved mex placement script (uses mex snap's code)
  • Fixed cloaking units underwater

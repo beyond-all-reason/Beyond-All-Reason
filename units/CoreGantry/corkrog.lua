@@ -234,7 +234,8 @@ return {
 					default = 800,
 					subs = 5,
 				},
-                customparams = {
+				customparams = {
+					bar_model = "corkbmissl1.s3o",
 					light_mult = 3.5,
 					light_radius_mult = 1.2,
 					light_color = "1 0.6 0.15",

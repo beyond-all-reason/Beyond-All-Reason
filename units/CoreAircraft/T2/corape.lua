@@ -109,6 +109,9 @@ return {
 					subs = 5,
 					vtol = 15,
 				},
+				customparams = {
+					bar_model = "cormissile2fast.s3o",
+				}
 			},
 		},
 		weapons = {

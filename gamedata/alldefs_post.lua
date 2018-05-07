@@ -128,6 +128,17 @@ function UnitDef_Post(name, uDef)
 			end
 		end
 
+		-- BAR heap models
+		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.object then
+			local faction = 'cor'
+			if string.find(name, 'arm') then
+				faction = 'arm'
+			end
+			if VFS.FileExists('objects3d/BAR/'..faction..uDef.featuredefs.heap.object..".s3o") then
+				uDef.featuredefs.heap.object = 'BAR/'..faction..uDef.featuredefs.heap.object..".s3o"
+			end
+		end
+
 		-- BAR sounds
 		if uDef.sounds and type(uDef.sounds) == 'table' then
 			for sound, soundParams in pairs(uDef.sounds) do
@@ -303,6 +314,24 @@ function WeaponDef_Post(name, wDef)
 		end
 		if wDef.soundhitwet ~= '' then
 			wDef.soundhitwet = getBarSound(wDef.soundhitwet)
+		end
+
+		-- load bar alternative defs
+		if wDef.customparams then
+			for paramName, paramValue in pairs(wDef.customparams) do
+				if paramName:sub(1,4) == "bar_" then
+					local param = string.sub(paramName, 5)
+
+					--if param == 'model' and VFS.FileExists('objects3d/'..paramValue) then
+					--	wDef.model = 'objects3d/bar_'..paramValue
+					--end
+					if tonumber(param) then
+						wDef[param] = tonumber(paramValue)
+					else
+						wDef[param] = paramValue
+					end
+				end
+			end
 		end
 	end
 end

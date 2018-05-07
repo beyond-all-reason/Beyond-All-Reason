@@ -154,6 +154,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
+					bar_model = "cormissile2.s3o",
 					light_mult = "0.66",		-- used by light_effects widget
 				},
 			},

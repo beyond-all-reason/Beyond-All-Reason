@@ -186,6 +186,9 @@ return {
 				damage = {
 					default = 230,
 				},
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				}
 			},
 			cor_crus = {
 				areaofeffect = 8,

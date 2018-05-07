@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4050,
+		maxdamage = 3950,
 		minwaterdepth = 12,
 		movementclass = "BOAT44X4",
 		name = "Enforcer",
@@ -183,6 +183,9 @@ return {
 					default = 212,
 					subs = 283,
 				},
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				}
 			},
 		},
 		weapons = {

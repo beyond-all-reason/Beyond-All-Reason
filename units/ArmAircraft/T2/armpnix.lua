@@ -98,7 +98,8 @@ return {
 					l1bombers = 5,
 					l1subs = 5,
 				},
-                customparams = {
+				customparams = {
+					bar_model = "bombrr.s3o",
                     expl_light_color = "1 0.5 0.05",
                 },
 			},

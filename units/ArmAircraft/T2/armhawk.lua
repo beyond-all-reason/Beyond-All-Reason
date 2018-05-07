@@ -108,6 +108,7 @@ return {
 					subs = 4,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
 				},
 			},

@@ -160,6 +160,9 @@ return {
 					subs = 5,
 					vtol = 120,
 				},
+				customparams = {
+					bar_model = "cormissile.s3o",
+				}
 			},
 		},
 		weapons = {
