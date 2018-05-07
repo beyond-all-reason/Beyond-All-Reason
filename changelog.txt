@@ -3,7 +3,8 @@ xx/xx/2018
 
 Balance changes:
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
- • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%
+ • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%,
+ • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health)
  • Arm/Core Assult Frigates damages + 3%
  • Arm/Core gun platform special damages towards "heavyunits" erased.
  • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
