@@ -57,7 +57,7 @@ return {
 			"corlab",
 			"corvp",
 			"corap",
-			"corhp",
+			-- "corhp",
 			"cornanotc",
 			"coreyes",
 			"corrad",
