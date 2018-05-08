@@ -43,12 +43,13 @@ return {
 		buildoptions = {
 			"armacsub",
 			"armbeaver",
-			"armcroc",
-			"armaak",
-			"armdecom",
 			"armsub",
 			"armsubk",
+			"armcroc",
+			"armaak",
 			"armserp",
+			"armdecom",
+			"armvader",
 		},
 		customparams = {
 			
