@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizey = 11,
 		buildinggrounddecaltype = "coramsub_aoplane.dds",
 		buildpic = "CORAMSUB.DDS",
-		buildtime = 25654,
+		buildtime = 18470,
 		canmove = true,
 		category = "ALL PLANT NOWEAPON NOTSUB NOTAIR NOTHOVER SURFACE UNDERWATER",
 		collisionvolumeoffsets = "0 0 -2",

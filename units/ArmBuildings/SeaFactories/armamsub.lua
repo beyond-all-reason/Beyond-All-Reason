@@ -2,7 +2,7 @@ return {
 	armamsub = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 13375,
+		buildcostenergy = 13400,
 		buildcostmetal = 2700,
 		builder = true,
 		shownanospray = false,
@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizey = 11,
 		buildinggrounddecaltype = "armamsub_aoplane.dds",
 		buildpic = "ARMAMSUB.DDS",
-		buildtime = 25002,
+		buildtime = 18001,
 		canmove = true,
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER",
 		collisionvolumeoffsets = "0 0 0",
