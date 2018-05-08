@@ -45,7 +45,7 @@ return {
 			"cormuskrat",
 			"corseal",
 			"coramph",
-			"corsub",
+			-- "corsub",
 			"corshark",
 			"coraak",
 			"corparrow",

@@ -43,7 +43,7 @@ return {
 		buildoptions = {
 			"armacsub",
 			"armbeaver",
-			"armsub",
+			-- "armsub",
 			"armsubk",
 			"armcroc",
 			"armaak",
