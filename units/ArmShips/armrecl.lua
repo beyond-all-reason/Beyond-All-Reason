@@ -11,7 +11,7 @@ return {
 		canassist = false,
 		canmove = true,
 		canresurrect = true,
-		category = "ALL UNDERWATER NOWEAPON NOTAIR NOTHOVER",
+		category = "ALL SURFACE SHIP NOWEAPON NOTAIR NOTHOVER",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "38 17 50",
 		collisionvolumetype = "box",
