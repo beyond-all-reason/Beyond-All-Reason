@@ -6,7 +6,6 @@ SIG_MOVE = 8
 Surfaced = false
 piecetable = {flare1, flare2, base, tail}
 uDef = UnitDefs[Spring.GetUnitDefID(unitID)]
-wDef = WeaponDefs[WeaponDefNames["armsub_arm_torpedobig"].id]
 
 function script.Create()
 	local sx,sy,sz,ox,oy,oz,vt, tt,pa, disabled = Spring.GetUnitCollisionVolumeData(unitID)
@@ -94,20 +93,8 @@ end
 end
 
 function script.AimWeapon1(heading, pitch)	
-	StartThread(Surface)
-	Signal(2)
-	while Surfaced ~= true do
-	Sleep(10)
-	end
-	if Surfaced == true then
-	local reloadTime = Spring.GetUnitWeaponState(unitID, 1, "reloadTime")
-	-- Spring.Echo(reloadTime)
 	Signal(27)
-	StartThread(Restore, reloadTime * 1000)
 	return (true)
-	else
-	return (false)
-	end
 end
 
 function script.AimFromWeapon1()
@@ -140,9 +127,7 @@ else
 gun = 1 
 end
 	if weapon == 1 then
-	local reloadTime = Spring.GetUnitWeaponState(unitID, 1, "reloadTime")
 	Signal(27)
-	StartThread(Restore, reloadTime * 1000)
 	end
 end
 
