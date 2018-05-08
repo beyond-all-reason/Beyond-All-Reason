@@ -60,7 +60,7 @@ return {
 			"armfatf",
 			"armplat",
 			"armsy",
-			"armasy",
+			-- "armasy",
 			"armshltxuw",
 			"armamsub",
 			"armason",
