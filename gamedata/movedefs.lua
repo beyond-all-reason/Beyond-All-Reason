@@ -15,9 +15,9 @@ local moveDatas = {
 		crushstrength = 50,
 		depthModParams = {
 			minHeight = 0,
-			maxScale = 2.0,
-			quadraticCoeff = (9.9/22090),
-			linearCoeff = (0.1/470),
+			maxScale = 1.5,
+			quadraticCoeff = (9.9/22090)/2,
+			linearCoeff = (0.1/470)/2,
 			constantCoeff = 1,
 			},
 		footprintx = 2,

@@ -42,7 +42,7 @@ return {
 			"armmship",
 			"armepoch",
 			"armcarry",
-			"armtship",
+			-- "armtship",
 			"armsjam",
 		},
 		customparams = {
