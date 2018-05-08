@@ -54,7 +54,7 @@ return {
 			"armplat",
 			"armsy",
 			"armasy",
-			"armamsub",
+			-- "armamsub",
 			"armason",
 			"armfflak",
 			"armatl",

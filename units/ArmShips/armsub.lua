@@ -43,6 +43,7 @@ return {
 		brakerate =  0.105,
 		acceleration = 0.035,
 		maxvelocity = 2.10,
+		maxreversevelocity = 2.10 * 0.40,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turnrate = 320,	

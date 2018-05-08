@@ -387,6 +387,8 @@ local armorDefs = {
 		"corsjam",
 		"armrship",
 		"corrship",
+		"armrecl",
+		"correcl",
 		},
 
 	hvyboats = {
@@ -417,8 +419,6 @@ local armorDefs = {
 		"armserp",
 		"armacsub",
         "coracsub",
-		"armrecl",
-		"correcl",
 		},
 
  tinychicken =
