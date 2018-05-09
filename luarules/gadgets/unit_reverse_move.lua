@@ -12,21 +12,21 @@ end
 
 
 if (gadgetHandler:IsSyncedCode()) then
-	refreshrate = 15
 	reverseUnit = {}
+	refreshList = {}
 	function gadget:UnitCreated(unitID)
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		if not (UnitDefs[unitDefID].rSpeed == nil or UnitDefs[unitDefID].rSpeed == 0) then
-			reverseUnit[unitID] = true
+			reverseUnit[unitID] = unitDefID
+			refreshList[unitID] = unitDefID
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].speed)	
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)		
 		end
 	end
 	
 	function gadget:UnitDestroyed(unitID) -- Erase killed units from table
-		if reverseUnit[unitID] then
 			reverseUnit[unitID] = nil
-		end
+			refreshList[unitID] = nil
 	end
 	
 	function gadget:Initialize()
@@ -35,11 +35,27 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 	
+	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+		if reverseUnit[unitID] then
+			refreshList[unitID] = unitDefID
+		end
+	end
+	
+	function gadget:UnitIdles(unitID, unitDefID)
+		if reverseUnit[unitID] then
+			refreshList[unitID] = unitDefID
+		end
+	end
+	
+	function gadget:UnitCmdDone(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+		if reverseUnit[unitID] then
+			refreshList[unitID] = unitDefID
+		end
+	end
+	
 	function gadget:GameFrame(f)
-		if f%refreshrate == 0 then
-			for unitID, rev in pairs(reverseUnit) do
+			for unitID, unitDefID in pairs(refreshList) do
 				local cmd = Spring.GetUnitCommands(unitID, 1)
-				local unitDefID = Spring.GetUnitDefID(unitID)
 				if cmd and cmd[1] and cmd[1]["options"] and cmd[1]["options"].ctrl then
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].rSpeed)
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", UnitDefs[unitDefID].rSpeed)
@@ -47,7 +63,7 @@ if (gadgetHandler:IsSyncedCode()) then
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].speed)
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)
 				end
+				refreshList[unitID] = nil
 			end
-		end
 	end
 end
