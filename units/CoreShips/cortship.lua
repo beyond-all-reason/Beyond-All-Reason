@@ -20,7 +20,7 @@ return {
 		footprintz = 6,
 		icontype = "sea",
 		loadingradius = 250,
-		maxdamage = 9150,
+		maxdamage = 3000,
 		minwaterdepth = 0,
 		movementclass = "DBOAT66X6",
 		name = "Envoy",
