@@ -43,8 +43,8 @@ function gadget:RecvLuaMsg(msg, playerID)
     
     local words = {}
     for word in msg:gmatch("%w+") do table.insert(words, word) end
-    if words[1] == "givecat" then 
-        GiveCat(words,playerID)
+    if words[1] == "givecat" then
+        GiveCat(words)
     elseif words[1] == "destroyselunits" then
         DestroySelUnits(words,playerID)
     end
@@ -56,14 +56,13 @@ function gadget:Shutdown()
     gadgetHandler:RemoveChatAction('halfhealth')
 end
 
-function GiveCat(words,playerID)
-    if #words<4 then return end
-    
-    local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
+function GiveCat(words)
+    if #words<5 then return end
     local ox = tonumber(words[2])
     local oz = tonumber(words[3])
+    local teamID = tonumber(words[4])
     local giveUnits = {}
-    for n=4,#words do
+    for n=5,#words do
         giveUnits[#giveUnits+1] = tonumber(words[n])
     end
 
@@ -235,7 +234,11 @@ function GiveCat(_,line)
         Accept[#Accept+1] = Condition
     end
 
-    
+    -- team
+    local _,_,_,teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+    if string.match(line, ' ([0-9].*)') then
+        teamID = string.match(line, ' ([0-9].*)')
+    end
     
     
     -- give units
@@ -262,7 +265,7 @@ function GiveCat(_,line)
     local ox,oz = math.floor(pos[1]), math.floor(pos[3])
     local x,z = ox,oz
     
-    local msg = "givecat " .. x .. " " .. z
+    local msg = "givecat " .. x .. " " .. z .. " " .. teamID
     for _,uDID in ipairs(giveUnits) do
         msg = msg .. " " .. uDID 
     end
