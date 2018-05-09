@@ -33,6 +33,7 @@ Other:
  • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
  • Fixed command "Area Mex" not being available for captured builders, also improved mex placement script (uses mex snap's code)
  • Fixed cloaking units underwater
+ • Fixed cloaking/decloaking cancelling current queue.
  • Fixed Console in scroll mode being glitchy when an ignored line is added.
  • Fixed Set Target command giving away exact target position
  • Added widget: "Dgun no ally", will make dgun not snap to own/ally units when near
