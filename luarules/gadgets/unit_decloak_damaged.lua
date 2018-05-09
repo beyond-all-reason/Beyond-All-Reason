@@ -25,6 +25,7 @@ local unitWantCloakCommandDesc = {
 	type    = CMDTYPE.ICON_MODE,
 	name    = 'Cloak State',
 	action  = 'wantcloak',
+	queueing = false,
 	tooltip	= 'Unit cloaking state',
 	params 	= {0, 'Decloaked', 'Cloaked'}
 }
