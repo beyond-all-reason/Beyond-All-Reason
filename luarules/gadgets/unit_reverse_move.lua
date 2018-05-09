@@ -41,7 +41,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		end
 	end
 	
-	function gadget:UnitIdles(unitID, unitDefID)
+	function gadget:UnitIdle(unitID, unitDefID)
 		if reverseUnit[unitID] then
 			refreshList[unitID] = unitDefID
 		end
