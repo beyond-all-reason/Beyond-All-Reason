@@ -69,7 +69,7 @@ return {
 				 "deathceg4-fire",
  			}, 
 			explosiongenerators = {
-				[1] = "custom:PILOT",
+				[1] = "custom:pilotlight",
 			},
 		},
 		sounds = {

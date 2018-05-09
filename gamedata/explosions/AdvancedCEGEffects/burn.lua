@@ -287,6 +287,35 @@ return {
     },
   },
 
+  ["pilotlight"] = {
+    flame = {
+      air                = true,
+      class              = [[CSimpleParticleSystem]],
+      count              = 1,
+      ground             = true,
+      properties = {
+        airdrag            = 0.55,
+        colormap           = [[1 0.95 0.66 0.01   0.65 0.45 0.15 0.01   0.3 0.18 0.02 0.01  0 0 0 0.01]],
+        directional        = true,
+        emitrot            = 5,
+        emitrotspread      = 22,
+        emitvector         = [[dir]],
+        gravity            = [[0, 0.35, 0]],
+        numparticles       = 1,
+        particlelife       = 4.5,
+        particlelifespread = 2,
+        particlesize       = 1.2,
+        particlesizespread = 0.8,
+        particlespeed      = 1.4,
+        particlespeedspread = 3.5,
+        pos                = [[-0.5 r1, 1, -0.5 r1]],
+        sizegrowth         = 0.9,
+        sizemod            = 1.0,
+        texture            = [[flame]],
+      },
+    },
+  },
+
   ["burnblack"] = {
     flame = {
       air                = true,
