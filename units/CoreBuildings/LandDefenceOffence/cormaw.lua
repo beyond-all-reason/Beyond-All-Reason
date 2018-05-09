@@ -142,7 +142,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "Flamhvy1",
 				soundtrigger = false,
-				sprayangle = 1300,
+				sprayangle = 700,
 				targetmoveerror = 0.001,
 				tolerance = 2500,
 				turret = true,

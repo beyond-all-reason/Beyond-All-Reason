@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  torso, ruparm, luparm, lloarm, firept, pelvis, rleg, rfoot,
-       lleg, lfoot, lthigh, rthigh, flame1, flame2, flame3, ground;
+piece  torso, ruparm, luparm, lloarm, flare, pelvis, rleg, rfoot,
+       lleg, lfoot, lthigh, rthigh, ground;
 
 static-var  bMoving, bAiming, Static_Var_3, restore_delay;
 
@@ -461,20 +461,17 @@ PilotLight(Func_Var_1)
 		{
 			sleep 40;
 		}
-		emit-sfx 1024 + 0 from flame1;
+		emit-sfx 1024 + 0 from flare;
 		sleep 40;
 	}
 }
 
 Create()
 {
-	hide flame1;
-	hide flame2;
-	hide flame3;
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;
-	restore_delay = 2000;
+	restore_delay = 1000;
 	start-script MotionControl();
 	start-script PilotLight();
 	start-script SmokeUnit();
@@ -519,7 +516,7 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	piecenum = firept;
+	piecenum = flare;
 }
 
 AimPrimary(heading, pitch)
@@ -543,9 +540,6 @@ AimPrimary(heading, pitch)
 
 Killed(severity, corpsetype)
 {
-	hide flame1;
-	hide flame2;
-	hide flame3;
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
@@ -554,10 +548,7 @@ Killed(severity, corpsetype)
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		//explode firept type FALL | BITMAP1 | NOHEATCLOUD;
-		explode flame1 type FALL | BITMAP2 | NOHEATCLOUD;
-		//explode flame2 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode flame3 type FALL | BITMAP4 | NOHEATCLOUD;
+		//explode flare type FALL | BITMAP1 | NOHEATCLOUD;
 		//explode ground type FALL | BITMAP5 | NOHEATCLOUD;
 		//explode lfoot type FALL | BITMAP1 | NOHEATCLOUD;
 		explode lleg type FALL | BITMAP2 | NOHEATCLOUD;
@@ -574,10 +565,7 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		explode firept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-		explode flame1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		//explode flame2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode flame3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		//explode ground type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 		explode lfoot type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
 		//explode lleg type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;
@@ -592,10 +580,7 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	explode firept type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
-	explode flame1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode flame2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode flame3 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode flare type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	//explode ground type FALL | SMOKE | FIRE | BITMAP5 | NOHEATCLOUD;
 	explode lfoot type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
 	//explode lleg type FALL | SMOKE | FIRE | BITMAP2 | NOHEATCLOUD;

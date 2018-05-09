@@ -255,7 +255,7 @@ Create()
 	bMoving = FALSE;
 	bAiming = FALSE;
 	Static_Var_3 = 1;
-	restore_delay = 2000;
+	restore_delay = 1000;
 	start-script MotionControl();
 	start-script PilotLight();
 	start-script SmokeUnit();
