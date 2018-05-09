@@ -14,7 +14,7 @@ function gadget:GetInfo()
   }
 end
 
-local MIN_EFFECT_INTERVAL = 10
+local MIN_EFFECT_INTERVAL = 2
 
 if (gadgetHandler:IsSyncedCode()) then
 -------------------------------------------------------------------------------------
@@ -95,7 +95,7 @@ else
     particleList[particleCnt] = {
       class        = 'JitterParticles2',
       colormap     = { {1,1,1,1},{1,1,1,1} },
-      count        = 5,
+      count        = 1,
       life         = weaponRange / 440,
       delaySpread  = 25,
       force        = {0,1.5,0},
@@ -128,7 +128,7 @@ else
                        {0.35, 0.15, 0.15, 0.25},
                        {0.1, 0.035, 0.01, 0.2},
                        {0, 0, 0, 0.01} },
-      count        = 4,
+      count        = 1,
       life         = weaponRange / 460,
       delaySpread  = 25,
 
@@ -161,7 +161,7 @@ else
     particleList[particleCnt] = {
       class        = 'SimpleParticles2',
       colormap     = { {1, 1, 1, 0.01}, {0, 0, 0, 0.01} },
-      count        = 16,
+      count        = 3,
       --delay        = 20,
       life         = weaponRange / 460,
       lifeSpread   = 20,
