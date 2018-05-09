@@ -461,10 +461,6 @@ PilotLight(Func_Var_1)
 {
 	while( TRUE )
 	{
-		while( bAiming )
-		{
-			sleep 40;
-		}
 		emit-sfx 1024 + 0 from flare;
 		sleep 40;
 	}
