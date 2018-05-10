@@ -61,9 +61,9 @@ function getBarSound(name)
 	local filename = string.gsub(name, ".wav", "")
 	filename = string.gsub(name, ".ogg", "")
 	if VFS.FileExists('sounds/BAR/'..filename..".wav") then
-		return 'BAR/'..filename
+		return filename
 	elseif VFS.FileExists('sounds/BAR/'..filename..".ogg") then
-		return 'BAR/'..filename..".ogg"
+		return filename..".ogg"
 	else
 		return name
 	end
