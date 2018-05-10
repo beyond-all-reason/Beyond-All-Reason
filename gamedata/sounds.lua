@@ -34,6 +34,16 @@ for i=1,#files do
 		maxconcurrent = 4,
 		rolloff = 0.5,
 	}
+
+	if fileNames == "bar_disigun1" then
+		t[fileNames].gain = 0.075*0.3
+	end
+	if fileNames == "bar_xplomas2" then
+		t[fileNames].gain = 0.225*0.3
+	end
+	if fileNames == "bar_newboom" then
+		t[fileNames].gain = 0.045*0.3
+	end
 end
 
 -- UI SOUNDS
