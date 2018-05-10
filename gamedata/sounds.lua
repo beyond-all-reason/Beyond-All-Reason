@@ -19,29 +19,21 @@ local Sounds = {
 	},
 }
 
-
--- replace with BAR alternatives
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
-	function getBarSound(name)
-		if name == nil or name == '' then
-			return name
-		end
-		local filename = string.gsub(name, ".wav", "")
-		filename = string.gsub(name, ".ogg", "")
-		if VFS.FileExists('sounds/BAR/'..filename..".wav") then
-			return 'sounds/BAR/'..filename
-		elseif VFS.FileExists('sounds/BAR/'..filename..".ogg") then
-			return 'sounds/BAR/'..filename..".ogg"
-		else
-			return name
-		end
-	end
-
-	for sound, soundParams in pairs(Sounds.SoundItems) do
-		if type(soundParams.file) == 'string' then
-			Sounds.SoundItems[sound][soundParams.file] = getBarSound(Sounds.SoundItems[sound][soundParams.file])
-		end
-	end
+-- bar sounds
+local files = VFS.DirList("sounds/BAR/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 12, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.2*0.3,
+		pitchmod = 0.01,
+		gainmod  = 0.2*0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 4,
+		rolloff = 0.5,
+	}
 end
 
 -- UI SOUNDS
