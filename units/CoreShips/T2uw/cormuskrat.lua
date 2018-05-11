@@ -56,7 +56,6 @@ return {
 			"corpincer",
 			"corcroc",
 			"corvader",	
-			"corfmine3",
 		},
 		customparams = {
 			area_mex_def = "cormex",

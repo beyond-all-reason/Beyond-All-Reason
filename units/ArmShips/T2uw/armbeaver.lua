@@ -57,7 +57,6 @@ return {
 			"armpincer",
 			"armcroc",
 			"armvader",		
-			"armfmine3",
 		},
 		customparams = {
 			arm_tank = "1",
