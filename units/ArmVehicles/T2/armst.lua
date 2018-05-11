@@ -45,7 +45,7 @@ return {
 		turninplacespeedlimit = 1.64802,
 		turnrate = 701.79999,
         customparams = {
-			arm_tank = "1",
+			--arm_tank = "1",	-- cloak shader wont work if this is set
 			techlevel = 2,
 			--ANIMATION DATA
 				--PIECENAMES HERE
@@ -113,8 +113,8 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
+		sfxtypes = {
+ 			pieceExplosionGenerators = {
 				"deathceg2",
 				"deathceg3",
 				"deathceg4",
