@@ -20,7 +20,7 @@ return {
 		footprintz = 6,
 		icontype = "sea",
 		loadingradius = 250,
-		maxdamage = 2900,
+		maxdamage = 8800,
 		minwaterdepth = 0,
 		movementclass = "DBOAT66X6",
 		name = "Hulk",
