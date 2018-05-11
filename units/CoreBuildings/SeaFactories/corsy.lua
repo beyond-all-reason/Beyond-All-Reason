@@ -44,7 +44,6 @@ return {
 			"corsub",
 			"corrship",
 			"corroy",
-			"cortship",
 		},
 		customparams = {
 			bar_collisionvolumeoffsets = "0 0 2",
