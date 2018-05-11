@@ -238,7 +238,9 @@ return {
 			},
 			[3] = {
 				def = "ADVDEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				maindir = "0 -1 0",
+				maxangledif = 179,
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
 	},
