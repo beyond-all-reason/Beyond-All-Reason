@@ -171,7 +171,7 @@ end
 --------------------------------------------------------------------------------------------
 
 local corcommanderfirst = {
-	"corlab",
+	CorRandomLabT1,
 }
 
 local corcommanderq = {
@@ -407,7 +407,7 @@ local corairlab = {
 --------------------------------------------------------------------------------------------
 
 local armcommanderfirst = {
-	"armlab",
+	ArmRandomLabT1,
 }
 
 local armcommanderq = {
