@@ -57,6 +57,7 @@ return {
 			"armlab",
 			"armvp",
 			"armap",
+			"armhp",
 			"armnanotc",
 			"armeyes",
 			"armrad",

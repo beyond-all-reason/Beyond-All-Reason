@@ -243,19 +243,10 @@ AimSecondary(heading, pitch)
 
 AimTertiary(heading, pitch)
 {
-	    if ( get PIECE_Y(aimpt) > [-10.0] )
-    {
-     	return (0);
-    }
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		sleep 250;
-	}
-	turn body to y-axis heading speed <140.000000>;
-	wait-for-turn body around y-axis;
+	signal SIG_AIM_3;
+	set-signal-mask SIG_AIM_3;
+	turn mispack to y-axis heading speed <180.000000>;
+	wait-for-turn mispack around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -291,24 +282,9 @@ FireSecondary()
 
 FireTertiary()
 {
-	if( gun_1 == 1 )
-	{
-		move lbarrel to z-axis [-2.000000] speed [30.000000];
-		emit-sfx 1024 + 0 from flareb;
-		sleep 150;
-		move lbarrel to z-axis [0.000000] speed [10.000000];
-		gun_1 = llowleg;
-		return (0);
-	}
-	if( gun_1 == 2 )
-	{
-		move rbarrel to z-axis [-2.000000] speed [30.000000];
-		emit-sfx 1024 + 0 from flarea;
-		sleep 150;
-		move rbarrel to z-axis [0.000000] speed [10.000000];
-		gun_1 = rleg;
-		return (0);
-	}
+	show misflare;
+	sleep 150;
+	hide misflare;
 }
 
 AimFromPrimary(piecenum)
@@ -345,14 +321,7 @@ QuerySecondary(piecenum)
 
 QueryTertiary(piecenum)
 {
-	if( gun_1 == 1 )
-	{
-		piecenum = guna;
-	}
-	if( gun_1 == 2 )
-	{
-		piecenum = gunb;
-	}
+	piecenum = misa;
 }
 
 SweetSpot(piecenum)

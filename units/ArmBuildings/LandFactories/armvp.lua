@@ -43,7 +43,7 @@ return {
 		yardmap = "ooooooo oocccoo oocccoo oocccoo oocccoo yocccoy",
 		buildoptions = {
 			[1] = "armcv",
-			[2] = "armch",
+			[2] = "armbeaver",
 			[3] = "armmlv",
 			[4] = "armfav",
 			[5] = "armflash",

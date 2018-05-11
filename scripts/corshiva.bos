@@ -243,23 +243,10 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
-	    if ( get PIECE_Y(aimpt) > [-10.0] )
-    {
-     	return (0);
-    }
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	bAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		sleep 250;
-	}
-	turn body to y-axis heading speed <140.000000>;
-	turn larm to x-axis <0.000000> - pitch speed <85.000000>;
-	turn rarm to x-axis <0.000000> - pitch speed <85.000000>;
-	wait-for-turn body around y-axis;
-	wait-for-turn larm around x-axis;
-	wait-for-turn rarm around x-axis;
+	signal SIG_AIM_2;
+	set-signal-mask SIG_AIM_2;
+	turn mispack to y-axis heading speed <140.000000>;
+	wait-for-turn mispack around y-axis;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -292,21 +279,9 @@ FirePrimary()
 
 FireSecondary()
 {
-	if( gun_1 )
-	{
-		move lbarrel to z-axis [-3.000000] speed [70.000000];
-		emit-sfx 1024 + 0 from flareb;
-		sleep 150;
-		move lbarrel to z-axis [0.000000] speed [3.000000];
-	}
-	else
-	{
-		move rbarrel to z-axis [-3.000000] speed [70.000000];
-		emit-sfx 1024 + 0 from flarea;
-		sleep 150;
-		move rbarrel to z-axis [0.000000] speed [3.000000];
-	}
-	gun_1 = !gun_1;
+	show misflare;
+	sleep 150;
+	hide misflare;
 }
 
 FireTertiary()
@@ -343,14 +318,7 @@ QueryPrimary(piecenum)
 
 QuerySecondary(piecenum)
 {
-	if( gun_1 )
-	{
-		piecenum = gunb;
-	}
-	else
-	{
-		piecenum = guna;
-	}
+	piecenum = gunc;
 }
 
 QueryTertiary(piecenum)

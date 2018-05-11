@@ -41,9 +41,10 @@ return {
 			"armpt",
 			"armdecade",
 			"armpship",
-			"armsub",
 			"armrship",
+			"armsub",
 			"armroy",
+			"armtship",
 		},
 		customparams = {
 			bar_waterline = 1,

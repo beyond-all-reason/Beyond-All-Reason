@@ -61,7 +61,7 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 		maxwaterdepth = 35,
 		metalmake = 1.5,
 		mincloakdistance = 50,
-		movementclass = "COMMANDERKBOT",
+		movementclass = "AKBOT2",
 		name = "Commander",
 		nochasecategory = "ALL",
 		objectname = "CORCOM",

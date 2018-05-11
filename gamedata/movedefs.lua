@@ -11,21 +11,6 @@ local moveDatas = {
 		maxwaterslope = 50,
 		
 	},
-	COMMANDERKBOT = {
-		crushstrength = 50,
-		depthModParams = {
-			minHeight = 0,
-			maxScale = 2.0,
-			quadraticCoeff = (9.9/22090),
-			linearCoeff = (0.1/470),
-			constantCoeff = 1,
-			},
-		footprintx = 2,
-		footprintz = 2,
-		maxslope = 36,
-		maxwaterdepth = 5000,
-		maxwaterslope = 50,
-	},
 	AKBOTBOMB2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -51,7 +36,7 @@ local moveDatas = {
 		depthmod = 0,
 		footprintx = 3,
 		footprintz = 3,
-		maxslope = 18,
+		maxslope = 36,
 		--slopeMod = 32,
 		maxwaterdepth = 5000,
 		maxwaterslope = 80,
@@ -260,27 +245,27 @@ local moveDatas = {
 		crushstrength = 25,
 		footprintx = 3,
 		footprintz = 3,
-		maxslope = 18,
+		maxslope = 22,
 		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
 	HHOVER3 = {
-		badslope = 18,
+		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 252,
 		footprintx = 3,
 		footprintz = 3,
-		maxslope = 18,
+		maxslope = 22,
 		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
 	HOVER4 = {
-		badslope = 18,
+		badslope = 22,
 		badwaterslope = 255,
 		crushstrength = 25,
 		footprintx = 4,
 		footprintz = 4,
-		maxslope = 18,
+		maxslope = 22,
 		--slopeMod = 32,
 		maxwaterslope = 255,
 	},
@@ -568,9 +553,7 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
-	moveData.heatmapping = true --(Spring.GetModOptions and tonumber(Spring.GetModOptions().mo_heatmap) and (tonumber(Spring.GetModOptions().mo_heatmap) ~= 0)) or 0
-	moveData.heatMod = 0.01
-	moveData.heatProduced = 200
+	moveData.heatmapping = (Spring.GetModOptions and tonumber(Spring.GetModOptions().mo_heatmap) and (tonumber(Spring.GetModOptions().mo_heatmap) ~= 0)) or 0
 	moveData.name = moveName
 	moveData.allowRawMovement = true
 	if moveName and string.find(moveName, "KBOT") and moveData.maxslope then
