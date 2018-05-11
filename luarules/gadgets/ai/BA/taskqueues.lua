@@ -15,13 +15,17 @@ math.random(); math.random(); math.random()
 local UDC = Spring.GetTeamUnitDefCount
 local UDN = UnitDefNames
 ----------------------------------------------------------------------
---Spring.GetGameSeconds() -- checking gametime
-
 --------------------------------------------------------------------------------------------
 --------------------------------------- Core Functions -------------------------------------
 --------------------------------------------------------------------------------------------
 
 function CorEnT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,1)
 	if r == 0 then
 		return "corwin"
@@ -31,6 +35,12 @@ function CorEnT1()
 end
 
 function CorMexT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,1)
 	if r == 0 then
 		return "cormex"
@@ -40,6 +50,12 @@ function CorMexT1()
 end
 
 function CorRandomLabT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,2)
 	if r == 0 then
 		return "corlab"
@@ -51,6 +67,12 @@ function CorRandomLabT1()
 end
 
 function CorAdvDefT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,5)
 	if r == 0 then
 		return "cormaw"
@@ -71,6 +93,12 @@ end
 --------------------------------------------------------------------------------------------
 
 function ArmEnT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,1)
 	if r == 0 then
 		return "armwin"
@@ -80,6 +108,12 @@ function ArmEnT1()
 end
 
 function ArmMexT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,1)
 	if r == 0 then
 		return "armmex"
@@ -89,6 +123,12 @@ function ArmMexT1()
 end
 
 function ArmRandomLabT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,2)
 	if r == 0 then
 		return "armlab"
@@ -100,6 +140,12 @@ function ArmRandomLabT1()
 end
 
 function ArmAdvDefT1()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local metalcheat = ms - mc
+	local energycheat = es - ec
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", energycheat)
 	local r = math.random(0,5)
 	if r == 0 then
 		return "armclaw"
@@ -125,13 +171,7 @@ end
 --------------------------------------------------------------------------------------------
 
 local corcommanderfirst = {
-	"cormex",
 	"corlab",
-	"cormex",
-	"cormex",
-	"cormex",
-	CorEnT1,
-	CorEnT1,
 }
 
 local corcommanderq = {
@@ -206,15 +246,41 @@ local cort1construction = {
 }
 
 local corkbotlab = {
+	"corck",	--	Constructor
+	"corck",	--	Constructor
+	"corck",	--	Constructor
+	"corck",	--	Constructor
+	"corck",	--	Constructor
+	"corck",	--	Constructor
 	"corak",	--	Fast Infantry
 	"corak",	--	Fast Infantry
 	"corak",	--	Fast Infantry
 	"corak",	--	Fast Infantry
 	"corak",	--	Fast Infantry
 	"cornecro",	--	Rez-Reclaim
-	"corck",	--	Constructor
-	"corck",	--	Constructor
-	"corck",	--	Constructor
+	"corak",	--	Fast Infantry
+	"corak",	--	Fast Infantry
+	"cornecro",	--	Rez-Reclaim
+	"cornecro",	--	Rez-Reclaim
+	"corthud",	--	Light Plasma
+	"corthud",	--	Light Plasma
+	"corak",	--	Fast Infantry
+	"cornecro",	--	Rez-Reclaim
+	"corthud",	--	Light Plasma
+	"corthud",	--	Light Plasma
+	"corstorm",	--	Rocket Bot
+	"corstorm",	--	Rocket Bot
+	"cornecro",	--	Rez-Reclaim
+	"corak",	--	Fast Infantry
+	"corstorm",	--	Rocket Bot
+	"corstorm",	--	Rocket Bot
+	"corcrash",	--	Anti-Air
+	"corak",	--	Fast Infantry
+	"corak",	--	Fast Infantry
+	"corak",	--	Fast Infantry
+	"corak",	--	Fast Infantry
+	"corak",	--	Fast Infantry
+	"cornecro",	--	Rez-Reclaim
 	"corak",	--	Fast Infantry
 	"corak",	--	Fast Infantry
 	"cornecro",	--	Rez-Reclaim
@@ -235,14 +301,39 @@ local corkbotlab = {
 }
 
 local corvehlab = {
+	"corcv",	--	Constructor
+	"corcv",	--	Constructor
+	"corcv",	--	Constructor
+	"corcv",	--	Constructor
+	"corcv",	--	Constructor
+	"corcv",	--	Constructor
 	"corfav",	--	Scout
 	"corfav",	--	Scout
 	"corgator",	--	Fast Assault Tank
 	"corgator",	--	Fast Assault Tank
 	"corgator",	--	Fast Assault Tank
-	"corcv",	--	Constructor
-	"corcv",	--	Constructor
-	"corcv",	--	Constructor
+	"corraid",	--	Medium Assault Tank
+	"corraid",	--	Medium Assault Tank
+	"corraid",	--	Medium Assault Tank
+	"corraid",	--	Medium Assault Tank
+	"corraid",	--	Medium Assault Tank
+	"corraid",	--	Medium Assault Tank
+	"corraid",	--	Medium Assault Tank
+	"corlevlr",	--	Riot Tank
+	"corlevlr",	--	Riot Tank
+	"corlevlr",	--	Riot Tank
+	"corlevlr",	--	Riot Tank
+	"corwolv",	--	Light Artilery
+	"corwolv",	--	Light Artilery
+	"cormist",	--	Misile Truck
+	"cormist",	--	Misile Truck
+	"corgarp",	--	Light Amphibious Tank
+	"corgarp",	--	Light Amphibious Tank
+	"corfav",	--	Scout
+	"corfav",	--	Scout
+	"corgator",	--	Fast Assault Tank
+	"corgator",	--	Fast Assault Tank
+	"corgator",	--	Fast Assault Tank
 	"corraid",	--	Medium Assault Tank
 	"corraid",	--	Medium Assault Tank
 	"corraid",	--	Medium Assault Tank
@@ -263,13 +354,36 @@ local corvehlab = {
 }
 
 local corairlab = {
+	"corca",	-- 	Constructor
+	"corca",	-- 	Constructor
+	"corca",	-- 	Constructor
+	"corca",	-- 	Constructor
+	"corca",	-- 	Constructor
+	"corca",	-- 	Constructor
 	"corfink",	--	Scout
 	"corfink",	--	Scout
 	"corveng",	--	Fighter
 	"corveng",	--	Fighter
-	"corca",	-- 	Constructor
-	"corca",	-- 	Constructor
-	"corca",	-- 	Constructor
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corveng",	--	Fighter
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corveng",	--	Fighter
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corveng",	--	Fighter
+	"corshad",	--	Bomber
+	"corshad",	--	Bomber
+	"corbw",	--	Paralyzer Drone
+	"corfink",	--	Scout
+	"corfink",	--	Scout
+	"corveng",	--	Fighter
+	"corveng",	--	Fighter
 	"corshad",	--	Bomber
 	"corshad",	--	Bomber
 	"corshad",	--	Bomber
@@ -293,13 +407,7 @@ local corairlab = {
 --------------------------------------------------------------------------------------------
 
 local armcommanderfirst = {
-	"armmex",
 	"armlab",
-	"armmex",
-	"armmex",
-	"armmex",
-	ArmEnT1,
-	ArmEnT1,
 }
 
 local armcommanderq = {
@@ -343,11 +451,11 @@ local armcommanderq = {
 }
 
 local armt1construction = {
+	ArmMexT1,
+	ArmEnT1,
+	ArmMexT1,
 	ArmEnT1,
 	"armllt",
-	ArmMexT1,
-	ArmEnT1,
-	ArmMexT1,
 	ArmMexT1,
 	"armnanotc",
 	ArmAdvDefT1,
@@ -387,6 +495,12 @@ local armt1construction = {
 }
 
 local armkbotlab = {
+	"armck",	-- 	Constructor
+	"armck",	-- 	Constructor
+	"armck",	-- 	Constructor
+	"armck",	-- 	Constructor
+	"armck",	-- 	Constructor
+	"armck",	-- 	Constructor
 	"armflea",	--	Scout
 	"armflea",	--	Scout
 	"armpw", 	-- 	Fast Infantry
@@ -395,9 +509,31 @@ local armkbotlab = {
 	"armpw", 	-- 	Fast Infantry
 	"armpw", 	-- 	Fast Infantry
 	"armrectr",	--	Rez-Reclaim
-	"armck",	-- 	Constructor
-	"armck",	-- 	Constructor
-	"armck",	-- 	Constructor
+	"armpw", 	-- 	Fast Infantry
+	"armpw", 	-- 	Fast Infantry
+	"armrectr",	--	Rez-Reclaim
+	"armham", 	--	Light Plasma
+	"armham", 	--	Light Plasma
+	"armham", 	--	Light Plasma
+	"armham", 	--	Light Plasma
+	"armrectr",	--	Rez-Reclaim
+	"armrectr",	--	Rez-Reclaim
+	"armrock",	--	Rocket Bot
+	"armrock",	--	Rocket Bot
+	"armrock",	--	Rocket Bot
+	"armrock",	--	Rocket Bot
+	"armjeth",	--	Anti-Air
+	"armrectr",	--	Rez-Reclaim
+	"armwar",	--	Medium Infantry
+	"armwar",	--	Medium Infantry
+	"armflea",	--	Scout
+	"armflea",	--	Scout
+	"armpw", 	-- 	Fast Infantry
+	"armpw", 	-- 	Fast Infantry
+	"armpw", 	-- 	Fast Infantry
+	"armpw", 	-- 	Fast Infantry
+	"armpw", 	-- 	Fast Infantry
+	"armrectr",	--	Rez-Reclaim
 	"armpw", 	-- 	Fast Infantry
 	"armpw", 	-- 	Fast Infantry
 	"armrectr",	--	Rez-Reclaim
@@ -418,6 +554,12 @@ local armkbotlab = {
 }
 
 local armvehlab = {
+	"armcv",	--	Constructor
+	"armcv",	--	Constructor
+	"armcv",	--	Constructor
+	"armcv",	--	Constructor
+	"armcv",	--	Constructor
+	"armcv",	--	Constructor
 	"armfav",	--	Scout
 	"armfav",	--	Scout
 	"armflash",	--	Fast Assault Tank
@@ -426,9 +568,31 @@ local armvehlab = {
 	"armflash",	--	Fast Assault Tank
 	"armflash",	--	Fast Assault Tank
 	"armflash",	--	Fast Assault Tank
-	"armcv",	--	Constructor
-	"armcv",	--	Constructor
-	"armcv",	--	Constructor
+	"armstump",	--	Medium Assault Tank
+	"armstump",	--	Medium Assault Tank
+	"armstump",	--	Medium Assault Tank
+	"armstump",	--	Medium Assault Tank
+	"armstump",	--	Medium Assault Tank
+	"armstump",	--	Medium Assault Tank
+	"armstump",	--	Medium Assault Tank
+	"armstump",	--	Medium Assault Tank
+	"armjanus",	--	Rocket Tank
+	"armjanus",	--	Rocket Tank
+	"armjanus",	--	Rocket Tank
+	"armjanus",	--	Rocket Tank
+	"armart",	-- 	Light Artilery
+	"armart",	-- 	Light Artilery
+	"armsam",	--	Missile Truck
+	"armsam",	--	Missile Truck
+	"armpincer",--	Light Amphibious Tank
+	"armfav",	--	Scout
+	"armfav",	--	Scout
+	"armflash",	--	Fast Assault Tank
+	"armflash",	--	Fast Assault Tank
+	"armflash",	--	Fast Assault Tank
+	"armflash",	--	Fast Assault Tank
+	"armflash",	--	Fast Assault Tank
+	"armflash",	--	Fast Assault Tank
 	"armstump",	--	Medium Assault Tank
 	"armstump",	--	Medium Assault Tank
 	"armstump",	--	Medium Assault Tank
@@ -449,13 +613,37 @@ local armvehlab = {
 }
 
 local armairlab = {
+	"armca",	--	Constructor
+	"armca",	--	Constructor
+	"armca",	--	Constructor
+	"armca",	--	Constructor
+	"armca",	--	Constructor
+	"armca",	--	Constructor
 	"armpeep",	--	Scout
 	"armpeep",	--	Scout
 	"armfig",	-- 	Fighter
 	"armfig",	-- 	Fighter
-	"armca",	--	Constructor
-	"armca",	--	Constructor
-	"armca",	--	Constructor
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armfig",	-- 	Fighter
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armfig",	-- 	Fighter
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armthund",	--	Bomber
+	"armfig",	-- 	Fighter
+	"armthund",	--	Bomber
+	"armkam",	--	Light Gunship
+	"armpeep",	--	Scout
+	"armpeep",	--	Scout
+	"armfig",	-- 	Fighter
+	"armfig",	-- 	Fighter
 	"armthund",	--	Bomber
 	"armthund",	--	Bomber
 	"armthund",	--	Bomber
