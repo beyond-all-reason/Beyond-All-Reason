@@ -2,6 +2,7 @@
 xx/xx/2018
 
 Sub/Ships separation branch changes:
+ • T1 Shipyard: Transport made unavailable in t1 shipyard
  • Amphibious Complex: Turned into a Tech 2 Underwater Plant, costs increased by 125%, lost pincer/garp/t1aakbot and given subkiller/battlesub/advConSub. Increased bp to 300, metal storage to 200.
  • T2 shipyards: Transport available, Adv construction sub unavailable, subkiller/battlesub unavailable
  • T1 resurrection sub becomes a t1 resurrection ship
@@ -9,8 +10,6 @@ Sub/Ships separation branch changes:
  • Turned MineLayerShips into T2 construction ships
  • UW weapons for amphibs tank and amphibs t3
  • Commander slower in water (speed /2 when waterlevel > 47)
- • Arm Tship hp 8800 -> 2900, core tship hp 9150 -> 3000
- • Arm/core tship costs 350m/3500e/6500bt
 
 Balance changes:
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
