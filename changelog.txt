@@ -18,6 +18,7 @@ Balance changes:
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
  • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%.
  • Commander speed underwater decreases to 66% of it's value when depth > 47
+ • Transport ship costs decreased (core 5500e/600m/8610bt => 3700e/350m/6400bt and arm 5000e/640m/9150bt => 3500e/350m/6500bt) and hp decreased (arm 8800 -> 2900 and core 9150 -> 3000)
 
 Other:
  • mo_unba = "exponly" added to allow the use of Unbalanced Commanders' experience health/reload/power multipliers with the classic Balanced Annihilation commander.
