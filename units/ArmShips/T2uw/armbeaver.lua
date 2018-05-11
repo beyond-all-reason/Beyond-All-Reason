@@ -53,7 +53,7 @@ return {
 			"armptl",
 			"armfflak",
 			"armnanotcplat",
-			"armjeth",
+			"armjethro",
 			"armpincer",
 			"armcroc",
 			"armvader",		

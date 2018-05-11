@@ -53,9 +53,9 @@ return {
 			"corenaa",
 			"cornanotcplat",
 			"corcrash",
-			"corgrap",
-			"corseal",
-			"corroach",	
+			"corpincer",
+			"corcroc",
+			"corvader",	
 			"corfmine3",
 		},
 		customparams = {
