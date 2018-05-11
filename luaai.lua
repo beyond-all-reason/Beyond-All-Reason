@@ -9,6 +9,11 @@
 
 return {
   {
+	  name = 'DAI',
+	  desc = 'Shard by AF for Spring Lua, Mod for BA made by Damgam',
+  },
+  
+  {
     name = 'Chicken: Very Easy',
     desc = 'Trivial Games'
   },
