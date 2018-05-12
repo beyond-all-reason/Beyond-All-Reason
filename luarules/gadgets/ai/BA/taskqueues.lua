@@ -488,8 +488,6 @@ local armvehlab = {
 
 local armairlab = {
 	"armca",	--	Constructor
-	"armca",	--	Constructor
-	"armca",	--	Constructor
 	"armpeep",	--	Scout
 	"armpeep",	--	Scout
 	"armfig",	-- 	Fighter
