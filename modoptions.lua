@@ -27,6 +27,14 @@ local options={
 		def = false,
 	},
 	{
+		key    = "daimetalcheat",
+		name   = "DAI Metal Bonus",
+		desc   = "Makes DAI harder by giving it some bonus resources",
+		type   = "bool",
+		section= 'ba_options',
+		def = false,
+	},
+	{
 		key="deathmode",
 		name="Game End Mode",
 		desc="What it takes to eliminate a team",
