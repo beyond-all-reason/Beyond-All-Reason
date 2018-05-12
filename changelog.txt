@@ -38,6 +38,7 @@ Other:
  • Engine replacement trees now are crushable as well
  • Various widget and gadget performance improvements
  • Various script enhancements/fixes, models improvements 
+ • Specific Unit Loader: -Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
 
 
 10.07 -> 10.08
