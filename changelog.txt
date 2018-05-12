@@ -326,7 +326,7 @@ Balance changes:
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot, due to obstacles/ally units on the way.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -10%), 25 % reduced repair/rezz speed and 25% increased HP.
  • Guardians/punishers have lower m cost (1500 -> 1250)
-
+ • Instigator maxvel/accel/brake + 8% (maxvel 87 -> 94)
  T2
  • Fark workerspeed increased 16%
  • Armmart and cormart (mobile T2 arty) do 15% more damage
