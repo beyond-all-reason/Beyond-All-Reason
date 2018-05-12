@@ -13,41 +13,33 @@
 
 function widget:GetInfo()
   return {
-    name      = "Highlight Selected Units",
-    desc      = "Highlights the selelected units",
-    author    = "Floris (original: zwzsg, from trepan HighlightUnit)",
-    date      = "Apr 24, 2009",
-    license   = "GNU GPL, v2 or later",
-    layer     = -8,
-    enabled   = false
+    name         = "Under construction gfx",
+    desc         = "",
+    author       = "Floris",
+    date         = "May 2018",
+    license      = "GPL",
+    layer        = 0,
+    enabled      = true
   }
 end
 
 local useTeamcolor = false
-local highlightAlpha = 0.2
+local highlightAlpha = 0.4
 local useHighlightShader = true
-local maxShaderUnits = 150
-local edgeExponent = 3
+local maxShaderUnits = 100
+local edgeExponent = 5
 
 local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitTeam = Spring.GetUnitTeam
+local myPlayerID = Spring.GetMyPlayerID()
+
+local unitList = {}
+local unitListCount = 0
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-
-local function SetupCommandColors(state)
-  local alpha = state and 1 or 0
-  local f = io.open('cmdcolors.tmp', 'w+')
-  if (f) then
-    f:write('unitBox  0 1 0 ' .. alpha)
-    f:close()
-    Spring.SendCommands({'cmdcolors cmdcolors.tmp'})
-  end
-  os.remove('cmdcolors.tmp')
-end
 
 
 function CreateHighlightShader()
@@ -106,33 +98,52 @@ function CreateHighlightShader()
 end
 --------------------------------------------------------------------------------
 
+function ResetUnderConstructionUnits()
+  local allUnits = Spring.GetAllUnits()
+  for _, unitID in pairs(allUnits) do
+    local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
+    if buildProgress < 1 then
+      --local unitDefID = Spring.GetUnitDefID(unitID)
+      unitList[unitID] = spGetUnitTeam(unitID)
+    end
+  end
+end
+
 function widget:Initialize()
-  WG['highlightselunits'] = {}
-  WG['highlightselunits'].getOpacity = function()
+  WG['underconstructiongfx'] = {}
+  WG['underconstructiongfx'].getOpacity = function()
     return highlightAlpha
   end
-  WG['highlightselunits'].setOpacity = function(value)
+  WG['underconstructiongfx'].setOpacity = function(value)
     highlightAlpha = value
     CreateHighlightShader()
   end
-  WG['highlightselunits'].getShader = function()
+  WG['underconstructiongfx'].getShader = function()
     return useHighlightShader
   end
-  WG['highlightselunits'].setShader = function(value)
+  WG['underconstructiongfx'].setShader = function(value)
     useHighlightShader = value
     CreateHighlightShader()
   end
-  WG['highlightselunits'].getTeamcolor = function()
+  WG['underconstructiongfx'].getTeamcolor = function()
     return useTeamcolor
   end
-  WG['highlightselunits'].setTeamcolor = function(value)
+  WG['underconstructiongfx'].setTeamcolor = function(value)
     useTeamcolor = value
     CreateHighlightShader()
   end
-  
-  SetupCommandColors(false)
+
   if gl.CreateShader ~= nil then
     CreateHighlightShader()
+  end
+
+  ResetUnderConstructionUnits()
+end
+
+
+function widget:PlayerChanged(playerID)
+  if playerID == myPlayerID and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+    ResetUnderConstructionUnits()
   end
 end
 
@@ -141,12 +152,34 @@ function widget:Shutdown()
   if shader then
     gl.DeleteShader(shader)
   end
-  if WG['teamplatter'] == nil and WG['fancyselectedunits'] == nil then
-    SetupCommandColors(true)
-  end
-  WG['highlightselunits'] = nil
+  WG['underconstructiongfx'] = nil
 end
 
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam)
+  unitList[unitID] = unitTeam
+  unitListCount = unitListCount + 1
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+  if unitList[unitID] then
+    unitList[unitID] = nil
+    unitListCount = unitListCount - 1
+  end
+end
+
+function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
+  if unitList[unitID] then
+    unitList[unitID] = unitTeam
+  end
+end
+
+function widget:UnitFinished(unitID, unitDefID, unitTeam)
+  if unitList[unitID] then
+    unitList[unitID] = nil
+    unitListCount = unitListCount - 1
+  end
+end
 
 
 --------------------------------------------------------------------------------
@@ -155,31 +188,29 @@ function widget:DrawWorld()
   if Spring.IsGUIHidden() then return end
 
   gl.DepthTest(true)
-  gl.PolygonOffset(-0.5, -0.5)
-  gl.Blending(GL.SRC_ALPHA, GL.ONE)
+  gl.PolygonOffset(-1, -1)
+  --gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
-  local selectedUnits = Spring.GetSelectedUnits()
-  if useHighlightShader and shader and #selectedUnits < maxShaderUnits then
+  if useHighlightShader and shader and unitListCount < maxShaderUnits then
     gl.UseShader(shader)
   end
   local teamID, prevTeamID, r,g,b
-  for _,unitID in ipairs(selectedUnits) do
+  for unitID,teamID in pairs(unitList) do
     if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
       local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
       if maxHealth ~= nil then
         if useTeamcolor then
-          teamID = spGetUnitTeam(unitID)
           if teamID ~= prevTeamID then
             r,g,b = spGetTeamColor(teamID)
           end
           prevTeamID = teamID
-          gl.Color(r,g,b,highlightAlpha)
+          gl.Color(r*0.8,g*0.8,b*0.8,highlightAlpha - (highlightAlpha*buildProgress))
         else
           gl.Color(
-            health>maxHealth/2 and 2-2*health/maxHealth or 1, -- red
+            health>maxHealth/2 and 1.5-2*health/maxHealth or 0.5, -- red
             health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
             0, -- blue
-            highlightAlpha
+            highlightAlpha - (highlightAlpha*buildProgress)
           )
         end
         gl.Unit(unitID, true)
@@ -187,7 +218,7 @@ function widget:DrawWorld()
     end
   end
 
-  if useHighlightShader and shader and #selectedUnits < maxShaderUnits then
+  if useHighlightShader and shader and unitListCount < maxShaderUnits then
     gl.UseShader(0)
   end
 

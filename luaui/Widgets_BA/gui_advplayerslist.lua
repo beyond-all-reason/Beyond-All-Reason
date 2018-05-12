@@ -890,6 +890,8 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('ActivityEvent')
 	widgetHandler:DeregisterGlobal('FpsEvent')
 	widgetHandler:DeregisterGlobal('SystemEvent')
+	widgetHandler:DeregisterGlobal('getPlayerScoresAdvplayerslist')
+
 	if ShareSlider then
 		gl_DeleteList(ShareSlider)
 	end
