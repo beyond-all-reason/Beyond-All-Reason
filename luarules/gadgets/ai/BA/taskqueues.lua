@@ -203,7 +203,6 @@ local corcommanderq = {
 }
 
 local cort1construction = {
-	"corgeo",
 	"cornanotc",
 	CorMexT1,
 	CorMexT1,
@@ -384,7 +383,6 @@ local armcommanderq = {
 }
 
 local armt1construction = {
-	"armgeo",
 	"armnanotc",
 	ArmMexT1,
 	ArmMexT1,
