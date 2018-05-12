@@ -3,10 +3,12 @@ Attackers!
 ]]--
 
 attackerlist = {
-	-----------------------------------------------------ARM
+
+----------------------------------------------ARM
 	
 	
-	---------------------------T1 KBOT
+------------------------------T1 KBOT
+	
 	"armpw", 	--	Peewee 			/ 	Fast Infantry
 	"armham", 	--	Hammer 			/	Light Plasma
 	"armrectr",	--	Rector			/	Rez-Reclaim
@@ -14,7 +16,9 @@ attackerlist = {
 	"armjeth",	--	Jethro			/	Anti-Air
 	"armflea",	--	Flea			/	Scout
 	"armwar",	--	Warrior			/	Medium Infantry
-	---------------------------T2 KBOT
+	
+------------------------------T2 KBOT
+	
 	"armaak",   --  Archangel       /   Advanced Amphibious Anti-Air Kbot
 	"armack",   --  Adv. Con Bot    /   Adv. Con Bot
 	"armamph",  --  Pelican         /   Amphibious Kbot
@@ -35,7 +39,8 @@ attackerlist = {
 	"armzeus",  --  Zues            /   Assault Kbot
 	
 	
-	---------------------------T1 VEH
+-------------------------------T1 VEH
+	
 	"armfav",	--	Jeffy			/	Scout
 	"armflash",	-- 	Flash			/	Fast Assault Tank
 	"armstump",	--	Stumpy			/	Medium Assault Tank
@@ -43,7 +48,9 @@ attackerlist = {
 	"armart",	--	Shellshocker	/ 	Light Artilery
 	"armsam",	-- 	Samson			/	Missile Truck
 	"armpincer",--	Pincer			/	Light Amphibious Tank
-	---------------------------T2 VEH
+	
+-------------------------------T2 VEH
+	
 	"armacv",	--	Adv. Con Veh	/	Adv. Con Veh
 	"armbull",	--	Bulldog			/	Heavy Assault Tank
 	"armconsul",--	Consul			/	Combat Engineer
@@ -57,14 +64,15 @@ attackerlist = {
 	"armst",	--	Gremlin			/	Stealth Tank
 	"armyork",	--	Phalanx			/	Anti-Air Flak Vehicle
 
+-------------------------------T1 AIR
 	
-	
-	---------------------------T1 AIR
 	"armpeep",	--	Peeper			/	Scout
 	"armthund",	--	Thunder			/	Bomber
 	"armfig",	-- 	Freedom Fighter /	Fighter
 	"armkam",	--	Banshee			/	Light Gunship
-	---------------------------T2 AIR
+	
+-------------------------------T2 AIR
+	
 	"armaca",	--	Adv. Air Con	/	Adv. Air Con
 	"armawac",	--	Eagle			/	Radar/Sonar Plane
 	"armblade",	--	Blade			/	Rapid Assault Gunship
@@ -76,16 +84,71 @@ attackerlist = {
 	"armpnix",	--	Phoenix			/	Strategic Bomber
 	"armstil",	--	Stiletto		/	EMP Bomber
 	
+-------------------------------Gantry
+
+	"armbanth",	--	Bantha			/	Assault Mech
+	"armmar",	--	Marauder		/	Amphibious Assault Mech
+	"armraz",	--	Razxorbach		/	Battle Mech
+	"armvang",	--	Vanguard		/	All Terrain Heavy Plasma
 	
-	-----------------------------------------------------CORE
+---------------------------Hovercraft	
 	
-	---------------------------T1 KBOT
+	"armah",	--	Swatter			/	Anti-Air Hovercraft
+	"armanac",	--	Anaconda		/	Hovertank
+	"armch",	--	Con Hover		/	Con Hover
+	"armlun",	--	Lun				/	Heavy Hovertank
+	"armmh",	--	Wombat			/	Hovercraft Rocket Launcher
+	"armsh",	--	Skimmer			/	Fast Attack Hovercraft
+	"armthovr",	--	Bear			/	Transport Hovercraft
+	
+----------------------------Seaplanes
+
+	"armcsa",	--	Con Sea			/	Con Sea
+	"armsaber",	--	Sabre			/	Seaplane Gunship
+	"armsb",	--	Tsunami			/	Seaplane Bomber
+	"armseap",	--	Albatross		/	Torpedo Gunship
+	"armsehak",	--	Seahawk			/	Advanced Radar/Sonar Plane
+	"armsfig",	--	Tornado			/	Seaplane Swarmer
+	
+-----------------------------T1 Ships
+
+	"armcs",	--	Con Corv		/	Con Corv
+	"armdecade",--	Decade			/	Fast Assault Corvette
+	"armdship",	--	Hunter			/	Light Torpedo Boat
+	"armpship",	--	Ellysaw			/	Assault Frigate
+	"armpt",	--	Skeeter			/	Patrol Boat/Light Anti-Air
+	"armrecl",	--	Grim Reaper		/	Ressurection Sub
+	"armroy",	--	Crusader		/	Destroyer
+	"armrship",	--	Intervention	/	Support Frigate (Depthcharge)
+	"armsub",	--	Lurker			/	Submarine
+	"armtship",	--	Hulk			/	Armored Transport Ship
+	
+-----------------------------T2 Ships
+
+	"armaas",	--	Archer			/	Anti-Air Ship
+	"armacsub",	--	Adv. Con Sub	/	Adv. Con Sub
+	"armbats",	--	Millennium		/	Battleship
+	"armcarry",	--	Colossus		/	Aircraft Carrier with Anti-Nuke
+	"armcrus",	--	Conqueror		/	Cruiser
+	"armepoch",	--	Epoch			/	Flagship
+	"armmls",	--	Valiant			/	Naval Engineer
+	"armmship",	--	Ranger			/	Missile Cruiser
+	"armserp",	--	Serpent			/	Battle Submarine
+	"armsjam",	--	Escort			/	Radar Jammer Ship
+	"armsubk",	--	Piranha			/	Submarine Killer
+	
+---------------------------------------------------------CORE
+
+------------------------------T1 KBOT
+
 	"corak",	--	A.K.			/	Fast Infantry
 	"cornecro",	--	Necro			/ 	Rez-Reclaim
 	"corthud",	--	Thud			/	Light Plasma
 	"corstorm",	--	Storm			/	Rocket Bot
 	"corcrash",	--	Crasher			/	Anti-Air
-	---------------------------T2 KBOT
+	
+------------------------------T2 KBOT
+
 	"coraak",   --	Manticore		/	Heavy Amphibious Anti-Air Kbot
 	"corack",	--	Adv. Con Bot	/	Adv Con Bot
 	"coramph",	--	Gimp			/	Amphibious Kbot
@@ -104,7 +167,8 @@ attackerlist = {
 	"cortermite", -- Termite		/	Heavy All-Terrain Assault Spider
 	"corvoyr",	--	Voyeur			/	Radar Kbot
 
-	---------------------------T1 VEH
+-------------------------------T1 VEH
+	
 	"corfav",	--	Weasel			/	Scout
 	"corgator",	--	Instigator		/	Fast Assault Tank
 	"corraid",	--	Raider			/	Medium Assault Tank
@@ -112,7 +176,9 @@ attackerlist = {
 	"corwolv",	--	Wolverine		/	Light Artilery
 	"cormist",	--	Slasher			/	Misile Truck
 	"corgarp",	--	Garpike			/	Light Amphibious Tank
-	---------------------------T2 VEH
+	
+-------------------------------T2 VEH
+	
 	"coracv",	--	Adv. Con Veh	/	Adv. Con Veh
 	"corban",	--	Banisher		/	Heavy Missile Tank
 	"coreter",	--	Deleter			/	Radar Jammer Vehicle
@@ -128,12 +194,15 @@ attackerlist = {
 	"corvrad",	--	Informer		/	Radar Vehicle
 	"corvroc",	--	Diplomat		/	Stealthy Rocket Launcher
 
-	---------------------------T1 AIR
+-------------------------------T1 AIR
+	
 	"corfink",	--	Fink			/	Scout
 	"corveng",	--	Avenger			/	Fighter
 	"corshad",	--	Shadow			/	Bomber
 	"corbw",	--	Bladewing		/	Paralyzer Drone
-	---------------------------T2 AIR
+	
+-------------------------------T2 AIR
+	
 	"coraca",	--	Adv. Con Air	/	Adv. Con Air
 	"corape",	--	Rapier			/	Gunship
 	"corawac",	--	Vulture			/	Radar/Sonar Plane
@@ -142,9 +211,62 @@ attackerlist = {
 	"corseah",	--	Seahook			/	Assault Transport
 	"cortitan",	--	Titan			/	Torpedo Bomber
 	"corvamp",	--	Vamp			/	Stealth Fighter
-
-
-
 	
+-------------------------------Gantry
+	
+	"corcat",	--	Catapult		/	Heavy Rocket Kbot
+	"corjugg",	--	Juggernaut		/	(barely) Mobile Heavy Turret
+	"corkarg",	--	Karganeth		/	All-Terrain Assault Mech
+	"corkrog",	--	Krogoth			/	Experimental Assault Kbot
+	"corshiva",	--	Shiva			/	Amphibious Siege Mech
+	
+---------------------------Hovercraft
+	
+	"corah",	--	Slinger			/	Anti-Air Hovercraft
+	"corch",	--	Con Hover		/	Con Hover
+	"corhal",	--	Halberd			/	Assault Hovertank
+	"cormh",	--	Nixer			/	Hovercraft Rocket Launcher
+	"corsh",	--	Scrubber		/	Fast Attack Hovercraft
+	"corsnap",	--	Snapper			/	Hovertank
+	"corsok",	--	Sokolov			/	Heavy Laser Hovertank
+	"corthovr",	--	Turtle			/	Transport Hovercraft
+	
+----------------------------Seaplanes
+	
+	"corcsa",	--	Con Seaplane	/	Con Seaplane
+	"corcut",	--	Cutlass			/	Seaplane Gunship
+	"corhunt",	--	Hunter			/	Advanced Radar/Sonar Plane
+	"corsb",	--	Dam Buster		/	Seaplane Bomber
+	"corseap",	--	Typhoon			/	Torpedo Gunship
+	"corsfig",	--	Voodoo			/	Seaplane Swarmer
+	
+-----------------------------T1 Ships
+	
+	"corcs",	--	Con Sea			/	Con Sea
+	"cordship",	--	Chaser			/	Light Torpedo Boat
+	"coresupp",	--	Supporter		/	Fast Assault Corvette
+	"corpship",	--	Era				/	Assault Frigate
+	"corpt",	--	Searcher;		/	Patrol Boat/Light Anti-Air
+	"correcl",	--	Death Cavalry	/	Ressurection Sub
+	"corroy",	--	Enforcer		/	Destroyer
+	"corrship",	--	Crusher			/	Support Frigate (Depthcharge)
+	"corsub",	--	Snake			/	Submarine
+	"cortship",	--	Envoy			/	Armored Transport Ship
+	
+-----------------------------T2 Ships
 
+	"coracsub",	--	Adv. Con Sub	/	Adv. Con Sub
+	"corarch",	--	Shredder		/	Anti-Air Ship
+	"corbats",	--	Warlord			/	Battleship
+	"corblackhy",--	Black Hydra		/	Flagship
+	"corcarry",	--	Hive			/	Aircraft Carrier with Anti-Nuke
+	"corcrus",	--	Executioner		/	Cruiser
+	"cormls",	--	Pathfinder		/	Naval Engineer
+	"cormship",	--	Messenger		/	Cruise Missile Ship
+	"corshark",	--	Shark			/	Submarine Killer
+	"corsjam",	--	Phantom			/	Radar Jammer Ship
+	"corssub",	--	Leviathan		/	Battle Submarine
+	
+	
+	
 }
