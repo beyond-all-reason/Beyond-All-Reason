@@ -12,17 +12,37 @@ end
 
 
 if (gadgetHandler:IsSyncedCode()) then
-GroundHeight = {}
-surfacemex = ((Spring.GetModOptions().seamex or "underwater") == "surface")
-function gadget:UnitCreated(unitID)
-unitDefID = Spring.GetUnitDefID(unitID)
-unitName = UnitDefs[unitDefID].name
-x,y,z = Spring.GetUnitPosition(unitID)
-if (unitName == "armuwmex" or unitName == "coruwmex") and surfacemex then
-GroundHeight = Spring.GetGroundHeight(x,z)
-Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
-Spring.SetUnitRadiusAndHeight (unitID, 24, 0 )
-Spring.SetUnitMidAndAimPos(unitID, 0, 10, 0, 0, 0, 0, true)
-end
-end
+	GroundHeight = {}
+	toUpdateList = {}
+	surfacemex = ((Spring.GetModOptions().seamex or "underwater") == "surface")
+	
+	function gadget:UnitCreated(unitID)
+		unitDefID = Spring.GetUnitDefID(unitID)
+		unitName = UnitDefs[unitDefID].name
+		x,y,z = Spring.GetUnitPosition(unitID)
+		if (unitName == "armuwmex" or unitName == "coruwmex") and surfacemex then
+			GroundHeight = Spring.GetGroundHeight(x,z)
+			Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
+			Spring.SetUnitRadiusAndHeight (unitID, 24, 0 )
+			for piecenum, name in pairs(Spring.GetUnitPieceList(unitID)) do
+				if name == "arms" then
+					toUpdateList[unitID] = piecenum
+				end
+			end
+			Spring.SetUnitMidAndAimPos(unitID, 0, 10, 0, 0, 0, 0, true)
+		end
+	end
+	
+	function gadget:UnitDestroyed(unitID)
+		toUpdateList[unitID] = nil
+	end
+	
+	function gadget:GameFrame(f)
+		if f%15 == 0 then
+			for unitID, piecenum in pairs(toUpdateList) do
+				local px,py,pz = Spring.GetUnitPiecePosition(unitID, piecenum)
+				Spring.SetUnitMidAndAimPos(unitID, px,py,pz,0,0,0, true)
+			end
+		end
+	end
 end
