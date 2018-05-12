@@ -185,7 +185,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawWorld()
-  if Spring.IsGUIHidden() then return end
+  --if Spring.IsGUIHidden() then return end
 
   gl.DepthTest(true)
   gl.PolygonOffset(-1, -1)
