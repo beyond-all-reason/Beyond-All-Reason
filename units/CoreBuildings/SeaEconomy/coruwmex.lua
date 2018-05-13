@@ -12,6 +12,7 @@ if Spring.GetModOptions() and Spring.GetModOptions().seamex and Spring.GetModOpt
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",
 		corpse = "DEAD",
+		usepiececollisionvolumes = true,
 		collisionvolumeoffsets = "0 -55 0",
 		collisionvolumescales = "31 128 31",
 		collisionvolumetype = "CylY",
