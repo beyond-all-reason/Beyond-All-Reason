@@ -43,7 +43,8 @@ return {
 		--end move
 		customparams = {
 			techlevel = 2,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,

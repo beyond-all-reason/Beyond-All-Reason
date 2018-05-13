@@ -36,7 +36,8 @@ return {
 			bar_collisionvolumeoffsets = "0 10 0",
 			bar_collisionvolumescales = "40 59 40",
 			removewait = true,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,

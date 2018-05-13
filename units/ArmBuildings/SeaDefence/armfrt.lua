@@ -36,6 +36,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 15 0",
 			removewait = true,
+			prioritytarget = "air",
 		},
 		featuredefs = {
 			dead = {

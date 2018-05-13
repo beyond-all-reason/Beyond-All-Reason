@@ -38,6 +38,7 @@ return {
 		turninplacespeedlimit = 2.2044,
 		turnrate = 490,
 		customparams = {
+			prioritytarget = "air",
 			
 		},
 		featuredefs = {

@@ -44,7 +44,8 @@ return {
 		customparams = {
 			arm_tank = "1",
 			techlevel = 2,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,

@@ -42,7 +42,8 @@ return {
 		waterline = 0,
 		customparams = {
 			techlevel = 2,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,

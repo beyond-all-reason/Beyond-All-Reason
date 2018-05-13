@@ -37,7 +37,8 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			removewait = true,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,

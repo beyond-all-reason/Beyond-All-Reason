@@ -43,7 +43,8 @@ return {
 		turnrate = 591.79999,
 		customparams = {
 			techlevel = 2,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,

@@ -45,7 +45,8 @@ return {
 		customparams = {
 			maxrange = "260",
 			paralyzemultiplier = 0.1,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,
