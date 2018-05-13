@@ -58,12 +58,13 @@ function getBarSound(name)
 	if name == nil or name == '' then
 		return name
 	end
-	local filename = string.gsub(name, ".wav", "")
-	filename = 'bar_'..string.gsub(name, ".ogg", "")
-	if VFS.FileExists('sounds/BAR/'..filename..".wav") then
+	local filename = 'bar_'..string.gsub(name, ".wav", "")
+	if VFS.FileExists('sounds/BAR/ui/'..filename..".wav") then
 		return filename
-	elseif VFS.FileExists('sounds/BAR/'..filename..".ogg") then
-		return filename..'.ogg'
+	elseif VFS.FileExists('sounds/BAR/replies/'..filename..".wav") then
+		return filename
+	elseif VFS.FileExists('sounds/BAR/weapons/'..filename..".wav") then
+		return filename
 	else
 		return name
 	end
