@@ -27,7 +27,7 @@ local metalcheat = 0
 
 function CorEnT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -40,7 +40,7 @@ end
 
 function CorMexT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -51,9 +51,22 @@ function CorMexT1()
 	end
 end
 
+function CorStarterLabT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.5
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,1)
+	if r == 0 then
+		return "corlab"
+	else
+		return "corvp"
+	end
+end
+
 function CorRandomLabT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,2)
@@ -68,7 +81,7 @@ end
 
 function CorAdvDefT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,5)
@@ -92,7 +105,7 @@ end
 
 function ArmEnT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -105,7 +118,7 @@ end
 
 function ArmMexT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -116,9 +129,22 @@ function ArmMexT1()
 	end
 end
 
+function ArmStarterLabT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.5
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,1)
+	if r == 0 then
+		return "armlab"
+	else
+		return "armvp"
+	end
+end
+
 function ArmRandomLabT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,2)
@@ -133,7 +159,7 @@ end
 
 function ArmAdvDefT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.25
+		metalcheat = Spring.GetGameSeconds() * 0.5
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,5)
@@ -166,7 +192,7 @@ local corcommanderfirst = {
 	"cormex",
 	"corsolar",
 	"corsolar",
-	CorRandomLabT1,
+	CorStarterLabT1,
 }
 
 local corcommanderq = {
@@ -339,7 +365,7 @@ local armcommanderfirst = {
 	"armmex",
 	"armsolar",
 	"armsolar",
-	ArmRandomLabT1,
+	ArmStarterLabT1,
 }
 
 local armcommanderq = {
