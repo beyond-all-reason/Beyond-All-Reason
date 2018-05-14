@@ -48,6 +48,10 @@ return {
 		turnrate = 215.60001,
 		unloadspread = 3,
 		customparams = {
+			bar_trackoffset = -10,
+			bar_trackstrength = 10,
+			bar_tracktype = "corwidetracks",
+			trackwidth = 32,
 			techlevel = 2,
 		},
 		featuredefs = {

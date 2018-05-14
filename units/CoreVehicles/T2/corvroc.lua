@@ -41,6 +41,9 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 520.29999,
 		customparams = {
+			bar_trackstrength = 8,
+			bar_trackwidth = 40,
+			bar_tracktype = "corwidetracks",
 			techlevel = 2,
 		},
 		featuredefs = {
