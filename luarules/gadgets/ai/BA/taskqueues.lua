@@ -15,11 +15,18 @@ math.random(); math.random(); math.random()
 local UDC = Spring.GetTeamUnitDefCount
 local UDN = UnitDefNames
 ----------------------------------------------------------------------
-local getmetalcheat = Spring.GetModOptions().daimetalcheat
-	if getmetalcheat == nil then
-		getmetalcheat = 0
-	end
+
+if (tonumber((Spring.GetModOptions().daimetalcheat or 0) == 1)) then
+	getmetalcheat = 0
+else
+	getmetalcheat = 1
+end
+if getmetalcheat == nil then
+	getmetalcheat = 0
+end
+
 local metalcheat = 0
+
 ----------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 --------------------------------------- Core Functions -------------------------------------
@@ -27,7 +34,7 @@ local metalcheat = 0
 
 function CorEnT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -40,7 +47,7 @@ end
 
 function CorMexT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -53,7 +60,7 @@ end
 
 function CorStarterLabT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -66,22 +73,22 @@ end
 
 function CorRandomLabT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,2)
 	if r == 0 then
-		return "corlab"
+		return "corlab" 	--T1 KBots
 	elseif r == 1 then
-		return "corvp"
+		return "corvp" 		--T1 Vehs
 	else
-		return "corap"
+		return "corap" 		--T1 Planes
 	end
 end
 
 function CorAdvDefT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,5)
@@ -99,13 +106,68 @@ function CorAdvDefT1()
 		return "corerad"
 	end
 end
+
+function CorKBotsT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.025
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,4)
+	if r == 0 then
+		return "corak"
+	elseif r == 1 then
+		return "cornecro"
+	elseif r == 2 then
+		return "corthud"
+	elseif r == 3 then
+		return "corstorm"
+	else
+		return "corcrash"
+	end
+end
+
+function CorVehT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.025
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,5)
+	if r == 0 then
+		return "corgator"
+	elseif r == 1 then
+		return "corraid"
+	elseif r == 2 then
+		return "corlevlr"
+	elseif r == 3 then
+		return "corwolv"
+	elseif r == 4 then
+		return "cormist"
+	else
+		return "corgarp"
+	end
+end
+
+function CorAirT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.025
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,2)
+	if r == 0 then
+		return "corveng"
+	elseif r == 1 then
+		return "corshad"
+	else
+		return "corbw"
+	end
+end
 --------------------------------------------------------------------------------------------
 --------------------------------------- Arm Functions --------------------------------------
 --------------------------------------------------------------------------------------------
 
 function ArmEnT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -118,7 +180,7 @@ end
 
 function ArmMexT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -131,7 +193,7 @@ end
 
 function ArmStarterLabT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,1)
@@ -144,7 +206,7 @@ end
 
 function ArmRandomLabT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,2)
@@ -159,7 +221,7 @@ end
 
 function ArmAdvDefT1()
 	if getmetalcheat == 1 then
-		metalcheat = Spring.GetGameSeconds() * 0.5
+		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	local r = math.random(0,5)
@@ -175,6 +237,63 @@ function ArmAdvDefT1()
 		return "armpacko"
 	elseif r == 5 then
 		return "armcir"
+	end
+end
+
+function ArmKBotsT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.025
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,5)
+	if r == 0 then
+		return "armpw"
+	elseif r == 1 then
+		return "armham"
+	elseif r == 2 then
+		return "armrectr"
+	elseif r == 3 then
+		return "armrock"
+	elseif r == 4 then
+		return "armjeth"
+	else
+		return "armwar"
+	end
+end
+
+function ArmVehT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.025
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,5)
+	if r == 0 then
+		return "armflash"
+	elseif r == 1 then
+		return "armstump"
+	elseif r == 2 then
+		return "armjanus"
+	elseif r == 3 then
+		return "armart"
+	elseif r == 4 then
+		return "armsam"
+	else
+		return "armpincer"
+	end
+end
+
+function ArmAirT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.025
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	local r = math.random(0,2)
+	if r == 0 then
+		return "armthund"
+	elseif r == 1 then
+		return "armfig"
+	else
+		return "armkam"
 	end
 end
 -------------------------------------------------------------
@@ -244,6 +363,11 @@ local cort1construction = {
 	"corrad",
 	CorEnT1,
 	CorEnT1,
+	CorRandomLabT1,
+	--"coraap",
+	--"coralab",
+	--"coravp",
+	"cornanotc",
 	"cormakr",
 	"cormakr",
 	"cormakr",
@@ -261,99 +385,123 @@ local cort1construction = {
 	CorMexT1,
 	CorAdvDefT1,
 	"coradvsol",
-	CorRandomLabT1,
+	
 }
 
 local corkbotlab = {
 	"corck",	--	Constructor
-	"cornecro",	--	Rez-Reclaim
-	"corak",	--	Fast Infantry
-	"corak",	--	Fast Infantry
-	"cornecro",	--	Rez-Reclaim
-	"corak",	--	Fast Infantry
-	"corak",	--	Fast Infantry
-	"cornecro",	--	Rez-Reclaim
-	"corak",	--	Fast Infantry
-	"corak",	--	Fast Infantry
-	"corak",	--	Fast Infantry
-	"cornecro",	--	Rez-Reclaim
-	"corthud",	--	Light Plasma
-	"corthud",	--	Light Plasma
-	"corak",	--	Fast Infantry
-	"cornecro",	--	Rez-Reclaim
-	"corthud",	--	Light Plasma
-	"corthud",	--	Light Plasma
-	"corak",	--	Fast Infantry
-	"corthud",	--	Light Plasma
-	"cornecro",	--	Rez-Reclaim
-	"corthud",	--	Light Plasma
-	"corak",	--	Fast Infantry
-	"corthud",	--	Light Plasma
-	"cornecro",	--	Rez-Reclaim
-	"corthud",	--	Light Plasma
-	"corstorm",	--	Rocket Bot
-	"corstorm",	--	Rocket Bot
-	"cornecro",	--	Rez-Reclaim
-	"corak",	--	Fast Infantry
-	"corstorm",	--	Rocket Bot
-	"corstorm",	--	Rocket Bot
-	"cornecro",	--	Rez-Reclaim
-	"corak",	--	Fast Infantry
-	"corstorm",	--	Rocket Bot
-	"corstorm",	--	Rocket Bot
-	"cornecro",	--	Rez-Reclaim
-	"corcrash",	--	Anti-Air
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
+	CorKBotsT1,
 }
 
 local corvehlab = {
 	"corcv",	--	Constructor
-	"corfav",	--	Scout
-	"corfav",	--	Scout
-	"corgator",	--	Fast Assault Tank
-	"corgator",	--	Fast Assault Tank
-	"corgator",	--	Fast Assault Tank
-	"corraid",	--	Medium Assault Tank
-	"corraid",	--	Medium Assault Tank
-	"corraid",	--	Medium Assault Tank
-	"corraid",	--	Medium Assault Tank
-	"corraid",	--	Medium Assault Tank
-	"corraid",	--	Medium Assault Tank
-	"corraid",	--	Medium Assault Tank
-	"corlevlr",	--	Riot Tank
-	"corlevlr",	--	Riot Tank
-	"corlevlr",	--	Riot Tank
-	"corlevlr",	--	Riot Tank
-	"corwolv",	--	Light Artilery
-	"corwolv",	--	Light Artilery
-	"cormist",	--	Misile Truck
-	"cormist",	--	Misile Truck
-	"corgarp",	--	Light Amphibious Tank
-	"corgarp",	--	Light Amphibious Tank
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
+	CorVehT1,
 }
 
 local corairlab = {
 	"corca",	-- 	Constructor
-	"corfink",	--	Scout
-	"corfink",	--	Scout
-	"corveng",	--	Fighter
-	"corveng",	--	Fighter
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corveng",	--	Fighter
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corveng",	--	Fighter
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corveng",	--	Fighter
-	"corshad",	--	Bomber
-	"corshad",	--	Bomber
-	"corbw",	--	Paralyzer Drone
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
+	CorAirT1,
 }
+
+corkbotlabT2 = {
+	"corack",	--	Adv Constructor
+}
+
+corvehlabT2 = {
+
+}
+
+corairlabT2 = {
+
+}
+
 
 --------------------------------------------------------------------------------------------
 ----------------------------------------- ArmTasks -----------------------------------------
@@ -425,6 +573,11 @@ local armt1construction = {
 	"armadvsol",
 	ArmAdvDefT1,
 	"armmstor",
+	ArmRandomLabT1,
+	--"armaap",
+	--"armalab",
+	--"armavp",
+	"armnanotc",
 	ArmEnT1,
 	ArmMexT1,
 	"armllt",
@@ -446,116 +599,117 @@ local armt1construction = {
 	"armllt",
 	"armestor",
 	ArmEnT1,
-	ArmRandomLabT1,
 }
 
 local armkbotlab = {
 	"armck",	-- 	Constructor
-	"armflea",	--	Scout
-	"armflea",	--	Scout
-	"armrectr",	--	Rez-Reclaim
-	"armpw", 	-- 	Fast Infantry
-	"armpw", 	-- 	Fast Infantry
-	"armrectr",	--	Rez-Reclaim
-	"armpw", 	-- 	Fast Infantry
-	"armpw", 	-- 	Fast Infantry
-	"armrectr",	--	Rez-Reclaim
-	"armpw", 	-- 	Fast Infantry
-	"armpw", 	-- 	Fast Infantry
-	"armpw", 	-- 	Fast Infantry
-	"armrectr",	--	Rez-Reclaim
-	"armrectr",	--	Rez-Reclaim
-	"armham", 	--	Light Plasma
-	"armham", 	--	Light Plasma
-	"armrectr",	--	Rez-Reclaim
-	"armham", 	--	Light Plasma
-	"armham", 	--	Light Plasma
-	"armrectr",	--	Rez-Reclaim
-	"armrock",	--	Rocket Bot
-	"armrock",	--	Rocket Bot
-	"armrectr",	--	Rez-Reclaim
-	"armrock",	--	Rocket Bot
-	"armrock",	--	Rocket Bot
-	"armrectr",	--	Rez-Reclaim
-	"armjeth",	--	Anti-Air
-	"armwar",	--	Medium Infantry
-	"armrectr",	--	Rez-Reclaim
-	"armwar",	--	Medium Infantry
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
+	ArmKBotsT1,
 }
 
 local armvehlab = {
 	"armcv",	--	Constructor
-	"armfav",	--	Scout
-	"armfav",	--	Scout
-	"armflash",	--	Fast Assault Tank
-	"armflash",	--	Fast Assault Tank
-	"armflash",	--	Fast Assault Tank
-	"armflash",	--	Fast Assault Tank
-	"armflash",	--	Fast Assault Tank
-	"armflash",	--	Fast Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armstump",	--	Medium Assault Tank
-	"armjanus",	--	Rocket Tank
-	"armjanus",	--	Rocket Tank
-	"armjanus",	--	Rocket Tank
-	"armjanus",	--	Rocket Tank
-	"armart",	-- 	Light Artilery
-	"armart",	-- 	Light Artilery
-	"armsam",	--	Missile Truck
-	"armsam",	--	Missile Truck
-	"armpincer",--	Light Amphibious Tank
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
+	ArmVehT1,
 }
 
 local armairlab = {
 	"armca",	--	Constructor
-	"armpeep",	--	Scout
-	"armpeep",	--	Scout
-	"armfig",	-- 	Fighter
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armkam",	--	Light Gunship
-	"armpeep",	--	Scout
-	"armpeep",	--	Scout
-	"armfig",	-- 	Fighter
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armthund",	--	Bomber
-	"armfig",	-- 	Fighter
-	"armthund",	--	Bomber
-	"armkam",	--	Light Gunship
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+	ArmAirT1,
+}
+
+armkbotlabT2 = {
+}
+
+armvehlabT2 = {
+}
+
+armairlabT2 = {
 }
 
 ----------------------------------------------------------
