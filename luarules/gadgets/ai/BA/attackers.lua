@@ -36,7 +36,7 @@ attackerlist = {
 	"armspkt",  --  Recluse         /   All-Terrain Rocket Spider
 	"armspy",   --  Infiltrator     /   Radar-Invisibility Spy Kbot
 	"armvader", --  Invader         /   Amphibious Crawling Bomb
-	"armzeus",  --  Zues            /   Assault Kbot
+	"armzeus",  --  Zeus            /   Assault Kbot
 	
 	
 -------------------------------T1 VEH

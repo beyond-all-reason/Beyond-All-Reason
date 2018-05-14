@@ -27,8 +27,8 @@ local options={
 		def = false,
 	},
 	{
-		key    = "daimetalcheat",
-		name   = "DAI Metal Bonus",
+		key    = "disabledaimetalcheat",
+		name   = "Disable DAI Metal Bonus",
 		desc   = "Makes DAI harder by giving it some bonus resources",
 		type   = "bool",
 		section= 'ba_options',
