@@ -66,14 +66,21 @@ function CorStarterLabT1()
 	end
 end
 
-function CorRandomLabT1()
+function CorRandomLab()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	
-	local unitoptions = {"corlab", "corvp", "corap",}
-	return unitoptions[math.random(1,#unitoptions)]
+	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id)
+	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
+	if countAdvFacs < Spring.GetGameSeconds() * 0.002 and countAdvFacs < countBasicFacs then
+		local unitoptions = {"coralab", "coravp", "coraap",}
+		return unitoptions[math.random(1,#unitoptions)]
+	else
+		local unitoptions = {"corlab", "corvp", "corap",}
+		return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function CorAdvDefT1()
@@ -145,6 +152,7 @@ function CorAirT2()
 	local unitoptions = {"corape", "corcrw", "corhurc", "corvamp",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
+		
 --------------------------------------------------------------------------------------------
 --------------------------------------- Arm Functions --------------------------------------
 --------------------------------------------------------------------------------------------
@@ -183,14 +191,21 @@ function ArmStarterLabT1()
 	end
 end
 
-function ArmRandomLabT1()
+function ArmRandomLab()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
 	
-	local unitoptions = {"armlab", "armvp", "armap",}
-	return unitoptions[math.random(1,#unitoptions)]
+	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id)
+	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
+	if countAdvFacs < Spring.GetGameSeconds() * 0.002 and countAdvFacs < countBasicFacs then
+		local unitoptions = {"armalab", "armavp", "armaap",}
+		return unitoptions[math.random(1,#unitoptions)]
+	else
+		local unitoptions = {"armlab", "armvp", "armap",}
+		return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function ArmAdvDefT1()
@@ -311,12 +326,14 @@ local corcommanderq = {
 	CorEnT1,
 	"cormstor",
 	"corestor",
-	CorRandomLabT1,
+	CorRandomLab,
 }
 
 local cort1construction = {
 	"cornanotc",
 	CorMexT1,
+	CorRandomLab,
+	"cornanotc",
 	CorMexT1,
 	CorMexT1,
 	CorEnT1,
@@ -330,17 +347,14 @@ local cort1construction = {
 	"corrad",
 	CorEnT1,
 	CorEnT1,
-	"coraap",
-	"coralab",
-	"coravp",
-	"cornanotc",
+	CorRandomLab,
 	"cornanotc",
 	"cormakr",
 	"cormakr",
 	"cormakr",
 	"cormakr",
 	"cormakr",
-	CorRandomLabT1,
+	CorRandomLab,
 	"cornanotc",
 	CorMexT1,
 	CorAdvDefT1,
@@ -609,13 +623,15 @@ local armcommanderq = {
 	"armestor",
 	"armmstor",
 	ArmEnT1,
-	ArmRandomLabT1,
+	ArmRandomLab,
 	"armllt",
 }
 
 local armt1construction = {
 	"armnanotc",
 	ArmMexT1,
+	ArmRandomLab,
+	"armnanotc",
 	ArmMexT1,
 	ArmMexT1,
 	ArmEnT1,
@@ -630,10 +646,7 @@ local armt1construction = {
 	"armadvsol",
 	ArmAdvDefT1,
 	"armmstor",
-	"armaap",
-	"armalab",
-	"armavp",
-	"armnanotc",
+	ArmRandomLab,
 	"armnanotc",
 	ArmEnT1,
 	ArmMexT1,
@@ -643,7 +656,7 @@ local armt1construction = {
 	"armmakr",
 	"armmakr",
 	"armmakr",
-	ArmRandomLabT1,
+	ArmRandomLab,
 	"armnanotc",
 	ArmEnT1,
 	ArmMexT1,
