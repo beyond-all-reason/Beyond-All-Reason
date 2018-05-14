@@ -171,7 +171,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			end
 		elseif modeltype=="s3o" then
 			if UnitDefs[unitDefID].canFly then
-				local rs, hs, ws = 1, 0.3, 1	-- dont know why 3do uses: 0.53, 0.17, 0.53
+				local rs, hs, ws = 1.15, 0.33, 1.15	-- dont know why 3do uses: 0.53, 0.17, 0.53
 				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
 				if (vtype>=3 and xs==ys and ys==zs) then
 					if ( ys*hs ) < 13 then -- Limit Max V height

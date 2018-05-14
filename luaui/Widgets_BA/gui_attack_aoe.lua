@@ -614,9 +614,15 @@ function widget:DrawWorld()
     local angle = math.atan2(fx-tx,fz-tz) + (math.pi/2.1)
 	local offset_x = (sin(angle)*13)
 	local offset_z = (cos(angle)*13)
-	local dx = fx + offset_x
-	local dz = fz + offset_z
-	DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range)
+    local dx,dz
+    if Spring.GetModOptions ~= nil or (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
+      dx = fx - offset_x
+      dz = fz - offset_z
+    else
+      dx = fx + offset_x
+      dz = fz + offset_z
+    end
+    DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range)
     glColor(1, 0, 0, 0.75)
     glLineWidth(1)
 	glDrawGroundCircle(fx, fy, fz, info.range, circleDivs)
