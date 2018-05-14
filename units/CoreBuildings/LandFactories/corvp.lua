@@ -55,8 +55,8 @@ return {
 			[10] = "cormist",
 		},
 		customparams = {
-			bar_buildinggrounddecalsizex = 8,
-			bar_buildinggrounddecalsizey = 8,
+			bar_buildinggrounddecalsizex = 9,
+			bar_buildinggrounddecalsizey = 9,
 			bar_collisionvolumeoffsets = "3 15 2",
 			bar_collisionvolumescales = "101 40 106",
 			bar_footprintx = 7,

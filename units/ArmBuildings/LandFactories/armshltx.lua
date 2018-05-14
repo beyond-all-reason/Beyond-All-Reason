@@ -40,11 +40,11 @@ return {
 		workertime = 600,
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
-			[1] = "armbanth",
-			[2] = "armraz",
-			[3] = "armmar",
-			[4] = "armvang",
-			[5] = "armlun",
+			"armbanth",
+			"armraz",
+			"armmar",
+			"armvang",
+			"armlun",
 		},
 		customparams = {
 			bar_collisionvolumescales = "137 58 145",

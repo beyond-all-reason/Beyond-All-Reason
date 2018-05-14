@@ -44,11 +44,11 @@ return {
 		workertime = 600,
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
-			[1] = "corkrog",
-			[2] = "corshiva",
-			-- [3] = "corsok",
-			[3] = "corseal",
-			[4] = "corparrow",
+			"corkrog",
+			"corshiva",
+			--"corsok",
+			"corseal",
+			"corparrow",
 		},
 		customparams = {
 			techlevel = 3,
