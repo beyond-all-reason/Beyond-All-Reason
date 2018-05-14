@@ -43,11 +43,11 @@ Other:
  • Added widget: "Attack no ally", will make attack command not snap to own/ally units when near
  • Disabled unit_shipyardcollisions.lua which poorly handled ships vs shipyards collisions
  • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
- • Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
+ • Unit Stats: Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
  • Engine replacement trees now are crushable as well
  • Various widget and gadget performance improvements
  • Various script enhancements/fixes, models improvements 
- • Specific Unit Loader: -Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
+ • Specific Unit Loader: Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
 
 
 10.07 -> 10.08
