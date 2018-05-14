@@ -23,7 +23,7 @@ function widget:GetInfo()
   }
 end
 
-local useTeamcolor = false
+local useTeamcolor = true
 local highlightAlpha = 0.4
 local useHighlightShader = true
 local maxShaderUnits = 100
