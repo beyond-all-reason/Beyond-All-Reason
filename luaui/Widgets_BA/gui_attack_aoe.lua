@@ -184,7 +184,7 @@ local function SetupUnitDef(unitDefID, unitDef)
       local weaponDef = WeaponDefs[weapon.weaponDef]
       if (weaponDef) then
         if (weaponDef.type == "DGun") then
-          dgunInfo[unitDefID] = {range = dgunRange, aoe = weaponDef.damageAreaOfEffect}
+          dgunInfo[unitDefID] = {range = dgunRange, aoe = weaponDef.damageAreaOfEffect, unitname=unitDef.name}
         elseif (weaponDef.canAttackGround
                 and not (weaponDef.type == "Shield")
                 and not ToBool(weaponDef.interceptor)
@@ -281,7 +281,7 @@ local function UpdateSelection()
   hasSelection = false
   
   for unitDefID, unitIDs in pairs(sel) do
-    if (dgunInfo[unitDefID]) then 
+    if (dgunInfo[unitDefID]) then
       dgunUnitDefID = unitDefID
       dgunUnitID = unitIDs[1]
       hasSelection = true
@@ -612,13 +612,22 @@ function widget:DrawWorld()
     local fx, fy, fz = GetUnitPosition(dgunUnitID)   
     if (not fx) then return end
     local angle = math.atan2(fx-tx,fz-tz) + (math.pi/2.1)
-	local offset_x = (sin(angle)*13)
-	local offset_z = (cos(angle)*13)
-    local dx,dz
-    if Spring.GetModOptions ~= nil or (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
-      dx = fx - offset_x
-      dz = fz - offset_z
+    local dx,dz,offset_x,offset_z
+    if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
+      if dgunInfo[dgunUnitDefID].unitname == 'armcom' then
+        offset_x = (sin(angle)*10)
+        offset_z = (cos(angle)*10)
+        dx = fx - offset_x
+        dz = fz - offset_z
+      else
+        offset_x = (sin(angle)*14)
+        offset_z = (cos(angle)*14)
+        dx = fx + offset_x
+        dz = fz + offset_z
+      end
     else
+      offset_x = (sin(angle)*13)
+      offset_z = (cos(angle)*13)
       dx = fx + offset_x
       dz = fz + offset_z
     end
