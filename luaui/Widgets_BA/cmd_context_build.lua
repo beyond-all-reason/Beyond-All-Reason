@@ -33,9 +33,10 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 {'corsolar','cortide'},
 {'armlab','armsy'},
 {'corlab','corsy'},
-{'armllt','armtl'},
-{'corllt','cortl'},
-
+{'armllt','armgplat'},
+{'corllt','corgplat'},
+{'armnanotc','armnanotcplat'},
+{'cornanotc','cornanotcplat'},
 -- XTA - arm
 
 {'arm_solar_collector', 'arm_underwater_tidal_generator', 'arm_tidal_generator'},

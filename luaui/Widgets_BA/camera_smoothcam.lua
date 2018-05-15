@@ -7,24 +7,14 @@ function widget:GetInfo()
     author    = "very_bad_soldier",
     date      = "August, 8, 2010",
     license   = "GNU GPL, v2 or later",
-    layer     = 0,
+    layer     = -100,
 	handler   = true,
     enabled   = true
   }
 end
 
 
---------------------------------------------------------------------------------
-----------------------------Configuration---------------------------------------
-local camSpeed   = 0.3
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-local spGetCameraState   	= Spring.GetCameraState
-local spSetCameraState   	= Spring.SetCameraState
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 function widget:Update(dt)
-  local cs = spGetCameraState()
-  spSetCameraState(cs, camSpeed)
+    Spring.SetCameraState(Spring.GetCameraState(), 0.3)
 end
 

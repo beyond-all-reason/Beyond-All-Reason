@@ -85,7 +85,6 @@ function cloackSpy(unitID)
 end
 
 function processGremlin(unitID)
-    Spring.Echo(engineVersion)
     spGiveOrderToUnit(unitID, cmdCloak, { 1 }, {})
     spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, {}) -- 0 == hold pos
     spGiveOrderToUnit(unitID, cmdFireState, { 0 }, {}) -- hold fire

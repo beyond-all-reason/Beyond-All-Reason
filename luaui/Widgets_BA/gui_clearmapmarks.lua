@@ -98,16 +98,16 @@ function widget:DrawScreen()
 	--if spGetGameFrame() == 0 then return end
 	updatePosition()
 	if drawlist[1] ~= nil then
+		local mx,my = Spring.GetMouseState()
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)
-				if mouseover then
+				if isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
 					gl.Color(1,1,1,1)
 				else
 					gl.Color(0.96,0.96,0.96,0.87)
 				end
 			glCallList(drawlist[1])
 		glPopMatrix()
-		mouseover = false
 	end
 end
 
@@ -126,11 +126,4 @@ function widget:MouseRelease(mx, my, mb)
 		Spring.SendCommands({"clearmapmarks"})
 		updatePosition(true)
 	end
-end
-
-function widget:IsAbove(mx, my)
-	if isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
-		mouseover = true
-	end
-	return mouseover
 end

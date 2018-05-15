@@ -33,16 +33,15 @@ return {
 		sightdistance = 260,
 		terraformspeed = 2000,
 		--move
-		acceleration = 1.925/90,
-		brakerate = 1.925/25,
+		acceleration = 0.042,
+		brakerate = 0.077,
 		maxvelocity = 1.925,	
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*1.925,
 		turnrate = 262,
 		--end move
 		waterline = 0,
-		workertime = 400,
+		workertime = 200,
 		buildoptions = {
             "coreyes",
             "coramph",
@@ -50,6 +49,7 @@ return {
 			"coruwmex",
 			"corfrad",
 			-- "corsonar",
+			"cornanotcplat",
 			"corsy",
 			"corfhp",
 			"coramsub",

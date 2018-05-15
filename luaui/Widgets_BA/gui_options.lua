@@ -11,7 +11,17 @@ return {
 }
 end
 
---local show = true
+--[[
+--   Add option, at:
+--   function init
+--
+--   Apply new option value:
+--   function applyOptionValue
+--
+--	 Load widget data (to get settings for when widget is disabled):
+--   function loadAllWidgetData
+--
+]]--
 
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/tock.wav'
@@ -251,6 +261,27 @@ local posX = 0.947
 local posY = 0.965
 local buttonGL
 local startPosX = posX
+
+
+local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+if Engine and Engine.version then
+	local function Split(s, separator)
+		local results = {}
+		for part in s:gmatch("[^"..separator.."]+") do
+			results[#results + 1] = part
+		end
+		return results
+	end
+	engineVersion = Split(Engine.version, '-')
+	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
+		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
+	else
+		engineVersion = tonumber(Engine.version)
+	end
+elseif Game and Game.version then
+	engineVersion = tonumber(Game.version)
+end
+
 
 local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
@@ -885,10 +916,33 @@ function widget:DrawScreen()
   end
 	if checkedWidgetDataChanges == nil then
 		checkedWidgetDataChanges = true
-		loadWidgetConfigData()
+		loadAllWidgetData()
 	end
 end
 
+function saveOptionValue(widgetName, widgetApiName, widgetApiFunction, configVar, configValue)
+	if widgetHandler.configData[widgetName] == nil then
+		widgetHandler.configData[widgetName] = {}
+	end
+	if widgetHandler.configData[widgetName][configVar[1]] == nil then
+		widgetHandler.configData[widgetName][configVar[1]] = {}
+	end
+	if configVar[2] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]] == nil then
+		widgetHandler.configData[widgetName][configVar[1]][configVar[2]] = {}
+	end
+	if configVar[2] ~= nil then
+		if configVar[3] ~= nil then
+			widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]] = configValue
+		else
+			widgetHandler.configData[widgetName][configVar[1]][configVar[2]] = configValue
+		end
+	else
+		widgetHandler.configData[widgetName][configVar[1]] = configValue
+	end
+	if widgetApiName ~= nil and WG[widgetApiName] ~= nil and WG[widgetApiName][widgetApiFunction] ~= nil then
+		WG[widgetApiName][widgetApiFunction](configValue)
+	end
+end
 
 function applyOptionValue(i, skipRedrawWindow)
 	if options[i] == nil then return end
@@ -918,7 +972,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("Shadows "..value)
 		elseif id == 'vsync' then
 			Spring.SendCommands("Vsync "..value)
-			Spring.SetConfigInt("Vsync",value)
+			Spring.SetConfigInt("VSync",value)
 		elseif id == 'fullscreen' then
 			Spring.SendCommands("Fullscreen "..value)
 			Spring.SetConfigInt("Fullscreen",value)
@@ -965,142 +1019,52 @@ function applyOptionValue(i, skipRedrawWindow)
 				widgetHandler:EnableWidget('Red Console (Battle and autohosts)')
 			end
 			Spring.SendCommands("luarules reloadluaui")
+		elseif id == 'lockcamera_hideenemies' then
+			saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', {'lockcameraHideEnemies'}, options[i].value)
+		elseif id == 'lockcamera_los' then
+			saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', {'lockcameraLos'}, options[i].value)
+		elseif id == 'allyselunits_select' then
+			saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', {'selectPlayerUnits'}, options[i].value)
+		elseif id == 'voicenotifs_playtrackedplayernotifs' then
+			saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, options[i].value)
 		elseif id == 'buildmenuoldicons' then
-			if widgetHandler.configData["Red Build/Order Menu"] == nil then
-				widgetHandler.configData["Red Build/Order Menu"] = {}
-			end
-			widgetHandler.configData["Red Build/Order Menu"].oldUnitpics = options[i].value
-			if WG['red_buildmenu'] ~= nil then
-				WG['red_buildmenu'].setConfigOldUnitIcons(options[i].value)
-			end
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigOldUnitIcons', {'oldUnitpics'}, options[i].value)
 		elseif id == 'buildmenushortcuts' then
-			if widgetHandler.configData["Red Build/Order Menu"] == nil then
-				widgetHandler.configData["Red Build/Order Menu"] = {}
-			end
-			widgetHandler.configData["Red Build/Order Menu"].shortcutsInfo = options[i].value
-			if WG['red_buildmenu'] ~= nil then
-				WG['red_buildmenu'].setConfigShortcutsInfo(options[i].value)
-			end
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, options[i].value)
 		elseif id == 'buildmenuprices' then
-			if widgetHandler.configData["Red Build/Order Menu"] == nil then
-				widgetHandler.configData["Red Build/Order Menu"] = {}
-			end
-			widgetHandler.configData["Red Build/Order Menu"].drawPrice = options[i].value
-			if WG['red_buildmenu'] ~= nil then
-				WG['red_buildmenu'].setConfigUnitPrice(options[i].value)
-			end
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, options[i].value)
 		elseif id == 'buildmenusounds' then
-			if widgetHandler.configData["Red Build/Order Menu"] == nil then
-				widgetHandler.configData["Red Build/Order Menu"] = {}
-			end
-			widgetHandler.configData["Red Build/Order Menu"].playSounds = options[i].value
-			if WG['red_buildmenu'] ~= nil then
-				WG['red_buildmenu'].setConfigPlaySounds(options[i].value)
-			end
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, options[i].value)
 		elseif id == 'buildmenutooltip' then
-			if widgetHandler.configData["Red Build/Order Menu"] == nil then
-				widgetHandler.configData["Red Build/Order Menu"] = {}
-			end
-			widgetHandler.configData["Red Build/Order Menu"].drawTooltip = options[i].value
-			if WG['red_buildmenu'] ~= nil then
-				WG['red_buildmenu'].setConfigUnitTooltip(options[i].value)
-			end
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitTooltip', {'drawTooltip'}, options[i].value)
 		elseif id == 'buildmenubigtooltip' then
-			if widgetHandler.configData["Red Build/Order Menu"] == nil then
-				widgetHandler.configData["Red Build/Order Menu"] = {}
-			end
-			widgetHandler.configData["Red Build/Order Menu"].drawBigTooltip = options[i].value
-			if WG['red_buildmenu'] ~= nil then
-				WG['red_buildmenu'].setConfigUnitBigTooltip(options[i].value)
-			end
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitBigTooltip', {'drawBigTooltip'}, options[i].value)
 		elseif id == 'buildmenulargeicons' then
-			if widgetHandler.configData["Red Build/Order Menu"] == nil then
-				widgetHandler.configData["Red Build/Order Menu"] = {}
-			end
-			widgetHandler.configData["Red Build/Order Menu"].largeUnitIons = options[i].value
-			if WG['red_buildmenu'] ~= nil then
-				WG['red_buildmenu'].setConfigLargeUnitIcons(options[i].value)
-			end
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, options[i].value)
 		elseif id == 'sameteamcolors' then
-			if widgetHandler.configData["Player Color Palette"] == nil then
-				widgetHandler.configData["Player Color Palette"] = {}
-			end
-			widgetHandler.configData["Player Color Palette"].useSameTeamColors = options[i].value
-			if WG['playercolorpalette'] ~= nil then
-				WG['playercolorpalette'].setSameTeamColors(options[i].value)
-			end
+			saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', {'useSameTeamColors'}, options[i].value)
 		elseif id == 'bloomhighlights' then
-			if widgetHandler.configData["Bloom Shader"] == nil then
-				widgetHandler.configData["Bloom Shader"] = {}
-			end
-			widgetHandler.configData["Bloom Shader"].drawHighlights = options[i].value
-			if WG['bloom'] ~= nil then
-				WG['bloom'].setAdvBloom(options[i].value)
-			end
+			saveOptionValue('Bloom Shader', 'bloom', 'setAdvBloom', {'drawHighlights'}, options[i].value)
 		elseif id == 'snowmap' then
-			if widgetHandler.configData["Snow"] == nil then
-				widgetHandler.configData["Snow"] = {}
-			end
-			widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] = options[i].value
-			if WG['snow'] ~= nil then
-				WG['snow'].setSnowMap(options[i].value)
-			end
+			saveOptionValue('Snow', 'snow', 'setSnowMap', {'snowMaps',Game.mapName:lower()}, options[i].value)
 		elseif id == 'snowautoreduce' then
-			if widgetHandler.configData["Snow"] == nil then
-				widgetHandler.configData["Snow"] = {}
-			end
-			widgetHandler.configData["Snow"].autoReduce = options[i].value
-			if WG['snow'] ~= nil then
-				WG['snow'].setAutoReduce(options[i].value)
-			end
+			saveOptionValue('Snow', 'snow', 'setAutoReduce', {'autoReduce'}, options[i].value)
 		elseif id == 'darkenmap_darkenfeatures' then
-			if widgetHandler.configData["Darken map"] == nil then
-				widgetHandler.configData["Darken map"] = {}
-			end
-			widgetHandler.configData["Darken map"].darkenFeatures = options[i].value
-			if WG['darkenmap'] ~= nil then
-				WG['darkenmap'].setDarkenFeatures(options[i].value)
-			end
+			saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, options[i].value)
 		elseif id == 'teamplatter_skipownteam' then
-			if widgetHandler.configData.TeamPlatter == nil then
-				widgetHandler.configData.TeamPlatter = {}
-			end
-			widgetHandler.configData.TeamPlatter.skipOwnTeam = options[i].value
-			if WG['teamplatter'] ~= nil then
-				WG['teamplatter'].setSkipOwnTeam(options[i].value)
-			end
+			saveOptionValue('TeamPlatter', 'teamplatter', 'setSkipOwnTeam', {'skipOwnTeam'}, options[i].value)
 		elseif id == 'enemyspotter_highlight' then
-			if widgetHandler.configData.EnemySpotter == nil then
-				widgetHandler.configData.EnemySpotter = {}
-			end
-			widgetHandler.configData.EnemySpotter.useXrayHighlight = options[i].value
-			if WG['enemyspotter'] ~= nil then
-				WG['enemyspotter'].setHighlight(options[i].value)
-			end
+			saveOptionValue('EnemySpotter', 'enemyspotter', 'setHighlight', {'useXrayHighlight'}, options[i].value)
+		elseif id == 'underconstructiongfx_shader' then
+			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setShader', {'useHighlightShader'}, options[i].value)
+		elseif id == 'underconstructiongfx_teamcolor' then
+			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setTeamcolor', {'useTeamcolor'}, options[i].value)
         elseif id == 'highlightselunits_shader' then
-            if widgetHandler.configData["Highlight Selected Units"] == nil then
-                widgetHandler.configData["Highlight Selected Units"] = {}
-            end
-            widgetHandler.configData["Highlight Selected Units"].useHighlightShader = options[i].value
-            if WG['highlightselunits'] ~= nil then
-                WG['highlightselunits'].setShader(options[i].value)
-            end
+			saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setShader', {'useHighlightShader'}, options[i].value)
 		elseif id == 'highlightselunits_teamcolor' then
-			if widgetHandler.configData["Highlight Selected Units"] == nil then
-				widgetHandler.configData["Highlight Selected Units"] = {}
-			end
-			widgetHandler.configData["Highlight Selected Units"].useTeamcolor = options[i].value
-			if WG['highlightselunits'] ~= nil then
-				WG['highlightselunits'].setTeamcolor(options[i].value)
-			end
+			saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setTeamcolor', {'useTeamcolor'}, options[i].value)
 		elseif id == 'fancyselectedunits_secondline' then
-			if widgetHandler.configData["Fancy Selected Units"] == nil then
-				widgetHandler.configData["Fancy Selected Units"] = {}
-			end
-			widgetHandler.configData["Fancy Selected Units"].showSecondLine = options[i].value
-			if WG['fancyselectedunits'] ~= nil then
-				WG['fancyselectedunits'].setSecondLine(options[i].value)
-			end
+			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setSecondLine', {'showSecondLine'}, options[i].value)
 		elseif id == 'defrange_allyair' then
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
@@ -1108,21 +1072,16 @@ function applyOptionValue(i, skipRedrawWindow)
 			if widgetHandler.configData["Defense Range"].enabled == nil then
 				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
 			end
-			widgetHandler.configData["Defense Range"].enabled.ally.air = options[i].value
-			if WG['defrange'] ~= nil then
-				WG['defrange'].setAllyAir(options[i].value)
-			end
+			saveOptionValue('Defense Range', 'defrange', 'setAllyAir', {'enabled','ally','air'}, options[i].value)
 		elseif id == 'defrange_allyground' then
+			saveOptionValue('', '', '', {''}, options[i].value)
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
 			end
 			if widgetHandler.configData["Defense Range"].enabled == nil then
 				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
 			end
-			widgetHandler.configData["Defense Range"].enabled.ally.ground = options[i].value
-			if WG['defrange'] ~= nil then
-				WG['defrange'].setAllyGround(options[i].value)
-			end
+			saveOptionValue('Defense Range', 'defrange', 'setAllyGround', {'enabled','ally','ground'}, options[i].value)
 		elseif id == 'defrange_allynuke' then
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
@@ -1130,10 +1089,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			if widgetHandler.configData["Defense Range"].enabled == nil then
 				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
 			end
-			widgetHandler.configData["Defense Range"].enabled.ally.nuke = options[i].value
-			if WG['defrange'] ~= nil then
-				WG['defrange'].setAllyNuke(options[i].value)
-			end
+			saveOptionValue('Defense Range', 'defrange', 'setAllyNuke', {'enabled','ally','nuke'}, options[i].value)
 		elseif id == 'defrange_enemyair' then
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
@@ -1141,10 +1097,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			if widgetHandler.configData["Defense Range"].enabled == nil then
 				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
 			end
-			widgetHandler.configData["Defense Range"].enabled.enemy.air = options[i].value
-			if WG['defrange'] ~= nil then
-				WG['defrange'].setEnemyAir(options[i].value)
-			end
+			saveOptionValue('Defense Range', 'defrange', 'setEnemyAir', {'enabled','enemy','air'}, options[i].value)
 		elseif id == 'defrange_enemyground' then
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
@@ -1152,10 +1105,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			if widgetHandler.configData["Defense Range"].enabled == nil then
 				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
 			end
-			widgetHandler.configData["Defense Range"].enabled.enemy.ground = options[i].value
-			if WG['defrange'] ~= nil then
-				WG['defrange'].setEnemyGround(options[i].value)
-			end
+			saveOptionValue('Defense Range', 'defrange', 'setEnemyGround', {'enabled','enemy','ground'}, options[i].value)
 		elseif id == 'defrange_enemynuke' then
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
@@ -1163,18 +1113,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			if widgetHandler.configData["Defense Range"].enabled == nil then
 				widgetHandler.configData["Defense Range"].enabled = {ally={air=false,ground=false,nuke=false}, enemy={air=true,ground=true,nuke=true}}
 			end
-			widgetHandler.configData["Defense Range"].enabled.enemy.nuke = options[i].value
-			if WG['defrange'] ~= nil then
-				WG['defrange'].setEnemyNuke(options[i].value)
-			end
+			saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', {'enabled','enemy','nuke'}, options[i].value)
 		elseif id == 'smartselect_includebuildings' then
-			if widgetHandler.configData["SmartSelect"] == nil then
-				widgetHandler.configData["SmartSelect"] = {}
-			end
-			widgetHandler.configData["SmartSelect"].selectBuildingsWithMobile = options[i].value
-			if WG['smartselect'] ~= nil then
-				WG['smartselect'].setIncludeBuildings(options[i].value)
-			end
+			saveOptionValue('SmartSelect', 'smartselect', 'setIncludeBuildings', {'selectBuildingsWithMobile'}, options[i].value)
 		elseif id == 'lighteffects' then
 			if value ~= 0 then
 				if widgetHandler.orderList["Deferred rendering"] ~= nil then
@@ -1196,25 +1137,14 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				widgetHandler.configData["Auto Group"].config.immediate.value = options[i].value
 			end
-			if WG['autogroup'] ~= nil then
-				WG['autogroup'].setImmediate(options[i].value)
-			end
+			saveOptionValue('Auto Group', 'autogroup', 'setImmediate', {'config','immediate','value'}, options[i].value)
 		elseif id == 'resourceprompts' then
 			Spring.SetConfigInt("evo_resourceprompts",value)
-		elseif string.sub(id, 1, 19) == 'voicenotifications_' then
+		elseif string.sub(id, 1, 19) == 'voicenotifs_' then
 			local sound = string.sub(id, 20)
-			if widgetHandler.configData["Voice Notifs"] == nil then
-				widgetHandler.configData["Voice Notifs"] = {}
-			end
-			if widgetHandler.configData["Voice Notifs"].soundList == nil then
-				widgetHandler.configData["Voice Notifs"].soundList = {}
-			end
-			widgetHandler.configData["Voice Notifs"].soundList[sound] = options[i].value
-			if WG['voicenotifs'] ~= nil then
-				WG['voicenotifs']['setSound'..sound](options[i].value)
-			end
+			saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, options[i].value)
 		end
-		
+
 		if options[i].widget ~= nil then
 			if value == 1 then
 				if id == 'bloom' or id == 'guishader' or id == 'xrayshader' or id == 'snow' or id == 'mapedgeextension' then
@@ -1311,215 +1241,58 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'crossalpha' then
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
-			if widgetHandler.configData["Darken map"] == nil then
-				widgetHandler.configData["Darken map"] = {}
-			end
-			if widgetHandler.configData["Darken map"].maps == nil then
-				widgetHandler.configData["Darken map"].maps = {}
-			end
-			widgetHandler.configData["Darken map"].maps[Game.mapName:lower()] = value
-			if WG['darkenmap'] ~= nil then
-				WG['darkenmap'].setMapDarkness(value)
-			end
+			saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', {'maps',Game.mapName:lower()}, value)
 		elseif id == 'iconadjuster' then
-			if widgetHandler.configData["Icon adjuster"] == nil then
-				widgetHandler.configData["Icon adjuster"] = {}
-			end
-			widgetHandler.configData["Icon adjuster"].iconScale = value
-			if WG['iconadjuster'] ~= nil then
-				WG['iconadjuster'].setScale(value)
-			end
+			saveOptionValue('Icon adjuster', 'iconadjuster', 'setScale', {'iconScale'}, value)
 		elseif id == 'healthbarsscale' then
-			if widgetHandler.configData["Health Bars"] == nil then
-				widgetHandler.configData["Health Bars"] = {}
-			end
-			widgetHandler.configData["Health Bars"].barScale = value
-			if WG['healthbars'] ~= nil then
-				WG['healthbars'].setScale(value)
-			end
+			saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value)
 		elseif id == 'bloombrightness' then
-			if widgetHandler.configData["Bloom Shader"] == nil then
-				widgetHandler.configData["Bloom Shader"] = {}
-			end
-			widgetHandler.configData["Bloom Shader"].basicAlpha = value
-			if WG['bloom'] ~= nil then
-				WG['bloom'].setBrightness(value)
-			end
+			saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', {'basicAlpha'}, value)
 		elseif id == 'consolemaxlines' then
-			if widgetHandler.configData["Red Console (In-game chat only)"] == nil then
-				widgetHandler.configData["Red Console (In-game chat only)"] = {}
-			end
-			if widgetHandler.configData["Red Console (In-game chat only)"].Config == nil then
-				widgetHandler.configData["Red Console (In-game chat only)"].Config = {}
-			end
-			if widgetHandler.configData["Red Console (In-game chat only)"].Config.console == nil then
-				widgetHandler.configData["Red Console (In-game chat only)"].Config.console = {}
-			end
-			widgetHandler.configData["Red Console (In-game chat only)"].Config.console.maxlines = value
-			if WG['red_chatonlyconsole'] ~= nil then
-				WG['red_chatonlyconsole'].setMaxLines(value)
-			end
-
-			if widgetHandler.configData["Red Console (old)"] == nil then
-				widgetHandler.configData["Red Console (old)"] = {}
-			end
-			if widgetHandler.configData["Red Console (old)"].Config == nil then
-				widgetHandler.configData["Red Console (old)"].Config = {}
-			end
-			if widgetHandler.configData["Red Console (old)"].Config.console == nil then
-				widgetHandler.configData["Red Console (old)"].Config.console = {}
-			end
-			widgetHandler.configData["Red Console (old)"].Config.console.maxlines = value
-			if WG['red_console'] ~= nil then
-				WG['red_console'].setMaxLines(value)
-			end
+			saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setMaxLines', {'Config','console','maxlines'}, value)
+			saveOptionValue('Red Console (old)', 'red_console', 'setMaxLines', {'Config','console','maxlines'}, value)
 		elseif id == 'consolefontsize' then
-			if widgetHandler.configData["Red Console (In-game chat only)"] == nil then
-				widgetHandler.configData["Red Console (In-game chat only)"] = {}
-			end
-			widgetHandler.configData["Red Console (In-game chat only)"].fontsizeMultiplier = value
-			if WG['red_chatonlyconsole'] ~= nil then
-				WG['red_chatonlyconsole'].setFontsize(value)
-			end
-
-			if widgetHandler.configData["Red Console (old)"] == nil then
-				widgetHandler.configData["Red Console (old)"] = {}
-			end
-			widgetHandler.configData["Red Console (old)"].fontsizeMultiplier = value
-			if WG['red_console'] ~= nil then
-				WG['red_console'].setFontsize(value)
-			end
+			saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', {'fontsizeMultiplier'}, value)
+			saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		elseif id == 'guishaderintensity' then
-			if widgetHandler.configData["GUI-Shader"] == nil then
-				widgetHandler.configData["GUI-Shader"] = {}
-			end
-			widgetHandler.configData["GUI-Shader"].blurIntensity = value
-			if WG['guishader_api'] ~= nil then
-				WG['guishader_api'].setBlurIntensity(value)
-			end
+			saveOptionValue('GUI-Shader', 'guishader_api', 'setBlurIntensity', {'blurIntensity'}, value)
 		elseif id == 'snowamount' then
-			if widgetHandler.configData["Snow"] == nil then
-				widgetHandler.configData["Snow"] = {}
-			end
-			widgetHandler.configData["Snow"].customParticleMultiplier = value
-			if WG['snow'] ~= nil then
-				WG['snow'].setMultiplier(value)
-			end
+			saveOptionValue('Snow', 'snow', 'setMultiplier', {'customParticleMultiplier'}, value)
 		elseif id == 'commandsfxopacity' then
-			if widgetHandler.configData["Commands FX"] == nil then
-				widgetHandler.configData["Commands FX"] = {}
-			end
-			widgetHandler.configData["Commands FX"].opacity = value
-			if WG['commandsfx'] ~= nil then
-				WG['commandsfx'].setOpacity(value)
-			end
+			saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', {'opacity'}, value)
 		elseif id == 'dofintensity' then
-			if widgetHandler.configData["Depth of Field"] == nil then
-				widgetHandler.configData["Depth of Field"] = {}
-			end
-			widgetHandler.configData["Depth of Field"].intensity = value
-			if WG['dof'] ~= nil then
-				WG['dof'].setIntensity(value)
-			end
+			saveOptionValue('Depth of Field', 'dof', 'setIntensity', {'intensity'}, value)
 		elseif id == 'minimapiconsize' then
 			minimapIconsize = value
 			Spring.SendCommands("minimap unitsize "..value)
 		elseif id == 'lighteffects_brightness' then
-			if widgetHandler.configData["Light Effects"] == nil then
-				widgetHandler.configData["Light Effects"] = {}
-			end
-			widgetHandler.configData["Light Effects"].globalLightMult = value
-			if WG['lighteffects'] ~= nil then
-				WG['lighteffects'].setGlobalBrightness(value)
-			end
+			saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', {'globalLightMult'}, value)
 		elseif id == 'lighteffects_radius' then
-			if widgetHandler.configData["Light Effects"] == nil then
-				widgetHandler.configData["Light Effects"] = {}
-			end
-			widgetHandler.configData["Light Effects"].globalRadiusMult = value
-			if WG['lighteffects'] ~= nil then
-				WG['lighteffects'].setGlobalRadius(value)
-			end
+			saveOptionValue('Light Effects', 'lighteffects', 'setGlobalRadius', {'globalRadiusMult'}, value)
 		elseif id == 'lighteffects_laserbrightness' then
-			if widgetHandler.configData["Light Effects"] == nil then
-				widgetHandler.configData["Light Effects"] = {}
-			end
-			widgetHandler.configData["Light Effects"].globalLightMultLaser = value
-			if WG['lighteffects'] ~= nil then
-				WG['lighteffects'].setLaserBrightness(value)
-			end
+			saveOptionValue('Light Effects', 'lighteffects', 'setLaserBrightness', {'globalLightMultLaser'}, value)
 		elseif id == 'lighteffects_laserradius' then
-			if widgetHandler.configData["Light Effects"] == nil then
-				widgetHandler.configData["Light Effects"] = {}
-			end
-			widgetHandler.configData["Light Effects"].globalRadiusMultLaser = value
-			if WG['lighteffects'] ~= nil then
-				WG['lighteffects'].setLaserRadius(value)
-			end
+			saveOptionValue('Light Effects', 'lighteffects', 'setLaserRadius', {'globalRadiusMultLaser'}, value)
 		elseif id == 'lighteffects_life' then
-			if widgetHandler.configData["Light Effects"] == nil then
-				widgetHandler.configData["Light Effects"] = {}
-			end
-			widgetHandler.configData["Light Effects"].globalLifeMult = value
-			if WG['lighteffects'] ~= nil then
-				WG['lighteffects'].setLife(value)
-			end
+			saveOptionValue('Light Effects', 'lighteffects', 'setLife', {'globalLifeMult'}, value)
 		elseif id == 'teamplatter_opacity' then
-			if widgetHandler.configData.TeamPlatter == nil then
-				widgetHandler.configData.TeamPlatter = {}
-			end
-			widgetHandler.configData.TeamPlatter.spotterOpacity = value
-			if WG['teamplatter'] ~= nil then
-				WG['teamplatter'].setOpacity(value)
-			end
+			saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', {'spotterOpacity'}, value)
 		elseif id == 'enemyspotter_opacity' then
-			if widgetHandler.configData.EnemySpotter == nil then
-				widgetHandler.configData.EnemySpotter = {}
-			end
-			widgetHandler.configData.EnemySpotter.spotterOpacity = value
-			if WG['enemyspotter'] ~= nil then
-				WG['enemyspotter'].setOpacity(value)
-			end
+			saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', {'spotterOpacity'}, value)
 		elseif id == 'outline_size' then
-			if widgetHandler.configData["Outline"] == nil then
-				widgetHandler.configData["Outline"] = {}
-			end
-			widgetHandler.configData["Outline"].customSize = value
-			if WG['outline'] ~= nil then
-				WG['outline'].setSize(value)
-			end
+			saveOptionValue('Outline', 'outline', 'setSize', {'customSize'}, value)
+		elseif id == 'underconstructiongfx_opacity' then
+			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setOpacity', {'highlightAlpha'}, value)
 		elseif id == 'highlightselunits_opacity' then
-			if widgetHandler.configData["Highlight Selected Units"] == nil then
-				widgetHandler.configData["Highlight Selected Units"] = {}
-			end
-			widgetHandler.configData["Highlight Selected Units"].highlightAlpha = value
-			if WG['highlightselunits'] ~= nil then
-				WG['highlightselunits'].setOpacity(value)
-			end
+			saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setOpacity', {'highlightAlpha'}, value)
 		elseif id == 'fancyselectedunits_opacity' then
-			if widgetHandler.configData["Fancy Selected Units"] == nil then
-				widgetHandler.configData["Fancy Selected Units"] = {}
-			end
-			widgetHandler.configData["Fancy Selected Units"].spotterOpacity = value
-			if WG['fancyselectedunits'] ~= nil then
-				WG['fancyselectedunits'].setOpacity(value)
-			end
+			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setOpacity', {'spotterOpacity'}, value)
 		elseif id == 'fancyselectedunits_baseopacity' then
-			if widgetHandler.configData["Fancy Selected Units"] == nil then
-				widgetHandler.configData["Fancy Selected Units"] = {}
-			end
-			widgetHandler.configData["Fancy Selected Units"].baseOpacity = value
-			if WG['fancyselectedunits'] ~= nil then
-				WG['fancyselectedunits'].setBaseOpacity(value)
-			end
+			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setBaseOpacity', {'baseOpacity'}, value)
 		elseif id == 'fancyselectedunits_teamcoloropacity' then
-			if widgetHandler.configData["Fancy Selected Units"] == nil then
-				widgetHandler.configData["Fancy Selected Units"] = {}
-			end
-			widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity = value
-			if WG['fancyselectedunits'] ~= nil then
-				WG['fancyselectedunits'].setTeamcolorOpacity(value)
-			end
+			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setTeamcolorOpacity', {'teamcolorOpacity'}, value)
+		elseif id == 'voicenotifs_volume' then
+			saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value)
 		end
 
 	elseif options[i].type == 'select' then
@@ -1544,21 +1317,9 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SendCommands('viewfree')
 			end
 		elseif id == 'cursor' then
-			if widgetHandler.configData["Cursors"] == nil then
-				widgetHandler.configData["Cursors"] = {}
-			end
-			widgetHandler.configData["Cursors"].cursorSet = options[i].options[value]
-			if WG['cursors'] ~= nil then
-				WG['cursors'].setcursor(options[i].options[value])
-			end
+			saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
 		elseif id == 'fancyselectedunits_style' then
-			if widgetHandler.configData["Fancy Selected Units"] == nil then
-				widgetHandler.configData["Fancy Selected Units"] = {}
-			end
-			widgetHandler.configData["Fancy Selected Units"].currentOption = value
-			if WG['fancyselectedunits'] ~= nil then
-				WG['fancyselectedunits'].setStyle(value)
-			end
+			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setStyle', {'currentOption'}, value)
 		end
 	end
 	if skipRedrawWindow == nil then
@@ -1754,21 +1515,23 @@ function mouseEvent(x, y, button, release)
 
 
 			local tabClicked = false
-			if show and groupRect ~= nil then
-				for id,group in pairs(optionGroups) do
-					if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-						currentGroupTab = group.id
-						startColumn = 1
-						tabClicked = true
-						showSelectOptions = nil
-						selectClickAllowHide = nil
-						if playSounds then
-							Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
-						end
-						returnTrue = true
-					end
-				end
-			end
+            if show and groupRect ~= nil then
+                for id,group in pairs(optionGroups) do
+                    if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+                        if not release then
+                            currentGroupTab = group.id
+                            startColumn = 1
+                            showSelectOptions = nil
+                            selectClickAllowHide = nil
+                            if playSounds then
+                                Spring.PlaySoundFile(paginatorclick, 0.9, 'ui')
+                            end
+                        end
+                        tabClicked = true
+                        returnTrue = true
+                    end
+                end
+            end
 
 			-- on window
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
@@ -1893,272 +1656,96 @@ function GetWidgetToggleValue(widgetname)
 end
 
 
--- loads values via stored game config in luaui/configs
-function loadWidgetConfigData()
-	local changes = false
-
-	if widgetHandler.configData["Health Bars"] ~= nil and widgetHandler.configData["Health Bars"].basicAlpha ~= nil then
-		if options[getOptionByID("healthbarsscale")].value ~= widgetHandler.configData["Health Bars"].barScale then
-			options[getOptionByID("healthbarsscale")].value = widgetHandler.configData["Health Bars"].barScale
-			changes = true
-		end
-	end
-
-	if widgetHandler.knownWidgets["Bloom Shader"] ~= nil then
-		if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].basicAlpha ~= nil then
-			if options[getOptionByID("bloombrightness")].value ~= widgetHandler.configData["Bloom Shader"].basicAlpha then
-				options[getOptionByID("bloombrightness")].value = widgetHandler.configData["Bloom Shader"].basicAlpha
-				changes = true
-			end
-		end
-		if widgetHandler.configData["Bloom Shader"] ~= nil and widgetHandler.configData["Bloom Shader"].drawHighlights ~= nil then
-			if options[getOptionByID("bloomhighlights")].value ~= widgetHandler.configData["Bloom Shader"].drawHighlights then
-				options[getOptionByID("bloomhighlights")].value = widgetHandler.configData["Bloom Shader"].drawHighlights
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.configData["Red Console (In-game chat only)"] ~= nil and widgetHandler.configData["Red Console (In-game chat only)"].Config ~= nil and widgetHandler.configData["Red Console (In-game chat only)"].Config.console ~= nil and widgetHandler.configData["Red Console (In-game chat only)"].Config.console.maxlines ~= nil then
-		if options[getOptionByID("consolemaxlines")].value ~= widgetHandler.configData["Red Console (In-game chat only)"].Config.console.maxlines then
-			options[getOptionByID("consolemaxlines")].value = widgetHandler.configData["Red Console (In-game chat only)"].Config.console.maxlines
-			changes = true
-		end
-	end
-
-	if widgetHandler.configData["Red Console (old)"] ~= nil and widgetHandler.configData["Red Console (old)"].Config ~= nil and widgetHandler.configData["Red Console (old)"].Config.console ~= nil and widgetHandler.configData["Red Console (old)"].Config.console.maxlines ~= nil then
-		if options[getOptionByID("consolemaxlines")].value ~= widgetHandler.configData["Red Console (old)"].Config.console.maxlines then
-			options[getOptionByID("consolemaxlines")].value = widgetHandler.configData["Red Console (old)"].Config.console.maxlines
-			changes = true
-		end
-	end
-
-	if widgetHandler.configData["Red Console (In-game chat only)"] ~= nil and widgetHandler.configData["Red Console (In-game chat only)"].fontsizeMultiplier ~= nil then
-		if options[getOptionByID("consolefontsize")].value ~= widgetHandler.configData["Red Console (In-game chat only)"].fontsizeMultiplier then
-			options[getOptionByID("consolefontsize")].value = widgetHandler.configData["Red Console (In-game chat only)"].fontsizeMultiplier
-			changes = true
-		end
-	end
-
-	if widgetHandler.configData["Red Console (old)"] ~= nil and widgetHandler.configData["Red Console (old)"].fontsizeMultiplier ~= nil then
-		if options[getOptionByID("consolefontsize")].value ~= widgetHandler.configData["Red Console (old)"].fontsizeMultiplier then
-			options[getOptionByID("consolefontsize")].value = widgetHandler.configData["Red Console (old)"].fontsizeMultiplier
-			changes = true
-		end
-	end
-
-	if widgetHandler.configData["GUI-Shader"] ~= nil and widgetHandler.configData["GUI-Shader"].blurIntensity ~= nil then
-		if options[getOptionByID("guishaderintensity")].value ~= widgetHandler.configData["GUI-Shader"].blurIntensity then
-			options[getOptionByID("guishaderintensity")].value = widgetHandler.configData["GUI-Shader"].blurIntensity
-			changes = true
-		end
-	end
-
-	if widgetHandler.knownWidgets["Snow"] ~= nil then
-		if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].customParticleMultiplier ~= nil then
-			if options[getOptionByID("snowamount")].value ~= widgetHandler.configData["Snow"].customParticleMultiplier then
-				options[getOptionByID("snowamount")].value = widgetHandler.configData["Snow"].customParticleMultiplier
-				changes = true
-			end
-		end
-		if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].snowMaps ~= nil and widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] ~= nil then
-			if options[getOptionByID("snowmap")].value ~= widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()] then
-				options[getOptionByID("snowmap")].value = widgetHandler.configData["Snow"].snowMaps[Game.mapName:lower()]
-				changes = true
-			end
-		end
-		if widgetHandler.configData["Snow"] ~= nil and widgetHandler.configData["Snow"].autoReduce ~= nil then
-			if options[getOptionByID("snowautoreduce")].value ~= widgetHandler.configData["Snow"].autoReduce then
-				options[getOptionByID("snowautoreduce")].value = widgetHandler.configData["Snow"].autoReduce
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["Commands FX"] ~= nil then
-		if widgetHandler.configData["Commands FX"] ~= nil and widgetHandler.configData["Commands FX"].opacity ~= nil then
-			if options[getOptionByID("commandsfxopacity")].value ~= widgetHandler.configData["Commands FX"].opacity then
-				options[getOptionByID("commandsfxopacity")].value = widgetHandler.configData["Commands FX"].opacity
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["Depth of Field"] ~= nil and options[getOptionByID("dofintensity")] ~= nil then
-		if widgetHandler.configData["Depth of Field"] ~= nil and widgetHandler.configData["Depth of Field"].intensity ~= nil then
-			if options[getOptionByID("dofintensity")].value ~= widgetHandler.configData["Depth of Field"].intensity then
-				options[getOptionByID("dofintensity")].value = widgetHandler.configData["Depth of Field"].intensity
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["TeamPlatter"] ~= nil then
-		if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.spotterOpacity ~= nil then
-			if options[getOptionByID("teamplatter_opacity")].value ~= widgetHandler.configData.TeamPlatter.spotterOpacity then
-				options[getOptionByID("teamplatter_opacity")].value = widgetHandler.configData.TeamPlatter.spotterOpacity
-				changes = true
-			end
-		end
-		if widgetHandler.configData.TeamPlatter ~= nil and widgetHandler.configData.TeamPlatter.skipOwnTeam ~= nil then
-			if options[getOptionByID("teamplatter_skipownteam")].value ~= widgetHandler.configData.TeamPlatter.skipOwnTeam then
-				options[getOptionByID("teamplatter_skipownteam")].value = widgetHandler.configData.TeamPlatter.skipOwnTeam
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["EnemySpotter"] ~= nil then
-		if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.spotterOpacity ~= nil then
-			if options[getOptionByID("enemyspotter_opacity")].value ~= widgetHandler.configData.EnemySpotter.spotterOpacity then
-				options[getOptionByID("enemyspotter_opacity")].value = widgetHandler.configData.EnemySpotter.spotterOpacity
-				changes = true
-			end
-		end
-		if widgetHandler.configData.EnemySpotter ~= nil and widgetHandler.configData.EnemySpotter.useXrayHighlight ~= nil then
-			if options[getOptionByID("enemyspotter_highlight")] ~= nil and options[getOptionByID("enemyspotter_highlight")].value ~= widgetHandler.configData.EnemySpotter.useXrayHighlight then
-				options[getOptionByID("enemyspotter_highlight")].value = widgetHandler.configData.EnemySpotter.useXrayHighlight
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["Outline"] ~= nil then
-		if getOptionByID("outline_size") and widgetHandler.configData["Outline"] ~= nil and widgetHandler.configData["Outline"].customSize ~= nil then
-			if options[getOptionByID("outline_size")].value ~= widgetHandler.configData["Outline"].customSize then
-				options[getOptionByID("outline_size")].value = widgetHandler.configData["Outline"].customSize
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["Highlight Selected Units"] ~= nil then
-		if getOptionByID("highlightselunits_opacity") and widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].highlightAlpha ~= nil then
-			if options[getOptionByID("highlightselunits_opacity")].value ~= widgetHandler.configData["Highlight Selected Units"].highlightAlpha then
-				options[getOptionByID("highlightselunits_opacity")].value = widgetHandler.configData["Highlight Selected Units"].highlightAlpha
-				changes = true
-			end
-		end
-		if getOptionByID("highlightselunits_shader") and widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useHighlightShader ~= nil then
-			if options[getOptionByID("highlightselunits_shader")].value ~= widgetHandler.configData["Highlight Selected Units"].useHighlightShader then
-				options[getOptionByID("highlightselunits_shader")].value = widgetHandler.configData["Highlight Selected Units"].useHighlightShader
-				changes = true
-			end
-		end
-		if getOptionByID("highlightselunits_teamcolor") and widgetHandler.configData["Highlight Selected Units"] ~= nil and widgetHandler.configData["Highlight Selected Units"].useTeamcolor ~= nil then
-			if options[getOptionByID("highlightselunits_teamcolor")].value ~= widgetHandler.configData["Highlight Selected Units"].useTeamcolor then
-				options[getOptionByID("highlightselunits_teamcolor")].value = widgetHandler.configData["Highlight Selected Units"].useTeamcolor
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["Fancy Selected Units"] ~= nil then
-		if getOptionByID("fancyselectedunits_style") and widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].currentOption ~= nil then
-			if WG['fancyselectedunits'] ~= nil then
-				options[getOptionByID('fancyselectedunits_style')].options = WG['fancyselectedunits'].getStyleList()
-			end
-			if options[getOptionByID("fancyselectedunits_style")].value ~= widgetHandler.configData["Fancy Selected Units"].currentOption then
-				options[getOptionByID("fancyselectedunits_style")].value = widgetHandler.configData["Fancy Selected Units"].currentOption
-				changes = true
-			end
-		end
-		if getOptionByID("fancyselectedunits_opacity") and widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].spotterOpacity ~= nil then
-			if options[getOptionByID("fancyselectedunits_opacity")].value ~= widgetHandler.configData["Fancy Selected Units"].spotterOpacity then
-				options[getOptionByID("fancyselectedunits_opacity")].value = widgetHandler.configData["Fancy Selected Units"].spotterOpacity
-				changes = true
-			end
-		end
-		if getOptionByID("fancyselectedunits_baseopacity") and widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].baseOpacity ~= nil then
-			if options[getOptionByID("fancyselectedunits_baseopacity")].value ~= widgetHandler.configData["Fancy Selected Units"].baseOpacity then
-				options[getOptionByID("fancyselectedunits_baseopacity")].value = widgetHandler.configData["Fancy Selected Units"].baseOpacity
-				changes = true
-			end
-		end
-		if getOptionByID("fancyselectedunits_teamcoloropacity") and widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity ~= nil then
-			if options[getOptionByID("fancyselectedunits_teamcoloropacity")].value ~= widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity then
-				options[getOptionByID("fancyselectedunits_teamcoloropacity")].value = widgetHandler.configData["Fancy Selected Units"].teamcolorOpacity
-				changes = true
-			end
-		end
-		if getOptionByID("fancyselectedunits_secondline") and widgetHandler.configData["Fancy Selected Units"] ~= nil and widgetHandler.configData["Fancy Selected Units"].showSecondLine ~= nil then
-			if options[getOptionByID("fancyselectedunits_secondline")].value ~= widgetHandler.configData["Fancy Selected Units"].showSecondLine then
-				options[getOptionByID("fancyselectedunits_secondline")].value = widgetHandler.configData["Fancy Selected Units"].showSecondLine
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["Defense Range"] ~= nil then
-		if widgetHandler.configData["Defense Range"] ~= nil and widgetHandler.configData["Defense Range"].enabled ~= nil then
-			if getOptionByID("defrange_allyair") then
-				options[getOptionByID("defrange_allyair")].value = widgetHandler.configData["Defense Range"].enabled.ally.air
-				changes = true
-			end
-			if getOptionByID("defrange_allyground") then
-				options[getOptionByID("defrange_allyground")].value = widgetHandler.configData["Defense Range"].enabled.ally.ground
-				changes = true
-			end
-			if getOptionByID("defrange_allynuke") then
-				options[getOptionByID("defrange_allynuke")].value = widgetHandler.configData["Defense Range"].enabled.ally.nuke
-				changes = true
-			end
-			if getOptionByID("defrange_enemyair") then
-				options[getOptionByID("defrange_enemyair")].value = widgetHandler.configData["Defense Range"].enabled.enemy.air
-				changes = true
-			end
-			if getOptionByID("defrange_enemyground") then
-				options[getOptionByID("defrange_enemyground")].value = widgetHandler.configData["Defense Range"].enabled.enemy.ground
-				changes = true
-			end
-			if getOptionByID("defrange_enemynuke") then
-				options[getOptionByID("defrange_enemynuke")].value = widgetHandler.configData["Defense Range"].enabled.enemy.nuke
-				changes = true
-			end
-		end
-	end
-
-	if widgetHandler.knownWidgets["Light Effects"] ~= nil then
-		if getOptionByID("lighteffects_brightness") and widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
-			if options[getOptionByID("lighteffects_brightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMult then
-				options[getOptionByID("lighteffects_brightness")].value = widgetHandler.configData["Light Effects"].globalLightMult
-				changes = true
-			end
-		end
-		if getOptionByID("lighteffects_radius") and widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMult ~= nil then
-			if options[getOptionByID("lighteffects_radius")].value ~= widgetHandler.configData["Light Effects"].globalRadiusMult then
-				options[getOptionByID("lighteffects_radius")].value = widgetHandler.configData["Light Effects"].globalRadiusMult
-				changes = true
-			end
-		end
-		if getOptionByID("lighteffects_laserbrightness") and widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLightMultLaser ~= nil then
-			if options[getOptionByID("lighteffects_laserbrightness")].value ~= widgetHandler.configData["Light Effects"].globalLightMultLaser then
-				options[getOptionByID("lighteffects_laserbrightness")].value = widgetHandler.configData["Light Effects"].globalLightMultLaser
-				changes = true
-			end
-		end
-		if getOptionByID("lighteffects_laserradius") and widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalRadiusMultLaser ~= nil then
-			if options[getOptionByID("lighteffects_laserradius")].value ~= widgetHandler.configData["Light Effects"].globalRadiusMultLaser then
-				options[getOptionByID("lighteffects_laserradius")].value = widgetHandler.configData["Light Effects"].globalRadiusMultLaser
-				changes = true
-			end
-		end
-		if getOptionByID("lighteffects_life") and widgetHandler.configData["Light Effects"] ~= nil and widgetHandler.configData["Light Effects"].globalLifeMult ~= nil then
-			if options[getOptionByID("lighteffects_life")].value ~= widgetHandler.configData["Light Effects"].globalLifeMult then
-				options[getOptionByID("lighteffects_life")].value = widgetHandler.configData["Light Effects"].globalLifeMult
-				changes = true
-			end
-		end
-
-		if widgetHandler.knownWidgets["Auto Group"] ~= nil then
-			if getOptionByID("autogroup_immediate") and widgetHandler.configData["Auto Group"] ~= nil and widgetHandler.configData["Auto Group"].config ~= nil and widgetHandler.configData["Auto Group"].config.immediate ~= nil and widgetHandler.configData["Auto Group"].config.immediate.value ~= nil then
-				if options[getOptionByID("autogroup_immediate")].value ~= widgetHandler.configData["Auto Group"].config.immediate.value then
-					options[getOptionByID("autogroup_immediate")].value = widgetHandler.configData["Auto Group"].config.immediate.value
-					changes = true
+function loadWidgetData(widgetName, optionId, configVar)
+	if widgetHandler.knownWidgets[widgetName] ~= nil then
+		if getOptionByID(optionId) and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
+			if configVar[2] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]] ~= nil then
+				if configVar[3] ~= nil and widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]] ~= nil then
+					options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]][configVar[3]]
+					return true
+				else
+					options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]][configVar[2]]
+					return true
 				end
+			elseif options[getOptionByID(optionId)].value ~= widgetHandler.configData[widgetName][configVar[1]] then
+				options[getOptionByID(optionId)].value = widgetHandler.configData[widgetName][configVar[1]]
+				return true
 			end
 		end
 	end
+end
+
+
+-- loads values via stored game config in luaui/configs
+function loadAllWidgetData()
+	loadWidgetData("Health Bars", "healthbarsscale", {'barScale'})
+
+	loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'})
+	loadWidgetData("Bloom Shader", "bloomhighlights", {'drawHighlights'})
+
+	loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", {'Config','console','maxlines'})
+
+	loadWidgetData("Red Console (old)", "consolemaxlines", {'Config','console','maxlines'})
+
+	loadWidgetData("Red Console (In-game chat only)", "consolefontsize", {'fontsizeMultiplier'})
+
+	loadWidgetData("Red Console (old)", "consolefontsize", {'fontsizeMultiplier'})
+
+	loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", {'lockcameraHideEnemies'})
+	loadWidgetData("AdvPlayersList", "lockcamera_los", {'lockcameraLos'})
+
+	loadWidgetData("Ally Selected Units", "allyselunits_select", {'selectPlayerUnits'})
+
+	loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'})
+
+	loadWidgetData("GUI-Shader", "guishaderintensity", {'blurIntensity'})
+
+	loadWidgetData("Snow", "snowamount", {'customParticleMultiplier'})
+	loadWidgetData("Snow", "snowmap", {'snowMaps',Game.mapName:lower()})
+	loadWidgetData("Snow", "snowautoreduce", {'autoReduce'})
+
+	loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'})
+
+	loadWidgetData("Depth of Field", "dofintensity", {'intensity'})
+
+	loadWidgetData("TeamPlatter", "teamplatter_opacity", {'spotterOpacity'})
+	loadWidgetData("TeamPlatter", "teamplatter_skipownteam", {'skipOwnTeam'})
+
+	loadWidgetData("EnemySpotter", "enemyspotter_opacity", {'spotterOpacity'})
+	loadWidgetData("EnemySpotter", "enemyspotter_highlight", {'useXrayHighlight'})
+
+	loadWidgetData("Outline", "outline_size", {'customSize'})
+
+	loadWidgetData("Under construction gfx", "underconstructiongfx_opacity", {'highlightAlpha'})
+	loadWidgetData("Under construction gfx", "underconstructiongfx_shader", {'useHighlightShader'})
+	loadWidgetData("Under construction gfx", "underconstructiongfx_teamcolor", {'useTeamcolor'})
+
+	loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", {'highlightAlpha'})
+	loadWidgetData("Highlight Selected Units", "highlightselunits_shader", {'useHighlightShader'})
+	loadWidgetData("Highlight Selected Units", "highlightselunits_teamcolor", {'useTeamcolor'})
+
+	loadWidgetData("Fancy Selected Units", "fancyselectedunits_style", {'currentOption'})
+	loadWidgetData("Fancy Selected Units", "fancyselectedunits_opacity", {'spotterOpacity'})
+	loadWidgetData("Fancy Selected Units", "fancyselectedunits_baseopacity", {'baseOpacity'})
+	loadWidgetData("Fancy Selected Units", "fancyselectedunits_teamcoloropacity", {'teamcolorOpacity'})
+	loadWidgetData("Fancy Selected Units", "fancyselectedunits_secondline", {'showSecondLine'})
+
+	loadWidgetData("Voice Notifs", "voicenotifs_volume", {'volume'})
+
+	loadWidgetData("Defense Range", "defrange_allyair", {'enabled','ally','air'})
+	loadWidgetData("Defense Range", "defrange_allyground", {'enabled','ally','ground'})
+	loadWidgetData("Defense Range", "defrange_allynuke", {'enabled','ally','nuke'})
+	loadWidgetData("Defense Range", "defrange_enemyair", {'enabled','enemy','air'})
+	loadWidgetData("Defense Range", "defrange_enemyground", {'enabled','enemy','ground'})
+	loadWidgetData("Defense Range", "defrange_enemynuke", {'enabled','enemy','nuke'})
+
+	loadWidgetData("Light Effects", "lighteffects_brightness", {'globalLightMult'})
+	loadWidgetData("Light Effects", "lighteffects_radius", {'globalRadiusMult'})
+	loadWidgetData("Light Effects", "lighteffects_laserbrightness", {'globalLightMultLaser'})
+	loadWidgetData("Light Effects", "lighteffects_laserradius", {'globalRadiusMultLaser'})
+	loadWidgetData("Light Effects", "lighteffects_life", {'globalLifeMult'})
+
+	loadWidgetData("Auto Group", "autogroup_immediate", {'config','immediate','value'})
 
 	return changes
 end
@@ -2184,7 +1771,7 @@ function init()
 		--{id="windowresy", group="gfx", name="Window resolution Y", type="slider", min=math.floor(ssy/3), max=ssy, step=1, value=tonumber(Spring.GetConfigInt("YResolutionWindowe",1) or 0), description='Set where on the screen the window is positioned on the Y axis'},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", group="gfx", name="  Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
-		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("Vsync",1) or 1) == 1, description=''},
+		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
@@ -2226,7 +1813,7 @@ function init()
 
 		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
-		{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
+		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)'},
@@ -2242,6 +1829,11 @@ function init()
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
         {id="rankicons", group="gfx", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
+		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction highlight", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
+		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
+		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
+		{id="underconstructiongfx_teamcolor", group="gfx", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
+
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
 		--{id="sndvolgeneral", group="snd", name="General volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volgeneral",1) or 100)},
@@ -2252,7 +1844,10 @@ function init()
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
         {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Shown on top of (adv)playerlist'},
 		{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
-		{id="voicenotifications", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+
+        {id="voicenotifs", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+		{id="voicenotifs_playtrackedplayernotifs", group="snd", name=widgetOptionColor.."   tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player'},
+		{id="voicenotifs_volume", group="snd", name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel'},
 
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
@@ -2265,6 +1860,9 @@ function init()
 		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size'},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
 		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
+		{id="allyselunits_select", group="control", name="Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this will also select the units the player has selected"},
+		--{id="lockcamera_hideenemies", group="control", name="Only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will only display what the tracked player sees"},
+		--{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera, show the Line of Sight as well"},
 
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
@@ -2334,7 +1932,6 @@ function init()
 		{id="defrange_enemyground", group="ui", name=widgetOptionColor.."   Enemy Ground", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getEnemyGround~=nil and WG['defrange'].getEnemyGround()), description='Show Range For Enemy Ground'},
 		{id="defrange_enemynuke", group="ui", name=widgetOptionColor.."   Enemy Nuke", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getEnemyNuke~=nil and WG['defrange'].getEnemyNuke()), description='Show Range For Enemy Nuke'},
 
-
 		-- GAME
 		{id="autoquit", group="game", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
 
@@ -2360,10 +1957,10 @@ function init()
 	}
 
 	-- loads values via stored game config in luaui/configs
-	loadWidgetConfigData()
+	loadAllWidgetData()
 
 	-- add sound notification widget sound toggle options
-	if  widgetHandler.knownWidgets["Voice Notifs"] then
+	if widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
 		if WG['voicenotifs'] ~= nil then
 			soundList =  WG['voicenotifs'].getSoundList()
@@ -2376,15 +1973,18 @@ function init()
 			for i, option in pairs(options) do
 				count = count + 1
 				newOptions[count] = option
-				if option.id == 'voicenotifications' then
+				if option.id == 'voicenotifs_volume' then
 					for sound, enabled in pairs(soundList) do
 						count = count + 1
-						newOptions[count] = {id="voicenotifications_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
+						newOptions[count] = {id="voicenotifs_snd_"..sound, group="snd", name=widgetOptionColor.."   "..sound, type="bool", value=enabled, description=''}
 					end
 				end
 			end
 			options = newOptions
 		end
+	else
+		options[getOptionByID('voicenotifs')] = nil
+		options[getOptionByID('voicenotifs_volume')] = nil
 	end
 	
 	-- cursors
@@ -2441,7 +2041,7 @@ function init()
 	end
 
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
-	if Spring.GetConfigInt("Vsync",1) == 'x' then
+	if Spring.GetConfigInt("VSync",1) == 'x' then
 		options[getOptionByID('vsync')] = nil
 	end
 
@@ -2507,6 +2107,13 @@ function init()
 		options[getOptionByID("highlightselunits_opacity")] = nil
 		options[getOptionByID("highlightselunits_shader")] = nil
 		options[getOptionByID("highlightselunits_teamcolor")] = nil
+	end
+
+	if widgetHandler.knownWidgets["Under construction gfx"] == nil then
+		options[getOptionByID('underconstructiongfx')] = nil
+		options[getOptionByID("underconstructiongfx_opacity")] = nil
+		options[getOptionByID("underconstructiongfx_shader")] = nil
+		options[getOptionByID("underconstructiongfx_teamcolor")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then

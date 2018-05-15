@@ -32,18 +32,18 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 465,
 				--move
-		acceleration = 2.016/120,
-		brakerate = 2.016/35,
+		acceleration = 0.033,
+		brakerate = 0.057,
 		turninplace = true,
 		maxvelocity = 2.016,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*2.016,
 		turnrate = 227,
 		--end move
 		waterline = 0,
 		customparams = {
 			techlevel = 2,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -187,6 +187,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

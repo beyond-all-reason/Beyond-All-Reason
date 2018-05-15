@@ -45,6 +45,10 @@ return {
 		turnrate = 466,
 		-- script = "BASICTANKSCRIPT.LUA",
 		customparams = {
+			bar_trackoffset = 6,
+			bar_trackstrength = 5,
+			bar_tracktype = "corwidetracks",
+			bar_trackwidth = 28,
 			description_long = "Wolverine is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Levelers/Insstigators, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
 			canareaattack = 1,
 			--ANIMATION DATA

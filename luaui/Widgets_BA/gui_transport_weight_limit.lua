@@ -78,6 +78,10 @@ function widget:Initialize()
 	end
 end
 
+function widget:Shutdown()
+	gl.DeleteList(circleList)
+end
+
 function widget:GameFrame(n)
     local unitcount = 0
 	if (n % 2 == 1) then

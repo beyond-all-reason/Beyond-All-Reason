@@ -34,13 +34,12 @@ return {
 		sonardistance = 400,
 		waterline = 0,
 		--move
-		acceleration = 1.90/120,
-		brakerate = 1.90/35,
+		acceleration = 0.031,
+		brakerate = 0.053,
 		turninplace = true,
-		maxvelocity = 1.90,
+		maxvelocity = 1.86,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*1.90,
-		turnrate = 200,
+		turnrate = 196,
 		--end move
 		customparams = {
 			
@@ -142,7 +141,7 @@ return {
 				weaponvelocity = 310,
 				damage = {
 					bombers = 56,
-					default = 240,
+					default = 228,
 					fighters = 56,
 					vtol = 56,
 					subs = 5,
@@ -184,6 +183,9 @@ return {
 					default = 187,
 					subs = 270,
 				},
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				}
 			},
 		},
 		weapons = {
@@ -197,7 +199,9 @@ return {
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				maindir = "0 -1 0",
+				maxangledif = 179,
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
 	},

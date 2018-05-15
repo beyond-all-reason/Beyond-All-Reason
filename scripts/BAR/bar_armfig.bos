@@ -44,7 +44,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
+		if( healthpercent < 66 and healthpercent > 0 )
 		{
 			smoketype = 256 | 2;
 			if( Rand( 1, 66 ) < healthpercent )
@@ -133,6 +133,11 @@ Deactivate()
 	return (0);
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
 FirePrimary()
 {
 	gun_1 = !gun_1;
@@ -140,6 +145,24 @@ FirePrimary()
 }
 
 QueryPrimary(piecenum)
+{
+	piecenum = gun_1;
+	return (0);
+}
+
+
+AimSecondary(heading, pitch)
+{
+	return (1);
+}
+
+FireSecondary()
+{
+	gun_1 = !gun_1;
+	return (0);
+}
+
+QuerySecondary(piecenum)
 {
 	piecenum = gun_1;
 	return (0);

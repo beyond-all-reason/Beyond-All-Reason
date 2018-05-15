@@ -1,3 +1,8 @@
+local enablegadget = false
+if Spring.GetModOptions and Spring.GetModOptions().mo_unba then
+	enablegadget = true
+end
+
 function gadget:GetInfo()
 	return {
 		name	= "Prevent build Hax",
@@ -6,16 +11,24 @@ function gadget:GetInfo()
 		date	= "2018-01-23",
 		license	= "GNU GPL, v2 or later",
 		layer	= 0,
-		enabled	= true,
+		enabled	= enablegadget,
 	}
 end
 
+com = {}
+com[UnitDefNames["armcom"].id] = true
+com[UnitDefNames["corcom"].id] = true
+
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
-	local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdID)
-	local cmdArrays = Spring.GetUnitCmdDescs(unitID, cmdIndex, cmdIndex)
-	local cmdArray = cmdArrays[1]
-	if cmdID < 0 and cmdArray.disabled == true then
-		return false
+	if com[unitDefID] then
+		local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdID)
+		local cmdArrays = Spring.GetUnitCmdDescs(unitID, cmdIndex, cmdIndex)
+		local cmdArray = cmdArrays[1]
+		if cmdID < 0 and cmdArray.disabled == true then
+			return false
+		else
+			return true
+		end
 	else
 		return true
 	end

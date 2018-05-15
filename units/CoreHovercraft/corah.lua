@@ -38,7 +38,7 @@ return {
 		turninplacespeedlimit = 2.2044,
 		turnrate = 470,
 		customparams = {
-			
+			prioritytarget = "air",			
 		},
 		featuredefs = {
 			dead = {
@@ -179,6 +179,7 @@ return {
 					vtol = 62,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",

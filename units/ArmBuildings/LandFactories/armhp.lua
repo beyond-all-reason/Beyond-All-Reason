@@ -40,16 +40,14 @@ return {
 		workertime = 200,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
-			[1] = "armch",
-			[2] = "armsh",
-			[3] = "armanac",
-			[4] = "armah",
-			[5] = "armmh",
-			[6] = "armthovr",
+			"armch",
+			"armsh",
+			"armanac",
+			"armah",
+			"armmh",
+			"armthovr",
 		},
 		customparams = {
-			bar_buildinggrounddecalsizex = 9,
-			bar_buildinggrounddecalsizey = 8,
 			bar_collisionvolumescales = "100 40 90",
 		},
 		featuredefs = {

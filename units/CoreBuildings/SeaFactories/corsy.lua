@@ -7,7 +7,7 @@ return {
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORSY.DDS",
-		buildtime = 1.1*6000,
+		buildtime = 6600,
 		canmove = true,
 		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
@@ -15,7 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 1 Ships",
-		energymake = 15,
 		energystorage = 100,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 8,
@@ -24,7 +23,6 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 3850,
-		metalmake = 0.5,
 		metalstorage = 100,
 		minwaterdepth = 30,
 		name = "Shipyard",
@@ -51,6 +49,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 0 2",
 			bar_collisionvolumescales = "124 59 122",
+			bar_waterline = 1,
 		},
 		featuredefs = {
 			dead = {

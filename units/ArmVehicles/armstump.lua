@@ -2,7 +2,7 @@ return {
 	armstump = {
 		acceleration = 0.023,
 		brakerate = 0.095,
-		buildcostenergy = 2000,
+		buildcostenergy = 2100,
 		buildcostmetal = 210,
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 2904,
@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1606,
 		maxslope = 10,
-		maxvelocity = 2.73,
+		maxvelocity = 2.67,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Stumpy",
@@ -39,7 +39,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 24,
 		turninplace = true,
-		turninplaceanglelimit = 90,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.914,
 		turnrate = 370,
 		customparams = {

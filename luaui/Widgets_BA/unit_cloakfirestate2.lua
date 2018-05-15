@@ -48,6 +48,7 @@ local exceptionList = { --add exempt units here
 	"armpb",
 	"armamb",
 	"armpacko",
+	"armsnipe",
 }
 
 local exceptionArray = {}
@@ -60,7 +61,8 @@ end
 
 local cloakUnit = {} --stores the desired fire state when decloaked of each unitID
 
-function widget:UnitCloaked(unitID, unitDefID, teamID)
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
+if cmdID == 37382 and cmdParams[1] == 1 then
 	if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] then 
 		return
 	end
@@ -70,9 +72,8 @@ function widget:UnitCloaked(unitID, unitDefID, teamID)
 		STATIC_STATE_TABLE[1] = 0
 		GiveOrderToUnit(unitID, CMD.FIRE_STATE, STATIC_STATE_TABLE, 0)
 	end
-end
+elseif cmdID == 37382 and cmdParams[1] == 0 then
 
-function widget:UnitDecloaked(unitID, unitDefID, teamID)
 	if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] or (not cloakUnit[unitID]) then 
 		return
 	end
@@ -84,6 +85,7 @@ function widget:UnitDecloaked(unitID, unitDefID, teamID)
 		--Spring.Echo("Unit compromised - weapons free!")
 	end
 	cloakUnit[unitID] = nil
+end
 end
 
 function widget:PlayerChanged()

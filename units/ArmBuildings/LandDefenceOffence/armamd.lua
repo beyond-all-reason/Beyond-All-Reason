@@ -38,8 +38,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
-			bar_buildinggrounddecalsizex = 6,
-			bar_buildinggrounddecalsizey = 6,
+			bar_buildinggrounddecalsizex = 5,
+			bar_buildinggrounddecalsizey = 5,
 			techlevel = 2,
 			removewait = true,
 			removestop = true,
@@ -158,6 +158,7 @@ return {
 					default = 1500,
 				},
 				customparams = {
+					bar_model = "fmdmissile.s3o",
 					light_mult = 4,
 					light_radius_mult = 1.25,
 					light_color = "1 0.5 0.75",

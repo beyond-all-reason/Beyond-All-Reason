@@ -81,9 +81,6 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamList = Spring.GetTeamList
 local spSetUnitRulesParam = Spring.SetUnitRulesParam
 local spGetUnitRulesParam = Spring.GetUnitRulesParam
-local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
-local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
-local spGetUnitDefID = Spring.GetUnitDefID
 local spSetUnitBuildSpeed = Spring.SetUnitBuildSpeed
 local spGetUnitIsBuilding = Spring.GetUnitIsBuilding
 local spValidUnitID = Spring.ValidUnitID
@@ -113,7 +110,7 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-    if UnitDefs[unitDefID].buildSpeed>0 or canPassive[unitDefID] then
+    if canPassive[unitDefID] or UnitDefs[unitDefID].buildSpeed>0 then
         canBuild[teamID] = canBuild[teamID] or {}
         canBuild[teamID][unitID] = true
         realBuildSpeed[unitID] = UnitDefs[unitDefID].buildSpeed or 0

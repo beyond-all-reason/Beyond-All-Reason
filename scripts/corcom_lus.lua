@@ -155,6 +155,17 @@ function MotionControl()
 end
 
 function script.Create()
+VFS.Include('luarules/configs/champions.lua')
+local unitTeam = Spring.GetUnitTeam(unitID)
+local unitDefID = Spring.GetUnitDefID(unitID)
+local _, leader = Spring.GetTeamInfo(unitTeam)
+local leader = Spring.GetPlayerInfo(leader)
+if crown[leader] then
+		Hide(head1)
+		Show(piece("crown"))
+		head1 = piece("crown")
+		Move(head1, 2, 10)
+end
 if ValidID(unitID) then
 for ct, piecenum in pairs (lvl1hides) do
 	Hide(piecenum)
@@ -184,6 +195,8 @@ end
 function HandleLevelUps()
 while(true) do
 if ValidID(unitID) then
+local hp = Spring.GetUnitHealth(unitID)
+if hp and hp > 1 and (Spring.GetUnitIsDead(unitID) == false) then
 local null, fxp = Spring.GetUnitExperience(unitID)
 local realxp = 10 * fxp
 if realxp > 10 and level == 10 then
@@ -219,6 +232,7 @@ LevelUpStats(1)
 elseif realxp >= 0 and level == 0 then
 LevelUpModel(0)
 LevelUpStats(0)
+end
 end
 Sleep(1)
 end
@@ -817,5 +831,9 @@ function walklegs()
 
 
 function script.Killed()
-return 1
+local x,y,z = Spring.GetUnitPosition(unitID)
+local head = Spring.GetUnitHeading(unitID)
+local featureID = Spring.CreateFeature(("corcom_dead"..level), x, y, z, head)
+Spring.SetFeatureResurrect(featureID, "corcom", "s", 0)
+return nil
 end

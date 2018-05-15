@@ -37,7 +37,8 @@ return {
 		upright = true,
 		customparams = {
 			description_long = "The Crasher is a cheap mobile anti air (AA) Kbot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",  
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -177,6 +178,7 @@ return {
 					vtol = 110,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",

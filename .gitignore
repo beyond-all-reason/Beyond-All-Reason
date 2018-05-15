@@ -2,3 +2,5 @@
 *.db
 /.git
 /.svn
+*.py
+*.pyc

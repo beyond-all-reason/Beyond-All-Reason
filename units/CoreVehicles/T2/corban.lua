@@ -45,6 +45,10 @@ return {
 		turnrate = 375*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
+			bar_trackoffset = 8,
+			bar_trackstrength = 10,
+			bar_tracktype = "corwidetracks",
+			bar_trackwidth = 34,
 			techlevel = 2,
 			--ANIMATION DATA
 				--PIECENAMES HERE
@@ -147,6 +151,7 @@ return {
 			banisher = {
 				areaofeffect = 128,
 				avoidfeature = false,
+				burnblow = true,
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
@@ -154,7 +159,7 @@ return {
 				cegTag = "missiletraillarge-red",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 20,
-				flighttime = 2.5,
+				flighttime = 2.33,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "corban_a",
@@ -183,7 +188,8 @@ return {
 					default = 1000,
 					subs = 5,
 				},
-                customparams = {
+				customparams = {
+					bar_model = "tawf114a.s3o",
                     light_mult = "0.32",		-- used by light_effects widget
                     light_color = "1 0.6 0.05",
                     expl_light_color = "1 0.5 0.05",

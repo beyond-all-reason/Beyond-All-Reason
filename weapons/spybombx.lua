@@ -5,7 +5,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0.75,
-		explosiongenerator = "custom:EMPFLASH360",
+		explosiongenerator = "custom:genericshellexplosion-huge-lightning",
 		firestarter = 90,
 		impulseboost = 0,
 		impulsefactor = 0,
@@ -21,6 +21,12 @@ return {
 		turret = 1,
 		damage = {
 			default = 50000,
+		},
+		customparams = {
+			expl_light_radius_mult = 1.2,
+			expl_light_mult = 1.2,
+			expl_light_color = "0.5 0.5 1",
+			expl_light_life_mult = 1.4,
 		},
 	},
 }

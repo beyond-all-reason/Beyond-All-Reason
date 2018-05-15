@@ -35,16 +35,17 @@ return {
 		sonardistance = 320,
 		waterline = 0,
 		--move
-		acceleration = 4.00/60,
-		brakerate = 4.00/15,
+		acceleration = 0.133,
+		brakerate = 0.266,
 		maxvelocity = 4.00,
 		turninplace = true,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*4.00,
 		turnrate = 360,
 		--end move
 		customparams = {
 			maxrange = "260",
+			paralyzemultiplier = 0.1,
+			prioritytarget = "air",		
 		},
 		featuredefs = {
 			dead = {
@@ -196,6 +197,7 @@ return {
 					vtol = 60,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

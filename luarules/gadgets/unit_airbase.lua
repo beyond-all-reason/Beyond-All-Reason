@@ -37,7 +37,7 @@ if (gadgetHandler:IsSyncedCode()) then
 --------------------------------------------------------------------------------
 
 local airbases = {} -- airbaseID = { int pieceNum = unitID reservedFor }
-
+local planes = {}
 local pendingLanders = {} -- unitIDs of planes that want repair and are waiting to be assigned airbases 
 local landingPlanes = {} -- planes that are in the process of landing on (including flying towards) airbases; [1]=airbaseID, [2]=pieceNum 
 local landedPlanes = {} -- unitIDs of planes that are currently landed in airbases
@@ -82,6 +82,7 @@ function AddAirBase(unitID)
          airbasePads[pieceNum] = false -- value is whether or not the pad is reserved
       end
    end
+   Spring.SetUnitRadiusAndHeight(unitID, 20, 24)
    airbases[unitID] = airbasePads
 end
 
@@ -198,10 +199,10 @@ end
 
 function CheckAll()
    -- check all units to see if any need healing
-   local units = Spring.GetAllUnits()
-   for _,unitID in ipairs(units) do
+   --local units = Spring.GetAllUnits()
+   for _,unitID in ipairs(planes) do
       local unitDefID = Spring.GetUnitDefID(unitID)
-      if IsPlane(unitDefID) and not landingPlanes[unitID] and not landedPlanes[unitID] and NeedsRepair(unitID) then
+      if not landingPlanes[unitID] and not landedPlanes[unitID] and NeedsRepair(unitID) then
          pendingLanders[unitID] = true
       end     
    end  
@@ -253,8 +254,8 @@ end
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
    if IsPlane(unitDefID) then
       InsertLandAtAirbaseCommands(unitID)
+      planes[unitID] = true
    end
-
    local _, _, _, _, buildProgress = Spring.GetUnitHealth(unitID)
    if buildProgress == 1.0 then
       gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -268,10 +269,11 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-   if not IsPlane(unitDefID) and not airbases[unitID] then return end
+   if not planes[unitID] and not airbases[unitID] then return end
    
    RemoveLandingPlane(unitID)
 
+   planes[unitID] = nil
    airbases[unitID] = nil
    landingPlanes[unitID] = nil
    landedPlanes[unitID] = nil
@@ -338,7 +340,7 @@ end
 function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
    -- if a plane is given a command, assume the user wants that command to be actioned and release control
    -- (unless its one of our custom commands, etc)
-   if not IsPlane(unitDefID) then return end
+   if not planes[unitID] then return end
    if cmdID == CMD_LAND_AT_AIRBASE then return end
    if cmdID == CMD_LAND_AT_SPECIFIC_AIRBASE then return end --fixme: case of wanting to force land at a different pad than current reserved
    if cmdID == CMD_SET_WANTED_MAX_SPEED then return end -- i hate SET_WANTED_MAX_SPEED   
@@ -363,7 +365,7 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID)
    -- when a plane is damaged, check to see if it needs repair, move to pendingLanders if so
    --Spring.Echo("damaged", unitID)
-   if IsPlane(unitDefID) and not landingPlanes[unitID] and not landedPlanes[unitID] and NeedsRepair(unitID) then
+   if planes[unitID] and not landingPlanes[unitID] and not landedPlanes[unitID] and NeedsRepair(unitID) then
       pendingLanders[unitID] = true
    end
 end
@@ -376,7 +378,7 @@ function gadget:GameFrame(n)
    -- add them to pending landers, if so
    if n%72==0 then
       CheckAll()
-   end   
+   end
 
    -- assign airbases & pads to planes in pendingLanders, if possible
    -- once done, move into landingPlanes
@@ -461,7 +463,11 @@ function gadget:Initialize()
       local unitDefID = Spring.GetUnitDefID(unitID)
       local teamID = Spring.GetUnitTeam(unitID)
       gadget:UnitCreated(unitID, unitDefID)
-      
+
+      if IsPlane(unitDefID) then
+         planes[unitID] = true
+      end
+
       local transporterID = Spring.GetUnitTransporter(unitID)
       if transporterID and IsPlane(unitDefID) then
          Spring.UnitDetach(unitID)

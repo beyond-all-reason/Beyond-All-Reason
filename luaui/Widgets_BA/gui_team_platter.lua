@@ -90,6 +90,16 @@ end
 
 local myTeamID = spGetMyTeamID()
 
+local singleTeams = false
+if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+  singleTeams = true
+end
+
+local sameTeamColors = false
+if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+  sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -336,6 +346,25 @@ function widget:Update(dt)
   end
   if (sec>1/updateTime and lastUpdatedFrame ~= spGetGameFrame() or (sec>1/(updateTime*5) and sceduledCheck)) then
     sec = 0
+
+    if WG['playercolorpalette'] ~= nil then
+      if WG['playercolorpalette'].getSameTeamColors and sameTeamColors ~= WG['playercolorpalette'].getSameTeamColors() then
+        sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+        teamColors = {}
+      end
+    elseif sameTeamColors == true then
+      sameTeamColors = false
+      teamColors = {}
+    end
+    if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+      if myTeamID ~= Spring.GetMyTeamID() then
+        -- old
+        teamColors[myTeamID] = nil
+        -- new
+        myTeamID = Spring.GetMyTeamID()
+        teamColors[myTeamID] = nil
+      end
+    end
     checkAllUnits()
     lastUpdatedFrame = spGetGameFrame()
     sceduledCheck = false

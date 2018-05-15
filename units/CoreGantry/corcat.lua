@@ -154,6 +154,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
+					bar_model = "catapultmissile.s3o",
 					light_color = "1 0.5 0.05",
 					light_radius_mult = 0.6,
                     expl_light_color = "1 0.33 0.04",

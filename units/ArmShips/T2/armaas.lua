@@ -33,8 +33,8 @@ return {
 		sightdistance = 475,
 		waterline = 0,
 				--move
-		acceleration = 2.20/120,
-		brakerate = 2.20/35,
+		acceleration = 0.036,
+		brakerate = 0.062,
 		turninplace = true,
 		maxvelocity = 2.10,
 		turninplaceanglelimit = 140,
@@ -43,7 +43,8 @@ return {
 		--end move
 		customparams = {
 			techlevel = 2,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -188,6 +189,7 @@ return {
 					vtol = 63,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

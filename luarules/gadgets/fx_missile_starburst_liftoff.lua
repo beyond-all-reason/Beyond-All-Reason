@@ -32,14 +32,14 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
         if weaponDef.cegTag == 'missiletrailsmall-starburst' then
             missileWeapons[weaponDef.id] = {
                 0,
-                'missiletrailmedium-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missiletrailsmall-starburst-vertical', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
                 'missilegroundsmall-liftoff', 60, 90,
                 'missilegroundsmall-liftoff-fire', 25, 45
             }
         elseif weaponDef.cegTag == 'missiletrailmedium-starburst' then
             missileWeapons[weaponDef.id] = {
                 0,
-                'missiletraillarge-starburst', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
+                'missiletrailmedium-starburst-vertical', ((weaponDef.uptime+0.1)*30), ((weaponDef.uptime+0.6)*30),
                 'missilegroundmedium-liftoff', 80, 120,
                 'missilegroundmedium-liftoff-fire', 35, 55
             }
@@ -146,6 +146,8 @@ function gadget:GameFrame(gf)
             else
                 missiles[proID] = nil
             end
+        else
+            missiles[proID] = nil
         end
     end
 end

@@ -40,17 +40,15 @@ return {
 		workertime = 200,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
-			[1] = "corch",
-			[2] = "corsh",
-			[3] = "corsnap",
-			[4] = "corah",
-			[5] = "cormh",
-			[6] = "corhal",
-			[7] = "corthovr",
+			"corch",
+			"corsh",
+			"corsnap",
+			"corah",
+			"cormh",
+			"corhal",
+			"corthovr",
 		},
 		customparams = {
-			bar_buildinggrounddecalsizex = 9,
-			bar_buildinggrounddecalsizey = 8,
 		},
 		featuredefs = {
 			dead = {

@@ -33,12 +33,11 @@ return {
 		sightdistance = 318.5,
 		waterline = 0,
 		--move
-		acceleration = 2.10/120,
-		brakerate = 2.10/35,
+		acceleration = 0.035,
+		brakerate = 0.06,
 		turninplace = true,
 		maxvelocity = 2.10,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*2.10,
 		turnrate = 200,
 		--end move
 		customparams = {
@@ -155,6 +154,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
+					bar_model = "corshiprocket.s3o",
 					light_mult = 2.6,
 					light_radius_mult = 1.2,
 					light_color = "1 0.6 0.15",
@@ -203,6 +203,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

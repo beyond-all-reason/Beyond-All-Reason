@@ -1,19 +1,106 @@
-﻿10.06 -> 10.07
-XX/XX/2018
+﻿10.08 -> 10.09
+xx/xx/2018
 
-Currently testing:
- • Thuds/Storms/Hammers/Rockos +4% projectile start/max speed
- • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes)
- • T1 air transport: Erased the move command when using unload.
- • T2 air transport: Can transport up to four 2x2 footprint or less units, or one 3x3 or more. Unloads all at once.
- • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
+Balance:
+Sea economy, factories and engineering:
+ • Erased T1/T2 Shipyards' radarsight 
+ • Removed Passive energy/metal generation from T1/T2 Shipyards
+ • Lowered energy/metal storages for T1 shipyards (125->100)
+ • Reduced Construction Ships Energy/Metal production (15/0.115 -> 7/0.1) and increased Energy/Metal storages (15 -> 50)
+ • Reduced Construction Ships HP -15%
+ • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
+ • Offshore mexes attempt to hide underwater when hit, therefor stopping the metal production for approxiamately 10 seconds.
+ • Banisher missile blows up in the air after it is out of fuel
+
+Sea Offense and Defense:
+ • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%,
+ • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health)
+ • Destroyers' and cruisers' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
+ • Arm/Core Assult Frigates damages + 3%
+ • Support Frigates are granted a missile tower (surface to air and surface to surface) and their depthcharge can only target downwards.
+ • Transport ship costs decreased (core 5500e/600m/8610bt => 3700e/350m/6400bt and arm 5000e/640m/9150bt => 3500e/350m/6500bt) and hp decreased (arm 8800 -> 2900 and core 9150 -> 3000)
+ • Arm/Core gun platform special damages towards "heavyunits" erased.
+ • Global acceleration buff for ships (+100%)
+
+Air: 
+ • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
+ • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%.
+
+Global:
+ • Commander speed underwater decreases to 66% of it's value when depth > 47
+ • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
+ • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
+
+Other:
+ • New command "Set Priority" in anti air order menus, allowing to switch between targetting Fighters, Bomber in priority, or using no priority. To create a bind, use the action name "setpriority".
+ • mo_unba = "exponly" added to allow the use of Unbalanced Commanders' experience health/reload/power multipliers with the classic Balanced Annihilation commander.
+ • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
+ • Fixed command "Area Mex" not being available for captured builders, also improved mex placement script (uses mex snap's code)
+ • Fixed cloaking units underwater
+ • Fixed cloaking/decloaking cancelling current queue.
+ • Fixed Console in scroll mode being glitchy when an ignored line is added.
+ • Fixed Set Target command giving away exact target position
+ • Added widget: "Dgun no ally", will make dgun not snap to own/ally units when near
+ • Added widget: "Attack no ally", will make attack command not snap to own/ally units when near
+ • Disabled unit_shipyardcollisions.lua which poorly handled ships vs shipyards collisions
+ • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
+ • Unit Stats: Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
+ • Engine replacement trees now are crushable as well
+ • Various widget and gadget performance improvements
+ • Various script enhancements/fixes, models improvements 
+ • Specific Unit Loader: Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
+ • Added widget: Under contruction gfx: draws highlight for under construction units to help visibility
+ • Engien replacement trees are made to look smoother
+
+
+10.07 -> 10.08
+15/04/2018
+
+Balance changes:
+ • Speed -2% for: Stumpy, Raider, Bulldog, Reaper
+ • Janus -2% Brakerate / - 2% acceleration
+ • Bulldog -7 weapon AoE
+ • Reapers -100 HP
+ • Fixed Juggernaut main weapon firing
+ • Fixed Line Unload behaviour (was discarding orders that were shown as possible)
+ • Fixed sniper auto hold fire when cloaked
+ • Fixed transported units using selfd explosion rather than death explosion when their transport is shot down / self destructs / is reclaimed
+
+Unbalanced Commanders:
+ • Commander's wreck metal value scales on commander's level: 70% of full value at level 1, 100% at level 2, 120% at level 3, 140% at level 4, 
+ 170% at level 5, 200% at level 6, 220% at level 7, 250% at level 8, 300% at level 9, 400% at level 10 and 500% at level 11
+ • MoveSpeed reduced by 0.025 when level increases ( 1.25 -> 1.0 )
+ • EnergyMake = Base + {0,25,50,75,100,150,200,250,300,400,500}
+ • MetalMake = Base + {0,0.5,1.0,2,3,4,5,7.5,10,12.5,15}
+
+Other:
+ • Added deterministic area unload distribution (no mindistance check) via widget "Area Unload"
+ • Voice Notifs play along when tracking a players camera when speccing
+ • When large unit icons option enabled: buildorders get enlarged alongside with buildicons
+ • Enemyspotter/TeamPlatter/ComNameTags widgets take options 'same team colors' into account
+ • When tracking player camera, ally selected units gui is now integrated in option window 
+ • Ecostats /specfullview crash fix
+ • Some widget and gadget optimizations
+ • Added modoption 'mo_allowuserwidgets' to be able to disable user widgets (plain level field for tournaments and other competitive setups)
+
+
+10.06 -> 10.07
+06/04/2018
 
 Balance changes: 
  • Long range T1 AA range reduced 10% (1250 -> 1125) and airlos changed: Eradicator 1000->1060, Chainsaw 1200->1060
+ • Storms/Rockos +4% projectile start/max speed
+ • Kbots global buff: +15% turnrate/acceleration/brakerate, turninplace = true, reduced slopeMod (slows on slopes).
  • Plasma shield starting power reduced to 20% instead of 33%
  • Halberd +9% range (275 -> 300)
  • Reduced support frigates damages to subs (216 -> 150), to default (100 -> 60), to commanders (100 -> 70)
  • Rocko/Zeus/Snipers/Hammers/Dominators/Krogoths/Juggernaut take less time for their first aim: torso turnspeed unchanged but activation happens while torso turns (rather than before).
+ • Naval engineer buildpower reduced from 400 to 200 for arm and core, added sea nano to their buildlist
+ • T1 scout boats paralyze multiplier reduced from 1 to 0.1 (2 bw paralyzer shot to EMP instead of 1  bw paralyzer shot)
+ • T1 air transport: Erased the move command when using unload.
+ • T2 air transport: Can transport up to four 2x2 footprint or less units, or one 3x3 or more. Unloads all units at once.
+ • Custom formations2: Block unload formations that are too small/wont allow all unload commands to happen (red colored dots will switch to yellow when minimal length is reached)
+ • Stumpy energy cost (2000 -> 2100)
 
 Unbalanced Commanders:
  • Commander's M and E production increases by 25e/s and 0.5m/s at each level (maximum 275e/s, 6.5m/s at level 11)
@@ -28,7 +115,7 @@ Other:
  • F10 toggles options (F8 toggles DoF when widget enabled)
  • Smart Area Reclaim widget enabled by default. (Area reclaims only metal or energy depending on the center feature)
  • When a buildcommand is selected, click and drag with left and middle mouse button to orientate the construction.
- • Reverse move: Units able to move backwards must use CTRL key and order it anywhere behind the unit. 
+ • Reverse move: Units able to move backwards must use CTRL key. Any command queued with the CTRL modifier will be performable backwards (and performed backwards if the move goal is behind)
  • Replacing engine trees with custom trees
  • Options menu has tabs
  • Added Defense Ranges toggles to options
@@ -47,6 +134,7 @@ Other:
  • Fixed mines detonating before they are completly built, added dummy weapon to show detonation range
  • Fixed some T2 and T3 dist-icon sizes
  • Fixed mobile AA not targetting at full range without an attack command.
+ • allowUnitCollisionOverlap = false
 
 
 10.05 -> 10.06
@@ -250,7 +338,7 @@ Balance changes:
  • Thuds and hammers will use a high trajectory mode when lowtrajectory weapon cannot shoot, due to obstacles/ally units on the way.
  • Rezbots have 15% reduced speed, 50% reduced reclaimspeed (in addition to global -10%), 25 % reduced repair/rezz speed and 25% increased HP.
  • Guardians/punishers have lower m cost (1500 -> 1250)
-
+ • Instigator maxvel/accel/brake + 8% (maxvel 87 -> 94)
  T2
  • Fark workerspeed increased 16%
  • Armmart and cormart (mobile T2 arty) do 15% more damage

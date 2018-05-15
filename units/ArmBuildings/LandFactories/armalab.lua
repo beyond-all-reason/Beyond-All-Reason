@@ -61,8 +61,6 @@ return {
 			[18] = "armmark",
 		},
 		customparams = {
-			bar_buildinggrounddecalsizex = 7,
-			bar_buildinggrounddecalsizey = 7,
 			techlevel = 2,
 		},
 		featuredefs = {

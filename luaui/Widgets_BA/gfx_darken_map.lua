@@ -70,8 +70,8 @@ local prevCam = {}
 prevCam[1],prevCam[2],prevCam[3] = Spring.GetCameraPosition()
 function widget:Update(dt)
 	camX, camY, camZ = Spring.GetCameraPosition()
-    camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
-	if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
+	camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+	if darkenFeatures and (camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3]) then
 		features = Spring.GetVisibleFeatures(-1, 250, false)
 	end
 end

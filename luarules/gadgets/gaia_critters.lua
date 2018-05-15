@@ -487,55 +487,56 @@ function gadget:GameFrame(gameFrame)
 	end
 	
 	-- update companion critters
-	if gameFrame%57==0 then 
- 		for unitID, critters in pairs(companionCritters) do
- 			local x,y,z = GetUnitPosition(unitID)
- 			local radius = companionPatrolRadius
- 			local circle = {x=x, z=z, r=radius}
- 			if not ValidUnitID(unitID) then
- 				companionCritters[unitID] = nil
- 			else
-	 			for _, critterID in pairs(critters) do
-		 			if not ValidUnitID(critterID) then
-	 					companionCritters[unitID][critterID] = nil
-	 				else
-	 					local cx,cy,cz = GetUnitPosition(critterID)
-	 					if abs(x-cx) > radius*1.1 or abs(z-cz) > radius*1.1 then
-		 					randomPatrolInCircle(critterID, circle, nil)
-			 			end
-		 			end
-	 			end
-	 		end
- 		end
- 		if companionRadius > 0 then
- 			convertMapCrittersToCompanion()
- 		end
-	end
-	
- 		
-	if removeCritters == false then return end
-	
-	if processOrders then
-		processSceduledOrders()
-	end
-	
-	if gameFrame%102==0 then 
-		local totalUnits = getTotalUnits() -- is without critters
-		local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits)) 
-		if multiplier < minimumCritters then multiplier = minimumCritters end
-		if multiplier > 1 then multiplier = 1 end
-		local newAliveCritters = math.ceil(totalCritters * multiplier)
-		if newAliveCritters < minCritters then
-			local mc = minCritters
-			if totalCritters < minCritters then
-				mc = totalCritters
+	if totalCritters > 0 then
+		if gameFrame%77==0 then
+			for unitID, critters in pairs(companionCritters) do
+				local x,y,z = GetUnitPosition(unitID)
+				local radius = companionPatrolRadius
+				local circle = {x=x, z=z, r=radius}
+				if not ValidUnitID(unitID) then
+					companionCritters[unitID] = nil
+				else
+					for _, critterID in pairs(critters) do
+						if not ValidUnitID(critterID) then
+							companionCritters[unitID][critterID] = nil
+						else
+							local cx,cy,cz = GetUnitPosition(critterID)
+							if abs(x-cx) > radius*1.1 or abs(z-cz) > radius*1.1 then
+								randomPatrolInCircle(critterID, circle, nil)
+							end
+						end
+					end
+				end
 			end
-			newAliveCritters = mc
+			if companionRadius > 0 then
+				convertMapCrittersToCompanion()
+			end
 		end
-		--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters.."  minCritters: "..minCritters)
-		adjustCritters(newAliveCritters)
+
+
+		if removeCritters == false then return end
+
+		if processOrders then
+			processSceduledOrders()
+		end
+
+		if gameFrame%202==0 then
+			local totalUnits = getTotalUnits() -- is without critters
+			local multiplier = 1 - ((totalUnits-minTotalUnits) / (maxTotalunits-minTotalUnits))
+			if multiplier < minimumCritters then multiplier = minimumCritters end
+			if multiplier > 1 then multiplier = 1 end
+			local newAliveCritters = math.ceil(totalCritters * multiplier)
+			if newAliveCritters < minCritters then
+				local mc = minCritters
+				if totalCritters < minCritters then
+					mc = totalCritters
+				end
+				newAliveCritters = mc
+			end
+			--Spring.Echo("multiplier: "..multiplier.."  total: "..totalCritters.."  alive: "..aliveCritters.."  newalive: "..newAliveCritters.."  minCritters: "..minCritters)
+			adjustCritters(newAliveCritters)
+		end
 	end
-	
 end
 
 

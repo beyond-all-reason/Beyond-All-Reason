@@ -38,6 +38,7 @@ return {
 		customparams = {
 			techlevel = 2,
 			removewait = true,
+			prioritytarget = "air",
 		},
 		featuredefs = {
 			dead = {
@@ -157,6 +158,7 @@ return {
 					vtol = 750,
 				},
 				customparams = {
+					bar_model = "corscreamermissile.s3o",
 					light_radius_mult = 0.6,
 					light_color = "1 0.5 0.6",
                     expl_light_radius_mult = 0.5,

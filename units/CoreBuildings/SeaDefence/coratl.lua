@@ -30,6 +30,7 @@ return {
 		waterline = 10,
 		yardmap = "ooooooooo",
 		customparams = {
+			bar_waterline = 2,
 			techlevel = 2,
 			removewait = true,
 			removestop = true,
@@ -113,6 +114,9 @@ return {
 				damage = {
 					default = 1400,
 				},
+				customparams = {
+					bar_model = "torpedo.s3o",
+				}
 			},
 		},
 		weapons = {

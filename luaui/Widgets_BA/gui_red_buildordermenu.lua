@@ -58,6 +58,14 @@ local largeUnitIconSize = {
 	isx = 50,isy = 45, --icon size
 	ix = 5,iy = 7, --icons x/y
 }
+local normalOrderIconSize = {
+	isx = 45,isy = 33, --icon size
+	ix = 5,iy = 4, --icons x/y
+}
+local largeOrderIconSize = {
+	isx = 50,isy = 33, --icon size
+	ix = 5,iy = 4, --icons x/y
+}
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
@@ -647,8 +655,8 @@ local function UpdateGrid(g,cmds,ordertype)
 			
 			if (not cmd.disabled) then
 				local text = g.texts[i]
-				text.px = icon.px+(icon.sx/20)
-				text.py = icon.py-(icon.sy/15)
+				text.px = icon.px+(icon.sx/45)
+				text.py = icon.py-(icon.sy/25)
 				
 				local captionColor = "\255\175\175\175"
 				
@@ -990,8 +998,10 @@ function widget:Initialize()
 
 	if largeUnitIcons then
 		Config.buildmenu = tableMerge(deepcopy(Config.buildmenu), deepcopy(largeUnitIconSize))
+		Config.ordermenu = tableMerge(deepcopy(Config.ordermenu), deepcopy(largeOrderIconSize))
 	else
 		Config.buildmenu = tableMerge(deepcopy(Config.buildmenu), deepcopy(normalUnitIconSize))
+		Config.ordermenu = tableMerge(deepcopy(Config.ordermenu), deepcopy(normalOrderIconSize))
 	end
 
 	ordermenu = CreateGrid(Config.ordermenu)

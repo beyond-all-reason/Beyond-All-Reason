@@ -47,15 +47,14 @@ return {
 		sonardistance = 740,
 		terraformspeed = 5000,
 		--move
-		acceleration = 2.008/270,
-		brakerate = 2.008/35,
+		acceleration = 0.014,
+		brakerate = 0.057,
 		maxvelocity = 2.008,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.008,
 		turnrate = 120,
 		--end move
-		waterline = 0,
+		waterline = 8,
 		workertime = 1000,
 		customparams = {
 			techlevel = 2,
@@ -174,6 +173,7 @@ return {
 					default = 1500,
 				},
 				customparams = {
+					bar_model = "fmdmissile.s3o",
 					light_mult = 4,
 					light_radius_mult = 1.25,
 					light_color = "1 0.5 0.75",

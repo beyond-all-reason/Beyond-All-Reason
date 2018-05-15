@@ -50,6 +50,8 @@ function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('replaybuttons')
 	end
+	gl.DeleteList(speedButtonsList)
+	gl.DeleteList(buttonsList)
 end
 
 function speedButtonColor (i)

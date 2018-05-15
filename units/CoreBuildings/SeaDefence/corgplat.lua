@@ -64,6 +64,9 @@ return {
 				"deathceg3",
 				"deathceg4",
 			},
+			explosiongenerators = {
+				[1] = "custom:barrelshot-tiny",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -128,7 +131,6 @@ return {
 				damage = {
 					bombers = 5,
 					default = 45,
-					heavyunits = 32,
 					fighters = 5,
 					subs = 5,
 					vtol = 5,

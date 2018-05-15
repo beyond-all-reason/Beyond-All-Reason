@@ -110,7 +110,8 @@ return {
 					ship = 100,
 					subs = 70,
 				},
-                customparams = {
+				customparams = {
+					bar_model = "bombyr.s3o",
                     expl_light_color = "1 0.5 0.05",
                 },
 			},

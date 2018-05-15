@@ -602,7 +602,7 @@ function widget:MouseRelease(mx, my, mButton)
         -- Single click ? (no line drawn)
         --if (#fNodes == 1) then
 		local unitCount = spGetSelectedUnitsCount()		
-        if fDists[#fNodes] < minFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(unitCount)) then
+        if fDists[#fNodes] < minFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(unitCount - 1)) then
             -- We should check if any units are able to execute it,
             -- but the order is small enough network-wise that the tiny bug potential isn't worth it.
 

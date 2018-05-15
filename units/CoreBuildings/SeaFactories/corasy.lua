@@ -15,7 +15,6 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Produces Level 2 Ships",
-		energymake = 25,
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
 		footprintx = 12,
@@ -24,12 +23,10 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 5300,
-		metalmake = 1,
 		metalstorage = 200,
 		minwaterdepth = 30,
 		name = "Advanced Shipyard",
 		objectname = "CORASY",
-		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 301.60001,
@@ -58,6 +55,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 10 -2",
 			bar_collisionvolumescales = "186 78 183",
+			bar_waterline = 19,
 			techlevel = 2,
 		},
 		featuredefs = {

@@ -200,7 +200,7 @@ return {
 				noselfdamage = true,
 				range = 590,
 				reloadtime = 1,
-				size = 6,
+				size = 7.5,
 				soundhit = "xplomed2",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,

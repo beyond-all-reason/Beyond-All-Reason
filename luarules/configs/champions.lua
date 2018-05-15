@@ -1,0 +1,3 @@
+crown  = {
+	 ["Raghna"] = true,
+	}

@@ -70,6 +70,11 @@ local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
+local sameTeamColors = false
+if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil then
+    sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+end
+
 --------------------------------------------------------------------------------
 
 --gets the name, color, and height of the commander
@@ -79,7 +84,7 @@ local function GetCommAttributes(unitID, unitDefID)
     return nil
   end
   local players = GetPlayerList(team)
-  local name = (#players>0) and GetPlayerInfo(players[1]) or 'Robert Paulson'
+  local name = (#players>0) and GetPlayerInfo(players[1]) or 'AI Machine'
   for _,pID in ipairs(players) do
     local pname,active,spec = GetPlayerInfo(pID)
     if active and not spec then
@@ -95,6 +100,13 @@ local function GetCommAttributes(unitID, unitDefID)
   
   local height = UnitDefs[unitDefID].height + heightOffset
   return {name, {r, g, b, a}, height, bgColor}
+end
+
+local function RemoveLists()
+    for name, list in pairs(comnameList) do
+        gl.DeleteList(comnameList[name])
+    end
+    comnameList = {}
 end
 
 local function createComnameList(attributes)
@@ -131,20 +143,34 @@ local function createComnameList(attributes)
 end
 
 function widget:Update(dt)
+    if WG['playercolorpalette'] ~= nil then
+        if WG['playercolorpalette'].getSameTeamColors and sameTeamColors ~= WG['playercolorpalette'].getSameTeamColors() then
+            sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+            RemoveLists()
+            CheckAllComs()
+        end
+    elseif sameTeamColors == true then
+        sameTeamColors = false
+        RemoveLists()
+        CheckAllComs()
+    end
     if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
         if myTeamID ~= Spring.GetMyTeamID() then
             -- old
-            local name = GetPlayerInfo(myPlayerID)
+            local name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
+                comnameList[name] = nil
             end
             -- new
             myTeamID = Spring.GetMyTeamID()
             myPlayerID = Spring.GetMyPlayerID()
-            local name = GetPlayerInfo(myPlayerID)
+            name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
+                comnameList[name] = nil
             end
+            CheckAllComs()
         end
     end
 end
@@ -159,7 +185,7 @@ local function DrawName(attributes)
 		glScale(usedFontSize/fontSize,usedFontSize/fontSize,usedFontSize/fontSize)
 	end
 	glCallList(comnameList[attributes[1]])
-	
+
 	if nameScaling then
 		glScale(1,1,1)
 	end
@@ -222,7 +248,11 @@ function CheckAllComs()
 end
 
 function widget:Initialize()
-  CheckAllComs()
+    CheckAllComs()
+end
+
+function widget:Shutdown()
+    RemoveLists()
 end
 
 function widget:PlayerChanged(playerID)

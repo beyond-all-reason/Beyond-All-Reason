@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 4050,
+		maxdamage = 3950,
 		minwaterdepth = 12,
 		movementclass = "BOAT44X4",
 		name = "Enforcer",
@@ -34,13 +34,12 @@ return {
 		sonardistance = 400,
 		waterline = 0,
 		--move
-		acceleration = 1.76/120,
-		brakerate = 1.76/35,
+		acceleration = 0.028,
+		brakerate = 0.049,
 		turninplace = true,
-		maxvelocity = 1.76,
+		maxvelocity = 1.72,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*1.76,
-		turnrate = 194,
+		turnrate = 190,
 		--end move
 		customparams = {
 
@@ -142,7 +141,7 @@ return {
 				weaponvelocity = 320,
 				damage = {
 					bombers = 62,
-					default = 530,
+					default = 503,
 					fighters = 62,
 					vtol = 62,
 					subs = 5,
@@ -184,6 +183,9 @@ return {
 					default = 212,
 					subs = 283,
 				},
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				}
 			},
 		},
 		weapons = {
@@ -197,7 +199,9 @@ return {
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				maindir = "0 -1 0",
+				maxangledif = 179,
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
 	},

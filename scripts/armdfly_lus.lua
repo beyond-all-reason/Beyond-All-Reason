@@ -7,30 +7,34 @@ terrainType = "terrainType"
 
 function WatchLoad()
 	while true do
-	local unitsToDetach = Spring.GetUnitIsTransporting(unitID)
-	if full == true then
+	if surplus then -- Make sure there is no extra unit loaded, if there is one, unload it
+		Spring.UnitDetach(surplus)
+		surplus = nil
+	end
+	local unitsToDetach = Spring.GetUnitIsTransporting(unitID) -- Get currently transported untits
+	if full == true then -- Transport is full, do not attemps to load more units
 		local cmd = Spring.GetUnitCommands(unitID, 1)
 		if cmd[1] and cmd[1].id == CMD.LOAD_UNITS then
 			Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {CMD.LOAD_UNITS}, {"alt"})
 		end
 	end
 	if #unitsToDetach and oldunitsToDetach then
-		for ct, punitID in pairs(link) do
+		for ct, punitID in pairs(link) do -- Did one of the transported unit die ?
 			if not Spring.ValidUnitID(punitID) then
 				unitDied = true
 				link[ct] = nil
 			end
 		end
-		if (#unitsToDetach < oldunitsToDetach) and (not unitDied) then
-			for ct, punitID in pairs (unitsToDetach) do
-			Spring.UnitDetach(punitID)
+		if (#unitsToDetach < oldunitsToDetach) and (not unitDied) then -- Is the current load < to the load 1 frame ago (= unload because unitdeath is filtered out)
+			for ct, punitID in pairs (unitsToDetach) do -- force detach all other units aswell
+				Spring.UnitDetach(punitID)
 			end
 			for ct, punitID in pairs(link) do
 				if Spring.ValidUnitID(punitID) then
 				-- Spring.SetUnitRulesParam(punitID, "IsTranported", "false")
 				end
 			end
-			link = {}
+			link = {} -- empty table, reposition links
 			Move(link0, y_axis, 0, 5000)
 			Move(link1, y_axis, 0, 5000)
 			Move(link2, y_axis, 0, 5000)
@@ -159,7 +163,14 @@ function script.QueryTransport ( passengerID )
 			full = true
 			return link0
 		end
-	return false
+		if full == true then -- Transport is full, do not attemps to load more units
+			local cmd = Spring.GetUnitCommands(unitID, 1)
+			if cmd[1] and cmd[1].id == CMD.LOAD_UNITS then
+				Spring.GiveOrderToUnit(unitID, CMD.REMOVE, {CMD.LOAD_UNITS}, {"alt"})
+			end
+		end
+	surplus = passengerID
+	return link0
 end
 
 

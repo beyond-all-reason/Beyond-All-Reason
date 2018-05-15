@@ -42,6 +42,7 @@ return {
 			bar_yardmap = "ooooooooo",
 			techlevel = 2,
 			removewait = true,
+			prioritytarget = "air",
 		},
 		featuredefs = {
 			dead = {

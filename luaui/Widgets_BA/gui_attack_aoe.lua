@@ -109,16 +109,23 @@ local function VertexList(points)
   end
 end
 
-local function GetMouseTargetPosition()
+local function GetMouseTargetPosition(dgun)
   local mx, my = GetMouseState()
   local mouseTargetType, mouseTarget = TraceScreenRay(mx, my)
   
   if (mouseTargetType == "ground") then
     return mouseTarget[1], mouseTarget[2], mouseTarget[3]
   elseif (mouseTargetType == "unit") then
-    return GetUnitPosition(mouseTarget)
+    if ((dgun and WG['dgunnoally'] ~= nil) or (not dgun and WG['attacknoally'] ~= nil)) and Spring.IsUnitAllied(mouseTarget) then
+      mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
+      return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+    else
+      return GetUnitPosition(mouseTarget)
+    end
   elseif (mouseTargetType == "feature") then
-    return GetFeaturePosition(mouseTarget)
+    local mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
+    return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+    --return GetFeaturePosition(mouseTarget)
   else
     return nil
   end
@@ -177,7 +184,7 @@ local function SetupUnitDef(unitDefID, unitDef)
       local weaponDef = WeaponDefs[weapon.weaponDef]
       if (weaponDef) then
         if (weaponDef.type == "DGun") then
-          dgunInfo[unitDefID] = {range = dgunRange, aoe = weaponDef.damageAreaOfEffect}
+          dgunInfo[unitDefID] = {range = dgunRange, aoe = weaponDef.damageAreaOfEffect, unitname=unitDef.name}
         elseif (weaponDef.canAttackGround
                 and not (weaponDef.type == "Shield")
                 and not ToBool(weaponDef.interceptor)
@@ -274,7 +281,7 @@ local function UpdateSelection()
   hasSelection = false
   
   for unitDefID, unitIDs in pairs(sel) do
-    if (dgunInfo[unitDefID]) then 
+    if (dgunInfo[unitDefID]) then
       dgunUnitDefID = unitDefID
       dgunUnitID = unitIDs[1]
       hasSelection = true
@@ -599,17 +606,32 @@ function widget:DrawWorld()
   
   if (cmd == CMD_DGUN and dgunUnitDefID) then
     mouseDistance = GetMouseDistance() or 1000
-    local tx, ty, tz = GetMouseTargetPosition()
+    local tx, ty, tz = GetMouseTargetPosition(true)
     if (not tx) then return end
     local info = dgunInfo[dgunUnitDefID]
     local fx, fy, fz = GetUnitPosition(dgunUnitID)   
     if (not fx) then return end
     local angle = math.atan2(fx-tx,fz-tz) + (math.pi/2.1)
-	local offset_x = (sin(angle)*13)
-	local offset_z = (cos(angle)*13)
-	local dx = fx + offset_x
-	local dz = fz + offset_z
-	DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range)
+    local dx,dz,offset_x,offset_z
+    if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
+      if dgunInfo[dgunUnitDefID].unitname == 'armcom' then
+        offset_x = (sin(angle)*10)
+        offset_z = (cos(angle)*10)
+        dx = fx - offset_x
+        dz = fz - offset_z
+      else
+        offset_x = (sin(angle)*14)
+        offset_z = (cos(angle)*14)
+        dx = fx + offset_x
+        dz = fz + offset_z
+      end
+    else
+      offset_x = (sin(angle)*13)
+      offset_z = (cos(angle)*13)
+      dx = fx + offset_x
+      dz = fz + offset_z
+    end
+    DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range)
     glColor(1, 0, 0, 0.75)
     glLineWidth(1)
 	glDrawGroundCircle(fx, fy, fz, info.range, circleDivs)

@@ -31,6 +31,7 @@ return {
 		waterline = 13,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			bar_waterline = 0,
 			removewait = true,
 		},
 		featuredefs = {
@@ -117,6 +118,9 @@ return {
 					commanders = 300*1.25,
 					default = 165*1.35*1.25,
 				},
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				}
 			},
 		},
 		weapons = {

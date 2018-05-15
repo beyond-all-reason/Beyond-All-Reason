@@ -58,8 +58,6 @@ return {
 			[14] = "corvrad",
 		},
 		customparams = {
-			bar_buildinggrounddecalsizex = 10,
-			bar_buildinggrounddecalsizey = 8,
 			bar_collisionvolumeoffsets = "1 0 0",
 			bar_collisionvolumescales = "124 70 109",
 			techlevel = 2,

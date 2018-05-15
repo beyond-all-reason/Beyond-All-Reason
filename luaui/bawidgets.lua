@@ -62,6 +62,11 @@ Spring.SendCommands({
 --  the widgetHandler object
 --
 
+local mo_allowuserwidgets = true
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().mo_allowuserwidgets) or 1) == 0 then
+  mo_allowuserwidgets = false
+end
+
 widgetHandler = {
 
   widgets = {},
@@ -343,7 +348,7 @@ function widgetHandler:Initialize()
   if self.allowUserWidgets==nil then 
     self.allowUserWidgets = true 
   end
-  if self.allowUserWidgets then
+  if self.allowUserWidgets and mo_allowuserwidgets then
     Spring.Echo("LuaUI: Allowing User Widgets")
   else
     Spring.Echo("LuaUI: Disallowing User Widgets")
@@ -355,7 +360,7 @@ function widgetHandler:Initialize()
   local unsortedWidgets = {}
 
   -- stuff the raw widgets into unsortedWidgets
-  if self.allowUserWidgets then
+  if self.allowUserWidgets and mo_allowuserwidgets then
     local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW_ONLY)
     for k,wf in ipairs(widgetFiles) do
       GetWidgetInfo(wf, VFS.RAW_ONLY)
@@ -485,7 +490,7 @@ function widgetHandler:LoadWidget(filename, fromZip)
            order = nil
         end
     else
-        if info.enabled and (knownInfo.fromZip or self.allowUserWidgets) then
+        if info.enabled and (knownInfo.fromZip or (self.allowUserWidgets and not mo_allowuserwidgets)) then
             order = 12345
         end
     end

@@ -5,7 +5,7 @@ function widget:GetInfo()
 		desc      = "Shows detailed unit stats",
 		author    = "Niobium + Doo",
 		date      = "Jan 11, 2009",
-		version   = 1.6,
+		version   = 1.7,
 		license   = "GNU GPL, v2 or later",
 		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
@@ -13,6 +13,10 @@ function widget:GetInfo()
 end
 
 include("keysym.h.lua")
+----v1.7 by Doo changes
+-- Reverted "Added beamtime to oRld value to properly count dps of BeamLaser weapons" because reload starts at the beginning of the beamtime
+-- Reduced the "minimal" reloadTime to properly calculate dps for low reloadtime weapons
+-- Hid range from gui for explosion (death/selfd) as it is irrelevant.
 
 ----v1.6 by Doo changes
 -- Fixed crashing when hovering some enemy units
@@ -472,10 +476,10 @@ function widget:DrawScreen()
 		local wDefId = wepsCompact[i]
 		local uWep = wDefs[wDefId]
 
-		if uWep.range > 16 then
+		if uWep.range > 0 then
 			local oBurst = uWep.salvoSize * uWep.projectiles
-			local oRld = max(1/600,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload, (uWep.type == "BeamLaser") and (uWep.beamtime + uWep.reload) or uWep.reload)
-			if useExp and not ((uWep.stockpile and uWep.stockpileTime) or (uWep.type == "BeamLaser")) then
+			local oRld = max(0.00000000001,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
+			if useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
 				oRld = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or oRld
 			end
 			local wepCount = wepCounts[wDefId]
@@ -512,7 +516,12 @@ function widget:DrawScreen()
 			if uExp ~= 0 then
 				DrawText("Exp:", format("+%d%% accuracy, +%d%% aim, +%d%% firerate, +%d%% range", accuracyBonus*100, moveErrorBonus*100, reloadBonus*100, rangeBonus*100 ))
 			end
-			local infoText = format("%d range, %d aoe, %d%% edge", useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+			local infoText = ""
+			if typeName == "Death explosion" or typeName == "Self Destruct" then
+				infoText = format("%d aoe, %d%% edge", uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+			else
+				infoText = format("%d range, %d aoe, %d%% edge", useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
+			end
 			if uWep.damages.paralyzeDamageTime > 0 then
 				infoText = format("%s, %ds paralyze", infoText, uWep.damages.paralyzeDamageTime)
 			end

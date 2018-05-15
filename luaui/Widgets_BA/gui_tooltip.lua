@@ -233,7 +233,7 @@ function widget:DrawScreen()
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
-				if (WG['guishader_api'] ~= nil)  and not show then
+				if (WG['guishader_api'] ~= nil) then
 					WG['guishader_api'].RemoveRect('tooltip_'..name)
 				end
 			end

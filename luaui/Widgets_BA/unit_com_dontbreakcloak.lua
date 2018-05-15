@@ -23,7 +23,7 @@ local isCommander = {
 ----------------------------------------------------------------
 -- Speedups
 ----------------------------------------------------------------
-local CMD_CLOAK = CMD.CLOAK
+local CMD_CLOAK = 37382
 local CMD_FIRE_STATE = CMD.FIRE_STATE
 local CMD_INSERT = CMD.INSERT
 local CMD_OPT_ALT = CMD.OPT_ALT

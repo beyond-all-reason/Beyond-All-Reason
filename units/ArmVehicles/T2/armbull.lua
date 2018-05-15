@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 4200,
 		maxslope = 12,
-		maxvelocity = 2.32,
+		maxvelocity = 2.27,
 		maxwaterdepth = 15,
 		movementclass = "HTANK3",
 		name = "Bulldog",
@@ -40,7 +40,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.6104,
-		turnrate = 415*0.8,
+		turnrate = 332,
 		customparams = {
 			arm_tank = "1",
 			techlevel = 2,
@@ -147,7 +147,7 @@ return {
 		},
 		weapondefs = {
 			arm_bull = {
-				areaofeffect = 140,
+				areaofeffect = 130,
 				avoidfeature = false,
 				craterareaofeffect = 140,
 				craterboost = 0,

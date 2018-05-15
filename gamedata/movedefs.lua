@@ -11,6 +11,23 @@ local moveDatas = {
 		maxwaterslope = 50,
 		
 	},
+	
+	COMMANDERKBOT = {
+		crushstrength = 50,
+		depthModParams = {
+			minHeight = 0,
+			maxScale = 1.5,
+			quadraticCoeff = (9.9/22090)/2,
+			linearCoeff = (0.1/470)/2,
+			constantCoeff = 1,
+			},
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 36,
+		maxwaterdepth = 5000,
+		maxwaterslope = 50,
+	},
+	
 	AKBOTBOMB2 = {
 		crushstrength = 50,
 		depthmod = 0,
@@ -502,42 +519,42 @@ local moveDatas = {
 		footprintz=1,
 		maxwaterdepth=22,
 		maxslope=36,
-		crushstrength=1400,
+		crushstrength=100,
 	},
 	CHICKENHKBOT2 = {
 		footprintx=2,
 		footprintz=2,
 		maxwaterdepth=22,
 		maxslope=36,
-		crushstrength=1400,
+		crushstrength=200,
 	},
 	CHICKENHKBOT3 = {
 		footprintx=3,
 		footprintz=3,
 		maxwaterdepth=22,
 		maxslope=36,
-		crushstrength=1400,
+		crushstrength=500,
 	},
 	CHICKENHKBOT4 = {
 		footprintx=4,
 		footprintz=4,
 		maxwaterdepth=22,
 		maxslope=36,
-		crushstrength=11000,
+		crushstrength=900,
 	},
 	CHICKENHKBOT5 = {
 		footprintx=5,
 		footprintz=5,
 		maxwaterdepth=22,
 		maxslope=36,
-		crushstrength=11000,
+		crushstrength=2000,
 	},
 	CHICKENHKBOT6 = {
 		footprintx=6,
 		footprintz=6,
 		maxwaterdepth=22,
 		maxslope=36,
-		crushstrength=11000,
+		crushstrength=6000,
 	},
 	CHICKENHOVERDODO = {
 		footprintx = 1,

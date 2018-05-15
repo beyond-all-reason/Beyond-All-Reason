@@ -5,7 +5,7 @@ function widget:GetInfo()
         author = "knorke & very_bad_soldier",
         date = "Dec , 2011",
         license = "GPLv2",
-        layer = 1,
+        layer = 0,
         enabled = true
     }
 end
@@ -30,25 +30,20 @@ local armcomID=UnitDefNames["armcom"].id
 local corcomID=UnitDefNames["corcom"].id
 
 
-function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+function widget:PlayerChanged(playerID)
+    if Spring.GetSpectatingState() then
         widgetHandler:RemoveWidget(self)
     end
+    localTeamID = spGetLocalTeamID()
 end
 
 function widget:GameStart()
-    gameStarted = true
-    maybeRemoveSelf()
-end
-
-function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
-    localTeamID = spGetLocalTeamID()
+    widget:PlayerChanged()
 end
 
 function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        maybeRemoveSelf()
+        widget:PlayerChanged()
     end
     localTeamID = spGetLocalTeamID()
     lastAlarmTime = spGetTimer()

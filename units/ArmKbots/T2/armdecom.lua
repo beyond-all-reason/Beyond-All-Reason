@@ -40,7 +40,7 @@ return {
 		metalmake = 0.5,
 		metalstorage = 50,
 		mincloakdistance = 50,
-		movementclass = "AKBOT2",
+		movementclass = "COMMANDERKBOT",
 		name = "Commander",
 		nochasecategory = "VTOL",
 		objectname = "ARMCOM",

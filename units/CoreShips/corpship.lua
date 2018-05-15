@@ -35,12 +35,11 @@ return {
 		turnrate = 120,
 		waterline = 0,
 		--move
-		acceleration = 2.45/120,
-		brakerate = 2.45/25,
+		acceleration = 0.040,
+		brakerate = 0.098,
 		maxvelocity = 2.45,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.45,
 		turnrate = 255,
 		--end move
 		customparams = {
@@ -92,6 +91,9 @@ return {
 				"deathceg2",
 				"deathceg3",
 			},
+			explosiongenerators = {
+				[1] = "custom:barrelshot-tiny",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -140,7 +142,7 @@ return {
 				weaponvelocity = 340,
 				damage = {
 					bombers = 31,
-					default = 97,
+					default = 100,
 					fighters = 31,
 					subs = 7,
 					vtol = 31,

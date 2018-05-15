@@ -148,12 +148,13 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 450,
---				wobble = 5400,
+				wobble = 2500,
 				damage = {
 					default = 120,
 					subs = 5,
 				},
 				customparams = {
+					bar_model = "cormissile2.s3o",
 					light_mult = "0.66",		-- used by light_effects widget
 				},
 			},

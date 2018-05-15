@@ -38,12 +38,11 @@ return {
 		waterline = 35,
 		workertime = 300,
 				--move
-		brakerate =  2.40/20,
-		acceleration = 2.40/90,
+		brakerate =  0.12,
+		acceleration = 0.053,
 		maxvelocity = 2.40,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.40,
 		turnrate = 270,	
 		--end move
 		buildoptions = {

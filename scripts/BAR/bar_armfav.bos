@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare, dish, base, gun, lbwheel, rbwheel, rfwheel, lfwheel;
+piece  flare, base, gun, lbwheel, rbwheel, rfwheel, lfwheel;
 
 static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed;
 
@@ -32,7 +32,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 		sleep 400;
 	}
 	start-script WheelControl();
-	spin dish around y-axis speed <100> accelerate <1>;
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -131,7 +130,6 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type BITMAPONLY | NOHEATCLOUD;
-		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
 		explode rfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfwheel type BITMAPONLY | NOHEATCLOUD;
@@ -144,7 +142,6 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FALL | NOHEATCLOUD;
-		explode dish type FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -157,7 +154,6 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type SMOKE | FALL | NOHEATCLOUD;
-		explode dish type SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfwheel type SMOKE | FALL | NOHEATCLOUD;
 		explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -168,7 +164,6 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rfwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;

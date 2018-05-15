@@ -53,6 +53,8 @@ local GetTeamColor					= Spring.GetTeamColor
 local GetTeamResources				= Spring.GetTeamResources
 local Echo							= Spring.Echo
 
+local reclaimerUnits = {}
+
 local Button 						= {}
 Button["player"] 					= {}
 Button["team"] 						= {}
@@ -149,6 +151,7 @@ function widget:Initialize()
 	else
 		inSpecMode = true
 		Spring.Echo("Ecostats: widget loaded in spectator mode")
+		setReclaimerUnits()
 	end
 	if GetGameSeconds() > 0 then gamestarted = true end
 
@@ -181,12 +184,10 @@ end
 function widget:Shutdown()
 	removeGuiShaderRects()
 	if (drawList) then 			gl.DeleteList(drawList) end
-	if (drawListDynamic) then 	gl.DeleteList(drawListDynamic) end
 	if (sideImageList) then		gl.DeleteList(sideImageList) end
 end
 
 function Init()
-
 	setDefaults()
 	
 	teamData = {}
@@ -254,8 +255,8 @@ function Init()
 	lastPlayerChange = frame
 end
 
+
 function Reinit()
-	
 	maxPlayers = getMaxPlayers()
 	
 	if maxPlayers == 1 then
@@ -966,25 +967,63 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+function setReclaimerUnits()
+	reclaimerUnits = {}
+	local teamList = GetTeamList()
+	for _, tID in pairs (teamList) do
+		reclaimerUnits[tID] = {}
+	end
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in ipairs(allUnits) do
+		local uDefID = Spring.GetUnitDefID(unitID)
+		if reclaimerUnitDefs[uDefID] then
+			local unitTeam = Spring.GetUnitTeam(unitID)
+			reclaimerUnits[unitTeam][unitID] = uDefID
+		end
+	end
+end
+
+function widget:UnitCreated(uID, uDefID, uTeam, builderID)
+	if inSpecMode and reclaimerUnitDefs[uDefID] then
+		if not reclaimerUnits[uTeam] then
+			reclaimerUnits[uTeam] = {}
+		end
+		reclaimerUnits[uTeam][uID] = uDefID
+	end
+end
+
+function widget:UnitDestroyed(uID, uDefID, uTeam)
+	if inSpecMode and reclaimerUnitDefs[uDefID] and reclaimerUnits[uTeam] then
+		reclaimerUnits[uTeam][uID] = nil
+	end
+end
+
+function widget:UnitGiven(uID, uDefID, uTeamNew, uTeam)
+	if inSpecMode and reclaimerUnitDefs[uDefID] then
+		if reclaimerUnits[uTeam] then
+			reclaimerUnits[uTeam][uID] = nil
+			if not reclaimerUnits[uTeamNew] then
+				reclaimerUnits[uTeamNew] = {}
+			end
+			reclaimerUnits[uTeamNew][uID] = uDefID
+		end
+	end
+end
+
 
 function getTeamProduction(teamID)
 	local totalEnergyReclaim = 0
 	local totalMetalReclaim = 0
-
-	local currentWind = string.format('%.1f', select(4,Spring.GetWind()))
-
-	if inSpecMode then
-		local teamUnits = Spring.GetTeamUnitsSorted(teamID)
-		for unitDefID, units in pairs(teamUnits) do
-			if reclaimerUnitDefs[unitDefID] then -- or metalUnitDefs[unitDefID]
-				for i, unitID in ipairs(units) do
-					local metalMake,metalUse,energyMake,energyUse = Spring.GetUnitResources(unitID)
-					if metalMake > 0 then
-						totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID][1])
-					end
-					if energyMake > 0 then
-						totalEnergyReclaim = totalEnergyReclaim + (energyMake-reclaimerUnitDefs[unitDefID][2])
-					end
+	if inSpecMode and reclaimerUnits[teamID] ~= nil  then
+		local teamUnits = reclaimerUnits[teamID]
+		for unitID, unitDefID in pairs(teamUnits) do
+			local metalMake,metalUse,energyMake,energyUse = Spring.GetUnitResources(unitID)
+			if metalMake ~= nil then
+				if metalMake > 0 then
+					totalMetalReclaim = totalMetalReclaim + (metalMake-reclaimerUnitDefs[unitDefID][1])
+				end
+				if energyMake > 0 then
+					totalEnergyReclaim = totalEnergyReclaim + (energyMake-reclaimerUnitDefs[unitDefID][2])
 				end
 			end
 		end
@@ -1080,7 +1119,7 @@ function setAllyData(allyID)
 		
 	local teamList = allyData[index].teams	
 	local team1 = teamList[1] --leader id
-	
+
 	for _, tID in pairs (teamList) do
 		if not teamData[tID] then
 			setTeamTable(tID)
@@ -1315,6 +1354,7 @@ function widget:PlayerChanged(playerID)
 	else
 		if not inSpecMode then Spring.Echo("Ecostats: widget now in spectator mode.") end
 		inSpecMode = true
+		setReclaimerUnits()
 		Reinit()
 	end
 	makeStandardList()
@@ -1336,6 +1376,7 @@ function widget:TeamDied(teamID)
 	lastPlayerChange = frame
 	
 	removeGuiShaderRects()
+	--reclaimerUnits[teamID] = nil
 	
 	if not (Spring.GetSpectatingState() or isReplay) then
 		if inSpecMode then Spring.Echo("Ecostats: widget now in active player mode.") end

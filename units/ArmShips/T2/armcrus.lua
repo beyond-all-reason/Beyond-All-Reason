@@ -34,12 +34,11 @@ return {
 		sonardistance = 375,
 		waterline = 0,
 				--move
-		acceleration = 2.60/150,
-		brakerate = 2.60/25,
+		acceleration = 0.034,
+		brakerate = 0.104,
 		maxvelocity = 2.60,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*2.60,
 		turnrate = 180,
 		--end move
 		customparams = {
@@ -240,7 +239,9 @@ return {
 			},
 			[4] = {
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "NOTHOVER",
+				maindir = "0 -1 0",
+				maxangledif = 179,
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
 	},

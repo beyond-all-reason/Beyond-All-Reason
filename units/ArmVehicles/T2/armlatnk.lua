@@ -157,6 +157,7 @@ return {
 					vtol = 85,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",
@@ -165,13 +166,15 @@ return {
 			armlatnk_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				beamttl = 10,
+				beamttl = 1,
+				burst = 10,
+				burstrate = 0.03,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				duration = 10,
+				duration = 1,
 				energypershot = 5,
-				explosiongenerator = "custom:genericshellexplosion-medium-lightning",
+				explosiongenerator = "custom:genericshellexplosion-medium-lightning2",
 				firestarter = 50,
 				impactonly = 1,
 				impulseboost = 0,
@@ -191,8 +194,8 @@ return {
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				damage = {
-					default = 227,
-					subs = 5,
+					default = 22.7,
+					subs = 0.5,
 				},
 				customparams = {
 					light_mult = "0.38",		-- used by light_effects widget

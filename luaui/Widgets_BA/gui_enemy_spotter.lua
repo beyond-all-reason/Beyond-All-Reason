@@ -88,6 +88,16 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+local singleTeams = false
+if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+	singleTeams = true
+end
+
+local sameTeamColors = false
+if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+	sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -169,7 +179,7 @@ function setColors()
 					local teamID = teamList[teamListIndex]
 					if teamID ~= gaiaTeamID then
 						local pickTeamColor = false
-						if (teamListIndex == 1  and  #teamList <= keepTeamColorsForSmallAllyTeam) then     -- only check for the first allyTeam, (to be consistent with picking a teamcolor or default color, inconsistency could happen with different teamsizes)
+						if (teamListIndex == 1  and  #teamList <= keepTeamColorsForSmallAllyTeam) or sameTeamColors then     -- only check for the first allyTeam, (to be consistent with picking a teamcolor or default color, inconsistency could happen with different teamsizes)
 							pickTeamColor = true
 						end
 						if pickTeamColor then
@@ -330,6 +340,12 @@ function widget:Update(dt)
 	end
 	if (sec>1/updateTime and lastUpdatedFrame ~= spGetGameFrame() or (sec>1/(updateTime*5) and sceduledCheck)) then
 		sec = 0
+		if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+			if WG['playercolorpalette'].getSameTeamColors() ~= sameTeamColors then
+				sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
+				setColors()
+			end
+		end
 		checkAllUnits()
 		lastUpdatedFrame = spGetGameFrame()
 		sceduledCheck = false

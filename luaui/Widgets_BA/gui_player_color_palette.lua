@@ -62,17 +62,31 @@ local function GetColor(i, teams)
 	local h = 0
 	--if i > (teams * 0.33) then l = 0.7 end
 	--if i > (teams * 0.66) then l = 0.3 end
-	if teams > 10 then
-		if i%3==0 then
+	if teams > 16 then
+		if i%4==0 then
 			l = 0.88
 		end
-		if i%3==2 then
-			l = 0.25
+		if i%4==1 then
+			l = 0.46
+		end
+
+		if i%4==2 then
+			l = 0.7
+		end
+		if i%4==3 then
+			l = 0.32
+		end
+	elseif teams > 10 then
+		if i%2==0 then
+			l = 0.78
+		end
+		if i%2==1 then
+			l = 0.44
 		end
 	else
 		if teams > 6 then
 			if i%2==0 then
-				l = 0.8
+				l = 0.77
 			end
 			if i%2==1 then
 				l = 0.42
@@ -156,9 +170,9 @@ local function SetNewTeamColors()
 						r,g,b = GetColor(i, numallyteams)
 					elseif teamID == myTeamID then
 						r,g,b = GetColor(i, numallyteams)
-						r = (r * 1.33) + 0.33
-						g = (g * 1.33) + 0.33
-						b = (b * 1.33) + 0.33
+						r = (r * 1.25) + 0.3
+						g = (g * 1.25) + 0.3
+						b = (b * 1.25) + 0.3
 					else
 						r,g,b = GetColor(i, numallyteams)
 						r = r * 0.9
@@ -184,16 +198,11 @@ end
 -- cause several widgets are still using old colors
 function reloadWidgets()
 	if not useSameTeamColors then
-		if widgetHandler.orderList["Commander Name Tags"] ~= 0 then
-			widgetHandler:DisableWidget("Commander Name Tags")
-			widgetHandler:EnableWidget("Commander Name Tags")
-		end
 		if widgetHandler.orderList["Ecostats"] ~= 0 then
 			widgetHandler:DisableWidget("Ecostats")
 			widgetHandler:EnableWidget("Ecostats")
 		end
 	end
-	--Spring.SendCommands("luarules reloadluaui")	-- slow method
 end
 
 function ordercolors(_,_,params)

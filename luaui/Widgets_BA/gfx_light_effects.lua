@@ -551,15 +551,21 @@ loadWeaponDefs()
 -- function called by explosion_lights gadget
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
-		local params = {param={type='explosion'}}
-		params.param.r, params.param.g, params.param.b = weaponConf[weaponID].r, weaponConf[weaponID].g, weaponConf[weaponID].b
-		params.life = weaponConf[weaponID].life
-		params.orgMult = weaponConf[weaponID].orgMult
-		params.param.radius = weaponConf[weaponID].radius
-
-		params.frame = Spring.GetGameFrame()
-		params.px, params.py, params.pz = px, py, pz
-		params.py = params.py + 16 + (params.param.radius/35)
+		local params = {
+			life = weaponConf[weaponID].life,
+			orgMult = weaponConf[weaponID].orgMult,
+			frame = Spring.GetGameFrame(),
+			px = px,
+			py = py + 16 + (weaponConf[weaponID].radius/35),
+			pz = pz,
+			param = {
+				type = 'explosion',
+				r = weaponConf[weaponID].r,
+				g = weaponConf[weaponID].g,
+				b = weaponConf[weaponID].b,
+				radius = weaponConf[weaponID].radius,
+			},
+		}
 
 		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 		explosionLightsCount = explosionLightsCount + 1
@@ -626,13 +632,14 @@ end
 
 
 function widget:GetConfigData(data)
-	savedTable = {}
-	savedTable.globalLightMult = globalLightMult
-	savedTable.globalRadiusMult = globalRadiusMult
-	savedTable.globalLightMultLaser = globalLightMultLaser
-	savedTable.globalRadiusMultLaser = globalRadiusMultLaser
-	savedTable.globalLifeMult = globalLifeMult
-	savedTable.resetted = 1.4
+	local savedTable = {
+		globalLightMult = globalLightMult,
+		globalRadiusMult = globalRadiusMult,
+		globalLightMultLaser = globalLightMultLaser,
+		globalRadiusMultLaser = globalRadiusMultLaser,
+		globalLifeMult = globalLifeMult,
+		resetted = 1.4,
+	}
 	return savedTable
 end
 

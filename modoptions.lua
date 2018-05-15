@@ -27,6 +27,14 @@ local options={
 		def = false,
 	},
 	{
+		key    = "disabledaimetalcheat",
+		name   = "Disable DAI Metal Bonus",
+		desc   = "Makes DAI harder by giving it some bonus resources",
+		type   = "bool",
+		section= 'ba_options',
+		def = false,
+	},
+	{
 		key="deathmode",
 		name="Game End Mode",
 		desc="What it takes to eliminate a team",
@@ -69,6 +77,7 @@ local options={
 		items={
 			{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
 			{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
+			{key="exponly", name="ExperienceOnly", desc="Enable Unbalanced Commanders experience to power, health and reload multipliers"},
 		}
 	},	
 	
@@ -169,6 +178,14 @@ local options={
         def    = true,
         section= "ba_others",
     },
+	{
+		key    = "mo_allowuserwidgets",
+		name   = "Allow user widgets",
+		desc   = "Allow custom user widgets or disallow them",
+		type   = "bool",
+		def    = true,
+		section= 'ba_others',
+	},
     {
         key    = 'FixedAllies',
         name   = 'Fixed ingame alliances',

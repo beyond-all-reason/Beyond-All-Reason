@@ -108,7 +108,7 @@ local echoline = ''
 for id, featureDef in pairs(FeatureDefs) do
 	Spring.PreloadFeatureDefModel(id)
 	for _,stub in ipairs (featureNameStubs) do
-		if featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.name:find(stub) and featureDef.name:find(stub) == 1 then --also starts with
+		if featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.name and featureDef.name:find(stub) and featureDef.name:find(stub) == 1 then --also starts with
 			--if featureDef.customParam.normaltex then
 				echoline = echoline..(echoline ~= '' and ', ' or '')..featureDef.name
 				if featureDef.name:find('btree') == 1 then --beherith's old trees suffer if they get shitty normals

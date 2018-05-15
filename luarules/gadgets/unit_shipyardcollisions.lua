@@ -6,7 +6,7 @@ function gadget:GetInfo()
     date      = "Sept 19th 2017",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 
@@ -71,7 +71,7 @@ end
 
 function gadget:UnitUnitCollision(colliderID, collideeID)
 	if not (boat[colliderID] or boat[collideeID]) then
-		if shipyard[collideeID] or shipyard[colliderID] then
+		if shipyard[collideeID] or shipyard[colliderID] then	
 			if shipyard[colliderID] then
 				shipyardID = colliderID
 				unitID = collideeID

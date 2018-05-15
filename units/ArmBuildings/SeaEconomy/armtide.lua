@@ -35,6 +35,7 @@ return {
 		waterline = 10,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			bar_waterline = 2.5,
 			removewait = true,
 			removestop = true,
 		},

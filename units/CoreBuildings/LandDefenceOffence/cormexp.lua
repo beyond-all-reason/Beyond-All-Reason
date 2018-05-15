@@ -155,6 +155,9 @@ return {
 					subs = 5,
 					vtol = 45,
 				},
+				customparams = {
+					bar_model = "cormissile.s3o",
+				}
 			},
 			corsumo_weapon = {
 				areaofeffect = 12,

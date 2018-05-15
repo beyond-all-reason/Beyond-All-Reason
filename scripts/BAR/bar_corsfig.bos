@@ -35,7 +35,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
+		if( healthpercent < 66 and healthpercent > 0 )
 		{
 			smoketype = 256 | 2;
 			if( Rand( 1, 66 ) < healthpercent )
@@ -151,6 +151,16 @@ StopMoving()
 {
 	signal SIG_MOVE;
 	return (0);
+}
+
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
+AimSecondary(heading, pitch)
+{
+	return (1);
 }
 
 QueryPrimary(piecenum)

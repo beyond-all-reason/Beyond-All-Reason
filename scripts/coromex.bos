@@ -5,7 +5,7 @@
 
 piece  base, arms, level34, level68, level102, level136, level170, level204, level238, bottom;
 
-static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, rockframe, Xrot, Zrot, Ymove;
+static-var  Static_Var_1, Static_Var_2, Static_Var_3, statechg_DesiredState, statechg_StateChanging, rockframe, Xrot, Zrot, Ymove, curLevel, hitActivation;
 
 RockOnWaves()
 {
@@ -25,6 +25,7 @@ while ( TRUE )
 
 HidePieces(groundlevel)
 {
+	curLevel = groundlevel;
 	move level238 to y-axis [-204] now;
 	move level204 to y-axis [-170] now;
 	move level170 to y-axis [-136] now;
@@ -90,13 +91,25 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 fixGo()
 {
+	set-signal-mask 2;
+	set ACTIVATION to FALSE;
+	move base to y-axis [0] speed [10];
+	move arms to y-axis [0] speed [10];
+	wait-for-move arms along y-axis;
 	spin arms around y-axis speed <100> accelerate <1>;
+	sleep 1000;
+	set ACTIVATION to TRUE;
 }
 
 Stop()
 {
+	set ACTIVATION to FALSE;
 	stop-spin arms around y-axis decelerate <1>;
-	wait-for-turn arms around y-axis;
+	sleep 1000;
+	move base to y-axis [48] - (curLevel * 65536) speed [10];
+	move arms to y-axis [48] - (curLevel * 65536) speed [10];
+	wait-for-move arms along y-axis;
+	set ACTIVATION to FALSE;	
 }
 
 InitState()
@@ -120,6 +133,7 @@ RequestState(requestedstate, currentstate)
 		if( statechg_DesiredState == 0 )
 		{
 			call-script fixGo();
+			wait-for-move arms along y-axis;
 			currentstate = 0;
 		}
 		if( statechg_DesiredState == 1 )
@@ -144,12 +158,12 @@ Create()
 
 Activate()
 {
-	start-script RequestState(0);
+	call-script RequestState(0);
 }
 
 Deactivate()
 {
-	start-script RequestState(1);
+	call-script RequestState(1);
 }
 
 SweetSpot(piecenum)
@@ -160,6 +174,23 @@ SweetSpot(piecenum)
 SetSpeed(Func_Var_1)
 {
 	Static_Var_1 = Func_Var_1 * 20;
+}
+
+HitByWeapon(Func_Var_1, Func_Var_2)
+{
+	if( get ACTIVATION )
+	{
+		hitActivation = 1;
+	}
+	if( hitActivation )
+	{
+		signal 2;
+		set-signal-mask 2;
+		call-script Stop();
+		sleep 10000;
+		hitActivation = 0;
+		call-script fixGo();
+	}
 }
 
 Killed(severity, corpsetype)

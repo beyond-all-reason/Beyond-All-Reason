@@ -169,7 +169,20 @@ if (gadgetHandler:IsSyncedCode()) then
 			if UnitDefs[unitDefID].modCategories['underwater'] and wd and wd+r>0 then
 				spSetUnitRadiusAndHeight(unitID, wd-1, h)
 			end
-			
+		elseif modeltype=="s3o" then
+			if UnitDefs[unitDefID].canFly then
+				local rs, hs, ws = 1.15, 0.33, 1.15	-- dont know why 3do uses: 0.53, 0.17, 0.53
+				local xs, ys, zs, xo, yo, zo, vtype, htype, axis, _ = spGetUnitCollisionData(unitID)
+				if (vtype>=3 and xs==ys and ys==zs) then
+					if ( ys*hs ) < 13 then -- Limit Max V height
+						spSetUnitCollisionData(unitID, xs*ws, 13, zs*rs,  xo, yo, zo,  1, htype, 1)
+					elseif (UnitDefs[unitDefID].canFly) then
+						spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  1, htype, 1)
+					else
+						spSetUnitCollisionData(unitID, xs*ws, ys*hs, zs*rs,  xo, yo, zo,  vtype, htype, axis)
+					end
+				end
+			end
 		end
 	end
 

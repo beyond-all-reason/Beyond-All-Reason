@@ -64,7 +64,7 @@ local GL_QUADS = GL.QUADS
 local drawBuildQueue			= true
 local drawLineTexture			= true
 local drawUnitHighlight 		= true
-local drawUnitHighlightSkipFPS	= 10  -- (0 to disable) skip drawing when framerate gets below this value
+local drawUnitHighlightSkipFPS	= 13  -- (0 to disable) skip drawing when framerate gets below this value
 
 local opacity      				= 1
 local duration     				= 2.6
@@ -76,14 +76,15 @@ local lineWidthEnd				= 0.85		-- multiplier
 local lineTextureLength 		= 4
 local lineTextureSpeed  		= 2.4
 
-local groundGlow					= true
+local groundGlow				= true
 local glowRadius    			= 26
 local glowDuration  			= 0.5
 local glowOpacity   			= 0.11
 
 -- limit amount of effects to keep performance sane
-local maxCommandCount			= 400
-local maxGroundGlowCount  = 50
+local maxCommandCount			= 500		-- dont draw more commands than this amount, but keep processing them
+local maxTotalCommandCount		= 850		-- dont add more commands above this amount
+local maxGroundGlowCount		= 50
 local drawUnitHightlightMaxUnits = 70
 
 local glowImg			= ":n:LuaUI/Images/commandsfx/glow.dds"
@@ -201,6 +202,7 @@ local commands = {}
 local monitorCommands = {}
 local minQueueCommand = 1
 local maxCommand = 0
+local totalCommands = 0
 
 local unitCommand = {} -- most recent key in command table of order for unitID 
 local osClock
@@ -266,7 +268,6 @@ end
 
 
 local function setCmdLineColors(alpha)
-
 	spLoadCmdColorsConfig('move        0.5  1.0  0.5  '..alpha)
 	spLoadCmdColorsConfig('attack      1.0  0.2  0.2  '..alpha)
 	spLoadCmdColorsConfig('fight       0.5  0.5  1.0  '..alpha)
@@ -304,7 +305,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-
 	--spLoadCmdColorsConfig('useQueueIcons  1 ')
 	spLoadCmdColorsConfig('queueIconScale  1 ')
 	spLoadCmdColorsConfig('queueIconAlpha  1 ')
@@ -455,12 +455,14 @@ function RemovePreviousCommand(unitID)
     end
 end
 
+local unprocessedCommands = {}
+local unprocessedCommandsNum = 0
 function addUnitCommand(unitID, unitDefID, cmdID)
-  -- record that a command was given (note: cmdID is not used, but useful to record for debugging)
-  if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
-    maxCommand = maxCommand + 1
-    commands[maxCommand] = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=unitDefID} -- command queue is not updated until next gameframe
-  end
+	-- record that a command was given (note: cmdID is not used, but useful to record for debugging)
+	if unitID and (CONFIG[cmdID] or cmdID==CMD_INSERT or cmdID<0) then
+		unprocessedCommandsNum = unprocessedCommandsNum + 1
+		unprocessedCommands[unprocessedCommandsNum] = {ID=cmdID,time=os.clock(),unitID=unitID,draw=false,selected=spIsUnitSelected(unitID),udid=unitDefID} -- command queue is not updated until next gameframe
+	end
 end
 
 local newUnitCommands = {}
@@ -516,12 +518,14 @@ function getCommandsQueue(unitID)
 	return our_q
 end
 
-
+local prevGameframe = 0
 local sec = 0
 local lastUpdate = 0
+local sec2 = 0
+local lastUpdate2 = 0
 function widget:Update(dt)
 	sec = sec + dt
-	if sec > lastUpdate + 0.2 then
+	if sec > lastUpdate + 0.1 then
 		lastUpdate = sec
 		
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
@@ -531,72 +535,76 @@ function widget:Update(dt)
 			end
 		end
 		newUnitCommands = {}
-  
-		-- update queue (in case unit has reached the nearest queue coordinate)
-	  for i, qsize in pairs(monitorCommands) do
-	    if commands[i] ~= nil then
-	    	if commands[i].draw == false then
-	    		monitorCommands[i] = nil
-	    	else
-		    	local q = spGetUnitCommands(commands[i].unitID,35) or {}
-		    	if qsize ~= #q then
-		    		local our_q = getCommandsQueue(commands[i].unitID)
-		        commands[i].queue = our_q
-		        commands[i].queueSize = #our_q
-		        if qsize > 1 then
-		        	monitorCommands[i] = qsize
-		        else
-		      	  monitorCommands[i] = nil
-		        end
-		    	end
-		    end
-	    end
-	  end
-	  
-	end
-end
 
 
-function widget:GameFrame(gameFrame)
+		-- process new commands (cant be done directly because at widget:UnitCommand() the queue isnt updated yet)
+		for k, v in pairs(unprocessedCommands) do
+			if totalCommands <= maxTotalCommandCount then
+				maxCommand = maxCommand + 1
+				local i = maxCommand
+				commands[i] = v
+				totalCommands = totalCommands + 1
 
-  if drawFrame == gameframeDrawFrame then 
-  	return
-  end
-	gameframeDrawFrame = drawFrame
-	
-	-- process new commands (cant be done directly because at widget:UnitCommand() the queue isnt updated yet)
-  for i, v in pairs(commands) do
-    if v.processed ~= true then
-    
-	    RemovePreviousCommand(v.unitID)
-	    unitCommand[v.unitID] = i
+				RemovePreviousCommand(v.unitID)
+				unitCommand[v.unitID] = i
 
-	    -- get pruned command queue
-	    local our_q = getCommandsQueue(v.unitID)
-	    local qsize = #our_q
-	    commands[i].queue = our_q
-	    commands[i].queueSize = qsize
-	    if qsize > 1 then
-	    	monitorCommands[i] = qsize
-	    end
-	    if qsize > 0 then
-	        commands[i].highlight = CONFIG[our_q[1].id].colour
-	        commands[i].draw = true
-	    end
-	    
-	    -- get location of final command
-	    local lastCmd = our_q[#our_q]
-	    if lastCmd and lastCmd.params then
-	        local x,y,z = ExtractTargetLocation(lastCmd.params[1],lastCmd.params[2],lastCmd.params[3],lastCmd.params[4],lastCmd.id)
-	        if x then
-	            commands[i].x = x
-	            commands[i].y = y
-	            commands[i].z = z
-	        end
-	    end
-	    commands[i].time = os.clock()
-	    commands[i].processed = true
-	  end
+				-- get pruned command queue
+				local our_q = getCommandsQueue(v.unitID)
+				local qsize = #our_q
+				commands[i].queue = our_q
+				commands[i].queueSize = qsize
+				if qsize > 1 then
+					monitorCommands[i] = qsize
+				end
+				if qsize > 0 then
+					commands[i].highlight = CONFIG[our_q[1].id].colour
+					commands[i].draw = true
+				end
+
+				-- get location of final command
+				local lastCmd = our_q[#our_q]
+				if lastCmd and lastCmd.params then
+					local x,y,z = ExtractTargetLocation(lastCmd.params[1],lastCmd.params[2],lastCmd.params[3],lastCmd.params[4],lastCmd.id)
+					if x then
+						commands[i].x = x
+						commands[i].y = y
+						commands[i].z = z
+					end
+				end
+				commands[i].time = os.clock()
+			end
+		end
+		unprocessedCommands = {}
+		unprocessedCommandsNum = 0
+
+
+		if sec2 > lastUpdate2 + 0.3 then
+			lastUpdate2 = sec2
+			if prevGameframe ~= Spring.GetGameFrame() then
+				prevGameframe = Spring.GetGameFrame()
+
+				-- update queue (in case unit has reached the nearest queue coordinate)
+				for i, qsize in pairs(monitorCommands) do
+					if commands[i] ~= nil then
+						if commands[i].draw == false then
+							monitorCommands[i] = nil
+						else
+							local q = spGetUnitCommands(commands[i].unitID,35) or {}
+							if qsize ~= #q then
+								local our_q = getCommandsQueue(commands[i].unitID)
+								commands[i].queue = our_q
+								commands[i].queueSize = #our_q
+								if qsize > 1 then
+									monitorCommands[i] = qsize
+								else
+									monitorCommands[i] = nil
+								end
+							end
+						end
+					end
+				end
+			end
+		end
 	end
 end
 
@@ -636,10 +644,11 @@ function widget:DrawWorldPreUnit()
         local progress = (osClock - commands[i].time) / duration
         local unitID = commands[i].unitID
         
-        if progress >= 1 and commands[i].processed then
-            -- remove when duration has passed (also need to check if it was processed yet, because of pausing)
+        if progress >= 1 then
+            -- remove when duration has passed
             --Spring.Echo("Removing " .. i)
             commands[i] = nil
+			totalCommands = totalCommands - 1
             monitorCommands[i] = nil
             if unitCommand[unitID] == i then 
             	unitCommand[unitID] = nil

@@ -44,6 +44,10 @@ return {
 		turninplacespeedlimit = 1.188,
 		turnrate = 520.29999,
 		customparams = {
+            bar_trackoffset = 6,
+            bar_trackstrength = 5,
+            bar_tracktype = "corwidetracks",
+            bar_trackwidth = 34,
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -162,6 +166,7 @@ return {
 					default = 500,
 				},
 				customparams = {
+					bar_model = "fmdmissile.s3o",
 					light_mult = 4,
 					light_radius_mult = 1.25,
 					light_color = "1 0.5 0.75",

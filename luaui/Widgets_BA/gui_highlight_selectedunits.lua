@@ -11,8 +11,6 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local FadeToGrey = false -- Set to true to automatically turn your unit to grey so the health color shows better
-
 function widget:GetInfo()
   return {
     name      = "Highlight Selected Units",

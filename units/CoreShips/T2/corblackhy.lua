@@ -37,12 +37,11 @@ return {
 		selfdestructas = "FlagshipExplosionSelfd",
 		sightdistance = 650,
 		--move
-		acceleration = 1.789/270,
-		brakerate = 1.789/35,
+		acceleration = 0.013,
+		brakerate = 0.051,
 		maxvelocity = 1.789,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*1.789,
 		turnrate = 86,
 		--end move
 		waterline = 0,
@@ -200,7 +199,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.9,
-				explosiongenerator = "custom:genericshellexplosion-medium",
+				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				gravityaffected = "true",
 				impulseboost = 0.123,
@@ -227,6 +226,9 @@ return {
 					default = 125,
 					subs = 5,
 				},
+				customparams = {
+					bar_model = "cormissile.s3o",
+				}
 			},
 		},
 		weapons = {

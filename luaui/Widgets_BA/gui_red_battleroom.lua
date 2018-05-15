@@ -435,12 +435,6 @@ local function convertColor(r,g,b)
 end
 
 local function processLine(line,g,cfg,newlinecolor)
-	if (g.vars.browsinghistory) then
-		if (g.vars.historyoffset == nil) then
-			g.vars.historyoffset = 0
-		end
-		g.vars.historyoffset = g.vars.historyoffset + 1
-	end
 	
 	g.vars.nextupdate = 0
 
@@ -766,6 +760,12 @@ local function processLine(line,g,cfg,newlinecolor)
 	end
 
 	if (not ignoreThisMessage) then		--mute--
+	if (g.vars.browsinghistory) then
+		if (g.vars.historyoffset == nil) then
+			g.vars.historyoffset = 0
+		end
+		g.vars.historyoffset = g.vars.historyoffset + 1
+	end
 		local lineID = #history+1	
 		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
         

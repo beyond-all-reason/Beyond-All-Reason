@@ -108,6 +108,9 @@ return {
 					default = 190,
 					subs = 5,
 				},
+				customparams = {
+					bar_model = "cormissile2.s3o",
+				}
 			},
 		},
 		weapons = {

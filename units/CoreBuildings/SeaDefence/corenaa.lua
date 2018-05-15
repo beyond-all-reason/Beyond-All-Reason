@@ -35,7 +35,8 @@ return {
 		customparams = {
 			techlevel = 2,
 			removewait = true,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = true,

@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "20.0",
+		version   = "21.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -41,6 +41,7 @@ end
 -- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 -- v19   (Floris): added player resource bars
 -- v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
+-- v21   (Floris): added toggle LoS and /specfullview when camera tracking a player
 
 --------------------------------------------------------------------------------
 -- Widget Scale
@@ -52,6 +53,8 @@ local pointDuration    		= 40
 local cpuText				= false
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
+local lockcameraHideEnemies = false --true
+local lockcameraLos = false --true
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -194,8 +197,8 @@ local now             = 0
 -- LockCamera variables
 --------------------------------------------------------------------------------
 
-local transitionTime	= 2 --how long it takes the camera to move
-local listTime			= 15 --how long back to look for recent broadcasters
+local transitionTime	= 1 --how long it takes the camera to move when trackign a player
+local listTime			= 14 --how long back to look for recent broadcasters
 
 local myPlayerID = Spring.GetMyPlayerID()
 local lockPlayerID
@@ -236,7 +239,7 @@ local tipText
 -- local player info
 local myAllyTeamID
 local myTeamID
-local mySpecStatus,_,_ = Spring.GetSpectatingState()
+local mySpecStatus,fullView,_ = Spring.GetSpectatingState()
 
 --General players/spectator count and tables
 local player = {}
@@ -552,7 +555,6 @@ m_seespec = {
 }
 
 
-
 local specsLabelOffset = 0
 local teamsizeVersusText = ""
 
@@ -680,6 +682,22 @@ end
 
 local function LockCamera(playerID)
 	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID then
+		if lockcameraHideEnemies and not select(3,Spring_GetPlayerInfo(playerID)) then
+			if not fullView then
+				sceduledSpecFullView = 1
+				Spring.SendCommands("specfullview")
+			else
+				sceduledSpecFullView = 2
+				Spring.SendCommands("specfullview")
+			end
+			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+				Spring.SendCommands("togglelos")
+			end
+		elseif lockcameraHideEnemies and select(3,Spring_GetPlayerInfo(playerID)) then
+			if not fullView then
+				Spring.SendCommands("specfullview")
+			end
+		end
 		lockPlayerID = playerID
 		myLastCameraState = myLastCameraState or GetCameraState()
 		local info = lastBroadcasts[lockPlayerID]
@@ -690,6 +708,14 @@ local function LockCamera(playerID)
 		if myLastCameraState then
 			SetCameraState(myLastCameraState, transitionTime)
 			myLastCameraState = nil
+		end
+		if lockcameraHideEnemies and lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+			if not fullView then
+				Spring.SendCommands("specfullview")
+			end
+			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+				Spring.SendCommands("togglelos")
+			end
 		end
 		lockPlayerID = nil
 	end
@@ -756,7 +782,7 @@ function widget:Initialize()
   widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	UpdateRecentBroadcasters()
 	
-	mySpecStatus,_,_ = Spring.GetSpectatingState()
+	mySpecStatus,fullView,_ = Spring.GetSpectatingState()
 	if Spring.GetGameFrame() <= 0 then
 		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
@@ -798,20 +824,48 @@ function widget:Initialize()
         return lockPlayerID
     end
     WG['advplayerlist_api'].SetLockPlayerID = function(playerID)
-        if playerID ~= nil then
-            lockPlayerID = playerID
-        else
-            lockPlayerID = nil
-            if myLastCameraState ~= nil then
-                SetCameraState(myLastCameraState, transitionTime)
-            end
-        end
-    end
+		LockCamera(playerID)
+	end
+	WG['advplayerlist_api'].GetLockHideEnemies = function()
+		return lockcameraHideEnemies
+	end
+	WG['advplayerlist_api'].SetLockHideEnemies = function(value)
+		lockcameraHideEnemies = value
+		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+			if not lockcameraHideEnemies then
+				if not fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
+			else
+				if fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
+			end
+		end
+	end
+	WG['advplayerlist_api'].GetLockLos = function()
+		return lockcameraLos
+	end
+	WG['advplayerlist_api'].SetLockLos = function(value)
+		lockcameraLos = value
+		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+			if lockcameraLos and Spring.GetMapDrawMode()~="los" then
+				Spring.SendCommands("togglelos")
+			elseif not lockcameraLos and Spring.GetMapDrawMode()=="los" then
+				Spring.SendCommands("togglelos")
+			end
+		end
+	end
 end
 
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
-		mySpecStatus,_,_ = Spring.GetSpectatingState()
 		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
@@ -834,8 +888,22 @@ function widget:Shutdown()
 	WG['advplayerlist_api'] = nil
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	widgetHandler:DeregisterGlobal('ActivityEvent')
-  widgetHandler:DeregisterGlobal('FpsEvent')
-  widgetHandler:DeregisterGlobal('SystemEvent')
+	widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('SystemEvent')
+	widgetHandler:DeregisterGlobal('getPlayerScoresAdvplayerslist')
+
+	if ShareSlider then
+		gl_DeleteList(ShareSlider)
+	end
+	if MainList then
+		gl_DeleteList(MainList)
+	end
+	if Background then
+		gl_DeleteList(Background)
+	end
+	if lockPlayerID and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+		Spring.SendCommands("togglelos")
+	end
 end
 
 
@@ -1652,7 +1720,6 @@ function CreateMainList(tip)
 	if MainList then
 		gl_DeleteList(MainList)
 	end
-	
 	MainList = gl_CreateList(function()
 		drawTipText = nil
 		for i, drawObject in ipairs(drawList) do
@@ -3149,7 +3216,9 @@ function widget:GetConfigData(data)      -- save
 			specListShow       = specListShow,
 			gameFrame          = Spring.GetGameFrame(),
 			lastSystemData     = lastSystemData,
-			alwaysHideSpecs    = alwaysHideSpecs
+			alwaysHideSpecs    = alwaysHideSpecs,
+			--lockcameraHideEnemies = lockcameraHideEnemies,
+			--lockcameraLos      = lockcameraLos,
 		}
 		
 		return settings
@@ -3168,7 +3237,15 @@ function widget:SetConfigData(data)      -- load
 	if data.alwaysHideSpecs ~= nil then
 		alwaysHideSpecs = data.alwaysHideSpecs
 	end
-	
+
+	if data.lockcameraHideEnemies ~= nil then
+		--lockcameraHideEnemies = data.lockcameraHideEnemies
+	end
+
+	if data.lockcameraLos ~= nil then
+		--lockcameraLos = data.lockcameraLos
+	end
+
 	--view
 	if data.expandDown ~= nil and data.widgetRight ~= nil then
 		expandDown   = data.expandDown
@@ -3203,6 +3280,23 @@ function widget:SetConfigData(data)      -- load
 	end
 	if data.lockPlayerID ~= nil and Spring.GetGameFrame()>0 then
 		lockPlayerID = data.lockPlayerID
+		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+			if not lockcameraHideEnemies then
+				if not fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
+			else
+				if fullView then
+					Spring.SendCommands("specfullview")
+					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
+						Spring.SendCommands("togglelos")
+					end
+				end
+			end
+		end
 	end
 	if data.cpuText ~= nil then
 		cpuText = data.cpuText
@@ -3419,7 +3513,19 @@ function widget:Update(delta) --handles takes & related messages
 	totalTime = totalTime + delta 
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
-	
+	mySpecStatus,fullView,_ = Spring.GetSpectatingState()
+
+	if sceduledSpecFullView ~= nil then	-- this is needed else the minimap/world doesnt update properly
+		Spring.SendCommands("specfullview")
+		sceduledSpecFullView = sceduledSpecFullView - 1
+		if sceduledSpecFullView == 0 then
+			sceduledSpecFullView = nil
+		end
+	end
+
+	if lockPlayerID ~= nil then
+		Spring.SetCameraState(Spring.GetCameraState(), transitionTime)
+	end
 	
 	if energyPlayer ~= nil or metalPlayer ~= nil then
 		CreateShareSlider()
