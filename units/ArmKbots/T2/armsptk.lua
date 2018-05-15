@@ -148,7 +148,7 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 450,
---				wobble = 5400,
+				wobble = 2500,
 				damage = {
 					default = 120,
 					subs = 5,
