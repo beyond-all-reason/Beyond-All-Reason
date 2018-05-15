@@ -17,6 +17,7 @@ Sea Offense and Defense:
  • Destroyers' and cruisers' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
  • Arm/Core Assult Frigates damages + 3%
  • Support Frigates are granted a missile tower (surface to air and surface to surface) and their depthcharge can only target downwards.
+ • Support Frigates: reduced sonar distance (450 -> 400) and depthcharge range (400 -> 375)
  • Transport ship costs decreased (core 5500e/600m/8610bt => 3700e/350m/6400bt and arm 5000e/640m/9150bt => 3500e/350m/6500bt) and hp decreased (arm 8800 -> 2900 and core 9150 -> 3000)
  • Arm/Core gun platform special damages towards "heavyunits" erased.
  • Global acceleration buff for ships (+100%)

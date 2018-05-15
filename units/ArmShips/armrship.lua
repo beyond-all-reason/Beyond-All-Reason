@@ -33,7 +33,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 600,
-		sonardistance = 450,
+		sonardistance = 400,
 		waterline = 0,
 		-- move
 		acceleration = 0.036,
@@ -182,7 +182,7 @@ return {
 				name = "DepthCharge",
 				noselfdamage = true,
 				predictboost = 0,
-				range = 400,
+				range = 375,
 				reloadtime = 2.25,
 				soundhit = "xplodep2",
 				soundstart = "torpedo1",
