@@ -42,9 +42,13 @@ return {
 		turninplacespeedlimit = 1.6335,
 		turnrate = 591.79999,
 		customparams = {
+			bar_trackoffset = 6,
+			bar_trackstrength = 5,
+			bar_tracktype = "corwidetracks",
+			bar_trackwidth = 32,
 			techlevel = 2,
 			prioritytarget = "air",
-			},
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,

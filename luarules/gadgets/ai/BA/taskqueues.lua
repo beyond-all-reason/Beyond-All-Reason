@@ -26,6 +26,7 @@ if getmetalcheat == nil then
 end
 
 local metalcheat = 0
+local unitoptions = {}
 
 ----------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
@@ -37,12 +38,10 @@ function CorEnT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,1)
-	if r == 0 then
-		return "corwin"
-	else
-		return "corsolar"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corwin", "corsolar",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorMexT1()
@@ -50,12 +49,11 @@ function CorMexT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,1)
-	if r == 0 then
-		return "cormex"
-	else
-		return "corexp"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	--local unitoptions = {"cormex", "corexp",}
+	--return unitoptions[math.random(1,#unitoptions)]
+	return "cormex"
 end
 
 function CorStarterLabT1()
@@ -63,26 +61,36 @@ function CorStarterLabT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,1)
-	if r == 0 then
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local r = math.random(0,100)
+	if r < 70 then
 		return "corlab"
 	else
 		return "corvp"
 	end
 end
 
-function CorRandomLabT1()
+function CorRandomLab()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,2)
-	if r == 0 then
-		return "corlab" 	--T1 KBots
-	elseif r == 1 then
-		return "corvp" 		--T1 Vehs
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id)
+	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
+	
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() * 0.001 then
+		if countAdvFacs < countBasicFacs then
+			local unitoptions = {"coralab", "coravp", "coraap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		else
+			local unitoptions = {"corlab", "corvp", "corap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		end
 	else
-		return "corap" 		--T1 Planes
+		return "corkrog"
 	end
 end
 
@@ -91,20 +99,10 @@ function CorAdvDefT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,5)
-	if r == 0 then
-		return "cormaw"
-	elseif r == 1 then
-		return "corhllt"
-	elseif r == 2 then
-		return "corhlt"
-	elseif r == 3 then
-		return "corpun"
-	elseif r == 4 then
-		return "cormadsam"
-	elseif r == 5 then
-		return "corerad"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"cormaw", "corhllt", "corhlt", "cormadsam",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorKBotsT1()
@@ -112,18 +110,10 @@ function CorKBotsT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,4)
-	if r == 0 then
-		return "corak"
-	elseif r == 1 then
-		return "cornecro"
-	elseif r == 2 then
-		return "corthud"
-	elseif r == 3 then
-		return "corstorm"
-	else
-		return "corcrash"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corak", "cornecro", "corthud", "corstorm", "corcrash",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorVehT1()
@@ -131,20 +121,10 @@ function CorVehT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,5)
-	if r == 0 then
-		return "corgator"
-	elseif r == 1 then
-		return "corraid"
-	elseif r == 2 then
-		return "corlevlr"
-	elseif r == 3 then
-		return "corwolv"
-	elseif r == 4 then
-		return "cormist"
-	else
-		return "corgarp"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corgator", "corraid", "corlevlr", "corwolv", "cormist", "corgarp",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorAirT1()
@@ -152,14 +132,10 @@ function CorAirT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,2)
-	if r == 0 then
-		return "corveng"
-	elseif r == 1 then
-		return "corshad"
-	else
-		return "corbw"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corveng", "corshad", "corbw",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorKBotsT2()
@@ -167,30 +143,10 @@ function CorKBotsT2()
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,10)
-	if r == 0 then
-		return "coraak"
-	elseif r == 1 then
-		return "coramph"
-	elseif r == 2 then
-		return "corcan"
-	elseif r == 3 then
-		return "corhrk"
-	elseif r == 4 then
-		return "cormando"
-	elseif r == 5 then
-		return "cormort"
-	elseif r == 6 then
-		return "corpyro"
-	elseif r == 7 then
-		return "corroach"
-	elseif r == 8 then
-		return "cortermite"
-	elseif r == 9 then
-		return "corspec"
-	elseif r == 10 then
-		return "corsumo"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "cortermite", "corspec", "corsumo",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorVehT2()
@@ -198,28 +154,10 @@ function CorVehT2()
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,9)
-	if r == 0 then
-		return "corban"
-	elseif r == 1 then
-		return "coreter"
-	elseif r == 2 then
-		return "corgol"
-	elseif r == 3 then
-		return "cormart"
-	elseif r == 4 then
-		return "corparrow"
-	elseif r == 5 then
-		return "correap"
-	elseif r == 6 then
-		return "corseal"
-	elseif r == 7 then
-		return "corsent"
-	elseif r == 8 then
-		return "cortrem"
-	elseif r == 9 then
-		return "corvroc"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corban", "coreter", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorAirT2()
@@ -227,17 +165,12 @@ function CorAirT2()
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,3)
-	if r == 0 then
-		return "corape"
-	elseif r == 1 then
-		return "corcrw"
-	elseif r == 2 then
-		return "corhurc"
-	elseif r == 3 then
-		return "corvamp"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corape", "corcrw", "corhurc", "corvamp",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
+		
 --------------------------------------------------------------------------------------------
 --------------------------------------- Arm Functions --------------------------------------
 --------------------------------------------------------------------------------------------
@@ -247,12 +180,10 @@ function ArmEnT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,1)
-	if r == 0 then
-		return "armwin"
-	else
-		return "armsolar"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armwin", "armsolar",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmMexT1()
@@ -260,12 +191,11 @@ function ArmMexT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,1)
-	if r == 0 then
-		return "armmex"
-	else
-		return "armamex"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	--local unitoptions = {"armmex", "armamex",}
+	--return unitoptions[math.random(1,#unitoptions)]
+	return "armmex"
 end
 
 function ArmStarterLabT1()
@@ -273,26 +203,35 @@ function ArmStarterLabT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,1)
-	if r == 0 then
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local r = math.random(0,100)
+	if r < 70 then
 		return "armlab"
 	else
 		return "armvp"
 	end
 end
 
-function ArmRandomLabT1()
+function ArmRandomLab()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,2)
-	if r == 0 then
-		return "armlab"
-	elseif r == 1 then
-		return "armvp"
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id)
+	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() * 0.001 then
+		if countAdvFacs < countBasicFacs then
+			local unitoptions = {"armalab", "armavp", "armaap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		else
+			local unitoptions = {"armlab", "armvp", "armap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		end
 	else
-		return "armap"
+		return "corkrog"
 	end
 end
 
@@ -301,20 +240,10 @@ function ArmAdvDefT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,5)
-	if r == 0 then
-		return "armclaw"
-	elseif r == 1 then
-		return "armbeamer"
-	elseif r == 2 then
-		return "armhlt"
-	elseif r == 3 then
-		return "armguard"
-	elseif r == 4 then
-		return "armpacko"
-	elseif r == 5 then
-		return "armcir"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armclaw", "armbeamer", "armhlt", "armpacko",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmKBotsT1()
@@ -322,20 +251,10 @@ function ArmKBotsT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,5)
-	if r == 0 then
-		return "armpw"
-	elseif r == 1 then
-		return "armham"
-	elseif r == 2 then
-		return "armrectr"
-	elseif r == 3 then
-		return "armrock"
-	elseif r == 4 then
-		return "armjeth"
-	else
-		return "armwar"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armjeth", "armwar",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmVehT1()
@@ -343,20 +262,10 @@ function ArmVehT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,5)
-	if r == 0 then
-		return "armflash"
-	elseif r == 1 then
-		return "armstump"
-	elseif r == 2 then
-		return "armjanus"
-	elseif r == 3 then
-		return "armart"
-	elseif r == 4 then
-		return "armsam"
-	else
-		return "armpincer"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armflash", "armstump", "armjanus", "armart", "armsam", "armpincer",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmAirT1()
@@ -364,14 +273,10 @@ function ArmAirT1()
 		metalcheat = Spring.GetGameSeconds() * 0.025
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,2)
-	if r == 0 then
-		return "armthund"
-	elseif r == 1 then
-		return "armfig"
-	else
-		return "armkam"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armthund", "armfig", "armkam",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmKBotsT2()
@@ -379,32 +284,10 @@ function ArmKBotsT2()
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,11)
-	if r == 0 then
-		return "armaak"
-	elseif r == 1 then
-		return "armamph"
-	elseif r == 2 then
-		return "armaser"
-	elseif r == 3 then
-		return "armfast"
-	elseif r == 4 then
-		return "armfboy"
-	elseif r == 5 then
-		return "armfido"
-	elseif r == 6 then
-		return "armmav"
-	elseif r == 7 then
-		return "armsnipe"
-	elseif r == 8 then
-		return "armspid"
-	elseif r == 9 then
-		return "armspkt"
-	elseif r == 10 then
-		return "armzeus"
-	elseif r == 11 then
-		return "armvader"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armaak", "armamph", "armaser", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armzeus", "armvader",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmVehT2()
@@ -412,26 +295,10 @@ function ArmVehT2()
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,8)
-	if r == 0 then
-		return "armbull"
-	elseif r == 1 then
-		return "armcroc"
-	elseif r == 2 then
-		return "armjam"
-	elseif r == 3 then
-		return "armlatnk"
-	elseif r == 4 then
-		return "armmanni"
-	elseif r == 5 then
-		return "armmart"
-	elseif r == 6 then
-		return "armmerl"
-	elseif r == 7 then
-		return "armst"
-	elseif r == 8 then
-		return "armyork"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armbull", "armcroc", "armjam", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmAirT2()
@@ -439,20 +306,10 @@ function ArmAirT2()
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
 	Spring.AddTeamResource(ai.id, "m", metalcheat)
-	local r = math.random(0,5)
-	if r == 0 then
-		return "armblade"
-	elseif r == 1 then
-		return "armbrawl"
-	elseif r == 2 then
-		return "armhawk"
-	elseif r == 3 then
-		return "armliche"
-	elseif r == 4 then
-		return "armpnix"
-	elseif r == 5 then
-		return "armstil"
-	end
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
+	return unitoptions[math.random(1,#unitoptions)]
 end
 -------------------------------------------------------------
 
@@ -469,6 +326,8 @@ local corcommanderfirst = {
 	"cormex",
 	"corsolar",
 	"corsolar",
+	"corsolar",
+	"corsolar",
 	CorStarterLabT1,
 }
 
@@ -480,7 +339,6 @@ local corcommanderq = {
 	CorEnT1,
 	CorEnT1,
 	"corllt",
-	"cormstor",
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
@@ -488,7 +346,6 @@ local corcommanderq = {
 	CorEnT1,
 	CorEnT1,
 	"corllt",
-	"corestor",
 	CorEnT1,
 	"corllt",
 	"corrad",
@@ -496,56 +353,85 @@ local corcommanderq = {
 	CorEnT1,
 	CorEnT1,
 	"corllt",
-	"cormstor",
 	CorEnT1,
 	CorEnT1,
 	"corllt",
 	CorEnT1,
+	"cormstor",
 	"corestor",
-	CorRandomLabT1,
+	CorRandomLab,
 }
 
 local cort1construction = {
+	--"cornanotc",
+	CorEnT1,
+	CorRandomLab,
 	"cornanotc",
-	CorMexT1,
-	CorMexT1,
-	CorMexT1,
+	CorAdvDefT1,
+	CorEnT1,
+	CorEnT1,
 	CorEnT1,
 	CorEnT1,
 	CorAdvDefT1,
-	CorMexT1,
-	"corllt",
-	CorMexT1,
+	CorEnT1,
+	CorAdvDefT1,
+	CorEnT1,
 	"cormstor",
-	CorMexT1,
+	CorEnT1,
 	"corrad",
 	CorEnT1,
 	CorEnT1,
-	"coraap",
-	"coralab",
-	"coravp",
+	CorRandomLab,
 	"cornanotc",
+	CorAdvDefT1,
+	"cormakr",
+	"cormakr",
+	CorEnT1,
+	"cormakr",
+	"cormakr",
+	"cormakr",
+	CorEnT1,
+	CorRandomLab,
 	"cornanotc",
-	"cormakr",
-	"cormakr",
-	"cormakr",
-	"cormakr",
-	"cormakr",
-	CorRandomLabT1,
-	"cornanotc",
-	CorMexT1,
+	CorAdvDefT1,
+	CorEnT1,
 	CorAdvDefT1,
 	CorEnT1,
 	"coradvsol",
 	CorEnT1,
+	CorEnT1,
+	CorAdvDefT1,
+	CorEnT1,
+	"corestor",
+	CorEnT1,
+	CorAdvDefT1,
+	"coradvsol",
+}
+
+local cort1mexingqueue = {
 	CorMexT1,
 	"corllt",
 	CorMexT1,
-	"corestor",
+	"corllt",
 	CorMexT1,
-	CorAdvDefT1,
-	"coradvsol",
-	
+	"corllt",
+	CorMexT1,
+	"corllt",
+	CorMexT1,
+	"corllt",
+}
+
+local cort2construction = {
+	"cormoho",
+	CorRandomLab,
+	"cormoho",
+	CorRandomLab,
+	"cormoho",
+	CorRandomLab,
+	"cormoho",
+	CorRandomLab,
+	"corfus",
+	CorRandomLab,
 }
 
 local corkbotlab = {
@@ -565,21 +451,7 @@ local corkbotlab = {
 	CorKBotsT1,
 	CorKBotsT1,
 	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
+
 }
 
 local corvehlab = {
@@ -599,21 +471,7 @@ local corvehlab = {
 	CorVehT1,
 	CorVehT1,
 	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
+
 }
 
 local corairlab = {
@@ -633,39 +491,10 @@ local corairlab = {
 	CorAirT1,
 	CorAirT1,
 	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
 }
 
 corkbotlabT2 = {
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
+	"corack",
 	CorKBotsT2,
 	CorKBotsT2,
 	CorKBotsT2,
@@ -684,21 +513,7 @@ corkbotlabT2 = {
 }
 
 corvehlabT2 = {
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
+	"coracv",
 	CorVehT2,
 	CorVehT2,
 	CorVehT2,
@@ -717,21 +532,7 @@ corvehlabT2 = {
 }
 
 corairlabT2 = {
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
+	"coraca",
 	CorAirT2,
 	CorAirT2,
 	CorAirT2,
@@ -760,6 +561,8 @@ local armcommanderfirst = {
 	"armmex",
 	"armsolar",
 	"armsolar",
+	"armsolar",
+	"armsolar",
 	ArmStarterLabT1,
 }
 
@@ -771,7 +574,6 @@ local armcommanderq = {
 	ArmEnT1,
 	ArmEnT1,
 	"armllt",
-	"armmstor",
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
@@ -780,7 +582,6 @@ local armcommanderq = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
-	"armestor",
 	ArmEnT1,
 	"armmakr",
 	ArmEnT1,
@@ -789,7 +590,6 @@ local armcommanderq = {
 	ArmEnT1,
 	ArmEnT1,
 	"armllt",
-	"armmstor",
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
@@ -798,56 +598,86 @@ local armcommanderq = {
 	ArmEnT1,
 	ArmEnT1,
 	"armestor",
+	"armmstor",
 	ArmEnT1,
-	ArmRandomLabT1,
+	ArmRandomLab,
 	"armllt",
 }
 
 local armt1construction = {
+	--"armnanotc",
+	ArmEnT1,
+	ArmRandomLab,
 	"armnanotc",
-	ArmMexT1,
-	ArmMexT1,
-	ArmMexT1,
+	ArmAdvDefT1,
 	ArmEnT1,
-	ArmMexT1,
 	ArmEnT1,
-	"armllt",
-	ArmMexT1,
+	ArmEnT1,
+	ArmEnT1,
+	ArmEnT1,
+	ArmAdvDefT1,
+	ArmEnT1,
 	ArmAdvDefT1,
 	"armrad",
 	ArmEnT1,
-	ArmMexT1,
+	ArmEnT1,
 	"armadvsol",
 	ArmAdvDefT1,
 	"armmstor",
-	"armaap",
-	"armalab",
-	"armavp",
+	ArmRandomLab,
 	"armnanotc",
+	ArmAdvDefT1,
+	ArmEnT1,
+	ArmEnT1,
+	ArmAdvDefT1,
+	"armmakr",
+	"armmakr",
+	"armmakr",
+	"armmakr",
+	"armmakr",
+	ArmRandomLab,
 	"armnanotc",
+	ArmAdvDefT1,
 	ArmEnT1,
-	ArmMexT1,
-	"armllt",
-	"armmakr",
-	"armmakr",
-	"armmakr",
-	"armmakr",
-	"armmakr",
-	ArmRandomLabT1,
-	"armnanotc",
 	ArmEnT1,
-	ArmMexT1,
 	ArmEnT1,
-	ArmMexT1,
-	ArmMexT1,
+	ArmAdvDefT1,
+	ArmEnT1,
+	ArmEnT1,
 	ArmAdvDefT1,
 	"armrad",
 	"armadvsol",
 	ArmEnT1,
-	ArmMexT1,
-	"armllt",
+	ArmEnT1,
+	ArmAdvDefT1,
 	"armestor",
 	ArmEnT1,
+}
+
+local armt1mexingqueue = {
+	ArmMexT1,
+	"armllt",
+	ArmMexT1,
+	"armllt",
+	ArmMexT1,
+	"armllt",
+	ArmMexT1,
+	"armllt",
+	ArmMexT1,
+	"armllt",
+}
+
+local armt2construction = {
+	"armmoho",
+	ArmRandomLab,
+	"armmoho",
+	ArmRandomLab,
+	"armmoho",
+	ArmRandomLab,
+	"armmoho",
+	ArmRandomLab,
+	"armfus",
+	ArmRandomLab,
 }
 
 local armkbotlab = {
@@ -867,21 +697,7 @@ local armkbotlab = {
 	ArmKBotsT1,
 	ArmKBotsT1,
 	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
+
 }
 
 local armvehlab = {
@@ -901,21 +717,7 @@ local armvehlab = {
 	ArmVehT1,
 	ArmVehT1,
 	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
+
 }
 
 local armairlab = {
@@ -935,39 +737,11 @@ local armairlab = {
 	ArmAirT1,
 	ArmAirT1,
 	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
+
 }
 
 armkbotlabT2 = {
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
+	"armack",
 	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
@@ -986,21 +760,7 @@ armkbotlabT2 = {
 }
 
 armvehlabT2 = {
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
+	"armacv",
 	ArmVehT2,
 	ArmVehT2,
 	ArmVehT2,
@@ -1019,21 +779,7 @@ armvehlabT2 = {
 }
 
 armairlabT2 = {
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
+	"armaca",
 	ArmAirT2,
 	ArmAirT2,
 	ArmAirT2,
@@ -1051,11 +797,15 @@ armairlabT2 = {
 	ArmAirT2,
 }
 
+local assistqueue = {
+	{ action = "patrolrelative", position = {x = math.random(-100, 100), y = 0, z = math.random(-100, 100)} },
+}
 ----------------------------------------------------------
 	
 local function corcommander()
 	if ai.engineerfirst == true then
-		return corcommanderq
+		--return corcommanderq
+		return assistqueue
 	else
 		ai.engineerfirst = true
 		return corcommanderfirst
@@ -1064,20 +814,43 @@ end
 
 local function armcommander()
 	if ai.engineerfirst == true then
-		return armcommanderq
+		--return armcommanderq
+		return assistqueue
 	else
 		ai.engineerfirst = true
 		return armcommanderfirst
 	end
 end
 
+local function corT1constructorrandommexer()
+	local r = math.random(0,1)
+		if r == 0 or Spring.GetGameSeconds() < 300 then
+			return cort1mexingqueue
+		else
+			return cort1construction
+		end
+end
+
+local function armT1constructorrandommexer()
+	local r = math.random(0,1)
+		if r == 0 or Spring.GetGameSeconds() < 300 then
+			return armt1mexingqueue
+		else
+			return armt1construction
+		end
+end
+
 taskqueues = {
 	---CORE
 	--constructors
 	corcom = corcommander,
-	corck = cort1construction,
-	corcv = cort1construction,
-	corca = cort1construction,
+	corck = corT1constructorrandommexer,
+	corcv = corT1constructorrandommexer,
+	corca = corT1constructorrandommexer,
+	cornanotc = assistqueue,
+	corack = cort2construction,
+	coracv = cort2construction,
+	coraca = cort2construction,
 	--factories
 	corlab = corkbotlab,
 	corvp = corvehlab,
@@ -1088,9 +861,13 @@ taskqueues = {
 	---ARM
 	--constructors
 	armcom = armcommander,
-	armck = armt1construction,
-	armcv = armt1construction,
-	armca = armt1construction,
+	armck = armT1constructorrandommexer,
+	armcv = armT1constructorrandommexer,
+	armca = armT1constructorrandommexer,
+	armnanotc = assistqueue,
+	armack = armt2construction,
+	armacv = armt2construction,
+	armaca = armt2construction,
 	--factories
 	armlab = armkbotlab,
 	armvp = armvehlab,

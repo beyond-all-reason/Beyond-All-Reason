@@ -79,6 +79,9 @@ return {
 			-- [29] = "seaplatform",
 		},
 		customparams = {
+			bar_trackstrength = 6,
+			bar_tracktype = "corwidetracks",
+			bar_trackwidth = 28,
 			techlevel = 2,
 			area_mex_def = "cormoho",
 		},

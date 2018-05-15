@@ -8,11 +8,11 @@ shard_include(  "bootbehaviour" )
 behaviours = { 
 	--CoreNanoTurret
 	cornanotc = { 
-	AttackerBehaviour, 
+	TaskQueueBehaviour, 
 	},
 	--ArmNanoTurret
 	armnanotc = {
-	AttackerBehaviour,
+	TaskQueueBehaviour,
 	},
 
 }

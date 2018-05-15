@@ -49,8 +49,6 @@ return {
 			[6] = "corcrash",
 		},
 		customparams = {
-			bar_buildinggrounddecalsizex = 7,
-			bar_buildinggrounddecalsizey = 7,
 			bar_collisionvolumeoffsets = "4 0 2",
 			bar_collisionvolumescales = "93 92 87",
 		},

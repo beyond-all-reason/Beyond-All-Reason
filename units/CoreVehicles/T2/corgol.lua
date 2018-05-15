@@ -43,6 +43,10 @@ return {
 		turnrate = 220*0.8,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
+			bar_trackoffset = 8,
+			bar_trackstrength = 10,
+			bar_tracktype = "corwidetracks",
+			bar_trackwidth = 49,
 			techlevel = 2,
 			--ANIMATION DATA
 				--PIECENAMES HERE
