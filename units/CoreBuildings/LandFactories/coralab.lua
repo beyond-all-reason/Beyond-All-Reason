@@ -61,6 +61,8 @@ return {
 			[17] = "cormando",
 		},
 		customparams = {
+			bar_collisionvolumeoffsets = "0 13 8",
+			bar_collisionvolumescales = "101 51 90",
 			techlevel = 2,
 		},
 		featuredefs = {
