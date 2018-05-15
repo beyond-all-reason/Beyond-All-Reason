@@ -114,6 +114,10 @@ function ShardSpringUnit:MoveAndFire(p)
 	return true
 end
 
+function ShardSpringUnit:MoveAndPatrol(p)
+	Spring.GiveOrderToUnit( self.id, CMD.PATROL, { p.x, p.y, p.z }, {} )
+	return true
+end
 
 function ShardSpringUnit:Build(t, p) -- IUnitType*
 	if type(t) == "string" then
