@@ -118,6 +118,28 @@ function TaskQueueBehaviour:ProgressQueue()
 				newpos.z = upos.z + value.position.z
 				self.unit:Internal():Move(newpos)
 				self.progress = false
+			elseif action == "fight" then
+				self.unit:Internal():MoveAndFire(value.position)
+				self.progress = false
+			elseif action == "fightrelative" then
+				local upos = self.unit:Internal():GetPosition()
+				local newpos = api.Position()
+				newpos.x = upos.x + value.position.x
+				newpos.y = upos.y + value.position.y
+				newpos.z = upos.z + value.position.z
+				self.unit:Internal():MoveAndFire(newpos)
+				self.progress = false
+			elseif action == "patrol" then
+				self.unit:Internal():MoveAndPatrol(value.position)
+				self.progress = false
+			elseif action == "patrolrelative" then
+				local upos = self.unit:Internal():GetPosition()
+				local newpos = api.Position()
+				newpos.x = upos.x + value.position.x
+				newpos.y = upos.y + value.position.y
+				newpos.z = upos.z + value.position.z
+				self.unit:Internal():MoveAndPatrol(newpos)
+				self.progress = false
 			end
 		else
 			if type(val) == "function" then
@@ -140,7 +162,7 @@ function TaskQueueBehaviour:ProgressQueue()
 								self.progress = true
 							end
 						else
-							p = self.map:FindClosestBuildSite(utype, unit:GetPosition(), 2000, 300)
+							p = self.map:FindClosestBuildSite(utype, unit:GetPosition(), 1000, 300)
 							self.progress = not self.unit:Internal():Build(utype,p)
 						end
 					else
