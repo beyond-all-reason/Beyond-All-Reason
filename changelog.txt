@@ -10,6 +10,7 @@ Sea economy, factories and engineering:
  • Reduced Construction Ships HP -15%
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
  • Offshore mexes attempt to hide underwater when hit, therefor stopping the metal production for approxiamately 10 seconds.
+ • Banisher missile blows up in the air after it is out of fuel
 
 Sea Offense and Defense:
  • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%,
@@ -49,6 +50,8 @@ Other:
  • Various widget and gadget performance improvements
  • Various script enhancements/fixes, models improvements 
  • Specific Unit Loader: Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
+ • Added widget: Under contruction gfx: draws highlight for under construction units to help visibility
+ • Engien replacement trees are made to look smoother
 
 
 10.07 -> 10.08
