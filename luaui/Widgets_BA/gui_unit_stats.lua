@@ -485,17 +485,18 @@ function widget:DrawScreen()
 			local wepCount = wepCounts[wDefId]
 
 			local typeName =  uWep.type
+			local wpnName = uWep.description
 			if i == deathWeaponIndex then
-				typeName = "Death explosion"
+				wpnName = "Death explosion"
 				oRld = 1
 			elseif i == selfDWeaponIndex then
-				typeName = "Self Destruct"
+				wpnName = "Self Destruct"
 				oRld = uDef.selfDCountdown
 			end
 			if wepCount > 1 then
-				DrawText("Weap:", format(yellow .. "%dx" .. white .. " %s", wepCount, typeName))
+				DrawText("Weap:", format(yellow .. "%dx" .. white .. " %s", wepCount, wpnName))
 			else
-				DrawText("Weap:", typeName)
+				DrawText("Weap:", wpnName)
 			end
 			local reload = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or uWep.reload
 			local accuracy = spGetUnitWeaponState(uID,weaponNums[i] or -1,"accuracy") or uWep.accuracy
@@ -517,7 +518,7 @@ function widget:DrawScreen()
 				DrawText("Exp:", format("+%d%% accuracy, +%d%% aim, +%d%% firerate, +%d%% range", accuracyBonus*100, moveErrorBonus*100, reloadBonus*100, rangeBonus*100 ))
 			end
 			local infoText = ""
-			if typeName == "Death explosion" or typeName == "Self Destruct" then
+			if wpnName == "Death explosion" or wpnName == "Self Destruct" then
 				infoText = format("%d aoe, %d%% edge", uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
 			else
 				infoText = format("%d range, %d aoe, %d%% edge", useExp and range or uWep.range, uWep.damageAreaOfEffect, 100 * uWep.edgeEffectiveness)
