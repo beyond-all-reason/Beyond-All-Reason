@@ -94,8 +94,8 @@ airCategories = {
 	function gadget:UnitCreated(unitID, unitDefID)
 		local uDef = UnitDefs[unitDefID]
 		if uDef.customParams.prioritytarget and uDef.customParams.prioritytarget == "air" then
-			Spring.InsertUnitCmdDesc(unitID, CMD_SET_PRIORITY, setPriorityAirf)
-					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 0.0001)
+			Spring.InsertUnitCmdDesc(unitID, CMD_SET_PRIORITY, setPriorityAirn)
+					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 1)
 					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 1)			
 					Spring.SetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 		end
