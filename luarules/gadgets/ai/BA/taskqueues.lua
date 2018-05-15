@@ -80,12 +80,17 @@ function CorRandomLab()
 	
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
-	if countAdvFacs < Spring.GetGameSeconds() * 0.002 and countAdvFacs < countBasicFacs then
-		local unitoptions = {"coralab", "coravp", "coraap",}
-		return unitoptions[math.random(1,#unitoptions)]
+	
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() * 0.001 then
+		if countAdvFacs < countBasicFacs then
+			local unitoptions = {"coralab", "coravp", "coraap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		else
+			local unitoptions = {"corlab", "corvp", "corap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		end
 	else
-		local unitoptions = {"corlab", "corvp", "corap",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return "corkrog"
 	end
 end
 
@@ -217,12 +222,16 @@ function ArmRandomLab()
 	
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
-	if countAdvFacs < Spring.GetGameSeconds() * 0.002 and countAdvFacs < countBasicFacs then
-		local unitoptions = {"armalab", "armavp", "armaap",}
-		return unitoptions[math.random(1,#unitoptions)]
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() * 0.001 then
+		if countAdvFacs < countBasicFacs then
+			local unitoptions = {"armalab", "armavp", "armaap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		else
+			local unitoptions = {"armlab", "armvp", "armap",}
+			return unitoptions[math.random(1,#unitoptions)]
+		end
 	else
-		local unitoptions = {"armlab", "armvp", "armap",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return "corkrog"
 	end
 end
 
@@ -358,13 +367,14 @@ local cort1construction = {
 	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
+	CorAdvDefT1,
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
 	CorAdvDefT1,
 	CorEnT1,
-	"corllt",
+	CorAdvDefT1,
 	CorEnT1,
 	"cormstor",
 	CorEnT1,
@@ -373,6 +383,7 @@ local cort1construction = {
 	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
+	CorAdvDefT1,
 	"cormakr",
 	"cormakr",
 	CorEnT1,
@@ -382,13 +393,14 @@ local cort1construction = {
 	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
+	CorAdvDefT1,
 	CorEnT1,
 	CorAdvDefT1,
 	CorEnT1,
 	"coradvsol",
 	CorEnT1,
 	CorEnT1,
-	"corllt",
+	CorAdvDefT1,
 	CorEnT1,
 	"corestor",
 	CorEnT1,
@@ -398,18 +410,28 @@ local cort1construction = {
 
 local cort1mexingqueue = {
 	CorMexT1,
+	"corllt",
 	CorMexT1,
+	"corllt",
 	CorMexT1,
+	"corllt",
 	CorMexT1,
+	"corllt",
 	CorMexT1,
+	"corllt",
 }
 
 local cort2construction = {
 	"cormoho",
+	CorRandomLab,
 	"cormoho",
+	CorRandomLab,
 	"cormoho",
+	CorRandomLab,
 	"cormoho",
+	CorRandomLab,
 	"corfus",
+	CorRandomLab,
 }
 
 local corkbotlab = {
@@ -587,12 +609,13 @@ local armt1construction = {
 	ArmEnT1,
 	ArmRandomLab,
 	"armnanotc",
+	ArmAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
-	"armllt",
+	ArmAdvDefT1,
 	ArmEnT1,
 	ArmAdvDefT1,
 	"armrad",
@@ -603,9 +626,10 @@ local armt1construction = {
 	"armmstor",
 	ArmRandomLab,
 	"armnanotc",
+	ArmAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
-	"armllt",
+	ArmAdvDefT1,
 	"armmakr",
 	"armmakr",
 	"armmakr",
@@ -613,9 +637,11 @@ local armt1construction = {
 	"armmakr",
 	ArmRandomLab,
 	"armnanotc",
+	ArmAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
+	ArmAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmAdvDefT1,
@@ -623,25 +649,35 @@ local armt1construction = {
 	"armadvsol",
 	ArmEnT1,
 	ArmEnT1,
-	"armllt",
+	ArmAdvDefT1,
 	"armestor",
 	ArmEnT1,
 }
 
 local armt1mexingqueue = {
 	ArmMexT1,
+	"armllt",
 	ArmMexT1,
+	"armllt",
 	ArmMexT1,
+	"armllt",
 	ArmMexT1,
+	"armllt",
 	ArmMexT1,
+	"armllt",
 }
 
 local armt2construction = {
 	"armmoho",
+	ArmRandomLab,
 	"armmoho",
+	ArmRandomLab,
 	"armmoho",
+	ArmRandomLab,
 	"armmoho",
+	ArmRandomLab,
 	"armfus",
+	ArmRandomLab,
 }
 
 local armkbotlab = {
