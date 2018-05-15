@@ -824,7 +824,7 @@ end
 
 local function corT1constructorrandommexer()
 	local r = math.random(0,1)
-		if r == 0 then
+		if r == 0 or Spring.GetGameSeconds() < 300 then
 			return cort1mexingqueue
 		else
 			return cort1construction
@@ -833,7 +833,7 @@ end
 
 local function armT1constructorrandommexer()
 	local r = math.random(0,1)
-		if r == 0 then
+		if r == 0 or Spring.GetGameSeconds() < 300 then
 			return armt1mexingqueue
 		else
 			return armt1construction
