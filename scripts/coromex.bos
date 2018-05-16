@@ -106,8 +106,8 @@ Stop()
 	set ACTIVATION to FALSE;
 	stop-spin arms around y-axis decelerate <1>;
 	sleep 1000;
-	move base to y-axis [48] - (curLevel * 65536) speed [10];
-	move arms to y-axis [48] - (curLevel * 65536) speed [10];
+	move base to y-axis [24] - (curLevel * 65536) speed [10];
+	move arms to y-axis [24] - (curLevel * 65536) speed [10];
 	wait-for-move arms along y-axis;
 	set ACTIVATION to FALSE;	
 }
