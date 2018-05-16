@@ -31,7 +31,7 @@
 		name = "Offshore Metal Extractor",
 		objectname = "ARMOMEX",
 		script = "armomex.cob",
-		onoffable = false,
+		onoffable = true,
 		seismicsignature = 0,
 		selfdestructcountdown = 1,
         explodeas = "tinyBuildingExplosionGeneric-uw",
