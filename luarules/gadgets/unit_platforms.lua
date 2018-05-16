@@ -14,13 +14,12 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 	GroundHeight = {}
 	toUpdateList = {}
-	surfacemex = ((Spring.GetModOptions().seamex or "underwater") == "surface")
 	
 	function gadget:UnitCreated(unitID)
 		unitDefID = Spring.GetUnitDefID(unitID)
 		unitName = UnitDefs[unitDefID].name
 		x,y,z = Spring.GetUnitPosition(unitID)
-		if (unitName == "armuwmex" or unitName == "coruwmex") and surfacemex then
+		if (unitName == "armuwmex" or unitName == "coruwmex") then
 			GroundHeight = Spring.GetGroundHeight(x,z)
 			Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
 			Spring.SetUnitRadiusAndHeight (unitID, 24, 0 )

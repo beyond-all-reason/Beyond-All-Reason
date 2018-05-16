@@ -9,6 +9,7 @@ Sea economy, factories and engineering:
  • Reduced Construction Ships Energy/Metal production (15/0.115 -> 7/0.1) and increased Energy/Metal storages (15 -> 50)
  • Reduced Construction Ships HP -15%
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
+ • Offshore mexes are now the default (and only) t1 sea mexes.
  • Offshore mexes attempt to hide underwater when hit, therefor stopping the metal production for approxiamately 10 seconds.
  • Banisher missile blows up in the air after it is out of fuel
 
@@ -34,6 +35,7 @@ Global:
 
 Other:
  • New command "Set Priority" in anti air order menus, allowing to switch between targetting Fighters, Bomber in priority, or using no priority. To create a bind, use the action name "setpriority".
+ • mo_preventcombomb removed from modoptions as it had no effects anymore (the prevent combomb gadget is always enabled in last commander vs last commander situations)
  • mo_unba = "exponly" added to allow the use of Unbalanced Commanders' experience health/reload/power multipliers with the classic Balanced Annihilation commander.
  • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
  • Fixed command "Area Mex" not being available for captured builders, also improved mex placement script (uses mex snap's code)
