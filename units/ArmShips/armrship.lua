@@ -204,11 +204,11 @@ return {
 			},
 		},
 		weapons = {
-			[1] = {
-				badtargetcategory = "NOTAIR",
-				def = "MISSILE",
-				onlytargetcategory = "NOTSUB",
-			},
+			-- [1] = {
+				-- badtargetcategory = "NOTAIR",
+				-- def = "MISSILE",
+				-- onlytargetcategory = "NOTSUB",
+			-- },
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",

@@ -129,7 +129,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
-				name = "Missiles",
+				name = "G2G and G2A Missiles",
 				noselfdamage = true,
 				range = 600,
 				reloadtime = 3.34,
@@ -177,7 +177,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "DEPTHCHARGE",
-				name = "DepthCharge",
+				name = "Light Depthcharge",
 				noselfdamage = true,
 				predictboost = 0,
 				range = 375,
@@ -202,11 +202,11 @@ return {
 			},
 		},
 		weapons = {
-			[1] = {
-				badtargetcategory = "NOTAIR",
-				def = "MISSILE",
-				onlytargetcategory = "NOTSUB",
-			},
+			-- [1] = {
+				-- badtargetcategory = "NOTAIR",
+				-- def = "MISSILE",
+				-- onlytargetcategory = "NOTSUB",
+			-- },
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
