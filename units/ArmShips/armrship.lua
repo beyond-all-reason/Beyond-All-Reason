@@ -212,8 +212,8 @@ return {
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				maindir = "0 -1 0",
-				maxangledif = 179,
+				-- maindir = "0 -1 0",
+				-- maxangledif = 179,
 				onlytargetcategory = "CANBEUW UNDERWATER",		
 			},
 		},

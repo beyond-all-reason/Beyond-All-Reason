@@ -31,7 +31,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
-		sonardistance = 400,
+		sonardistance = 375,
 		waterline = 0,
 		--move
 		acceleration = 0.031,
@@ -199,8 +199,8 @@ return {
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				maindir = "0 -1 0",
-				maxangledif = 179,
+				-- maindir = "0 -1 0",
+				-- maxangledif = 179,
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
