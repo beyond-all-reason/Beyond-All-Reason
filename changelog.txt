@@ -15,7 +15,7 @@ Sea economy, factories and engineering:
 
 Sea Offense and Defense:
  • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%,
- • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health)
+ • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health), sonar distance reduced (400 -> 375)
  • Destroyers' and cruisers' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
  • Arm/Core Assult Frigates damages + 3%
  • Support Frigates are granted a missile tower (surface to air and surface to surface) and their depthcharge can only target downwards.
