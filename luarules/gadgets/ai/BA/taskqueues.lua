@@ -170,6 +170,64 @@ function CorAirT2()
 	local unitoptions = {"corape", "corcrw", "corhurc", "corvamp",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
+
+''function CorHover()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok", }
+	return unitoptions[math.random(1,#unitoptions)]
+end ''
+		
+''function CorSeaPlanes()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corcsa", "corcut", "corhunt", "corsb", "corseap", "corsfig", }
+	return unitoptions[math.random(1,#unitoptions)]
+end ''		
+
+''function CorShipT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corcs", "cordship", "coresupp", "corpship", "corpt", "correcl", "corroy", "corrship", "corsub", "cortship",}
+	return unitoptions[math.random(1,#unitoptions)]
+end		''
+
+''function CorShipT2()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"coracsub", "corarch", "corbats", "corblackhy", "corcarry", "corcrus", "cormls", "cormship", "corshark", "corsjam", "corssub", }
+	return unitoptions[math.random(1,#unitoptions)]
+end		''		
+		
+''function CorGantry()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", }
+	return unitoptions[math.random(1,#unitoptions)]
+end ''			
+		
+		
+		
 		
 --------------------------------------------------------------------------------------------
 --------------------------------------- Arm Functions --------------------------------------
@@ -311,6 +369,67 @@ function ArmAirT2()
 	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
+
+
+''function ArmHover()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh","armthovr", }
+	return unitoptions[math.random(1,#unitoptions)]
+end ''
+		
+''function ArmSeaPlanes()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armcsa", "armsaber", "armsb", "armseap", "armsehak", "armsfig", }
+	return unitoptions[math.random(1,#unitoptions)]
+end ''		
+
+''function ArmShipT1()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armcs", "armdecade", "armdship", "armpship", "armpt", "armrecl", "armroy", "armrship", "armsub", "armtship",}
+	return unitoptions[math.random(1,#unitoptions)]
+end		''
+
+''function ArmShipT2()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armaas", "armacsub", "armbats", "armcarry", "armcrus", "armepoch", "armmls", "armmship", "armserp", "armsjam", "armsubk", }
+	return unitoptions[math.random(1,#unitoptions)]
+end		''		
+		
+''function ArmGantry()
+	if getmetalcheat == 1 then
+		metalcheat = Spring.GetGameSeconds() * 0.05
+	end
+	Spring.AddTeamResource(ai.id, "m", metalcheat)
+	Spring.AddTeamResource(ai.id, "e", metalcheat*2)
+	
+	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
+	return unitoptions[math.random(1,#unitoptions)]
+end ''	
+
+
+
+
+
 -------------------------------------------------------------
 
 
