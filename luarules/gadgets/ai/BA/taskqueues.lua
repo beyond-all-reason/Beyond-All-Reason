@@ -171,7 +171,8 @@ function CorAirT2()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
-''function CorHover()
+--[[
+function CorHover()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -180,9 +181,9 @@ end
 	
 	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok", }
 	return unitoptions[math.random(1,#unitoptions)]
-end ''
+end 
 		
-''function CorSeaPlanes()
+function CorSeaPlanes()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -191,9 +192,9 @@ end ''
 	
 	local unitoptions = {"corcsa", "corcut", "corhunt", "corsb", "corseap", "corsfig", }
 	return unitoptions[math.random(1,#unitoptions)]
-end ''		
+end 		
 
-''function CorShipT1()
+function CorShipT1()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -202,9 +203,9 @@ end ''
 	
 	local unitoptions = {"corcs", "cordship", "coresupp", "corpship", "corpt", "correcl", "corroy", "corrship", "corsub", "cortship",}
 	return unitoptions[math.random(1,#unitoptions)]
-end		''
+end		
 
-''function CorShipT2()
+function CorShipT2()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -213,9 +214,9 @@ end		''
 	
 	local unitoptions = {"coracsub", "corarch", "corbats", "corblackhy", "corcarry", "corcrus", "cormls", "cormship", "corshark", "corsjam", "corssub", }
 	return unitoptions[math.random(1,#unitoptions)]
-end		''		
+end				
 		
-''function CorGantry()
+function CorGantry()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -224,7 +225,8 @@ end		''
 	
 	local unitoptions = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", }
 	return unitoptions[math.random(1,#unitoptions)]
-end ''			
+end 
+]]--			
 		
 		
 		
@@ -369,9 +371,8 @@ function ArmAirT2()
 	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
-
-
-''function ArmHover()
+--[[
+function ArmHover()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -380,9 +381,9 @@ end
 	
 	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh","armthovr", }
 	return unitoptions[math.random(1,#unitoptions)]
-end ''
+end 
 		
-''function ArmSeaPlanes()
+function ArmSeaPlanes()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -391,9 +392,9 @@ end ''
 	
 	local unitoptions = {"armcsa", "armsaber", "armsb", "armseap", "armsehak", "armsfig", }
 	return unitoptions[math.random(1,#unitoptions)]
-end ''		
+end 		
 
-''function ArmShipT1()
+function ArmShipT1()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -402,9 +403,9 @@ end ''
 	
 	local unitoptions = {"armcs", "armdecade", "armdship", "armpship", "armpt", "armrecl", "armroy", "armrship", "armsub", "armtship",}
 	return unitoptions[math.random(1,#unitoptions)]
-end		''
+end		
 
-''function ArmShipT2()
+function ArmShipT2()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -413,9 +414,9 @@ end		''
 	
 	local unitoptions = {"armaas", "armacsub", "armbats", "armcarry", "armcrus", "armepoch", "armmls", "armmship", "armserp", "armsjam", "armsubk", }
 	return unitoptions[math.random(1,#unitoptions)]
-end		''		
+end		
 		
-''function ArmGantry()
+function ArmGantry()
 	if getmetalcheat == 1 then
 		metalcheat = Spring.GetGameSeconds() * 0.05
 	end
@@ -424,8 +425,8 @@ end		''
 	
 	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
 	return unitoptions[math.random(1,#unitoptions)]
-end ''	
-
+end
+]]--
 
 
 
