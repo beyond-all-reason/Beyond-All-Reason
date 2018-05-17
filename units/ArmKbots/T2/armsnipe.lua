@@ -90,7 +90,7 @@ return {
 				"deathceg4",
 			},
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-sniper",
 			},
 		},
 		sounds = {

@@ -2442,7 +2442,7 @@ definitions['genericshellexplosion-catapult'].sparks.properties.numparticles = 2
 definitions['genericshellexplosion-catapult'].clouddust.properties.numparticles = 1
 
 
-definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-medium"])
+definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-large"])
 definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0.3 0.15 0.22   1 0.2 0.12 0.16   0.8 0.16 0.09 0.07   0 0 0 0]]
 definitions['genericshellexplosion-sniper'].explosion2.properties.colormap    = [[0 0 0 0   1 0 0 0.22   1 0.1 0.09 0.16   0.8 0.1 0.05 0.07   0 0 0 0]]
 definitions['genericshellexplosion-sniper'].sparks.properties.colormap        = [[1 0.3 0.1 0.01   0.9 0.3 0.2 0.017   0 0 0 0]]
