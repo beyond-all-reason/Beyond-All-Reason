@@ -156,8 +156,10 @@ return {
 				areaofeffect = 72,
 				avoidfeature = false,
 				beamtime = 0.6,
+				beamttl = 7,
+				beamdecay = 0.85,
 				camerashake = 0.1,
-				corethickness = 0.75,
+				corethickness = 0.35,
 				craterareaofeffect = 72,
 				craterboost = 0,
 				cratermult = 0,
@@ -166,7 +168,7 @@ return {
 				firestarter = 90,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 15,
+				laserflaresize = 12.5,
 				name = "KrogHeatRay",
 				noselfdamage = true,
 				proximitypriority = -1,
@@ -180,7 +182,7 @@ return {
 				soundstart = "heatray2",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,
-				thickness = 5,
+				thickness = 6,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -191,7 +193,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_mult = "2",		-- used by light_effects widget
+					light_mult = "1.2",		-- used by light_effects widget
 					light_radius_mult = "0.6",		-- used by light_effects widget
 				},
 			},

@@ -138,7 +138,7 @@ return {
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,
-				thickness = 2.5,
+				thickness = 2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",

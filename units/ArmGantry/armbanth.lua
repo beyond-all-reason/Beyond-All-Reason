@@ -206,7 +206,9 @@ return {
 				areaofeffect = 14,
 				avoidfeature = false,
 				beamtime = 1.05,
-				corethickness = 0.5,
+				beamttl = 8,
+				beamdecay = 0.9,
+				corethickness = 0.3,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -214,7 +216,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 8.5,
+				laserflaresize = 11,
 				name = "DEEEEEEWWWMMM",
 				noselfdamage = true,
 				range = 800,
@@ -237,8 +239,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					light_mult = "1.3",		-- used by light_effects widget
-					light_radius_mult = "1.66",		-- used by light_effects widget
+					light_radius_mult = "1.5",		-- used by light_effects widget
 				},
 			},
 		},
