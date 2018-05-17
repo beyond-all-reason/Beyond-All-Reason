@@ -11,7 +11,7 @@ Sea economy, factories and engineering:
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
  • Offshore mexes are now the default (and only) t1 sea mexes.
  • Offshore mexes attempt to hide underwater when hit, therefor stopping the metal production for approxiamately 10 seconds.
-
+ • Flamethrowers dont spray as wide as before
 
 Sea Offense and Defense:
  • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%,
@@ -55,6 +55,8 @@ Other:
  • Specific Unit Loader: Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
  • Added widget: Under contruction gfx: draws highlight for under construction units to help visibility
  • Engine replacement trees are made to look smoother
+ • Added laser fadeout effect + tuned laser thickness to match their damages more
+ • Changed/added flamethower effect
 
 
 10.07 -> 10.08
