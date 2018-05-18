@@ -48,12 +48,12 @@ end
 
 function CorRandomLab()
 	
-	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id)
+	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corhp.id)+ UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
 	
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 then
 		if countAdvFacs < countBasicFacs then
-			local unitoptions = {"coralab", "coravp", "coraap",}
+			local unitoptions = {"coralab", "coravp", "coraap", "corhp", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else
 			local unitoptions = {"corlab", "corvp", "corap",}
@@ -66,7 +66,7 @@ end
 
 function CorAdvDefT1()
 	
-	local unitoptions = {"cormaw", "corhllt", "corhlt", "cormadsam",}
+	local unitoptions = {"cormaw", "corhllt", "corhlt", "cormadsam", "corpun", "cormadsam",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -88,6 +88,12 @@ function CorAirT1()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
+function CorAdvDefT2()
+
+	local unitoptions = {"cortoast", "corgate", "corvipe", "cordoom", "corflak", "corscreamer", "corint", "corfmd", "corsilo",}
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
 function CorKBotsT2()
 	
 	local unitoptions = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "cortermite", "corspec", "corsumo",}
@@ -106,13 +112,12 @@ function CorAirT2()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
---[[
 function CorHover()
 	
 	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok", }
 	return unitoptions[math.random(1,#unitoptions)]
 end 
-		
+--[[
 function CorSeaPlanes()
 	
 	local unitoptions = {"corcsa", "corcut", "corhunt", "corsb", "corseap", "corsfig", }
@@ -130,16 +135,14 @@ function CorShipT2()
 	local unitoptions = {"coracsub", "corarch", "corbats", "corblackhy", "corcarry", "corcrus", "cormls", "cormship", "corshark", "corsjam", "corssub", }
 	return unitoptions[math.random(1,#unitoptions)]
 end				
-		
+]]--
+
 function CorGantry()
 	
 	local unitoptions = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", }
 	return unitoptions[math.random(1,#unitoptions)]
 end 
-]]--			
-		
-		
-		
+
 		
 --------------------------------------------------------------------------------------------
 --------------------------------------- Arm Functions --------------------------------------
@@ -170,11 +173,11 @@ end
 
 function ArmRandomLab()
 	
-	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id)
+	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armhp.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 then
 		if countAdvFacs < countBasicFacs then
-			local unitoptions = {"armalab", "armavp", "armaap",}
+			local unitoptions = {"armalab", "armavp", "armaap","armhp", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else
 			local unitoptions = {"armlab", "armvp", "armap",}
@@ -187,7 +190,7 @@ end
 
 function ArmAdvDefT1()
 	
-	local unitoptions = {"armclaw", "armbeamer", "armhlt", "armpacko",}
+	local unitoptions = {"armclaw", "armbeamer", "armhlt", "armpacko", "armguard","armrl",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -209,6 +212,12 @@ function ArmAirT1()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
+function ArmAdvDefT2()
+
+	local unitoptions = {"armgate", "armamb", "armpb", "armanni", "armflak","armmercury", "armamd", "armbrtha",}
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
 function ArmKBotsT2()
 	
 	local unitoptions = {"armaak", "armamph", "armaser", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armzeus", "armvader",}
@@ -226,13 +235,14 @@ function ArmAirT2()
 	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
---[[
+
 function ArmHover()
 	
 	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh","armthovr", }
 	return unitoptions[math.random(1,#unitoptions)]
-end 
-		
+end
+
+--[[
 function ArmSeaPlanes()
 	
 	local unitoptions = {"armcsa", "armsaber", "armsb", "armseap", "armsehak", "armsfig", }
@@ -250,13 +260,14 @@ function ArmShipT2()
 	local unitoptions = {"armaas", "armacsub", "armbats", "armcarry", "armcrus", "armepoch", "armmls", "armmship", "armserp", "armsjam", "armsubk", }
 	return unitoptions[math.random(1,#unitoptions)]
 end		
-		
+]]--
+
 function ArmGantry()
 	
 	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
 	return unitoptions[math.random(1,#unitoptions)]
 end
-]]--
+
 
 
 
@@ -334,12 +345,7 @@ local cort1construction = {
 	CorRandomLab,
 	"cornanotc",
 	CorAdvDefT1,
-	"cormakr",
-	"cormakr",
 	CorEnT1,
-	"cormakr",
-	"cormakr",
-	"cormakr",
 	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
@@ -384,14 +390,17 @@ local cort1mexingqueue = {
 local cort2construction = {
 	"cormoho",
 	CorRandomLab,
+	ArmAdvDefT2,
 	"cormoho",
 	CorRandomLab,
 	"cormoho",
 	CorRandomLab,
 	"cormoho",
 	CorRandomLab,
+	ArmAdvDefT2,
 	"corfus",
 	CorRandomLab,
+	ArmAdvDefT2,
 }
 
 local corkbotlab = {
@@ -509,6 +518,33 @@ corairlabT2 = {
 	CorAirT2,
 	CorAirT2,
 }
+corhoverlabT2 = {
+	"armch",
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+	CorHover,
+}
+corgantryT3 = {
+	CorGantry,
+	CorGantry,
+	CorGantry,
+	CorGantry,
+	CorGantry,
+	CorGantry,
+}
 
 
 --------------------------------------------------------------------------------------------
@@ -543,7 +579,6 @@ local armcommanderq = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
-	"armmakr",
 	ArmEnT1,
 	"armllt",
 	"armrad",
@@ -590,11 +625,6 @@ local armt1construction = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmAdvDefT1,
-	"armmakr",
-	"armmakr",
-	"armmakr",
-	"armmakr",
-	"armmakr",
 	ArmRandomLab,
 	"armnanotc",
 	ArmAdvDefT1,
@@ -767,6 +797,34 @@ armairlabT2 = {
 	ArmAirT2,
 }
 
+armhoverlabT2 = {
+	"armch",
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+	ArmHover,
+}
+armgantryT3 = {
+	ArmGantry,
+	ArmGantry,
+	ArmGantry,
+	ArmGantry,
+	ArmGantry,
+	ArmGantry,
+	ArmGantry,
+}
+
 local assistqueue = {
 	{ action = "patrolrelative", position = {x = 100, y = 0, z = 100} },
 }
@@ -819,6 +877,7 @@ taskqueues = {
 	corck = corT1constructorrandommexer,
 	corcv = corT1constructorrandommexer,
 	corca = corT1constructorrandommexer,
+	corch = corT1constructorrandommexer,
 	cornanotc = assistqueue,
 	corack = cort2construction,
 	coracv = cort2construction,
@@ -830,12 +889,16 @@ taskqueues = {
 	coralab = corkbotlabT2,
 	coravp = corvehlabT2,
 	coraap = corairlabT2,
+	corhp = corhoverlabT2,
+	corgant = corgantryT3,
+
 	---ARM
 	--constructors
 	armcom = armcommander,
 	armck = armT1constructorrandommexer,
 	armcv = armT1constructorrandommexer,
 	armca = armT1constructorrandommexer,
+	armch = armT1constructorrandommexer,
 	armnanotc = assistqueue,
 	armack = armt2construction,
 	armacv = armt2construction,
@@ -847,4 +910,6 @@ taskqueues = {
 	armalab = armkbotlabT2,
 	armavp = armvehlabT2,
 	armaap = armairlabT2,
+	armhp = armhoverlabT2,
+	armshltx = armgantryT3,
 }
