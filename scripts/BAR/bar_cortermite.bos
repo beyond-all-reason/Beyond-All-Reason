@@ -264,8 +264,6 @@ Create()
 	turn leg4a to y-axis <-30> now;
 	turn leg1a to y-axis <-30> now;//2
 	turn leg3a to y-axis <30> now;//5
-	start-script SmokeUnit();
-	start-script DoTheWalking();
 	while(get BUILD_PERCENT_LEFT)
 	{
 		sleep 250;
@@ -274,6 +272,8 @@ Create()
 	moveSpeed = (get MAX_SPEED);
 	WALK_PERIOD=400;
 	start-script UnitSpeed();
+	start-script DoTheWalking();
+	start-script SmokeUnit();
 }
 
 
