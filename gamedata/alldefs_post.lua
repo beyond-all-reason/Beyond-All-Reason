@@ -159,7 +159,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 
-	if uDef.category['chicken'] ~= nil then	-- doesnt seem to work
+	if uDef.category and uDef.category['chicken'] ~= nil then	-- doesnt seem to work
 		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy
 	end
 
