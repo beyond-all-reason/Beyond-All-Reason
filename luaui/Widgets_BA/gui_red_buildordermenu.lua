@@ -790,7 +790,7 @@ local function UpdateGrid(g,cmds,ordertype)
 						table.insert(g.background.movableslaves,s2)
 					end
 					
-					local glowSize = s.sy * 4.4
+					local glowSize = s.sy * 6
 					s2.sy = s.sy + glowSize + glowSize
 					s2.py = s.py - glowSize
 					s2.px = s.px
@@ -798,7 +798,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					s2.texture = barGlowCenterTexture
 					s2.border = {0,0,0,0}
 					s2.color = {s.color[1] * 10, s.color[2] * 10, s.color[3] * 10, 0}
-					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.06}
+					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.11}
 					s2.active = true
 					
 					usedstaterectanglesglow = usedstaterectanglesglow + 1

@@ -41,7 +41,7 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 local bgcorner1 = ":n:".."LuaUI/Images/bgcorner1.png" -- only used to draw dropdown arrow
 local backwardTex = "LuaUI/Images/backward.dds"
 local forwardTex = "LuaUI/Images/forward.dds"
-local glowTex = "LuaUI/Images/glow.dds"
+local glowTex = "LuaUI/Images/glow2.dds"
 
 local bgMargin = 6
 
@@ -649,8 +649,8 @@ function DrawWindow()
 					if option.value == true then
 						glColor(0.66,0.92,0.66,1)
 						RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-						local boolGlow = boolPadding*1.3
-						glColor(0.66,1,0.66,0.23)
+						local boolGlow = boolPadding*3.5
+						glColor(0.66,1,0.66,0.5)
 						glTexture(glowTex)
 						glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
 						glColor(0.55,1,0.55,0.09)

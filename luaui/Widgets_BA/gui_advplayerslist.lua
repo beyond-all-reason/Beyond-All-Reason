@@ -890,8 +890,6 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('ActivityEvent')
 	widgetHandler:DeregisterGlobal('FpsEvent')
 	widgetHandler:DeregisterGlobal('SystemEvent')
-	widgetHandler:DeregisterGlobal('getPlayerScoresAdvplayerslist')
-
 	if ShareSlider then
 		gl_DeleteList(ShareSlider)
 	end
@@ -2059,8 +2057,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset)
 
     if ((barWidth/metalStorage)*metal) > 0.8 then
-        local glowsize = 12
-        gl_Color(1,1,1.2,0.033)
+        local glowsize = 11
+        gl_Color(1,1,1.2,0.04)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
 
@@ -2084,8 +2082,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset)
 
     if ((barWidth/energyStorage)*energy) > 0.8 then
-        local glowsize = 12
-        gl_Color(1,1,0.2,0.033)
+        local glowsize = 11
+        gl_Color(1,1,0.2,0.04)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
 

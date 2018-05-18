@@ -297,8 +297,8 @@ local function updateRejoin()
 		glTexRect(barArea[1], barArea[2], barArea[1]+(catchup * barWidth), barArea[4])
 		
 		-- Bar value glow
-		local glowSize = barHeight * 5
-		glColor(0, 1, 0, 0.06)
+		local glowSize = barHeight * 6
+		glColor(0, 1, 0, 0.11)
 		glTexture(barGlowCenterTexture)
 		glTexRect(barArea[1], barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
 		glTexture(barGlowEdgeTexture)
@@ -623,7 +623,7 @@ local function updateResbar(res)
 	local sliderHeightAdd = barHeight / 3.5
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
-	local glowSize = barHeight * 4
+	local glowSize = barHeight * 6
 
 	if resbarHover ~= nil and resbarHover == res then
 		sliderHeightAdd = barHeight/1.15
@@ -1016,7 +1016,7 @@ function drawResbarValues(res)
 	local r = {spGetTeamResources(spGetMyTeamID(),res)} -- 1 = cur, 2 = cap, 3 = pull, 4 = income, 5 = expense, 6 = share
 
 	local barWidth = resbarDrawinfo[res].barArea[3] - resbarDrawinfo[res].barArea[1]
-	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5
+	local glowSize = (resbarDrawinfo[res].barArea[4] - resbarDrawinfo[res].barArea[2]) * 5.5
 
 	local cappedCurRes = r[1]	-- limit so when production dies the value wont be much larger than what you can store
 	if r[1] > r[2]*1.07 then
@@ -1035,7 +1035,7 @@ function drawResbarValues(res)
 	glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
 
 	-- Bar value glow
-	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.06)
+	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.11)
 	glTexture(barGlowCenterTexture)
 	glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
 	glTexture(barGlowEdgeTexture)
