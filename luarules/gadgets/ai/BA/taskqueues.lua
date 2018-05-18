@@ -768,7 +768,7 @@ armairlabT2 = {
 }
 
 local assistqueue = {
-	{ action = "patrolrelative", position = {x = math.random(-100, 100), y = 0, z = math.random(-100, 100)} },
+	{ action = "patrolrelative", position = {x = 100, y = 0, z = 100} },
 }
 ----------------------------------------------------------
 	

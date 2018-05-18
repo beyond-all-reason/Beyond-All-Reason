@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "AI Resource Multiplier",
-		desc = "Adds 1/1 resource income so that I don't have to tie it to units anymore, controls extractor income",
+		desc = "Hmm",
 		author = "Damgam, used parts of code from resource gifts gadget by lurker (Dylan Petonke) and Google Frog",
 		date = "18 May 2018",
 		license = "GPL",
@@ -10,11 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local aiResourceMultiplier = Spring.GetModOptions().aiincomemultiplier or 1
-
-if aiResourceMultiplier <= 1 or aiResourceMultiplier == nil then
-	aiResourceMultiplier = 2
-end
+local aiResourceMultiplier = Spring.GetModOptions().aiincomemultiplier or 2
 
 local UDC = Spring.GetTeamUnitDefCount
 local UDN = UnitDefNames
