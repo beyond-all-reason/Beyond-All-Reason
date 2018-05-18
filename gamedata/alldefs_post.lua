@@ -88,8 +88,10 @@ function UnitDef_Post(name, uDef)
 					end
 				end
 			end
-			if VFS.FileExists('scripts/BAR/bar_'..barUnitName..'.lua') then
-				uDef.script = 'BAR/bar_'..barUnitName..'.lua'
+            if uDef.script ~= nil and VFS.FileExists('scripts/BAR/bar_'..uDef.script) then
+                uDef.script = 'BAR/'..uDef.script
+            elseif VFS.FileExists('scripts/BAR/bar_'..barUnitName..'.lua') then
+                    uDef.script = 'BAR/bar_'..barUnitName..'.lua'
 			elseif VFS.FileExists('scripts/BAR/bar_'..barUnitName..'.cob') then
 				uDef.script = 'BAR/bar_'..barUnitName..'.cob'
 			end
