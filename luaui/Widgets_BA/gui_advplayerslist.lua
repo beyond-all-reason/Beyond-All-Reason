@@ -225,6 +225,7 @@ local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
 local lastActivity = {}
 local lastFpsData = {}
 local lastSystemData = {}
+local lastGpuMemData = {}
 
 --------------------------------------------------------------------------------
 -- Tooltip
@@ -722,9 +723,12 @@ local function LockCamera(playerID)
 	UpdateRecentBroadcasters()
 end
 
+function GpuMemEvent(playerID, percentage)
+	lastGpuMemData[playerID] = percentage
+end
 
 function FpsEvent(playerID, fps)
-  lastFpsData[playerID] = fps
+	lastFpsData[playerID] = fps
 end
 	
 function SystemEvent(playerID, system)
@@ -779,6 +783,7 @@ function widget:Initialize()
   widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
   widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
   widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
+  widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
   widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	UpdateRecentBroadcasters()
 	
@@ -889,6 +894,7 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	widgetHandler:DeregisterGlobal('ActivityEvent')
 	widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('GpuMemEvent')
 	widgetHandler:DeregisterGlobal('SystemEvent')
 	if ShareSlider then
 		gl_DeleteList(ShareSlider)
@@ -1964,7 +1970,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastSystemData[playerID], name) end
+			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name) end
 		end
 	end
 	
@@ -2520,7 +2526,7 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
 end
 
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system, name)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
 			pingLvl = pingLvl.." ms"
@@ -2534,6 +2540,9 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system, name)
 		tipText = "Cpu: "..cpuLvl.."%"
 		if fps ~= nil then 
 			tipText = "FPS: "..fps.."    "..tipText
+		end
+		if gpumem ~= nil then
+			tipText = tipText.."    Gpu mem: "..gpumem.."%"
 		end
 		if system ~= nil then 
 			tipText = "\255\000\000\000"..name.."\n\255\233\180\180"..tipText.."\n\255\240\240\240"..system
