@@ -64,9 +64,15 @@ function CorRandomLab()
 	end
 end
 
-function CorAdvDefT1()
+function CorGroundAdvDefT1()
 	
-	local unitoptions = {"cormaw", "corhllt", "corhlt", "cormadsam", "corpun", "cormadsam",}
+	local unitoptions = {"cormaw", "corhllt", "corhlt", "corpun",}
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+function CorAirAdvDefT1()
+
+	local unitoptions = {"cormadsam","corrl",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -88,9 +94,21 @@ function CorAirT1()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
-function CorAdvDefT2()
+function CorGroundAdvDefT2()
 
-	local unitoptions = {"cortoast", "corgate", "corvipe", "cordoom", "corflak", "corscreamer", "corint", "corfmd", "corsilo",}
+	local unitoptions = {"cortoast","cordoom"}
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+function CorAirAdvDefT2()
+
+	local unitoptions = {"corvipe","corflak","corscreamer", }
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+function CorTacticalAdvDefT2()
+
+	local unitoptions = {"corgate","corint" }
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -188,9 +206,15 @@ function ArmRandomLab()
 	end
 end
 
-function ArmAdvDefT1()
+function ArmGroundAdvDefT1()
 	
-	local unitoptions = {"armclaw", "armbeamer", "armhlt", "armpacko", "armguard","armrl",}
+	local unitoptions = {"armclaw", "armbeamer","armhlt", "armguard", }
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+function ArmAirAdvDefT1()
+
+	local unitoptions = {"armrl", "armpacko",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -212,9 +236,21 @@ function ArmAirT1()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
-function ArmAdvDefT2()
+function ArmGroundAdvDefT2()
 
-	local unitoptions = {"armgate", "armamb", "armpb", "armanni", "armflak","armmercury", "armamd", "armbrtha",}
+	local unitoptions = {"armamb","armanni", "armbrtha",}
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+function ArmAirAdvDefT2()
+
+	local unitoptions = {"armpb", "armflak","armmercury",}
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+function ArmTacticalAdvDefT2()
+
+	local unitoptions = {"armgate",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -238,7 +274,7 @@ end
 
 function ArmHover()
 	
-	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh","armthovr", }
+	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh", }
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -267,10 +303,6 @@ function ArmGantry()
 	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
 	return unitoptions[math.random(1,#unitoptions)]
 end
-
-
-
-
 
 -------------------------------------------------------------
 
@@ -328,14 +360,15 @@ local cort1construction = {
 	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
-	CorAdvDefT1,
+	CorGroundAdvDefT1,
+    CorAirAdvDefT1,
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
-	CorAdvDefT1,
+	CorGroundAdvDefT1,
 	CorEnT1,
-	CorAdvDefT1,
+	CorAirAdvDefT1,
 	CorEnT1,
 	"cormstor",
 	CorEnT1,
@@ -344,23 +377,23 @@ local cort1construction = {
 	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
-	CorAdvDefT1,
+	CorGroundAdvDefT1,
 	CorEnT1,
 	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
-	CorAdvDefT1,
+	CorGroundAdvDefT1,
 	CorEnT1,
-	CorAdvDefT1,
+    CorAirAdvDefT1,
 	CorEnT1,
 	"coradvsol",
 	CorEnT1,
 	CorEnT1,
-	CorAdvDefT1,
+	CorGroundAdvDefT1,
 	CorEnT1,
 	"corestor",
 	CorEnT1,
-	CorAdvDefT1,
+    CorAirAdvDefT1,
 	"coradvsol",
 }
 
@@ -390,17 +423,21 @@ local cort1mexingqueue = {
 local cort2construction = {
 	"cormoho",
 	CorRandomLab,
-	ArmAdvDefT2,
+	ArmGroundAdvDefT2,
+    ArmAirAdvDefT2,
 	"cormoho",
 	CorRandomLab,
 	"cormoho",
 	CorRandomLab,
 	"cormoho",
 	CorRandomLab,
-	ArmAdvDefT2,
+	ArmGroundAdvDefT2,
+    ArmAirAdvDefT2,
 	"corfus",
 	CorRandomLab,
-	ArmAdvDefT2,
+	ArmGroundAdvDefT2,
+    ArmAirAdvDefT2,
+    ArmTacticalAdvDefT2,
 }
 
 local corkbotlab = {
@@ -578,12 +615,6 @@ local armcommanderq = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	"armllt",
-	"armrad",
-	ArmEnT1,
-	ArmEnT1,
 	"armllt",
 	ArmEnT1,
 	ArmEnT1,
@@ -596,7 +627,6 @@ local armcommanderq = {
 	"armmstor",
 	ArmEnT1,
 	ArmRandomLab,
-	"armllt",
 }
 
 local armt1construction = {
@@ -604,42 +634,42 @@ local armt1construction = {
 	ArmEnT1,
 	ArmRandomLab,
 	"armnanotc",
-	ArmAdvDefT1,
+	ArmGroundAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
-	ArmAdvDefT1,
+	ArmGroundAdvDefT1,
 	ArmEnT1,
-	ArmAdvDefT1,
+	ArmAirAdvDefT1,
 	"armrad",
 	ArmEnT1,
 	ArmEnT1,
 	"armadvsol",
-	ArmAdvDefT1,
+	ArmGroundAdvDefT1,
 	"armmstor",
 	ArmRandomLab,
 	"armnanotc",
-	ArmAdvDefT1,
+	ArmAirAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
-	ArmAdvDefT1,
+	ArmGroundAdvDefT1,
 	ArmRandomLab,
 	"armnanotc",
-	ArmAdvDefT1,
+	ArmAirAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
-	ArmAdvDefT1,
+	ArmGroundAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
-	ArmAdvDefT1,
+	ArmAirAdvDefT1,
 	"armrad",
 	"armadvsol",
 	ArmEnT1,
 	ArmEnT1,
-	ArmAdvDefT1,
+	ArmGroundAdvDefT1,
 	"armestor",
 	ArmEnT1,
 }
@@ -670,14 +700,19 @@ local armt1mexingqueue = {
 local armt2construction = {
 	"armmoho",
 	ArmRandomLab,
+    ArmAirAdvDefT2,
+	"armmoho",
+	ArmRandomLab,
+    ArmGroundAdvDefT2,
 	"armmoho",
 	ArmRandomLab,
 	"armmoho",
 	ArmRandomLab,
-	"armmoho",
-	ArmRandomLab,
+    ArmGroundAdvDefT2,
 	"armfus",
 	ArmRandomLab,
+    ArmGroundAdvDefT2,
+    ArmTacticalAdvDefT2,
 }
 
 local armkbotlab = {
