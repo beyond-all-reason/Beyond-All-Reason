@@ -90,7 +90,7 @@ if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401138 
 			updateTimer = updateTimer + GetLastUpdateSeconds()
 			if updateTimer > sendPacketEvery then
 				local used, max = Spring.GetVidMemUsage()
-				if type(used) == 'number' then
+				if type(used) == 'number' and used > 0 then
 					SendLuaRulesMsg("@"..validation..math.ceil((used/max)*100))
 					updateTimer = 0
 				end

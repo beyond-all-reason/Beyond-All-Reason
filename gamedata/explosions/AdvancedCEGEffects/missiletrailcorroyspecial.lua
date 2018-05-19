@@ -69,7 +69,7 @@ return {
        water              = true,
        properties = {
          airdrag            = 0,
-         colormap           = [[0.066 0.055 0.015 0.005   0 0 0 0.01]],
+         colormap           = [[0.18 0.015 0.05 0.01   0 0 0 0.01]],
          directional        = true,
          emitrot            = 90,
          emitrotspread      = 0,
@@ -85,7 +85,7 @@ return {
          pos                = [[0.0, 0, 0.0]],
          sizegrowth         = -1.7,
          sizemod            = 1,
-         texture            = [[glow]],
+         texture            = [[glow2]],
          useairlos          = true,
        },
      },

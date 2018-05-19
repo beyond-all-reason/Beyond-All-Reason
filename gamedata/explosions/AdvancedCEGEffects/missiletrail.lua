@@ -384,12 +384,12 @@ local definitions = {
       underwater         = 1,
       water              = true,
       properties = {
-        colormap           = [[0.035 0.025 0.008 0.005   0 0 0 0.01]],
+        colormap           = [[0.15 0.105 0.034 0.01   0 0 0 0.01]],
         dir                = [[dir]],
         frontoffset        = 0,
         fronttexture       = [[trans]],
         length             = 70,
-        sidetexture        = [[glow]],
+        sidetexture        = [[glow2]],
         size               = 32,
         sizegrowth         = 0,
         ttl                = 1,
@@ -498,7 +498,7 @@ local definitions = {
       water              = true,
       properties = {
         airdrag            = 0,
-        colormap           = [[0.05 0.035 0.007 0.005   0 0 0 0.01]],
+        colormap           = [[0.15 0.1 0.02 0.01   0 0 0 0.01]],
         directional        = true,
         emitrot            = 90,
         emitrotspread      = 0,
@@ -514,7 +514,7 @@ local definitions = {
         pos                = [[0.0, 0, 0.0]],
         sizegrowth         = -1.7,
         sizemod            = 1,
-        texture            = [[glow]],
+        texture            = [[glow2]],
         useairlos          = true,
       },
     },
@@ -668,34 +668,34 @@ local definitions = {
                 ttl                = 1,
             },
         },
-        --fireglow = {
-        --  air                = true,
-        --  class              = [[CSimpleParticleSystem]],
-        --  count              = 1,
-        --  ground             = true,
-        --  water              = true,
-        --  properties = {
-        --    airdrag            = 0,
-        --    colormap           = [[0.05 0.035 0.007 0.005   0 0 0 0.01]],
-        --    directional        = true,
-        --    emitrot            = 90,
-        --    emitrotspread      = 0,
-        --    emitvector         = [[dir]],
-        --    gravity            = [[0.0, 0.0, 0.0]],
-        --    numparticles       = 1,
-        --    particlelife       = 2,
-        --    particlelifespread = 0,
-        --    particlesize       = 33,
-        --    particlesizespread = 6,
-        --    particlespeed      = 0,
-        --    particlespeedspread = 0,
-        --    pos                = [[0.0, 90, 0.0]],
-        --    sizegrowth         = 0,
-        --    sizemod            = 1,
-        --    texture            = [[glow]],
-        --    useairlos          = true,
-        --  },
-        --},
+        fireglow = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          properties = {
+            airdrag            = 0,
+            colormap           = [[0.15 0.095 0.02 0.01   0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 90,
+            emitrotspread      = 0,
+            emitvector         = [[dir]],
+            gravity            = [[0.0, 0.0, 0.0]],
+            numparticles       = 1,
+            particlelife       = 2,
+            particlelifespread = 0,
+            particlesize       = 33,
+            particlesizespread = 6,
+            particlespeed      = 0,
+            particlespeedspread = 0,
+            pos                = [[0.0, 90, 0.0]],
+            sizegrowth         = 0,
+            sizemod            = 1,
+            texture            = [[glow2]],
+            useairlos          = true,
+          },
+        },
         sparks = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -836,34 +836,34 @@ local definitions = {
                 ttl                = 1,
             },
         },
-        --fireglow = {
-        --  air                = true,
-        --  class              = [[CSimpleParticleSystem]],
-        --  count              = 1,
-        --  ground             = true,
-        --  water              = true,
-        --  properties = {
-        --    airdrag            = 0,
-        --    colormap           = [[0.05 0.035 0.007 0.005   0 0 0 0.01]],
-        --    directional        = true,
-        --    emitrot            = 90,
-        --    emitrotspread      = 0,
-        --    emitvector         = [[dir]],
-        --    gravity            = [[0.0, 0.0, 0.0]],
-        --    numparticles       = 1,
-        --    particlelife       = 2,
-        --    particlelifespread = 0,
-        --    particlesize       = 33,
-        --    particlesizespread = 6,
-        --    particlespeed      = 0,
-        --    particlespeedspread = 0,
-        --    pos                = [[0.0, 90, 0.0]],
-        --    sizegrowth         = 0,
-        --    sizemod            = 1,
-        --    texture            = [[glow]],
-        --    useairlos          = true,
-        --  },
-        --},
+        fireglow = {
+          air                = true,
+          class              = [[CSimpleParticleSystem]],
+          count              = 1,
+          ground             = true,
+          water              = true,
+          properties = {
+            airdrag            = 0,
+            colormap           = [[0.15 0.095 0.02 0.01   0 0 0 0.01]],
+            directional        = true,
+            emitrot            = 90,
+            emitrotspread      = 0,
+            emitvector         = [[dir]],
+            gravity            = [[0.0, 0.0, 0.0]],
+            numparticles       = 1,
+            particlelife       = 2,
+            particlelifespread = 0,
+            particlesize       = 33,
+            particlesizespread = 6,
+            particlespeed      = 0,
+            particlespeedspread = 0,
+            pos                = [[0.0, 90, 0.0]],
+            sizegrowth         = 0,
+            sizemod            = 1,
+            texture            = [[glow2]],
+            useairlos          = true,
+          },
+        },
         sparks = {
             air                = true,
             class              = [[CSimpleParticleSystem]],
@@ -1022,7 +1022,7 @@ local definitions = {
           water              = true,
           properties = {
               airdrag            = 1,
-              colormap           = [[0.09 0.055 0.01 0.01   0 0 0 0.01]],
+              colormap           = [[0.25 0.15 0.028 0.01   0 0 0 0.01]],
               directional        = true,
               emitrot            = -180,
               emitrotspread      = 0,
@@ -1038,7 +1038,7 @@ local definitions = {
               pos                = [[0.0, 0, 0.0]],
               sizegrowth         = -0.5,
               sizemod            = 1,
-              texture            = [[dirt]],
+              texture            = [[glow2]],
               useairlos          = true,
           },
       },
@@ -1227,7 +1227,7 @@ local definitions = {
         water              = true,
         properties = {
             airdrag            = 1,
-            colormap           = [[0.09 0.055 0.01 0.01   0 0 0 0.01]],
+            colormap           = [[0.25 0.1 0.018 0.01   0 0 0 0.01]],
             directional        = true,
             emitrot            = -180,
             emitrotspread      = 0,
@@ -1236,14 +1236,14 @@ local definitions = {
             numparticles       = 1,
             particlelife       = 2,
             particlelifespread = 0,
-            particlesize       = 77,
+            particlesize       = 100,
             particlesizespread = 7,
             particlespeed      = 16,
             particlespeedspread = 0,
             pos                = [[0.0, 0, 0.0]],
             sizegrowth         = -0.5,
             sizemod            = 1,
-            texture            = [[dirt]],
+            texture            = [[glow2]],
             useairlos          = true,
         },
     },
@@ -1481,12 +1481,12 @@ local definitions = {
             underwater         = 1,
             water              = true,
             properties = {
-                colormap           = [[0.05 0.015 0.045 0.005   0 0 0 0.01]],
+                colormap           = [[0.17 0.05 0.15 0.01   0 0 0 0.01]],
                 dir                = [[dir]],
                 frontoffset        = 0,
                 fronttexture       = [[trans]],
                 length             = 66,
-                sidetexture        = [[glow]],
+                sidetexture        = [[glow2]],
                 size               = 37,
                 sizegrowth         = 0,
                 ttl                = 1,
@@ -1584,7 +1584,7 @@ local definitions = {
           water              = true,
           properties = {
               airdrag            = 1,
-              colormap           = [[0.1 0.05 0.1 0.01   0 0 0 0.01]],
+              colormap           = [[0.15 0.095 0.2 0.01   0 0 0 0.01]],
               directional        = true,
               emitrot            = -180,
               emitrotspread      = 0,
@@ -1600,7 +1600,7 @@ local definitions = {
               pos                = [[0.0, 0, 0.0]],
               sizegrowth         = -0.5,
               sizemod            = 1,
-              texture            = [[dirt]],
+              texture            = [[glow2]],
               useairlos          = true,
           },
       },
@@ -1740,7 +1740,7 @@ local definitions = {
             water              = true,
             properties = {
                 airdrag            = 1,
-                colormap           = [[0.09 0.05 0.01 0.01   0 0 0 0.01]],
+                colormap           = [[0.33 0.21 0.04 0.01   0 0 0 0.01]],
                 directional        = true,
                 emitrot            = -180,
                 emitrotspread      = 0,
@@ -1749,14 +1749,14 @@ local definitions = {
                 numparticles       = 1,
                 particlelife       = 3,
                 particlelifespread = 0,
-                particlesize       = 122,
+                particlesize       = 150,
                 particlesizespread = 20,
                 particlespeed      = 20,
                 particlespeedspread = 0,
                 pos                = [[0.0, 0, 0.0]],
                 sizegrowth         = -0.4,
                 sizemod            = 1,
-                texture            = [[dirt]],
+                texture            = [[glow2]],
                 useairlos          = true,
             },
         },
@@ -1865,7 +1865,7 @@ local definitions = {
             water              = true,
             properties = {
                 airdrag            = 1,
-                colormap           = [[0.09 0.05 0.01 0.01   0 0 0 0.01]],
+                colormap           = [[0.36 0.23 0.045 0.01   0 0 0 0.01]],
                 directional        = true,
                 emitrot            = -180,
                 emitrotspread      = 0,
@@ -1874,14 +1874,14 @@ local definitions = {
                 numparticles       = 1,
                 particlelife       = 3,
                 particlelifespread = 0,
-                particlesize       = 166,
+                particlesize       = 210,
                 particlesizespread = 20,
                 particlespeed      = 20,
                 particlespeedspread = 0,
                 pos                = [[0.0, 0, 0.0]],
                 sizegrowth         = -0.4,
                 sizemod            = 1,
-                texture            = [[dirt]],
+                texture            = [[glow2]],
                 useairlos          = true,
             },
         },
@@ -2102,7 +2102,7 @@ local definitions = {
           water              = true,
           properties = {
               airdrag            = 1,
-              colormap           = [[0.1 0.055 0.01 0.01   0 0 0 0.01]],
+              colormap           = [[0.15 0.095 0.02 0.01   0 0 0 0.01]],
               directional        = true,
               emitrot            = 180,
               emitrotspread      = 0,
@@ -2118,7 +2118,7 @@ local definitions = {
               pos                = [[0.0, 0, 0.0]],
               sizegrowth         = -0.5,
               sizemod            = 1,
-              texture            = [[dirt]],
+              texture            = [[glow2]],
               useairlos          = true,
           },
       },
@@ -2311,7 +2311,7 @@ local definitions = {
             water              = true,
             properties = {
                 airdrag            = 1,
-                colormap           = [[0.1 0.055 0.01 0.01   0 0 0 0.01]],
+                colormap           = [[0.15 0.095 0.02 0.01   0 0 0 0.01]],
                 directional        = true,
                 emitrot            = 180,
                 emitrotspread      = 0,
@@ -2327,7 +2327,7 @@ local definitions = {
                 pos                = [[0.0, 0, 0.0]],
                 sizegrowth         = -0.5,
                 sizemod            = 1,
-                texture            = [[dirt]],
+                texture            = [[glow2]],
                 useairlos          = true,
             },
         },
@@ -2492,6 +2492,7 @@ definitions["missiletrailsmall-red"].engine.properties.size = 3.45
 definitions["missiletrailsmall-red"].sparks.properties.colormap = [[0.8 0.3 0.18 0.01   0.8 0.3 0.1 0.007  0.4 0.11 0.04 0.007   0 0 0 0.01]]
 definitions["missiletrailsmall-red"].sparks.properties.particlesize = 31
 definitions["missiletrailsmall-red"].trail.properties.size = 2.75
+definitions["missiletrailsmall-red"].fireglow.properties.colormap = [[0.2 0.075 0.075 0.01   0 0 0 0.01]]
 definitions["missiletrailsmall-red-smoke"] = deepcopy(definitions["missiletrailsmall-simple-smoke"])
 definitions["missiletrailsmall-red-smoke"].engine.properties.length = [[-11 r1.5]]
 definitions["missiletrailsmall-red-smoke"].engine.properties.size = 2.5
@@ -2499,11 +2500,11 @@ definitions["missiletrailsmall-red-smoke"].trail.properties.size = 2.75
 definitions["missiletrailmedium-red"] = deepcopy(definitions["missiletrailmedium"])
 definitions["missiletrailmedium-red"].engine.properties.colormap = [[1 0.33 0.17 0.01   1.0 0.25 0.1 0.01   1.0 0.22 0.05 0.01   0 0 0 0.01]]
 --definitions["missiletrailmedium-red"].fire.propertiescolormap  = [[0.9 0.5 0.16 0.15   0.44 0.2 0.05 0.2    0.14 0.03 0.005 0.17    0.02 0.007 0.003 0.1	 0 0 0 0.01]]
-definitions["missiletrailmedium-red"].fireglow.properties.colormap = [[0.06 0.022 0.004 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-red"].fireglow.properties.colormap = [[0.25 0.1 0.01 0.01   0 0 0 0.01]]
 definitions["missiletrailmedium-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 definitions["missiletraillarge-red"] = deepcopy(definitions["missiletraillarge"])
 definitions["missiletraillarge-red"].fire.properties.colormap  = [[0.9 0.45 0.16 0.15   0.44 0.22 0.05 0.2    0.14 0.03 0.005 0.17    0.02 0.007 0.003 0.1	 0 0 0 0.01]]
-definitions["missiletraillarge-red"].fireglow.properties.colormap = [[0.06 0.022 0.004 0.01   0 0 0 0.01]]
+definitions["missiletraillarge-red"].fireglow.properties.colormap = [[0.25 0.09 0.018 0.01   0 0 0 0.01]]
 definitions["missiletraillarge-red"].sparks.properties.colormap = [[0.9 0.44 0.4 0.01   0.9 0.36 0.1 0.007  0.4 0.13 0.05 0.007   0 0 0 0.01]]
 
 
@@ -2526,7 +2527,7 @@ definitions["missiletrailmedium-starburst"].smoke.properties.particlespeedspread
 definitions["missiletrailmedium-starburst"].engine.properties.colormap = [[1 0.15 0.1 0.01   1.0 0.09 0 0.01   1.0 0.06 0 0.01   0 0 0 0.01]]
 definitions["missiletrailmedium-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 definitions["missiletrailmedium-starburst"].dustparticles.properties.colormap = [[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
-definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.1 0.02 0.008 0.01   0 0 0 0.01]]
+definitions["missiletrailmedium-starburst"].fireglow.properties.colormap = [[0.25 0.05 0.021 0.01   0 0 0 0.01]]
 
 definitions["missiletrailmedium-starburst-vertical"] = deepcopy(definitions["missiletrailmedium-starburst"])
 definitions["missiletrailmedium-starburst-vertical"].sparks.properties.numparticles = 2
@@ -2542,11 +2543,11 @@ definitions["missiletraillarge-starburst"].smoke.properties.particlespeedspread 
 definitions["missiletraillarge-starburst"].fire.properties.colormap = [[1 0.5 0.15 0.15   0.55 0.2 0.05 0.2    0.14 0.03 0 0.17    0.02 0.005 0.006 0.1	 0 0 0 0.01]]
 definitions["missiletraillarge-starburst"].sparks.properties.colormap = [[1 0.2 0.1 0.01   1 0.15 0.05 0.007  0.55 0.05 0 0.007   0 0 0 0.01]]
 definitions["missiletraillarge-starburst"].dustparticles.properties.colormap = [[0.4 0.35 0.3 0.008    1 0.5 0.3 0.02    0.66 0.33 0.2 0.17    0.5 0.22 0.12 0.16    0.33 0.16 0.05 0.15    0 0 0 0.01]]
-definitions["missiletraillarge-starburst"].fireglow.properties.colormap = [[0.1 0.02 0.008 0.01   0 0 0 0.01]]
+definitions["missiletraillarge-starburst"].fireglow.properties.colormap = [[0.25 0.05 0.02 0.01   0 0 0 0.01]]
 
 
 definitions["missiletrail-juno"] = deepcopy(definitions["missiletrailmedium"])
-definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.066 0.09 0.01 0.01   0 0 0 0.01]]
+definitions["missiletrail-juno"].fireglow.properties.colormap = [[0.25 0.2 0.02 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].engine.properties.colormap = [[0.66 1 0.4 0.01   0.6 1 0.2 0.01   0.44 1 0.1 0.01   0 0 0 0.01]]
 definitions["missiletrail-juno"].sparks.properties.colormap = [[0.6 0.9 0.4 0.01   0.5 0.9 0.1 0.007  0.2 0.4 0.05 0.007   0 0 0 0.01]]
 definitions["missiletrail-juno"].dustparticles.properties.colormap = [[0.4 0.4 0.4 0.008    0.7 1 0.48 0.02    0.44 0.66 0.28 0.17    0.33 0.5 0.19 0.16    0.2 0.33 0.13 0.15    0 0 0 0.01]]
@@ -2566,7 +2567,7 @@ definitions["missiletrail-juno-starburst"].fireglow.properties.particlesize = de
 
 definitions["cruisemissiletrail-emp"] = deepcopy(definitions["cruisemissiletrail"])
 definitions["cruisemissiletrail-emp"].smokeandfire.properties.colormap = [[0.65 0.6 0.7 0.2   0.4 0.36 0.5 0.2    0.24 0.22 0.4 0.15    0.064 0.06 0.11 0.11     0.032 0.03 0.065 0.09   0.053 0.05 0.2 0.06   0 0 0 0.01]]
-definitions["cruisemissiletrail-emp"].fireglow.properties.colormap = [[0.045 0.04 0.07 0.01   0 0 0 0.01]]
+definitions["cruisemissiletrail-emp"].fireglow.properties.colormap = [[0.17 0.15 0.25 0.01   0 0 0 0.01]]
 definitions["cruisemissiletrail-emp"].sparks.properties.colormap = [[0.66 0.6 0.9 0.01   0.5 0.45 0.9 0.007  0.27 0.25 0.65 0]]
 
 definitions["cruisemissiletrail-tacnuke"] = deepcopy(definitions["cruisemissiletrail"])
