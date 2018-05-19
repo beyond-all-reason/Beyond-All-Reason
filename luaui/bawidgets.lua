@@ -29,6 +29,7 @@ local gl = gl
 
 local CONFIG_FILENAME    = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '.lua'
 local WIDGET_DIRNAME     = LUAUI_DIRNAME .. 'Widgets_BA/'
+local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
 
 local SELECTOR_BASENAME = 'selector.lua'
 
@@ -361,9 +362,9 @@ function widgetHandler:Initialize()
 
   -- stuff the raw widgets into unsortedWidgets
   if self.allowUserWidgets and mo_allowuserwidgets then
-    local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW_ONLY)
+    local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.RAW)
     for k,wf in ipairs(widgetFiles) do
-      GetWidgetInfo(wf, VFS.RAW_ONLY)
+      GetWidgetInfo(wf, VFS.RAW)
       local widget = self:LoadWidget(wf, false)
       if (widget) and not zipOnly[widget.whInfo.name] then
         table.insert(unsortedWidgets, widget)
@@ -372,9 +373,19 @@ function widgetHandler:Initialize()
   end
   
   -- stuff the zip widgets into unsortedWidgets
-  local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP_ONLY)
+  local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
   for k,wf in ipairs(widgetFiles) do
-    GetWidgetInfo(wf, VFS.ZIP_ONLY)
+    GetWidgetInfo(wf, VFS.ZIP)
+    local widget = self:LoadWidget(wf, true)
+    if (widget) then
+      table.insert(unsortedWidgets, widget)
+    end
+  end
+  
+  -- stuff the map widgets into unsortedWidgets
+  local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
+  for k,wf in ipairs(widgetFiles) do
+    GetWidgetInfo(wf, VFS.MAP)
     local widget = self:LoadWidget(wf, true)
     if (widget) then
       table.insert(unsortedWidgets, widget)
