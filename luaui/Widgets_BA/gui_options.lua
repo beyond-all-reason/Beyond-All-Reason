@@ -1057,8 +1057,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('EnemySpotter', 'enemyspotter', 'setHighlight', {'useXrayHighlight'}, options[i].value)
 		elseif id == 'underconstructiongfx_shader' then
 			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setShader', {'useHighlightShader'}, options[i].value)
-		elseif id == 'underconstructiongfx_teamcolor' then
-			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setTeamcolor', {'useTeamcolor'}, options[i].value)
         elseif id == 'highlightselunits_shader' then
 			saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setShader', {'useHighlightShader'}, options[i].value)
 		elseif id == 'highlightselunits_teamcolor' then
@@ -1718,7 +1716,6 @@ function loadAllWidgetData()
 
 	loadWidgetData("Under construction gfx", "underconstructiongfx_opacity", {'highlightAlpha'})
 	loadWidgetData("Under construction gfx", "underconstructiongfx_shader", {'useHighlightShader'})
-	loadWidgetData("Under construction gfx", "underconstructiongfx_teamcolor", {'useTeamcolor'})
 
 	loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", {'highlightAlpha'})
 	loadWidgetData("Highlight Selected Units", "highlightselunits_shader", {'useHighlightShader'})
@@ -1832,7 +1829,6 @@ function init()
 		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction highlight", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
 		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
 		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
-		{id="underconstructiongfx_teamcolor", group="gfx", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
@@ -2113,7 +2109,6 @@ function init()
 		options[getOptionByID('underconstructiongfx')] = nil
 		options[getOptionByID("underconstructiongfx_opacity")] = nil
 		options[getOptionByID("underconstructiongfx_shader")] = nil
-		options[getOptionByID("underconstructiongfx_teamcolor")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then

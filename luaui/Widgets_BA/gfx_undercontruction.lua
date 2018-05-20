@@ -23,7 +23,6 @@ function widget:GetInfo()
   }
 end
 
-local useTeamcolor = true
 local highlightAlpha = 0.4
 local useHighlightShader = true
 local maxShaderUnits = 100
@@ -31,7 +30,6 @@ local edgeExponent = 5
 
 local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
-local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitTeam = Spring.GetUnitTeam
 local myPlayerID = Spring.GetMyPlayerID()
 
@@ -125,13 +123,6 @@ function widget:Initialize()
     useHighlightShader = value
     CreateHighlightShader()
   end
-  WG['underconstructiongfx'].getTeamcolor = function()
-    return useTeamcolor
-  end
-  WG['underconstructiongfx'].setTeamcolor = function(value)
-    useTeamcolor = value
-    CreateHighlightShader()
-  end
 
   if gl.CreateShader ~= nil then
     CreateHighlightShader()
@@ -199,20 +190,12 @@ function widget:DrawWorld()
     if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
       local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
       if maxHealth ~= nil then
-        if useTeamcolor then
-          if teamID ~= prevTeamID then
-            r,g,b = spGetTeamColor(teamID)
-          end
-          prevTeamID = teamID
-          gl.Color(r*0.8,g*0.8,b*0.8,highlightAlpha - (highlightAlpha*buildProgress))
-        else
-          gl.Color(
-            health>maxHealth/2 and 1.5-2*health/maxHealth or 0.5, -- red
-            health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
-            0, -- blue
-            highlightAlpha - (highlightAlpha*buildProgress)
-          )
-        end
+        gl.Color(
+          health>maxHealth/2 and 1.5-2*health/maxHealth or 0.5, -- red
+          health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
+          0, -- blue
+          highlightAlpha - (highlightAlpha*buildProgress)
+        )
         gl.Unit(unitID, true)
       end
     end
@@ -235,13 +218,12 @@ widget.DrawWorldRefraction = widget.DrawWorld
 
 
 function widget:GetConfigData()
-	return {highlightAlpha=highlightAlpha, useHighlightShader=useHighlightShader, useTeamcolor=useTeamcolor}
+	return {highlightAlpha=highlightAlpha, useHighlightShader=useHighlightShader}
 end
 
 function widget:SetConfigData(data)
   if data.useHighlightShader ~= nil then highlightAlpha = data.highlightAlpha end
   if data.useHighlightShader ~= nil then useHighlightShader = data.useHighlightShader end
-  if data.useHighlightShader ~= nil then useTeamcolor = data.useTeamcolor end
 end
 
 
