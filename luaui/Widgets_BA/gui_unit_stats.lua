@@ -112,6 +112,7 @@ local uDefs = UnitDefs
 local wDefs = WeaponDefs
 
 local triggerKey = KEYSYMS.SPACE
+local oldUnitpics = false
 
 local myTeamID = Spring.GetMyTeamID
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
@@ -205,6 +206,13 @@ end
 ------------------------------------------------------------------------------------
 
 function widget:Initialize()
+	WG['unitstats'] = {}
+	WG['unitstats'].getOldUnitIcons = function()
+		return oldUnitpics
+	end
+	WG['unitstats'].setOldUnitIcons = function(value)
+		oldUnitpics = value
+	end
 	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
 		VFS.Include("unbaconfigs/stats.lua")
 		unba = true
@@ -213,6 +221,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	WG['unitstats'] = nil
 	RemoveGuishader()
 end
 
@@ -299,7 +308,11 @@ function widget:DrawScreen()
 	
 	-- icon
   glColor(1,1,1,1)
-  glTexture('#' .. uDefID)
+  if oldUnitpics and UnitDefs[uDefID] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[uDefID].name..'.dds') then
+  	glTexture('unitpics/'..UnitDefs[uDefID].name..'.dds')
+  else
+  	glTexture('#' .. uDefID)
+  end
   glTexRect(cX, cY+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cY+cornersize+iconHalfSize)
   glTexture(false)
   
@@ -592,6 +605,17 @@ function widget:DrawScreen()
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
 		WG['guishader_api'].InsertRect(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, 'unit_stats_data')
+	end
+end
+
+
+function widget:GetConfigData()
+	return {oldUnitpics=oldUnitpics}
+end
+
+function widget:SetConfigData(data) --load config
+	if (data.oldUnitpics ~= nil) then
+		oldUnitpics = data.oldUnitpics
 	end
 end
 
