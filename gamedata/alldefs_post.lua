@@ -103,8 +103,8 @@ function UnitDef_Post(name, uDef)
 			end
 			if uDef.buildpic ~= nil then
 				local buildpicname = oldUnitName[name] and string.gsub(uDef.buildpic, name, barUnitName) or uDef.buildpic
-				if VFS.FileExists('unitpics/BAR/'..buildpicname) then
-					uDef.buildpic = 'BAR/'..buildpicname
+				if VFS.FileExists('unitpics/bar_'..buildpicname) then
+					uDef.buildpic = 'bar_'..buildpicname
 				end
 			end
 
