@@ -30,6 +30,7 @@ local edgeExponent = 5
 
 local spIsUnitIcon = Spring.IsUnitIcon
 local spIsUnitInView = Spring.IsUnitInView
+local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitTeam = Spring.GetUnitTeam
 local myPlayerID = Spring.GetMyPlayerID()
 
@@ -190,12 +191,11 @@ function widget:DrawWorld()
     if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
       local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
       if maxHealth ~= nil then
-        gl.Color(
-          health>maxHealth/2 and 1.5-2*health/maxHealth or 0.5, -- red
-          health>maxHealth/2 and 1 or 2*health/maxHealth, -- green
-          0, -- blue
-          highlightAlpha - (highlightAlpha*buildProgress)
-        )
+        if teamID ~= prevTeamID then
+          r,g,b = spGetTeamColor(teamID)
+        end
+        prevTeamID = teamID
+        gl.Color(r*0.8,g*0.8,b*0.8,highlightAlpha - (highlightAlpha*buildProgress))
         gl.Unit(unitID, true)
       end
     end
