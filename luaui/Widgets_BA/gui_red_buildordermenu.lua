@@ -24,7 +24,7 @@ local buttonTexture		     = "LuaUI/Images/button.dds"
 local barGlowCenterTexture = "LuaUI/Images/barglow-center.dds"
 local barGlowEdgeTexture   = "LuaUI/Images/barglow-edge.dds"
 
-local oldUnitpicsDir   = "LuaUI/Images/oldunitpics/"
+local oldUnitpicsDir   = "unitpics/"
 
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -1115,7 +1115,7 @@ function widget:SetConfigData(data) --load config
 			largePrice = data.largePrice
 		end
 		if (data.oldUnitpics ~= nil) then
-			--oldUnitpics = data.oldUnitpics
+			oldUnitpics = data.oldUnitpics
 		end
 		if (data.shortcutsInfo ~= nil) then
 			shortcutsInfo = data.shortcutsInfo

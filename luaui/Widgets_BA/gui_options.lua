@@ -32,6 +32,7 @@ local selectunfoldclick = 'LuaUI/Sounds/buildbar_hover.wav'
 local selecthoverclick = 'LuaUI/Sounds/hover.wav'
 local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
+local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
 local loadedFontSize = 32
 local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
@@ -112,7 +113,6 @@ local minimapIconsize = 2.5	-- spring wont remember what you set with '/minimap 
 local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
 	lowest = {
-		fsaa = 0,
 		bloom = false,
 		bloomhighlights = false,
 		water = 1,
@@ -137,7 +137,6 @@ local presets = {
 		enemyspotter_highlight = false,
 	},
 	low = {
-		fsaa = 0,
 		bloom = false,
 		bloomhighlights = false,
 		water = 2,
@@ -162,7 +161,6 @@ local presets = {
 		enemyspotter_highlight = false,
 	},
 	medium = {
-		fsaa = 2,
 		bloom = true,
 		bloomhighlights = false,
 		water = 4,
@@ -187,7 +185,6 @@ local presets = {
 		enemyspotter_highlight = false,
 	},
 	high = {
-		fsaa = 4,
 		bloom = true,
 		bloomhighlights = false,
 		water = 5,
@@ -212,7 +209,6 @@ local presets = {
 		enemyspotter_highlight = false,
 	},
 	ultra = {
-		fsaa = 8,
 		bloom = true,
 		bloomhighlights = true,
 		water = 3,
@@ -262,7 +258,7 @@ local textMargin	= 0.25
 local lineWidth		= 0.0625
 
 local posX = 0.947
-local posY = 0.970
+local posY = 0.965
 local buttonGL
 local startPosX = posX
 
@@ -355,15 +351,14 @@ end
 
 function DrawButton()
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-	gl.Color(0,0,0,0.8) 
-	RectRound(-1,-0.5,5.5,1.5,0.25, 2,2,2,2)
+	RectRound(0,0,4.5,1.05,0.25, 2,2,0,0)
 	local vertices = {
 		{v = {0, 1, 0}},
 		{v = {0, 0, 0}},
 		{v = {1, 0, 0}},
 	}
 	glShape(GL_LINE_STRIP, vertices)
-  glText("Settings", textMargin, textMargin, textSize, "nos")
+  glText("[ Options ]", textMargin, textMargin, textSize, "no")
 end
 	
 function lines(str)
@@ -1624,6 +1619,9 @@ function mouseEvent(x, y, button, release)
 				if windowList then gl.DeleteList(windowList) end
 				windowList = gl.CreateList(DrawWindow)
 			end
+			if returnTrue then
+				return true
+			end
 		end
 	elseif showOptionsToggleButton then
 		tx = (x - posX*vsx)/(17*widgetScale)
@@ -1807,11 +1805,11 @@ function init()
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
 
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
-		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
+		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=500, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 1000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
 
 		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
-		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 300)},
+		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=800, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 800)},
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
@@ -1838,7 +1836,7 @@ function init()
 		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
 		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
 		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
-		{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 20)},
+		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
         {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Shown on top of (adv)playerlist'},
 		{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
@@ -1869,8 +1867,6 @@ function init()
 		{id="minimapiconsize", group="ui", name="Minimap icon size", type="slider", min=2, max=3.5, step=0.25, value=minimapIconsize, description=''},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
-		{id="autoquit", group="ui", widget="Autoquit", name="Auto quit", type="bool", value=GetWidgetToggleValue("Autoquit"), description='Automatically quits after the game ends.\n...unless the mouse has been moved within a few seconds.'},
-
 		{id="showbuilderqueue", group="ui", widget="Show Builder Queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
 		{id="healthbarsscale", group="ui", name="Health Bars Scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
@@ -1882,7 +1878,7 @@ function init()
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
 
-		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenulargeicons", group="ui", name="Buildmenu large icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons'},
@@ -1959,11 +1955,6 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
-	-- disable music volume slider
-	if widgetHandler.knownWidgets["Music Player"] == nil then
-		options[getOptionByID('sndvolmusic')] = nil
-	end
-
 	-- add sound notification widget sound toggle options
 	if widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
@@ -1990,7 +1981,6 @@ function init()
 	else
 		options[getOptionByID('voicenotifs')] = nil
 		options[getOptionByID('voicenotifs_volume')] = nil
-		options[getOptionByID('voicenotifs_playtrackedplayernotifs')] = nil
 	end
 	
 	-- cursors
@@ -2014,6 +2004,8 @@ function init()
 
 	if Spring.GetModOptions == nil or (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
 		options[getOptionByID('normalmapping')] = nil
+	else
+		options[getOptionByID('buildmenuoldicons')] = nil
 	end
 
 	if (WG['healthbars'] == nil) then
