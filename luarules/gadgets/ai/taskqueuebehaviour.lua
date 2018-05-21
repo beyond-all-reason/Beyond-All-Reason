@@ -76,9 +76,7 @@ end
 
 function TaskQueueBehaviour:Update()
 	if not self:IsActive() then
-		unit = self.unit:Internal()
-		local p = unit:GetPosition()
-		SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
+		self:DebugPoint("nothing")
 		return
 	end
 	local f = self.game:Frame()
@@ -105,16 +103,14 @@ end
 function TaskQueueBehaviour:ProgressQueue()
 	unit = self.unit:Internal()
 	if self:IsWaitingForPosition() then
-		local p = unit:GetPosition()
-		SendToUnsynced("shard_debug_position",p.x,p.z,"waiting")
+		self:DebugPoint("waiting")
 		return
 	end
 	if self.queue == nil then
 		if self:HasQueues() then
 			self.queue = self:GetQueue()
 		else
-			local p = unit:GetPosition()
-			SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
+			self:DebugPoint("nothing")
 			return
 		end
 	end
@@ -124,15 +120,13 @@ function TaskQueueBehaviour:ProgressQueue()
 	if self.queue == nil then
 		self.game:SendToConsole("Warning: A "..self.name.." unit, has an empty task queue")
 		self:OnToNextTask()
-		local p = unit:GetPosition()
-		SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
+		self:DebugPoint("nothing")
 		return
 	end
 	local idx, val = next(self.queue,self.idx)
 	self.idx = idx
 	if idx == nil then
-		local p = unit:GetPosition()
-		SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
+		self:DebugPoint("nothing")
 		self.queue = self:GetQueue(name)
 		self:OnToNextTask()
 		return
@@ -141,69 +135,34 @@ function TaskQueueBehaviour:ProgressQueue()
 	local utype = nil
 	local value = val
 	if type(val) == "function" then
-		value = val(self)
+		value = val(self, self.ai, unit)
 	end
 	if value == "next" then
-		local p = unit:GetPosition()
-		SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
+		self:DebugPoint("nothing")
 		self:OnToNextTask()
 		return
 	end
 	if type(val) == "table" then
-		local action = value.action
-		if action == "wait" then
-			t = TaskQueueWakeup(self)
-			tqb = self
-			self.ai.sleep:Wait({ wakeup = function() tqb:ProgressQueue() end, },value.frames)
-		elseif action == "move" then
-			self.unit:Internal():Move(value.position)
-		elseif action == "moverelative" then
-			local upos = unit:GetPosition()
-			local newpos = api.Position()
-			newpos.x = upos.x + value.position.x
-			newpos.y = upos.y + value.position.y
-			newpos.z = upos.z + value.position.z
-			self.unit:Internal():Move(newpos)
-		elseif action == "fight" then
-			self.unit:Internal():MoveAndFire(value.position)
-		elseif action == "fightrelative" then
-			local upos = self.unit:Internal():GetPosition()
-			local newpos = api.Position()
-			newpos.x = upos.x + value.position.x
-			newpos.y = upos.y + value.position.y
-			newpos.z = upos.z + value.position.z
-			self.unit:Internal():MoveAndFire(newpos)
-		elseif action == "patrol" then
-			self.unit:Internal():MoveAndPatrol(value.position)
-		elseif action == "patrolrelative" then
-			local upos = self.unit:Internal():GetPosition()
-			local newpos = api.Position()
-			newpos.x = upos.x + value.position.x
-			newpos.y = upos.y + value.position.y
-			newpos.z = upos.z + value.position.z
-			self.unit:Internal():MoveAndPatrol(newpos)
-		else
-			self.game:SendToConsole("Error: Unknown action task "..value.." given to a "..self.name)
-			local p = unit:GetPosition()
-			SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
-			self:OnToNextTask()
-		end
+		self:HandleActionTask( value )
 		return
 	end
 
-	utype = self.game:GetTypeByName(value)
-	if not utype then
-		local p = unit:GetPosition()
-		SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
-		self.game:SendToConsole("Cannot build:"..value..", could not grab the unit type from the engine")
+	success = self:TryToBuild( value )
+	if success ~= true then
+		self:DebugPoint("nothing")
 		self:OnToNextTask()
 		return
 	end
-	if unit:CanBuild(utype) == false then
-		local p = unit:GetPosition()
-		SendToUnsynced("shard_debug_position",p.x,p.z,"nothing")
-		self:OnToNextTask()
-		return
+end
+
+function TaskQueueBehaviour:TryToBuild( unit_name )
+	utype = self.game:GetTypeByName(unit_name)
+	if not utype then
+		self.game:SendToConsole("Cannot build:"..unit_name..", could not grab the unit type from the engine")
+		return false
+	end
+	if unit:CanBuild(utype) ~= true then
+		return false
 	end
 	local success = false
 	if utype:Extractor() then
@@ -213,9 +172,46 @@ function TaskQueueBehaviour:ProgressQueue()
 	else
 		success = self:BuildOnMap(utype)
 	end
-	if success ~= true then
+	return success
+end
+
+function TaskQueueBehaviour:HandleActionTask( task )
+	local action = task.action
+	if action == "wait" then
+		t = TaskQueueWakeup(self)
+		tqb = self
+		self.ai.sleep:Wait({ wakeup = function() tqb:ProgressQueue() end, },task.frames)
+	elseif action == "move" then
+		self.unit:Internal():Move(task.position)
+	elseif action == "moverelative" then
+		local upos = unit:GetPosition()
+		local newpos = api.Position()
+		newpos.x = upos.x + task.position.x
+		newpos.y = upos.y + task.position.y
+		newpos.z = upos.z + task.position.z
+		self.unit:Internal():Move(newpos)
+	elseif action == "fight" then
+		self.unit:Internal():MoveAndFire(task.position)
+	elseif action == "fightrelative" then
+		local upos = self.unit:Internal():GetPosition()
+		local newpos = api.Position()
+		newpos.x = upos.x + task.position.x
+		newpos.y = upos.y + task.position.y
+		newpos.z = upos.z + task.position.z
+		self.unit:Internal():MoveAndFire(newpos)
+	elseif action == "patrol" then
+		self.unit:Internal():MoveAndPatrol(task.position)
+	elseif action == "patrolrelative" then
+		local upos = self.unit:Internal():GetPosition()
+		local newpos = api.Position()
+		newpos.x = upos.x + task.position.x
+		newpos.y = upos.y + task.position.y
+		newpos.z = upos.z + task.position.z
+		self.unit:Internal():MoveAndPatrol(newpos)
+	else
+		self.game:SendToConsole("Error: Unknown action task "..value.." given to a "..self.name)
+		self:DebugPoint("nothing")
 		self:OnToNextTask()
-		return
 	end
 end
 
@@ -307,4 +303,10 @@ end
 
 function TaskQueueBehaviour:Priority()
 	return 50
+end
+
+function TaskQueueBehaviour:DebugPoint( type )
+	local unit = self.unit:Internal()
+	local p = unit:GetPosition()
+	SendToUnsynced("shard_debug_position",p.x,p.z,type)
 end

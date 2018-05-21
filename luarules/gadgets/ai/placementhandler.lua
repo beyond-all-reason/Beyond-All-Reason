@@ -121,10 +121,6 @@ function PlacementHandler:Update()
 	if #self.jobs == 0 then
 		return
 	end
-	if #self.jobs > 20 then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-		return
-	end
 
 	self:RunIterations()
 	self:CleanupJobs()
