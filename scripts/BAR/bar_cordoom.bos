@@ -176,7 +176,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-
+    hide flarer1;
+    hide flarer2;
+    hide flareb;
+    hide flareg;
 	gun_3 = flareb;
 	call-script InitState();
 	Static_Var_3 = 0;
