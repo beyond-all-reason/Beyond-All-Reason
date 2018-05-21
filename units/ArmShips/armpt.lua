@@ -13,7 +13,7 @@ return {
 		collisionvolumescales = "21 21 63",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Patrol Boat/Light Anti-Air",
+		description = "Patrol Boat",
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
@@ -210,11 +210,11 @@ return {
 				def = "LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			[3] = {
-				badtargetcategory = "LIGHTAIRSCOUT",
-				def = "AAMISSILE",
-				onlytargetcategory = "VTOL",
-			},
+			-- [3] = {
+				-- badtargetcategory = "LIGHTAIRSCOUT",
+				-- def = "AAMISSILE",
+				-- onlytargetcategory = "VTOL",
+			-- },
 		},
 	},
 }
