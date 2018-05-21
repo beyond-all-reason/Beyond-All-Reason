@@ -51,7 +51,7 @@ end
 -- there may be minor delays of several frames
 function Sleep:Wait(functor, frames)
 	if functor == nil then
-		game:SendToConsole("error: functor == nil in Sleep:Wait ")
+		self.game:SendToConsole("error: functor == nil in Sleep:Wait ")
 	else
 		local sleeper = self:GetSleeper(functor)
 		sleeper.frames = frames
@@ -60,7 +60,7 @@ end
 
 function Sleep:Wakeup(sleeper)
 	if sleeper == nil then
-		game:SendToConsole("key == nil in Sleep:Wakeup()")
+		self.game:SendToConsole("key == nil in Sleep:Wakeup()")
 		return
 	end
 	local key = sleeper.key
@@ -68,7 +68,7 @@ function Sleep:Wakeup(sleeper)
 		if key.wakeup ~= nil then
 			key:wakeup()
 		else
-			game:SendToConsole("key:wakeup == nil in Sleep:Wakeup")
+			self.game:SendToConsole("key:wakeup == nil in Sleep:Wakeup")
 		end
 	else
 		key()

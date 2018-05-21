@@ -13,9 +13,3 @@ function Module:EchoDebug(...)
 		self.game:SendToConsole(self.game:GetTeamID(), self:Name(), ...)
 	end
 end
-
-function Module:SetAI(ai)
-	self.ai = ai
-	self.game = ai.game
-	self.map = ai.map
-end

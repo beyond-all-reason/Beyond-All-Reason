@@ -5,14 +5,14 @@
 math.randomseed( os.time() )
 math.random(); math.random(); math.random()
 
-function CoreWindSolar()
-	if game:AverageWind() > 10 then
+function CoreWindSolar( taskqueuebehaviour )
+	if taskqueuebehaviour.ai.map:AverageWind() > 10 then
 		return "corwind"
 	else
 		return "corsolar"
 	end
 end
-function randomLab()
+function randomLab( taskqueuebehaviour )
 	local r = math.random(0,2)
 	if r == 0 then
 		return "corlab"
@@ -116,14 +116,14 @@ local armconstructionkbot = {
 local corekbotlab = {
 	"corck",
 	"corck",
+	"corak",
+	"corak",
+	"corak",
+	"corak",
+	"corak",
+	"corak",
+	"corak",
 	"corck",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
-	"corak",
 	"corak",
 	"corak",
 	"corak",
@@ -138,14 +138,14 @@ local corekbotlab = {
 local armkbotlab = {
 	"armck",
 	"armck",
+	"armpw",
+	"armpw",
+	"armpw",
+	"armpw",
+	"armpw",
+	"armpw",
+	"armpw",
 	"armck",
-	"armpw",
-	"armpw",
-	"armpw",
-	"armpw",
-	"armpw",
-	"armpw",
-	"armpw",
 	"armpw",
 	"armpw",
 	"armpw",

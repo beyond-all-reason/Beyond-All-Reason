@@ -48,15 +48,15 @@ end
 
 function CorRandomLab()
 	
-	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corhp.id)+ UDC(ai.id, UDN.corgant.id)
-	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
+	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
+	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 then
 		if countAdvFacs < countBasicFacs then
-			local unitoptions = {"coralab", "coravp", "coraap", "corhp", "corgant",}
+			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else
-			local unitoptions = {"corlab", "corvp", "corap",}
+			local unitoptions = {"corlab", "corvp", "corap", "corhp",}
 			return unitoptions[math.random(1,#unitoptions)]
 		end
 	else
@@ -191,14 +191,14 @@ end
 
 function ArmRandomLab()
 	
-	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armhp.id) + UDC(ai.id, UDN.armshltx.id)
-	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
+	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
+	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 then
 		if countAdvFacs < countBasicFacs then
-			local unitoptions = {"armalab", "armavp", "armaap","armhp", "armshltx",}
+			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else
-			local unitoptions = {"armlab", "armvp", "armap",}
+			local unitoptions = {"armlab", "armvp", "armap", "armhp",}
 			return unitoptions[math.random(1,#unitoptions)]
 		end
 	else
@@ -700,7 +700,7 @@ local armt1mexingqueue = {
 local armt2construction = {
 	"armmoho",
 	ArmRandomLab,
-    ArmAirAdvDefT2,
+    ArmGroundAdvDefT2,
 	"armmoho",
 	ArmRandomLab,
     ArmGroundAdvDefT2,

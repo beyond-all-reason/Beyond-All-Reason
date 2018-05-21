@@ -1,5 +1,5 @@
-function IsPointCapturer(unit, ai)
-	local noncapturelist = ai.game:ControlPointNonCapturingUnits()
+function IsCapturer(unit, ai)
+	local noncapturelist = ai.game:NonCapturingUnits()
 	for i = 1, #noncapturelist do
 		local name = noncapturelist[i]
 		if name == unit:Internal():Name() then
@@ -9,7 +9,7 @@ function IsPointCapturer(unit, ai)
 	return true
 end
 
-PointCapturerBehaviour = class(Behaviour)
+CapturerBehaviour = class(Behaviour)
 
 local function RandomAway(pos, dist, angle)
 	angle = angle or math.random() * math.pi * 2
@@ -20,27 +20,27 @@ local function RandomAway(pos, dist, angle)
 	return away
 end
 
-function PointCapturerBehaviour:Init()
-	self.arePoints = self.game:UsesControlPoints()
-	self.maxDist = math.ceil( self.game:ControlPointCaptureRadius() * 0.9 )
+function CapturerBehaviour:Init()
+	self.arePoints = self.map:AreControlPoints()
+	self.maxDist = math.ceil( self.game:CaptureRadius() * 0.9 )
 	self.minDist = math.ceil( self.maxDist / 3 )
 end
 
-function PointCapturerBehaviour:UnitIdle(unit)
+function CapturerBehaviour:UnitIdle(unit)
 	if not self.active then return end
 	if unit.engineID == self.unit.engineID then
 		self:GoForth()
 	end
 end
 
-function PointCapturerBehaviour:Update()
+function CapturerBehaviour:Update()
 	if not self.active then return end
 	if not self.nextCheck or self.game:Frame() == self.nextCheck then
 		self:GoForth()
 	end
 end
 
-function PointCapturerBehaviour:Priority()
+function CapturerBehaviour:Priority()
 	if self.arePoints then
 		return 40
 	else
@@ -48,15 +48,15 @@ function PointCapturerBehaviour:Priority()
 	end
 end
 
-function PointCapturerBehaviour:Activate()
+function CapturerBehaviour:Activate()
 	self.active = true
 end
 
-function PointCapturerBehaviour:Deactivate()
+function CapturerBehaviour:Deactivate()
 	self.active = false
 end
 
-function PointCapturerBehaviour:GoForth()
+function CapturerBehaviour:GoForth()
 	local upos = self.unit:Internal():GetPosition()
 	local point = self.ai.controlpointhandler:ClosestUncapturedPoint(upos)
 	if point and point ~= self.currentPoint then

@@ -119,13 +119,17 @@ function ShardSpringUnit:MoveAndPatrol(p)
 	return true
 end
 
+
 function ShardSpringUnit:Build(t, p) -- IUnitType*
 	if type(t) == "string" then
 		-- local ai = Shard.AIs[1]
 		-- t = ai.game:GetTypeByName(t)
 		t = game:GetTypeByName(t)
 	end
-	if not p then p = self:GetPosition() end
+	if not p then
+		p = self:GetPosition()
+	end
+	p.y = Spring.GetGroundHeight( p.x,p.z )
 	Spring.GiveOrderToUnit( self.id, -t:ID(), { p.x, p.y, p.z }, {} )
 	return true
 end
@@ -167,7 +171,7 @@ end
 function ShardSpringUnit:GetPosition()
 	local bpx, bpy, bpz = Spring.GetUnitPosition(self.id)
 	if not bpx then
-		-- Spring.Echo(self:Name(), self.id, "nil position")
+		Spring.Echo(self:Name(), self.id, "nil position")
 		return
 	end
 	return {
@@ -225,9 +229,6 @@ function ShardSpringUnit:ExecuteCustomCommand(  cmdId, params_list, options, tim
 	if params_list and params_list.push_back then
 		-- handle fake vectorFloat object
 		params_list = params_list.values
-	end
-	if options and options.push_back then
-		options = options.values
 	end
 	Spring.GiveOrderToUnit(self.id, cmdId, params_list, options)
 	return 0

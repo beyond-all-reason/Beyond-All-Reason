@@ -1,5 +1,4 @@
 local map = {}
-map.spots = shard_include("spring_lua/metal")
 
 	-- function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)
 	-- function map:CanBuildHere(unittype,position)
@@ -19,160 +18,149 @@ map.spots = shard_include("spring_lua/metal")
 
 -- ###################
 
-function map:FindClosestBuildSite(unittype, builderpos, searchradius, minimumdistance, validFunction) -- returns Position
-	-- validFunction takes a position and returns a position or nil if the position is not valid
-	validFunction = validFunction or function (position) return position end
-	searchradius = searchradius or 500
-	minimumdistance = minimumdistance or 50
-	local twicePi = math.pi * 2
-	local angleIncMult = twicePi / minimumdistance
-	local bx, bz = builderpos.x, builderpos.z
-	local maxX, maxZ = Game.mapSizeX, Game.mapSizeZ
-	for radius = 50, searchradius, minimumdistance do
-		local angleInc = radius * twicePi * angleIncMult
-		local initAngle = math.random() * twicePi
-		for angle = initAngle, initAngle+twicePi, angleInc do
-			local realAngle = angle+0
-			if realAngle > twicePi then realAngle = realAngle - twicePi end
-			local dx, dz = radius*math.cos(angle), radius*math.sin(angle)
-			local x, z = bx+dx, bz+dz
-			if x < 0 then x = 0 elseif x > maxX then x = maxX end
-			if z < 0 then z = 0 elseif z > maxZ then z = maxZ end
-			local y = Spring.GetGroundHeight(x,z)
-			local buildable, position = self:CanBuildHere(unittype, {x=x, y=y, z=z})
-			if buildable then
-				position = validFunction(position)
-				if position then return position end
-			end
-		end
-	end
-	local lastDitch, lastDitchPos = self:CanBuildHere(unittype, builderpos)
-	if lastDitch then
-		lastDitchPos = validFunction(lastDitchPos)
-		if lastDitchPos then return lastDitchPos end
-	end
+function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance) -- returns Position
+	--
+	return game_engine:Map():FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)
 end
 
 function map:CanBuildHere(unittype,position) -- returns boolean
-	local y = Spring.GetGroundHeight( position.x, position.z )
-	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), position.x, y, position.z)
-	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
-	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
-	return ( not blocked ), {x=newX, y=newY, z=newZ}
+	--
+	return game_engine:Map():CanBuildHere(unittype,position)
 end
 
 function map:GetMapFeatures()
-	local fv = Spring.GetAllFeatures()
-	if not fv then return {} end
+	local fv = game_engine:Map():GetMapFeatures()
 	local f = {}
-	for _, fID in pairs(fv) do
-		f[#f+1] = Shard:shardify_feature(fID)
+	local i = 0
+	while i  < fv:size() do
+		table.insert(f,fv[i])
+		i = i + 1
 	end
+	fv = nil
 	return f
 end
 
 function map:GetMapFeaturesAt(position,radius)
-	local fv = Spring.GetFeaturesInSphere(position.x, position.y, position.z, radius)
-	if not fv then return {} end
+	local m = game_engine:Map()
+	local fv = m:GetMapFeaturesAt(position,radius)
 	local f = {}
-	for _, fID in pairs(fv) do
-		f[#f+1] = Shard:shardify_feature(fID)
+	local i = 0
+	while i  < fv:size() do
+		table.insert(f,fv[i])
+		i = i + 1
 	end
+	fv = nil
 	return f
 end
 
 function map:SpotCount() -- returns the nubmer of metal spots
-	return #self.spots
+	local m = game_engine:Map()
+	return m:SpotCount()
 end
 
 function map:GetSpot(idx) -- returns a Position for the given spot
-	return self.spots[idx]
+	local m = game_engine:Map()
+	return m:GetSpot(idx)
 end
 
 function map:GetMetalSpots() -- returns a table of spot positions
-	local fv = self.spots
-	local count = self:SpotCount()
+	--
+	local m = game_engine:Map()
+	local fv = game_engine:Map():GetMetalSpots()
+	local count = m:SpotCount()
 	local f = {}
 	local i = 0
 	while i  < count do
-		table.insert( f, fv[i] )
+		table.insert( f, m:GetSpot(i) )
 		i = i + 1
 	end
+	--fv = nil
 	return f
 end
 
 function map:GetControlPoints()
-	if self.controlPoints then return self.controlPoints end
-	self.controlPoints = {}
-	if Script.LuaRules('ControlPoints') then
-		local rawPoints = Script.LuaRules.ControlPoints() or {}
-		for id = 1, #rawPoints do
-			local rawPoint = rawPoints[id]
-			local cp = ShardSpringControlPoint()
-			cp:Init(rawPoint, id)
-			self.controlPoints[id] = cp
-		end
-	end
-	return self.controlPoints
+	-- not sure this can be implemented in the Spring C++ AI interface
+	return {}
 end
 
 function map:AreControlPoints()
-	local points = self:GetControlPoints()
-	return #points > 0
+	-- not sure this can be implemented in the Spring C++ AI interface
+	return false
 end
 
 function map:MapDimensions() -- returns a Position holding the dimensions of the map
-	return {
-		x = Game.mapSizeX / 8,
-		z = Game.mapSizeZ / 8,
-		y = 0
-	}
+	local m = game_engine:Map()
+	return m:MapDimensions()
 end
 
 function map:MapName() -- returns the name of this map
-	return Game.mapName
+	local m = game_engine:Map()
+	return m:MapName()
 end
 
 function map:AverageWind() -- returns (minwind+maxwind)/2
-	return ( Game.windMin + (Game.windMax - Game.windMin)/2 )
+	local m = game_engine:Map()
+	return m:AverageWind()
 end
 
 
 function map:MinimumWindSpeed() -- returns minimum windspeed
-	return Game.windMin
+	local m = game_engine:Map()
+	return m:MinimumWindSpeed()
 end
 
 function map:MaximumWindSpeed() -- returns maximum wind speed
-	return Game.windMax
+	local m = game_engine:Map()
+	return m:MaximumWindSpeed()
 end
 
 function map:MaximumHeight() -- returns maximum map height
-	local minHeight, maxHeight = Spring.GetGroundExtremes()
-	return maxHeight
+	local m = game_engine:Map()
+	return m:MaximumHeight()
 end
 
 function map:MinimumHeight() -- returns minimum map height
-	local minHeight, maxHeight = Spring.GetGroundExtremes()
-	return minHeight
+	local m = game_engine:Map()
+	return m:MinimumHeight()
 end
 
-
 function map:TidalStrength() -- returns tidal strength
-	return Game.tidal
+	local m = game_engine:Map()
+	return m:TidalStrength()
 end
 
 -- DRAWING FUNCTIONS
 
+local function dataToString(...)
+	local data = {...}
+	local str = ''
+	for i = 1, #data do
+		local d = data[i]
+		str = str .. '|' .. tostring(d)
+	end
+	return str
+end
+
+local function SendToUnsynced(command, ...)
+	-- game_engine:SendToContent(command .. dataToString(...))
+	local buff = io.open('sharddrawbuffer', 'a')
+	if buff then
+		buff:write(command .. dataToString(...) .. "\n")
+		buff:close()
+	end
+end
+
 function map:DrawRectangle(pos1, pos2, color, label, filled, channel)
 	channel = channel or 1
 	color = color or {}
+	-- game:SendToContent('ShardDrawAddRectangle' .. dataToString(pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel))
 	SendToUnsynced('ShardDrawAddRectangle', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
 end
 
 function map:EraseRectangle(pos1, pos2, color, label, filled, channel)
 	channel = channel or 1
 	color = color or {}
-	return SendToUnsynced('ShardDrawEraseRectangle', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
+	SendToUnsynced('ShardDrawEraseRectangle', pos1.x, pos1.z, pos2.x, pos2.z, color[1], color[2], color[3], color[4], label, filled, self.ai.game:GetTeamID(), channel)
 end
 
 function map:DrawCircle(pos, radius, color, label, filled, channel)
@@ -223,4 +211,5 @@ end
 -- END DRAWING FUNCTIONS
 
 	-- game.map = map
+
 return map
