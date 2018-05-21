@@ -156,12 +156,11 @@ function cacheUnitIcons()
     if cached == nil then
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
-          if oldUnitpics and UnitDefs[id] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[id].name..'.dds') then
-            gl.Texture('unitpics/'..UnitDefs[id].name..'.dds')
-          else
-            gl.Texture('#' .. id)
-          end
-            gl.Texture('#' .. id)
+            if oldUnitpics and UnitDefs[id] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[id].name..'.dds') then
+                gl.Texture('unitpics/'..UnitDefs[id].name..'.dds')
+            else
+                gl.Texture('#' .. id)
+            end
             gl.TexRect(-1,-1,0,0)
             gl.Texture(false)
         end

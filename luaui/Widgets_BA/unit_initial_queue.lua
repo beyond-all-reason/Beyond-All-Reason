@@ -56,6 +56,7 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 local buttonhighlight = ":n:LuaUI/Images/button-highlight.dds"
 local buttonpushed = ":n:LuaUI/Images/button-pushed.dds"
 local customScale = 0.95
+local oldunitpics = false
 
 -- Colors
 local buildDistanceColor = {0.3, 1.0, 0.3, 0.6}
@@ -405,6 +406,13 @@ end
 ------------------------------------------------------------
 
 function widget:Initialize()
+	WG['initialqueue'] = {}
+	WG['initialqueue'].getOldUnitIcons = function()
+		return oldUnitpics
+	end
+	WG['initialqueue'].setOldUnitIcons = function(value)
+		oldUnitpics = value
+	end
 	if (Game.startPosType == 1) or			-- Don't run if start positions are random
 	   (Spring.GetGameFrame() > 0) or		-- Don't run if game has already started
 	   (amNewbie) or						-- Don't run if i'm a newbie
@@ -521,8 +529,13 @@ function InitializeFaction(sDefID)
 						--gl.Rect(-borderSize, -borderSize, iconWidth + borderSize, iconHeight + borderSize)
 
 						gl.Color(1, 1, 1, 1)
-						gl.Texture("#" .. cellRow[c])
-							DrawRect(iconPadding, iconPadding, (iconWidth-iconPadding), (iconHeight-iconPadding))
+
+						if oldUnitpics and UnitDefs[cellRow[c]] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[cellRow[c]].name..'.dds') then
+							gl.Texture('unitpics/'..UnitDefs[cellRow[c]].name..'.dds')
+						else
+							gl.Texture('#' .. cellRow[c])
+						end
+						DrawRect(iconPadding, iconPadding, (iconWidth-iconPadding), (iconHeight-iconPadding))
 						gl.Texture(false)
 
 						gl.Translate((iconWidth + borderSize), 0, 0)
@@ -553,6 +566,7 @@ function InitializeFaction(sDefID)
 end
 
 function widget:Shutdown()
+	WG['initialqueue'] = nil
 	if panelList then
 		gl.DeleteList(panelList)
 	end
@@ -566,6 +580,16 @@ end
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
+
+function widget:GetConfigData()
+	return {oldUnitpics=oldUnitpics}
+end
+
+function widget:SetConfigData(data) --load config
+	if (data.oldUnitpics ~= nil) then
+		oldUnitpics = data.oldUnitpics
+	end
+end
 
 function widget:GetConfigData()
 	if (Spring.GetSpectatingState()) then return end
@@ -587,22 +611,26 @@ function widget:GetConfigData()
 		local numRows = math.ceil(#sBuilds / numCols)
 		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
 		local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
-		
+
 		savedTable = {}
+		savedTable.oldUnitPics	= oldUnitPics
 		savedTable.buildQueue	= buildQueue
 		savedTable.wt			= wt
 		savedTable.wl			= wl
 		savedTable.bgheight		= bgheight
 		savedTable.bgwidth		= bgwidth
 		savedTable.gameid		= Game.gameID
-		return savedTable
 	end
+	return savedTable
 end
 function widget:SetConfigData(data)
 	--if (Spring.GetSpectatingState()) then return end
 	--local wWidth, wHeight = Spring.GetWindowGeometry()
 	--wl = math.floor(wWidth * (data[1] or 0.40))
 	--wt = math.floor(wHeight * (data[2] or 0.10))
+	if data.oldUnitPics ~= nil then
+		oldUnitPics = data.oldUnitPics
+	end
 	if data.wt ~= nil and data.wl ~= nil and data.bgwidth ~= nil and data.bgheight ~= nil then
 		wt = data.wt
 		wl = data.wl
