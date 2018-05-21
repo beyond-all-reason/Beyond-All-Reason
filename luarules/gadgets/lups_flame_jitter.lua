@@ -14,7 +14,7 @@ function gadget:GetInfo()
   }
 end
 
-local MIN_EFFECT_INTERVAL = 5
+local MIN_EFFECT_INTERVAL = 3
 
 if (gadgetHandler:IsSyncedCode()) then
 -------------------------------------------------------------------------------------
@@ -98,7 +98,7 @@ else
       count        = 1,
       life         = weaponRange / 550,
       lifeSpread   = 5,
-      delaySpread  = 5,
+      delaySpread  = 3,
       force        = {0,0.6,0},
       --forceExp     = 0.2,
 
@@ -130,7 +130,7 @@ else
       count        = 1,
       life         = weaponRange / 550,
       lifeSpread   = 6,
-      delaySpread  = 5,
+      delaySpread  = 3,
 
       force        = {0,0.4,0},
       --forceExp     = 0.2,
@@ -165,7 +165,7 @@ else
       --delay        = 20,
       life         = weaponRange / 550,
       lifeSpread   = 6,
-      delaySpread  = 5,
+      delaySpread  = 3,
 
       force        = {0,0.4,0},
       --forceExp     = 0.2,
