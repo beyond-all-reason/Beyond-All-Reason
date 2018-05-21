@@ -124,17 +124,12 @@ return {
 				tolerance = 0,
 				firetolerance = 200,
 				weapontype = "Cannon",
-				weaponvelocity = 550,
+				weaponvelocity = 726,
 				separation = 1.0,
 				nogap = false,
 				stages = 20,
 				damage = {
-					bombers = 5,
 					default = 45,
-					fighters = 5,
-					subs = 5,
-					vtol = 5,
-
 				},
 			},
 		},

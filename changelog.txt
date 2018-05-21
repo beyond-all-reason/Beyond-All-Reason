@@ -23,6 +23,7 @@ Sea Offense and Defense:
  • Arm/Core gun platform special damages towards "heavyunits" erased.
  • Global acceleration buff for ships (+100%)
  • Arm/Core Scouts don't use aa weapons anymore
+ • GunPlatforms projectile speed increased (+32%), no special damages to air (uses default damages), can attempt to target aircrafts
 
 Air: 
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
