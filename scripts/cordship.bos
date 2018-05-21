@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, ground, wake1, wake2, turret, sleeve, gun1, gun2, flare1, flare2;
+piece  base, ground, wake1, wake2, flare;
 		
 static-var  restore_delay, Static_Var_7, Static_Var_8, aimDir, oldHead, gun;
 
@@ -111,8 +111,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	hide flare1;
-	hide flare2;
+	hide flare;
 	restore_delay = 3000;
 	start-script SmokeUnit();
 	gun = 1;
@@ -134,14 +133,6 @@ waveSplash()
 		move base to y-axis [0.0] speed [0.25];
 		wait-for-turn base around x-axis;
 	}
-}
-
-RestoreAfterDelay()
-{
-	sleep restore_delay;
-	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <100.000000>;
-	turn sleeve to x-axis <0.000000> speed <100.000000>;
 }
 
 
@@ -170,52 +161,26 @@ StopMoving()
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn turret to y-axis heading speed <200.00000>;
-	turn sleeve to x-axis <0> - pitch speed <150.00000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
-	if (gun == 1)
-	{
-	move gun1 to z-axis <-5> now;
-	move gun1 to z-axis <0> speed <25>;
-	gun = 2;
-	}
-	else
-	{
-	move gun2 to z-axis <-5> now;
-	move gun2 to z-axis <0> speed <25>;
-	gun = 2;	
-	gun = 1;
-	}
 	return (0);
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = flare;
 	return (0);
 }
 
 QueryPrimary(piecenum)
 {
-	if (gun == 1)
-	{
-	piecenum = flare2;
-	}
-	else
-	{
-	piecenum = flare1;
-	}
+	piecenum = flare;
 	return (0);
 }
+
 Killed(severity, corpsetype)
 {
 	if( severity <= 25 )
