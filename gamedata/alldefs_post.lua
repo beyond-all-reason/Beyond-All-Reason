@@ -76,8 +76,12 @@ function UnitDef_Post(name, uDef)
 	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 		-- BAR models
 		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
-		if VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
-			uDef.objectname = 'BAR/'..barUnitName..'.s3o'
+		if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
+			local object = barUnitName
+			if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') then
+				object = uDef.objectname
+			end
+			uDef.objectname = 'BAR/'..object..'.s3o'
 			if uDef.featuredefs ~= nil then
 				for fDefID,featureDef in pairs(uDef.featuredefs) do
 					if featureDef.object ~= nil then
@@ -90,19 +94,19 @@ function UnitDef_Post(name, uDef)
 			end
             if uDef.script ~= nil and VFS.FileExists('scripts/BAR/bar_'..uDef.script) then
                 uDef.script = 'BAR/'..uDef.script
-            elseif VFS.FileExists('scripts/BAR/bar_'..barUnitName..'.lua') then
-                    uDef.script = 'BAR/bar_'..barUnitName..'.lua'
-			elseif VFS.FileExists('scripts/BAR/bar_'..barUnitName..'.cob') then
-				uDef.script = 'BAR/bar_'..barUnitName..'.cob'
+            elseif VFS.FileExists('scripts/BAR/bar_'..object..'.lua') then
+                uDef.script = 'BAR/bar_'..object..'.lua'
+			elseif VFS.FileExists('scripts/BAR/bar_'..object..'.cob') then
+				uDef.script = 'BAR/bar_'..object..'.cob'
 			end
 			if uDef.buildinggrounddecaltype ~= nil then
-				local decalname = oldUnitName[name] and string.gsub(uDef.buildinggrounddecaltype, name, barUnitName) or uDef.buildinggrounddecaltype
+				local decalname = oldUnitName[name] and string.gsub(uDef.buildinggrounddecaltype, name, object) or uDef.buildinggrounddecaltype
 				if VFS.FileExists('unittextures/BAR/'..decalname) then
 					uDef.buildinggrounddecaltype = 'BAR/'..decalname
 			 	end
 			end
 			if uDef.buildpic ~= nil then
-				local buildpicname = oldUnitName[name] and string.gsub(uDef.buildpic, name, barUnitName) or uDef.buildpic
+				local buildpicname = oldUnitName[name] and string.gsub(uDef.buildpic, name, object) or uDef.buildpic
 				if VFS.FileExists('unitpics/BAR/'..buildpicname) then
 					uDef.buildpic = 'BAR/'..buildpicname
 				end
