@@ -84,7 +84,7 @@ local activePress = false
 local mouseIcon = -1
 local currentDef = nil
 local prevUnitCount = spGetSelectedUnitsCounts()
-local oldunitpics = false
+local oldUnitpics = false
 
 local iconSizeX = 64
 local iconSizeY = 64

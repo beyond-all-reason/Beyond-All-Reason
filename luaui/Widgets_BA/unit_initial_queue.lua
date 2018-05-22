@@ -56,7 +56,7 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 local buttonhighlight = ":n:LuaUI/Images/button-highlight.dds"
 local buttonpushed = ":n:LuaUI/Images/button-pushed.dds"
 local customScale = 0.95
-local oldunitpics = false
+local oldUnitpics = false
 
 -- Colors
 local buildDistanceColor = {0.3, 1.0, 0.3, 0.6}
@@ -412,6 +412,8 @@ function widget:Initialize()
 	end
 	WG['initialqueue'].setOldUnitIcons = function(value)
 		oldUnitpics = value
+		local _, _, _, _, mySide = Spring.GetTeamInfo(myTeamID)
+		InitializeFaction(UnitDefNames[Spring.GetSideData(mySide)].id)
 	end
 	if (Game.startPosType == 1) or			-- Don't run if start positions are random
 	   (Spring.GetGameFrame() > 0) or		-- Don't run if game has already started
@@ -582,16 +584,8 @@ end
 ------------------------------------------------------------
 
 function widget:GetConfigData()
-	return {oldUnitpics=oldUnitpics}
-end
-
-function widget:SetConfigData(data) --load config
-	if (data.oldUnitpics ~= nil) then
-		oldUnitpics = data.oldUnitpics
-	end
-end
-
-function widget:GetConfigData()
+	savedTable = {}
+	savedTable.oldUnitpics	= oldUnitpics
 	if (Spring.GetSpectatingState()) then return end
 	--local wWidth, wHeight = Spring.GetWindowGeometry()
 	--return {wl / wWidth, wt / wHeight}
@@ -612,8 +606,6 @@ function widget:GetConfigData()
 		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
 		local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
 
-		savedTable = {}
-		savedTable.oldUnitPics	= oldUnitPics
 		savedTable.buildQueue	= buildQueue
 		savedTable.wt			= wt
 		savedTable.wl			= wl
@@ -628,8 +620,8 @@ function widget:SetConfigData(data)
 	--local wWidth, wHeight = Spring.GetWindowGeometry()
 	--wl = math.floor(wWidth * (data[1] or 0.40))
 	--wt = math.floor(wHeight * (data[2] or 0.10))
-	if data.oldUnitPics ~= nil then
-		oldUnitPics = data.oldUnitPics
+	if data.oldUnitpics ~= nil then
+		oldUnitpics = data.oldUnitpics
 	end
 	if data.wt ~= nil and data.wl ~= nil and data.bgwidth ~= nil and data.bgheight ~= nil then
 		wt = data.wt
