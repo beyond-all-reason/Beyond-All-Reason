@@ -18,12 +18,13 @@ Sea Offense and Defense:
  • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health), sonar distance reduced (400 -> 375)
  • Destroyers' and cruisers' and support frigates' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
  • Arm/Core Assult Frigates damages + 3%
- • Support Frigates: Separated into AA missiles frigate and Depthcharge Frigate, relatively same price, with Jethro missiles +25% firerates for the aa missile boat, and roughly same depthcharge as old support ship for the depthcharge frigate
+ • Support Frigates separated into:
+AA missiles frigate: 165 damages per 1.5 seconds at 800 range and 96 aoe
+Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 seconds at 375 range and 12 aoe
  • Transport ship costs decreased (core 5500e/600m/8610bt => 3700e/350m/6400bt and arm 5000e/640m/9150bt => 3500e/350m/6500bt) and hp decreased (arm 8800 -> 2900 and core 9150 -> 3000)
  • Arm/Core gun platform special damages towards "heavyunits" and air categories erased, projectile speed increased (+32%), can attempt to target aircrafts.
  • Global acceleration buff for ships (+100%)
  • Arm/Core Scouts don't use aa weapons anymore
- • GunPlatforms projectile speed increased (+32%), no special damages to air (uses default damages), can attempt to target aircrafts
 
 Air: 
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
