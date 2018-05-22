@@ -1,10 +1,10 @@
 return {
 	cormship = {
 		activatewhenbuilt = true,
-		buildcostenergy = 13000,
-		buildcostmetal = 0.8*3000,
+		buildcostenergy = 10000,
+		buildcostmetal = 2000,
 		buildpic = "CORMSHIP.DDS",
-		buildtime = 0.75 * 1.5 * 0.8*22200,
+		buildtime = 15000,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",
@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2250,
+		maxdamage = 3000,
 		minwaterdepth = 12,
 		movementclass = "BOAT56X6",
 		name = "Messenger",

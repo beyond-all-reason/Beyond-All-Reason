@@ -1,10 +1,10 @@
 return {
 	armmship = {
 		activatewhenbuilt = true,
-		buildcostenergy = 14000,
-		buildcostmetal = 2200,
+		buildcostenergy = 10000,
+		buildcostmetal = 2000,
 		buildpic = "ARMMSHIP.DDS",
-		buildtime = 0.75 * 1.5 * 0.8*24817,
+		buildtime = 15000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 -3",
@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2200,
+		maxdamage = 3000,
 		minwaterdepth = 12,
 		movementclass = "BOAT55X5",
 		name = "Ranger",

@@ -54,7 +54,7 @@ return {
 			"armclaw",
 			"armuwmex",
 			"armtide",
-			"armgeo",
+			-- "armgeo",
 			"armfmkr",
 			"armuwms",
 			"armuwes",

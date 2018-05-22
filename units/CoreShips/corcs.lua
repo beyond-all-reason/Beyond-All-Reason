@@ -54,7 +54,7 @@ return {
 			"cormaw",
 			"coruwmex",
             "cortide",
-			"corgeo",
+			-- "corgeo",
 			"corfmkr",
 			"coruwms",
 			"coruwes",
