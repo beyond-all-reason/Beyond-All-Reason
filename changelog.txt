@@ -9,6 +9,7 @@ In current test (will be undone or fixed/balanced before release):
  • Support Frigates separated into:
 AA missiles frigate: 165 damages per 1.5 seconds at 800 range and 96 aoe
 Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 seconds at 375 range and 12 aoe
+ • Hovercraft can now be transported
 
 Sea economy, factories and engineering:
  • Erased T1/T2 Shipyards' radarsight 

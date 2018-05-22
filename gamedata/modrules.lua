@@ -76,7 +76,7 @@ local modrules  = {
   transportability = {
     transportAir    = false,    -- default: false
     transportShip   = false,    -- default: false
-    transportHover  = false,    -- default: false
+    transportHover  = true,    -- default: false
     transportGround = true,     -- default: true
     targetableTransportedUnits = false, -- Can transported units be targeted by weapons? true allows both manual and automatic targeting.
   },
