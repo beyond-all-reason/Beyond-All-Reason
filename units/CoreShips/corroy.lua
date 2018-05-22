@@ -138,7 +138,7 @@ return {
 				targetmoveerror = 0.1,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 320,
+				weaponvelocity = 336,
 				damage = {
 					bombers = 62,
 					default = 503,
