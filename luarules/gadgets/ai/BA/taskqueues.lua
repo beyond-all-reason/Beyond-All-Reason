@@ -26,6 +26,7 @@ local unitoptions = {}
 function CorEnT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if ec < es - es*0.8 then
         if taskqueuebehaviour.ai.map:AverageWind() > 7 then
             return "corwin"
@@ -43,6 +44,7 @@ end
 
 function CorMexT1( taskqueuebehaviour )
 	
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc < ms - ms*0.8 then
 		return "cormex"
