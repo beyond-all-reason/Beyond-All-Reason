@@ -93,22 +93,24 @@ fixGo()
 {
 	set-signal-mask 2;
 	set ACTIVATION to FALSE;
-	move base to y-axis [0] speed [10];
-	move arms to y-axis [0] speed [10];
+	move base to y-axis [0] speed [30];
+	move arms to y-axis [0] speed [30];
 	wait-for-move arms along y-axis;
 	spin arms around y-axis speed <100> accelerate <1>;
-	sleep 1000;
 	set ACTIVATION to TRUE;
 }
 
 Stop()
 {
 	set ACTIVATION to FALSE;
-	stop-spin arms around y-axis decelerate <1>;
-	sleep 1000;
-	move base to y-axis [24] - (curLevel * 65536) speed [10];
-	move arms to y-axis [24] - (curLevel * 65536) speed [10];
-	wait-for-move arms along y-axis;
+	stop-spin arms around y-axis decelerate <10>;
+	sleep 100;
+	if (curLevel > 64 )
+	{
+		move base to y-axis [24] - (64 * 65536) speed [30];
+		move arms to y-axis [24] - (64 * 65536) speed [30];
+		wait-for-move arms along y-axis;
+	}
 	set ACTIVATION to FALSE;	
 }
 
@@ -158,11 +160,13 @@ Create()
 
 Activate()
 {
+		set-signal-mask 2;
 	call-script RequestState(0);
 }
 
 Deactivate()
 {
+		set-signal-mask 2;
 	call-script RequestState(1);
 }
 
@@ -178,19 +182,25 @@ SetSpeed(Func_Var_1)
 
 HitByWeapon(Func_Var_1, Func_Var_2)
 {
-	if( get ACTIVATION )
+	if (curLevel > 64)
 	{
-		hitActivation = 1;
+		if( get ACTIVATION )
+		{
+			hitActivation = 1;
+		}
 	}
 	if( hitActivation )
 	{
+	
 		signal 2;
+		sleep 1000;
 		set-signal-mask 2;
 		call-script Stop();
-		sleep 10000;
+		sleep 4000;
 		hitActivation = 0;
 		call-script fixGo();
 	}
+
 }
 
 Killed(severity, corpsetype)
