@@ -258,7 +258,7 @@ function wrap(str, limit)
 	end
 	return t
 end
-
+	WG.hoverID = nil
 local function CreateGrid(r)
 
 	local background2 = {"rectanglerounded",
@@ -379,7 +379,6 @@ local function CreateGrid(r)
 				end
 			end},
 		},]]--
-		
 		mouseover=function(mx,my,self)
 			self.iconscale=(iconScaling and self.iconhoverscale or 1)
 			--if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
@@ -394,6 +393,7 @@ local function CreateGrid(r)
 			if drawTooltip and WG['tooltip'] ~= nil and r.menuname == "buildmenu" then
 				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
 					local udefid =  tonumber(string.sub(self.texture, 2))
+					WG.hoverID = udefid
 					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
 					if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
 						local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
