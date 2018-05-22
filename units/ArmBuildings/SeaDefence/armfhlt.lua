@@ -14,7 +14,7 @@ return {
 		collisionvolumescales = "46 59 46",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Floating Heavy Laser Tower (Good vs Corvettes)",
+		description = "Floating Heavy Laser Tower",
 		energymake = 5,
 		energystorage = 200,
 		explodeas = "largeBuildingexplosiongeneric",
