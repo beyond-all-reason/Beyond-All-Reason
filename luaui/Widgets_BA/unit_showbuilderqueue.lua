@@ -129,6 +129,8 @@ function checkBuilder(unitID)
 				local y = cmd.params[2]
 				if UnitDefs[math.abs(cmd.id)].minWaterDepth < 0 then	-- AI bots queue very high y pos so this corrects that
 					y = Spring.GetGroundHeight(cmd.params[1],cmd.params[3])
+				else
+					y = - UnitDefs[math.abs(cmd.id)].waterline
 				end
 				myCmd.params[2] = y
 				local id = Spring.GetUnitTeam(unitID)..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..myCmd.params[2]..'_'..cmd.params[3]
@@ -159,6 +161,8 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
 	if UnitDefs[unitDefID].minWaterDepth < 0 then
 		y = Spring.GetGroundHeight(x,z)
+	else
+		y = - UnitDefs[unitDefID].waterline
 	end
 	if command[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] then
 		command[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] = nil
