@@ -23,13 +23,12 @@ function defaultBehaviours(unit)
 	table.insert(b, BootBehaviour )
 	if u:CanBuild() then
 		table.insert(b,TaskQueueBehaviour)
-	else
-		--if IsPointCapturer(unit) then
-			--table.insert(b,PointCapturerBehaviour)
-		--end
-		if IsAttacker(unit) then
-			table.insert(b,AttackerBehaviour)
-		end
 	end
+	if IsAttacker(unit) then
+		table.insert(b,AttackerBehaviour)
+	end
+	--if IsPointCapturer(unit) then
+		--table.insert(b,PointCapturerBehaviour)
+	--end
 	return b
 end

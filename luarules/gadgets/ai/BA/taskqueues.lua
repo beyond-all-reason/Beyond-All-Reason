@@ -23,17 +23,40 @@ local unitoptions = {}
 --------------------------------------- Core Functions -------------------------------------
 --------------------------------------------------------------------------------------------
 
-function CorEnT1()
+function CorEnT1( taskqueuebehaviour )
 	
-	local unitoptions = {"corwin", "corsolar",}
-	return unitoptions[math.random(1,#unitoptions)]
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	if ec < es - es*0.8 then
+        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
+            return "corwin"
+        else
+            return "corsolar"
+        end
+	elseif mc < ms - ms*0.8 then
+		return "cormex"
+	elseif mc < ms - ms*0.4 then
+		return "corexp"
+	else
+		return "corkrog"
+	end
 end
 
-function CorMexT1()
+function CorMexT1( taskqueuebehaviour )
 	
-	--local unitoptions = {"cormex", "corexp",}
-	--return unitoptions[math.random(1,#unitoptions)]
-	return "cormex"
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc < ms - ms*0.8 then
+		return "cormex"
+	elseif mc < ms - ms*0.4 then
+		return "corexp"
+	elseif ec < es - es*0.8 then
+        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
+            return "corwin"
+        else
+            return "corsolar"
+        end
+	else
+		return "corkrog"
+	end
 end
 
 function CorStarterLabT1()
@@ -108,7 +131,7 @@ end
 
 function CorTacticalAdvDefT2()
 
-	local unitoptions = {"corgate","corint" }
+	local unitoptions = {"corgate", "corint" }
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -166,17 +189,42 @@ end
 --------------------------------------- Arm Functions --------------------------------------
 --------------------------------------------------------------------------------------------
 
-function ArmEnT1()
+function ArmEnT1( taskqueuebehaviour )
 	
-	local unitoptions = {"armwin", "armsolar",}
-	return unitoptions[math.random(1,#unitoptions)]
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if ec < es - es*0.8 then
+        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
+            return "armwin"
+        else
+            return "armsolar"
+        end
+	elseif mc < ms - ms*0.8 then
+		return "armmex"
+	elseif mc < ms - ms*0.4 then
+		return "armamex"
+	else
+		return "corkrog"
+	end
 end
 
-function ArmMexT1()
+function ArmMexT1( taskqueuebehaviour )
 	
-	--local unitoptions = {"armmex", "armamex",}
-	--return unitoptions[math.random(1,#unitoptions)]
-	return "armmex"
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc < ms - ms*0.8 then
+		return "armmex"
+	elseif mc < ms - ms*0.4 then
+		return "armamex"
+	elseif ec < es - es*0.8 then
+        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
+            return "armwin"
+        else
+            return "armsolar"
+        end
+	else
+		return "corkrog"
+	end
 end
 
 function ArmStarterLabT1()
@@ -262,7 +310,7 @@ end
 
 function ArmVehT2()
 	
-	local unitoptions = {"armbull", "armcroc", "armjam", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
+	local unitoptions = {"armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
