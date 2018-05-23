@@ -48,9 +48,9 @@ include("keysym.h.lua")
 ------------------------------------------------------------------------------------
 -- Globals
 ------------------------------------------------------------------------------------
-local fontSize = 14
-local xOffset = 25
-local yOffset = 25
+local fontSize = 13
+local xOffset = 32
+local yOffset = -32-fontSize
 local useSelection = true
 
 local customFontSize = 18
@@ -235,8 +235,8 @@ function init()
 	
 	bgcornerSize = fontSize*0.45
 	bgpadding = fontSize*0.9
-	xOffset = 100 + bgpadding
-	yOffset = -40 + bgpadding
+	xOffset = 74 + bgpadding
+	yOffset = -86 - bgpadding
 end
 
 function widget:ViewResize(x,y)
@@ -604,7 +604,11 @@ function widget:DrawScreen()
 		end
 		
 		-- background
-		glColor(0,0,0,0.66)
+		if WG.hoverID ~= nil then
+			glColor(0.11,0.11,0.11,0.9)
+		else
+			glColor(0,0,0,0.66)
+		end
 		cornersize = 0
 		RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 		cornersize = ceil(bgpadding*0.16)
@@ -635,7 +639,11 @@ function widget:DrawScreen()
 		local titleFontSize = fontSize*1.12
 	  local iconHalfSize = titleFontSize*0.75
 		local cornersize = 0
-		glColor(0,0,0,0.75)
+		if WG.hoverID ~= nil then
+			glColor(0.11,0.11,0.11,0.9)
+		else
+			glColor(0,0,0,0.75)
+		end
 		RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cY+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
 		cornersize = ceil(bgpadding*0.21)
 		glColor(1,1,1,0.025)
@@ -834,9 +842,13 @@ function widget:DrawScreen()
 				cY = cY - fontSize
 			end
 		end
-		
+
 		-- background
-		glColor(0,0,0,0.66)
+		if WG.hoverID ~= nil then
+			glColor(0.11,0.11,0.11,0.9)
+		else
+			glColor(0,0,0,0.66)
+		end
 		cornersize = 0
 		RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 		cornersize = ceil(bgpadding*0.16)

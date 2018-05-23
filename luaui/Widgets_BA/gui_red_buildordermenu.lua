@@ -390,25 +390,28 @@ local function CreateGrid(r)
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
 			local tt = self.tooltip
-			if drawTooltip and WG['tooltip'] ~= nil and r.menuname == "buildmenu" then
+			if r.menuname == "buildmenu" then
 				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
 					local udefid =  tonumber(string.sub(self.texture, 2))
 					WG.hoverID = udefid
-					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
-					if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
-						local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
-						local description = ''
-						local newline = ''
-						for i, line in ipairs(lines) do
-							description = description..newline..line
-							newline = '\n'
-						end
-						text = text..description
-					else
-						text = text..UnitDefs[udefid].tooltip
-					end
-					WG['tooltip'].ShowTooltip('redui_buildmenu', text)
-			 		tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
+                    local alt, ctrl, meta, shift = Spring.GetModKeyState()
+                    if not meta and drawTooltip and WG['tooltip'] ~= nil then
+                        local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
+                        if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
+                            local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
+                            local description = ''
+                            local newline = ''
+                            for i, line in ipairs(lines) do
+                                description = description..newline..line
+                                newline = '\n'
+                            end
+                            text = text..description
+                        else
+                            text = text..UnitDefs[udefid].tooltip
+                        end
+                        WG['tooltip'].ShowTooltip('redui_buildmenu', text)
+                        tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
+                    end
 				end
 			end
 			if drawPrice and tt ~= nil then
