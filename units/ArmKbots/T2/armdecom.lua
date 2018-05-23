@@ -232,15 +232,6 @@ return {
 				damage = {
 					default = 20,
 				},
-				customparams = {
-					light_radius = 550,
-					light_opacity = 0.15,
-					light_color = "1 0.6 0.15",
-					expl_light_radius = 650,
-					expl_light_opacity = 0.18,
-					expl_light_life = 1,
-					expl_light_color = "1 0.6 0.15",
-				},
 			},
 		},
 		weapons = {
