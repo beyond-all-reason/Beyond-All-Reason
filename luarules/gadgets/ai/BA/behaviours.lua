@@ -4,6 +4,7 @@ shard_include(  "taskqueuebehaviour" )
 shard_include(  "attackerbehaviour" )
 --shard_include(  "pointcapturerbehaviour" )
 shard_include(  "bootbehaviour" )
+shard_include(  "AntinukeBehaviour" )
 
 behaviours = {
 	--CoreNanoTurret
@@ -13,6 +14,13 @@ behaviours = {
 	--ArmNanoTurret
 	armnanotc = {
 		TaskQueueBehaviour,
+	},
+	corfmd = {
+		AntinukeBehaviour,
+	},
+
+	armamd = {
+		AntinukeBehaviour,
 	},
 
 }
