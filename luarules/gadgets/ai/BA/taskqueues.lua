@@ -137,6 +137,13 @@ function CorTacticalAdvDefT2()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
+function CorTacticalOffDefT2()
+
+	local unitoptions = {"corfmd", "corsilo",}
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+
 function CorKBotsT2()
 	
 	local unitoptions = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "cortermite", "corspec", "corsumo",}
@@ -300,7 +307,13 @@ end
 
 function ArmTacticalAdvDefT2()
 
-	local unitoptions = {"armgate",}
+	local unitoptions = {"armgate", "armacv", }
+	return unitoptions[math.random(1,#unitoptions)]
+end
+
+function ArmTacticalOffDefT2()
+
+	local unitoptions = {"armamd", "armsilo",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -488,6 +501,7 @@ local cort2construction = {
 	ArmGroundAdvDefT2,
     ArmAirAdvDefT2,
     ArmTacticalAdvDefT2,
+	CorTacticalOffDefT2,
 }
 
 local corkbotlab = {
@@ -763,6 +777,7 @@ local armt2construction = {
 	ArmRandomLab,
     ArmGroundAdvDefT2,
     ArmTacticalAdvDefT2,
+	ArmTacticalOffDefT2,
 }
 
 local armkbotlab = {
