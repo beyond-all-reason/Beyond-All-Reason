@@ -145,7 +145,7 @@ return {
 				avoidfeature = false,
 				beamtime = 0.3,
 				beamttl = 5,
-				beamdecay = 0.8,
+				beamdecay = 0.78,
 				corethickness = 0.25,
 				craterareaofeffect = 0,
 				craterboost = 0,
