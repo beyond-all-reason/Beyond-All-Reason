@@ -49,13 +49,16 @@ include("keysym.h.lua")
 -- Globals
 ------------------------------------------------------------------------------------
 local fontSize = 13
-local xOffset = 32
-local yOffset = -32-fontSize
 local useSelection = true
 
-local customFontSize = 18
+local customFontSize = 13
 
 local cX, cY
+
+local vsx, vsy = gl.GetViewSizes()
+local widgetScale = (0.60 + (vsx*vsy / 5000000))
+local xOffset = (32 + (fontSize*0.9))*widgetScale
+local yOffset = -((32 - (fontSize*0.9))*widgetScale)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -231,12 +234,14 @@ end
 
 function init()
 	vsx, vsy = gl.GetViewSizes()
-	fontSize = customFontSize * (0.55 + (vsx*vsy / 8500000))
+	widgetScale = (0.60 + (vsx*vsy / 5000000))
+	fontSize = customFontSize * widgetScale
 	
 	bgcornerSize = fontSize*0.45
 	bgpadding = fontSize*0.9
-	xOffset = 74 + bgpadding
-	yOffset = -86 - bgpadding
+
+	xOffset = (32 + bgpadding)*widgetScale
+	yOffset = -((32 + bgpadding)*widgetScale)
 end
 
 function widget:ViewResize(x,y)
