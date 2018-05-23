@@ -48,7 +48,7 @@ function CorMexT1( taskqueuebehaviour )
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc < ms - ms*0.8 then
 		return "cormex"
-	elseif mc < ms - ms*0.4 then
+	elseif mc < ms - ms*0.7 then
 		return "corexp"
 	elseif ec < es - es*0.8 then
         if taskqueuebehaviour.ai.map:AverageWind() > 7 then
@@ -72,11 +72,11 @@ function CorStarterLabT1()
 end
 
 function CorRandomLab()
-	
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and mc > 2000 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -90,15 +90,23 @@ function CorRandomLab()
 end
 
 function CorGroundAdvDefT1()
-	
-	local unitoptions = {"cormaw", "corhllt", "corhlt", "corpun",}
-	return unitoptions[math.random(1,#unitoptions)]
+	local r = math.random(0,100)
+	if r == 0 and Spring.GetGameSeconds() > 600 then
+		return "corpun"
+	else
+		local unitoptions = {"cormaw", "corhllt", "corhlt",}
+		return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function CorAirAdvDefT1()
-
-	local unitoptions = {"cormadsam","corrl",}
-	return unitoptions[math.random(1,#unitoptions)]
+	local countAirDefs = UDC(ai.id, UDN.cormadsam.id) + UDC(ai.id, UDN.corrl.id)
+	if Spring.GetGameSeconds() / 450 > countAirDefs then
+		local unitoptions = {"cormadsam", "corrl",}
+		return unitoptions[math.random(1,#unitoptions)]
+	else
+		return "corkrog"
+	end
 end
 
 function CorKBotsT1()
@@ -223,7 +231,7 @@ function ArmMexT1( taskqueuebehaviour )
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc < ms - ms*0.8 then
 		return "armmex"
-	elseif mc < ms - ms*0.4 then
+	elseif mc < ms - ms*0.7 then
 		return "armamex"
 	elseif ec < es - es*0.8 then
         if taskqueuebehaviour.ai.map:AverageWind() > 7 then
@@ -247,10 +255,11 @@ function ArmStarterLabT1()
 end
 
 function ArmRandomLab()
-	
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 then
+	
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and mc > 2000 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -264,15 +273,23 @@ function ArmRandomLab()
 end
 
 function ArmGroundAdvDefT1()
-	
-	local unitoptions = {"armclaw", "armbeamer","armhlt", "armguard", }
-	return unitoptions[math.random(1,#unitoptions)]
+	local r = math.random(0,100)
+	if r == 0 and Spring.GetGameSeconds() > 600 then
+		return "armguard"
+	else
+		local unitoptions = {"armclaw", "armbeamer","armhlt",}
+		return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function ArmAirAdvDefT1()
-
-	local unitoptions = {"armrl", "armpacko",}
-	return unitoptions[math.random(1,#unitoptions)]
+	local countAirDefs = UDC(ai.id, UDN.armrl.id) + UDC(ai.id, UDN.armpacko.id)
+	if Spring.GetGameSeconds() / 450 > countAirDefs then
+		local unitoptions = {"armrl", "armpacko",}
+		return unitoptions[math.random(1,#unitoptions)]
+	else
+		return "corkrog"
+	end
 end
 
 function ArmKBotsT1()
@@ -468,7 +485,7 @@ local cort1mexingqueue = {
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
-	"corllt",
+	CorGroundAdvDefT1,
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
@@ -476,7 +493,7 @@ local cort1mexingqueue = {
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
-	"corllt",
+	CorGroundAdvDefT1,
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
@@ -486,21 +503,21 @@ local cort1mexingqueue = {
 local cort2construction = {
 	"cormoho",
 	CorRandomLab,
-	ArmGroundAdvDefT2,
-    ArmAirAdvDefT2,
+	CorGroundAdvDefT2,
+    CorAirAdvDefT2,
 	"cormoho",
 	CorRandomLab,
 	"cormoho",
 	CorRandomLab,
 	"cormoho",
 	CorRandomLab,
-	ArmGroundAdvDefT2,
-    ArmAirAdvDefT2,
+	CorGroundAdvDefT2,
+    CorAirAdvDefT2,
 	"corfus",
 	CorRandomLab,
-	ArmGroundAdvDefT2,
-    ArmAirAdvDefT2,
-    ArmTacticalAdvDefT2,
+	CorGroundAdvDefT2,
+    CorAirAdvDefT2,
+    CorTacticalAdvDefT2,
 	CorTacticalOffDefT2,
 }
 
@@ -746,7 +763,7 @@ local armt1mexingqueue = {
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
-	"armllt",
+	ArmGroundAdvDefT1,
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
@@ -754,7 +771,7 @@ local armt1mexingqueue = {
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
-	"armllt",
+	ArmGroundAdvDefT1,
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
