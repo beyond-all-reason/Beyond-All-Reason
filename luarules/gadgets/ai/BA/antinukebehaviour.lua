@@ -4,7 +4,7 @@ function AntinukeBehaviour:Name()
 	return "AntinukeBehaviour"
 end
 
-cmdId = 100
+local cmdId = 100
 
 function AntinukeBehaviour:Init()
     self.lastStockpileFrame = 0
@@ -18,10 +18,12 @@ end
 function AntinukeBehaviour:Update()
 	params_list = params_list or {}
 	options = options or {}
-	if params_list and params_list.push_back then
+	if Spring.GetGameFrame() % 3000 == 4 and params_list and params_list.push_back then
 		-- handle fake vectorFloat object
 		params_list = params_list.values
-	end
+		Spring.GiveOrderToUnit(self.unit:Internal():ID(), cmdId, params_list, options)
+end
+
 function AntinukeBehaviour:Activate()
 		self.active = true
 end
@@ -31,7 +33,7 @@ function AntinukeBehaviour:Deactivate()
 end
 
 function AntinukeBehaviour:Priority()
-	return 100
+	return 51
 end
 
 end
