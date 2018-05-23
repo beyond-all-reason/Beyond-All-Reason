@@ -20,7 +20,6 @@ attackerlist = {
 ------------------------------T2 KBOT
 
 	"armaak",   --  Archangel       /   Advanced Amphibious Anti-Air Kbot
-	"armack",   --  Adv. Con Bot    /   Adv. Con Bot
 	"armamph",  --  Pelican         /   Amphibious Kbot
 	"armaser",  --  Eraser          /   Radar Jammer Kbot
 	"armdecom", --  Decoy Commander /   Decoy Commander
@@ -51,7 +50,6 @@ attackerlist = {
 
 -------------------------------T2 VEH
 
-	"armacv",	--	Adv. Con Veh	/	Adv. Con Veh
 	"armbull",	--	Bulldog			/	Heavy Assault Tank
 	"armconsul",--	Consul			/	Combat Engineer
 	"armcroc",	--	Triton			/	Heavy Amphibious Tank
@@ -73,7 +71,6 @@ attackerlist = {
 
 -------------------------------T2 AIR
 
-	"armaca",	--	Adv. Air Con	/	Adv. Air Con
 	"armawac",	--	Eagle			/	Radar/Sonar Plane
 	"armblade",	--	Blade			/	Rapid Assault Gunship
 	"armbrawl",	--	Brawler			/	Gunship
@@ -103,7 +100,6 @@ attackerlist = {
 
 ----------------------------Seaplanes
 
-	"armcsa",	--	Con Sea			/	Con Sea
 	"armsaber",	--	Sabre			/	Seaplane Gunship
 	"armsb",	--	Tsunami			/	Seaplane Bomber
 	"armseap",	--	Albatross		/	Torpedo Gunship
@@ -112,7 +108,6 @@ attackerlist = {
 
 -----------------------------T1 Ships
 
-	"armcs",	--	Con Corv		/	Con Corv
 	"armdecade",--	Decade			/	Fast Assault Corvette
 	"armdship",	--	Hunter			/	Light Torpedo Boat
 	"armpship",	--	Ellysaw			/	Assault Frigate
@@ -126,7 +121,6 @@ attackerlist = {
 -----------------------------T2 Ships
 
 	"armaas",	--	Archer			/	Anti-Air Ship
-	"armacsub",	--	Adv. Con Sub	/	Adv. Con Sub
 	"armbats",	--	Millennium		/	Battleship
 	"armcarry",	--	Colossus		/	Aircraft Carrier with Anti-Nuke
 	"armcrus",	--	Conqueror		/	Cruiser
@@ -150,7 +144,6 @@ attackerlist = {
 ------------------------------T2 KBOT
 
 	"coraak",   --	Manticore		/	Heavy Amphibious Anti-Air Kbot
-	"corack",	--	Adv. Con Bot	/	Adv Con Bot
 	"coramph",	--	Gimp			/	Amphibious Kbot
 	"corcan",	--	Can				/	Armored Assault Kbot
 	"cordecom",	--	Decoy Commander /   Decoy Commander
@@ -179,7 +172,6 @@ attackerlist = {
 
 -------------------------------T2 VEH
 
-	"coracv",	--	Adv. Con Veh	/	Adv. Con Veh
 	"corban",	--	Banisher		/	Heavy Missile Tank
 	"coreter",	--	Deleter			/	Radar Jammer Vehicle
 	"corgol",	--	Goliath			/	Very heavy Assault Tank
@@ -203,7 +195,6 @@ attackerlist = {
 
 -------------------------------T2 AIR
 
-	"coraca",	--	Adv. Con Air	/	Adv. Con Air
 	"corape",	--	Rapier			/	Gunship
 	"corawac",	--	Vulture			/	Radar/Sonar Plane
 	"corcrw",	--	Krow			/	Flying Fortress
@@ -223,7 +214,6 @@ attackerlist = {
 ---------------------------Hovercraft
 
 	"corah",	--	Slinger			/	Anti-Air Hovercraft
-	"corch",	--	Con Hover		/	Con Hover
 	"corhal",	--	Halberd			/	Assault Hovertank
 	"cormh",	--	Nixer			/	Hovercraft Rocket Launcher
 	"corsh",	--	Scrubber		/	Fast Attack Hovercraft
@@ -233,7 +223,6 @@ attackerlist = {
 
 ----------------------------Seaplanes
 
-	"corcsa",	--	Con Seaplane	/	Con Seaplane
 	"corcut",	--	Cutlass			/	Seaplane Gunship
 	"corhunt",	--	Hunter			/	Advanced Radar/Sonar Plane
 	"corsb",	--	Dam Buster		/	Seaplane Bomber
@@ -242,7 +231,6 @@ attackerlist = {
 
 -----------------------------T1 Ships
 
-	"corcs",	--	Con Sea			/	Con Sea
 	"cordship",	--	Chaser			/	Light Torpedo Boat
 	"coresupp",	--	Supporter		/	Fast Assault Corvette
 	"corpship",	--	Era				/	Assault Frigate
@@ -254,8 +242,7 @@ attackerlist = {
 	"cortship",	--	Envoy			/	Armored Transport Ship
 
 -----------------------------T2 Ships
-
-	"coracsub",	--	Adv. Con Sub	/	Adv. Con Sub
+	
 	"corarch",	--	Shredder		/	Anti-Air Ship
 	"corbats",	--	Warlord			/	Battleship
 	"corblackhy",--	Black Hydra		/	Flagship
