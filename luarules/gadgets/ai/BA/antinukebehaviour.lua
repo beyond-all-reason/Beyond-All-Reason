@@ -18,6 +18,7 @@ end
 function AntinukeBehaviour:Update()
 	if Spring.GetGameFrame() % 6000 == 4 then
 		self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE)
+	end
 end
 
 function AntinukeBehaviour:Activate()
