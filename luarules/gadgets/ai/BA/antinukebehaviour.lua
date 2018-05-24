@@ -32,5 +32,3 @@ end
 function AntinukeBehaviour:Priority()
 	return 51
 end
-
-end
