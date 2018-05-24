@@ -76,7 +76,7 @@ function CorRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms > 2000 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 2500 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -260,7 +260,7 @@ function ArmRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms > 2000 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 2500 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -439,7 +439,6 @@ local corcommanderq = {
 
 local cort1construction = {
 	--"cornanotc",
-	CorEnT1,
 	CorRandomLab,
 	"cornanotc",
 	CorGroundAdvDefT1,
@@ -714,7 +713,6 @@ local armcommanderq = {
 
 local armt1construction = {
 	--"armnanotc",
-	ArmEnT1,
 	ArmRandomLab,
 	"armnanotc",
 	ArmGroundAdvDefT1,
