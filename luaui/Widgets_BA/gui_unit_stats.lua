@@ -686,6 +686,10 @@ function widget:DrawScreen()
 		if not (uDef.isBuilding or uDef.isFactory) then
 				DrawText("Move:", format("%.1f / %.1f / %.0f (Speed / Accel / Turn)", uDef.speed, 900 * uDef.maxAcc, simSpeed * uDef.turnRate * (180 / 32767)))
 		end
+		
+		if uDef.buildSpeed > 0 then	
+			DrawText('Build:', yellow .. uDef.buildSpeed)
+		end
 		cY = cY - fontSize
 
 		------------------------------------------------------------------------------------
