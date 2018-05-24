@@ -147,8 +147,9 @@ end
 
 function CorTacticalOffDefT2()
 
-	local unitoptions = {"corfmd", "corsilo",}
-	return unitoptions[math.random(1,#unitoptions)]
+	--local unitoptions = {"corfmd", "corsilo",}
+	--return unitoptions[math.random(1,#unitoptions)]
+	return "corfmd"
 end
 
 
@@ -330,8 +331,9 @@ end
 
 function ArmTacticalOffDefT2()
 
-	local unitoptions = {"armamd", "armsilo",}
-	return unitoptions[math.random(1,#unitoptions)]
+	--local unitoptions = {"armamd", "armsilo",}
+	--return unitoptions[math.random(1,#unitoptions)]
+	return "armamd"
 end
 
 function ArmKBotsT2()

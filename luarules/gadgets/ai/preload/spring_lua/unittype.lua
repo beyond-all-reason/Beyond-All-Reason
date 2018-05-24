@@ -26,6 +26,11 @@ function ShardSpringUnitType:CanDeploy()
 	return false
 end
 
+function ShardSpringUnitType:CanMorph()
+	-- what does deploy mean for Spring?
+	return false
+end
+
 function ShardSpringUnitType:IsFactory()
 	-- what does deploy mean for Spring?
 	return self.def.isFactory

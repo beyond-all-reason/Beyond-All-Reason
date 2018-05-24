@@ -64,9 +64,17 @@ function ShardSpringUnit:CanDeploy()
 	return self:Type():CanDeploy()
 end
 
+function ShardSpringUnit:CanMorph()
+	return self:Type():CanMorph()
+end
+
 function ShardSpringUnit:IsBeingBuilt()
 	local health, maxHealth, paralyzeDamage, captureProgress, buildProgress = Spring.GetUnitHealth( self.id )
 	return buildProgress < 1
+end
+
+function ShardSpringUnit:IsMorphing()
+	return false
 end
 
 
@@ -86,6 +94,9 @@ function ShardSpringUnit:CanFireWhenDeployed()
 	return false
 end
 
+function ShardSpringUnit:CanMorphWhenDeployed()
+	return false
+end
 
 function ShardSpringUnit:CanBuildWhenDeployed()
 	return false
@@ -119,17 +130,13 @@ function ShardSpringUnit:MoveAndPatrol(p)
 	return true
 end
 
-
 function ShardSpringUnit:Build(t, p) -- IUnitType*
 	if type(t) == "string" then
 		-- local ai = Shard.AIs[1]
 		-- t = ai.game:GetTypeByName(t)
 		t = game:GetTypeByName(t)
 	end
-	if not p then
-		p = self:GetPosition()
-	end
-	p.y = Spring.GetGroundHeight( p.x,p.z )
+	if not p then p = self:GetPosition() end
 	Spring.GiveOrderToUnit( self.id, -t:ID(), { p.x, p.y, p.z }, {} )
 	return true
 end
@@ -163,8 +170,8 @@ end
 
 
 function ShardSpringUnit:MorphInto( type )
-	-- how?
-	return false
+	Spring.GiveOrderToUnit( self.id, CMD.MORPH, { unit:ID() }, {} )
+	return true
 end
 
 

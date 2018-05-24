@@ -14,7 +14,6 @@ function Unit:Init()
 		self.game:SendToConsole("Warning: Shard Unit:Init nil engineUnit?!")
 	end
 	self.behaviours = {}
-	self.behaviourvalues = {}
 end
 
 function Unit:Update()
@@ -42,7 +41,7 @@ function Unit:UnitCreated(unit)
 end
 
 function Unit:UnitBuilt(unit)
-if unit.engineID == self.engineID then
+	if unit.engineID == self.engineID then
 		self:ElectBehaviour()
 		for k,v in pairs(self.behaviours) do
 			v:OwnerBuilt()
@@ -140,9 +139,11 @@ function Unit:ElectBehaviour()
 		
 		if self.activebeh ~= bestbeh then
 			if self.activebeh ~= nil then
+				self.activebeh:PreDeactivate()
 				self.activebeh:Deactivate()
 			end
 			self.activebeh = bestbeh
+			self.activebeh:PreActivate()
 			self.activebeh:Activate()
 		end
 	end

@@ -44,7 +44,7 @@ function map:FindClosestBuildSite(unittype, builderpos, searchradius, minimumdis
 				position = validFunction(position)
 				if position then return position end
 			end
-		end
+		end 
 	end
 	local lastDitch, lastDitchPos = self:CanBuildHere(unittype, builderpos)
 	if lastDitch then
@@ -54,8 +54,7 @@ function map:FindClosestBuildSite(unittype, builderpos, searchradius, minimumdis
 end
 
 function map:CanBuildHere(unittype,position) -- returns boolean
-	local y = Spring.GetGroundHeight( position.x, position.z )
-	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), position.x, y, position.z)
+	local newX, newY, newZ = Spring.Pos2BuildPos(unittype:ID(), position.x, position.y, position.z)
 	local blocked = Spring.TestBuildOrder(unittype:ID(), newX, newY, newZ, 1) == 0
 	-- Spring.Echo(unittype:Name(), newX, newY, newZ, blocked)
 	return ( not blocked ), {x=newX, y=newY, z=newZ}
