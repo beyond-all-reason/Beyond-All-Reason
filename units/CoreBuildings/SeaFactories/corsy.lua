@@ -36,7 +36,7 @@ return {
 		yardmap = "oyyyyyyoyccccccyyccccccyyccccccyyccccccyyccccccyyccccccyoyyyyyyo",
 		buildoptions = {
 			"corcs",
-			"corch",
+			-- "corch",
 			"correcl",
 			"corpt",
 			"coresupp",
