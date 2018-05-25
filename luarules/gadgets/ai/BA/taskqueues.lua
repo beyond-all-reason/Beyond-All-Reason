@@ -506,6 +506,7 @@ local cort2construction = {
 	CorRandomLab,
 	CorGroundAdvDefT2,
     CorAirAdvDefT2,
+	CorTacticalAdvDefT2,
 	"cormoho",
 	CorRandomLab,
 	"cormoho",
@@ -519,7 +520,6 @@ local cort2construction = {
 	CorGroundAdvDefT2,
     CorAirAdvDefT2,
     CorTacticalAdvDefT2,
-	CorTacticalOffDefT2,
 }
 
 local corkbotlab = {
@@ -782,6 +782,8 @@ local armt2construction = {
 	"armmoho",
 	ArmRandomLab,
     ArmGroundAdvDefT2,
+	ArmAirAdvDefT2,
+	ArmTacticalOffDefT2,
 	"armmoho",
 	ArmRandomLab,
     ArmGroundAdvDefT2,
@@ -794,7 +796,7 @@ local armt2construction = {
 	ArmRandomLab,
     ArmGroundAdvDefT2,
     ArmTacticalAdvDefT2,
-	ArmTacticalOffDefT2,
+
 }
 
 local armkbotlab = {
