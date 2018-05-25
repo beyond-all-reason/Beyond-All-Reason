@@ -1027,7 +1027,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', {'selectPlayerUnits'}, options[i].value)
 		elseif id == 'voicenotifs_playtrackedplayernotifs' then
 			saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, options[i].value)
-		elseif id == 'buildmenuoldicons' then
+		elseif id == 'oldicons' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigOldUnitIcons', {'oldUnitpics'}, options[i].value)
 			saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
 			saveOptionValue('BuildBar', 'buildbar', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
@@ -1882,7 +1882,7 @@ function init()
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
 
-		{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="oldicons", group="ui", name="Old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenulargeicons", group="ui", name="Buildmenu large icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons'},
@@ -2008,7 +2008,7 @@ function init()
 
 	if Spring.GetModOptions == nil or (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
 		options[getOptionByID('normalmapping')] = nil
-		options[getOptionByID('buildmenuoldicons')] = nil
+		options[getOptionByID('oldicons')] = nil
 	end
 
 	if (WG['healthbars'] == nil) then
