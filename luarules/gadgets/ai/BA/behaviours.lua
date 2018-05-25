@@ -4,7 +4,8 @@ shard_include(  "taskqueuebehaviour" )
 shard_include(  "attackerbehaviour" )
 --shard_include(  "pointcapturerbehaviour" )
 shard_include(  "bootbehaviour" )
-shard_include(  "AntinukeBehaviour" )
+shard_include(  "stockpilebehavior" )
+
 
 behaviours = {
 	--CoreNanoTurret
@@ -16,11 +17,18 @@ behaviours = {
 		TaskQueueBehaviour,
 	},
 	corfmd = {
-		AntinukeBehaviour,
+		StockpileBehavior,
 	},
 
 	armamd = {
-		AntinukeBehaviour,
+		StockpileBehavior,
+	},
+	corscreamer = {
+		StockpileBehavior,
+	},
+
+	armmercury = {
+		StockpileBehavior,
 	},
 
 }
