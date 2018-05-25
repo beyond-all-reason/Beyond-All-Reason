@@ -92,7 +92,6 @@ attackerlist = {
 
 	"armah",	--	Swatter			/	Anti-Air Hovercraft
 	"armanac",	--	Anaconda		/	Hovertank
-	"armch",	--	Con Hover		/	Con Hover
 	"armlun",	--	Lun				/	Heavy Hovertank
 	"armmh",	--	Wombat			/	Hovercraft Rocket Launcher
 	"armsh",	--	Skimmer			/	Fast Attack Hovercraft
