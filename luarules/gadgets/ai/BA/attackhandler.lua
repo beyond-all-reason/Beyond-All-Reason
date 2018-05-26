@@ -10,21 +10,21 @@ end
 
 function AttackHandler:Init()
 	self.recruits = {}
-	self.counter = 3
+	self.counter = 1
 end
 
 function AttackHandler:Update()
 -- stagger targetting if multiple shards are in the game
 	local f = self.game:Frame() + self.game:GetTeamID() 
-	if math.mod(f,15) == 0 then
+	if math.mod(f,300) == 0 then
 		self:DoTargetting()
 	end
 end
 
 function AttackHandler:UnitDead(engineunit)
 	if engineunit:Team() == self.game:GetTeamID() then
-		self.counter = self.counter - 0.2
-		self.counter = math.max(self.counter,8)
+		--self.counter = self.counter - 0.2
+		--self.counter = math.max(self.counter,8)
 		-- try and clean up dead recruits where possible
 		for i,v in ipairs(self.recruits) do
 			if v.engineID == engineunit:ID() then
@@ -112,11 +112,11 @@ function AttackHandler:DoTargetting()
 					recruit:AttackCell(bestCell)
 				end
 				
-				self.counter = self.counter + 0.2
-				self.counter = math.min(self.counter,20)
+				--self.counter = self.counter + 0.2
+				--self.counter = math.min(self.counter,20)
 				
 				-- remove all our recruits!
-				self.recruits = {}
+				--self.recruits = {}
 			end
 		end
 		
@@ -164,16 +164,17 @@ end
 -- that table to highlight strategic value
 function AttackHandler:ScoreUnit(unit)
 	local value = 1
-
+	--[[
 	if unit:CanMove() then
 		if unit:CanBuild() then
 			value = value + 1
 		end
 	else
-		value = value + 1
+		value = value + 2
 		if unit:CanBuild() then
-			value = value + 1
+			value = value + 2
 		end
 	end
+	--]]
 	return value
 end

@@ -5,7 +5,7 @@ shard_include(  "attackerbehaviour" )
 --shard_include(  "pointcapturerbehaviour" )
 shard_include(  "bootbehaviour" )
 shard_include(  "stockpilebehavior" )
-
+shard_include(  "mexupgradebehavior" )
 
 behaviours = {
 	--CoreNanoTurret
@@ -30,6 +30,32 @@ behaviours = {
 	armmercury = {
 		StockpileBehavior,
 	},
+
+	corack = {
+		TaskQueueBehaviour,
+		MexUpgradeBehavior,
+		},
+	coracv = {
+		TaskQueueBehaviour,
+		MexUpgradeBehavior,
+		},
+	coraca = {
+		TaskQueueBehaviour,
+		MexUpgradeBehavior,
+		},
+	armack = {
+		TaskQueueBehaviour,
+		MexUpgradeBehavior,
+		},
+	armacv = {
+		TaskQueueBehaviour,
+		MexUpgradeBehavior,
+		},
+	armaca = {
+		TaskQueueBehaviour,
+		MexUpgradeBehavior,
+		},
+
 
 }
 
