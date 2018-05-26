@@ -110,15 +110,27 @@ function CorAirAdvDefT1()
 end
 
 function CorKBotsT1()
-	
-	local unitoptions = {"corak", "cornecro", "corthud", "corstorm", "corcrash",}
-	return unitoptions[math.random(1,#unitoptions)]
+	if Spring.GetGameSeconds() < 150 then
+		return "corak"
+	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+		local unitoptions = {"corak", "corak", "corak", "cornecro", "corstorm",}
+		return unitoptions[math.random(1,#unitoptions)]
+	else
+	    local unitoptions = {"corak", "corthud", "corthud", "corstorm", "corstorm", "cornecro", "cornecro",}
+		return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function CorVehT1()
-	
-	local unitoptions = {"corgator", "corraid", "corlevlr", "corwolv", "cormist", "corgarp",}
-	return unitoptions[math.random(1,#unitoptions)]
+    if Spring.GetGameSeconds() < 150 then
+		return "corfav"
+    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+		local unitoptions = {"corgator", "corgator", "corfav",}
+		return unitoptions[math.random(1,#unitoptions)]
+    else 
+		local unitoptions = {"corraid", "corraid", "corraid", "corlevlr", "corlevlr", "cormist", "cormist",}
+		return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function CorAirT1()
@@ -294,15 +306,27 @@ function ArmAirAdvDefT1()
 end
 
 function ArmKBotsT1()
-	
-	local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armjeth", "armwar",}
+	if Spring.GetGameSeconds() < 150 then
+		return "armflea"
+	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+		local unitoptions = {"armpw", "armpw", "armflea",}
+		return unitoptions[math.random(1,#unitoptions)]
+	else 
+		local unitoptions = {"armpw", "armflea", "armflea", "armham", "armham", "armham", "armrectr", "armrectr", "armrock", "armrock", "armrock", "armwar", "armwar", "armwar",}
 	return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function ArmVehT1()
-	
-	local unitoptions = {"armflash", "armstump", "armjanus", "armart", "armsam", "armpincer",}
-	return unitoptions[math.random(1,#unitoptions)]
+    if Spring.GetGameSeconds() < 150 then
+       return "armfav"
+    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+       local unitoptions = {"armflash", "armflash", "armfav",}
+		return unitoptions[math.random(1,#unitoptions)]
+    else 
+       local unitoptions = {"armstump", "armstump", "armstump", "armjanus", "armjanus", "armsam", "armsam",}
+		return unitoptions[math.random(1,#unitoptions)]
+	end
 end
 
 function ArmAirT1()
@@ -398,12 +422,10 @@ end
 local corcommanderfirst = {
 	"cormex",
 	"cormex",
-	"cormex",
-	"corsolar",
-	"corsolar",
 	"corsolar",
 	"corsolar",
 	CorStarterLabT1,
+	"corsolar",
 }
 
 local corcommanderq = {
@@ -673,12 +695,10 @@ corgantryT3 = {
 local armcommanderfirst = {
 	"armmex",
 	"armmex",
-	"armmex",
-	"armsolar",
-	"armsolar",
 	"armsolar",
 	"armsolar",
 	ArmStarterLabT1,
+	"armsolar",
 }
 
 local armcommanderq = {
