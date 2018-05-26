@@ -10,7 +10,7 @@ end
 
 function AttackHandler:Init()
 	self.recruits = {}
-	self.counter = 8
+	self.counter = 3
 end
 
 function AttackHandler:Update()
