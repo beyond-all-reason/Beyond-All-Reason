@@ -13,6 +13,7 @@ AttackerBehaviour = class(Behaviour)
 
 function AttackerBehaviour:Init()
 	--self.ai.game:SendToConsole("attacker!")
+	--self.game:AddMarker({ x = startPosx, y = startPosy, z = startPosz }, "my start position")
 end
 
 function AttackerBehaviour:OwnerBuilt()
@@ -33,17 +34,36 @@ function AttackerBehaviour:OwnerIdle()
 end
 
 function AttackerBehaviour:AttackCell(cell)
-	p = api.Position()
-	p.x = cell.posx + math.random(0,1000) - math.random(0,1000)
-	p.z = cell.posz + math.random(0,1000) - math.random(0,1000)
-	p.y = 0
-	self.target = p
-	self.attacking = true
-	self.ai.attackhandler:AddRecruit(self)
-	if self.active then
-		self.unit:Internal():MoveAndFire(self.target)
+	local unit = self.unit:Internal()
+	local currenthealth = unit:GetHealth()
+	local maxhealth = unit:GetMaxHealth()
+	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(self.ai.id)
+	if currenthealth >= maxhealth then
+		p = api.Position()
+		p.x = cell.posx
+		p.z = cell.posz
+		p.y = 0
+		self.target = p
+		self.attacking = true
+		self.ai.attackhandler:AddRecruit(self)
+		if self.active then
+			self.unit:Internal():MoveAndFire(self.target)
+		else
+			self.unit:ElectBehaviour()
+		end
 	else
-		self.unit:ElectBehaviour()
+		p = api.Position()
+		p.x = startPosx + math.random(0,1000) - math.random(0,1000)
+		p.z = startPosz + math.random(0,1000) - math.random(0,1000)
+		p.y = startPosy
+		self.target = p
+		self.attacking = false
+		self.ai.attackhandler:AddRecruit(self)
+		if self.active then
+			self.unit:Internal():Move(self.target)
+		else
+			self.unit:ElectBehaviour()
+		end
 	end
 end
 
