@@ -32,9 +32,9 @@ return {
 		sightdistance = 455,
 		waterline = 0,
 		--move
-		acceleration = 0.02,
-		brakerate = 0.084,
-		maxvelocity = 2.10,
+		acceleration = 0.019,
+		brakerate = 0.079,
+		maxvelocity = 1.99,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 120,
@@ -115,9 +115,9 @@ return {
 		weapondefs = {
 			arm_bats = {
 				accuracy = 350,
-				areaofeffect = 96,
+				areaofeffect = 128,
 				avoidfeature = false,
-				craterareaofeffect = 96,
+				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-medium",
@@ -126,7 +126,7 @@ return {
 				impulsefactor = 0.123,
 				name = "BattleshipCannon",
 				noselfdamage = true,
-				range = 900,
+				range = 830,
 				reloadtime = 0.4,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
