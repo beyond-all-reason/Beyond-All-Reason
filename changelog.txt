@@ -13,6 +13,8 @@ Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 
  • Hovercraft builder cannot be made from T1 shipyard
  • Hovercraft buildpower 90 -> 140
 
+
+
 Sea economy, factories and engineering:
  • Erased T1/T2 Shipyards' radarsight 
  • Removed Passive energy/metal generation from T1/T2 Shipyards
@@ -28,7 +30,7 @@ Sea Offense and Defense:
  • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%, projectile speed +5%
  • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health), sonar distance reduced (400 -> 375)
  • Destroyers' and cruisers' and support frigates' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
- • Arm/Core Assult Frigates damages + 3%
+ • Arm/Core Assult Frigates damages + 3%, turret turnspeed reduced -3%
  • Transport ship costs decreased (core 5500e/600m/8610bt => 3700e/350m/6400bt and arm 5000e/640m/9150bt => 3500e/350m/6500bt) and hp decreased (arm 8800 -> 2900 and core 9150 -> 3000)
  • Arm/Core gun platform special damages towards "heavyunits" and air categories erased, projectile speed increased (+32%), can attempt to target aircrafts.
  • Global acceleration buff for ships (+100%)
