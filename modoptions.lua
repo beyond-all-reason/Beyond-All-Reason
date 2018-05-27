@@ -40,10 +40,10 @@ local options={
         desc   = 'Multiplies AI resource income',
         type   = 'number',
         section= 'ba_options',
-        def    = 2,
+        def    = 1.5,
         min    = 1,
         max    = 10,
-        step   = 1,
+        step   = 0.1,
     },
 	{
 		key="deathmode",
