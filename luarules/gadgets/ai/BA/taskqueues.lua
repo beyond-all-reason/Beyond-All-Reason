@@ -76,7 +76,7 @@ function CorRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 2500 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1500 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -272,7 +272,7 @@ function ArmRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 2500 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1500 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -426,6 +426,7 @@ local corcommanderfirst = {
 	"corsolar",
 	CorStarterLabT1,
 	"corsolar",
+	"corsolar",
 }
 
 local corcommanderq = {
@@ -504,6 +505,9 @@ local cort1mexingqueue = {
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
+	CorEnT1,
+	CorEnT1,
+	CorEnT1,
 	"corllt",
 	CorMexT1,
 	"cornanotc",
@@ -546,6 +550,7 @@ local cort2construction = {
 
 local corkbotlab = {
 	"corck",	--	Constructor
+	"corck",	--	Constructor
 	CorKBotsT1,
 	CorKBotsT1,
 	CorKBotsT1,
@@ -565,6 +570,7 @@ local corkbotlab = {
 }
 
 local corvehlab = {
+	"corcv",	--	Constructor
 	"corcv",	--	Constructor
 	CorVehT1,
 	CorVehT1,
@@ -586,6 +592,7 @@ local corvehlab = {
 
 local corairlab = {
 	"corca",	-- 	Constructor
+	"corca",	-- 	Constructor
 	CorAirT1,
 	CorAirT1,
 	CorAirT1,
@@ -605,6 +612,7 @@ local corairlab = {
 
 corkbotlabT2 = {
 	"corack",
+	"corack",
 	CorKBotsT2,
 	CorKBotsT2,
 	CorKBotsT2,
@@ -623,6 +631,7 @@ corkbotlabT2 = {
 }
 
 corvehlabT2 = {
+	"coracv",
 	"coracv",
 	CorVehT2,
 	CorVehT2,
@@ -698,6 +707,7 @@ local armcommanderfirst = {
 	"armsolar",
 	"armsolar",
 	ArmStarterLabT1,
+	"armsolar",
 	"armsolar",
 }
 
@@ -779,6 +789,9 @@ local armt1mexingqueue = {
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
+	ArmEnT1,
+	ArmEnT1,
+	ArmEnT1,
 	"armllt",
 	ArmMexT1,
 	"armnanotc",
@@ -821,6 +834,7 @@ local armt2construction = {
 
 local armkbotlab = {
 	"armck",	-- 	Constructor
+	"armck",	-- 	Constructor
 	ArmKBotsT1,
 	ArmKBotsT1,
 	ArmKBotsT1,
@@ -840,6 +854,7 @@ local armkbotlab = {
 }
 
 local armvehlab = {
+	"armcv",	--	Constructor
 	"armcv",	--	Constructor
 	ArmVehT1,
 	ArmVehT1,
@@ -861,6 +876,7 @@ local armvehlab = {
 
 local armairlab = {
 	"armca",	--	Constructor
+	"armca",	--	Constructor
 	ArmAirT1,
 	ArmAirT1,
 	ArmAirT1,
@@ -881,6 +897,7 @@ local armairlab = {
 
 armkbotlabT2 = {
 	"armack",
+	"armack",
 	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
@@ -899,6 +916,7 @@ armkbotlabT2 = {
 }
 
 armvehlabT2 = {
+	"armacv",
 	"armacv",
 	ArmVehT2,
 	ArmVehT2,
@@ -919,6 +937,7 @@ armvehlabT2 = {
 
 armairlabT2 = {
 	"armaca",
+	"armaca",
 	ArmAirT2,
 	ArmAirT2,
 	ArmAirT2,
@@ -937,6 +956,7 @@ armairlabT2 = {
 }
 
 armhoverlabT2 = {
+	"armch",
 	"armch",
 	ArmHover,
 	ArmHover,
