@@ -1049,6 +1049,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', {'useSameTeamColors'}, options[i].value)
 		elseif id == 'bloomhighlights' then
 			saveOptionValue('Bloom Shader', 'bloom', 'setAdvBloom', {'drawHighlights'}, options[i].value)
+		elseif id == 'commandsfxfilterai' then
+			saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', {'filterAIteams'}, options[i].value)
 		elseif id == 'snowmap' then
 			saveOptionValue('Snow', 'snow', 'setSnowMap', {'snowMaps',Game.mapName:lower()}, options[i].value)
 		elseif id == 'snowautoreduce' then
@@ -1707,6 +1709,7 @@ function loadAllWidgetData()
 	loadWidgetData("Snow", "snowautoreduce", {'autoReduce'})
 
 	loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'})
+	loadWidgetData("Commands FX", "commandsfxfilterai", {'filterAIteams'})
 
 	loadWidgetData("Depth of Field", "dofintensity", {'intensity'})
 
@@ -1822,6 +1825,7 @@ function init()
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		{id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		{id="commandsfxfilterai", group="gfx", name=widgetOptionColor.."   show AI teams", type="bool", value=true, description='Show commands for AI teams'},
 		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.1, value=1, description=''},
 
 		{id="dofintensity", group="gfx", name="DoF intensity", type="slider", min=0.05, max=5, step=0.01, value=1.5, description='Enable Depth of Field with F8 first'},
