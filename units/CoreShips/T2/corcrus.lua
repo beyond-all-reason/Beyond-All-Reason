@@ -205,7 +205,7 @@ return {
 				impulsefactor = 0,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
-				range = 630,
+				range = 565,
 				reloadtime = 0.9,
 				rgbcolor = "0 1 0",
 				soundhitdry = "",

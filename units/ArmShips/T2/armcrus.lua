@@ -201,7 +201,7 @@ return {
 				impulsefactor = 0.123,
 				name = "CruiserCannon",
 				noselfdamage = true,
-				range = 650,
+				range = 585,
 				reloadtime = 1.35,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
