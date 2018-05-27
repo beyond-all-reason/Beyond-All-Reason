@@ -22,8 +22,9 @@ end
 function MexUpgradeBehavior:Update()
 	local unit = self.unit:Internal()
 	local countT1mex = UDC(self.teamid, UDN.cormex.id) + UDC(self.teamid, UDN.corexp.id) + UDC(self.teamid, UDN.armmex.id) + UDC(self.teamid, UDN.armamex.id)
-	if countT1mex == 0 an not (Spring.GetUnitCommands(unit.id, 1)) then
-		self.unit:ElectBehaviour()
+	local curQueue = Spring.GetUnitCommands(unit.id, 1)
+	if countT1mex == 0 and not (#curQueue > 0) then
+		self.ElectBehaviour()
 	end
 end
 
