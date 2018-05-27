@@ -1825,7 +1825,7 @@ function init()
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		{id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
-		{id="commandsfxfilterai", group="gfx", name=widgetOptionColor.."   show AI teams", type="bool", value=true, description='Show commands for AI teams'},
+		{id="commandsfxfilterai", group="gfx", name=widgetOptionColor.."   filter AI teams", type="bool", value=true, description='Hide commands for AI teams'},
 		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.1, value=1, description=''},
 
 		{id="dofintensity", group="gfx", name="DoF intensity", type="slider", min=0.05, max=5, step=0.01, value=1.5, description='Enable Depth of Field with F8 first'},
@@ -1962,6 +1962,18 @@ function init()
 
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
+
+    -- detect AI
+    local aiDetected = false
+    local t = Spring.GetTeamList()
+    for _,teamID in ipairs(t) do
+        if select(4,Spring.GetTeamInfo(teamID)) then
+            aiDetected = true
+        end
+    end
+    if not aiDetected then
+        options[getOptionByID('commandsfxfilterai')] = nil
+    end
 
 	-- add sound notification widget sound toggle options
 	if widgetHandler.knownWidgets["Voice Notifs"] then
