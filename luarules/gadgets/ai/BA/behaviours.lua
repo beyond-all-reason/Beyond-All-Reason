@@ -5,7 +5,7 @@ shard_include(  "attackerbehaviour" )
 --shard_include(  "pointcapturerbehaviour" )
 shard_include(  "bootbehaviour" )
 shard_include(  "stockpilebehavior" )
-shard_include(  "mexupgradebehavior" )
+shard_include(  "mexupgradebehaviour" )
 
 behaviours = {
 	--CoreNanoTurret

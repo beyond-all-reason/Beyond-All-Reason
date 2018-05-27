@@ -7,7 +7,7 @@ end
 
 function MexUpgradeBehavior:Init()
 	self.teamid = self.unit:Internal():Team()
-	CMD_UPGRADEMEX = 31244 
+	CMD_AUTOMEX = 31143 
 	UDC = Spring.GetTeamUnitDefCount
 	UDN = UnitDefNames
 	mc, ms, mp, mi, me = Spring.GetTeamResources(self.teamid, "metal")
@@ -22,10 +22,10 @@ function MexUpgradeBehavior:Update()
 	local unit = self.unit:Internal()
 	local countT1mex = UDC(self.teamid, UDN.cormex.id) + UDC(self.teamid, UDN.corexp.id) + UDC(self.teamid, UDN.armmex.id) + UDC(self.teamid, UDN.armamex.id)
 	if countT1mex == 0 then
-		unit:ExecuteCustomCommand(CMD_UPGRADEMEX, {'UpgMex OFF'}, {})
+		unit:ExecuteCustomCommand(CMD_AUTOMEX, {1}, {})
 		self.unit:ElectBehaviour()
 	else
-		unit:ExecuteCustomCommand(CMD_UPGRADEMEX, {'UpgMex ON'}, {})
+		unit:ExecuteCustomCommand(CMD_AUTOMEX, {2}, {})
 	end
 end
 
