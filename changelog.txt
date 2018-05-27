@@ -13,6 +13,7 @@ Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 
  • Hovercraft builder cannot be made from T1 shipyard
  • Hovercraft buildpower 90 -> 140
  • Cruisers' main cannons range reduced to 585 (arm) 565 (core), lightlaser to 430, deptcharge to 450.
+ • Subkillers movespeed to approx 2.40, accel/brake adjusted, HP to 850, damages 720, reloadtime 3.6s
 
 
 Sea economy, factories and engineering:
