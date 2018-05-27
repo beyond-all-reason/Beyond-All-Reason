@@ -14,10 +14,12 @@ AttackerBehaviour = class(Behaviour)
 function AttackerBehaviour:Init()
 	--self.ai.game:SendToConsole("attacker!")
 	--self.game:AddMarker({ x = startPosx, y = startPosy, z = startPosz }, "my start position")
+	CMD.MOVE_STATE = 50
 end
 
 function AttackerBehaviour:OwnerBuilt()
 	self.ai.attackhandler:AddRecruit(self)
+	self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 	self.attacking = true
 	self.active = true
 end
@@ -41,7 +43,7 @@ function AttackerBehaviour:AttackCell(cell)
 	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(self.ai.allyId)
 	local ec, es = Spring.GetTeamResources(ai.id, "energy")
 	--attack
-	if currenthealth >= maxhealth then
+	if currenthealth >= maxhealth - maxhealth * 0.2 or currenthealth > 3000 then
 		p = api.Position()
 		p.x = cell.posx
 		p.z = cell.posz
