@@ -16,7 +16,7 @@ end
 local teams = Spring.GetTeamList()
 for i =1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI ~= "" then
+	if string.find(luaAI, "Chicken:") then
 		if luaAI == "Chicken: Very Easy" or 
 		luaAI == "Chicken: Easy" or 
 		luaAI == "Chicken: Normal" or 
@@ -197,7 +197,7 @@ local teams = GetTeamList()
 local highestLevel = 0
 for _, teamID in ipairs(teams) do
   local teamLuaAI = GetTeamLuaAI(teamID)
-  if (teamLuaAI and teamLuaAI ~= "") then
+  if (teamLuaAI and string.find(teamLuaAI, "Chicken:")) then
     luaAI = teamLuaAI
     if (modes[teamLuaAI] > highestLevel) then -- get chicken ai with highest level
       highestLevel = modes[teamLuaAI]
