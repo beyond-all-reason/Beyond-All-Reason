@@ -17,6 +17,31 @@ function AttackerBehaviour:Init()
 	CMD.MOVE_STATE = 50
 end
 
+function AttackerBehaviour:Update()
+	local unitID = self.unit:Internal().id
+	-- Spring.Echo(unitID)
+	local myRange = Spring.GetUnitMaxRange(unitID)
+	local closestUnit = Spring.GetUnitNearestEnemy(unitID, myRange)
+	local allyTeamID = self.ai.allyId
+	if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) then
+		local enemyRange = Spring.GetUnitMaxRange(closestUnit)
+		if myRange > enemyRange then
+			local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
+			local ux,uy,uz = Spring.GetUnitPosition(unitID)
+			local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
+			local dis = 120
+			local f = dis/pointDis
+			if (pointDis+dis > Spring.GetUnitMaxRange(unitID)) then
+			  f = (Spring.GetUnitMaxRange(unitID)-pointDis)/pointDis
+			end
+			local cx = ux+(ux-ex)*f
+			local cy = uy
+			local cz = uz+(uz-ez)*f
+			self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz})
+		end
+	end
+end
+
 function AttackerBehaviour:OwnerBuilt()
 	self.ai.attackhandler:AddRecruit(self)
 	self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
