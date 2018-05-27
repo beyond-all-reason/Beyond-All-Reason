@@ -147,16 +147,18 @@ function UnitDef_Post(name, uDef)
 		end
 
 		-- BAR sounds
-		if uDef.sounds and type(uDef.sounds) == 'table' then
-			for sound, soundParams in pairs(uDef.sounds) do
-				if type(soundParams) == 'string' then
-					uDef.sounds[sound] = getBarSound(soundParams)
-				elseif type(soundParams) == 'table' then
-					for i, value in pairs(soundParams) do
-						if type(value) == 'string' then
-							uDef.sounds[sound][value] = getBarSound(value)
-						elseif type(value) == 'table' then
-							uDef.sounds[sound][value].file = getBarSound(value.file)
+		if (tonumber(Spring.GetModOptions().barsounds) or 0) ~= 0 then
+			if uDef.sounds and type(uDef.sounds) == 'table' then
+				for sound, soundParams in pairs(uDef.sounds) do
+					if type(soundParams) == 'string' then
+						uDef.sounds[sound] = getBarSound(soundParams)
+					elseif type(soundParams) == 'table' then
+						for i, value in pairs(soundParams) do
+							if type(value) == 'string' then
+								uDef.sounds[sound][value] = getBarSound(value)
+							elseif type(value) == 'table' then
+								uDef.sounds[sound][value].file = getBarSound(value.file)
+							end
 						end
 					end
 				end
@@ -310,32 +312,34 @@ function WeaponDef_Post(name, wDef)
 
 	-- load BAR alternative sound
 	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
-		if wDef.soundstart ~= '' then
-			wDef.soundstart = getBarSound(wDef.soundstart)
-		end
-		if wDef.soundhit ~= '' then
-			wDef.soundhit = getBarSound(wDef.soundhit)
-		end
-		if wDef.soundhitdry ~= '' then
-			wDef.soundhitdry = getBarSound(wDef.soundhitdry)
-		end
-		if wDef.soundhitwet ~= '' then
-			wDef.soundhitwet = getBarSound(wDef.soundhitwet)
-		end
+		if (tonumber(Spring.GetModOptions().barsounds) or 0) ~= 0 then
+			if wDef.soundstart ~= '' then
+				wDef.soundstart = getBarSound(wDef.soundstart)
+			end
+			if wDef.soundhit ~= '' then
+				wDef.soundhit = getBarSound(wDef.soundhit)
+			end
+			if wDef.soundhitdry ~= '' then
+				wDef.soundhitdry = getBarSound(wDef.soundhitdry)
+			end
+			if wDef.soundhitwet ~= '' then
+				wDef.soundhitwet = getBarSound(wDef.soundhitwet)
+			end
 
-		-- load bar alternative defs
-		if wDef.customparams then
-			for paramName, paramValue in pairs(wDef.customparams) do
-				if paramName:sub(1,4) == "bar_" then
-					local param = string.sub(paramName, 5)
+			-- load bar alternative defs
+			if wDef.customparams then
+				for paramName, paramValue in pairs(wDef.customparams) do
+					if paramName:sub(1,4) == "bar_" then
+						local param = string.sub(paramName, 5)
 
-					--if param == 'model' and VFS.FileExists('objects3d/'..paramValue) then
-					--	wDef.model = 'objects3d/bar_'..paramValue
-					--end
-					if tonumber(param) then
-						wDef[param] = tonumber(paramValue)
-					else
-						wDef[param] = paramValue
+						--if param == 'model' and VFS.FileExists('objects3d/'..paramValue) then
+						--	wDef.model = 'objects3d/bar_'..paramValue
+						--end
+						if tonumber(param) then
+							wDef[param] = tonumber(paramValue)
+						else
+							wDef[param] = paramValue
+						end
 					end
 				end
 			end
