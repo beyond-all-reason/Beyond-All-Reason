@@ -231,8 +231,6 @@ function ArmEnT1( taskqueuebehaviour )
         end
 	elseif mc < ms - ms*0.8 then
 		return "armmex"
-	elseif mc < ms - ms*0.4 then
-		return "armamex"
 	else
 		return "corkrog"
 	end
@@ -244,8 +242,6 @@ function ArmMexT1( taskqueuebehaviour )
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc < ms - ms*0.8 then
 		return "armmex"
-	elseif mc < ms - ms*0.7 then
-		return "armamex"
 	elseif ec < es - es*0.8 then
         if taskqueuebehaviour.ai.map:AverageWind() > 7 then
             return "armwin"
