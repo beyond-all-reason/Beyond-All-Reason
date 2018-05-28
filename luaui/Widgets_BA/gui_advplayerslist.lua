@@ -978,7 +978,7 @@ function GetAllPlayers()
 			tplayerCount = playerCount + 1
 		end
 		if tplayerCount > 0 then
-			tplayerCount[i] = true		-- (this isnt correct when team consists of only AI)
+			playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
 		end
 		tplayerCount = 0
 	end
