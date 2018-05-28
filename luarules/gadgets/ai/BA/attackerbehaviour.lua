@@ -23,7 +23,7 @@ function AttackerBehaviour:Update()
 	local myRange = Spring.GetUnitMaxRange(unitID)
 	local closestUnit = Spring.GetUnitNearestEnemy(unitID, myRange)
 	local allyTeamID = self.ai.allyId
-	if Spring.GetGameFrame() % 30 == 4 then
+	if unitID % 30 == Spring.GetGameFrame() % 30 then
 		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) then
 			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
 			if myRange > enemyRange then
@@ -78,8 +78,13 @@ function AttackerBehaviour:AttackCell(cell)
 		self.target = p
 		self.attacking = true
 		self.ai.attackhandler:AddRecruit(self)
+
 		if self.active then
-			self.unit:Internal():MoveAndFire(self.target)
+			if unit:Name() == "Rector" or "Necro" then
+				unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
+			else
+				unit:MoveAndFire(self.target)
+			end
 		else
 			self.unit:ElectBehaviour()
 		end
