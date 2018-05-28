@@ -42,6 +42,21 @@ function CorEnT1( taskqueuebehaviour )
 	end
 end
 
+function CorEnT2( taskqueuebehaviour )
+
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if ec < es - es*0.8 then
+		return "corfus"
+	elseif mc < ms - ms*0.8 then
+		return "cormexp"
+	elseif mc < ms - ms*0.4 then
+		return "cormmkr"
+	else
+		return "corkrog"
+	end
+end
+
 function CorMexT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
@@ -231,6 +246,21 @@ function ArmEnT1( taskqueuebehaviour )
         end
 	elseif mc < ms - ms*0.8 then
 		return "armmex"
+	else
+		return "corkrog"
+	end
+end
+
+function ArmEnT2( taskqueuebehaviour )
+
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if ec < es - es*0.8 then
+		return "armfus"
+	elseif mc < ms - ms*0.8 then
+		return "armmoho"
+	elseif mc < ms - ms*0.4 then
+		return "armmmkr"
 	else
 		return "corkrog"
 	end
@@ -524,20 +554,23 @@ local cort1mexingqueue = {
 }
 
 local cort2construction = {
-	"cormoho",
+	CorEnT2,
+	CorEnT2,
 	CorRandomLab,
 	CorGroundAdvDefT2,
     CorAirAdvDefT2,
 	CorTacticalAdvDefT2,
-	"cormoho",
+	CorEnT2,
+	CorEnT2,
 	CorRandomLab,
-	"cormoho",
+	CorEnT2,
 	CorRandomLab,
-	"cormoho",
+	CorEnT2,
 	CorRandomLab,
 	CorGroundAdvDefT2,
     CorAirAdvDefT2,
-	"corfus",
+	CorEnT2,
+	CorEnT2,
 	CorRandomLab,
 	CorGroundAdvDefT2,
     CorAirAdvDefT2,
@@ -808,20 +841,25 @@ local armt1mexingqueue = {
 }
 
 local armt2construction = {
-	"armmoho",
+	ArmEnT2,
+	ArmEnT2,
 	ArmRandomLab,
     ArmGroundAdvDefT2,
 	ArmAirAdvDefT2,
 	ArmTacticalOffDefT2,
-	"armmoho",
+	ArmEnT2,
+	ArmEnT2,
 	ArmRandomLab,
     ArmGroundAdvDefT2,
-	"armmoho",
+	ArmEnT2,
+	ArmEnT2,
 	ArmRandomLab,
-	"armmoho",
+	ArmEnT2,
+	ArmEnT2,
 	ArmRandomLab,
     ArmGroundAdvDefT2,
-	"armfus",
+	ArmEnT2,
+	ArmEnT2,
 	ArmRandomLab,
     ArmGroundAdvDefT2,
     ArmTacticalAdvDefT2,
@@ -894,6 +932,7 @@ local armairlab = {
 armkbotlabT2 = {
 	"armack",
 	"armack",
+	"armack",
 	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
@@ -912,6 +951,7 @@ armkbotlabT2 = {
 }
 
 armvehlabT2 = {
+	"armacv",
 	"armacv",
 	"armacv",
 	ArmVehT2,
