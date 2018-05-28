@@ -192,6 +192,10 @@ local function GetTeamName(teamID)
 	if not teamLeader then return 'Error:NoLeader' end
 
 	local leaderName = spGetPlayerInfo(teamLeader)
+
+	if Spring.GetTeamRulesParam(teamID, 'ainame') then
+		leaderName = Spring.GetTeamRulesParam(teamID, 'ainame')
+	end
 	return leaderName or 'Error:NoName'
 end
 
