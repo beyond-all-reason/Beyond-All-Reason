@@ -123,7 +123,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7,
-				name = "MediumLaser",
+				name = "Dual close-quarters g2g laser",
 				noselfdamage = true,
 				range = 330,
 				reloadtime = 0.3,
@@ -137,7 +137,6 @@ return {
 				thickness = 1.85,
 				tolerance = 10000,
 				turret = true,
-				weaponDesc = "Dual close-quarters g2g laser",
 				weapontype = "BeamLaser",
 				weaponvelocity = 950,
 				damage = {

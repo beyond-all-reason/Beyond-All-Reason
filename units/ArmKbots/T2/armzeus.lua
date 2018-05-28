@@ -128,7 +128,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 12,
-				name = "LightningGun",
+				name = "Close-quarters g2g lightning rifle",
 				noselfdamage = true,
 				range = 280,
 				reloadtime = 1.7,
@@ -142,7 +142,6 @@ return {
 				texture1 = "lightning",
 				thickness = 10,
 				turret = true,
-				weaponDesc = "Close-quarters g2g lightning rifle",
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				damage = {
