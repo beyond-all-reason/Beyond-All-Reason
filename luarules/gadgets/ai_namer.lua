@@ -15,9 +15,8 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local namelist = {
-		'Subionic','C3PO','R2D2','Mr.Robot','EVE','Wall-E','Chip','x86','Johnny 5','Skynet','Dolores','KITT',
-		'Bender','J.A.R.V.I.S','Autobot','Data','Gadget','Micro','Brainstorm','GlaDOS','Optimus Prime','Maria',
-		'Astro'
+		'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliett', 'Kila', 'Lima', 'Mike',
+		'November', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform', 'Victor', 'Whiskey', 'Xray', 'Yankee', 'Zulu',
 	}
 	local takenNames = {}
 
