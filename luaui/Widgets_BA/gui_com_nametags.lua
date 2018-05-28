@@ -78,19 +78,26 @@ end
 --------------------------------------------------------------------------------
 
 --gets the name, color, and height of the commander
+--local namelist = {'Subionic','C3PO','R2D2','Mr. Robot','EVE','Chip','x86','Lua','Skynet','Dolores','Maeve','KITT','Bender','JARVIS','Auto','Data','Gadget','Micro','Brainstorm'}
+local aiCount = 1
 local function GetCommAttributes(unitID, unitDefID)
   local team = GetUnitTeam(unitID)
   if team == nil then
     return nil
   end
   local players = GetPlayerList(team)
-  local name = (#players>0) and GetPlayerInfo(players[1]) or 'AI Machine'
+
+  local name = (#players>0) and GetPlayerInfo(players[1]) or 'AI Machine '..aiCount
   for _,pID in ipairs(players) do
     local pname,active,spec = GetPlayerInfo(pID)
     if active and not spec then
       name = pname
       break
     end
+  end
+  if name == 'AI Machine '..aiCount then
+    aiCount = aiCount + 1
+    --name = namelist[math.random(1,#namelist)]
   end
   local r, g, b, a = GetTeamColor(team)
   local bgColor = {0,0,0,1}

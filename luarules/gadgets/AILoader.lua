@@ -296,7 +296,7 @@ else
 	end
 
 	function handleShardDebugPosEvent(_,x,z,col)
-		Spring.Echo("handleShardDebugPosEvent 1")
+	--	Spring.Echo("handleShardDebugPosEvent 1")
 		if Script.LuaUI("shard_debug_position") then
 			Spring.Echo("handleShardDebugPosEvent 2")
 			Script.LuaUI.shard_debug_position(x,z,col)

@@ -82,7 +82,6 @@ local Spring_GetAIInfo           = Spring.GetAIInfo
 local Spring_GetTeamRulesParam   = Spring.GetTeamRulesParam
 local Spring_IsGUIHidden		 = Spring.IsGUIHidden
 local Spring_GetDrawFrame		 = Spring.GetDrawFrame
-local Spring_GetTeamColor		 = Spring.GetTeamColor
 local Spring_GetMyTeamID		 = Spring.GetMyTeamID
 local Spring_AreTeamsAllied		 = Spring.AreTeamsAllied
 
@@ -968,6 +967,7 @@ end
 
 function GetAllPlayers()
 	local noplayer
+	local tplayerCount = 0
 	local allteams   = Spring_GetTeamList()
 	teamN = table.maxn(allteams) - 1               --remove gaia
 	for i = 0,teamN-1 do
@@ -975,8 +975,12 @@ function GetAllPlayers()
 		player[i + 64] = CreatePlayerFromTeam(i)
 		for _,playerID in ipairs(teamPlayers) do
 			player[playerID] = CreatePlayer(playerID)
+			tplayerCount = tplayerCount + 1
 		end
-		playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
+		if tplayerCount > 0 then
+			playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
+		end
+		tplayerCount = 0
 	end
 	specPlayers = Spring_GetTeamList()
 	for _,playerID in ipairs(specPlayers) do
