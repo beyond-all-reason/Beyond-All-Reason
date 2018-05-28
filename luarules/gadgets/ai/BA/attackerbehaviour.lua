@@ -38,7 +38,7 @@ function AttackerBehaviour:Update()
 				local cx = ux+(ux-ex)*f
 				local cy = uy
 				local cz = uz+(uz-ez)*f
-				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz})
+				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {"ctrl"})
 			end
 		end
 	end
