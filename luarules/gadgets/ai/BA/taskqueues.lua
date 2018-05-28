@@ -91,7 +91,7 @@ function CorRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1500 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -154,35 +154,41 @@ function CorAirT1()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
-function CorGroundAdvDefT2()
-
-	local unitoptions = {"cortoast","cordoom"}
-	return unitoptions[math.random(1,#unitoptions)]
-end
-
 function CorAirAdvDefT2()
 
-	local unitoptions = {"corvipe","corflak","corscreamer", }
+	local unitoptions = {"corvipe","corflak", }
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function CorTacticalAdvDefT2()
-
-	local unitoptions = {"corgate", "corint" }
-	return unitoptions[math.random(1,#unitoptions)]
+    if UDC(ai.id, UDN.corint.id) < UDC(ai.id, UDN.cordoom.id)*2 then
+        return "corint"
+    elseif UDC(ai.id, UDN.cordoom.id) < UDC(ai.id, UDN.cortoast.id)*4 then
+        return "cordoom"
+    else
+        return "cortoast"
+    end
 end
 
 function CorTacticalOffDefT2()
-
+	if  UDC(ai.id, UDN.corfmd.id) < 3 then
+		return "corfmd"
+	elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
+		return "corscreamer"
+	elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
+		return "corgate"
+	else
+		return "corkrog"
+	end
+end
 	--local unitoptions = {"corfmd", "corsilo",}
 	--return unitoptions[math.random(1,#unitoptions)]
-	return "corfmd"
-end
+
 
 
 function CorKBotsT2()
 	
-	local unitoptions = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "cortermite", "corspec", "corsumo",}
+	local unitoptions = {"coraak", "coramph", "corcan", "corhrk", "cormort", "corpyro", "corroach", "cortermite", "corspec", "corsumo",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
@@ -298,7 +304,7 @@ function ArmRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1500 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
 		if countAdvFacs < countBasicFacs then
 			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
@@ -361,30 +367,36 @@ function ArmAirT1()
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
-function ArmGroundAdvDefT2()
-
-	local unitoptions = {"armamb","armanni", "armbrtha",}
-	return unitoptions[math.random(1,#unitoptions)]
-end
-
 function ArmAirAdvDefT2()
 
-	local unitoptions = {"armpb", "armflak","armmercury",}
+	local unitoptions = {"armpb", "armflak",}
 	return unitoptions[math.random(1,#unitoptions)]
 end
 
 function ArmTacticalAdvDefT2()
-
-	local unitoptions = {"armgate", "armacv", }
-	return unitoptions[math.random(1,#unitoptions)]
+    if UDC(ai.id, UDN.armbrtha.id) < UDC(ai.id, UDN.armanni.id)*2 then
+        return "armbrtha"
+    elseif UDC(ai.id, UDN.armanni.id) < UDC(ai.id, UDN.armamb.id)*4 then
+        return "armanni"
+    else
+        return "armamb"
+    end
 end
 
 function ArmTacticalOffDefT2()
-
+	if  UDC(ai.id, UDN.corfmd.id) < 3 then
+		return "armamd"
+	elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
+		return "armmercury"
+	elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
+		return "armgate"
+	else
+		return "corkrog"
+	end
+end
 	--local unitoptions = {"armamd", "armsilo",}
 	--return unitoptions[math.random(1,#unitoptions)]
-	return "armamd"
-end
+
 
 function ArmKBotsT2()
 	
@@ -534,7 +546,7 @@ local cort1mexingqueue = {
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
-	"corllt",
+	CorGroundAdvDefT1,
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
@@ -542,7 +554,7 @@ local cort1mexingqueue = {
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
-	"corllt",
+	CorGroundAdvDefT1,
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
@@ -550,14 +562,15 @@ local cort1mexingqueue = {
 	CorMexT1,
 	"cornanotc",
 	CorEnT1,
-	"corllt",
+	CorGroundAdvDefT1,
 }
 
 local cort2construction = {
 	CorEnT2,
 	CorEnT2,
 	CorRandomLab,
-	CorGroundAdvDefT2,
+	CorTacticalOffDefT2,
+	CorTacticalAdvDefT2,
     CorAirAdvDefT2,
 	CorTacticalAdvDefT2,
 	CorEnT2,
@@ -567,12 +580,14 @@ local cort2construction = {
 	CorRandomLab,
 	CorEnT2,
 	CorRandomLab,
-	CorGroundAdvDefT2,
+	CorTacticalOffDefT2,
+	CorTacticalAdvDefT2,
     CorAirAdvDefT2,
 	CorEnT2,
 	CorEnT2,
 	CorRandomLab,
-	CorGroundAdvDefT2,
+	CorTacticalOffDefT2,
+	CorTacticalAdvDefT2,
     CorAirAdvDefT2,
     CorTacticalAdvDefT2,
 }
@@ -821,7 +836,7 @@ local armt1mexingqueue = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
-	"armllt",
+	ArmGroundAdvDefT1,
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
@@ -829,7 +844,7 @@ local armt1mexingqueue = {
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
-	"armllt",
+	ArmGroundAdvDefT1,
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
@@ -837,31 +852,34 @@ local armt1mexingqueue = {
 	ArmMexT1,
 	"armnanotc",
 	ArmEnT1,
-	"armllt",
+	ArmGroundAdvDefT1,
 }
 
 local armt2construction = {
 	ArmEnT2,
 	ArmEnT2,
 	ArmRandomLab,
-    ArmGroundAdvDefT2,
+	ArmTacticalAdvDefT2,
+	ArmTacticalOffDefT2,
 	ArmAirAdvDefT2,
 	ArmTacticalOffDefT2,
 	ArmEnT2,
 	ArmEnT2,
 	ArmRandomLab,
     ArmGroundAdvDefT2,
+	ArmTacticalOffDefT2,
 	ArmEnT2,
 	ArmEnT2,
 	ArmRandomLab,
 	ArmEnT2,
 	ArmEnT2,
 	ArmRandomLab,
-    ArmGroundAdvDefT2,
+	ArmTacticalAdvDefT2,
+	ArmTacticalOffDefT2,
 	ArmEnT2,
 	ArmEnT2,
 	ArmRandomLab,
-    ArmGroundAdvDefT2,
+	ArmTacticalAdvDefT2,
     ArmTacticalAdvDefT2,
 
 }
