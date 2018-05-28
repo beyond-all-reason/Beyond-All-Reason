@@ -975,7 +975,7 @@ function GetAllPlayers()
 		player[i + 64] = CreatePlayerFromTeam(i)
 		for _,playerID in ipairs(teamPlayers) do
 			player[playerID] = CreatePlayer(playerID)
-			tplayerCount = playerCount + 1
+			tplayerCount = tplayerCount + 1
 		end
 		if tplayerCount > 0 then
 			playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
