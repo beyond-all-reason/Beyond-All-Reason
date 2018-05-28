@@ -142,6 +142,7 @@ return {
 				texture1 = "lightning",
 				thickness = 10,
 				turret = true,
+				weaponDesc = "Close-quarters g2g lightning rifle",
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
 				damage = {

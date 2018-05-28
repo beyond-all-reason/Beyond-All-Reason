@@ -144,6 +144,7 @@ return {
 				tracks = true,
 				turnrate = 63000,
 				turret = true,
+				weaponDesc = "Light g2a missile launcher",
 				weaponacceleration = 200,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",

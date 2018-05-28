@@ -137,6 +137,7 @@ return {
 				sprayangle = 1180,
 				tolerance = 5000,
 				turret = true,
+				weaponDesc = "Rapid-fire close-quarters g2g plasma guns",
 				weapontimer = 0.1,
 				weapontype = "Cannon",
 				weaponvelocity = 500,

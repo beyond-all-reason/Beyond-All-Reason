@@ -166,6 +166,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "cannon1",
 				turret = true,
+				weaponDesc = "Light g2g plasma cannon",
 				weapontype = "Cannon",
 				weaponvelocity = 286*0.85,
 				damage = {

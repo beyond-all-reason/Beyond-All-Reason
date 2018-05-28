@@ -138,6 +138,7 @@ return {
 				thickness = 0.9,
 				tolerance = 10000,
 				turret = true,
+				weaponDesc = "Light close-quarters g2g laser",
 				weapontype = "BeamLaser",
 				weaponvelocity = 600,
 				damage = {

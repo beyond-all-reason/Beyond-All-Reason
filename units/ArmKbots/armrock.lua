@@ -138,6 +138,7 @@
 				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				turret = true,
+				weaponDesc = "Medium g2g missile launcher",
 				weaponacceleration = 120,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 223,
