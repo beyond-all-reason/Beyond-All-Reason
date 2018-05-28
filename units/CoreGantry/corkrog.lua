@@ -168,7 +168,7 @@ return {
 				firestarter = 90,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 12.5,
+				laserflaresize = 7.5,
 				name = "KrogHeatRay",
 				noselfdamage = true,
 				proximitypriority = -1,
