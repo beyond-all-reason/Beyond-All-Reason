@@ -42,7 +42,7 @@ return {
 		trackwidth = 42,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 1.32,
+		turninplacespeedlimit = 1.35,
 		turnrate = 433,
 		customparams = {
 			arm_tank = "1",

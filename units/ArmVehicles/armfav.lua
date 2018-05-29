@@ -40,7 +40,7 @@ return {
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 4.224,
-		turnrate = 800*0.8,
+		turnrate = 653,
 		customparams = {
 			bar_leavetracks = false,
 			description_long = "Jeffies are supercheap and fast to build vehicles used for scouting and damaging the early eco structures. It is the fastest moving unit in the whole game but due to light armor any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe's expansion! In T2 warfare Jeffies come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery.",
@@ -55,7 +55,7 @@ return {
 					flare2name = "flare2", --optional (replace with nil)
 				--SFXs HERE
 					firingceg = "",
-					driftratio = "0.8", --How likely will the unit drift when performing turns?
+					driftratio = "0.6", --How likely will the unit drift when performing turns?
 					rockstrength = "0", --Howmuch will its weapon make it rock ?
 					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
 					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
