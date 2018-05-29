@@ -78,7 +78,6 @@ end
 --------------------------------------------------------------------------------
 
 --gets the name, color, and height of the commander
---local namelist = {'Subionic','C3PO','R2D2','Mr. Robot','EVE','Chip','x86','Lua','Skynet','Dolores','Maeve','KITT','Bender','JARVIS','Auto','Data','Gadget','Micro','Brainstorm'}
 local aiCount = 1
 local function GetCommAttributes(unitID, unitDefID)
   local team = GetUnitTeam(unitID)
@@ -95,14 +94,18 @@ local function GetCommAttributes(unitID, unitDefID)
       break
     end
   end
+
   if name == 'AI Machine '..aiCount then
     aiCount = aiCount + 1
-    --name = namelist[math.random(1,#namelist)]
+    if Spring.GetTeamRulesParam(team, 'ainame') then
+      name = Spring.GetTeamRulesParam(team, 'ainame')
+    end
   end
+
   local r, g, b, a = GetTeamColor(team)
   local bgColor = {0,0,0,1}
   if (r + g*1.2 + b*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
-		bgColor = {1,1,1,1}
+	bgColor = {1,1,1,1}
   end
   
   local height = UnitDefs[unitDefID].height + heightOffset

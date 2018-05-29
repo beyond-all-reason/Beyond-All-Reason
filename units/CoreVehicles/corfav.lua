@@ -39,7 +39,7 @@ return {
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 3.2274,
-		turnrate = 750*0.8,
+		turnrate = 612,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_leavetracks = false,
@@ -55,7 +55,7 @@ return {
 					flare2name = nil, --optional (replace with nil)
 				--SFXs HERE
 					firingceg = "",
-					driftratio = "0.8", --How likely will the unit drift when performing turns?
+					driftratio = "0.7", --How likely will the unit drift when performing turns?
 					rockstrength = "0", --Howmuch will its weapon make it rock ?
 					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
 					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)

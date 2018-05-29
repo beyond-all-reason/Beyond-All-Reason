@@ -37,6 +37,20 @@ Sea Offense and Defense:
  • Arm/Core gun platform special damages towards "heavyunits" and air categories erased, projectile speed increased (+32%), can attempt to target aircrafts.
  • Global acceleration buff for ships (+100%)
 
+Vehicules :
+ • Stumpy -3% speed / +3% turnrate / +2% turninplacespeedlimit
+ • Flash -1% speed / +2% turnrate / +2% turninplacespeedlimit
+ • Jeffy +2% turnrate
+ • Bulldog -2% speed
+ • Triton +2% turninplacespeedlimit
+ • Shellshocker -5% reloadtime
+ • Raider -2% speed / +3% turnrate / +2% turninplacespeedlimit
+ • Instigator -2% speed / +2% turnrate / +2% turninplacespeedlimit
+ • Weasel +2% turnrate
+ • Reaper -2% speed
+ • Poison Arrow +2% turninplacespeedlimit
+ • Wolverine -5% reloadtime
+ 
 Air: 
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
  • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%.

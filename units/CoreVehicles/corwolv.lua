@@ -141,7 +141,7 @@ return {
 				name = "LightArtillery",
 				noselfdamage = true,
 				range = 710,
-				reloadtime = 3.5,
+				reloadtime = 3.33,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
 				soundhitwetvolume = 0.5,

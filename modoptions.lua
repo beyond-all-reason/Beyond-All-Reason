@@ -28,7 +28,7 @@ local options={
     },
     {
         key    = "barsounds",
-        name   = "Remodelled units",
+        name   = "alternative sounds",
         desc   = "Activate BAR sound replacements (barmodels must be enabled)",
         type   = "bool",
         section= 'ba_enhancements_misc',
