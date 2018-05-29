@@ -83,7 +83,7 @@ return {
 				impulseboost = 1,
 				impulsefactor = 0.123,
 				model = "missile_medium_fast",
-				name = "Sabotrocket",
+				name = "Heavy a2g armor-piercing sabot missile launcher",
 				noselfdamage = true,
 				range = 420,
 				reloadtime = 2.275,

@@ -82,7 +82,7 @@ return {
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				model = "bomb",
-				name = "Bombs",
+				name = "Light a2g impulse warheads",
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 6,
