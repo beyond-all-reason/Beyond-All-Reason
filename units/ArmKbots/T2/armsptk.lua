@@ -127,7 +127,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "missile_medium",
-				name = "HeavyRocket",
+				name = "Parabolic trajectory g2g multi-rocket launcher",
 				noselfdamage = true,
 				range = 550,
 				reloadtime = 3,

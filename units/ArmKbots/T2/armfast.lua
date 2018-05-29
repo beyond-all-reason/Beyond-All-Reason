@@ -124,7 +124,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "EMGBurst",
+				name = "Rapid-firing close-quarters g2g plasma guns",
 				noselfdamage = true,
 				range = 220,
 				reloadtime = 0.5,
