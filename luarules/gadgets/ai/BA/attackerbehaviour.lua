@@ -17,6 +17,33 @@ function AttackerBehaviour:Init()
 	CMD.MOVE_STATE = 50
 end
 
+local function Distance(x1,z1, x2,z2)
+	local vectx = x2 - x1
+	local vectz = z2 - z1
+	local dis = math.sqrt(vectx^2+vectz^2)
+	return dis
+end
+
+local function GetClosestNanotc(unitID)
+	local teamID = Spring.GetUnitTeam(unitID)
+	local ux, uy, uz = Spring.GetUnitPosition(unitID)
+	local bestID
+	local mindis = 800
+	for ct, uid in pairs (Spring.GetUnitsInCylinder(ux, uz, 800, teamID)) do
+		if UnitDefs[Spring.GetUnitDefID(uid)].name == "armnanotc" then
+			local gx, gy, gz = Spring.GetUnitPosition(uid)
+			if Distance(ux, uz, gx, gz) < mindis then
+				bestID = uid
+			end
+		end
+	end
+	local bestx, besty, bestz
+	if bestID then
+		bestx, besty, bestz = Spring.GetUnitPosition(bestID)
+	end
+	return bestx, besty, bestz
+end
+
 function AttackerBehaviour:Update()
 	local unitID = self.unit:Internal().id
 	-- Spring.Echo(unitID)
@@ -89,18 +116,24 @@ function AttackerBehaviour:AttackCell(cell)
 			self.unit:ElectBehaviour()
 		end
 	--retreat
-	else
-		if startBoxMinX == 0 and startBoxMinZ == 0 and startBoxMaxZ == Game.mapSizeZ and startBoxMaxX == Game.mapSizeX then
+	else	
+	local unitID = self.unit:Internal().id
+	local nanotcx, nanotcy, nanotcz = GetClosestNanotc(unitID)
+		if nanotcx and nanotcy and nanotcz then
 			p = api.Position()
-			p.x = startPosx
-			p.z = startPosz
+			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
 		else
-			p = api.Position()
-			p.x = math.random(startBoxMinX, startBoxMaxX)
-			p.z = math.random(startBoxMinZ, startBoxMaxZ)
+			if startBoxMinX == 0 and startBoxMinZ == 0 and startBoxMaxZ == Game.mapSizeZ and startBoxMaxX == Game.mapSizeX then
+				p = api.Position()
+				p.x = startPosx
+				p.z = startPosz
+			else
+				p = api.Position()
+				p.x = math.random(startBoxMinX, startBoxMaxX)
+				p.z = math.random(startBoxMinZ, startBoxMaxZ)
+			end
+			p.y = startPosy
 		end
-		
-		p.y = startPosy
 		self.target = p
 		self.attacking = false
 		self.ai.attackhandler:AddRecruit(self)
