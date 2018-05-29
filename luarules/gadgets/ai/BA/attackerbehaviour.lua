@@ -30,7 +30,7 @@ local function GetClosestNanotc(unitID)
 	local bestID
 	local mindis = 800
 	for ct, uid in pairs (Spring.GetUnitsInCylinder(ux, uz, 800, teamID)) do
-		if UnitDefs[Spring.GetUnitDefID(uid)].name == "armnanotc" then
+		if string.find(UnitDefs[Spring.GetUnitDefID(uid)].name, "nanotc") then
 			local gx, gy, gz = Spring.GetUnitPosition(uid)
 			if Distance(ux, uz, gx, gz) < mindis then
 				bestID = uid
