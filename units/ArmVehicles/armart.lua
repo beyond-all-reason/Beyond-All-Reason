@@ -160,7 +160,7 @@ return {
 				hightrajectory = 1,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "LightArtillery",
+				name = "Long-range high-trajectory g2g plasma cannon",
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 2.85,

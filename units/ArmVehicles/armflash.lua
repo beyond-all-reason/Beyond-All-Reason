@@ -152,7 +152,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "flash",
+				name = "Rapid-fire close-quarters plasma gun",
 				noselfdamage = true,
 				range = 180,
 				reloadtime = 0.1,
