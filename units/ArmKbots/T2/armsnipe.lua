@@ -137,7 +137,7 @@ return {
 				impulsefactor 			  = 0.234,
 				
 				minintensity              = 1,
-				name                      = "SniperWeapon",
+				name                      = "Long-range g2g armor-piercing rifle",
 				range                     = 900,
 				reloadtime                = 10,
 				WeaponType                = "LaserCannon",

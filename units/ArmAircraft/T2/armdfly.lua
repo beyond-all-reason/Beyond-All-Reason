@@ -96,7 +96,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 5.5,
-				name = "Paralyzer",
+				name = "Heavy a2g EMP beam",
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 15,

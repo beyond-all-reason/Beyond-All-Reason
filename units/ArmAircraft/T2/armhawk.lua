@@ -80,7 +80,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "missile",
-				name = "GuidedMissiles",
+				name = "High velocity a2a missile launcher",
 				noselfdamage = true,
 				range = 740,
 				reloadtime = 1.5,

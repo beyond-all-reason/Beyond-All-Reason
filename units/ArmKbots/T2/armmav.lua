@@ -120,7 +120,7 @@ return {
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impactonly = 1,
-				name = "GaussCannon",
+				name = "Anti-swarm g2g gauss-impulse guns",
 				noselfdamage = true,
 				predictboost = 0.3,
 				range = 365,

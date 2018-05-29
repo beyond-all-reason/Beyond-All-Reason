@@ -123,7 +123,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
-				name = "RapidfireLRPC",
+				name = "Rapid-fire long-range plasma cannon",
 				noselfdamage = true,
 				range = 5750,
 				reloadtime = 0.4,

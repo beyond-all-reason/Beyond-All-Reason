@@ -159,7 +159,7 @@ return {
 				texture3 = "largebeam",
 				tileLength = 150,
 				scrollSpeed = 5,
-				name = "ATAM",
+				name = "Heavy long-range g2g tachyon beam",
 				noselfdamage = true,
 				range = 950,
 				reloadtime = 4.7,

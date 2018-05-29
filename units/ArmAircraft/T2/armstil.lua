@@ -87,7 +87,7 @@ return {
 				impulsefactor = 0,
 				model = "bomb",
 				mygravity = 0.4,
-				name = "EMPbomb",
+				name = "Heavy a2g EMP warheads",
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 15,

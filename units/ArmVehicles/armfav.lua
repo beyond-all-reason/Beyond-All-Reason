@@ -154,7 +154,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 3.5,
-				name = "Laser",
+				name = "Light close-quarters laser",
 				noselfdamage = true,
 				range = 180,
 				reloadtime = 0.95,

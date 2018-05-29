@@ -162,7 +162,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-large-aa",
 				impulseboost = 0,
 				impulsefactor = 0,
-				name = "FlakCannon",
+				name = "Heavy g2a flak cannon",
 				size = 4.5,
 				sizedecay = 0.08,
 				stages = 8,

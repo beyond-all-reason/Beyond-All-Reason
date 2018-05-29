@@ -127,7 +127,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				model = "missile",
-				name = "ExplosiveRockets",
+				name = "Rapid-fire long-range g2a missile barrel",
 				noselfdamage = true,
 				projectiles = 1,
 				proximitypriority = -2,
