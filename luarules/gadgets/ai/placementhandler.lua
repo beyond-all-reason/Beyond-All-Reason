@@ -10,6 +10,7 @@ end
 
 function PlacementHandler:Init()
 	self.jobs = {}
+	self.spacing_spiral = self:GenerateSpiral( 5, 5 )
 end
 
 --[[
@@ -158,10 +159,11 @@ function PlacementHandler:IterateJob( job )
 	job.status = 'running'
 	local step = job.step
 	local spos = job.spiral[step]
-	local pos = { x=0,y=0,z=0}
-	pos.x = spos.x * job.increment + job.start_position.x
-	pos.z = spos.y * job.increment + job.start_position.z
-	pos.y = job.start_position.y
+	local pos = {
+		x=spos.x * job.increment + job.start_position.x,
+		y=job.start_position.y,
+		z=spos.y * job.increment + job.start_position.z
+	}
 
 	-- test this particular step of the spiral
 	local buildable = self:CanBuildAt(job.unittype, pos )
@@ -190,7 +192,19 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 		return false
 	end
 	SendToUnsynced("shard_debug_position",pos.x,pos.z,"main_good")
-
+	--spacing hotfix
+    local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
+    local radius = 125
+    local units_found = spGetUnitsInRectangle(pos.x - radius, pos.z - radius, pos.x + radius, pos.z + radius)
+    if #units_found > 0 then
+       --for i = 1,#units_found do
+			--local unitID = units_found[i]
+			--if not UnitDefs[Spring.GetUnitDefID(unitID)].canmove then
+			--end
+		--end
+		return false
+	end
+    
 	-- check spacing
 	-- we're going to do this in a hacky way for now until a blocking
 	-- map and footprints are added to the shard API, but on the other
@@ -201,117 +215,30 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	-- to check, by shifting the position by a set amount and checking
 	-- that position
 
-	local fixed_spacing = 80
+	local fixed_spacing = 48
 
-	-- North
-	local testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if false == buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
+	for i,j in ipairs(self.spacing_spiral) do
+		testpos = { x=pos.x + ( j.x * fixed_spacing ), y=pos.y,  z= pos.z + ( j.x * fixed_spacing ) }
+		if not self:CanBuildHere( unittype, testpos ) then
+			return false
+		end
 	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
-	-- North East
-	local testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z - fixed_spacing
-	testpos.x = testpos.x + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if false == buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
-	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
-	-- North West
-	local testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z - fixed_spacing
-	testpos.x = testpos.x - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if false == buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
-	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
-	-- South
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
-	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
-	-- South East
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z + fixed_spacing
-	testpos.x = testpos.x + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
-	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
-	-- South West
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.z = testpos.z + fixed_spacing
-	testpos.x = testpos.x - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
-	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
-	-- East
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.x = testpos.x + fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
-	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
-	-- West
-	testpos = { x=pos.x, y=pos.y,  z= pos.z }
-	testpos.x = testpos.x - fixed_spacing
-	buildable = self.ai.map:CanBuildHere( unittype, testpos )
-	if not buildable then
-		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
-		return false
-	end
-	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
-
+	
 	return true
 end
 
-function is_not_cleanup( job )
-	if job.status ~= 'cleanup' then
-		return true
+function PlacementHandler:CanBuildHere(unittype, testpos )
+	buildable = self.ai.map:CanBuildHere( unittype, testpos )
+	if not buildable then
+		SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_bad")
+		return false
 	end
-	return false
-end
-
--- filter(function, table)
--- e.g: filter(is_even, {1,2,3,4}) -> {2,4}
-function filter(func, tbl)
-	 local newtbl= {}
-	 for i,v in pairs(tbl) do
-		if func(v) then
-			newtbl[i]=v
-		end
-	end
-	return newtbl
+	SendToUnsynced("shard_debug_position",testpos.x,testpos.z,"secondary_good")
+	return true
 end
 
 function PlacementHandler:CleanupJobs()
 	-- try and clean up dead recruits where possible
-	--self.jobs = filter( is_not_cleanup, self.jobs )
 	for i,j in ipairs(self.jobs) do
 		if j.status == 'cleanup' then
 			local job = self.jobs[i]
