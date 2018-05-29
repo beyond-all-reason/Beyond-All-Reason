@@ -128,7 +128,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "ADVSAM",
-				name = "ADVSAM",
+				name = "Heavy long-range g2a guided missile launcher",
 				noselfdamage = true,
 				proximitypriority = -2,
 				range = 2400,

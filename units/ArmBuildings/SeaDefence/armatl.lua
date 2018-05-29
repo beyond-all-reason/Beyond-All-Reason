@@ -95,7 +95,7 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				model = "Advtorpedo",
-				name = "LongRangeTorpedo",
+				name = "Heavy long-range homing torpedo launcher",
 				noselfdamage = true,
 				range = 915,
 				reloadtime = 1.75,

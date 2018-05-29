@@ -125,7 +125,7 @@ return {
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				leadbonus = 0,
-				name = "BerthaCannon",
+				name = "Long range g2g plasma cannon",
 				noselfdamage = true,
 				range = 4650,
 				reloadtime = 13.2,

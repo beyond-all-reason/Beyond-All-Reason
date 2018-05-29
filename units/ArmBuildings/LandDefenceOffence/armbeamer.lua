@@ -129,7 +129,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8.5,
-				name = "BeamLaser",
+				name = "Anti-swarm constant wave g2g laser",
 				noselfdamage = true,
 				range = 475,
 				reloadtime = 0.1,

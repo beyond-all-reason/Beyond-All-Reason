@@ -129,7 +129,7 @@ return {
 				impulsefactor = 0.5,
 				metalpershot = 1000,
 				model = "ballmiss",
-				name = "NuclearMissile",
+				name = "Intercontinental ballistic nuclear warhead",
 				range = 72000,
 				reloadtime = 2,
 				soundhit = "xplomed4",

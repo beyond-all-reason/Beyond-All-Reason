@@ -107,7 +107,7 @@ return {
 				explosiongenerator = "custom:plasmahit-medium",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "Cannon",
+				name = "Rapid-fire close-quarters plasma turret",
 				noselfdamage = true,
 				range = 430,
 				reloadtime = 0.4,

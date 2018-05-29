@@ -139,7 +139,7 @@ return {
 				texture3 = "largebeam",
 				tileLength = 150,
 				scrollSpeed = 5,
-				name = "ATA",
+				name = "Heavy long-range g2g tachyon accelerator beam",
 				noselfdamage = true,
 				range = 1400,
 				reloadtime = 9.9,

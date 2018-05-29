@@ -134,7 +134,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				name = "LightningGun",
+				name = "Close-quarters g2g lightning turret",
 				noselfdamage = true,
 				range = 440,
 				reloadtime = 1.15,

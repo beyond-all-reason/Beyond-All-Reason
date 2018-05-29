@@ -127,7 +127,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7,
-				name = "LightLaser",
+				name = "Light g2g laser turret",
 				noselfdamage = true,
 				range = 430,
 				reloadtime = 0.48,
