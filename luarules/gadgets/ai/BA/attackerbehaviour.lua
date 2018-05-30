@@ -50,10 +50,12 @@ function AttackerBehaviour:Update()
 	local myRange = Spring.GetUnitMaxRange(unitID)
 	local closestUnit = Spring.GetUnitNearestEnemy(unitID, myRange)
 	local allyTeamID = self.ai.allyId
+	local currenthealth = unit:GetHealth()
+	local maxhealth = unit:GetMaxHealth()
 	if unitID % 30 == Spring.GetGameFrame() % 30 then
 		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) then
 			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
-			if myRange > enemyRange then
+			if myRange > enemyRange and (currenthealth >= maxhealth or currenthealth > 3000) then
 				local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
 				local ux,uy,uz = Spring.GetUnitPosition(unitID)
 				local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
@@ -102,7 +104,7 @@ function AttackerBehaviour:AttackCell(cell)
 	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
 	local ec, es = Spring.GetTeamResources(ai.id, "energy")
 	--attack
-	if (currenthealth >= maxhealth - maxhealth * 0.2 or currenthealth > 3000)  then
+	if (currenthealth >= maxhealth or currenthealth > 3000)  then
 			--p = api.Position()
 			--p.x = cell.posx
 			--p.z = cell.posz
