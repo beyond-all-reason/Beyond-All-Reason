@@ -38,17 +38,15 @@ Sea Offense and Defense:
  • Global acceleration buff for ships (+100%)
 
 Vehicules :
- • Stumpy -3% speed / +3% turnrate / +2% turninplacespeedlimit
- • Flash -1% speed / +2% turnrate / +2% turninplacespeedlimit
+ • Stumpy -3% speed / +3% turnrate
+ • Flash -1% speed / +2% turnrate
  • Jeffy +2% turnrate
  • Bulldog -2% speed
- • Triton +2% turninplacespeedlimit
  • Shellshocker -5% reloadtime
- • Raider -2% speed / +3% turnrate / +2% turninplacespeedlimit
- • Instigator -2% speed / +2% turnrate / +2% turninplacespeedlimit
+ • Raider -2% speed / +3% turnrate
+ • Instigator -2% speed / +2% turnrate
  • Weasel +2% turnrate
  • Reaper -2% speed
- • Poison Arrow +2% turninplacespeedlimit
  • Wolverine -5% reloadtime
  
 Air: 
