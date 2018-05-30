@@ -131,7 +131,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "AdvancedTorpedo",
+				name = "Rapid armor-piercing torpedoes",
 				noselfdamage = true,
 				range = 750,
 				reloadtime = 3.6,

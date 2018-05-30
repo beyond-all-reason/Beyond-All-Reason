@@ -122,7 +122,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 8,
-				name = "MechRapidLaser",
+				name = "Rapid-fire close quarters g2g armor-piercing laser",
 				noselfdamage = true,
 				proximitypriority = 1.5,
 				range = 475,

@@ -127,7 +127,7 @@ return {
 				heightboostfactor = 2.8,
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
-				name = "ShockerHeavyCannon",
+				name = "Heavy long-range g2g plasma cannon",
 				noselfdamage = true,
 				predictboost = 0.25,
 				range = 1325,

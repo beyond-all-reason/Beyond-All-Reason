@@ -126,7 +126,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "flash",
+				name = "Rapid-fire close-quarters plasma turret",
 				noselfdamage = true,
 				range = 280,
 				reloadtime = 0.4,

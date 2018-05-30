@@ -124,7 +124,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "BattleshipCannon",
+				name = "Heavy long-range g2g plasma cannon",
 				noselfdamage = true,
 				range = 830,
 				reloadtime = 0.4,

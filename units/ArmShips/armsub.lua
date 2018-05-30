@@ -128,7 +128,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "Torpedo",
+				name = "Light homing torpedo launcher",
 				noselfdamage = true,
 				predictboost = 0.7,
 				range = 500,

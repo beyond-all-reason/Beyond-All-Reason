@@ -122,7 +122,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "armmhmsl",
-				name = "RocketArtillery",
+				name = "Light long-range g2g starburst rocket launcher",
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 6,
