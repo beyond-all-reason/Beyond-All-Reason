@@ -41,7 +41,7 @@ return {
 		maxreversevelocity = 0.25*2.12,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 150,	
+		turnrate = 210,	
 		--end move
 		upright = true,
 		waterline = 40,
