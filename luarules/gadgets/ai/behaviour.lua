@@ -1,5 +1,10 @@
 Behaviour = class(AIBase)
 
+function Behaviour:init()
+	self.active = false
+	self.priority = 0
+end
+
 function Behaviour:Init()
 end
 
@@ -22,7 +27,6 @@ function Behaviour:UnitDead(unit)
 end
 
 function Behaviour:OwnerDead()
-	return
 end
 
 function Behaviour:UnitDamaged(unit,attacker,damage)
@@ -61,20 +65,40 @@ function Behaviour:IsActive()
 	return self.active
 end
 
+-- yields control of the unit, note that this may not result in deactivation,
+-- there may be no other behaviours to take control
+function Behaviour:yieldControlOfUnit()
+	self.unit:ElectBehaviour()
+end
+
+function Behaviour:SetPriority(new_priority)
+	self.priority = new_priority
+end
+
+function Behaviour:PreActivate()
+	self.active = true
+end
+
 function Behaviour:Activate()
-	--
+end
+
+function Behaviour:PreDeactivate()
+	self.active = false
 end
 
 function Behaviour:Deactivate()
-	--
 end
 
 function Behaviour:Priority()
-	return 0
+	return self.priority
 end
 
-function Behaviour:Passive()
-	return false
+function Behaviour:RecalculatePriority()
+	self:SetPriority(0)
+end
+
+function Behaviour:IsActive()
+	return self.active
 end
 
 function Behaviour:Name()

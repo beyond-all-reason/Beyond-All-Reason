@@ -132,7 +132,7 @@ return {
 				impulsefactor = 0.2,
 				metalpershot = 0,
 				model = "rocket",
-				name = "Rocket",
+				name = "Heavy long-range g2g high-trajectory starburst rocket launcher",
 				noselfdamage = true,
 				range = 1215,
 				reloadtime = 18,

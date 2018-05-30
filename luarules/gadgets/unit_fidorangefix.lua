@@ -12,7 +12,7 @@ function gadget:GetInfo()
 end
 
 local FIDOID = UnitDefNames["armfido"].id
-local wDef2 = WeaponDefs[UnitDefs[FIDOID].weapons[2].weaponDef]
+local wDef2 = WeaponDefs[UnitDefs[FIDOID].weapons[1].weaponDef]
 
 
 
@@ -22,6 +22,7 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
   if hplasmarange >= wDef2.range then
 	hplasmarange = wDef2.range
   end
+  Spring.Echo(hplasmarange, wDef2.range)
   end
   
   function gadget:UnitCreated(unitID, unitDefID)
@@ -35,12 +36,16 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
 	if unitDefID == FIDOID then
 		if cmdID == CMD.ONOFF then
 			if cmdParams and cmdOpts[1] == 0 then -- DESACTIVATE (GAUSS)
-			Spring.SetUnitWeaponState(unitID, 1, "range", wDef2.range)
-			Spring.SetUnitMaxRange(unitID, wDef2.range)
+				Spring.SetUnitWeaponState(unitID, 2, "range", 0)
+				Spring.SetUnitWeaponState(unitID, 1, "range", wDef2.range)
+				Spring.SetUnitMaxRange(unitID, wDef2.range)
 			elseif cmdParams and cmdOpts[1] == 1 then -- ACTIVATE (HEAVY PLASMA)
-			Spring.SetUnitWeaponState(unitID, 1, "range", hplasmarange)
-			Spring.SetUnitMaxRange(unitID, hplasmarange)
+				Spring.SetUnitWeaponState(unitID, 2, "range", hplasmarange)
+				Spring.SetUnitWeaponState(unitID, 1, "range", hplasmarange)
+				Spring.SetUnitMaxRange(unitID, hplasmarange)
 			end
+			Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, {})
+			Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, {})
 		end
 	end
   end

@@ -4,7 +4,7 @@ end)
 
 local spGetGameFrame = Spring.GetGameFrame
 local spGetProjectileDirection = Spring.GetProjectileDirection
-
+   
 function ShardSpringDamage:Init( damage, weaponDefID, paralyzer, projectileID, engineAttacker )
 	self.damage = damage
 	self.weaponDefID = weaponDefID
@@ -43,4 +43,4 @@ end
 
 function ShardSpringDamage:WeaponType()
 	return self.weaponType
-end
+end 

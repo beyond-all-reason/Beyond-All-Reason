@@ -41,7 +41,7 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 local bgcorner1 = ":n:".."LuaUI/Images/bgcorner1.png" -- only used to draw dropdown arrow
 local backwardTex = "LuaUI/Images/backward.dds"
 local forwardTex = "LuaUI/Images/forward.dds"
-local glowTex = "LuaUI/Images/glow.dds"
+local glowTex = "LuaUI/Images/glow2.dds"
 
 local bgMargin = 6
 
@@ -649,8 +649,8 @@ function DrawWindow()
 					if option.value == true then
 						glColor(0.66,0.92,0.66,1)
 						RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
-						local boolGlow = boolPadding*1.3
-						glColor(0.66,1,0.66,0.23)
+						local boolGlow = boolPadding*3.5
+						glColor(0.66,1,0.66,0.5)
 						glTexture(glowTex)
 						glTexRect(xPosMax-oHeight+boolPadding-rightPadding-boolGlow, yPos-oHeight+boolPadding-boolGlow, xPosMax-boolPadding-rightPadding+boolGlow, yPos-boolPadding+boolGlow)
 						glColor(0.55,1,0.55,0.09)
@@ -1027,8 +1027,12 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', {'selectPlayerUnits'}, options[i].value)
 		elseif id == 'voicenotifs_playtrackedplayernotifs' then
 			saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, options[i].value)
-		elseif id == 'buildmenuoldicons' then
+		elseif id == 'oldicons' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigOldUnitIcons', {'oldUnitpics'}, options[i].value)
+			saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
+			saveOptionValue('BuildBar', 'buildbar', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
+			saveOptionValue('Unit Stats', 'unitstats', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
+			saveOptionValue('Initial Queue', 'initialqueue', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
 		elseif id == 'buildmenushortcuts' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, options[i].value)
 		elseif id == 'buildmenuprices' then
@@ -1045,6 +1049,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', {'useSameTeamColors'}, options[i].value)
 		elseif id == 'bloomhighlights' then
 			saveOptionValue('Bloom Shader', 'bloom', 'setAdvBloom', {'drawHighlights'}, options[i].value)
+		elseif id == 'commandsfxfilterai' then
+			saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', {'filterAIteams'}, options[i].value)
 		elseif id == 'snowmap' then
 			saveOptionValue('Snow', 'snow', 'setSnowMap', {'snowMaps',Game.mapName:lower()}, options[i].value)
 		elseif id == 'snowautoreduce' then
@@ -1057,8 +1063,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('EnemySpotter', 'enemyspotter', 'setHighlight', {'useXrayHighlight'}, options[i].value)
 		elseif id == 'underconstructiongfx_shader' then
 			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setShader', {'useHighlightShader'}, options[i].value)
-		elseif id == 'underconstructiongfx_teamcolor' then
-			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setTeamcolor', {'useTeamcolor'}, options[i].value)
         elseif id == 'highlightselunits_shader' then
 			saveOptionValue('Highlight Selected Units', 'highlightselunits', 'setShader', {'useHighlightShader'}, options[i].value)
 		elseif id == 'highlightselunits_teamcolor' then
@@ -1705,6 +1709,7 @@ function loadAllWidgetData()
 	loadWidgetData("Snow", "snowautoreduce", {'autoReduce'})
 
 	loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'})
+	loadWidgetData("Commands FX", "commandsfxfilterai", {'filterAIteams'})
 
 	loadWidgetData("Depth of Field", "dofintensity", {'intensity'})
 
@@ -1718,7 +1723,6 @@ function loadAllWidgetData()
 
 	loadWidgetData("Under construction gfx", "underconstructiongfx_opacity", {'highlightAlpha'})
 	loadWidgetData("Under construction gfx", "underconstructiongfx_shader", {'useHighlightShader'})
-	loadWidgetData("Under construction gfx", "underconstructiongfx_teamcolor", {'useTeamcolor'})
 
 	loadWidgetData("Highlight Selected Units", "highlightselunits_opacity", {'highlightAlpha'})
 	loadWidgetData("Highlight Selected Units", "highlightselunits_shader", {'useHighlightShader'})
@@ -1821,6 +1825,7 @@ function init()
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='Tip: disable "auto reduce" option temporarily to see the max snow amount you have set'},
 
 		{id="commandsfx", group="gfx", widget="Commands FX", name="Command FX", type="bool", value=GetWidgetToggleValue("Commands FX"), description='Shows unit target lines when you give orders\n\nThe commands from your teammates are shown as well'},
+		{id="commandsfxfilterai", group="gfx", name=widgetOptionColor.."   filter AI teams", type="bool", value=true, description='Hide commands for AI teams'},
 		{id="commandsfxopacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.1, value=1, description=''},
 
 		{id="dofintensity", group="gfx", name="DoF intensity", type="slider", min=0.05, max=5, step=0.01, value=1.5, description='Enable Depth of Field with F8 first'},
@@ -1832,7 +1837,6 @@ function init()
 		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction highlight", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
 		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
 		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
-		{id="underconstructiongfx_teamcolor", group="gfx", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
@@ -1882,7 +1886,7 @@ function init()
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
 
-		--{id="buildmenuoldicons", group="ui", name="Buildmenu old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="oldicons", group="ui", name="Old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenulargeicons", group="ui", name="Buildmenu large icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons'},
@@ -1959,6 +1963,18 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
+    -- detect AI
+    local aiDetected = false
+    local t = Spring.GetTeamList()
+    for _,teamID in ipairs(t) do
+        if select(4,Spring.GetTeamInfo(teamID)) then
+            aiDetected = true
+        end
+    end
+    if not aiDetected then
+        options[getOptionByID('commandsfxfilterai')] = nil
+    end
+
 	-- add sound notification widget sound toggle options
 	if widgetHandler.knownWidgets["Voice Notifs"] then
 		local soundList
@@ -2008,6 +2024,7 @@ function init()
 
 	if Spring.GetModOptions == nil or (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
 		options[getOptionByID('normalmapping')] = nil
+		options[getOptionByID('oldicons')] = nil
 	end
 
 	if (WG['healthbars'] == nil) then
@@ -2113,7 +2130,6 @@ function init()
 		options[getOptionByID('underconstructiongfx')] = nil
 		options[getOptionByID("underconstructiongfx_opacity")] = nil
 		options[getOptionByID("underconstructiongfx_shader")] = nil
-		options[getOptionByID("underconstructiongfx_teamcolor")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Light Effects"] == nil or widgetHandler.knownWidgets["Deferred rendering"] == nil then

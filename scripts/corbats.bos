@@ -194,8 +194,8 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	set-signal-mask SIG_AIM;
-	turn turretb to y-axis heading speed <55.000000>;
-	turn turretb to x-axis <0.000000> - pitch speed <30.000000>;
+	turn turretb to y-axis heading speed <80.000000>;
+	turn turretb to x-axis <0.000000> - pitch speed <40.000000>;
 	wait-for-turn turretb around y-axis;
 	wait-for-turn turretb around x-axis;
 	aimDir = heading;

@@ -63,6 +63,7 @@ local bopt_inext = {0,0}
 
 local myTeamID = 0
 local inTweak  = 0
+local oldUnitpics = false
 
 -- a nice blur shader
 local useBlurShader   = false   -- it has a fallback, if the gfx don't support glsl
@@ -194,6 +195,14 @@ function widget:Initialize()
   if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 	widgetHandler:RemoveWidget(self)
   end
+
+  WG['buildbar'] = {}
+  WG['buildbar'].getOldUnitIcons = function()
+    return oldUnitpics
+  end
+  WG['buildbar'].setOldUnitIcons = function(value)
+    oldUnitpics = value
+  end
 end
 
 function widget:GetConfigData()
@@ -204,7 +213,7 @@ function widget:GetConfigData()
     iconSizeBase = bar_iconSizeBase,
     openByClick  = bar_openByClick,
     autoclose    = bar_autoclose,
-
+    oldUnitpics  = oldUnitpics,
    -- useBlurShader= useBlurShader
   }
 end
@@ -221,7 +230,9 @@ function widget:SetConfigData(data)
   bar_side         = math.min( math.max(bar_side, 0), 3)
   bar_align        = math.min( math.max(bar_align,-1) ,1)
   --SetupNewScreenAlignment()
-
+  if data.oldUnitpics ~= nil then
+    oldUnitpics = data.oldUnitpics
+  end
   -- shader
   --useBlurShader    = data.useBlurShader or true
 end
@@ -406,10 +417,14 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
     local yPad = (iconSizeY*(1-iconImgMult)) / 3.3
     local xPad = (iconSizeX*(1-iconImgMult)) / 3.3
     imgRect = {imgRect[1]+xPad, imgRect[2]-yPad, imgRect[3]-xPad, imgRect[4]+yPad}
-  	DrawTexRect(imgRect, '#'..unitDefID,{1,1,1,iconAlpha})
-	else
-  	DrawTexRect(imgRect, '#'..unitDefID,{1,1,1,iconAlpha})
   end
+
+  local tex = '#' .. unitDefID
+  if oldUnitpics and UnitDefs[unitDefID] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[unitDefID].name..'.dds') then
+    tex = 'unitpics/'..UnitDefs[unitDefID].name..'.dds'
+  end
+
+  DrawTexRect(imgRect, tex, {1,1,1,iconAlpha})
 
   -- loop status?
   if options['repeat'] then

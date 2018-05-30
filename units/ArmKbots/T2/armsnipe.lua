@@ -90,7 +90,7 @@ return {
 				"deathceg4",
 			},
 			explosiongenerators = {
-				[1] = "custom:barrelshot-large",
+				[1] = "custom:barrelshot-sniper",
 			},
 		},
 		sounds = {
@@ -137,7 +137,7 @@ return {
 				impulsefactor 			  = 0.234,
 				
 				minintensity              = 1,
-				name                      = "SniperWeapon",
+				name                      = "Long-range g2g armor-piercing rifle",
 				range                     = 900,
 				reloadtime                = 10,
 				WeaponType                = "LaserCannon",

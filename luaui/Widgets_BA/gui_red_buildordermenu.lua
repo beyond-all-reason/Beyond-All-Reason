@@ -24,7 +24,7 @@ local buttonTexture		     = "LuaUI/Images/button.dds"
 local barGlowCenterTexture = "LuaUI/Images/barglow-center.dds"
 local barGlowEdgeTexture   = "LuaUI/Images/barglow-edge.dds"
 
-local oldUnitpicsDir   = "LuaUI/Images/oldunitpics/"
+local oldUnitpicsDir   = "unitpics/"
 
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -258,7 +258,7 @@ function wrap(str, limit)
 	end
 	return t
 end
-
+	WG.hoverID = nil
 local function CreateGrid(r)
 
 	local background2 = {"rectanglerounded",
@@ -379,7 +379,6 @@ local function CreateGrid(r)
 				end
 			end},
 		},]]--
-		
 		mouseover=function(mx,my,self)
 			self.iconscale=(iconScaling and self.iconhoverscale or 1)
 			--if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
@@ -391,24 +390,28 @@ local function CreateGrid(r)
 			mouseoverhighlight.py = self.py
 			mouseoverhighlight.active = nil
 			local tt = self.tooltip
-			if drawTooltip and WG['tooltip'] ~= nil and r.menuname == "buildmenu" then
+			if r.menuname == "buildmenu" then
 				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
 					local udefid =  tonumber(string.sub(self.texture, 2))
-					local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
-					if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
-						local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
-						local description = ''
-						local newline = ''
-						for i, line in ipairs(lines) do
-							description = description..newline..line
-							newline = '\n'
-						end
-						text = text..description
-					else
-						text = text..UnitDefs[udefid].tooltip
-					end
-					WG['tooltip'].ShowTooltip('redui_buildmenu', text)
-			 		tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
+					WG.hoverID = udefid
+                    local alt, ctrl, meta, shift = Spring.GetModKeyState()
+                    if not meta and drawTooltip and WG['tooltip'] ~= nil then
+                        local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
+                        if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
+                            local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
+                            local description = ''
+                            local newline = ''
+                            for i, line in ipairs(lines) do
+                                description = description..newline..line
+                                newline = '\n'
+                            end
+                            text = text..description
+                        else
+                            text = text..UnitDefs[udefid].tooltip
+                        end
+                        WG['tooltip'].ShowTooltip('redui_buildmenu', text)
+                        tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
+                    end
 				end
 			end
 			if drawPrice and tt ~= nil then
@@ -790,7 +793,7 @@ local function UpdateGrid(g,cmds,ordertype)
 						table.insert(g.background.movableslaves,s2)
 					end
 					
-					local glowSize = s.sy * 4.4
+					local glowSize = s.sy * 6
 					s2.sy = s.sy + glowSize + glowSize
 					s2.py = s.py - glowSize
 					s2.px = s.px
@@ -798,7 +801,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					s2.texture = barGlowCenterTexture
 					s2.border = {0,0,0,0}
 					s2.color = {s.color[1] * 10, s.color[2] * 10, s.color[3] * 10, 0}
-					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.06}
+					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.11}
 					s2.active = true
 					
 					usedstaterectanglesglow = usedstaterectanglesglow + 1
@@ -1115,7 +1118,7 @@ function widget:SetConfigData(data) --load config
 			largePrice = data.largePrice
 		end
 		if (data.oldUnitpics ~= nil) then
-			--oldUnitpics = data.oldUnitpics
+			oldUnitpics = data.oldUnitpics
 		end
 		if (data.shortcutsInfo ~= nil) then
 			shortcutsInfo = data.shortcutsInfo

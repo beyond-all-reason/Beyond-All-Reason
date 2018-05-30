@@ -125,7 +125,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.4,
 				impulsefactor = 0.4,
-				name = "HeavyPlasma",
+				name = "Heavy AoE g2g plasma cannon",
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 6.75,

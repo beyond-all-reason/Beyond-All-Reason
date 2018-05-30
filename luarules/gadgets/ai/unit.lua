@@ -11,10 +11,9 @@ end
 
 function Unit:Init()
 	if self.engineUnit == nil then
-		game:SendToConsole("nil engineUnit?!")
+		self.game:SendToConsole("Warning: Shard Unit:Init nil engineUnit?!")
 	end
 	self.behaviours = {}
-	self.behaviourvalues = {}
 end
 
 function Unit:Update()
@@ -22,13 +21,7 @@ function Unit:Update()
 		self.behaviours = {}
 	end
 	for k,v in pairs(self.behaviours) do
-		if ai.EnableDebugTimers then
-			game:StartTimer(v:Name() .. ":Update")
-		end
 		v:Update()
-		if ai.EnableDebugTimers then
-			game:StopTimer(v:Name() .. ":Update")
-		end
 	end
 end
 
@@ -57,10 +50,11 @@ function Unit:UnitBuilt(unit)
 		for k,v in pairs(self.behaviours) do
 			v:UnitBuilt(unit)
 		end
-	end
+ 	end
 end
 
 function Unit:UnitDead(unit)
+
 	if unit.engineID == self.engineID then
 		if self.behaviours then
 			-- game:SendToConsole("unit died, removing behaviours", self.engineID, self:Internal():Name())
@@ -145,9 +139,11 @@ function Unit:ElectBehaviour()
 		
 		if self.activebeh ~= bestbeh then
 			if self.activebeh ~= nil then
+				self.activebeh:PreDeactivate()
 				self.activebeh:Deactivate()
 			end
 			self.activebeh = bestbeh
+			self.activebeh:PreActivate()
 			self.activebeh:Activate()
 		end
 	end

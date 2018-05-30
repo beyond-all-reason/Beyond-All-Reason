@@ -45,9 +45,9 @@ function Shard:shardify_unittype( unitDefID )
 end
 
 function Shard:shardify_damage( damage, weaponDefID, paralyzer, projectileID, engineAttacker )
-	local sharddamage = ShardSpringDamage()
+ 	local sharddamage = ShardSpringDamage()
 	sharddamage:Init(damage, weaponDefID, paralyzer, projectileID, engineAttacker)
-	return sharddamage
+ 	return sharddamage
 end
 
 function Shard:shardify_feature( featureID )

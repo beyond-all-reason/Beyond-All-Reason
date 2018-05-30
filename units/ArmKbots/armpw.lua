@@ -125,7 +125,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "peewee",
+				name = "Rapid-fire close-quarters g2g plasma guns",
 				noselfdamage = true,
 				range = 180,
 				reloadtime = 0.31,

@@ -41,7 +41,7 @@ return {
 		turninplace = 0,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 1.287,
+		turninplacespeedlimit = 1.31,
 		turnrate = 400,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {

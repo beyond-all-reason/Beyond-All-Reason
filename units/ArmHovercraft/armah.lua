@@ -127,7 +127,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
-				name = "Missiles",
+				name = "Light g2a missile launcher",
 				noselfdamage = true,
 				range = 720,
 				reloadtime = 2.2,

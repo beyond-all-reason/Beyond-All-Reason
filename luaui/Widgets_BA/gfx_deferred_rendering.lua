@@ -51,7 +51,7 @@ local spGetCameraPosition    = Spring.GetCameraPosition
 local spWorldToScreenCoords  = Spring.WorldToScreenCoords
 
 
-local glowImg			= ":n:LuaUI/Images/glow.dds"
+local glowImg			= ":n:LuaUI/Images/glow2.dds"
 local beamGlowImg = "LuaUI/Images/barglow-center.dds"
 local beamGlowEndImg = "LuaUI/Images/barglow-edge.dds"
 
@@ -491,16 +491,15 @@ function widget:DrawWorld()
 	local lights = pointLights
 	glBlending(GL.SRC_ALPHA, GL.ONE)
 	gl.Texture(glowImg)
+	local size = 1
 	for i = 1, pointLightCount do
 		local light = lights[i]
 		local param = light.param
 		if param.gib == nil and param.type == "Cannon"then
-			size = param.glowradius * 0.28
+			size = param.glowradius * 0.44
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
-				local glowOpacity = 0.013 + (size/32000)
-				if glowOpacity > 0.027 then glowOpacity = 0.027 end
-				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, glowOpacity)
+				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.02 + (size/3300))
 				gl.Translate(light.px, light.py, light.pz)
 				gl.Billboard(true)
 				gl.TexRect(-(size/2), -(size/2), (size/2), (size/2))

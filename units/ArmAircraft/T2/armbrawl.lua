@@ -79,7 +79,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.8,
-				name = "E.M.G.",
+				name = "Rapid-fire a2g plasma guns",
 				noselfdamage = true,
 				range = 380,
 				reloadtime = 0.475,

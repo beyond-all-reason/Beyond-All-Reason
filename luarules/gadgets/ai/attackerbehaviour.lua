@@ -12,22 +12,22 @@ end
 AttackerBehaviour = class(Behaviour)
 
 function AttackerBehaviour:Init()
-	--game:SendToConsole("attacker!")
+	--self.ai.game:SendToConsole("attacker!")
 end
 
 function AttackerBehaviour:OwnerBuilt()
 	self.attacking = false
-	ai.attackhandler:AddRecruit(self)
+	self.ai.attackhandler:AddRecruit(self)
 end
 
 
 function AttackerBehaviour:OwnerDead()
-	ai.attackhandler:RemoveRecruit(self)
+	self.ai.attackhandler:RemoveRecruit(self)
 end
 
 function AttackerBehaviour:OwnerIdle()
 	self.attacking = false
-	ai.attackhandler:AddRecruit(self)
+	self.ai.attackhandler:AddRecruit(self)
 end
 
 function AttackerBehaviour:AttackCell(cell)
@@ -58,13 +58,13 @@ function AttackerBehaviour:Activate()
 		self.unit:Internal():MoveAndFire(self.target)
 		self.target = nil
 	else
-		ai.attackhandler:AddRecruit(self)
+		self.ai.attackhandler:AddRecruit(self)
 	end
 end
 
 
-function AttackerBehaviour:OwnerDead()
-	ai.attackhandler:RemoveRecruit(self)
+function AttackerBehaviour:OwnerDied()
+	self.ai.attackhandler:RemoveRecruit(self)
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil

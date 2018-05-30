@@ -131,7 +131,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "PincerCannon",
+				name = "Light close-quarters plasma cannon",
 				noselfdamage = true,
 				range = 305,
 				reloadtime = 1.5,

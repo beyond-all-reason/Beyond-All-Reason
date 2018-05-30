@@ -62,6 +62,7 @@ local spSendCommands           = Spring.SendCommands
 local spIsGUIHidden            = Spring.IsGUIHidden
 local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 
+
 include("colors.h.lua")
 
 -------------------------------------------------------------------------------
@@ -83,6 +84,7 @@ local activePress = false
 local mouseIcon = -1
 local currentDef = nil
 local prevUnitCount = spGetSelectedUnitsCounts()
+local oldUnitpics = false
 
 local iconSizeX = 64
 local iconSizeY = 64
@@ -154,7 +156,11 @@ function cacheUnitIcons()
     if cached == nil then
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
-            gl.Texture('#' .. id)
+            if oldUnitpics and UnitDefs[id] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[id].name..'.dds') then
+                gl.Texture('unitpics/'..UnitDefs[id].name..'.dds')
+            else
+                gl.Texture('#' .. id)
+            end
             gl.TexRect(-1,-1,0,0)
             gl.Texture(false)
         end
@@ -268,6 +274,13 @@ end
 
 
 function widget:Initialize()
+  WG['selunitbuttons'] = {}
+  WG['selunitbuttons'].getOldUnitIcons = function()
+    return oldUnitpics
+  end
+  WG['selunitbuttons'].setOldUnitIcons = function(value)
+    oldUnitpics = value
+  end
   widget:ViewResize(vsx, vsy)
 end
 
@@ -275,6 +288,7 @@ function widget:Shutdown()
   if picList then
     gl.DeleteList(picList)
   end
+  WG['selunitbuttons'] = nil
   enabled = false
   updateGuishader()
 end
@@ -357,7 +371,11 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   local ud = UnitDefs[unitDefID]
   glColor(color)
-  glTexture('#' .. unitDefID)
+  if oldUnitpics and UnitDefs[unitDefID] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[unitDefID].name..'.dds') then
+    glTexture('unitpics/'..UnitDefs[unitDefID].name..'.dds')
+  else
+    glTexture('#' .. unitDefID)
+  end
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
   
@@ -579,6 +597,16 @@ function widget:GetTooltip(x, y)
   return ud.humanName .. ' - ' .. ud.tooltip
 end
 
+
+function widget:GetConfigData()
+  return {oldUnitpics=oldUnitpics}
+end
+
+function widget:SetConfigData(data) --load config
+  if (data.oldUnitpics ~= nil) then
+    oldUnitpics = data.oldUnitpics
+  end
+end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------

@@ -84,7 +84,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 4,
-				name = "LightningBolt",
+				name = "Light a2g discharge blaster",
 				noselfdamage = true,
 				proximitypriority = 1,
 				range = 475,

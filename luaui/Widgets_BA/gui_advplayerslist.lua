@@ -82,7 +82,6 @@ local Spring_GetAIInfo           = Spring.GetAIInfo
 local Spring_GetTeamRulesParam   = Spring.GetTeamRulesParam
 local Spring_IsGUIHidden		 = Spring.IsGUIHidden
 local Spring_GetDrawFrame		 = Spring.GetDrawFrame
-local Spring_GetTeamColor		 = Spring.GetTeamColor
 local Spring_GetMyTeamID		 = Spring.GetMyTeamID
 local Spring_AreTeamsAllied		 = Spring.AreTeamsAllied
 
@@ -225,6 +224,7 @@ local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
 local lastActivity = {}
 local lastFpsData = {}
 local lastSystemData = {}
+local lastGpuMemData = {}
 
 --------------------------------------------------------------------------------
 -- Tooltip
@@ -605,10 +605,24 @@ function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
 	local maxWidth = 14*gl_GetTextWidth(absentName) + 8 -- 8 is minimal width
-	local name = ""
+	local name = ''
+	local spec = false
+	local version = ''
+	local teamID = 0
 	local nextWidth = 0
 	for _,wplayer in ipairs(t) do
-		name,_,spec = Spring_GetPlayerInfo(wplayer)
+		name,_,spec,teamID = Spring_GetPlayerInfo(wplayer)
+		if select(4,Spring_GetTeamInfo(teamID)) then -- is AI?
+			_,_,_,_,name, version = Spring_GetAIInfo(teamID)
+			if type(version) == "string" then
+				name = "AI:" .. name .. "-" .. version
+			else
+				name = "AI:" .. name
+			end
+			if Spring.GetTeamRulesParam(teamID, 'ainame') then
+				name = Spring.GetTeamRulesParam(teamID, 'ainame')
+			end
+		end
 		local charSize
 		if spec then charSize = 11 else charSize = 14 end
 		nextWidth = charSize*gl_GetTextWidth(name)+8
@@ -616,7 +630,7 @@ function SetMaxPlayerNameWidth()
 			maxWidth = nextWidth
 		end
 	end
-  return maxWidth
+	return maxWidth
 end
 
 function GetNumberOfSpecs()
@@ -722,9 +736,12 @@ local function LockCamera(playerID)
 	UpdateRecentBroadcasters()
 end
 
+function GpuMemEvent(playerID, percentage)
+	lastGpuMemData[playerID] = percentage
+end
 
 function FpsEvent(playerID, fps)
-  lastFpsData[playerID] = fps
+	lastFpsData[playerID] = fps
 end
 	
 function SystemEvent(playerID, system)
@@ -779,6 +796,7 @@ function widget:Initialize()
   widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
   widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
   widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
+  widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
   widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
 	UpdateRecentBroadcasters()
 	
@@ -889,9 +907,8 @@ function widget:Shutdown()
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
 	widgetHandler:DeregisterGlobal('ActivityEvent')
 	widgetHandler:DeregisterGlobal('FpsEvent')
+	widgetHandler:DeregisterGlobal('GpuMemEvent')
 	widgetHandler:DeregisterGlobal('SystemEvent')
-	widgetHandler:DeregisterGlobal('getPlayerScoresAdvplayerslist')
-
 	if ShareSlider then
 		gl_DeleteList(ShareSlider)
 	end
@@ -953,6 +970,7 @@ end
 
 function GetAllPlayers()
 	local noplayer
+	local tplayerCount = 0
 	local allteams   = Spring_GetTeamList()
 	teamN = table.maxn(allteams) - 1               --remove gaia
 	for i = 0,teamN-1 do
@@ -960,8 +978,12 @@ function GetAllPlayers()
 		player[i + 64] = CreatePlayerFromTeam(i)
 		for _,playerID in ipairs(teamPlayers) do
 			player[playerID] = CreatePlayer(playerID)
+			tplayerCount = tplayerCount + 1
 		end
-		playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
+		if tplayerCount > 0 then
+			playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
+		end
+		tplayerCount = 0
 	end
 	specPlayers = Spring_GetTeamList()
 	for _,playerID in ipairs(specPlayers) do
@@ -1110,6 +1132,9 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 			tname = "AI:" .. tname .. "-" .. version
 		else
 			tname = "AI:" .. tname
+		end
+		if Spring.GetTeamRulesParam(teamID, 'ainame') then
+			tname = Spring.GetTeamRulesParam(teamID, 'ainame')
 		end
 		
 		ttotake = false
@@ -1966,7 +1991,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	if m_cpuping.active == true then
 		if cpuLvl ~= nil then                              -- draws CPU usage and ping icons (except AI and ghost teams)
 			DrawPingCpu(pingLvl,cpuLvl,posY,spec,1,cpu,lastFpsData[playerID])
-			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastSystemData[playerID], name) end
+			if tipY == true then PingCpuTip(mouseX, ping, cpu, lastFpsData[playerID], lastGpuMemData[playerID], lastSystemData[playerID], name) end
 		end
 	end
 	
@@ -2059,8 +2084,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset)
 
     if ((barWidth/metalStorage)*metal) > 0.8 then
-        local glowsize = 12
-        gl_Color(1,1,1.2,0.033)
+        local glowsize = 11
+        gl_Color(1,1,1.2,0.04)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
 
@@ -2084,8 +2109,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset)
 
     if ((barWidth/energyStorage)*energy) > 0.8 then
-        local glowsize = 12
-        gl_Color(1,1,0.2,0.033)
+        local glowsize = 11
+        gl_Color(1,1,0.2,0.04)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
 
@@ -2522,7 +2547,7 @@ function ResourcesTip(mouseX, e, es, ei, m, ms, mi)
 end
 
 
-function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system, name)
+function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, gpumem, system, name)
 	if mouseX >= widgetPosX + (m_cpuping.posX + 13) * widgetScale and mouseX <=  widgetPosX + (m_cpuping.posX + 23) * widgetScale  then
 		if pingLvl < 2000 then
 			pingLvl = pingLvl.." ms"
@@ -2536,6 +2561,9 @@ function PingCpuTip(mouseX, pingLvl, cpuLvl, fps, system, name)
 		tipText = "Cpu: "..cpuLvl.."%"
 		if fps ~= nil then 
 			tipText = "FPS: "..fps.."    "..tipText
+		end
+		if gpumem ~= nil then
+			tipText = tipText.."    Gpu mem: "..gpumem.."%"
 		end
 		if system ~= nil then 
 			tipText = "\255\000\000\000"..name.."\n\255\233\180\180"..tipText.."\n\255\240\240\240"..system

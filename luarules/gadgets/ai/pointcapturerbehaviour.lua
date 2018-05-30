@@ -1,5 +1,5 @@
-function IsPointCapturer(unit)
-	local noncapturelist = game:ControlPointNonCapturingUnits()
+function IsPointCapturer(unit, ai)
+	local noncapturelist = ai.game:ControlPointNonCapturingUnits()
 	for i = 1, #noncapturelist do
 		local name = noncapturelist[i]
 		if name == unit:Internal():Name() then
@@ -26,9 +26,11 @@ function PointCapturerBehaviour:Init()
 	self.minDist = math.ceil( self.maxDist / 3 )
 end
 
-function PointCapturerBehaviour:OwnerIdle()
+function PointCapturerBehaviour:UnitIdle(unit)
 	if not self.active then return end
-	self:GoForth()
+	if unit.engineID == self.unit.engineID then
+		self:GoForth()
+	end
 end
 
 function PointCapturerBehaviour:Update()

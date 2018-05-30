@@ -379,7 +379,7 @@ local function clipLine(line,fontsize,maxwidth)
 				break
 			end
 		end
-		
+
 		-- check if we need to clip again
 		local width = glGetTextWidth(line)*fontsize
 		if (width <= maxwidth) then
@@ -590,11 +590,11 @@ local function processLine(line,g,cfg,newlinecolor)
     end
 	
 	if registermyname and not nameregistered then
-	myname = name
-	registermyname = false
-	nameregistered = true
-	ignoreThisMessage = true 
-	-- Spring.SendCommands("wByNum "..regID.." Registered as "..myname)
+		myname = name
+		registermyname = false
+		nameregistered = true
+		ignoreThisMessage = true
+		-- Spring.SendCommands("wByNum "..regID.." Registered as "..myname)
 	end
 	
 	-- filter shadows config changes
@@ -605,7 +605,11 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line,"->") then
 		ignoreThisMessage = true
 	end
-	
+
+	-- filter hash messages: server= / client=
+	if sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then
+		ignoreThisMessage = true
+	end
 	
 	-- filter Sync error when its a spectator
 	--if sfind(line,"^Sync error for ") then

@@ -150,7 +150,7 @@ return {
 				explosiongenerator = "custom:MINESWEEP",
 				intensity = 0,
 				metalpershot = 0,
-				name = "MineSweep",
+				name = "Mine-sweeping tectonic impulse",
 				noselfdamage = true,
 				range = 200,
 				reloadtime = 3,

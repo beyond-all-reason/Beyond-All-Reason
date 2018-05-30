@@ -125,7 +125,7 @@
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile_medium",
-				name = "Rockets",
+				name = "Medium g2g rocket launcher",
 				noselfdamage = true,
 				range = 475,
 				reloadtime = 3.8,

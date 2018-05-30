@@ -2,13 +2,20 @@
 -- Created by Tom J Nowell 2010
 -- Shard AI
 
+-- currently included from inside the main AI object during initialisation
 local api = {}
 if ShardSpringLua then
+	-- it's a LuaAI inside a game archive!
 	api.game = shard_include "spring_lua/game"
 	api.map = shard_include "spring_lua/map"
+elseif game_engine then
+	 -- it's a native AI!
+	api.game = shard_include "spring_cpp/game"
+	api.map = shard_include "spring_cpp/map"
 else
-	api.game = shard_include "spring_native/game"
-	api.map = shard_include "spring_native/map"
+	-- who knows! Load a Null non-op API
+	api.game = shard_include "preload/shard_null/game"
+	api.map = shard_include "preload/shard_null/map"
 end
 
 return api

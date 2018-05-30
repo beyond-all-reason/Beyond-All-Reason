@@ -85,7 +85,7 @@ return {
 				impulsefactor = 0.123,
 				model = "bomb",
 				mygravity = 0.4,
-				name = "SeaAdvancedBombs",
+				name = "Medium a2g impulse warheads",
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 7,

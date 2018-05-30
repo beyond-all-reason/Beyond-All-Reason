@@ -42,7 +42,7 @@ return {
 		trackwidth = 42,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 1.32,
+		turninplacespeedlimit = 1.35,
 		turnrate = 433,
 		customparams = {
 			arm_tank = "1",
@@ -151,7 +151,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "PlasmaCannon",
+				name = "Medium g2g plasma cannon",
 				noselfdamage = true,
 				range = 480,
 				reloadtime = 1.5,

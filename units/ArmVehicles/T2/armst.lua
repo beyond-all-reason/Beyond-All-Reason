@@ -154,7 +154,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "Gauss",
+				name = "Light close-quarters gauss cannon",
 				noselfdamage = true,
 				range = 220,
 				reloadtime = 3,

@@ -132,7 +132,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 500,
 				model = "empmisl",
-				name = "EMPMissile",
+				name = "Heavy long-range g2g EMP starburst rocket",
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 35,

@@ -130,7 +130,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
-				name = "AA2Missile",
+				name = "Pop-up rapid-fire g2a missile launcher",
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 0.425,

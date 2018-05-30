@@ -10,8 +10,17 @@ function gadget:GetInfo()
 end
 
 -- NOTE: adding/removing will break at ´/luarules reload´ (needs to remember var ´critterUnits´)
+local teams = Spring.GetTeamList()
+for i =1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI ~= "" then
+		if luaAI == "DAI" then
+			shardEnabled = true
+		end
+	end
+end
 
-if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == "disabled" then
+if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == "disabled" or shardEnabled == true then
 	return
 end
 

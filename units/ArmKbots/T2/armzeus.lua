@@ -128,7 +128,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 12,
-				name = "LightningGun",
+				name = "Close-quarters g2g lightning rifle",
 				noselfdamage = true,
 				range = 280,
 				reloadtime = 1.7,

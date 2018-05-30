@@ -45,16 +45,16 @@ if (gadgetHandler:IsSyncedCode()) then
 		  wantedList[#wantedList + 1] = wd.id
 	    elseif normalShockwave then
 		  hasShockwave[wd.id] = {
-		  	life = 8*life,
+		  	life = 8.5*life,
 		  	speed = speed,
-		  	growth = wd.damageAreaOfEffect/9.5*speed
+		  	growth = wd.damageAreaOfEffect/10*speed
 		  }
 	      Script.SetWatchWeapon(wd.id,true)
 		  wantedList[#wantedList + 1] = wd.id
-        --elseif (wd.type == "DGun") then
-	    --  	hasShockwave[wd.id] = {DGun = true}
-        --  Script.SetWatchWeapon(wd.id,true)
-	    --  	wantedList[#wantedList + 1] = wd.id
+        elseif (wd.type == "DGun") then
+	      	hasShockwave[wd.id] = {DGun = true}
+          Script.SetWatchWeapon(wd.id,true)
+	      	wantedList[#wantedList + 1] = wd.id
       end
     end
   end
@@ -68,9 +68,9 @@ if (gadgetHandler:IsSyncedCode()) then
 		local shockwave = hasShockwave[weaponID]
 		if shockwave then
 	    if shockwave.DGun then
-	      SendToUnsynced("lups_shockwave", px, py, pz, 4.0, 18, 0.13, true)
+	      SendToUnsynced("lups_shockwave", px, py, pz, 5, 7.5, 0.11, true)
 	    elseif shockwave.special == 1 then
-	      SendToUnsynced("lups_shockwave", px, py, pz, 6, 30, 0.13, true)
+	      SendToUnsynced("lups_shockwave", px, py, pz, 5, 25, 0.1, true)
 	    else
 	      SendToUnsynced("lups_shockwave", px, py, pz, shockwave.growth, shockwave.life)
 	    end

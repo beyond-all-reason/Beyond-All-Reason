@@ -127,7 +127,7 @@ return {
 				firestarter = 70,
 				impulsefactor = 1.015,
 				model = "megamisl",
-				name = "HeavyRocket",
+				name = "Heavy g2g dual-missile launcher",
 				noselfdamage = true,
 				range = 380,
 				reloadtime = 7.5,

@@ -244,6 +244,14 @@ function widget:CommandNotify(id, params, options)
 		end
 	
 		for k, mex in pairs(mexes) do		
+			if not (mex.x%16 == 8) then
+				mexes[k].x = mexes[k].x + 8 - (mex.x%16)
+			end
+			if not (mex.z%16 == 8) then
+				mexes[k].z = mexes[k].z + 8 - (mex.z%16)
+			end
+			mex.x = mexes[k].x
+			mex.z = mexes[k].z
 			if (Distance(cx,cz,mex.x,mex.z) < cr^2) then -- circle area, slower
 				if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
 					commands[#commands+1] = {x = mex.x, z = mex.z, d = Distance(aveX,aveZ,mex.x,mex.z)}

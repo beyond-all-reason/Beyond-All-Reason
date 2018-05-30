@@ -501,12 +501,11 @@ local function processLine(line,g,cfg,newlinecolor)
             end
 		end		
     end
-	
+
 	-- filter shadows config changes
 	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
 		ignoreThisMessage = true
 	end
-	
 	
 	-- filter Sync error when its a spectator
 	if sfind(line,"^Sync error for ") then
@@ -535,6 +534,11 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line," Connection established") then
 		name = lastConnectionAttempt
 	  ignoreThisMessage = true
+	end
+
+	-- filter hash messages: server= / client=
+	if sfind(line,"server=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") or sfind(line,"client=[0-9a-z][0-9a-z][0-9a-z][0-9a-z]") then
+		ignoreThisMessage = true
 	end
 	
 	

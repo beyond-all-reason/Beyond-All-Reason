@@ -11,6 +11,10 @@ static-var aMoving, bMoving, bAiming, bCanAim, shooting_num, base_speed, restore
 #include "sfxtype.h"
 #include "exptype.h"
 
+lua_FlameShot(weapon) //Distortion and lups flame effect
+{
+  return 0;
+}
 
 walk()
 {
@@ -199,7 +203,11 @@ AimSecondary(heading,pitch)
 	wait-for-turn head around x-axis;
 	return(1);
 	}
-	
+
+Shot1()
+	{
+
+}
 Shot2()
 	{
 	turn lsack to y-axis <30> speed <200>;
@@ -211,6 +219,8 @@ Shot2()
 	turn rsack to y-axis <0> speed <20>;
 	move rsack to x-axis [0] speed [0.3];
 	move lsack to x-axis [0] speed [0.3];
+	call-script lua_FlameShot(2);
+	return (TRUE);
 	}
 	
 SweetSpot(piecenum)

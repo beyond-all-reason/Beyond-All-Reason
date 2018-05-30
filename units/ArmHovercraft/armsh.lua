@@ -122,7 +122,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				name = "Laser",
+				name = "Light close-quarters g2g laser",
 				noselfdamage = true,
 				range = 230,
 				reloadtime = 0.6,

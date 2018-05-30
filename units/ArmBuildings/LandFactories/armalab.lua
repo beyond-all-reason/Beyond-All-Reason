@@ -61,6 +61,7 @@ return {
 			[18] = "armmark",
 		},
 		customparams = {
+			bar_yardmap = "oooooo oooooo oooooo cccccc cccccc cccccc",
 			techlevel = 2,
 		},
 		featuredefs = {

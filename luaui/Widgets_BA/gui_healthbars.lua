@@ -1210,16 +1210,6 @@ do
         end
       end
 
-      --// DGUN CHARGE
-      local charge = GetUnitRulesParam(unitID,"charge")
-      if charge and charge<=99 then
-        local infotext = ''
-        if (fullText and charge > 0) then
-          infotext = floor(charge)..'%'
-        end
-        AddBar("dgun charge",math.max(charge/100,0),"dguncharge",infotext or '')
-      end
-
     if (barsN>0)or(numStockpiled) then
       glPushMatrix()
       glTranslate(ux, uy+ci.height, uz )

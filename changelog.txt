@@ -2,6 +2,21 @@
 xx/xx/2018
 
 Balance:
+In current test (will be undone or fixed/balanced before release):
+ • Emptied T2 sea buildmenu to rebuild the roster progressively
+ • Added Scumbag/Janitor (arm/core): 480m/2400e/6800bt, secondary floating AA in T1 construction ships build menus
+ • Arm/Core Scouts don't use aa weapons anymore
+ • Support Frigates separated into:
+AA missiles frigate: 132 damages per 1.2 seconds at 800 range and 96 aoe
+Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 seconds at 375 range and 12 aoe
+ • Hovercraft can now be transported
+ • Hovercraft builder cannot be made from T1 shipyard
+ • Hovercraft buildpower 90 -> 140
+ • Cruisers' main cannons range reduced to 585 (arm) 565 (core), lightlaser to 430, deptcharge to 450, HP 3950 arm 4000 core
+ • Subkillers movespeed to approx 2.10, accel/brake adjusted, turnrate +40%, HP to 850, damages 900, reloadtime 4.5s, track -75%, fireangle +/- 54°
+ • BattleShips speed -5%, plasma cannonrange to 830 arm, 860 core, aoe 96 -> 128, turret turn speed + 50%
+
+
 Sea economy, factories and engineering:
  • Erased T1/T2 Shipyards' radarsight 
  • Removed Passive energy/metal generation from T1/T2 Shipyards
@@ -9,22 +24,35 @@ Sea economy, factories and engineering:
  • Reduced Construction Ships Energy/Metal production (15/0.115 -> 7/0.1) and increased Energy/Metal storages (15 -> 50)
  • Reduced Construction Ships HP -15%
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
- • Offshore mexes attempt to hide underwater when hit, therefor stopping the metal production for approxiamately 10 seconds.
- • Banisher missile blows up in the air after it is out of fuel
+ • Offshore mexes are now the default (and only) t1 sea mexes.
+ • Offshore mexes attempt to hide underwater when hit, therefor stopping the metal production for approxiamately 5 seconds.
+ • Flamethrowers dont spray as wide as before
 
 Sea Offense and Defense:
- • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%,
- • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health)
- • Destroyers' and cruisers' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
- • Arm/Core Assult Frigates damages + 3%
- • Support Frigates are granted a missile tower (surface to air and surface to surface) and their depthcharge can only target downwards.
+ • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%, projectile speed +5%
+ • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health), sonar distance reduced (400 -> 375)
+ • Destroyers' and cruisers' and support frigates' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
+ • Arm/Core Assult Frigates damages + 3%, turret turnspeed reduced -3%
  • Transport ship costs decreased (core 5500e/600m/8610bt => 3700e/350m/6400bt and arm 5000e/640m/9150bt => 3500e/350m/6500bt) and hp decreased (arm 8800 -> 2900 and core 9150 -> 3000)
- • Arm/Core gun platform special damages towards "heavyunits" erased.
+ • Arm/Core gun platform special damages towards "heavyunits" and air categories erased, projectile speed increased (+32%), can attempt to target aircrafts.
  • Global acceleration buff for ships (+100%)
 
+Vehicules :
+ • Stumpy -3% speed / +3% turnrate
+ • Flash -1% speed / +2% turnrate
+ • Jeffy +2% turnrate
+ • Bulldog -2% speed
+ • Shellshocker -5% reloadtime
+ • Raider -2% speed / +3% turnrate
+ • Instigator -2% speed / +2% turnrate
+ • Weasel +2% turnrate
+ • Reaper -2% speed
+ • Wolverine -5% reloadtime
+ 
 Air: 
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
- • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%.
+ • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%
+ • Increased Liche e cost +40% and build time +15%
 
 Global:
  • Commander speed underwater decreases to 66% of it's value when depth > 47
@@ -32,7 +60,9 @@ Global:
  • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
 
 Other:
+ • Banisher missile blows up in the air after it is out of fuel
  • New command "Set Priority" in anti air order menus, allowing to switch between targetting Fighters, Bomber in priority, or using no priority. To create a bind, use the action name "setpriority".
+ • mo_preventcombomb removed from modoptions as it had no effects anymore (the prevent combomb gadget is always enabled in last commander vs last commander situations)
  • mo_unba = "exponly" added to allow the use of Unbalanced Commanders' experience health/reload/power multipliers with the classic Balanced Annihilation commander.
  • Included Crowned Commander skins for tourney winner, available with BA and unBA commander models.
  • Fixed command "Area Mex" not being available for captured builders, also improved mex placement script (uses mex snap's code)
@@ -50,7 +80,9 @@ Other:
  • Various script enhancements/fixes, models improvements 
  • Specific Unit Loader: Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
  • Added widget: Under contruction gfx: draws highlight for under construction units to help visibility
- • Engien replacement trees are made to look smoother
+ • Engine replacement trees are made to look smoother
+ • Added laser fadeout effect + tuned laser thickness to match their damages more
+ • Changed/added flamethower effect
 
 
 10.07 -> 10.08

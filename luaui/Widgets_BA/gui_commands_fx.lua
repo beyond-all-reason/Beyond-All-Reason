@@ -61,6 +61,8 @@ local GL_QUADS = GL.QUADS
 -- Config
 --------------------------------------------------------------------------------
 
+local filterAIteams				= true
+
 local drawBuildQueue			= true
 local drawLineTexture			= true
 local drawUnitHighlight 		= true
@@ -198,6 +200,7 @@ local CONFIG = {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local enabledTeams = {}
 local commands = {}
 local monitorCommands = {}
 local minQueueCommand = 1
@@ -286,6 +289,16 @@ local function setCmdLineColors(alpha)
 	spLoadCmdColorsConfig('deathWatch  0.5  0.5  0.5  '..alpha)
 end
 
+function resetEnabledTeams()
+	enabledTeams = {}
+	local t = Spring.GetTeamList()
+	for _,teamID in ipairs(t) do
+		if not filterAIteams  or  not select(4,Spring.GetTeamInfo(teamID)) then
+			enabledTeams[teamID] = true
+		end
+	end
+end
+
 function widget:Initialize()
 	--SetUnitConf()
 	
@@ -294,6 +307,7 @@ function widget:Initialize()
 	spLoadCmdColorsConfig('queueIconAlpha  0.5 ')
 	
 	setCmdLineColors(0.5)
+	resetEnabledTeams()
 
 	WG['commandsfx'] = {}
 	WG['commandsfx'].getOpacity = function()
@@ -301,6 +315,13 @@ function widget:Initialize()
 	end
 	WG['commandsfx'].setOpacity = function(value)
 		opacity = value
+	end
+	WG['commandsfx'].getFilterAI = function()
+		return filterAIteams
+	end
+	WG['commandsfx'].setFilterAI = function(value)
+		filterAIteams = value
+		resetEnabledTeams()
 	end
 end
 
@@ -467,12 +488,14 @@ end
 
 local newUnitCommands = {}
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
-	if ignoreUnits[unitDefID] == nil then
-		if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
-			addUnitCommand(unitID, unitDefID, cmdID)
-			newUnitCommands[unitID] = true
-		else
-			newUnitCommands[unitID] = {unitDefID, cmdID}
+	if enabledTeams[teamID] ~= nil then
+		if ignoreUnits[unitDefID] == nil then
+			if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
+				addUnitCommand(unitID, unitDefID, cmdID)
+				newUnitCommands[unitID] = true
+			else
+				newUnitCommands[unitID] = {unitDefID, cmdID}
+			end
 		end
 	end
 end
@@ -787,9 +810,11 @@ end
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.opacity = opacity
+	savedTable.filterAIteams = filterAIteams
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.opacity ~= nil 	then  opacity	= data.opacity end
+	if data.filterAIteams ~= nil 	then  filterAIteams	= data.filterAIteams end
 end

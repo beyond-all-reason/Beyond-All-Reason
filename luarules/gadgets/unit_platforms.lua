@@ -14,13 +14,12 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 	GroundHeight = {}
 	toUpdateList = {}
-	surfacemex = ((Spring.GetModOptions().seamex or "underwater") == "surface")
 	
 	function gadget:UnitCreated(unitID)
 		unitDefID = Spring.GetUnitDefID(unitID)
 		unitName = UnitDefs[unitDefID].name
 		x,y,z = Spring.GetUnitPosition(unitID)
-		if (unitName == "armuwmex" or unitName == "coruwmex") and surfacemex then
+		if (unitName == "armuwmex" or unitName == "coruwmex") then
 			GroundHeight = Spring.GetGroundHeight(x,z)
 			Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
 			Spring.SetUnitRadiusAndHeight (unitID, 24, 0 )
@@ -29,7 +28,7 @@ if (gadgetHandler:IsSyncedCode()) then
 					toUpdateList[unitID] = piecenum
 				end
 			end
-			Spring.SetUnitMidAndAimPos(unitID, 0, 10, 0, 0, 0, 0, true)
+			Spring.SetUnitMidAndAimPos(unitID, 0, 10, 0, 0, 10, 0, true)
 		end
 	end
 	
@@ -41,7 +40,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		if f%15 == 0 then
 			for unitID, piecenum in pairs(toUpdateList) do
 				local px,py,pz = Spring.GetUnitPiecePosition(unitID, piecenum)
-				Spring.SetUnitMidAndAimPos(unitID, px,py,pz,0,0,0, true)
+				Spring.SetUnitMidAndAimPos(unitID, px,py,pz,px,py,pz, true)
 			end
 		end
 	end

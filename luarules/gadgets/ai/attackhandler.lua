@@ -15,14 +15,14 @@ end
 
 function AttackHandler:Update()
 -- stagger targetting if multiple shards are in the game
-	local f = game:Frame() + game:GetTeamID() 
+	local f = self.game:Frame() + self.game:GetTeamID() 
 	if math.mod(f,15) == 0 then
 		self:DoTargetting()
 	end
 end
 
 function AttackHandler:UnitDead(engineunit)
-	if engineunit:Team() == game:GetTeamID() then
+	if engineunit:Team() == self.game:GetTeamID() then
 		self.counter = self.counter - 0.2
 		self.counter = math.max(self.counter,8)
 		-- try and clean up dead recruits where possible
@@ -56,9 +56,9 @@ function AttackHandler:DoTargetting()
 		-- find somewhere to attack
 		local cells = {}
 		local celllist = {}
-		local mapdimensions = game.map:MapDimensions()
+		local mapdimensions = self.game.map:MapDimensions()
 		--enemies = game:GetEnemies()
-		local enemies = game:GetEnemies()
+		local enemies = self.game:GetEnemies()
 
 		if enemies and #enemies > 0 then
 			-- figure out where all the enemies are!
@@ -139,7 +139,7 @@ end
 
 function AttackHandler:AddRecruit(attkbehaviour)
 	if attkbehaviour.unit == nil then
-		game:SendToConsole( "null unit in attack beh found ")
+		self.game:SendToConsole( "null unit in attack beh found ")
 		return
 	end
 	if not self:IsRecruit(attkbehaviour) then

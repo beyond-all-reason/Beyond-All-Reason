@@ -13,11 +13,12 @@ local MOVESTATE_HOLDPOS = 0
 
 function BootBehaviour:Init()
 	self.waiting = true
-	self.id = self.unit:Internal():ID()
-	self.name = self.unit:Internal():Name()
+	local u = self.unit:Internal()
+	self.id = u:ID()
+	self.name = u:Name()
+	self.canmove = u:CanMove()
 	self.finished = false
 	self.count = 150
-	self.unit:ElectBehaviour()
 end
 
 function BootBehaviour:OwnerBuilt()
@@ -47,12 +48,12 @@ end
 
 function BootBehaviour:Priority()
 	-- don't apply to starting units
-	if game:Frame() < 5 then
+	if self.game:Frame() < 10 then
 		return 0
 	end
 
 	-- don't apply to structures
-	if self.unit:Internal():CanMove() == false then
+	if self.canmove == false then
 		return 0
 	end
 	if self.waiting then

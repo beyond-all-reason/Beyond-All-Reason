@@ -5,10 +5,10 @@ Attackers!
 attackerlist = {
 
 ----------------------------------------------ARM
-	
-	
+
+
 ------------------------------T1 KBOT
-	
+
 	"armpw", 	--	Peewee 			/ 	Fast Infantry
 	"armham", 	--	Hammer 			/	Light Plasma
 	"armrectr",	--	Rector			/	Rez-Reclaim
@@ -16,11 +16,10 @@ attackerlist = {
 	"armjeth",	--	Jethro			/	Anti-Air
 	"armflea",	--	Flea			/	Scout
 	"armwar",	--	Warrior			/	Medium Infantry
-	
+
 ------------------------------T2 KBOT
-	
+
 	"armaak",   --  Archangel       /   Advanced Amphibious Anti-Air Kbot
-	"armack",   --  Adv. Con Bot    /   Adv. Con Bot
 	"armamph",  --  Pelican         /   Amphibious Kbot
 	"armaser",  --  Eraser          /   Radar Jammer Kbot
 	"armdecom", --  Decoy Commander /   Decoy Commander
@@ -37,10 +36,10 @@ attackerlist = {
 	"armspy",   --  Infiltrator     /   Radar-Invisibility Spy Kbot
 	"armvader", --  Invader         /   Amphibious Crawling Bomb
 	"armzeus",  --  Zeus            /   Assault Kbot
-	
-	
+
+
 -------------------------------T1 VEH
-	
+
 	"armfav",	--	Jeffy			/	Scout
 	"armflash",	-- 	Flash			/	Fast Assault Tank
 	"armstump",	--	Stumpy			/	Medium Assault Tank
@@ -48,10 +47,9 @@ attackerlist = {
 	"armart",	--	Shellshocker	/ 	Light Artilery
 	"armsam",	-- 	Samson			/	Missile Truck
 	"armpincer",--	Pincer			/	Light Amphibious Tank
-	
+
 -------------------------------T2 VEH
-	
-	"armacv",	--	Adv. Con Veh	/	Adv. Con Veh
+
 	"armbull",	--	Bulldog			/	Heavy Assault Tank
 	"armconsul",--	Consul			/	Combat Engineer
 	"armcroc",	--	Triton			/	Heavy Amphibious Tank
@@ -65,15 +63,14 @@ attackerlist = {
 	"armyork",	--	Phalanx			/	Anti-Air Flak Vehicle
 
 -------------------------------T1 AIR
-	
+
 	"armpeep",	--	Peeper			/	Scout
 	"armthund",	--	Thunder			/	Bomber
 	"armfig",	-- 	Freedom Fighter /	Fighter
 	"armkam",	--	Banshee			/	Light Gunship
-	
+
 -------------------------------T2 AIR
-	
-	"armaca",	--	Adv. Air Con	/	Adv. Air Con
+
 	"armawac",	--	Eagle			/	Radar/Sonar Plane
 	"armblade",	--	Blade			/	Rapid Assault Gunship
 	"armbrawl",	--	Brawler			/	Gunship
@@ -83,36 +80,33 @@ attackerlist = {
 	"armliche",	--	Liche			/	Atomic Bomber
 	"armpnix",	--	Phoenix			/	Strategic Bomber
 	"armstil",	--	Stiletto		/	EMP Bomber
-	
+
 -------------------------------Gantry
 
 	"armbanth",	--	Bantha			/	Assault Mech
 	"armmar",	--	Marauder		/	Amphibious Assault Mech
 	"armraz",	--	Razxorbach		/	Battle Mech
 	"armvang",	--	Vanguard		/	All Terrain Heavy Plasma
-	
----------------------------Hovercraft	
-	
+
+---------------------------Hovercraft
+
 	"armah",	--	Swatter			/	Anti-Air Hovercraft
 	"armanac",	--	Anaconda		/	Hovertank
-	"armch",	--	Con Hover		/	Con Hover
 	"armlun",	--	Lun				/	Heavy Hovertank
 	"armmh",	--	Wombat			/	Hovercraft Rocket Launcher
 	"armsh",	--	Skimmer			/	Fast Attack Hovercraft
 	"armthovr",	--	Bear			/	Transport Hovercraft
-	
+
 ----------------------------Seaplanes
 
-	"armcsa",	--	Con Sea			/	Con Sea
 	"armsaber",	--	Sabre			/	Seaplane Gunship
 	"armsb",	--	Tsunami			/	Seaplane Bomber
 	"armseap",	--	Albatross		/	Torpedo Gunship
 	"armsehak",	--	Seahawk			/	Advanced Radar/Sonar Plane
 	"armsfig",	--	Tornado			/	Seaplane Swarmer
-	
+
 -----------------------------T1 Ships
 
-	"armcs",	--	Con Corv		/	Con Corv
 	"armdecade",--	Decade			/	Fast Assault Corvette
 	"armdship",	--	Hunter			/	Light Torpedo Boat
 	"armpship",	--	Ellysaw			/	Assault Frigate
@@ -122,11 +116,10 @@ attackerlist = {
 	"armrship",	--	Intervention	/	Support Frigate (Depthcharge)
 	"armsub",	--	Lurker			/	Submarine
 	"armtship",	--	Hulk			/	Armored Transport Ship
-	
+
 -----------------------------T2 Ships
 
 	"armaas",	--	Archer			/	Anti-Air Ship
-	"armacsub",	--	Adv. Con Sub	/	Adv. Con Sub
 	"armbats",	--	Millennium		/	Battleship
 	"armcarry",	--	Colossus		/	Aircraft Carrier with Anti-Nuke
 	"armcrus",	--	Conqueror		/	Cruiser
@@ -136,7 +129,7 @@ attackerlist = {
 	"armserp",	--	Serpent			/	Battle Submarine
 	"armsjam",	--	Escort			/	Radar Jammer Ship
 	"armsubk",	--	Piranha			/	Submarine Killer
-	
+
 ---------------------------------------------------------CORE
 
 ------------------------------T1 KBOT
@@ -146,11 +139,10 @@ attackerlist = {
 	"corthud",	--	Thud			/	Light Plasma
 	"corstorm",	--	Storm			/	Rocket Bot
 	"corcrash",	--	Crasher			/	Anti-Air
-	
+
 ------------------------------T2 KBOT
 
 	"coraak",   --	Manticore		/	Heavy Amphibious Anti-Air Kbot
-	"corack",	--	Adv. Con Bot	/	Adv Con Bot
 	"coramph",	--	Gimp			/	Amphibious Kbot
 	"corcan",	--	Can				/	Armored Assault Kbot
 	"cordecom",	--	Decoy Commander /   Decoy Commander
@@ -168,7 +160,7 @@ attackerlist = {
 	"corvoyr",	--	Voyeur			/	Radar Kbot
 
 -------------------------------T1 VEH
-	
+
 	"corfav",	--	Weasel			/	Scout
 	"corgator",	--	Instigator		/	Fast Assault Tank
 	"corraid",	--	Raider			/	Medium Assault Tank
@@ -176,10 +168,9 @@ attackerlist = {
 	"corwolv",	--	Wolverine		/	Light Artilery
 	"cormist",	--	Slasher			/	Misile Truck
 	"corgarp",	--	Garpike			/	Light Amphibious Tank
-	
+
 -------------------------------T2 VEH
-	
-	"coracv",	--	Adv. Con Veh	/	Adv. Con Veh
+
 	"corban",	--	Banisher		/	Heavy Missile Tank
 	"coreter",	--	Deleter			/	Radar Jammer Vehicle
 	"corgol",	--	Goliath			/	Very heavy Assault Tank
@@ -195,15 +186,14 @@ attackerlist = {
 	"corvroc",	--	Diplomat		/	Stealthy Rocket Launcher
 
 -------------------------------T1 AIR
-	
+
 	"corfink",	--	Fink			/	Scout
 	"corveng",	--	Avenger			/	Fighter
 	"corshad",	--	Shadow			/	Bomber
 	"corbw",	--	Bladewing		/	Paralyzer Drone
-	
+
 -------------------------------T2 AIR
-	
-	"coraca",	--	Adv. Con Air	/	Adv. Con Air
+
 	"corape",	--	Rapier			/	Gunship
 	"corawac",	--	Vulture			/	Radar/Sonar Plane
 	"corcrw",	--	Krow			/	Flying Fortress
@@ -211,38 +201,35 @@ attackerlist = {
 	"corseah",	--	Seahook			/	Assault Transport
 	"cortitan",	--	Titan			/	Torpedo Bomber
 	"corvamp",	--	Vamp			/	Stealth Fighter
-	
+
 -------------------------------Gantry
-	
+
 	"corcat",	--	Catapult		/	Heavy Rocket Kbot
 	"corjugg",	--	Juggernaut		/	(barely) Mobile Heavy Turret
 	"corkarg",	--	Karganeth		/	All-Terrain Assault Mech
 	"corkrog",	--	Krogoth			/	Experimental Assault Kbot
 	"corshiva",	--	Shiva			/	Amphibious Siege Mech
-	
+
 ---------------------------Hovercraft
-	
+
 	"corah",	--	Slinger			/	Anti-Air Hovercraft
-	"corch",	--	Con Hover		/	Con Hover
 	"corhal",	--	Halberd			/	Assault Hovertank
 	"cormh",	--	Nixer			/	Hovercraft Rocket Launcher
 	"corsh",	--	Scrubber		/	Fast Attack Hovercraft
 	"corsnap",	--	Snapper			/	Hovertank
 	"corsok",	--	Sokolov			/	Heavy Laser Hovertank
 	"corthovr",	--	Turtle			/	Transport Hovercraft
-	
+
 ----------------------------Seaplanes
-	
-	"corcsa",	--	Con Seaplane	/	Con Seaplane
+
 	"corcut",	--	Cutlass			/	Seaplane Gunship
 	"corhunt",	--	Hunter			/	Advanced Radar/Sonar Plane
 	"corsb",	--	Dam Buster		/	Seaplane Bomber
 	"corseap",	--	Typhoon			/	Torpedo Gunship
 	"corsfig",	--	Voodoo			/	Seaplane Swarmer
-	
+
 -----------------------------T1 Ships
-	
-	"corcs",	--	Con Sea			/	Con Sea
+
 	"cordship",	--	Chaser			/	Light Torpedo Boat
 	"coresupp",	--	Supporter		/	Fast Assault Corvette
 	"corpship",	--	Era				/	Assault Frigate
@@ -252,10 +239,9 @@ attackerlist = {
 	"corrship",	--	Crusher			/	Support Frigate (Depthcharge)
 	"corsub",	--	Snake			/	Submarine
 	"cortship",	--	Envoy			/	Armored Transport Ship
-	
------------------------------T2 Ships
 
-	"coracsub",	--	Adv. Con Sub	/	Adv. Con Sub
+-----------------------------T2 Ships
+	
 	"corarch",	--	Shredder		/	Anti-Air Ship
 	"corbats",	--	Warlord			/	Battleship
 	"corblackhy",--	Black Hydra		/	Flagship
@@ -266,7 +252,55 @@ attackerlist = {
 	"corshark",	--	Shark			/	Submarine Killer
 	"corsjam",	--	Phantom			/	Radar Jammer Ship
 	"corssub",	--	Leviathan		/	Battle Submarine
+
 	
-	
-	
+---------------------------------------------------------CHICKENS
+----------------------------- Yes, Chickens
+	"chicken_dodo1",
+	"chicken_dodo2",
+	"chicken1",
+	"chicken1b",
+	"chicken1c",
+	"chicken1x",
+	"chicken1y",
+	"chicken1z",
+	"chicken2",
+	"chicken2b",
+	"chickena1",
+	"chickena1b",
+	"chickena1c",
+	"chickena2",
+	"chickena2b",
+	"chickenc1",
+	"chickenc2",
+	"chickenc3",
+	"chickenc3b",
+	"chickenc3c",
+	"chickenf1",
+	"chickenf1b",
+	"chickenh1",
+	"chickenh1b",
+	"chickenh2",
+	"chickenh3",
+	"chickenh4",
+	"chickenh5",
+	"chickenp1",
+	"chickenr1",
+	"chickenr2",
+	"chickenr3",
+	"chickens1",
+	"chickens2",
+	"chickens3",
+	"chickenw1",
+	"chickenw1b",
+	"chickenw1c",
+	"chickenw1d",
+	"chickenw2",
+	"e_chickenq",
+	"epic_chickenq",
+	"h_chickenq",
+	"n_chickenq",
+	"ve_chickenq",
+	"vh_chickenq",
+	"roost",
 }

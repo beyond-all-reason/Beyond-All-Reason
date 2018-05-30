@@ -132,12 +132,12 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
 		["3"]={76,16,16,6,0,0,1,0},
 	}
 	pieceCollisionVolume["armbrtha"] = {
-		["1"]={32,80,32,0,20,0,1,1},
+		["1"]={32,84,32,0,-20,0,1,1},
 		["3"]={24,0,75,0,0,20,1,2},
 		["4"]={8,8,42,0,1,70,1,2},
 	}
 	pieceCollisionVolume["corint"] = {
-		["1"]={73,103,73,0,50,0,1,1},
+		["1"]={72,84,72,0,28,0,1,1},
 		["3"]={13,13,48,0,1,55,1,2},
 	}
 	pieceCollisionVolume["armvulc"] = {

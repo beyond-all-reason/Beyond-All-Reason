@@ -14,7 +14,7 @@ function gadget:GetInfo()
   }
 end
 
-local MIN_EFFECT_INTERVAL = 2
+local MIN_EFFECT_INTERVAL = 3
 
 if (gadgetHandler:IsSyncedCode()) then
 -------------------------------------------------------------------------------------
@@ -96,23 +96,24 @@ else
       class        = 'JitterParticles2',
       colormap     = { {1,1,1,1},{1,1,1,1} },
       count        = 1,
-      life         = weaponRange / 440,
-      delaySpread  = 25,
-      force        = {0,1.5,0},
+      life         = weaponRange / 550,
+      lifeSpread   = 5,
+      delaySpread  = 3,
+      force        = {0,0.6,0},
       --forceExp     = 0.2,
 
       partpos      = partpos,
       pos          = {posx,posy,posz},
 
       emitVector   = {dirx,diry,dirz},
-      emitRotSpread= 5.5,
+      emitRotSpread= 2.5,
 
-      speed        = 10,
-      speedSpread  = 0,
+      speed        = 8,
+      speedSpread  = 1.5,
       speedExp     = 1.5,
 
-      size         = 22,
-      sizeGrowth   = 4.4,
+      size         = 30,
+      sizeGrowth   = 5,
 
       scale        = 1.5,
       strength     = 1.0,
@@ -125,32 +126,31 @@ else
       colormap     = { {1, 1, 1, 0.01},
                        {1, 1, 1, 0.01},
                        {0.75, 0.5, 0.5, 0.01},
-                       {0.35, 0.15, 0.15, 0.25},
-                       {0.1, 0.035, 0.01, 0.2},
                        {0, 0, 0, 0.01} },
       count        = 1,
-      life         = weaponRange / 460,
-      delaySpread  = 25,
+      life         = weaponRange / 550,
+      lifeSpread   = 6,
+      delaySpread  = 3,
 
-      force        = {0,1,0},
+      force        = {0,0.4,0},
       --forceExp     = 0.2,
 
       partpos      = partpos,
       pos          = {posx,posy,posz},
 
       emitVector   = {dirx,diry,dirz},
-      emitRotSpread= 6.5,
+      emitRotSpread= 1.5,
 
       rotSpeed     = 1,
       rotSpread    = 360,
       rotExp       = 9,
 
-      speed        = 10,
-      speedSpread  = 0,
+      speed        = 8,
+      speedSpread  = 1.5,
       speedExp     = 1.5,
 
       size         = 7,
-      sizeGrowth   = 2.4,
+      sizeGrowth   = 2.2,
       sizeExp      = 0.7,
 
       --texture     = "bitmaps/smoke/smoke06.tga",
@@ -161,30 +161,30 @@ else
     particleList[particleCnt] = {
       class        = 'SimpleParticles2',
       colormap     = { {1, 1, 1, 0.01}, {0, 0, 0, 0.01} },
-      count        = 3,
+      count        = 4,
       --delay        = 20,
-      life         = weaponRange / 460,
-      lifeSpread   = 20,
-      delaySpread  = 15,
+      life         = weaponRange / 550,
+      lifeSpread   = 6,
+      delaySpread  = 3,
 
-      force        = {0,1,0},
+      force        = {0,0.4,0},
       --forceExp     = 0.2,
 
       partpos      = partpos,
       pos          = {posx,posy,posz},
 
       emitVector   = {dirx,diry,dirz},
-      emitRotSpread= 2,
+      emitRotSpread= 1.5,
 
       rotSpeed     = 1,
       rotSpread    = 360,
       rotExp       = 9,
 
-      speed        = 10,
-      speedSpread  = 0,
+      speed        = 8,
+      speedSpread  = 1.5,
 
       size         = 9,
-      sizeGrowth   = 2.4,
+      sizeGrowth   = 2.2,
       sizeExp      = 0.65,
 
       --texture     = "bitmaps/smoke/smoke06.tga",

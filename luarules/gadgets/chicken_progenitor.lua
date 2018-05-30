@@ -16,7 +16,7 @@ end
 local teams = Spring.GetTeamList()
 for i =1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI ~= "" then
+	if string.find(luaAI, "Chicken:") then
 		if luaAI == "Chicken: Very Easy" or 
 		luaAI == "Chicken: Easy" or 
 		luaAI == "Chicken: Normal" or 

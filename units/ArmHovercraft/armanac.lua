@@ -121,7 +121,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "MediumPlasmaCannon",
+				name = "Medium g2g plasma cannon",
 				noselfdamage = true,
 				range = 320,
 				reloadtime = 1.4,

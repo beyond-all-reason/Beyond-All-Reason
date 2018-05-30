@@ -126,7 +126,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "GaussCannon",
+				name = "Pop-up heavy g2g gauss cannon",
 				noselfdamage = true,
 				range = 730,
 				reloadtime = 1.625,

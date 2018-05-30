@@ -38,3 +38,9 @@ function AIBase:UnitDamaged(engineunit,enginedamage)
 end
 function AIBase:UnitMoveFailed(engineunit)
 end
+
+function AIBase:SetAI(ai)
+	self.ai = ai
+	self.game = ai.game
+	self.map = ai.map
+end

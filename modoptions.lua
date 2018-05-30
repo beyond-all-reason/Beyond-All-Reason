@@ -18,22 +18,33 @@ local options={
        desc="Balanced Annihilation - Options",
        type="section",
     },
+    {
+        key    = "barmodels",
+        name   = "Remodelled units",
+        desc   = "Activate BAR unit model integration",
+        type   = "bool",
+        section= 'ba_enhancements_misc',
+        def = false,
+    },
+    {
+        key    = "barsounds",
+        name   = "alternative sounds",
+        desc   = "Activate BAR sound replacements (barmodels must be enabled)",
+        type   = "bool",
+        section= 'ba_enhancements_misc',
+        def = false,
+    },
 	{
-		key    = "barmodels",
-		name   = "Remodelled units",
-		desc   = "Activate BAR unit model integration",
-		type   = "bool",
-		section= 'ba_enhancements_misc',
-		def = false,
-	},
-	{
-		key    = "disabledaimetalcheat",
-		name   = "Disable DAI Metal Bonus",
-		desc   = "Makes DAI harder by giving it some bonus resources",
-		type   = "bool",
-		section= 'ba_options',
-		def = false,
-	},
+        key    = 'aiincomemultiplier',
+        name   = 'AI Income Multiplier',
+        desc   = 'Multiplies AI resource income',
+        type   = 'number',
+        section= 'ba_options',
+        def    = 1.5,
+        min    = 1,
+        max    = 10,
+        step   = 0.1,
+    },
 	{
 		key="deathmode",
 		name="Game End Mode",
@@ -78,19 +89,6 @@ local options={
 			{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
 			{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
 			{key="exponly", name="ExperienceOnly", desc="Enable Unbalanced Commanders experience to power, health and reload multipliers"},
-		}
-	},	
-	
-	{
-		key="seamex",
-		name="Sea Metal Extractors",
-		desc="Defines the use of either surface or underwater mexes",
-		type="list",
-		def="underwater",
-		section="ba_modes",
-		items={
-			{key="underwater", name="Underwater", desc="Use underwater mexes"},
-			{key="surface", name="Surface", desc="Use surface mexes"},
 		}
 	},	
 	
@@ -150,14 +148,7 @@ local options={
 	  section= 'ba_modes',
       def    = false,
     },
-    {
-		key    = "mo_preventcombomb",
-		name   = "1v1 Mode (Prevent Combombs)",
-		desc   = "Commanders survive DGuns and other commanders explosions",
-		type   = "bool",
-		def    = false,
-		section= "ba_modes",
-    },
+	
     {
 		key="mo_transportenemy",
 		name="Enemy Transporting",
