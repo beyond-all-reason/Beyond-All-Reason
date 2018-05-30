@@ -192,7 +192,20 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 		return false
 	end
 	SendToUnsynced("shard_debug_position",pos.x,pos.z,"main_good")
-	--spacing hotfix
+	
+	
+	local fixed_spacing = 48
+	
+	--avoiding metal spots( Work in Progress )
+	--[[
+	local spotPositions = self.game.map:GetMetalSpots()
+	local spotCount = self.game.map:SpotCount()
+	for i = 1,spotCount do
+		metalspot = spotPositions[i]
+	end
+	--]]
+
+	--checking for unit positions
     local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
     local radius = 125
     local units_found = spGetUnitsInRectangle(pos.x - radius, pos.z - radius, pos.x + radius, pos.z + radius)
@@ -214,8 +227,6 @@ function PlacementHandler:CanBuildAt( unittype, pos )
 	-- spacing, and check above below left and right of the position
 	-- to check, by shifting the position by a set amount and checking
 	-- that position
-
-	local fixed_spacing = 48
 
 	for i,j in ipairs(self.spacing_spiral) do
 		testpos = { x=pos.x + ( j.x * fixed_spacing ), y=pos.y,  z= pos.z + ( j.x * fixed_spacing ) }

@@ -91,35 +91,58 @@ end
 
 function AttackerBehaviour:AttackCell(cell)
 	local unit = self.unit:Internal()
+	local unitID = unit.id
+	local TeamID = ai.id
+	local allyTeamID = ai.allyId
+	local nearestUnit = Spring.GetUnitNearestEnemy(unitID, _, false)
+	local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
 	local currenthealth = unit:GetHealth()
 	local maxhealth = unit:GetMaxHealth()
-	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(self.ai.id)
-	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(self.ai.allyId)
+	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
+	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
 	local ec, es = Spring.GetTeamResources(ai.id, "energy")
 	--attack
-	if currenthealth >= maxhealth - maxhealth * 0.2 or currenthealth > 3000 then
-		p = api.Position()
-		p.x = cell.posx
-		p.z = cell.posz
-		p.y = 0
-		self.target = p
-		self.attacking = true
-		self.ai.attackhandler:AddRecruit(self)
-
-		if self.active then
-			if unit:Name() == "Rector" or "Necro" then
-				unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
+	if (currenthealth >= maxhealth - maxhealth * 0.2 or currenthealth > 3000)  then
+			--p = api.Position()
+			--p.x = cell.posx
+			--p.z = cell.posz
+			--p.y = 0
+			if nearestVisibleUnit == nil then
+				enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
 			else
-				unit:MoveAndFire(self.target)
+				enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
 			end
-		else
-			self.unit:ElectBehaviour()
-		end
+			p = api.Position()
+			p.x = enemyposx + math.random(0,200) - math.random(0,200)
+			p.z = enemyposz + math.random(0,200) - math.random(0,200)
+			p.y = enemyposy
+			self.target = p
+			self.attacking = true
+			self.ai.attackhandler:AddRecruit(self)
+			if self.active then
+				if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
+					unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
+				else
+					if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
+					unit:MoveAndFire(self.target)
+					else
+						local myUnits = Spring.GetTeamUnits(TeamID)
+						for i = 1,#myUnits do
+							pickMyUnit = myUnits[i]
+							local r = math.random(0,#myUnits)
+							if r == pickMyUnit then
+								unit:Move(self.target)
+							end
+						end
+					end
+				end
+			else
+				self.unit:ElectBehaviour()
+			end
 	--retreat
 	else	
-	local unitID = self.unit:Internal().id
 	local nanotcx, nanotcy, nanotcz = GetClosestNanotc(unitID)
-		if nanotcx and nanotcy and nanotcz then
+		if nanotcx and nanotcy and nanotcz and (currenthealth >= maxhealth - maxhealth * 0.2 or currenthealth > 3000) then
 			p = api.Position()
 			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
 		else
