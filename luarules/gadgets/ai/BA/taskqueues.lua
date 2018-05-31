@@ -87,7 +87,7 @@ function CorMexT1( taskqueuebehaviour )
 end
 
 function CorStarterLabT1()
-	local countStarterFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id)
+	local countStarterFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
 	if countStarterFacs < 1 then
 		local r = math.random(0,100)
 		if r < 70 then
@@ -95,6 +95,8 @@ function CorStarterLabT1()
 		else
 			return "corvp"
 		end
+	elseif countStarterFacs == 1 then
+		return "corap"
 	else
 		return "corkrog"
 	end
@@ -347,7 +349,7 @@ function ArmMexT1( taskqueuebehaviour )
 end
 
 function ArmStarterLabT1()
-	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id)
+	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
 	if countStarterFacs < 1 then
 		local r = math.random(0,100)
 		if r < 70 then
@@ -355,6 +357,8 @@ function ArmStarterLabT1()
 		else
 			return "armvp"
 		end
+	elseif countStarterFacs == 1 then
+		return "armap"
 	else
 		return "corkrog"
 	end
@@ -550,6 +554,15 @@ local corcommanderfirst = {
 	"cormex",
 	"corsolar",
 	"corsolar",
+	CorStarterLabT1,
+	CorStarterLabT1,
+	CorStarterLabT1,
+	CorStarterLabT1,
+	CorStarterLabT1,
+	CorStarterLabT1,
+	CorStarterLabT1,
+	CorStarterLabT1,
+	CorStarterLabT1,
 	CorStarterLabT1,
 	"corsolar",
 	"corsolar",
@@ -839,6 +852,15 @@ local armcommanderfirst = {
 	"armmex",
 	"armsolar",
 	"armsolar",
+	ArmStarterLabT1,
+	ArmStarterLabT1,
+	ArmStarterLabT1,
+	ArmStarterLabT1,
+	ArmStarterLabT1,
+	ArmStarterLabT1,
+	ArmStarterLabT1,
+	ArmStarterLabT1,
+	ArmStarterLabT1,
 	ArmStarterLabT1,
 	"armsolar",
 	"armsolar",
