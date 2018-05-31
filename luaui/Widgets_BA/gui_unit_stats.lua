@@ -513,7 +513,7 @@ function widget:DrawScreen()
 				local oBurst = uWep.salvoSize * uWep.projectiles
 				local oRld = max(0.00000000001,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
 				if useExp and not ((uWep.stockpile and uWep.stockpileTime)) then
-					oRld = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or oRld
+					oRld = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTimeXP") or spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or oRld
 				end
 				local wepCount = wepCounts[wDefId]
 
@@ -531,7 +531,7 @@ function widget:DrawScreen()
 				else
 					DrawText("Weap:", wpnName)
 				end
-				local reload = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or uWep.reload
+				local reload = spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTimeXP") or spGetUnitWeaponState(uID,weaponNums[i] or -1,"reloadTime") or uWep.reload
 				local accuracy = spGetUnitWeaponState(uID,weaponNums[i] or -1,"accuracy") or uWep.accuracy
 				local moveError = spGetUnitWeaponState(uID,weaponNums[i] or -1,"targetMoveError") or uWep.targetMoveError
 				local reloadBonus = reload ~= 0 and (uWep.reload/reload-1) or 0
