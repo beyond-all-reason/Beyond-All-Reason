@@ -2,10 +2,10 @@ return {
 	armliche = {
 		acceleration = 0.15,
 		brakerate = 0.05,
-		buildcostenergy = 60000,
+		buildcostenergy = 43000,
 		buildcostmetal = 2250,
 		buildpic = "ARMLICHE.DDS",
-		buildtime = 64000,
+		buildtime = 56000,
 		canfly = true,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB VTOL NOTHOVER",
