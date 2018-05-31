@@ -109,7 +109,7 @@ function CorRandomLab()
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
 		if countAirLabs < 1 then
 			return "corap"
-		elseif countAdvFacs*2 < countBasicFacs then
+		elseif countAdvFacs < countBasicFacs*2 then
 			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else
@@ -369,7 +369,7 @@ function ArmRandomLab()
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
 		if countAirLabs < 1 then
 			return "armap"
-		elseif countAdvFacs < countBasicFacs then
+		elseif countAdvFacs < countBasicFacs*2 then
 			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else

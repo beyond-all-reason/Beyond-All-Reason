@@ -99,6 +99,9 @@ function AttackerBehaviour:AttackCell()
 		local TeamID = ai.id
 		local allyTeamID = ai.allyId
 		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, _, false)
+		if nearestUnit == nil then
+			nearestUnit = unit.id
+		end
 		local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
 		local currenthealth = unit:GetHealth()
 		local maxhealth = unit:GetMaxHealth()
@@ -146,7 +149,7 @@ function AttackerBehaviour:AttackCell()
 		--retreat
 		else	
 		local nanotcx, nanotcy, nanotcz = GetClosestNanotc(unitID)
-			if nanotcx and nanotcy and nanotcz and (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
+			if nanotcx and nanotcy and nanotcz then
 				p = api.Position()
 				p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
 			else
