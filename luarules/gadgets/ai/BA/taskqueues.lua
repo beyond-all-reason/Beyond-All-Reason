@@ -140,16 +140,11 @@ function CorGroundAdvDefT1()
 end
 
 function CorAirAdvDefT1()
-	local countAirDefs = UDC(ai.id, UDN.cormadsam.id) + UDC(ai.id, UDN.corrl.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.2 and ec > es*0.2 then
-		if Spring.GetGameSeconds() / 450 > countAirDefs then
-			local unitoptions = {"cormadsam", "corrl",}
-			return unitoptions[math.random(1,#unitoptions)]
-		else
-			return "corkrog"
-		end
+		local unitoptions = {"cormadsam", "corrl",}
+		return unitoptions[math.random(1,#unitoptions)]
 	else
 		return "corkrog"
 	end
@@ -402,16 +397,11 @@ function ArmGroundAdvDefT1()
 end
 
 function ArmAirAdvDefT1()
-	local countAirDefs = UDC(ai.id, UDN.armrl.id) + UDC(ai.id, UDN.armpacko.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.2 and ec > es*0.2 then
-		if Spring.GetGameSeconds() / 450 > countAirDefs then
-			local unitoptions = {"armrl", "armpacko",}
-			return unitoptions[math.random(1,#unitoptions)]
-		else
-			return "corkrog"
-		end
+		local unitoptions = {"armrl", "armpacko",}
+		return unitoptions[math.random(1,#unitoptions)]
 	else
 		return "corkrog"
 	end
