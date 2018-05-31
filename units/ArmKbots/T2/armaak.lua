@@ -243,7 +243,7 @@ return {
 				turret = true,
 				weaponacceleration = 260,
 				weapontimer = 5,
-				weapontype = "Long-range g2a missile launcher",
+				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				damage = {
 					bombers = 100,
