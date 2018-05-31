@@ -190,7 +190,7 @@ return {
 					default = 300,
 				},
 			},
-			plasma = {
+			gauss = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -199,7 +199,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "Long-range g2g plasma cannon",
+				name = "Long-range g2g gauss cannon",
 				noselfdamage = true,
 				range = 585,
 				reloadtime = 1.35,
@@ -222,7 +222,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "PLASMA",
+				def = "GAUSS",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
