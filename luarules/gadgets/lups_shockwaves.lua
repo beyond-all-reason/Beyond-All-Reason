@@ -45,9 +45,9 @@ if (gadgetHandler:IsSyncedCode()) then
 		  wantedList[#wantedList + 1] = wd.id
 	    elseif normalShockwave then
 		  hasShockwave[wd.id] = {
-		  	life = 8.5*life,
+		  	life = 8*life,
 		  	speed = speed,
-		  	growth = wd.damageAreaOfEffect/10*speed
+		  	growth = wd.damageAreaOfEffect/11*speed
 		  }
 	      Script.SetWatchWeapon(wd.id,true)
 		  wantedList[#wantedList + 1] = wd.id

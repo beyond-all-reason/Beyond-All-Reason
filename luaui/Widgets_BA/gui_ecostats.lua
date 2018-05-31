@@ -511,7 +511,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 	)
 
 	if tE * maxW > 0.9 then
-		local glowsize = 25*sizeMultiplier
+		local glowsize = 23*sizeMultiplier
 		-- energy total
 		glColor(1,1,0,0.032)
 		gl.Texture(images["barglowcenter"])
