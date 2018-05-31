@@ -675,18 +675,6 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
-	if( gun_1 )
-	{
-		show emgflare;
-		sleep 100;
-		hide emgflare;
-	}
-	else
-	{
-		show gunflare;
-		sleep 100;
-		hide gunflare;
-	}
 	gun_1 = !gun_1;
 }
 
