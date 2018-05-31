@@ -70,7 +70,7 @@ return {
 			"armtl",
 			"armgplat",
 			"armfrt",
-			"armfrock",
+			-- "armfrock",
 			"armfhlt",
 			--"seaplatform",
 		},

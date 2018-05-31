@@ -4,7 +4,6 @@ xx/xx/2018
 Balance:
 In current test (will be undone or fixed/balanced before release):
  • Emptied T2 sea buildmenu to rebuild the roster progressively
- • Added Scumbag/Janitor (arm/core): 480m/2400e/6800bt, secondary floating AA in T1 construction ships build menus
  • Arm/Core Scouts don't use aa weapons anymore
  • Support Frigates separated into:
 AA missiles frigate: 132 damages per 1.2 seconds at 800 range and 96 aoe

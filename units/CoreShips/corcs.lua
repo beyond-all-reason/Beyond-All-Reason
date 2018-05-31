@@ -70,7 +70,7 @@ return {
 			"cortl",
 			"corgplat",
 			"corfrt",
-			"corfrock",
+			-- "corfrock",
             "corfhlt",
 			-- "seaplatform",
 		},
