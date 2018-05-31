@@ -23,6 +23,16 @@ local unitoptions = {}
 --------------------------------------- Core Functions -------------------------------------
 --------------------------------------------------------------------------------------------
 
+function CorNanoT()
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		return "cornanotc"
+	else
+		return "corkrog"
+	end
+end
+
 function CorEnT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
@@ -77,12 +87,16 @@ function CorMexT1( taskqueuebehaviour )
 end
 
 function CorStarterLabT1()
-	
-	local r = math.random(0,100)
-	if r < 70 then
-		return "corlab"
+	local countStarterFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id)
+	if countStarterFacs < 1 then
+		local r = math.random(0,100)
+		if r < 70 then
+			return "corlab"
+		else
+			return "corvp"
+		end
 	else
-		return "corvp"
+		return "corkrog"
 	end
 end
 
@@ -90,9 +104,12 @@ function CorRandomLab()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
+	local countAirLabs = UDC(ai.id, UDN.corap.id)
 	
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
-		if countAdvFacs < countBasicFacs then
+		if countAirLabs < 1 then
+			return "corap"
+		elseif countAdvFacs*2 < countBasicFacs then
 			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else
@@ -106,19 +123,31 @@ end
 
 function CorGroundAdvDefT1()
 	local r = math.random(0,100)
-	if r == 0 and Spring.GetGameSeconds() > 600 then
-		return "corpun"
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if r == 0 and Spring.GetGameSeconds() > 600 then
+			return "corpun"
+		else
+			local unitoptions = {"cormaw", "corhllt", "corhlt",}
+			return unitoptions[math.random(1,#unitoptions)]
+		end
 	else
-		local unitoptions = {"cormaw", "corhllt", "corhlt",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return "corkrog"
 	end
 end
 
 function CorAirAdvDefT1()
 	local countAirDefs = UDC(ai.id, UDN.cormadsam.id) + UDC(ai.id, UDN.corrl.id)
-	if Spring.GetGameSeconds() / 450 > countAirDefs then
-		local unitoptions = {"cormadsam", "corrl",}
-		return unitoptions[math.random(1,#unitoptions)]
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if Spring.GetGameSeconds() / 450 > countAirDefs then
+			local unitoptions = {"cormadsam", "corrl",}
+			return unitoptions[math.random(1,#unitoptions)]
+		else
+			return "corkrog"
+		end
 	else
 		return "corkrog"
 	end
@@ -155,28 +184,45 @@ function CorAirT1()
 end
 
 function CorAirAdvDefT2()
-
-	local unitoptions = {"corvipe","corflak", }
-	return unitoptions[math.random(1,#unitoptions)]
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		local unitoptions = {"corvipe","corflak", }
+		return unitoptions[math.random(1,#unitoptions)]
+	else
+		return "corkrog"
+	end
 end
 
 function CorTacticalAdvDefT2()
-    if UDC(ai.id, UDN.corint.id) < UDC(ai.id, UDN.cordoom.id)*2 then
-        return "corint"
-    elseif UDC(ai.id, UDN.cordoom.id) < UDC(ai.id, UDN.cortoast.id)*4 then
-        return "cordoom"
-    else
-        return "cortoast"
-    end
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+	    if UDC(ai.id, UDN.corint.id) < UDC(ai.id, UDN.cordoom.id)*2 then
+			return "corint"
+		elseif UDC(ai.id, UDN.cordoom.id) < UDC(ai.id, UDN.cortoast.id)*4 then
+			return "cordoom"
+		else
+			return "cortoast"
+		end
+	else
+		return "corkrog"
+	end
 end
 
 function CorTacticalOffDefT2()
-	if  UDC(ai.id, UDN.corfmd.id) < 3 then
-		return "corfmd"
-	elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
-		return "corscreamer"
-	elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
-		return "corgate"
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if  UDC(ai.id, UDN.corfmd.id) < 3 then
+			return "corfmd"
+		elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
+			return "corscreamer"
+		elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
+			return "corgate"
+		else
+			return "corkrog"
+		end
 	else
 		return "corkrog"
 	end
@@ -240,6 +286,17 @@ end
 --------------------------------------- Arm Functions --------------------------------------
 --------------------------------------------------------------------------------------------
 
+function ArmNanoT()
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		return "armnanotc"
+	else
+		return "corkrog"
+	end
+end
+
+
 function ArmEnT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
@@ -290,12 +347,16 @@ function ArmMexT1( taskqueuebehaviour )
 end
 
 function ArmStarterLabT1()
-	
-	local r = math.random(0,100)
-	if r < 70 then
-		return "armlab"
+	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id)
+	if countStarterFacs < 1 then
+		local r = math.random(0,100)
+		if r < 70 then
+			return "armlab"
+		else
+			return "armvp"
+		end
 	else
-		return "armvp"
+		return "corkrog"
 	end
 end
 
@@ -303,9 +364,12 @@ function ArmRandomLab()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
+	local countAirLabs = UDC(ai.id, UDN.armap.id)
 	
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
-		if countAdvFacs < countBasicFacs then
+		if countAirLabs < 1 then
+			return "armap"
+		elseif countAdvFacs < countBasicFacs then
 			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
 			return unitoptions[math.random(1,#unitoptions)]
 		else
@@ -319,19 +383,31 @@ end
 
 function ArmGroundAdvDefT1()
 	local r = math.random(0,100)
-	if r == 0 and Spring.GetGameSeconds() > 600 then
-		return "armguard"
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if r == 0 and Spring.GetGameSeconds() > 600 then
+			return "armguard"
+		else
+			local unitoptions = {"armclaw", "armbeamer","armhlt",}
+			return unitoptions[math.random(1,#unitoptions)]
+		end
 	else
-		local unitoptions = {"armclaw", "armbeamer","armhlt",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return "corkrog"
 	end
 end
 
 function ArmAirAdvDefT1()
 	local countAirDefs = UDC(ai.id, UDN.armrl.id) + UDC(ai.id, UDN.armpacko.id)
-	if Spring.GetGameSeconds() / 450 > countAirDefs then
-		local unitoptions = {"armrl", "armpacko",}
-		return unitoptions[math.random(1,#unitoptions)]
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if Spring.GetGameSeconds() / 450 > countAirDefs then
+			local unitoptions = {"armrl", "armpacko",}
+			return unitoptions[math.random(1,#unitoptions)]
+		else
+			return "corkrog"
+		end
 	else
 		return "corkrog"
 	end
@@ -374,22 +450,34 @@ function ArmAirAdvDefT2()
 end
 
 function ArmTacticalAdvDefT2()
-    if UDC(ai.id, UDN.armbrtha.id) < UDC(ai.id, UDN.armanni.id)*2 then
-        return "armbrtha"
-    elseif UDC(ai.id, UDN.armanni.id) < UDC(ai.id, UDN.armamb.id)*4 then
-        return "armanni"
-    else
-        return "armamb"
-    end
+    local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if UDC(ai.id, UDN.armbrtha.id) < UDC(ai.id, UDN.armanni.id)*2 then
+			return "armbrtha"
+		elseif UDC(ai.id, UDN.armanni.id) < UDC(ai.id, UDN.armamb.id)*4 then
+			return "armanni"
+		else
+			return "armamb"
+		end
+	else
+		return "corkrog"
+	end
 end
 
 function ArmTacticalOffDefT2()
-	if  UDC(ai.id, UDN.corfmd.id) < 3 then
-		return "armamd"
-	elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
-		return "armmercury"
-	elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
-		return "armgate"
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if  UDC(ai.id, UDN.corfmd.id) < 3 then
+			return "armamd"
+		elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
+			return "armmercury"
+		elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
+			return "armgate"
+		else
+			return "corkrog"
+		end
 	else
 		return "corkrog"
 	end
@@ -499,9 +587,9 @@ local corcommanderq = {
 }
 
 local cort1construction = {
-	--"cornanotc",
+	--CorNanoT,
 	CorRandomLab,
-	"cornanotc",
+	CorNanoT,
 	CorGroundAdvDefT1,
     CorAirAdvDefT1,
 	CorEnT1,
@@ -511,56 +599,57 @@ local cort1construction = {
 	CorGroundAdvDefT1,
 	CorEnT1,
 	CorAirAdvDefT1,
-	CorEnT1,
 	"cormstor",
 	CorEnT1,
+	CorEnT1,
 	"corrad",
-	CorEnT1,
+	CorGroundAdvDefT1,
 	CorEnT1,
 	CorRandomLab,
-	"cornanotc",
+	CorNanoT,
 	CorGroundAdvDefT1,
 	CorEnT1,
 	CorEnT1,
-	CorRandomLab,
-	"cornanotc",
 	CorGroundAdvDefT1,
+	CorRandomLab,
+	CorNanoT,
+	CorAirAdvDefT1,
+	CorEnT1,
+	CorEnT1,
 	CorEnT1,
     CorAirAdvDefT1,
+	CorEnT1,
 	CorEnT1,
 	"coradvsol",
 	CorEnT1,
 	CorEnT1,
 	CorGroundAdvDefT1,
-	CorEnT1,
 	"corestor",
 	CorEnT1,
-    CorAirAdvDefT1,
-	"coradvsol",
 }
 
 local cort1mexingqueue = {
 	CorMexT1,
-	"cornanotc",
+	CorNanoT,
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
 	CorGroundAdvDefT1,
 	CorMexT1,
-	"cornanotc",
+	CorNanoT,
 	CorEnT1,
 	CorGroundAdvDefT1,
 	CorMexT1,
-	"cornanotc",
+	CorNanoT,
 	CorEnT1,
 	CorGroundAdvDefT1,
 	CorMexT1,
-	"cornanotc",
+	CorNanoT,
 	CorEnT1,
 	CorGroundAdvDefT1,
 	CorMexT1,
-	"cornanotc",
+	CorNanoT,
 	CorEnT1,
 	CorGroundAdvDefT1,
 }
@@ -786,9 +875,9 @@ local armcommanderq = {
 }
 
 local armt1construction = {
-	--"armnanotc",
+	--ArmNanoT,
 	ArmRandomLab,
-	"armnanotc",
+	ArmNanoT,
 	ArmGroundAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
@@ -805,13 +894,13 @@ local armt1construction = {
 	ArmGroundAdvDefT1,
 	"armmstor",
 	ArmRandomLab,
-	"armnanotc",
+	ArmNanoT,
 	ArmAirAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmGroundAdvDefT1,
 	ArmRandomLab,
-	"armnanotc",
+	ArmNanoT,
 	ArmAirAdvDefT1,
 	ArmEnT1,
 	ArmEnT1,
@@ -831,26 +920,26 @@ local armt1construction = {
 
 local armt1mexingqueue = {
 	ArmMexT1,
-	"armnanotc",
+	ArmNanoT,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
 	ArmGroundAdvDefT1,
 	ArmMexT1,
-	"armnanotc",
+	ArmNanoT,
 	ArmEnT1,
 	ArmGroundAdvDefT1,
 	ArmMexT1,
-	"armnanotc",
+	ArmNanoT,
 	ArmEnT1,
 	ArmGroundAdvDefT1,
 	ArmMexT1,
-	"armnanotc",
+	ArmNanoT,
 	ArmEnT1,
 	ArmGroundAdvDefT1,
 	ArmMexT1,
-	"armnanotc",
+	ArmNanoT,
 	ArmEnT1,
 	ArmGroundAdvDefT1,
 }
