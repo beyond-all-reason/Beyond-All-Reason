@@ -55,7 +55,7 @@ function gadget:GameFrame(n)
 			local cQueue = Spring.GetCommandQueue(unitID,1)
 			if (cQueue[1] and cQueue[1].id == CMD.ATTACK) or (not cQueue[1]) then
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
-			else
+			elseif Spring.GetUnitMoveTypeData(unitID).turnRadius then
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
 			end
 		end
