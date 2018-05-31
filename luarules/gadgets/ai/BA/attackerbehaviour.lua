@@ -24,53 +24,6 @@ local function Distance(x1,z1, x2,z2)
 	return dis
 end
 
-local function GetClosestNanotc(unitID)
-	local teamID = Spring.GetUnitTeam(unitID)
-	local ux, uy, uz = Spring.GetUnitPosition(unitID)
-	local bestID
-	local mindis = math.huge
-	local x, y, z = math.floor(ux/256), math.floor(uy/256), math.floor(uz/256)
-	if GG.ClosestNanoTC and GG.ClosestNanoTC[teamID] and GG.ClosestNanoTC[teamID][x] and GG.ClosestNanoTC[teamID][x][z] and Spring.ValidUnitID(GG.ClosestNanoTC[teamID][x][z]) then
-		Spring.Echo("using GG.ClosestNanoTC")
-		bestID = GG.ClosestNanoTC[teamID][x][z]
-	elseif GG.NanoTC and GG.NanoTC[teamID] then
-		Spring.Echo("using GG.NanoTC")
-		for uid, pos in pairs (GG.NanoTC[teamID]) do
-			local gx, gy, gz = pos[1], pos[2], pos[3]
-			local dis = Distance(ux, uz, gx, gz)
-			if dis< mindis then
-				mindis = dis
-				bestID = uid
-				if not GG.ClosestNanoTC then GG.ClosestNanoTC = {} end
-				if not GG.ClosestNanoTC[teamID] then GG.ClosestNanoTC[teamID] = {} end		
-				if not GG.ClosestNanoTC[teamID][x] then GG.ClosestNanoTC[teamID][x] = {} end						
-				GG.ClosestNanoTC[teamID][x][z] = uid
-			end
-		end
-	else
-		for ct, uid in pairs (Spring.GetUnitsInCylinder(ux, uz, 800, teamID)) do
-			if string.find(UnitDefs[Spring.GetUnitDefID(uid)].name, "nanotc") then
-				local gx, gy, gz = Spring.GetUnitPosition(uid)
-				local dis = Distance(ux, uz, gx, gz)
-				if dis < mindis then
-					mindis = dis
-					bestID = uid
-					if not GG.ClosestNanoTC then GG.ClosestNanoTC = {} end
-					if not GG.ClosestNanoTC[teamID] then GG.ClosestNanoTC[teamID] = {} end		
-					if not GG.ClosestNanoTC[teamID][x] then GG.ClosestNanoTC[teamID][x] = {} end						
-					GG.ClosestNanoTC[teamID][x][z] = uid
-					GG.ClosestNanoTC[teamID][x][z] = uid
-				end
-			end
-		end
-	end
-	local bestx, besty, bestz
-	if bestID then
-		bestx, besty, bestz = Spring.GetUnitPosition(bestID)
-	end
-	return bestx, besty, bestz
-end
-
 function AttackerBehaviour:Update()
 	local unitID = self.unit:Internal().id
 	local unit = self.unit:Internal()
@@ -107,7 +60,6 @@ function AttackerBehaviour:OwnerBuilt()
 	self.attacking = true
 	self.active = true
 end
-
 
 function AttackerBehaviour:OwnerDead()
 	self.ai.attackhandler:RemoveRecruit(self)
@@ -175,7 +127,7 @@ function AttackerBehaviour:AttackCell()
 				end
 		--retreat
 		else	
-		local nanotcx, nanotcy, nanotcz = GetClosestNanotc(unitID)
+		local nanotcx, nanotcy, nanotcz = GG.GetClosestNanoTC(unitID)
 			if nanotcx and nanotcy and nanotcz then
 				p = api.Position()
 				p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
