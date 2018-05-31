@@ -64,7 +64,7 @@ function PlacementHandler:NewJob( details )
 		return false
 	end
 	if details["max_radius"] == nil then
-		details.max_radius = 1500
+		details.max_radius = 15000
 	end
 	if details["increment"] == nil then
 		details.increment = 16
