@@ -284,7 +284,7 @@ end
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
    if not IsPlane(unitDefID) and not airbases[unitID] then return end
    
-   if IsPlane then
+   if IsPlane(unitDefID) then
        RemovePlane(unitID)
    end
    
