@@ -73,6 +73,7 @@ end
 
 function AttackerBehaviour:Update()
 	local unitID = self.unit:Internal().id
+	local unit = self.unit:Internal()
 	-- Spring.Echo(unitID)
 	local myRange = Spring.GetUnitMaxRange(unitID)
 	local closestUnit = Spring.GetUnitNearestEnemy(unitID, myRange)
@@ -80,9 +81,9 @@ function AttackerBehaviour:Update()
 	local currenthealth = unit:GetHealth()
 	local maxhealth = unit:GetMaxHealth()
 	if unitID % 30 == Spring.GetGameFrame() % 30 then
-		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) then
+		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
 			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
-			if myRange > enemyRange and (currenthealth >= maxhealth or currenthealth > 3000) then
+			if myRange > enemyRange then
 				local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
 				local ux,uy,uz = Spring.GetUnitPosition(unitID)
 				local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
@@ -118,81 +119,86 @@ function AttackerBehaviour:OwnerIdle()
 	self.ai.attackhandler:AddRecruit(self)
 end
 
-function AttackerBehaviour:AttackCell(cell)
+function AttackerBehaviour:AttackCell()
 	local unit = self.unit:Internal()
 	local unitID = unit.id
-	local TeamID = ai.id
-	local allyTeamID = ai.allyId
-	local nearestUnit = Spring.GetUnitNearestEnemy(unitID, _, false)
-	local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
-	local currenthealth = unit:GetHealth()
-	local maxhealth = unit:GetMaxHealth()
-	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
-	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
-	local ec, es = Spring.GetTeamResources(ai.id, "energy")
-	--attack
-	if (currenthealth >= maxhealth or currenthealth > 3000)  then
-			--p = api.Position()
-			--p.x = cell.posx
-			--p.z = cell.posz
-			--p.y = 0
-			if nearestVisibleUnit == nil then
-				enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
-			else
-				enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
-			end
-			p = api.Position()
-			p.x = enemyposx + math.random(0,200) - math.random(0,200)
-			p.z = enemyposz + math.random(0,200) - math.random(0,200)
-			p.y = enemyposy
-			self.target = p
-			self.attacking = true
-			self.ai.attackhandler:AddRecruit(self)
-			if self.active then
-				if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
-					unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
+	if unitID % 150 == Spring.GetGameFrame() % 150 then
+		local TeamID = ai.id
+		local allyTeamID = ai.allyId
+		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, _, false)
+		if nearestUnit == nil then
+			nearestUnit = unit.id
+		end
+		local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
+		local currenthealth = unit:GetHealth()
+		local maxhealth = unit:GetMaxHealth()
+		local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
+		local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
+		local ec, es = Spring.GetTeamResources(ai.id, "energy")
+		--attack
+		if (currenthealth >= maxhealth*0.95 or currenthealth > 3000)  then
+				--p = api.Position()
+				--p.x = cell.posx
+				--p.z = cell.posz
+				--p.y = 0
+				if nearestVisibleUnit == nil then
+					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
 				else
-					if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
-					unit:MoveAndFire(self.target)
+					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
+				end
+				p = api.Position()
+				p.x = enemyposx + math.random(0,200) - math.random(0,200)
+				p.z = enemyposz + math.random(0,200) - math.random(0,200)
+				p.y = enemyposy
+				self.target = p
+				self.attacking = true
+				self.ai.attackhandler:AddRecruit(self)
+				if self.active then
+					if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
+						unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
 					else
-						local myUnits = Spring.GetTeamUnits(TeamID)
-						for i = 1,#myUnits do
-							pickMyUnit = myUnits[i]
-							local r = math.random(0,#myUnits)
-							if r == pickMyUnit then
-								unit:Move(self.target)
+						if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
+						unit:MoveAndFire(self.target)
+						else
+							local myUnits = Spring.GetTeamUnits(TeamID)
+							for i = 1,#myUnits do
+								pickMyUnit = myUnits[i]
+								local r = math.random(0,#myUnits)
+								if r == pickMyUnit then
+									unit:Move(self.target)
+								end
 							end
 						end
 					end
+				else
+					self.unit:ElectBehaviour()
 				end
+		--retreat
+		else	
+		local nanotcx, nanotcy, nanotcz = GetClosestNanotc(unitID)
+			if nanotcx and nanotcy and nanotcz then
+				p = api.Position()
+				p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
+			else
+				if startBoxMinX == 0 and startBoxMinZ == 0 and startBoxMaxZ == Game.mapSizeZ and startBoxMaxX == Game.mapSizeX then
+					p = api.Position()
+					p.x = startPosx
+					p.z = startPosz
+				else
+					p = api.Position()
+					p.x = math.random(startBoxMinX, startBoxMaxX)
+					p.z = math.random(startBoxMinZ, startBoxMaxZ)
+				end
+				p.y = startPosy
+			end
+			self.target = p
+			self.attacking = false
+			self.ai.attackhandler:AddRecruit(self)
+			if self.active then
+				self.unit:Internal():Move(self.target)
 			else
 				self.unit:ElectBehaviour()
 			end
-	--retreat
-	else	
-	local nanotcx, nanotcy, nanotcz = GetClosestNanotc(unitID)
-		if nanotcx and nanotcy and nanotcz and (currenthealth >= maxhealth - maxhealth * 0.2 or currenthealth > 3000) then
-			p = api.Position()
-			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
-		else
-			if startBoxMinX == 0 and startBoxMinZ == 0 and startBoxMaxZ == Game.mapSizeZ and startBoxMaxX == Game.mapSizeX then
-				p = api.Position()
-				p.x = startPosx
-				p.z = startPosz
-			else
-				p = api.Position()
-				p.x = math.random(startBoxMinX, startBoxMaxX)
-				p.z = math.random(startBoxMinZ, startBoxMaxZ)
-			end
-			p.y = startPosy
-		end
-		self.target = p
-		self.attacking = false
-		self.ai.attackhandler:AddRecruit(self)
-		if self.active then
-			self.unit:Internal():Move(self.target)
-		else
-			self.unit:ElectBehaviour()
 		end
 	end
 end

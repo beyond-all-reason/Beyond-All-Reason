@@ -33,9 +33,10 @@ if (gadgetHandler:IsSyncedCode()) then
 --------------------------------------------------------------------------------
 
 local airbases = {} -- airbaseID = { int pieceNum = unitID reservedFor }
+local planes = {}
 
-local pendingLanders = {} -- unitIDs of planes that want repair and are waiting to be assigned airbases 
-local landingPlanes = {} -- planes that are in the process of landing on (including flying towards) airbases; [1]=airbaseID, [2]=pieceNum 
+local pendingLanders = {} -- unitIDs of planes that want repair and are waiting to be assigned airbases
+local landingPlanes = {} -- planes that are in the process of landing on (including flying towards) airbases; [1]=airbaseID, [2]=pieceNum
 local tractorPlanes = {} -- planes in the final stage of landing, are "tractor beamed" with movectrl into place
 local landedPlanes = {} -- unitIDs of planes that are currently landed in airbases
 
@@ -209,10 +210,8 @@ end
 
 function CheckAll()
    -- check all units to see if any need healing
-   local units = Spring.GetAllUnits()
-   for _,unitID in ipairs(units) do
-      local unitDefID = Spring.GetUnitDefID(unitID)
-      if IsPlane(unitDefID) and not landingPlanes[unitID] and not landedPlanes[unitID] and not tractorPlanes[unitID] and NeedsRepair(unitID) then
+   for unitID,_ in pairs(planes) do
+      if not landingPlanes[unitID] and not landedPlanes[unitID] and not tractorPlanes[unitID] and NeedsRepair(unitID) then
          pendingLanders[unitID] = true
       end     
    end  
@@ -266,6 +265,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
    if IsPlane(unitDefID) then
+      planes[unitID] = true
       InsertLandAtAirbaseCommands(unitID)
    end
 
@@ -282,10 +282,11 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-   if not IsPlane(unitDefID) and not airbases[unitID] then return end
+   if not planes[unitID] and not airbases[unitID] then return end
    
-   if IsPlane then
+   if planes[unitID] then
        RemovePlane(unitID)
+      planes[unitID] = nil
    end
    
    if airbases[unitID] then
@@ -364,7 +365,7 @@ end
 function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
    -- if a plane is given a command, assume the user wants that command to be actioned and release control
    -- (unless its one of our custom commands, etc)
-   if not IsPlane(unitDefID) then return end
+   if not planes[unitID] then return end
    if cmdID == CMD_LAND_AT_AIRBASE then return end
    if cmdID == CMD_LAND_AT_SPECIFIC_AIRBASE then return end --fixme: case of wanting to force land at a different pad than current reserved
    if cmdID == CMD_SET_WANTED_MAX_SPEED then return end -- i hate SET_WANTED_MAX_SPEED   
@@ -389,7 +390,7 @@ end
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID)
    -- when a plane is damaged, check to see if it needs repair, move to pendingLanders if so
    --Spring.Echo("damaged", unitID)
-   if IsPlane(unitDefID) and not landingPlanes[unitID] and not landedPlanes[unitID] and NeedsRepair(unitID) then
+   if planes[unitID] and not landingPlanes[unitID] and not landedPlanes[unitID] and NeedsRepair(unitID) then
       pendingLanders[unitID] = true
    end
 end
@@ -534,7 +535,7 @@ function gadget:Initialize()
       local unitDefID = Spring.GetUnitDefID(unitID)
       local teamID = Spring.GetUnitTeam(unitID)
       gadget:UnitCreated(unitID, unitDefID)
-      
+
       local transporterID = Spring.GetUnitTransporter(unitID)
       if transporterID and IsPlane(unitDefID) then
          Spring.UnitDetach(unitID)

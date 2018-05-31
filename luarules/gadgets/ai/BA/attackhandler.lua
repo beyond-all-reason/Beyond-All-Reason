@@ -15,10 +15,10 @@ end
 
 function AttackHandler:Update()
 -- stagger targetting if multiple shards are in the game
-	local f = self.game:Frame() + self.game:GetTeamID() 
-	if math.mod(f,90) == 0 then
+	--local f = self.game:Frame() + self.game:GetTeamID() 
+	--if math.mod(f,2) == 0 then
 		self:DoTargetting()
-	end
+	--end
 end
 
 function AttackHandler:UnitDead(engineunit)
@@ -36,6 +36,14 @@ function AttackHandler:UnitDead(engineunit)
 end
 
 function AttackHandler:DoTargetting()
+	if #self.recruits > self.counter then
+				for i,recruit in ipairs(self.recruits) do
+					recruit:AttackCell()
+				end
+	end
+end
+
+function AttackHandler:DoTargettingOld()
 	if #self.recruits > self.counter then
 
 		--[[ try and catch invalid recruits and remove them, then reevaluate
