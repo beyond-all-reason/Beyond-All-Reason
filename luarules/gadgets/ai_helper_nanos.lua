@@ -80,7 +80,9 @@ GG.GetClosestNanoTC = function (unitID)
 			end
 		end
 	end
+	if bestID then
 	bestx, besty, bestz = Spring.GetUnitPosition(bestID)
+	end
 	return bestx, besty, bestz
 end
 
