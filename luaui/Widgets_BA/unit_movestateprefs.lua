@@ -27,20 +27,21 @@ if chunk then
 end
 
 
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 
 function widget:PlayerChanged(playerID)
   if Spring.GetSpectatingState() then
-    widgetHandler:RemoveWidget(self)
+ 	widget:GameOver()
   end
 end
 
 function widget:Initialize()
 	unitArray = unitArray or {}
-  if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-    widget:PlayerChanged()
+  if Spring.IsReplay() then
+	widget:GameOver()
   end
   for i, v in pairs(unitArray) do
     unitSet[i] = v
@@ -71,7 +72,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function widget:GameOver()
+		Spring.Echo("Recorded MoveState Prefs")
 		table.save(unitSet, "LuaUI/config/holdposPrefs.lua", "--hold pos prefs")
+	    widgetHandler:RemoveWidget(self)
 end
 
 --------------------------------------------------------------------------------
