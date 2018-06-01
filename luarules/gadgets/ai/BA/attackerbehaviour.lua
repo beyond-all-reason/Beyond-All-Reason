@@ -15,6 +15,7 @@ function AttackerBehaviour:Init()
 	--self.ai.game:SendToConsole("attacker!")
 	--self.game:AddMarker({ x = startPosx, y = startPosy, z = startPosz }, "my start position")
 	CMD.MOVE_STATE = 50
+	CMD.FIRE_STATE = 45
 end
 
 local function Distance(x1,z1, x2,z2)
@@ -37,6 +38,7 @@ function AttackerBehaviour:Update()
 		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
 			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
 			if myRange > enemyRange then
+				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
 				local ux,uy,uz = Spring.GetUnitPosition(unitID)
 				local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
@@ -57,6 +59,7 @@ end
 function AttackerBehaviour:OwnerBuilt()
 	self.ai.attackhandler:AddRecruit(self)
 	self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
+	self.unit:Internal():ExecuteCustomCommand(CMD.FIRE_STATE, { 2 }, {})
 	self.attacking = true
 	self.active = true
 end
@@ -89,6 +92,7 @@ function AttackerBehaviour:AttackCell()
 		local ec, es = Spring.GetTeamResources(ai.id, "energy")
 		--attack
 		if (currenthealth >= maxhealth*0.95 or currenthealth > 3000)  then
+				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				--p = api.Position()
 				--p.x = cell.posx
 				--p.z = cell.posz
@@ -127,6 +131,7 @@ function AttackerBehaviour:AttackCell()
 				end
 		--retreat
 		else	
+		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 0 }, {})
 		local nanotcx, nanotcy, nanotcz = GG.GetClosestNanoTC(unitID)
 			if nanotcx and nanotcy and nanotcz then
 				p = api.Position()
