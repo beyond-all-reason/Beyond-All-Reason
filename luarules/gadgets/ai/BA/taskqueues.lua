@@ -463,11 +463,11 @@ function ArmTacticalOffDefT2()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.2 and ec > es*0.2 then
-		if  UDC(ai.id, UDN.corfmd.id) < 3 then
+		if  UDC(ai.id, UDN.armamd.id) < 3 then
 			return "armamd"
-		elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
+		elseif UDC(ai.id, UDN.armmercury.id) < 3 then
 			return "armmercury"
-		elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
+		elseif 	 UDC(ai.id, UDN.armgate.id) < 6 then
 			return "armgate"
 		else
 			return "corkrog"
