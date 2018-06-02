@@ -1165,8 +1165,8 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	if aliveAllyTeams[tallyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == tallyteam) then
 		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(teamID, "energy") or 0
 		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(teamID, "metal") or 0
-		energy = math.floor(energy)
-		metal = math.floor(metal)
+		energy = math.floor(energy or 0)
+		metal = math.floor(metal or 0)
 		if energy < 0 then energy = 0 end
 		if metal < 0 then metal = 0 end
 	end
