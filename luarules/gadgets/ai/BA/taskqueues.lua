@@ -360,7 +360,7 @@ function ArmRandomLab()
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 and ms + Spring.GetGameSeconds() > 800 then
-		if UDC(ai.id, UDN.corlab.id) < 1 then
+		if UDC(ai.id, UDN.armlab.id) < 1 then
 			return "armlab"
 		elseif UDC(ai.id, UDN.armvp.id) < UDC(ai.id, UDN.armlab.id) then
 			return "armvp"
