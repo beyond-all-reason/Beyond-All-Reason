@@ -95,8 +95,6 @@ function CorStarterLabT1()
 		else
 			return "corvp"
 		end
-	elseif countStarterFacs == 1 then
-		return "corap"
 	else
 		return "corkrog"
 	end
@@ -106,20 +104,46 @@ function CorRandomLab()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
-	local countAirLabs = UDC(ai.id, UDN.corap.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
-		if countAirLabs < 1 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 and ms + Spring.GetGameSeconds() > 800 then
+		
+		if UDC(ai.id, UDN.corgant.id) < UDC(ai.id, UDN.coraap.id) then
+			return "corgant"
+		
+		elseif UDC(ai.id, UDN.coraap.id) < UDC(ai.id, UDN.coravp.id) then
+			return "coraap"
+		
+		elseif UDC(ai.id, UDN.coravp.id) < UDC(ai.id, UDN.coralab.id) then
+			return "coravp"
+		
+		elseif UDC(ai.id, UDN.coralab.id) < UDC(ai.id, UDN.corhp.id) then
+			return "coralab"
+			
+		elseif UDC(ai.id, UDN.corhp.id) < UDC(ai.id, UDN.corap.id) then
+			return "corhp"
+			
+		elseif UDC(ai.id, UDN.corap.id) < UDC(ai.id, UDN.corvp.id) then
 			return "corap"
-		elseif countAdvFacs < countBasicFacs*2 then
-			local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
-			return unitoptions[math.random(1,#unitoptions)]
+			
+		elseif UDC(ai.id, UDN.corvp.id) < UDC(ai.id, UDN.corlab.id) then
+			return "corvp"
+
 		else
-			local unitoptions = {"corlab", "corvp", "corap", "corhp",}
-			return unitoptions[math.random(1,#unitoptions)]
+			return "corlab"
+			
 		end
-	else
-		return "corkrog"
+		
+		--if countAirLabs < 1 then
+			--return "corap"
+		--elseif countAdvFacs < countBasicFacs*2 then
+			--local unitoptions = {"coralab", "coravp", "coraap", "corgant",}
+			--return unitoptions[math.random(1,#unitoptions)]
+		--else
+			--local unitoptions = {"corlab", "corvp", "corap", "corhp",}
+			--return unitoptions[math.random(1,#unitoptions)]
+		--end
+	--else
+		--return "corkrog"
 	end
 end
 
@@ -352,8 +376,6 @@ function ArmStarterLabT1()
 		else
 			return "armvp"
 		end
-	elseif countStarterFacs == 1 then
-		return "armap"
 	else
 		return "corkrog"
 	end
@@ -363,20 +385,47 @@ function ArmRandomLab()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
-	local countAirLabs = UDC(ai.id, UDN.armap.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
-		if countAirLabs < 1 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 and ms + Spring.GetGameSeconds() > 800 then
+		
+		if UDC(ai.id, UDN.armshltx.id) < UDC(ai.id, UDN.armaap.id) then
+			return "armshltx"
+		
+		elseif UDC(ai.id, UDN.armaap.id) < UDC(ai.id, UDN.armavp.id) then
+			return "armaap"
+		
+		elseif UDC(ai.id, UDN.armavp.id) < UDC(ai.id, UDN.armalab.id) then
+			return "armavp"
+		
+		elseif UDC(ai.id, UDN.armalab.id) < UDC(ai.id, UDN.armhp.id) then
+			return "armalab"
+			
+		elseif UDC(ai.id, UDN.armhp.id) < UDC(ai.id, UDN.armap.id) then
+			return "armhp"
+			
+		elseif UDC(ai.id, UDN.armap.id) < UDC(ai.id, UDN.armvp.id) then
 			return "armap"
-		elseif countAdvFacs < countBasicFacs*2 then
-			local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
-			return unitoptions[math.random(1,#unitoptions)]
+			
+		elseif UDC(ai.id, UDN.armvp.id) < UDC(ai.id, UDN.armlab.id) then
+			return "armvp"
+
 		else
-			local unitoptions = {"armlab", "armvp", "armap", "armhp",}
-			return unitoptions[math.random(1,#unitoptions)]
+			return "armlab"
+		
 		end
-	else
-		return "corkrog"
+	
+	--if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 600 + 1 and ms + Spring.GetGameSeconds() > 1000 then
+		--if countAirLabs < 1 then
+			--return "armap"
+		--elseif countAdvFacs < countBasicFacs*2 then
+			--local unitoptions = {"armalab", "armavp", "armaap", "armshltx",}
+			--return unitoptions[math.random(1,#unitoptions)]
+		--else
+			--local unitoptions = {"armlab", "armvp", "armap", "armhp",}
+			--return unitoptions[math.random(1,#unitoptions)]
+		--end
+	--else
+		--return "corkrog"
 	end
 end
 
@@ -545,17 +594,10 @@ local corcommanderfirst = {
 	"corsolar",
 	"corsolar",
 	CorStarterLabT1,
-	CorStarterLabT1,
-	CorStarterLabT1,
-	CorStarterLabT1,
-	CorStarterLabT1,
-	CorStarterLabT1,
-	CorStarterLabT1,
-	CorStarterLabT1,
-	CorStarterLabT1,
+	"corsolar",
 	CorStarterLabT1,
 	"corsolar",
-	"corsolar",
+	CorStarterLabT1,
 }
 
 local corcommanderq = {
@@ -843,17 +885,10 @@ local armcommanderfirst = {
 	"armsolar",
 	"armsolar",
 	ArmStarterLabT1,
-	ArmStarterLabT1,
-	ArmStarterLabT1,
-	ArmStarterLabT1,
-	ArmStarterLabT1,
-	ArmStarterLabT1,
-	ArmStarterLabT1,
-	ArmStarterLabT1,
-	ArmStarterLabT1,
+	"armsolar",
 	ArmStarterLabT1,
 	"armsolar",
-	"armsolar",
+	ArmStarterLabT1,
 }
 
 local armcommanderq = {
