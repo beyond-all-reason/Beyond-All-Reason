@@ -101,19 +101,19 @@ function CorRandomLab()
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 and ms + Spring.GetGameSeconds() > 800 then
-		if UDC(ai.id, UDN.corvp.id) < UDC(ai.id, UDN.corlab.id) then
+		if UDC(ai.id, UDN.corvp.id) < UDC(ai.id, UDN.corlab.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "corvp"
-		elseif UDC(ai.id, UDN.corap.id) < UDC(ai.id, UDN.corvp.id) then
+		elseif UDC(ai.id, UDN.corap.id) < UDC(ai.id, UDN.corvp.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "corap"
-		elseif UDC(ai.id, UDN.corhp.id) < UDC(ai.id, UDN.corap.id) then
+		elseif UDC(ai.id, UDN.corhp.id) < UDC(ai.id, UDN.corap.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "corhp"
-		elseif UDC(ai.id, UDN.coralab.id) < UDC(ai.id, UDN.corhp.id) then
+		elseif UDC(ai.id, UDN.coralab.id) < UDC(ai.id, UDN.corhp.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "coralab"
-		elseif UDC(ai.id, UDN.coravp.id) < UDC(ai.id, UDN.coralab.id) then
+		elseif UDC(ai.id, UDN.coravp.id) < UDC(ai.id, UDN.coralab.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "coravp"
-		elseif UDC(ai.id, UDN.coraap.id) < UDC(ai.id, UDN.coravp.id) then
+		elseif UDC(ai.id, UDN.coraap.id) < UDC(ai.id, UDN.coravp.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "coraap"
-		elseif UDC(ai.id, UDN.corgant.id) < UDC(ai.id, UDN.coraap.id) then
+		elseif UDC(ai.id, UDN.corgant.id) < UDC(ai.id, UDN.coraap.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "corgant"
 		else
 			return "corlab"
@@ -356,19 +356,19 @@ function ArmRandomLab()
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	
 	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 and ms + Spring.GetGameSeconds() > 800 then
-		if UDC(ai.id, UDN.armvp.id) < UDC(ai.id, UDN.armlab.id) then
+		if UDC(ai.id, UDN.armvp.id) < UDC(ai.id, UDN.armlab.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "armvp"
-		elseif UDC(ai.id, UDN.armap.id) < UDC(ai.id, UDN.armvp.id) then
+		elseif UDC(ai.id, UDN.armap.id) < UDC(ai.id, UDN.armvp.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "armap"
-		elseif UDC(ai.id, UDN.armhp.id) < UDC(ai.id, UDN.armap.id) then
+		elseif UDC(ai.id, UDN.armhp.id) < UDC(ai.id, UDN.armap.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "armhp"
-		elseif UDC(ai.id, UDN.armalab.id) < UDC(ai.id, UDN.armhp.id) then
+		elseif UDC(ai.id, UDN.armalab.id) < UDC(ai.id, UDN.armhp.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "armalab"
-		elseif UDC(ai.id, UDN.armavp.id) < UDC(ai.id, UDN.armalab.id) then
+		elseif UDC(ai.id, UDN.armavp.id) < UDC(ai.id, UDN.armalab.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "armavp"
-		elseif UDC(ai.id, UDN.armaap.id) < UDC(ai.id, UDN.armavp.id) then
+		elseif UDC(ai.id, UDN.armaap.id) < UDC(ai.id, UDN.armavp.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "armaap"
-		elseif UDC(ai.id, UDN.armshltx.id) < UDC(ai.id, UDN.armaap.id) then
+		elseif UDC(ai.id, UDN.armshltx.id) < UDC(ai.id, UDN.armaap.id) and UDC(ai.id, UDN.corlab.id) > 0 then
 			return "armshltx"
 		else
 			return "armlab"
