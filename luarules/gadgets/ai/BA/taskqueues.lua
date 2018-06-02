@@ -120,6 +120,8 @@ function CorRandomLab()
 		else
 			return "corlab"
 		end
+	else
+		return "corkrog"
 	end
 end
 
@@ -377,6 +379,8 @@ function ArmRandomLab()
 		else
 			return "armlab"
 		end
+	else
+		return "corkrog"
 	end
 end
 
