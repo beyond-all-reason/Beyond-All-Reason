@@ -100,25 +100,25 @@ function CorRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 and ms + Spring.GetGameSeconds() > 800 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 and ms + Spring.GetGameSeconds() > 800 then
 		if UDC(ai.id, UDN.corlab.id) < 1 then
 			return "corlab"
-		elseif UDC(ai.id, UDN.corvp.id) < UDC(ai.id, UDN.corlab.id) then
+		elseif UDC(ai.id, UDN.corvp.id) < 1 then
 			return "corvp"
-		elseif UDC(ai.id, UDN.corap.id) < UDC(ai.id, UDN.corvp.id) then
+		elseif UDC(ai.id, UDN.corap.id) < 1 then
 			return "corap"
-		elseif UDC(ai.id, UDN.corhp.id) < UDC(ai.id, UDN.corap.id) then
+		elseif UDC(ai.id, UDN.corhp.id) < 1 then
 			return "corhp"
-		elseif UDC(ai.id, UDN.coralab.id) < UDC(ai.id, UDN.corhp.id) then
+		elseif UDC(ai.id, UDN.coralab.id) < 1 then
 			return "coralab"
-		elseif UDC(ai.id, UDN.coravp.id) < UDC(ai.id, UDN.coralab.id) then
+		elseif UDC(ai.id, UDN.coravp.id) < 1 then
 			return "coravp"
-		elseif UDC(ai.id, UDN.coraap.id) < UDC(ai.id, UDN.coravp.id) then
+		elseif UDC(ai.id, UDN.coraap.id) < 1 then
 			return "coraap"
-		elseif UDC(ai.id, UDN.corgant.id) < UDC(ai.id, UDN.coraap.id) then
+		elseif UDC(ai.id, UDN.corgant.id) < 1 then
 			return "corgant"
 		else
-			return "corlab"
+			return "corkrog"
 		end
 	else
 		return "corkrog"
@@ -359,25 +359,25 @@ function ArmRandomLab()
 	local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	
-	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 + 1 and ms + Spring.GetGameSeconds() > 800 then
+	if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 and ms + Spring.GetGameSeconds() > 800 then
 		if UDC(ai.id, UDN.armlab.id) < 1 then
 			return "armlab"
-		elseif UDC(ai.id, UDN.armvp.id) < UDC(ai.id, UDN.armlab.id) then
+		elseif UDC(ai.id, UDN.armvp.id) < 1 then
 			return "armvp"
-		elseif UDC(ai.id, UDN.armap.id) < UDC(ai.id, UDN.armvp.id) then
+		elseif UDC(ai.id, UDN.armap.id) < 1 then
 			return "armap"
-		elseif UDC(ai.id, UDN.armhp.id) < UDC(ai.id, UDN.armap.id) then
+		elseif UDC(ai.id, UDN.armhp.id) < 1 then
 			return "armhp"
-		elseif UDC(ai.id, UDN.armalab.id) < UDC(ai.id, UDN.armhp.id) then
+		elseif UDC(ai.id, UDN.armalab.id) < 1 then
 			return "armalab"
-		elseif UDC(ai.id, UDN.armavp.id) < UDC(ai.id, UDN.armalab.id) then
+		elseif UDC(ai.id, UDN.armavp.id) < 1 then
 			return "armavp"
-		elseif UDC(ai.id, UDN.armaap.id) < UDC(ai.id, UDN.armavp.id) then
+		elseif UDC(ai.id, UDN.armaap.id) < 1 then
 			return "armaap"
-		elseif UDC(ai.id, UDN.armshltx.id) < UDC(ai.id, UDN.armaap.id) then
+		elseif UDC(ai.id, UDN.armshltx.id) < 1 then
 			return "armshltx"
 		else
-			return "armlab"
+			return "corkrog"
 		end
 	else
 		return "corkrog"
