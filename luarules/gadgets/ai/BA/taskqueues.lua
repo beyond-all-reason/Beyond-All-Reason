@@ -53,10 +53,10 @@ function CorEnT1( taskqueuebehaviour )
 end
 
 function CorEnT2( taskqueuebehaviour )
-
+	local FusCount = UDC(ai.id, UDN.corfus.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec < es - es*0.8 then
+    if (ec < es - es*0.8) and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
 		return "corfus"
 	elseif mc < ms - ms*0.8 then
 		return "cormexp"
@@ -312,10 +312,10 @@ function ArmEnT1( taskqueuebehaviour )
 end
 
 function ArmEnT2( taskqueuebehaviour )
-
+	local FusCount = UDC(ai.id, UDN.armfus.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec < es - es*0.8 then
+    if (ec < es - es*0.8) and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
 		return "armfus"
 	elseif mc < ms - ms*0.8 then
 		return "armmoho"
