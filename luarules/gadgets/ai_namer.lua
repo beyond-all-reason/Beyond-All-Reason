@@ -34,7 +34,7 @@ if gadgetHandler:IsSyncedCode() then
 		local t = Spring.GetTeamList()
 		for _,teamID in ipairs(t) do
 			if select(4,Spring.GetTeamInfo(teamID)) then	-- is AI?
-				Spring.SetTeamRulesParam(teamID, 'ainame', getName(teamID))
+				Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID))
 			end
 		end
 		gadgetHandler:RemoveGadget(self)

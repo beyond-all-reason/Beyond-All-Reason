@@ -73,6 +73,24 @@ function CorEnT1( taskqueuebehaviour )
 	end
 end
 
+function CorEcoT1( taskqueuebehaviour )
+-- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if ec > es*0.9 then
+		return "corestor"
+	elseif taskqueuebehaviour.ai.map:AverageWind() > 7 then
+		return "corwin"
+	elseif taskqueuebehaviour.ai.map:AverageWind() < 7 then
+		return "corsolar"
+	elseif ec < ms - ms^0.1 then
+		return "cormakr"
+	elseif 	mc > ms^0.2 and ec < es^0.2 then
+		return "coradvsol"
+	end
+end
+
+
 function CorEnT2( taskqueuebehaviour )
 	local FusCount = UDC(ai.id, UDN.corfus.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
@@ -336,6 +354,25 @@ function ArmEnT1( taskqueuebehaviour )
 		return "corkrog"
 	end
 end
+
+function ArmEcoT1( taskqueuebehaviour )
+-- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if ec > es*0.9 then
+		return "armestor"
+	elseif taskqueuebehaviour.ai.map:AverageWind() > 7 then
+		return "armwin"
+	elseif taskqueuebehaviour.ai.map:AverageWind() < 7 then
+		return "armsolar"
+	elseif ec < ms - ms^0.1 then
+		return "armmakr"
+	elseif 	mc > ms^0.2 and ec < es^0.2 then
+		return "armadvsol"
+	end
+end
+
+
 
 function ArmEnT2( taskqueuebehaviour )
 	local FusCount = UDC(ai.id, UDN.armfus.id)
@@ -609,7 +646,6 @@ local corcommanderq = {
 	"corllt",
 	CorEnT1,
 	"cormstor",
-	"corestor",
 	CorRandomLab,
 }
 
@@ -651,8 +687,40 @@ local cort1construction = {
 	CorEnT1,
 	CorEnT1,
 	CorGroundAdvDefT1,
-	"corestor",
 	CorEnT1,
+}
+local corT1ConFirst = {
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
+	CorEcoT1,
 }
 
 local cort1mexingqueue = {
@@ -897,8 +965,6 @@ local armcommanderq = {
 	"armrad",
 	ArmEnT1,
 	ArmEnT1,
-	"armestor",
-	"armmstor",
 	ArmEnT1,
 	ArmRandomLab,
 }
@@ -943,10 +1009,34 @@ local armt1construction = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmGroundAdvDefT1,
-	"armestor",
 	ArmEnT1,
 }
-
+local armT1ConFirst = {
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+	ArmEcoT1,
+}
 local armt1mexingqueue = {
 	ArmMexT1,
 	ArmNanoT,
@@ -1173,13 +1263,19 @@ local function corcommander()
 end
 
 local function corT1constructorrandommexer()
-	local r = math.random(0,1)
+	if ai.engineerfirst1 == true then
+			local r = math.random(0,1)
 		if r == 0 or Spring.GetGameSeconds() < 300 then
 			return cort1mexingqueue
 		else
 			return cort1construction
 		end
+	else
+        ai.engineerfirst1 = true
+        return corT1ConFirst
+    end
 end
+
 
 ----------------------------------------------------------  Arm
 local function armcommander()
@@ -1193,13 +1289,20 @@ local function armcommander()
 end
 
 local function armT1constructorrandommexer()
-	local r = math.random(0,1)
-		if r == 0 or Spring.GetGameSeconds() < 300 then
-			return armt1mexingqueue
-		else
-			return armt1construction
-		end
+    if ai.engineerfirst1 == true then
+           local r = math.random(0,1)
+        if r == 0 or Spring.GetGameSeconds() < 300 then
+            return armt1mexingqueue
+        else
+            return armt1construction
+        end
+    else
+        ai.engineerfirst1 = true
+        return armT1ConFirst
+    end
 end
+
+
 
 taskqueues = {
 	---CORE

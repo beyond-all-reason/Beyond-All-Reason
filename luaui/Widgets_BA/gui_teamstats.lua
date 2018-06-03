@@ -433,6 +433,9 @@ function widget:GameFrame(n,forceupdate)
 					local teamColor = {GetTeamColor(teamID)}
 					local _,leader,isDead = GetTeamInfo(teamID)
 					local playerName,isActive = GetPlayerInfo(leader)
+					if Spring.GetGameRulesParam('ainame_'..teamID) then
+						playerName = Spring.GetGameRulesParam('ainame_'..teamID)
+					end
 					if gameStarted ~= nil then
 						if not playerName then
 							playerName = teamControllers[teamID] or "gone"
