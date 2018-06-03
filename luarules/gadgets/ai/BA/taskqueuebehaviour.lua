@@ -243,7 +243,7 @@ function TaskQueueBehaviour:BuildOnMap(utype)
 
 	local job = {
 		start_position=unit:GetPosition(),
-		max_radius=15000,
+		max_radius=1500,
 		onSuccess=onsuccess,
 		onFail=onfail,
 		unittype=utype,

@@ -214,7 +214,7 @@ function CorVehT1()
 		local unitoptions = {"corgator", "corgator", "corfav",}
 		return FindBest(unitoptions)
     else 
-		local unitoptions = { "corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
+		local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
 		return FindBest(unitoptions)
 	end
 end
@@ -294,7 +294,7 @@ end
 
 function CorHover()
 	
-	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok", }
+	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok",}
 	return FindBest(unitoptions)
 end 
 --[[
@@ -569,7 +569,7 @@ end
 
 function ArmHover()
 	
-	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh", }
+	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh",}
 	return FindBest(unitoptions)
 end
 
