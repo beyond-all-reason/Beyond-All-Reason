@@ -18,6 +18,8 @@ function MexUpgradeBehavior:OwnerBuilt()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(self.ai.id, "energy")
 	if not (ec < es*0.20 or mc > ms*0.20) then
 		self.unit:Internal():ExecuteCustomCommand(CMD_AUTOMEX, {1}, {})
+	else
+		self.unit:ElectBehaviour()
 	end
 end
 
@@ -45,7 +47,10 @@ end
 
 function MexUpgradeBehavior:Priority()
 	local countT1mex = UDC(self.ai.id, UDN.cormex.id) + UDC(self.ai.id, UDN.corexp.id) + UDC(self.ai.id, UDN.armmex.id)
-	if countT1mex < 2 then
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(self.ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(self.ai.id, "energy")
+	
+	if countT1mex < 2 or (ec < es*0.20 or mc > ms*0.20) then
 		return 0
 	else
 		return 100
