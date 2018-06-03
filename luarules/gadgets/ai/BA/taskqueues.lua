@@ -18,11 +18,6 @@ local UDN = UnitDefNames
 
 local unitoptions = {}
 
-----------------------------------------------------------------------
---------------------------------------------------------------------------------------------
---------------------------------------- Core Functions -------------------------------------
---------------------------------------------------------------------------------------------
-
 function FindBest(unitoptions)
 	if GG.info and GG.info[ai.id] then
 		local effect = {}
@@ -42,6 +37,13 @@ function FindBest(unitoptions)
 		return unitoptions[math.random(1,#unitoptions)]
 	end
 end
+
+----------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+--------------------------------------- Core Functions -------------------------------------
+--------------------------------------------------------------------------------------------
+
+
 
 function CorNanoT()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
@@ -200,7 +202,7 @@ function CorKBotsT1()
 		local unitoptions = {"corak", "corak", "corak", "cornecro", "corstorm",}
 		return FindBest(unitoptions)
 	else
-	    local unitoptions = {"corak", "corthud", "corthud", "corstorm", "corstorm", "cornecro", "cornecro",}
+	    local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
 		return FindBest(unitoptions)
 	end
 end
@@ -212,14 +214,14 @@ function CorVehT1()
 		local unitoptions = {"corgator", "corgator", "corfav",}
 		return FindBest(unitoptions)
     else 
-		local unitoptions = {"corraid", "corraid", "corraid", "corlevlr", "corlevlr", "cormist", "cormist",}
+		local unitoptions = { "corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
 		return FindBest(unitoptions)
 	end
 end
 
 function CorAirT1()
 	
-	local unitoptions = {"corveng", "corshad", "corbw",}
+	local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
 	return FindBest(unitoptions)
 end
 
@@ -481,8 +483,8 @@ function ArmKBotsT1()
 		local unitoptions = {"armpw", "armpw", "armflea",}
 		return FindBest(unitoptions)
 	else 
-		local unitoptions = {"armpw", "armflea", "armflea", "armham", "armham", "armham", "armrectr", "armrectr", "armrock", "armrock", "armrock", "armwar", "armwar", "armwar",}
-	return FindBest(unitoptions)
+		local unitoptions = {"armpw", "armflea", "armham", "armrectr", "armrock", "armwar", "armjeth",}
+		return FindBest(unitoptions)
 	end
 end
 
@@ -493,14 +495,14 @@ function ArmVehT1()
        local unitoptions = {"armflash", "armflash", "armfav",}
 		return FindBest(unitoptions)
     else 
-       local unitoptions = {"armstump", "armstump", "armstump", "armjanus", "armjanus", "armsam", "armsam",}
+       local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
 		return FindBest(unitoptions)
 	end
 end
 
 function ArmAirT1()
 	
-	local unitoptions = {"armthund", "armfig", "armkam",}
+	local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
 	return FindBest(unitoptions)
 end
 
@@ -793,7 +795,9 @@ local corkbotlab = {
 	CorKBotsT1,
 	CorKBotsT1,
 	CorKBotsT1,
-
+	"cornecro",
+	"cornecro",
+	"cornecro",
 }
 
 local corvehlab = {
@@ -1109,7 +1113,9 @@ local armkbotlab = {
 	ArmKBotsT1,
 	ArmKBotsT1,
 	ArmKBotsT1,
-
+	"armrectr",
+	"armrectr",
+	"armrectr",
 }
 
 local armvehlab = {
