@@ -619,8 +619,8 @@ function SetMaxPlayerNameWidth()
 			else
 				name = "AI:" .. name
 			end
-			if Spring.GetTeamRulesParam(teamID, 'ainame') then
-				name = Spring.GetTeamRulesParam(teamID, 'ainame')
+			if Spring.GetGameRulesParam(teamID, 'ainame') then
+				name = Spring.GetGameRulesParam(teamID, 'ainame')
 			end
 		end
 		local charSize
@@ -1133,8 +1133,8 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		else
 			tname = "AI:" .. tname
 		end
-		if Spring.GetTeamRulesParam(teamID, 'ainame') then
-			tname = Spring.GetTeamRulesParam(teamID, 'ainame')
+		if Spring.GetGameRulesParam('ainame_'..teamID) then
+			tname = Spring.GetGameRulesParam('ainame_'..teamID)
 		end
 		
 		ttotake = false
