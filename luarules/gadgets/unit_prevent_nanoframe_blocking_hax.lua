@@ -22,6 +22,7 @@ local function AddNanoFrame(unitID)
 	newNanoFrames[#newNanoFrames+1] = unitID
 	local arg1,arg2 = Spring.GetUnitBlocking(unitID)
 	Spring.SetUnitBlocking(unitID, arg1,arg2, false) -- non-blocking for projectiles
+	Spring.SetUnitNeutral(unitID, true)
 	
 	--Spring.Echo("added", unitID)
 end
@@ -38,7 +39,10 @@ local function RemoveNanoFrameIdx(i)
 	if Spring.ValidUnitID(unitID) then
 		local arg1,arg2 = Spring.GetUnitBlocking(unitID)
 		Spring.SetUnitBlocking(unitID, arg1,arg2, true) -- assume all units are (normally) blocking for projectiles
+		Spring.SetUnitNeutral(unitID, false)
 	end
+	
+	--Spring.Echo("removed", unitID)
 end
 
 local function RemoveNanoFrame(unitID)
@@ -46,9 +50,9 @@ local function RemoveNanoFrame(unitID)
 	while (newNanoFrames[i] ~= unitID and i<=#newNanoFrames) do
 		i = i + 1
 	end
-	RemoveNanoFrameIdx(i)
+	if i>#newNanoFrames then return end
 
-	--Spring.Echo("removed", unitID)
+	RemoveNanoFrameIdx(i)
 end
 
 ------------
@@ -84,3 +88,14 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 end
 
 ------------
+
+function gadget:Initialize()
+	-- handle laurules reload
+	local units = Spring.GetAllUnits()
+	for _,unitID in ipairs(units) do
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		gadget:UnitCreated(unitID, unitDefID, unitTeam)
+	end
+end
+
