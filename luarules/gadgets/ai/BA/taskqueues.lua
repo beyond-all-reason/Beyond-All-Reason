@@ -84,10 +84,12 @@ function CorEcoT1( taskqueuebehaviour )
 		return "corwin"
 	elseif taskqueuebehaviour.ai.map:AverageWind() < 7 then
 		return "corsolar"
-	elseif ec < ms - ms^0.1 then
+	elseif mc < ms - ms*0.1 then
 		return "cormakr"
-	elseif 	mc > ms^0.2 and ec < es^0.2 then
+	elseif 	mc > ms*0.2 and ec < es*0.2 then
 		return "coradvsol"
+		else
+		return "corkrog"
 	end
 end
 
@@ -366,10 +368,12 @@ function ArmEcoT1( taskqueuebehaviour )
 		return "armwin"
 	elseif taskqueuebehaviour.ai.map:AverageWind() < 7 then
 		return "armsolar"
-	elseif ec < ms - ms^0.1 then
+	elseif mc < ms - ms*0.1 then
 		return "armmakr"
-	elseif 	mc > ms^0.2 and ec < es^0.2 then
+	elseif 	mc > ms*0.2 and ec < es*0.2 then
 		return "armadvsol"
+		else
+		return "corkrog"
 	end
 end
 
