@@ -25,7 +25,6 @@ local unitoptions = {}
 
 function FindBest(unitoptions)
 	if GG.info and GG.info[ai.id] then
-		Spring.Echo("yo")
 		local effect = {}
 		local randomization = 1
 		local randomunit = {}
