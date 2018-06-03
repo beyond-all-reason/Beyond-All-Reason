@@ -23,6 +23,27 @@ local unitoptions = {}
 --------------------------------------- Core Functions -------------------------------------
 --------------------------------------------------------------------------------------------
 
+function FindBest(unitoptions)
+	if GG.info and GG.info[ai.id] then
+		Spring.Echo("yo")
+		local effect = {}
+		local randomization = 1
+		local randomunit = {}
+		for n, unitName in pairs(unitoptions) do
+			local cost = UnitDefs[UnitDefNames[unitName].id].energyCost / 60 + UnitDefs[UnitDefNames[unitName].id].metalCost
+			local avgkilled_cost = GG.info and GG.info[ai.id] and GG.info[ai.id][UnitDefNames[unitName].id] and GG.info[ai.id][UnitDefNames[unitName].id].avgkilled_cost or cost
+			effect[unitName] = math.floor((avgkilled_cost/cost)*100) + 1
+			for i = randomization, randomization + effect[unitName] do
+				randomunit[i] = unitName
+			end
+			randomization = randomization + effect[unitName]
+		end
+		return randomunit[math.random(1,randomization)]	
+	else
+		return unitoptions[math.random(1,#unitoptions)]
+	end
+end
+
 function CorNanoT()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
@@ -137,7 +158,7 @@ function CorGroundAdvDefT1()
 			return "corpun"
 		else
 			local unitoptions = {"cormaw", "corhllt", "corhlt",}
-			return unitoptions[math.random(1,#unitoptions)]
+			return FindBest(unitoptions)
 		end
 	else
 		return "corkrog"
@@ -149,7 +170,7 @@ function CorAirAdvDefT1()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.2 and ec > es*0.2 then
 		local unitoptions = {"cormadsam", "corrl",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
@@ -160,10 +181,10 @@ function CorKBotsT1()
 		return "corak"
 	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
 		local unitoptions = {"corak", "corak", "corak", "cornecro", "corstorm",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	else
 	    local unitoptions = {"corak", "corthud", "corthud", "corstorm", "corstorm", "cornecro", "cornecro",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	end
 end
 
@@ -172,17 +193,17 @@ function CorVehT1()
 		return "corfav"
     elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
 		local unitoptions = {"corgator", "corgator", "corfav",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
     else 
 		local unitoptions = {"corraid", "corraid", "corraid", "corlevlr", "corlevlr", "cormist", "cormist",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	end
 end
 
 function CorAirT1()
 	
 	local unitoptions = {"corveng", "corshad", "corbw",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function CorAirAdvDefT2()
@@ -190,7 +211,7 @@ function CorAirAdvDefT2()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.2 and ec > es*0.2 then
 		local unitoptions = {"corvipe","corflak", }
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
@@ -237,25 +258,25 @@ end
 function CorKBotsT2()
 	
 	local unitoptions = {"coraak", "coramph", "corcan", "corhrk", "cormort", "corpyro", "corroach", "cortermite", "corspec", "corsumo",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function CorVehT2()
 	
 	local unitoptions = {"corban", "coreter", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function CorAirT2()
 	
 	local unitoptions = {"corape", "corcrw", "corhurc", "corvamp",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function CorHover()
 	
 	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok", }
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end 
 --[[
 function CorSeaPlanes()
@@ -280,7 +301,7 @@ end
 function CorGantry()
 	
 	local unitoptions = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", }
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end 
 
 		
@@ -399,7 +420,7 @@ function ArmGroundAdvDefT1()
 			return "armguard"
 		else
 			local unitoptions = {"armclaw", "armbeamer","armhlt",}
-			return unitoptions[math.random(1,#unitoptions)]
+			return FindBest(unitoptions)
 		end
 	else
 		return "corkrog"
@@ -411,7 +432,7 @@ function ArmAirAdvDefT1()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.2 and ec > es*0.2 then
 		local unitoptions = {"armrl", "armpacko",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
@@ -422,10 +443,10 @@ function ArmKBotsT1()
 		return "armflea"
 	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
 		local unitoptions = {"armpw", "armpw", "armflea",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	else 
 		local unitoptions = {"armpw", "armflea", "armflea", "armham", "armham", "armham", "armrectr", "armrectr", "armrock", "armrock", "armrock", "armwar", "armwar", "armwar",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 	end
 end
 
@@ -434,23 +455,23 @@ function ArmVehT1()
        return "armfav"
     elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
        local unitoptions = {"armflash", "armflash", "armfav",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
     else 
        local unitoptions = {"armstump", "armstump", "armstump", "armjanus", "armjanus", "armsam", "armsam",}
-		return unitoptions[math.random(1,#unitoptions)]
+		return FindBest(unitoptions)
 	end
 end
 
 function ArmAirT1()
 	
 	local unitoptions = {"armthund", "armfig", "armkam",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function ArmAirAdvDefT2()
 
 	local unitoptions = {"armpb", "armflak",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function ArmTacticalAdvDefT2()
@@ -487,31 +508,31 @@ function ArmTacticalOffDefT2()
 	end
 end
 	--local unitoptions = {"armamd", "armsilo",}
-	--return unitoptions[math.random(1,#unitoptions)]
+	--return FindBest(unitoptions)
 
 
 function ArmKBotsT2()
 	
 	local unitoptions = {"armaak", "armamph", "armaser", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armzeus", "armvader",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function ArmVehT2()
 	
 	local unitoptions = {"armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function ArmAirT2()
 	
 	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 function ArmHover()
 	
 	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh", }
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 --[[
@@ -537,7 +558,7 @@ end
 function ArmGantry()
 	
 	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
-	return unitoptions[math.random(1,#unitoptions)]
+	return FindBest(unitoptions)
 end
 
 -------------------------------------------------------------
