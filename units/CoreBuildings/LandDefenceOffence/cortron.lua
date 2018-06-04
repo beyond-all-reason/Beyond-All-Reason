@@ -130,7 +130,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 550,
 				model = "empmisl",
-				name = "TacticalNuke",
+				name = "Long range tactical g2g nuclear warheads",
 				noselfdamage = true,
 				range = 2750,
 				reloadtime = 2,

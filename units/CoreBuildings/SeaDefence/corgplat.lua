@@ -45,7 +45,7 @@ return {
 				collisionvolumescales = "50.0 45.7867279053 45.9999847412",
 				collisionvolumetype = "Box",
 				damage = 750,
-				description = "Gun Platform Wreckage",
+				description = "Light close-quarters plasma turret",
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,

@@ -80,7 +80,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "missile_medium_fast",
-				name = "RiotRocket",
+				name = "Heavy a2g shrapnel rockets",
 				noselfdamage = true,
 				flighttime = 2,
 				range = 410,

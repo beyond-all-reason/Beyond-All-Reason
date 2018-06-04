@@ -127,7 +127,7 @@ return {
 				impulseboost = 0.5,
 				impulsefactor = 0.5,
 				leadbonus = 0,
-				name = "IntimidatorCannon",
+				name = "Heavy long range g2g AoE plasma cannon",
 				noselfdamage = true,
 				range = 4950,
 				reloadtime = 16,

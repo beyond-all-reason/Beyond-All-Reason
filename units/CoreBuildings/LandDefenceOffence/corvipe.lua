@@ -125,7 +125,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "missile_large_fast",
-				name = "Sabot",
+				name = "Heavy g2g sabot rocket launcher",
 				noselfdamage = true,
 				range = 730,
 				reloadtime = 2,

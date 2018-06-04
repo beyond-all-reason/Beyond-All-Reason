@@ -84,7 +84,7 @@ return {
 				impulseboost = 0.3,
 				impulsefactor = 0.3,
 				model = "bomb",
-				name = "Bombs",
+				name = "Medium a2g incinerating warheads",
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 6,

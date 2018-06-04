@@ -76,7 +76,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 0,
 				model = "missile",
-				name = "GuidedMissiles",
+				name = "Light guided a2a/a2g missile launcher",
 				noselfdamage = true,
 				range = 680,
 				reloadtime = 0.9,

@@ -123,7 +123,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7,
-				name = "HighEnergyLaser",
+				name = "High energy a2g laser",
 				noselfdamage = true,
 				range = 525,
 				reloadtime = 1.3,

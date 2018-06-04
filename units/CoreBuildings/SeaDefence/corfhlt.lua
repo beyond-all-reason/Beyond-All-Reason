@@ -104,7 +104,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7,
-				name = "HighEnergyLaser",
+				name = "High energy g2g laser",
 				noselfdamage = true,
 				range = 630,
 				reloadtime = 1,
