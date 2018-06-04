@@ -18,6 +18,11 @@ local UDN = UnitDefNames
 
 local unitoptions = {}
 
+--------------------------------------------------------------------------------------------
+--------------------------------------- Main Functions -------------------------------------
+--------------------------------------------------------------------------------------------
+
+
 function FindBest(unitoptions)
 	if GG.info and GG.info[ai.id] then
 		local effect = {}
@@ -38,9 +43,11 @@ function FindBest(unitoptions)
 	end
 end
 
-----------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 --------------------------------------- Core Functions -------------------------------------
+--------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 
 
@@ -320,284 +327,6 @@ function CorGantry()
 	local unitoptions = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", }
 	return FindBest(unitoptions)
 end 
-
-		
---------------------------------------------------------------------------------------------
---------------------------------------- Arm Functions --------------------------------------
---------------------------------------------------------------------------------------------
-
-function ArmNanoT()
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.2 and ec > es*0.2 then
-		return "armnanotc"
-	else
-		return "corkrog"
-	end
-end
-
-
-function ArmEnT1( taskqueuebehaviour )
-	
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec < es - es*0.8 then
-        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
-            return "armwin"
-        else
-            return "armsolar"
-        end
-	elseif mc < ms - ms*0.8 then
-		return "armmex"
-	else
-		return "corkrog"
-	end
-end
-
-function ArmEcoT1( taskqueuebehaviour )
--- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if taskqueuebehaviour.ai.map:AverageWind() > 7 and ec < es*0.20 then
-		return "armwin"
-	elseif taskqueuebehaviour.ai.map:AverageWind() <= 7 and ec < es*0.20 then
-		return "armsolar"
-	elseif mc < ms*0.1 and ec > es*0.90 then
-		return "armmakr"
-	else
-		return "corkrog"
-	end
-end
-
-
-
-function ArmEnT2( taskqueuebehaviour )
-	local FusCount = UDC(ai.id, UDN.armfus.id)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-    if (ec < es - es*0.8) and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
-		return "armfus"
-	elseif mc < ms - ms*0.8 then
-		return "armmoho"
-	elseif mc < ms - ms*0.4 then
-		return "armmmkr"
-	else
-		return "corkrog"
-	end
-end
-
-function ArmMexT1( taskqueuebehaviour )
-	
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc < ms - ms*0.8 then
-		return "armmex"
-	elseif ec < es - es*0.8 then
-        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
-            return "armwin"
-        else
-            return "armsolar"
-        end
-	else
-		return "corkrog"
-	end
-end
-
-function ArmStarterLabT1()
-	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
-	if countStarterFacs < 1 then
-		return "armlab"
-	else
-		return "corkrog"
-	end
-end
-
-function ArmRandomLab()
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	
-	--local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
-	--local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
-	
-	--if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 and ms + Spring.GetGameSeconds() > 800 then
-	if mc > ms*0.20 and ec > es*0.20 and ms + Spring.GetGameSeconds() > 800 then
-		if UDC(ai.id, UDN.armlab.id) < 1 then
-			return "armlab"
-		elseif UDC(ai.id, UDN.armalab.id) < 1 then
-			return "armalab"
-		elseif UDC(ai.id, UDN.armvp.id) < 1 then
-			return "armvp"
-		elseif UDC(ai.id, UDN.armavp.id) < 1 then
-			return "armavp"
-		elseif UDC(ai.id, UDN.armap.id) < 1 then
-			return "armap"
-		elseif UDC(ai.id, UDN.armaap.id) < 1 then
-			return "armaap"
-		elseif UDC(ai.id, UDN.armhp.id) < 1 then
-			return "armhp"
-		elseif UDC(ai.id, UDN.armshltx.id) < 1 then
-			return "armshltx"
-		else
-			return "corkrog"
-		end
-	else
-		return "corkrog"
-	end
-end
-
-function ArmGroundAdvDefT1()
-	local r = math.random(0,100)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.2 and ec > es*0.2 then
-		if r == 0 and Spring.GetGameSeconds() > 600 then
-			return "armguard"
-		else
-			local unitoptions = {"armclaw", "armbeamer","armhlt",}
-			return FindBest(unitoptions)
-		end
-	else
-		return "corkrog"
-	end
-end
-
-function ArmAirAdvDefT1()
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.2 and ec > es*0.2 then
-		local unitoptions = {"armrl", "armpacko",}
-		return FindBest(unitoptions)
-	else
-		return "corkrog"
-	end
-end
-
-function ArmKBotsT1()
-	if Spring.GetGameSeconds() < 150 then
-		return "armflea"
-	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-		local unitoptions = {"armpw", "armpw", "armflea",}
-		return FindBest(unitoptions)
-	else 
-		local unitoptions = {"armpw", "armflea", "armham", "armrectr", "armrock", "armwar", "armjeth",}
-		return FindBest(unitoptions)
-	end
-end
-
-function ArmVehT1()
-    if Spring.GetGameSeconds() < 150 then
-       return "armfav"
-    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-       local unitoptions = {"armflash", "armflash", "armfav",}
-		return FindBest(unitoptions)
-    else 
-       local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
-		return FindBest(unitoptions)
-	end
-end
-
-function ArmAirT1()
-	
-	local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
-	return FindBest(unitoptions)
-end
-
-function ArmAirAdvDefT2()
-
-	local unitoptions = {"armpb", "armflak",}
-	return FindBest(unitoptions)
-end
-
-function ArmTacticalAdvDefT2()
-    local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.2 and ec > es*0.2 then
-		if UDC(ai.id, UDN.armbrtha.id) < UDC(ai.id, UDN.armanni.id)*2 then
-			return "armbrtha"
-		elseif UDC(ai.id, UDN.armanni.id) < UDC(ai.id, UDN.armamb.id)*4 then
-			return "armanni"
-		else
-			return "armamb"
-		end
-	else
-		return "corkrog"
-	end
-end
-
-function ArmTacticalOffDefT2()
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.2 and ec > es*0.2 then
-		if  UDC(ai.id, UDN.armamd.id) < 3 then
-			return "armamd"
-		elseif UDC(ai.id, UDN.armmercury.id) < 3 then
-			return "armmercury"
-		elseif 	 UDC(ai.id, UDN.armgate.id) < 6 then
-			return "armgate"
-		else
-			return "corkrog"
-		end
-	else
-		return "corkrog"
-	end
-end
-	--local unitoptions = {"armamd", "armsilo",}
-	--return FindBest(unitoptions)
-
-
-function ArmKBotsT2()
-	
-	local unitoptions = {"armaak", "armamph", "armaser", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armzeus", "armvader",}
-	return FindBest(unitoptions)
-end
-
-function ArmVehT2()
-	
-	local unitoptions = {"armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
-	return FindBest(unitoptions)
-end
-
-function ArmAirT2()
-	
-	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
-	return FindBest(unitoptions)
-end
-
-function ArmHover()
-	
-	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh",}
-	return FindBest(unitoptions)
-end
-
---[[
-function ArmSeaPlanes()
-	
-	local unitoptions = {"armcsa", "armsaber", "armsb", "armseap", "armsehak", "armsfig", }
-	return unitoptions[math.random(1,#unitoptions)]
-end 		
-
-function ArmShipT1()
-	
-	local unitoptions = {"armcs", "armdecade", "armdship", "armpship", "armpt", "armrecl", "armroy", "armrship", "armsub", "armtship",}
-	return unitoptions[math.random(1,#unitoptions)]
-end		
-
-function ArmShipT2()
-	
-	local unitoptions = {"armaas", "armacsub", "armbats", "armcarry", "armcrus", "armepoch", "armmls", "armmship", "armserp", "armsjam", "armsubk", }
-	return unitoptions[math.random(1,#unitoptions)]
-end		
-]]--
-
-function ArmGantry()
-	
-	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
-	return FindBest(unitoptions)
-end
-
--------------------------------------------------------------
-
-
 
 
 --------------------------------------------------------------------------------------------
@@ -922,6 +651,309 @@ corgantryT3 = {
 	CorGantry,
 	CorGantry,
 }
+
+--------------------------------------------------------------------------------------------
+-------------------------------------- CoreQueuePicker -------------------------------------
+--------------------------------------------------------------------------------------------
+
+local function corcommander()
+	if ai.engineerfirst == true then
+		--return corcommanderq
+		return assistqueue
+	else
+		ai.engineerfirst = true
+		return corcommanderfirst
+	end
+end
+
+local function corT1constructorrandommexer()
+	if ai.engineerfirst1 == true then
+			local r = math.random(0,1)
+		if r == 0 or Spring.GetGameSeconds() < 300 then
+			return cort1mexingqueue
+		else
+			return cort1construction
+		end
+	else
+        ai.engineerfirst1 = true
+        return corT1ConFirst
+    end
+end
+
+--------------------------------------------------------------------------------------------	
+--------------------------------------------------------------------------------------------
+--------------------------------------- Arm Functions --------------------------------------
+--------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------
+
+function ArmNanoT()
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		return "armnanotc"
+	else
+		return "corkrog"
+	end
+end
+
+
+function ArmEnT1( taskqueuebehaviour )
+	
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if ec < es - es*0.8 then
+        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
+            return "armwin"
+        else
+            return "armsolar"
+        end
+	elseif mc < ms - ms*0.8 then
+		return "armmex"
+	else
+		return "corkrog"
+	end
+end
+
+function ArmEcoT1( taskqueuebehaviour )
+-- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if taskqueuebehaviour.ai.map:AverageWind() > 7 and ec < es*0.20 then
+		return "armwin"
+	elseif taskqueuebehaviour.ai.map:AverageWind() <= 7 and ec < es*0.20 then
+		return "armsolar"
+	elseif mc < ms*0.1 and ec > es*0.90 then
+		return "armmakr"
+	else
+		return "corkrog"
+	end
+end
+
+
+
+function ArmEnT2( taskqueuebehaviour )
+	local FusCount = UDC(ai.id, UDN.armfus.id)
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+    if (ec < es - es*0.8) and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
+		return "armfus"
+	elseif mc < ms - ms*0.8 then
+		return "armmoho"
+	elseif mc < ms - ms*0.4 then
+		return "armmmkr"
+	else
+		return "corkrog"
+	end
+end
+
+function ArmMexT1( taskqueuebehaviour )
+	
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc < ms - ms*0.8 then
+		return "armmex"
+	elseif ec < es - es*0.8 then
+        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
+            return "armwin"
+        else
+            return "armsolar"
+        end
+	else
+		return "corkrog"
+	end
+end
+
+function ArmStarterLabT1()
+	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
+	if countStarterFacs < 1 then
+		return "armlab"
+	else
+		return "corkrog"
+	end
+end
+
+function ArmRandomLab()
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	
+	--local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armshltx.id)
+	--local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
+	
+	--if countBasicFacs + countAdvFacs < Spring.GetGameSeconds() / 300 and ms + Spring.GetGameSeconds() > 800 then
+	if mc > ms*0.20 and ec > es*0.20 and ms + Spring.GetGameSeconds() > 800 then
+		if UDC(ai.id, UDN.armlab.id) < 1 then
+			return "armlab"
+		elseif UDC(ai.id, UDN.armalab.id) < 1 then
+			return "armalab"
+		elseif UDC(ai.id, UDN.armvp.id) < 1 then
+			return "armvp"
+		elseif UDC(ai.id, UDN.armavp.id) < 1 then
+			return "armavp"
+		elseif UDC(ai.id, UDN.armap.id) < 1 then
+			return "armap"
+		elseif UDC(ai.id, UDN.armaap.id) < 1 then
+			return "armaap"
+		elseif UDC(ai.id, UDN.armhp.id) < 1 then
+			return "armhp"
+		elseif UDC(ai.id, UDN.armshltx.id) < 1 then
+			return "armshltx"
+		else
+			return "corkrog"
+		end
+	else
+		return "corkrog"
+	end
+end
+
+function ArmGroundAdvDefT1()
+	local r = math.random(0,100)
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if r == 0 and Spring.GetGameSeconds() > 600 then
+			return "armguard"
+		else
+			local unitoptions = {"armclaw", "armbeamer","armhlt",}
+			return FindBest(unitoptions)
+		end
+	else
+		return "corkrog"
+	end
+end
+
+function ArmAirAdvDefT1()
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		local unitoptions = {"armrl", "armpacko",}
+		return FindBest(unitoptions)
+	else
+		return "corkrog"
+	end
+end
+
+function ArmKBotsT1()
+	if Spring.GetGameSeconds() < 150 then
+		return "armflea"
+	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+		local unitoptions = {"armpw", "armpw", "armflea",}
+		return FindBest(unitoptions)
+	else 
+		local unitoptions = {"armpw", "armflea", "armham", "armrectr", "armrock", "armwar", "armjeth",}
+		return FindBest(unitoptions)
+	end
+end
+
+function ArmVehT1()
+    if Spring.GetGameSeconds() < 150 then
+       return "armfav"
+    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+       local unitoptions = {"armflash", "armflash", "armfav",}
+		return FindBest(unitoptions)
+    else 
+       local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
+		return FindBest(unitoptions)
+	end
+end
+
+function ArmAirT1()
+	
+	local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
+	return FindBest(unitoptions)
+end
+
+function ArmAirAdvDefT2()
+
+	local unitoptions = {"armpb", "armflak",}
+	return FindBest(unitoptions)
+end
+
+function ArmTacticalAdvDefT2()
+    local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if UDC(ai.id, UDN.armbrtha.id) < UDC(ai.id, UDN.armanni.id)*2 then
+			return "armbrtha"
+		elseif UDC(ai.id, UDN.armanni.id) < UDC(ai.id, UDN.armamb.id)*4 then
+			return "armanni"
+		else
+			return "armamb"
+		end
+	else
+		return "corkrog"
+	end
+end
+
+function ArmTacticalOffDefT2()
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	if mc > ms*0.2 and ec > es*0.2 then
+		if  UDC(ai.id, UDN.armamd.id) < 3 then
+			return "armamd"
+		elseif UDC(ai.id, UDN.armmercury.id) < 3 then
+			return "armmercury"
+		elseif 	 UDC(ai.id, UDN.armgate.id) < 6 then
+			return "armgate"
+		else
+			return "corkrog"
+		end
+	else
+		return "corkrog"
+	end
+end
+	--local unitoptions = {"armamd", "armsilo",}
+	--return FindBest(unitoptions)
+
+
+function ArmKBotsT2()
+	
+	local unitoptions = {"armaak", "armamph", "armaser", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armzeus", "armvader",}
+	return FindBest(unitoptions)
+end
+
+function ArmVehT2()
+	
+	local unitoptions = {"armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
+	return FindBest(unitoptions)
+end
+
+function ArmAirT2()
+	
+	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
+	return FindBest(unitoptions)
+end
+
+function ArmHover()
+	
+	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh",}
+	return FindBest(unitoptions)
+end
+
+--[[
+function ArmSeaPlanes()
+	
+	local unitoptions = {"armcsa", "armsaber", "armsb", "armseap", "armsehak", "armsfig", }
+	return unitoptions[math.random(1,#unitoptions)]
+end 		
+
+function ArmShipT1()
+	
+	local unitoptions = {"armcs", "armdecade", "armdship", "armpship", "armpt", "armrecl", "armroy", "armrship", "armsub", "armtship",}
+	return unitoptions[math.random(1,#unitoptions)]
+end		
+
+function ArmShipT2()
+	
+	local unitoptions = {"armaas", "armacsub", "armbats", "armcarry", "armcrus", "armepoch", "armmls", "armmship", "armserp", "armsjam", "armsubk", }
+	return unitoptions[math.random(1,#unitoptions)]
+end		
+]]--
+
+function ArmGantry()
+	
+	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
+	return FindBest(unitoptions)
+end
 
 
 --------------------------------------------------------------------------------------------
@@ -1250,35 +1282,11 @@ armgantryT3 = {
 local assistqueue = {
 	{ action = "patrolrelative", position = {x = 100, y = 0, z = 100} },
 }
-----------------------------------------------------------
-	
----------------------------------------------------------- Core
-local function corcommander()
-	if ai.engineerfirst == true then
-		--return corcommanderq
-		return assistqueue
-	else
-		ai.engineerfirst = true
-		return corcommanderfirst
-	end
-end
 
-local function corT1constructorrandommexer()
-	if ai.engineerfirst1 == true then
-			local r = math.random(0,1)
-		if r == 0 or Spring.GetGameSeconds() < 300 then
-			return cort1mexingqueue
-		else
-			return cort1construction
-		end
-	else
-        ai.engineerfirst1 = true
-        return corT1ConFirst
-    end
-end
+--------------------------------------------------------------------------------------------
+-------------------------------------- ArmQueuePicker --------------------------------------
+--------------------------------------------------------------------------------------------
 
-
-----------------------------------------------------------  Arm
 local function armcommander()
 	if ai.engineerfirst == true then
 		--return armcommanderq
@@ -1304,6 +1312,12 @@ local function armT1constructorrandommexer()
 end
 
 
+
+
+
+--------------------------------------------------------------------------------------------
+---------------------------------------- TASKQUEUES ----------------------------------------
+--------------------------------------------------------------------------------------------
 
 taskqueues = {
 	---CORE
