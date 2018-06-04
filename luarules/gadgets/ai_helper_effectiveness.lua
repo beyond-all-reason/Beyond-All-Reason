@@ -23,20 +23,16 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
    GG.info[teamID] = GG.info[teamID] or {}
    GG.info[teamID][unitDefID] = GG.info[teamID][unitDefID] or {killed_cost=0,n=0, avgkilled_cost=0}
    GG.info[teamID][unitDefID].n = GG.info[teamID][unitDefID].n + 1
-   if not (
-   GG.info[teamID][UnitDefNames["armgate"].id] and  
-   GG.info[teamID][UnitDefNames["corgate"].id] and  
-   GG.info[teamID][UnitDefNames["armamd"].id] and  
-   GG.info[teamID][UnitDefNames["corfmd"].id] and  
-   GG.info[teamID][UnitDefNames["armscab"].id] and  
-   GG.info[teamID][UnitDefNames["cormabm"].id]  
-   ) then
-	   GG.info[teamID][UnitDefNames["armgate"].id]  = {killed_cost=0,n=0, avgkilled_cost=0}  
-	   GG.info[teamID][UnitDefNames["corgate"].id]  = {killed_cost=0,n=0, avgkilled_cost=0}  
-	   GG.info[teamID][UnitDefNames["armamd"].id]  = {killed_cost=0,n=0, avgkilled_cost=0}  
-	   GG.info[teamID][UnitDefNames["corfmd"].id]  = {killed_cost=0,n=0, avgkilled_cost=0}  
-	   GG.info[teamID][UnitDefNames["armscab"].id]  = {killed_cost=0,n=0, avgkilled_cost=0}  
-	   GG.info[teamID][UnitDefNames["cormabm"].id]  = {killed_cost=0,n=0, avgkilled_cost=0}  
+   if GG.info[teamID][unitDefID].n > 30 then 
+   -- Only register the stats of the 30 latest made units:
+   -- as the game evolves a unit that was being very effective can suddenly get crushed down,
+   -- the greater the "n" value, the longer it will take for the avgkilled_cost to go down, and for the calculated effectiveness to go down
+   -- this means the longer the game the more time the AI will take to "realise" it's being uneffective
+   -- limiting the n value is done to prevent that, in hope of making AIs choices more dynamic somehow
+	GG.info[teamID][unitDefID].n = GG.info[teamID][unitDefID].n - 1
+	GG.info[attackerTeam][attackerDefID].killed_cost = GG.info[attackerTeam][attackerDefID].killed_cost - GG.info[attackerTeam][attackerDefID].avgkilled_cost
+	if GG.info[attackerTeam][attackerDefID].killed_cost <= 0 then GG.info[attackerTeam][attackerDefID].killed_cost = 0 end
+	GG.info[attackerTeam][attackerDefID].avgkilled_cost = GG.info[attackerTeam][attackerDefID].killed_cost / GG.info[teamID][unitDefID].n
    end
 end
 
