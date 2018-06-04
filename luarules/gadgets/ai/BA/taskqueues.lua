@@ -78,17 +78,13 @@ function CorEcoT1( taskqueuebehaviour )
 -- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec > es*0.9 then
-		return "corestor"
-	elseif taskqueuebehaviour.ai.map:AverageWind() > 7 then
+	if taskqueuebehaviour.ai.map:AverageWind() > 7 and ec < es*0.20 then
 		return "corwin"
-	elseif taskqueuebehaviour.ai.map:AverageWind() < 7 then
+	elseif taskqueuebehaviour.ai.map:AverageWind() <= 7 and ec < es*0.20 then
 		return "corsolar"
-	elseif mc < ms*0.1 and es*0.80 then
+	elseif mc < ms*0.1 and ec > es*0.90 then
 		return "cormakr"
-	elseif 	mc > ms*0.2 and ec < es*0.2 then
-		return "coradvsol"
-		else
+	else
 		return "corkrog"
 	end
 end
@@ -362,17 +358,13 @@ function ArmEcoT1( taskqueuebehaviour )
 -- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec > es*0.9 then
-		return "armestor"
-	elseif taskqueuebehaviour.ai.map:AverageWind() > 7 then
+	if taskqueuebehaviour.ai.map:AverageWind() > 7 and ec < es*0.20 then
 		return "armwin"
-	elseif taskqueuebehaviour.ai.map:AverageWind() < 7 then
+	elseif taskqueuebehaviour.ai.map:AverageWind() <= 7 and ec < es*0.20 then
 		return "armsolar"
-	elseif mc < ms*0.1 and es*0.80 then
+	elseif mc < ms*0.1 and ec > es*0.90 then
 		return "armmakr"
-	elseif 	mc > ms*0.2 and ec < es*0.2 then
-		return "armadvsol"
-		else
+	else
 		return "corkrog"
 	end
 end
