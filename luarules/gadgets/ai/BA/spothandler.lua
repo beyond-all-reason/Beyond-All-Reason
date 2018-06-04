@@ -15,8 +15,9 @@ end
 
 function distance(pos1,pos2)
 	local xd = pos1.x-pos2.x
-	local yd = pos1.z-pos2.z
-	dist = math.sqrt(xd*xd + yd*yd)
+	local zd = pos1.z-pos2.z
+	local yd = pos1.y-pos2.y
+	dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
 	return dist
 end
 

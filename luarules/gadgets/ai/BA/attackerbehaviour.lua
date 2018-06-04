@@ -26,34 +26,7 @@ local function Distance(x1,z1, x2,z2)
 end
 
 function AttackerBehaviour:Update()
-	local unitID = self.unit:Internal().id
-	local unit = self.unit:Internal()
-	-- Spring.Echo(unitID)
-	local myRange = Spring.GetUnitMaxRange(unitID)
-	local closestUnit = Spring.GetUnitNearestEnemy(unitID, myRange)
-	local allyTeamID = self.ai.allyId
-	local currenthealth = unit:GetHealth()
-	local maxhealth = unit:GetMaxHealth()
-	if unitID % 30 == Spring.GetGameFrame() % 30 then
-		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
-			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
-			if myRange > enemyRange then
-				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
-				local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
-				local ux,uy,uz = Spring.GetUnitPosition(unitID)
-				local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
-				local dis = 120
-				local f = dis/pointDis
-				if (pointDis+dis > Spring.GetUnitMaxRange(unitID)) then
-				  f = (Spring.GetUnitMaxRange(unitID)-pointDis)/pointDis
-				end
-				local cx = ux+(ux-ex)*f
-				local cy = uy
-				local cz = uz+(uz-ez)*f
-				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {"ctrl"})
-			end
-		end
-	end
+
 end
 
 function AttackerBehaviour:OwnerBuilt()
@@ -77,6 +50,34 @@ end
 function AttackerBehaviour:AttackCell()
 	local unit = self.unit:Internal()
 	local unitID = unit.id
+	-- Spring.Echo(unitID)
+	local myRange = Spring.GetUnitMaxRange(unitID)
+	local closestUnit = Spring.GetUnitNearestEnemy(unitID, myRange)
+	local allyTeamID = self.ai.allyId
+	local currenthealth = unit:GetHealth()
+	local maxhealth = unit:GetMaxHealth()
+	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
+	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
+	if unitID % 30 == Spring.GetGameFrame() % 30 then
+		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
+			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
+			if myRange > enemyRange then
+				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
+				local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
+				local ux,uy,uz = Spring.GetUnitPosition(unitID)
+				local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
+				local dis = 120
+				local f = dis/pointDis
+				if (pointDis+dis > Spring.GetUnitMaxRange(unitID)) then
+				  f = (Spring.GetUnitMaxRange(unitID)-pointDis)/pointDis
+				end
+				local cx = ux+(ux-ex)*f
+				local cy = uy
+				local cz = uz+(uz-ez)*f
+				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {"ctrl"})
+			end
+		end
+	end
 	if unitID % 150 == Spring.GetGameFrame() % 150 then
 		local TeamID = ai.id
 		local allyTeamID = ai.allyId
@@ -85,10 +86,6 @@ function AttackerBehaviour:AttackCell()
 			nearestUnit = unit.id
 		end
 		local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
-		local currenthealth = unit:GetHealth()
-		local maxhealth = unit:GetMaxHealth()
-		local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
-		local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
 		local ec, es = Spring.GetTeamResources(ai.id, "energy")
 		--attack
 		if (currenthealth >= maxhealth*0.95 or currenthealth > 3000)  then
@@ -129,8 +126,11 @@ function AttackerBehaviour:AttackCell()
 				else
 					self.unit:ElectBehaviour()
 				end
+		end
+	end
 		--retreat
-		else	
+	if unitID % 30 == Spring.GetGameFrame() % 30 then
+		if not (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
 		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 0 }, {})
 		local nanotcx, nanotcy, nanotcz = GG.GetClosestNanoTC(unitID)
 			if nanotcx and nanotcy and nanotcz then
