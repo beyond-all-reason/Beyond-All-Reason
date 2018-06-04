@@ -55,59 +55,5 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
     local killed_e = UnitDefs[unitDefID].energyCost * ratio
 	GG.info[attackerTeam][attackerDefID].killed_cost = GG.info[attackerTeam][attackerDefID].killed_cost + killed_m + killed_e/60
     GG.info[attackerTeam][attackerDefID].avgkilled_cost = GG.info[attackerTeam][attackerDefID].killed_cost / GG.info[attackerTeam][attackerDefID].n
-	if weaponDefID and WeaponDefs[weaponDefID] then
-		if WeaponDefs[weaponDefID].type == "Cannon" then
-			GG.info[unitTeam][UnitDefNames["armgate"].id].killed_cost = GG.info[unitTeam][UnitDefNames["armgate"].id].killed_cost + killed_m + killed_e/60
-			if GG.info[unitTeam][UnitDefNames["armgate"].id].n ~= 0 then 
-				GG.info[unitTeam][UnitDefNames["armgate"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["armgate"].id].killed_cost / GG.info[unitTeam][UnitDefNames["armgate"].id].n
-			else
-				GG.info[unitTeam][UnitDefNames["armgate"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["armgate"].id].killed_cost
-			end
-			GG.info[unitTeam][UnitDefNames["corgate"].id].killed_cost = GG.info[unitTeam][UnitDefNames["corgate"].id].killed_cost + killed_m + killed_e/60
-			if GG.info[unitTeam][UnitDefNames["corgate"].id].n ~= 0 then 
-				GG.info[unitTeam][UnitDefNames["corgate"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["corgate"].id].killed_cost / GG.info[unitTeam][UnitDefNames["corgate"].id].n
-			else
-				GG.info[unitTeam][UnitDefNames["corgate"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["corgate"].id].killed_cost
-			end
-
-		elseif string.find(WeaponDefs[weaponDefID].name, "silo") then
-				GG.info[unitTeam][UnitDefNames["armamd"].id].killed_cost = GG.info[unitTeam][UnitDefNames["armgame"].id].killed_cost + killed_m + killed_e/60
-			if GG.info[unitTeam][UnitDefNames["armamd"].id].n ~= 0 then 
-				GG.info[unitTeam][UnitDefNames["armamd"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["armgame"].id].killed_cost / GG.info[unitTeam][UnitDefNames["armgame"].id].n
-			else
-				GG.info[unitTeam][UnitDefNames["armamd"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["armgame"].id].killed_cost
-			end
-				GG.info[unitTeam][UnitDefNames["armscab"].id].killed_cost = GG.info[unitTeam][UnitDefNames["armscab"].id].killed_cost + killed_m + killed_e/60
-			if GG.info[unitTeam][UnitDefNames["armscab"].id].n ~= 0 then 
-				GG.info[unitTeam][UnitDefNames["armscab"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["armscab"].id].killed_cost / GG.info[unitTeam][UnitDefNames["armscab"].id].n
-			else
-				GG.info[unitTeam][UnitDefNames["armscab"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["armscab"].id].killed_cost
-			end
-				GG.info[unitTeam][UnitDefNames["coramd"].id].killed_cost = GG.info[unitTeam][UnitDefNames["coramd"].id].killed_cost + killed_m + killed_e/60
-			if GG.info[unitTeam][UnitDefNames["coramd"].id].n ~= 0 then 
-				GG.info[unitTeam][UnitDefNames["coramd"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["coramd"].id].killed_cost / GG.info[unitTeam][UnitDefNames["coramd"].id].n
-			else
-				GG.info[unitTeam][UnitDefNames["coramd"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["coramd"].id].killed_cost
-			end
-				GG.info[unitTeam][UnitDefNames["cormabm"].id].killed_cost = GG.info[unitTeam][UnitDefNames["cormabm"].id].killed_cost + killed_m + killed_e/60
-			if GG.info[unitTeam][UnitDefNames["cormabm"].id].n ~= 0 then 
-				GG.info[unitTeam][UnitDefNames["cormabm"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["cormabm"].id].killed_cost / GG.info[unitTeam][UnitDefNames["cormabm"].id].n
-			else
-				GG.info[unitTeam][UnitDefNames["cormabm"].id].avgkilled_cost = GG.info[unitTeam][UnitDefNames["cormabm"].id].killed_cost
-			end
-		end
-	end
-end
-
-function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
-    if not attackerDefID then return end
-    if not unitDefID then return end
-    if not GG.info[attackerTeam][attackerDefID] then return end
-    if unitTeam==attackerTeam then return end
-    
-    local killed_m = UnitDefs[unitDefID].metalCost
-    local killed_e = UnitDefs[unitDefID].energyCost
-   GG.info[attackerTeam][attackerDefID].killed_cost = GG.info[attackerTeam][attackerDefID].killed_cost + killed_m + killed_e/60
-   GG.info[attackerTeam][attackerDefID].avgkilled_cost = GG.info[attackerTeam][attackerDefID].killed_cost/ GG.info[attackerTeam][attackerDefID].n
 end
 end
