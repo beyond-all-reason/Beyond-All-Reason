@@ -22,8 +22,12 @@ local game = {}
 	end
 
 	function game:GetTypeByName(typename) -- returns unittype
-		if not UnitDefNames[typename] then return end
-		return Shard:shardify_unittype(UnitDefNames[typename].id)
+		if not UnitDefNames[typename] then
+			Spring.Echo( 'shard: debug: could not find "'..typename..'" in UnitDefNames' )
+			return nil
+		end
+		local def = UnitDefNames[typename]
+		return Shard:shardify_unittype(def.id)
 	end
 
 
