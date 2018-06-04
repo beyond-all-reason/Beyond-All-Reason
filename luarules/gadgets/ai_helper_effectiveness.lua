@@ -30,9 +30,9 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
    -- this means the longer the game the more time the AI will take to "realise" it's being uneffective
    -- limiting the n value is done to prevent that, in hope of making AIs choices more dynamic somehow
 	GG.info[teamID][unitDefID].n = GG.info[teamID][unitDefID].n - 1
-	GG.info[attackerTeam][attackerDefID].killed_cost = GG.info[attackerTeam][attackerDefID].killed_cost - GG.info[attackerTeam][attackerDefID].avgkilled_cost
-	if GG.info[attackerTeam][attackerDefID].killed_cost <= 0 then GG.info[attackerTeam][attackerDefID].killed_cost = 0 end
-	GG.info[attackerTeam][attackerDefID].avgkilled_cost = GG.info[attackerTeam][attackerDefID].killed_cost / GG.info[teamID][unitDefID].n
+	GG.info[teamID][unitDefID].killed_cost = GG.info[teamID][unitDefID].killed_cost - GG.info[teamID][unitDefID].avgkilled_cost
+	if GG.info[teamID][unitDefID].killed_cost <= 0 then GG.info[teamID][unitDefID].killed_cost = 0 end
+	GG.info[teamID][unitDefID].avgkilled_cost = GG.info[teamID][unitDefID].killed_cost / GG.info[teamID][unitDefID].n
    end
 end
 
