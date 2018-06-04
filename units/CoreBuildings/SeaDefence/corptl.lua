@@ -98,7 +98,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "Level1TorpedoLauncher",
+				name = "Torpedo launcher",
 				noselfdamage = true,
 				range = 430,
 				reloadtime = 0.9,

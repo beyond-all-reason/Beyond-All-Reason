@@ -131,7 +131,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				intensity = 0.75,
-				name = "FlameThrower",
+				name = "Pop-up anti-swarm AoE flamethrower",
 				noselfdamage = true,
 				proximitypriority = 3,
 				range = 410,

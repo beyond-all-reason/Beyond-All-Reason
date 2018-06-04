@@ -121,7 +121,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "PlasmaBattery",
+				name = "Heavy g2g barrage plasma battery",
 				noselfdamage = true,
 				range = 1650,
 				reloadtime = 0.5,

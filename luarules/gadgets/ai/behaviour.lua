@@ -67,7 +67,11 @@ end
 
 -- yields control of the unit, note that this may not result in deactivation,
 -- there may be no other behaviours to take control
-function Behaviour:yieldControlOfUnit()
+function Behaviour:YieldControlOfUnit()
+	self.unit:ElectBehaviour()
+end
+
+function Behaviour:RequestControlOfUnit()
 	self.unit:ElectBehaviour()
 end
 

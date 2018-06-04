@@ -83,7 +83,7 @@ return {
 				impulsefactor = 0.123,
 				model = "bomb2",
 				mygravity = 0.4,
-				name = "AdvancedBombs",
+				name = "Heavy a2g incinerating warheads",
 				noselfdamage = true,
 				range = 1280,
 				reloadtime = 7,
