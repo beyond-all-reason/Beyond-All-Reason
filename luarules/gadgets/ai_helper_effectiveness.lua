@@ -23,7 +23,7 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
    GG.info[teamID] = GG.info[teamID] or {}
    GG.info[teamID][unitDefID] = GG.info[teamID][unitDefID] or {killed_cost=0,n=0, avgkilled_cost=0}
    GG.info[teamID][unitDefID].n = GG.info[teamID][unitDefID].n + 1
-   if GG.info[teamID][unitDefID].n > 30 then 
+   if GG.info[teamID][unitDefID].n > 80 then 
    -- Only register the stats of the 30 latest made units:
    -- as the game evolves a unit that was being very effective can suddenly get crushed down,
    -- the greater the "n" value, the longer it will take for the avgkilled_cost to go down, and for the calculated effectiveness to go down
