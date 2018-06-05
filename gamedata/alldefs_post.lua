@@ -72,7 +72,6 @@ end
 
 
 function UnitDef_Post(name, uDef)
-    uDef.pushresistant = true
 	-- load BAR stuff
 	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 		-- BAR models
