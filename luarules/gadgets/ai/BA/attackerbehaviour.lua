@@ -58,10 +58,12 @@ function AttackerBehaviour:AttackCell()
 	local maxhealth = unit:GetMaxHealth()
 	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
 	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
+	
+	-- Skirmishing
 	if unitID % 30 == Spring.GetGameFrame() % 30 then
-		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
+		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.80 or currenthealth > 3000) then
 			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
-			if myRange > enemyRange then
+			if myRange > enemyRange and (enemyRange > 0 or enemyRange ~= nil) then
 				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
 				local ux,uy,uz = Spring.GetUnitPosition(unitID)
@@ -78,6 +80,8 @@ function AttackerBehaviour:AttackCell()
 			end
 		end
 	end
+	
+	-- Attacking
 	if unitID % 150 == Spring.GetGameFrame() % 150 then
 		local TeamID = ai.id
 		local allyTeamID = ai.allyId
@@ -88,8 +92,15 @@ function AttackerBehaviour:AttackCell()
 		local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
 		local ec, es = Spring.GetTeamResources(ai.id, "energy")
 		--attack
-		if (currenthealth >= maxhealth*0.95 or currenthealth > 3000)  then
-				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
+		if (currenthealth >= maxhealth*0.75 or currenthealth > 3000)  then
+				local moverandom = math.random(0,2)
+				if moverandom == 0 then
+					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 0 }, {})
+				elseif moverandom == 1 then
+					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 1 }, {})
+				else
+					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
+				end
 				--p = api.Position()
 				--p.x = cell.posx
 				--p.z = cell.posz
@@ -111,7 +122,14 @@ function AttackerBehaviour:AttackCell()
 						unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
 					else
 						if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
-						unit:MoveAndFire(self.target)
+							local moverandom = math.random(0,2)
+							if moverandom == 0 then
+								unit:Move(self.target)
+							elseif moverandom == 1 then
+								unit:MoveAndFire(self.target)
+							else
+								unit:Patrol(self.target)
+							end
 						else
 							local myUnits = Spring.GetTeamUnits(TeamID)
 							for i = 1,#myUnits do
@@ -128,9 +146,10 @@ function AttackerBehaviour:AttackCell()
 				end
 		end
 	end
-		--retreat
+	
+	-- Retreating
 	if unitID % 30 == Spring.GetGameFrame() % 30 then
-		if not (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
+		if not (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
 		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 0 }, {})
 		local nanotcx, nanotcy, nanotcz = GG.GetClosestNanoTC(unitID)
 			if nanotcx and nanotcy and nanotcz then

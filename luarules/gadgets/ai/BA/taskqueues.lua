@@ -345,166 +345,29 @@ local corcommanderfirst = {
 	CorStarterLabT1,
 }
 
-local corcommanderq = {
-	CorEnT1,
-	CorEnT1,
-	"corllt",
-	"corrad",
-	CorEnT1,
-	CorEnT1,
-	"corllt",
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	"corllt",
-	CorEnT1,
-	CorEnT1,
-	"corllt",
-	CorEnT1,
-	"corllt",
-	"corrad",
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	"corllt",
-	CorEnT1,
-	CorEnT1,
-	"corllt",
-	CorEnT1,
-	"cormstor",
-	CorRandomLab,
-}
-
 local cort1construction = {
-	--CorNanoT,
+	CorNanoT,
 	CorRandomLab,
 	CorNanoT,
+	CorEnT1,
+	CorNanoT,
+	CorMexT1,
+	CorNanoT,
 	CorGroundAdvDefT1,
+	CorNanoT,
     CorAirAdvDefT1,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	CorGroundAdvDefT1,
-	CorEnT1,
-	CorAirAdvDefT1,
-	"cormstor",
-	CorEnT1,
-	CorEnT1,
-	"corrad",
-	CorGroundAdvDefT1,
-	CorEnT1,
-	CorRandomLab,
-	CorNanoT,
-	CorGroundAdvDefT1,
-	CorEnT1,
-	CorEnT1,
-	CorGroundAdvDefT1,
-	CorRandomLab,
-	CorNanoT,
-	CorAirAdvDefT1,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-    CorAirAdvDefT1,
-	CorEnT1,
-	CorEnT1,
-	"coradvsol",
-	CorEnT1,
-	CorEnT1,
-	CorGroundAdvDefT1,
-	CorEnT1,
-}
-local corT1ConFirst = {
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-	CorEcoT1,
-}
-
-local cort1mexingqueue = {
-	CorMexT1,
-	CorNanoT,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	CorGroundAdvDefT1,
-	CorMexT1,
-	CorNanoT,
-	CorEnT1,
-	CorGroundAdvDefT1,
-	CorMexT1,
-	CorNanoT,
-	CorEnT1,
-	CorGroundAdvDefT1,
-	CorMexT1,
-	CorNanoT,
-	CorEnT1,
-	CorGroundAdvDefT1,
-	CorMexT1,
-	CorNanoT,
-	CorEnT1,
-	CorGroundAdvDefT1,
 }
 
 local cort2construction = {
 	CorEnT2,
-	CorEnT2,
 	CorRandomLab,
 	CorTacticalOffDefT2,
 	CorTacticalAdvDefT2,
-    CorAirAdvDefT2,
-	CorTacticalAdvDefT2,
-	CorEnT2,
-	CorEnT2,
-	CorRandomLab,
-	CorEnT2,
-	CorRandomLab,
-	CorEnT2,
-	CorRandomLab,
-	CorTacticalOffDefT2,
-	CorTacticalAdvDefT2,
-    CorAirAdvDefT2,
-	CorEnT2,
-	CorEnT2,
-	CorRandomLab,
-	CorTacticalOffDefT2,
-	CorTacticalAdvDefT2,
-    CorAirAdvDefT2,
-    CorTacticalAdvDefT2,
+	CorAirAdvDefT2,
 }
 
 local corkbotlab = {
 	"corck",	--	Constructor
-	"corck",	--	Constructor
 	CorKBotsT1,
 	CorKBotsT1,
 	CorKBotsT1,
@@ -513,21 +376,11 @@ local corkbotlab = {
 	CorKBotsT1,
 	CorKBotsT1,
 	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	"cornecro",
-	"cornecro",
 	"cornecro",
 }
 
 local corvehlab = {
 	"corcv",	--	Constructor
-	"corcv",	--	Constructor
 	CorVehT1,
 	CorVehT1,
 	CorVehT1,
@@ -536,26 +389,10 @@ local corvehlab = {
 	CorVehT1,
 	CorVehT1,
 	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-	CorVehT1,
-
 }
 
 local corairlab = {
 	"corca",	-- 	Constructor
-	"corca",	-- 	Constructor
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
 	CorAirT1,
 	CorAirT1,
 	CorAirT1,
@@ -568,12 +405,6 @@ local corairlab = {
 
 corkbotlabT2 = {
 	"corack",
-	"corack",
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
 	CorKBotsT2,
 	CorKBotsT2,
 	CorKBotsT2,
@@ -588,12 +419,6 @@ corkbotlabT2 = {
 
 corvehlabT2 = {
 	"coracv",
-	"coracv",
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
 	CorVehT2,
 	CorVehT2,
 	CorVehT2,
@@ -618,11 +443,6 @@ corairlabT2 = {
 	CorAirT2,
 	CorAirT2,
 	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
 }
 corhoverlabT2 = {
 	"armch",
@@ -636,19 +456,8 @@ corhoverlabT2 = {
 	CorHover,
 	CorHover,
 	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
 }
 corgantryT3 = {
-	CorGantry,
-	CorGantry,
-	CorGantry,
-	CorGantry,
-	CorGantry,
 	CorGantry,
 }
 
@@ -670,19 +479,19 @@ local function corcommander()
 	end
 end
 
-local function corT1constructorrandommexer()
-	if ai.engineerfirst1 == true then
-			local r = math.random(0,1)
-		if r == 0 or Spring.GetGameSeconds() < 300 then
-			return cort1mexingqueue
-		else
-			return cort1construction
-		end
-	else
-        ai.engineerfirst1 = true
-        return corT1ConFirst
-    end
-end
+--local function corT1constructorrandommexer()
+	--if ai.engineerfirst1 == true then
+			--local r = math.random(0,1)
+		--if r == 0 or Spring.GetGameSeconds() < 300 then
+			--return cort1mexingqueue
+		--else
+			--return cort1construction
+		--end
+	--else
+        --ai.engineerfirst1 = true
+        --return corT1ConFirst
+    --end
+--end
 
 --------------------------------------------------------------------------------------------	
 --------------------------------------------------------------------------------------------
@@ -976,160 +785,30 @@ local armcommanderfirst = {
 	ArmStarterLabT1,
 }
 
-local armcommanderq = {
-	ArmEnT1,
-	ArmEnT1,
-	"armllt",
-	"armrad",
-	ArmEnT1,
-	ArmEnT1,
-	"armllt",
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	"armllt",
-	"armrad",
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	"armllt",
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	"armllt",
-	"armrad",
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmRandomLab,
-}
-
 local armt1construction = {
-	--ArmNanoT,
+	ArmNanoT,
 	ArmRandomLab,
 	ArmNanoT,
 	ArmGroundAdvDefT1,
+	ArmNanoT,
 	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmEnT1,
-	ArmAirAdvDefT1,
-	"armrad",
-	ArmEnT1,
-	ArmEnT1,
-	"armadvsol",
-	ArmGroundAdvDefT1,
-	"armmstor",
-	ArmRandomLab,
+	ArmNanoT,
+	ArmMexT1,
 	ArmNanoT,
 	ArmAirAdvDefT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmRandomLab,
 	ArmNanoT,
-	ArmAirAdvDefT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmAirAdvDefT1,
-	"armrad",
-	"armadvsol",
-	ArmEnT1,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmEnT1,
-}
-local armT1ConFirst = {
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-	ArmEcoT1,
-}
-local armt1mexingqueue = {
-	ArmMexT1,
-	ArmNanoT,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmMexT1,
-	ArmNanoT,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmMexT1,
-	ArmNanoT,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmMexT1,
-	ArmNanoT,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
-	ArmMexT1,
-	ArmNanoT,
-	ArmEnT1,
-	ArmGroundAdvDefT1,
 }
 
 local armt2construction = {
-	ArmEnT2,
 	ArmEnT2,
 	ArmRandomLab,
 	ArmTacticalAdvDefT2,
 	ArmTacticalOffDefT2,
 	ArmAirAdvDefT2,
-	ArmTacticalOffDefT2,
-	ArmEnT2,
-	ArmEnT2,
-	ArmRandomLab,
-    ArmGroundAdvDefT2,
-	ArmTacticalOffDefT2,
-	ArmEnT2,
-	ArmEnT2,
-	ArmRandomLab,
-	ArmEnT2,
-	ArmEnT2,
-	ArmRandomLab,
-	ArmTacticalAdvDefT2,
-	ArmTacticalOffDefT2,
-	ArmEnT2,
-	ArmEnT2,
-	ArmRandomLab,
-	ArmTacticalAdvDefT2,
-    ArmTacticalAdvDefT2,
-
 }
 
 local armkbotlab = {
 	"armck",	-- 	Constructor
-	"armck",	-- 	Constructor
 	ArmKBotsT1,
 	ArmKBotsT1,
 	ArmKBotsT1,
@@ -1138,21 +817,11 @@ local armkbotlab = {
 	ArmKBotsT1,
 	ArmKBotsT1,
 	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	"armrectr",
-	"armrectr",
 	"armrectr",
 }
 
 local armvehlab = {
 	"armcv",	--	Constructor
-	"armcv",	--	Constructor
 	ArmVehT1,
 	ArmVehT1,
 	ArmVehT1,
@@ -1161,19 +830,10 @@ local armvehlab = {
 	ArmVehT1,
 	ArmVehT1,
 	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-	ArmVehT1,
-
 }
 
 local armairlab = {
 	"armca",	--	Constructor
-	"armca",	--	Constructor
 	ArmAirT1,
 	ArmAirT1,
 	ArmAirT1,
@@ -1182,25 +842,10 @@ local armairlab = {
 	ArmAirT1,
 	ArmAirT1,
 	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-
 }
 
 armkbotlabT2 = {
 	"armack",
-	"armack",
-	"armack",
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
@@ -1215,13 +860,6 @@ armkbotlabT2 = {
 
 armvehlabT2 = {
 	"armacv",
-	"armacv",
-	"armacv",
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
 	ArmVehT2,
 	ArmVehT2,
 	ArmVehT2,
@@ -1236,12 +874,6 @@ armvehlabT2 = {
 
 armairlabT2 = {
 	"armaca",
-	"armaca",
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
 	ArmAirT2,
 	ArmAirT2,
 	ArmAirT2,
@@ -1256,12 +888,6 @@ armairlabT2 = {
 
 armhoverlabT2 = {
 	"armch",
-	"armch",
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
 	ArmHover,
 	ArmHover,
 	ArmHover,
@@ -1274,12 +900,6 @@ armhoverlabT2 = {
 	ArmHover,
 }
 armgantryT3 = {
-	ArmGantry,
-	ArmGantry,
-	ArmGantry,
-	ArmGantry,
-	ArmGantry,
-	ArmGantry,
 	ArmGantry,
 }
 
@@ -1301,23 +921,14 @@ local function armcommander()
 	end
 end
 
-local function armT1constructorrandommexer()
-    if ai.engineerfirst1 == true then
-           local r = math.random(0,1)
-        if r == 0 or Spring.GetGameSeconds() < 300 then
-            return armt1mexingqueue
-        else
-            return armt1construction
-        end
-    else
-        ai.engineerfirst1 = true
-        return armT1ConFirst
-    end
-end
-
-
-
-
+--local function armT1constructorrandommexer()
+    --if ai.engineerfirst1 == true then
+		--return armt1construction
+    --else
+        --ai.engineerfirst1 = true
+		--return armT1ConFirst
+    --end
+--end
 
 --------------------------------------------------------------------------------------------
 ---------------------------------------- TASKQUEUES ----------------------------------------
@@ -1327,10 +938,10 @@ taskqueues = {
 	---CORE
 	--constructors
 	corcom = corcommander,
-	corck = corT1constructorrandommexer,
-	corcv = corT1constructorrandommexer,
-	corca = corT1constructorrandommexer,
-	corch = corT1constructorrandommexer,
+	corck = cort1construction,
+	corcv = cort1construction,
+	corca = cort1construction,
+	corch = cort1construction,
 	cornanotc = assistqueue,
 	corack = cort2construction,
 	coracv = cort2construction,
@@ -1348,10 +959,10 @@ taskqueues = {
 	---ARM
 	--constructors
 	armcom = armcommander,
-	armck = armT1constructorrandommexer,
-	armcv = armT1constructorrandommexer,
-	armca = armT1constructorrandommexer,
-	armch = armT1constructorrandommexer,
+	armck = armt1construction,
+	armcv = armt1construction,
+	armca = armt1construction,
+	armch = armt1construction,
 	armnanotc = assistqueue,
 	armack = armt2construction,
 	armacv = armt2construction,
