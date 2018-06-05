@@ -354,6 +354,10 @@ end
 end
 if weapon <= 11 then
 	if weapon == level then
+	_,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
+	if uwlaserheight <= 0 then
+		return false
+	end
 	if dgunning then
 		return false
 	else
@@ -373,10 +377,10 @@ if weapon <= 11 then
 	end
 elseif weapon >= 12 and weapon <= 22 then
 	if weapon - 11 == level then
-	_,uwlaserheight = Spring.GetUnitPosition(unitID)
-	if uwlaserheight > -15 then
+	_,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
+	if uwlaserheight > 0 then
 		return false
-	else 
+	end
 	if dgunning then
 		return false
 	else
@@ -390,7 +394,6 @@ elseif weapon >= 12 and weapon <= 22 then
 		WaitForTurn(torso, 2)
 		justfired = true
 		return true
-	end
 	end
 	else
 	return false
