@@ -61,10 +61,17 @@ function AttackerBehaviour:AttackCell()
 	
 	-- Skirmishing
 	if unitID % 30 == Spring.GetGameFrame() % 30 then
-		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.80 or currenthealth > 3000) then
+		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
 			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
-			if myRange > enemyRange and (enemyRange > 0 or enemyRange ~= nil) then
-				self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
+			if myRange*0.9 > enemyRange and enemyRange > 50 and enemyRange ~= nil then
+				local moverandom = math.random(0,2)
+				if moverandom == 0 then
+					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 0 }, {})
+				elseif moverandom == 1 then
+					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 1 }, {})
+				else
+					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
+				end
 				local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
 				local ux,uy,uz = Spring.GetUnitPosition(unitID)
 				local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
@@ -101,10 +108,6 @@ function AttackerBehaviour:AttackCell()
 				else
 					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				end
-				--p = api.Position()
-				--p.x = cell.posx
-				--p.z = cell.posz
-				--p.y = 0
 				if nearestVisibleUnit == nil then
 					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
 				else
@@ -122,13 +125,13 @@ function AttackerBehaviour:AttackCell()
 						unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
 					else
 						if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
-							local moverandom = math.random(0,2)
+							local moverandom = math.random(0,4)
 							if moverandom == 0 then
-								unit:Move(self.target)
+								unit:Patrol(self.target)
 							elseif moverandom == 1 then
 								unit:MoveAndFire(self.target)
 							else
-								unit:Patrol(self.target)
+								unit:Move(self.target)
 							end
 						else
 							local myUnits = Spring.GetTeamUnits(TeamID)
@@ -136,7 +139,10 @@ function AttackerBehaviour:AttackCell()
 								pickMyUnit = myUnits[i]
 								local r = math.random(0,#myUnits)
 								if r == pickMyUnit then
-									unit:Move(self.target)
+									local r2 = math.random(0,#myUnits)
+									if r2 == pickMyUnit then
+										unit:Move(self.target)
+									end
 								end
 							end
 						end

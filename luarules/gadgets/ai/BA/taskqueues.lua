@@ -200,36 +200,6 @@ function CorAirAdvDefT1()
 	end
 end
 
-function CorKBotsT1()
-	if Spring.GetGameSeconds() < 150 then
-		return "corak"
-	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-		local unitoptions = {"corak", "corak", "corak", "cornecro", "corstorm",}
-		return FindBest(unitoptions)
-	else
-	    local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
-		return FindBest(unitoptions)
-	end
-end
-
-function CorVehT1()
-    if Spring.GetGameSeconds() < 150 then
-		return "corfav"
-    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-		local unitoptions = {"corgator", "corgator", "corfav",}
-		return FindBest(unitoptions)
-    else 
-		local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
-		return FindBest(unitoptions)
-	end
-end
-
-function CorAirT1()
-	
-	local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
-	return FindBest(unitoptions)
-end
-
 function CorAirAdvDefT2()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
@@ -278,6 +248,32 @@ end
 	--return unitoptions[math.random(1,#unitoptions)]
 
 
+function CorKBotsT1()
+	if Spring.GetGameSeconds() < 300 then
+		return "corak"
+	else
+	    local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
+		return FindBest(unitoptions)
+	end
+end
+
+function CorVehT1()
+    if Spring.GetGameSeconds() < 150 then
+		return "corfav"
+    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+		local unitoptions = {"corgator", "corgator", "corfav",}
+		return FindBest(unitoptions)
+    else 
+		local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
+		return FindBest(unitoptions)
+	end
+end
+
+function CorAirT1()
+	
+	local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
+	return FindBest(unitoptions)
+end
 
 function CorKBotsT2()
 	
@@ -645,36 +641,6 @@ function ArmAirAdvDefT1()
 	end
 end
 
-function ArmKBotsT1()
-	if Spring.GetGameSeconds() < 150 then
-		return "armflea"
-	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-		local unitoptions = {"armpw", "armpw", "armflea",}
-		return FindBest(unitoptions)
-	else 
-		local unitoptions = {"armpw", "armflea", "armham", "armrectr", "armrock", "armwar", "armjeth",}
-		return FindBest(unitoptions)
-	end
-end
-
-function ArmVehT1()
-    if Spring.GetGameSeconds() < 150 then
-       return "armfav"
-    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-       local unitoptions = {"armflash", "armflash", "armfav",}
-		return FindBest(unitoptions)
-    else 
-       local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
-		return FindBest(unitoptions)
-	end
-end
-
-function ArmAirT1()
-	
-	local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
-	return FindBest(unitoptions)
-end
-
 function ArmAirAdvDefT2()
 
 	local unitoptions = {"armpb", "armflak",}
@@ -717,6 +683,34 @@ end
 	--local unitoptions = {"armamd", "armsilo",}
 	--return FindBest(unitoptions)
 
+function ArmKBotsT1()
+	if Spring.GetGameSeconds() < 150 then
+		return "armflea"
+	elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+		return "armpw"
+	else 
+		local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armwar", "armjeth",}
+		return FindBest(unitoptions)
+	end
+end
+
+function ArmVehT1()
+    if Spring.GetGameSeconds() < 150 then
+       return "armfav"
+    elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
+       local unitoptions = {"armflash", "armflash", "armfav",}
+		return FindBest(unitoptions)
+    else 
+       local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
+		return FindBest(unitoptions)
+	end
+end
+
+function ArmAirT1()
+	
+	local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
+	return FindBest(unitoptions)
+end	
 
 function ArmKBotsT2()
 	
