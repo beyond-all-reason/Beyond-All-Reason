@@ -66,7 +66,7 @@ x,y,z = Spring.GetUnitPosition(unitID)
 			local unittable = Spring.GetUnitsInSphere(x, y, z, repairRange)
 				for _, uid in pairs(unittable) do
 					if uid ~= unitID then
-						if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(uid)) == true then
+						if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(uid)) == true and not (UnitDefs[Spring.GetUnitDefID(uid)].isBuilding) then
 							local oldhp2, maxhp2,_,_,bprog = Spring.GetUnitHealth(uid)
 							if oldhp2 / maxhp2 <= bprog then
 								if oldhp2 >0 then
