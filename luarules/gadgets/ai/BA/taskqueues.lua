@@ -402,8 +402,10 @@ local corcommanderfirst = {
 
 local cort1construction = {
 	CorNanoT,
+	CorEnT1,
 	CorRandomLab,
 	CorGroundAdvDefT1,
+	CorEnT1,
 	"corllt",
 	CorNanoT,
 	CorEnT1,
@@ -896,8 +898,10 @@ local armcommanderfirst = {
 
 local armt1construction = {
 	ArmNanoT,
+	ArmEnT1,
 	ArmRandomLab,
 	ArmGroundAdvDefT1,
+	ArmEnT1,
 	"armllt",
 	ArmEnT1,
 	ArmNanoT,
