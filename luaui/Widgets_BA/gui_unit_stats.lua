@@ -265,12 +265,12 @@ function widget:DrawScreen()
 	if rType == 'unit' then
 		uID = unitID
 	end
-	if spec and useSelection then
-		local selUnits = spGetSelectedUnits()
-		if #selUnits >= 1 then
-			uID = selUnits[1]
-		end
-	end
+	--if spec and useSelection then
+	--	local selUnits = spGetSelectedUnits()
+	--	if #selUnits >= 1 then
+	--		uID = selUnits[1]
+	--	end
+	--end
 	local useHoverID = false
 	local _, activeID = Spring.GetActiveCommand()
 	if not activeID then activeID = 0 end
