@@ -1019,7 +1019,7 @@ end
 function GetSkill(playerID)
 
 	local customtable
-	if select(11,Spring.GetPlayerInfo(playerID)) then
+	if select(11,Spring.GetPlayerInfo(playerID)) then   -- changed to 11th in engine 104.0.1.547
 		customtable = select(11,Spring.GetPlayerInfo(playerID)) -- player custom table
 	else
 		customtable = select(10,Spring.GetPlayerInfo(playerID))
@@ -2092,7 +2092,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 
     if ((barWidth/metalStorage)*metal) > 0.8 then
         local glowsize = 11
-        gl_Color(1,1,1.2,0.04)
+        gl_Color(1,1,1.2,0.09)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
 
@@ -2117,7 +2117,7 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 
     if ((barWidth/energyStorage)*energy) > 0.8 then
         local glowsize = 11
-        gl_Color(1,1,0.2,0.04)
+        gl_Color(1,1,0.2,0.09)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
 
