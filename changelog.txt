@@ -4,10 +4,7 @@ xx/xx/2018
 Balance:
 In current test (will be undone or fixed/balanced before release):
  • Emptied T2 sea buildmenu to rebuild the roster progressively
- • Arm/Core Scouts don't use aa weapons anymore
- • Support Frigates separated into:
-AA missiles frigate: 132 damages per 1.2 seconds at 800 range and 96 aoe
-Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 seconds at 375 range and 12 aoe
+ • Support Frigates becomes Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 seconds at 375 range and 12 aoe
  • Hovercraft can now be transported
  • Hovercraft builder cannot be made from T1 shipyard
  • Hovercraft buildpower 90 -> 140

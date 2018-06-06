@@ -210,11 +210,11 @@ return {
 				def = "LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [3] = {
-				-- badtargetcategory = "LIGHTAIRSCOUT",
-				-- def = "AAMISSILE",
-				-- onlytargetcategory = "VTOL",
-			-- },
+			[3] = {
+				badtargetcategory = "LIGHTAIRSCOUT",
+				def = "AAMISSILE",
+				onlytargetcategory = "VTOL",
+			},
 		},
 	},
 }
