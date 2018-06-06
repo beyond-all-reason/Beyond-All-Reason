@@ -559,26 +559,6 @@ local specsLabelOffset = 0
 local teamsizeVersusText = ""
 
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
-if Engine and Engine.version then
-	local function Split(s, separator)
-		local results = {}
-		for part in s:gmatch("[^"..separator.."]+") do
-			results[#results + 1] = part
-		end
-		return results
-	end
-	engineVersion = Split(Engine.version, '-')
-	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
-		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
-	else
-		engineVersion = tonumber(Engine.version)
-	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
-end
-
-
 ---------------------------------------------------------------------------------------------------
 --  Geometry
 ---------------------------------------------------------------------------------------------------
@@ -1039,10 +1019,10 @@ end
 function GetSkill(playerID)
 
 	local customtable
-	if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401547 then
-		customtable = select(11,Spring_GetPlayerInfo(playerID)) -- player custom table
+	if select(11,Spring.GetPlayerInfo(playerID)) then
+		customtable = select(11,Spring.GetPlayerInfo(playerID)) -- player custom table
 	else
-		customtable = select(10,Spring_GetPlayerInfo(playerID)) -- player custom table
+		customtable = select(10,Spring.GetPlayerInfo(playerID))
 	end
 	local tsMu = customtable.skill
 	local tsSigma = customtable.skilluncertainty

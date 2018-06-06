@@ -643,7 +643,7 @@ function widget:DrawScreen()
 		cYstart = cY
 		
 	  
-		local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
+		local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey
 		
 		local titleFontSize = fontSize*1.12
 	  local iconHalfSize = titleFontSize*0.75
