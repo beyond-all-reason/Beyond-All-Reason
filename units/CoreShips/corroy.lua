@@ -34,12 +34,12 @@ return {
 		sonardistance = 400,
 		waterline = 0,
 		--move
-		acceleration = 0.028,
-		brakerate = 0.049,
+		acceleration = 0.029,
+		brakerate = 0.050,
 		turninplace = true,
-		maxvelocity = 1.72,
+		maxvelocity = 1.76,
 		turninplaceanglelimit = 140,
-		turnrate = 190,
+		turnrate = 194,
 		--end move
 		customparams = {
 
@@ -141,7 +141,7 @@ return {
 				weaponvelocity = 336,
 				damage = {
 					bombers = 62,
-					default = 503,
+					default = 530,
 					fighters = 62,
 					vtol = 62,
 					subs = 5,

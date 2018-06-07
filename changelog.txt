@@ -24,7 +24,7 @@ Sea economy, factories and engineering:
  • Flamethrowers dont spray as wide as before
 
 Sea Offense and Defense:
- • Arm Destroyer / Core Destroyer: Speed/Accel/Brakerate/Turnrate -2%, plasma damages -5%, projectile speed +5%
+ • Arm Destroyer / Core Destroyer: projectile speed +5%
  • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health), sonar distance reduced (400 -> 375)
  • Destroyers' and cruisers' and support frigates' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
  • Arm/Core Assult Frigates damages + 3%, turret turnspeed reduced -3%
@@ -92,7 +92,6 @@ Fixes:
  • Fixed Set Target command giving away exact target position
  • Disabled unit_shipyardcollisions.lua which poorly handled ships vs shipyards collisions
  • mo_preventcombomb removed, (the prevent combomb gadget is already always enabled in last commander vs last commander situations)
-
 
 10.07 -> 10.08
 15/04/2018
