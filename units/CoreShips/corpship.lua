@@ -132,7 +132,7 @@ return {
 				noselfdamage = true,
 				predictboost = 0.4,
 				range = 480,
-				reloadtime = 0.9,
+				reloadtime = 0.936,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,

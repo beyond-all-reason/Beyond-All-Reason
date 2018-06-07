@@ -129,7 +129,7 @@ return {
 				name = "Light long-range plasma cannon",
 				noselfdamage = true,
 				range = 470,
-				reloadtime = 1.75,
+				reloadtime = 1.82,
 				predictboost = 0.4,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
