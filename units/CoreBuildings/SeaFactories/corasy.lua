@@ -50,7 +50,7 @@ return {
 			-- "cormh",
 			-- "corblackhy",
 			-- "corthovr",
-			-- "corsjam",
+			"corsjam",
 		},
 		customparams = {
 			bar_collisionvolumeoffsets = "0 10 -2",

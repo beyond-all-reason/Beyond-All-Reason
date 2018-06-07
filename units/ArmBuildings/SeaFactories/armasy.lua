@@ -49,7 +49,7 @@ return {
 			-- "armmh",
 			-- "armepoch",
 			-- "armthovr",
-			-- "armsjam",
+			"armsjam",
 		},
 		customparams = {
 			bar_collisionvolumescales = "160 60 160",
