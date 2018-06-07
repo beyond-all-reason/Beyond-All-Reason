@@ -258,45 +258,34 @@ end
 
 
 function CorKBotsT1()
-	local countAdvFacs = UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coraap.id)
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if not (countAdvFacs > 0 and (ec < es*0.3 or mc < ms*0.3)) then
-		if Spring.GetGameSeconds() < 300 then
-			return "corak"
-		else
-			local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
-			return FindBest(unitoptions)
-		end
+	if not (countAdvBuilders > 0 and (ec < es*0.3 or mc < ms*0.3)) then
+		local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
 end
 
 function CorVehT1()
-	local countAdvFacs = UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coraap.id)
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if not (countAdvFacs > 0 and (ec < es*0.3 or mc < ms*0.3)) then
-		if Spring.GetGameSeconds() < 150 then
-			return "corfav"
-		elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-			local unitoptions = {"corgator", "corgator", "corfav",}
-			return FindBest(unitoptions)
-		else 
-			local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
-			return FindBest(unitoptions)
-		end
+	if not (countAdvBuilders > 0 and (ec < es*0.3 or mc < ms*0.3)) then
+		local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
 end
 
 function CorAirT1()
-	local countAdvFacs = UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coraap.id)
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if not (countAdvFacs > 0 and (ec < es*0.3 or mc < ms*0.3)) then
+	if not (countAdvBuilders > 0 and (ec < es*0.3 or mc < ms*0.3)) then
 		local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
 		return FindBest(unitoptions)
 	else
@@ -402,22 +391,27 @@ local corcommanderfirst = {
 	"corsolar",
 	"corsolar",
 	CorStarterLabT1,
+	"corllt",
 	"corsolar",
 	CorStarterLabT1,
+	"corllt",
 	"corsolar",
 	CorStarterLabT1,
+	"corllt",
 }
 
 local cort1construction = {
 	CorNanoT,
+	CorEnT1,
 	CorRandomLab,
+	CorGroundAdvDefT1,
+	CorEnT1,
+	"corllt",
 	CorNanoT,
 	CorEnT1,
-	CorNanoT,
 	CorMexT1,
-	CorNanoT,
-	CorGroundAdvDefT1,
-	CorNanoT,
+	"cormex",
+	"corllt",
     CorAirAdvDefT1,
 }
 
@@ -760,47 +754,34 @@ end
 	--return FindBest(unitoptions)
 
 function ArmKBotsT1()
-	local countAdvFacs = UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coraap.id)
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if not (countAdvFacs > 0 and (ec < es*0.3 or mc < ms*0.3)) then
-		if Spring.GetGameSeconds() < 150 then
-			return "armflea"
-		elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-			return "armpw"
-		else 
-			local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armwar", "armjeth",}
-			return FindBest(unitoptions)
-		end
+	if not (countAdvBuilders > 0 and (ec < es*0.3 or mc < ms*0.3)) then
+		local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armwar", "armjeth",}
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
 end
 
 function ArmVehT1()
-	local countAdvFacs = UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coraap.id)
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if not (countAdvFacs > 0 and (ec < es*0.3 or mc < ms*0.3)) then
-		if Spring.GetGameSeconds() < 150 then
-		   return "armfav"
-		elseif Spring.GetGameSeconds() >= 150 and Spring.GetGameSeconds() < 300 then
-		   local unitoptions = {"armflash", "armflash", "armfav",}
-			return FindBest(unitoptions)
-		else 
-		   local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
-			return FindBest(unitoptions)
-		end
+	if not (countAdvBuilders > 0 and (ec < es*0.3 or mc < ms*0.3)) then
+		local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
 end
 
 function ArmAirT1()
-	local countAdvFacs = UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coraap.id)
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if not (countAdvFacs > 0 and (ec < es*0.3 or mc < ms*0.3)) then
+	if not (countAdvBuilders > 0 and (ec < es*0.3 or mc < ms*0.3)) then
 		local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
 		return FindBest(unitoptions)
 	else
@@ -906,24 +887,29 @@ local armcommanderfirst = {
 	"armsolar",
 	"armsolar",
 	ArmStarterLabT1,
+	"armllt",
 	"armsolar",
 	ArmStarterLabT1,
+	"armllt",
 	"armsolar",
 	ArmStarterLabT1,
+	"armllt",
 }
 
 local armt1construction = {
 	ArmNanoT,
+	ArmEnT1,
 	ArmRandomLab,
-	ArmNanoT,
 	ArmGroundAdvDefT1,
-	ArmNanoT,
+	ArmEnT1,
+	"armllt",
 	ArmEnT1,
 	ArmNanoT,
 	ArmMexT1,
 	ArmNanoT,
+	"armmex",
+	"armllt",
 	ArmAirAdvDefT1,
-	ArmNanoT,
 }
 
 local armt2construction = {
