@@ -43,6 +43,15 @@ function FindBest(unitoptions)
 	end
 end
 
+function WindOrSolar()
+    local curWind = Spring.GetWind()
+    local avgWind = (Game.windMin + Game.windMax)/2
+    if curWind > 8 or avgWind > 10 then
+        return "win"
+    else
+        return "solar"
+    end
+end
 
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
@@ -66,12 +75,10 @@ function CorEnT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec < es*0.1 then
-        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
-            return "corwin"
-        else
-            return "corsolar"
-        end
+	if ec < es*0.10 then
+        return ("cor"..WindOrSolar())
+    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
+        return "cormakr"
 	elseif mc < ms*0.1 then
 		return "cormex"
 	elseif mc < ms*0.6 then
@@ -120,12 +127,10 @@ function CorMexT1( taskqueuebehaviour )
 		return "cormex"
 	elseif mc < ms*0.3 then
 		return "corexp"
-	elseif ec < es*0.1 then
-        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
-            return "corwin"
-        else
-            return "corsolar"
-        end
+	elseif ec < es*0.10 then
+        return ("cor"..WindOrSolar())
+    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
+        return "cormakr"
 	else
 		return "corkrog"
 	end
@@ -388,14 +393,14 @@ end
 local corcommanderfirst = {
 	"cormex",
 	"cormex",
-	"corsolar",
-	"corsolar",
+	"cor"..WindOrSolar(),
+	"cor"..WindOrSolar(),
 	CorStarterLabT1,
 	"corllt",
-	"corsolar",
+	"cor"..WindOrSolar(),
 	CorStarterLabT1,
 	"corllt",
-	"corsolar",
+	"cor"..WindOrSolar(),
 	CorStarterLabT1,
 	"corllt",
 }
@@ -571,12 +576,10 @@ function ArmEnT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec < es - es*0.8 then
-        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
-            return "armwin"
-        else
-            return "armsolar"
-        end
+	if ec < es*0.10 then
+        return ("arm"..WindOrSolar())
+    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
+        return "armmakr"
 	elseif mc < ms - ms*0.8 then
 		return "armmex"
 	else
@@ -617,17 +620,14 @@ function ArmEnT2( taskqueuebehaviour )
 end
 
 function ArmMexT1( taskqueuebehaviour )
-	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc < ms - ms*0.8 then
 		return "armmex"
-	elseif ec < es - es*0.8 then
-        if taskqueuebehaviour.ai.map:AverageWind() > 7 then
-            return "armwin"
-        else
-            return "armsolar"
-        end
+	elseif ec < es*0.10 then
+        return ("arm"..WindOrSolar())
+    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
+        return "armmakr"
 	else
 		return "corkrog"
 	end
@@ -884,14 +884,14 @@ end
 local armcommanderfirst = {
 	"armmex",
 	"armmex",
-	"armsolar",
-	"armsolar",
+	"arm"..WindOrSolar(),
+	"arm"..WindOrSolar(),
 	ArmStarterLabT1,
 	"armllt",
-	"armsolar",
+	"arm"..WindOrSolar(),
 	ArmStarterLabT1,
 	"armllt",
-	"armsolar",
+	"arm"..WindOrSolar(),
 	ArmStarterLabT1,
 	"armllt",
 }
