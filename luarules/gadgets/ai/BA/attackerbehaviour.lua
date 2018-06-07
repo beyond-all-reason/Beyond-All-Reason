@@ -96,7 +96,7 @@ function AttackerBehaviour:AttackCell()
 		if nearestUnit == nil then
 			nearestUnit = unit.id
 		end
-		local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
+		--local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
 		local ec, es = Spring.GetTeamResources(ai.id, "energy")
 		--attack
 		if (currenthealth >= maxhealth*0.75 or currenthealth > 3000)  then
@@ -108,11 +108,11 @@ function AttackerBehaviour:AttackCell()
 				else
 					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				end
-				if nearestVisibleUnit == nil then
+				--if nearestVisibleUnit == nil then
 					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
-				else
-					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
-				end
+				--else
+					--enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
+				--end
 				p = api.Position()
 				p.x = enemyposx + math.random(0,200) - math.random(0,200)
 				p.z = enemyposz + math.random(0,200) - math.random(0,200)
@@ -124,7 +124,7 @@ function AttackerBehaviour:AttackCell()
 					if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
 						unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
 					else
-						if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
+						--if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
 							local moverandom = math.random(0,4)
 							if moverandom == 0 then
 								unit:Patrol(self.target)
@@ -133,19 +133,19 @@ function AttackerBehaviour:AttackCell()
 							else
 								unit:Move(self.target)
 							end
-						else
-							local myUnits = Spring.GetTeamUnits(TeamID)
-							for i = 1,#myUnits do
-								pickMyUnit = myUnits[i]
-								local r = math.random(0,#myUnits)
-								if r == pickMyUnit then
-									local r2 = math.random(0,#myUnits)
-									if r2 == pickMyUnit then
-										unit:Move(self.target)
-									end
-								end
-							end
-						end
+						--else
+							--local myUnits = Spring.GetTeamUnits(TeamID)
+							--for i = 1,#myUnits do
+								--pickMyUnit = myUnits[i]
+								--local r = math.random(0,#myUnits)
+								--if r == pickMyUnit then
+									--local r2 = math.random(0,#myUnits)
+									--if r2 == pickMyUnit then
+										--unit:Move(self.target)
+									--end
+								--end
+							--end
+						--end
 					end
 				else
 					self.unit:ElectBehaviour()
