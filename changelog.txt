@@ -1,36 +1,60 @@
 ﻿10.08 -> 10.09
 xx/xx/2018
 
-Balance:
-In current test (will be undone or fixed/balanced before release):
- • Emptied T2 sea buildmenu to rebuild the roster progressively
- • Support Frigates becomes Depthcharge Frigate: 60 damages vs default, 70 vs commanders, 150 vs subs per 2 seconds at 375 range and 12 aoe
- • Hovercraft can now be transported
- • Hovercraft builder cannot be made from T1 shipyard
- • Hovercraft buildpower 90 -> 140
- • Cruisers' main cannons range reduced to 585 (arm) 565 (core), lightlaser to 430, deptcharge to 450, HP 3950 arm 4000 core
- • Subkillers movespeed to approx 2.10, accel/brake adjusted, turnrate +40%, HP to 850, damages 900, reloadtime 4.5s, track -75%, fireangle +/- 54°
- • BattleShips speed -5%, plasma cannonrange to 830 arm, 860 core, aoe 96 -> 128, turret turn speed + 50%
+Global:
+ • Commander speed underwater decreases to 66% of it's value when depth > 47
+ • Flamethrowers dont spray as wide as before
+ • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
+ • Nanoframes (unfinished units) will only get hit when its build over 10% (to prevent using new buildings as shield only)
+ • Global acceleration buff for ships (+100%)
+ • Depthcharges can only target "CANBEUW" or "UNDERWATER" categories (excluding floating structures and ships)
 
-Sea economy, factories and engineering:
- • Erased T1/T2 Shipyards' radarsight 
+T1 ships:
+ • Reduced Construction Ships HP -15%
+ • Destroyers projectile speed +5%, restored full 360 degrees turret aim, sonar distance reduced to 375.
+ • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health).
+ • Assult Frigates damages + 3%, turret turnspeed reduced -3%, reloadTime increased +4%, +5% e cost.
+ • Transport ship costs decreased to core 3700e/350m/6400bt and arm 3500e/350m/6500bt, hp decreased to arm 2900 and core 3000.
+ • Support Frigate becomes Depthcharge Frigate, range 400 -> 375, sonar 450 -> 400, maxvelocity -2.5%.
+ • Corvettes +4% speed/accel/brake/turn.
+
+T2 ships: 
+ • Globally lighter ships with lower costs/health. 
+Details of all the changes @ https://github.com/Balanced-Annihilation/Balanced-Annihilation/commit/c6194391b012fa148c38f5896222e66da3dad58d.
+ • Cruiser: raids and close combats, depthcharge against submarines.
+ • Submarine Killer: long range fire support, low armor, cannot shoot behind, can reverse.
+ • AntiAir Ship: mobile antiair.
+ • Battleship: long ranged plasma ship, lack range to effectively bombard land.
+ • Missile ship: cheap alternative to damage coastline, surface porcs and static buildings.
+ • Flagship: long ranged artillery like weaponry and shorter range heavy weapons, designed for land bombardment.
+ • Jammer Ship: mobile jammer, low cost, no sonar jamming.
+
+Static defenses/utilitary/offenses:
+ • Arm/Core floating gun platform special damages towards "heavyunits" and air categories erased, projectile speed increased (+32%), can attempt to target aircrafts.
+ • No static defenses added to sea beside existing Floating rocket tower, floating gun platforms, offshore torpedo launchers, floating HLT and offshore advanced torpedo launchers: the reasons are:
+     - Keep sea as a hardly defendable and very dynamic place.
+     - Avoid more units-buildings collisions and pathing issues in sea, which have huge impact on gameplay due to low accelerations/low turnrates.
+ • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
+ • New command "Set Priority" in anti air order menu, switch between targetting Fighters/Bombers/No priority. (To create a bind, use action name "setpriority")
+
+Economy:
  • Removed Passive energy/metal generation from T1/T2 Shipyards
  • Lowered energy/metal storages for T1 shipyards (125->100)
- • Reduced Construction Ships Energy/Metal production (15/0.115 -> 7/0.1) and increased Energy/Metal storages (15 -> 50)
- • Reduced Construction Ships HP -15%
  • Underwater Moho Metal Extractors Buildtimes reduced 30% (approx 35000 -> 24000)
  • Offshore mexes are now the default (and only) t1 sea mexes.
  • Offshore mexes attempt to hide underwater when hit, therefore stopping the metal production for about 5 seconds.
- • Flamethrowers dont spray as wide as before
+ • Reduced Construction Ships Energy/Metal production (15/0.115 -> 7/0.1) and increased Energy/Metal storages (15 -> 50)
+ • Increased Carriers EnergyMake from 250 to 300, decreased metalStorage from 1500 to 800
 
-Sea Offense and Defense:
- • Arm Destroyer / Core Destroyer: projectile speed +5%
- • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health), sonar distance reduced (400 -> 375)
- • Destroyers' and cruisers' and support frigates' depthcharges can only target downwards and "CANBEUW" or "UNDERWATER" categories (submarines, amphibious units and buildings...)
- • Arm/Core Assult Frigates damages + 3%, turret turnspeed reduced -3%, reloadTime increased +4%, +5% e cost.
- • Transport ship costs decreased (core 5500e/600m/8610bt => 3700e/350m/6400bt and arm 5000e/640m/9150bt => 3500e/350m/6500bt) and hp decreased (arm 8800 -> 2900 and core 9150 -> 3000)
- • Arm/Core gun platform special damages towards "heavyunits" and air categories erased, projectile speed increased (+32%), can attempt to target aircrafts.
- • Global acceleration buff for ships (+100%)
+Factories and buildOptions:
+ • Erased T1/T2 Shipyards' radarsight
+ • Construction Hovercraft cannot be made from T1 shipyard
+ • Sea Combat Engineer cannot build Amphibious Lab, Hovercraft Platform, Dragon Eyes, Submarines
+ • Sea Combat Engineer builds floating flaks instead of rocket towers
+
+Hovercrafts:
+ • Hovercraft can now be transported
+ • Construction Hovercraft buildpower 90 -> 140
 
 Vehicles:
  • Banisher missile blows up in the air after it is out of fuel
@@ -45,35 +69,28 @@ Vehicles:
  • Reaper -2% speed
  • Wolverine -5% reloadtime
  
-Air: 
- • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%
+Air:
  • Core Cutlass: HP reduced by 20% (1135 -> 905) and damages reduced by 15% (55 -> 47)
-
-Global:
- • Commander speed underwater decreases to 66% of it's value when depth > 47
- • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
- • Nanos and Nano platforms self-d deal 140 damages instead of 480 damages to surrounding nanos.
- • Nanoframes (unfinished units) will only get hit when its build over 10% (to prevent using new buildings as shield only)
+ • Increased aircon bp (55 -> 60), decreased e cost (5000 -> 4500), decreased buildtime 10%
 
 Other:
  • Added awesome new AI tuned for BA: DAI
- • New command "Set Priority" in anti air order menu, switch between targetting Fighters/Bombers/No priority. (To create a bind, use action name "setpriority")
  • mo_unba = "exponly" added to allow only the health/reload/power multipliers, no different weapon upgrades
  • Added widget: "Dgun no ally", will make dgun not snap to own/ally units when near
  • Added widget: "Attack no ally", will make attack command not snap to own/ally units when near
  • Specific Unit Loader: Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.
  • Added more detailed weapon names
- • Added group move widget
+ • Added group move widget: avoids giving single point move commands (splits units into a small area around command)
  • Advplayerlist: system tooltip shows GPU memory usage (when availible)
  • Various widget and gadget performance improvements
  • Allow maps to make unit mutations
 
 Visual:
- • Crowned Commander for tourney winner
+ • Crowned Commander for tourney winner (CONGRATULATIONS Raghna !)
  • Added names for AI bots
  • Unit Stats: shows when hovering over buildmenu unit and holding space
  • Unit Stats: Hide range on selfd-death explosions stats (unrelevant, it's the AoE that is relevant)
- • Unit Stats: Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
+ • Unit Stats: Shows a small weapon description in place of the weaponType name.
  • Added laser fadeout effect + tuned laser thickness to match their damages more
  • Changed/added flamethower effect
  • Added widget: Under contruction gfx: draws highlight for under construction units to help visibility
@@ -83,12 +100,11 @@ Visual:
  • UI bars and projectile glow is less blobby: fading faster, but slower gradual fadeout
 
 Fixes:
- • Fixed command "Area Mex" not being available for captured builders.
- • Improved mex placement script (uses mex snap's code)
+ • Fixed command "Area Mex" not being available for captured builders and Unbalanced Commanders and improved its mex placement script (uses mex snap's code)
  • Fixed loading widgets from maps
- • Fixed cloaking units underwater
- • Fixed cloaking/decloaking cancelling current queue.
+ • Fixed cloaking units underwater and cloaking/decloaking cancelling current queue.
  • Fixed Console in scroll mode being glitchy when an ignored line is added.
+ • Unit Stats: Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
  • Fixed Set Target command giving away exact target position
  • Disabled unit_shipyardcollisions.lua which poorly handled ships vs shipyards collisions
  • mo_preventcombomb removed, (the prevent combomb gadget is already always enabled in last commander vs last commander situations)
