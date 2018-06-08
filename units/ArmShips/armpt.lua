@@ -13,7 +13,7 @@ return {
 		collisionvolumescales = "21 21 63",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Patrol Boat",
+		description = "Patrol Boat/Light Anti-Air",
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
@@ -35,17 +35,17 @@ return {
 		sonardistance = 320,
 		waterline = 0,
 		--move
-		acceleration = 0.133,
-		brakerate = 0.266,
+		acceleration = 4.00/60,
+		brakerate = 4.00/15,
 		maxvelocity = 4.00,
 		turninplace = true,
 		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*4.00,
 		turnrate = 360,
 		--end move
 		customparams = {
 			maxrange = "260",
 			paralyzemultiplier = 0.1,
-			prioritytarget = "air",		
 		},
 		featuredefs = {
 			dead = {
@@ -132,7 +132,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 3,
-				name = "Light close-quarters laser",
+				name = "Laser",
 				noselfdamage = true,
 				range = 260,
 				reloadtime = 0.6,
@@ -171,7 +171,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
-				name = "Light g2a missile launcher",
+				name = "Missiles",
 				noselfdamage = true,
 				range = 700,
 				reloadtime = 2,
@@ -197,7 +197,6 @@ return {
 					vtol = 60,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

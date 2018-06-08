@@ -31,14 +31,15 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
-		sonardistance = 375,
+		sonardistance = 400,
 		waterline = 0,
 		--move
-		acceleration = 0.031,
-		brakerate = 0.054,
+		acceleration = 1.90/120,
+		brakerate = 1.90/35,
 		turninplace = true,
 		maxvelocity = 1.90,
 		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*1.90,
 		turnrate = 200,
 		--end move
 		customparams = {
@@ -126,7 +127,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "Heavy long-range plasma cannon",
+				name = "HeavyCannon",
 				noselfdamage = true,
 				proximitypriority = -0.1,
 				range = 700,
@@ -138,7 +139,7 @@ return {
 				targetmoveerror = 0.1,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 325.5,
+				weaponvelocity = 310,
 				damage = {
 					bombers = 56,
 					default = 240,
@@ -162,7 +163,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "DEPTHCHARGE",
-				name = "Depthcharge launcher",
+				name = "DepthCharge",
 				noselfdamage = true,
 				predictboost = 0,
 				range = 400,
@@ -183,23 +184,20 @@ return {
 					default = 187,
 					subs = 270,
 				},
-				customparams = {
-					bar_model = "cordepthcharge.s3o",
-				}
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
+				maindir = "0 0 1",
+				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				-- maindir = "0 -1 0",
-				-- maxangledif = 179,
-				onlytargetcategory = "CANBEUW UNDERWATER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

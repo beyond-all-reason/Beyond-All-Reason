@@ -3,7 +3,7 @@ return {
 		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
-		buildcostenergy = 2100,
+		buildcostenergy = 2000,
 		buildcostmetal = 390,
 		buildpic = "ARMPSHIP.DDS",
 		buildtime = 4350,
@@ -34,11 +34,12 @@ return {
 		sightdistance = 500,
 		waterline = 0,
 		--move
-		acceleration = 0.040,
-		brakerate = 0.098,
+		acceleration = 2.45/120,
+		brakerate = 2.45/25,
 		maxvelocity = 2.45,
 		turninplace = true,
 		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.45,
 		turnrate = 285,
 		--end move
 		customparams = {
@@ -90,9 +91,6 @@ return {
 				"deathceg2",
 				"deathceg3",
 			},
-			explosiongenerators = {
-				[1] = "custom:barrelshot-tiny",
-			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -126,10 +124,10 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "Light long-range plasma cannon",
+				name = "PlasmaCannon",
 				noselfdamage = true,
 				range = 470,
-				reloadtime = 1.82,
+				reloadtime = 1.75,
 				predictboost = 0.4,
 				soundhit = "xplomed3",
 				soundhitwet = "splshbig",
@@ -141,7 +139,7 @@ return {
 				weaponvelocity = 290,
 				damage = {
 					bombers = 37,
-					default = 100,
+					default = 97,
 					fighters = 37,
 					subs = 7,
 					vtol = 37,

@@ -32,11 +32,12 @@ return {
 		upright = true,
 		waterline = 30,
 		--move
-		brakerate =  0.107,
-		acceleration = 0.035,
+		brakerate =  2.15/20,
+		acceleration = 2.15/120,
 		maxvelocity = 2.15,
 		turninplace = true,
 		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.15,
 		turnrate = 307,	
 		maxreversevelocity = 0.40 * 2.15,
 		--end move	
@@ -149,9 +150,6 @@ return {
 					default = 650,
 					subs = 150,
 				},
-				customparams = {
-					bar_model = "cortorpedo.s3o",
-				}
 			},
 		},
 		weapons = {

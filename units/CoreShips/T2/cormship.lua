@@ -1,10 +1,10 @@
 return {
 	cormship = {
 		activatewhenbuilt = true,
-		buildcostenergy = 10000,
-		buildcostmetal = 2000,
+		buildcostenergy = 13000,
+		buildcostmetal = 0.8*3000,
 		buildpic = "CORMSHIP.DDS",
-		buildtime = 15000,
+		buildtime = 0.75 * 1.5 * 0.8*22200,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",
@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3000,
+		maxdamage = 2250,
 		minwaterdepth = 12,
 		movementclass = "BOAT56X6",
 		name = "Messenger",
@@ -32,11 +32,12 @@ return {
 		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 318.5,
 		--move
-		acceleration = 0.034,
-		brakerate = 0.058,
+		acceleration = 2.048/120,
+		brakerate = 2.048/35,
 		turninplace = true,
 		maxvelocity = 2.048,
 		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*2.048,
 		turnrate = 200,
 		--end move
 		waterline = 0,
@@ -152,7 +153,6 @@ return {
 					vtol = 138,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",
@@ -197,8 +197,7 @@ return {
 					default = 1100,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "corshiprocket.s3o",
+                customparams = {
 					light_mult = 3,
 					light_radius_mult = 1.2,
 					light_color = "1 0.6 0.15",

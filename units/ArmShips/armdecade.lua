@@ -30,12 +30,13 @@ return {
 		sightdistance = 375,
 		waterline = 0,
 		--move
-		acceleration = 0.07,
-		brakerate = 0.22,
-		maxvelocity = 3.27,		
+		acceleration = 3.15/105,
+		brakerate = 3.15/15,
+		maxvelocity = 3.15,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turnrate = 421,
+		turninplacespeedlimit = 0.64*3.15,
+		turnrate = 405,
 		--end move
 		customparams = {
 			
@@ -126,7 +127,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				intensity = 0.7,
-				name = "Rapid-fire close-quarters plasma turret",
+				name = "flash",
 				noselfdamage = true,
 				range = 280,
 				reloadtime = 0.4,
