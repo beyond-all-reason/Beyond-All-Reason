@@ -39,18 +39,20 @@ return {
 			"cormls",
 			"corcrus",			
 			"corshark",			
-			"corarch",			
+			"corarch",	
+			"corsjam",			
 			"corcarry",			
 			"corbats",
 			"cormship",
+			"corblackhy",
 			-- "corsnap",
 			-- "corssub",
 			-- "corhal",
 			-- "corsok",
 			-- "cormh",
-			-- "corblackhy",
+
 			-- "corthovr",
-			"corsjam",
+
 		},
 		customparams = {
 			bar_collisionvolumeoffsets = "0 10 -2",
