@@ -24,16 +24,13 @@ Details of all the changes @ https://github.com/Balanced-Annihilation/Balanced-A
  • Cruiser: raids and close combats, depthcharge against submarines.
  • Submarine Killer: long range fire support, low armor, cannot shoot behind, can reverse.
  • AntiAir Ship: mobile antiair.
- • Battleship: long ranged plasma ship, lack range to effectively bombard land.
+ • Battleship: long ranged plasma ship, lacks range to effectively bombard land.
  • Missile ship: cheap alternative to damage coastline, surface porcs and static buildings.
  • Flagship: long ranged artillery like weaponry and shorter range heavy weapons, designed for land bombardment.
  • Jammer Ship: mobile jammer, low cost, no sonar jamming.
 
 Static defenses/utilitary/offenses:
  • Arm/Core floating gun platform special damages towards "heavyunits" and air categories erased, projectile speed increased (+32%), can attempt to target aircrafts.
- • No static defenses added to sea beside existing Floating rocket tower, floating gun platforms, offshore torpedo launchers, floating HLT and offshore advanced torpedo launchers: the reasons are:
-     - Keep sea as a hardly defendable and very dynamic place.
-     - Avoid more units-buildings collisions and pathing issues in sea, which have huge impact on gameplay due to low accelerations/low turnrates.
  • Reverted the shield starting power change from 10.07 (starting power increased to 33% instead of 20%)
  • New command "Set Priority" in anti air order menu, switch between targetting Fighters/Bombers/No priority. (To create a bind, use action name "setpriority")
 
