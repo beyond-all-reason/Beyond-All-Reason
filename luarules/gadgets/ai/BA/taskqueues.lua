@@ -114,11 +114,9 @@ function CorEnT2( taskqueuebehaviour )
 	local FusCount = UDC(ai.id, UDN.corfus.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-    if (ec < es - es*0.8) and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
+    if mc/ms > 0.2 and mi > 25 and ec/es > 0.2 and ei > 500 and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
 		return "corfus"
-	elseif mc < ms - ms*0.8 then
-		return "cormexp"
-	elseif mc < ms - ms*0.4 then
+	elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
 		return "cormmkr"
 	else
 		return "corkrog"
@@ -622,11 +620,9 @@ function ArmEnT2( taskqueuebehaviour )
 	local FusCount = UDC(ai.id, UDN.armfus.id)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-    if (ec < es - es*0.8) and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
+    if mc/ms > 0.2 and mi > 25 and ec/es > 0.2 and ei > 500 and FusCount <= (Spring.GetGameFrame() / (30*60*4)) then
 		return "armfus"
-	elseif mc < ms - ms*0.8 then
-		return "armmoho"
-	elseif mc < ms - ms*0.4 then
+	elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
 		return "armmmkr"
 	else
 		return "corkrog"
