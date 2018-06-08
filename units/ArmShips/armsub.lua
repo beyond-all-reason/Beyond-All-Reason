@@ -32,12 +32,11 @@ return {
 		upright = true,
 		waterline = 30,
 		--move
-		brakerate =  2.10/20,
-		acceleration = 2.10/120,
+		brakerate =  0.105,
+		acceleration = 0.035,
 		maxvelocity = 2.10,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.10,
 		turnrate = 320,	
 		maxreversevelocity = 2.10*0.40,
 		--end move
@@ -129,7 +128,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "Torpedo",
+				name = "Light homing torpedo launcher",
 				noselfdamage = true,
 				predictboost = 0.7,
 				range = 500,
@@ -150,6 +149,9 @@ return {
 					default = 650,
 					subs = 150,
 				},
+				customparams = {
+					bar_model = "torpedo.s3o",
+				}
 			},
 		},
 		weapons = {

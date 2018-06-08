@@ -35,8 +35,9 @@ return {
 		waterline = 45,
 				--move
 		brakerate =  2.052/20,
-		acceleration = 2.052/120,
+		acceleration = 0.102,
 		maxvelocity = 2.257,
+		maxreversevelocity = 0.4*2.257,
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.64*2.052,
@@ -148,6 +149,9 @@ return {
 					default = 500,
 					subs = 250,
 				},
+				customparams = {
+					bar_model = "coradvtorpedo.s3o",
+				}
 			},
 		},
 		weapons = {

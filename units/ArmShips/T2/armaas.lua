@@ -2,10 +2,10 @@ return {
 	armaas = {
 		airsightdistance = 900,
 		buildangle = 16384,
-		buildcostenergy = 0.8*7500,
-		buildcostmetal = 550,
+		buildcostenergy = 12000,
+		buildcostmetal = 1000,
 		buildpic = "ARMAAS.DDS",
-		buildtime = 0.75 * 1.5 * 0.8*8628,
+		buildtime = 15000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 0",
@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 2360,
+		maxdamage = 3500,
 		minwaterdepth = 30,
 		movementclass = "BOAT44X4",
 		name = "Archer",
@@ -33,8 +33,8 @@ return {
 		sightdistance = 475,
 		waterline = 0,
 				--move
-		acceleration = 2.20/120,
-		brakerate = 2.20/35,
+		acceleration = 0.036,
+		brakerate = 0.062,
 		turninplace = true,
 		maxvelocity = 2.10,
 		turninplaceanglelimit = 140,
@@ -43,7 +43,8 @@ return {
 		--end move
 		customparams = {
 			techlevel = 2,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -162,7 +163,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
-				name = "AA2Missile",
+				name = "Long-range g2a guided missile launcher",
 				noselfdamage = true,
 				range = 865,
 				reloadtime = 0.8,
@@ -188,6 +189,7 @@ return {
 					vtol = 63,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",
@@ -208,7 +210,7 @@ return {
 				gravityaffected = "true",
 				impulseboost = 0,
 				impulsefactor = 0,
-				name = "FlakCannon",
+				name = "Heavy g2a flak cannon",
 				size = 4.5,
 				sizedecay = 0.08,
 				stages = 8,

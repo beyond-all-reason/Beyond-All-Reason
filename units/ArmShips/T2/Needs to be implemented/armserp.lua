@@ -34,12 +34,11 @@ return {
 		upright = true,
 		waterline = 45,
 				--move
-		brakerate =  2.10/20,
-		acceleration = 2.10/120,
+		brakerate =  0.105,
+		acceleration = 0.035,
 		maxvelocity = 2.3,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.10,
 		turnrate = 240,	
 		--end move
 		customparams = {
@@ -130,7 +129,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "advtorpedo",
-				name = "AdvTorpedo",
+				name = "Heavy guided torpedo launcher",
 				noselfdamage = true,
 				range = 690,
 				reloadtime = 1.5,
@@ -150,6 +149,9 @@ return {
 					default = 500,
 					subs = 250,
 				},
+				customparams = {
+					bar_model = "torpedo.s3o",
+				}
 			},
 		},
 		weapons = {
