@@ -42,7 +42,7 @@ function widget:CommandNotify(id, params, options)
 			local maxx = 0
 			local maxz = 0
 			local unitPos = {}
-			local maxOffset = 4 + (math.min(#selUnits*6,150))
+			local maxOffset = 4 + (math.min(#selUnits*6,300))
 			for _,unitID in ipairs(selUnits) do
 				local x,_,z = GetUnitPosition(unitID)
 				tx = tx + x
