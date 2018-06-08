@@ -109,6 +109,7 @@ Fixes:
  • Disabled unit_shipyardcollisions.lua which poorly handled ships vs shipyards collisions
  • mo_preventcombomb removed, (the prevent combomb gadget is already always enabled in last commander vs last commander situations)
 
+
 10.07 -> 10.08
 15/04/2018
 
