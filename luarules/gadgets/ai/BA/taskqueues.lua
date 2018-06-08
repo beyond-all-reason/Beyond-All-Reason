@@ -571,7 +571,7 @@ function ArmLLT()
 	if Spring.GetGameSeconds() < 360 then
 		return "armllt"
 	else
-		return "armkrog"
+		return "corkrog"
 	end
 end
 
