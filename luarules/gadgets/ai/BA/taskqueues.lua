@@ -59,7 +59,13 @@ end
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 
-
+function CorLLT()
+	if Spring.GetGameSeconds() < 360 then
+		return "corllt"
+	else
+		return "corkrog"
+	end
+end
 
 function CorNanoT()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
@@ -411,12 +417,12 @@ local cort1construction = {
 	CorRandomLab,
 	CorGroundAdvDefT1,
 	CorEnT1,
-	"corllt",
+	CorLLT,
 	CorNanoT,
 	CorEnT1,
 	CorMexT1,
 	"cormex",
-	"corllt",
+	CorLLT,
     CorAirAdvDefT1,
 }
 
@@ -560,6 +566,14 @@ end
 --------------------------------------- Arm Functions --------------------------------------
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
+
+function ArmLLT()
+	if Spring.GetGameSeconds() < 360 then
+		return "armllt"
+	else
+		return "armkrog"
+	end
+end
 
 function ArmNanoT()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
@@ -902,13 +916,13 @@ local armt1construction = {
 	ArmRandomLab,
 	ArmGroundAdvDefT1,
 	ArmEnT1,
-	"armllt",
+	ArmLLT,
 	ArmEnT1,
 	ArmNanoT,
 	ArmMexT1,
 	ArmNanoT,
 	"armmex",
-	"armllt",
+	ArmLLT,
 	ArmAirAdvDefT1,
 }
 
