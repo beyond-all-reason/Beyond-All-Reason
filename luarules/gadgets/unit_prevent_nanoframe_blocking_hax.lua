@@ -74,7 +74,9 @@ end
 ------------
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	AddNanoFrame(unitID)
+	if not Spring.GetUnitNeutral(unitID) then	-- dont change neutrality of already neutral units
+		AddNanoFrame(unitID)
+	end
 end
 
 function gadget:GameFrame()
