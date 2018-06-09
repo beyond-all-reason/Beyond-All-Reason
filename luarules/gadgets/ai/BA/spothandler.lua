@@ -36,7 +36,7 @@ function MetalSpotHandler:ClosestFreeSpot(unittype,position)
 			if self.game.map:CanBuildHere(unittype,p) then
 				--checking for unit positions
 				local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-				local radius = 100
+				local radius = 50
 				local units_found = spGetUnitsInRectangle(p.x - radius, p.z - radius, p.x + radius, p.z + radius)
 				if #units_found == 0 then
 					bestDistance = dist
