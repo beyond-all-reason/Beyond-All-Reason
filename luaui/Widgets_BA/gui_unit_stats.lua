@@ -312,33 +312,10 @@ function widget:DrawScreen()
 		cX = mx + xOffset
 		cY = my + yOffset
 		cYstart = cY
-		
-	  
-		local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
-		
+
+
 		local titleFontSize = fontSize*1.12
-	  local iconHalfSize = titleFontSize*0.75
-		local cornersize = 0
-		glColor(0,0,0,0.75)
-		RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cY+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
-		cornersize = ceil(bgpadding*0.21)
-		glColor(1,1,1,0.025)
-		RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding-cornersize, cY+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
-		
-		if (WG['guishader_api'] ~= nil) then
-			guishaderEnabled = true
-			WG['guishader_api'].InsertRect(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding, cY+(titleFontSize/2)+bgpadding, 'unit_stats_title')
-		end
-		
-		-- icon
-	  glColor(1,1,1,1)
-	  glTexture('#' .. uDefID)
-	  glTexRect(cX, cY+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cY+cornersize+iconHalfSize)
-	  glTexture(false)
-	  
-	  -- title
-		glColor(1,1,1,1)
-		glText(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cY, titleFontSize, "o")
+		local cornersize = ceil(bgpadding*0.21)
 		cY = cY - 2 * titleFontSize
 		textBuffer = {}
 		textBufferCount = 0
@@ -618,7 +595,46 @@ function widget:DrawScreen()
 		else
 			glColor(0,0,0,0.66)
 		end
+
+		-- correct height when it goes below screen
+		if cY < 0 then
+			cYstart = cYstart - cY
+			local num = #textBuffer
+			for i=1, num do
+				textBuffer[i][4] = textBuffer[i][4] - (cY/2)
+				textBuffer[i][4] = textBuffer[i][4] - (cY/2)
+			end
+			cY = 0
+		end
+
+		-- title
+		local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
+		local iconHalfSize = titleFontSize*0.75
 		cornersize = 0
+		glColor(0,0,0,0.75)
+		RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+		cornersize = ceil(bgpadding*0.21)
+		glColor(1,1,1,0.025)
+		RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+
+		if (WG['guishader_api'] ~= nil) then
+			guishaderEnabled = true
+			WG['guishader_api'].InsertRect(cX-bgpadding, cYstart-bgpadding, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding, cYstart+(titleFontSize/2)+bgpadding, 'unit_stats_title')
+		end
+
+		-- icon
+		glColor(1,1,1,1)
+		glTexture('#' .. uDefID)
+		glTexRect(cX, cYstart+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cYstart+cornersize+iconHalfSize)
+		glTexture(false)
+
+		-- title text
+		glColor(1,1,1,1)
+		glText(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+
+		-- stats
+		cornersize = 0
+		glColor(0,0,0,0.75)
 		RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 		cornersize = ceil(bgpadding*0.16)
 		glColor(1,1,1,0.025)
@@ -642,36 +658,9 @@ function widget:DrawScreen()
 		cY = my + yOffset
 		cYstart = cY
 		
-	  
-		local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey
-		
 		local titleFontSize = fontSize*1.12
-	  local iconHalfSize = titleFontSize*0.75
-		local cornersize = 0
-		if WG.hoverID ~= nil then
-			glColor(0.11,0.11,0.11,0.9)
-		else
-			glColor(0,0,0,0.75)
-		end
-		RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cY+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
-		cornersize = ceil(bgpadding*0.21)
-		glColor(1,1,1,0.025)
-		RectRound(cX-bgpadding+cornersize, cY-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding-cornersize, cY+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
-		
-		if (WG['guishader_api'] ~= nil) then
-			guishaderEnabled = true
-			WG['guishader_api'].InsertRect(cX-bgpadding, cY-bgpadding, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding, cY+(titleFontSize/2)+bgpadding, 'unit_stats_title')
-		end
-		
-		-- icon
-	  glColor(1,1,1,1)
-	  glTexture('#' .. uDefID)
-	  glTexRect(cX, cY+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cY+cornersize+iconHalfSize)
-	  glTexture(false)
-	  
-	  -- title
-		glColor(1,1,1,1)
-		glText(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cY, titleFontSize, "o")
+		local cornersize = ceil(bgpadding*0.21)
+
 		cY = cY - 2 * titleFontSize
 		textBuffer = {}
 		textBufferCount = 0
@@ -861,6 +850,54 @@ function widget:DrawScreen()
 			glColor(0.11,0.11,0.11,0.9)
 		else
 			glColor(0,0,0,0.66)
+		end
+
+		if cY < 0 then
+			cYstart = cYstart - cY
+			local num = #textBuffer
+			for i=1, num do
+				textBuffer[i][4] = textBuffer[i][4] - (cY/2)
+				textBuffer[i][4] = textBuffer[i][4] - (cY/2)
+			end
+			cY = 0
+		end
+
+		-- title
+		local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey
+		local iconHalfSize = titleFontSize*0.75
+		cornersize = 0
+
+		if WG.hoverID ~= nil then
+			glColor(0.11,0.11,0.11,0.9)
+		else
+			glColor(0,0,0,0.75)
+		end
+		RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+		cornersize = ceil(bgpadding*0.21)
+		glColor(1,1,1,0.025)
+		RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+
+		if (WG['guishader_api'] ~= nil) then
+			guishaderEnabled = true
+			WG['guishader_api'].InsertRect(cX-bgpadding, cYstart-bgpadding, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding, cYstart+(titleFontSize/2)+bgpadding, 'unit_stats_title')
+		end
+
+		-- icon
+		--glColor(1,1,1,1)
+		--glTexture('#' .. uDefID)
+		--glTexRect(cX, cYstart+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cYstart+cornersize+iconHalfSize)
+		--glTexture(false)
+
+		-- title text
+		glColor(1,1,1,1)
+		--glText(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+		glText(text, cX, cYstart, titleFontSize, "o")
+
+		-- stats
+		if WG.hoverID ~= nil then
+			glColor(0.11,0.11,0.11,0.9)
+		else
+			glColor(0,0,0,0.75)
 		end
 		cornersize = 0
 		RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
