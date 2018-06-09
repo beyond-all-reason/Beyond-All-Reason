@@ -596,7 +596,7 @@ function widget:DrawScreen()
 			glColor(0,0,0,0.66)
 		end
 
-		-- correct height when it goes below screen
+		-- correct position when it goes below screen
 		if cY < 0 then
 			cYstart = cYstart - cY
 			local num = #textBuffer
@@ -605,6 +605,16 @@ function widget:DrawScreen()
 				textBuffer[i][4] = textBuffer[i][4] - (cY/2)
 			end
 			cY = 0
+		end
+		-- correct position when it goes off screen
+		if cX + maxWidth+bgpadding+bgpadding > vsx then
+			local cXnew = vsx-maxWidth-bgpadding-bgpadding
+			local num = #textBuffer
+			for i=1, num do
+				textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
+				textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
+			end
+			cX = cXnew
 		end
 
 		-- title
@@ -852,6 +862,7 @@ function widget:DrawScreen()
 			glColor(0,0,0,0.66)
 		end
 
+		-- correct position when it goes below screen
 		if cY < 0 then
 			cYstart = cYstart - cY
 			local num = #textBuffer
@@ -860,6 +871,16 @@ function widget:DrawScreen()
 				textBuffer[i][4] = textBuffer[i][4] - (cY/2)
 			end
 			cY = 0
+		end
+		-- correct position when it goes off screen
+		if cX + maxWidth+bgpadding+bgpadding > vsx then
+			local cXnew = vsx-maxWidth-bgpadding-bgpadding
+			local num = #textBuffer
+			for i=1, num do
+				textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
+				textBuffer[i][3] = textBuffer[i][3] - ((cX-cXnew)/2)
+			end
+			cX = cXnew
 		end
 
 		-- title
