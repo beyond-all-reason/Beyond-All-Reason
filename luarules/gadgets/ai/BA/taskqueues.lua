@@ -422,6 +422,7 @@ local cort1construction = {
 	"cormex",
 	CorLLT,
     CorAirAdvDefT1,
+	"corgeo",
 }
 
 local cort2construction = {
@@ -920,6 +921,7 @@ local armt1construction = {
 	"armmex",
 	ArmLLT,
 	ArmAirAdvDefT1,
+	"armgeo",
 }
 
 local armt2construction = {
