@@ -74,6 +74,10 @@ function ShardUnitType:Extractor()
 	return self.def.extractsMetal > 0
 end
 
+function ShardUnitType:Geothermal()
+	return self.def.needGeo
+end
+
 function ShardUnitType:ExtractorEfficiency()
 	return self.def.extractsMetal
 end

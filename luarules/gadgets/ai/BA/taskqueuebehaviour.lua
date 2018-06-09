@@ -167,6 +167,8 @@ function TaskQueueBehaviour:TryToBuild( unit_name )
 	local success = false
 	if utype:Extractor() then
 		success = self:BuildExtractor(utype)
+	elseif utype:Geothermal() then
+		success = self:BuildGeo(utype)
 	elseif unit:Type():IsFactory() then
 		success = self.unit:Internal():Build(utype)
 	else
@@ -257,6 +259,18 @@ function TaskQueueBehaviour:BuildOnMap(utype)
 	end
 	self:BeginWaitingForPosition()
 	return true
+end
+
+function TaskQueueBehaviour:BuildGeo(utype)
+	-- find a free spot!
+	unit = self.unit:Internal()
+	p = unit:GetPosition()
+	p = self.ai.geospothandler:ClosestFreeGeo(utype,p)
+	if p == nil or self.game.map:CanBuildHere(utype,p) ~= true then
+		self:OnToNextTask()
+		return false
+	end
+	return self.unit:Internal():Build(utype,p)
 end
 
 function TaskQueueBehaviour:BuildExtractor(utype)

@@ -1,6 +1,6 @@
 local map = {}
 map.spots = shard_include("spring_lua/metal")
-
+map.geos = shard_include("spring_lua/geo")
 	-- function map:FindClosestBuildSite(unittype,builderpos, searchradius, minimumdistance)
 	-- function map:CanBuildHere(unittype,position)
 	-- function map:GetMapFeatures()
@@ -91,6 +91,27 @@ end
 function map:GetMetalSpots() -- returns a table of spot positions
 	local fv = self.spots
 	local count = self:SpotCount()
+	local f = {}
+	local i = 0
+	while i  < count do
+		table.insert( f, fv[i] )
+		i = i + 1
+	end
+	return f
+end
+
+function map:GeoCount() -- returns the nubmer of metal spots
+	Spring.Echo("GetGeoCount")
+	return #self.geos
+end
+
+function map:GetGeo(idx)
+	return self.geos[idx]
+end
+
+function map:GetGeoSpots() -- returns a table of spot positions
+	local fv = self.geos
+	local count = self:GeoCount()
 	local f = {}
 	local i = 0
 	while i  < count do

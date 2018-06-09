@@ -48,6 +48,19 @@ function map:GetMetalSpots() -- returns a table of spot positions
 	return {}
 end
 
+function map:GeoCount() -- returns the nubmer of metal spots
+	return 0
+end
+
+function map:GetGeo(idx) -- returns a Position for the given spot
+	return nil
+end
+
+function map:GetGeoSpots() -- returns a table of spot positions
+	--
+	return {}
+end
+
 function map:GetControlPoints()
 	-- not sure this can be implemented in the Spring C++ AI interface
 	return {}
