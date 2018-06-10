@@ -1,10 +1,10 @@
 return {
 	armbats = {
 		buildangle = 16384,
-		buildcostenergy = 15000,
-		buildcostmetal = 3000,
+		buildcostenergy = 22000,
+		buildcostmetal = 3300,
 		buildpic = "ARMBATS.DDS",
-		buildtime = 25000,
+		buildtime = 35000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-1 -10 4",

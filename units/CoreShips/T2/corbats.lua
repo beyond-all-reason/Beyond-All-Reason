@@ -1,10 +1,10 @@
 return {
 	corbats = {
 		buildangle = 16000,
-		buildcostenergy = 15000,
-		buildcostmetal = 3000,
+		buildcostenergy = 22000,
+		buildcostmetal = 3300,
 		buildpic = "CORBATS.DDS",
-		buildtime = 25000,
+		buildtime = 35000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 -3",

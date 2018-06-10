@@ -2,10 +2,10 @@ return {
 	armcrus = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 7500,
-		buildcostmetal = 800,
+		buildcostenergy = 12000,
+		buildcostmetal = 1000,
 		buildpic = "ARMCRUS.DDS",
-		buildtime = 12000,
+		buildtime = 17000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",
