@@ -1,14 +1,11 @@
 return {
 	armsubk = {
 		activatewhenbuilt = true,
-		buildcostenergy = 9000,
-		buildcostmetal = 800,
+		buildcostenergy = 18000,
+		buildcostmetal = 900,
 		buildpic = "ARMSUBK.DDS",
-		buildtime = 16000,
+		buildtime = 22000,
 		canmove = true,
-		-- cancloak = true,
-		-- cloakcost = 5,
-		-- cloakcostmoving = 50,
 		category = "ALL NOTLAND MOBILE WEAPON NOTAIR NOTHOVER CANBEUW SURFACE",
 		collisionvolumeoffsets = "0.5 0 0",
 		collisionvolumescales = "20 15 64",
