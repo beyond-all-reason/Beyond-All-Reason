@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildcostenergy = 4800,
-		buildcostmetal = 880,
+		buildcostmetal = 960,
 		buildpic = "CORROY.DDS",
 		buildtime = 10600,
 		canmove = true,

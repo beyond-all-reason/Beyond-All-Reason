@@ -1,7 +1,7 @@
 return {
 	armdecade = {
 		buildangle = 16384,
-		buildcostenergy = 1400,
+		buildcostenergy = 1650,
 		buildcostmetal = 195,
 		buildpic = "ARMDECADE.DDS",
 		buildtime = 2590,

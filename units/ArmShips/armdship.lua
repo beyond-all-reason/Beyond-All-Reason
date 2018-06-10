@@ -4,7 +4,7 @@ return {
 		airsightdistance = 400,
 		autoheal = 1.5,
 		blocking = true,
-		buildcostenergy = 1500,
+		buildcostenergy = 1350,
 		buildcostmetal = 220,
 		buildpic = "ARMDSHIP.DDS",
 		buildtime = 5700,
