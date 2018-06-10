@@ -110,7 +110,12 @@ function FindSubs(real)
         local noStartPoint = (readyState==3) or (readyState==0)
         local present = active and (not spec) and (not noStartPoint)
         if not present then
-            local customtable = select(10,Spring.GetPlayerInfo(playerID)) -- player custom table
+            local customtable
+            if select(11,Spring.GetPlayerInfo(playerID)) then   -- changed to 11th in engine 104.0.1.547
+                customtable = select(11,Spring.GetPlayerInfo(playerID)) or {} -- player custom table
+            else
+                customtable = select(10,Spring.GetPlayerInfo(playerID)) or {}
+            end
             local tsMu = customtable.skill
             ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
             if ts then
