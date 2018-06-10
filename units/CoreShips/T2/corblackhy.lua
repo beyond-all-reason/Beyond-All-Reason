@@ -2,7 +2,7 @@ return {
 	corblackhy = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 132000,
+		buildcostenergy = 158000,
 		buildcostmetal = 18900,
 		buildpic = "CORBLACKHY.DDS",
 		buildtime = 175300,

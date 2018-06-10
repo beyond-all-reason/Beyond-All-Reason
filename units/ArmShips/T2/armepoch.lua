@@ -2,7 +2,7 @@ return {
 	armepoch = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 132000,
+		buildcostenergy = 158000,
 		buildcostmetal = 17000,
 		buildpic = "ARMEPOCH.DDS",
 		buildtime = 169800,
