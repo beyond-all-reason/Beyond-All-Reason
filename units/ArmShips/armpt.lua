@@ -13,7 +13,7 @@ return {
 		collisionvolumescales = "21 21 63",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Patrol Boat",
+		description = "Patrol Boat/Light Anti Air/Sonar",
 		energymake = 0.2,
 		energyuse = 0.2,
 		explodeas = "mediumExplosionGeneric",
