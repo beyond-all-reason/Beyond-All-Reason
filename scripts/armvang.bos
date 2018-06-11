@@ -453,10 +453,9 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	gun_1 = turret;
-	show flare;
 	move barrel to z-axis [-2.750000] speed [20.625000];
-	sleep 120;
-	hide flare;
+	emit-sfx 1024 + 0 from flare;
+	sleep 50;
 	move barrel to z-axis [0.000000] speed [1.000000];
 	sleep 100;
 	gun_1 = body;
