@@ -122,7 +122,9 @@ function AttackerBehaviour:AttackCell()
 				self.ai.attackhandler:AddRecruit(self)
 				if self.active then
 					if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
-						unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
+						if Spring.GetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
+							unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
+						end
 					else
 						--if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
 							local moverandom = math.random(0,4)
