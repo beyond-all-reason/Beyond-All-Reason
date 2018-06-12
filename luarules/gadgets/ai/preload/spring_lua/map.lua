@@ -101,7 +101,6 @@ function map:GetMetalSpots() -- returns a table of spot positions
 end
 
 function map:GeoCount() -- returns the nubmer of metal spots
-	Spring.Echo("GetGeoCount")
 	return #self.geos
 end
 
