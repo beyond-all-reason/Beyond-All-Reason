@@ -17,8 +17,6 @@ local UDN = UnitDefNames
 ----------------------------------------------------------------------
 
 local unitoptions = {}
-local firstt1mexes
-local firstt2mexes
 --------------------------------------------------------------------------------------------
 --------------------------------------- Main Functions -------------------------------------
 --------------------------------------------------------------------------------------------
@@ -31,7 +29,7 @@ function FindBest(unitoptions)
 		local randomunit = {}
 		for n, unitName in pairs(unitoptions) do
 			local cost = UnitDefs[UnitDefNames[unitName].id].energyCost / 60 + UnitDefs[UnitDefNames[unitName].id].metalCost
-			local avgkilled_cost = GG.info and GG.info[ai.id] and GG.info[ai.id][UnitDefNames[unitName].id] and GG.info[ai.id][UnitDefNames[unitName].id].avgkilled_cost or cost
+			local avgkilled_cost = GG.info and GG.info[ai.id] and GG.info[ai.id][UnitDefNames[unitName].id] and GG.info[ai.id][UnitDefNames[unitName].id].avgkilled_cost or 200 --start at 200 so that costly units aren't made from the start
 			effect[unitName] = math.max(math.floor((avgkilled_cost/cost)*100),1)
 			for i = randomization, randomization + effect[unitName] do
 				randomunit[i] = unitName
@@ -50,8 +48,18 @@ function WindOrSolar()
     if curWind > 8 or avgWind > 10 then
         return "win"
     else
-        return "solar"
-    end
+		if ai and ai.id then
+			local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+			local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+			if ei > 200 and mi > 15 then
+				return "advsol"
+			else
+				return "solar"
+			end
+		else
+			return "solar"	
+		end
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -78,20 +86,21 @@ function CorNanoT()
 	end
 end
 
-function CorEnT1( taskqueuebehaviour )
-	
+function CorEnT1( taskqueuebehaviour )	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec < es*0.10 then
+	if es < (ei * 15) and ec > (es * 0.8) then
+		return "corestor"
+	end
+	if ms < (mi * 15) or mc > (ms*0.9) then
+		return "cormstor"
+	end
+	if ei - ep < 0 and ec < 0.5 * es then
         return ("cor"..WindOrSolar())
-    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
+    elseif ei - ep > 0 and ec > 0.8 * es then
         return "cormakr"
-	elseif mc < ms*0.1 then
-		return "cormex"
-	elseif mc < ms*0.6 then
-		return "corexp"
 	else
-		return "corkrog"
+		return "cormex"
 	end
 end
 
@@ -391,11 +400,11 @@ function CorT1AirCon()
 end
 
 function CorFirstT2Mexes()
-	if not firstt2mexes then
-		firstt2mexes = 1
+	if not ai.firstt2mexes then
+		ai.firstt2mexes = 1
 		return "cormoho"
-	elseif firstt2mexes and firstt2mexes <= 3 then
-		firstt2mexes = firstt2mexes + 1
+	elseif ai.firstt2mexes and ai.firstt2mexes <= 3 then
+		ai.firstt2mexes = ai.firstt2mexes + 1
 		return "cormoho"
 	else
 		return "corkrog"
@@ -403,11 +412,11 @@ function CorFirstT2Mexes()
 end
 
 function CorFirstT1Mexes()
-	if not firstt1mexes then
-		firstt1mexes = 1
+	if not ai.firstt1mexes then
+		ai.firstt1mexes = 1
 		return "cormex"
-	elseif firstt1mexes and firstt1mexes <= 3 then
-		firstt1mexes = firstt1mexes + 1
+	elseif ai.firstt1mexes and ai.firstt1mexes <= 3 then
+		ai.firstt1mexes = ai.firstt1mexes + 1
 		return "cormex"
 	else
 		return "corkrog"
@@ -437,18 +446,30 @@ local cort1construction = {
 	CorFirstT1Mexes,
 	CorFirstT1Mexes,
 	CorFirstT1Mexes,
+	CorEnT1,
+	CorEnT1,
+	CorEnT1,
 	CorNanoT,
+	CorEnT1,
+	CorEnT1,
 	CorEnT1,
 	CorRandomLab,
 	CorGroundAdvDefT1,
 	CorEnT1,
-	CorLLT,
-	CorNanoT,
 	CorEnT1,
+	CorEnT1,
+	CorLLT,
+	CorEnT1,
+	CorEnT1,
+	CorEnT1,
+	CorNanoT,
 	CorMexT1,
+	CorNanoT,
 	"cormex",
 	CorLLT,
-    CorAirAdvDefT1,
+	CorEnT1,
+	CorEnT1,
+	CorAirAdvDefT1,
 	"corgeo",
 }
 
@@ -457,6 +478,8 @@ local cort2construction = {
 	CorFirstT2Mexes,
 	CorFirstT2Mexes,
 	CorEnT2,
+	CorEnT2,
+	CoEnT2,
 	CorRandomLab,
 	CorTacticalOffDefT2,
 	CorTacticalAdvDefT2,
@@ -619,14 +642,18 @@ function ArmEnT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ec < es*0.10 then
+	if es < (ei * 15) and ec > (es * 0.8) then
+		return "armestor"
+	end
+	if ms < (mi * 15) or mc > (ms*0.9) then
+		return "armmstor"
+	end
+	if ei - ep < 0 and ec < 0.5 * es then
         return ("arm"..WindOrSolar())
-    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
+    elseif ei - ep > 0 and ec > 0.8 * es then
         return "armmakr"
-	elseif mc < ms - ms*0.8 then
-		return "armmex"
 	else
-		return "corkrog"
+		return "armmex"
 	end
 end
 
@@ -919,11 +946,11 @@ function ArmT1AirCon()
 end
 
 function ArmFirstT2Mexes()
-	if not firstt2mexes then
-		firstt2mexes = 1
+	if not ai.firstt2mexes then
+		ai.firstt2mexes = 1
 		return "armmoho"
-	elseif firstt2mexes and firstt2mexes <= 3 then
-		firstt2mexes = firstt2mexes + 1
+	elseif ai.firstt2mexes and ai.firstt2mexes <= 3 then
+		ai.firstt2mexes = ai.firstt2mexes + 1
 		return "armmoho"
 	else
 		return "corkrog"
@@ -931,11 +958,11 @@ function ArmFirstT2Mexes()
 end
 
 function ArmFirstT1Mexes()
-	if not firstt1mexes then
-		firstt1mexes = 1
+	if not ai.firstt1mexes then
+		ai.firstt1mexes = 1
 		return "armmex"
-	elseif firstt1mexes and firstt1mexes <= 3 then
-		firstt1mexes = firstt1mexes + 1
+	elseif ai.firstt1mexes and ai.firstt1mexes <= 3 then
+		ai.firstt1mexes = ai.firstt1mexes + 1
 		return "armmex"
 	else
 		return "corkrog"
@@ -964,18 +991,29 @@ local armt1construction = {
 	ArmFirstT1Mexes,
 	ArmFirstT1Mexes,
 	ArmFirstT1Mexes,
+	ArmEnT1,
+	ArmEnT1,
+	ArmEnT1,
 	ArmNanoT,
+	ArmEnT1,
+	ArmEnT1,
 	ArmEnT1,
 	ArmRandomLab,
 	ArmGroundAdvDefT1,
 	ArmEnT1,
+	ArmEnT1,
+	ArmEnT1,
 	ArmLLT,
+	ArmEnT1,
+	ArmEnT1,
 	ArmEnT1,
 	ArmNanoT,
 	ArmMexT1,
 	ArmNanoT,
 	"armmex",
 	ArmLLT,
+	ArmEnT1,
+	ArmEnT1,
 	ArmAirAdvDefT1,
 	"armgeo",
 }
@@ -984,6 +1022,8 @@ local armt2construction = {
 	ArmFirstT2Mexes,
 	ArmFirstT2Mexes,
 	ArmFirstT2Mexes,
+	ArmEnT2,
+	ArmEnT2,
 	ArmEnT2,
 	ArmRandomLab,
 	ArmTacticalAdvDefT2,
