@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER LIGHTBOAT SURFACE",
 		collisionvolumeoffsets = "0 -4 1",
-		collisionvolumescales = "26 26 68",
+		collisionvolumescales = "23 23 60",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Depthcharge Frigate",
