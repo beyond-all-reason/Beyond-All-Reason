@@ -17,7 +17,8 @@ local UDN = UnitDefNames
 ----------------------------------------------------------------------
 
 local unitoptions = {}
-
+local firstt1mexes
+local firstt2mexes
 --------------------------------------------------------------------------------------------
 --------------------------------------- Main Functions -------------------------------------
 --------------------------------------------------------------------------------------------
@@ -389,6 +390,29 @@ function CorT1AirCon()
 	end
 end
 
+function CorFirstT2Mexes()
+	if not firstt2mexes then
+		firstt2mexes = 1
+		return "cormoho"
+	elseif firstt2mexes and firstt2mexes <= 3 then
+		firstt2mexes = firstt2mexes + 1
+		return "cormoho"
+	else
+		return "corkrog"
+	end
+end
+
+function CorFirstT1Mexes()
+	if not firstt1mexes then
+		firstt1mexes = 1
+		return "cormex"
+	elseif firstt1mexes and firstt1mexes <= 3 then
+		firstt1mexes = firstt1mexes + 1
+		return "cormex"
+	else
+		return "corkrog"
+	end
+end
 
 --------------------------------------------------------------------------------------------
 ----------------------------------------- CoreTasks ----------------------------------------
@@ -410,6 +434,9 @@ local corcommanderfirst = {
 }
 
 local cort1construction = {
+	CorFirstT1Mexes,
+	CorFirstT1Mexes,
+	CorFirstT1Mexes,
 	CorNanoT,
 	CorEnT1,
 	CorRandomLab,
@@ -426,6 +453,9 @@ local cort1construction = {
 }
 
 local cort2construction = {
+	CorFirstT2Mexes,
+	CorFirstT2Mexes,
+	CorFirstT2Mexes,
 	CorEnT2,
 	CorRandomLab,
 	CorTacticalOffDefT2,
@@ -888,6 +918,29 @@ function ArmT1AirCon()
 	end
 end
 
+function ArmFirstT2Mexes()
+	if not firstt2mexes then
+		firstt2mexes = 1
+		return "armmoho"
+	elseif firstt2mexes and firstt2mexes <= 3 then
+		firstt2mexes = firstt2mexes + 1
+		return "armmoho"
+	else
+		return "corkrog"
+	end
+end
+
+function ArmFirstT1Mexes()
+	if not firstt1mexes then
+		firstt1mexes = 1
+		return "armmex"
+	elseif firstt1mexes and firstt1mexes <= 3 then
+		firstt1mexes = firstt1mexes + 1
+		return "armmex"
+	else
+		return "corkrog"
+	end
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- ArmTasks -----------------------------------------
 --------------------------------------------------------------------------------------------
@@ -908,6 +961,9 @@ local armcommanderfirst = {
 }
 
 local armt1construction = {
+	ArmFirstT1Mexes,
+	ArmFirstT1Mexes,
+	ArmFirstT1Mexes,
 	ArmNanoT,
 	ArmEnT1,
 	ArmRandomLab,
@@ -925,6 +981,9 @@ local armt1construction = {
 }
 
 local armt2construction = {
+	ArmFirstT2Mexes,
+	ArmFirstT2Mexes,
+	ArmFirstT2Mexes,
 	ArmEnT2,
 	ArmRandomLab,
 	ArmTacticalAdvDefT2,
