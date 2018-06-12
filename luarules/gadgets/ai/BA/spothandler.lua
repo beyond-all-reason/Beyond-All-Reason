@@ -150,36 +150,30 @@ function distance(pos1,pos2)
 	dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
 	return dist
 end
+function NoMex(x,z, batchextracts) -- Is there any better mex at this location (returns false if there is)
+	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius)
+		for ct, uid in pairs(mexesatspot) do
+			if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal >= batchextracts then
+				return false
+			end	
+		end
+	return true
+end
 
 function MetalSpotHandler:ClosestFreeSpot(unittype,position)
     local pos = nil
     local bestDistance = 10000
-
     spotCount = self.game.map:SpotCount()
     for i,v in ipairs(self.spots) do
         local p = v
         local dist = distance(position,p)
-        if dist < bestDistance then
-                --checking for unit positions
-                local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-                local radius = extractorRadius + 32
-                local units_found = spGetUnitsInCylinder(p.x, p.z, radius)
-                if #units_found == 0 then
-                    bestDistance = dist
-                    pos = p
-                elseif #units_found > 1 then
-                    for ct, id in pairs(units_found) do
-                        if UnitDefs[Spring.GetUnitDefID(id)].extractsMetal >= UnitDefs[unittype.id].extractsMetal then
-                            break
-						end
-						if ct == #units_found then
-                            bestDistance = dist
-                            pos = p
-						end
-                        end
-                    end
-                end
+        if NoMex(p.x, p.z, UnitDefs[unittype.id].extractsMetal) == true then
+		    if dist < bestDistance then
+                bestDistance = dist
+                pos = p
+            end
         end
+    end
     return pos
 end
 
