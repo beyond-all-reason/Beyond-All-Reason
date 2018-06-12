@@ -277,9 +277,15 @@ function TaskQueueBehaviour:BuildExtractor(utype)
 	-- find a free spot!
 	unit = self.unit:Internal()
 	p = unit:GetPosition()
+	local up = p
 	p = self.ai.metalspothandler:ClosestFreeSpot(utype,p)
-	if p == nil or self.game.map:CanBuildHere(utype,p) ~= true then
-		self:OnToNextTask()
+	if p and self.game.map:CanBuildHere(utype,p) ~= true then
+		p = self.ai.metalspothandler:GetClosestMexPosition(p, up.x, up.z, utype.id, "s")
+		if p == nil or self.game.map:CanBuildHere(utype,p) ~= true then
+			self:OnToNextTask()
+			return false
+		end
+	elseif not p then
 		return false
 	end
 	return self.unit:Internal():Build(utype,p)
