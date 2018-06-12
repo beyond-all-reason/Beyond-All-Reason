@@ -34,10 +34,10 @@ return {
 		sonardistance = 375,
 		waterline = 0,
 		--move
-		acceleration = 0.031,
-		brakerate = 0.054,
+		acceleration = 0.032,
+		brakerate = 0.055,
 		turninplace = true,
-		maxvelocity = 1.90,
+		maxvelocity = 1.95,
 		turninplaceanglelimit = 140,
 		turnrate = 200,
 		--end move

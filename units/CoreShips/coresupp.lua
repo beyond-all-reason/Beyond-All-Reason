@@ -31,9 +31,9 @@ return {
 		sightdistance = 320,
 		waterline = 0,
 		--move
-		acceleration = 0.072,
-		brakerate = 0.22,
-		maxvelocity = 3.43,		
+		acceleration = 0.074,
+		brakerate = 0.23,
+		maxvelocity = 3.56,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 442,

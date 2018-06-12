@@ -35,9 +35,9 @@ return {
 		turnrate = 120,
 		waterline = 0,
 		--move
-		acceleration = 0.040,
-		brakerate = 0.098,
-		maxvelocity = 2.45,
+		acceleration = 0.041,
+		brakerate = 0.100,
+		maxvelocity = 2.52,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 255,

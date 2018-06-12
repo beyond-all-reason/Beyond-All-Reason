@@ -12,13 +12,13 @@ Global:
 T1 ships:
  • Reduced Construction Ships HP -15%
  • Destroyers projectile speed +5%, restored full 360 degrees turret aim, sonar distance reduced to 375.
- • Arm Destroyer +8% mcost, -9% ecost
+ • Arm Destroyer +8% mcost, -9% ecost, + 3% speed/accel/brake
  • Core Destroyer HP 4050 -> 3950 (reducing delta between arm and core destroyers health), +9% mcost
  • Submarines + 10% ecost, -10% mcost
- • Assult Frigates damages + 3%, turret turnspeed reduced -3%, reloadTime increased +4%, +30% e cost.
+ • Assult Frigates damages + 3%, turret turnspeed reduced -3%, reloadTime increased +4%, +30% e cost, +3% speed/accel/brake.
  • Transport ship costs decreased to core 3700e/350m/6400bt and arm 3500e/350m/6500bt, hp decreased to arm 2900 and core 3000.
  • Support Frigate becomes Depthcharge Frigate, range 400 -> 375, sonar 450 -> 400, maxvelocity -2.5%, -10% energy cost
- • Corvettes +4% speed/accel/brake/turn, +10% energy cost (+15% for armdecade)
+ • Corvettes +8% speed/accel/brake, +4% turn, +10% energy cost (+15% for armdecade)
 
 T2 ships: 
  • Globally lighter ships with lower costs/health. 
