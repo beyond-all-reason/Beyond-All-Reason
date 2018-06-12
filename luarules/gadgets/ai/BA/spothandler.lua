@@ -91,7 +91,7 @@ function GetValidStrips(spot)
 	
 	for iz = spot.minZ, spot.maxZ do
 		spot.left[iz] = spot.minX
-		spot.right[iz] = spot.maxZ
+		spot.right[iz] = spot.maxX
 	end
 	
 	
