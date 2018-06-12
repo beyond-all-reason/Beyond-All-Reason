@@ -479,7 +479,7 @@ local cort2construction = {
 	CorFirstT2Mexes,
 	CorEnT2,
 	CorEnT2,
-	CoEnT2,
+	CorEnT2,
 	CorRandomLab,
 	CorTacticalOffDefT2,
 	CorTacticalAdvDefT2,
