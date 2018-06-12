@@ -25,24 +25,36 @@ function distance(pos1,pos2)
 end
 
 function MetalSpotHandler:ClosestFreeSpot(unittype,position)
-	local pos = nil
-	local bestDistance = 10000
+    local pos = nil
+    local bestDistance = 10000
 
-	spotCount = self.game.map:SpotCount()
-	for i,v in ipairs(self.spots) do
-		local p = v
-		local dist = distance(position,p)
-		if dist < bestDistance then
-			if self.game.map:CanBuildHere(unittype,p) then
-				--checking for unit positions
-				local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
-				local radius = 50
-				local units_found = spGetUnitsInRectangle(p.x - radius, p.z - radius, p.x + radius, p.z + radius)
-				if #units_found == 0 then
-					bestDistance = dist
-					pos = p
-				end					
-			end
+    spotCount = self.game.map:SpotCount()
+    for i,v in ipairs(self.spots) do
+        local p = v
+        local dist = distance(position,p)
+        if dist < bestDistance then
+                --checking for unit positions
+                local spGetUnitsInRectangle = Spring.GetUnitsInRectangle
+                local radius = extractorRadius + 32
+                local units_found = spGetUnitsInCylinder(p.x, p.z, radius)
+                if #units_found == 0 then
+                    bestDistance = dist
+                    pos = p
+                elseif #units_found > 1 then
+                    for ct, id in pairs(units_found) do
+                        if UnitDefs[Spring.GetUnitDefID(id)].extractsMetal >= UnitDefs[unittype.id].extractsMetal then
+                            break
+						end
+						if ct == #units_found then
+                            bestDistance = dist
+                            pos = p
+						end
+                        end
+                    end
+                end
+        end
+    return pos
+end
 		end
 	end
 	return pos
