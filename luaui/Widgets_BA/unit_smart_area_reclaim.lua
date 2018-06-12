@@ -209,7 +209,6 @@ function widget:CommandNotify(id, params, options)
 				
 				local mx, my, mz = WorldToScreenCoords(x, y, z)
 				local wy = Spring.GetGroundHeight(x, z)
-				Spring.Echo(wy)
 				local ct, id = TraceScreenRay(mx, my)
 				
 				if (ct == "feature") then
