@@ -28,8 +28,8 @@ local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 local barbg = ":n:LuaUI/Images/resbar.dds"
-local barGlowCenterTexture = "LuaUI/Images/barglow-center.dds"
-local barGlowEdgeTexture = "LuaUI/Images/barglow-edge.dds"
+local barGlowCenterTexture = ":n:LuaUI/Images/barglow-center.png"
+local barGlowEdgeTexture = ":n:LuaUI/Images/barglow-edge.png"
 local bladesTexture = ":c:LuaUI/Images/blades.png"
 local poleTexture = "LuaUI/Images/pole.png"
 local comTexture = "LuaUI/Images/comIcon.png"
@@ -298,7 +298,7 @@ local function updateRejoin()
 		
 		-- Bar value glow
 		local glowSize = barHeight * 6
-		glColor(0, 1, 0, 0.1)
+		glColor(0, 1, 0, 0.09)
 		glTexture(barGlowCenterTexture)
 		glTexRect(barArea[1], barArea[2] - glowSize, barArea[1]+(catchup * barWidth), barArea[4] + glowSize)
 		glTexture(barGlowEdgeTexture)
@@ -1035,7 +1035,7 @@ function drawResbarValues(res)
 	glTexRect(resbarDrawinfo[res].barTexRect[1], resbarDrawinfo[res].barTexRect[2], resbarDrawinfo[res].barTexRect[1]+((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barTexRect[4])
 
 	-- Bar value glow
-	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.1)
+	glColor(resbarDrawinfo[res].barColor[1], resbarDrawinfo[res].barColor[2], resbarDrawinfo[res].barColor[3], 0.09)
 	glTexture(barGlowCenterTexture)
 	glTexRect(resbarDrawinfo[res].barGlowMiddleTexRect[1], resbarDrawinfo[res].barGlowMiddleTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1] + ((cappedCurRes/r[2]) * barWidth), resbarDrawinfo[res].barGlowMiddleTexRect[4])
 	glTexture(barGlowEdgeTexture)
