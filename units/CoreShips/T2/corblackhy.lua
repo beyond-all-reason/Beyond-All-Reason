@@ -37,9 +37,9 @@ return {
 		selfdestructas = "FlagshipExplosionSelfd",
 		sightdistance = 650,
 		--move
-		acceleration = 0.0117,
-		brakerate = 0.045,
-		maxvelocity = 1.449,
+		acceleration = 0.0111,
+		brakerate = 0.042,
+		maxvelocity = 1.376,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 86,
