@@ -27,9 +27,9 @@ repairRange = 300
 MoveSpeed = {1.25,1.225,1.20,1.175,1.15,1.125,1.1,1.075,1.05,1.025,1}
 
 --RESOURCES PRODUCTION
-EnergyMake = {0,25,50,75,100,150,200,250,300,400,500}
-MetalMake = {0,1,2,5,8,12,15,20,30,40,50}
-WreckMetal = {0.7, 1.0, 1.2, 1.4, 1.7, 2, 2.2, 2.5, 3, 4, 5} -- wreck metal = WreckMetal[level] * Spring.GetModOptions().comm_wreck_metal or 2500
+EnergyMake = {0,50,75,125,175,225,300,400,600,1000,2000}
+MetalMake = {0,2,5,8,12,15,30,40,50,100,200}
+WreckMetal = {0.7, 0.9, 1.2, 1.5, 1.8, 2.2, 2.5, 3, 4, 6, 8} -- wreck metal = WreckMetal[level] * Spring.GetModOptions().comm_wreck_metal or 2500
 
 -- SHIELDS/ARMOR/HEALS
 ShieldPower = {1000,1250,1500,2000,2500,3000,4000,5000,6000,8000,10000}
@@ -37,8 +37,8 @@ HealOnLevelUp = {0,500,500,750,750,1000,1000,2000,3000,4000,5000}
 DamageMultiplierNoDgun = {1,1,1,1,1,1,0.95,0.9,0.85,0.8,0.75}
 
 DestroyedPowerToLevelTwo = 3000
-ResourcesUsedToLevelTwo = 5000
-ResourcesMadeToLevelTwo = 10000
+ResourcesUsedToLevelTwo = 4000
+ResourcesMadeToLevelTwo = 6000
 WalkedDistanceToLevelTwo = 1200000
 
 ResourcesUseExpPerSecond = 1/(9*ResourcesUsedToLevelTwo)
