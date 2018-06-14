@@ -15,6 +15,23 @@ function TaskQueueBehaviour:Init()
 
 end
 
+local function GetFacing(x,z)
+    if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
+      if (2*x>Game.mapSizeX) then
+        facing=3
+      else
+        facing=1
+      end
+    else
+      if (2*z>Game.mapSizeZ) then
+        facing=2
+      else
+        facing=0
+      end
+    end
+	return facing
+end
+
 function dump(o)
 	if type(o) == 'table' then
 		local s = '{ '
@@ -302,7 +319,7 @@ end
 function TaskQueueBehaviour:OnBuildingPlacementSuccess( job, pos )
 	self:StopWaitingForPosition()
 	local p = dump( pos )
-	local success self.unit:Internal():Build( job.unittype, pos )
+	local success self.unit:Internal():Build( job.unittype, pos, GetFacing(pos.x, pos.z) )
 	if success == false then
 		self:OnToNextTask()
 	end
