@@ -20,7 +20,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 function gadget:Initialize()
 	if Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and Spring.GetModOptions().map_waterlevel ~= "0" then
-		Spring.SetMapRenderingParams({ voidWater = false})
+		-- Spring.SetMapRenderingParams({ voidWater = false})
 		local waterlevel = ((Spring.GetModOptions() and tonumber(Spring.GetModOptions().map_waterlevel)))
 		Spring.AdjustHeightMap(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
 		Spring.AdjustSmoothMesh(0, 0, Game.mapSizeX, Game.mapSizeZ, -waterlevel)
