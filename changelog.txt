@@ -63,7 +63,7 @@ Vehicles:
  • Bulldog -2% speed
  • Shellshocker -5% reloadtime
  • Raider -2% speed / +3% turnrate
- • Instigator -2% speed / +2% turnrate
+ • Instigator -5% speed / +2% turnrate
  • Weasel +2% turnrate
  • Reaper -2% speed
  • Wolverine -5% reloadtime
