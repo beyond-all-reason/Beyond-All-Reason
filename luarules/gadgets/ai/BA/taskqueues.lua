@@ -89,16 +89,14 @@ end
 function CorEnT1( taskqueuebehaviour )	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if es < (ei * 15) and ec > (es * 0.8) then
-		return "corestor"
-	end
-	if ms < (mi * 15) or mc > (ms*0.9) then
-		return "cormstor"
-	end
 	if ei - ep < 0 and ec < 0.5 * es then
         return ("cor"..WindOrSolar())
     elseif ei - ep > 0 and ec > 0.8 * es then
         return "cormakr"
+	elseif es < (ei * 15) and ec > (es * 0.8) then
+		return "corestor"
+	elseif ms < (mi * 15) or mc > (ms*0.9) then
+		return "cormstor"
 	else
 		return "cormex"
 	end
@@ -642,16 +640,14 @@ function ArmEnT1( taskqueuebehaviour )
 	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if es < (ei * 15) and ec > (es * 0.8) then
-		return "armestor"
-	end
-	if ms < (mi * 15) or mc > (ms*0.9) then
-		return "armmstor"
-	end
 	if ei - ep < 0 and ec < 0.5 * es then
         return ("arm"..WindOrSolar())
     elseif ei - ep > 0 and ec > 0.8 * es then
         return "armmakr"
+	elseif es < (ei * 15) and ec > (es * 0.8) then
+		return "armestor"
+	elseif ms < (mi * 15) or mc > (ms*0.9) then
+		return "armmstor"
 	else
 		return "armmex"
 	end
