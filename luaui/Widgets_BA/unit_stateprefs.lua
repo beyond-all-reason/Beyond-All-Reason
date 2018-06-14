@@ -3,8 +3,8 @@
 
 function widget:GetInfo()
   return {
-    name      = "HoldPos Prefs",
-    desc      = "Sets pre-defined units on hold position depending on players preferences: change movestate while pressing ctrl to set preference. Preferences are saved when game is over and loaded when widget is loaded.",
+    name      = "State Prefs",
+    desc      = "Sets pre-defined units states.",
     author    = "quantum + Doo",
     date      = "2018",
     license   = "GNU GPL, v2 or later",
@@ -19,7 +19,7 @@ end
 
 
 local unitSet = {}
-local chunk, err = loadfile("LuaUI/config/holdposPrefs.lua")
+local chunk, err = loadfile("LuaUI/config/StatesPrefs.lua")
 if chunk then
     local tmp = {}
     setfenv(chunk, tmp)
@@ -48,36 +48,32 @@ function widget:Initialize()
   end
 end
 
-function widget:CommandNotify(cmdID, cmdParams, cmdOpts, cmdTag)
+function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 	for ct, unitID in pairs(Spring.GetSelectedUnits()) do
-	local unitDefID = Spring.GetUnitDefID(unitID)
-	local unitTeam = Spring.GetUnitTeam(unitID)
-	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	if ctrl and cmdID == CMD.MOVE_STATE then
-		if cmdParams[1] == 0 then --holdpos
-			unitSet[UnitDefs[unitDefID].name] = 0
-			Spring.Echo("Preference set for: "..UnitDefs[unitDefID].name.." = 0.")
-		elseif cmdParams[1] == 1 then --  manoeuver
-			unitSet[UnitDefs[unitDefID].name] = 1		
-			Spring.Echo("Preference set for: "..UnitDefs[unitDefID].name.." = 1.")
-		elseif cmdParams[1] == 2 then
-			unitSet[UnitDefs[unitDefID].name] = 2
-			Spring.Echo("Preference set for: "..UnitDefs[unitDefID].name.." = 2.")
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		local unitTeam = Spring.GetUnitTeam(unitID)
+		unitSet[UnitDefs[unitDefID].name] = unitSet[UnitDefs[unitDefID].name] or {}
+		local alt, ctrl, meta, shift = Spring.GetModKeyState()
+		if ctrl and #cmdParams == 1 then
+			unitSet[UnitDefs[unitDefID].name][cmdID] = cmdParams[1]
+			Spring.Echo("State pref changed")
 		end
-	end
 	end
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
   local ud = UnitDefs[unitDefID]
+  unitSet[ud.name] = unitSet[ud.name] or {}
   if ((ud ~= nil) and (unitTeam == Spring.GetMyTeamID())) then
-      Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { unitSet[ud.name] }, {})
+  	for cmdID, cmdParam in pairs(unitSet[ud.name]) do
+      Spring.GiveOrderToUnit(unitID, cmdID , { cmdParam }, {})
+	end
   end
 end
 
 function widget:GameOver()
-		Spring.Echo("Recorded MoveState Prefs")
-		table.save(unitSet, "LuaUI/config/holdposPrefs.lua", "--hold pos prefs")
+		Spring.Echo("Recorded States Prefs")
+		table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
 	    widgetHandler:RemoveWidget(self)
 end
 
