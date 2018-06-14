@@ -38,7 +38,7 @@ return {
 		trackwidth = 21,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 2.02,
+		turninplacespeedlimit = 1.96,
 		turnrate = 388,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {

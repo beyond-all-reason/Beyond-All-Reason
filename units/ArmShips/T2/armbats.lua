@@ -1,10 +1,10 @@
 return {
 	armbats = {
 		buildangle = 16384,
-		buildcostenergy = 15000,
-		buildcostmetal = 3000,
+		buildcostenergy = 22000,
+		buildcostmetal = 3300,
 		buildpic = "ARMBATS.DDS",
-		buildtime = 25000,
+		buildtime = 35000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "-1 -10 4",
@@ -32,9 +32,9 @@ return {
 		sightdistance = 455,
 		waterline = 0,
 		--move
-		acceleration = 0.019,
-		brakerate = 0.079,
-		maxvelocity = 1.99,
+		acceleration = 0.0171,
+		brakerate = 0.0722,
+		maxvelocity = 1.93,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 120,

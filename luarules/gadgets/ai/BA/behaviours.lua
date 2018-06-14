@@ -33,27 +33,27 @@ behaviours = {
 
 	corack = {
 		TaskQueueBehaviour,
-		MexUpgradeBehavior,
+		-- MexUpgradeBehavior,
 		},
 	coracv = {
 		TaskQueueBehaviour,
-		MexUpgradeBehavior,
+		-- MexUpgradeBehavior,
 		},
 	coraca = {
 		TaskQueueBehaviour,
-		MexUpgradeBehavior,
+		-- MexUpgradeBehavior,
 		},
 	armack = {
 		TaskQueueBehaviour,
-		MexUpgradeBehavior,
+		-- MexUpgradeBehavior,
 		},
 	armacv = {
 		TaskQueueBehaviour,
-		MexUpgradeBehavior,
+		-- MexUpgradeBehavior,
 		},
 	armaca = {
 		TaskQueueBehaviour,
-		MexUpgradeBehavior,
+		-- MexUpgradeBehavior,
 		},
 
 

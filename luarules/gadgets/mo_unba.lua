@@ -28,7 +28,6 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 		categories[unitDefID] = categories[UnitDefs[unitDefID].name] or 'other'
 		categories[UnitDefs[unitDefID].name] = nil
 		expvalues[unitDefID] = math.sqrt(uDef.metalCost + uDef.energyCost/60)/500
-		Spring.Echo(expvalues[unitDefID])
 		taxvalues[unitDefID] = taxvalues[categories[unitDefID]] or 1.025
 		taxvalues[categories[unitDefID]] = nil
 	end

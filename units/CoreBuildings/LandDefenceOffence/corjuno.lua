@@ -128,7 +128,7 @@ return {
 				impulsefactor = 0,
 				metalpershot = 200,
 				model = "epulse",
-				name = "AntiSignal",
+				name = "Anti radar/minefield/jammer magnetic impulse rocket",
 				range = 32000,
 				reloadtime = 2,
 				soundhit = "junohit2",

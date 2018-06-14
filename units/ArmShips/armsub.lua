@@ -2,8 +2,8 @@ return {
 	armsub = {
 		activatewhenbuilt = true,
 		autoheal = 2,
-		buildcostenergy = 3200,
-		buildcostmetal = 550,
+		buildcostenergy = 3500,
+		buildcostmetal = 500,
 		buildpic = "ARMSUB.DDS",
 		buildtime = 6600,
 		canmove = true,

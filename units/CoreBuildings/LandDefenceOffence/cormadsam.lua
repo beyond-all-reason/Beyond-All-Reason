@@ -128,7 +128,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "missile",
-				name = "AA2Missile",
+				name = "Advanced g2a rapid missile launcher",
 				noselfdamage = true,
 				range = 1000,
 				reloadtime = 0.425,

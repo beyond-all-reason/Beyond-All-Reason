@@ -1,14 +1,14 @@
 return {
 	armdecade = {
 		buildangle = 16384,
-		buildcostenergy = 1400,
+		buildcostenergy = 1650,
 		buildcostmetal = 195,
 		buildpic = "ARMDECADE.DDS",
 		buildtime = 2590,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -3 -2",
-		collisionvolumescales = "20 20 57",
+		collisionvolumeoffsets = "0 -4 -2",
+		collisionvolumescales = "24 24 67",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Fast Assault Corvette",
@@ -30,12 +30,12 @@ return {
 		sightdistance = 375,
 		waterline = 0,
 		--move
-		acceleration = 0.06,
-		brakerate = 0.21,
-		maxvelocity = 3.15,		
+		acceleration = 0.072,
+		brakerate = 0.23,
+		maxvelocity = 3.39,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turnrate = 405,
+		turnrate = 421,
 		--end move
 		customparams = {
 			

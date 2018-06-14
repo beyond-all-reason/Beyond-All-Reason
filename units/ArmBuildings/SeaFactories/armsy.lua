@@ -36,15 +36,13 @@ return {
 		yardmap = "oyyyyyyoyccccccyyccccccyyccccccyyccccccyyccccccyyccccccyoyyyyyyo",
 		buildoptions = {
 			"armcs",
-			-- "armch",
 			"armrecl",
 			"armpt",
 			"armdecade",
 			"armpship",
-			"armrship",
-			"armdship",
-			"armsub",
 			"armroy",
+			"armsub",
+			"armdship",
 			"armtship",
 		},
 		customparams = {

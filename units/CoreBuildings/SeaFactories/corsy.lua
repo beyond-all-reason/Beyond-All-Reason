@@ -36,15 +36,13 @@ return {
 		yardmap = "oyyyyyyoyccccccyyccccccyyccccccyyccccccyyccccccyyccccccyoyyyyyyo",
 		buildoptions = {
 			"corcs",
-			-- "corch",
 			"correcl",
 			"corpt",
 			"coresupp",
 			"corpship",
-			"corrship",
-			"cordship",
-			"corsub",
 			"corroy",
+			"corsub",
+			"cordship",
 			"cortship",
 		},
 		customparams = {

@@ -1,14 +1,14 @@
 return {
 	coresupp = {
 		buildangle = 16384,
-		buildcostenergy = 1400,
+		buildcostenergy = 1550,
 		buildcostmetal = 165,
 		buildpic = "CORESUPP.DDS",
 		buildtime = 2475,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
-		collisionvolumeoffsets = "0 -3 -1",
-		collisionvolumescales = "17 17 47",
+		collisionvolumeoffsets = "0 -4 -1",
+		collisionvolumescales = "20 20 55",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
 		description = "Fast Assault Corvette",
@@ -31,12 +31,12 @@ return {
 		sightdistance = 320,
 		waterline = 0,
 		--move
-		acceleration = 0.07,
-		brakerate = 0.21,
-		maxvelocity = 3.30,		
+		acceleration = 0.074,
+		brakerate = 0.23,
+		maxvelocity = 3.56,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turnrate = 425,
+		turnrate = 442,
 		--end move
 		customparams = {
 

@@ -17,39 +17,22 @@ walk()
 {
 	if( bMoving )
 	{
-		move hips to y-axis [0.000000] now;
 		move hips to y-axis [-0.169995] speed [3.000000]  *  currentSpeed / 100;
-		move l_thigh to y-axis [0.000000] now;
 		move l_thigh to y-axis [0.169995] speed [3.000000]  *  currentSpeed / 100;
-		move r_thigh to y-axis [0.400000] now;
 		move r_thigh to y-axis [0.319995] speed [1.000000]  *  currentSpeed / 100;
-		move torso to y-axis [0.000000] now;
 		move torso to y-axis [-0.119995] speed [2.000000]  *  currentSpeed / 100;
-		turn hips to x-axis <7.027473> now;
 		turn hips to x-axis <9.000000> speed <50.000000>  *  currentSpeed / 100;
-		turn l_thigh to x-axis <17.923077> now;
 		turn l_thigh to x-axis <20.000000> speed <46.000000>  *  currentSpeed / 100;
-		turn r_thigh to x-axis <-37.967033> now;
 		turn r_thigh to x-axis <-33.005495> speed <82.000000>  *  currentSpeed / 100;
-		turn torso to y-axis <-9.137363> now;
 		turn torso to y-axis <-7.000000> speed <35.000000>  *  currentSpeed / 100;
-		turn head to y-axis <9.840659> now;
 		turn head to y-axis <7.000000> speed <43.000000>  *  currentSpeed / 100;
-		turn luparm to x-axis <-19.681319> now;
 		turn luparm to x-axis <-14.000000> speed <104.000000>  *  currentSpeed / 100;
-		turn ruparm to x-axis <21.791209> now;
 		turn ruparm to x-axis <26.005495> speed <89.000000>  *  currentSpeed / 100;
-		turn rarm to x-axis <24.604396> now;
 		turn rarm to x-axis <45.010989> speed <430.000000>  *  currentSpeed / 100;
-		turn larm to x-axis <0.000000> now;
 		turn larm to x-axis <-8.000000> speed <179.000000>  *  currentSpeed / 100;
-		turn rleg to x-axis <17.219780> now;
 		turn rleg to x-axis <13.000000> speed <78.000000>  *  currentSpeed / 100;
-		turn rfoot to x-axis <-22.505495> now;
 		turn rfoot to x-axis <-13.000000> speed <175.000000>  *  currentSpeed / 100;
-		turn lleg to x-axis <0.000000> now;
 		turn lleg to x-axis <10.000000> speed <215.000000>  *  currentSpeed / 100;
-		turn lfoot to x-axis <-16.873626> now;
 		turn lfoot to x-axis <-10.000000> speed <136.000000>  *  currentSpeed / 100;
 		sleep 49 * 100 / currentSpeed;
 	}
@@ -574,6 +557,8 @@ MotionControl(moving, aiming, justmoved)
 				turn rleg to x-axis <0.000000> speed <200.000000>;
 				turn rfoot to x-axis <0.000000> speed <200.000000>;
 				turn l_thigh to x-axis <0.000000> speed <200.000000>;
+				turn hips to y-axis <0.000> speed <200>;
+				turn hips to x-axis <0.000> speed <200>;
 				turn lleg to x-axis <0.000000> speed <200.000000>;
 				turn lfoot to x-axis <0.000000> speed <200.000000>;
 				if( !aiming )
@@ -690,18 +675,6 @@ QueryPrimary(piecenum)
 
 FirePrimary()
 {
-	if( gun_1 )
-	{
-		show emgflare;
-		sleep 100;
-		hide emgflare;
-	}
-	else
-	{
-		show gunflare;
-		sleep 100;
-		hide gunflare;
-	}
 	gun_1 = !gun_1;
 }
 

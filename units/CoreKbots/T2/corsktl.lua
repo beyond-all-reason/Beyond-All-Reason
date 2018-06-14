@@ -116,6 +116,8 @@ return {
 				soundhitwetvolume = 0.5,
 				tolerance = 100000,
 				weapontype = "Melee",
+				avoidground = false,
+				waterweapon = true,
 				weaponvelocity = 100000,
 				damage = {
 					default = 0,

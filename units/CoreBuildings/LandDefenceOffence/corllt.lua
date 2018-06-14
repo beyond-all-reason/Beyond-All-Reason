@@ -129,7 +129,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 7,
-				name = "LightLaser",
+				name = "Light g2g laser",
 				noselfdamage = true,
 				range = 435,
 				reloadtime = 0.48,

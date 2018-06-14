@@ -198,7 +198,7 @@ return {
 					subs = 0.5,
 				},
 				customparams = {
-					light_mult = "0.38",		-- used by light_effects widget
+					light_mult = "0.44",		-- used by light_effects widget
                     light_color = "0.2 0.5 1",
                     expl_light_color = "0.2 0.5 1",
 				},

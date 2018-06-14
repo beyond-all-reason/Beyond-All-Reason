@@ -131,7 +131,7 @@ return {
 				interceptor = 1,
 				metalpershot = 150,
 				model = "fmdmisl",
-				name = "Rocket",
+				name = "ICBM intercepting missile launcher",
 				noselfdamage = true,
 				range = 72000,
 				reloadtime = 2,

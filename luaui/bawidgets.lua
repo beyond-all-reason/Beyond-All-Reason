@@ -106,6 +106,7 @@ widgetHandler = {
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local flexCallIns = {
+  'GameID',
   'GamePreload',
   'GameStart',
   'GameOver',
@@ -167,6 +168,7 @@ for _,ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
+  'GameID',
   'GamePreload',
   'GameStart',
   'Shutdown',
@@ -1563,6 +1565,13 @@ end
 --
 --  Game call-ins
 --
+
+function widgetHandler:GameID(gameID)
+  for _,w in ipairs(self.GameIDList) do
+    w:GameID(gameID)
+  end
+  return
+end
 
 function widgetHandler:GamePreload()
   for _,w in ipairs(self.GamePreloadList) do

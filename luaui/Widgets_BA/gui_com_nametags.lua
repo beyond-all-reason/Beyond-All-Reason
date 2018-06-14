@@ -97,8 +97,8 @@ local function GetCommAttributes(unitID, unitDefID)
 
   if name == 'AI Machine '..aiCount then
     aiCount = aiCount + 1
-    if Spring.GetTeamRulesParam(team, 'ainame') then
-      name = Spring.GetTeamRulesParam(team, 'ainame')
+    if Spring.GetGameRulesParam('ainame_'..team) then
+      name = Spring.GetGameRulesParam('ainame_'..team)
     end
   end
 

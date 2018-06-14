@@ -167,6 +167,8 @@ function TaskQueueBehaviour:TryToBuild( unit_name )
 	local success = false
 	if utype:Extractor() then
 		success = self:BuildExtractor(utype)
+	elseif utype:Geothermal() then
+		success = self:BuildGeothermal(utype)
 	elseif unit:Type():IsFactory() then
 		success = self.unit:Internal():Build(utype)
 	else

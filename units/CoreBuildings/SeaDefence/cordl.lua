@@ -131,7 +131,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "Torpedo",
+				name = "Light depthcharge launcher",
 				noselfdamage = true,
 				numbounce = 1,
 				range = 530,

@@ -16,7 +16,7 @@ end
 function AttackHandler:Update()
 -- stagger targetting if multiple shards are in the game
 	local f = self.game:Frame() + self.game:GetTeamID() 
-	if math.mod(f,15) == 0 then
+	if math.fmod(f,15) == 0 then
 		self:DoTargetting()
 	end
 end

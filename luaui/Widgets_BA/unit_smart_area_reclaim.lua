@@ -195,8 +195,10 @@ function widget:CommandNotify(id, params, options)
 		
 		if (#rUnits > 0) then
 			local len = #params
-			local ret = {}
-			local rmt = {}
+			local retw = {}
+			local rmtw = {}
+			local retg = {}
+			local rmtg = {}
 			
 			if (len == 4) then
 				local x, y, z, r = params[1], params[2], params[3], params[4]
@@ -206,6 +208,7 @@ function widget:CommandNotify(id, params, options)
 				local units = GetFeaturesInRectangle(xmin, zmin, xmax, zmax)
 				
 				local mx, my, mz = WorldToScreenCoords(x, y, z)
+				local wy = Spring.GetGroundHeight(x, z)
 				local ct, id = TraceScreenRay(mx, my)
 				
 				if (ct == "feature") then
@@ -213,17 +216,25 @@ function widget:CommandNotify(id, params, options)
 					
 					for i=1,#units,1 do
 						local uid = units[i]
-						local ux, _, uz = GetFeaturePosition(uid)
+						local ux, uy, uz = GetFeaturePosition(uid)
 						local ur = GetFeatureRadius(uid)
 						local urx, urz = abs(ux - x), abs(uz - z)
 						local ud = sqrt((urx * urx) + (urz * urz))-ur*.5
 						
 						if (ud < r) then
-							local mr, _, er, _, _ = GetFeatureResources(uid)
-							if (mr > 0) then
-								rmt[#rmt+1] = uid
-							elseif (er > 0) then
-								ret[#ret+1] = uid
+						local mr, _, er, _, _ = GetFeatureResources(uid)
+							if uy < 0 then
+								if (mr > 0) then
+									rmtw[#rmtw+1] = uid
+								elseif (er > 0) then
+									retw[#retw+1] = uid
+								end
+							elseif uy > 0 then
+								if (mr > 0) then
+									rmtg[#rmtg+1] = uid
+								elseif (er > 0) then
+									retg[#retg+1] = uid
+								end
 							end
 						end
 					end
@@ -234,10 +245,14 @@ function widget:CommandNotify(id, params, options)
 					local mList, sList = {}, {}
 					local source = {}
 					
-					if (#rmt > 0)and(mr > 0) then
-						source = rmt
-					elseif (#ret > 0)and(er > 0) then
-						source = ret
+					if (#rmtg > 0)and(mr > 0) and wy > 0 then
+						source = rmtg
+					elseif (#retg > 0)and(er > 0) and wy > 0 then
+						source = retg
+					elseif (#rmtw > 0)and(mr > 0) and wy < 0 then
+						source = rmtw
+					elseif (#retw > 0)and(er > 0) and wy < 0 then
+						source = retw
 					end
 					
 					for i=1,#source do

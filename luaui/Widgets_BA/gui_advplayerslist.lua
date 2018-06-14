@@ -142,8 +142,8 @@ local pics = {
 	resourcesPic    = imageDirectory.."res.png",
 	resbarPic       = imageDirectory.."resbar.png",
 	resbarBgPic     = imageDirectory.."resbarBg.png",
-    barGlowCenterPic= imageDirectory.."barglow-center.dds",
-    barGlowEdgePic	= imageDirectory.."barglow-edge.dds",
+    barGlowCenterPic= imageDirectory.."barglow-center.png",
+    barGlowEdgePic	= imageDirectory.."barglow-edge.png",
 
 	cpuPingPic      = imageDirectory.."cpuping.dds",
 	specPic         = imageDirectory.."spec.png",
@@ -558,6 +558,7 @@ m_seespec = {
 local specsLabelOffset = 0
 local teamsizeVersusText = ""
 
+
 ---------------------------------------------------------------------------------------------------
 --  Geometry
 ---------------------------------------------------------------------------------------------------
@@ -619,8 +620,8 @@ function SetMaxPlayerNameWidth()
 			else
 				name = "AI:" .. name
 			end
-			if Spring.GetTeamRulesParam(teamID, 'ainame') then
-				name = Spring.GetTeamRulesParam(teamID, 'ainame')
+			if Spring.GetGameRulesParam(teamID, 'ainame') then
+				name = Spring.GetGameRulesParam(teamID, 'ainame')
 			end
 		end
 		local charSize
@@ -1016,7 +1017,13 @@ function round(num, idp)
 end
 
 function GetSkill(playerID)
-	local customtable = select(10,Spring_GetPlayerInfo(playerID)) -- player custom table
+
+	local customtable
+	if select(11,Spring.GetPlayerInfo(playerID)) then   -- changed to 11th in engine 104.0.1.547
+		customtable = select(11,Spring.GetPlayerInfo(playerID)) -- player custom table
+	else
+		customtable = select(10,Spring.GetPlayerInfo(playerID))
+	end
 	local tsMu = customtable.skill
 	local tsSigma = customtable.skilluncertainty
 	local tskill = ""
@@ -1133,8 +1140,8 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 		else
 			tname = "AI:" .. tname
 		end
-		if Spring.GetTeamRulesParam(teamID, 'ainame') then
-			tname = Spring.GetTeamRulesParam(teamID, 'ainame')
+		if Spring.GetGameRulesParam('ainame_'..teamID) then
+			tname = Spring.GetGameRulesParam('ainame_'..teamID)
 		end
 		
 		ttotake = false
@@ -1165,8 +1172,8 @@ function CreatePlayerFromTeam(teamID) -- for when we don't have a human player o
 	if aliveAllyTeams[tallyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == tallyteam) then
 		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(teamID, "energy") or 0
 		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(teamID, "metal") or 0
-		energy = math.floor(energy)
-		metal = math.floor(metal)
+		energy = math.floor(energy or 0)
+		metal = math.floor(metal or 0)
 		if energy < 0 then energy = 0 end
 		if metal < 0 then metal = 0 end
 	end
@@ -2084,8 +2091,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset)
 
     if ((barWidth/metalStorage)*metal) > 0.8 then
-        local glowsize = 11
-        gl_Color(1,1,1.2,0.04)
+        local glowsize = 10
+        gl_Color(1,1,1.2,0.08)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
 
@@ -2109,8 +2116,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset)
 
     if ((barWidth/energyStorage)*energy) > 0.8 then
-        local glowsize = 11
-        gl_Color(1,1,0.2,0.04)
+        local glowsize = 10
+        gl_Color(1,1,0.2,0.08)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
 

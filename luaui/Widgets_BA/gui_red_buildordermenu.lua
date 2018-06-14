@@ -21,8 +21,8 @@ local buildLetters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"
 
 local stateTexture		     = "LuaUI/Images/resbar.dds"
 local buttonTexture		     = "LuaUI/Images/button.dds"
-local barGlowCenterTexture = "LuaUI/Images/barglow-center.dds"
-local barGlowEdgeTexture   = "LuaUI/Images/barglow-edge.dds"
+local barGlowCenterTexture = ":n:LuaUI/Images/barglow-center.png"
+local barGlowEdgeTexture   = ":n:LuaUI/Images/barglow-edge.png"
 
 local oldUnitpicsDir   = "unitpics/"
 
@@ -391,8 +391,8 @@ local function CreateGrid(r)
 			mouseoverhighlight.active = nil
 			local tt = self.tooltip
 			if r.menuname == "buildmenu" then
-				if self.texture ~= nil and string.sub(self.texture, 1, 1) == '#' then
-					local udefid =  tonumber(string.sub(self.texture, 2))
+				if self.texture ~= nil and self.udid then--string.sub(self.texture, 1, 1) == '#' then
+					local udefid = self.udid	--tonumber(string.sub(self.texture, 2))
 					WG.hoverID = udefid
                     local alt, ctrl, meta, shift = Spring.GetModKeyState()
                     if not meta and drawTooltip and WG['tooltip'] ~= nil then
@@ -628,11 +628,13 @@ local function UpdateGrid(g,cmds,ordertype)
 		}
 		
 		if (ordertype == 1) then --build icons
-			if oldUnitpics and UnitDefs[cmd.id*-1] ~= nil and VFS.FileExists(oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds') then
+			if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 and oldUnitpics and UnitDefs[cmd.id*-1] ~= nil and VFS.FileExists(oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds') then
 				icon.texture = oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds'
 			else
 				icon.texture = "#"..cmd.id*-1
 			end
+			icon.udid = cmd.id*-1
+
 			if (cmd.params[1]) then
 				icon.options = "o"
 				icon.caption = "     "..cmd.params[1].."  "

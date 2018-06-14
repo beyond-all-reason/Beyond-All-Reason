@@ -67,7 +67,7 @@ x,y,z = Spring.GetUnitPosition(unitID)
 			local unittable = Spring.GetUnitsInSphere(x, y, z, repairRange)
 				for _, uid in pairs(unittable) do
 					if uid ~= unitID then
-						if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(uid)) == true then
+						if Spring.AreTeamsAllied(Spring.GetUnitTeam(unitID), Spring.GetUnitTeam(uid)) == true and not (UnitDefs[Spring.GetUnitDefID(uid)].isBuilding) then
 							local oldhp2, maxhp2,_,_,bprog = Spring.GetUnitHealth(uid)
 							if oldhp2 / maxhp2 <= bprog then
 								if oldhp2 >0 then
@@ -352,6 +352,10 @@ end
 end
 if weapon <= 11 then
 	if weapon == level then
+	_,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
+	if uwlaserheight <= 0 then
+		return false
+	end
 	if dgunning then
 		return false
 	else
@@ -371,10 +375,10 @@ if weapon <= 11 then
 	end
 elseif weapon >= 12 and weapon <= 22 then
 	if weapon - 11 == level then
-	_,uwlaserheight = Spring.GetUnitPosition(unitID)
-	if uwlaserheight > -15 then
+	_,uwlaserheight = Spring.GetUnitPiecePosDir(unitID, torso)
+	if uwlaserheight > 0 then
 		return false
-	else 
+	end 
 	if dgunning then
 		return false
 	else
@@ -389,7 +393,7 @@ elseif weapon >= 12 and weapon <= 22 then
 		justfired = true
 		return true
 	end
-	end
+	
 	else
 	return false
 	end

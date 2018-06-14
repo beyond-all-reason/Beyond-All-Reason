@@ -2,8 +2,8 @@ return {
 	corsub = {
 		activatewhenbuilt = true,
 		autoheal = 2,
-		buildcostenergy = 3300,
-		buildcostmetal = 580,
+		buildcostenergy = 3600,
+		buildcostmetal = 530,
 		buildpic = "CORSUB.DDS",
 		buildtime = 6530,
 		canmove = true,

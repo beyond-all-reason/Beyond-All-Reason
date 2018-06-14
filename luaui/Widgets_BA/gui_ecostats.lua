@@ -135,8 +135,8 @@ local images			= {
 	["zombie"]     			= "LuaUI/Images/ecostats/cross_inv.png",
 	["bar"]     			= "LuaUI/Images/ecostats/bar.png",
 	["barbg"]     			= "LuaUI/Images/ecostats/barbg.png",
-	["barglowcenter"]     	= "LuaUI/Images/ecostats/barglow-center.dds",
-	["barglowedge"]     	= "LuaUI/Images/ecostats/barglow-edge.dds",
+	["barglowcenter"]     	= ":n:LuaUI/Images/ecostats/barglow-center.png",
+	["barglowedge"]     	= ":n:LuaUI/Images/ecostats/barglow-edge.png",
 	["outer_colonies"]		= "LuaUI/Images/ecostats/ecommander.png", -- commander in evorts
 }
 
@@ -511,7 +511,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 	)
 
 	if tE * maxW > 0.9 then
-		local glowsize = 25*sizeMultiplier
+		local glowsize = 23*sizeMultiplier
 		-- energy total
 		glColor(1,1,0,0.032)
 		gl.Texture(images["barglowcenter"])
@@ -536,7 +536,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
 		)
 		-- energy production
-		glColor(1,1,0,0.035)
+		glColor(1,1,0,0.032)
 		gl.Texture(images["barglowcenter"])
 		glTexRect(
 			widgetPosX + dx,
@@ -601,7 +601,7 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 	if tM * maxW > 0.9 then
 		local glowsize = 26*sizeMultiplier
 		-- metal total
-		glColor(1,1,1,0.035)
+		glColor(1,1,1,0.032)
 		gl.Texture(images["barglowcenter"])
 		glTexRect(
 			widgetPosX + dx,
@@ -624,7 +624,7 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
 		)
 		-- metal production
-		glColor(1,1,1,0.035)
+		glColor(1,1,1,0.032)
 		gl.Texture(images["barglowcenter"])
 		glTexRect(
 			widgetPosX + dx,

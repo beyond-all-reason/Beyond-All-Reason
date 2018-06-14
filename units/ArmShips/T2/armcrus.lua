@@ -2,10 +2,10 @@ return {
 	armcrus = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 7500,
-		buildcostmetal = 800,
+		buildcostenergy = 12000,
+		buildcostmetal = 1000,
 		buildpic = "ARMCRUS.DDS",
-		buildtime = 12000,
+		buildtime = 17000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -8 0",
@@ -190,7 +190,7 @@ return {
 					default = 300,
 				},
 			},
-			plasma = {
+			gauss = {
 				areaofeffect = 16,
 				avoidfeature = false,
 				craterareaofeffect = 0,
@@ -199,7 +199,7 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				name = "Long-range g2g plasma cannon",
+				name = "Long-range g2g gauss cannon",
 				noselfdamage = true,
 				range = 585,
 				reloadtime = 1.35,
@@ -222,7 +222,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "PLASMA",
+				def = "GAUSS",
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

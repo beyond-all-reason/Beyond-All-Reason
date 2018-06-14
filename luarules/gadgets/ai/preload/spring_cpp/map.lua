@@ -78,6 +78,31 @@ function map:GetMetalSpots() -- returns a table of spot positions
 	return f
 end
 
+function map:GeoCount() -- returns the nubmer of metal spots
+	local m = game_engine:Map()
+	return m:GeoCount()
+end
+
+function map:GetGeo(idx) -- returns a Position for the given spot
+	local m = game_engine:Map()
+	return m:GetGeo(idx)
+end
+
+function map:GetMetalSpots() -- returns a table of spot positions
+	--
+	local m = game_engine:Map()
+	local fv = game_engine:Map():GetGeoSpots()
+	local count = m:GeoCount()
+	local f = {}
+	local i = 0
+	while i  < count do
+		table.insert( f, m:GetGeo(i) )
+		i = i + 1
+	end
+	--fv = nil
+	return f
+end
+
 function map:GetControlPoints()
 	-- not sure this can be implemented in the Spring C++ AI interface
 	return {}

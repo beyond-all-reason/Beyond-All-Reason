@@ -69,8 +69,8 @@ ProjXPW(Func_Var_1, Func_Var_2)
 
 RockZ(Func_Var_1, Func_Var_2)
 {
-	signal 16;
-	set-signal-mask 16;
+	signal 32;
+	set-signal-mask 32;
 	call-script ProjXPW(10920 / Func_Var_2,Func_Var_1);
 	Static_Var_8 = Static_Var_8 + Static_Var_7;
 	Static_Var_7 = get ABS(Static_Var_8);

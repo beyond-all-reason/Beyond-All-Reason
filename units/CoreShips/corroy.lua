@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildcostenergy = 4800,
-		buildcostmetal = 880,
+		buildcostmetal = 960,
 		buildpic = "CORROY.DDS",
 		buildtime = 10600,
 		canmove = true,
@@ -34,12 +34,12 @@ return {
 		sonardistance = 400,
 		waterline = 0,
 		--move
-		acceleration = 0.028,
-		brakerate = 0.049,
+		acceleration = 0.03,
+		brakerate = 0.051,
 		turninplace = true,
-		maxvelocity = 1.72,
+		maxvelocity = 1.81,
 		turninplaceanglelimit = 140,
-		turnrate = 190,
+		turnrate = 194,
 		--end move
 		customparams = {
 
@@ -141,7 +141,7 @@ return {
 				weaponvelocity = 336,
 				damage = {
 					bombers = 62,
-					default = 503,
+					default = 530,
 					fighters = 62,
 					vtol = 62,
 					subs = 5,
@@ -192,8 +192,6 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
-				maindir = "0 0 1",
-				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {

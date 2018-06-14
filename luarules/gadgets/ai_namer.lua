@@ -18,15 +18,28 @@ if gadgetHandler:IsSyncedCode() then
 		'Alfa', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel', 'India', 'Juliett', 'Kila', 'Lima', 'Mike',
 		'November', 'Oscar', 'Papa', 'Quebec', 'Romeo', 'Sierra', 'Tango', 'Uniform', 'Victor', 'Whiskey', 'Xray', 'Yankee', 'Zulu',
 	}
-	local takenNames = {}
+	local namelistChicken = {'Attila the Hen', 'Big Bird', 'Chicken Little', 'Cluck Norris', 'Chick Norris', 'Dixie Chick', 'Egghead',
+		'Hen Solo', 'Donald Cluck'
+	}
 
-	function getName(teamID)
-		local aiName = namelist[math.random(1,#namelist)]
-		if takenNames[aiName] == nil then
+	local takenNames = {}
+	local takenNamesChicken = {}
+
+	function getName(teamID, chicken)
+		local aiName
+		if chicken then
+			aiName = namelistChicken[math.random(1,#namelistChicken)]
+		else
+			aiName = namelist[math.random(1,#namelist)]
+		end
+		if chicken and takenNamesChicken[aiName] == nil then
+			takenNamesChicken[aiName] = teamID
+			return aiName
+		elseif not chicken and takenNames[aiName] == nil then
 			takenNames[aiName] = teamID
 			return aiName
 		else
-			return getName(teamID)
+			return getName(teamID, chicken)
 		end
 	end
 
@@ -34,7 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 		local t = Spring.GetTeamList()
 		for _,teamID in ipairs(t) do
 			if select(4,Spring.GetTeamInfo(teamID)) then	-- is AI?
-				Spring.SetTeamRulesParam(teamID, 'ainame', getName(teamID))
+				Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID), "Chicken:")))
 			end
 		end
 		gadgetHandler:RemoveGadget(self)

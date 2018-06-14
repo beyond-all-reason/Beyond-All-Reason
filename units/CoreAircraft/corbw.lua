@@ -86,7 +86,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				laserflaresize = 6,
-				name = "Paralyzer",
+				name = "Light EMP laser",
 				noselfdamage = true,
 				paralyzer = true,
 				paralyzetime = 7,

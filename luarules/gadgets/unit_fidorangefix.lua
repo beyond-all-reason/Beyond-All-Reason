@@ -22,7 +22,7 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
   if hplasmarange >= wDef2.range then
 	hplasmarange = wDef2.range
   end
-  Spring.Echo(hplasmarange, wDef2.range)
+  -- Spring.Echo(hplasmarange, wDef2.range)
   end
   
   function gadget:UnitCreated(unitID, unitDefID)

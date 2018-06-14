@@ -6,7 +6,7 @@
 		buildcostenergy = 500,
 		buildcostmetal = 60,
 		buildingMask = 0,
-		buildpic = "CORUWMEX.DDS",
+		buildpic = "COROMEX.DDS",
 		buildtime = 1887,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",

@@ -1215,6 +1215,9 @@ do
       glTranslate(ux, uy+ci.height, uz )
       glBillboard()
 
+      --// DRAW BARS
+      DrawBars(fullText)
+
       --// STOCKPILE ICON
       if (numStockpiled) then
         if (barShader) then
@@ -1225,9 +1228,6 @@ do
           DrawStockpile(numStockpiled,numStockpileQued)
         end
       end
-
-      --// DRAW BARS
-      DrawBars(fullText)
 
       glPopMatrix()
     end

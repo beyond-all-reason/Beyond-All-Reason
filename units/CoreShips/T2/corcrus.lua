@@ -2,10 +2,10 @@ return {
 	corcrus = {
 		activatewhenbuilt = true,
 		buildangle = 16384,
-		buildcostenergy = 7500,
-		buildcostmetal = 800,
+		buildcostenergy = 12000,
+		buildcostmetal = 1000,
 		buildpic = "CORCRUS.DDS",
-		buildtime = 12000,
+		buildtime = 17000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 0",
