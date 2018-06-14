@@ -379,17 +379,17 @@ function addon.DrawLoadScreen()
         gl.BeginEnd(GL.QUADS, gradienth, 0.2,yPos-0.05,loadvalue,yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
 
         -- loadvalue inner glow
-        gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.06)
-        gl.Texture(":n:luaui/Images/barglow-center.dds")
+        gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.04)
+        gl.Texture(":n:luaui/Images/barglow-center.png")
         gl.TexRect(0.2,yPos-0.05,loadvalue,yPos)
 
         -- loadvalue glow
         local glowSize = 0.06
-        gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.12)
-        gl.Texture(":n:luaui/Images/barglow-center.dds")
+        gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.1)
+        gl.Texture(":n:luaui/Images/barglow-center.png")
         gl.TexRect(0.2,	yPos-0.05-glowSize,	loadvalue,	yPos+glowSize)
 
-        gl.Texture(":n:luaui/Images/barglow-edge.dds")
+        gl.Texture(":n:luaui/Images/barglow-edge.png")
         gl.TexRect(0.2-(glowSize*1.3), yPos-0.05-glowSize, 0.2, yPos+glowSize)
         gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.05-glowSize, loadvalue, yPos+glowSize)
     end
