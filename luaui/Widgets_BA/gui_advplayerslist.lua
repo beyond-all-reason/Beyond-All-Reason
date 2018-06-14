@@ -142,8 +142,8 @@ local pics = {
 	resourcesPic    = imageDirectory.."res.png",
 	resbarPic       = imageDirectory.."resbar.png",
 	resbarBgPic     = imageDirectory.."resbarBg.png",
-    barGlowCenterPic= imageDirectory.."barglow-center.dds",
-    barGlowEdgePic	= imageDirectory.."barglow-edge.dds",
+    barGlowCenterPic= imageDirectory.."barglow-center.png",
+    barGlowEdgePic	= imageDirectory.."barglow-edge.png",
 
 	cpuPingPic      = imageDirectory.."cpuping.dds",
 	specPic         = imageDirectory.."spec.png",
@@ -2091,8 +2091,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset)
 
     if ((barWidth/metalStorage)*metal) > 0.8 then
-        local glowsize = 11
-        gl_Color(1,1,1.2,0.09)
+        local glowsize = 10
+        gl_Color(1,1,1.2,0.08)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/metalStorage)*metal), posY + y2Offset-glowsize)
 
@@ -2116,8 +2116,8 @@ function DrawResources(energy, energyStorage, metal, metalStorage, posY, dead)
 	DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset)
 
     if ((barWidth/energyStorage)*energy) > 0.8 then
-        local glowsize = 11
-        gl_Color(1,1,0.2,0.09)
+        local glowsize = 10
+        gl_Color(1,1,0.2,0.08)
         gl_Texture(pics["barGlowCenterPic"])
         DrawRect(m_resources.posX + widgetPosX + paddingLeft, posY + y1Offset+glowsize, m_resources.posX + widgetPosX + paddingLeft + ((barWidth/energyStorage)*energy), posY + y2Offset-glowsize)
 

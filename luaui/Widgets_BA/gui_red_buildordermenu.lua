@@ -21,8 +21,8 @@ local buildLetters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"
 
 local stateTexture		     = "LuaUI/Images/resbar.dds"
 local buttonTexture		     = "LuaUI/Images/button.dds"
-local barGlowCenterTexture = "LuaUI/Images/barglow-center.dds"
-local barGlowEdgeTexture   = "LuaUI/Images/barglow-edge.dds"
+local barGlowCenterTexture = ":n:LuaUI/Images/barglow-center.png"
+local barGlowEdgeTexture   = ":n:LuaUI/Images/barglow-edge.png"
 
 local oldUnitpicsDir   = "unitpics/"
 
