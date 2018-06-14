@@ -53,14 +53,14 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts, cmdTag)
 	local unitDefID = Spring.GetUnitDefID(unitID)
 	local unitTeam = Spring.GetUnitTeam(unitID)
 	local alt, ctrl, meta, shift = Spring.GetModKeyState()
-	if ctrl and cmdID == CMD.MOVE_STATE and unitTeam == Spring.GetMyTeamID() then
+	if ctrl and cmdID == CMD.MOVE_STATE then
 		if cmdParams[1] == 0 then --holdpos
 			unitSet[UnitDefs[unitDefID].name] = 0
 			Spring.Echo("Preference set for: "..UnitDefs[unitDefID].name.." = 0.")
 		elseif cmdParams[1] == 1 then --  manoeuver
 			unitSet[UnitDefs[unitDefID].name] = 1		
 			Spring.Echo("Preference set for: "..UnitDefs[unitDefID].name.." = 1.")
-		else
+		elseif cmdParams[1] == 2 then
 			unitSet[UnitDefs[unitDefID].name] = 2
 			Spring.Echo("Preference set for: "..UnitDefs[unitDefID].name.." = 2.")
 		end
