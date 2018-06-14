@@ -97,7 +97,7 @@ else
       colormap     = { {1,1,1,1},{1,1,1,1} },
       count        = 1,
       life         = weaponRange / 550,
-      lifeSpread   = 5,
+      lifeSpread   = 6,
       delaySpread  = 3,
       force        = {0,0.6,0},
       --forceExp     = 0.2,
