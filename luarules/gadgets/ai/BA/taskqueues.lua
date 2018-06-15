@@ -1218,7 +1218,6 @@ local function armcommander()
 end
 
 local function armt1con()
-		Spring.Echo("lel")
 	if math.random(0,10) > 9 then
 		return assistqueue
 	else
