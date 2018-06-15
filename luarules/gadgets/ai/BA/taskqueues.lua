@@ -205,9 +205,9 @@ function CorRandomLab()
 	--local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local m = (mi - mp)*200 + mc
 	local e = (ei - ep)*200 + ec
-	if UDC(ai.id, UDN.corlab.id) == 1 and UDC(ai.id, UDN.corvp.id) == 0 and UDC(ai.id, UDN.coralab.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720))  then
+	if UDC(ai.id, UDN.corlab.id) == 1 and UDC(ai.id, UDN.corvp.id) == 0 and UDC(ai.id, UDN.coralab.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
 		return "coralab"
-	elseif UDC(ai.id, UDN.corlab.id) == 0 and UDC(ai.id, UDN.corvp.id) == 1 and UDC(ai.id, UDN.coravp.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720))  then
+	elseif UDC(ai.id, UDN.corlab.id) == 0 and UDC(ai.id, UDN.corvp.id) == 1 and UDC(ai.id, UDN.coravp.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
 		return "coravp"
 	end
 	
@@ -771,9 +771,9 @@ function ArmRandomLab()
 	--local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armgant.id)
 	local m = (mi - mp)*200 + mc
 	local e = (ei - ep)*200 + ec
-	if UDC(ai.id, UDN.armlab.id) == 1 and UDC(ai.id, UDN.armvp.id) == 0 and UDC(ai.id, UDN.armalab.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720)) then
+	if UDC(ai.id, UDN.armlab.id) == 1 and UDC(ai.id, UDN.armvp.id) == 0 and UDC(ai.id, UDN.armalab.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
 		return "armalab"
-	elseif UDC(ai.id, UDN.armlab.id) == 0 and UDC(ai.id, UDN.armvp.id) == 1 and UDC(ai.id, UDN.armavp.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720)) then
+	elseif UDC(ai.id, UDN.armlab.id) == 0 and UDC(ai.id, UDN.armvp.id) == 1 and UDC(ai.id, UDN.armavp.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
 		return "armavp"
 	end
 	
