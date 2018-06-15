@@ -1229,7 +1229,7 @@ local function cort1con()
 	if math.random(0,10) > 9 then
 		return assistqueue
 	else
-		return cort2construction
+		return cort1construction
 	end
 end
 
