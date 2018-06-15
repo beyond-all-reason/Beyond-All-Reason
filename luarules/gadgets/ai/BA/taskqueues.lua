@@ -1242,7 +1242,7 @@ taskqueues = {
 	armacv = armt2construction,
 	armaca = armt2construction,
 	--ASSIST
-	armconsul = assisqueue,
+	armconsul = assistqueue,
 	armfark = assistqueue,
 	--factories
 	armlab = armkbotlab,
