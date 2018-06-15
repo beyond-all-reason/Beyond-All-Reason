@@ -5,6 +5,9 @@
 math.randomseed( os.time() )
 math.random(); math.random(); math.random()
 
+
+
+
 -- Locals
 ----------------------------------------------------------------------
 -- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
@@ -1214,6 +1217,40 @@ local function armcommander()
 	end
 end
 
+local function armt1con()
+		Spring.Echo("lel")
+	if math.random(0,10) > 9 then
+		return assistqueue
+	else
+		return armt1construction
+	end
+end
+
+local function cort1con()
+	if math.random(0,10) > 9 then
+		return assistqueue
+	else
+		return cort2construction
+	end
+end
+
+local function armt2con()
+	if math.random(0,10) > 9 then
+		return assistqueue
+	else
+		return armt2construction
+	end
+end
+
+local function cort2con()
+	if math.random(0,10) > 9 then
+		return assistqueue
+	else
+		return cort2construction
+	end
+end
+
+
 --local function armT1constructorrandommexer()
     --if ai.engineerfirst1 == true then
 		--return armt1construction
@@ -1231,14 +1268,14 @@ taskqueues = {
 	---CORE
 	--constructors
 	corcom = corcommander,
-	corck = cort1construction,
-	corcv = cort1construction,
-	corca = cort1construction,
-	corch = cort1construction,
+	corck = cort1con,
+	corcv = cort1con,
+	corca = cort1con,
+	corch = cort1con,
 	cornanotc = assistqueue,
-	corack = cort2construction,
-	coracv = cort2construction,
-	coraca = cort2construction,
+	corack = cort2con,
+	coracv = cort2con,
+	coraca = cort2con,
 	-- ASSIST
 	corfast = assistqueue,
 	--factories
@@ -1254,14 +1291,14 @@ taskqueues = {
 	---ARM
 	--constructors
 	armcom = armcommander,
-	armck = armt1construction,
-	armcv = armt1construction,
-	armca = armt1construction,
-	armch = armt1construction,
+	armck = armt1con,
+	armcv = armt1con,
+	armca = armt1con,
+	armch = armt1con,
 	armnanotc = assistqueue,
-	armack = armt2construction,
-	armacv = armt2construction,
-	armaca = armt2construction,
+	armack = armt2con,
+	armacv = armt2con,
+	armaca = armt2con,
 	--ASSIST
 	armconsul = assistqueue,
 	armfark = assistqueue,
