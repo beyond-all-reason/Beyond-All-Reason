@@ -26,10 +26,10 @@ function ThirdMex(taskqueuebehaviour)
 		if mi < 5.5 then
 			return "mex"
 		else
-			return "krog"
+			return "juno"
 		end
 	else
-		return "krog"
+		return "juno"
 	end
 end
 
