@@ -26,10 +26,10 @@ function ThirdMex(taskqueuebehaviour)
 		if mi < 5.5 then
 			return "mex"
 		else
-			return "juno"
+			return "rship"
 		end
 	else
-		return "juno"
+		return "rship"
 	end
 end
 
@@ -87,7 +87,7 @@ function WindOrSolar()
 				end
 			end
 		else
-			return "juno"	
+			return "rship"	
 		end
 	else
 		return "solar"
