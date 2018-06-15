@@ -16,6 +16,15 @@ behaviours = {
 	armnanotc = {
 		TaskQueueBehaviour,
 	},
+	armfark = {
+		TaskQueueBehaviour,
+	},
+	armconsul = {
+		TaskQueueBehaviour,
+	},
+	corfast = {
+		TaskQueueBehaviour,
+	},
 	corfmd = {
 		StockpileBehavior,
 	},

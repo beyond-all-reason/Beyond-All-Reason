@@ -58,9 +58,10 @@ function AttackerBehaviour:AttackCell()
 	local maxhealth = unit:GetMaxHealth()
 	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
 	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
+	local utype = self.game:GetTypeByName(unit:Name())
 	
 	-- Skirmishing
-	if unitID % 30 == Spring.GetGameFrame() % 30 then
+	if (not utype:CanFly() == true) and unitID % 30 == Spring.GetGameFrame() % 30 then
 		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
 			local enemyRange = Spring.GetUnitMaxRange(closestUnit)
 			if myRange*0.9 > enemyRange and enemyRange > 50 and enemyRange ~= nil then
@@ -128,6 +129,9 @@ function AttackerBehaviour:AttackCell()
 					else
 						--if nearestVisibleUnit and Spring.IsUnitInLos(nearestVisibleUnit, allyTeamID) then
 							local moverandom = math.random(0,4)
+							if (utype:CanFly() == true) then
+								moverandom = 0
+							end
 							if moverandom == 0 then
 								unit:Patrol(self.target)
 							elseif moverandom == 1 then
