@@ -211,7 +211,7 @@ function CorRandomLab()
 		return "coravp"
 	end
 	
-	if (m > 2000 and e > 18000) and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
+	if (UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id)) >= 1 and (m > 2000 and e > 18000) and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
 		if UDC(ai.id, UDN.corap.id) < 1 then
 			return "corap"
 		elseif UDC(ai.id, UDN.coraap.id) < 1 then
@@ -467,6 +467,7 @@ local corcommanderfirst = {
 	--"corllt",
 	"cor"..WindOrSolar(),
 	CorStarterLabT1,
+	"corrad",
 	--"corllt",
 }
 
@@ -483,6 +484,7 @@ local cort1construction = {
 	CorEnT1,
 	CorEnT1,
 	CorEnT1,
+	"corrad",
 	CorLLT,
 	CorLLT,
 	CorRandomLab,
@@ -500,6 +502,7 @@ local cort1construction = {
 	CorNanoT,
 	CorLLT,
 	CorLLT,
+	"corrad",
 	CorMexT1,
 	CorNanoT,
 	"cormex",
@@ -518,6 +521,7 @@ local cort2construction = {
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
+	"corarad",
 	CorTacticalAdvDefT2,
 	CorRandomLab,
 	CorTacticalOffDefT2,
@@ -773,7 +777,7 @@ function ArmRandomLab()
 		return "armavp"
 	end
 	
-	if mc > ms*0.1 and ec > es*0.1 and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
+	if (UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id)) >= 1 and (m > 2000 and e > 18000) and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
 		if UDC(ai.id, UDN.armap.id) < 1 then
 			return "armap"
 		elseif UDC(ai.id, UDN.armaap.id) < 1 then
@@ -1021,6 +1025,7 @@ local armcommanderfirst = {
 	ArmStarterLabT1,
 	--"armllt",
 	"arm"..WindOrSolar(),
+	"armrad",
 	ArmStarterLabT1,
 	--"armllt",
 }
@@ -1038,6 +1043,7 @@ local armt1construction = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmEnT1,
+	"armrad",
 	ArmLLT,
 	ArmLLT,
 	ArmRandomLab,
@@ -1055,6 +1061,7 @@ local armt1construction = {
 	ArmNanoT,
 	ArmLLT,
 	ArmLLT,
+	"armrad",
 	ArmMexT1,
 	ArmNanoT,
 	"armmex",
@@ -1073,6 +1080,7 @@ local armt2construction = {
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
+	"armarad",
 	ArmTacticalAdvDefT2,
 	ArmRandomLab,
 	ArmTacticalOffDefT2,
