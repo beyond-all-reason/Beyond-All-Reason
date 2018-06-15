@@ -347,9 +347,13 @@ function CorKBotsT2()
 end
 
 function CorVehT2()
-	
-	local unitoptions = {"corban", "coreter", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc",}
-	return FindBest(unitoptions)
+	if Spring.GetGameSeconds() < 1200 then
+		local unitoptions = {"corban", "corgol", "cormart", "correap", "corsent",}
+		return FindBest(unitoptions)
+	else
+		local unitoptions = {"corban", "coreter", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc",}
+		return FindBest(unitoptions)
+	end
 end
 
 function CorAirT2()
@@ -906,9 +910,13 @@ function ArmKBotsT2()
 end
 
 function ArmVehT2()
-	
-	local unitoptions = {"armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
-	return FindBest(unitoptions)
+	if Spring.GetGameSeconds() < 1200 then
+		local unitoptions = {"armbull", "armlatnk", "armmanni", "armmart", "armyork",}
+		return FindBest(unitoptions)
+	else
+		local unitoptions = {"armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
+		return FindBest(unitoptions)
+	end
 end
 
 function ArmAirT2()
