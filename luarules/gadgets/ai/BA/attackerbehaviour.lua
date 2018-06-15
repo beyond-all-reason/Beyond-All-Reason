@@ -59,6 +59,7 @@ function AttackerBehaviour:AttackCell()
 	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
 	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
 	local utype = self.game:GetTypeByName(unit:Name())
+	
 	-- Skirmishing
 	if (not utype:CanFly() == true) and unitID % 30 == Spring.GetGameFrame() % 30 then
 		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
@@ -92,12 +93,9 @@ function AttackerBehaviour:AttackCell()
 	if unitID % 150 == Spring.GetGameFrame() % 150 then
 		local TeamID = ai.id
 		local allyTeamID = ai.allyId
-		local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
 		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, _, false)
-		if nearestUnit and not Spring.IsUnitInRadar(nearestUnit, allyTeamID) then
-			nearestUnit = nil
-		else
-			nearestVisibleUnit = nearestUnit
+		if nearestUnit == nil then
+			nearestUnit = unit.id
 		end
 		--local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
 		local ec, es = Spring.GetTeamResources(ai.id, "energy")
@@ -112,13 +110,7 @@ function AttackerBehaviour:AttackCell()
 					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				end
 				--if nearestVisibleUnit == nil then
-				if nearestVisibleUnit then
-					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
-				else
-					enemyposx = math.random(0,Game.mapSizeX)
-					enemyposz = math.random(0,Game.mapSizeZ)
-					enemyposy = Spring.GetGroundHeight(enemyposx, enemyposz)
-				end
+					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
 				--else
 					--enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
 				--end
