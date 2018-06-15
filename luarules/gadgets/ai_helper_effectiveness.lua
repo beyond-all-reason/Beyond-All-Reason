@@ -46,6 +46,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
     if Spring.AreTeamsAllied(unitTeam,attackerTeam) then return end
     local h,maxh,_ = Spring.GetUnitHealth(unitID)
     damage = math.min(h,damage)
+	if paralyzer then damage = damage * 0.05 end
 	local ratio = damage/maxh
     local killed_m = UnitDefs[unitDefID].metalCost * ratio
     local killed_e = UnitDefs[unitDefID].energyCost * ratio
