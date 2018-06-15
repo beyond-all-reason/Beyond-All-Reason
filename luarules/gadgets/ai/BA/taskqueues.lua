@@ -184,7 +184,7 @@ function CorStarterLabT1()
 	local countStarterFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
 	if countStarterFacs < 1 then
 		local r = math.random(0,10)
-		if r < 9 then
+		if r < 6 then
 			return "corlab"
 		else
 			return "corvp"
@@ -201,13 +201,13 @@ function CorRandomLab()
 	--local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
 	local m = (mi - mp)*200 + mc
 	local e = (ei - ep)*200 + ec
-	if UDC(ai.id, UDN.corlab.id) == 1 and UDC(ai.id, UDN.corvp.id) == 0 and UDC(ai.id, UDN.coralab.id) == 0 and ((m > 2000 and e > 10000) or Spring.GetGameSeconds() >= math.random(480, 720))  then
+	if UDC(ai.id, UDN.corlab.id) == 1 and UDC(ai.id, UDN.corvp.id) == 0 and UDC(ai.id, UDN.coralab.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720))  then
 		return "coralab"
-	elseif UDC(ai.id, UDN.corlab.id) == 0 and UDC(ai.id, UDN.corvp.id) == 1 and UDC(ai.id, UDN.coravp.id) == 0 and ((m > 2000 and e > 10000) or Spring.GetGameSeconds() >= math.random(480, 720))  then
+	elseif UDC(ai.id, UDN.corlab.id) == 0 and UDC(ai.id, UDN.corvp.id) == 1 and UDC(ai.id, UDN.coravp.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720))  then
 		return "coravp"
 	end
 	
-	if mc > ms*0.1 and ec > es*0.1 and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
+	if (m > 2000 and e > 18000) and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
 		if UDC(ai.id, UDN.corap.id) < 1 then
 			return "corap"
 		elseif UDC(ai.id, UDN.coraap.id) < 1 then
@@ -263,7 +263,7 @@ function CorAirAdvDefT2()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.1 and ec > es*0.1 then
-		local unitoptions = {"corvipe","corflak", }
+		local unitoptions = {"corflak","corscreamer" }
 		return FindBest(unitoptions)
 	else
 		return "corkrog"
@@ -274,13 +274,7 @@ function CorTacticalAdvDefT2()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.1 and ec > es*0.1 then
-	    if UDC(ai.id, UDN.corint.id) < UDC(ai.id, UDN.cordoom.id)*2 then
-			return "corint"
-		elseif UDC(ai.id, UDN.cordoom.id) < UDC(ai.id, UDN.cortoast.id)*4 then
-			return "cordoom"
-		else
-			return "cortoast"
-		end
+		unitoptions = {"corvipe","cortoast","cordoom", "corint"}
 	else
 		return "corkrog"
 	end
@@ -292,8 +286,6 @@ function CorTacticalOffDefT2()
 	if mc > ms*0.1 and ec > es*0.1 then
 		if  UDC(ai.id, UDN.corfmd.id) < 3 then
 			return "corfmd"
-		elseif UDC(ai.id, UDN.corscreamer.id) < 3 then
-			return "corscreamer"
 		elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
 			return "corgate"
 		else
@@ -517,12 +509,13 @@ local cort2construction = {
 	CorFirstT2Mexes,
 	CorFirstT2Mexes,
 	CorFirstT2Mexes,
+	CorTacticalAdvDefT2,
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
+	CorTacticalAdvDefT2,
 	CorRandomLab,
 	CorTacticalOffDefT2,
-	CorTacticalAdvDefT2,
 	CorAirAdvDefT2,
 }
 
@@ -752,7 +745,7 @@ function ArmStarterLabT1()
 	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
 	if countStarterFacs < 1 then
 		local r = math.random(0,10)
-		if r < 9 then
+		if r < 6 then
 			return "armlab"
 		else
 			return "armvp"
@@ -769,9 +762,9 @@ function ArmRandomLab()
 	--local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armgant.id)
 	local m = (mi - mp)*200 + mc
 	local e = (ei - ep)*200 + ec
-	if UDC(ai.id, UDN.armlab.id) == 1 and UDC(ai.id, UDN.armvp.id) == 0 and UDC(ai.id, UDN.armalab.id) == 0 and ((m > 2000 and e > 10000) or Spring.GetGameSeconds() >= math.random(480, 720)) then
+	if UDC(ai.id, UDN.armlab.id) == 1 and UDC(ai.id, UDN.armvp.id) == 0 and UDC(ai.id, UDN.armalab.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720)) then
 		return "armalab"
-	elseif UDC(ai.id, UDN.armlab.id) == 0 and UDC(ai.id, UDN.armvp.id) == 1 and UDC(ai.id, UDN.armavp.id) == 0 and ((m > 2000 and e > 10000) or Spring.GetGameSeconds() >= math.random(480, 720)) then
+	elseif UDC(ai.id, UDN.armlab.id) == 0 and UDC(ai.id, UDN.armvp.id) == 1 and UDC(ai.id, UDN.armavp.id) == 0 and ((m > 2000 and e > 18000) or Spring.GetGameSeconds() >= math.random(480, 720)) then
 		return "armavp"
 	end
 	
@@ -829,7 +822,7 @@ end
 
 function ArmAirAdvDefT2()
 
-	local unitoptions = {"armpb", "armflak",}
+	local unitoptions = {"armmercury", "armflak",}
 	return FindBest(unitoptions)
 end
 
@@ -837,13 +830,7 @@ function ArmTacticalAdvDefT2()
     local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.1 and ec > es*0.1 then
-		if UDC(ai.id, UDN.armbrtha.id) < UDC(ai.id, UDN.armanni.id)*2 then
-			return "armbrtha"
-		elseif UDC(ai.id, UDN.armanni.id) < UDC(ai.id, UDN.armamb.id)*4 then
-			return "armanni"
-		else
-			return "armamb"
-		end
+		unitoptions = {"armpb","armamb","armanni", "armbrtha"}
 	else
 		return "corkrog"
 	end
@@ -855,8 +842,6 @@ function ArmTacticalOffDefT2()
 	if mc > ms*0.1 and ec > es*0.1 then
 		if  UDC(ai.id, UDN.armamd.id) < 3 then
 			return "armamd"
-		elseif UDC(ai.id, UDN.armmercury.id) < 3 then
-			return "armmercury"
 		elseif 	 UDC(ai.id, UDN.armgate.id) < 6 then
 			return "armgate"
 		else
@@ -1079,11 +1064,12 @@ local armt2construction = {
 	ArmFirstT2Mexes,
 	ArmFirstT2Mexes,
 	ArmFirstT2Mexes,
-	ArmEnT2,
-	ArmEnT2,
-	ArmEnT2,
-	ArmRandomLab,
 	ArmTacticalAdvDefT2,
+	ArmEnT2,
+	ArmEnT2,
+	ArmEnT2,
+	ArmTacticalAdvDefT2,
+	ArmRandomLab,
 	ArmTacticalOffDefT2,
 	ArmAirAdvDefT2,
 }
