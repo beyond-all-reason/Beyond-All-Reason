@@ -826,7 +826,6 @@ function ArmAirAdvDefT1()
 end
 
 function ArmAirAdvDefT2()
-
 	local unitoptions = {"armmercury", "armflak",}
 	return FindBest(unitoptions)
 end
@@ -836,7 +835,7 @@ function ArmTacticalAdvDefT2()
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.1 and ec > es*0.1 then
 		local unitoptions = {"armpb","armamb","armanni", "armbrtha"}
-		FindBest(unitoptions)
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
