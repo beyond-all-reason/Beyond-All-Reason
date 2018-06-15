@@ -48,7 +48,7 @@ function FindBest(unitoptions)
 			randomization = randomization + effect[unitName]
 		end
 		if randomization < 1 then
-			return ""
+			return "corkrog"
 		end
 		return randomunit[math.random(1,randomization)]	
 	else
@@ -73,20 +73,24 @@ end
 function WindOrSolar()
     local curWind = Spring.GetWind()
     local avgWind = (Game.windMin + Game.windMax)/2
-    if curWind > 7 then
-        return "win"
-    else
-		if ai and ai.id then
-			local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-			local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-			if ei > 200 and mi > 15 and (UUDC("armadvsol", ai.id) + UUDC("coradvsol", ai.id)) < 2 then
-				return "advsol"
+	if ai and ai.id then
+		if not (UDC(ai.id, UDN.armfus.id) + UDC(ai.id, UDN.corfus.id) > 1) then
+			if curWind > 7 then
+				return "win"
 			else
-				return "solar"
+				local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+				local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+				if ei > 200 and mi > 15 and (UUDC("armadvsol", ai.id) + UUDC("coradvsol", ai.id)) < 2 then
+					return "advsol"
+				else
+					return "solar"
+				end
 			end
 		else
-			return "solar"	
+			return "juno"	
 		end
+	else
+		return "solar"
 	end
 end
 
@@ -274,7 +278,8 @@ function CorTacticalAdvDefT2()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.1 and ec > es*0.1 then
-		unitoptions = {"corvipe","cortoast","cordoom", "corint"}
+		local unitoptions = {"corvipe","cortoast","cordoom", "corint"}
+		return FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
@@ -830,7 +835,8 @@ function ArmTacticalAdvDefT2()
     local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if mc > ms*0.1 and ec > es*0.1 then
-		unitoptions = {"armpb","armamb","armanni", "armbrtha"}
+		local unitoptions = {"armpb","armamb","armanni", "armbrtha"}
+		FindBest(unitoptions)
 	else
 		return "corkrog"
 	end
