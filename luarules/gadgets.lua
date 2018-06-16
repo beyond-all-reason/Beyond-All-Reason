@@ -1103,6 +1103,14 @@ function gadgetHandler:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y
   return true
 end
 
+function gadgetHandler:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam)
+  for _,g in ipairs(self.AllowUnitTransportList) do
+    if (not g:AllowUnitTransport(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam)) then
+      return false
+    end
+  end
+  return true
+end
 
 function gadgetHandler:AllowUnitTransfer(unitID, unitDefID,
                                          oldTeam, newTeam, capture)

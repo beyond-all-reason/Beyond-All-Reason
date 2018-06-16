@@ -83,6 +83,7 @@ CallInsList = {
   "CommandFallback",
   "AllowUnitCreation",
   "AllowUnitTransfer",
+  "AllowUnitTransport",
   "AllowUnitBuildStep",
   "AllowUnitCloak",
   "AllowUnitDecloak",

@@ -8,6 +8,7 @@ Global:
  • Nanoframes (unfinished units) will only get hit when its build over 10% (to prevent using new buildings as shield only)
  • Global acceleration buff for ships (+100%)
  • Depthcharges can only target "CANBEUW" or "UNDERWATER" categories (excluding floating structures and ships)
+ • Since newer engines now allow it, loading underwater units is now disallowed (for engineVersion > 104.0.1.327)
 
 T1 ships:
  • Reduced Construction Ships HP -15%
