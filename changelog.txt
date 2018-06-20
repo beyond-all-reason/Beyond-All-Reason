@@ -23,7 +23,7 @@ T1 ships:
 
 T2 ships: 
  • Globally lighter ships with lower costs/health. 
-Details of all the changes @ https://github.com/Balanced-Annihilation/Balanced-Annihilation/commit/c6194391b012fa148c38f5896222e66da3dad58d.
+Details of all the changes @ https://github.com/Balanced-Annihilation/Balanced-Annihilation/commit/13ffa44559bbd10f7ff02d4faaabdac3b02fb790
  • Cruiser: raids and close combats, depthcharge against submarines.
  • Submarine Killer: long range fire support, low armor, cannot shoot behind, can reverse.
  • AntiAir Ship: mobile antiair.
