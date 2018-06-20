@@ -102,6 +102,7 @@ Visual:
 Fixes:
  • Fixed command "Area Mex" not being available for captured builders and Unbalanced Commanders and improved its mex placement script (uses mex snap's code)
  • Fixed loading widgets from maps
+ • Fixed crawling bombs underwater detonation
  • Fixed cloaking units underwater and cloaking/decloaking cancelling current queue.
  • Fixed Console in scroll mode being glitchy when an ignored line is added.
  • Unit Stats: Do not use (reloadTime + beamTime) but just (reloadTime) when calculating dps. (Fixes previous commit in v10.00)
