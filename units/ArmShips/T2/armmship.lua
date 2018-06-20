@@ -1,10 +1,10 @@
 return {
 	armmship = {
 		activatewhenbuilt = true,
-		buildcostenergy = 10000,
-		buildcostmetal = 2000,
+		buildcostenergy = 14000,
+		buildcostmetal = 2200,
 		buildpic = "ARMMSHIP.DDS",
-		buildtime = 15000,
+		buildtime = 0.75 * 1.5 * 0.8*24817,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -5 -3",
@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3000,
+		maxdamage = 2200,
 		minwaterdepth = 12,
 		movementclass = "BOAT55X5",
 		name = "Ranger",
@@ -33,11 +33,12 @@ return {
 		sightdistance = 318.5,
 		waterline = 0,
 		--move
-		acceleration = 0.035,
-		brakerate = 0.06,
+		acceleration = 2.10/120,
+		brakerate = 2.10/35,
 		turninplace = true,
 		maxvelocity = 2.10,
 		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*2.10,
 		turnrate = 200,
 		--end move
 		customparams = {
@@ -130,7 +131,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "rocket",
-				name = "Heavy long-range g2g starburst rocket launcher",
+				name = "Rocket",
 				noselfdamage = true,
 				range = 1550,
 				reloadtime = 6,
@@ -154,7 +155,6 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					bar_model = "corshiprocket.s3o",
 					light_mult = 2.6,
 					light_radius_mult = 1.2,
 					light_color = "1 0.6 0.15",
@@ -179,7 +179,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
-				name = "Long-range g2a missile launcher",
+				name = "Missiles",
 				noselfdamage = true,
 				range = 1550,
 				reloadtime = 6,
@@ -203,7 +203,6 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

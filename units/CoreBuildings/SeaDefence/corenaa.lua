@@ -35,8 +35,7 @@ return {
 		customparams = {
 			techlevel = 2,
 			removewait = true,
-			prioritytarget = "air",
-			},
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -111,7 +110,7 @@ return {
 				impulseboost = 0,
 				impulsefactor = 0,
 				mygravity = 0.01,
-				name = "Heavy g2a flak cannon",
+				name = "FlakCannon",
 				size = 4.5,
 				sizedecay = 0.08,
 				stages = 8,

@@ -2,10 +2,10 @@ return {
 	cortship = {
 		autoheal = 5,
 		buildangle = 16384,
-		buildcostenergy = 3700,
-		buildcostmetal = 350,
+		buildcostenergy = 5500,
+		buildcostmetal = 600,
 		buildpic = "CORTSHIP.DDS",
-		buildtime = 6400,
+		buildtime = 8610,
 		canattack = false,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
@@ -20,7 +20,7 @@ return {
 		footprintz = 6,
 		icontype = "sea",
 		loadingradius = 250,
-		maxdamage = 3000,
+		maxdamage = 9150,
 		minwaterdepth = 0,
 		movementclass = "DBOAT66X6",
 		name = "Envoy",
@@ -37,11 +37,12 @@ return {
 		unloadspread = 1,
 		waterline = 0,
 		--move
-		brakerate =  0.048,
-		acceleration = 0.018,
+		brakerate =  1.928/40,
+		acceleration = 1.684/180,
 		maxvelocity = 2.313,
 		turninplace = true,
 		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*1.928,
 		turnrate = 175,	
 		--end move
 		customparams = {

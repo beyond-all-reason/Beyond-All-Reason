@@ -3,7 +3,7 @@ return {
 		activatewhenbuilt = true,
 		buildangle = 16384,
 		buildcostenergy = 4800,
-		buildcostmetal = 960,
+		buildcostmetal = 880,
 		buildpic = "CORROY.DDS",
 		buildtime = 10600,
 		canmove = true,
@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3950,
+		maxdamage = 4050,
 		minwaterdepth = 12,
 		movementclass = "BOAT44X4",
 		name = "Enforcer",
@@ -34,11 +34,12 @@ return {
 		sonardistance = 400,
 		waterline = 0,
 		--move
-		acceleration = 0.03,
-		brakerate = 0.051,
+		acceleration = 1.76/120,
+		brakerate = 1.76/35,
 		turninplace = true,
-		maxvelocity = 1.81,
+		maxvelocity = 1.76,
 		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*1.76,
 		turnrate = 194,
 		--end move
 		customparams = {
@@ -138,7 +139,7 @@ return {
 				targetmoveerror = 0.1,
 				turret = true,
 				weapontype = "Cannon",
-				weaponvelocity = 336,
+				weaponvelocity = 320,
 				damage = {
 					bombers = 62,
 					default = 530,
@@ -183,23 +184,20 @@ return {
 					default = 212,
 					subs = 283,
 				},
-				customparams = {
-					bar_model = "cordepthcharge.s3o",
-				}
 			},
 		},
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "PLASMA",
+				maindir = "0 0 1",
+				maxangledif = 300,
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				maindir = "0 -1 0",
-				maxangledif = 179,
-				onlytargetcategory = "CANBEUW UNDERWATER",
+				onlytargetcategory = "NOTHOVER",
 			},
 		},
 	},

@@ -96,7 +96,7 @@ return {
 				impulseboost = 0.12300000339746,
 				impulsefactor = 0.12300000339746,
 				model = "Advtorpedo",
-				name = "Long-range advanced torpedo launcher",
+				name = "LongRangeTorpedo",
 				noselfdamage = true,
 				range = 890,
 				reloadtime = 3.16,
@@ -114,9 +114,6 @@ return {
 				damage = {
 					default = 1400,
 				},
-				customparams = {
-					bar_model = "torpedo.s3o",
-				}
 			},
 		},
 		weapons = {

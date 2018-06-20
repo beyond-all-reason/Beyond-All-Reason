@@ -1,7 +1,7 @@
 return {
 	coresupp = {
 		buildangle = 16384,
-		buildcostenergy = 1550,
+		buildcostenergy = 1400,
 		buildcostmetal = 165,
 		buildpic = "CORESUPP.DDS",
 		buildtime = 2475,
@@ -31,12 +31,13 @@ return {
 		sightdistance = 320,
 		waterline = 0,
 		--move
-		acceleration = 0.074,
-		brakerate = 0.23,
-		maxvelocity = 3.56,		
+		acceleration = 3.15/90,
+		brakerate = 3.15/15,
+		maxvelocity = 3.30,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turnrate = 442,
+		turninplacespeedlimit = 0.64*3.15,
+		turnrate = 425,
 		--end move
 		customparams = {
 
@@ -116,7 +117,7 @@ return {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.16,
-				corethickness = 0.14,
+				corethickness = 0.175,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -139,7 +140,7 @@ return {
 				soundstart = "lasrfir3",
 				soundtrigger = 1,
 				targetmoveerror = 0.1,
-				thickness = 1.7,
+				thickness = 2.2,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",

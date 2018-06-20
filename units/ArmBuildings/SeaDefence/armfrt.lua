@@ -36,7 +36,6 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 15 0",
 			removewait = true,
-			prioritytarget = "air",
 		},
 		featuredefs = {
 			dead = {
@@ -130,7 +129,6 @@ return {
 					vtol = 115,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",
