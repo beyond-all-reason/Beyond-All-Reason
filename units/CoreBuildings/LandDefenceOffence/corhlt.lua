@@ -129,7 +129,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				laserflaresize = 7,
+				laserflaresize = 8,
 				name = "High energy g2g laser",
 				noselfdamage = true,
 				range = 620,

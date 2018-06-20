@@ -1,5 +1,5 @@
 ﻿10.08 -> 10.09
-xx/xx/2018
+20/06/2018
 
 Global:
  • Commander speed underwater decreases to 66% of it's value when depth > 47
