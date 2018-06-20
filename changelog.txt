@@ -22,8 +22,7 @@ T1 ships:
  • Corvettes +8% speed/accel/brake, +4% turn, +10% energy cost (+15% for armdecade)
 
 T2 ships: 
- • Globally lighter ships with lower costs/health. 
-Details of all the changes @ https://github.com/Balanced-Annihilation/Balanced-Annihilation/commit/13ffa44559bbd10f7ff02d4faaabdac3b02fb790
+ • Globally lighter ships with lower costs/health. https://github.com/Balanced-Annihilation/Balanced-Annihilation/commit/af7cf87a23d9983797197b96dd95a260fc2247d6
  • Cruiser: raids and close combats, depthcharge against submarines.
  • Submarine Killer: long range fire support, low armor, cannot shoot behind, can reverse.
  • AntiAir Ship: mobile antiair.
