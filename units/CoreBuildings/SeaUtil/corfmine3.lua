@@ -39,7 +39,6 @@ return {
 		selfdestructcountdown = 0,
 		sightdistance = 71.5,
 		stealth = true,
-		sonarstealth = true,
 		waterline = 1,
 		customparams = {
 			bar_collisionvolumeoffsets = "0 -0.5 0",

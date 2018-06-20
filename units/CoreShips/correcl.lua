@@ -36,11 +36,12 @@ return {
 		workertime = 150,
 		reclaimspeed = 100,
 		--move
-		acceleration = 0.148,
-		brakerate = 0.074,
+		acceleration = 2.23/30,
+		brakerate = 2.23/30,
 		maxvelocity = 2.23,
 		turninplace = true,
 		turninplaceanglelimit = 90,
+		turninplacespeedlimit = 0.64*2.23,
 		turnrate = 350,
 		--end move
 		customparams = {

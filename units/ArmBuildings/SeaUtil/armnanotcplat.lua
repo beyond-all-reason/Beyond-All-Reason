@@ -37,7 +37,7 @@ return {
 		name = "Nano Turret",
 		objectname = "ARMNANOTCPLAT",
 		seismicsignature = 0,
-		selfdestructas = "nanoselfd",
+		selfdestructas = "nanoboom",
 		sightdistance = 380,
 		terraformspeed = 1000,
 		turnrate = 1,

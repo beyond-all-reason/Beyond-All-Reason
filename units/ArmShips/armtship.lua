@@ -2,10 +2,10 @@ return {
 	armtship = {
 		autoheal = 5,
 		buildangle = 16384,
-		buildcostenergy = 3500,
-		buildcostmetal = 350,
+		buildcostenergy = 5000,
+		buildcostmetal = 640,
 		buildpic = "ARMTSHIP.DDS",
-		buildtime = 6500,
+		buildtime = 9150,
 		canattack = false,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON NOTSUB SHIP NOTAIR NOTHOVER SURFACE",
@@ -20,7 +20,7 @@ return {
 		footprintz = 6,
 		icontype = "sea",
 		loadingradius = 250,
-		maxdamage = 2900,
+		maxdamage = 8800,
 		minwaterdepth = 0,
 		movementclass = "DBOAT66X6",
 		name = "Hulk",
@@ -37,11 +37,12 @@ return {
 		unloadspread = 1,
 		waterline = 8,
 		--move
-		brakerate =  0.05,
-		acceleration = 0.019,
+		brakerate =  2.00/40,
+		acceleration = 1.75/180,
 		maxvelocity = 2.40,
 		turninplace = true,
 		turninplaceanglelimit = 110,
+		turninplacespeedlimit = 0.64*2.00,
 		turnrate = 180,	
 		--end move
 		customparams = {

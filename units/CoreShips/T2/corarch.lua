@@ -2,10 +2,10 @@ return {
 	corarch = {
 		airsightdistance = 900,
 		buildangle = 16384,
-		buildcostenergy = 12000,
-		buildcostmetal = 1000,
+		buildcostenergy = 7000,
+		buildcostmetal = 500,
 		buildpic = "CORARCH.DDS",
-		buildtime = 15000,
+		buildtime = 0.75 * 1.5 * 0.8*9791,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 0",
@@ -22,7 +22,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 3500,
+		maxdamage = 2450,
 		minwaterdepth = 30,
 		movementclass = "BOAT44X4",
 		name = "Shredder",
@@ -32,18 +32,18 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 465,
 				--move
-		acceleration = 0.033,
-		brakerate = 0.057,
+		acceleration = 2.016/120,
+		brakerate = 2.016/35,
 		turninplace = true,
 		maxvelocity = 2.016,
 		turninplaceanglelimit = 140,
+		turninplacespeedlimit = 0.64*2.016,
 		turnrate = 227,
 		--end move
 		waterline = 0,
 		customparams = {
 			techlevel = 2,
-			prioritytarget = "air",
-			},
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -187,7 +187,6 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

@@ -37,7 +37,6 @@ return {
 		customparams = {
 			bar_footprintx = 6,
 			bar_footprintz = 4,
-			bar_yardmap = "oooooo oooooo oooooo oooooo",
 			techlevel = 2,
 			removewait = true,
 			removestop = true,

@@ -131,7 +131,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "Light depthcharge launcher",
+				name = "Torpedo",
 				noselfdamage = true,
 				numbounce = 1,
 				range = 530,
@@ -149,9 +149,6 @@ return {
 					commanders = 400,
 					default = 225,
 				},
-				customparams = {
-					bar_model = "cordepthcharge.s3o",
-				}
 			},
 		},
 		weapons = {

@@ -36,8 +36,7 @@ return {
 			bar_collisionvolumeoffsets = "0 10 0",
 			bar_collisionvolumescales = "40 59 40",
 			removewait = true,
-			prioritytarget = "air",
-			},
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -104,7 +103,7 @@ return {
 				impulsefactor = 0.123,
 				metalpershot = 0,
 				model = "missile",
-				name = "Light g2a missile launcher",
+				name = "Missiles",
 				noselfdamage = true,
 				proximitypriority = 1,
 				range = 800,
@@ -131,7 +130,6 @@ return {
 					vtol = 115,
 				},
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
 					light_color = "1 0.5 0.6",
 					expl_light_color = "1 0.4 0.5",

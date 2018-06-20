@@ -12,7 +12,7 @@ return {
 		buildinggrounddecaltype = "armuwmme_aoplane.dds",
 		buildingMask = 0,
 		buildpic = "ARMUWMME.DDS",
-		buildtime = 24759,
+		buildtime = 35370,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",
 		corpse = "DEAD",
