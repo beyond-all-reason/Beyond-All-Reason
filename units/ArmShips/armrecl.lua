@@ -38,12 +38,11 @@ return {
 		reclaimspeed = 100,
 		
 		--move
-		acceleration = 2.20/30,
-		brakerate = 2.2/30,
+		acceleration = 0.146,
+		brakerate = 0.073,
 		maxvelocity = 2.20,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.20,
 		turnrate = 350,
 		--end move
 		

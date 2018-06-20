@@ -2,8 +2,8 @@ return {
 	corsub = {
 		activatewhenbuilt = true,
 		autoheal = 2,
-		buildcostenergy = 3300,
-		buildcostmetal = 580,
+		buildcostenergy = 3600,
+		buildcostmetal = 530,
 		buildpic = "CORSUB.DDS",
 		buildtime = 6530,
 		canmove = true,
@@ -32,12 +32,11 @@ return {
 		upright = true,
 		waterline = 30,
 		--move
-		brakerate =  2.15/20,
-		acceleration = 2.15/120,
+		brakerate =  0.107,
+		acceleration = 0.035,
 		maxvelocity = 2.15,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turninplacespeedlimit = 0.64*2.15,
 		turnrate = 307,	
 		maxreversevelocity = 0.40 * 2.15,
 		--end move	
@@ -150,6 +149,9 @@ return {
 					default = 650,
 					subs = 150,
 				},
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				}
 			},
 		},
 		weapons = {
