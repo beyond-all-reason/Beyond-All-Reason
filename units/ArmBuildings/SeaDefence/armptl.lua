@@ -98,7 +98,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "Level1TorpedoLauncher",
+				name = "Homing torpedo launcher",
 				noselfdamage = true,
 				range = 430,
 				reloadtime = 0.9,
@@ -117,6 +117,9 @@ return {
 					commanders = 250,
 					default = 140*1.35,
 				},
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				}
 			},
 		},
 		weapons = {

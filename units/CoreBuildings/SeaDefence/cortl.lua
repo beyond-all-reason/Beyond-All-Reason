@@ -100,7 +100,7 @@ return {
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "torpedo",
-				name = "Level1TorpedoLauncher",
+				name = "Torpedo launcher",
 				noselfdamage = true,
 				range = 500,
 				reloadtime = 1.5,
@@ -119,6 +119,9 @@ return {
 					commanders = 280*1.25,
 					default = 150*1.35*1.25,
 				},
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				}
 			},
 		},
 		weapons = {

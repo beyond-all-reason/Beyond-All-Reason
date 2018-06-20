@@ -1,10 +1,10 @@
 return {
 	corbats = {
 		buildangle = 16000,
-		buildcostenergy = 18000,
-		buildcostmetal = 4600,
+		buildcostenergy = 22000,
+		buildcostmetal = 3300,
 		buildpic = "CORBATS.DDS",
-		buildtime = 0.75 * 1.5 * 0.8*60640,
+		buildtime = 35000,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -15 -3",
@@ -21,7 +21,7 @@ return {
 		icontype = "sea",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 16685,
+		maxdamage = 8000,
 		minwaterdepth = 15,
 		movementclass = "DBOAT67X7",
 		name = "Warlord",
@@ -32,12 +32,11 @@ return {
 		sightdistance = 455,
 		waterline = 0,
 		--move
-		acceleration = 1.925/210,
-		brakerate = 1.925/25,
-		maxvelocity = 1.925,
+		acceleration = 0.0152,
+		brakerate = 0.0665,
+		maxvelocity = 1.77,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turninplacespeedlimit = 0.64*1.925,
 		turnrate = 118,
 		--end move
 		customparams = {
@@ -116,9 +115,9 @@ return {
 		weapondefs = {
 			cor_bats = {
 				accuracy = 400,
-				areaofeffect = 96,
+				areaofeffect = 128,
 				avoidfeature = false,
-				craterareaofeffect = 96,
+				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-large",
@@ -127,7 +126,7 @@ return {
 				impulsefactor = 0.123,
 				name = "BattleshipCannon",
 				noselfdamage = true,
-				range = 1320,
+				range = 860,
 				reloadtime = 0.5,
 				soundhit = "xplomed2",
 				soundhitwet = "splsmed",
@@ -161,7 +160,7 @@ return {
 				laserflaresize = 11,
 				name = "HighEnergyLaser",
 				noselfdamage = true,
-				range = 950,
+				range = 700,
 				reloadtime = 1.1,
 				rgbcolor = "0 1 0",
 				soundhitdry = "",

@@ -13,7 +13,7 @@ return {
 		collisionvolumescales = "21 21 63",
 		collisionvolumetype = "CylZ",
 		corpse = "DEAD",
-		description = "Patrol Boat/Light Anti-Air",
+		description = "Patrol Boat/Light Anti Air/Sonar",
 		energymake = 0.23,
 		energyuse = 0.23,
 		explodeas = "smallExplosionGeneric",
@@ -35,18 +35,18 @@ return {
 		sonardistance = 320,
 		waterline = 0,
 		--move
-		acceleration = 3.82/60,
-		brakerate = 3.82/15,
+		acceleration = 0.127,
+		brakerate = 0.54,
 		maxvelocity = 3.82,
 		turninplace = true,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 0.64*3.82,
 		turnrate = 347,
 		--end move
 		customparams = {
 			maxrange = "260",
 			paralyzemultiplier = 0.1,
-		},
+			prioritytarget = "air",
+			},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -143,7 +143,7 @@ return {
 				soundstart = "lasrfir1",
 				soundtrigger = 1,
 				targetmoveerror = 0.2,
-				thickness = 1,
+				thickness = 1.25,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
@@ -164,7 +164,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				cegTag = "missiletrailaa",
-				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
+				explosiongenerator = "custom:genericshellexplosion-small-air",
 				firestarter = 70,
 				flighttime = 1.75,
 				impulseboost = 0.123,
@@ -192,11 +192,12 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 950,
 				damage = {
-					bombers = 45,
-					fighters = 45,
-					vtol = 45,
+					bombers = 60,
+					fighters = 60,
+					vtol = 60,
 				},
 				customparams = {
+					bar_model = "cormissile.s3o",
 					light_skip = true,		-- used by light_effects widget
                     light_color = "1 0.5 0.6",
                     expl_light_color = "1 0.4 0.5",

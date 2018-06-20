@@ -45,7 +45,7 @@ return {
 				collisionvolumescales = "50.0 45.7867279053 45.9999847412",
 				collisionvolumetype = "Box",
 				damage = 750,
-				description = "Gun Platform Wreckage",
+				description = "Light close-quarters plasma turret",
 				energy = 0,
 				footprintx = 4,
 				footprintz = 4,
@@ -63,6 +63,9 @@ return {
 				"deathceg2",
 				"deathceg3",
 				"deathceg4",
+			},
+			explosiongenerators = {
+				[1] = "custom:barrelshot-tiny",
 			},
 		},
 		sounds = {
@@ -121,18 +124,12 @@ return {
 				tolerance = 0,
 				firetolerance = 200,
 				weapontype = "Cannon",
-				weaponvelocity = 550,
+				weaponvelocity = 726,
 				separation = 1.0,
 				nogap = false,
 				stages = 20,
 				damage = {
-					bombers = 5,
 					default = 45,
-					heavyunits = 32,
-					fighters = 5,
-					subs = 5,
-					vtol = 5,
-
 				},
 			},
 		},

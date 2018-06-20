@@ -118,6 +118,9 @@ return {
 					commanders = 300*1.25,
 					default = 165*1.35*1.25,
 				},
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				}
 			},
 		},
 		weapons = {

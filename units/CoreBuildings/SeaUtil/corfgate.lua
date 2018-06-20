@@ -147,7 +147,7 @@ return {
 					radius = 600,
 					repulser = true,
 					smart = true,
-					startingpower = 650,
+					startingpower = 1100,
 					--visible = true,
 					--visiblehitframes = 70,
 					visibleRepulse = true,
