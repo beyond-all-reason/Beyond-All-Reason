@@ -112,8 +112,7 @@ return {
 		},
 		weapondefs = {
 			core_mort = {
-				accuracy = 350,
-				movingaccuracy = 600,
+				accuracy = 100,
 				areaofeffect = 36,
 				avoidfeature = false,
 				avoidfriendly = true,
