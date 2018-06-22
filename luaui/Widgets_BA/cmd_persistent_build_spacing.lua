@@ -29,11 +29,11 @@ function widget:Update()
     if cmdID and cmdID < 0 then
         
         if cmdID ~= lastCmdID then
-            spSetBuildSpacing(buildSpacing[-cmdID] or defaultSpacing)
+            spSetBuildSpacing(buildSpacing[UnitDefs[-cmdID].name] or defaultSpacing)
             lastCmdID = cmdID
         end
         
-        buildSpacing[-cmdID] = spGetBuildSpacing()
+        buildSpacing[UnitDefs[-cmdID].name] = spGetBuildSpacing()
     end
 end
 
