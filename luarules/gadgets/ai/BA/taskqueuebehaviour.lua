@@ -163,6 +163,10 @@ function TaskQueueBehaviour:ProgressQueue()
 		self:HandleActionTask( value )
 		return
 	end
+	if type(value) == "table" then
+		self:HandleActionTask( value )
+		return
+	end
 
 	success = self:TryToBuild( value )
 	if success ~= true then
