@@ -357,13 +357,13 @@ function script.Killed(recentDamage, maxHealth)
 		return 2
 	else
 		Explode(body, SFX.NONE)
-		Explode(gun, SFX.FALL + SFX.SMOKE  + SFX.FIRE  + SFX.EXPLODE_ON_HIT + SFX.NO_HEATCLOUD)
+		Explode(gun, SFX.FALL + SFX.NO_HEATCLOUD)
 		Explode(head, SFX.SHATTER + SFX.NO_HEATCLOUD)
-		Explode(hips,  SFX.FALL + SFX.SMOKE  + SFX.FIRE  + SFX.EXPLODE_ON_HIT + SFX.NO_HEATCLOUD )
-		Explode(lfoot,  SFX.FALL + SFX.SMOKE  + SFX.FIRE  + SFX.EXPLODE_ON_HIT + SFX.NO_HEATCLOUD )
-		Explode(lleg,  SFX.FALL + SFX.SMOKE  + SFX.FIRE  + SFX.EXPLODE_ON_HIT + SFX.NO_HEATCLOUD )
-		Explode(rfoot,  SFX.FALL + SFX.SMOKE  + SFX.FIRE  + SFX.EXPLODE_ON_HIT + SFX.NO_HEATCLOUD )
-		Explode(rleg,  SFX.FALL + SFX.SMOKE  + SFX.FIRE  + SFX.EXPLODE_ON_HIT + SFX.NO_HEATCLOUD )
+		Explode(hips, SFX.FALL + SFX.NO_HEATCLOUD)
+		Explode(lfoot, SFX.FALL + SFX.NO_HEATCLOUD)
+		Explode(lleg, SFX.FALL + SFX.NO_HEATCLOUD)
+		Explode(rfoot, SFX.FALL + SFX.NO_HEATCLOUD)
+		Explode(rleg, SFX.FALL + SFX.NO_HEATCLOUD)
 
 	return 3
 	end
