@@ -93,9 +93,9 @@ function AttackerBehaviour:AttackCell()
 	if unitID % 150 == Spring.GetGameFrame() % 150 then
 		local TeamID = ai.id
 		local allyTeamID = ai.allyId
-		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, _, false)
+		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, 600 + myRange, false)
 		if nearestUnit == nil then
-			nearestUnit = unit.id
+			nearestUnit = nil
 		end
 		--local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
 		local ec, es = Spring.GetTeamResources(ai.id, "energy")
@@ -109,8 +109,13 @@ function AttackerBehaviour:AttackCell()
 				else
 					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				end
-				--if nearestVisibleUnit == nil then
+				if nearestUnit == nil then
+					local cms = self.ai.metalspothandler:ClosestFreeSpot(utype, self.unit:Internal():GetPosition())
+					enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
+					Spring.Echo(enemyposx, enemyposz)
+				else
 					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
+				end
 				--else
 					--enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestVisibleUnit)
 				--end
