@@ -176,7 +176,8 @@ function TaskQueueBehaviour:ProgressQueue()
 	end
 end
 
-function TaskQueueBehaviour:TryToBuild( unit_name )
+function TaskQueueBehaviour:TryToBuild( unit_name, pos )
+	Spring.Echo(unit_name)
 	utype = self.game:GetTypeByName(unit_name)
 	if not utype then
 		self.game:SendToConsole("Cannot build:"..unit_name..", could not grab the unit type from the engine")
@@ -193,7 +194,7 @@ function TaskQueueBehaviour:TryToBuild( unit_name )
 	elseif unit:Type():IsFactory() then
 		success = self.unit:Internal():Build(utype)
 	else
-		success = self:BuildOnMap(utype)
+		success = self:BuildOnMap(utype,pos)
 	end
 	return success
 end
@@ -204,6 +205,8 @@ function TaskQueueBehaviour:HandleActionTask( task )
 		t = TaskQueueWakeup(self)
 		tqb = self
 		self.ai.sleep:Wait({ wakeup = function() tqb:ProgressQueue() end, },task.frames)
+	elseif UnitDefNames[action] and task.pos then
+		self:TryToBuild(action, task.pos)
 	elseif action == "move" then
 		self.unit:Internal():Move(task.position)
 	elseif action == "moverelative" then
@@ -260,20 +263,32 @@ function TaskQueueBehaviour:StopWaitingForPosition()
 	self.placementInProgress = false
 end
 
-function TaskQueueBehaviour:BuildOnMap(utype)
+function TaskQueueBehaviour:BuildOnMap(utype,pos)
 	--p = self.map:FindClosestBuildSite(utype, unit:GetPosition())
 	--self.progress = not self.unit:Internal():Build(utype,p)
 	unit = self.unit:Internal()
-
-	local job = {
-		start_position=unit:GetPosition(),
-		max_radius=1500,
-		onSuccess=onsuccess,
-		onFail=onfail,
-		unittype=utype,
-		cleanup_on_unit_death=self.unit.engineID,
-		tqb=self
-	}
+	local job = {}
+	if not pos then
+		job = {
+			start_position=unit:GetPosition(),
+			max_radius=1500,
+			onSuccess=onsuccess,
+			onFail=onfail,
+			unittype=utype,
+			cleanup_on_unit_death=self.unit.engineID,
+			tqb=self
+		}
+	else
+		job = {
+			start_position=pos,
+			max_radius=1500,
+			onSuccess=onsuccess,
+			onFail=onfail,
+			unittype=utype,
+			cleanup_on_unit_death=self.unit.engineID,
+			tqb=self
+		}
+	end
 	local success = self.ai.placementhandler:NewJob( job )
 	if success ~= true then
 		self:StopWaitingForPosition()
