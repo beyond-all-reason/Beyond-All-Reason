@@ -206,6 +206,9 @@ function TaskQueueBehaviour:HandleActionTask( task )
 		tqb = self
 		self.ai.sleep:Wait({ wakeup = function() tqb:ProgressQueue() end, },task.frames)
 	elseif UnitDefNames[action] and task.pos then
+		if not task.pos.x then
+			task.pos = nil
+		end
 		self:TryToBuild(action, task.pos)
 	elseif action == "move" then
 		self.unit:Internal():Move(task.position)
