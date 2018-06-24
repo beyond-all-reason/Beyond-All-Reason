@@ -30,11 +30,11 @@ end
 local function RemoveNanoFrameIdx(i)
 	local unitID = newNanoFrames[i]
 
-	newNanoFrames[i] = nil
 	while (newNanoFrames[i+1] ~= nil) do
 		newNanoFrames[i] = newNanoFrames[i+1]
 		i = i + 1
 	end
+	newNanoFrames[#newNanoFrames] = nil
 	
 	if Spring.ValidUnitID(unitID) then
 		local arg1,arg2 = Spring.GetUnitBlocking(unitID)
