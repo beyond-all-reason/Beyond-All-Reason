@@ -387,8 +387,7 @@ function widget:DrawScreen()
 	if not (next(callinStats)) then
 		return --// nothing to do
 	end
-
-
+	
 	deltaTime = Spring.DiffTimers(Spring.GetTimer(),startTimer)
 
 	-- sort & count timing
@@ -473,7 +472,9 @@ function widget:DrawScreen()
 	-- draw
 	local vsx, vsy = gl.GetViewSizes()
 	local x,y = vsx-400, vsy-175
+
 	local widgetScale = (1 + (vsx*vsy / 7500000))
+	maxLines = math.max(20,math.floor((vsy-175)/(12*widgetScale))-5)
 
 	gl.PushMatrix()
 		gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)

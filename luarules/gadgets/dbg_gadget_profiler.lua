@@ -533,7 +533,7 @@ function gadget:DrawScreen_()
 		Spring.Echo("no data in profiler!")
 		return 
 	end
-
+	
 	local deltaTime = Spring.DiffTimers(Spring.GetTimer(),startTickTimer)
 	if (deltaTime>=tick) then
 		startTickTimer = Spring.GetTimer()
@@ -550,6 +550,8 @@ function gadget:DrawScreen_()
 	local j = 0 -- line#
 
 	local widgetScale = (1 + (vsx*vsy / 7500000))
+	maxLines = math.max(20,math.floor((vsy-175)/(12*widgetScale))-5)
+
 	gl.PushMatrix()
 		gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)
 		gl.Scale(widgetScale,widgetScale,1)
