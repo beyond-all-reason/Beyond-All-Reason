@@ -5,7 +5,7 @@ end
 
 function widget:GetInfo()
 	return {
-	name      = "Red Console (old) 2", --version 4.1
+	name      = "Red Console (old)", --version 4.1
 	desc      = "Requires Red UI Framework",
 	author    = "Regret",
 	date      = "29 may 2015",
@@ -675,7 +675,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		local lineID = #history+1	
 		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
         
-        if ( playSound and not Spring.IsGUIHidden() ) and false then
+        if ( playSound and not Spring.IsGUIHidden() ) then
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end
