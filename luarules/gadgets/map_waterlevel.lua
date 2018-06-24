@@ -28,6 +28,7 @@ function gadget:Initialize()
 end
 
 function gadget:GamePreload()
+	if Spring.GetModOptions() and Spring.GetModOptions().map_waterlevel and Spring.GetModOptions().map_waterlevel ~= "0" then --only move features if there was a waterlevel change
 			featuretable = Spring.GetAllFeatures()
 		for i = 1,#featuretable do
 		featureDefID = Spring.GetFeatureDefID(featuretable[i])
@@ -37,6 +38,7 @@ function gadget:GamePreload()
 				Spring.CreateFeature(featureDefID, x, Spring.GetGroundHeight(x,z), z)
 				end
 		end
+	end
 end
 
 end
