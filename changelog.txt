@@ -2,7 +2,7 @@
 XX/XX/2018
 
  • Morty shoots more acurate
-
+ • Optimization of unit_prevent_nanoframe_blocking_hax.lua for better lategame perfs
 
 10.08 -> 10.09
 20/06/2018
