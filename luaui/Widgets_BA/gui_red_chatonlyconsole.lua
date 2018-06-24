@@ -5,7 +5,7 @@ end
 
 function widget:GetInfo()
 	return {
-	name      = "Red Console (In-game chat only)", --version 4.1
+	name      = "Red Console (In-game chat only) 2", --version 4.1
 	desc      = "Requires Red UI Framework",
 	author    = "Regret + Doo edit",
 	date      = "29 may 2015",
@@ -464,44 +464,46 @@ local function processLine(line,g,cfg,newlinecolor)
 	local text = ""
 	local linetype = 0 --other
 	if Initialized == true then
-		ignoreThisMessage = true
+		bypassThisMessage = true
 	else
-		ignoreThisMessage = false
+		bypassThisMessage = false
 	end
+	local ignoreThisMessage = false
+	local ignoredText = "(ignored)"
 	
 	if sfind(line, "My player ID is") and sfind(line, regID) and not nameregistered then
 		-- Spring.SendCommands("say Registration ID found")
 		registermyname = true
-		ignoreThisMessage = true
+		bypassThisMessage = true
 	end
 	
 	if (not newlinecolor) then
 		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
-				ignoreThisMessage = false
+			bypassThisMessage = false
 			linetype = 1 --playermessage
 			name = ssub(line,2,sfind(line,"> ")-1)
 			text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-			ignoreThisMessage = true
-		end
+			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
+				bypassThisMessage = true
+			end
 		elseif (names[ssub(line,2,(sfind(line,"] ") or 1)-1)] ~= nil) then
-				ignoreThisMessage = false
+			bypassThisMessage = false
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"] ")-1)
 			text = ssub(line,slen(name)+4)
-		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-			ignoreThisMessage = true
-		end
+			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
+				bypassThisMessage = true
+			end
 		elseif (names[ssub(line,2,(sfind(line,"(replay)") or 3)-3)] ~= nil) then
-				ignoreThisMessage = false
+			bypassThisMessage = false
 			linetype = 2 --spectatormessage
 			name = ssub(line,2,sfind(line,"(replay)")-3)
 			text = ssub(line,slen(name)+13)
-		if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-			ignoreThisMessage = true
-		end
+			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
+				bypassThisMessage = true
+			end
 		elseif (names[ssub(line,1,(sfind(line," added point: ") or 1)-1)] ~= nil) then
-				ignoreThisMessage = false
+			bypassThisMessage = false
 			linetype = 3 --playerpoint
 			name = ssub(line,1,sfind(line," added point: ")-1)
 			text = ssub(line,slen(name.." added point: ")+1)
@@ -511,18 +513,19 @@ local function processLine(line,g,cfg,newlinecolor)
 		elseif (ssub(line,1,1) == ">") then
 			linetype = 4 --gamemessage
 			text = ssub(line,3)
-			ignoreThisMessage = true
+			bypassThisMessage = true
             if ssub(line,1,3) == "> <" then --player speaking in battleroom
-					ignoreThisMessage = false
-			if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
-					ignoreThisMessage = true
-			end
+				bypassThisMessage = false
+				if ssub(text,1,1) == "!" and  ssub(text, 1,2) ~= "!!" then --bot command
+					bypassThisMessage = true
+				end
                 local i = sfind(ssub(line,4,slen(line)), ">")
 				if (i) then
 					name = ssub(line,4,i+2)
 				else
 					name = "unknown"
 				end
+				
             end
 		end		
     end
@@ -531,14 +534,14 @@ local function processLine(line,g,cfg,newlinecolor)
 	myname = name
 	registermyname = false
 	nameregistered = true
-	ignoreThisMessage = true 
+	bypassThisMessage = true 
 	elseif sfind(line, "My player ID is") and sfind(line, regID) then
-	ignoreThisMessage = true 
+	bypassThisMessage = true 
 	end
 	
 	-- filter shadows config changes
 	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
-		ignoreThisMessage = true
+		bypassThisMessage = true
 	end
 	
 	
@@ -546,7 +549,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line,"^Sync error for ") then
 		name = ssub(line,16,sfind(line," in frame ")-1)
 		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
-			ignoreThisMessage = true
+			bypassThisMessage = true
 		end
 	end
 	
@@ -554,7 +557,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line,"^Error: %[DESYNC WARNING%] ") then
 		name = ssub(line,sfind(line," %(")+2,sfind(line,"%) ")-1)
 		if names[name] ~= nil and names[name][2] ~= nil and names[name][2] and sGetMyPlayerID() ~= names[name][4] then	-- when spec
-			ignoreThisMessage = true
+			bypassThisMessage = true
 		end
 	end
 	
@@ -562,13 +565,13 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line,"^Connection attempt from ") then
 		name = ssub(line,25)
 		lastConnectionAttempt = name
-	  ignoreThisMessage = true
+	  bypassThisMessage = true
 	end
 	
 	-- filter Connection established
 	if sfind(line," Connection established") then
 		name = lastConnectionAttempt
-	  ignoreThisMessage = true
+	  bypassThisMessage = true
 	end
 	
 	
@@ -576,7 +579,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		--filter out some engine messages; 
 		--2 lines (instead of 4) appears when player connects
 		if sfind(line,'-> Version') or sfind(line,'ClientReadNet') or sfind(line,'Address') then
-			ignoreThisMessage = true
+			bypassThisMessage = true
 		end
 
         if sfind(line,"Wrong network version") then
@@ -589,7 +592,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		
 		if gameOver then
 			if sfind(line,'left the game') then
-				ignoreThisMessage = true
+				bypassThisMessage = true
 			end
 		end
 	end
@@ -623,6 +626,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		textcolor = convertColor(c[1],c[2],c[3])
 		local r,g,b,a = sGetTeamColor(names[name][3])
 		local namecolor = convertColor(r,g,b)
+		if ignoreThisMessage then text = ignoredText end	
 		
 		line = namecolor..name..misccolor..": "..textcolor..text
         
@@ -640,8 +644,9 @@ local function processLine(line,g,cfg,newlinecolor)
 		end
 		textcolor = convertColor(c[1],c[2],c[3])
 		c = cfg.cspectext
-		local namecolor = convertColor(c[1],c[2],c[3])
-		
+		local namecolor = convertColor(c[1],c[2],c[3])		
+		if ignoreThisMessage then text = ignoredText end
+
 		line = namecolor.."(s) "..name..misccolor..": "..textcolor..text
 		
         playSound = true
@@ -670,14 +675,18 @@ local function processLine(line,g,cfg,newlinecolor)
 		textcolor = convertColor(c[1],c[2],c[3])
 		c = cfg.cothertext
 		local misccolor = convertColor(c[1],c[2],c[3])
-		
+		if ignoreThisMessage then text = ignoredText end
+
 		line = namecolor..name..misccolor.." * "..textcolor..text
 		
 	elseif (linetype==4) then --gamemessage
 		local c = cfg.cgametext
 		textcolor = convertColor(c[1],c[2],c[3])
-		
-		line = textcolor.."> "..text
+		if ignoreThisMessage and name then  -- ignored player talking in battleroom
+			line = textcolor.."> <"..name.."> "..ignoredText
+		else
+			line = textcolor.."> "..text
+		end
 	else --every other message
 		local c = cfg.cmisctext
 		textcolor = convertColor(c[1],c[2],c[3])
@@ -691,7 +700,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	local history = g.vars.consolehistory	
 
 
-	if (not ignoreThisMessage == true) then		--mute--
+	if (not bypassThisMessage == true) then		--mute--
 		if (g.vars.browsinghistory) then
 		if (g.vars.historyoffset == nil) then
 			g.vars.historyoffset = 0
@@ -701,7 +710,7 @@ local function processLine(line,g,cfg,newlinecolor)
 		local lineID = #history+1	
 		history[#history+1] = {line,clock(),lineID,textcolor,linetype}
         
-        if ( playSound ) and (not ignoreThisMessage == true) and not Spring.IsGUIHidden() then
+        if ( playSound ) and (not bypassThisMessage == true) and not Spring.IsGUIHidden() then
             spPlaySoundFile( SoundIncomingChat, SoundIncomingChatVolume, nil, "ui" )
         end
 	end

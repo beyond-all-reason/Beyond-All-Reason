@@ -192,6 +192,9 @@ local lastTime        = 0
 local blinkTime       = 0
 local now             = 0
 
+local lastRequestTime = -1
+local interRequestTime = 1 -- seconds
+
 --------------------------------------------------------------------------------
 -- LockCamera variables
 --------------------------------------------------------------------------------
@@ -743,6 +746,9 @@ end
 
 function FpsEvent(playerID, fps)
 	lastFpsData[playerID] = fps
+
+	WG.playerFPS = WG.playerFPS or {}
+	WG.playerFPS[playerID] = fps	
 end
 	
 function SystemEvent(playerID, system)
@@ -752,6 +758,9 @@ function SystemEvent(playerID, system)
 	helper((system:gsub("(.-)\r?\n", helper)))
   if lines <= 9 and length <= 64 then
   	lastSystemData[playerID] = system
+
+	WG.playerSystemData = WG.playerSystemData or {}
+	WG.playerSystemData[playerID] = system
   end
 end
 
@@ -2297,6 +2306,7 @@ end
 
 function DrawName(name, team, posY, dark, playerID)
     local willSub = ""
+	local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
     if not gameStarted then 
         if playerID>=64 then
             willSub = (Spring.GetGameRulesParam("Player" .. (playerID-64) .. "willSub")==1) and " (sub)" or "" --pID-64 because apl uses dummy playerIDs for absent players
@@ -2305,6 +2315,7 @@ function DrawName(name, team, posY, dark, playerID)
         end
     end
     local nameText = name .. willSub  
+	
     
     local nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
     local xPadding = 0
@@ -2323,42 +2334,64 @@ function DrawName(name, team, posY, dark, playerID)
 		gl_Color(nameColourR,nameColourG,nameColourB,1)
 		gl_Text(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n") -- draws name
 	end
-	gl_Color(1,1,1)
+	if ignored then
+		gl_Color(1,1,1,0.9)	
+		local x = m_name.posX + widgetPosX + 2 + xPadding
+		local y = posY + 7
+		local w = gl_GetTextWidth(nameText) * 14 + 2
+		local h = 2
+		gl_Texture(false)
+		DrawRect(x,y,x+w,y+h)
+	end
+	gl_Color(1,1,1)	
 end
 
 
 function DrawSmallName(name, team, posY, dark, playerID, alpha)
-	if team ~= nil then
-		if originalColourNames[playerID] then
-			name = originalColourNames[playerID] .. name
-		end
-		local textindent = 4
-		local explayerindent = -3
-		if m_indent.active or m_rank.active or m_side.active or m_ID.active then
-			textindent = 0
-		end
-		local nameColourR,nameColourG,nameColourB,nameColourA = 1,1,1,1
+	if team == nil then
+		return
+	end
+	
+	local ignored = WG.ignoredPlayers and WG.ignoredPlayers[name]
+	if originalColourNames[playerID] then
+		name = originalColourNames[playerID] .. name
+	end
 
-		if playerSpecs[playerID] ~= nil then
-			nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
-			if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-				gl_Text(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
-			else
-				gl_Color(0,0,0,0.3)
-				gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
-				gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
-				gl_Color(nameColourR,nameColourG,nameColourB,0.78)
-				gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
-			end
+	local textindent = 4
+	local explayerindent = -3
+	if m_indent.active or m_rank.active or m_side.active or m_ID.active then
+		textindent = 0
+	end
+	local nameColourR,nameColourG,nameColourB,nameColourA = 1,1,1,1
+
+	if playerSpecs[playerID] ~= nil then
+		nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
+		if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
+			gl_Text(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
 		else
 			gl_Color(0,0,0,0.3)
-			gl_Text(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
-			gl_Text(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-			gl_Color(1,1,1,alpha)
-			gl_Text(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
+			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
+			gl_Color(nameColourR,nameColourG,nameColourB,0.78)
+			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
 		end
-		gl_Color(1,1,1)
+	else
+		gl_Color(0,0,0,0.3)
+		gl_Text(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
+		gl_Text(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
+		gl_Color(1,1,1,alpha)
+		gl_Text(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
 	end
+	if ignored then
+		gl_Color(1,1,1,0.7)	
+		local x = m_name.posX + textindent + widgetPosX + 2.2
+		local y = posY + 6
+		local w = gl_GetTextWidth(name) * 10 + 2
+		local h = 2
+		gl_Texture(false)
+		DrawRect(x,y,x+w,y+h)
+	end
+	gl_Color(1,1,1)
 end
 
 function DrawID(playerID, posY, dark, dead)
@@ -2429,6 +2462,10 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 				fps = 99
 			end
 			grayvalue = 0.95 - (fps/195)
+			if fps < 0 then
+				fps = 0
+				greyvalue = 1
+			end
 			if spec then
 				gl_Color(0,0,0,0.1+(grayvalue*0.4))
 				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
@@ -2920,6 +2957,8 @@ function widget:MousePress(x,y,button) --super ugly code here
 						if m_name.active and clickedPlayer.name ~= absentName and IsOnRect(x, y, m_name.posX + widgetPosX +1, posY, m_name.posX + widgetPosX + m_name.width, posY+12)  then
 							if ctrl then 
 								Spring_SendCommands{"toggleignore "..clickedPlayer.name} 
+								SortList()
+								CreateLists()
 								return true 
 							end
 							if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
