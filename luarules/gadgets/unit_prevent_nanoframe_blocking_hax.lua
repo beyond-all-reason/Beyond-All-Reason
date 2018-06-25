@@ -16,83 +16,108 @@ local blockingBuildProgress = 0.1
 
 ------------
 
-local newNanoFrames = {} --arrayTable
+local newNanoFrames = {} -- array table, i -> unitID
+local newNanoFrameNeutralState = {} -- hash table, unitID -> original neutral state
+
+local nanoFrameIdxToRemove = {}
+
+------------
 
 local function AddNanoFrame(unitID)
 	newNanoFrames[#newNanoFrames+1] = unitID
-	local arg1,arg2 = Spring.GetUnitBlocking(unitID)
-	Spring.SetUnitBlocking(unitID, arg1,arg2, false) -- non-blocking for projectiles
+
+	local a,b,c,d,e,f,g = Spring.GetUnitBlocking(unitID)
+	Spring.SetUnitBlocking(unitID, a,b, false, d,e,f,g) -- non-blocking for projectiles
+
+	local neutral = Spring.GetUnitNeutral(unitID)
+	newNanoFrameNeutralState[unitID] = neutral
 	Spring.SetUnitNeutral(unitID, true)
 	
-	--Spring.Echo("added", unitID)
+	--Spring.Echo("AddNanoFrame", #newNanoFrames, unitID)
 end
 
-local function RemoveNanoFrameIdx(i)
+local function RemoveNanoFrame(i)
 	local unitID = newNanoFrames[i]
+	--Spring.Echo("RemoveNanoFrame", i, unitID, newNanoFrameNeutralState[unitID])
 
-	while (newNanoFrames[i+1] ~= nil) do
-		newNanoFrames[i] = newNanoFrames[i+1]
-		i = i + 1
-	end
-	newNanoFrames[#newNanoFrames] = nil
-	
 	if Spring.ValidUnitID(unitID) then
-		local arg1,arg2 = Spring.GetUnitBlocking(unitID)
-		Spring.SetUnitBlocking(unitID, arg1,arg2, true) -- assume all units are (normally) blocking for projectiles
-		Spring.SetUnitNeutral(unitID, false)
-	end
-	
-	--Spring.Echo("removed", unitID)
+		local a,b,c,d,e,f,g = Spring.GetUnitBlocking(unitID)
+		Spring.SetUnitBlocking(unitID, a,b, true, d,e,f,g) -- blocking for projectiles
+		
+		local neutral = newNanoFrameNeutralState[unitID]
+		Spring.SetUnitNeutral(unitID, neutral)
+		
+		--Spring.Echo("unset", unitID)
+	end	
+
+	table.remove(newNanoFrames, i)
+	newNanoFrameNeutralState[unitID] = nil
 end
 
-local function RemoveNanoFrame(unitID)
+------------
+
+local function GetNanoFrameIdx(unitID)
 	local i = 1
 	while (newNanoFrames[i] ~= unitID and i<=#newNanoFrames) do
 		i = i + 1
 	end
 	if i>#newNanoFrames then return end
-
-	RemoveNanoFrameIdx(i)
+	return i
 end
 
-------------
-
-local function ProcessNanoFrame(i)
-	local unitID = newNanoFrames[i]
+local function CheckUnit(unitID)
+	-- check if we should remove this unit from our list
 	if not Spring.ValidUnitID(unitID) then
-		RemoveNanoFrameIdx(i)
-		return
+		--Spring.Echo("to remove (invalid)", unitID)
+		return true
 	end
 	
-	local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
-	--Spring.Echo(unitID, buildProgress)
-	if buildProgress >= blockingBuildProgress then 
-		RemoveNanoFrameIdx(i)
+	if Spring.GetUnitIsDead(unitID) then
+		--Spring.Echo("to remove (dead)", unitID)
+		return true
 	end
+
+	local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
+	if buildProgress >= blockingBuildProgress then  
+		--Spring.Echo("to remove (bp)", unitID)
+		return true
+	end
+	
+	return false
 end
 
 ------------
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	if not Spring.GetUnitNeutral(unitID) then	-- dont change neutrality of already neutral units
+	local _,_,projectileBlocking = Spring.GetUnitBlocking(unitID)
+	if projectileBlocking then 
 		AddNanoFrame(unitID)
 	end
 end
 
 function gadget:GameFrame(n)
-	for i=1,#newNanoFrames do
-		ProcessNanoFrame(i)
+	local i = 1
+	while (i<=#newNanoFrames) do
+		local unitID = newNanoFrames[i]
+		if CheckUnit(unitID) then 
+			RemoveNanoFrame(i)
+		else
+			i = i + 1
+		end
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
-	RemoveNanoFrame(unitID)
+	if newNanoFrameNeutralState[unitID]~=nil then
+		--Spring.Echo("to remove (destroyed)", unitID)
+		nanoFrameIdxToRemove[#nanoFrameIdxToRemove+1] = GetNanoFrameIdx(unitID)
+	end	
 end
 
 ------------
 
 function gadget:Initialize()
-	-- handle laurules reload
+	-- handle luarules reload
 	local units = Spring.GetAllUnits()
 	for _,unitID in ipairs(units) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
