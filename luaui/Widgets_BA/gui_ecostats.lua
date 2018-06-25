@@ -382,7 +382,6 @@ end
 
 
 -- Draw
-
 local function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
@@ -478,7 +477,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 	local dx = 15*sizeMultiplier
 	local dy = tH*0.43
 	local maxW = widgetWidth - (30*sizeMultiplier)
-	local barheight = tH * 0.1
+	local barheight = 1 + math.floor(tH * 0.08)
 
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
@@ -569,7 +568,7 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 	local dx = 15*sizeMultiplier
 	local dy = tH*0.67
 	local maxW = widgetWidth - (30*sizeMultiplier)
-	local barheight = tH * 0.1
+	local barheight = 1 + math.floor(tH * 0.08)
 
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
