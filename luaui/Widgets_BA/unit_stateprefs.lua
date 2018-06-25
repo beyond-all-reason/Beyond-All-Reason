@@ -8,7 +8,7 @@ function widget:GetInfo()
     author    = "quantum + Doo",
     date      = "2018",
     license   = "GNU GPL, v2 or later",
-    layer     = 0,
+    layer     = math.huge,
     enabled   = false  --  loaded by default?
   }
 end
@@ -54,9 +54,9 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitTeam = Spring.GetUnitTeam(unitID)
 		unitSet[UnitDefs[unitDefID].name] = unitSet[UnitDefs[unitDefID].name] or {}
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and #cmdParams == 1 then
+		if ctrl and #cmdParams == 1 and not (cmdID == CMD.SET_WANTED_MAX_SPEED) then
 			unitSet[UnitDefs[unitDefID].name][cmdID] = cmdParams[1]
-			Spring.Echo("State pref changed")
+			Spring.Echo("State pref changed to: "..(cmdParams[1]))
 		end
 	end
 end
@@ -66,7 +66,9 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
   unitSet[ud.name] = unitSet[ud.name] or {}
   if ((ud ~= nil) and (unitTeam == Spring.GetMyTeamID())) then
   	for cmdID, cmdParam in pairs(unitSet[ud.name]) do
-      Spring.GiveOrderToUnit(unitID, cmdID , { cmdParam }, {})
+		if not (cmdID == CMD.SET_WANTED_MAX_SPEED) then
+			Spring.GiveOrderToUnit(unitID, cmdID , { cmdParam }, {})
+		end
 	end
   end
 end
