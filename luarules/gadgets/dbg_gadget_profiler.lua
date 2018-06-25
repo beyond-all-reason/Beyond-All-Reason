@@ -397,7 +397,6 @@ local maxSpace = 100
 
 local title_colour = "\255\160\255\160"
 local totals_colour = "\255\200\200\255"
-local maxLines = 50
 
 local function ColourString(R,G,B)
 	R255 = math.floor(R*255)
@@ -492,16 +491,16 @@ local function ProcessCallinStats (stats, timeLoadAvgs, spaceloadAvgs, redStr, d
 	return sorted
 end
 
-local function DrawSortedList(list, name, x,y,j)
+local function DrawSortedList(list, name, x,y,j, fontSize,lineSpace,maxLines,colWidth,dataColWidth)
 	if #list==0 then return 0,0 end
 
-	if j>=maxLines-5 then x = x - 375; j = 0; end
+	if j>=maxLines-5 then x = x - colWidth; j = 0; end
 	j = j + 1
-	gl.Text(title_colour..name, x+152, y-1-(12)*j, 10, "no")
+	gl.Text(title_colour..name, x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
 	j = j + 2
 
 	for i=1,#list do
-	if j>=maxLines then x = x - 375; j = 0; end
+	if j>=maxLines then x = x - colWidth; j = 0; end
 		local v = list[i]
 		local name = v.plainname
 		local gname = v.fullname
@@ -511,16 +510,16 @@ local function DrawSortedList(list, name, x,y,j)
 		local tColour = v.tColourString
 		local sColour = v.sColourString	  
 		
-		gl.Text(gname, x+150, y+1-(12)*j, 10, "no")
-		gl.Text(tColour .. ('%.2f%%'):format(tLoad), x+60, y+1-(12)*j, 10, "no")
-		gl.Text(sColour .. ('%.0f'):format(sLoad) .. 'kB/s', x+105, y+1-(12)*j, 10, "no")
+		gl.Text(tColour .. ('%.2f%%'):format(tLoad), x, y-lineSpace*j, fontSize, "no")
+		gl.Text(sColour .. ('%.0f'):format(sLoad) .. 'kB/s', x+dataColWidth, y-lineSpace*j, fontSize, "no")
+		gl.Text(gname, x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
 
 		j = j + 1
 	end
 
-	gl.Text(totals_colour.."totals ("..string.lower(name)..")", x+152, y+1-(12)*j, 10, "no")
-	gl.Text(totals_colour..('%.2f%%'):format(list.allOverTime), x+60, y+1-(12)*j, 10, "no")
-	gl.Text(totals_colour..('%.0f'):format(list.allOverSpace) .. 'kB/s', x+105, y+1-(12)*j, 10, "no")
+	gl.Text(totals_colour..('%.2f%%'):format(list.allOverTime), x, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour..('%.0f'):format(list.allOverSpace) .. 'kB/s', x+dataColWidth, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour.."totals ("..string.lower(name)..")", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
 	j = j + 1
 
 	return x,j
@@ -544,66 +543,62 @@ function gadget:DrawScreen_()
 		lm,_,gm,_,um,_,sm,_ = spGetLuaMemUsage()
 	end
 
-	local vsx, vsy = gl.GetViewSizes()
-	local x,y = vsx-400, vsy-175
-	local orig_x = x
-	local j = 0 -- line#
+	local vsx, vsy = gl.GetViewSizes()	
 
-	local widgetScale = (1 + (vsx*vsy / 7500000))
-	maxLines = math.max(20,math.floor((vsy-175)/(12*widgetScale))-5)
+	local fontSize = math.max(11,math.floor(vsy/90))
+	local lineSpace = fontSize + 2
+	
+	local dataColWidth = fontSize*5
+	local colWidth = vsx*0.98/4
+	
+	local x,y = vsx-colWidth, vsy*0.77 -- initial coord for writing
+	local maxLines = math.max(20,math.floor(y/lineSpace)-3)
+	local j = -1 --line number
 
-	gl.PushMatrix()
-		gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)
-		gl.Scale(widgetScale,widgetScale,1)
+	gl.Color(1,1,1,1)
+	gl.BeginText()
 		
-		gl.Color(1,1,1,1)
-		gl.BeginText()
-		
-		x,j = DrawSortedList(sortedList, "UNSYNCED", x,y,j)
+	x,j = DrawSortedList(sortedList, "UNSYNCED", x,y,j, fontSize,lineSpace,maxLines,colWidth,dataColWidth)
 
-		if j>=maxLines-15 or x==orig_x then
-			j=0
-			x = x - 375
-		end
-		
-		x,j = DrawSortedList(sortedListSYNCED, "SYNCED", x,y,j)
+	if j>=maxLines-15 then x = x - colWidth; j = -1; end
+	
+	x,j = DrawSortedList(sortedListSYNCED, "SYNCED", x,y,j, fontSize,lineSpace,maxLines,colWidth,dataColWidth)
 
-		if j>=maxLines-15 then x = x - 375; j = 0; end
-		j = j + 1
-		gl.Text(title_colour.."ALL", x+152, y-1-(12)*j, 10, "no")
-		j = j + 1
+	if j>=maxLines-15 then x = x - colWidth; j = -1; end
 
-		j = j + 1
-		gl.Text(totals_colour.."total percentage of running time spent in luarules callins", x+152, y-1-(12)*j, 10, "no")
-		gl.Text(totals_colour..('%.1f%%'):format((sortedList.allOverTime or 0)+(sortedListSYNCED.allOverTime or 0)), x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(totals_colour.."total rate of mem allocation by luarules callins", x+152, y-1-(12)*j, 10, "no")
-		gl.Text(totals_colour..('%.0f'):format((sortedList.allOverSpace or 0)+(sortedListSYNCED.allOverSpace or 0)) .. 'kB/s', x+105, y-1-(12)*j, 10, "no")
-		
-		j = j + 2
-		gl.Text(totals_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which:', x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(totals_colour..'  '..('%.0f'):format(100*lm/gm) .. '% is from unsynced luarules', x+65, y-1-(12)*j, 10, "no")
-		--note: it's not currently possible to callout the footprint of (specifically) synced luarules
-		j = j + 1
-		gl.Text(totals_colour..'  '..('%.0f'):format(100*um/gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(totals_colour..'  '..('%.0f'):format(100*sm/gm) .. '% is from synced states (luarules+luagaia)', x+65, y-1-(12)*j, 10, "no")
+	j = j + 1
+	gl.Text(title_colour.."ALL", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+
+	j = j + 1
+	gl.Text(totals_colour.."total percentage of running time spent in luarules callins", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour..('%.1f%%'):format((sortedList.allOverTime or 0)+(sortedListSYNCED.allOverTime or 0)), x+dataColWidth, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(totals_colour.."total rate of mem allocation by luarules callins", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour..('%.0f'):format((sortedList.allOverSpace or 0)+(sortedListSYNCED.allOverSpace or 0)) .. 'kB/s', x+dataColWidth, y-lineSpace*j, fontSize, "no")
+	
+	j = j + 2
+	gl.Text(totals_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which:', x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(totals_colour..'  '..('%.0f'):format(100*lm/gm) .. '% is from unsynced luarules', x, y-lineSpace*j, fontSize, "no")
+	--note: it's not currently possible to callout the footprint of (specifically) synced luarules
+	j = j + 1
+	gl.Text(totals_colour..'  '..('%.0f'):format(100*um/gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(totals_colour..'  '..('%.0f'):format(100*sm/gm) .. '% is from synced states (luarules+luagaia)', x, y-lineSpace*j, fontSize, "no")
 
 
-		j = j + 2
-		gl.Text(title_colour.."All data excludes load from garbage collection & executing GL calls", x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(title_colour.."Callins in brackets are heaviest per gadget for (time,allocs)", x+65, y-1-(12)*j, 10, "no")
-		
-		j = j + 2
-		gl.Text(title_colour.."Tick time: " .. tick .. "s", x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(title_colour.."Smoothing time: " .. averageTime .. "s", x+65, y-1-(12)*j, 10, "no")
+	j = j + 2
+	gl.Text(title_colour.."All data excludes load from garbage collection & executing GL calls", x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(title_colour.."Callins in brackets are heaviest per gadget for (time,allocs)", x, y-lineSpace*j, fontSize, "no")
+	
+	j = j + 2
+	gl.Text(title_colour.."Tick time: " .. tick .. "s", x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(title_colour.."Smoothing time: " .. averageTime .. "s", x, y-lineSpace*j, fontSize, "no")
 
-		gl.EndText()
-		
-	gl.PopMatrix()
+	gl.EndText()		
 end
 
 

@@ -312,7 +312,6 @@ local maxSpace = 100
 
 local title_colour = "\255\160\255\160"
 local totals_colour = "\255\200\200\255"
-local maxLines = 50
 
 local function CalcLoad(old_load, new_load, t)
 	return old_load*math.exp(-tick/t) + new_load*(1 - math.exp(-tick/t)) 
@@ -353,31 +352,32 @@ function GetRedColourStrings(v) --tLoad is %
 	v.spaceColourString = ColourString(r,g,b)
 end
 
-function DrawWidgetList(list,name,x,y,j)
-	if j>=maxLines-5 then x = x - 350; j = 0; end
+function DrawWidgetList(list,name,x,y,j, fontSize,lineSpace,maxLines,colWidth,dataColWidth)
+	if j>=maxLines-5 then x = x - colWidth; j = 0; end
 	j = j + 1
-	gl.Text(title_colour..name.." WIDGETS", x+152, y-1-(12)*j, 10, "no")
+	gl.Text(title_colour..name.." WIDGETS", x+152, y-lineSpace*j, fontSize, "no")
 	j = j + 2
 
 	for i=1,#list do
-	if j>=maxLines then x = x - 350; j = 0; end
-	local v = list[i]
-	local name = v.plainname
-	local wname = v.fullname
-	local tLoad = v.tLoad
-	local sLoad = v.sLoad
-	local tColour = v.timeColourString
-	local sColour = v.spaceColourString
-	gl.Text(wname, x+150, y+1-(12)*j, 10, "no")
-	gl.Text(tColour .. ('%.2f%%'):format(tLoad), x+60, y+1-(12)*j, 10, "no")
-	gl.Text(sColour .. ('%.0f'):format(sLoad) .. 'kB/s', x+105, y+1-(12)*j, 10, "no")
+		if j>=maxLines then x = x - colWidth; j = 0; end
+		
+		local v = list[i]
+		local name = v.plainname
+		local wname = v.fullname
+		local tLoad = v.tLoad
+		local sLoad = v.sLoad
+		local tColour = v.timeColourString
+		local sColour = v.spaceColourString
+		gl.Text(tColour .. ('%.2f%%'):format(tLoad), x, y-lineSpace*j, fontSize, "no")
+		gl.Text(sColour .. ('%.0f'):format(sLoad) .. 'kB/s', x+dataColWidth, y-lineSpace*j, fontSize, "no")
+		gl.Text(wname, x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
 
-	j = j + 1
+		j = j + 1
 	end
 
-	gl.Text(totals_colour.."totals ("..string.lower(name)..")", x+152, y+1-(12)*j, 10, "no")
-	gl.Text(totals_colour..('%.2f%%'):format(list.allOverTime), x+60, y+1-(12)*j, 10, "no")
-	gl.Text(totals_colour..('%.0f'):format(list.allOverSpace) .. 'kB/s', x+105, y+1-(12)*j, 10, "no")
+	gl.Text(totals_colour..('%.2f%%'):format(list.allOverTime), x, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour..('%.0f'):format(list.allOverSpace) .. 'kB/s', x+dataColWidth, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour.."totals ("..string.lower(name)..")", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
 	j = j + 1
 
 	return x,j
@@ -470,58 +470,56 @@ function widget:DrawScreen()
 	end
 
 	-- draw
-	local vsx, vsy = gl.GetViewSizes()
-	local x,y = vsx-400, vsy-175
+	local vsx, vsy = gl.GetViewSizes()	
+	
+	local fontSize = math.max(11,math.floor(vsy/90))
+	local lineSpace = fontSize + 2
+	
+	local dataColWidth = fontSize*5
+	local colWidth = vsx*0.98/4
+	
+	local x,y = vsx-colWidth, vsy*0.77 -- initial coord for writing
+	local maxLines = math.max(20,math.floor(y/lineSpace)-3)
+	local j = -1 --line number
 
-	local widgetScale = (1 + (vsx*vsy / 7500000))
-	maxLines = math.max(20,math.floor((vsy-175)/(12*widgetScale))-5)
+	gl.Color(1,1,1,1)
+	gl.BeginText()
 
-	gl.PushMatrix()
-		gl.Translate(vsx-(vsx*widgetScale),vsy-(vsy*widgetScale),0)
-		gl.Scale(widgetScale,widgetScale,1)
+	x,j = DrawWidgetList(gameList,"GAME",x,y,j, fontSize,lineSpace,maxLines,colWidth,dataColWidth)
+	x,j = DrawWidgetList(userList,"USER",x,y,j, fontSize,lineSpace,maxLines,colWidth,dataColWidth)
 
-		gl.Color(1,1,1,1)
-		gl.BeginText()
-		local j = -1 --line number
+	if j>=maxLines-15 then x = x - colWidth; j = -1; end
+	j = j + 1
+	gl.Text(title_colour.."ALL", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
+	j = j + 1
 
-		x,j = DrawWidgetList(gameList,"GAME",x,y,j)
-		x,j = DrawWidgetList(userList,"USER",x,y,j)
+	j = j + 1
+	gl.Text(totals_colour.."total percentage of running time spent in luaui callins", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour..('%.1f%%'):format(allOverTime), x+dataColWidth, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(totals_colour.."total rate of mem allocation by luaui callins", x+dataColWidth*2, y-lineSpace*j, fontSize, "no")
+	gl.Text(totals_colour..('%.0f'):format(allOverSpace) .. 'kB/s', x+dataColWidth, y-lineSpace*j, fontSize, "no")
+	
+	j = j + 2
+	gl.Text(totals_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which:', x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(totals_colour..'  '..('%.0f'):format(100*lm/gm) .. '% is from luaui', x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(totals_colour..'  '..('%.0f'):format(100*um/gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(totals_colour..'  '..('%.0f'):format(100*sm/gm) .. '% is from synced states (luarules+luagaia)', x, y-lineSpace*j, fontSize, "no")
+	
+	j = j + 2
+	gl.Text(title_colour.."All data excludes load from garbage collection & executing GL calls", x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(title_colour.."Callins in brackets are heaviest per widget for (time,allocs)", x, y-lineSpace*j, fontSize, "no")
 
-		if j>=maxLines-15 then x = x - 350; j = 0; end
-		j = j + 1
-		gl.Text(title_colour.."ALL", x+152, y-1-(12)*j, 10, "no")
-		j = j + 1
-
-		j = j + 1
-		gl.Text(totals_colour.."total percentage of running time spent in luaui callins", x+152, y-1-(12)*j, 10, "no")
-		gl.Text(totals_colour..('%.1f%%'):format(allOverTime), x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(totals_colour.."total rate of mem allocation by luaui callins", x+152, y-1-(12)*j, 10, "no")
-		gl.Text(totals_colour..('%.0f'):format(allOverSpace) .. 'kB/s', x+105, y-1-(12)*j, 10, "no")
-		
-		j = j + 2
-		gl.Text(totals_colour..'total lua memory usage is '.. ('%.0f'):format(gm/1000) .. 'MB, of which:', x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(totals_colour..'  '..('%.0f'):format(100*lm/gm) .. '% is from luaui', x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(totals_colour..'  '..('%.0f'):format(100*um/gm) .. '% is from unsynced states (luarules+luagaia+luaui)', x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(totals_colour..'  '..('%.0f'):format(100*sm/gm) .. '% is from synced states (luarules+luagaia)', x+65, y-1-(12)*j, 10, "no")
-		
-		j = j + 2
-		gl.Text(title_colour.."All data excludes load from garbage collection & executing GL calls", x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(title_colour.."Callins in brackets are heaviest per widget for (time,allocs)", x+65, y-1-(12)*j, 10, "no")
-
-		j = j + 2
-		gl.Text(title_colour.."Tick time: " .. tick .. "s", x+65, y-1-(12)*j, 10, "no")
-		j = j + 1
-		gl.Text(title_colour.."Smoothing time: " .. averageTime .. "s", x+65, y-1-(12)*j, 10, "no")
-		
-		
-		gl.EndText()
-		
-	gl.PopMatrix()
+	j = j + 2
+	gl.Text(title_colour.."Tick time: " .. tick .. "s", x, y-lineSpace*j, fontSize, "no")
+	j = j + 1
+	gl.Text(title_colour.."Smoothing time: " .. averageTime .. "s", x, y-lineSpace*j, fontSize, "no")
+	
+	gl.EndText()		
 end
 
 
