@@ -5,7 +5,7 @@ end
 
 function widget:GetInfo()
 	return {
-	name      = "Red Console (In-game chat only) 2", --version 4.1
+	name      = "Red Console (In-game chat only)", --version 4.1
 	desc      = "Requires Red UI Framework",
 	author    = "Regret + Doo edit",
 	date      = "29 may 2015",

@@ -2,7 +2,11 @@
 XX/XX/2018
 
  • Morty shoots more acurate
- • Optimization of unit_prevent_nanoframe_blocking_hax.lua for better lategame perfs
+ • Fixed low fps bug cause by a gadget
+ • Fixed duplication of engine replacement trees
+ • EcoStats widget appearance changed (flatter but wider)
+ • Ignoreplayer (cltr+click playername) shows with crossed playername + shows when they chat (without the message)
+
 
 10.08 -> 10.09
 20/06/2018

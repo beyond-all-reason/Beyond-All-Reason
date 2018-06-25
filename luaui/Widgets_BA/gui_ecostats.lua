@@ -71,7 +71,7 @@ local vsx,vsy                    	= gl.GetViewSizes()
 local right							= true
 local widgetHeight					
 local widgetWidth                	= 130
-local tH						 	= 50 -- team row height
+local tH						 	= 40 -- team row height
 local WBadge					 	= 14 -- width of player badge (side icon)
 local iPosX, iPosY
 local cW 							= 100 -- column width
@@ -194,7 +194,7 @@ function Init()
 	allyData = {}
 	comTable = {}
 
-	Button["player"] 		= {}
+	Button["player"] = {}
 	iPosX = {}
 	iPosY = {}
 
@@ -227,7 +227,6 @@ function Init()
 			end
 
 			setAllyData(allyID)
-
 			local nbPlayers 							= #teamList
 		end
 	end
@@ -313,14 +312,14 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function setDefaults()
-	widgetWidth 			= 130
+	widgetWidth 			= 105	-- just the bars area
 	right 					= true
-	tH						= 50
+	tH						= 32
 	vsx,vsy 				= gl.GetViewSizes()
 	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
 	borderPadding			= 4.5
-	WBadge					= 14
-	cW						= 100
+	WBadge					= tH*0.5
+	cW						= 88
 	textsize				= 14
 end
 
@@ -460,7 +459,7 @@ local function DrawEText(numberE, vOffset)
 		local label = tconcat({"",formatRes(numberE)})
 		myFont:Begin()
 		myFont:SetTextColor({1, 1, 0, 1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(41*sizeMultiplier),textsize,'rs')
+		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.22),tH/2.66,'rs')
 		myFont:End()
 	end
 end
@@ -470,15 +469,17 @@ local function DrawMText(numberM, vOffset)
 		local label = tconcat({"",formatRes(numberM)})
 		myFont:Begin()
 		myFont:SetTextColor({0.8,0.8,0.8,1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+tH-(24*sizeMultiplier),textsize,'rs')
+		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.58),tH/2.66,'rs')
 		myFont:End()
 	end
 end
 
 local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 	local dx = 15*sizeMultiplier
-	local dy = tH-(36*sizeMultiplier)
+	local dy = tH*0.43
 	local maxW = widgetWidth - (30*sizeMultiplier)
+	local barheight = tH * 0.1
+
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
 	end
@@ -489,7 +490,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
 		widgetPosX + dx+maxW,
-		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
+		widgetPosY + widgetHeight -vOffset+dy-barheight
 	)
 	-- energy total
 	glColor(1,1,0,0.7)
@@ -498,7 +499,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
 		widgetPosX + dx + tE * maxW,
-		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
+		widgetPosY + widgetHeight -vOffset+dy-barheight
 	)
 	-- energy production
 	glColor(1,1,0,1)
@@ -507,7 +508,7 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
 		widgetPosX + dx + tEp * maxW,
-		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
+		widgetPosY + widgetHeight -vOffset+dy-barheight
 	)
 
 	if tE * maxW > 0.9 then
@@ -519,21 +520,21 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 			widgetPosX + dx,
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tE * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx-(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx + tE * maxW+(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tE * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		-- energy production
 		glColor(1,1,0,0.032)
@@ -542,21 +543,21 @@ local function DrawEBar(tE,tEp,vOffset)-- where tE = team Energy = [0,1]
 			widgetPosX + dx,
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tEp * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx-(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx + tEp * maxW+(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tEp * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 	end
 	gl.Texture(false)
@@ -566,8 +567,10 @@ end
 
 local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 	local dx = 15*sizeMultiplier
-	local dy = tH-(26*sizeMultiplier)
+	local dy = tH*0.67
 	local maxW = widgetWidth - (30*sizeMultiplier)
+	local barheight = tH * 0.1
+
 	if Options["resText"]["On"] then
 		maxW = (widgetWidth/2) + (2*sizeMultiplier)
 	end
@@ -578,7 +581,7 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
 		widgetPosX + dx+maxW,
-		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
+		widgetPosY + widgetHeight -vOffset+dy-barheight
 	)
 	-- metal total
 	glColor(1,1,1,0.7)
@@ -587,7 +590,7 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
 		widgetPosX + dx + tM * maxW,
-		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
+		widgetPosY + widgetHeight -vOffset+dy-barheight
 	)
 	-- metal production
 	glColor(1,1,1,1)
@@ -596,7 +599,7 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 		widgetPosX + dx,
 		widgetPosY + widgetHeight -vOffset+dy,
 		widgetPosX + dx + tMp * maxW,
-		widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)
+		widgetPosY + widgetHeight -vOffset+dy-barheight
 	)
 	if tM * maxW > 0.9 then
 		local glowsize = 26*sizeMultiplier
@@ -607,21 +610,21 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 			widgetPosX + dx,
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tM * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx-(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx + tM * maxW+(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tM * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		-- metal production
 		glColor(1,1,1,0.032)
@@ -630,39 +633,39 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 			widgetPosX + dx,
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tMp * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx-(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 		gl.Texture(images["barglowedge"])
 		glTexRect(
 			widgetPosX + dx + tMp * maxW+(glowsize*1.8),
 			widgetPosY + widgetHeight -vOffset+dy+glowsize,
 			widgetPosX + dx + tMp * maxW,
-			widgetPosY + widgetHeight -vOffset+dy-math.floor(3.5*sizeMultiplier)-glowsize
+			widgetPosY + widgetHeight -vOffset+dy-barheight-glowsize
 		)
 	end
 	gl.Texture(false)
 	glColor(1,1,1)
 end
 
-local function DrawBackground(posY, allyID)
+local function DrawBackground(posY, allyID, sideimagesWidth)
 	local y1 = widgetPosY - posY + widgetHeight
 	local y2 = widgetPosY - posY + tH + widgetHeight
 	local area = {widgetPosX, y1, widgetPosX+widgetWidth, y2 }
 
 	glColor(0,0,0,0.66)
-	RectRound(widgetPosX,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
+	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
 	glColor(1,1,1,0.025)
-	RectRound(widgetPosX+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
 
 	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(widgetPosX,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
+		WG['guishader_api'].InsertRect(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
 	end
 
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
@@ -749,30 +752,38 @@ local function DrawOptionRibbon()
 end
 
 local function DrawBox(hOffset, vOffset,r,g,b)
-	local dx = 20*sizeMultiplier
-	local dy = 40*sizeMultiplier
+	local w = tH*0.36
+	local h = tH*0.36
+	local dx = 0
+	local dy = tH - (tH*0.5)
 	glColor(r,g,b,0.4)
-	RectRound(widgetPosX+hOffset+dx+(8*sizeMultiplier), widgetPosY + widgetHeight -vOffset+dy+(4*sizeMultiplier), widgetPosX + hOffset + dx + (18.5*sizeMultiplier), widgetPosY + widgetHeight -vOffset+dy+(14.5 *sizeMultiplier), 3*sizeMultiplier)
+	RectRound(
+		widgetPosX + hOffset + dx - w,
+		widgetPosY + widgetHeight - vOffset + dy,
+		widgetPosX + hOffset + dx,
+		widgetPosY + widgetHeight - vOffset + dy + h,
+		h*0.2
+	)
 	glColor(1,1,1,1)
 end
 
 
-local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mouseOn,t,isDead,isZombie)
+local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mouseOn,t,isDead,isZombie,tID)
 	local w
 	local h
 	local dx
 	local dy
 
 	if small then
-		w = 8*sizeMultiplier
-		h = 8*sizeMultiplier
-		dx = (28*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier)
-		dy = tH - (12*sizeMultiplier)
+		w = tH*0.36
+		h = tH*0.36
+		dx = 0-(tH*0.06)
+		dy = tH - (tH*0.43)
 	else
-		w = WBadge
-		h = WBadge
-		dx = (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier)
-		dy = tH - (16*sizeMultiplier) - (WBadge-(14*sizeMultiplier))
+		w = tH*0.46
+		h = tH*0.46
+		dx = 0
+		dy = tH - h
 	end
 
 	if not inSpecMode then dx = dx -(10*sizeMultiplier) end
@@ -794,11 +805,18 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	else
 		glColor(r,g,b,a)
 	end
+
+	Button["player"][tID]["x1"] = widgetPosX + hOffset + dx - w
+	Button["player"][tID]["y1"] = widgetPosY + widgetHeight - vOffset + dy
+	Button["player"][tID]["x2"] = widgetPosX + hOffset + dx
+	Button["player"][tID]["y2"] = widgetPosY + widgetHeight - vOffset + dy + h
+	Button["player"][tID]["pID"] = tID
+
 	glTexture(sideImage)
 	glTexRect(
 		widgetPosX + hOffset + dx,
 		widgetPosY + widgetHeight - vOffset + dy,
-		widgetPosX + hOffset + dx + w,
+		widgetPosX + hOffset + dx - w,
 		widgetPosY + widgetHeight - vOffset + dy + h
 	)
 	glTexture(false)
@@ -819,8 +837,15 @@ function DrawSideImages()
 			local posy = tH*(drawpos) + (4*sizeMultiplier)
 			local label, isAlive, hasCom
 
+			local sideimagesWidth = 0
+			for i, tID  in pairs (data.teams) do
+				if tID ~= gaiaID or haveZombies then
+					sideimagesWidth = -(WBadge*(i))-(WBadge*0.3)
+				end
+			end
+
 			if type(data["tE"]) == "number" and drawpos and #(data.teams) > 0 then
-				DrawBackground(posy-(4*sizeMultiplier), aID)
+				DrawBackground(posy-(4*sizeMultiplier), aID, sideimagesWidth)
 			end
 
 			-- Player faction images
@@ -833,7 +858,7 @@ function DrawSideImages()
 					local b = tData.blue or 1	
 					local alpha, sideImg
 					local side = tData.side
-					local posx = WBadge*(i-1) - WBadge
+					local posx = -(WBadge*(i-1))+(WBadge*0.3)
 					
 					local isZombie = haveZombies and tID == gaiaID
 					sideImg = images[side] or images["default"]
@@ -844,15 +869,13 @@ function DrawSideImages()
 					if GetGameSeconds() > 0 then
 						if not tData.isDead then
 							alpha = tData.active and 1 or 0.3
-							DrawSideImage(sideImg,posx,posy, r, g, b,alpha,not hasCom,Button["player"][tID]["mouse"],t, false,isZombie)
+							DrawSideImage(sideImg,posx,posy+(tH*0.125), r, g, b,alpha,not hasCom,Button["player"][tID]["mouse"],t, false,isZombie,tID)
 						else
 							alpha = 0.8
-							sideImg = images["dead"]
-							
-							DrawSideImage(sideImg,posx,posy, r, g, b,alpha,true,Button["player"][tID]["mouse"],t, true,isZombie) --dead, big icon
+							DrawSideImage(images["dead"],posx,posy+(tH*0.125), r, g, b,alpha,true,Button["player"][tID]["mouse"],t, true,isZombie,tID) --dead, big icon
 						end
 					else
-						DrawBox( posx-(2*sizeMultiplier), posy+(7*sizeMultiplier), r, g, b)
+						DrawBox(posx, posy, r, g, b)
 					end
 				end
 			end
@@ -866,12 +889,12 @@ local function drawListStandard()
 	local maxEnergy = 0
 	
 	if not gamestarted then updateButtons() end
-	
+
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
-		
+
 		if data.exists and type(data["tE"]) == "number" and isTeamReal(aID) and (aID == myAllyID or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
-		
+
 			if avgData[aID] == nil then
 				avgData[aID] = {}
 				avgData[aID]["tE"] = data["tE"]
@@ -892,7 +915,7 @@ local function drawListStandard()
 			end
 		end
 	end
-	
+
 	for _, data in ipairs(allyData) do
 		local aID = data.aID
 		if aID ~= nil then
@@ -911,11 +934,11 @@ local function drawListStandard()
 				local t = GetGameSeconds()
 				if data["isAlive"] and t > 0 and gamestarted and not gameover then
 					DrawEBar(avgData[aID]["tE"]/maxEnergy,(avgData[aID]["tE"]-avgData[aID]["tEr"])/maxEnergy,posy-1)
-					DrawEText(avgData[aID]["tE"],posy-1)
+					DrawEText(avgData[aID]["tE"],posy)
 				end
 				if data["isAlive"] and t > 5 and not gameover then
 					DrawMBar(avgData[aID]["tM"]/maxMetal,(avgData[aID]["tM"]-avgData[aID]["tMr"])/maxMetal,posy+2)
-					DrawMText(avgData[aID]["tM"],posy+2)
+					DrawMText(avgData[aID]["tM"],posy)
 				end
 			end
 		end
@@ -1297,41 +1320,6 @@ function updateButtons()
 	aliveAllyTeams = 0
 	for _, data in ipairs(allyData) do
 		local allyID = data.aID
-		
-		if allyID and (allyID ~= gaiaAllyID or haveZombies) then 
-			
-			local w1 = 14*sizeMultiplier
-			local x1, y1, x2, y2
-			local nbPlayers = #data.teams
-			maxPlayers = getMaxPlayers()
-			local lm = 20*sizeMultiplier
-			local w = (180*sizeMultiplier) + cW*nbPlayers
-			
-			if inSpecMode then
-				widgetHeight = getNbTeams()*tH+(2*sizeMultiplier)
-			else
-				widgetHeight = tH+(2*sizeMultiplier)
-			end
-			
-			x1 	= widgetPosX + (2*sizeMultiplier)
-			x2 = x1 + w1
-			y1 = widgetPosY + widgetHeight - (drawpos)*tH - w1 - (3*sizeMultiplier)
-			y2 = y1 + w1
-		end
-		
-		for i,tID in pairs (data.teams) do
-			Button["player"][tID]["x1"] = widgetPosX + WBadge*(i-2) + (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier)
-			Button["player"][tID]["x2"] = widgetPosX + WBadge*(i-2) + (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier) + WBadge
-			Button["player"][tID]["y1"] = widgetPosY + widgetHeight - tH*(drawpos) - (16*sizeMultiplier) - (WBadge-(14*sizeMultiplier))
-			Button["player"][tID]["y2"] = widgetPosY + widgetHeight - tH*(drawpos) - (16*sizeMultiplier) - (WBadge-(14*sizeMultiplier)) + WBadge
-			Button["player"][tID]["pID"] = tID
-			
-			if not inSpecMode then 
-				Button["player"][tID]["x1"] = widgetPosX + WBadge*(i-2) + (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier)  - (10*sizeMultiplier)
-				Button["player"][tID]["x2"] = widgetPosX + WBadge*(i-2) + (25*sizeMultiplier) + (WBadge-(14*sizeMultiplier))*(4*sizeMultiplier) + WBadge - (10*sizeMultiplier)
-			end
-		end
-		
 		if isTeamReal(allyID) and (allyID == GetMyAllyTeamID() or inSpecMode) and data["isAlive"] then
 			aliveAllyTeams = aliveAllyTeams + 1
 			drawpos = drawpos + 1
