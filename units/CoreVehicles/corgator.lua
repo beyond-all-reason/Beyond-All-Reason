@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 727,
 		maxslope = 10,
-		maxvelocity = 2.99,
+		maxvelocity = 3.035,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Instigator",

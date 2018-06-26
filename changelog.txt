@@ -2,10 +2,12 @@
 XX/XX/2018
 
  • Morty shoots more acurate
- • Fixed low fps bug cause by a gadget
- • Fixed duplication of engine replacement trees
+ • Vehicle speed changes: Janus -3%, Flash -1%, Instigator +1.5%
  • EcoStats widget appearance changed (flatter but wider)
- • Ignoreplayer (cltr+click playername) shows with crossed playername + shows when they chat (without the message)
+ • Ignoreplayer (cltr+click playername) shows crossed playername + shows when they chat (but stripping message)
+ • Fixed low fps bug cause by a gadget
+ • Fixed reclaimspeed gadget
+ • Fixed duplication of engine replacement trees
 
 
 10.08 -> 10.09
