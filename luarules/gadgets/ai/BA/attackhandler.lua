@@ -9,8 +9,9 @@ function AttackHandler:internalName()
 end
 
 function AttackHandler:Init()
-	self.recruits = {}
+	self.recruits = {attackers = {}, defenders = {}}
 	self.counter = 1
+	self.ratio = math.random(1,10)
 end
 
 function AttackHandler:Update()
@@ -26,9 +27,15 @@ function AttackHandler:UnitDead(engineunit)
 		--self.counter = self.counter - 0.2
 		--self.counter = math.max(self.counter,8)
 		-- try and clean up dead recruits where possible
-		for i,v in ipairs(self.recruits) do
+		for i,v in ipairs(self.recruits.attackers) do
 			if v.engineID == engineunit:ID() then
-				table.remove(self.recruits,i)
+				table.remove(self.recruits.attackers,i)
+				break
+			end
+		end
+		for i,v in ipairs(self.recruits.defenders) do
+			if v.engineID == engineunit:ID() then
+				table.remove(self.recruits.defenders,i)
 				break
 			end
 		end
@@ -36,15 +43,20 @@ function AttackHandler:UnitDead(engineunit)
 end
 
 function AttackHandler:DoTargetting()
-	if #self.recruits > self.counter then
-				for i,recruit in ipairs(self.recruits) do
-					recruit:AttackCell()
+	if #self.recruits.attackers > self.counter then
+				for i,recruit in ipairs(self.recruits.attackers) do				
+					recruit:AttackCell("attacker")
 				end
 	end
+	if #self.recruits.defenders > self.counter then
+				for i,recruit in ipairs(self.recruits.defenders) do				
+					recruit:AttackCell("defender")
+				end
+	end	
 end
 
 function AttackHandler:DoTargettingOld()
-	if #self.recruits > self.counter then
+	if #self.recruits.attackers > self.counter then
 
 		--[[ try and catch invalid recruits and remove them, then reevaluate
 		local nrecruits = {}
@@ -116,7 +128,7 @@ function AttackHandler:DoTargettingOld()
 			
 			-- if we have a cell then lets go attack it!
 			if bestCell ~= nil then
-				for i,recruit in ipairs(self.recruits) do
+				for i,recruit in ipairs(self.recruits.attackers) do
 					recruit:AttackCell(bestCell)
 				end
 				
@@ -137,7 +149,12 @@ function AttackHandler:DoTargettingOld()
 end
 
 function AttackHandler:IsRecruit(attkbehaviour)
-	for i,v in ipairs(self.recruits) do
+	for i,v in ipairs(self.recruits.attackers) do
+		if v.engineID == attkbehaviour.engineID then
+			return true
+		end
+	end
+	for i,v in ipairs(self.recruits.defenders) do
 		if v.engineID == attkbehaviour.engineID then
 			return true
 		end
@@ -151,14 +168,26 @@ function AttackHandler:AddRecruit(attkbehaviour)
 		return
 	end
 	if not self:IsRecruit(attkbehaviour) then
-		table.insert(self.recruits,attkbehaviour)
+		if #self.recruits.attackers <= self.ratio * #self.recruits.defenders then
+			table.insert(self.recruits.attackers,attkbehaviour)
+			Spring.Echo("defender")
+		else
+			table.insert(self.recruits.defenders,attkbehaviour)
+			Spring.Echo("attacker")
+		end
 	end
 end
 
 function AttackHandler:RemoveRecruit(attkbehaviour)
-	for i,v in ipairs(self.recruits) do
+	for i,v in ipairs(self.recruits.attackers) do
 		if v.engineID == attkbehaviour.engineID then
-			table.remove(self.recruits,i)
+			table.remove(self.recruits.attackers,i)
+			return true
+		end
+	end
+	for i,v in ipairs(self.recruits.defenders) do
+		if v.engineID == attkbehaviour.engineID then
+			table.remove(self.recruits.defenders,i)
 			return true
 		end
 	end

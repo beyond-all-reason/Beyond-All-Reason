@@ -47,7 +47,8 @@ function AttackerBehaviour:OwnerIdle()
 	self.ai.attackhandler:AddRecruit(self)
 end
 
-function AttackerBehaviour:AttackCell()
+function AttackerBehaviour:AttackCell(type)
+	local attacker = (type == "attacker")
 	local unit = self.unit:Internal()
 	local unitID = unit.id
 	-- Spring.Echo(unitID)
@@ -59,7 +60,7 @@ function AttackerBehaviour:AttackCell()
 	local startPosx, startPosy, startPosz = Spring.GetTeamStartPosition(ai.id)
 	local startBoxMinX, startBoxMinZ, startBoxMaxX, startBoxMaxZ = Spring.GetAllyTeamStartBox(allyTeamID)
 	local utype = self.game:GetTypeByName(unit:Name())
-	
+	local nearestUnitRangeCheck = ((not attacker) and (400 + myRange)) or (5*myRange)
 	-- Skirmishing
 	if (not utype:CanFly() == true) and unitID % 30 == Spring.GetGameFrame() % 30 then
 		if closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID)) and (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
@@ -93,8 +94,8 @@ function AttackerBehaviour:AttackCell()
 	if unitID % 150 == Spring.GetGameFrame() % 150 then
 		local TeamID = ai.id
 		local allyTeamID = ai.allyId
-		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, 600 + myRange, false)
-		if nearestUnit == nil then
+		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, nearestUnitRangeCheck, false)
+		if nearestUnit and not (Spring.IsUnitInRadar(nearestUnit, TeamID) or Spring.IsUnitInLos(nearestUnit, TeamID)) then
 			nearestUnit = nil
 		end
 		--local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
@@ -109,10 +110,20 @@ function AttackerBehaviour:AttackCell()
 				else
 					self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 				end
-				if nearestUnit == nil then
+				if nearestUnit == nil and type == "defender" then
 					local cms = self.ai.metalspothandler:ClosestFreeSpot(utype, self.unit:Internal():GetPosition())
-					enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
-					Spring.Echo(enemyposx, enemyposz)
+					if cms then
+						enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
+					else
+						return
+					end
+				elseif nearestUnit == nil and type == "attacker" then
+					local cms = self.ai.metalspothandler:ClosestEnemySpot(utype, self.unit:Internal():GetPosition())
+					if cms then
+						enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
+					else
+						return
+					end
 				else
 					enemyposx, enemyposy, enemyposz = Spring.GetUnitPosition(nearestUnit)
 				end
