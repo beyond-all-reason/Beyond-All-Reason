@@ -29,7 +29,7 @@ local GetFeatureResources = Spring.GetFeatureResources
 local unitList = {}
 for unitDefID, defs in pairs(UnitDefs) do
     if defs.reclaimSpeed > 0 then
-        unitList[unitDefID] = defs.reclaimSpeed
+        unitList[unitDefID] = defs.reclaimSpeed / 30
     end
 end
 
