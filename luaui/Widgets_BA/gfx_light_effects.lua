@@ -49,6 +49,8 @@ local globalLightMultLaser = 1.4	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.65
 
+local useHeatDistortion = false
+
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
 --------------------------------------------------------------------------------
@@ -570,6 +572,19 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
+		if useHeatDistortion and WG['Lups'] and params.param.radius > 100 then
+			WG['Lups'].AddParticles('JitterParticles2', {
+				layer=-35,
+				life = params.life*3.3,
+				pos = {params.px,params.py-5,params.pz},
+				size = -2 + params.param.radius/13,
+				sizeGrowth = 0.01,
+				strength = 0.7 + (params.life/30),
+				animSpeed = 1.3,
+				heat = 5 + params.life*0.4,
+				force = {0,0.3,0},
+			})
+		end
 	end
 end
 
@@ -605,6 +620,9 @@ function widget:Initialize()
 	WG['lighteffects'].getLife = function()
 		return globalLifeMult
 	end
+	WG['lighteffects'].getHeatDistortion = function()
+		return useHeatDistortion
+	end
 	WG['lighteffects'].setGlobalBrightness = function(value)
 		globalLightMult = value
 		projectileLightTypes = GetLightsFromUnitDefs()
@@ -627,6 +645,9 @@ function widget:Initialize()
 		globalLifeMult = value
 		loadWeaponDefs()
 	end
+	WG['lighteffects'].setHeatDistortion = function(value)
+		useHeatDistortion = value
+	end
 
 end
 
@@ -638,6 +659,7 @@ function widget:GetConfigData(data)
 		globalLightMultLaser = globalLightMultLaser,
 		globalRadiusMultLaser = globalRadiusMultLaser,
 		globalLifeMult = globalLifeMult,
+		useHeatDistortion = useHeatDistortion,
 		resetted = 1.4,
 	}
 	return savedTable
@@ -659,6 +681,9 @@ function widget:SetConfigData(data)
 		end
 		if data.globalLifeMult ~= nil then
 			globalLifeMult = data.globalLifeMult
+		end
+		if data.useHeatDistortion ~= nil then
+			useHeatDistortion = data.useHeatDistortion
 		end
 	end
 end

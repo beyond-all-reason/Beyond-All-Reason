@@ -5,6 +5,7 @@ XX/XX/2018
  • Vehicle speed changes: Janus -3%, Flash -1%, Instigator +1.5%
  • EcoStats widget appearance changed (flatter but wider)
  • Ignoreplayer (cltr+click playername) shows crossed playername + shows when they chat (but stripping message)
+ • Added "apply heat distortion" option to light effects widget/options (default disabled)
  • Fixed low fps bug cause by a gadget
  • Fixed reclaimspeed gadget
  • Fixed duplication of engine replacement trees
