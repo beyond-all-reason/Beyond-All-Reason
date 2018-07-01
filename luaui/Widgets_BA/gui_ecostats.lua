@@ -87,6 +87,11 @@ local maxPlayers					= 0
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
+local enableStartposbuttons = true
+if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then		-- spots wont match when ffa
+	enableStartposbuttons = false
+end
+
 local vsx,vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
 	
@@ -805,12 +810,13 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 		glColor(r,g,b,a)
 	end
 
-	Button["player"][tID]["x1"] = widgetPosX + hOffset + dx - w
-	Button["player"][tID]["y1"] = widgetPosY + widgetHeight - vOffset + dy
-	Button["player"][tID]["x2"] = widgetPosX + hOffset + dx
-	Button["player"][tID]["y2"] = widgetPosY + widgetHeight - vOffset + dy + h
-	Button["player"][tID]["pID"] = tID
-
+	if enableStartposbuttons then
+		Button["player"][tID]["x1"] = widgetPosX + hOffset + dx - w
+		Button["player"][tID]["y1"] = widgetPosY + widgetHeight - vOffset + dy
+		Button["player"][tID]["x2"] = widgetPosX + hOffset + dx
+		Button["player"][tID]["y2"] = widgetPosY + widgetHeight - vOffset + dy + h
+		Button["player"][tID]["pID"] = tID
+	end
 	glTexture(sideImage)
 	glTexRect(
 		widgetPosX + hOffset + dx,
