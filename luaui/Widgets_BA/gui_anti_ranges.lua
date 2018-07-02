@@ -131,8 +131,8 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 	local camDistance = diag(camX-x, camY-y, camZ-z) 
 	
 	local lineWidthMinus = (camDistance/fadeStartDistance)
-	if lineWidthMinus > 2 then
-		lineWidthMinus = 2
+	if lineWidthMinus > 2.2 then
+		lineWidthMinus = 2.2
 	end
 	local lineOpacityMultiplier = 1
 	if fadeOnCloseup then
@@ -172,8 +172,8 @@ function drawCircle(uID, coverageRange, x, y, z, camX, camY, camZ)
 			glColor(circleColor[1],circleColor[2],circleColor[3], .016*lineOpacityMultiplier)
 			glDrawGroundCircle(x, y, z, coverageRange, 128)
 		end]]--
-		glColor(circleColor[1],circleColor[2],circleColor[3], .5*lineOpacityMultiplier)
-		glLineWidth(3-lineWidthMinus)
+		glColor(circleColor[1],circleColor[2],circleColor[3], .55*lineOpacityMultiplier)
+		glLineWidth(3.5-lineWidthMinus)
 		glDrawGroundCircle(x, y, z, coverageRange, 128)
 	end
 end

@@ -568,23 +568,61 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				radius = weaponConf[weaponID].radius,
 			},
 		}
-
 		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
+
 		if useHeatDistortion and WG['Lups'] and params.param.radius > 100 then
 			WG['Lups'].AddParticles('JitterParticles2', {
 				layer=-35,
-				life = params.life*3.3,
-				pos = {params.px,params.py-5,params.pz},
-				size = -2 + params.param.radius/13,
-				sizeGrowth = 0.01,
-				strength = 0.7 + (params.life/30),
+				life = params.life*1.3 + (params.param.radius/40),
+				pos = {px,py+10,pz},
+				size = params.param.radius/16,
+				sizeGrowth = 0.7,
+				strength = 1.2 + (params.life/25),
 				animSpeed = 1.3,
-				heat = 5 + params.life*0.4,
-				force = {0,0.3,0},
+				heat = 1,
+				force = {0,0.15,0},
 			})
 		end
+
+		-- a test to replace stumpy weapon ceg 'explosion' effect, so when maxparticles is reached, there is still this lups shown, only thing missing is the directional=true options :(
+		--if WG['Lups'] then
+		--	WG['Lups'].AddParticles('SimpleParticles2', {
+		--		emitVector     = {0,1,0},
+		--		pos            = {px,py+2,pz}, --// start pos
+		--		partpos        = "0,0,0",  --//particle relative start pos (can contain lua code!)
+		--		layer          = 0,
+		--
+		--		--// visibility check
+		--		los            = true,
+		--		airLos         = true,
+		--		radar          = false,
+		--
+		--		count          = 8,
+		--		force          = {0,0,0}, --// global effect force
+		--		forceExp       = 1,
+		--		speed          = 0.3,
+		--		speedSpread    = 2.5,
+		--		speedExp       = 0.3, --// >1 : first decrease slow, then fast;  <1 : decrease fast, then slow
+		--		life           = 6,
+		--		lifeSpread     = 5,
+		--		delaySpread    = 0,
+		--		rotSpeed       = 0,
+		--		rotSpeedSpread = 0,
+		--		rotSpread      = 0,
+		--		rotExp         = 1, --// >1 : first decrease slow, then fast;  <1 : decrease fast, then slow;  <0 : invert x-axis (start large become smaller)
+		--		emitRot        = 45,
+		--		emitRotSpread  = 32,
+		--		size           = 2,
+		--		sizeSpread     = 3.2,
+		--		sizeGrowth     = 0.4,
+		--		sizeExp        = 1, --// >1 : first decrease slow, then fast;  <1 : decrease fast, then slow;  <0 : invert x-axis (start large become smaller)
+		--		colormap       = { {0,0,0,0}, {1,0.9,0.6,0.09}, {0.9,0.5,0.2,0.066}, {0.66,0.28,0.04,0.033}, {0,0,0,0} }, --//max 16 entries
+		--		texture        = 'bitmaps/projectiletextures/flashside2.tga',
+		--		repeatEffect   = false, --can be a number,too
+		--	})
+		--end
 	end
 end
 
