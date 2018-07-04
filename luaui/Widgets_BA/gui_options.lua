@@ -8,7 +8,6 @@ return {
 	layer   = 20000,
 	enabled = true,
 	handler = true,
-	layer   = -99990,
 }
 end
 
