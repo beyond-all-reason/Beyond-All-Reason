@@ -6,7 +6,7 @@ return {
 	author  = "Bluestone",
 	date    = "April 2015",
 	license = "Mouthwash",
-	layer   = 2,
+	layer   = -99990,
 	enabled = true,
 }
 end
@@ -22,7 +22,7 @@ local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
-local customScale = 1
+local customScale = 1.06
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false

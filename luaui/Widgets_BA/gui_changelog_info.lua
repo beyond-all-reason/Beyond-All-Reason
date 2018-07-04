@@ -5,7 +5,7 @@ return {
 	desc    = "Leftmouse: scroll down,  Rightmouse: scroll up,  ctrl/shift/alt combi: speedup)",
 	author  = "Floris",
 	date    = "August 2015",
-	layer   = 2,
+	layer   = -99990,
 	enabled = true,
 }
 end
@@ -30,7 +30,7 @@ local textareaMinLines = 10		-- wont scroll down more, will show at least this a
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local customScale = 1
+local customScale = 1.06
 
 local startLine = 1
 

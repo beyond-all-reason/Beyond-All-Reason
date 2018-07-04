@@ -8,6 +8,7 @@ return {
 	layer   = 20000,
 	enabled = true,
 	handler = true,
+	layer   = -99990,
 }
 end
 
@@ -51,7 +52,7 @@ local screenWidth = 1050-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
-local customScale = 1
+local customScale = 1.06
 
 local startLine = 1
 

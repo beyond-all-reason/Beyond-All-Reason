@@ -6,7 +6,7 @@ return {
 	author  = "Floris",
 	date    = "August 2015",
 	license = "Dental flush",
-	layer   = 2,
+	layer   = -99990,
 	enabled = true,
 }
 end
@@ -28,7 +28,7 @@ local screenWidth = 1050-bgMargin-bgMargin
 
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
-local customScale = 1
+local customScale = 1.06
 
 local startLine = 1
 

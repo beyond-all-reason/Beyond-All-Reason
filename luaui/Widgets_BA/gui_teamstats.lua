@@ -95,13 +95,13 @@ local guiData = {
 	mainPanel = {
 		relSizes = {
 			x = {
-				min = 0.28,
-				max = 0.795,
+				min = 0.2333,
+				max = 0.7666,
 				length = 0.49,
 			},
 			y = {
-				min = 0.2,
-				max = 0.8,
+				min = 0.22,
+				max = 0.76,
 				length = 0.6,
 			},
 		},
@@ -581,7 +581,7 @@ end
 function updateFontSize()
 	columnSize = guiData.mainPanel.absSizes.x.length / numColums
 	local fakeColumnSize = guiData.mainPanel.absSizes.x.length / (numColums-1)
-	fontSize = 10*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
+	fontSize = 11*widgetScale + floor(fakeColumnSize/maxColumnTextSize)
 end
 
 function widget:MouseMove(mx,my,dx,dy)
