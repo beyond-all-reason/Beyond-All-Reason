@@ -1,4 +1,12 @@
-﻿10.09 -> 10.10
+﻿10.10 -> 10.11
+XX/XX/2018
+
+ • Added vote UI (displays on top of minimap, top right)
+ • Enlarged options/changelog/commands/keys windows with 6%
+ • Hiding muted player chat completely instead of "(ignored)"
+
+
+10.09 -> 10.10
 28/06/2018
 
  • Morty shoots more acurate
