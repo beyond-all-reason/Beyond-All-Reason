@@ -1,8 +1,3 @@
--- disable as clipLine is very slow on headless
-if (Spring.GetConfigInt('Headless', 0) ~= 0) then
-   return false
-end
-
 function widget:GetInfo()
 	return {
 	name      = "Vote interface",
@@ -155,7 +150,8 @@ if myAllyTeamID > 0 then
 
 			local width = vsx/6.2
 			local height = vsy/13
-			local fontSize = height/5.25	-- title only
+
+			local fontSize = height/5	-- title only
 			local minWidth = gl.GetTextWidth('  '..voteName..'  ')*fontSize
 			if width < minWidth then
 				width = minWidth
@@ -165,6 +161,12 @@ if myAllyTeamID > 0 then
 			local xpos = width/2
 			local ypos = vsy-(height/2)
 
+			--if WG['topbar'] ~= nil then
+			--	local topbarArea = WG['topbar'].GetPosition()
+			--	xpos = vsx-(width/2)
+			--	ypos = topbarArea[6]-(height/2)
+			--end
+
 			local padding = width/70
 			local buttonPadding = width/100
 			local buttonMargin = width/32
@@ -173,6 +175,7 @@ if myAllyTeamID > 0 then
 			hovered = nil
 
 			windowArea = {xpos-(width/2), ypos-(height/2), xpos+(width/2), ypos+(height/2)}
+			closeButtonArea = {(xpos+(width/2))-(height/1.9), ypos+(height/5.5), xpos+(width/2), ypos+(height/2)}
 			yesButtonArea = {xpos-(width/2)+buttonMargin, ypos-(height/2)+buttonMargin, xpos-(buttonMargin/2), ypos-(height/2)+buttonHeight-buttonMargin}
 			noButtonArea = {xpos+(buttonMargin/2), ypos-(height/2)+buttonMargin, xpos+(width/2)-buttonMargin, ypos-(height/2)+buttonHeight-buttonMargin}
 
@@ -184,11 +187,25 @@ if myAllyTeamID > 0 then
 			-- window
 			gl.Color(0,0,0,0.55+(0.36*fadeProgress))
 			RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 5.5*widgetScale)
-			gl.Color(1,1,1,0.035+(0.035*fadeProgress))
+			gl.Color(1,1,1,0.03+(0.03*fadeProgress))
 			RectRound(windowArea[1]+padding, windowArea[2]+padding, windowArea[3]-padding, windowArea[4]-padding, 5*widgetScale)
+		
+			-- close
+			--gl.Color(0.1,0.1,0.1,0.55+(0.36*fadeProgress))
+			--RectRound(closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4], 3.5*widgetScale)
+			if IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
+				gl.Color(1,1,1,0.55+(0.055*fadeProgress))
+			else
+				gl.Color(1,1,1,0.025+(0.025*fadeProgress))
+			end
+			RectRound(closeButtonArea[1]+padding, closeButtonArea[2]+padding, closeButtonArea[3]-padding, closeButtonArea[4]-padding, 3*widgetScale)
+
+			fontSize = fontSize*0.85
+			gl.Color(0,0,0,1)
+			gl.Text("ESC", closeButtonArea[1]+((closeButtonArea[3]-closeButtonArea[1])/2), closeButtonArea[2]+((closeButtonArea[4]-closeButtonArea[2])/2)-(fontSize/3), fontSize, "cn")
 
 			-- vote name
-			gl.Text("\255\200\200\200"..voteName, windowArea[1]+((windowArea[3]-windowArea[1])/2), windowArea[4]-padding-padding-padding-fontSize, fontSize, "con")
+			gl.Text("\255\190\190\190"..voteName, windowArea[1]+((windowArea[3]-windowArea[1])/2), windowArea[4]-padding-padding-padding-fontSize, fontSize, "con")
 
 			-- NO
 			if IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
@@ -201,7 +218,7 @@ if myAllyTeamID > 0 then
 			gl.Color(0,0,0,0.07+(0.05*fadeProgress))
 			RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 4*widgetScale)
 
-			local fontSize = fontSize*0.85
+			fontSize = fontSize*0.85
 			gl.Text("\255\255\255\255NO", noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 
 			-- YES
@@ -222,6 +239,7 @@ if myAllyTeamID > 0 then
 
 	function widget:KeyPress(key)
 		if key == 27 and voteDlist then	-- ESC
+			Spring.SendCommands("say !vote b")
 			EndVote()
 		end
 	end
@@ -231,12 +249,12 @@ if myAllyTeamID > 0 then
 			if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
 				if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 					Spring.SendCommands("say !vote y")
-					voted = 'y'
 					EndVote()
-				end
-				if IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
+				elseif IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
 					Spring.SendCommands("say !vote n")
-					voted = 'n'
+					EndVote()
+				elseif IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
+					Spring.SendCommands("say !vote b")
 					EndVote()
 				end
 			end
@@ -248,7 +266,6 @@ if myAllyTeamID > 0 then
 			gl.DeleteList(voteDlist)
 			voteDlist = nil
 			voteName = nil
-			voted = nil
 			if (WG['guishader_api'] ~= nil) then
 				WG['guishader_api'].RemoveRect('voteinterface')
 			end
@@ -256,7 +273,7 @@ if myAllyTeamID > 0 then
 	end
 
 	--function widget:Initialize()
-	--	StartVote('forcestart?')	-- test
+	--	StartVote('Forcestart?')	-- test
 	--end
 
 	function widget:Shutdown()
@@ -267,7 +284,10 @@ if myAllyTeamID > 0 then
 		if voteDlist then
 			local x,y,b = Spring.GetMouseState()
 			if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-				if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) or IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
+				if	IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) or
+					IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
+					IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
+				then
 					StartVote()
 				elseif hovered then
 					StartVote()
