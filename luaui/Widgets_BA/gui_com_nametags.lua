@@ -78,27 +78,24 @@ end
 --------------------------------------------------------------------------------
 
 --gets the name, color, and height of the commander
-local aiCount = 1
 local function GetCommAttributes(unitID, unitDefID)
   local team = GetUnitTeam(unitID)
   if team == nil then
     return nil
   end
-  local players = GetPlayerList(team)
 
-  local name = (#players>0) and GetPlayerInfo(players[1]) or 'AI Machine '..aiCount
-  for _,pID in ipairs(players) do
-    local pname,active,spec = GetPlayerInfo(pID)
-    if active and not spec then
-      name = pname
-      break
-    end
-  end
-
-  if name == 'AI Machine '..aiCount then
-    aiCount = aiCount + 1
-    if Spring.GetGameRulesParam('ainame_'..team) then
+  local name = ''
+  if Spring.GetGameRulesParam('ainame_'..team) then
       name = Spring.GetGameRulesParam('ainame_'..team)
+  else
+    local players = GetPlayerList(team)
+    name = (#players>0) and GetPlayerInfo(players[1]) or '------'
+    for _,pID in ipairs(players) do
+      local pname,active,spec = GetPlayerInfo(pID)
+      if active and not spec then
+        name = pname
+        break
+      end
     end
   end
 
