@@ -16,10 +16,8 @@ local widgetScale = (1 + (vsx*vsy / 4000000))
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
 -- being set at gamestart again:
-local spec = Spring.GetSpectatingState()
 local myPlayerID = Spring.GetMyPlayerID()
-local myTeamID = select(4, Spring.GetPlayerInfo(myPlayerID))
-local myAllyTeamID = select(5, Spring.GetPlayerInfo(myPlayerID))
+local myName,_,spec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
 local startedAsPlayer = not spec
 
 local function DrawRectRound(px,py,sx,sy,cs)
@@ -118,12 +116,21 @@ function widget:PlayerChanged()
 	spec = Spring.GetSpectatingState()
 end
 
+
+function widget:GameFrame(n)
+	if n > 0 and not gameStarted then
+		gameStarted = true
+		myName,_,spec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
+		startedAsPlayer = not spec
+	end
+end
+
 function widget:AddConsoleLine(lines, priority)
 	if startedAsPlayer and WG['topbar'] and WG['topbar'].showingRejoining and not WG['topbar'].showingRejoining() then
 		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 			if (string.sub(line,1,1) == ">" and string.sub(line,3,3) ~= "<") then	-- system message
-				if string.find(line," called a vote ") then	-- vote called
+				if string.find(line," called a vote ") and not string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote ") then	-- vote called
 					local title = string.sub(line,string.find(line,' "')+2, string.find(line,'" ')-1)..'?'
 					title = title:sub(1,1):upper()..title:sub(2)
 					StartVote(title)
@@ -131,6 +138,17 @@ function widget:AddConsoleLine(lines, priority)
 					EndVote()
 				end
 			end
+		end
+	end
+end
+
+function EndVote()
+	if voteDlist then
+		gl.DeleteList(voteDlist)
+		voteDlist = nil
+		voteName = nil
+		if (WG['guishader_api'] ~= nil) then
+			WG['guishader_api'].RemoveRect('voteinterface')
 		end
 	end
 end
@@ -261,35 +279,12 @@ function widget:MousePress(x, y, button)
 	end
 end
 
-function EndVote()
-	if voteDlist then
-		gl.DeleteList(voteDlist)
-		voteDlist = nil
-		voteName = nil
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('voteinterface')
-		end
-	end
-end
-
 --function widget:Initialize()
 --	StartVote('Forcestart?')	-- test
 --end
 
 function widget:Shutdown()
 	EndVote()
-end
-
-function widget:GameFrame(n)
-	if n > 0 and not gameStarted then
-		gameStarted = true
-		spec = Spring.GetSpectatingState()
-		myPlayerID = Spring.GetMyPlayerID()
-		myTeamID = select(4, Spring.GetPlayerInfo(myPlayerID))
-		myAllyTeamID = select(5, Spring.GetPlayerInfo(myPlayerID))
-
-		startedAsPlayer = not spec
-	end
 end
 
 function widget:DrawScreen()
