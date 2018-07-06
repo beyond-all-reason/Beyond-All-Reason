@@ -816,7 +816,6 @@ function init()
 	filledWidth = filledWidth + width + areaSeparator
 	updateButtons()
 	
-	WG['topbar'] = {}
 	WG['topbar'].GetPosition = function()
 		return {topbarArea[1], topbarArea[2], topbarArea[3], topbarArea[4], widgetScale, barContentArea[2]}
 	end
