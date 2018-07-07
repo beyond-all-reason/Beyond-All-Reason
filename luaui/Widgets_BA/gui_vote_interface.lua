@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
-	name      = "Vote interface",
-	desc      = "",
-	author    = "Floris",
-	date      = "July 2018",
-	license   = "",
-	layer     = -math.huge,
-	enabled   = true,
+		name      = "Vote interface",
+		desc      = "",
+		author    = "Floris",
+		date      = "July 2018",
+		license   = "",
+		layer     = -math.huge,
+		enabled   = true,
 	}
 end
 
@@ -130,10 +130,10 @@ function widget:AddConsoleLine(lines, priority)
 		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 			if (string.sub(line,1,1) == ">" and string.sub(line,3,3) ~= "<") then	-- system message
-				if string.find(line," called a vote ") and not string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote ") then	-- vote called
+				if string.find(line," called a vote ") then	-- vote called
 					local title = string.sub(line,string.find(line,' "')+2, string.find(line,'" ')-1)..'?'
 					title = title:sub(1,1):upper()..title:sub(2)
-					StartVote(title)
+					StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote "))
 				elseif voteDlist and (string.find(line," passed.") or string.find(line," failed") or string.find(line,"Vote cancelled")) then
 					EndVote()
 				end
@@ -147,15 +147,19 @@ function EndVote()
 		gl.DeleteList(voteDlist)
 		voteDlist = nil
 		voteName = nil
+		voteOwner = nil
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].RemoveRect('voteinterface')
 		end
 	end
 end
 
-function StartVote(name)
+function StartVote(name, owner)
 	if voteDlist then
 		gl.DeleteList(voteDlist)
+	end
+	if owner then
+		voteOwner = owner
 	end
 	voteDlist = gl.CreateList(function()
 		if name then
@@ -192,9 +196,9 @@ function StartVote(name)
 
 		hovered = nil
 
-		windowArea = {xpos-(width/2), ypos-(height/2), xpos+(width/2), ypos+(height/2)}
-		closeButtonArea = {(xpos+(width/2))-(height/1.9), ypos+(height/5.5), xpos+(width/2), ypos+(height/2)}
-		yesButtonArea = {xpos-(width/2)+buttonMargin, ypos-(height/2)+buttonMargin, xpos-(buttonMargin/2), ypos-(height/2)+buttonHeight-buttonMargin}
+		windowArea = {xpos-(width/2), ypos-(height/2), xpos+(width/2), ypos+(height/2) }
+		closeButtonArea = {(xpos+(width/2))-(height/1.9), ypos+(height/5.5), xpos+(width/2), ypos+(height/2) }
+		yesButtonArea = {xpos-(width/2)+buttonMargin, ypos-(height/2)+buttonMargin, xpos-(buttonMargin/2), ypos-(height/2)+buttonHeight-buttonMargin }
 		noButtonArea = {xpos+(buttonMargin/2), ypos-(height/2)+buttonMargin, xpos+(width/2)-buttonMargin, ypos-(height/2)+buttonHeight-buttonMargin}
 
 		-- background blur
@@ -212,7 +216,8 @@ function StartVote(name)
 		--gl.Color(0.1,0.1,0.1,0.55+(0.36*fadeProgress))
 		--RectRound(closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4], 3.5*widgetScale)
 		if IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
-			gl.Color(1,1,1,0.55+(0.055*fadeProgress))
+			hovered = 'esc'
+			gl.Color(1,1,1,0.5+(0.05*fadeProgress))
 		else
 			gl.Color(1,1,1,0.025+(0.025*fadeProgress))
 		end
@@ -237,27 +242,34 @@ function StartVote(name)
 		RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 4*widgetScale)
 
 		fontSize = fontSize*0.85
-		gl.Text("\255\255\255\255NO", noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+		local noText = 'NO'
+		if voteOwner then
+			noText = 'End Vote'
+		end
+		gl.Text("\255\255\255\255"..noText, noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 
 		-- YES
-		if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
-			hovered = 'y'
-			gl.Color(0.05,0.6,0.05,0.4+(0.4*fadeProgress))
-		else
-			gl.Color(0,0.5,0,0+(0.35*fadeProgress))
+		if not voteOwner then
+			if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
+				hovered = 'y'
+				gl.Color(0.05,0.6,0.05,0.4+(0.4*fadeProgress))
+			else
+				gl.Color(0,0.5,0,0+(0.35*fadeProgress))
+			end
+			RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 5*widgetScale)
+			gl.Color(0,0,0,0.07+(0.05*fadeProgress))
+			RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 4*widgetScale)
+
+			gl.Text("\255\255\255\255YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 		end
-		RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 5*widgetScale)
-		gl.Color(0,0,0,0.07+(0.05*fadeProgress))
-		RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 4*widgetScale)
-
-		gl.Text("\255\255\255\255YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
-
 	end)
 end
 
 function widget:KeyPress(key)
 	if key == 27 and voteDlist then	-- ESC
-		Spring.SendCommands("say !vote b")
+		if not voteOwner then
+			Spring.SendCommands("say !vote b")
+		end
 		EndVote()
 	end
 end
@@ -265,11 +277,15 @@ end
 function widget:MousePress(x, y, button)
 	if voteDlist and button == 1 then
 		if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-			if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
+			if not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 				Spring.SendCommands("say !vote y")
 				EndVote()
 			elseif IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
-				Spring.SendCommands("say !vote n")
+				if voteOwner then
+					Spring.SendCommands("say !endvote")
+				else
+					Spring.SendCommands("say !vote n")
+				end
 				EndVote()
 			elseif IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
 				Spring.SendCommands("say !vote b")
@@ -291,9 +307,9 @@ function widget:DrawScreen()
 	if voteDlist then
 		local x,y,b = Spring.GetMouseState()
 		if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-			if	IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) or
-				IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
-				IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
+			if (not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4])) or
+					IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
+					IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
 			then
 				StartVote()
 			elseif hovered then

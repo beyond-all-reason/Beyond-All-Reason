@@ -2,7 +2,7 @@
 XX/XX/2018
 
  • Added "Lua UiKeys Loader" widget allowing to load "uikeys.txt" file located in "LuaUI/Widgets_BA"
- • Added vote UI (displays on top of minimap, top right)
+ • Added "Vote interface" widget (displays on top of minimap, top right)
  • Enlarged options/changelog/commands/keys windows with 6%
  • Hiding muted player chat completely instead of "(ignored)"
 
