@@ -165,6 +165,7 @@ return {
                     expl_light_color = "0.6 1 0.4",		-- used by light_effects widget
                     expl_light_mult = "0.3",		-- used by light_effects widget
                     expl_light_life_mult = "2.2",		-- used by light_effects widget
+					expl_noheatdistortion = 1,
 					lups_noshockwave = 1,
 				},
 			},

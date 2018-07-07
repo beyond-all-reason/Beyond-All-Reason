@@ -545,7 +545,9 @@ function loadWeaponDefs()
 			if WeaponDefs[i].paralyzer then
 				params.paralyzer = true
 			end
-
+			if customParams.expl_noheatdistortion then
+				params.noheatdistortion = true
+			end
 			weaponConf[i] = params
 		end
 	end
@@ -575,7 +577,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
-		if useHeatDistortion and WG['Lups'] and params.param.radius > 80 then
+		if useHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion then
 
 			local strength,animSpeed,life,heat,sizeGrowth
 

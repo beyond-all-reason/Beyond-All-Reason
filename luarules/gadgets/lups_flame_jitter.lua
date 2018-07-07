@@ -96,7 +96,7 @@ else
       class        = 'JitterParticles2',
       colormap     = { {1,1,1,1},{1,1,1,1} },
       count        = 1,
-      life         = weaponRange / 550,
+      life         = weaponRange / 460,
       lifeSpread   = 6,
       delaySpread  = 3,
       force        = {0,0.6,0},
@@ -128,7 +128,7 @@ else
                        {0.75, 0.5, 0.5, 0.01},
                        {0, 0, 0, 0.01} },
       count        = 1,
-      life         = weaponRange / 550,
+      life         = weaponRange / 520,
       lifeSpread   = 6,
       delaySpread  = 3,
 
@@ -163,7 +163,7 @@ else
       colormap     = { {1, 1, 1, 0.01}, {0, 0, 0, 0.01} },
       count        = 4,
       --delay        = 20,
-      life         = weaponRange / 550,
+      life         = weaponRange / 520,
       lifeSpread   = 6,
       delaySpread  = 3,
 
