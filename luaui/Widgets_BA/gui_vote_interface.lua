@@ -17,8 +17,8 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 
 -- being set at gamestart again:
 local myPlayerID = Spring.GetMyPlayerID()
-local myName,_,spec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
-local startedAsPlayer = not spec
+local myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
+local startedAsPlayer = not mySpec
 
 local function DrawRectRound(px,py,sx,sy,cs)
 
@@ -113,27 +113,42 @@ function widget:ViewResize()
 end
 
 function widget:PlayerChanged()
-	spec = Spring.GetSpectatingState()
+	mySpec = Spring.GetSpectatingState()
 end
 
 
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
-		myName,_,spec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
-		startedAsPlayer = not spec
+		myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
+		startedAsPlayer = not mySpec
 	end
 end
 
+function isTeamPlayer(playerName)
+	local players = Spring.GetPlayerList()
+	for _,pID in ipairs(players) do
+		local name,_,spec,teamID,allyTeamID = Spring.GetPlayerInfo(pID)
+		if name == playerName then
+			if allyTeamID == myAllyTeamID then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 function widget:AddConsoleLine(lines, priority)
-	if startedAsPlayer and WG['topbar'] and WG['topbar'].showingRejoining and not WG['topbar'].showingRejoining() then
+	if startedAsPlayer and not WG['topbar'] or (WG['topbar'] and WG['topbar'].showingRejoining and not WG['topbar'].showingRejoining()) then
 		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 			if (string.sub(line,1,1) == ">" and string.sub(line,3,3) ~= "<") then	-- system message
 				if string.find(line," called a vote ") then	-- vote called
 					local title = string.sub(line,string.find(line,' "')+2, string.find(line,'" ')-1)..'?'
 					title = title:sub(1,1):upper()..title:sub(2)
-					StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote "))
+					if not string.find(line,"\"resign ") or isTeamPlayer(string.sub(line,string.find(line,'"resign ')+8, string.find(line,' TEAM')-1)) then
+						StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote "))
+					end
 				elseif voteDlist and (string.find(line," passed.") or string.find(line," failed") or string.find(line,"Vote cancelled")) then
 					EndVote()
 				end
