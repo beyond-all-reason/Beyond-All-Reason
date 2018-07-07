@@ -120,6 +120,7 @@ end
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
+		myPlayerID = Spring.GetMyPlayerID()
 		myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
 		startedAsPlayer = not mySpec
 	end
@@ -139,7 +140,7 @@ function isTeamPlayer(playerName)
 end
 
 function widget:AddConsoleLine(lines, priority)
-	if startedAsPlayer and not WG['topbar'] or (WG['topbar'] and WG['topbar'].showingRejoining and not WG['topbar'].showingRejoining()) then
+	if startedAsPlayer and (not WG['topbar'] or (WG['topbar'] and WG['topbar'].showingRejoining and not WG['topbar'].showingRejoining())) then
 		lines = lines:match('^\[f=[0-9]+\] (.*)$') or lines
 		for line in lines:gmatch("[^\n]+") do
 			if (string.sub(line,1,1) == ">" and string.sub(line,3,3) ~= "<") then	-- system message
@@ -149,7 +150,7 @@ function widget:AddConsoleLine(lines, priority)
 					if not string.find(line,"\"resign ") or isTeamPlayer(string.sub(line,string.find(line,'"resign ')+8, string.find(line,' TEAM')-1)) then
 						StartVote(title, string.find(line, string.gsub(myName, "%p", "%%%1").." called a vote "))
 					end
-				elseif voteDlist and (string.find(line," passed.") or string.find(line," failed") or string.find(line,"Vote cancelled")) then
+				elseif voteDlist and (string.find(line," passed.") or string.find(line," failed") or string.find(line,"Vote cancelled") or  string.find(line," cancelling \"")) then
 					EndVote()
 				end
 			end
