@@ -180,10 +180,15 @@ function removeGuiShaderRects()
 				if tooltipAreas['ecostats_'..aID] ~= nil then
 					WG['tooltip'].RemoveTooltip('ecostats_'..aID)
 					tooltipAreas['ecostats_'..aID] = nil
+					local teams = Spring.GetTeamList(aID)
+					for _, tID in ipairs(teams) do
+						WG['tooltip'].RemoveTooltip('ecostats_team_'..tID)
+					end
 				end
 			end
 		end
 	end
+
 end
 
 function widget:Shutdown()
@@ -671,7 +676,7 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
 	end
-
+	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
 		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, "Team metal/energy income\n(Lighter part of the bar is reclaim income)")
 		tooltipAreas['ecostats_'..allyID] = area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]
@@ -809,21 +814,24 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	else
 		glColor(r,g,b,a)
 	end
-
+	local area = {
+		widgetPosX + hOffset + dx - w,
+		widgetPosY + widgetHeight - vOffset + dy,
+		widgetPosX + hOffset + dx,
+		widgetPosY + widgetHeight - vOffset + dy + h,
+	}
 	if enableStartposbuttons then
-		Button["player"][tID]["x1"] = widgetPosX + hOffset + dx - w
-		Button["player"][tID]["y1"] = widgetPosY + widgetHeight - vOffset + dy
-		Button["player"][tID]["x2"] = widgetPosX + hOffset + dx
-		Button["player"][tID]["y2"] = widgetPosY + widgetHeight - vOffset + dy + h
+		Button["player"][tID]["x1"] = area[1]
+		Button["player"][tID]["y1"] = area[2]
+		Button["player"][tID]["x2"] = area[3]
+		Button["player"][tID]["y2"] = area[4]
 		Button["player"][tID]["pID"] = tID
 	end
+	if WG['tooltip'] then
+		WG['tooltip'].AddTooltip('ecostats_team_'..tID, area, teamData[tID]["leaderName"])
+	end
 	glTexture(sideImage)
-	glTexRect(
-		widgetPosX + hOffset + dx,
-		widgetPosY + widgetHeight - vOffset + dy,
-		widgetPosX + hOffset + dx - w,
-		widgetPosY + widgetHeight - vOffset + dy + h
-	)
+	glTexRect(area[1],area[2],area[3],area[4])
 	glTexture(false)
 	glColor(1,1,1,1)
 end
