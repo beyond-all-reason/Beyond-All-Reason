@@ -2,7 +2,7 @@ return {
 	coresupp = {
 		buildangle = 16384,
 		buildcostenergy = 1550,
-		buildcostmetal = 165,
+		buildcostmetal = 160,
 		buildpic = "CORESUPP.DDS",
 		buildtime = 2475,
 		canmove = true,
