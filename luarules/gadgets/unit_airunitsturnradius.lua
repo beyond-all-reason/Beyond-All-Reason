@@ -18,6 +18,14 @@ if gadgetHandler:IsSyncedCode() then
 isBomb = {}
 isBomber = {}
 Bombers = {}
+fighters = {
+	[UnitDefNames["armsfig"].id] = true,
+	[UnitDefNames["corsfig"].id] = true,
+	[UnitDefNames["armfig"].id] = true,
+	[UnitDefNames["corveng"].id] = true,
+	[UnitDefNames["armhawk"].id] = true,
+	[UnitDefNames["corvamp"].id] = true,
+}
 
 for id, wDef in pairs(WeaponDefs) do
 	if wDef.type == "AircraftBomb" then
@@ -40,6 +48,9 @@ end
 function gadget:UnitCreated(unitID, unitDefID)
 	if isBomber[Spring.GetUnitDefID(unitID)] then
 		Bombers[unitID] = true
+	end
+	if fighters[unitDefID] then
+		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", 300)
 	end
 end
 

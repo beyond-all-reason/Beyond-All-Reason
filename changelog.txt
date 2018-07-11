@@ -1,6 +1,7 @@
 ﻿10.10 -> 10.11
 XX/XX/2018
 
+ • Fixed Fighters diving towards target until colliding and taking AOE damages from friendly fighters
  • Added "Lua UiKeys Loader" widget allowing to load "uikeys.txt" file located in "LuaUI/Widgets_BA"
  • Added "Vote interface" widget (displays on top of minimap, top right)
  • Enlarged options/changelog/commands/keys windows with 6%
