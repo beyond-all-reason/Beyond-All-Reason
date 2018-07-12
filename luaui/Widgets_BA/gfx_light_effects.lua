@@ -543,7 +543,12 @@ function loadWeaponDefs()
 				params.life = params.life * tonumber(customParams.expl_light_life_mult)
 			end
 			if WeaponDefs[i].paralyzer then
-				params.paralyzer = true
+				params.type = 'paralyzer'
+			end
+			if WeaponDefs[i].type == 'Flame' then
+				params.type = 'flame'
+				params.radius = params.radius * 0.66
+				params.orgMult = params.orgMult * 0.66
 			end
 			if customParams.expl_noheatdistortion then
 				params.noheatdistortion = true
@@ -579,31 +584,43 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 
 		if useHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion then
 
-			local strength,animSpeed,life,heat,sizeGrowth
+			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
-			if weaponConf[weaponID].paralyzer then
+			if weaponConf[weaponID].type == 'paralyzer' then
 				strength = 10
 				animSpeed = 0.1
 				life = params.life*0.6 + (params.param.radius/80)
 				sizeGrowth = 0
 				heat = 15
+				size =  params.param.radius/16
+				force = {0,0.15,0}
 			else
-				strength = 1.5 + (params.life/25)
 				animSpeed = 1.3
-				life = params.life*1.2 + (params.param.radius/40)
 				sizeGrowth = 0.6
-				heat = 1
+				if weaponConf[weaponID].type == 'flame' then
+					strength = 1 + (params.life/25)
+					size = params.param.radius/5
+					life = params.life*0.6 + (params.param.radius/100)
+					force = {0,5,0}
+					heat = 25
+				else
+					strength = 1.5 + (params.life/25)
+					size =  params.param.radius/16
+					life = params.life*1.1 + (params.param.radius/50)
+					force = {0,0.35,0}
+					heat = 1
+				end
 			end
 			WG['Lups'].AddParticles('JitterParticles2', {
-				layer=-35,
+				layer = -35,
 				life = life,
 				pos = {px,py+10,pz},
-				size = params.param.radius/16,
+				size = size,
 				sizeGrowth = sizeGrowth,
 				strength = strength,
 				animSpeed = animSpeed,
 				heat = heat,
-				force = {0,0.15,0},
+				force = force,
 			})
 		end
 

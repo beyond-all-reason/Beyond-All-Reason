@@ -49,11 +49,19 @@ end
 -------------------------------------------------------------------------------
 
 if (gadgetHandler:IsSyncedCode()) then
-	
+
+    function gadget:Initialize()
+        for wdid, wd in pairs(WeaponDefs) do
+            if wd.type == "Flame" then
+                Script.SetWatchWeapon(wdid, true)     -- watch weapon so explosion gets called for flame weapons
+            end
+        end
+    end
+
     function gadget:Explosion(weaponID, px, py, pz, ownerID)
         SendToUnsynced("explosion_light", px, py, pz, weaponID, ownerID)
     end
-	
+
 else
 	
 -------------------------------------------------------------------------------
