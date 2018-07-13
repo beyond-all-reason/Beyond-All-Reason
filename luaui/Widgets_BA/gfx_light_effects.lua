@@ -599,10 +599,10 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				sizeGrowth = 0.6
 				if weaponConf[weaponID].type == 'flame' then
 					strength = 1 + (params.life/25)
-					size = params.param.radius/5
+					size = params.param.radius/2.5
 					life = params.life*0.6 + (params.param.radius/100)
-					force = {0,5,0}
-					heat = 25
+					force = {1,5.5,1}
+					heat = 8
 				else
 					strength = 1.5 + (params.life/25)
 					size =  params.param.radius/16

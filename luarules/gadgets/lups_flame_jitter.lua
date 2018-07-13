@@ -96,7 +96,7 @@ else
       class        = 'JitterParticles2',
       colormap     = { {1,1,1,1},{1,1,1,1} },
       count        = 1,
-      life         = weaponRange / 460,
+      life         = weaponRange / 330,
       lifeSpread   = 6,
       delaySpread  = 3,
       force        = {0,0.6,0},
@@ -112,8 +112,8 @@ else
       speedSpread  = 1.5,
       speedExp     = 1.5,
 
-      size         = 30,
-      sizeGrowth   = 5,
+      size         = 28,
+      sizeGrowth   = 4.5,
 
       scale        = 1.5,
       strength     = 1.0,
@@ -128,7 +128,7 @@ else
                        {0.75, 0.5, 0.5, 0.01},
                        {0, 0, 0, 0.01} },
       count        = 1,
-      life         = weaponRange / 520,
+      life         = weaponRange / 480,
       lifeSpread   = 6,
       delaySpread  = 3,
 
@@ -150,7 +150,7 @@ else
       speedExp     = 1.5,
 
       size         = 7,
-      sizeGrowth   = 2.2,
+      sizeGrowth   = 1.5,
       sizeExp      = 0.7,
 
       --texture     = "bitmaps/smoke/smoke06.tga",
@@ -163,7 +163,7 @@ else
       colormap     = { {1, 1, 1, 0.01}, {0, 0, 0, 0.01} },
       count        = 4,
       --delay        = 20,
-      life         = weaponRange / 520,
+      life         = weaponRange / 480,
       lifeSpread   = 6,
       delaySpread  = 3,
 
@@ -184,7 +184,7 @@ else
       speedSpread  = 1.5,
 
       size         = 9,
-      sizeGrowth   = 2.2,
+      sizeGrowth   = 1.5,
       sizeExp      = 0.65,
 
       --texture     = "bitmaps/smoke/smoke06.tga",
