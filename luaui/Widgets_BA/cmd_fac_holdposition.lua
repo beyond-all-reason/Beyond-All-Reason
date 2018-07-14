@@ -37,7 +37,8 @@ local unitArray = {
   "armasy",
   "armhp",
   "armfhp",
-  "armshtlx",
+  "armshltx",
+  "armshltxuw",
   "armcom",
   "armamsub",
   "corlab",
@@ -49,6 +50,7 @@ local unitArray = {
   "corhp",
   "corfhp",
   "corgant",
+  "coruwgant",
   "coramsub",
   "corcom",
 }
