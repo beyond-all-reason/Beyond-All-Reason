@@ -19,7 +19,7 @@ end
 
 --broadcast
 
-local broadcastPeriod = 0.5 --will send packet in this interval (s)
+local broadcastPeriod = 0.1 --will send packet in this interval (s)
 
 ------------------------------------------------
 --speedups
@@ -63,8 +63,6 @@ local allowBroadcast = true
 local PACKET_HEADER = "="
 local PACKET_HEADER_LENGTH = strLen(PACKET_HEADER)
 local numBroadcasts = {}
-local maxNumBroadcasts = 20
-local plannedGameFrame = 1
 if gadgetHandler:IsSyncedCode() then
 
 	local charset = {}  do -- [0-9a-zA-Z]
@@ -88,19 +86,9 @@ if gadgetHandler:IsSyncedCode() then
 		if numBroadcasts[playerID] == nil then
 			numBroadcasts[playerID] = 0
 		end
-		numBroadcasts[playerID] = numBroadcasts[playerID] + 1
-		if numBroadcasts[playerID] < maxNumBroadcasts then
 
-			SendToUnsynced("cameraBroadcast",playerID,msg)
-			return true
-		end
-	end
-
-	function gadget:GameFrame(gf)
-		if gf >= plannedGameFrame then
-			plannedGameFrame = gf + (broadcastPeriod*30)
-			maxNumBroadcasts = maxNumBroadcasts + 1
-		end
+		SendToUnsynced("cameraBroadcast",playerID,msg)
+		return true
 	end
 else
 	local totalTime = 0
