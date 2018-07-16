@@ -111,12 +111,35 @@ function widget:Update(dt)
 	sec = sec + dt
 	if sec > 0.15 then
 		sec = 0
+
+		if commandsChangedCheck then
+			commandsChangedCheck = nil
+			for uDID,unit in pairs(Spring.GetSelectedUnitsSorted()) do
+				if uDID ~= 'n' then --'n' returns table size
+					for i=1,#unit do
+						local unitID = unit[i]
+						if givenUnits[unitID] then
+							local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (OPTIONS.timeoutTime - OPTIONS.timeoutFadeTime))) / OPTIONS.timeoutFadeTime)
+							if currentAlpha > 1 then
+								currentAlpha = 1
+							end
+							givenUnits[unitID].selected = os.clock() -  (OPTIONS.selectedFadeTime * (1 - currentAlpha))
+							--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
+						else
+							-- uncomment line below for testing
+							-- AddGivenUnit(unitID)
+						end
+					end
+				end
+			end
+		end
+
 		local camX, camY, camZ = spGetCameraDirection()
 		if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
 			gl.DeleteList(drawList)
 			drawList = gl.CreateList(DrawIcon)
 		end
-		prevCam = {camX,camY,camZ}
+		prevCam = {camX,camY,camZ }
 	end
 end
 
@@ -174,24 +197,7 @@ end
 function widget:CommandsChanged()
 	
 	if spGetSelectedUnitsCount() > 0 then
-		for uDID,unit in pairs(Spring.GetSelectedUnitsSorted()) do
-			if uDID ~= 'n' then --'n' returns table size
-				for i=1,#unit do
-					local unitID = unit[i]
-					if givenUnits[unitID] then
-						local currentAlpha = 1 - ((os.clock() - (givenUnits[unitID].osClock + (OPTIONS.timeoutTime - OPTIONS.timeoutFadeTime))) / OPTIONS.timeoutFadeTime)
-						if currentAlpha > 1 then
-							currentAlpha = 1
-						end
-						givenUnits[unitID].selected = os.clock() -  (OPTIONS.selectedFadeTime * (1 - currentAlpha))
-						--givenUnits[unitID].selectedGameSecs = Spring.GetGameSeconds() + UnitDefs[spGetUnitDefID(unitID)].selfDCountdown
-					else
-						-- uncomment line below for testing 
-						-- AddGivenUnit(unitID)
-					end
-				end
-			end
-		end
+		commandsChangedCheck = true
 	end
 end
 

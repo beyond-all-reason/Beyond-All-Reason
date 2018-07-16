@@ -271,7 +271,7 @@ local function DrawUnitIcons(number)
 	while (ct < number) do
 
 		ct = ct + 1
-		local unitID = drawTable[ct].units
+		local unitID = drawTable[ct][2]
 		
 		if (type(unitID) == 'number' and ValidUnitID(unitID)) or type(unitID) == 'table' then
 			
@@ -286,15 +286,15 @@ local function DrawUnitIcons(number)
 				glRotate(18, 1, 0, 0)
 				glRotate(rot, 0, 1, 0)
 
-				CenterUnitDef(drawTable[ct].unitDefID)
+				CenterUnitDef(drawTable[ct][1])
 
-				glUnitShape(drawTable[ct].unitDefID, GetMyTeamID(), false, true, true)
+				glUnitShape(drawTable[ct][1], GetMyTeamID(), false, true, true)
 
 				glScissor(false)
 			glPopMatrix()
 			
 			if CONDENSE then
-				local NumberCondensed = table.getn(drawTable[ct].units)
+				local NumberCondensed = table.getn(drawTable[ct][2])
 				if NumberCondensed > 1 then
 					glText(NumberCondensed, X1, Y_MIN, 8*sizeMultiplier, "o")
 				end
@@ -455,14 +455,13 @@ local doUpdate = true
 function widget:Update(dt)
 
 	if not enabled then return end
-	
 		
 	local iconNum = MouseOverIcon(GetMouseState())
 	if iconNum < 0 then
 		mouseOnUnitID = nil
 	else
-		local unitID = drawTable[iconNum+1].units
-		local unitDefID = drawTable[iconNum+1].unitDefID
+		local unitID = drawTable[iconNum+1][2]
+		local unitDefID = drawTable[iconNum+1][1]
 		if not Clicks[unitDefID] then
 			Clicks[unitDefID] = 1
 		end
@@ -502,28 +501,28 @@ function widget:Update(dt)
 		else
 			CONDENSE = false
 		end
-	end
-	
-	oldNoOfIcons = noOfIcons
-	noOfIcons = 0
-	drawTable = {}
-	
-	for unitDefID, units in pairs(IdleList) do
-		if CONDENSE then
-			drawTable[#drawTable+1] = {unitDefID = unitDefID, units = units}
-			noOfIcons = noOfIcons + 1
-		else
-			for _, unitID in pairs(units) do
-				drawTable[#drawTable+1] = {unitDefID = unitDefID, units = unitID}
+
+		oldNoOfIcons = noOfIcons
+		noOfIcons = 0
+		drawTable = {}
+
+		for unitDefID, units in pairs(IdleList) do
+			if CONDENSE then
+				drawTable[#drawTable+1] = {unitDefID, units}
+				noOfIcons = noOfIcons + 1
+			else
+				for _, unitID in pairs(units) do
+					drawTable[#drawTable+1] = {unitDefID, unitID}
+				end
+				noOfIcons = noOfIcons + table.getn(units)
 			end
-			noOfIcons = noOfIcons + table.getn(units)
 		end
-	end
-	if noOfIcons > MAX_ICONS then
-		noOfIcons = MAX_ICONS
-	end
-	if noOfIcons ~= oldNoOfIcons then
-		calcSizes(noOfIcons)
+		if noOfIcons > MAX_ICONS then
+			noOfIcons = MAX_ICONS
+		end
+		if noOfIcons ~= oldNoOfIcons then
+			calcSizes(noOfIcons)
+		end
 	end
 end
 
@@ -648,8 +647,8 @@ function widget:MouseRelease(x, y, button)
 	local iconNum = MouseOverIcon(x, y)
 	if iconNum < 0 then return -1 end
 
-	local unitID = drawTable[iconNum+1].units
-	local unitDefID = drawTable[iconNum+1].unitDefID
+	local unitID = drawTable[iconNum+1][2]
+	local unitDefID = drawTable[iconNum+1][1]
 
 	if type(unitID) == 'table' then
 		if Clicks[unitDefID] then
@@ -679,24 +678,24 @@ function widget:MouseRelease(x, y, button)
 end
 
 
-function widget:GetTooltip(x, y)
-	local iconNum = MouseOverIcon(x, y)
-	local units = drawTable[iconNum+1].units
-	if type(units) == 'table' then
-		units = units[1]
-	end
-	local unitDefID = GetUnitDefID(units)
-	local ud = UnitDefs[unitDefID]
-	if not ud then
-		return ""
-	end
-	return ud.humanName .. "\nLeft mouse: select unit\nMiddle mouse: move to unit\n"
-end
-
-
-function widget:IsAbove(x, y)
-  return MouseOverIcon(x, y) ~= -1
-end
+--function widget:GetTooltip(x, y)
+--	local iconNum = MouseOverIcon(x, y)
+--	local units = drawTable[iconNum+1][2]
+--	if type(units) == 'table' then
+--		units = units[1]
+--	end
+--	local unitDefID = GetUnitDefID(units)
+--	local ud = UnitDefs[unitDefID]
+--	if not ud then
+--		return ""
+--	end
+--	return ud.humanName .. "\nLeft mouse: select unit\nMiddle mouse: move to unit\n"
+--end
+--
+--
+--function widget:IsAbove(x, y)
+--  return MouseOverIcon(x, y) ~= -1
+--end
 
 
 function widget:DrawWorld()

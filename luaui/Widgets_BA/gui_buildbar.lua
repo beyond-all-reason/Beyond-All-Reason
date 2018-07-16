@@ -464,9 +464,6 @@ end
 -------------------------------------------------------------------------------
 
 function widget:DrawScreen()
-  
-  SetupDimensions(#facs)
-  SetupSubDimensions()
 
   local icon,mx,my,lb,mb,rb = -1,-1,-1,false,false,false
   if (not inTweak) then
@@ -556,7 +553,7 @@ function widget:DrawScreen()
         OffsetRect(bopt_rec, bopt_inext[1],bopt_inext[2])
 
         --if j % 3==0 then
-        --  xmin_,xmax_ = xmin   + bopt_inext[1],xmin_ + iconSizeX 
+        --  xmin_,xmax_ = xmin   + bopt_inext[1],xmin_ + iconSizeX
         --  ymax_,ymin_ = ymax_  - iconSizeY, ymin_ - iconSizeY
         --end
       end
@@ -572,7 +569,7 @@ function widget:DrawScreen()
           if (n==1) then count=count-1 end -- cause we show the actual in building unit instead of the factory icon
 
           if (count>0) then
-          
+
 					  local yPad = (iconSizeY*(1-iconImgMult)) / 2
 					  local xPad = (iconSizeX*(1-iconImgMult)) / 2
             DrawTexRect({bopt_rec[1]+xPad,bopt_rec[2]-yPad,bopt_rec[3]-xPad,bopt_rec[4]+yPad},"#"..unitBuildDefID,{1,1,1,0.5})
@@ -816,13 +813,21 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
   widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
-function widget:Update()
+local sec = 0
+function widget:Update(dt)
   
   if myTeamID~=Spring.GetMyTeamID() then
     myTeamID = Spring.GetMyTeamID()
     UpdateFactoryList()
   end
   inTweak = widgetHandler:InTweakMode()
+
+  sec = sec + dt
+  if sec > 0.15 then
+    sec = 0
+    SetupDimensions(#facs)
+    SetupSubDimensions()
+  end
 end
 
 function widget:PlayerChanged()

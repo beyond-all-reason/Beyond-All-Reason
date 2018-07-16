@@ -105,8 +105,7 @@ function widget:DrawWorldPreUnit()
 
     for uID, pos in pairs(antiInLos) do
         local x, y, z = spGetUnitPosition(uID)
-        
-        if x ~= nil and y ~= nil and z ~= nil then
+        if x ~= nil and y ~= nil and z ~= nil and Spring.IsSphereInView(x, y, z, pos[4]) then
 			drawCircle(uID, pos[4], x, y, z, camX, camY, camZ)
         end
     end
@@ -256,7 +255,7 @@ end
 
 function checkAllUnits()
     local _, _, spec, teamId = spGetPlayerInfo(spGetMyPlayerID())
-	
+
 	antiInLos				= {}
 	antiOutLos				= {}
 	

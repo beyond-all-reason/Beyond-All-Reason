@@ -71,47 +71,47 @@ function widget:GetTooltip(x,y)
 end 
 
 function widget:IsAbove(x,y) 
-  if not builderDefs then 
-    return 
-  end 
-  rightClickUpgradeParams = nil 
-  
-  if GetActiveCommand() ~= 0 then 
-    return false 
-  end 
-  
-  local selectedUnits = GetSelectedUnits() 
-  
-  if #selectedUnits ~= 1 then 
-    return false 
-  end 
-  
-  local builderID = selectedUnits[1] 
-  local upgradePairs = builderDefs[GetUnitDefID(builderID)] 
+  if not builderDefs then
+    return
+  end
+  rightClickUpgradeParams = nil
+
+  if GetActiveCommand() ~= 0 then
+    return false
+  end
+
+  local selectedUnits = GetSelectedUnits()
+
+  if #selectedUnits ~= 1 then
+    return false
+  end
+
+  local builderID = selectedUnits[1]
+  local upgradePairs = builderDefs[GetUnitDefID(builderID)]
 
 
-  
-  if not upgradePairs then 
-    return false 
-  end 
 
-  local type, unitID = TraceScreenRay(x, y) 
+  if not upgradePairs then
+    return false
+  end
 
-  if type ~= "unit" then 
-    return false 
-  end 
+  local type, unitID = TraceScreenRay(x, y)
 
-  local upgradeTo = upgradePairs[GetUnitDefID(unitID)] 
-  if not upgradeTo then 
-    return false 
-  end 
+  if type ~= "unit" then
+    return false
+  end
 
-  rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo} 
+  local upgradeTo = upgradePairs[GetUnitDefID(unitID)]
+  if not upgradeTo then
+    return false
+  end
+
+  rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo}
     if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
 		if UnitDefs[Spring.GetUnitDefID(builderID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(builderID)].name == "corcom" then
 			rightClickUpgradeParams = nil
 			return false
 		end
 	end
-  return true 
+  return true
 end

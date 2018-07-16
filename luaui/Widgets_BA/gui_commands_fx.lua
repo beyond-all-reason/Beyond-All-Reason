@@ -526,16 +526,17 @@ end
 function getCommandsQueue(unitID)
 	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
 	local our_q = {}
-	for _,cmd in ipairs(q) do
-	  if CONFIG[cmd.id] or cmd.id < 0 then
-		  if cmd.id < 0 then
-			  cmd.buildingID = -cmd.id;
-			  cmd.id = BUILD
-			  if not cmd.params[4] then
-				  cmd.params[4] = 0 --sometimes the facing param is missing (wtf)
+	local cmd
+	for i=1, #q do
+	  if CONFIG[q[i].id] or q[i].id < 0 then
+		  if q[i].id < 0 then
+			  q[i].buildingID = -q[i].id;
+			  q[i].id = BUILD
+			  if not q[i].params[4] then
+				  q[i].params[4] = 0 --sometimes the facing param is missing (wtf)
 			  end
 		  end
-		  our_q[#our_q+1] = cmd
+		  our_q[#our_q+1] = q[i]
 	  end
 	end
 	return our_q
@@ -552,27 +553,26 @@ function widget:Update(dt)
 		lastUpdate = sec
 		
 		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
-		for i, v in pairs(newUnitCommands) do
+		for unitID,v in pairs(newUnitCommands) do
 			if v ~= true and ignoreUnits[v[1]] == nil then
-				addUnitCommand(i, v[1], v[2])
+				addUnitCommand(unitID, v[1], v[2])
 			end
 		end
 		newUnitCommands = {}
 
-
 		-- process new commands (cant be done directly because at widget:UnitCommand() the queue isnt updated yet)
-		for k, v in pairs(unprocessedCommands) do
+		for k=1, #unprocessedCommands do
 			if totalCommands <= maxTotalCommandCount then
 				maxCommand = maxCommand + 1
 				local i = maxCommand
-				commands[i] = v
+				commands[i] = unprocessedCommands[k]
 				totalCommands = totalCommands + 1
 
-				RemovePreviousCommand(v.unitID)
-				unitCommand[v.unitID] = i
+				RemovePreviousCommand(unprocessedCommands[k].unitID)
+				unitCommand[unprocessedCommands[k].unitID] = i
 
 				-- get pruned command queue
-				local our_q = getCommandsQueue(v.unitID)
+				local our_q = getCommandsQueue(unprocessedCommands[k].unitID)
 				local qsize = #our_q
 				commands[i].queue = our_q
 				commands[i].queueSize = qsize
@@ -605,10 +605,11 @@ function widget:Update(dt)
 			lastUpdate2 = sec2
 			if prevGameframe ~= Spring.GetGameFrame() then
 				prevGameframe = Spring.GetGameFrame()
-
 				-- update queue (in case unit has reached the nearest queue coordinate)
-				for i, qsize in pairs(monitorCommands) do
+				local qsize
+				for i=1, #monitorCommands do
 					if commands[i] ~= nil then
+						qsize = monitorCommands[i]
 						if commands[i].draw == false then
 							monitorCommands[i] = nil
 						else
@@ -663,41 +664,56 @@ function widget:DrawWorldPreUnit()
 
 	local groundGlowCount = 0
 	local commandCount = 0
-    for i, v in pairs(commands) do
-        local progress = (osClock - commands[i].time) / duration
-        local unitID = commands[i].unitID
-        
-        if progress >= 1 then
-            -- remove when duration has passed
-            --Spring.Echo("Removing " .. i)
-            commands[i] = nil
-			totalCommands = totalCommands - 1
-            monitorCommands[i] = nil
-            if unitCommand[unitID] == i then 
-            	unitCommand[unitID] = nil
-            end
-        elseif commands[i].draw and (spIsUnitInView(unitID) or IsPointInView(commands[i].x,commands[i].y,commands[i].z)) then 				
-            local prevX, prevY, prevZ = spGetUnitPosition(unitID)
-            
-            -- draw set target command (TODO)
-            --[[
-            if prevX and commands[i].set_target and commands[i].set_target.params and commands[i].set_target.params[1] then
-                local lineColour = CONFIG[CMD_SET_TARGET].colour
-                local lineAlpha = opacity * lineColour[4] * (1-progress)
-                glColor(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
-                if commands[i].set_target.params[3] then
-                    glBeginEnd(GL_QUADS, DrawLine, prevX,prevY,prevZ, commands[i].set_target.params[1], commands[i].set_target.params[2], commands[i].set_target.params[3], lineWidth)
-                else
-                    local x,y,z = spGetUnitPosition(commands[i].set_target.params[1])    
-                    if x then
-                        glBeginEnd(GL_QUADS, DrawLine, prevX,prevY,prevZ, x,y,z, lineWidth)
-                    end
-                end                  
-            end
-            ]]
+	local newCommands = {}
+	local newCommandsCount = 0
 
-            -- draw command queue
-            if commands[i].queueSize > 0 and prevX and commandCount < maxCommandCount then
+	--for i=1, #commands do
+	for i, v in pairs(commands) do
+		local progress = (osClock - commands[i].time) / duration
+		local unitID = commands[i].unitID
+
+		if progress >= 1 then
+			-- remove when duration has passed
+			--Spring.Echo("Removing " .. i)
+			commands[i] = nil
+			totalCommands = totalCommands - 1
+			monitorCommands[i] = nil
+			if unitCommand[unitID] == i then
+				unitCommand[unitID] = nil
+			end
+		elseif commands[i].draw and (spIsUnitInView(unitID) or IsPointInView(commands[i].x,commands[i].y,commands[i].z)) then
+			--newCommandsCount = newCommandsCount + 1
+			--newCommands[newCommandsCount] = commands[i]
+			--unitCommand[unitID] = newCommandsCount
+			--if monitorCommands[i] then
+			--	monitorCommands[newCommandsCount] = monitorCommands[i]
+			--	if i ~= newCommandsCount then
+			--		monitorCommands[i] = nil
+			--	end
+			--end
+
+			local prevX, prevY, prevZ = spGetUnitPosition(unitID)
+
+			-- draw set target command (TODO)
+			--[[
+			if prevX and commands[i].set_target and commands[i].set_target.params and commands[i].set_target.params[1] then
+				local lineColour = CONFIG[CMD_SET_TARGET].colour
+				local lineAlpha = opacity * lineColour[4] * (1-progress)
+				glColor(lineColour[1],lineColour[2],lineColour[3],lineAlpha)
+				if commands[i].set_target.params[3] then
+					glBeginEnd(GL_QUADS, DrawLine, prevX,prevY,prevZ, commands[i].set_target.params[1], commands[i].set_target.params[2], commands[i].set_target.params[3], lineWidth)
+				else
+					local x,y,z = spGetUnitPosition(commands[i].set_target.params[1])
+					if x then
+						glBeginEnd(GL_QUADS, DrawLine, prevX,prevY,prevZ, x,y,z, lineWidth)
+					end
+				end
+			end
+			]]
+
+			-- draw command queue
+			if commands[i].queueSize > 0 and prevX and commandCount < maxCommandCount then
+
 				local lineAlphaMultiplier  = 1 - (progress / lineDuration)
 				for j=1,commands[i].queueSize do
 					local X,Y,Z = ExtractTargetLocation(commands[i].queue[j].params[1], commands[i].queue[j].params[2], commands[i].queue[j].params[3], commands[i].queue[j].params[4], commands[i].queue[j].id)
@@ -766,13 +782,16 @@ function widget:DrawWorldPreUnit()
 								glTexture(false)
 							end
 
-                        end
-                        prevX, prevY, prevZ = X, Y, Z
-                    end
-                end
-            end
-        end
-    end
+						end
+						prevX, prevY, prevZ = X, Y, Z
+					end
+				end
+			end
+		end
+	end
+	--commands = newCommands
+	--maxCommand = #commands
+	--newCommands = nil
     glColor(1,1,1,1)
 end
 
@@ -789,7 +808,7 @@ function widget:DrawWorld()
 		gl.PolygonOffset(-2, -2)
 		gl.Blending(GL_SRC_ALPHA, GL_ONE)
 		local highlightUnitCounter = 0
-		for i, v in pairs(commands) do
+		for i,_ in pairs(commands) do
 			if commands[i].draw and commands[i].highlight and not spIsUnitIcon(commands[i].unitID) then
 				local progress = (osClock - commands[i].time) / duration
 				glColor(commands[i].highlight[1],commands[i].highlight[2],commands[i].highlight[3],0.08*(1-progress))

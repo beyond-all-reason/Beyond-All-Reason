@@ -29,8 +29,6 @@ local glTexRect             = gl.TexRect
 local glLoadFont            = gl.LoadFont
 local glDeleteFont          = gl.DeleteFont
 local glRect                = gl.Rect
-local glLineWidth           = gl.LineWidth
-local glDepthTest           = gl.DepthTest
 local glUseShader           = gl.UseShader
 local glCopyToTexture       = gl.CopyToTexture
 local glUniform             = gl.Uniform
@@ -141,7 +139,6 @@ function widget:Initialize()
   else
     Spring.Echo("<Screen Shader>: GLSL not supported.")
   end
-  
 end
 
 function widget:Shutdown()
@@ -191,8 +188,6 @@ function widget:DrawScreen()
             WG['guishader_api'].RemoveRect('pausescreen')
         end
     end
-    
-    ResetGl()
 end
 
 
@@ -248,8 +243,6 @@ function drawPause()
     myFont:End()
     
     glPopMatrix()
-    
-    ResetGl()
 end
 
 function updateWindowCoords()
@@ -286,12 +279,4 @@ function widget:DrawScreenEffects()
 		glTexture(0, false)
 		glUseShader(0)
 	end
-end
-
-function ResetGl()
-    glScale(1,1,1)
-    glColor( { 1.0, 1.0, 1.0, 1.0 } )
-    glLineWidth( 1.0 )
-    glDepthTest(false)
-    glTexture(false)
 end

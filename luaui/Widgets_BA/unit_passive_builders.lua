@@ -207,13 +207,10 @@ function drawCheckbox(x, y, state, text)
     glPopMatrix()
 end
 
-function widget:IsAbove(mx, my)
-    return widgetHandler:InTweakMode() and mx > xPos and my > yPos and mx < xPos + (panelWidth*sizeMultiplier) and my < yPos + (panelHeight*sizeMultiplier)
-end
 
 function widget:TweakMousePress(mx, my, mb)
 	if not Spring.GetSpectatingState() then
-		if (mb == 2 or mb == 3) and widget:IsAbove(mx,my) then
+		if (mb == 2 or mb == 3) and mx > xPos and my > yPos and mx < xPos + (panelWidth*sizeMultiplier) and my < yPos + (panelHeight*sizeMultiplier) then
 			return true
 		end
 

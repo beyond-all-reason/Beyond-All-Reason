@@ -1371,24 +1371,6 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	                      and y <= TRcornerY
 end
 
-function widget:IsAbove(x, y)
-	-- on window
-	if show then
-		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
-		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-		return IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1)
-	else
-		return false
-	end
-end
-
-function widget:GetTooltip(mx, my)
-	if show and widget:IsAbove(mx,my) then
-		return string.format("")
-	end
-end
 
 function round(num, numDecimalPlaces)
     local mult = 10^(numDecimalPlaces or 0)

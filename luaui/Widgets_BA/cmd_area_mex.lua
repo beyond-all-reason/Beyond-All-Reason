@@ -48,6 +48,11 @@ local spSendCommands = Spring.SendCommands
 
 local toggledMetal
 
+local unba = false
+if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+	unba = true
+end
+
 local mexIds = {}
 local mexes = {}
 
@@ -139,7 +144,7 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function widget:Update()
-	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+	if unba then
 		local commanderTable = Spring.GetTeamUnitsByDefs(Spring.GetMyTeamID(), {UnitDefNames["armcom"].id, UnitDefNames["corcom"].id})
 		for ct, unitID in pairs (commanderTable) do
 			local _, realxp = Spring.GetUnitExperience(unitID)
@@ -168,7 +173,7 @@ function widget:Update()
 		    end
 			toggledMetal = false
 		end
-	end	
+	end
 end
 
 function AreAlliedUnits(unitID) -- Is unitID allied with me ?

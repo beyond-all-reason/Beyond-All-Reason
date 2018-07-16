@@ -94,9 +94,16 @@ function widget:Shutdown()
 	end
 end
 
+local sec = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > 1 then
+		sec = 0
+		updatePosition()
+	end
+end
+
 function widget:DrawScreen()
-	--if spGetGameFrame() == 0 then return end
-	updatePosition()
 	if drawlist[1] ~= nil then
 		local mx,my = Spring.GetMouseState()
 		glPushMatrix()

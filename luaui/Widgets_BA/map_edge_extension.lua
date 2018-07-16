@@ -38,6 +38,7 @@ local uup
 local uleft
 local ugrid
 local ubrightness
+local isInView = true
 
 local island = nil -- Later it will be checked and set to true of false
 local drawingEnabled = true
@@ -398,96 +399,150 @@ function widget:Shutdown()
 end
 
 -- reset needed when waterlevel has changed by gadget (modoption)
+local resetsec = 0
+local resetted = false
+local doWaterLevelCheck = false
 if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
-	local resetsec = 0
-	local resetted = false
-	function widget:Update(dt)
-		if not resetted then
-			resetsec = resetsec + dt
-			if resetsec > 1 then
-				resetted = true
-				ResetWidget()
-			end
+	doWaterLevelCheck = true
+end
+
+function widget:Update(dt)
+	if doWaterLevelCheck and not resetted then
+		resetsec = resetsec + dt
+		if resetsec > 1 then
+			resetted = true
+			ResetWidget()
 		end
 	end
+
+	if	Spring.IsAABBInView(-999,0,-999, Game.mapSizeX+999,1,0) or
+		Spring.IsAABBInView(-999,0,0, 0,1,Game.mapSizeZ) or
+		Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ) or
+		Spring.IsAABBInView(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
+	then
+		--Spring.Echo(math.random())
+		isInView = true
+	else
+		isInView = false
+	end
 end
+
+--local function DrawMyBox(minX,minY,minZ, maxX,maxY,maxZ)
+--	gl.BeginEnd(GL.QUADS, function()
+--		--// top
+--		gl.Vertex(minX, maxY, minZ);
+--		gl.Vertex(maxX, maxY, minZ);
+--		gl.Vertex(maxX, maxY, maxZ);
+--		gl.Vertex(minX, maxY, maxZ);
+--		--// bottom
+--		gl.Vertex(minX, minY, minZ);
+--		gl.Vertex(minX, minY, maxZ);
+--		gl.Vertex(maxX, minY, maxZ);
+--		gl.Vertex(maxX, minY, minZ);
+--	end);
+--	gl.BeginEnd(GL.QUAD_STRIP, function()
+--		--// sides
+--		gl.Vertex(minX, minY, minZ);
+--		gl.Vertex(minX, maxY, minZ);
+--		gl.Vertex(minX, minY, maxZ);
+--		gl.Vertex(minX, maxY, maxZ);
+--		gl.Vertex(maxX, minY, maxZ);
+--		gl.Vertex(maxX, maxY, maxZ);
+--		gl.Vertex(maxX, minY, minZ);
+--		gl.Vertex(maxX, maxY, minZ);
+--		gl.Vertex(minX, minY, minZ);
+--		gl.Vertex(minX, maxY, minZ);
+--	end);
+--end
+--function widget:DrawWorld()
+--	gl.Color(1,0,0,0.5)
+--	DrawMyBox(-999,0,-999, Game.mapSizeX+999,1,0)
+--	gl.Color(1,1,0,0.5)
+--	DrawMyBox(-999,0,0, 0,1,Game.mapSizeZ)
+--	gl.Color(0,1,0,0.5)
+--	DrawMyBox(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ)
+--	gl.Color(0,0,1,0.5)
+--	DrawMyBox(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
+--	gl.Color(1,1,1,1)
+--end
+
 
 local function DrawWorldFunc() --is overwritten when not using the shader
     if (not island) or options.drawForIslands.value then
         local glTranslate = gl.Translate
         local glUniform = gl.Uniform
         local GamemapSizeZ, GamemapSizeX = Game.mapSizeZ,Game.mapSizeX
-        
-        gl.Fog(true)
-        gl.FogCoord(1)
-        gl.UseShader(mirrorShader)
-        gl.PushMatrix()
-        gl.DepthMask(true)
-        if options.mapBorderStyle.value == "texture" then 
-        		gl.Texture(realTex)
-        		glUniform(ubrightness, options.textureBrightness.value)
-        		glUniform(ugrid, 0)
-				else 
-						gl.Texture(gridTex) 
-        		glUniform(ubrightness, 1.0)
-        		glUniform(ugrid, 1)
+
+		gl.Fog(true)
+		gl.FogCoord(1)
+		gl.UseShader(mirrorShader)
+		gl.PushMatrix()
+		gl.DepthMask(true)
+		if options.mapBorderStyle.value == "texture" then
+				gl.Texture(realTex)
+				glUniform(ubrightness, options.textureBrightness.value)
+				glUniform(ugrid, 0)
+				else
+						gl.Texture(gridTex)
+				glUniform(ubrightness, 1.0)
+				glUniform(ugrid, 1)
 				end
-        if wiremap then
-            gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
-        end
-        glUniform(umirrorX, GamemapSizeX)
-        glUniform(umirrorZ, GamemapSizeZ)
-        glUniform(ulengthX, GamemapSizeX)
-        glUniform(ulengthZ, GamemapSizeZ)
-        glUniform(uleft, 1)
-        glUniform(uup, 1)
-        glTranslate(-GamemapSizeX,0,-GamemapSizeZ)
-        gl.CallList(dList)
-        glUniform(uleft , 0)
-        glTranslate(GamemapSizeX*2,0,0)
-        gl.CallList(dList)
-        gl.Uniform(uup, 0)
-        glTranslate(0,0,GamemapSizeZ*2)
-        gl.CallList(dList)
-        glUniform(uleft, 1)
-        glTranslate(-GamemapSizeX*2,0,0)
-        gl.CallList(dList)
-        
-        glUniform(umirrorX, 0)
-        glTranslate(GamemapSizeX,0,0)
-        gl.CallList(dList)
-        glUniform(uleft, 0)
-        glUniform(uup, 1)
-        glTranslate(0,0,-GamemapSizeZ*2)
-        gl.CallList(dList)
-        
-        glUniform(uup, 0)
-        glUniform(umirrorZ, 0)
-        glUniform(umirrorX, GamemapSizeX)
-        glTranslate(GamemapSizeX,0,GamemapSizeZ)
-        gl.CallList(dList)
-        glUniform(uleft, 1)
-        glTranslate(-GamemapSizeX*2,0,0)
-        gl.CallList(dList)
-        if wiremap then
-            gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
-        end
-        gl.DepthMask(false)
-        gl.Texture(false)
-        gl.PopMatrix()
-        gl.UseShader(0)
-        
-        gl.Fog(false)
+		if wiremap then
+			gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
+		end
+		glUniform(umirrorX, GamemapSizeX)
+		glUniform(umirrorZ, GamemapSizeZ)
+		glUniform(ulengthX, GamemapSizeX)
+		glUniform(ulengthZ, GamemapSizeZ)
+		glUniform(uleft, 1)
+		glUniform(uup, 1)
+		glTranslate(-GamemapSizeX,0,-GamemapSizeZ)
+		gl.CallList(dList)
+		glUniform(uleft , 0)
+		glTranslate(GamemapSizeX*2,0,0)
+		gl.CallList(dList)
+		gl.Uniform(uup, 0)
+		glTranslate(0,0,GamemapSizeZ*2)
+		gl.CallList(dList)
+		glUniform(uleft, 1)
+		glTranslate(-GamemapSizeX*2,0,0)
+		gl.CallList(dList)
+
+		glUniform(umirrorX, 0)
+		glTranslate(GamemapSizeX,0,0)
+		gl.CallList(dList)
+		glUniform(uleft, 0)
+		glUniform(uup, 1)
+		glTranslate(0,0,-GamemapSizeZ*2)
+		gl.CallList(dList)
+
+		glUniform(uup, 0)
+		glUniform(umirrorZ, 0)
+		glUniform(umirrorX, GamemapSizeX)
+		glTranslate(GamemapSizeX,0,GamemapSizeZ)
+		gl.CallList(dList)
+		glUniform(uleft, 1)
+		glTranslate(-GamemapSizeX*2,0,0)
+		gl.CallList(dList)
+		if wiremap then
+			gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
+		end
+		gl.DepthMask(false)
+		gl.Texture(false)
+		gl.PopMatrix()
+		gl.UseShader(0)
+
+		gl.Fog(false)
     end
 end
 
 function widget:DrawWorldPreUnit()
-	if drawingEnabled then
+	if drawingEnabled and isInView then
 		DrawWorldFunc()
 	end
 end
 function widget:DrawWorldRefraction()
-	if drawingEnabled then
+	if drawingEnabled and isInView then
 		DrawWorldFunc()
 	end
 end

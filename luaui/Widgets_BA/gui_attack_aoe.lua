@@ -639,25 +639,25 @@ function widget:DrawWorld()
     return
   end
   
-  if (cmd ~= CMD_ATTACK or not aoeUnitDefID) then 
-    UpdateSelection()
-    return 
+  if (cmd ~= CMD_ATTACK or not aoeUnitDefID) then
+    --UpdateSelection()
+    return
   end
   
   mouseDistance = GetMouseDistance() or 1000
   local tx, ty, tz = GetMouseTargetPosition()
   if (not tx) then return end
-  
+
   local info = aoeDefInfo[aoeUnitDefID]
-  
+
   local fx, fy, fz = GetUnitPosition(aoeUnitID)
   if (not fx) then return end
   if (not info.mobile) then fy = fy + GetUnitRadius(aoeUnitID) end
-  
+
   if (not info.waterWeapon) then ty = max(0, ty) end
-  
+
   local weaponType = info.type
-  
+
   if (weaponType == "ballistic") then
     local states = GetUnitStates(aoeUnitID)
     local trajectory

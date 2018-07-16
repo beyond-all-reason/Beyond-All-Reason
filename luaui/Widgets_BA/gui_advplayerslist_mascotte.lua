@@ -214,6 +214,7 @@ function widget:PlayerChanged(playerID)
 end
 
 local sec = 0
+local sec2 = 0
 local totalTime = 0
 local rot = 0
 local bob = 0
@@ -232,11 +233,16 @@ function widget:Update(dt)
 		sec = 0
 		usedDrawlist = 2
 	end
+
+	sec2 = sec2 + dt
+	if sec2 > 1 then
+		sec2 = 0
+		updatePosition()
+	end
 end
 
 function widget:DrawScreen()
 	--if spGetGameFrame() == 0 then return end
-	updatePosition()
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)

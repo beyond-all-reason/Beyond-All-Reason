@@ -580,23 +580,6 @@ end
 
 -------------------------------------------------------------------------------
 
-function widget:IsAbove(x, y)
-  local icon = MouseOverIcon(x, y)
-  if (icon < 0) then
-    return false
-  end
-  return true
-end
-
-
-function widget:GetTooltip(x, y)
-  local ud = currentDef
-  if (not ud) then
-    return ''
-  end
-  return ud.humanName .. ' - ' .. ud.tooltip
-end
-
 
 function widget:GetConfigData()
   return {oldUnitpics=oldUnitpics}

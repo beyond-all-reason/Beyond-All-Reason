@@ -290,8 +290,16 @@ function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 end
 
+local sec = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > 1 then
+		sec = 0
+		updatePosition()
+	end
+end
+
 function widget:DrawScreen()
-	updatePosition()
 	if lockPlayerID ~= nil and drawlist[1] ~= nil then
 		glPushMatrix()
 		glCallList(drawlist[1])
