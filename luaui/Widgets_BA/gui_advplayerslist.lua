@@ -199,7 +199,7 @@ local interRequestTime = 1 -- seconds
 -- LockCamera variables
 --------------------------------------------------------------------------------
 
-local transitionTime	= 0.3 --how long it takes the camera to move when trackign a player
+local transitionTime	= 0.37 --how long it takes the camera to move when trackign a player
 local listTime			= 14 --how long back to look for recent broadcasters
 
 local myPlayerID = Spring.GetMyPlayerID()

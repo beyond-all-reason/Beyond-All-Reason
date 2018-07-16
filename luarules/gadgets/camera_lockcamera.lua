@@ -19,7 +19,7 @@ end
 
 --broadcast
 
-local broadcastPeriod = 0.066 --will send packet in this interval (s)
+local broadcastPeriod = 0.0833 --will send packet in this interval (s)
 
 ------------------------------------------------
 --speedups
@@ -62,7 +62,6 @@ local allowBroadcast = true
 ------------------------------------------------
 local PACKET_HEADER = "="
 local PACKET_HEADER_LENGTH = strLen(PACKET_HEADER)
-local numBroadcasts = {}
 if gadgetHandler:IsSyncedCode() then
 
 	local charset = {}  do -- [0-9a-zA-Z]
@@ -82,9 +81,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if strSub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER or strSub(msg, 1+PACKET_HEADER_LENGTH, 1+PACKET_HEADER_LENGTH+1) ~= validation then
 			return
-		end
-		if numBroadcasts[playerID] == nil then
-			numBroadcasts[playerID] = 0
 		end
 
 		SendToUnsynced("cameraBroadcast",playerID,msg)
@@ -296,10 +292,10 @@ else
 				return
 			end
 		end
-		local myPlayerID = GetMyPlayerID()
-		if myPlayerID == playerID then
-			--return
-		end
+		--local myPlayerID = GetMyPlayerID()
+		--if myPlayerID == playerID then
+		--	return
+		--end
 		local spec, fullView = GetSpectatingState()
 		if not spec or not fullView then
 			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID)
