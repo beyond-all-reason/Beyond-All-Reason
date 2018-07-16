@@ -171,7 +171,6 @@ local glColor     = gl.Color
 local glTexture   = gl.Texture
 local glTexRect   = gl.TexRect
 local glLineWidth = gl.LineWidth
-local push        = table.insert
 local tan         = math.tan
 
 
@@ -336,32 +335,33 @@ local function DrawBuildProgress(left,top,right,bottom, progress, color)
   local alpha_rad = math.rad(alpha)
   local beta_rad  = math.pi/2 - alpha_rad
   local list = {}
-  push(list, {v = { xcen,  ycen }})
-  push(list, {v = { xcen,  top }})
+
+  list[#list+1] = {v = { xcen,  ycen }}
+  list[#list+1] = {v = { xcen,  top }}
 
   local x,y
   x = (top-ycen)*tan(alpha_rad) + xcen
   if (alpha<90)and(x<right) then
-    push(list, {v = { x,  top }})   
+    list[#list+1] = {v = { x,  top }}
   else
-    push(list, {v = { right,  top }})
+    list[#list+1] = {v = { right,  top }}
     y = (right-xcen)*tan(beta_rad) + ycen
     if (alpha<180)and(y>bottom) then
-      push(list, {v = { right,  y }})
+      list[#list+1] = {v = { right,  y }}
     else
-      push(list, {v = { right,  bottom }})
+      list[#list+1] = {v = { right,  bottom }}
       x = (top-ycen)*tan(-alpha_rad) + xcen
       if (alpha<270)and(x>left) then
-        push(list, {v = { x,  bottom }})
+        list[#list+1] = {v = { x,  bottom }}
       else
-        push(list, {v = { left,  bottom }})
+        list[#list+1] = {v = { left,  bottom }}
         y = (right-xcen)*tan(-beta_rad) + ycen
         if (alpha<350)and(y<top) then
-          push(list, {v = { left,  y }})
+          list[#list+1] = {v = { left,  y }}
         else
-          push(list, {v = { left,  top }})
+          list[#list+1] = {v = { left,  top }}
           x = (top-ycen)*tan(alpha_rad) + xcen
-          push(list, {v = { x,  top }})
+          list[#list+1] = {v = { x,  top }}
         end
       end
     end
@@ -753,6 +753,7 @@ end
 -------------------------------------------------------------------------------
 function UpdateFactoryList()
   facs = {}
+  local count = 0
 
   local teamUnits = Spring.GetTeamUnits(myTeamID)
   local totalUnits = #teamUnits
@@ -761,7 +762,8 @@ function UpdateFactoryList()
     local unitID = teamUnits[num]
     local unitDefID = GetUnitDefID(unitID)
     if UnitDefs[unitDefID].isFactory then
-      push(facs,{ unitID=unitID, unitDefID=unitDefID, buildList=UnitDefs[unitDefID].buildOptions })
+      count = count + 1
+      facs[count] = { unitID=unitID, unitDefID=unitDefID, buildList=UnitDefs[unitDefID].buildOptions }
       local _, _, _, _, buildProgress = GetUnitHealth(unitID)
       if (buildProgress)and(buildProgress<1) then
         unfinished_facs[unitID] = true
@@ -779,7 +781,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
   end
 
   if UnitDefs[unitDefID].isFactory and #UnitDefs[unitDefID].buildOptions>0 then
-    push(facs,{ unitID=unitID, unitDefID=unitDefID, buildList=UnitDefs[unitDefID].buildOptions })
+    facs[#facs+1] = { unitID=unitID, unitDefID=unitDefID, buildList=UnitDefs[unitDefID].buildOptions }
   end
   unfinished_facs[unitID] = true
 end
@@ -944,16 +946,16 @@ end
 function BuildHandler(button)
   local alt, ctrl, meta, shift = Spring.GetModKeyState()
   local opt = {}
-  if alt   then push(opt,"alt")   end
-  if ctrl  then push(opt,"ctrl")  end
-  if meta  then push(opt,"meta")  end
-  if shift then push(opt,"shift") end
+  if alt   then opt[#opt+1]="alt"   end
+  if ctrl  then opt[#opt+1]="ctrl"  end
+  if meta  then opt[#opt+1]="meta"  end
+  if shift then opt[#opt+1]="shift" end
 
   if button==1 then
     Spring.GiveOrderToUnit(facs[openedMenu+1].unitID, -(facs[openedMenu+1].buildList[pressedBOpt+1]),{},opt)
     Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
   elseif button==3 then
-    push(opt,"right")
+    opt[#opt+1]="right"
     Spring.GiveOrderToUnit(facs[openedMenu+1].unitID, -(facs[openedMenu+1].buildList[pressedBOpt+1]),{},opt)
     Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
   end
@@ -973,10 +975,10 @@ function WaypointHandler(x,y,button)
 
   local alt, ctrl, meta, shift = Spring.GetModKeyState()
   local opt = {"right"}
-  if alt   then push(opt,"alt")   end
-  if ctrl  then push(opt,"ctrl")  end
-  if meta  then push(opt,"meta")  end
-  if shift then push(opt,"shift") end
+  if alt   then opt[#opt+1]="alt"   end
+  if ctrl  then opt[#opt+1]="ctrl"  end
+  if meta  then opt[#opt+1]="meta"  end
+  if shift then opt[#opt+1]="shift" end
 
   local type,param = Spring.TraceScreenRay(x,y)
   if type=='ground' then

@@ -136,7 +136,8 @@ if gadgetHandler:IsSyncedCode() then
 				if UnitDefs[params[2]].selfDExplosion ~= nil then
 					local radius = WeaponDefs[WeaponDefNames[UnitDefs[params[2]].selfDExplosion].id].damageAreaOfEffect
 					if radius ~= nil then
-						table.insert(sceduledRestoreHeightmap[Spring.GetGameFrame() + 15], {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius})
+						sceduledRestoreHeightmap[Spring.GetGameFrame() + 15][#sceduledRestoreHeightmap[Spring.GetGameFrame() + 15]+1] = {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius}
+						--table.insert(sceduledRestoreHeightmap[Spring.GetGameFrame() + 15], {params[4]-radius, params[6]-radius, params[4]+radius, params[6]+radius})
 					end
 				end
 			else

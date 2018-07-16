@@ -661,6 +661,7 @@ end
 --hopefully accurate reimplementation of the spring engine's ballistic circle code
 function CalcBallisticCircle( x, y, z, range, weaponDef ) 
 	local rangeLineStrip = {}
+	local rangeLineStripCount = 0
 	local slope = 0.0
 				
 	local rangeFunc = GetRange2DWeapon
@@ -722,8 +723,8 @@ function CalcBallisticCircle( x, y, z, range, weaponDef )
 		posz = z + ( cosR * adjRadius )
 		posy = spGetGroundHeight( posx, posz ) + 5.0
 		posy = max( posy, 0.0 )   --hack
-			
-		table.insert( rangeLineStrip, { posx, posy, posz } )
+		rangeLineStripCount = rangeLineStripCount + 1
+		rangeLineStrip[rangeLineStripCount] = { posx, posy, posz }
 	end
 			  
 	return rangeLineStrip

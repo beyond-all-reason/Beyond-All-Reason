@@ -292,7 +292,7 @@ local function UpdateList()
   widgetsList = {}
   for name,data in pairs(widgetHandler.knownWidgets) do
     if (name ~= myName) then
-      table.insert(fullWidgetsList, { name, data })
+      fullWidgetsList[#fullWidgetsList+1] = { name, data }
       -- look for the maxWidth
       local width = fontSize * gl.GetTextWidth(name)
       if (width > maxWidth) then

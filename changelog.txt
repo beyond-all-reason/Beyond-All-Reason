@@ -8,6 +8,10 @@ XX/XX/2018
  • Added "Vote interface" widget (displays on top of minimap, top left)
  • Enlarged options/changelog/commands/keys windows with 6%
  • Hiding muted player chat completely instead of "(ignored)"
+ • Fixed "Factory hold position" widget: some T3 factories didnt work before
+ • Player camera tracking updates more frequent and transitions are faster
+ • Flamethrower spray less wide + hit effect changed
+ • Performance optimizations
 
 
 10.09 -> 10.10

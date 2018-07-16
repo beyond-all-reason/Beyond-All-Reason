@@ -269,7 +269,7 @@ function checkAllUnits()
 			if drawUnits[teamID] == nil then
 				drawUnits[teamID] = {}
 			end
-			table.insert(drawUnits[teamID], unitID)
+			drawUnits[teamID][#drawUnits[teamID]+1] = unitID
 		end
 	end
 end

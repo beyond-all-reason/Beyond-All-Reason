@@ -368,7 +368,7 @@ end
 	
 function lines(str)
   local t = {}
-  local function helper(line) table.insert(t, line) return "" end
+  local function helper(line) t[#t+1]=line return "" end
   helper((str:gsub("(.-)\r?\n", helper)))
   return t
 end
@@ -420,10 +420,11 @@ function orderOptions()
 	end
 	for oid,option in pairs(options) do
 		if option.type ~= 'label' then
-			table.insert(groupOptions[option.group], option)
+			groupOptions[option.group][#groupOptions[option.group]+1] = option
 		end
 	end
 	local newOptions = {}
+	local newOptionsCount = 0
 	for id,group in pairs(optionGroups) do
 		grOptions = groupOptions[group.id]
 		if #grOptions > 0 then
@@ -431,10 +432,12 @@ function orderOptions()
 			if group.id == 'gfx' then
 				name = group.name..'                                          \255\130\130\130'..vsx..' x '..vsy
 			end
-			table.insert(newOptions, {id="group_"..group.id, name=name, type="label"})
+			newOptionsCount = newOptionsCount +1
+			newOptions[newOptionsCount] = {id="group_"..group.id, name=name, type="label"}
 		end
 		for oid,option in pairs(grOptions) do
-			table.insert(newOptions, option)
+			newOptionsCount = newOptionsCount +1
+			newOptions[newOptionsCount] = option
 		end
 	end
 	options = deepcopy(newOptions)
@@ -902,7 +905,7 @@ function widget:DrawScreen()
 						end
 						prevSelectHover = i
 					end
-					table.insert(optionSelect, {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i})
+					optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i}
 					glText('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
 				end
 			elseif prevSelectHover ~= nil then
@@ -2161,6 +2164,7 @@ function init()
 	end
 
 	local processedOptions = {}
+	local processedOptionsCount = 0
 	local insert = true
 	for oid,option in pairs(options) do
 		insert = true
@@ -2183,7 +2187,8 @@ function init()
 			end
 		end
 		if insert then
-			table.insert(processedOptions, option)
+			processedOptionsCount = processedOptionsCount + 1
+			processedOptions[processedOptionsCount] = option
 		end
 	end
 	options = processedOptions

@@ -235,8 +235,10 @@ SetGameRulesParam("chickenTeamID", chickenTeamID)
 
 local function SetToList(set)
   local list = {}
+  local count = 0
   for k in pairs(set) do
-    table.insert(list, k)
+      count = count + 1
+      list[count] = k
   end
   return list
 end

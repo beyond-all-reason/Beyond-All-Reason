@@ -69,9 +69,9 @@ function gadget:CommandFallback(u,ud,team,cmd,param,opt)
 		local x,_,z = Spring.GetUnitPosition(u)
 		local dist = math.sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
 		if dist <= range[ud] - param[4] then
-			table.insert(attackList, {unit = u, x=param[1], y=param[2], z=param[3], radius=param[4]})
+			attackList[#attackList+1] = {unit = u, x=param[1], y=param[2], z=param[3], radius=param[4]}
 		else
-			table.insert(closeList, {unit = u, x=param[1], y=param[2], z=param[3], radius=range[ud]-param[4]})
+			closeList[#closeList+1] ={unit = u, x=param[1], y=param[2], z=param[3], radius=range[ud]-param[4]}
 		end
 		return true, false
 	end

@@ -98,10 +98,12 @@ function widget:Update(dt)
   lastGameUpdate = gs
   
   local killTable = {}
+  local count = 0
   for unitID,bi in pairs(etaTable) do
     local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
     if ((not buildProgress) or (buildProgress >= 1.0)) then
-      table.insert(killTable, unitID)
+      count = count + 1
+      killTable[count] = unitID
     else
       local dp = buildProgress - bi.lastProg 
       local dt = gs - bi.lastTime

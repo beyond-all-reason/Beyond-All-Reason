@@ -270,9 +270,11 @@ function widget:Update()
 			
 			-- filter gaia units
 			local filteredselection = {}
+			local filteredselectionCount = 0
 			for i=1, #mouseSelection do
 				if GetUnitTeam(mouseSelection[i]) ~= GaiaTeamID then
-					table.insert(filteredselection, mouseSelection[i])
+					filteredselectionCount = filteredselectionCount + 1
+					filteredselection[filteredselectionCount] = mouseSelection[i]
 				end
 			end
 			mouseSelection = filteredselection

@@ -397,10 +397,12 @@ end
 
 function selectPlayerSelectedUnits(playerID)
 	local units = {}
+	local count = 0
 	for pID, selUnits in pairs( playerSelectedUnits ) do
 		if pID == playerID then
 			for unitId, _ in pairs( selUnits["units"] ) do
-				table.insert(units, unitId)
+				count = count + 1
+				units[count] = unitId
 			end
 		end
 	end

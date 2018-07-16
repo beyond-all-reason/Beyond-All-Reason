@@ -304,7 +304,8 @@ local function createconsole(r)
 		b.active = false
 		b.py = b.py+(i-1)*r.fontsize
 		counters[#counters+1] = b
-		table.insert(background.movableslaves,b)
+		background.movableslaves[#background.movableslaves+1] = b
+		--table.insert(background.movableslaves,b)
 	end
 	
 	--tooltip

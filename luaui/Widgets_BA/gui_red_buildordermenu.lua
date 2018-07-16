@@ -246,7 +246,7 @@ function wrap(str, limit)
 			if fi-here > limit then
 				--# Break the line
 				here = st
-				table.insert(t, buf)
+				t[#t+1] = buf
 				buf = word
 			else
 				buf = buf..sp..word  --# Append
@@ -254,7 +254,7 @@ function wrap(str, limit)
 		end)
 	--# Tack on any leftovers
 	if(buf ~= "") then
-		table.insert(t, buf)
+		t[#t+1] = buf
 	end
 	return t
 end
@@ -476,7 +476,8 @@ local function CreateGrid(r)
 			local b = New(Copy(icon,true))
 			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx)
 			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
-			table.insert(background.movableslaves,b)
+			background.movableslaves[#background.movableslaves+1] = b
+			--table.insert(background.movableslaves,b)
 			icons[#icons+1] = b
 			if ((y==r.iy) and (x==r.ix)) then
 				backward.px = icons[#icons-r.ix+1].px
@@ -503,7 +504,8 @@ local function CreateGrid(r)
 			local b = New(Copy(text,true))
 			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx)
 			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
-			table.insert(background.movableslaves,b)
+			background.movableslaves[#background.movableslaves+1] = b
+			--table.insert(background.movableslaves,b)
 			texts[#texts+1] = b
 		end
 	end
@@ -734,7 +736,8 @@ local function UpdateGrid(g,cmds,ordertype)
 					if (s == nil) then
 						s = New(Copy(g.staterect,true))
 						g.staterectangles[usedstaterectangles] = s
-						table.insert(g.background.movableslaves,s)
+						g.background.movableslaves[#g.background.movableslaves+1] = s
+						--table.insert(g.background.movableslaves,s)
 					end
 					s.active = nil --activate
 					
@@ -792,7 +795,8 @@ local function UpdateGrid(g,cmds,ordertype)
 					if (s2 == nil) then
 						s2 = New(Copy(g.staterectangles[usr],true))
 						g.staterectanglesglow[usedstaterectanglesglow] = s2
-						table.insert(g.background.movableslaves,s2)
+						g.background.movableslaves[#g.background.movableslaves+1] = s2
+						--table.insert(g.background.movableslaves,s2)
 					end
 					
 					local glowSize = s.sy * 6
@@ -811,7 +815,8 @@ local function UpdateGrid(g,cmds,ordertype)
 					if (s3 == nil) then
 						s3 = New(Copy(s2,true))
 						g.staterectanglesglow[usedstaterectanglesglow] = s3
-						table.insert(g.background.movableslaves,s3)
+						g.background.movableslaves[#g.background.movableslaves+1] = s3
+						--table.insert(g.background.movableslaves,s3)
 					end
 					s3.sy = s.sy + glowSize + glowSize
 					s3.py = s.py - glowSize
@@ -828,7 +833,8 @@ local function UpdateGrid(g,cmds,ordertype)
 					if (s4 == nil) then
 						s4 = New(Copy(s2,true))
 						g.staterectanglesglow[usedstaterectanglesglow] = s4
-						table.insert(g.background.movableslaves,s4)
+						g.background.movableslaves[#g.background.movableslaves+1] = s4
+						--table.insert(g.background.movableslaves,s4)
 					end
 					s4.sy = s.sy + glowSize + glowSize
 					s4.py = s.py - glowSize

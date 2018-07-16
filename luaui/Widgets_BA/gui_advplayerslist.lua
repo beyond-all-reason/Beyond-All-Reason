@@ -671,7 +671,7 @@ local function UpdateAlliances()
 			local alliances = {}
 			for _,player2ID in pairs (playerList) do
 				if not player[playerID].spec and not player[player2ID].spec and playerID ~= player2ID  and  player[playerID].team ~= nil and player[player2ID].team ~= nil and  player[playerID].allyteam ~= player[player2ID].allyteam  and  Spring_AreTeamsAllied(player[player2ID].team, player[playerID].team) then
-					table.insert(alliances, player2ID)
+					alliances[#alliances+1] = player2ID
 				end
 			end
 			player[playerID].alliances = alliances
@@ -1338,8 +1338,8 @@ function SortAllyTeams(vOffset)
 		if allyTeamID == myAllyTeamID  then
 			vOffset = vOffset + labelOffset - 3
 			if drawAlliesLabel then
-				table.insert(drawListOffset, vOffset)
-			  table.insert(drawList, -2)  -- "Allies" label
+				drawListOffset[#drawListOffset+1] = vOffset
+				drawList[#drawList+1] = -2  -- "Allies" label
 			  vOffset = SortTeams(allyTeamID, vOffset)+2	-- Add the teams from the allyTeam
 			else
 			  vOffset = SortTeams(allyTeamID, vOffset-labelOffset)
@@ -1356,13 +1356,13 @@ function SortAllyTeams(vOffset)
                 vOffset = vOffset + 13
 				
 				vOffset = vOffset + labelOffset - 3
-				table.insert(drawListOffset, vOffset)
-				table.insert(drawList, -3) -- "Enemies" label
+				drawListOffset[#drawListOffset+1] = vOffset
+				drawList[#drawList+1] = -3 -- "Enemies" label
 				firstenemy = false
 			else
 				vOffset = vOffset + separatorOffset
-				table.insert(drawListOffset, vOffset)
-				table.insert(drawList, -4) -- Enemy teams separator
+				drawListOffset[#drawListOffset+1] = vOffset
+				drawList[#drawList+1] = -4 -- Enemy teams separator
 			end
 			vOffset = SortTeams(allyTeamID, vOffset)+2 -- Add the teams from the allyTeam 
 		end
@@ -1381,13 +1381,13 @@ function SortTeams(allyTeamID, vOffset)
 	
 	--add teams 
 	for _,teamID in ipairs(teamsList) do
-			table.insert(drawListOffset, vOffset)
-			table.insert(drawList, -1)
-			vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team
-            local _,_, isDead, _, _, _ = Spring_GetTeamInfo(teamID)
-            if isDead then
-                vOffset = vOffset - (deadPlayerHeightReduction/2)
-            end
+		drawListOffset[#drawListOffset+1] = vOffset
+		drawList[#drawList+1] = -1
+		vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team
+		local _,_, isDead, _, _, _ = Spring_GetTeamInfo(teamID)
+		if isDead then
+			vOffset = vOffset - (deadPlayerHeightReduction/2)
+		end
 	end
 	
 	return vOffset
@@ -1405,8 +1405,8 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 		if player[myPlayerID].name ~= nil then
 			if mySpecStatus == false then
 				vOffset = vOffset + playerOffset
-				table.insert(drawListOffset, vOffset)
-				table.insert(drawList, myPlayerID) -- new player (with ID)
+				drawListOffset[#drawListOffset+1] = vOffset
+				drawList[#drawList+1] = myPlayerID -- new player (with ID)
 				player[myPlayerID].posY = vOffset
 				noPlayer = false
 			end
@@ -1419,8 +1419,8 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 			if player[playerID].name ~= nil then
 				if player[playerID].spec ~= true then
 					vOffset = vOffset + playerOffset
-					table.insert(drawListOffset, vOffset)
-					table.insert(drawList, playerID) -- new player (with ID)
+					drawListOffset[#drawListOffset+1] = vOffset
+					drawList[#drawList+1] = playerID -- new player (with ID)
 					player[playerID].posY = vOffset
 					noPlayer = false
 				end
@@ -1431,8 +1431,8 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	-- add AI teams
 	if isAi == true then
 		vOffset = vOffset + playerOffset
-		table.insert(drawListOffset, vOffset)
-		table.insert(drawList, 64 + teamID) -- new AI team (instead of players)
+		drawListOffset[#drawListOffset+1] = vOffset
+		drawList[#drawList+1] = 64 + teamID -- new AI team (instead of players)
 		player[64 + teamID].posY = vOffset
 		noPlayer = false
 	end
@@ -1440,8 +1440,8 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	-- add no player token if no player found in this team at this point
 	if noPlayer == true then
 		vOffset = vOffset + playerOffset - (deadPlayerHeightReduction/2)
-		table.insert(drawListOffset, vOffset)
-		table.insert(drawList, 64 + teamID)  -- no players team
+		drawListOffset[#drawListOffset+1] = vOffset
+		drawList[#drawList+1] = 64 + teamID  -- no players team
 		player[64 + teamID].posY = vOffset
 		if Spring_GetGameFrame() > 0 then
 			player[64+teamID].totake = IsTakeable(teamID)
@@ -1464,8 +1464,8 @@ function SortSpecs(vOffset)
 				if noSpec == true then
 					vOffset = vOffset + 13
 					vOffset = vOffset + labelOffset - 2
-					table.insert(drawListOffset, vOffset)
-					table.insert(drawList, -5)
+					drawListOffset[#drawListOffset+1] = vOffset
+					drawList[#drawList+1] = -5
 					noSpec = false
 					specJoinedOnce = true
 					vOffset = vOffset + 4					
@@ -1474,8 +1474,8 @@ function SortSpecs(vOffset)
 				-- add spectator
 				if specListShow == true then
 					vOffset = vOffset + specOffset
-					table.insert(drawListOffset, vOffset)
-					table.insert(drawList, playerID)
+					drawListOffset[#drawListOffset+1] = vOffset
+					drawList[#drawList+1] = playerID
 					player[playerID].posY = vOffset
 					noPlayer = false
 				end
@@ -1487,8 +1487,8 @@ function SortSpecs(vOffset)
 	if specJoinedOnce and noSpec then
 		vOffset = vOffset + 13
 		vOffset = vOffset + labelOffset - 2
-		table.insert(drawListOffset, vOffset)
-		table.insert(drawList, -5)
+		drawListOffset[#drawListOffset+1] = vOffset
+		drawList[#drawList+1] = -5
 		vOffset = vOffset + 4
 	end
 	
@@ -2631,7 +2631,7 @@ end
 
 function stringToLines(str)
   local t = {}
-  local function helper(line) table.insert(t, line) return "" end
+  local function helper(line) t[#t+1] = line return "" end
   helper((str:gsub("(.-)\r?\n", helper)))
   return t
 end

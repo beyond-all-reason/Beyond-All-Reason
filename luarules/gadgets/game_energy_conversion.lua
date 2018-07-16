@@ -195,13 +195,14 @@ end
 -- EmpedVector Methods
 ----------------------------------------------------------------
 local EmpedVector = {unitBuffer={}}
-local tableInsert = table.insert
+--local tableInsert = table.insert
 
 function EmpedVector:push(uID, frameID)
 	if self.unitBuffer[uID] then
 		self.unitBuffer[uID] = frameID
 	else
-		tableInsert(self.unitBuffer, uID, frameID)
+		self.unitBuffer[uID] = frameID
+		--tableInsert(self.unitBuffer, uID, frameID)
 		UnitParalysed(uID, spGetUnitDefID(uID), spGetUnitTeam(uID))
 	end
 end

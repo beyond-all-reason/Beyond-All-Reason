@@ -339,13 +339,15 @@ function widget:Update(deltaTime)
   StopCloseUnits()
 
   local todel = {}
+  local todelCount = 0
   for i, d in pairs(priorityUnits) do
 --    Echo ("checking prio " ..i)
     if (IsEmbarkCommand(i)) then
 --      Echo ("prio called " ..i)
       waitingUnits[i] = {ST_PRIORITY, d}
       AssignTransports(0, i)
-      table.insert(todel, i)
+      todelCount = todelCount + 1
+      todel[todelCount] = i
     end
   end
   for _, x in ipairs(todel) do
@@ -396,6 +398,7 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
 
 --  Echo("unit loaded " .. transportID .. " " ..unitID)
   local torev = {}
+  local torevCount = 0
   local vl = nil
 
   local ender = false
@@ -409,8 +412,9 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
       if ((v.id == CMD.MOVE or (v.id==CMD.WAIT) or v.id == CMD.SET_WANTED_MAX_SPEED) and not ender) then
         cnt = cnt +1
         if (v.id == CMD.MOVE) then 
-          GiveOrderToUnit(transportID, CMD.MOVE, v.params, {"shift"})      
-          table.insert(torev, {v.params[1], v.params[2], v.params[3]+20})
+          GiveOrderToUnit(transportID, CMD.MOVE, v.params, {"shift"})
+          torevCount = torevCount + 1
+          torev[torevCount] = {v.params[1], v.params[2], v.params[3]+20}
           vl = v.params 
         end
 		if (IsDisembark(v)) then 
@@ -421,12 +425,12 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
           ender = true
         end
         if (v.ID ~= CMD.WAIT) then
-          local opts = {}
-          table.insert(opts, "shift") -- appending
-          if (v.options.alt)   then table.insert(opts, "alt")   end
-          if (v.options.ctrl)  then table.insert(opts, "ctrl")  end
-          if (v.options.right) then table.insert(opts, "right") end
-          table.insert(storedQueue[unitID], {v.id, v.params, opts})
+          local opts = {"shift"}
+          if (v.options.alt)   then opts[#opts+1]="alt"   end
+          if (v.options.ctrl)  then opts[#opts+1]="ctrl"  end
+          if (v.options.right) then opts[#opts+1]="right" end
+          storedQueue[unitID][#storedQueue[unitID]+1] = {v.id, v.params, opts}
+          --table.insert(storedQueue[unitID], {v.id, v.params, opts})
         end
       end
     end
@@ -511,7 +515,9 @@ function AssignTransports(transportID, unitID)
          end
   --       Echo ("   "..transportID .. " " .. id .. "  " .. benefit)
 
-         if (benefit > CONST_BENEFIT_LIMIT) then table.insert(best, {benefit, transportID, id}) end
+         if (benefit > CONST_BENEFIT_LIMIT) then
+           best[#best+1] = {benefit, transportID, id}
+         end
        end 
      end
   elseif (unitID ~=0) then
@@ -532,7 +538,9 @@ function AssignTransports(transportID, unitID)
 
 --         Echo ("   "..id.. " " .. unitID .. "  " .. benefit)
 
-        if (benefit > CONST_BENEFIT_LIMIT) then table.insert(best, {benefit, id, unitID}) end
+        if (benefit > CONST_BENEFIT_LIMIT) then
+           best[#best+1] = {benefit, id, unitID}
+        end
       end
     end
   end 

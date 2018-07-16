@@ -122,7 +122,6 @@ local fmod = math.fmod
 local math_sin = math.sin
 local math_pi = math.pi
 
-local insert = table.insert
 local getn = table.getn
 
 -------------------------------------------------------------------------------
@@ -489,7 +488,7 @@ function widget:Update(dt)
 					if count ~= 'n' and IsIdleBuilder(unitID) then
 						unitCount = unitCount + 1
 						if IdleList[unitDefID] then
-							table.insert(IdleList[unitDefID], unitID)
+							IdleList[unitDefID][#IdleList[unitDefID]+1] = unitID
 						else
 							IdleList[unitDefID] = {unitID}
 						end
@@ -511,11 +510,11 @@ function widget:Update(dt)
 	
 	for unitDefID, units in pairs(IdleList) do
 		if CONDENSE then
-			table.insert(drawTable, {unitDefID = unitDefID, units = units})
+			drawTable[#drawTable+1] = {unitDefID = unitDefID, units = units}
 			noOfIcons = noOfIcons + 1
 		else
 			for _, unitID in pairs(units) do
-				table.insert(drawTable, {unitDefID = unitDefID, units = unitID})
+				drawTable[#drawTable+1] = {unitDefID = unitDefID, units = unitID}
 			end
 			noOfIcons = noOfIcons + table.getn(units)
 		end

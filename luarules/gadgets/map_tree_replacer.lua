@@ -47,22 +47,25 @@ if (gadgetHandler:IsSyncedCode()) then
 
 		-- get all replacement trees
 		local replacementTrees = {}
+		local count = 0
 		for featureDefID, featureDef in pairs(FeatureDefs) do
 			if string.find(featureDef.name, "lowpoly_tree_") then
 				if snowMap then
 					if string.find(featureDef.name, "lowpoly_tree_snowy") then
-						table.insert(replacementTrees, featureDefID)
+						count = count + 1
+						replacementTrees[count] = featureDefID
 					end
 				else
 					if not string.find(featureDef.name, "lowpoly_tree_snowy") then
-						table.insert(replacementTrees, featureDefID)
+						count = count + 1
+						replacementTrees[count] = featureDefID
 					end
 				end
 			end
 		end
 
 		-- replace tree featuredefs
-		if table.getn(replacementTrees) > 0 then
+		if count > 0 then
 			local featuretable = Spring.GetAllFeatures()
 			for i = 1,#featuretable do
 				local featureDefID = Spring.GetFeatureDefID(featuretable[i])
@@ -70,7 +73,7 @@ if (gadgetHandler:IsSyncedCode()) then
 					local x,y,z = Spring.GetFeaturePosition(featuretable[i])
 					if Spring.GetGroundHeight(x,z) >= 0 then
 						Spring.DestroyFeature(featuretable[i])
-						local newFeatureID = Spring.CreateFeature(replacementTrees[math.random(1,table.getn(replacementTrees))], x, Spring.GetGroundHeight(x,z), z)
+						local newFeatureID = Spring.CreateFeature(replacementTrees[math.random(1,count)], x, Spring.GetGroundHeight(x,z), z)
 						Spring.SetFeatureRotation(newFeatureID, 0, math.random(1,360), 0)
 						Spring.SetFeatureBlocking(newFeatureID, true, true, true, true, true, false, false)
 					end

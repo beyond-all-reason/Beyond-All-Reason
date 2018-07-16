@@ -105,7 +105,8 @@ local function randomPatrolInBox(unitID, box, minWaterDepth)	-- only define minW
 					sceduledOrders[unitID] = {}
 				end
 				processOrders = true
-				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
+				sceduledOrders[unitID][#sceduledOrders[unitID]+1] = {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers}
+				--table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
 				modifiers = {"shift"}
 				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})
 				ordersGiven = ordersGiven + 1
@@ -174,7 +175,8 @@ local function randomPatrolInCircle(unitID, circle, minWaterDepth)	-- only defin
 				if sceduledOrders[unitID] == nil then
 					sceduledOrders[unitID] = {}
 				end
-				table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
+				sceduledOrders[unitID][#sceduledOrders[unitID]+1] = {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers}
+				--table.insert(sceduledOrders[unitID], {unitID=unitID, type=CMD.PATROL, location={x, y, z}, modifiers=modifiers})
 				modifiers = {"shift"}
 				processOrders = true
 				--Spring.GiveOrderToUnit(unitID, CMD.PATROL , {x, y, z}, {"shift"})	-- this sometimes gives resursion errors, but am to lazy to spread spammign this command over multiple gameframes
@@ -271,7 +273,7 @@ local function adjustCritters(newAliveCritters)
 		if add and not critter.alive  or  not add and critter.alive then
 			if add then 
 				if critter.x ~= nil and critter.y ~= nil and critter.z ~= nil then	-- had nil error once so yeah...
-					table.insert(removeKeys, unitID)
+					removeKeys[#removeKeys+1] = unitID
 					local newUnitID = CreateUnit(critter.unitName, critter.x, critter.y, critter.z, 0, GaiaTeamID)
 					setGaiaUnitSpecifics(newUnitID)
 					critterDifference = critterDifference - 1
@@ -316,7 +318,7 @@ function getCommanders()
 		local unitDefID = GetUnitDefID(unitID)
 		if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
 			local x,y,z = GetUnitPosition(unitID)
-			table.insert(comlist, unitID, {x,z})
+			comlist[unitID] = {x,z}
 		end
 	end
 	return comlist
@@ -336,12 +338,9 @@ end
 
 
 function pairCompanionToUnit(companionID,unitID)
-	local companions = {}
-	if companionCritters[unitID] ~= nil then
-		companions = companionCritters[unitID]
-	end
-	table.insert(companions, companionID)
-	table.insert(companionCritters, unitID, companions)
+	local companions = companionCritters[unitID] or {}
+	companions[#companions+1] = companionID
+	companionCritters[unitID] = companions
 	if critterUnits[unitID] ~= nil then
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
@@ -463,23 +462,23 @@ function addCompanionCritters()
 	    local unitDefID = GetUnitDefID(unitID)
 	    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
 	   		local x,y,z = GetUnitPosition(unitID)
-	      local team = GetUnitTeam(unitID)
-			  if team == nil then break end
-			  local players = Spring.GetPlayerList(team)
-			  local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
-			  local found = false
-			  for _, cname in pairs(companionPlayers) do
-			  	if cname == name then found = true end
-			  end
-				if found then
-					local critters = {}
-					for i=1, random(-2, 1) do	-- amount of critters being spawn
-						local critterID = CreateUnit(critterTypes[random(1,#critterTypes)], x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
-						setGaiaUnitSpecifics(critterID)
-						table.insert(critters, critterID)
-					end
-					table.insert(companionCritters, unitID, critters)
+	    	local team = GetUnitTeam(unitID)
+			if team == nil then break end
+			local players = Spring.GetPlayerList(team)
+			local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
+			local found = false
+			for _, cname in pairs(companionPlayers) do
+				if cname == name then found = true end
+			end
+			if found then
+				local critters = {}
+				for i=1, random(-2, 1) do	-- amount of critters being spawn
+					local critterID = CreateUnit(critterTypes[random(1,#critterTypes)], x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
+					setGaiaUnitSpecifics(critterID)
+					critters[#critters+1] = critterID
 				end
+				companionCritters[unitID] = critters
+			end
 	    end
 	  end
 	end
@@ -609,7 +608,7 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if commanderID then 
 				local cx,cy,cz = GetUnitPosition(commanderID,true,true)
 				local comlist = {}
-				table.insert(comlist, commanderID, {cx,cz})
+				comlist[commanderID] = {cx,cz}
 				commanderID = nearUnits(x, z, companionRadius, comlist)
 				if commanderID ~= false then
 					pairCompanionToUnit(unitID,commanderID)

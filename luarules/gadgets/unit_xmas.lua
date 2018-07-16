@@ -130,7 +130,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		if enableUnitDecorations and hasDecoration[unitDefID] ~= nil then
 			local x,y,z = Spring.GetUnitPosition(unitID)
-			table.insert(createDecorations, {x,y,z, teamID, unitDefID})
+			createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID}
 		end
 		if unitDefID == xmasballUdefID then
 			if decorations[unitID] ~= nil then
@@ -143,7 +143,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitDefID == xmasballUdefID then
-			table.insert(createdDecorations, unitID)
+			createDecorations[#createDecorations+1] = unitID
 		end
 	end
 
