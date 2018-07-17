@@ -483,11 +483,23 @@ function widget:Update(dt)
   end
 
   sec = sec + dt
-  if sec > 1 or (factoriesArea ~= nil and IsInRect(mx,my, {factoriesArea[1],factoriesArea[2],factoriesArea[3],factoriesArea[4]})) then
+  local doupdate = false
+  if sec > 0.5 then
+    doupdate = true
+  end
+  if factoriesArea ~= nil then
+    if IsInRect(mx,my, {factoriesArea[1],factoriesArea[2],factoriesArea[3],factoriesArea[4]}) then
+      doupdate = true
+      factoriesAreaHovered = true
+    elseif factoriesAreaHovered then
+      factoriesAreaHovered = nil
+      doupdate = true
+    end
+  end
+  if doupdate then
     sec = 0
     SetupDimensions(#facs)
     SetupSubDimensions()
-
     for i=1, #dlists do
       gl.DeleteList(dlists[i])
     end
@@ -548,7 +560,6 @@ function widget:Update(dt)
 
       -- setup next icon pos
       OffsetRect(fac_rec, fac_inext[1],fac_inext[2])
-
     end
   end
 end
