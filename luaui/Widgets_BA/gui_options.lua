@@ -118,7 +118,6 @@ local presets = {
 		water = 1,
 		mapedgeextension = false,
 		lighteffects = false,
-		lighteffects_heatdistortion = false,
 		lups = false,
 		snow = false,
 		xrayshader = false,
@@ -143,7 +142,6 @@ local presets = {
 		water = 2,
 		mapedgeextension = false,
 		lighteffects = false,
-		lighteffects_heatdistortion = false,
 		lups = true,
 		snow = false,
 		xrayshader = false,
@@ -168,7 +166,6 @@ local presets = {
 		water = 4,
 		mapedgeextension = true,
 		lighteffects = true,
-		lighteffects_heatdistortion = false,
 		lups = true,
 		snow = true,
 		xrayshader = false,
@@ -193,7 +190,6 @@ local presets = {
 		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
-		lighteffects_heatdistortion = true,
 		lups = true,
 		snow = true,
 		xrayshader = false,
@@ -218,7 +214,6 @@ local presets = {
 		water = 3,
 		mapedgeextension = true,
 		lighteffects = true,
-		lighteffects_heatdistortion = true,
 		lups = true,
 		snow = true,
 		xrayshader = false,
@@ -1078,7 +1073,7 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'fancyselectedunits_secondline' then
 			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setSecondLine', {'showSecondLine'}, options[i].value)
 		elseif id == 'lighteffects_heatdistortion' then
-			saveOptionValue('Light Effects', 'lighteffects', 'setHeatDistortion', {'useHeatDistortion'}, options[i].value)
+			saveOptionValue('Light Effects', 'lighteffects', 'setHeatDistortion', {'enableHeatDistortion'}, options[i].value)
 		elseif id == 'defrange_allyair' then
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
@@ -1740,7 +1735,7 @@ function loadAllWidgetData()
 	loadWidgetData("Light Effects", "lighteffects_laserbrightness", {'globalLightMultLaser'})
 	loadWidgetData("Light Effects", "lighteffects_laserradius", {'globalRadiusMultLaser'})
 	loadWidgetData("Light Effects", "lighteffects_life", {'globalLifeMult'})
-	loadWidgetData("Light Effects", "lighteffects_heatdistortion", {'useHeatDistortion'})
+	loadWidgetData("Light Effects", "lighteffects_heatdistortion", {'enableHeatDistortion'})
 
 	loadWidgetData("Auto Group", "autogroup_immediate", {'config','immediate','value'})
 
@@ -1793,7 +1788,7 @@ function init()
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   Darken features with map", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
 
 		{id="lighteffects", group="gfx", name="Light effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
-		{id="lighteffects_heatdistortion", group="gfx", name=widgetOptionColor.."   apply heat distortion", type="bool", value=false, description='Enables a distortion on top of explosions to simulate heat'},
+		{id="lighteffects_heatdistortion", group="gfx", name=widgetOptionColor.."   apply heat distortion", type="bool", value=true, description='Enables a distortion on top of explosions to simulate heat'},
 		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.4, max=1, step=0.05, type="slider", value=0.65, description='lifetime of explosion lights'},
 		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2.2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
 		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius  (gpu intensive)", min=1, max=2, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},

@@ -49,7 +49,7 @@ local globalLightMultLaser = 1.4	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.65
 
-local useHeatDistortion = false
+local enableHeatDistortion = true
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -582,7 +582,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
-		if useHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion then
+		if enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion then
 
 			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
@@ -697,7 +697,7 @@ function widget:Initialize()
 		return globalLifeMult
 	end
 	WG['lighteffects'].getHeatDistortion = function()
-		return useHeatDistortion
+		return enableHeatDistortion
 	end
 	WG['lighteffects'].setGlobalBrightness = function(value)
 		globalLightMult = value
@@ -722,7 +722,7 @@ function widget:Initialize()
 		loadWeaponDefs()
 	end
 	WG['lighteffects'].setHeatDistortion = function(value)
-		useHeatDistortion = value
+		enableHeatDistortion = value
 	end
 
 end
@@ -735,7 +735,7 @@ function widget:GetConfigData(data)
 		globalLightMultLaser = globalLightMultLaser,
 		globalRadiusMultLaser = globalRadiusMultLaser,
 		globalLifeMult = globalLifeMult,
-		useHeatDistortion = useHeatDistortion,
+		enableHeatDistortion = enableHeatDistortion,
 		resetted = 1.4,
 	}
 	return savedTable
@@ -758,8 +758,8 @@ function widget:SetConfigData(data)
 		if data.globalLifeMult ~= nil then
 			globalLifeMult = data.globalLifeMult
 		end
-		if data.useHeatDistortion ~= nil then
-			useHeatDistortion = data.useHeatDistortion
+		if data.enableHeatDistortion ~= nil then
+			enableHeatDistortion = data.enableHeatDistortion
 		end
 	end
 end
