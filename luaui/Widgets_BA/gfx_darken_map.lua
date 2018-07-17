@@ -77,11 +77,11 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorldPreUnit()
+	if darknessvalue >= 0.01 then
 
-    local drawMode = Spring.GetMapDrawMode()
-    if (drawMode=="height") or (drawMode=="path") then return end
+		local drawMode = Spring.GetMapDrawMode()
+		if (drawMode=="height") or (drawMode=="path") then return end
 
-    if darknessvalue >= 0.01 then
         gl.PushMatrix()
         gl.Color(0,0,0,darknessvalue)
         gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
@@ -97,7 +97,7 @@ function widget:DrawWorld()
 		if features == nil then
 			features = Spring.GetVisibleFeatures(-1, 250, false)
 		end
-		
+
 		if features ~= nil then
 			gl.DepthTest(true)
 			gl.PolygonOffset(-2, -2)

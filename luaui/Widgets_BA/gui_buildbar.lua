@@ -16,12 +16,12 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-WhiteStr   = "\255\255\255\255"
-GreyStr    = "\255\210\210\210"
-GreenStr   = "\255\092\255\092"
-BlueStr    = "\255\170\170\255" 
-YellowStr  = "\255\255\255\152"
-OrangeStr  = "\255\255\190\128"
+local WhiteStr   = "\255\255\255\255"
+local GreyStr    = "\255\210\210\210"
+local GreenStr   = "\255\092\255\092"
+local BlueStr    = "\255\170\170\255"
+local YellowStr  = "\255\255\255\152"
+local OrangeStr  = "\255\255\190\128"
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -202,6 +202,13 @@ function widget:Initialize()
   WG['buildbar'].setOldUnitIcons = function(value)
     oldUnitpics = value
   end
+end
+
+function widget:Shutdown()
+  for i=1, #dlists do
+    gl.DeleteList(dlists[i])
+  end
+  dlists = {}
 end
 
 function widget:GetConfigData()
@@ -459,6 +466,93 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 end
 
 
+local dlists = {}
+local sec = 0
+function widget:Update(dt)
+
+  if myTeamID~=Spring.GetMyTeamID() then
+    myTeamID = Spring.GetMyTeamID()
+    UpdateFactoryList()
+  end
+  inTweak = widgetHandler:InTweakMode()
+
+
+  local icon,mx,my,lb,mb,rb = -1,-1,-1,false,false,false
+  if (not inTweak) then
+    mx,my,lb,mb,rb = GetMouseState()
+  end
+
+  sec = sec + dt
+  if sec > 1 or (factoriesArea ~= nil and IsInRect(mx,my, {factoriesArea[1],factoriesArea[2],factoriesArea[3],factoriesArea[4]})) then
+    sec = 0
+    SetupDimensions(#facs)
+    SetupSubDimensions()
+
+    for i=1, #dlists do
+      gl.DeleteList(dlists[i])
+    end
+    dlists = {}
+    factoriesArea = nil
+
+    -- draw factory list
+    local fac_rec = RectWH(facRect[1],facRect[2], iconSizeX, iconSizeY)
+    for i,facInfo in ipairs(facs) do
+
+      local unitDefID = facInfo.unitDefID
+      local options   = {}
+
+      local unitBuildDefID = -1
+      local unitBuildID    = -1
+
+      -- determine options -------------------------------------------------------------------
+      -- building?
+      local iconResize = true
+      unitBuildID      = GetUnitIsBuilding(facInfo.unitID)
+      if unitBuildID then
+        unitBuildDefID = GetUnitDefID(unitBuildID)
+        _, _, _, _, options.progress = GetUnitHealth(unitBuildID)
+        unitDefID      = unitBuildDefID
+        iconResize = true
+      elseif (unfinished_facs[facInfo.unitID]) then
+        _, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
+        if (options.progress>=1) then
+          options.progress = -1
+          unfinished_facs[facInfo.unitID] = nil
+        end
+      end
+      -- repeat mode?
+      local ustate   = GetUnitStates(facInfo.unitID)
+      if ustate ~= nil then
+        options['repeat'] = ustate["repeat"]
+      else
+        options['repeat'] = false
+      end
+      -- hover or pressed?
+      if (i==hoveredFac+1) then
+        options.hovered_repeat = IsInRect(mx,my, {fac_rec[3]-repIcoSize,fac_rec[2],fac_rec[3],fac_rec[2]-repIcoSize})
+        options.pressed = (lb or mb or rb)or(options.hovered_repeat)
+        options.hovered = true
+      end
+      -- border
+      options.waypoint = (waypointMode>1)and(i==waypointFac+1)
+      options.selected = (i==openedMenu+1)
+      -----------------------------------------------------------------------------------------
+      --DrawButton(fac_rec,unitDefID,options, iconResize, true)
+
+      dlists[#dlists+1] = gl.CreateList(DrawButton,fac_rec,unitDefID,options, iconResize, true)
+      if factoriesArea == nil then
+        factoriesArea = {fac_rec[1],fac_rec[2],fac_rec[3],fac_rec[4]}
+      else
+        factoriesArea[4] = fac_rec[4]
+      end
+
+      -- setup next icon pos
+      OffsetRect(fac_rec, fac_inext[1],fac_inext[2])
+
+    end
+  end
+end
+
 -------------------------------------------------------------------------------
 -- DRAWSCREEN
 -------------------------------------------------------------------------------
@@ -470,59 +564,25 @@ function widget:DrawScreen()
     mx,my,lb,mb,rb = GetMouseState()
   end
 
+  for i=1, #dlists do
+    gl.CallList(dlists[i])
+  end
+
   -- draw factory list
-  local fac_rec = RectWH(facRect[1],facRect[2], iconSizeX, iconSizeY)
-  for i,facInfo in ipairs(facs) do
+  if  (factoriesArea ~= nil and IsInRect(mx,my, {factoriesArea[1],factoriesArea[2],factoriesArea[3],factoriesArea[4]})) or
+      (buildoptionsArea ~= nil and IsInRect(mx,my, {buildoptionsArea[1],buildoptionsArea[2],buildoptionsArea[3],buildoptionsArea[4]})) then
+    local fac_rec = RectWH(facRect[1],facRect[2], iconSizeX, iconSizeY)
+    buildoptionsArea = nil
+    for i,facInfo in ipairs(facs) do
 
-    local unitDefID = facInfo.unitDefID
-    local options   = {}
 
-    local unitBuildDefID = -1
-    local unitBuildID    = -1
-
-    -- determine options -------------------------------------------------------------------
-     -- building?
-     local iconResize = true
-      unitBuildID      = GetUnitIsBuilding(facInfo.unitID)
-      if unitBuildID then
-        unitBuildDefID = GetUnitDefID(unitBuildID)
-        _, _, _, _, options.progress = GetUnitHealth(unitBuildID)
-        unitDefID      = unitBuildDefID
-        iconResize = true
-      elseif (unfinished_facs[facInfo.unitID]) then
-        _, _, _, _, options.progress = GetUnitHealth(facInfo.unitID)
-        if (options.progress>=1) then 
-          options.progress = -1
-          unfinished_facs[facInfo.unitID] = nil
-        end
-      end
-     -- repeat mode?
-      local ustate   = GetUnitStates(facInfo.unitID)
-      if ustate ~= nil then
-        options['repeat'] = ustate["repeat"]
-      else
-        options['repeat'] = false
-      end
-     -- hover or pressed?
-      if (i==hoveredFac+1) then
-        options.hovered_repeat = IsInRect(mx,my, {fac_rec[3]-repIcoSize,fac_rec[2],fac_rec[3],fac_rec[2]-repIcoSize})
-        options.pressed = (lb or mb or rb)or(options.hovered_repeat)
-        options.hovered = true
-      end
-     -- border
-      options.waypoint = (waypointMode>1)and(i==waypointFac+1)
-      options.selected = (i==openedMenu+1)
-    -----------------------------------------------------------------------------------------
-    DrawButton(fac_rec,unitDefID,options, iconResize, true)
-
-    -- draw build list
+      -- draw build list
     if i==openedMenu+1 then
       -- draw buildoptions
       local bopt_rec = RectWH(fac_rec[1]+bopt_inext[1], fac_rec[2]+bopt_inext[2],iconSizeX,iconSizeY)
 
       local buildList   = facInfo.buildList
       local buildQueue  = GetBuildQueue(facInfo.unitID)
-
       for j,unitDefID in ipairs(buildList) do
         local unitDefID = unitDefID
         local options   = {}
@@ -548,7 +608,11 @@ function widget:DrawScreen()
           options.alpha = 0.85
         -----------------------------------------------------------------------------------------
         DrawButton(bopt_rec,unitDefID,options, true)
-
+        if buildoptionsArea == nil then
+          buildoptionsArea = {bopt_rec[1],bopt_rec[2],bopt_rec[3],bopt_rec[4]}
+        else
+          buildoptionsArea[1] = bopt_rec[1]
+        end
         -- setup next icon pos
         OffsetRect(bopt_rec, bopt_inext[1],bopt_inext[2])
 
@@ -570,8 +634,8 @@ function widget:DrawScreen()
 
           if (count>0) then
 
-					  local yPad = (iconSizeY*(1-iconImgMult)) / 2
-					  local xPad = (iconSizeX*(1-iconImgMult)) / 2
+                local yPad = (iconSizeY*(1-iconImgMult)) / 2
+                local xPad = (iconSizeX*(1-iconImgMult)) / 2
             DrawTexRect({bopt_rec[1]+xPad,bopt_rec[2]-yPad,bopt_rec[3]-xPad,bopt_rec[4]+yPad},"#"..unitBuildDefID,{1,1,1,0.5})
             if (count>1) then
               glColor(1,1,1,0.66)
@@ -587,10 +651,12 @@ function widget:DrawScreen()
       end
     end
 
-    -- setup next icon pos
-    OffsetRect(fac_rec, fac_inext[1],fac_inext[2])
+      -- setup next icon pos
+      OffsetRect(fac_rec, fac_inext[1],fac_inext[2])
+    end
+  else
+    buildoptionsArea = nil
   end
-
   -- draw border around factory list
   --if (#facs>0) then DrawLineRect(facRect, { 0, 0, 0, 1 },borderSize+2) end
 end
@@ -813,22 +879,6 @@ function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
   widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
-local sec = 0
-function widget:Update(dt)
-  
-  if myTeamID~=Spring.GetMyTeamID() then
-    myTeamID = Spring.GetMyTeamID()
-    UpdateFactoryList()
-  end
-  inTweak = widgetHandler:InTweakMode()
-
-  sec = sec + dt
-  if sec > 0.15 then
-    sec = 0
-    SetupDimensions(#facs)
-    SetupSubDimensions()
-  end
-end
 
 function widget:PlayerChanged()
 	if Spring.GetSpectatingState() then
@@ -1061,7 +1111,7 @@ function widget:GetTooltip(x,y)
     --local unitID    = facs[hoveredFac+1].unitID
     local unitDef   = UnitDefs[facs[hoveredFac+1].unitDefID]
     return unitDef.humanName .. "\n" ..
-           --GreyStr .. "Left mouse: show build options\n" .. 
+           --GreyStr .. "Left mouse: show build options\n" ..
            GreyStr .. "Middle mouse: set camera target\n"
            --GreyStr .. "Right mouse: show build options"
   elseif (hoveredBOpt>=0) then
@@ -1114,7 +1164,7 @@ function widget:IsAbove(x,y)
     end
     return true
   else
-    if (bar_autoclose)and( 
+    if (bar_autoclose)and(
          (bar_openByClick) or
          (not bar_openByClick)and(menuHovered)
        )
