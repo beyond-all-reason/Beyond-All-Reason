@@ -508,7 +508,7 @@ function widget:DrawWorld()
 	end
 	gl.Billboard(false)
 	gl.Texture(false)
-	glBlending(false)
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
 
 
