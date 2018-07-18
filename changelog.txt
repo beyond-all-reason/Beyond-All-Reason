@@ -2,15 +2,17 @@
 XX/XX/2018
 
  • Decreased Core Supporter (corvette) metal cost from 165 to 160.
- • Fixed Fighters diving towards target until colliding and taking AOE damages from friendly fighters
  • Liche: -5% maxSpeed, +5% energy cost, +2.5% buildTime, damages to commanders 3150 (vs 3350)
  • Added "Lua UiKeys Loader" widget allowing to load "uikeys.txt" file located in "LuaUI/Widgets_BA"
  • Added "Vote interface" widget (displays on top of minimap, top left)
  • Enlarged options/changelog/commands/keys windows with 6%
- • Hiding muted player chat completely instead of "(ignored)"
- • Fixed "Factory hold position" widget: some T3 factories didnt work before
  • Player camera tracking updates more frequent and transitions are faster
  • Flamethrower spray less wide + hit effect changed
+ • Enabled "apply heat distortion" option by default (light effects widget)
+ • Hiding muted player chat completely instead of "(ignored)"
+ • Fixed Fighters diving towards target until colliding and taking AOE damages from friendly fighters
+ • Fixed "Factory hold position" widget: some T3 factories didnt work before
+ • Fixed aircraft landing inside airrepairpads
  • Performance optimizations
 
 

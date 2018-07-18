@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, landpad1, landpad2, radar, wake1, wake2, door1, door2,
+piece  base, pad1, pad2, radar, wake1, wake2, door1, door2,
        door3, door4, anti, ground;
 
 static-var  Static_Var_1, oldHead;
@@ -169,8 +169,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2;
 		//explode base type NOHEATCLOUD;
-		explode landpad1 type EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode landpad2 type EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode pad1 type EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode pad2 type EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode radar type EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode wake1 type EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode wake2 type EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
@@ -184,8 +184,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3;
 		//explode base type NOHEATCLOUD;
-		explode landpad1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode landpad2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode pad1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+		explode pad2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		explode radar type BITMAP4 | NOHEATCLOUD;
 		explode wake1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode wake2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
@@ -197,8 +197,8 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	//explode base type NOHEATCLOUD;
-	explode landpad1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode landpad2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode pad1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
+	explode pad2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	explode radar type EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode wake1 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode wake2 type SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;

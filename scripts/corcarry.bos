@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, land1, land2, dish, wake1, wake2, silo, collar,
+piece  base, pad1, pad2, dish, wake1, wake2, silo, collar,
        wedge, anti, ground;
 
 static-var  Static_Var_1, Static_Var_2;
@@ -171,8 +171,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2;
 		explode dish type FALL | BITMAP2 | NOHEATCLOUD;
-		explode land1 type FALL | BITMAP3 | NOHEATCLOUD;
-		explode land2 type FALL | BITMAP4 | NOHEATCLOUD;
+		explode pad1 type FALL | BITMAP3 | NOHEATCLOUD;
+		explode pad2 type FALL | BITMAP4 | NOHEATCLOUD;
 		explode wake1 type FALL | BITMAP5 | NOHEATCLOUD;
 		explode wake2 type FALL | BITMAP1 | NOHEATCLOUD;
 		explode silo type FALL | BITMAP3 | NOHEATCLOUD;
@@ -184,8 +184,8 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3;
 		explode dish type FALL | BITMAP2 | NOHEATCLOUD;
-		explode land1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-		explode land2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+		explode pad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode pad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 		explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode silo type FALL | BITMAP2 | NOHEATCLOUD;
@@ -195,8 +195,8 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3;
 	explode dish type FALL | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode land1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
-	explode land2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
+	explode pad1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode pad2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP4 | NOHEATCLOUD;
 	explode wake1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode wake2 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode silo type FALL | BITMAP2 | NOHEATCLOUD;

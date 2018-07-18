@@ -3,8 +3,8 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad1, pad2, pad3, pad4, land1, land2, land3,
-       land4, tower, post, gun1, gun2, gun3, gun4, nano;
+piece  base, plate1, plate2, plate3, plate4, pad1, pad2, pad3,
+       pad4, tower, post, gun1, gun2, gun3, gun4, nano;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
