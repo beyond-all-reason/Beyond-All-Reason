@@ -307,6 +307,7 @@ function widget:MousePress(x, y, button)
 				Spring.SendCommands("say !vote b")
 				EndVote()
 			end
+			return true
 		end
 	end
 end
