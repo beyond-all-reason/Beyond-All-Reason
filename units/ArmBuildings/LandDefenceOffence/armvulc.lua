@@ -117,6 +117,7 @@ return {
 				areaofeffect = 224,
 				avoidfeature = false,
 				avoidground = false,
+				avoidfriendly = false,
 				craterareaofeffect = 224,
 				craterboost = 0.1,
 				cratermult = 0.1,

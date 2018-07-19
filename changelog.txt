@@ -13,6 +13,7 @@ XX/XX/2018
  • Fixed Fighters diving towards target until colliding and taking AOE damages from friendly fighters
  • Fixed "Factory hold position" widget: some T3 factories didnt work before
  • Fixed aircraft landing inside air repairpads
+ • Fixed stuck LRPC cannon barrels (side effect: shooting inside neighboring unit hitbox and killing it)
  • Performance optimizations
 
 
