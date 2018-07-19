@@ -14,7 +14,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -14 0",
-		collisionvolumescales = "80 162 80",
+		collisionvolumescales = "80 160 80",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Rapid-Fire Long-Range Plasma Cannon",

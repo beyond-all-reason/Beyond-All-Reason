@@ -32,6 +32,9 @@ return {
 		sightdistance = 700,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
+		collisionvolumeoffsets = "0 0 -45",
+		collisionvolumescales = "90 145 90",
+		collisionvolumetype = "CylY",
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
 			techlevel = 2,

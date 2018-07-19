@@ -30,7 +30,7 @@ return {
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
-		--usepiececollisionvolumes = 1,
+		usepiececollisionvolumes = 1,
 		collisionvolumeoffsets = "0 0 -20",
 		collisionvolumescales = "72 105 72",
 		collisionvolumetype = "CylY",
