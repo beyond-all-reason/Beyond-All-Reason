@@ -12,7 +12,8 @@ XX/XX/2018
  • Hiding muted player chat completely instead of "(ignored)"
  • Fixed Fighters diving towards target until colliding and taking AOE damages from friendly fighters
  • Fixed "Factory hold position" widget: some T3 factories didnt work before
- • Fixed aircraft landing inside airrepairpads
+ • Fixed aircraft landing inside air repairpads
+ • Fixed Bertha/Intimidator barrel getting stuck
  • Performance optimizations
 
 
