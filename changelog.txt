@@ -10,6 +10,7 @@ XX/XX/2018
  • Flamethrower spray less wide + hit effect changed
  • Enabled "apply heat distortion" option by default (light effects widget)
  • Hiding muted player chat completely instead of "(ignored)"
+ • Fixed sea fighters killing eachother when firing through eachother
  • Fixed Fighters diving towards target until colliding and taking AOE damages from friendly fighters
  • Fixed "Factory hold position" widget: some T3 factories didnt work before
  • Fixed aircraft landing inside air repairpads

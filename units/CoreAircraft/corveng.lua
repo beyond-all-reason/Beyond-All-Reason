@@ -11,7 +11,7 @@ return {
 		canmove = true,
 		category = "ALL MOBILE WEAPON VTOL ANTIFLAME ANTIEMG ANTILASER NOTLAND NOTSUB NOTSHIP NOTHOVER",
 		collide = false,
-		cruisealt = 110,
+		cruisealt = 125,
 		description = "Fighter",
 		explodeas = "smallExplosionGeneric",
 		footprintx = 2,
