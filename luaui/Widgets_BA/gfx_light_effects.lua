@@ -582,9 +582,13 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 		explosionLightsCount = explosionLightsCount + 1
 		explosionLights[explosionLightsCount] = params
 
-		if enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion then
+		if enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and Spring.IsSphereInView(px,py,pz,100) then
 
-			local strength,animSpeed,life,heat,sizeGrowth,size,force
+			local strength,animSpeed,life,heat,sizeGrowth,size,forces
+
+			local cx, cy, cz = Spring.GetCameraPosition()
+			local distance = math.diag(px-cx, py-cy, pz-cz)
+			local strengthMult = 1 / (distance*0.001)
 
 			if weaponConf[weaponID].type == 'paralyzer' then
 				strength = 10
@@ -606,7 +610,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				else
 					strength = 1.5 + (params.life/25)
 					size =  params.param.radius/16
-					life = params.life*1.1 + (params.param.radius/50)
+					life = params.life*1.05 + (params.param.radius/50)
 					force = {0,0.35,0}
 					heat = 1
 				end
@@ -617,7 +621,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				pos = {px,py+10,pz},
 				size = size,
 				sizeGrowth = sizeGrowth,
-				strength = strength,
+				strength = strength*strengthMult,
 				animSpeed = animSpeed,
 				heat = heat,
 				force = force,
