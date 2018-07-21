@@ -58,7 +58,7 @@ Stop()
 	turn post to y-axis <0.000000> speed <300.000000>;
 	wait-for-turn barrel around x-axis;
 	wait-for-turn post around y-axis;
-	move post to y-axis [-17.000000] speed [150.000000];
+	move post to y-axis [-42.900000] speed [150.000000];
 	wait-for-move post along y-axis;
 }
 
@@ -92,6 +92,7 @@ RequestState(requestedstate, currentstate)
 		}
 	}
 	statechg_StateChanging = FALSE;
+	return (0);
 }
 
 Create()
