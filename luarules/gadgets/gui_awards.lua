@@ -5,7 +5,7 @@ function gadget:GetInfo()
     author    = "Bluestone",
     date      = "2013-07-06",
     license   = "GPLv2",
-    layer     = -1, 
+    layer     = -1,
     enabled   = true -- loaded by default?
   }
 end
@@ -416,7 +416,7 @@ local bgcorner = ":n:LuaRules/Images/bgcorner.png"
 
 local drawAwards = false 
 local cx,cy --coords for center of screen
-local bx,by --coords for top left hand corner of box
+local bx,by,bxScaled,byScaled --coords for top left hand corner of box
 local w = 800 
 local h = 500
 local bgMargin = 6
@@ -444,7 +444,6 @@ local myPlayerID = Spring.GetMyPlayerID()
 
 
 
-
 function gadget:ViewResize(viewSizeX, viewSizeY)
 
 	--fix geometry
@@ -454,6 +453,10 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 	cy = vsy/2
 	bx = cx - w/2
 	by = cy - h/2 - 50
+	bxScaled = cx - (w*widgetScale)/2
+	byScaled = cy - (h*widgetScale)/2 - (50*widgetScale)
+	--CreateBackground()
+	--drawAwards = true
 end
 
 function gadget:Initialize()
@@ -484,7 +487,6 @@ function gadget:Initialize()
 	
 	
 end
-
 
 function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 
 						fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 
@@ -595,9 +597,8 @@ function CreateBackground()
 	if Background then
 		glDeleteList(Background)
 	end
-	
-	if (WG ~= nil and WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(math.floor(bx), math.floor(by), math.floor(bx + w), math.floor(by + h),'awards')
+	if Script.LuaUI("GuishaderInsertRect") then
+		Script.LuaUI.GuishaderInsertRect(math.floor(bxScaled), math.floor(byScaled), math.floor(bxScaled + (w*widgetScale)), math.floor(byScaled + (h*widgetScale)), 'awards')
 	end
 	
 	Background = glCreateList(function()
@@ -746,8 +747,8 @@ function gadget:MousePress(x,y,button)
 		end
 		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
-			if (WG ~= nil and WG['guishader_api'] ~= nil) then
-				WG['guishader_api'].RemoveRect('awards')
+			if Script.LuaUI("GuishaderRemoveRect") then
+				Script.LuaUI.GuishaderRemoveRect('awards')
 			end
 			drawAwards = false
 		end	
@@ -835,8 +836,8 @@ end
 
 function gadget:Shutdown()
 	Spring.SendCommands('endgraph 1')
-	if (WG ~= nil and WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('awards')
+	if Script.LuaUI("GuishaderRemoveRect") then
+		Script.LuaUI.GuishaderRemoveRect('awards')
 	end
 end
 

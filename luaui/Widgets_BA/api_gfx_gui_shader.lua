@@ -242,6 +242,9 @@ function widget:Initialize()
   WG['guishader_api'].getAllowScreenBlur = function(value)
   	return screenBlur
   end
+
+    widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader_api'].InsertRect)
+    widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader_api'].RemoveRect)
 end
 
 
