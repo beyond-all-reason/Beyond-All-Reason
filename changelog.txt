@@ -10,7 +10,7 @@ Other:
  • Added "Vote interface" widget (displays on top of minimap, top left)
  • Enabled improved "apply heat distortion" option by default (light effects widget)
  • Added "Lua UiKeys Loader" widget allowing to load "uikeys.txt" file located in "LuaUI/Widgets_BA"
- • Enlarged options/changelog/commands/keys windows with 6%
+ • Enlarged options/changelog/commands/keys/gameinfo windows with 6%
  • Removing muted player chat completely instead of "(ignored)"
  • Player camera tracking updates more frequent and transitions are faster
 
@@ -19,7 +19,7 @@ Fixes:
  • Fixed fighters diving towards target until too close and taking AOE damages from friendly fighter hits
  • Fixed aircraft landing inside (ground) air repairpads
  • Fixed "Factory hold position" widget: some T3 factories didnt work before
- • Fixed cormaw (t1 flametrhower building) not closing properly
+ • Fixed cormaw (t1 flamethrower building) not closing properly
  • Fixed stuck LRPC cannon barrels
  • Performance optimizations (for lots of widget and gadgets)
 
