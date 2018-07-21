@@ -1,20 +1,27 @@
 ﻿10.10 -> 10.11
 XX/XX/2018
 
+Balance changes:
  • Decreased Core Supporter (corvette) metal cost from 165 to 160.
  • Liche: -5% maxSpeed, +5% energy cost, +2.5% buildTime, damages to commanders 3150 (vs 3350)
- • Added "Lua UiKeys Loader" widget allowing to load "uikeys.txt" file located in "LuaUI/Widgets_BA"
- • Added "Vote interface" widget (displays on top of minimap, top left)
- • Enlarged options/changelog/commands/keys windows with 6%
- • Player camera tracking updates more frequent and transitions are faster
+
+Other:
  • Flamethrower spray less wide + hit effect changed
- • Enabled "apply heat distortion" option by default (light effects widget)
- • Hiding muted player chat completely instead of "(ignored)"
- • Fixed Fighters diving towards target until colliding and taking AOE damages from friendly fighters
+ • Added "Vote interface" widget (displays on top of minimap, top left)
+ • Enabled improved "apply heat distortion" option by default (light effects widget)
+ • Added "Lua UiKeys Loader" widget allowing to load "uikeys.txt" file located in "LuaUI/Widgets_BA"
+ • Enlarged options/changelog/commands/keys windows with 6%
+ • Removing muted player chat completely instead of "(ignored)"
+ • Player camera tracking updates more frequent and transitions are faster
+
+Fixes:
+ • Fixed sea fighters killing eachother when firing through eachother
+ • Fixed fighters diving towards target until too close and taking AOE damages from friendly fighter hits
+ • Fixed aircraft landing inside (ground) air repairpads
  • Fixed "Factory hold position" widget: some T3 factories didnt work before
- • Fixed aircraft landing inside air repairpads
+ • Fixed cormaw (t1 flametrhower building) not closing properly
  • Fixed stuck LRPC cannon barrels
- • Performance optimizations
+ • Performance optimizations (for lots of widget and gadgets)
 
 
 10.09 -> 10.10
