@@ -1167,7 +1167,7 @@ function applyOptionValue(i, skipRedrawWindow)
 				if widgetHandler.orderList[options[i].widget] < 0.5 then
 					widgetHandler:EnableWidget(options[i].widget)
 				end
-				if id == "fancyselectedunits" then
+				if id == "fancyselectedunits" and getOptionByID('fancyselectedunits_style') then
 					options[getOptionByID('fancyselectedunits_style')].options = WG['fancyselectedunits'].getStyleList()
 				end
 			else
