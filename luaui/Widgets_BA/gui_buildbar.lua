@@ -50,6 +50,8 @@ local pressedBOpt = -1
 local waypointFac = -1
 local waypointMode = 0   -- 0 = off; 1=lazy; 2=greedy (greedy means: you have to left click once before leaving waypoint mode and you can have units selected)
 
+local dlists = {}
+
 -- factory icon rectangle
 local facRect  = {-1,-1,-1,-1}
 
@@ -172,7 +174,6 @@ local glTexture   = gl.Texture
 local glTexRect   = gl.TexRect
 local glLineWidth = gl.LineWidth
 local tan         = math.tan
-
 
 -------------------------------------------------------------------------------
 -- INITIALIZTION FUNCTIONS
@@ -465,8 +466,6 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
   end]]--
 end
 
-
-local dlists = {}
 local sec = 0
 function widget:Update(dt)
 

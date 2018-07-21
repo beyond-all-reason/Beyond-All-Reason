@@ -124,7 +124,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 
   function gadget:RecvLuaMsg(msg, playerID)
-    if (msg:find("buildicon",1,true)) then
+    if (string.sub(msg,1,9) == 'buildicon') then
       if (not Spring.IsCheatingEnabled()) then
         Spring.SendMessageToPlayer(playerID, "Cheating must be enabled");
         return true;
