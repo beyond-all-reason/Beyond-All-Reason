@@ -680,6 +680,21 @@ local function UpdateAlliances()
 end
 
 
+-- only being called for devs registered in gadget
+function PlayerDataBroadcast(playerName, msg)
+	if VFS.FileExists("playerdata_log.txt") then
+		k = tostring(VFS.LoadFile("playerdata_log.txt"))
+	else
+		k = ""
+	end
+	--Spring.Echo(msg)
+	--Spring.Echo(VFS.ZlibDecompress(VFS.ZlibCompress('test123')))
+	local file = assert(io.open("playerdata_log.txt", 'w'), "Unable to save playerdata_log.txt file")
+	file:write(k .. msg .. "\n\n\n\n") --VFS.ZlibDecompress(msg)
+	file:close()
+end
+
+
 ---------------------------------------------------------------------------------------------------
 --  LockCamera stuff
 ---------------------------------------------------------------------------------------------------
@@ -808,6 +823,7 @@ function widget:Initialize()
   widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
   widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
   widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
+  widgetHandler:RegisterGlobal('PlayerDataBroadcast', PlayerDataBroadcast)
 	UpdateRecentBroadcasters()
 	
 	mySpecStatus,fullView,_ = Spring.GetSpectatingState()

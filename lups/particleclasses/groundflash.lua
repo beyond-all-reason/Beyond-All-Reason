@@ -101,6 +101,12 @@ function GroundFlash:Update(n)
 		self.pos = pos
 	end
   end
+  if not self.repeatEffect then
+    local progress = (1-self.life)
+    progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4    -- fade out fast, but ease out at the end
+    self.color[4] = self.orgOpacity * progress
+    --self.color[4] = self.orgOpacity * (1-self.life)
+  end
 end
 
 -- used if repeatEffect=true;
@@ -124,6 +130,9 @@ function GroundFlash:CreateParticle()
 
   self.firstGameFrame = Spring.GetGameFrame()
   self.dieGameFrame   = self.firstGameFrame + self.clife
+  if not self.repeatEffect then
+    self.orgOpacity = self.color[4]
+  end
 end
 
 function GroundFlash:Destroy()

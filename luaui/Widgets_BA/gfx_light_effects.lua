@@ -10,7 +10,7 @@ function widget:GetInfo()
 		date      = "May 2017",
 		license   = "GPL V2",
 		layer     = 0,
-		enabled   = true
+		enabled   = true,
 	}
 end
 
@@ -50,6 +50,7 @@ local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.65
 
 local enableHeatDistortion = true
+local enableDeferred = true     -- else use groundflashes instead
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -373,6 +374,8 @@ end
 
 local function GetProjectileLights(beamLights, beamLightCount, pointLights, pointLightCount)
 
+    if not enableDeferred then return {}, 0, {}, 0 end
+
 	local projectiles = spGetVisibleProjectiles()
 	local projectileCount = #projectiles
 	if (not projectileFade) and projectileCount == 0 then
@@ -480,7 +483,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	-- add explosion lights
 	for i, params in pairs(explosionLights) do
 		local progress = 1-((frame-params.frame)/params.life)
-		progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4
+		progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4    -- fade out fast, but ease out at the end
 		params.colMult = params.orgMult * progress
 		if params.colMult <= 0 then
 			explosionLights[i] = nil
@@ -563,6 +566,8 @@ loadWeaponDefs()
 -- function called by explosion_lights gadget
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
+		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
+
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
@@ -578,9 +583,24 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				radius = weaponConf[weaponID].radius,
 			},
 		}
-		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
-		explosionLightsCount = explosionLightsCount + 1
-		explosionLights[explosionLightsCount] = params
+
+		if not enableDeferred then
+            if WG['Lups'] then
+                WG['Lups'].AddParticles('GroundFlash', {
+                    worldspace = true,
+                    layer = -35,
+                    life = weaponConf[weaponID].life,
+                    pos = {px,py+10,pz},
+                    size = weaponConf[weaponID].radius/2.2,
+                    sizeGrowth = 0,
+                    colormap   = { {weaponConf[weaponID].r, weaponConf[weaponID].g, weaponConf[weaponID].b, weaponConf[weaponID].orgMult*1.33} },
+                    texture    = 'LuaUI/Images/glow2.dds',
+                })
+            end
+		else
+			explosionLightsCount = explosionLightsCount + 1
+			explosionLights[explosionLightsCount] = params
+		end
 
 		if enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and Spring.IsSphereInView(px,py,pz,100) then
 
@@ -627,6 +647,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				force = force,
 			})
 		end
+
 
 		-- a test to replace stumpy weapon ceg 'explosion' effect, so when maxparticles is reached, there is still this lups shown, only thing missing is the directional=true options :(
 		--if WG['Lups'] then
@@ -700,9 +721,12 @@ function widget:Initialize()
 	WG['lighteffects'].getLife = function()
 		return globalLifeMult
 	end
-	WG['lighteffects'].getHeatDistortion = function()
-		return enableHeatDistortion
-	end
+    WG['lighteffects'].getHeatDistortion = function()
+        return enableHeatDistortion
+    end
+    WG['lighteffects'].getDeferred = function()
+        return enableDeferred
+    end
 	WG['lighteffects'].setGlobalBrightness = function(value)
 		globalLightMult = value
 		projectileLightTypes = GetLightsFromUnitDefs()
@@ -727,7 +751,10 @@ function widget:Initialize()
 	end
 	WG['lighteffects'].setHeatDistortion = function(value)
 		enableHeatDistortion = value
-	end
+    end
+    WG['lighteffects'].setDeferred = function(value)
+        enableDeferred = value
+    end
 
 end
 
@@ -740,6 +767,7 @@ function widget:GetConfigData(data)
 		globalRadiusMultLaser = globalRadiusMultLaser,
 		globalLifeMult = globalLifeMult,
 		enableHeatDistortion = enableHeatDistortion,
+        enableDeferred = enableDeferred,
 		resetted = 1.4,
 	}
 	return savedTable
@@ -762,8 +790,11 @@ function widget:SetConfigData(data)
 		if data.globalLifeMult ~= nil then
 			globalLifeMult = data.globalLifeMult
 		end
-		if data.enableHeatDistortion ~= nil then
-			enableHeatDistortion = data.enableHeatDistortion
-		end
+        if data.enableHeatDistortion ~= nil then
+            enableHeatDistortion = data.enableHeatDistortion
+        end
+        if data.enableDeferred ~= nil then
+            enableDeferred = data.enableDeferred
+        end
 	end
 end

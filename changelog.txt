@@ -6,6 +6,7 @@ Balance changes:
  • Liche: -5% maxSpeed, +5% energy cost, +2.5% buildTime, damages to commanders 3150 (vs 3350)
 
 Other:
+ • Added "real map and model lights" option to light effects widget. (disable this if you have old gpu)
  • Flamethrower spray less wide + hit effect changed
  • Added "Vote interface" widget (displays on top of minimap, top left)
  • Enabled improved "apply heat distortion" option by default (light effects widget)
