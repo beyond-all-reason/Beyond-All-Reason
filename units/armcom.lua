@@ -238,6 +238,9 @@ tablearmcom = {
 				damage = {
 					default = 99999,
 				},
+				customparams = {
+					expl_light_mult = 0.4,
+				},
 			},
 			armcomlaser = {
 				areaofeffect = 12,

@@ -3,7 +3,7 @@
 	[pop1]
 	{
 	class=heatcloud;
-   	
+
 		[properties]
       		{
 		texture=uglynovaexplo;
@@ -21,12 +21,12 @@
       	water=1;
       	ground=1;
       	count=2;
-	} 
+	}
 
 	[pop2]
 	{
 	class=heatcloud;
-   	
+
 		[properties]
       		{
 		texture=flare;
@@ -44,7 +44,7 @@
       	water=1;
       	ground=1;
       	count=1;
-	} 
+	}
 
 	[POOF01]
 	{
@@ -95,7 +95,7 @@
 	  {
         airdrag            = 0.96;
         colormap           = 0.04 0.03 0.01 0   0.1 0.07 0.033 0.66   0.1 0.07 0.033 0.58   0.1 0.07 0.033 0.5   0.1 0.07 0.033 0.4   0 0 0 0;
-        directional        = true;
+        directional        = 1;
         emitrot            = 18;
         emitrotspread      = 33;
         emitvector         = 0, 1, 0;
@@ -128,7 +128,7 @@
 	  {
         airdrag            = 0.96;
         colormap           = 0.04 0.03 0.01 0   0.1 0.07 0.033 0.66   0.1 0.07 0.033 0.58   0.1 0.07 0.033 0.5   0.1 0.07 0.033 0.4   0 0 0 0;
-        directional        = true;
+        directional        = 1;
         emitrot            = -5;
         emitrotspread      = 13;
         emitvector         = 0, 1, 0;
@@ -167,7 +167,7 @@
 	[pop2]
 	{
 	class=heatcloud;
-   	
+
 		[properties]
       		{
 		texture=flare;
@@ -185,7 +185,7 @@
       	water=1;
       	ground=1;
       	count=1;
-	} 
+	}
 
 
 	[dirt]

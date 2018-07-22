@@ -604,7 +604,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 
 		if enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and Spring.IsSphereInView(px,py,pz,100) then
 
-			local strength,animSpeed,life,heat,sizeGrowth,size,forces
+			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
 			local cx, cy, cz = Spring.GetCameraPosition()
 			local distance = math.diag(px-cx, py-cy, pz-cz)

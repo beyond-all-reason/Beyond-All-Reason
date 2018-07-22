@@ -233,6 +233,9 @@ return {
 				damage = {
 					default = 20,
 				},
+				customparams = {
+					expl_light_mult = 0.4,
+				},
 			},
 		},
 		weapons = {
