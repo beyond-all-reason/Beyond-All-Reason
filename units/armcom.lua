@@ -239,7 +239,9 @@ tablearmcom = {
 					default = 99999,
 				},
 				customparams = {
-					expl_light_mult = 0.4,
+					expl_light_mult = 0.35,
+					expl_light_radius_mult = 1.15,
+					expl_light_heat_radius_mult = 2.5,
 				},
 			},
 			armcomlaser = {

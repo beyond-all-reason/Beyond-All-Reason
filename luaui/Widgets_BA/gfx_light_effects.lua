@@ -539,6 +539,11 @@ function loadWeaponDefs()
 			if customParams.expl_light_radius_mult then
 				params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
 			end
+			if customParams.expl_light_heat_radius_mult then
+				params.heatradius = (params.radius/13) * tonumber(customParams.expl_light_heat_radius_mult)
+			else
+				params.heatradius = params.radius/13
+			end
 			if customParams.expl_light_life then
 				params.life = tonumber(customParams.expl_light_life)
 			end
@@ -628,8 +633,8 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 					force = {1,5.5,1}
 					heat = 8
 				else
-					strength = 1.5 + (params.life/25)
-					size =  params.param.radius/16
+					strength = 1.15 + (params.life/22)
+					size = weaponConf[weaponID].heatradius
 					life = params.life*1.05 + (params.param.radius/50)
 					force = {0,0.35,0}
 					heat = 1
