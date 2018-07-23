@@ -170,10 +170,10 @@ function AttackHandler:AddRecruit(attkbehaviour)
 	if not self:IsRecruit(attkbehaviour) then
 		if #self.recruits.attackers <= self.ratio * #self.recruits.defenders then
 			table.insert(self.recruits.attackers,attkbehaviour)
-			Spring.Echo("defender")
+			--Spring.Echo("defender")
 		else
 			table.insert(self.recruits.defenders,attkbehaviour)
-			Spring.Echo("attacker")
+			--Spring.Echo("attacker")
 		end
 	end
 end

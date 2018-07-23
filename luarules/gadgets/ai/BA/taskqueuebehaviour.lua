@@ -177,7 +177,7 @@ function TaskQueueBehaviour:ProgressQueue()
 end
 
 function TaskQueueBehaviour:TryToBuild( unit_name, pos )
-	Spring.Echo(unit_name)
+	--Spring.Echo(unit_name)
 	utype = self.game:GetTypeByName(unit_name)
 	if not utype then
 		self.game:SendToConsole("Cannot build:"..unit_name..", could not grab the unit type from the engine")
