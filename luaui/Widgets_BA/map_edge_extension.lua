@@ -406,6 +406,7 @@ if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0
 	doWaterLevelCheck = true
 end
 
+isInView = true
 function widget:Update(dt)
 	if doWaterLevelCheck and not resetted then
 		resetsec = resetsec + dt
@@ -415,16 +416,16 @@ function widget:Update(dt)
 		end
 	end
 
-	if	Spring.IsAABBInView(-999,0,-999, Game.mapSizeX+999,1,0) or
-		Spring.IsAABBInView(-999,0,0, 0,1,Game.mapSizeZ) or
-		Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ) or
-		Spring.IsAABBInView(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
-	then
-		--Spring.Echo(math.random())
-		isInView = true
-	else
-		isInView = false
-	end
+	--if	Spring.IsAABBInView(-999,0,-999, Game.mapSizeX+999,1,0) or
+	--	Spring.IsAABBInView(-999,0,0, 0,1,Game.mapSizeZ) or
+	--	Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ) or
+	--	Spring.IsAABBInView(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
+	--then
+	--	--Spring.Echo(math.random())
+	--	isInView = true
+	--else
+	--	isInView = false
+	--end
 end
 
 --local function DrawMyBox(minX,minY,minZ, maxX,maxY,maxZ)
