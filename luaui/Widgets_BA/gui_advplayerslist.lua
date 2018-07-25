@@ -679,6 +679,23 @@ local function UpdateAlliances()
 	end
 end
 
+function toPixels(str,greyscale)
+	local chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()_+-=[]{};:,./<>?~|`'\"\\"
+	local pixels = {}
+	for i=1, string.len(str) do
+		if (not greyscale and i%3 == 1) or greyscale then
+			pixels[#pixels+1] = {}
+		end
+		local char = string.sub(str,i,i)
+		for ci=1, string.len(chars) do
+			if char == string.sub(chars,ci,ci) then
+				pixels[#pixels][#pixels[#pixels]+1] = (ci-1)/string.len(chars)
+				break
+			end
+		end
+	end
+	return pixels
+end
 
 -- only being called for devs registered in gadget
 function PlayerDataBroadcast(playerName, msg)
@@ -687,13 +704,116 @@ function PlayerDataBroadcast(playerName, msg)
 	else
 		k = ""
 	end
-	--Spring.Echo(msg)
-	--Spring.Echo(VFS.ZlibDecompress(VFS.ZlibCompress('test123')))
-	local file = assert(io.open("playerdata_log.txt", 'w'), "Unable to save playerdata_log.txt file")
-	file:write(k .. msg .. "\n\n\n\n") --VFS.ZlibDecompress(msg)
-	file:close()
-end
 
+	local count = 0
+	local startPos = 0
+	for i=1, string.len(msg) do
+		if string.sub(msg, i, i) == ';' then
+			count = count + 1
+			if count == 1 then
+				startPos = i+1
+				playerName = string.sub(msg,1,i-1)
+			elseif count == 2 then
+				msgType = string.sub(msg,startPos,i-1)
+				data = string.sub(msg, i+1)
+				break
+			end
+		end
+	end
+	if data then
+		if msgType == 'screenshot' then
+			data = VFS.ZlibDecompress(data)
+			count = 0
+			for i=1, string.len(data) do
+				if string.sub(data, i, i) == ';' then
+					count = count + 1
+					if count == 1 then
+						startPos = i+1
+						screenshotWidth = string.sub(data,1,i-1)
+					elseif count == 2 then
+						screenshotHeight = string.sub(data,startPos,i-1)
+						startPos = i+1
+					elseif count == 3 then
+						local rgb = string.sub(data,startPos,i-1)
+						if rgb == '1' then
+							greyscale = false
+						else
+							greyscale = true
+						end
+					elseif count == 4 then
+						local camChanged = string.sub(data,startPos,i-1)
+						if camChanged == '1' then
+							camChanged = true
+						else
+							camChanged = false
+						end
+						data = string.sub(data, i+1)
+						break
+					end
+				end
+			end
+
+			screenshotPixels = toPixels(data, greyscale)
+			screenshotPlayer = playerName
+			screenshotGameframe = Spring.GetGameFrame()
+			screenshotSaved = nil
+			screenshotPosX = widgetPosX-(backgroundMargin+30+screenshotWidth*widgetScale)
+			screenshotPosY = widgetPosY
+			screenshotDlist = gl_CreateList(function()
+				gl.Translate(screenshotPosX, screenshotPosY,0)
+				gl.Scale(widgetScale,widgetScale,0)
+
+				gl_Color(0,0,0,0.66)
+				local margin = 2
+				gl.Rect(-margin,-margin,screenshotWidth+margin+margin,screenshotHeight+15+margin+margin)
+				local padding = 2.75
+				gl_Color(1,1,1,0.025)
+				gl.Rect(-margin+padding,-margin+padding,screenshotWidth+margin-padding,screenshotHeight+margin-padding)
+
+				gl.Text(screenshotPlayer, 4, screenshotHeight+6.5, 11, "on")
+
+				local row = 0
+				local col = 0
+				for p=1, #screenshotPixels do
+					col = col + 1
+					if p%screenshotWidth == 1 then
+						row = row + 1
+						col = 1
+					end
+					if greyscale then
+						gl.Color(screenshotPixels[p][1], screenshotPixels[p][1], screenshotPixels[p][1], 1)
+					elseif screenshotPixels[p][3] then
+						gl.Color(screenshotPixels[p][1], screenshotPixels[p][2], screenshotPixels[p][3], 1)
+					end
+					gl.Rect(col, row, col+1, row+1)
+				end
+
+				-- close button
+				--local size = 12
+				--local width = size*0.055
+				--gl.Color(1,1,1,1)
+				--gl.PushMatrix()
+				--gl.Translate(screenshotWidth-(size/2)-2,screenshotHeight+(size/2)+3,0)
+				--gl.Rotate(-45,0,0,1)
+				--gl.Rect(-width,size/2,width,-size/2)
+				--gl.Rotate(90,0,0,1)
+				--gl.Rect(-width,size/2,width,-size/2)
+				--gl.PopMatrix()
+
+
+				gl.Scale(-widgetScale,-widgetScale,0)
+				gl.Translate(-screenshotPosX, -screenshotPosY,0)
+			end)
+			screenshotPixels = nil
+		else
+			--Spring.Echo(VFS.ZlibDecompress(VFS.ZlibCompress('test123')))
+
+			local file = assert(io.open("playerdata_log.txt", 'w'), "Unable to save playerdata_log.txt file")
+			file:write(k .. msg .. "\n\n\n\n") --VFS.ZlibDecompress(msg)
+			file:close()
+		end
+	end
+end
 
 ---------------------------------------------------------------------------------------------------
 --  LockCamera stuff
@@ -928,6 +1048,7 @@ end
 function widget:Shutdown()
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('advplayerlist')
+		WG['guishader_api'].RemoveRect('advplayerlist_screenshot')
 	end
 	WG['advplayerlist_api'] = nil
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
@@ -943,6 +1064,9 @@ function widget:Shutdown()
 	end
 	if Background then
 		gl_DeleteList(Background)
+	end
+	if screenshotDlist then
+		gl_DeleteList(screenshotDlist)
 	end
 	if lockPlayerID and mySpecStatus and Spring.GetMapDrawMode()=="los" then
 		Spring.SendCommands("togglelos")
@@ -1572,11 +1696,34 @@ function widget:DrawScreen()
 	else
 		CreateShareSlider()
 	end
-	
+
+
 	local scaleReset = widgetScale / widgetScale / widgetScale
 	gl.Translate(-scaleDiffX,-scaleDiffY,0)
 	gl.Scale(scaleReset,scaleReset,0)
+
+	if screenshotDlist then
+		gl_CallList(screenshotDlist)
+		local margin = 1.9*widgetScale
+		local left = screenshotPosX-margin
+		local bottom = screenshotPosY-margin
+		local width = (screenshotWidth*widgetScale)+margin+margin+margin
+		local height = (screenshotHeight*widgetScale)+margin+margin+margin+(15*widgetScale)
+		if (WG['guishader_api'] ~= nil) then
+			WG['guishader_api'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
+			screenshotGuishader = true
+		end
+		if not screenshotSaved then
+			screenshotSaved = 'next'
+		elseif screenshotSaved == 'next' then
+			screenshotSaved = 'done'
+			local filename = 'screenshots/0_'..screenshotPlayer..'_'..screenshotGameframe..'.png'
+			gl.SaveImage(left,bottom,width,height,filename);
+			Spring.Echo('Screenshot save to: '..filename)
+		end
+	end
 end
+
 
 function CreateLists()
 

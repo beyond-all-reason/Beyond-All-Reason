@@ -236,6 +236,7 @@ function widget:Update(dt)
 	passedTime = passedTime + dt
 	if passedTime > 0.2 then
 		passedTime = passedTime - 0.2
+		updatePosition()
 		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
 			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
 			if lockPlayerID ~= prevLockPlayerID then
@@ -290,14 +291,6 @@ function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 end
 
-local sec = 0
-function widget:Update(dt)
-	sec = sec + dt
-	if sec > 1 then
-		sec = 0
-		updatePosition()
-	end
-end
 
 function widget:DrawScreen()
 	if lockPlayerID ~= nil and drawlist[1] ~= nil then

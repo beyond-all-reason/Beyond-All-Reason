@@ -34,9 +34,6 @@ function widget:Update()
         end
         
         buildSpacing[UnitDefs[-cmdID].name] = spGetBuildSpacing()
-        if buildSpacing[UnitDefs[-cmdID].name] == 0 then
-            buildSpacing[UnitDefs[-cmdID].name] = nil
-        end
     end
 end
 
