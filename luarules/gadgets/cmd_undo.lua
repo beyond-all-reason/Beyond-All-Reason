@@ -94,6 +94,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function restoreUnits(teamID, seconds, toTeamID, playerID)
+		if not Spring.GetTeamInfo(toTeamID) then
+			return
+		end
 		if teamSelfdUnits[teamID] == nil then
 			Spring.SendMessageToPlayer(playerID, 'There is no self destruct unit history for team '..teamID)
 			return
@@ -163,10 +166,10 @@ if gadgetHandler:IsSyncedCode() then
 		end
 		if playername ~= "UnnamedPlayer" then
 			if not authorized then
-				Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
+				--Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
 				return
 			end
-			if not spec then
+			if authorized and not spec then
 				Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
 				return
 			end
