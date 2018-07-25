@@ -396,36 +396,45 @@ end
 
 
 function gadget:DrawScreen()
-  if eligible then
-	  -- ask each spectator if they would like to replace an absent player
+    if eligible then
+        -- ask each spectator if they would like to replace an absent player
+        uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+        gl.PushMatrix()
+        gl.Translate(bX+(bW/2),bY+(bH/2),0)
+        gl.Scale(uiScale, uiScale, 1)
 
-  	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-		gl.PushMatrix()
-			gl.Translate(bX+(bW/2),bY+(bH/2),0)
-			gl.Scale(uiScale, uiScale, 1)
-		
-			-- draw button and its text
-			local x,y = Spring.GetMouseState()
-			x,y = correctMouseForScaling(x,y)
-			if x > bX-bgMargin and x < bX+bW+bgMargin and y > bY-bgMargin and y < bY+bH+bgMargin then
-				gl.CallList(subsButtonHover)
-				colorString = "\255\255\222\0"
-			else
-				gl.CallList(subsButton)
-				colorString = "\255\255\255\255"
-			end
-		  local textString
-		  if not offer then
-		    textString = "Offer to play"
-		  else
-		    textString = "Withdraw offer"
-		  end
-			gl.Text(colorString .. textString, -((bW/2)-12.5), -((bH/2)-9.5), 19, "o")
-			gl.Color(1,1,1,1)
-		gl.PopMatrix()
-  else
-    gadgetHandler:RemoveCallIn("DrawScreen") -- no need to waste cycles
-  end
+        -- draw button and its text
+        local x,y = Spring.GetMouseState()
+        x,y = correctMouseForScaling(x,y)
+        if x > bX-bgMargin and x < bX+bW+bgMargin and y > bY-bgMargin and y < bY+bH+bgMargin then
+            gl.CallList(subsButtonHover)
+            colorString = "\255\255\222\0"
+        else
+            gl.CallList(subsButton)
+            colorString = "\255\255\255\255"
+        end
+        if not guishaderApplied and Script.LuaUI("GuishaderInsertRect") then
+            guishaderApplied = true
+            local x1,y1 = correctMouseForScaling(bX-bgMargin,bY-bgMargin)
+            local x2,y2 = correctMouseForScaling(bX+bW+bgMargin,bY+bH+bgMargin)
+            Script.LuaUI.GuishaderInsertRect(x1,y1,x2,y2, 'offertoplay')
+        end
+        local textString
+        if not offer then
+            textString = "Offer to play"
+        else
+            textString = "Withdraw offer"
+        end
+        gl.Text(colorString .. textString, -((bW/2)-12.5), -((bH/2)-9.5), 19, "o")
+        gl.Color(1,1,1,1)
+        gl.PopMatrix()
+    else
+        if guishaderApplied and Script.LuaUI("GuishaderRemoveRect") then
+            Script.LuaUI.GuishaderRemoveRect('offertoplay')
+            guishaderApplied = nil
+        end
+        gadgetHandler:RemoveCallIn("DrawScreen") -- no need to waste cycles
+    end
 end
 
 function gadget:MousePress(sx,sy)
