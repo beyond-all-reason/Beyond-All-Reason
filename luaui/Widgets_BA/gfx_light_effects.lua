@@ -510,8 +510,11 @@ function loadWeaponDefs()
 			--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
 			params.r, params.g, params.b = 1, 0.8, 0.4
 			params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5) * globalRadiusMult
+			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.55)
 			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
 			params.life = (14*(0.8+ params.radius/1200))*globalLifeMult
+			params.heatlife = (14*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
+			params.heatstrength = 1.4 + (params.heatlife/22)
 
 			if customParams.expl_light_color then
 				local colorList = Split(customParams.expl_light_color, " ")
@@ -540,9 +543,7 @@ function loadWeaponDefs()
 				params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
 			end
 			if customParams.expl_light_heat_radius_mult then
-				params.heatradius = (params.radius/13) * tonumber(customParams.expl_light_heat_radius_mult)
-			else
-				params.heatradius = params.radius/13
+				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
 			end
 			if customParams.expl_light_life then
 				params.life = tonumber(customParams.expl_light_life)
@@ -607,7 +608,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			explosionLights[explosionLightsCount] = params
 		end
 
-		if enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and Spring.IsSphereInView(px,py,pz,100) then
+		if py > 0 and enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and Spring.IsSphereInView(px,py,pz,100) then
 
 			local strength,animSpeed,life,heat,sizeGrowth,size,force
 
@@ -629,13 +630,13 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				if weaponConf[weaponID].type == 'flame' then
 					strength = 1 + (params.life/25)
 					size = params.param.radius/2.5
-					life = params.life*0.6 + (params.param.radius/100)
+					life = params.life*0.6 + (params.param.radius/90)
 					force = {1,5.5,1}
 					heat = 8
 				else
-					strength = 1.15 + (params.life/22)
+					strength = weaponConf[weaponID].heatstrength
 					size = weaponConf[weaponID].heatradius
-					life = params.life*1.05 + (params.param.radius/50)
+					life = weaponConf[weaponID].heatlife
 					force = {0,0.35,0}
 					heat = 1
 				end

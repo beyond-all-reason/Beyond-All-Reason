@@ -699,12 +699,7 @@ end
 
 -- only being called for devs registered in gadget
 function PlayerDataBroadcast(playerName, msg)
-	if VFS.FileExists("playerdata_log.txt") then
-		k = tostring(VFS.LoadFile("playerdata_log.txt"))
-	else
-		k = ""
-	end
-
+	local data = ''
 	local count = 0
 	local startPos = 0
 	for i=1, string.len(msg) do
@@ -728,89 +723,151 @@ function PlayerDataBroadcast(playerName, msg)
 				if string.sub(data, i, i) == ';' then
 					count = count + 1
 					if count == 1 then
+						local finished = string.sub(data,1,i-1)
+						if finished == '1' then
+							screenshotFinished = true
+						else
+							screenshotFinished = false
+						end
 						startPos = i+1
-						screenshotWidth = string.sub(data,1,i-1)
 					elseif count == 2 then
-						screenshotHeight = string.sub(data,startPos,i-1)
+						screenshotWidth = string.sub(data,startPos,i-1)
 						startPos = i+1
 					elseif count == 3 then
+						screenshotHeight = string.sub(data,startPos,i-1)
+						startPos = i+1
+					elseif count == 4 then
 						local rgb = string.sub(data,startPos,i-1)
 						if rgb == '1' then
 							greyscale = false
 						else
 							greyscale = true
 						end
-					elseif count == 4 then
+						startPos = i+1
+					elseif count == 5 then
 						local camChanged = string.sub(data,startPos,i-1)
 						if camChanged == '1' then
 							camChanged = true
 						else
 							camChanged = false
 						end
-						data = string.sub(data, i+1)
+						startPos = i+1
+					elseif count == 6 then
+						screenshotGameframe = tonumber(string.sub(data,startPos,i-1))
+						if not screenshotData then
+							screenshotData = string.sub(data, i+1)
+						else
+							screenshotData = screenshotData .. string.sub(data, i+1)
+						end
 						break
 					end
 				end
 			end
+			data = nil
+			screenshotDataLast = totalTime
 
-			screenshotPixels = toPixels(data, greyscale)
-			screenshotPlayer = playerName
-			screenshotGameframe = Spring.GetGameFrame()
-			screenshotSaved = nil
-			screenshotPosX = widgetPosX-(backgroundMargin+30+screenshotWidth*widgetScale)
-			screenshotPosY = widgetPosY
-			screenshotDlist = gl_CreateList(function()
-				gl.Translate(screenshotPosX, screenshotPosY,0)
-				gl.Scale(widgetScale,widgetScale,0)
-
-				gl_Color(0,0,0,0.66)
-				local margin = 2
-				gl.Rect(-margin,-margin,screenshotWidth+margin+margin,screenshotHeight+15+margin+margin)
-				local padding = 2.75
-				gl_Color(1,1,1,0.025)
-				gl.Rect(-margin+padding,-margin+padding,screenshotWidth+margin-padding,screenshotHeight+margin-padding)
-
-				gl.Text(screenshotPlayer, 4, screenshotHeight+6.5, 11, "on")
-
-				local row = 0
-				local col = 0
-				for p=1, #screenshotPixels do
-					col = col + 1
-					if p%screenshotWidth == 1 then
-						row = row + 1
-						col = 1
-					end
-					if greyscale then
-						gl.Color(screenshotPixels[p][1], screenshotPixels[p][1], screenshotPixels[p][1], 1)
-					elseif screenshotPixels[p][3] then
-						gl.Color(screenshotPixels[p][1], screenshotPixels[p][2], screenshotPixels[p][3], 1)
-					end
-					gl.Rect(col, row, col+1, row+1)
+			if screenshotFinished or totalTime-4000 > screenshotDataLast then
+				screenshotFinished = true
+				local map = Game.mapName
+				local datetable = os.date('*t')
+				local frame = Spring.GetGameFrame()
+				local minutes = math.floor((screenshotGameframe / 30 / 60))
+				local seconds = math.floor((screenshotGameframe - ((minutes*60)*30)) / 30)
+				if seconds == 0 then
+					seconds = '00'
+				elseif seconds < 10 then
+					seconds = '0'..seconds
 				end
+				local time = minutes..':'..seconds
+				local yyyy = datetable.year
+				local m = datetable.month
+				local d = datetable.day
+				local h = datetable.hour
+				local min = datetable.min
+				local s = datetable.sec
+				local yyyy = tostring(yyyy)
+				local mm = ((m > 9 and tostring(m)) or (m <10 and ("0"..tostring(m))))
+				local dd = ((d > 9 and tostring(d)) or (d <10 and ("0"..tostring(d))))
+				local hh = ((h > 9 and tostring(h)) or (h <10 and ("0"..tostring(h))))
+				local minmin = ((min > 9 and tostring(min)) or (min <10 and ("0"..tostring(min))))
+				local ss = ((s > 9 and tostring(s)) or (s <10 and ("0"..tostring(s))))
+				local engine = Engine.versionFull
 
-				-- close button
-				--local size = 12
-				--local width = size*0.055
-				--gl.Color(1,1,1,1)
-				--gl.PushMatrix()
-				--gl.Translate(screenshotWidth-(size/2)-2,screenshotHeight+(size/2)+3,0)
-				--gl.Rotate(-45,0,0,1)
-				--gl.Rect(-width,size/2,width,-size/2)
-				--gl.Rotate(90,0,0,1)
-				--gl.Rect(-width,size/2,width,-size/2)
-				--gl.PopMatrix()
+				screenshotPixels = toPixels(screenshotData, greyscale)
+				screenshotPlayer = playerName
+				screenshotFilename = yyyy..mm..dd.."_"..hh..minmin..ss.."_" ..minutes..'.'..seconds.."_"..playerName
+				screenshotSaved = nil
+				screenshotSaveQueued = true
+				screenshotPosX = widgetPosX-(backgroundMargin+30+screenshotWidth*widgetScale)
+				screenshotPosY = widgetPosY
+				screenshotDlist = gl_CreateList(function()
+					gl.PushMatrix()
+					gl.Translate(screenshotPosX, screenshotPosY,0)
+					gl.Scale(widgetScale,widgetScale,0)
 
+					gl_Color(0,0,0,0.66)
+					local margin = 2
+					RectRound(-margin,-margin,screenshotWidth+margin+margin,screenshotHeight+15+margin+margin, 6, true)
+					gl_Color(1,1,1,0.025)
+					RectRound(0,0,screenshotWidth,screenshotHeight+12+margin+margin, 4.5, true)
 
-				gl.Scale(-widgetScale,-widgetScale,0)
-				gl.Translate(-screenshotPosX, -screenshotPosY,0)
-			end)
-			screenshotPixels = nil
-		else
-			--Spring.Echo(VFS.ZlibDecompress(VFS.ZlibCompress('test123')))
+					gl.Text(screenshotPlayer, 4, screenshotHeight+6.5, 11, "on")
 
-			local file = assert(io.open("playerdata_log.txt", 'w'), "Unable to save playerdata_log.txt file")
-			file:write(k .. msg .. "\n\n\n\n") --VFS.ZlibDecompress(msg)
-			file:close()
+					local row = 0
+					local col = 0
+					for p=1, #screenshotPixels do
+						col = col + 1
+						if p%screenshotWidth == 1 then
+							row = row + 1
+							col = 1
+						end
+						if greyscale then
+							gl.Color(screenshotPixels[p][1], screenshotPixels[p][1], screenshotPixels[p][1], 1)
+						elseif screenshotPixels[p][3] then
+							gl.Color(screenshotPixels[p][1], screenshotPixels[p][2], screenshotPixels[p][3], 1)
+						end
+						gl.Rect(col, row, col+1, row+1)
+					end
+					gl.PopMatrix()
+
+				end)
+				screenshotPixels = nil
+				screenshotData = nil
+				screenshotFinished = nil
+			end
+		elseif msgType == 'infolog' or msgType == 'config' then
+			local playerID
+			for i=1, string.len(data) do
+				if string.sub(data, i, i) == ';' then
+					playerID = tonumber(string.sub(data,1,i-1))
+					startPos = i+1
+					data = string.sub(data, i+1)
+					break
+				end
+			end
+			if playerID == myPlayerID then
+				local datetable = os.date('*t')
+				local yyyy = datetable.year
+				local m = datetable.month
+				local d = datetable.day
+				local h = datetable.hour
+				local min = datetable.min
+				local yyyy = tostring(yyyy)
+				local mm = ((m > 9 and tostring(m)) or (m <10 and ("0"..tostring(m))))
+				local dd = ((d > 9 and tostring(d)) or (d <10 and ("0"..tostring(d))))
+				local hh = ((h > 9 and tostring(h)) or (h <10 and ("0"..tostring(h))))
+				local minmin = ((min > 9 and tostring(min)) or (min <10 and ("0"..tostring(min))))
+
+				local filename = 'playerdata_'..msgType..'s.txt'
+				local filedata = ''
+				if VFS.FileExists(filename) then
+					filedata = tostring(VFS.LoadFile(filename))
+				end
+				local file = assert(io.open(filename, 'w'), 'Unable to save '..filename)
+				file:write(filedata .. '-----------------------------------------------------\n----  '.. yyyy..'-'..mm..'-'..dd.."  "..hh..'.'..minmin .. '  ' .. playerName .. '\n-----------------------------------------------------\n' .. VFS.ZlibDecompress(data) .. "\n\n\n\n\n\n")
+				file:close()
+				Spring.Echo('Added '..msgType..' to '..filename)
+			end
 		end
 	end
 end
@@ -1659,7 +1716,7 @@ function widget:DrawScreen()
 	
 	-- update lists frequently if there is mouse interaction
 	local NeedUpdate = false 
-	local mouseX,mouseY = Spring_GetMouseState()
+	local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
 	if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
 		local DrawFrame = Spring_GetDrawFrame()
 		local CurGameFrame = Spring_GetGameFrame()
@@ -1709,17 +1766,42 @@ function widget:DrawScreen()
 		local bottom = screenshotPosY-margin
 		local width = (screenshotWidth*widgetScale)+margin+margin+margin
 		local height = (screenshotHeight*widgetScale)+margin+margin+margin+(15*widgetScale)
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
-			screenshotGuishader = true
+		if screenshotSaveQueued then
+			if (WG['guishader_api'] ~= nil) then
+				WG['guishader_api'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
+				screenshotGuishader = true
+			end
+			if not screenshotSaved then
+				screenshotSaved = 'next'
+			elseif screenshotSaved == 'next' then
+				screenshotSaved = 'done'
+				local file = 'screenshots/'..screenshotFilename..'.png'
+				gl.SaveImage(left,bottom,width,height,file)
+				Spring.Echo('Screenshot saved to: '..file)
+				screenshotSaveQueued = nil
+			end
 		end
-		if not screenshotSaved then
-			screenshotSaved = 'next'
-		elseif screenshotSaved == 'next' then
-			screenshotSaved = 'done'
-			local filename = 'screenshots/0_'..screenshotPlayer..'_'..screenshotGameframe..'.png'
-			gl.SaveImage(left,bottom,width,height,filename);
-			Spring.Echo('Screenshot save to: '..filename)
+		if IsOnRectPlain(mouseX,mouseY, screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale)) then
+			if mouseButtonL then
+				gl_DeleteList(screenshotDlist)
+				if (WG['guishader_api'] ~= nil) then
+					WG['guishader_api'].RemoveRect('advplayerlist_screenshot')
+				end
+				screenshotDlist = nil
+			else
+				gl.Color(0,0,0,0.25)
+				RectRound(screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale), 2*widgetScale, true)				-- close button
+				local size = (screenshotHeight*widgetScale)*1.2
+				local width = size*0.011
+				gl.Color(1,1,1,0.66)
+				gl.PushMatrix()
+				gl.Translate(screenshotPosX+((screenshotWidth*widgetScale)/2), screenshotPosY+((screenshotHeight*widgetScale)/2),0)
+				gl.Rotate(-60,0,0,1)
+				gl.Rect(-width,size/2,width,-size/2)
+				gl.Rotate(120,0,0,1)
+				gl.Rect(-width,size/2,width,-size/2)
+				gl.PopMatrix()
+			end
 		end
 	end
 end
@@ -3221,6 +3303,9 @@ end
 --  Tweak mode
 ---------------------------------------------------------------------------------------------------
 
+function IsOnRectPlain(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
+	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
+end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	

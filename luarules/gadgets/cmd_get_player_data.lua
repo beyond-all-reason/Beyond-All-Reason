@@ -13,7 +13,7 @@ function gadget:GetInfo()
   }
 end
 
-local devs = {
+local authorized = {
 	["[teh]Flow"] = true,
 	['FlowerPower'] = true,
 	['Floris'] = true,
@@ -54,55 +54,108 @@ else
 		gadgetHandler:AddSyncAction("SendToWG", SendToWG)
 	end
 
+	function lines(str)
+		local t = {}
+		local function helper(line) table.insert(t, line) return "" end
+		helper((str:gsub("(.-)\r?\n", helper)))
+		return t
+	end
+
 	function gadget:GotChatMsg(msg, player)
-		local playername = Spring.GetPlayerInfo(player)
-		if not devs[playername] then
+		local myPlayerName,_,mySpec = Spring.GetPlayerInfo(player)
+		if not authorized[myPlayerName] then
 			return
 		end
 		if string.sub(msg,1,9) == "getconfig" then
 			local playerName = string.sub(msg, 11)
 			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
-				local config = VFS.LoadFile("LuaUI/Config/BA.lua")
-				if config then
-					config = string.sub(config, 1, 60000)
-					--config = VFS.ZlibCompress(config)
-					Spring.SendLuaRulesMsg("pd"..validation.."config;"..config)
+				local data = VFS.LoadFile("LuaUI/Config/BA.lua")
+				if data then
+					data = string.sub(data, 1, 200000)
+					Spring.SendLuaRulesMsg('pd'..validation..'config;'..player..';'..VFS.ZlibCompress(data))
 				end
 			end
 		elseif string.sub(msg,1,10) == "getinfolog" then
 			local playerName = string.sub(msg, 12)
 			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
-				local infolog = VFS.LoadFile("infolog.txt")
-				if infolog then
-					infolog = string.sub(infolog, 1, 30000)
-					--infolog = VFS.ZlibCompress(infolog)
-					Spring.SendLuaRulesMsg("pd"..validation.."infolog;"..infolog)
+				local userconfig
+				local data = ''
+				local skipline = false
+				local fileLines = lines(VFS.LoadFile("infolog.txt"))
+				for i, line in ipairs(fileLines) do
+					if not userconfig and string.find(line, '============== <User Config> ==============') then
+						userconfig = ''
+					end
+					if not userconfigComplete then
+						if userconfig then
+							if string.find(line, '============== </User Config> ==============') then
+								userconfig = userconfig .. '============== </User Config> ==============\n'
+								userconfigComplete = true
+							else
+								userconfig = userconfig .. line .. '\n'
+							end
+						end
+					else
+						skipline = false
+						-- filter paths for privacy reasons
+						if	string.find(line, 'Using read-') or
+							string.find(line, 'Scanning: ') or
+							string.find(line, 'Recording demo to: ') or
+							string.find(line, 'Loading StartScript from: ') or
+							string.find(line, 'Writing demo: ') or
+							string.find(line, 'command-line args: ') or
+							string.find(line, 'Using configuration source: ')
+						then
+							skipline = true
+						end
+						if not skipline then
+							data = data .. line .. '\n'
+						end
+					end
+				end
+				data = userconfig .. data
+				if data then
+					data = string.sub(data, 1, 250000)
+					Spring.SendLuaRulesMsg('pd'..validation..'infolog;'..player..';'..VFS.ZlibCompress(data))
 				end
 			end
 		elseif string.sub(msg,1,13) == "getscreenshot" then
+			if not mySpec and myPlayerName ~= 'Player' then
+				Spring.SendMessageToPlayer(player, 'Taking screenshots is disabled when you are a player')
+				return
+			end
+			queueScreenShotWidth = 200
+			queueScreenShotHeightBatch = 4
 
-			queueScreenShotGreyscale = false
 			local playerName = string.sub(msg, 15)
+			if string.sub(msg,1,15) == "getscreenshothq" then
+				queueScreenShotWidth = 320
+				queueScreenShotHeightBatch = 3
+				playerName = string.sub(msg, 17)
+			end
+			if string.sub(msg,1,15) == "getscreenshotlq" then
+				queueScreenShotWidth = 140
+				queueScreenShotHeightBatch = 5
+				playerName = string.sub(msg, 17)
+			end
+			queueScreenShotGreyscale = false
 			if string.sub(msg,1,17) == "getscreenshotgrey" then
 				queueScreenShotGreyscale = true
 				playerName = string.sub(msg, 19)
 			end
 			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
 				local vsx, vsy = Spring.GetViewGeometry()
-				if queueScreenShotGreyscale then
-					queueScreenShotWidth = 260
-					queueScreenShotHeightBatch = 3
-				else
-					queueScreenShotWidth = 150
-					queueScreenShotHeightBatch = 3
-				end
 				queueScreenshot = true
+				queueScreenshotGameframe = Spring.GetGameFrame()
 				queueScreenShotHeight = math.floor(queueScreenShotWidth*(vsy/vsx))
 				queueScreenShotStep = vsx/queueScreenShotWidth
 				queueScreenShotH = 0
 				queueScreenShotHmax = queueScreenShotH + queueScreenShotHeightBatch
 				queueScreenShotPixels = {}
 				queueScreenShotCamState = getCamStateStr()
+				--queueScreenShotBroadcastDelay = 1
+				queueScreenShotBroadcastChars = 0
+				queueScreenShotCharsPerBroadcast = 7500		-- in practice this will be a bit higher because it finishes adding a whole row of pixels
 			end
 		end
 	end
@@ -111,7 +164,7 @@ else
 	function gadget:Update(dt)
 		if queueScreenshot then
 			sec = sec + Spring.GetLastUpdateSeconds()
-			if sec > 0.0333 then
+			if sec > 0.03 then
 				sec = 0
 				local r,g,b
 				while queueScreenShotH < queueScreenShotHmax do
@@ -119,17 +172,24 @@ else
 					for w=1, queueScreenShotWidth do
 						r,g,b = gl.ReadPixels(math.floor(queueScreenShotStep*(w-0.5)),math.floor(queueScreenShotStep*(queueScreenShotH-0.5)),1,1)
 						if queueScreenShotGreyscale then
+							queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 1
 							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_AZ((r + g + b )*94/3)	-- greyscale
 						else
+							queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
 							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_AZ(r*94)..DEC_AZ(g*94)..DEC_AZ(b*94)
 						end
 					end
 				end
+
 				queueScreenShotHmax = queueScreenShotHmax + queueScreenShotHeightBatch
 				if queueScreenShotHmax > queueScreenShotHeight then
 					queueScreenShotHmax = queueScreenShotHeight
 				end
-				if queueScreenShotH >= queueScreenShotHeight then
+				if queueScreenShotBroadcastChars >= queueScreenShotCharsPerBroadcast or queueScreenShotH >= queueScreenShotHeight then
+					local finished = '0'
+					if queueScreenShotH >= queueScreenShotHeight then
+						finished = '1'
+					end
 					local rgb = '1'
 					if queueScreenShotGreyscale then
 						rgb = '0'
@@ -138,12 +198,15 @@ else
 					if queueScreenShotCamState ~= getCamStateStr() then
 						camchanged = '1'
 					end
-					local data = queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' ..rgb.. ';' .. camchanged .. ';' .. table.concat(queueScreenShotPixels)
+					local data =  finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' ..rgb.. ';' .. camchanged .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
+					Spring.SendLuaRulesMsg("pd"..validation.."screenshot;"..VFS.ZlibCompress(data))
+					queueScreenShotBroadcastChars = 0
+					queueScreenShotPixels = {}
 					pixels = nil
-					data = VFS.ZlibCompress(data)
-					Spring.SendLuaRulesMsg("pd"..validation.."screenshot;"..data)
-					queueScreenshot = nil
 					data = nil
+					if finished == '1' then
+						queueScreenshot = nil
+					end
 				end
 			end
 		end
@@ -182,7 +245,7 @@ else
 		if Script.LuaUI("PlayerDataBroadcast") then
 			Script.LuaUI.PlayerDataBroadcast(myplayername, msg)
 		end
-		if devs[myplayername] then
+		if authorized[myplayername] then
 			--Spring.Echo('PlayerDataBroadcast complete...')
 		end
 	end
