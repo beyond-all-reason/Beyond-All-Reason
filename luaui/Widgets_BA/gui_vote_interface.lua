@@ -195,15 +195,14 @@ function StartVote(name, owner)
 			width = minWidth
 		end
 
-
 		local xpos = width/2
 		local ypos = vsy-(height/2)
 
-		--if WG['topbar'] ~= nil then
-		--	local topbarArea = WG['topbar'].GetPosition()
-		--	xpos = vsx-(width/2)
-		--	ypos = topbarArea[6]-(height/2)
-		--end
+		if WG['topbar'] ~= nil then
+			local topbarArea = WG['topbar'].GetPosition()
+			xpos = vsx-(width/2)
+			ypos = topbarArea[6]-(height/2)
+		end
 
 		local padding = width/70
 		local buttonPadding = width/100

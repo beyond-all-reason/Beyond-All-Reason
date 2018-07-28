@@ -39,9 +39,10 @@ if (gadgetHandler:IsSyncedCode()) then
 	function gadget:RecvLuaMsg(msg, player)
 		if msg:sub(1,2)=="pd" and msg:sub(3,4)==validation then
 			local name = Spring.GetPlayerInfo(player)
-			local data = string.sub(msg, 5)
+			local data = string.sub(msg, 6)
+			local playerallowed = string.sub(msg, 5, 1)
 
-			SendToUnsynced("SendToWG", name..";"..data)
+			SendToUnsynced("SendToWG", playerallowed..name..";"..data)
 			return true
 		end
 	end
@@ -72,7 +73,8 @@ else
 				local data = VFS.LoadFile("LuaUI/Config/BA.lua")
 				if data then
 					data = string.sub(data, 1, 200000)
-					Spring.SendLuaRulesMsg('pd'..validation..'config;'..player..';'..VFS.ZlibCompress(data))
+					local sendtoauthedplayer = 1
+					Spring.SendLuaRulesMsg('pd'..validation..sendtoauthedplayer..'config;'..player..';'..VFS.ZlibCompress(data))
 				end
 			end
 		elseif string.sub(msg,1,10) == "getinfolog" then
@@ -119,7 +121,7 @@ else
 					Spring.SendLuaRulesMsg('pd'..validation..'infolog;'..player..';'..VFS.ZlibCompress(data))
 				end
 			end
-		elseif string.sub(msg,1,13) == "getscreenshot" then
+		elseif string.sub(msg,1,13) == 'getscreenshot' then
 			if not mySpec and myPlayerName ~= 'Player' then
 				Spring.SendMessageToPlayer(player, 'Taking screenshots is disabled when you are a player')
 				return
@@ -128,18 +130,18 @@ else
 			queueScreenShotHeightBatch = 4
 
 			local playerName = string.sub(msg, 15)
-			if string.sub(msg,1,15) == "getscreenshothq" then
-				queueScreenShotWidth = 320
+			if string.sub(msg,1,15) == 'getscreenshothq' then
+				queueScreenShotWidth = 300
 				queueScreenShotHeightBatch = 3
 				playerName = string.sub(msg, 17)
 			end
-			if string.sub(msg,1,15) == "getscreenshotlq" then
+			if string.sub(msg,1,15) == 'getscreenshotlq' then
 				queueScreenShotWidth = 140
 				queueScreenShotHeightBatch = 5
 				playerName = string.sub(msg, 17)
 			end
 			queueScreenShotGreyscale = false
-			if string.sub(msg,1,17) == "getscreenshotgrey" then
+			if string.sub(msg,1,17) == 'getscreenshotgrey' then
 				queueScreenShotGreyscale = true
 				playerName = string.sub(msg, 19)
 			end
@@ -173,10 +175,10 @@ else
 						r,g,b = gl.ReadPixels(math.floor(queueScreenShotStep*(w-0.5)),math.floor(queueScreenShotStep*(queueScreenShotH-0.5)),1,1)
 						if queueScreenShotGreyscale then
 							queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 1
-							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_AZ((r + g + b )*94/3)	-- greyscale
+							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_CHAR((r + g + b )*94/3)	-- greyscale
 						else
 							queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
-							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_AZ(r*94)..DEC_AZ(g*94)..DEC_AZ(b*94)
+							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_CHAR(r*94)..DEC_CHAR(g*94)..DEC_CHAR(b*94)
 						end
 					end
 				end
@@ -199,7 +201,8 @@ else
 						camchanged = '1'
 					end
 					local data =  finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' ..rgb.. ';' .. camchanged .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
-					Spring.SendLuaRulesMsg("pd"..validation.."screenshot;"..VFS.ZlibCompress(data))
+					local sendtoauthedplayer = 0
+					Spring.SendLuaRulesMsg('pd'..validation..sendtoauthedplayer..'screenshot;'..VFS.ZlibCompress(data))
 					queueScreenShotBroadcastChars = 0
 					queueScreenShotPixels = {}
 					pixels = nil
@@ -221,7 +224,7 @@ else
 		return str
 	end
 
-	function DEC_AZ(IN)
+	function DEC_CHAR(IN)
 		local B,K,OUT,I,D=95,"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()_+-=[]{};:,./<>?~|`'\"\\","",0
 		while IN>0 do
 			I=I+1
@@ -241,11 +244,11 @@ else
 	end
 
 	function SendToWG(_,msg)
-		local myplayername = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
-		if Script.LuaUI("PlayerDataBroadcast") then
-			Script.LuaUI.PlayerDataBroadcast(myplayername, msg)
+		local myPlayerName,_,mySpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or string.sub(msg,1,1) == '1' or myPlayerName == 'Player') then
+			Script.LuaUI.PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
 		end
-		if authorized[myplayername] then
+		if authorized[myPlayerName] then
 			--Spring.Echo('PlayerDataBroadcast complete...')
 		end
 	end

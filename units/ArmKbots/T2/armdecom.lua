@@ -99,7 +99,7 @@ return {
 			cloak = "kloak1",
 			repair = "repair1",
 			uncloak = "kloak1un",
-			underattack = "warning2",
+			underattack = "warning1",
 			unitcomplete = "kcarmmov",
 			working = "reclaim1",
 			cant = {
