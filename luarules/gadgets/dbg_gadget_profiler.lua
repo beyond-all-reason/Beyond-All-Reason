@@ -46,7 +46,9 @@ local callinStatsSYNCED = {}
 local spGetTimer = Spring.GetTimer
 local spDiffTimers = Spring.DiffTimers
 local spGetLuaMemUsage = Spring.GetLuaMemUsage
-
+if spGetLuaMemUsage == nil then
+	spGetLuaMemUsage = function() return 0,0,0,0,0,0,0,0 end
+end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

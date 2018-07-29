@@ -95,7 +95,7 @@ function AttackerBehaviour:AttackCell(type)
 		local TeamID = ai.id
 		local allyTeamID = ai.allyId
 		local nearestUnit = Spring.GetUnitNearestEnemy(unitID, nearestUnitRangeCheck, false)
-		if nearestUnit and not (Spring.IsUnitInRadar(nearestUnit, TeamID) or Spring.IsUnitInLos(nearestUnit, TeamID)) then
+		if nearestUnit and not (Spring.IsUnitInRadar(nearestUnit, allyTeamID) or Spring.IsUnitInLos(nearestUnit, allyTeamID)) then
 			nearestUnit = nil
 		end
 		--local nearestVisibleUnit = Spring.GetUnitNearestEnemy(unitID, _, true)
