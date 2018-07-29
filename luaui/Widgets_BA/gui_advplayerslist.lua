@@ -3850,7 +3850,7 @@ function widget:Update(delta) --handles takes & related messages
 			if desiredLosmode ~= Spring.GetMapDrawMode() then	-- this is needed else the minimap/world doesnt update properly
 				Spring.SendCommands("togglelos")
 			end
-		elseif mySpecStatus and Spring.GetMapDrawMode() == 'lol' then
+		elseif mySpecStatus and Spring.GetMapDrawMode() == 'los' then
 			Spring.SendCommands("togglelos")
 		end
 	end
