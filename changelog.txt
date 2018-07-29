@@ -1,4 +1,13 @@
-﻿10.10 -> 10.11
+﻿10.11 -> 10.12
+XX/XX/2018
+
+ • Player camara tracking also limits view to players viewpoint
+ • Fixed: Decoy com attacked warning sound changed to a regular one unit under attack sound
+ • Fixed DAI echospam + working with multiple DAI bots
+ • Fixed map edge extension not always showing.
+
+
+10.10 -> 10.11
 23/07/2018
 
 Balance changes:

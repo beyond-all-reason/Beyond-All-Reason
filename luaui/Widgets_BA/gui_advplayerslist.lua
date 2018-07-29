@@ -53,8 +53,8 @@ local pointDuration    		= 40
 local cpuText				= false
 local drawAlliesLabel = false
 local alwaysHideSpecs = false
-local lockcameraHideEnemies = false --true
-local lockcameraLos = false --true
+local lockcameraHideEnemies = true 			-- specfullview
+local lockcameraLos = true					-- togglelos
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -894,10 +894,10 @@ local function LockCamera(playerID)
 	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID then
 		if lockcameraHideEnemies and not select(3,Spring_GetPlayerInfo(playerID)) then
 			if not fullView then
-				sceduledSpecFullView = 1
+				sceduledSpecFullView = 1	-- this is needed else the minimap/world doesnt update properly
 				Spring.SendCommands("specfullview")
 			else
-				sceduledSpecFullView = 2
+				sceduledSpecFullView = 2	-- this is needed else the minimap/world doesnt update properly
 				Spring.SendCommands("specfullview")
 			end
 			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
@@ -906,6 +906,9 @@ local function LockCamera(playerID)
 		elseif lockcameraHideEnemies and select(3,Spring_GetPlayerInfo(playerID)) then
 			if not fullView then
 				Spring.SendCommands("specfullview")
+				if Spring.GetMapDrawMode()=="los" then
+					Spring.SendCommands("togglelos")
+				end
 			end
 		end
 		lockPlayerID = playerID
