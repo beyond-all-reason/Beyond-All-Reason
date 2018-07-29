@@ -92,8 +92,11 @@ local buttonsArea = {}
 local dlistWindText = {}
 local dlistResValues = {metal={},energy={}}
 local currentResCap = {metal=1000,energy=1000}
-local currentResValue = {metal=1000,energy=1000}
+local currentResValue = {metal=1000,energy=1000 }
+
 local r = {}
+r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
+r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
 
 local showOverflowTooltip = {}
 
@@ -894,10 +897,10 @@ function widget:Update(dt)
 	local mx,my = spGetMouseState()
 
     sec = sec + dt
-    if (sec>0.33) then
+    if sec>0.33 then
         sec = 0
-        r['metal'] = {spGetTeamResources(myTeamID,'metal') }
-        r['energy'] = {spGetTeamResources(myTeamID,'energy') }
+        r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
+        r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
     end
 
     now = os.clock()
