@@ -43,6 +43,33 @@ local isInView = true
 local island = nil -- Later it will be checked and set to true of false
 local drawingEnabled = true
 
+local checkInView = false
+
+
+local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+if Engine and Engine.version then
+	local function Split(s, separator)
+		local results = {}
+		for part in s:gmatch("[^"..separator.."]+") do
+			results[#results + 1] = part
+		end
+		return results
+	end
+	engineVersion = Split(Engine.version, '-')
+	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
+		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
+	else
+		engineVersion = tonumber(Engine.version)
+	end
+elseif Game and Game.version then
+	engineVersion = tonumber(Game.version)
+end
+
+
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401583 then
+	checkInView = true	-- Spring.IsAABBInView wasnt working properly on older engines
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -416,16 +443,18 @@ function widget:Update(dt)
 		end
 	end
 
-	--if	Spring.IsAABBInView(-999,0,-999, Game.mapSizeX+999,1,0) or
-	--	Spring.IsAABBInView(-999,0,0, 0,1,Game.mapSizeZ) or
-	--	Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ) or
-	--	Spring.IsAABBInView(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
-	--then
-	--	--Spring.Echo(math.random())
-	--	isInView = true
-	--else
-	--	isInView = false
-	--end
+	if checkInView then
+		if	Spring.IsAABBInView(-999,0,-999, Game.mapSizeX+999,1,0) or
+			Spring.IsAABBInView(-999,0,0, 0,1,Game.mapSizeZ) or
+			Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ) or
+			Spring.IsAABBInView(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
+		then
+			--Spring.Echo(math.random())
+			isInView = true
+		else
+			isInView = false
+		end
+	end
 end
 
 --local function DrawMyBox(minX,minY,minZ, maxX,maxY,maxZ)
