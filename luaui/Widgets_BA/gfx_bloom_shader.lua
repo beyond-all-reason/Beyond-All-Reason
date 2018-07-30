@@ -5,8 +5,8 @@ function widget:GetInfo()
 		author    = "Floris", -- orginal bloom shader: Kloot
 		date      = "24-9-2016",
 		license   = "",
-		layer     = -math.huge,
-		enabled   = true
+		layer     = -5,
+		enabled   = true,
 	}
 end
 
@@ -203,6 +203,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawWorldPreUnit()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	if initialized == false or drawWorldPreUnitAlpha <= 0.05 then return end
 	gl.PushMatrix()
 	gl.Color(0,0,0,drawWorldPreUnitAlpha)
@@ -213,6 +214,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:DrawWorld()
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	if initialized == false or drawWorldAlpha <= 0.05 then return end
 	gl.PushMatrix()
 	gl.Color(0,0,0,drawWorldAlpha)

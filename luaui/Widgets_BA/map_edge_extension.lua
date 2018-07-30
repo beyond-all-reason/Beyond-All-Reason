@@ -65,8 +65,7 @@ elseif Game and Game.version then
 	engineVersion = tonumber(Game.version)
 end
 
-
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401583 then
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401584 then
 	checkInView = true	-- Spring.IsAABBInView wasnt working properly on older engines
 end
 
@@ -444,10 +443,10 @@ function widget:Update(dt)
 	end
 
 	if checkInView then
-		if	Spring.IsAABBInView(-999,0,-999, Game.mapSizeX+999,1,0) or
-			Spring.IsAABBInView(-999,0,0, 0,1,Game.mapSizeZ) or
-			Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ) or
-			Spring.IsAABBInView(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
+		if	Spring.IsAABBInView(-9999,0,-9999, Game.mapSizeX+9999,1,0) or
+			Spring.IsAABBInView(-9999,0,0, 0,1,Game.mapSizeZ) or
+			Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+9999,1,Game.mapSizeZ) or
+			Spring.IsAABBInView(-9999,0,Game.mapSizeZ+9999, Game.mapSizeX+9999,1,Game.mapSizeZ)
 		then
 			--Spring.Echo(math.random())
 			isInView = true
@@ -486,13 +485,13 @@ end
 --end
 --function widget:DrawWorld()
 --	gl.Color(1,0,0,0.5)
---	DrawMyBox(-999,0,-999, Game.mapSizeX+999,1,0)
+--	DrawMyBox(-9999,0,-9999, Game.mapSizeX+9999,1,0)
 --	gl.Color(1,1,0,0.5)
---	DrawMyBox(-999,0,0, 0,1,Game.mapSizeZ)
+--	DrawMyBox(-9999,0,0, 0,1,Game.mapSizeZ)
 --	gl.Color(0,1,0,0.5)
---	DrawMyBox(Game.mapSizeX,0,0, Game.mapSizeX+999,1,Game.mapSizeZ)
+--	DrawMyBox(Game.mapSizeX,0,0, Game.mapSizeX+9999,1,Game.mapSizeZ)
 --	gl.Color(0,0,1,0.5)
---	DrawMyBox(-999,0,Game.mapSizeZ+999, Game.mapSizeX+999,1,Game.mapSizeZ)
+--	DrawMyBox(-9999,0,Game.mapSizeZ+9999, Game.mapSizeX+9999,1,Game.mapSizeZ)
 --	gl.Color(1,1,1,1)
 --end
 

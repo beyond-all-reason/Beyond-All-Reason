@@ -527,6 +527,6 @@ function widget:DrawScreenEffects()
 	if pointLightCount > 0 then
 		DrawLightType(pointLights, pointLightCount, 0)
 	end
-	
-	glBlending(false)
+
+	glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
