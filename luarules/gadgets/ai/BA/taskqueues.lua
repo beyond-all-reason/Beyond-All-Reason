@@ -481,13 +481,7 @@ local corcommanderfirst = {
 	CorWindOrSolar,
 	CorStarterLabT1,
 	"corllt",
-	CorWindOrSolar,
-	CorStarterLabT1,
-	--"corllt",
-	CorWindOrSolar,
-	CorStarterLabT1,
 	"corrad",
-	--"corllt",
 }
 
 local cort1construction = {
