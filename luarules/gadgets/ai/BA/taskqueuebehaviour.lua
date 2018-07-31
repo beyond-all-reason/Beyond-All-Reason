@@ -233,7 +233,6 @@ function TaskQueueBehaviour:HandleActionTask( task )
 	elseif action == "patrolrelative" then
 		local upos = self.unit:Internal():GetPosition()
 		local newpos = api.Position()
-		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 		newpos.x = upos.x + task.position.x
 		newpos.y = upos.y + task.position.y
 		newpos.z = upos.z + task.position.z
