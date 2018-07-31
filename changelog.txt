@@ -6,6 +6,7 @@ XX/XX/2018
  • Fixed DAI echospam + working with multiple DAI bots
  • Fixed map edge extension not always showing.
  • Fixed "States Prefs" widget overriding config table with empty table after loading a replay
+ • Fixed Bloom rendering the map black on some maps
 
 
 10.10 -> 10.11
