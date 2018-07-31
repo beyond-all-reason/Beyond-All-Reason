@@ -11,7 +11,7 @@ end
 function AttackHandler:Init()
 	self.recruits = {attackers = {}, defenders = {}}
 	self.counter = 1
-	self.ratio = math.random(1,10)
+	self.ratio = 10
 end
 
 function AttackHandler:Update()
