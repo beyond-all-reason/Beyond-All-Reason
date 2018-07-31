@@ -86,7 +86,7 @@ end
 function TaskQueueBehaviour:GetQueue()
 	q = taskqueues[self.name]
 	if type(q) == "function" then
-		q = q(self)
+		q = q(self, self.ai, self.unit)
 	end
 	return q
 end
