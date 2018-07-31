@@ -5,6 +5,7 @@ XX/XX/2018
  • Fixed: Decoy com attacked warning sound changed to a regular one unit under attack sound
  • Fixed DAI echospam + working with multiple DAI bots
  • Fixed map edge extension not always showing.
+ • Fixed "States Prefs" widget overriding config table with empty table after loading a replay
 
 
 10.10 -> 10.11
