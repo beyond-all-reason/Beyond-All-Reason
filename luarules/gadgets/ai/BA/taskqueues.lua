@@ -84,7 +84,7 @@ end
 --------------------------------------------------------------------------------------------
 
 function CorWindOrSolar(tqb, ai, unit)
-    local curWind = Spring.GetWind()
+    local _,_,_,curWind = Spring.GetWind()
     local avgWind = (Game.windMin + Game.windMax)/2
 	if ai and ai.id then
 		if not (UDC(ai.id, UDN.armfus.id) + UDC(ai.id, UDN.corfus.id) > 1) then
@@ -682,7 +682,7 @@ end
 --------------------------------------------------------------------------------------------
 
 function ArmWindOrSolar(tqb, ai, unit)
-    local curWind = Spring.GetWind()
+    local _,_,_,curWind = Spring.GetWind()
     local avgWind = (Game.windMin + Game.windMax)/2
 	if ai and ai.id then
 		if not (UDC(ai.id, UDN.armfus.id) + UDC(ai.id, UDN.corfus.id) > 1) then
