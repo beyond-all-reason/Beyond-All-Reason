@@ -674,7 +674,6 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 					heat = 1
 				end
 			end
-			Spring.Echo(size*strengthMult)
 			if size*strengthMult > 5 then
 				WG['Lups'].AddParticles('JitterParticles2', {
 					layer = -35,
