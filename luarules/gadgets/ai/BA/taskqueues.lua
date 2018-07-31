@@ -55,7 +55,7 @@ function FindBest(unitoptions,ai)
 			randomization = randomization + effect[unitName]
 		end
 		if randomization < 1 then
-			return "corkrog"
+			return {action = "nexttask"}
 		end
 		return randomunit[math.random(1,randomization)]	
 	else
@@ -100,7 +100,7 @@ function CorWindOrSolar(tqb, ai, unit)
 				end
 			end
 		else
-			return "corrship"	
+			return {action = "nexttask"}	
 		end
 	else
 		return "corsolar"
@@ -125,7 +125,7 @@ function CorNanoT(tqb, ai, unit)
 	if mc > ms*0.1 and ec > es*0.1 then
 		return "cornanotc"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -157,7 +157,7 @@ function CorEcoT1( tqb, ai, unit )
 	elseif mc < ms*0.1 and ec > es*0.90 then
 		return "cormakr"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -187,7 +187,7 @@ function CorMexT1( tqb, ai, unit )
     elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
         return "cormakr"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -201,7 +201,7 @@ function CorStarterLabT1(tqb, ai, unit)
 			return "corvp"
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -236,10 +236,10 @@ function CorRandomLab(tqb, ai, unit)
 		elseif UDC(ai.id, UDN.corgant.id) < 1 then
 			return "corgant"
 		else
-			return "corkrog"
+			return {action = "nexttask"}
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -255,7 +255,7 @@ function CorGroundAdvDefT1(tqb, ai, unit)
 			return FindBest(unitoptions,ai)
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -266,7 +266,7 @@ function CorAirAdvDefT1(tqb, ai, unit)
 		local unitoptions = {"cormadsam", "corrl",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -277,7 +277,7 @@ function CorAirAdvDefT2(tqb, ai, unit)
 		local unitoptions = {"corflak","corscreamer" }
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -288,7 +288,7 @@ function CorTacticalAdvDefT2(tqb, ai, unit)
 		local unitoptions = {"corvipe","cortoast","cordoom", "corint"}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -301,10 +301,10 @@ function CorTacticalOffDefT2(tqb, ai, unit)
 		elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
 			return "corgate"
 		else
-			return "corkrog"
+			return {action = "nexttask"}
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 	--local unitoptions = {"corfmd", "corsilo",}
@@ -319,7 +319,7 @@ function CorKBotsT1(tqb, ai, unit)
 		local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -331,7 +331,7 @@ function CorVehT1(tqb, ai, unit)
 		local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -343,7 +343,7 @@ function CorAirT1(tqb, ai, unit)
 		local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -416,7 +416,7 @@ function CorT1RezBot(tqb, ai, unit)
 	if CountRez <= 10 then
 		return "cornecro"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -433,7 +433,7 @@ function CorT1AirCon(tqb, ai, unit)
 	if CountCons <= 4 then
 		return "corca"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -445,7 +445,7 @@ function CorFirstT2Mexes(tqb, ai, unit)
 		ai.firstt2mexes = ai.firstt2mexes + 1
 		return "cormoho"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -457,7 +457,7 @@ function CorFirstT1Mexes(tqb, ai, unit)
 		ai.firstt1mexes = ai.firstt1mexes + 1
 		return "cormex"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -465,7 +465,7 @@ function CorThirdMex(tqb, ai, unit)
 	if income(ai, "metal") < 5.5 then
 		return 'cormex'
 	else
-		return 'corrship'
+		return {action = "nexttask"}
 	end
 end
 
@@ -704,7 +704,7 @@ function ArmWindOrSolar(tqb, ai, unit)
 				end
 			end
 		else
-			return "armrship"	
+			return {action = "nexttask"}	
 		end
 	else
 		return "armsolar"
@@ -729,7 +729,7 @@ function ArmNanoT(tqb, ai, unit)
 	if mc > ms*0.1 and ec > es*0.1 then
 		return "armnanotc"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -764,7 +764,7 @@ function ArmEcoT1( tqb, ai, unit )
 	elseif mc < ms*0.1 and ec > es*0.90 then
 		return "armmakr"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -792,7 +792,7 @@ function ArmMexT1( tqb, ai, unit )
     elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
         return "armmakr"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -806,7 +806,7 @@ function ArmStarterLabT1(tqb, ai, unit)
 			return "armvp"
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -841,10 +841,10 @@ function ArmRandomLab(tqb, ai, unit)
 		elseif UDC(ai.id, UDN.armshltx.id) < 1 then
 			return "armshltx"
 		else
-			return "corkrog"
+			return {action = "nexttask"}
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -860,7 +860,7 @@ function ArmGroundAdvDefT1(tqb, ai, unit)
 			return FindBest(unitoptions,ai)
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -871,7 +871,7 @@ function ArmAirAdvDefT1(tqb, ai, unit)
 		local unitoptions = {"armrl", "armpacko",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -887,7 +887,7 @@ function ArmTacticalAdvDefT2(tqb, ai, unit)
 		local unitoptions = {"armpb","armamb","armanni", "armbrtha"}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -903,7 +903,7 @@ function ArmTacticalOffDefT2(tqb, ai, unit)
 			return "corkrog"
 		end
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 	--local unitoptions = {"armamd", "armsilo",}
@@ -917,7 +917,7 @@ function ArmKBotsT1(tqb, ai, unit)
 		local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armwar", "armjeth",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -929,7 +929,7 @@ function ArmVehT1(tqb, ai, unit)
 		local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -941,7 +941,7 @@ function ArmAirT1(tqb, ai, unit)
 		local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
 		return FindBest(unitoptions,ai)
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end	
 
@@ -1015,7 +1015,7 @@ function ArmT1RezBot(tqb, ai, unit)
 	if CountRez <= 10 then
 		return "armrectr"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -1032,7 +1032,7 @@ function ArmT1AirCon(tqb, ai, unit)
 	if CountCons <= 4 then
 		return "armca"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -1044,7 +1044,7 @@ function ArmFirstT2Mexes(tqb, ai, unit)
 		ai.firstt2mexes = ai.firstt2mexes + 1
 		return "armmoho"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
@@ -1056,7 +1056,7 @@ function ArmFirstT1Mexes(tqb, ai, unit)
 		ai.firstt1mexes = ai.firstt1mexes + 1
 		return "armmex"
 	else
-		return "corkrog"
+		return {action = "nexttask"}
 	end
 end
 
