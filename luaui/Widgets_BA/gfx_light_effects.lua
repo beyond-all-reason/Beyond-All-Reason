@@ -76,6 +76,89 @@ local function Split(s, separator)
 	return results
 end
 
+
+
+local weaponConf = {}
+function loadWeaponDefs()
+	weaponConf = {}
+	for i=1, #WeaponDefs do
+		local customParams = WeaponDefs[i].customParams or {}
+		if customParams.expl_light_skip == nil then
+			local params = {}
+			--local maxDamage = 0
+			--for armortype, value in pairs(WeaponDefs[i].damages) do
+			--	maxDamage = math.max(maxDamage, value)
+			--end
+			--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
+			params.r, params.g, params.b = 1, 0.8, 0.4
+			params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5) * globalRadiusMult
+			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.55)
+			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
+			params.life = (14*(0.8+ params.radius/1200))*globalLifeMult
+			params.heatlife = (14*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
+			params.heatstrength = 1.4 + (params.heatlife/22)
+
+			if customParams.expl_light_color then
+				local colorList = Split(customParams.expl_light_color, " ")
+				params.r = colorList[1]
+				params.g = colorList[2]
+				params.b = colorList[3]
+			elseif WeaponDefs[i].rgbColor ~= nil then
+				local colorList = Split(WeaponDefs[i].rgbColor, " ")
+				params.r = colorList[1]
+				params.g = colorList[2]
+				params.b = colorList[3]
+			end
+
+			if customParams.expl_light_opacity ~= nil then
+				params.orgMult = customParams.expl_light_opacity * globalLightMult
+			end
+
+			if customParams.expl_light_mult ~= nil then
+				params.orgMult = params.orgMult * customParams.expl_light_mult
+			end
+
+			if customParams.expl_light_radius then
+				params.radius = tonumber(customParams.expl_light_radius) * globalRadiusMult
+			end
+			if customParams.expl_light_radius_mult then
+				params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
+			end
+			if customParams.expl_light_heat_radius_mult then
+				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
+			end
+			if customParams.expl_light_heat_strength_mult then
+				params.heatstrength = params.heatstrength * customParams.expl_light_heat_strength_mult
+			end
+			if customParams.expl_light_life then
+				params.life = tonumber(customParams.expl_light_life)
+			end
+			if customParams.expl_light_life_mult then
+				params.life = params.life * tonumber(customParams.expl_light_life_mult)
+			end
+			if WeaponDefs[i].paralyzer then
+				params.type = 'paralyzer'
+			end
+			if WeaponDefs[i].type == 'Flame' then
+				params.type = 'flame'
+				params.radius = params.radius * 0.66
+				params.orgMult = params.orgMult * 0.66
+			end
+			if customParams.expl_noheatdistortion then
+				params.noheatdistortion = true
+			end
+			params.wtype = WeaponDefs[i].type
+			if params.wtype == 'Cannon' then
+				params.cannonsize = WeaponDefs[i].size
+			end
+			weaponConf[i] = params
+		end
+	end
+end
+loadWeaponDefs()
+
+
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Light Defs
@@ -373,6 +456,7 @@ local function GetProjectileLight(lightParams, pID, x, y, z)
 end
 
 local function GetProjectileLights(beamLights, beamLightCount, pointLights, pointLightCount)
+	local cx, cy, cz = Spring.GetCameraPosition()
 
     if not enableDeferred then return {}, 0, {}, 0 end
 
@@ -433,6 +517,27 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						pointLights[pointLightCount] = drawParams
 						if projectileDrawParams then
 							projectileDrawParams[#projectileDrawParams + 1] = drawParams
+						end
+						if enableHeatDistortion and WG['Lups'] then
+							local weaponDefID = Spring.GetProjectileDefID(pID)
+							if weaponDefID and not weaponConf[weaponDefID].noheatdistortion and Spring.IsSphereInView(x,y,z,100) then
+								if weaponConf[weaponDefID].wtype == 'DGun' then
+									local distance = math.diag(x-cx, y-cy, z-cz)
+									local strengthMult = 1 / (distance*0.001)
+
+									WG['Lups'].AddParticles('JitterParticles2', {
+										layer = -35,
+										life = weaponConf[weaponDefID].heatlife/4,
+										pos = {x,y,z},
+										size = weaponConf[weaponDefID].heatradius*1.5,
+										sizeGrowth = 0.2,
+										strength = (weaponConf[weaponDefID].heatstrength*0.5)*strengthMult,
+										animSpeed = 1.3,
+										heat = 1,
+										force = {0,0.35,0},
+									})
+								end
+							end
 						end
 					end
 				end
@@ -495,78 +600,6 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 
 	return beamLights, beamLightCount, pointLights, pointLightCount
 end
-
-local weaponConf = {}
-function loadWeaponDefs()
-	weaponConf = {}
-	for i=1, #WeaponDefs do
-		local customParams = WeaponDefs[i].customParams or {}
-		if customParams.expl_light_skip == nil then
-			local params = {}
-			--local maxDamage = 0
-			--for armortype, value in pairs(WeaponDefs[i].damages) do
-			--	maxDamage = math.max(maxDamage, value)
-			--end
-			--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
-			params.r, params.g, params.b = 1, 0.8, 0.4
-			params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5) * globalRadiusMult
-			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.55)
-			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
-			params.life = (14*(0.8+ params.radius/1200))*globalLifeMult
-			params.heatlife = (14*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
-			params.heatstrength = 1.4 + (params.heatlife/22)
-
-			if customParams.expl_light_color then
-				local colorList = Split(customParams.expl_light_color, " ")
-				params.r = colorList[1]
-				params.g = colorList[2]
-				params.b = colorList[3]
-			elseif WeaponDefs[i].rgbColor ~= nil then
-				local colorList = Split(WeaponDefs[i].rgbColor, " ")
-				params.r = colorList[1]
-				params.g = colorList[2]
-				params.b = colorList[3]
-			end
-
-			if customParams.expl_light_opacity ~= nil then
-				params.orgMult = customParams.expl_light_opacity * globalLightMult
-			end
-
-			if customParams.expl_light_mult ~= nil then
-				params.orgMult = params.orgMult * customParams.expl_light_mult
-			end
-
-			if customParams.expl_light_radius then
-				params.radius = tonumber(customParams.expl_light_radius) * globalRadiusMult
-			end
-			if customParams.expl_light_radius_mult then
-				params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
-			end
-			if customParams.expl_light_heat_radius_mult then
-				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
-			end
-			if customParams.expl_light_life then
-				params.life = tonumber(customParams.expl_light_life)
-			end
-			if customParams.expl_light_life_mult then
-				params.life = params.life * tonumber(customParams.expl_light_life_mult)
-			end
-			if WeaponDefs[i].paralyzer then
-				params.type = 'paralyzer'
-			end
-			if WeaponDefs[i].type == 'Flame' then
-				params.type = 'flame'
-				params.radius = params.radius * 0.66
-				params.orgMult = params.orgMult * 0.66
-			end
-			if customParams.expl_noheatdistortion then
-				params.noheatdistortion = true
-			end
-			weaponConf[i] = params
-		end
-	end
-end
-loadWeaponDefs()
 
 
 -- function called by explosion_lights gadget
@@ -641,17 +674,19 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 					heat = 1
 				end
 			end
-			WG['Lups'].AddParticles('JitterParticles2', {
-				layer = -35,
-				life = life,
-				pos = {px,py+10,pz},
-				size = size,
-				sizeGrowth = sizeGrowth,
-				strength = strength*strengthMult,
-				animSpeed = animSpeed,
-				heat = heat,
-				force = force,
-			})
+			if size*strengthMult > 5 then
+				WG['Lups'].AddParticles('JitterParticles2', {
+					layer = -35,
+					life = life,
+					pos = {px,py+10,pz},
+					size = size,
+					sizeGrowth = sizeGrowth,
+					strength = strength*strengthMult,
+					animSpeed = animSpeed,
+					heat = heat,
+					force = force,
+				})
+			end
 		end
 
 
