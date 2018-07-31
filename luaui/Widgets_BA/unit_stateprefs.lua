@@ -40,11 +40,11 @@ end
 
 function widget:Initialize()
 	unitArray = unitArray or {}
-  if Spring.IsReplay() then
-	widget:GameOver()
-  end
   for i, v in pairs(unitArray) do
     unitSet[i] = v
+  end
+  if Spring.IsReplay() then
+	widget:GameOver()
   end
 end
 
