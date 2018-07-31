@@ -54,9 +54,10 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 		local unitTeam = Spring.GetUnitTeam(unitID)
 		unitSet[UnitDefs[unitDefID].name] = unitSet[UnitDefs[unitDefID].name] or {}
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and #cmdParams == 1 and not (cmdID == CMD.SET_WANTED_MAX_SPEED) then
+		if ctrl and #cmdParams == 1 and not (cmdID == CMD.SET_WANTED_MAX_SPEED) and not (unitSet[UnitDefs[unitDefID].name][cmdID] == cmdParams[1]) then
 			unitSet[UnitDefs[unitDefID].name][cmdID] = cmdParams[1]
 			Spring.Echo("State pref changed to: "..(cmdParams[1]))
+			table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
 		end
 	end
 end
