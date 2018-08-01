@@ -945,16 +945,13 @@ function FpsEvent(playerID, fps)
 end
 	
 function SystemEvent(playerID, system)
-  -- dont trust the recieved data, limiting abuse
   local lines, length = 0, 0
   local function helper(line) lines=lines+1; if string.len(line) then length = string.len(line) end return "" end
-	helper((system:gsub("(.-)\r?\n", helper)))
-  if lines <= 9 and length <= 64 then
-  	lastSystemData[playerID] = system
+  helper((system:gsub("(.-)\r?\n", helper)))
+  lastSystemData[playerID] = system
 
-	WG.playerSystemData = WG.playerSystemData or {}
-	WG.playerSystemData[playerID] = system
-  end
+  WG.playerSystemData = WG.playerSystemData or {}
+  WG.playerSystemData[playerID] = system
 end
 
 function ActivityEvent(playerID)

@@ -477,7 +477,6 @@ local function CreateGrid(r)
 			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx)
 			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
 			background.movableslaves[#background.movableslaves+1] = b
-			--table.insert(background.movableslaves,b)
 			icons[#icons+1] = b
 			if ((y==r.iy) and (x==r.ix)) then
 				backward.px = icons[#icons-r.ix+1].px
@@ -505,7 +504,6 @@ local function CreateGrid(r)
 			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx)
 			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
 			background.movableslaves[#background.movableslaves+1] = b
-			--table.insert(background.movableslaves,b)
 			texts[#texts+1] = b
 		end
 	end
@@ -737,7 +735,6 @@ local function UpdateGrid(g,cmds,ordertype)
 						s = New(Copy(g.staterect,true))
 						g.staterectangles[usedstaterectangles] = s
 						g.background.movableslaves[#g.background.movableslaves+1] = s
-						--table.insert(g.background.movableslaves,s)
 					end
 					s.active = nil --activate
 					
@@ -796,7 +793,6 @@ local function UpdateGrid(g,cmds,ordertype)
 						s2 = New(Copy(g.staterectangles[usr],true))
 						g.staterectanglesglow[usedstaterectanglesglow] = s2
 						g.background.movableslaves[#g.background.movableslaves+1] = s2
-						--table.insert(g.background.movableslaves,s2)
 					end
 					
 					local glowSize = s.sy * 6
@@ -816,7 +812,6 @@ local function UpdateGrid(g,cmds,ordertype)
 						s3 = New(Copy(s2,true))
 						g.staterectanglesglow[usedstaterectanglesglow] = s3
 						g.background.movableslaves[#g.background.movableslaves+1] = s3
-						--table.insert(g.background.movableslaves,s3)
 					end
 					s3.sy = s.sy + glowSize + glowSize
 					s3.py = s.py - glowSize
@@ -834,7 +829,6 @@ local function UpdateGrid(g,cmds,ordertype)
 						s4 = New(Copy(s2,true))
 						g.staterectanglesglow[usedstaterectanglesglow] = s4
 						g.background.movableslaves[#g.background.movableslaves+1] = s4
-						--table.insert(g.background.movableslaves,s4)
 					end
 					s4.sy = s.sy + glowSize + glowSize
 					s4.py = s.py - glowSize

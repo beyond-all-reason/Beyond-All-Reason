@@ -240,6 +240,8 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
 end
 
 function widget:DrawWorld()
+  if Spring.IsGUIHidden() then return end
+
   local theTime = GetGameSeconds()
   
   if (theTime ~= lastTime) then
