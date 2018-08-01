@@ -339,14 +339,8 @@ function CorAirAdvDefT2(tqb, ai, unit)
 end
 
 function CorTacticalAdvDefT2(tqb, ai, unit)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.1 and ec > es*0.1 then
-		local unitoptions = {"corvipe","cortoast","cordoom", "corint"}
-		return FindBest(unitoptions,ai)
-	else
-		return {action = "nexttask"}
-	end
+	local unitoptions = {"corvipe","cortoast","cordoom", "corint"}
+	return FindBest(unitoptions,ai)
 end
 
 function CorTacticalOffDefT2(tqb, ai, unit)
@@ -894,14 +888,8 @@ function ArmAirAdvDefT2(tqb, ai, unit)
 end
 
 function ArmTacticalAdvDefT2(tqb, ai, unit)
-    local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.1 and ec > es*0.1 then
-		local unitoptions = {"armpb","armamb","armanni", "armbrtha"}
-		return FindBest(unitoptions,ai)
-	else
-		return {action = "nexttask"}
-	end
+	local unitoptions = {"armpb","armamb","armanni", "armbrtha"}
+	return FindBest(unitoptions,ai)
 end
 
 function ArmTacticalOffDefT2(tqb, ai, unit)
