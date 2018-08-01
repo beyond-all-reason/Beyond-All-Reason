@@ -244,8 +244,8 @@ end
 function CorStarterLabT1(tqb, ai, unit)
 	local countStarterFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
 	if countStarterFacs < 1 then
-		local r = math.random(0,10)
-		if r < 6 then
+		local labtype = KbotOrVeh()
+		if labtype == "kbot" then
 			return "corlab"
 		else
 			return "corvp"
@@ -843,8 +843,8 @@ end
 function ArmStarterLabT1(tqb, ai, unit)
 	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
 	if countStarterFacs < 1 then
-		local r = math.random(0,10)
-		if r < 6 then
+		local labtype = KbotOrVeh()
+		if labtype == "kbot" then
 			return "armlab"
 		else
 			return "armvp"
