@@ -263,38 +263,35 @@ function CorStarterLabT1(tqb, ai, unit)
 end
 
 function CorRandomLab(tqb, ai, unit)
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
-	--local countAdvFacs = UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id) + UDC(ai.id, UDN.coraap.id) + UDC(ai.id, UDN.corgant.id)
-	local m = (mi - mp)*200 + mc
-	local e = (ei - ep)*200 + ec
-	if UDC(ai.id, UDN.corlab.id) == 1 and UDC(ai.id, UDN.corvp.id) == 0 and UDC(ai.id, UDN.coralab.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
-		return "coralab"
-	elseif UDC(ai.id, UDN.corlab.id) == 0 and UDC(ai.id, UDN.corvp.id) == 1 and UDC(ai.id, UDN.coravp.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
-		return "coravp"
-	end
-	
-	if (UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id)) >= 1 and (m > 2000 and e > 18000) and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
-		if UDC(ai.id, UDN.corap.id) < 1 then
-			return "corap"
-		elseif UDC(ai.id, UDN.coraap.id) < 1 then
-			return "coraap"
-		elseif UDC(ai.id, UDN.corlab.id) < 1 then
-			return "corlab"
-		elseif UDC(ai.id, UDN.coralab.id) < 1 then
-			return "coralab"
-		elseif UDC(ai.id, UDN.corvp.id) < 1 then
-			return "corvp"
-		elseif UDC(ai.id, UDN.coravp.id) < 1 then
-			return "coravp"
-		elseif UDC(ai.id, UDN.corhp.id) < 1 then
-			return "corhp"
-		elseif UDC(ai.id, UDN.corgant.id) < 1 then
-			return "corgant"
+	if not ai.firstT2 then
+		if timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25 then
+			if unit:Name() == "corck" then
+				ai.firstT2 = true
+				return "coralab"
+			elseif unit:Name() == "corcv" then
+				ai.firstT2 = true
+				return "coravp"
+			else 
+				return {action = "nexttask"}
+			end
 		else
 			return {action = "nexttask"}
 		end
+	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 then
+		if unit:Name() == "corck" or unit:Name() == "corack" then
+			ai.firstT2 = true
+			return "coralab"
+		elseif unit:Name() == "corcv" or unit:Name() == "coracv" then
+			ai.firstT2 = true
+			return "coravp"
+		elseif unit:Name() == "corca" or unit:Name() == "coraca" then
+			ai.firstT2 = true
+			return "coraap"
+		else 
+			return {action = "nexttask"}
+		end
+	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 then
+		return FindBest({"corlab", "corvp", "corap"}, ai)
 	else
 		return {action = "nexttask"}
 	end
@@ -818,38 +815,35 @@ function ArmStarterLabT1(tqb, ai, unit)
 end
 
 function ArmRandomLab(tqb, ai, unit)
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
-	--local countAdvFacs = UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.armaap.id) + UDC(ai.id, UDN.armgant.id)
-	local m = (mi - mp)*200 + mc
-	local e = (ei - ep)*200 + ec
-	if UDC(ai.id, UDN.armlab.id) == 1 and UDC(ai.id, UDN.armvp.id) == 0 and UDC(ai.id, UDN.armalab.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
-		return "armalab"
-	elseif UDC(ai.id, UDN.armlab.id) == 0 and UDC(ai.id, UDN.armvp.id) == 1 and UDC(ai.id, UDN.armavp.id) == 0 and (((m > 2000 and e > 18000) and Spring.GetGameSeconds() >= 300) or Spring.GetGameSeconds() >= math.random(480, 720)) then
-		return "armavp"
-	end
-	
-	if (UDC(ai.id, UDN.armavp.id) + UDC(ai.id, UDN.armalab.id) + UDC(ai.id, UDN.coravp.id) + UDC(ai.id, UDN.coralab.id)) >= 1 and (m > 2000 and e > 18000) and Spring.GetGameSeconds() > 300 and not ((UUDC("corap", ai.id) + UUDC("coraap", ai.id) + UUDC("corvp", ai.id) + UUDC("coravp", ai.id) + UUDC("corlab", ai.id) + UUDC( "coralab", ai.id) + UUDC("armap", ai.id) + UUDC("armaap", ai.id) + UUDC("armvp", ai.id) + UUDC("armavp", ai.id) + UUDC("armlab", ai.id) + UUDC( "armalab", ai.id)) > 0) then
-		if UDC(ai.id, UDN.armap.id) < 1 then
-			return "armap"
-		elseif UDC(ai.id, UDN.armaap.id) < 1 then
-			return "armaap"
-		elseif UDC(ai.id, UDN.armlab.id) < 1 then
-			return "armlab"
-		elseif UDC(ai.id, UDN.armalab.id) < 1 then
-			return "armalab"
-		elseif UDC(ai.id, UDN.armvp.id) < 1 then
-			return "armvp"
-		elseif UDC(ai.id, UDN.armavp.id) < 1 then
-			return "armavp"
-		elseif UDC(ai.id, UDN.armhp.id) < 1 then
-			return "armhp"
-		elseif UDC(ai.id, UDN.armshltx.id) < 1 then
-			return "armshltx"
+	if not ai.firstT2 then
+		if timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25 then
+			if unit:Name() == "armck" then
+				ai.firstT2 = true
+				return "armalab"
+			elseif unit:Name() == "armcv" then
+				ai.firstT2 = true
+				return "armavp"
+			else 
+				return {action = "nexttask"}
+			end
 		else
 			return {action = "nexttask"}
 		end
+	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 then
+		if unit:Name() == "armck" or unit:Name() == "armack" then
+			ai.firstT2 = true
+			return "armalab"
+		elseif unit:Name() == "armcv" or unit:Name() == "armacv" then
+			ai.firstT2 = true
+			return "armavp"
+		elseif unit:Name() == "armca" or unit:Name() == "armaca" then
+			ai.firstT2 = true
+			return "armaap"
+		else 
+			return {action = "nexttask"}
+		end
+	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 then
+		return FindBest({"armlab", "armvp", "armap"}, ai)
 	else
 		return {action = "nexttask"}
 	end
