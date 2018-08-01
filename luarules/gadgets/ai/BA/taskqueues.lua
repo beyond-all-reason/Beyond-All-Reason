@@ -32,7 +32,8 @@ end
 
 function timetostore(ai, resource, amount) -- Returns time to gather necessary resource amount in real time
 	local c, s, p, i, e = Spring.GetTeamResources(ai.id, resource)
-	return (amount - c)/(i-e)
+	local income = (i-e > 0 and i-e) or 0.00001
+	return (amount-c)/(income)
 end
 
 function income(ai, resource) -- Returns income of resource in realtime
