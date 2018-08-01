@@ -190,16 +190,16 @@ function CorEnT1( tqb, ai, unit )
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-	if ei - ep < 0 and ec < 0.5 * es then
+	if (income(ai, "energy") < 750) and ei - ee < 0 and ec < 0.5 * es then
         return (CorWindOrSolar(tqb, ai, unit))
-    elseif ei - ep > 0 and ec > 0.8 * es then
+    elseif ei - ee > 0 and ec > 0.8 * es then
         return "cormakr"
 	elseif es < (ei * 8) and ec > (es * 0.8) and countEstore < (ei*8)/6000 then
 		return "corestor"
 	elseif ms < (mi * 8) or mc > (ms*0.9) then
 		return "cormstor"
 	else
-		return "cormex"
+		return {action = "nexttask"}
 	end
 end
 
@@ -793,21 +793,19 @@ end
 
 
 function ArmEnT1( tqb, ai, unit)
-	
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-
-	if ei - ep < 0 and ec < 0.5 * es then
-        return (ArmWindOrSolar(tqb, ai, unit))
-    elseif ei - ep > 0 and ec > 0.8 * es then
-        return "armmakr"
+	if (income(ai, "energy") < 750) and ei - ee < 0 and ec < 0.8 * es then
+		return (ArmWindOrSolar(tqb, ai, unit))
+	elseif ei - ee > 0 and ec > 0.8 * es then
+		return "armmakr"
 	elseif es < (ei * 8) and ec > (es * 0.8) and countEstore < (ei *8) / 6000 then
 		return "armestor"
 	elseif ms < (mi * 8) or mc > (ms*0.9) then
 		return "armmstor"
 	else
-		return "armmex"
+		return {action = "nexttask"}
 	end
 end
 
