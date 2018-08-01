@@ -547,14 +547,12 @@ local cort2expand = {
 }
 
 local corkbotlab = {
-	CorStartT1KbotCon,
-	CorT1KbotCon,	--	Constructor
+	CorStartT1KbotCon,	-- 	Constructor/KBOT
+	CorT1KbotCon,	-- 	Constructor
 	CorKBotsT1,
-	CorStartT1KbotCon,
+	CorStartT1KbotCon,	-- 	Constructor/KBOT
 	CorKBotsT1,
-	CorStartT1KbotCon,
-	CorKBotsT1,
-	CorKBotsT1,
+	CorStartT1KbotCon,	-- 	Constructor/KBOT
 	CorKBotsT1,
 	CorKBotsT1,
 	CorKBotsT1,
@@ -563,19 +561,19 @@ local corkbotlab = {
 }
 
 local corvehlab = {
-	CorStartT1VehCon,
+	CorStartT1VehCon,	--	Constructor
 	CorT1VehCon,	--	Constructor
 	CorVehT1,
-	CorStartT1VehCon,
 	CorVehT1,
-	CorStartT1VehCon,
+	CorStartT1VehCon,	--	Constructor
 	CorVehT1,
+	CorStartT1VehCon,	--	Constructor
 	CorVehT1,
 	CorVehT1,
 }
 
 local corairlab = {
-	CorT1AirCon,	-- 	Constructor
+	CorT1AirCon,	--	Constructor
 	CorAirT1,
 	CorAirT1,
 	CorAirT1,
@@ -1092,14 +1090,12 @@ local armt2expand = {
 }
 
 local armkbotlab = {
-	ArmStartT1KbotCon,	-- 	Constructor
+	ArmStartT1KbotCon,	-- 	Constructor/KBOT
 	ArmT1KbotCon,	-- 	Constructor
 	ArmKBotsT1,
-	ArmStartT1KbotCon,	-- 	Constructor
+	ArmStartT1KbotCon,	-- 	Constructor/KBOT
 	ArmKBotsT1,
-	ArmStartT1KbotCon,	-- 	Constructor
-	ArmKBotsT1,
-	ArmKBotsT1,
+	ArmStartT1KbotCon,	-- 	Constructor/KBOT
 	ArmKBotsT1,
 	ArmKBotsT1,
 	ArmKBotsT1,
@@ -1137,10 +1133,7 @@ armkbotlabT2 = {
 	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
+	"armack",
 	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
@@ -1152,10 +1145,7 @@ armvehlabT2 = {
 	ArmVehT2,
 	ArmVehT2,
 	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
+	"armacv",
 	ArmVehT2,
 	ArmVehT2,
 	ArmVehT2,
