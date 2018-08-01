@@ -520,61 +520,39 @@ local corcommanderfirst = {
 	"corrad",
 }
 
-local cort1construction = {
+local cort1eco = {
+	CorEnT1,
+	CorEnT1,
+	CorEnT1,
+	CorNanoT,
 	CorRandomLab,
-	CorFirstT1Mexes,
-	CorFirstT1Mexes,
-	CorFirstT1Mexes,
-	-- CorLLT,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	CorNanoT,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	"corrad",
-	CorLLT,
-	CorLLT,
-	CorRandomLab,
-	CorNanoT,
-	CorNanoT,
-	CorNanoT,
-	CorGroundAdvDefT1,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	CorLLT,
-	CorEnT1,
-	CorEnT1,
-	CorEnT1,
-	CorNanoT,
-	CorLLT,
-	CorLLT,
-	"corrad",
-	CorMexT1,
-	CorNanoT,
-	"cormex",
-	CorLLT,
-	CorEnT1,
-	CorEnT1,
-	CorAirAdvDefT1,
-	"corgeo",
 }
 
-local cort2construction = {
-	CorFirstT2Mexes,
-	CorFirstT2Mexes,
-	CorFirstT2Mexes,
-	CorTacticalAdvDefT2,
+local cort1expand = {
+	"cormex",
+	CorLLT,
+	"cormex",
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	CorLLT,
+	"corrad",
+	"corgeo",
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	CorNanoT,
+}
+
+local cort2eco = {
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
-	"corarad",
-	CorTacticalAdvDefT2,
 	CorRandomLab,
-	CorTacticalOffDefT2,
-	CorAirAdvDefT2,
+}
+
+local cort2expand = {
+	"cormoho",
+	"cormoho",
+	CorTacticalAdvDefT2,
+	"cormoho",
+	"corarad",
 }
 
 local corkbotlab = {
@@ -1096,61 +1074,39 @@ local armcommanderfirst = {
 	"armrad",
 }
 
-local armt1construction = {
+local armt1eco = {
+	ArmEnT1,
+	ArmEnT1,
+	ArmEnT1,
+	ArmNanoT,
 	ArmRandomLab,
-	ArmFirstT1Mexes,
-	ArmFirstT1Mexes,
-	ArmFirstT1Mexes,
-	-- ArmLLT,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmNanoT,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	"armrad",
-	ArmLLT,
-	ArmLLT,
-	ArmRandomLab,
-	ArmNanoT,
-	ArmNanoT,
-	ArmNanoT,
-	ArmGroundAdvDefT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmLLT,
-	ArmEnT1,
-	ArmEnT1,
-	ArmEnT1,
-	ArmNanoT,
-	ArmLLT,
-	ArmLLT,
-	"armrad",
-	ArmMexT1,
-	ArmNanoT,
-	"armmex",
-	ArmLLT,
-	ArmEnT1,
-	ArmEnT1,
-	ArmAirAdvDefT1,
-	"armgeo",
 }
 
-local armt2construction = {
-	ArmFirstT2Mexes,
-	ArmFirstT2Mexes,
-	ArmFirstT2Mexes,
-	ArmTacticalAdvDefT2,
+local armt1expand = {
+	"armmex",
+	ArmLLT,
+	"armmex",
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmLLT,
+	"armrad",
+	"armgeo",
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+}
+
+local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
-	"armarad",
-	ArmTacticalAdvDefT2,
 	ArmRandomLab,
-	ArmTacticalOffDefT2,
-	ArmAirAdvDefT2,
+}
+
+local armt2expand = {
+	"armmoho",
+	"armmoho",
+	ArmTacticalAdvDefT2,
+	"armmoho",
+	"armarad",
 }
 
 local armkbotlab = {
@@ -1276,35 +1232,87 @@ local function armcommander(tqb, ai, unit)
 end
 
 local function armt1con(tqb, ai, unit)
-	if math.random(0,10) > 9 then
-		return assistqueue
-	else
-		return armt1construction
+	if not unit.mode then
+		ai.t1concounter = (ai.t1concounter or 0) + 1
+		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
+			unit.mode = "assist"
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+			unit.mode = "expand"
+		else
+			unit.mode = "eco"
+		end
 	end
+	if unit.mode == "eco" then
+		return armt1eco
+	elseif unit.mode == "expand" then
+		return armt1expand
+	else
+		return assistqueue
+	end
+	return assistqueue
 end
 
 local function cort1con(tqb, ai, unit)
-	if math.random(0,10) > 9 then
-		return assistqueue
-	else
-		return cort1construction
+	if not unit.mode then
+		ai.t1concounter = (ai.t1concounter or 0) + 1
+		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
+			unit.mode = "assist"
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+			unit.mode = "expand"
+		else
+			unit.mode = "eco"
+		end
 	end
+	if unit.mode == "eco" then
+		return cort1eco
+	elseif unit.mode == "expand" then
+		return cort1expand
+	else
+		return assistqueue
+	end
+	return assistqueue
 end
 
 local function armt2con(tqb, ai, unit)
-	if math.random(0,10) > 9 then
-		return assistqueue
-	else
-		return armt2construction
+	if not unit.mode then
+		ai.t2concounter = (ai.t2concounter or 0) + 1
+		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
+			unit.mode = "assist"
+		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+			unit.mode = "expand"
+		else
+			unit.mode = "eco"
+		end
 	end
+	if unit.mode == "eco" then
+		return armt2eco
+	elseif unit.mode == "expand" then
+		return armt2expand
+	else
+		return assistqueue
+	end
+	return assistqueue
 end
 
 local function cort2con(tqb, ai, unit)
-	if math.random(0,10) > 9 then
-		return assistqueue
-	else
-		return cort2construction
+	if not unit.mode then
+		ai.t2concounter = (ai.t2concounter or 0) + 1
+		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
+			unit.mode = "assist"
+		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+			unit.mode = "expand"
+		else
+			unit.mode = "eco"
+		end
 	end
+	if unit.mode == "eco" then
+		return cort2eco
+	elseif unit.mode == "expand" then
+		return cort2expand
+	else
+		return assistqueue
+	end
+	return assistqueue
 end
 
 
