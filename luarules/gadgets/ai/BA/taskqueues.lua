@@ -379,15 +379,8 @@ function CorVehT1(tqb, ai, unit)
 end
 
 function CorAirT1(tqb, ai, unit)
-	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if not (countAdvBuilders > 0 and (ec < es*0.3 or mc < ms*0.3)) then
-		local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
-		return FindBest(unitoptions,ai)
-	else
-		return {action = "nexttask"}
-	end
+	local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
+	return FindBest(unitoptions,ai)
 end
 
 function CorKBotsT2(tqb, ai, unit)
