@@ -1,5 +1,0 @@
-local nonCapturingUnits = {
-
-}
-
-return nonCapturingUnits

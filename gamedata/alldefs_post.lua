@@ -171,21 +171,12 @@ function UnitDef_Post(name, uDef)
 		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy
 	end
 
-	--------------------------------------------------------------------------------
-	--------------------------------------------------------------------------------
-	-- Set building Mask 0 for all units that can be built in Control Victory points
-	--
-	if Spring.GetModOptions and (Spring.GetModOptions().scoremode ~= nil or Spring.GetModOptions().scoremode ~= "disabled") then
-		if uDef.customparams and uDef.customparams.cvbuildable == true then
-			uDef.buildingmask = 0
-		end
-	end
 	if uDef.workertime then
-	if uDef.reclaimspeed then 
-	uDef.reclaimspeed =  0.90 * uDef.reclaimspeed
-	else 
-	uDef.reclaimspeed = 0.90 * uDef.workertime
-	end
+		if uDef.reclaimspeed then
+			uDef.reclaimspeed =  0.90 * uDef.reclaimspeed
+		else
+			uDef.reclaimspeed = 0.90 * uDef.workertime
+		end
 	end
 	
 	if uDef.icontype and uDef.icontype == "sea" then
