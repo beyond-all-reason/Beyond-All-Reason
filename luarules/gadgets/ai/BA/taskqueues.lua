@@ -41,6 +41,55 @@ function income(ai, resource) -- Returns income of resource in realtime
 	return i
 end
 
+---- TECHTREE RELATED ----
+function KbotOrVeh()
+	local veh = 0
+	local kbot = 0
+	-- mapsize
+	mapsize = Game.mapSizeX * Game.mapSizeZ
+	local randomnumber = math.random(1,mapsize+1)
+	if randomnumber >= 48 then
+		veh = veh + 1
+	else
+		kbot = kbot + 1
+	end
+	-- windAvg
+	local avgWind = (Game.windMin + Game.windMax)/2
+	randomnumber = math.random(0, math.floor(avgWind + 1))
+	if randomnumber >= 3 then
+		veh = veh + 1
+	else
+		kbot = kbot + 1
+	end
+	-- numberPlayers
+	local teamList = Spring.GetTeamList()
+	local nTeams = #teamList
+	randomnumber = math.random(1, nTeams+1)
+	if randomnumber <= 6 then
+		veh = veh + 1
+	else
+		kbot = kbot + 1
+	end
+	-- Height diffs
+	local min, max = Spring.GetGroundExtremes()
+	local diff = max-min
+	randomnumber = math.random(1, math.floor(diff+1))
+	if randomnumber <= 100 then
+		veh = veh + 1
+	else
+		kbot = kbot + 1
+	end
+	if kbot > veh then 
+		return 'kbot'
+	elseif veh > kbot then
+		return 'veh'
+	elseif math.random(1,2) == 2 then
+		return 'veh'
+	else
+		return 'kbot'
+	end
+end
+
 function FindBest(unitoptions,ai)
 	if GG.info and GG.info[ai.id] and unitoptions and unitoptions[1] then
 		local effect = {}
