@@ -172,7 +172,14 @@ end
 function CorNanoT(tqb, ai, unit)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.1 and ec > es*0.1 then
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
+	if not (countAdvBuilders >= 1) then
+		if (UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id)) < 4 and timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 then
+			return "cornanotc"
+		else
+			return {action = "nexttask"}
+		end
+	elseif timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 then
 		return "cornanotc"
 	else
 		return {action = "nexttask"}
@@ -770,7 +777,14 @@ end
 function ArmNanoT(tqb, ai, unit)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.1 and ec > es*0.1 then
+	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
+	if not (countAdvBuilders >= 1) then
+		if (UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id)) < 4 and timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 then
+			return "armnanotc"
+		else
+			return {action = "nexttask"}
+		end
+	elseif timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 then
 		return "armnanotc"
 	else
 		return {action = "nexttask"}
