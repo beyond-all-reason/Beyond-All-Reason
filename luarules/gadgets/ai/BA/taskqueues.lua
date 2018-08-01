@@ -222,12 +222,12 @@ end
 function CorEnT2( tqb, ai, unit )
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ei - ep < 0 and ec < 0.5 * es and ei > 800 and mi > 35 and (UUDC("armfus", ai.id) + UUDC("corfus", ai.id)) < 2 then
+	if ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es  then
         return "corfus"
-    elseif ei - ep > 0 and ec > 0.8 * es then
+    elseif ei - ee > 0 and ec > 0.8 * es then
         return "cormmkr"
 	else
-		return "cormoho"
+		return {action = "nexttask"}
 	end
 end
 
@@ -829,12 +829,12 @@ end
 function ArmEnT2( tqb, ai, unit )
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ei - ep < 0 and ec < 0.5 * es and ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 then
+	if ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es then
         return "armfus"
-    elseif ei - ep > 0 and ec > 0.8 * es then
+    elseif ei - ee > 0 and ec > 0.8 * es then
         return "armmmkr"
 	else
-		return "armmoho"
+		return {action = "nexttask"}
 	end
 end
 
