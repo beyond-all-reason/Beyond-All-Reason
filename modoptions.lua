@@ -316,7 +316,7 @@ local options={
 		type   = 'section',
 	},
 	{
-		key="mo_chickenstart",
+		key="chicken_chickenstart",
 		name="Burrow Placement",
 		desc="Control where burrows spawn",
 		type="list",
@@ -330,7 +330,7 @@ local options={
 		}
 	},
 	{
-		key="mo_queendifficulty",
+		key="chicken_queendifficulty",
 		name="Queen Difficulty",
 		desc="How hard doth the Chicken Queen",
 		type="list",
@@ -347,7 +347,7 @@ local options={
 		}
 	},
 	{
-		key    = "mo_queentime",
+		key    = "chicken_queentime",
 		name   = "Max Queen Arrival (Minutes)",
 		desc   = "Queen will spawn after given time.",
 		type   = "number",
@@ -358,7 +358,7 @@ local options={
 		section= "chicken_defense_options",
 	},
 	{
-		key    = "mo_maxchicken",
+		key    = "chicken_maxchicken",
 		name   = "Chicken Limit",
 		desc   = "Maximum number of chickens on map.",
 		type   = "number",
@@ -369,7 +369,7 @@ local options={
 		section= "chicken_defense_options",
 	},
 	{
-		key    = "mo_graceperiod",
+		key    = "chicken_graceperiod",
 		name   = "Grace Period (Seconds)",
 		desc   = "Time before chickens become active.",
 		type   = "number",
@@ -380,14 +380,14 @@ local options={
 		section= "chicken_defense_options",
 	},
 	{
-		key    = "mo_queenanger",
+		key    = "chicken_queenanger",
 		name   = "Add Queen Anger",
 		desc   = "Killing burrows adds to queen anger.",
 		type   = "bool",
 		def    = true,
 		section= "chicken_defense_options",
     },
-	
+
 -- Chicken Defense Custom Difficulty Settings
 	{
 		key    = 'chicken_defense_custom_difficulty_settings',
@@ -396,7 +396,7 @@ local options={
 		type   = 'section',
 	},
 	{
-		key    = "mo_custom_burrowspawn",
+		key    = "chicken_custom_burrowspawn",
 		name   = "Burrow Spawn Rate (Seconds)",
 		desc   = "Time between burrow spawns.",
 		type   = "number",
@@ -407,7 +407,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_chickenspawn",
+		key    = "chicken_custom_chickenspawn",
 		name   = "Wave Spawn Rate (Seconds)",
 		desc   = "Time between chicken waves.",
 		type   = "number",
@@ -418,7 +418,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_minchicken",
+		key    = "chicken_custom_minchicken",
 		name   = "Min Chickens Per Player",
 		desc   = "Minimum Number of chickens before spawn chance kicks in",
 		type   = "number",
@@ -429,7 +429,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_spawnchance",
+		key    = "chicken_custom_spawnchance",
 		name   = "Spawn Chance (Percent)",
 		desc   = "Percent chance of each chicken spawn once greater thwn the min chickens per player limit",
 		type   = "number",
@@ -440,7 +440,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_angerbonus",
+		key    = "chicken_custom_angerbonus",
 		name   = "Burrow Kill Anger (Percent)",
 		desc   = "Seconds added per burrow kill.",
 		type   = "number",
@@ -451,7 +451,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_queenspawnmult",
+		key    = "chicken_custom_queenspawnmult",
 		name   = "Queen Wave Size Mod",
 		desc   = "Number of squads spawned by the queen at once.",
 		type   = "number",
@@ -473,7 +473,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_lobberemp",
+		key    = "chicken_custom_lobberemp",
 		name   = "Lobber EMP Duration",
 		desc   = "Max duration of Lobber EMP artillery",
 		type   = "number",
@@ -484,7 +484,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_damagemod",
+		key    = "chicken_custom_damagemod",
 		name   = "Damage Mod",
 		desc   = "Percent modifier for chicken damage",
 		type   = "number",

@@ -24,6 +24,14 @@ local valuegreycolor = "\255\180\180\180"
 local vcolor = valuegreycolor
 local separator = "::"
 
+local teams = Spring.GetTeamList()
+for i =1, #teams do
+	local luaAI = Spring.GetTeamLuaAI(teams[i])
+	if luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
+		chickensEnabled = true
+	end
+end
+
 local changelogFile = ""
 changelogFile = changelogFile .. titlecolor..Game.gameName..valuegreycolor.." ("..Game.gameMutator..") "..titlecolor..Game.gameVersion.."\n"
 changelogFile = changelogFile .. keycolor.."Engine"..separator..valuegreycolor..((Game and Game.version) or (Engine and Engine.version) or "Engine version error").."\n"
@@ -81,13 +89,21 @@ modoptionsDefault['pathfinder'] = 'normal'
 modoptionsDefault['startmetal'] = '1000'
 modoptionsDefault['startenergy'] = '1000'
 modoptionsDefault['fixedallies'] = '1'
-modoptionsDefault['maxunits'] = '1000'
+modoptionsDefault['maxunits'] = '2000'
 modoptionsDefault['disablemapdamage'] = '0'
 
 local modoptions = Spring.GetModOptions()
 local vcolor = valuegreycolor
 local changedModoptions = {}
 local unchangedModoptions = {}
+
+if not chickensEnabled then	-- filter chicken modoptions
+	for key, value in pairs(modoptions) do
+		if string.sub(key, 1, 8) == 'chicken_' then
+			modoptions[key] = nil
+		end
+	end
+end
 for key, value in pairs(modoptions) do
 	if value == modoptionsDefault[key] then
 		unchangedModoptions[key] = value
