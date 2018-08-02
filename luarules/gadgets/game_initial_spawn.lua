@@ -787,10 +787,14 @@ function gadget:DrawScreen()
 	if enabled then
 	  uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
 
-		if not guishaderApplied and Script.LuaUI("GuishaderInsertRect") then
-			local x1,y1 = correctMouseForScaling(readyX-bgMargin, readyY-bgMargin)
-			local x2,y2 = correctMouseForScaling(readyX+readyW+bgMargin, readyY+readyH+bgMargin)
-			Script.LuaUI.GuishaderInsertRect(x1,y1,x2,y2, 'ready')
+		if Script.LuaUI("GuishaderInsertRect") then
+			if not readied then
+				local x1,y1 = correctMouseForScaling(readyX-(bgMargin*uiScale), readyY-(bgMargin*uiScale))
+				local x2,y2 = correctMouseForScaling(readyX+((readyW+bgMargin)*uiScale), readyY+((readyH+bgMargin)*uiScale))
+				Script.LuaUI.GuishaderInsertRect(x1,y1,x2,y2, 'ready')
+			else
+				Script.LuaUI.GuishaderRemoveRect('ready')
+			end
 		end
 		gl.PushMatrix()
 			gl.Translate(readyX+(readyW/2),readyY+(readyH/2),0)
