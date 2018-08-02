@@ -790,9 +790,13 @@ function gadget:DrawScreen()
 
 		if Script.LuaUI("GuishaderInsertRect") then
 			if not readied then
-				local buttonScreenCenterPosX = (readyX+(readyW/2))/vsx
-				local buttonScreenCenterPosY = (readyY+(readyH/2))/vsy
-				Script.LuaUI.GuishaderInsertRect(buttonScreenCenterPosX-((readyW+bgMargin)*uiScale), buttonScreenCenterPosY-((readyH+bgMargin)*uiScale), buttonScreenCenterPosX+((readyW+bgMargin)*uiScale), buttonScreenCenterPosY+((readyH+bgMargin)*uiScale), 'ready')
+				Script.LuaUI.GuishaderInsertRect(
+					readyX-(((readyW/2)+bgMargin)*uiScale),
+					readyY-(((readyH/2)+bgMargin)*uiScale),
+					readyX+(((readyW/2)+bgMargin)*uiScale),
+					readyY+(((readyH/2)+bgMargin)*uiScale),
+					'ready'
+				)
 			else
 				Script.LuaUI.GuishaderRemoveRect('ready')
 			end
