@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local aiResourceMultiplier = tonumber(Spring.GetModOptions().aiincomemultiplier) or 1
+local aiResourceMultiplier = tonumber(Spring.GetModOptions().ai_incomemultiplier) or 1
 
 local UDC = Spring.GetTeamUnitDefCount
 local UDN = UnitDefNames

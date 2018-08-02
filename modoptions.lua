@@ -29,13 +29,13 @@ local options={
     {
         key    = "barsounds",
         name   = "alternative sounds",
-        desc   = "Activate BAR sound replacements (barmodels must be enabled)",
+        desc   = "Activate BAR sound replacements (barmodels (Remodelled units) must be enabled)",
         type   = "bool",
         section= 'ba_enhancements_misc',
         def = false,
     },
 	{
-        key    = 'aiincomemultiplier',
+        key    = 'ai_incomemultiplier',
         name   = 'AI Income Multiplier',
         desc   = 'Multiplies AI resource income',
         type   = 'number',
@@ -90,8 +90,8 @@ local options={
 			{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
 			{key="exponly", name="ExperienceOnly", desc="Enable Unbalanced Commanders experience to power, health and reload multipliers"},
 		}
-	},	
-	
+	},
+
 	{
 		key="map_terraintype",
 		name="Map TerrainTypes",
@@ -103,7 +103,7 @@ local options={
 			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
 			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
 		}
-	},	
+	},
 	
 	{
 		key="map_waterlevel",
