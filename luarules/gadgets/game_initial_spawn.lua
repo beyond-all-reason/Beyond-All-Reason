@@ -785,17 +785,19 @@ end
 local timer3 = 20
 function gadget:DrawScreen()
 	if enabled then
-	  uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+
+	 	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
 
 		if Script.LuaUI("GuishaderInsertRect") then
 			if not readied then
-				local x1,y1 = correctMouseForScaling(readyX-(bgMargin*uiScale), readyY-(bgMargin*uiScale))
-				local x2,y2 = correctMouseForScaling(readyX+((readyW+bgMargin)*uiScale), readyY+((readyH+bgMargin)*uiScale))
-				Script.LuaUI.GuishaderInsertRect(x1,y1,x2,y2, 'ready')
+				local buttonScreenCenterPosX = (readyX+(readyW/2))/vsx
+				local buttonScreenCenterPosY = (readyY+(readyH/2))/vsy
+				Script.LuaUI.GuishaderInsertRect(buttonScreenCenterPosX-((readyW+bgMargin)*uiScale), buttonScreenCenterPosY-((readyH+bgMargin)*uiScale), buttonScreenCenterPosX+((readyW+bgMargin)*uiScale), buttonScreenCenterPosY+((readyH+bgMargin)*uiScale), 'ready')
 			else
 				Script.LuaUI.GuishaderRemoveRect('ready')
 			end
 		end
+
 		gl.PushMatrix()
 			gl.Translate(readyX+(readyW/2),readyY+(readyH/2),0)
 			gl.Scale(uiScale, uiScale, 1)
@@ -811,12 +813,12 @@ function gadget:DrawScreen()
 					colorString = "\255\255\222\0"
 				else
 					gl.CallList(readyButton)
-			  timer2 = timer2 + Spring.GetLastUpdateSeconds()
-			  if timer2 % 0.75 <= 0.375 then
-				colorString = "\255\233\215\20"
-			  else
-				colorString = "\255\255\255\255"
-			  end
+			  		timer2 = timer2 + Spring.GetLastUpdateSeconds()
+					if timer2 % 0.75 <= 0.375 then
+						colorString = "\255\233\215\20"
+					else
+						colorString = "\255\255\255\255"
+					end
 				end
 				gl.Text(colorString .. "Ready", -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
 				gl.Color(1,1,1,1)
