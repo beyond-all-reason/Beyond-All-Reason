@@ -20,7 +20,7 @@ for i =1, #teams do
 	end
 end
 
-if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == "disabled" or shardEnabled == true then
+if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == 0 or shardEnabled == true then
 	return
 end
 
@@ -41,7 +41,7 @@ local companionRadiusStart		= 140					-- if mapcritter is spawned this close it 
 local companionRadiusAfterStart = 13
 local companionPatrolRadius = 200
 
-local amountMultiplier = 1		-- will be set by mod option: critters_multiplier
+local amountMultiplier = 1		-- will be set by mod option: critters
 local minMulti = 0.2
 local maxMulti = 5
 
@@ -224,8 +224,8 @@ function gadget:Initialize()
 		Spring.Echo("[Gaia Critters] No critter config for this map")
 		--gadgetHandler:RemoveGadget(self)		-- disabled so if you /give critters they still will be auto patrolled
 	end
-	if mo.critters_multiplier ~= nil then
-		amountMultiplier = tonumber(mo.critters_multiplier)
+	if mo.critters ~= nil then
+		amountMultiplier = tonumber(mo.critters)
 	end
 	if amountMultiplier < minMulti then amountMultiplier = minMulti end
 	if amountMultiplier > maxMulti then amountMultiplier = maxMulti end
