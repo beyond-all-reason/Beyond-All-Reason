@@ -791,10 +791,10 @@ function gadget:DrawScreen()
 		if Script.LuaUI("GuishaderInsertRect") then
 			if not readied then
 				Script.LuaUI.GuishaderInsertRect(
-					readyX-(((readyW/2)+bgMargin)*uiScale),
-					readyY-(((readyH/2)+bgMargin)*uiScale),
-					readyX+(((readyW/2)+bgMargin)*uiScale),
-					readyY+(((readyH/2)+bgMargin)*uiScale),
+					readyX+(readyW/2)-(((readyW/2)+bgMargin)*uiScale),
+					readyY+(readyH/2)-(((readyH/2)+bgMargin)*uiScale),
+					readyX+(readyW/2)+(((readyW/2)+bgMargin)*uiScale),
+					readyY+(readyH/2)+(((readyH/2)+bgMargin)*uiScale),
 					'ready'
 				)
 			else
