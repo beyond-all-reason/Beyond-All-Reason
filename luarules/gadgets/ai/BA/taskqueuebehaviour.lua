@@ -90,11 +90,35 @@ function TaskQueueBehaviour:GetQueue()
 	end
 	return q
 end
+function TaskQueueBehaviour:CanQueueNextTask()
+	local unitID = self.unit:Internal().id
+	-- must: already have 1 queue (not override default behaviour)
+	-- Have less than 2 queues (not cancel the next buildings
+	-- Have "secured" the cur spot it has to build on (not cancel 1st in queue to start 2nd in queue == is currently building
+	-- We check curqueuelength == 1
+
+	local notprogressing = self.progress ~= true	-- Not already progressing in queue
+	local _,_,_,speed = Spring.GetUnitVelocity(unitID)
+	local notmoving = speed == 0 	-- Not moving towards next position
+
+	local notwaitingforpos = (self:IsWaitingForPosition() ~= true)	-- must not be waiting for position
+
+	local curqueuelength = #(Spring.GetCommandQueue(unitID,2))
+	local building = Spring.GetUnitIsBuilding(unitID)	-- we check cur buildspeed/power ~= 0
+	if curqueuelength <= 1 and building and notwaitingforpos and notmoving and notprogressing then
+		return true
+	else
+		return
+	end
+end
 
 function TaskQueueBehaviour:Update()
 	if not self:IsActive() then
 		self:DebugPoint("nothing")
 		return
+	end
+	if self:CanQueueNextTask() then
+		self.progress = true
 	end
 	local f = self.game:Frame()
 	if self.progress == true then
@@ -311,7 +335,7 @@ function TaskQueueBehaviour:BuildGeo(utype)
 		self:OnToNextTask()
 		return false
 	end
-	return self.unit:Internal():Build(utype,p)
+	return self.unit:Internal():Build(utype,p,_,{"shift"})
 end
 
 function TaskQueueBehaviour:BuildExtractor(utype)
@@ -329,7 +353,7 @@ function TaskQueueBehaviour:BuildExtractor(utype)
 	elseif not p then
 		return false
 	end
-	return self.unit:Internal():Build(utype,p)
+	return self.unit:Internal():Build(utype,p,_,{"shift"})
 end
 
 function TaskQueueBehaviour:OnToNextTask()
@@ -343,7 +367,7 @@ end
 function TaskQueueBehaviour:OnBuildingPlacementSuccess( job, pos )
 	self:StopWaitingForPosition()
 	local p = dump( pos )
-	local success self.unit:Internal():Build( job.unittype, pos, GetFacing(pos.x, pos.z) )
+	local success self.unit:Internal():Build( job.unittype, pos, GetFacing(pos.x, pos.z),{"shift"})
 	if success == false then
 		self:OnToNextTask()
 	end

@@ -205,15 +205,16 @@ function ShardUnit:MoveAndPatrol(p)
 	return true
 end
 
-function ShardUnit:Build(t, p, f) -- IUnitType*
+function ShardUnit:Build(t, p, f, opts) -- IUnitType*
 	if type(t) == "string" then
 		-- local ai = Shard.AIs[1]
 		-- t = ai.game:GetTypeByName(t)
 		t = game:GetTypeByName(t)
 	end
+	opts = opts or {}
 	f = f or 0
 	if not p then p = self:GetPosition() end
-	Spring.GiveOrderToUnit( self.id, -t:ID(), { p.x, p.y, p.z, f}, {} )
+	Spring.GiveOrderToUnit( self.id, -t:ID(), { p.x, p.y, p.z, f}, opts )
 	return true
 end
 
