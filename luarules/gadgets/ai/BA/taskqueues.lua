@@ -336,7 +336,7 @@ function CorAirAdvDefT2(tqb, ai, unit)
 end
 
 function CorTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"corvipe","cortoast","cordoom", "corint"}
+	local unitoptions = {"corvipe","corflak"}
 	return FindBest(unitoptions,ai)
 end
 
@@ -592,10 +592,7 @@ corkbotlabT2 = {
 	CorKBotsT2,
 	CorKBotsT2,
 	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
+	"corack",
 	CorKBotsT2,
 	CorKBotsT2,
 	CorKBotsT2,
@@ -606,10 +603,7 @@ corvehlabT2 = {
 	CorVehT2,
 	CorVehT2,
 	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
+	"coracv",
 	CorVehT2,
 	CorVehT2,
 	CorVehT2,
@@ -882,7 +876,7 @@ function ArmAirAdvDefT2(tqb, ai, unit)
 end
 
 function ArmTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"armpb","armamb","armanni", "armbrtha"}
+	local unitoptions = {"armpb","armflak"}
 	return FindBest(unitoptions,ai)
 end
 
@@ -1212,7 +1206,7 @@ local function armt1con(tqb, ai, unit)
 		ai.t1concounter = (ai.t1concounter or 0) + 1
 		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -1233,7 +1227,7 @@ local function cort1con(tqb, ai, unit)
 		ai.t1concounter = (ai.t1concounter or 0) + 1
 		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -1254,7 +1248,7 @@ local function armt2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -1275,7 +1269,7 @@ local function cort2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
