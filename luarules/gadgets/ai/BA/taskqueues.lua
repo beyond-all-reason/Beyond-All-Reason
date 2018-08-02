@@ -46,7 +46,7 @@ function KbotOrVeh()
 	local veh = 0
 	local kbot = 0
 	-- mapsize
-	mapsize = Game.mapSizeX * Game.mapSizeZ
+	mapsize = Game.mapX * Game.mapZ
 	local randomnumber = math.random(1,mapsize+1)
 	if randomnumber >= 48 then
 		veh = veh + 1
