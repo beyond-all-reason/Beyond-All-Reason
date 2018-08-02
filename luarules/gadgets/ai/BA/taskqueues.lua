@@ -507,6 +507,8 @@ local corcommanderfirst = {
 	CorWindOrSolar,
 	CorWindOrSolar,
 	CorStarterLabT1,
+	CorWindOrSolar,
+	CorWindOrSolar,
 	"corllt",
 	"corrad",
 }
@@ -1050,6 +1052,8 @@ local armcommanderfirst = {
 	ArmWindOrSolar,
 	ArmWindOrSolar,
 	ArmStarterLabT1,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
 	"armllt",
 	"armrad",
 }
