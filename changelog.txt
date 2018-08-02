@@ -1,6 +1,10 @@
 ﻿10.11 -> 10.12
 XX/XX/2018
 
+Removed support for older engine versions
+You must have 104.0.1.567 as minimum
+
+Other:
  • Player camara tracking also limits view to players viewpoint and losmode
  • Fixed: Decoy com attacked warning sound changed to a regular one unit under attack sound
  • Fixed DAI echospam + working with multiple DAI bots + behavior improvements
@@ -9,6 +13,7 @@ XX/XX/2018
  • Fixed Bloom rendering the map black on some maps
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
  • Removed unused modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock"
+ • Removed modoptions: "enemycomcount", "no_close_spawns" (always enabled)
 
 
 10.10 -> 10.11
