@@ -382,7 +382,7 @@ tablearmcom = {
 			},
 		},
 	}
-if (Spring.GetModOptions) and Spring.GetModOptions().mo_unba and Spring.GetModOptions().mo_unba == "enabled" then
+if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
 	tablearmcom.autoheal = 2
 	tablearmcom.power = CommanderPower
 	tablearmcom.weapondefs.armcomlaser.weapontype = "LaserCannon"

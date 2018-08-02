@@ -383,7 +383,7 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 			},
 		},
 	}
-if (Spring.GetModOptions) and Spring.GetModOptions().mo_unba and Spring.GetModOptions().mo_unba == "enabled" then
+if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
 	tablecorcom.autoheal = 2
 	tablecorcom.power = CommanderPower
 	tablecorcom.weapondefs.armcomlaser.weapontype = "LaserCannon"

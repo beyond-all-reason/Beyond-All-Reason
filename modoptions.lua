@@ -59,7 +59,7 @@ local options={
 		}
 	},
     {
-        key    = 'mo_armageddontime',
+        key    = 'armageddontime',
         name   = 'Armageddon time (minutes)',
         desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
         type   = 'number',
@@ -70,7 +70,7 @@ local options={
         step   = 1,
     },
     {
-		key    = "mo_ffa",
+		key    = "ffa",
 		name   = "FFA Mode",
 		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
 		type   = "bool",
@@ -79,7 +79,7 @@ local options={
     },
 	
 	{
-		key="mo_unba",
+		key="unba",
 		name="Unbalanced Commanders",
 		desc="Defines if commanders level up with xp and gain more power or not",
 		type="list",
@@ -133,7 +133,7 @@ local options={
 	},
 	
     {
-        key    = 'mo_coop',
+        key    = 'coop',
         name   = 'Cooperative mode',
         desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
         type   = 'bool',
@@ -150,7 +150,7 @@ local options={
     },
 	
     {
-		key="mo_transportenemy",
+		key="transportenemy",
 		name="Enemy Transporting",
 		desc="Toggle which enemy units you can kidnap with an air transport",
 		type="list",
@@ -162,7 +162,7 @@ local options={
 		}
 	},
     {
-        key    = "mo_enemycomcount",
+        key    = "enemycomcount",
         name   = "Enemy Com Counter",
         desc   = "Tells each team the total number of commanders alive in enemy teams",
         type   = "bool",
@@ -170,7 +170,7 @@ local options={
         section= "ba_others",
     },
 	{
-		key    = "mo_allowuserwidgets",
+		key    = "allowuserwidgets",
 		name   = "Allow user widgets",
 		desc   = "Allow custom user widgets or disallow them",
 		type   = "bool",
@@ -186,7 +186,7 @@ local options={
         section= "ba_others",
     },
     {
-		key    = "mo_no_close_spawns",
+		key    = "no_close_spawns",
 		name   = "No close spawns",
 		desc   = "Prevents players startpoints being placed close together (on large enough maps)",
 		type   = "bool",
@@ -194,7 +194,7 @@ local options={
 		section= "ba_options",
     },
     {
-        key    = "mo_heatmap",
+        key    = "heatmap",
         name   = "HeatMap",
         desc   = "Attemps to prevents unit paths to cross",
         type   = "bool",
@@ -202,7 +202,7 @@ local options={
         section= "ba_options",
     },
     {
-		key    = "mo_newbie_placer",
+		key    = "newbie_placer",
 		name   = "Newbie Placer",
 		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
 		type   = "bool",
@@ -462,7 +462,7 @@ local options={
 		section= "chicken_defense_custom_difficulty_settings",
 	},
 	{
-		key    = "mo_custom_expstep",
+		key    = "custom_expstep",
 		name   = "Bonus Experience",
 		desc   = "Exp each chicken will receive by the end of the game",
 		type   = "number",

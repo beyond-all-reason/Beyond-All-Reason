@@ -72,20 +72,20 @@ function widget:Initialize()
     widgetHandler:RemoveWidget(self)
   end
   
-  if (tonumber(Spring.GetModOptions().mo_preventcombomb) or 0) ~= 0 then
+  if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
 	message2 = "Commanders survive DGuns and commander explosions"
   end
     
-  if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+  if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 	message4 = "Unbalanced Commanders is enabled: Commander levels up and gain upgrades"
   end
   
-  if (tonumber(Spring.GetModOptions().mo_armageddontime) or -1) > 0 then
+  if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
     plural = ""
-    if tonumber(Spring.GetModOptions().mo_armageddontime) ~= 1 then
+    if tonumber(Spring.GetModOptions().armageddontime) ~= 1 then
         plural = "s"
     end
-    message3 = "Armageddon at " .. Spring.GetModOptions().mo_armageddontime .. " minute" .. plural
+    message3 = "Armageddon at " .. Spring.GetModOptions().armageddontime .. " minute" .. plural
   end
 end
 	

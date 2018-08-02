@@ -73,7 +73,7 @@ end
 
 function UnitDef_Post(name, uDef)
 	-- load BAR stuff
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 and not ((Spring.GetModOptions and (Spring.GetModOptions().mo_unba or "disabled") == "enabled") and (name == "armcom" or name == "corcom")) then
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 and not ((Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "enabled") and (name == "armcom" or name == "corcom")) then
 		-- BAR models
 		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
 		if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
@@ -433,13 +433,13 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		end
 
 		-- transporting enemy coms
-		if (modOptions.mo_transportenemy == "notcoms") then
+		if (modOptions.transportenemy == "notcoms") then
 			for name,ud in pairs(UnitDefs) do  
 				if (name == "armcom" or name == "corcom" or name == "armdecom" or name == "cordecom") then
 					ud.transportbyenemy = false
 				end
 			end
-		elseif (modOptions.mo_transportenemy == "none") then
+		elseif (modOptions.transportenemy == "none") then
 			for name, ud in pairs(UnitDefs) do  
 				ud.transportbyenemy = false
 			end

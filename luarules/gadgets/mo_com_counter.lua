@@ -13,7 +13,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------
 
-local enabled = (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
+local enabled = (tostring(Spring.GetModOptions().enemycomcount) == "1") or false
 if not enabled then 
   return false
 end

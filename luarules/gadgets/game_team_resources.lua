@@ -28,7 +28,7 @@ function gadget:Initialize()
 	local startEnergy = tonumber(modOptions.startenergy) or 1000
 	local teamResources = true 
 
-	if ((modOptions.mo_storageowner) and (modOptions.mo_storageowner == "com")) then
+	if ((modOptions.storageowner) and (modOptions.storageowner == "com")) then
     teamResources = false
 	end
 	

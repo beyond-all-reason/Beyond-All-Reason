@@ -520,7 +520,7 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 						end
 						if enableHeatDistortion and WG['Lups'] then
 							local weaponDefID = Spring.GetProjectileDefID(pID)
-							if weaponDefID and not weaponConf[weaponDefID].noheatdistortion and Spring.IsSphereInView(x,y,z,100) then
+							if weaponDefID and weaponConf[weaponDefID] and not weaponConf[weaponDefID].noheatdistortion and Spring.IsSphereInView(x,y,z,100) then
 								if weaponConf[weaponDefID].wtype == 'DGun' then
 									local distance = math.diag(x-cx, y-cy, z-cz)
 									local strengthMult = 1 / (distance*0.001)

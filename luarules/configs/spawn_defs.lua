@@ -1,16 +1,16 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-maxChicken           = tonumber(Spring.GetModOptions().mo_maxchicken) or 400
+maxChicken           = tonumber(Spring.GetModOptions().chicken_maxchicken) or 400
 maxBurrows           = 20
-gracePeriod          = tonumber(Spring.GetModOptions().mo_graceperiod) or 160  -- no chicken spawn in this period, seconds
-queenTime            = (Spring.GetModOptions().mo_queentime or 40) * 60 -- time at which the queen appears, seconds
-addQueenAnger        = tonumber(Spring.GetModOptions().mo_queenanger) or 1
-burrowSpawnType      = Spring.GetModOptions().mo_chickenstart or "avoid"
+gracePeriod          = tonumber(Spring.GetModOptions().chicken_graceperiod) or 160  -- no chicken spawn in this period, seconds
+queenTime            = (Spring.GetModOptions().chicken_queentime or 40) * 60 -- time at which the queen appears, seconds
+addQueenAnger        = tonumber(Spring.GetModOptions().chicken_queenanger) or 1
+burrowSpawnType      = Spring.GetModOptions().chicken_chickenstart or "avoid"
 spawnSquare          = 90       -- size of the chicken spawn square centered on the burrow
 spawnSquareIncrement = 2         -- square size increase for each unit spawned
 burrowName           = "roost"   -- burrow unit name
 maxAge               = 300      -- default chicken die at this age, seconds
-queenName            = Spring.GetModOptions().mo_queendifficulty or "n_chickenq"
+queenName            = Spring.GetModOptions().chicken_queendifficulty or "n_chickenq"
 burrowDef            = UnitDefNames[burrowName].id
 defenderChance       = 0.375      -- probability of spawning a single turret
 maxTurrets           = 3   		 -- Max Turrets per burrow
@@ -357,17 +357,17 @@ difficulties = {
   },
 
   [CUSTOM] = {
-    chickenSpawnRate  = tonumber(Spring.GetModOptions().mo_custom_chickenspawn),
-    burrowSpawnRate   = tonumber(Spring.GetModOptions().mo_custom_burrowspawn),
-    queenSpawnMult    = tonumber(Spring.GetModOptions().mo_custom_queenspawnmult),
-    angerBonus        = tonumber(Spring.GetModOptions().mo_custom_angerbonus),
-    expStep           = (tonumber(Spring.GetModOptions().mo_custom_expstep) or 0.6) * -1,
-    lobberEMPTime     = tonumber(Spring.GetModOptions().mo_custom_lobberemp),
+    chickenSpawnRate  = tonumber(Spring.GetModOptions().chicken_custom_chickenspawn),
+    burrowSpawnRate   = tonumber(Spring.GetModOptions().chicken_custom_burrowspawn),
+    queenSpawnMult    = tonumber(Spring.GetModOptions().chicken_custom_queenspawnmult),
+    angerBonus        = tonumber(Spring.GetModOptions().chicken_custom_angerbonus),
+    expStep           = (tonumber(Spring.GetModOptions().chicken_custom_expstep) or 0.6) * -1,
+    lobberEMPTime     = tonumber(Spring.GetModOptions().chicken_custom_lobberemp),
     chickenTypes      = Copy(chickenTypes),
     defenders         = Copy(defenders),
-    chickensPerPlayer = tonumber(Spring.GetModOptions().mo_custom_minchicken),
-    spawnChance       = (tonumber(Spring.GetModOptions().mo_custom_spawnchance) or 50) / 100,
-    damageMod         = (tonumber(Spring.GetModOptions().mo_custom_damagemod) or 100) / 100,
+    chickensPerPlayer = tonumber(Spring.GetModOptions().chicken_custom_minchicken),
+    spawnChance       = (tonumber(Spring.GetModOptions().chicken_custom_spawnchance) or 50) / 100,
+    damageMod         = (tonumber(Spring.GetModOptions().chicken_custom_damagemod) or 100) / 100,
   },
 
   [SURVIVAL] = {

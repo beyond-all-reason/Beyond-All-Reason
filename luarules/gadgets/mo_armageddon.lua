@@ -22,7 +22,7 @@ end
 ----------------------------------------------------------------
 -- Load?
 ----------------------------------------------------------------
-local armageddonFrame = 60 * 30 * (tonumber((Spring.GetModOptions() or {}).mo_armageddontime) or 0) --mo_armageddontime is in minutes
+local armageddonFrame = 60 * 30 * (tonumber((Spring.GetModOptions() or {}).armageddontime) or 0) --armageddontime is in minutes
 local armageddonDuration = 12
 
 if armageddonFrame <= 0 then

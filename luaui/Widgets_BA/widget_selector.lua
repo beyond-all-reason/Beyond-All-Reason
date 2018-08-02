@@ -102,9 +102,9 @@ local buttons = { --see MouseRelease for which functions are called by which but
     [5] = "Factory Reset LuaUI",
 }
 
-local mo_allowuserwidgets = true
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().mo_allowuserwidgets) or 1) == 0 then
-  mo_allowuserwidgets = false
+local allowuserwidgets = true
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().allowuserwidgets) or 1) == 0 then
+  allowuserwidgets = false
   buttons[3] = ''
 end
 
@@ -119,7 +119,7 @@ function widget:Initialize()
   widgetHandler.knownChanged = true
   Spring.SendCommands('unbindkeyset f11')
 
-  if mo_allowuserwidgets then
+  if allowuserwidgets then
     if widgetHandler.allowUserWidgets then
       buttons[3] = "Disallow User Widgets"
     else
@@ -669,7 +669,7 @@ function widget:MouseRelease(x, y, mb)
       widgetHandler:SaveConfigData()    
       return -1
     end
-    if buttonID == 3 and mo_allowuserwidgets then
+    if buttonID == 3 and allowuserwidgets then
       -- tell the widget handler that we allow/disallow user widgets and reload
       if widgetHandler.allowUserWidgets then
         widgetHandler.__allowUserWidgets = false

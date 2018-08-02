@@ -2,7 +2,7 @@
 function gadget:GetInfo()
 	return {
 		name	= 'Coop II',
-		desc	= 'Implements mo_coop modoption',
+		desc	= 'Implements coop modoption',
 		author	= 'Niobium',
 		date	= 'May 2011',
 		license	= 'GNU GPL, v2 or later',
@@ -12,7 +12,7 @@ function gadget:GetInfo()
 end
 
 -- Modoption check
-if (tonumber((Spring.GetModOptions() or {}).mo_coop) or 0) == 0 then
+if (tonumber((Spring.GetModOptions() or {}).coop) or 0) == 0 then
 	return false
 end
 

@@ -439,7 +439,7 @@ end
 function processGuishader()
 	if (WG['guishader_api'] ~= nil) then
 		local sBuilds = UnitDefs[sDefID].buildOptions
-		if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 			if sDef.name == "armcom" then 
 				sBuilds = armlevel1buildoptions
 			elseif sDef.name == "corcom" then
@@ -482,7 +482,7 @@ function InitializeFaction(sDefID)
 	sDef = UnitDefs[sDefID]
 	-- Don't run if theres nothing to show
 	local sBuilds = sDef.buildOptions
-	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 		if sDef.name == "armcom" then 
 			sBuilds = armlevel1buildoptions
 		elseif sDef.name == "corcom" then
@@ -594,7 +594,7 @@ function widget:GetConfigData()
 		local startUnitName = Spring.GetSideData(mySide)
 		local sDefID = UnitDefNames[startUnitName].id
 		local sBuilds = UnitDefs[sDefID].buildOptions
-		if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 			if UnitDefs[sDefID].name == "armcom" then
 				sBuilds = armlevel1buildoptions
 			elseif UnitDefs[sDefID].name == "corcom" then
@@ -822,7 +822,7 @@ end
 -- Game start
 ------------------------------------------------------------
 
-local comGate = tonumber(Spring.GetModOptions().mo_comgate) or 0 --if comgate is on, all orders are blocked before frame 105
+local comGate = tonumber(Spring.GetModOptions().comgate) or 0 --if comgate is on, all orders are blocked before frame 105
 
 
 function widget:GameFrame(n)
@@ -1105,7 +1105,7 @@ function widget:ViewResize(newX,newY)
 	processGuishader()
 	
 	local sBuilds = UnitDefs[sDefID].buildOptions
-	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 		if sDef.name == "armcom" then 
 			sBuilds = armlevel1buildoptions
 		elseif sDef.name == "corcom" then

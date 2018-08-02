@@ -93,7 +93,7 @@ local modrules  = {
   },
 }
 
-if (Spring.GetModOptions) and Spring.GetModOptions().mo_unba and (Spring.GetModOptions().mo_unba == "enabled" or Spring.GetModOptions().mo_unba == "exponly") then
+if (Spring.GetModOptions) and Spring.GetModOptions().unba and (Spring.GetModOptions().unba == "enabled" or Spring.GetModOptions().unba == "exponly") then
 	modrules.experience.powerScale = 3
 	modrules.experience.healthScale = 1.4
 	modrules.experience.reloadScale = 0.8

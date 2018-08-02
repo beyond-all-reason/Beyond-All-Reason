@@ -1,5 +1,5 @@
 local enablegadget = false
-if Spring.GetModOptions and Spring.GetModOptions().mo_unba then
+if Spring.GetModOptions and Spring.GetModOptions().unba then
 	enablegadget = true
 end
 

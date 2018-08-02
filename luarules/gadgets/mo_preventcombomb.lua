@@ -3,7 +3,7 @@
 
 function gadget:GetInfo()
   return {
-    name      = "mo_preventcombomb",
+    name      = "preventcombomb",
     desc      = "Commanders survive commander blast and DGun",
     author    = "TheFatController",
     date      = "Aug 31, 2009",

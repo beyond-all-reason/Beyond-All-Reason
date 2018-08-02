@@ -5,7 +5,7 @@ function gadget:GetInfo()
     author    = "Bluestone",
     date      = "June 2014",
     license   = "GNU GPL, v3 or later",
-    layer     = 2, --run after game initial spawn and mo_coop (because we use readyStates)
+    layer     = 2, --run after game initial spawn and coop (because we use readyStates)
     enabled   = true  
   }
 end
@@ -375,7 +375,7 @@ function MakeButton()
 end
 
 function gadget:Initialize()
-  if isReplay or (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
+  if isReplay or (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then
       gadgetHandler:RemoveGadget() -- don't run in FFA mode
       return 
   end

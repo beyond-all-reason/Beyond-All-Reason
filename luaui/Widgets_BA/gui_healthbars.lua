@@ -1042,7 +1042,7 @@ do
       if (ci.maxShield>0) then
 	  local UnitDefID = Spring.GetUnitDefID(unitID)
 	  local UnitName = UnitDefs[UnitDefID].name
-	  if (UnitName == "armcom" or UnitName == "corcom") and Spring.GetModOptions() and Spring.GetModOptions().mo_unba == "enabled" then
+	  if (UnitName == "armcom" or UnitName == "corcom") and Spring.GetModOptions() and Spring.GetModOptions().unba == "enabled" then
 			for i = 23,29 do
 				if (GetUnitShieldState(unitID, i)) then
 					local shieldOn, shieldPower = GetUnitShieldState(unitID, i)

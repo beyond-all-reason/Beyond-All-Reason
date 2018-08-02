@@ -49,7 +49,7 @@ local spSendCommands = Spring.SendCommands
 local toggledMetal
 
 local unba = false
-if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 	unba = true
 end
 
@@ -103,7 +103,7 @@ end
 function widget:UnitCreated(unitID, unitDefID)
   
 	local ud = UnitDefs[unitDefID]
-	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
+	if (Spring.GetModOptions().unba or "disabled") == "enabled" and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
 		if UnbaCommandersMexesDefs[unitDefID][1] then
 			mexBuilder[unitID] = UnbaCommandersMexesDefs[unitDefID][1]
 		end

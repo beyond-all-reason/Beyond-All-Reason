@@ -220,7 +220,7 @@ function widget:Initialize()
 	WG['unitstats'].setOldUnitIcons = function(value)
 		oldUnitpics = value
 	end
-	if (Spring.GetModOptions().mo_unba or "disabled") == "enabled" then
+	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 		VFS.Include("unbaconfigs/stats.lua")
 		unba = true
 	end

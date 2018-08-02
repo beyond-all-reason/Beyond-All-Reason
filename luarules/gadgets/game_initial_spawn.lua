@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
--- Note: (31/03/13) mo_coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
+-- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
 
 ----------------------------------------------------------------
 -- Synced 
@@ -54,7 +54,7 @@ local nSpawnTeams
 local playerStartingUnits = {} -- playerStartingUnits[unitID] = unitDefID
 GG.playerStartingUnits = playerStartingUnits 
 
---each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by mo_coop
+--each team gets one startpos. if coop mode is on, extra startpoints are placed in GG.coopStartPoints by coop
 local teamStartPoints = {} -- teamStartPoints[teamID] = {x,y,z}
 GG.teamStartPoints = teamStartPoints 
 local startPointTable = {} --temporary, only for use within this gadget & its libs
@@ -74,7 +74,7 @@ include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing ro
 
 -- ffaStartPoints is "global"
 local useFFAStartPoints = false
-if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then
+if (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then
     useFFAStartPoints = true
 end
 
@@ -93,7 +93,7 @@ end
 --Newbie Placer (prevents newbies from choosing their own a startpoint and faction)
 local NewbiePlacer
 local processedNewbies = false
-if (tonumber((Spring.GetModOptions() or {}).mo_newbie_placer) == 1) and (Game.startPosType == 2) then
+if (tonumber((Spring.GetModOptions() or {}).newbie_placer) == 1) and (Game.startPosType == 2) then
 	NewbiePlacer = true
 else
 	NewbiePlacer = false
@@ -145,7 +145,7 @@ local closeSpawnDist = 350
 local mapx = Game.mapX
 local mapz = Game.mapY -- misnomer in API
 local smallmap = (mapx^2 + mapz^2 < 6^2) --TODO: improve this
-if (tonumber(Spring.GetModOptions().mo_no_close_spawns) or 1) and (Game.startPosType ~= 2) and smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
+if (tonumber(Spring.GetModOptions().no_close_spawns) or 1) and (Game.startPosType ~= 2) and smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
 	NoCloseSpawns = true
 else
 	NoCloseSpawns = false
@@ -547,7 +547,7 @@ local uiScale = customScale
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
-local ffaMode = (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1
+local ffaMode = (tonumber(Spring.GetModOptions().ffa) or 0) == 1
 local isReplay = Spring.IsReplay()
 
 local readied = false --make sure we return true,true for newbies at least once

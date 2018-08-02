@@ -88,7 +88,7 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local enableStartposbuttons = true
-if (tonumber(Spring.GetModOptions().mo_ffa) or 0) == 1 then		-- spots wont match when ffa
+if (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then		-- spots wont match when ffa
 	enableStartposbuttons = false
 end
 

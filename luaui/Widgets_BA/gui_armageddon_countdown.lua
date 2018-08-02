@@ -14,7 +14,7 @@ end
 ----------------------------------------------------------------
 -- Load?
 ----------------------------------------------------------------
-local armageddonTime = 60 * (tonumber((Spring.GetModOptions() or {}).mo_armageddontime) or 0)
+local armageddonTime = 60 * (tonumber((Spring.GetModOptions() or {}).armageddontime) or 0)
 if armageddonTime <= 0 then
     return false
 end
