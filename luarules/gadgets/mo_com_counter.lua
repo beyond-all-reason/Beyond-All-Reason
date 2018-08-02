@@ -13,10 +13,7 @@ end
 -------------------------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------------------------
 
-local enabled = (tostring(Spring.GetModOptions().enemycomcount) == "1") or false
-if not enabled then 
-  return false
-end
+local enabled = true
 
 if not (gadgetHandler:IsSyncedCode()) then --synced only
 	return false

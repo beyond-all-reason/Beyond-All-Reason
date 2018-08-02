@@ -104,7 +104,7 @@ local allyComs = 0
 local enemyComs = 0 -- if we are counting ourselves because we are a spec
 local enemyComCount = 0 -- if we are receiving a count from the gadget part (needs modoption on)
 local prevEnemyComCount = 0
-local receiveCount = (tostring(Spring.GetModOptions().enemycomcount) == "1") or false
+local receiveCount = true
 
 local guishaderEnabled = false
 local guishaderCheckUpdateRate = 2

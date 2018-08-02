@@ -145,7 +145,7 @@ local closeSpawnDist = 350
 local mapx = Game.mapX
 local mapz = Game.mapY -- misnomer in API
 local smallmap = (mapx^2 + mapz^2 < 6^2) --TODO: improve this
-if (tonumber(Spring.GetModOptions().no_close_spawns) or 1) and (Game.startPosType ~= 2) and smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
+if (Game.startPosType ~= 2) and smallmap then --don't load if modoptions says not too or if start pos placement is not 'choose in game' or if map is small
 	NoCloseSpawns = true
 else
 	NoCloseSpawns = false

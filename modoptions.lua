@@ -161,14 +161,6 @@ local options={
 			{key="none", name="Disallow All", desc="No enemy units can be napped"},
 		}
 	},
-    {
-        key    = "enemycomcount",
-        name   = "Enemy Com Counter",
-        desc   = "Tells each team the total number of commanders alive in enemy teams",
-        type   = "bool",
-        def    = true,
-        section= "ba_others",
-    },
 	{
 		key    = "allowuserwidgets",
 		name   = "Allow user widgets",
@@ -184,14 +176,6 @@ local options={
         type   = 'bool',
         def    = true,
         section= "ba_others",
-    },
-    {
-		key    = "no_close_spawns",
-		name   = "No close spawns",
-		desc   = "Prevents players startpoints being placed close together (on large enough maps)",
-		type   = "bool",
-		def    = true,
-		section= "ba_options",
     },
     {
         key    = "heatmap",
