@@ -1,14 +1,14 @@
 
 function widget:GetInfo()
-return {
-	name    = "Game info",
-	desc    = "",
-	author  = "Floris",
-	date    = "May 2017",
-	license = "",
-	layer   = 2,
-	enabled = true,
-}
+	return {
+		name    = "Game info",
+		desc    = "",
+		author  = "Floris",
+		date    = "May 2017",
+		license = "",
+		layer   = 2,
+		enabled = true,
+	}
 end
 
 local loadedFontSize = 32
@@ -16,7 +16,7 @@ local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
-		
+
 local titlecolor = "\255\255\205\100"
 local keycolor = ""
 local valuecolor = "\255\255\255\255"
@@ -44,26 +44,26 @@ changelogFile = changelogFile .. keycolor.."Size"..separator..valuegreycolor..Ga
 changelogFile = changelogFile .. keycolor.."Gravity"..separator..valuegreycolor..Game.gravity.."\n"
 changelogFile = changelogFile .. keycolor.."Hardness"..separator..valuegreycolor..Game.mapHardness.. keycolor.."\n"
 tidal = Game.tidal
-	if Spring.GetModOptions() and Spring.GetModOptions().map_tidal then
-		map_tidal = Spring.GetModOptions().map_tidal
-			if map_tidal == "unchanged" then
-			elseif map_tidal == "low" then
-			tidal = 13
-			elseif map_tidal == "medium" then
-			tidal = 18
-			elseif map_tidal == "high" then
-			tidal = 23
-			end
+if Spring.GetModOptions() and Spring.GetModOptions().map_tidal then
+	map_tidal = Spring.GetModOptions().map_tidal
+	if map_tidal == "unchanged" then
+	elseif map_tidal == "low" then
+		tidal = 13
+	elseif map_tidal == "medium" then
+		tidal = 18
+	elseif map_tidal == "high" then
+		tidal = 23
 	end
+end
 changelogFile = changelogFile .. keycolor.."Tidal speed"..separator..valuegreycolor..tidal.. keycolor.."\n"
 
-			
+
 if Game.windMin == Game.windMax then
 	changelogFile = changelogFile .. keycolor.."Wind speed"..separator..valuegreycolor..Game.windMin..valuegreycolor.."\n"
 else
 	changelogFile = changelogFile .. keycolor.."Wind speed"..separator..valuegreycolor..Game.windMin..valuegreycolor.."  -  "..valuegreycolor..Game.windMax.."\n"
 end
-if Game.waterDamage == 0 then 
+if Game.waterDamage == 0 then
 	vcolor = valuegreycolor
 else
 	vcolor = valuecolor
@@ -82,7 +82,7 @@ for key, value in pairs(defaultModoptions) do
 	elseif value.def == true then
 		v = 1
 	end
-  modoptionsDefault[tostring(value.key)] = tostring(v)
+	modoptionsDefault[tostring(value.key)] = tostring(v)
 end
 -- modoptions.lua doesnt contain engine modoptions: maxunits, pathfinder, startmetal, startenergy, disablemapdamage, fixedallies
 modoptionsDefault['maxspeed'] = '3'
@@ -98,20 +98,38 @@ local modoptions = Spring.GetModOptions()
 local vcolor = valuegreycolor
 local changedModoptions = {}
 local unchangedModoptions = {}
+local changedChickenModoptions = {}
+local unchangedChickenModoptions = {}
 
-if not chickensEnabled then	-- filter chicken modoptions
-	for key, value in pairs(modoptions) do
-		if string.sub(key, 1, 8) == 'chicken_' then
-			modoptions[key] = nil
+for key, value in pairs(modoptions) do
+	if string.sub(key, 1, 8) == 'chicken_' then
+		if chickensEnabled then
+			if value == modoptionsDefault[key]  then
+				unchangedChickenModoptions[key] = value
+			else
+				changedChickenModoptions[key] = value
+			end
 		end
+		modoptions[key] = nil	-- filter chicken modoptions
 	end
 end
+
 for key, value in pairs(modoptions) do
-	if value == modoptionsDefault[key] then
+	if value == modoptionsDefault[key]  then
 		unchangedModoptions[key] = value
 	else
 		changedModoptions[key] = value
 	end
+end
+changelogFile = changelogFile .. titlecolor.."Chicken options\n"
+if chickensEnabled then	-- filter chicken modoptions
+	for key, value in pairs(changedChickenModoptions) do
+		changelogFile = changelogFile .. keycolor..string.sub(key, 9)..separator..valuecolor..value.."\n"
+	end
+	for key, value in pairs(unchangedChickenModoptions) do
+		changelogFile = changelogFile .. keycolor..string.sub(key, 9)..separator..valuegreycolor..value.."\n"
+	end
+	changelogFile = changelogFile .. "\n"
 end
 changelogFile = changelogFile .. titlecolor.."Mod options\n"
 for key, value in pairs(changedModoptions) do
@@ -137,7 +155,7 @@ local startLine = 1
 local vsx,vsy = Spring.GetViewGeometry()
 local screenX = (vsx*0.5) - (screenWidth/2)
 local screenY = (vsy*0.5) + (screenHeight/2)
-  
+
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
 
@@ -172,12 +190,12 @@ local changelogLines = {}
 local totalChangelogLines = 0
 
 function widget:ViewResize()
-  vsx,vsy = Spring.GetViewGeometry()
-  screenX = (vsx*0.5) - (screenWidth/2)
-  screenY = (vsy*0.5) + (screenHeight/2)
-  widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-  if changelogList then gl.DeleteList(changelogList) end
-  changelogList = gl.CreateList(DrawWindow)
+	vsx,vsy = Spring.GetViewGeometry()
+	screenX = (vsx*0.5) - (screenWidth/2)
+	screenY = (vsy*0.5) + (screenHeight/2)
+	widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+	if changelogList then gl.DeleteList(changelogList) end
+	changelogList = gl.CreateList(DrawWindow)
 end
 
 local myTeamID = Spring.GetMyTeamID()
@@ -191,19 +209,19 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
+
 	local offset = 0.05		-- texture offset, because else gaps could show
-	
+
 	-- bottom left
 	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -250,7 +268,7 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differentl
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
-    
+
 function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarOffsetTop 		= 18	-- note: wont add the offset to the bottom, only to top
 	local scrollbarOffsetBottom 	= 12	-- note: wont add the offset to the top, only to bottom
@@ -260,20 +278,20 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	local scrollbarPosMinHeight 	= 8
 	local scrollbarBackgroundColor	= {0,0,0,0.24	}
 	local scrollbarBarColor			= {1,1,1,0.08}
-	
+
 	local fontSizeTitle				= 17		-- is version number
 	local fontSizeDate				= 13
 	local fontSizeLine				= 15
 	local lineSeparator				= 2
-	
+
 	local fontColorTitle			= {1,1,1,1}
 	local fontColorDate				= {0.66,0.88,0.66,1}
 	local fontColorLine				= {0.8,0.77,0.74,1}
 	local fontColorCommand			= {0.9,0.6,0.2,1}
-	
+
 	local textRightOffset = scrollbar and scrollbarMargin+scrollbarWidth+scrollbarWidth or 0
 	local maxLines = math.floor((height-5)/fontSizeLine)
-	
+
 	-- textarea scrollbar
 	if scrollbar then
 		if (totalChangelogLines > maxLines or startLine > 1) then	-- only show scroll above X lines
@@ -304,7 +322,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			)
 		end
 	end
-	
+
 	-- draw textarea
 	if changelogFile then
 		font:Begin()
@@ -317,7 +335,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 			if changelogLines[lineKey] == nil then
 				break;
 			end
-			
+
 			local line = changelogLines[lineKey]
 			if string.find(line, '::') then
 				local cmd = string.match(line, '^[ \+a-zA-Z0-9_-]*')		-- escaping the escape: \\ doesnt work in lua !#$@&*()&5$#
@@ -326,10 +344,10 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 					break;
 				end
-				
+
 				font:SetTextColor(fontColorCommand)
 				font:Print(cmd, x+20, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
-				
+
 				font:SetTextColor(fontColorLine)
 				font:Print(descr, x+250, y-(lineSeparator+fontSizeTitle)*j, fontSizeLine, "n")
 				j = j + (numLines - 1)
@@ -354,62 +372,62 @@ end
 
 
 function DrawWindow()
-  local vsx,vsy = Spring.GetViewGeometry()
-  local x = screenX --rightwards
-  local y = screenY --upwards
-	
+	local vsx,vsy = Spring.GetViewGeometry()
+	local x = screenX --rightwards
+	local y = screenY --upwards
+
 	-- background
-    gl.Color(0,0,0,0.8)
+	gl.Color(0,0,0,0.8)
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
-	
+
 	-- close button
 	local size = closeButtonSize*0.7
 	local width = size*0.055
-  gl.Color(1,1,1,1)
+	gl.Color(1,1,1,1)
 	gl.PushMatrix()
-		gl.Translate(screenX+screenWidth-(closeButtonSize/2),screenY-(closeButtonSize/2),0)
-  	gl.Rotate(-45,0,0,1)
-  	gl.Rect(-width,size/2,width,-size/2)
-  	gl.Rotate(90,0,0,1)
-  	gl.Rect(-width,size/2,width,-size/2)
+	gl.Translate(screenX+screenWidth-(closeButtonSize/2),screenY-(closeButtonSize/2),0)
+	gl.Rotate(-45,0,0,1)
+	gl.Rect(-width,size/2,width,-size/2)
+	gl.Rotate(90,0,0,1)
+	gl.Rect(-width,size/2,width,-size/2)
 	gl.PopMatrix()
-	
+
 	-- title
-    local title = "Game info"
+	local title = "Game info"
 	local titleFontSize = 18
-    gl.Color(0,0,0,0.8)
-    titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+	gl.Color(0,0,0,0.8)
+	titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	font:Begin()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
 	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font:End()
-	
+
 	-- textarea
 	DrawTextarea(x, y-10, screenWidth, screenHeight-24, 1)
 end
 
 
 function widget:DrawScreen()
-  if spIsGUIHidden() then return end
-  if amNewbie then return end
-  
-  -- draw the help
-  if not changelogList then
-      changelogList = gl.CreateList(DrawWindow)
-  end
-  
-  if show or showOnceMore then
-    
+	if spIsGUIHidden() then return end
+	if amNewbie then return end
+
+	-- draw the help
+	if not changelogList then
+		changelogList = gl.CreateList(DrawWindow)
+	end
+
+	if show or showOnceMore then
+
 		-- draw the changelog panel
 		glPushMatrix()
-			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
-			glScale(widgetScale, widgetScale, 1)
-			glCallList(changelogList)
+		glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
+		glScale(widgetScale, widgetScale, 1)
+		glCallList(changelogList)
 		glPopMatrix()
 		if (WG['guishader_api'] ~= nil) then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
@@ -421,8 +439,8 @@ function widget:DrawScreen()
 			--WG['guishader_api'].setScreenBlur(true)
 		end
 		showOnceMore = false
-		
-  else
+
+	else
 		if (WG['guishader_api'] ~= nil) then
 			local removed = WG['guishader_api'].RemoveRect('gameinfo')
 			if removed then
@@ -440,26 +458,26 @@ function widget:KeyPress(key)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-	
+
 	-- check if the mouse is in a rectangle
 	return x >= BLcornerX and x <= TRcornerX
-	                      and y >= BLcornerY
-	                      and y <= TRcornerY
+			and y >= BLcornerY
+			and y <= TRcornerY
 end
 
 function widget:MouseWheel(up, value)
-	
-	if show then	
+
+	if show then
 		local addLines = value*-3 -- direction is retarded
-		
+
 		startLine = startLine + addLines
 		if startLine < 1 then startLine = 1 end
 		if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
-		
+
 		if changelogList then
 			glDeleteList(changelogList)
 		end
-		
+
 		changelogList = gl.CreateList(DrawWindow)
 		return true
 	else
@@ -468,14 +486,14 @@ function widget:MouseWheel(up, value)
 end
 
 function widget:MouseMove(x, y)
-  if show then
+	if show then
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if not IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-			
+
 		end
 	end
 end
@@ -489,16 +507,16 @@ function widget:MouseRelease(x, y, button)
 end
 
 function mouseEvent(x, y, button, release)
-  if spIsGUIHidden() then return false end
-  
-  if show then 
+	if spIsGUIHidden() then return false end
+
+	if show then
 		-- on window
 		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-		
+
 			-- on close button
 			local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
 			local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
@@ -509,7 +527,7 @@ function mouseEvent(x, y, button, release)
 				end
 				return true
 			end
-			
+
 			if button == 1 or button == 3 then
 				if button == 3 and release then
 					show = not show
@@ -527,10 +545,10 @@ function mouseEvent(x, y, button, release)
 end
 
 function lines(str)
-  local t = {}
-  local function helper(line) t[#t+1] = line return "" end
-  helper((str:gsub("(.-)\r?\n", helper)))
-  return t
+	local t = {}
+	local function helper(line) t[#t+1] = line return "" end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
 end
 
 
@@ -561,8 +579,8 @@ end
 
 function widget:Initialize()
 	if changelogFile then
-	
-  	widgetHandler:AddAction("customgameinfo", toggle)
+
+		widgetHandler:AddAction("customgameinfo", toggle)
 		Spring.SendCommands("unbind any+i gameinfo")
 		Spring.SendCommands("unbind i gameinfo")
 		Spring.SendCommands("bind i customgameinfo")
@@ -578,17 +596,17 @@ function widget:Initialize()
 				hideWindows()
 			end
 		end
-		
+
 		-- somehow there are a few characters added at the start that we need to remove
 		--changelogFile = string.sub(changelogFile, 4)
-		
+
 		-- store changelog into array
 		changelogLines = lines(changelogFile)
-		
+
 		for i, line in ipairs(changelogLines) do
 			totalChangelogLines = i
 		end
-		
+
 	else
 		--Spring.Echo("Commands info: couldn't load the commandslist file")
 		widgetHandler:RemoveWidget(self)
@@ -596,17 +614,17 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-		Spring.SendCommands("unbind i customgameinfo")
-		Spring.SendCommands("bind any+i gameinfo")
-		Spring.SendCommands("bind i gameinfo")
-  	widgetHandler:RemoveAction("customgameinfo", toggle)
-  	
-    if buttonGL then
-        glDeleteList(buttonGL)
-        buttonGL = nil
-    end
-    if changelogList then
-        glDeleteList(changelogList)
-        changelogList = nil
-    end
+	Spring.SendCommands("unbind i customgameinfo")
+	Spring.SendCommands("bind any+i gameinfo")
+	Spring.SendCommands("bind i gameinfo")
+	widgetHandler:RemoveAction("customgameinfo", toggle)
+
+	if buttonGL then
+		glDeleteList(buttonGL)
+		buttonGL = nil
+	end
+	if changelogList then
+		glDeleteList(changelogList)
+		changelogList = nil
+	end
 end

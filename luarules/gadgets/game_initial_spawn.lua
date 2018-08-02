@@ -571,7 +571,7 @@ else
 ----------------------------------------------------------------
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
-local customScale = 1.15
+local customScale = 1.23
 local uiScale = customScale
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
@@ -781,10 +781,17 @@ function gadget:Initialize()
 	end)
 end
 
+
 local timer3 = 20
 function gadget:DrawScreen()
 	if enabled then
 	  uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
+
+		if not guishaderApplied and Script.LuaUI("GuishaderInsertRect") then
+			local x1,y1 = correctMouseForScaling(readyX-bgMargin, readyY-bgMargin)
+			local x2,y2 = correctMouseForScaling(readyX+readyW+bgMargin, readyY+readyH+bgMargin)
+			Script.LuaUI.GuishaderInsertRect(x1,y1,x2,y2, 'ready')
+		end
 		gl.PushMatrix()
 			gl.Translate(readyX+(readyW/2),readyY+(readyH/2),0)
 			gl.Scale(uiScale, uiScale, 1)
@@ -819,7 +826,7 @@ function gadget:DrawScreen()
 					colorString = "\255\255\255\255"
 				end
 				local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
-				gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*20, vsy*0.71, 20, "o")
+				gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
 			end
 		gl.PopMatrix()
 
@@ -834,7 +841,7 @@ function gadget:DrawScreen()
 
 		gl.Color(0,0,0,0.7)
 		gl.Rect(0,0,vsx,vsy)
-		gl.Text("\255\200\200\200Running on an unsupported engine\n\nYou need version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\150\150\150closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+		gl.Text("\255\200\200\200Running on an unsupported engine\n\nYou need version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 
 		if timer3 <= 0 then
 			Spring.SendCommands("QuitForce")
@@ -843,8 +850,12 @@ function gadget:DrawScreen()
 end
 
 function gadget:Shutdown()
-		gl.DeleteList(readyButton)
-		gl.DeleteList(readyButtonHover)
+	gl.DeleteList(readyButton)
+	gl.DeleteList(readyButtonHover)
+
+	if Script.LuaUI("GuishaderRemoveRect") then
+		Script.LuaUI.GuishaderRemoveRect('ready')
+	end
 end
 
 ----------------------------------------------------------------

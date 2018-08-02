@@ -44,7 +44,7 @@ unitDeaths = {
             expl_light_mult = 1,
             expl_light_color = "0.5 0.5 1",
             expl_light_life_mult = 1.3,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
 
@@ -65,7 +65,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.1,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     pyroselfd = {
@@ -86,7 +86,7 @@ unitDeaths = {
             expl_light_mult = 1.15,
             expl_light_radius_mult = 1.15,
             expl_light_life_mult = 1.15,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 
@@ -106,7 +106,7 @@ unitDeaths = {
                 expl_light_mult = 1.1,
                 expl_light_radius_mult = 1.1,
                 expl_light_life_mult = 1.1,
-                expl_light_heat_radius_mult = 1.3,
+                expl_light_heat_radius_mult = 1.15,
             },
         },
     },
@@ -128,7 +128,7 @@ unitDeaths = {
             expl_light_mult = 1.15,
             expl_light_radius_mult = 1.15,
             expl_light_life_mult = 1.15,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 	
@@ -173,7 +173,7 @@ unitDeaths = {
             expl_light_mult = 1.05,
             expl_light_radius_mult = 1.05,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
 	},
 
@@ -194,7 +194,7 @@ unitDeaths = {
             expl_light_mult = 1.03,
             expl_light_radius_mult = 1.03,
             expl_light_life_mult = 1.05,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
     smallbuilderSelfd= {
@@ -214,7 +214,7 @@ unitDeaths = {
             expl_light_mult = 1.06,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
 	
@@ -232,7 +232,7 @@ unitDeaths = {
 			default = 80,
 		},
         customparams = {
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
 	},
 
@@ -252,7 +252,7 @@ unitDeaths = {
 			platform = 1350,
 		},
         customparams = {
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
 	},
 
@@ -273,7 +273,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.08,
             expl_light_life_mult = 1.1,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     metalmakerSelfd = {
@@ -293,7 +293,7 @@ unitDeaths = {
             expl_light_mult = 1.12,
             expl_light_radius_mult = 1.12,
             expl_light_life_mult = 1.15,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 
@@ -315,7 +315,7 @@ unitDeaths = {
             expl_light_mult = 1.12,
             expl_light_radius_mult = 1.12,
             expl_light_life_mult = 1.15,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     advmetalmakerSelfd = {
@@ -336,7 +336,7 @@ unitDeaths = {
             expl_light_mult = 1.2,
             expl_light_radius_mult = 1.2,
             expl_light_life_mult = 1.2,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 
@@ -357,7 +357,7 @@ unitDeaths = {
             expl_light_mult = 1.12,
             expl_light_radius_mult = 1.12,
             expl_light_life_mult = 1.15,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     energystorageSelfd = {
@@ -377,7 +377,7 @@ unitDeaths = {
             expl_light_mult = 1.16,
             expl_light_radius_mult = 1.16,
             expl_light_life_mult = 1.22,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
     ['energystorage-uw'] = {
@@ -437,7 +437,7 @@ unitDeaths = {
             expl_light_mult = 1.16,
             expl_light_radius_mult = 1.16,
             expl_light_life_mult = 1.22,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     advenergystorageSelfd = {
@@ -458,7 +458,7 @@ unitDeaths = {
             expl_light_mult = 1.2,
             expl_light_radius_mult = 1.2,
             expl_light_life_mult = 1.25,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
     ['advenergystorage-uw'] = {
@@ -519,7 +519,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.16,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
 
@@ -541,7 +541,7 @@ unitDeaths = {
             expl_light_mult = 1.2,
             expl_light_radius_mult = 1.2,
             expl_light_life_mult = 1.25,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 
@@ -561,7 +561,7 @@ unitDeaths = {
         customparams = {
             expl_light_color = "1 1 0.66",
             expl_light_life_mult = 1.25,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     nukeBuildingSelfd = {
@@ -580,7 +580,7 @@ unitDeaths = {
         customparams = {
             expl_light_color = "1 1 0.66",
             expl_light_life_mult = 1.25,
-            expl_light_heat_radius_mult = 1.6,
+            expl_light_heat_radius_mult = 1.3,
         },
     },
 
@@ -599,7 +599,7 @@ unitDeaths = {
         customparams = {
             expl_light_color = "1 0.6 0.75",
             expl_light_life_mult = 1.15,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     penetratorSelfd = {
@@ -617,7 +617,7 @@ unitDeaths = {
         customparams = {
             expl_light_color = "1 0.6 0.75",
             expl_light_life_mult = 1.2,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 
@@ -639,7 +639,7 @@ unitDeaths = {
             expl_light_mult = 1.22,
             expl_light_radius_mult = 1.22,
             expl_light_life_mult = 1.4,
-            expl_light_heat_radius_mult = 1.4,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     banthaSelfd = {
@@ -660,7 +660,7 @@ unitDeaths = {
             expl_light_mult = 1.25,
             expl_light_radius_mult = 1.25,
             expl_light_life_mult = 1.5,
-            expl_light_heat_radius_mult = 1.55,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
     krogExplosion = {
@@ -681,7 +681,7 @@ unitDeaths = {
             expl_light_mult = 1.2,
             expl_light_radius_mult = 1.22,
             expl_light_life_mult = 1.45,
-            expl_light_heat_radius_mult = 1.7,
+            expl_light_heat_radius_mult = 1.3,
         },
     },
     krogExplosionSelfd = {
@@ -702,7 +702,7 @@ unitDeaths = {
             expl_light_mult = 1.25,
             expl_light_radius_mult = 1.25,
             expl_light_life_mult = 1.5,
-            expl_light_heat_radius_mult = 2,
+            expl_light_heat_radius_mult = 1.35,
         },
     },
     juggernaut = {
@@ -724,7 +724,7 @@ unitDeaths = {
             expl_light_mult = 1.22,
             expl_light_radius_mult = 1.22,
             expl_light_life_mult = 1.4,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
     juggernautSelfd = {
@@ -746,7 +746,7 @@ unitDeaths = {
             expl_light_mult = 1.25,
             expl_light_radius_mult = 1.25,
             expl_light_life_mult = 1.5,
-            expl_light_heat_radius_mult = 1.75,
+            expl_light_heat_radius_mult = 1.35,
         },
     },
 
@@ -767,7 +767,7 @@ unitDeaths = {
             expl_light_mult = 1.22,
             expl_light_radius_mult = 1.22,
             expl_light_life_mult = 1.4,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
     flagshipExplosionSelfd = {
@@ -787,7 +787,7 @@ unitDeaths = {
             expl_light_mult = 1.25,
             expl_light_radius_mult = 1.25,
             expl_light_life_mult = 1.5,
-            expl_light_heat_radius_mult = 1.75,
+            expl_light_heat_radius_mult = 1.35,
         },
     },
 
@@ -808,7 +808,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.15,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
     decoycommanderSelfd = {
@@ -827,7 +827,7 @@ unitDeaths = {
             expl_light_mult = 1.13,
             expl_light_radius_mult = 1.13,
             expl_light_life_mult = 1.2,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
 
@@ -849,7 +849,7 @@ unitDeaths = {
             expl_light_mult = 1.5,
             expl_light_radius_mult = 1.4,
             expl_light_life_mult = 1.75,
-            expl_light_heat_radius_mult = 1.4,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     fusionExplosionSelfd = {
@@ -870,7 +870,7 @@ unitDeaths = {
             expl_light_mult = 1.55,
             expl_light_radius_mult = 1.45,
             expl_light_life_mult = 1.85,
-            expl_light_heat_radius_mult = 1.55,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 
@@ -933,7 +933,7 @@ unitDeaths = {
             expl_light_mult = 1.3,
             expl_light_radius_mult = 1.25,
             expl_light_life_mult = 1.5,
-            expl_light_heat_radius_mult = 1.7,
+            expl_light_heat_radius_mult = 1.3,
         },
     },
     advancedFusionExplosionSelfd = {
@@ -954,7 +954,7 @@ unitDeaths = {
             expl_light_mult = 1.33,
             expl_light_radius_mult = 1.3,
             expl_light_life_mult = 1.55,
-            expl_light_heat_radius_mult = 2,
+            expl_light_heat_radius_mult = 1.35,
         },
     },
 	
@@ -987,7 +987,7 @@ unitDeaths = {
             expl_light_mult = 1.66,
             expl_light_radius_mult = 1.3,
             expl_light_life_mult = 1.9,
-            expl_light_heat_radius_mult = 1.7,
+            expl_light_heat_radius_mult = 1.3,
         },
 	},
     commanderexplosionselfd = {
@@ -1015,7 +1015,7 @@ unitDeaths = {
             expl_light_mult = 1.7,
             expl_light_radius_mult = 1.3,
             expl_light_life_mult = 2,
-            expl_light_heat_radius_mult = 2,
+            expl_light_heat_radius_mult = 1.35,
         },
 	},
 
@@ -1039,7 +1039,7 @@ unitDeaths = {
             expl_light_mult = 1.03,
             expl_light_radius_mult = 1.03,
             expl_light_life_mult = 1.05,
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
     },
     tinyBuildingExplosionGenericSelfd = {
@@ -1059,7 +1059,7 @@ unitDeaths = {
             expl_light_mult = 1.05,
             expl_light_radius_mult = 1.05,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     ['tinyBuildingExplosionGeneric-uw'] = {
@@ -1118,7 +1118,7 @@ unitDeaths = {
             expl_light_mult = 1.05,
             expl_light_radius_mult = 1.05,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
     },
     smallBuildingExplosionGenericSelfd = {
@@ -1138,7 +1138,7 @@ unitDeaths = {
             expl_light_mult = 1.07,
             expl_light_radius_mult = 1.07,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['smallBuildingExplosionGeneric-uw'] = {
@@ -1197,7 +1197,7 @@ unitDeaths = {
             expl_light_mult = 1.07,
             expl_light_radius_mult = 1.07,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     mediumBuildingExplosionGenericSelfd = {
@@ -1217,7 +1217,7 @@ unitDeaths = {
             expl_light_mult = 1.09,
             expl_light_radius_mult = 1.09,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['mediumBuildingExplosionGeneric-uw'] = {
@@ -1276,7 +1276,7 @@ unitDeaths = {
             expl_light_mult = 1.09,
             expl_light_radius_mult = 1.09,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     largeBuildingExplosionGenericSelfd = {
@@ -1296,7 +1296,7 @@ unitDeaths = {
             expl_light_mult = 1.11,
             expl_light_radius_mult = 1.11,
             expl_light_life_mult = 1.17,
-            expl_light_heat_radius_mult = 1.4,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['largeBuildingExplosionGeneric-uw'] = {
@@ -1355,7 +1355,7 @@ unitDeaths = {
             expl_light_mult = 1.11,
             expl_light_radius_mult = 1.11,
             expl_light_life_mult = 1.17,
-            expl_light_heat_radius_mult = 1.4,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     hugeBuildingExplosionGenericSelfd = {
@@ -1375,7 +1375,7 @@ unitDeaths = {
             expl_light_mult = 1.13,
             expl_light_radius_mult = 1.13,
             expl_light_life_mult = 1.2,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 	
@@ -1399,7 +1399,7 @@ unitDeaths = {
             expl_light_mult = 1.05,
             expl_light_radius_mult = 1.03,
             expl_light_life_mult = 1.05,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
     tinyExplosionGenericSelfd = {
@@ -1419,7 +1419,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
     },
     ['tinyExplosionGeneric-builder'] = {
@@ -1439,7 +1439,7 @@ unitDeaths = {
             expl_light_mult = 1.05,
             expl_light_radius_mult = 1.03,
             expl_light_life_mult = 1.05,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
     ['tinyExplosionGenericSelfd-builder'] = {
@@ -1459,7 +1459,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
     },
     ['tinyExplosionGeneric-uw'] = {
@@ -1517,7 +1517,7 @@ unitDeaths = {
             expl_light_mult = 1.02,
             expl_light_radius_mult = 1.02,
             expl_light_life_mult = 1.04,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
     ['tinyExplosionGenericSelfd-phib'] = {
@@ -1537,7 +1537,7 @@ unitDeaths = {
             expl_light_mult = 1.04,
             expl_light_radius_mult = 1.04,
             expl_light_life_mult = 1.06,
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
     },
 
@@ -1558,7 +1558,7 @@ unitDeaths = {
             expl_light_mult = 1.04,
             expl_light_radius_mult = 1.04,
             expl_light_life_mult = 1.06,
-            expl_light_heat_radius_mult = 1.2,
+            expl_light_heat_radius_mult = 1.1,
         },
     },
     smallExplosionGenericSelfd = {
@@ -1578,7 +1578,7 @@ unitDeaths = {
             expl_light_mult = 1.06,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     ['smallExplosionGeneric-builder'] = {
@@ -1598,7 +1598,7 @@ unitDeaths = {
             expl_light_mult = 1.04,
             expl_light_radius_mult = 1.04,
             expl_light_life_mult = 1.06,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
     ['smallExplosionGenericSelfd-builder'] = {
@@ -1618,7 +1618,7 @@ unitDeaths = {
             expl_light_mult = 1.06,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     ['smallExplosionGeneric-uw'] = {
@@ -1676,7 +1676,7 @@ unitDeaths = {
             expl_light_mult = 1.04,
             expl_light_radius_mult = 1.04,
             expl_light_life_mult = 1.06,
-            expl_light_heat_radius_mult = 1.15,
+            expl_light_heat_radius_mult = 1.05,
         },
     },
     ['smallExplosionGenericSelfd-phib'] = {
@@ -1696,7 +1696,7 @@ unitDeaths = {
             expl_light_mult = 1.06,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
 
@@ -1717,7 +1717,7 @@ unitDeaths = {
             expl_light_mult = 1.06,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     mediumExplosionGenericSelfd = {
@@ -1737,7 +1737,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.08,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['mediumExplosionGeneric-builder'] = {
@@ -1757,7 +1757,7 @@ unitDeaths = {
             expl_light_mult = 1.06,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     ['mediumExplosionGenericSelfd-builder'] = {
@@ -1777,7 +1777,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.08,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['mediumExplosionGeneric-uw'] = {
@@ -1835,7 +1835,7 @@ unitDeaths = {
             expl_light_mult = 1.06,
             expl_light_radius_mult = 1.06,
             expl_light_life_mult = 1.08,
-            expl_light_heat_radius_mult = 1.25,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     ['mediumExplosionGenericSelfd-phib'] = {
@@ -1855,7 +1855,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.08,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
 
@@ -1876,7 +1876,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.08,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     largeExplosionGenericSelfd = {
@@ -1896,7 +1896,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.4,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['largeExplosionGeneric-builder'] = {
@@ -1916,7 +1916,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.08,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     ['largeExplosionGenericSelfd-builder'] = {
@@ -1936,7 +1936,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.4,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['largeExplosionGeneric-uw'] = {
@@ -1994,7 +1994,7 @@ unitDeaths = {
             expl_light_mult = 1.08,
             expl_light_radius_mult = 1.08,
             expl_light_life_mult = 1.11,
-            expl_light_heat_radius_mult = 1.3,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     ['largeExplosionGenericSelfd-phib'] = {
@@ -2014,7 +2014,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.4,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
 
@@ -2035,7 +2035,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     hugeExplosionGenericSelfd = {
@@ -2055,7 +2055,7 @@ unitDeaths = {
             expl_light_mult = 1.12,
             expl_light_radius_mult = 1.12,
             expl_light_life_mult = 1.17,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
     ['hugeExplosionGeneric-builder'] = {
@@ -2075,7 +2075,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['hugeExplosionGenericSelfd-builder'] = {
@@ -2095,7 +2095,7 @@ unitDeaths = {
             expl_light_mult = 1.12,
             expl_light_radius_mult = 1.12,
             expl_light_life_mult = 1.17,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
     ['hugeExplosionGeneric-uw'] = {
@@ -2153,7 +2153,7 @@ unitDeaths = {
             expl_light_mult = 1.1,
             expl_light_radius_mult = 1.1,
             expl_light_life_mult = 1.14,
-            expl_light_heat_radius_mult = 1.35,
+            expl_light_heat_radius_mult = 1.2,
         },
     },
     ['hugeExplosionGenericSelfd-phib'] = {
@@ -2173,7 +2173,7 @@ unitDeaths = {
             expl_light_mult = 1.12,
             expl_light_radius_mult = 1.12,
             expl_light_life_mult = 1.17,
-            expl_light_heat_radius_mult = 1.5,
+            expl_light_heat_radius_mult = 1.25,
         },
     },
 

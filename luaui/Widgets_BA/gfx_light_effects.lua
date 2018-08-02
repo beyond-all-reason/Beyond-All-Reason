@@ -92,10 +92,10 @@ function loadWeaponDefs()
 			--local dmgBonus = math.sqrt(math.sqrt(math.sqrt(maxDamage)))
 			params.r, params.g, params.b = 1, 0.8, 0.4
 			params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5) * globalRadiusMult
-			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.55)
 			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
 			params.life = (14*(0.8+ params.radius/1200))*globalLifeMult
-			params.heatlife = (14*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
+			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.5)
+			params.heatlife = (13*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
 			params.heatstrength = 1.4 + (params.heatlife/22)
 
 			if customParams.expl_light_color then
