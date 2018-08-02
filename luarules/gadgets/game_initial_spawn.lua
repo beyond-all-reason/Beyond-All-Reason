@@ -781,7 +781,7 @@ function gadget:Initialize()
 	end)
 end
 
-local timer = 20
+local timer3 = 20
 function gadget:DrawScreen()
 	if enabled then
 	  uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
@@ -829,14 +829,14 @@ function gadget:DrawScreen()
 			return
 		end
 	else
-		timer = timer - Spring.GetLastUpdateSeconds()
-		if timer < 0 then timer = 0 end
+		timer3 = timer3 - Spring.GetLastUpdateSeconds()
+		if timer3 < 0 then timer3 = 0 end
 
 		gl.Color(0,0,0,0.7)
 		gl.Rect(0,0,vsx,vsy)
-		gl.Text("\255\200\200\200Running on an unsupported engine\n\nYou need version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\150\150\150closing in... "..math.floor(timer), vsx/2, vsy/2, vsx/95, "con")
+		gl.Text("\255\200\200\200Running on an unsupported engine\n\nYou need version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\150\150\150closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 
-		if timer <= 0 then
+		if timer3 <= 0 then
 			Spring.SendCommands("QuitForce")
 		end
 	end
