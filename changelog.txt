@@ -7,8 +7,8 @@ XX/XX/2018
  • Fixed map edge extension not always showing.
  • Fixed "States Prefs" widget overriding config table with empty table after loading a replay
  • Fixed Bloom rendering the map black on some maps
- • Renamed modoptions: removed prefix 'mod_' and added for chickens 'chicken_'
- • Removed "Control Victory" modoptions
+ • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
+ • Removed unused modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock"
 
 
 10.10 -> 10.11

@@ -366,7 +366,7 @@ end
 -- process modoptions (last, because they should not get baked)
 function ModOptions_Post (UnitDefs, WeaponDefs)
 	if (Spring.GetModOptions) then
-	local modOptions = Spring.GetModOptions()
+	local modOptions = Spring.GetModOptions() or {}
 	local map_tidal = modOptions and modOptions.map_tidal
 		if map_tidal and map_tidal ~= "unchanged" then
 			for id, unitDef in pairs(UnitDefs) do
@@ -442,33 +442,6 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 		elseif (modOptions.transportenemy == "none") then
 			for name, ud in pairs(UnitDefs) do  
 				ud.transportbyenemy = false
-			end
-		end
-		
-		--Fire through friendly needs fixed hitspeheres, likewise, fixed hitspheres needs fire through friendly.
-		--For the sake of keeping it simple, rolled both into one modoption.
-		
-		--Uncomment/recommend the following line for easier testing
-		--modOptions.firethroughfriendly = "enabled"
-		if (modOptions.firethroughfriendly == "enabled") then
-			Spring.Echo("[Fire through friendlies Modoption] Enabled")
-			for id,weaponDef in pairs(WeaponDefs) do
-				--Spring.Echo(weaponDef.name)
-				weaponDef.avoidFriendly = false
-				weaponDef.collideFriendly = false
-				weaponDef.avoidFeature = false
-				weaponDef.collideFeature = false
-				--Spring.Echo(weaponDef.avoidFriendly)
-				--Spring.Echo(weaponDef.collideFriendly)
-			end
-			for id,unitDef in pairs(UnitDefs) do
-				unitDef.collisionvolumetype = nil
-				unitDef.usepiececollisionvolumes = nil
-				--unitDef.collisionVolumeScales = [[0.0 0.0 0.0]]
-				--unitDef.collisionvolumeoffsets = [[0.0 0.0 0.0]]
-				--Spring.Echo(unitDef.name)
-				--Spring.Echo(unitDef.collisionvolumetype)
-				--unitDef.useFootPrintCollisionVolume = true
 			end
 		end
 	end
