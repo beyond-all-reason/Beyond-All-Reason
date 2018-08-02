@@ -18,7 +18,11 @@ function BootBehaviour:Init()
 	self.name = u:Name()
 	self.canmove = u:CanMove()
 	self.finished = false
-	self.count = 150
+	if u:Type():IsFactory() then
+		self.count = 0
+	else
+		self.count = 150
+	end
 end
 
 function BootBehaviour:OwnerBuilt()
