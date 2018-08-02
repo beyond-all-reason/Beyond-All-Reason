@@ -48,7 +48,7 @@ function KbotOrVeh()
 	-- mapsize
 	mapsize = Game.mapX * Game.mapY
 	local randomnumber = math.random(1,mapsize+1)
-	if randomnumber >= 48 then
+	if randomnumber >= 100 then
 		veh = veh + 1
 	else
 		kbot = kbot + 1
@@ -56,7 +56,7 @@ function KbotOrVeh()
 	-- windAvg
 	local avgWind = (Game.windMin + Game.windMax)/2
 	randomnumber = math.random(0, math.floor(avgWind + 1))
-	if randomnumber >= 3 then
+	if randomnumber >= 5 then
 		veh = veh + 1
 	else
 		kbot = kbot + 1
