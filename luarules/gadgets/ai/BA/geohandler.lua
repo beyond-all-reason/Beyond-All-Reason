@@ -24,9 +24,9 @@ function distance(pos1,pos2)
 	return dist
 end
 
-function GeoSpotHandler:ClosestFreeGeo(unittype,position)
+function GeoSpotHandler:ClosestFreeGeo(unittype,position, maxdis)
 	local pos = nil
-	local bestDistance = 10000
+	local bestDistance = maxdis or 10000
 	geoCount = self.game.map:GeoCount()
 	for i,v in ipairs(self.geos) do
 		local p = v

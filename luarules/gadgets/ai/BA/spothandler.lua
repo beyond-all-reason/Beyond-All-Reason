@@ -170,9 +170,9 @@ function EnemyMex(x,z, batchextracts,teamID) -- Is there any better mex at this 
 	return false
 end
 
-function MetalSpotHandler:ClosestFreeSpot(unittype,position)
+function MetalSpotHandler:ClosestFreeSpot(unittype,position,maxdis)
     local pos = nil
-    local bestDistance = 10000
+    local bestDistance = maxdis or 10000
     spotCount = self.game.map:SpotCount()
 	local teamID = ai.id
     for i,v in ipairs(self.spots) do

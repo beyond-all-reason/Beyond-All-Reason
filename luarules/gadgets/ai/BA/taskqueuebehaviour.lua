@@ -331,7 +331,7 @@ function TaskQueueBehaviour:BuildGeo(utype)
 	-- find a free spot!
 	unit = self.unit:Internal()
 	p = unit:GetPosition()
-	p = self.ai.geospothandler:ClosestFreeGeo(utype,p)
+	p = self.ai.geospothandler:ClosestFreeGeo(utype,p,2500)
 	if p == nil or self.game.map:CanBuildHere(utype,p) ~= true then
 		self:OnToNextTask()
 		return false
