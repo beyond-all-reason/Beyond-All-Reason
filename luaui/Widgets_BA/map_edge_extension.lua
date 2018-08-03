@@ -65,9 +65,9 @@ elseif Game and Game.version then
 	engineVersion = tonumber(Game.version)
 end
 
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401584 then
-	checkInView = true	-- Spring.IsAABBInView wasnt working properly on older engines
-end
+--if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401700 then
+--	checkInView = true	-- Spring.IsAABBInView wasnt working properly on older engines
+--end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
