@@ -33,7 +33,8 @@ local spIsUnitInView = Spring.IsUnitInView
 local spGetTeamColor = Spring.GetTeamColor
 local spGetUnitTeam = Spring.GetUnitTeam
 local myPlayerID = Spring.GetMyPlayerID()
-
+local prevMyAllyTeamID = Spring.GetMyAllyTeamID()
+local mySpec, prevMyFullView = Spring.GetSpectatingState()
 local unitList = {}
 local unitListCount = 0
 
@@ -99,6 +100,7 @@ end
 
 function ResetUnderConstructionUnits()
   local allUnits = Spring.GetAllUnits()
+  unitList = {}
   for _, unitID in pairs(allUnits) do
     local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
     if buildProgress and buildProgress < 1 then
@@ -130,13 +132,6 @@ function widget:Initialize()
   end
 
   ResetUnderConstructionUnits()
-end
-
-
-function widget:PlayerChanged(playerID)
-  if playerID == myPlayerID and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-    ResetUnderConstructionUnits()
-  end
 end
 
 
@@ -177,7 +172,14 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawWorld()
-  --if Spring.IsGUIHidden() then return end
+    --if Spring.IsGUIHidden() then return end
+
+  local mySpec, myFullView = Spring.GetSpectatingState()
+
+  if Spring.GetMyAllyTeamID() ~= prevMyAllyTeamID or select(2,Spring.GetSpectatingState()) ~= prevMyFullView then
+    prevMyAllyTeamID = Spring.GetMyAllyTeamID()
+    ResetUnderConstructionUnits()
+  end
 
   gl.DepthTest(true)
   gl.PolygonOffset(-1, -1)
