@@ -101,11 +101,13 @@ end
 function ResetUnderConstructionUnits()
   local allUnits = Spring.GetAllUnits()
   unitList = {}
+  unitListCount = 0
   for _, unitID in pairs(allUnits) do
     local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
     if buildProgress and buildProgress < 1 then
       --local unitDefID = Spring.GetUnitDefID(unitID)
       unitList[unitID] = spGetUnitTeam(unitID)
+      unitListCount = unitListCount + 1
     end
   end
 end
