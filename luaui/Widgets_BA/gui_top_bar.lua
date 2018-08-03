@@ -583,33 +583,48 @@ local function updateResbarText(res)
         -- Text: income
         glText("\255\100\210\100"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 
-        -- display overflow notification
-		if not spec and r[res][1] >= r[res][2] and gameFrame > 90 then
-			-- overflowing background
-			local process = ((r[res][1]/r[res][2]) - 0.9) * 10	-- overflowing
-			if process > 0 then
-				if process > 1 then process = 1 end
-				glColor(1,0,0,0.17*process)
-				RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
-			end
-			if showOverflowTooltip[res] == nil then
-				showOverflowTooltip[res] = os.clock() + 1.1
-			end
-			if showOverflowTooltip[res] < os.clock() then
-				local bgpadding = 2*widgetScale
-				local text = 'Overflowing'
-				local textWidth = (bgpadding*2) + 15 + (glGetTextWidth(text) * 10) * widgetScale
+		if not spec and gameFrame > 90 then
+			-- -- overflowing background
+			--local process = ((r[res][1]/r[res][2]) - 0.92) * 10	-- overflowing
+			--if process > 0 then
+			--	if process > 1 then process = 1 end
+			--	if res == 'energy' then
+			--		glColor(1,1,0,0.14*process)
+			--	else
+			--		glColor(1,1,1,0.14*process)
+			--	end
+			--	local bgpadding = 3*widgetScale
+			--	RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
+			--end
 
-				-- background
-				glColor(0.3,0,0,0.55)
-                RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
-                glColor(1,0.3,0.3,0.2)
-				RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 3*widgetScale)
+			--process = (r[res][1]/r[res][2]) * 10
+			--if process < 1 then
+			--	process = 1 - process
+			--	glColor(1,0,0,0.16*process)
+			--	RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
+			--end
 
-				glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-10.5*widgetScale, 10*widgetScale, 'or')
+			-- display overflow notification
+			if r[res][1] >= r[res][2] then
+				if showOverflowTooltip[res] == nil then
+					showOverflowTooltip[res] = os.clock() + 1.1
+				end
+				if showOverflowTooltip[res] < os.clock() then
+					local bgpadding = 2*widgetScale
+					local text = 'Overflowing'
+					local textWidth = (bgpadding*2) + 15 + (glGetTextWidth(text) * 10) * widgetScale
+
+					-- background
+					glColor(0.3,0,0,0.55)
+					RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
+					glColor(1,0.3,0.3,0.2)
+					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 3*widgetScale)
+
+					glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-10.5*widgetScale, 10*widgetScale, 'or')
+				end
+			else
+				showOverflowTooltip[res] = nil
 			end
-		else
-			showOverflowTooltip[res] = nil
 		end
 	end)
 end
@@ -1087,6 +1102,24 @@ function widget:DrawScreen()
 	local res = 'metal'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
+
+		if not spec and gameFrame > 90 then
+			-- overflowing background
+			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
+			if process > 0 then
+				if process > 1 then process = 1 end
+				glColor(1,1,1,0.08*process)
+				local bgpadding = 3*widgetScale
+				RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
+			end
+
+			--process = (r[res][1]/r[res][2]) * 10
+			--if process < 1 then
+			--	process = 1 - process
+			--	glColor(1,0,0,0.16*process)
+			--	RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
+			--end
+		end
 		drawResbarValues(res)
      	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
@@ -1099,6 +1132,26 @@ function widget:DrawScreen()
 	res = 'energy'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
+
+		if not spec and gameFrame > 90 then
+			-- overflowing background
+			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
+			if process > 0 then
+				if process > 1 then process = 1 end
+				glColor(1,1,0,0.08*process)
+				local bgpadding = 3*widgetScale
+				RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
+			end
+			-- low energy background
+			if r[res][1] < 3000 then
+				process = (r[res][1]/r[res][2]) * 10
+				if process < 1 then
+					process = 1 - process
+					glColor(1,0,0,0.15*process)
+					RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
+				end
+			end
+		end
 		drawResbarValues(res)
       	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
