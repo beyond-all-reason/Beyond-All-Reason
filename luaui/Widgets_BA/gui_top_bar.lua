@@ -104,7 +104,7 @@ local allyComs = 0
 local enemyComs = 0 -- if we are counting ourselves because we are a spec
 local enemyComCount = 0 -- if we are receiving a count from the gadget part (needs modoption on)
 local prevEnemyComCount = 0
-local receiveCount = true
+local receiveCount = (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 
 local guishaderEnabled = false
 local guishaderCheckUpdateRate = 2
@@ -585,8 +585,15 @@ local function updateResbarText(res)
 
         -- display overflow notification
 		if not spec and r[res][1] >= r[res][2] and gameFrame > 90 then
+			-- overflowing background
+			local process = ((r[res][1]/r[res][2]) - 0.9) * 10	-- overflowing
+			if process > 0 then
+				if process > 1 then process = 1 end
+				glColor(1,0,0,0.17*process)
+				RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
+			end
 			if showOverflowTooltip[res] == nil then
-				showOverflowTooltip[res] = os.clock() + 1.5
+				showOverflowTooltip[res] = os.clock() + 1.1
 			end
 			if showOverflowTooltip[res] < os.clock() then
 				local bgpadding = 2*widgetScale

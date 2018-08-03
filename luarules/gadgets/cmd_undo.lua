@@ -19,12 +19,29 @@ end
 local cmdname = 'undo'
 
 local rememberGameframes = 9000 -- 9000 -> 5 minutes
-local PACKET_HEADER = "$u$"
-local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
 
 if gadgetHandler:IsSyncedCode() then
+	local charset = {}  do -- [0-9a-zA-Z]
+		for c = 48, 57  do table.insert(charset, string.char(c)) end
+		for c = 65, 90  do table.insert(charset, string.char(c)) end
+		for c = 97, 122 do table.insert(charset, string.char(c)) end
+	end
+	local function randomString(length)
+		if not length or length <= 0 then return '' end
+		--math.randomseed(os.clock()^5)
+		return randomString(length - 1) .. charset[math.random(1, #charset)]
+	end
+	local validation = randomString(2)
+	_G.validationUndo = validation
 
-	local authorizedPlayers  = {'[teh]Flow', 'Floris', 'FlowerPower'}
+
+	local authorizedPlayers  = {
+		'[teh]Flow',
+		'Floris',
+		'FlowerPower',
+		'[Fx]Doo',
+		'[PiRO]JiZaH',
+	}
 
 	local teamSelfdUnits = {}
 	local selfdCmdUnits = {}
@@ -152,35 +169,34 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:RecvLuaMsg(msg, playerID)
-		if string.sub(msg, 1, PACKET_HEADER_LENGTH) ~= PACKET_HEADER then
-			return
-		end
+		if msg:sub(1,2)=="un" and msg:sub(3,4)==validation then
 
-		local playername, _, spec = Spring.GetPlayerInfo(playerID)
-		local authorized = false
-		for _,name in ipairs(authorizedPlayers) do
-			if playername == name then
-				authorized = true
-				break
+			local playername, _, spec = Spring.GetPlayerInfo(playerID)
+			local authorized = false
+			for _,name in ipairs(authorizedPlayers) do
+				if playername == name then
+					authorized = true
+					break
+				end
 			end
+			if playername ~= "UnnamedPlayer" then
+				if not authorized then
+					--Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
+					return
+				end
+				if authorized and not spec then
+					Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
+					return
+				end
+				if startPlayers[playername] ~= nil then
+					Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when you have been a player")
+					return
+				end
+			end
+			local params = explode(':', msg)
+			restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
+			return true
 		end
-		if playername ~= "UnnamedPlayer" then
-			if not authorized then
-				--Spring.SendMessageToPlayer(playerID, "You are not authorized to restore units")
-				return
-			end
-			if authorized and not spec then
-				Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when playing")
-				return
-			end
-			if startPlayers[playername] ~= nil then
-				Spring.SendMessageToPlayer(playerID, "You arent allowed to restore units when you have been a player")
-				return
-			end
-		end
-		local params = explode(':', msg)
-		restoreUnits(tonumber(params[2]), tonumber(params[3]), tonumber(params[4]), playerID)
-		return true
 	end
 
 
@@ -236,6 +252,7 @@ if gadgetHandler:IsSyncedCode() then
 
 else	-- UNSYNCED
 
+	local validation = SYNCED.validationUndo
 
 	function gadget:Initialize()
 		gadgetHandler:AddChatAction(cmdname, Undo)
@@ -251,7 +268,7 @@ else	-- UNSYNCED
 			if words[3] ~= nil then
 				targetTeamID = words[3]
 			end
-			Spring.SendLuaRulesMsg(PACKET_HEADER..':'..words[1]..':'..words[2]..':'..targetTeamID)
+			Spring.SendLuaRulesMsg('un'..validation..':'..words[1]..':'..words[2]..':'..targetTeamID)
 		end
 	end
 end

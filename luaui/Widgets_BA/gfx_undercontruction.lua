@@ -176,8 +176,6 @@ end
 function widget:DrawWorld()
     --if Spring.IsGUIHidden() then return end
 
-  local mySpec, myFullView = Spring.GetSpectatingState()
-
   if Spring.GetMyAllyTeamID() ~= prevMyAllyTeamID or select(2,Spring.GetSpectatingState()) ~= prevMyFullView then
     prevMyAllyTeamID = Spring.GetMyAllyTeamID()
     ResetUnderConstructionUnits()
