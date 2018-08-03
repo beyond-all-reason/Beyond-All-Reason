@@ -763,19 +763,19 @@ function gadget:Initialize()
 	-- create ready button
 	readyButton = gl.CreateList(function()
 		-- draws background rectangle
-		gl.Color(0,0,0,0.8)
+		gl.Color(0,0,0,0.75)
 		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 6)
-		gl.Color(1,1,1,0.13)
+		gl.Color(1,1,1,0.11)
 		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 4)
 		gl.Color(1,1,1,1)
 	end)
 	-- create ready button
 	readyButtonHover = gl.CreateList(function()
 		-- draws background rectangle
-		gl.Color(0.15,0.12,0,0.8)
+		gl.Color(0.15,0.12,0,0.75)
 		RectRound(-((readyW/2)+bgMargin), -((readyH/2)+bgMargin), ((readyW/2)+bgMargin), ((readyH/2)+bgMargin), 6)
 		RectRound(readyX-bgMargin, readyY-bgMargin, readyX+readyW+bgMargin, readyY+readyH+bgMargin, 5)
-		gl.Color(1,0.8,0.3,0.33)
+		gl.Color(1,0.8,0.3,0.28)
 		RectRound(-readyW/2, -readyH/2, readyW/2, readyH/2, 4)
 		gl.Color(1,1,1,1)
 	end)
