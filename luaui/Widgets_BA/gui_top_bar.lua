@@ -572,9 +572,25 @@ end
 
 
 local function updateResbarText(res)
-    if dlistResbar[res][3] ~= nil then
-        glDeleteList(dlistResbar[res][3])
-    end
+
+	if dlistResbar[res][4] ~= nil then
+		glDeleteList(dlistResbar[res][4])
+	end
+	dlistResbar[res][4] = glCreateList( function()
+		local bgpadding = 3*widgetScale
+		RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
+		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
+	end)
+	if dlistResbar[res][5] ~= nil then
+		glDeleteList(dlistResbar[res][5])
+	end
+	dlistResbar[res][5] = glCreateList( function()
+		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
+	end)
+
+	if dlistResbar[res][3] ~= nil then
+		glDeleteList(dlistResbar[res][3])
+	end
     dlistResbar[res][3] = glCreateList( function()
         -- Text: storage
         glText("\255\150\150\150"..short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
@@ -919,7 +935,7 @@ function widget:Update(dt)
 	local mx,my = spGetMouseState()
 
     sec = sec + dt
-    if sec>0.33 then
+    if sec>0.066 then
         sec = 0
         r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
         r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
@@ -1103,44 +1119,32 @@ function widget:DrawScreen()
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if not spec and gameFrame > 90 then
+		if gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
 			if process > 0 then
 				if process > 1 then process = 1 end
-				glColor(1,1,1,0.08*process)
+				glColor(1,1,1,0.07*process)
 				local bgpadding = 3*widgetScale
-				RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
+				glCallList(dlistResbar[res][4])
 			end
-
-			--process = (r[res][1]/r[res][2]) * 10
-			--if process < 1 then
-			--	process = 1 - process
-			--	glColor(1,0,0,0.16*process)
-			--	RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
-			--end
 		end
 		drawResbarValues(res)
      	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
-		--if showOverflowTooltip[res] ~= nil and showOverflowTooltip[res] < now then
-		--	local text = 'Overflowing'
-		--	local textWidth = (8*2.66) + (glGetTextWidth(text) * 13) * widgetScale
-		--	WG['tooltip'].ShowTooltip(res..'_overflow_warning', text, resbarDrawinfo[res].barTexRect[3]+(8*widgetScale)-textWidth, resbarDrawinfo[res].barTexRect[4]-(24*widgetScale))
-		--end
 	end
 	res = 'energy'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if not spec and gameFrame > 90 then
+		if gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
 			if process > 0 then
 				if process > 1 then process = 1 end
-				glColor(1,1,0,0.08*process)
+				glColor(1,1,0,0.07*process)
 				local bgpadding = 3*widgetScale
-				RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
+				glCallList(dlistResbar[res][4])
 			end
 			-- low energy background
 			if r[res][1] < 3000 then
@@ -1148,18 +1152,13 @@ function widget:DrawScreen()
 				if process < 1 then
 					process = 1 - process
 					glColor(1,0,0,0.15*process)
-					RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
+					glCallList(dlistResbar[res][5])
 				end
 			end
 		end
 		drawResbarValues(res)
       	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
-		--if showOverflowTooltip[res] ~= nil and showOverflowTooltip[res] < now then
-		--	local text = 'Overflowing'
-		--	local textWidth = (8*2.66) + (glGetTextWidth(text) * 13) * widgetScale
-		--	WG['tooltip'].ShowTooltip(res..'_overflow_warning', text, resbarDrawinfo[res].barTexRect[3]+(8*widgetScale)-textWidth, resbarDrawinfo[res].barTexRect[4]-(24*widgetScale))
-		--end
 	end
 
 	if dlistWind1 then
@@ -1787,10 +1786,14 @@ function widget:Shutdown()
 		glDeleteList(dlistBackground)
         glDeleteList(dlistResbar['metal'][1])
         glDeleteList(dlistResbar['metal'][2])
-        glDeleteList(dlistResbar['metal'][3])
+		glDeleteList(dlistResbar['metal'][3])
+		glDeleteList(dlistResbar['metal'][4])
+		glDeleteList(dlistResbar['metal'][5])
         glDeleteList(dlistResbar['energy'][1])
         glDeleteList(dlistResbar['energy'][2])
-        glDeleteList(dlistResbar['energy'][3])
+		glDeleteList(dlistResbar['energy'][3])
+		glDeleteList(dlistResbar['energy'][4])
+		glDeleteList(dlistResbar['energy'][5])
 		glDeleteList(dlistWind1)
 		glDeleteList(dlistWind2)
 		glDeleteList(dlistComs1)

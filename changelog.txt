@@ -2,7 +2,7 @@
 XX/XX/2018
 
 Removed support for older engine versions
-You must have 104.0.1.567 as minimum
+You must have 104.0.1.567 or newer
 
 Other:
  • Player camara tracking also limits view to players viewpoint and losmode
@@ -16,6 +16,7 @@ Other:
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
  • Removed unused modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock"
  • Removed modoptions: "enemycomcount", "no_close_spawns" (always enabled)
+
 
 10.10 -> 10.11
 23/07/2018
