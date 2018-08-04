@@ -7,8 +7,8 @@ You must have 104.0.1.567 or newer
 Other:
  • Player camara tracking also limits view to players viewpoint and losmode
  • Removed "GroupMove" widget because it had side effects/downsides
- • Top bar: when low energy: red background, when sharing resource: it will be resource colored
- • Fixed: Decoy com attacked warning sound changed to a regular one unit under attack sound
+ • Top bar: when low energy: red background, when overflowing: resource colored
+ • Fixed: Decoy com attacked warning sound changed to a regular unit under attack sound
  • Fixed DAI echospam + working with multiple DAI bots + behavior improvements
  • Fixed map edge extension not always showing.
  • Fixed "States Prefs" widget overriding config table with empty table after loading a replay
