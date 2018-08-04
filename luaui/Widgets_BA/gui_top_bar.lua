@@ -600,25 +600,6 @@ local function updateResbarText(res)
         glText("\255\100\210\100"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
 
 		if not spec and gameFrame > 90 then
-			-- -- overflowing background
-			--local process = ((r[res][1]/r[res][2]) - 0.92) * 10	-- overflowing
-			--if process > 0 then
-			--	if process > 1 then process = 1 end
-			--	if res == 'energy' then
-			--		glColor(1,1,0,0.14*process)
-			--	else
-			--		glColor(1,1,1,0.14*process)
-			--	end
-			--	local bgpadding = 3*widgetScale
-			--	RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
-			--end
-
-			--process = (r[res][1]/r[res][2]) * 10
-			--if process < 1 then
-			--	process = 1 - process
-			--	glColor(1,0,0,0.16*process)
-			--	RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
-			--end
 
 			-- display overflow notification
 			if r[res][1] >= r[res][2] then
@@ -1119,7 +1100,7 @@ function widget:DrawScreen()
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if gameFrame > 90 then
+		if not spec and gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
 			if process > 0 then
@@ -1137,7 +1118,7 @@ function widget:DrawScreen()
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if gameFrame > 90 then
+		if not spec and gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
 			if process > 0 then
