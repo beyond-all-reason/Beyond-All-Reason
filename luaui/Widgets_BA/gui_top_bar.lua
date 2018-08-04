@@ -1102,10 +1102,10 @@ function widget:DrawScreen()
 
 		if not spec and gameFrame > 90 then
 			-- overflowing background
-			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
+			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
-				if process > 1 then process = 1 end
-				glColor(1,1,1,0.07*process)
+				if process > 1.3 then process = 1.3 end
+				glColor(1,1,1,0.05*process)
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
@@ -1120,19 +1120,19 @@ function widget:DrawScreen()
 
 		if not spec and gameFrame > 90 then
 			-- overflowing background
-			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.95) * 10	-- overflowing
+			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
-				if process > 1 then process = 1 end
-				glColor(1,1,0,0.07*process)
+				if process > 1.3 then process = 1.3 end
+				glColor(1,1,0,0.05*process)
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
 			-- low energy background
-			if r[res][1] < 3000 then
-				process = (r[res][1]/r[res][2]) * 10
+			if r[res][1] < 2000 then
+				process = (r[res][1]/r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
-					glColor(1,0,0,0.15*process)
+					glColor(1,0,0,0.12*process)
 					glCallList(dlistResbar[res][5])
 				end
 			end
