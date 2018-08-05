@@ -813,33 +813,33 @@ function widget:DrawScreen()
 			
 			-- mouseover (highlight and tooltip)
 
-		  local description = ''
+		  	local description = ''
 			local x,y,ml = Spring.GetMouseState()
 			local cx, cy = correctMouseForScaling(x,y)
 
-		  if groupRect ~= nil then
-			  for id,group in pairs(optionGroups) do
-				  if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
-					  mouseoverGroupTab(id)
-				  end
-			  end
-		  end
-		  if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
-			  if ml then
-				glColor(1,0.91,0.66,0.36)
-			  else
-			  	glColor(1,1,1,0.14)
-			  end
-			  RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/8)
-		  end
-		  if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
-			  if ml then
-				  glColor(1,0.91,0.66,0.36)
-			  else
-				  glColor(1,1,1,0.14)
-			  end
-			  RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/8)
-		  end
+			if groupRect ~= nil then
+				for id,group in pairs(optionGroups) do
+					if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+						  mouseoverGroupTab(id)
+					end
+				end
+			end
+			if optionButtonForward ~= nil and IsOnRect(cx, cy, optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4]) then
+				if ml then
+					glColor(1,0.91,0.66,0.36)
+				else
+					glColor(1,1,1,0.14)
+				end
+				RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/8)
+			end
+			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
+				if ml then
+					glColor(1,0.91,0.66,0.36)
+				else
+					glColor(1,1,1,0.14)
+				end
+				RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/8)
+			end
 
 			if not showSelectOptions then
 				for i, o in pairs(optionHover) do
@@ -849,6 +849,8 @@ function widget:DrawScreen()
 						if options[i].description ~= nil then
 							description = options[i].description
 							glText('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
+							glColor(0.6,0.47,0.28,0.25)
+							glText('/option '..options[i].id, screenX+screenWidth*0.66, screenY-screenHeight+8, 14, "nr")
 						end
 					end
 				end
@@ -2314,6 +2316,13 @@ function widget:TextCommand(command)
 							options[optionID].value = selectKey
 							applyOptionValue(optionID)
 						end
+					elseif options[optionID].type == 'bool' then
+						if option[2] == '0' then
+							options[optionID].value = false
+						else
+							options[optionID].value = true
+						end
+						applyOptionValue(optionID)
 					else
 						options[optionID].value = tonumber(option[2])
 						applyOptionValue(optionID)
