@@ -1344,7 +1344,6 @@ function applyOptionValue(i, skipRedrawWindow)
 	end
 end
 
-
 function loadPreset(preset)
 	for optionID, value in pairs(presets[preset]) do
 		local i = getOptionByID(optionID)
@@ -2288,9 +2287,40 @@ local function Split(s, separator)
 	return results
 end
 
+local lastOptionCommand = 0
 function widget:TextCommand(command)
 	if (string.find(command, "options") == 1  and  string.len(command) == 7) then
 		show = not show
+	end
+	if os.clock() > lastOptionCommand+1 and string.sub(command, 1, 7) == "option " then		-- clock check is needed because toggling widget will somehow do an identical call of widget:TextCommand(command)
+		local option = string.sub(command, 8)
+		local optionID = getOptionByID(option)
+		if optionID then
+			if options[optionID].type == 'bool' then
+				lastOptionCommand = os.clock()
+				options[optionID].value = not options[optionID].value
+				applyOptionValue(optionID)
+			end
+		else
+			option = Split(option, ' ')
+			optionID = option[1]
+			if optionID then
+				optionID = getOptionByID(optionID)
+				if optionID and option[2] then
+					lastOptionCommand = os.clock()
+					if options[optionID].type == 'select' then
+						local selectKey = getSelectKey(optionID, option[2])
+						if selectKey then
+							options[optionID].value = selectKey
+							applyOptionValue(optionID)
+						end
+					else
+						options[optionID].value = tonumber(option[2])
+						applyOptionValue(optionID)
+					end
+				end
+			end
+		end
 	end
 	if (string.find(command, "savepreset") == 1)  then
 		local words = Split(command, ' ')
@@ -2301,6 +2331,17 @@ function widget:TextCommand(command)
 		end
 	end
 end
+
+
+function getSelectKey(i, value)
+	for k, v in pairs(options[i].options) do
+		if v == value then
+			return k
+		end
+	end
+	return false
+end
+
 
 -- preserve data in case of a /luaui reload
 function widget:GetConfigData(data)
