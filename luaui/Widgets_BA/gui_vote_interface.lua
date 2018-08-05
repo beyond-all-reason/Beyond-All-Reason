@@ -11,7 +11,8 @@ function widget:GetInfo()
 end
 
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = (1 + (vsx*vsy / 4000000))
+local customScale = 1.15
+local widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -109,7 +110,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (1 + (vsx*vsy / 4000000))
+	widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 end
 
 function widget:PlayerChanged()

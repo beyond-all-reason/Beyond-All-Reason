@@ -16,6 +16,7 @@ local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
 local bladeSpeedMultiplier = 0.22
+local resourcebarBgTint = true		-- will background of resourcebar get colored when overflowing or low on energy?
 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
@@ -1100,7 +1101,7 @@ function widget:DrawScreen()
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if not spec and gameFrame > 90 then
+		if resourcebarBgTint and not spec and gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
@@ -1118,7 +1119,7 @@ function widget:DrawScreen()
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if not spec and gameFrame > 90 then
+		if resourcebarBgTint and not spec and gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
@@ -1132,7 +1133,7 @@ function widget:DrawScreen()
 				process = (r[res][1]/r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
-					glColor(1,0,0,0.12*process)
+					glColor(1,0,0,0.11*process)
 					glCallList(dlistResbar[res][5])
 				end
 			end
@@ -1757,8 +1758,26 @@ function widget:Initialize()
 	WG['topbar'].showingRejoining = function()
 		return showRejoinUI
 	end
+	WG['topbar'].getResourceBgTint = function()
+		return resourcebarBgTint
+	end
+	WG['topbar'].setResourceBgTint = function(value)
+		resourcebarBgTint = value
+	end
+
 
 	init()
+end
+
+function widget:TextCommand(command)
+	if (string.find(command, "resbartint") == 1  and  string.len(command) == 10) then
+		resourcebarBgTint = not resourcebarBgTint
+		if resourcebarBgTint then
+			Spring.Echo('enabled resource bar background tinting')
+		else
+			Spring.Echo('disabled resource bar background tinting')
+		end
+	end
 end
 
 function widget:Shutdown()
@@ -1829,4 +1848,18 @@ function widget:Shutdown()
 		WG['tooltip'].RemoveTooltip(res..'_curent')
 	end
 	WG['topbar'] = nil
+end
+
+
+function widget:GetConfigData(data)      -- save
+	return {
+		resourcebarBgTint = resourcebarBgTint
+	}
+end
+
+
+function widget:SetConfigData(data)      -- load
+	if data.resourcebarBgTint ~= nil then
+		resourcebarBgTint = data.resourcebarBgTint
+	end
 end
