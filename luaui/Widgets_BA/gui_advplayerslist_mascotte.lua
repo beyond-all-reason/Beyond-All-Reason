@@ -167,6 +167,7 @@ local function createList(size)
 end
 
 local parentPos = {}
+local positionChange = os.clock()
 function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = parentPos
@@ -181,6 +182,7 @@ function updatePosition(force)
 			usedImgSize = OPTIONS[currentOption]['imageSize'] * parentPos[5]
 			xPos = parentPos[2]+(usedImgSize/2) + (OPTIONS[currentOption]['xOffset'] * parentPos[5])
 			yPos = parentPos[1]+(usedImgSize/2) + (OPTIONS[currentOption]['yOffset'] * parentPos[5])
+			positionChange = os.clock()
 
 			if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
 				createList(usedImgSize)
@@ -235,8 +237,8 @@ function widget:Update(dt)
 	end
 
 	sec2 = sec2 + dt
-	if sec2 > 1 then
-		sec2 = 0
+	if sec2 > 0.1 then
+		sec2 = sec2 - 0.1
 		updatePosition()
 	end
 end

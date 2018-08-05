@@ -198,9 +198,9 @@ end
 local passedTime = 0
 function widget:Update(dt)
 	passedTime = passedTime + dt
-	if passedTime > 1 then
+	if passedTime > 0.1 then
 		updateValues()
-		passedTime = passedTime - 1
+		passedTime = passedTime - 0.1
 		updatePosition()
 	end
 end
@@ -214,13 +214,12 @@ function updatePosition(force)
 		if WG['music'] ~= nil then
             advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
-		
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
 		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
 		widgetScale = advplayerlistPos[5]
-		
+
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
 		end

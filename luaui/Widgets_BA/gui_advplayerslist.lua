@@ -171,6 +171,8 @@ local sidePics        = {}  -- loaded in SetSidePics function
 local sidePicsWO      = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
+local apiAbsPosition = {0,0,0,0,1,1 }
+
 --------------------------------------------------------------------------------
 -- Colors
 --------------------------------------------------------------------------------
@@ -1025,19 +1027,7 @@ function widget:Initialize()
 	
 	WG['advplayerlist_api'] = {}
 	WG['advplayerlist_api'].GetPosition = function()
-		local margin = backgroundMargin
-	
-		local BLcornerX = widgetPosX - margin
-		local BLcornerY = widgetPosY - margin
-		local TRcornerX = widgetPosX + widgetWidth + margin
-		local TRcornerY = widgetPosY + widgetHeight - 1 + margin
-		
-		local leftPos		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
-		local bottomPos		= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
-		local rightPos		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
-		local topPos		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
-		
-		return {topPos,leftPos,bottomPos,rightPos,widgetScale,right}
+		return apiAbsPosition
 	end
     WG['advplayerlist_api'].GetLockPlayerID = function()
         return lockPlayerID
@@ -1910,15 +1900,16 @@ function CreateBackground()
 	local BLcornerY = widgetPosY - margin
 	local TRcornerX = widgetPosX + widgetWidth + margin
 	local TRcornerY = widgetPosY + widgetHeight - 1 + margin
-	
+
+	local absLeft		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
+	local absBottom		= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
+	local absRight		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
+	local absTop		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
+	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right}
+
 	if (WG['guishader_api'] ~= nil) then
-		local left		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
-		local bottom	= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
-		local right		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
-		local top		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
-		WG['guishader_api'].InsertRect(left,bottom,right,top,'advplayerlist')
+		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
-	
 	Background = gl_CreateList(function()
 		gl_Color(0,0,0,0.66)
 		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
@@ -1934,7 +1925,8 @@ function CreateBackground()
 		--gl_Rect(widgetPosX-margin-1 , 					widgetPosY-margin, 					widgetPosX-margin, 							widgetPosY-margin + widgetHeight + 1  - 1+margin+margin)
 		
 		gl_Color(1,1,1,1)
-	end)	
+	end)
+
 end
 
 ---------------------------------------------------------------------------------------------------

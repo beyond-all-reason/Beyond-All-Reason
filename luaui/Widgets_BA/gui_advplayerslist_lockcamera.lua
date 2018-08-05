@@ -234,8 +234,8 @@ end
 local passedTime = 0
 function widget:Update(dt)
 	passedTime = passedTime + dt
-	if passedTime > 0.2 then
-		passedTime = passedTime - 0.2
+	if passedTime > 0.1 then
+		passedTime = passedTime - 0.1
 		updatePosition()
 		if WG['advplayerlist_api'] and WG['advplayerlist_api'].GetLockPlayerID ~= nil then
 			lockPlayerID = WG['advplayerlist_api'].GetLockPlayerID()
