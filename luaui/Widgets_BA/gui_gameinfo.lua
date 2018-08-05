@@ -121,8 +121,8 @@ for key, value in pairs(modoptions) do
 		changedModoptions[key] = value
 	end
 end
-changelogFile = changelogFile .. titlecolor.."Chicken options\n"
 if chickensEnabled then	-- filter chicken modoptions
+	changelogFile = changelogFile .. titlecolor.."Chicken options\n"
 	for key, value in pairs(changedChickenModoptions) do
 		changelogFile = changelogFile .. keycolor..string.sub(key, 9)..separator..valuecolor..value.."\n"
 	end

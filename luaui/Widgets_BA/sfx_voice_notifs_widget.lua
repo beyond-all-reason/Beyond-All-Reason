@@ -46,9 +46,15 @@ end
 
 function widget:PlayerChanged(playerID)
 	isSpec = Spring.GetSpectatingState()
+	if isSpec then
+		widgetHandler:RemoveWidget(self)
+	end
 end
 
 function widget:Initialize()
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		widget:PlayerChanged()
+	end
 	widgetHandler:RegisterGlobal('EventBroadcast', EventBroadcast)
 
 	WG['voicenotifs'] = {}

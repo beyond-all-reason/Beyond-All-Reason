@@ -849,7 +849,7 @@ function widget:DrawScreen()
 						if options[i].description ~= nil then
 							description = options[i].description
 							glText('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
-							glColor(0.6,0.47,0.28,0.25)
+							glColor(0.6,0.47,0.28,0.3)
 							glText('/option '..options[i].id, screenX+screenWidth*0.66, screenY-screenHeight+8, 14, "nr")
 						end
 					end
@@ -1018,17 +1018,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("fps "..value)
 			Spring.SendCommands("clock "..value)
 			Spring.SendCommands("speed "..value)
-		elseif id == 'oldconsole' then
-			if value == 1 then
-				widgetHandler:DisableWidget('Red Console (In-game chat only)')
-				widgetHandler:DisableWidget('Red Console (Battle and autohosts)')
-				widgetHandler:EnableWidget('Red Console (old)')
-			else
-				widgetHandler:DisableWidget('Red Console (old)')
-				widgetHandler:EnableWidget('Red Console (In-game chat only)')
-				widgetHandler:EnableWidget('Red Console (Battle and autohosts)')
-			end
-			Spring.SendCommands("luarules reloadluaui")
 		elseif id == 'lockcamera_hideenemies' then
 			saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', {'lockcameraHideEnemies'}, options[i].value)
 		elseif id == 'lockcamera_los' then
@@ -1683,12 +1672,7 @@ function loadAllWidgetData()
 	loadWidgetData("Bloom Shader", "bloomhighlights", {'drawHighlights'})
 
 	loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", {'Config','console','maxlines'})
-
-	loadWidgetData("Red Console (old)", "consolemaxlines", {'Config','console','maxlines'})
-
 	loadWidgetData("Red Console (In-game chat only)", "consolefontsize", {'fontsizeMultiplier'})
-
-	loadWidgetData("Red Console (old)", "consolefontsize", {'fontsizeMultiplier'})
 
 	loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", {'lockcameraHideEnemies'})
 	loadWidgetData("AdvPlayersList", "lockcamera_los", {'lockcameraLos'})
@@ -1827,7 +1811,6 @@ function init()
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
-        {id="rankicons", group="gfx", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
 		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction highlight", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
 		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
@@ -1877,7 +1860,6 @@ function init()
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 
-		{id="oldconsole", group="ui", name="Old console (single)", type="bool", value=GetWidgetToggleValue("Red Console (old)"), description='Enable old console that doesnt separate system and chat messages'},
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
 
@@ -1895,6 +1877,7 @@ function init()
 		{id="mascotte", group="ui", widget="AdvPlayersList mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList mascotte"), description='Shows a mascotte on top of the (adv)playerslist'},
 
 		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=GetWidgetToggleValue("Display DPS"), description='Display the \'Damage Per Second\' done where target are hit'},
+		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
 		{id="idlebuilders", group="ui", widget="Idle Builders", name="List Idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row containing a list of idle builder units (if there are any)'},
 		{id="betfrontend", group="ui", widget="Bet-Frontend", name="Bet interface", type="bool", value=GetWidgetToggleValue("Bet-Frontend"), description='When spectator: display a betting interface.\nIt allows betting on when you think a unit will be destroyed.\nBeware... you have a limited supply of chips.'},
@@ -2234,19 +2217,6 @@ function widget:Initialize()
 	--end
 
 	--Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
-
-	-- making sure a redui console is displayed without the alternatives in play
-	if widgetHandler.orderList['Red Console (old)'] ~= nil and widgetHandler.orderList['Red Console (In-game chat only)'] ~= nil and widgetHandler.orderList['Red Console (Battle and autohosts)'] ~= nil then
-		if widgetHandler.orderList['Red Console (old)'] == 0 and (widgetHandler.orderList['Red Console (In-game chat only)'] == 0 or widgetHandler.orderList['Red Console (Battle and autohosts)'] == 0) then
-			widgetHandler:EnableWidget('Red Console (In-game chat only)')
-			widgetHandler:EnableWidget('Red Console (Battle and autohosts)')
-			Spring.SendCommands("luarules reloadluaui")
-		elseif widgetHandler.orderList['Red Console (old)'] > 0 and (widgetHandler.orderList['Red Console (In-game chat only)'] > 0 or widgetHandler.orderList['Red Console (Battle and autohosts)'] > 0) then
-			widgetHandler:DisableWidget('Red Console (In-game chat only)')
-			widgetHandler:DisableWidget('Red Console (Battle and autohosts)')
-			Spring.SendCommands("luarules reloadluaui")
-		end
-	end
 
 	Spring.SendCommands({"bind f10 options"})
 

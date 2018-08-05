@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local vsx, vsy = gl.GetViewSizes()
-local customScale = 1.15
+local customScale = 1.25
 local widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
@@ -113,10 +113,15 @@ function widget:ViewResize()
 	widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 end
 
-function widget:PlayerChanged()
+function widget:PlayerChanged(playerID)
 	mySpec = Spring.GetSpectatingState()
 end
 
+function widget:Initialize()
+	if Spring.IsReplay() then
+		widgetHandler:RemoveWidget(self)
+	end
+end
 
 function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
@@ -311,10 +316,6 @@ function widget:MousePress(x, y, button)
 		end
 	end
 end
-
---function widget:Initialize()
---	StartVote('Forcestart?')	-- test
---end
 
 function widget:Shutdown()
 	EndVote()
