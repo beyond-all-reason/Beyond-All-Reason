@@ -94,9 +94,6 @@ function loadWeaponDefs()
 			params.radius = (WeaponDefs[i].damageAreaOfEffect*4.5) * globalRadiusMult
 			params.orgMult = (0.35 + (params.radius/2400)) * globalLightMult
 			params.life = (14*(0.8+ params.radius/1200))*globalLifeMult
-			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.5)
-			params.heatlife = (13*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
-			params.heatstrength = 1.4 + (params.heatlife/22)
 
 			if customParams.expl_light_color then
 				local colorList = Split(customParams.expl_light_color, " ")
@@ -124,12 +121,23 @@ function loadWeaponDefs()
 			if customParams.expl_light_radius_mult then
 				params.radius = params.radius * tonumber(customParams.expl_light_radius_mult)
 			end
+
+			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.5)
+			params.heatlife = (13*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
+
 			if customParams.expl_light_heat_radius_mult then
 				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
 			end
+
+			params.heatstrength = 1 + (params.heatradius/30)
+
 			if customParams.expl_light_heat_strength_mult then
 				params.heatstrength = params.heatstrength * customParams.expl_light_heat_strength_mult
 			end
+			if customParams.expl_noheatdistortion then
+				params.noheatdistortion = true
+			end
+
 			if customParams.expl_light_life then
 				params.life = tonumber(customParams.expl_light_life)
 			end
@@ -143,9 +151,6 @@ function loadWeaponDefs()
 				params.type = 'flame'
 				params.radius = params.radius * 0.66
 				params.orgMult = params.orgMult * 0.66
-			end
-			if customParams.expl_noheatdistortion then
-				params.noheatdistortion = true
 			end
 			params.wtype = WeaponDefs[i].type
 			if params.wtype == 'Cannon' then

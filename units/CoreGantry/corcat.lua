@@ -160,6 +160,7 @@ return {
                     expl_light_color = "1 0.33 0.04",
 					expl_light_radius_mult = 1.7,
 					expl_light_life_mult = 1.05,
+					expl_light_heat_radius_mult = 2.6,
 				},
 			},
 		},
