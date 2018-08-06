@@ -108,6 +108,11 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	turn thrust1 to x-axis <-90> now;
+	turn thrust2 to x-axis <-90> now;
+	turn thrust3 to x-axis <-90> now;
+	turn thrust4 to x-axis <-90> now;
+	turn thrustc to x-axis <-90> now; 
 	call-script InitState();
 	start-script SmokeUnit();
 }

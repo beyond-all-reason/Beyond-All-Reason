@@ -301,8 +301,14 @@ function WeaponDef_Post(name, wDef)
 	end
 
 
-	-- load BAR alternative sound
 	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+
+		-- load BAR weapon model
+		if wDef.customparams and wDef.customparams.bar_model then
+			wDef.model = wDef.customparams.bar_model
+		end
+
+		-- load BAR alternative sound
 		if (tonumber(Spring.GetModOptions().barsounds) or 0) ~= 0 then
 			if wDef.soundstart ~= '' then
 				wDef.soundstart = getBarSound(wDef.soundstart)

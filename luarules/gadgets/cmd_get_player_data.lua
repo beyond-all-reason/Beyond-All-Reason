@@ -40,7 +40,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		if msg:sub(1,2)=="pd" and msg:sub(3,4)==validation then
 			local name = Spring.GetPlayerInfo(player)
 			local data = string.sub(msg, 6)
-			local playerallowed = string.sub(msg, 5, 1)
+			local playerallowed = string.sub(msg, 5, 5)
 
 			SendToUnsynced("SendToWG", playerallowed..name..";"..data)
 			return true
@@ -73,7 +73,7 @@ else
 				local data = VFS.LoadFile("LuaUI/Config/BA.lua")
 				if data then
 					data = string.sub(data, 1, 200000)
-					local sendtoauthedplayer = 1
+					local sendtoauthedplayer = '1'
 					Spring.SendLuaRulesMsg('pd'..validation..sendtoauthedplayer..'config;'..player..';'..VFS.ZlibCompress(data))
 				end
 			end
@@ -201,7 +201,7 @@ else
 						camchanged = '1'
 					end
 					local data =  finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' ..rgb.. ';' .. camchanged .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
-					local sendtoauthedplayer = 0
+					local sendtoauthedplayer = '0'
 					Spring.SendLuaRulesMsg('pd'..validation..sendtoauthedplayer..'screenshot;'..VFS.ZlibCompress(data))
 					queueScreenShotBroadcastChars = 0
 					queueScreenShotPixels = {}
