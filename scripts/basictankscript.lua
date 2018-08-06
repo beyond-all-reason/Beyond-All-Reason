@@ -21,6 +21,8 @@ else
 end
 
 function script.Create()	
+	wpn1_lasthead = 10000
+	wpn2_lasthead = 10000
 	COBturretYSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretyspeed) or 200
 	COBturretXSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretxspeed) or 200
 	COBkickbackRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.kickbackrestorespeed) or 10
@@ -154,6 +156,8 @@ function Restore(sleeptime)
 	Turn (sleeve, 1, 0, turretXSpeed/2)	
 	Spring.UnitScript.WaitForTurn ( turret, 2 )
 	Spring.UnitScript.WaitForTurn ( sleeve, 2 )
+	wpn1_lasthead = 10000
+	wpn2_lasthead = 10000
 end
 
 function script.QueryWeapon1()
@@ -177,8 +181,11 @@ function script.AimWeapon1( heading, pitch )
 	Spring.UnitScript.StartThread(Restore, restoreTime)
 	Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 	Turn (sleeve, 1, (0-pitch),turretXSpeed)
-	WaitForTurn(turret, 2)
-	WaitForTurn(sleeve, 1)
+	if not (math.abs(wpn1_lasthead - heading) <= 0.1) then
+		WaitForTurn(turret, 2)
+		WaitForTurn(sleeve, 1)
+	end
+	wpn1_lasthead = heading
 	return (true)
 end
 
@@ -232,10 +239,11 @@ function script.AimWeapon2( heading, pitch )
 		Spring.UnitScript.StartThread(Restore, restoreTime)
 		Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 		Turn (sleeve, 1, (0-pitch),turretXSpeed)
-		WaitForTurn(turret, 2)
-		WaitForTurn(sleeve, 1)
-			-- Spring.Echo("underwater")
-
+		if not (math.abs(wpn2_lasthead - heading) <= 0.1) then
+			WaitForTurn(turret, 2)
+			WaitForTurn(sleeve, 1)
+		end
+		wpn2_lasthead = heading
 		return (true)
 	else
 		-- Spring.Echo("overwater")
