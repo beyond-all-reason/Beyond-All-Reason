@@ -5,7 +5,7 @@
 
 piece  torso, arms, rfire, lfire, pelvis, rleg, rfoot, lleg, lfoot, lthigh, rthigh, ground;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, animSpeed;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -494,11 +494,13 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep 2750;
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn arms to x-axis <0.000000> speed <45.000000>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn arms around x-axis;
+	wpn1_lasthead = 100000;
 	bAiming = FALSE;
 }
 
@@ -515,7 +517,6 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
@@ -523,8 +524,12 @@ AimPrimary(heading, pitch)
 	}
 	turn torso to y-axis heading speed <225.000000>;
 	turn arms to x-axis <0.000000> - pitch speed <75.000000>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn arms around x-axis;
+	if ((get ABS(wpn1_lasthead - heading)) > 5000)
+	{
+		wait-for-turn torso around y-axis;
+		wait-for-turn arms around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
