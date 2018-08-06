@@ -6,7 +6,7 @@
 piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
        rthigh, lleg, rleg, ground, lfirept2, exhaust;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -465,11 +465,13 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn torso to y-axis <0.000000> speed <90.021978>;
 	turn lmisspod to x-axis <0.000000> speed <90.010989>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn lmisspod around x-axis;
+	wpn1_lasthead = 100000;
 	bAiming = FALSE;
 }
 
@@ -486,7 +488,6 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
@@ -494,9 +495,13 @@ AimPrimary(heading, pitch)
 	}
 	turn torso to y-axis heading speed <130.027473>;
 	turn lmisspod to x-axis <-90> - pitch speed <180.021978>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn lmisspod around x-axis;
+	if ((get ABS(wpn1_lasthead - heading)) > 5000)
+	{
+		wait-for-turn torso around y-axis;
+		wait-for-turn lmisspod around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 

@@ -8,7 +8,7 @@ piece  pelvis, lfirept, rfirept, lcannon, rcannon, locase, lthigh, rthigh,
 
 static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed, Aim1, Aim2, restore;
+            moveSpeed, currentSpeed, Aim1, Aim2, restore, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -603,6 +603,7 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	while (restore == FALSE) // attempt to block restore when switching from 1 to 2 or 2 to 1.
 	{
 	sleep 50;
@@ -611,9 +612,10 @@ RestoreAfterDelay()
 		if (restore == TRUE)
 	{
 	sleep restore_delay;
-	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn canbase to x-axis <0.000000> speed <45.000000>;
+	wpn1_lasthead = 100000;
+	wpn2_lasthead = 100000;
 	start-script RequestState(1);
 	}
 }
@@ -622,23 +624,26 @@ AimPrimary(heading, pitch)
 {
 	if (Aim1 == TRUE) // Only do script when 1 is enabled
 	{
-	start-script RequestState(0);
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	turn torso to y-axis heading speed <128.000000>;
-	turn canbase to x-axis <0.000000> - pitch speed <65.000000>;
-	while( !Static_Var_4 )
-	{
-		sleep 30;
-	}
-	wait-for-turn torso around y-axis;
-	wait-for-turn canbase around x-axis;
-	start-script RestoreAfterDelay();
-	return (1);
-	}
-	else
-	{
-	return (0); // Block fire if 1 was disabled
+		start-script RequestState(0);
+		signal SIG_AIM;
+		turn torso to y-axis heading speed <128.000000>;
+		turn canbase to x-axis <0.000000> - pitch speed <65.000000>;
+		while( !Static_Var_4 )
+		{
+			sleep 30;
+		}
+		if ((get ABS(wpn1_lasthead - heading)) > 5000)
+		{
+			wait-for-turn torso around y-axis;
+			wait-for-turn canbase around x-axis;
+		}
+		start-script RestoreAfterDelay();
+		wpn1_lasthead = heading;
+		return (1);
+		}
+		else
+		{
+		return (0); // Block fire if 1 was disabled
 	}
 }
 
@@ -683,16 +688,19 @@ AimSecondary(heading, pitch)
 	if (Aim2 == TRUE) // Only do script when 2 is enabled
 	{
 	start-script RequestState(0);
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIM;
 	turn torso to y-axis heading speed <128.000000>;
 	turn canbase to x-axis <0.000000> - pitch speed <65.000000>;
 	while( !Static_Var_4 )
 	{
 		sleep 30;
 	}
-	wait-for-turn torso around y-axis;
-	wait-for-turn canbase around x-axis;
+	if ((get ABS(wpn2_lasthead - heading)) > 5000)
+	{
+		wait-for-turn torso around y-axis;
+		wait-for-turn canbase around x-axis;
+	}
+	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 	}
