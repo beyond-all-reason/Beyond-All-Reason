@@ -4,6 +4,8 @@ XX/XX/2018
 Removed support for older engine versions
 You must have 104.0.1.567 or newer
 
+Testing: More frequent re-aiming (each frame) (currently enabled on t1 bots/vehicles only)
+
 Other:
  • Player camara tracking also limits view to players viewpoint and losmode
  • Removed "GroupMove" widget because it had side effects/downsides

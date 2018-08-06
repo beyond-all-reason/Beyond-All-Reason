@@ -1,25 +1,3 @@
-
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
-if Engine and Engine.version then
-    local function Split(s, separator)
-        local results = {}
-        for part in s:gmatch("[^"..separator.."]+") do
-            results[#results + 1] = part
-        end
-        return results
-    end
-    engineVersion = Split(Engine.version, '-')
-    if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
-        engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
-    else
-        engineVersion = tonumber(Engine.version)
-    end
-elseif Game and Game.version then
-    engineVersion = tonumber(Game.version)
-end
-
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401354 then
-
     function gadget:GetInfo()
       return {
         name      = "Continuous Aim",
@@ -28,15 +6,42 @@ if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401354 
         date      = "April 2018",
         license   = "Whatever works",
         layer     = 0,
-        enabled   = false, -- When we will move on 105 :)
+        enabled   = true, -- When we will move on 105 :)
       }
     end
+if (not gadgetHandler:IsSyncedCode()) then return end
 
-    if (not gadgetHandler:IsSyncedCode()) then return end
+local convertedUnits = {
+	[UnitDefNames.armart.id] = true,
+	[UnitDefNames.armfav.id] = true,
+	[UnitDefNames.armflash.id] = true,
+	[UnitDefNames.armjanus.id] = true,
+	[UnitDefNames.armpincer.id] = true,
+	[UnitDefNames.armsam.id] = true,
+	[UnitDefNames.armstump.id] = true,
+	[UnitDefNames.armpw.id] = true,
+	[UnitDefNames.armflea.id] = true,
+	[UnitDefNames.armrock.id] = true,
+	[UnitDefNames.armham.id] = true,
+	[UnitDefNames.armwar.id] = true,
+	[UnitDefNames.armjeth.id] = true,
+	[UnitDefNames.corfav.id] = true,
+	[UnitDefNames.corgarp.id] = true,
+	[UnitDefNames.corgator.id] = true,
+	[UnitDefNames.corlevlr.id] = true,
+	[UnitDefNames.cormist.id] = true,
+	[UnitDefNames.corraid.id] = true,
+	[UnitDefNames.corwolv.id] = true,
+	[UnitDefNames.corak.id] = true,
+	[UnitDefNames.corthud.id] = true,
+	[UnitDefNames.corstorm.id] = true,
+	[UnitDefNames.corcrash.id] = true
+	}
 
-    function gadget:UnitCreated(unitID)
-        for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-            Spring.SetUnitWeaponState(unitID, id, "reaimTime", 3)
-        end
+    function gadget:UnitCreated(unitID,unitDefID)
+		if convertedUnits[unitDefID] then
+			for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+				Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
+			end
+		end
     end
-end
