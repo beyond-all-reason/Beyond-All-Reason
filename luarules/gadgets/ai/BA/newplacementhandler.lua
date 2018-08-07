@@ -179,7 +179,7 @@ function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	local buildtype = "ground"
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
 	if p and p.x and p.y and p.z then
-		if Spring.TestBuildOrder(utype.id, x,y,z, "s") == 0 then
+		if Spring.TestBuildOrder(utype.id, p.x,p.y,p.z, "s") == 0 then
 			return
 		end
 		self:ClosePosition(p.x, p.z, cellsize, self:GetMinimalSpacing(utype))
