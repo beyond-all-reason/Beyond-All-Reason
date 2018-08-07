@@ -570,7 +570,7 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
-	moveData.heatmapping = (Spring.GetModOptions and tonumber(Spring.GetModOptions().heatmap) and (tonumber(Spring.GetModOptions().heatmap) ~= 0)) or 0
+	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true
 	if moveName and string.find(moveName, "KBOT") and moveData.maxslope then

@@ -19,7 +19,7 @@ Other:
  • Removed old console and old ally resource bars widget
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
  • Removed unused modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock"
- • Removed modoptions: "enemycomcount", "no_close_spawns" (always enabled)
+ • Removed modoptions: "enemycomcount", "no_close_spawns", "heatmap" (always enabled)
 
 
 10.10 -> 10.11
