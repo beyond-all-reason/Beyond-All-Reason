@@ -90,6 +90,71 @@ function KbotOrVeh()
 	end
 end
 
+
+-- Useful Unit Counts
+
+function GetAdvancedLabs(tqb,ai,unit)
+	local list = {
+	UDN.armalab.id,
+	UDN.coralab.id,
+	UDN.armavp.id,
+	UDN.coravp.id,
+	UDN.armaap.id,
+	UDN.coraap.id,	
+	UDN.armasy.id,
+	UDN.corasy.id,
+	}
+	local units = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return #units
+end
+
+function GetPlannedAdvancedLabs(tqb, ai, unit)
+	local list = {
+	UDN.armalab.id,
+	UDN.coralab.id,
+	UDN.armavp.id,
+	UDN.coravp.id,
+	UDN.armaap.id,
+	UDN.coraap.id,	
+	UDN.armasy.id,
+	UDN.corasy.id,
+	}
+	local total = 0
+	for ct, unitDefID in pairs(list) do
+		local planned = ai.newplacementhandler:GetExistingPlansByUnitDefID(unitDefID)
+		for planID, plan in pairs(planned) do
+			total = total + 1
+		end
+	end
+	return total
+end
+
+function GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit)
+	local list = {
+	UDN.armalab.id,
+	UDN.coralab.id,
+	UDN.armavp.id,
+	UDN.coravp.id,
+	UDN.armaap.id,
+	UDN.coraap.id,	
+	UDN.armasy.id,
+	UDN.corasy.id,
+	}
+	local count = 0
+	for ct, unitDefID in pairs(list) do
+		count = count + UUDC(UnitDefs[unitDefID].name, ai.id)
+	end
+	count = count + GetPlannedAdvancedLabs(tqb, ai, unit)
+	return count
+end
+
+function AllAdvancedLabs(tqb, ai, unit)
+	return GetAdvancedLabs(tqb,ai,unit) + GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit)
+end
+ 
+
+--- OTHERS
+
 function FindBest(unitoptions,ai)
 	if GG.info and GG.info[ai.id] and unitoptions and unitoptions[1] then
 		local effect = {}
@@ -263,7 +328,7 @@ function CorStarterLabT1(tqb, ai, unit)
 end
 
 function CorRandomLab(tqb, ai, unit)
-	if not ai.firstT2 then
+	if AllAdvancedLabs(tqb, ai, unit) == 0 then
 		if timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25 then
 			if unit:Name() == "corck" then
 				ai.firstT2 = true
@@ -277,7 +342,7 @@ function CorRandomLab(tqb, ai, unit)
 		else
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 then
+	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit) < 1 then
 		if unit:Name() == "corck" or unit:Name() == "corack" then
 			ai.firstT2 = true
 			return "coralab"
@@ -290,7 +355,7 @@ function CorRandomLab(tqb, ai, unit)
 		else 
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 then
+	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit) < 1 then
 		return FindBest({"corlab", "corvp", "corap"}, ai)
 	else
 		return {action = "nexttask"}
@@ -809,7 +874,7 @@ function ArmStarterLabT1(tqb, ai, unit)
 end
 
 function ArmRandomLab(tqb, ai, unit)
-	if not ai.firstT2 then
+	if AllAdvancedLabs(tqb, ai, unit) == 0 then
 		if timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25 then
 			if unit:Name() == "armck" then
 				ai.firstT2 = true
@@ -823,7 +888,7 @@ function ArmRandomLab(tqb, ai, unit)
 		else
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 then
+	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit) < 1 then
 		if unit:Name() == "armck" or unit:Name() == "armack" then
 			ai.firstT2 = true
 			return "armalab"
@@ -836,7 +901,7 @@ function ArmRandomLab(tqb, ai, unit)
 		else 
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 then
+	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit) < 1 then
 		return FindBest({"armlab", "armvp", "armap"}, ai)
 	else
 		return {action = "nexttask"}
