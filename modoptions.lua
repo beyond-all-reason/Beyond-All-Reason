@@ -203,19 +203,6 @@ local options={
        desc="Balanced Annihilation - Gameplay Enhancements: Miscellaneous",
        type="section",
     },
-	
-    --{ 
-		--key    = "logicalbuildtime",
-		--name   = "Logical and meaningful buildtimes",
-		--desc   = "Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit.",
-		--type="list",
-		--def="disabled",
-		--section= "ba_enhancements_misc",
-		--items={
-		--	{key="disabled", name="Disabled", desc=""},
-		--	{key="enabled", name="Enabled", desc="Changes the default meaningless buildtimes to be in seconds, so that when a unit's buildtime is shown, that buildtime is representative of seconds taken to build that unit."},
-		--}
-    --},
 
 	{
 		key    = 'comm_wreck_metal',
