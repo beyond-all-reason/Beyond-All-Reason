@@ -801,7 +801,7 @@ function gadget:DrawScreen()
 				end
 				if aiName and aiName ~= '' and not string.find(aiName, "Chicken:") and not string.find(aiName, "DAI") and not string.find(aiName, "KAIK") and not string.find(aiName, "NullAI") then
 					enabled = false
-					unsupportedAI = true
+					unsupportedAI = aiName
 				end
 			end
 		end
@@ -876,7 +876,7 @@ function gadget:DrawScreen()
 		gl.Color(0,0,0,0.7)
 		gl.Rect(0,0,vsx,vsy)
 		if unsupportedAI then
-			gl.Text("\255\200\200\200Unsupported AI\n\nYou need \255\255\255\255DAI \255\200\200\200or \255\255\255\255KAIK  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			gl.Text("\255\200\200\200Unsupported AI  ("..unsupportedAI..")\n\nYou need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		else
 			gl.Text("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		end
