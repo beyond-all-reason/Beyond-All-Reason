@@ -293,22 +293,14 @@ function TaskQueueBehaviour:StopWaitingForPosition()
 end
 
 function TaskQueueBehaviour:BuildOnMap(utype,pos)
-	--p = self.map:FindClosestBuildSite(utype, unit:GetPosition())
-	--self.progress = not self.unit:Internal():Build(utype,p)
 	unit = self.unit:Internal()
-	local job = {}
-	if not pos then
-		job = {
-			start_position=unit:GetPosition(),
-			max_radius=1500,
-			onSuccess=onsuccess,
-			onFail=onfail,
-			unittype=utype,
-			cleanup_on_unit_death=self.unit.engineID,
-			tqb=self
-		}
+	if pos then
+		pos = self.ai.newplacementhandler:CreateNewPlan(unit, utype, pos)
 	else
-		job = {
+		pos = unit:GetPosition()
+		pos = self.ai.newplacementhandler:CreateNewPlan(unit, utype, pos)
+	end
+	job = {
 			start_position=pos,
 			max_radius=1500,
 			onSuccess=onsuccess,
@@ -316,15 +308,14 @@ function TaskQueueBehaviour:BuildOnMap(utype,pos)
 			unittype=utype,
 			cleanup_on_unit_death=self.unit.engineID,
 			tqb=self
-		}
-	end
-	local success = self.ai.placementhandler:NewJob( job )
-	if success ~= true then
-		self:StopWaitingForPosition()
+	}
+	if pos then
+		self:OnBuildingPlacementSuccess( job, pos )
+		return true
+	else
+		self:OnBuildingPlacementFailure( job, pos )
 		return false
 	end
-	self:BeginWaitingForPosition()
-	return true
 end
 
 function TaskQueueBehaviour:BuildGeo(utype)
@@ -336,6 +327,7 @@ function TaskQueueBehaviour:BuildGeo(utype)
 		self:OnToNextTask()
 		return false
 	end
+	self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
 	return self.unit:Internal():Build(utype,p,_,{"shift"})
 end
 
@@ -354,6 +346,7 @@ function TaskQueueBehaviour:BuildExtractor(utype)
 	elseif not p then
 		return false
 	end
+	self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
 	return self.unit:Internal():Build(utype,p,_,{"shift"})
 end
 
