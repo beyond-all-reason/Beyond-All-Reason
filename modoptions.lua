@@ -229,17 +229,6 @@ local options={
 		step   = 1,
 	},
 	{
-		key    = 'reclaimunitefficiency',
-		name   = 'Reclaim Unit Efficiency',
-		desc   = 'Set how much metal a reclaimed unit should give back (1 = max, 0.5 = half)',
-		type   = 'number',
-		section= 'ba_enhancements_misc',
-		def    = 1,
-		min    = 0.5,
-		max    = 1,
-		step   = 0.05,
-	},
-	{
         key    = 'mm_diminish_factor',
         name   = 'Diminishing return rate of metal makers',
         desc   = 'The strength of diminishing returns from metal makers. 0 = off, 1 = very strong diminish effect.',
