@@ -257,7 +257,7 @@ function CorEnT1( tqb, ai, unit )
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
 	if (income(ai, "energy") < 750) and ei - ee < 0 and ec < 0.5 * es then
         return (CorWindOrSolar(tqb, ai, unit))
-    elseif ei - ee > 0 and ec > 0.8 * es then
+    elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
         return "cormakr"
 	elseif es < (ei * 8) and ec > (es * 0.8) and countEstore < (ei*8)/6000 then
 		return "corestor"
@@ -289,7 +289,7 @@ function CorEnT2( tqb, ai, unit )
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es  then
         return "corfus"
-    elseif ei - ee > 0 and ec > 0.8 * es then
+    elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
         return "cormmkr"
 	else
 		return {action = "nexttask"}
@@ -805,7 +805,7 @@ function ArmEnT1( tqb, ai, unit)
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
 	if (income(ai, "energy") < 750) and ei - ee < 0 and ec < 0.8 * es then
 		return (ArmWindOrSolar(tqb, ai, unit))
-	elseif ei - ee > 0 and ec > 0.8 * es then
+	elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
 		return "armmakr"
 	elseif es < (ei * 8) and ec > (es * 0.8) and countEstore < (ei *8) / 6000 then
 		return "armestor"
@@ -838,7 +838,7 @@ function ArmEnT2( tqb, ai, unit )
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es then
         return "armfus"
-    elseif ei - ee > 0 and ec > 0.8 * es then
+    elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
         return "armmmkr"
 	else
 		return {action = "nexttask"}
@@ -1278,7 +1278,11 @@ local function armt1con(tqb, ai, unit)
 		end
 	end
 	if unit.mode == "eco" then
-		return armt1eco
+		if income(ai, "energy") < 750 or AllAdvancedLabs(tqb, ai, unit) < 1 then
+			return armt1eco
+		else
+			return armt1expand
+		end
 	elseif unit.mode == "expand" then
 		return armt1expand
 	else
@@ -1299,7 +1303,11 @@ local function cort1con(tqb, ai, unit)
 		end
 	end
 	if unit.mode == "eco" then
-		return cort1eco
+		if income(ai, "energy") < 750 or AllAdvancedLabs(tqb, ai, unit) < 1 then
+			return cort1eco
+		else
+			return cort1expand
+		end
 	elseif unit.mode == "expand" then
 		return cort1expand
 	else
@@ -1313,7 +1321,7 @@ local function armt2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -1334,7 +1342,7 @@ local function cort2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
