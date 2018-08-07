@@ -40,7 +40,6 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*relXpos
 local currentWind = 0
-local currentMetalmaker = ''
 local gameStarted = false
 local displayComCounter = false
 
@@ -87,7 +86,6 @@ local dlistResbar = {metal={}, energy={}}
 local energyconvArea = {}
 local windArea = {}
 local comsArea = {}
-local metalmakerArea = {}
 local rejoinArea = {}
 local buttonsArea = {}
 local dlistWindText = {}
@@ -405,44 +403,6 @@ local function updateButtons()
 	end
 	dlistButtons2 = glCreateList( function()
 		glText('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
-	end)
-end
-
-
-local function updateMetalmaker()
-	local area = metalmakerArea
-
-	if dlistMetalmaker1 ~= nil then
-		glDeleteList(dlistMetalmaker1)
-	end
-	dlistMetalmaker1 = glCreateList( function()
-
-		-- background
-		glColor(0,0,0,0.7)
-		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
-		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
-
-		if (WG['guishader_api'] ~= nil) then
-			guishaderEnabled = true
-			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_metalmaker')
-		end
-	end)
-
-	if dlistMetalmaker2 ~= nil then
-		glDeleteList(dlistMetalmaker2)
-	end
-	dlistMetalmaker2 = glCreateList( function()
-		-- icon
-		local sizeHalf = (height/2.75)*widgetScale
-		--glTexture(comTexture)
-		--glTexRect(area[1]+((area[3]-area[1])/2)-sizeHalf, area[2]+((area[4]-area[2])/2)-sizeHalf, area[1]+((area[3]-area[1])/2)+sizeHalf, area[2]+((area[4]-area[2])/2)+sizeHalf)
-		--glTexture(false)
-
-		-- Text
-		--local fontSize = (height/2.66)*widgetScale
-		--glText("\255\200\200\200"..currentMetalmaker, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
 	end)
 end
 
@@ -814,14 +774,6 @@ function init()
 	filledWidth = filledWidth + width + areaSeparator
 	updateWind()
 
-	-- metalmaker
-	if currentMetalmaker ~= '' then
-		width = ((height*1.18)*widgetScale)
-		metalmakerArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
-		filledWidth = filledWidth + width + areaSeparator
-		updateMetalmaker()
-	end
-
 	-- coms
 	if displayComCounter then
 		comsArea = {barContentArea[1]+filledWidth, barContentArea[2], barContentArea[1]+filledWidth+width, barContentArea[4]}
@@ -879,13 +831,6 @@ end
 function widget:GameFrame(n)
 	spec = spGetSpectatingState()
 
-	if n == 1 then
-		currentMetalmaker = getCurrentMetalmaker()
-		if currentMetalmaker ~= '' then
-			init()
-		end
-    end
-
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
 
@@ -894,21 +839,6 @@ function widget:GameFrame(n)
 	if n % 30 == 1 then
 		updateResbarText('metal')
 		updateResbarText('energy')
-
-		-- metalmaker
-		if currentMetalmaker ~= '' then
-			currentMetalmaker = getCurrentMetalmaker()
-			if dlistMetalmaker3 ~= nil then
-				glDeleteList(dlistMetalmaker3)
-			end
-			dlistMetalmaker3 = glCreateList( function()
-				local fontSize = (height/2.66)*widgetScale
-				glText("\255\200\200\200"..currentMetalmaker, metalmakerArea[1]+((metalmakerArea[3]-metalmakerArea[1])/2), metalmakerArea[2]+((metalmakerArea[4]-metalmakerArea[2])/2.05)-(fontSize/5), fontSize, 'oc')
-			end)
-			if WG['tooltip'] ~= nil then
-				WG['tooltip'].AddTooltip('metalmaker', metalmakerArea, "\255\215\255\215Metalmaker conversion value\nDisplays the number of ......")
-			end
-		end
     end
 end
 
@@ -1175,11 +1105,6 @@ function widget:DrawScreen()
 				end
 			end
 		end
-	end
-	if currentMetalmaker ~= '' and dlistMetalmaker1 and dlistMetalmaker2 and dlistMetalmaker3 then
-		glCallList(dlistMetalmaker1)
-		glCallList(dlistMetalmaker2)
-		glCallList(dlistMetalmaker3)
 	end
 
 	if displayComCounter and dlistComs1 then
@@ -1672,22 +1597,6 @@ function widget:RecvLuaMsg(bigMsg, playerID) --this function run 2nd. It read th
 end
 
 
-function getCurrentMetalmaker()
-	local value = Spring.GetTeamRulesParam(myTeamID, "MMFactor")
-	if value == nil then
-		return ''
-	else
-		value = value*0.5
-	end
-
-	local decimalValue, floatValue = math.modf(value)
-	if floatValue ~= 0 then
-		value = string.format("%."..string.len(string.sub('0.00', 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
-	end
-	return value
-end
-
-
 -- used for rejoin progress functionality
 local function RemoveLUARecvMsg(n)
 	if n > 150 then
@@ -1752,8 +1661,6 @@ function widget:Initialize()
 	-- used for rejoin progress functionality
 	functionContainer = RemoveLUARecvMsg
 
-	currentMetalmaker = getCurrentMetalmaker()
-
 	WG['topbar'] = {}
 	WG['topbar'].showingRejoining = function()
 		return showRejoinUI
@@ -1801,10 +1708,6 @@ function widget:Shutdown()
 		glDeleteList(dlistButtons1)
 		glDeleteList(dlistButtons2)
 		glDeleteList(dlistRejoin)
-		if dlistMetalmaker1 then
-			glDeleteList(dlistMetalmaker1)
-			glDeleteList(dlistMetalmaker2)
-		end
 
 		for n,_ in pairs(dlistWindText) do
 			glDeleteList(dlistWindText[n])
@@ -1822,14 +1725,12 @@ function widget:Shutdown()
 		WG['guishader_api'].RemoveRect('topbar_metal')
 		WG['guishader_api'].RemoveRect('topbar_wind')
 		WG['guishader_api'].RemoveRect('topbar_coms')
-		WG['guishader_api'].RemoveRect('topbar_metalmaker')
 		WG['guishader_api'].RemoveRect('topbar_buttons')
 		WG['guishader_api'].RemoveRect('topbar_rejoin')
 	end
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].RemoveTooltip('coms')
 		WG['tooltip'].RemoveTooltip('wind')
-		WG['tooltip'].RemoveTooltip('metalmaker')
 		WG['tooltip'].RemoveTooltip('rejoin')
 		local res = 'energy'
 		WG['tooltip'].RemoveTooltip(res..'_share_slider')
