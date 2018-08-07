@@ -18,8 +18,7 @@ Other:
  • Fixed Bloom rendering the map black on some maps
  • Removed old console and old ally resource bars widget
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
- • Removed unused modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock", "reclaimunitefficiency"
- • Removed modoptions: "enemycomcount", "no_close_spawns", "heatmap" (always enabled)
+ • Removed modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock", "reclaimunitefficiency", "mm_diminish_factor", "enemycomcount", "no_close_spawns", "heatmap"
 
 
 10.10 -> 10.11

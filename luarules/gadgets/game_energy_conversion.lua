@@ -55,7 +55,6 @@ local teamList = {}
 local teamCapacities = {}
 local teamUsages = {}
 local teamMMList = {}
-local allyTotalTeamEUses = {} -- Will be: allyTotalEUse[allyID][teamID]
 local teamEfficiencies = {}
 local eSteps = {}
 local teamActiveMM = {}
@@ -114,7 +113,6 @@ end
 
 local function UpdateMetalMakers(teamID, energyUse)
 	local totalTeamEnergyUse = 0
-	local makersToUpdate = {}
 
 	for j = 1, #eSteps do
 		for unitID, defs in pairs(teamMMList[teamID][eSteps[j]]) do
@@ -122,9 +120,7 @@ local function UpdateMetalMakers(teamID, energyUse)
 				if (not defs.emped and energyUse > 0) then
 					amount = max(0,min(energyUse, defs.capacity))
 					energyUse = (energyUse - defs.capacity)
-					makersToUpdate[unitID] = {c = amount, e = eSteps[j]}
-					totalTeamEnergyUse = totalTeamEnergyUse + amount
-					-- updateUnitConversion(unitID, amount, eSteps[j])
+					updateUnitConversion(unitID, amount, eSteps[j])
 					
 					if (defs.status == 0) then
 						Spring.CallCOBScript(unitID,"MMStatus",0,1)
@@ -142,28 +138,6 @@ local function UpdateMetalMakers(teamID, energyUse)
 				end
 			end
 		end
-	end
-
-	-- Calculate total energy use of the whole ally team
-	_, _, _, _, _, allyID = Spring.GetTeamInfo(teamID)
-	allyTotalTeamEUses[allyID][teamID] = totalTeamEnergyUse
-	totalAllyEnergyUse = 0
-	for teamID, eUse in pairs(allyTotalTeamEUses[allyID]) do
-		totalAllyEnergyUse = totalAllyEnergyUse + eUse
-    end
-
-	-- Update makers after having calculated total energy use by them
-	for unitID, data in pairs(makersToUpdate) do
-		-- Calculate diminishing factor: 1/(x^0.5+1)+0.5
-		-- Divide total energy use by T2 metal maker's E cost.
-		-- This way, the function can be plotted over the amount of T2 MMs, making it more intuitive
-		diminishModifier = totalAllyEnergyUse/600.0
-		-- Spring.Echo(totalAllyEnergyUse)
-		diminishModifier = (1.0 / (math.pow(diminishModifier, Spring.GetModOptions().mm_diminish_factor or 0.0)+1.0)) * 2.0
-		if diminishModifier > 1.0 then
-			diminishModifier = 1.0
-		end
-		updateUnitConversion(unitID, data.c, data.e * diminishModifier)
 	end
 end
 
@@ -277,11 +251,6 @@ function gadget:Initialize()
         spSetTeamRulesParam(tID, mmUseParamName, 0)
 		spSetTeamRulesParam(tID, mmAvgEffiParamName, teamEfficiencies[tID]:avg())
 
-    end
-
-    allyList = Spring.GetAllyTeamList()
-    for i = 1, #allyList do
-    	allyTotalTeamEUses[allyList[i]] = {}
     end
 
     splitMMUpdate = math.floor(math.max((frameRate / #teamList),1))
