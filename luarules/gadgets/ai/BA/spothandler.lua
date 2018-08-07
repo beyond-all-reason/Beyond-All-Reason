@@ -174,7 +174,7 @@ function MetalSpotHandler:ClosestFreeSpot(unittype,position,maxdis)
     local pos = nil
     local bestDistance = maxdis or 100000
     spotCount = self.game.map:SpotCount()
-	local teamID = ai.id
+	local teamID = self.ai.id
     for i,v in ipairs(self.spots) do
         local p = v
         local dist = distance(position,p)
@@ -192,7 +192,7 @@ function MetalSpotHandler:ClosestEnemySpot(unittype,position)
     local pos = nil
     local bestDistance = 100000
     spotCount = self.game.map:SpotCount()
-	local teamID = ai.id
+	local teamID = self.ai.id
     for i,v in ipairs(self.spots) do
         local p = v
         local dist = distance(position,p)
