@@ -120,6 +120,10 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
+	turn thrust1 to x-axis <-90> now;
+	turn thrust2 to x-axis <-90> now;
+	turn thrust3 to x-axis <-90> now;
+	turn thrust4 to x-axis <-90> now;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
@@ -176,58 +180,10 @@ Deactivate()
 	return (0);
 }
 
-ProcessFlames()
-{
-	while( TRUE )
-	{
-		if( Static_Var_1 == 1 OR Static_Var_1 == 2 )
-		{
-			emit-sfx 1024 from thrust1;
-			emit-sfx 1024 from thrust2;
-			emit-sfx 1024 from thrust3;
-			emit-sfx 1024 from thrust4;
-			
-			emit-sfx 0 from thrust1;
-			emit-sfx 0 from thrust2;
-			emit-sfx 0 from thrust3;
-			emit-sfx 0 from thrust4;
-		}
-		sleep 50;
-	}
-	return (0);
-}
-
 StopMoving()
 {
 	signal 8;
 	Static_Var_1 = 0;
-	return (0);
-}
-
-MoveRate1()
-{
-	signal 8;
-	set-signal-mask 8;
-	start-script ProcessFlames();
-	Static_Var_1 = 1;
-	return (0);
-}
-
-MoveRate2()
-{
-	signal 8;
-	set-signal-mask 8;
-	start-script ProcessFlames();
-	Static_Var_1 = 2;
-	return (0);
-}
-
-MoveRate3()
-{
-	signal 8;
-	set-signal-mask 8;
-	start-script ProcessFlames();
-	Static_Var_1 = 3;
 	return (0);
 }
 

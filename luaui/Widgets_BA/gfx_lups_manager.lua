@@ -355,49 +355,49 @@ else
       },
 
       --// PLANES still need to do work here //----------------------------
-     -- [UnitDefNames["armatlas"].id] = {
-     --   {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="jet1", onActive=true}},
-     --   {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="jet2", onActive=true}},
-     --   {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="jet3", onActive=true}},
-     --},
-     -- [UnitDefNames["corvalk"].id] = {
-     --   {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust1", onActive=true}},
-     --   {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust2", onActive=true}},
-     --   {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust3", onActive=true}},
-     --   {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=9, piece="thrust4", onActive=true}},
-     --},
+      [UnitDefNames["armatlas"].id] = {
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=5.2, length=23, piece="jet1", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=5.2, length=23, piece="jet2", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=5.2, length=23, piece="jet3", onActive=true}},
+     },
+      [UnitDefNames["corvalk"].id] = {
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust1", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust2", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust3", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust4", onActive=true}},
+     },
       [UnitDefNames["armfig"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=45, piece="rearthrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=33, piece="rearthrust", onActive=true}},
      },
       [UnitDefNames["armsfig"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=45, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4.5, length=37, piece="thrust", onActive=true}},
      },
       [UnitDefNames["armseap"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=45, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=5.7, length=42, piece="thrust", onActive=true}},
      },
       [UnitDefNames["armhawk"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=75, piece="rearthrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=5, length=40, piece="rearthrust", onActive=true}},
       },
       [UnitDefNames["corfink"].id] = {
-        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=35, piece="thrustb", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=30, piece="thrustb", onActive=true}},
       },
       [UnitDefNames["cortitan"].id] = {
-        {class='AirJet',options={color={0.3,0.1,0}, width=5, length=65, piece="thrustb", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=5, length=50, piece="thrustb", onActive=true}},
       },
       [UnitDefNames["armlance"].id] = {
-       {class='AirJet',options={color={0.1,0.4,0.6}, width=5, length=65, piece="thrust", onActive=true}},
+       {class='AirJet',options={color={0.1,0.4,0.6}, width=5, length=50, piece="thrust", onActive=true}},
       },
       [UnitDefNames["corveng"].id] = {
-        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=42, piece="thrusta1", onActive=true}},
-        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=42, piece="thrusta2", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=32, piece="thrusta1", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=32, piece="thrusta2", onActive=true}},
       },
       [UnitDefNames["corsfig"].id] = {
-        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=42, piece="thrust1", onActive=true}},
-        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=42, piece="thrust2", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=3.2, length=35, piece="thrust1", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=3.2, length=35, piece="thrust2", onActive=true}},
       },
       [UnitDefNames["corseap"].id] = {
-        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=42, piece="thrust1", onActive=true}},
-        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=42, piece="thrust2", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=43, piece="thrust1", onActive=true}},
+        {class='AirJet',options={color={0.3,0.1,0}, width=3, length=43, piece="thrust2", onActive=true}},
       },
       [UnitDefNames["corshad"].id] = {
         {class='AirJet',options={color={0.6,0.1,0}, width=4, length=52, piece="thrusta1", onActive=true}},
@@ -410,43 +410,43 @@ else
         {class='ThundAirJet',options={color={0.1,0.4,0.6}, width=2, length=47, piece="thrust4", onActive=true}},
       },
       [UnitDefNames["corhurc"].id] = {
-        {class='AirJet',options={color={0.9,0.3,0}, width=10, length=80, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.9,0.3,0}, width=6.5, length=57, piece="thrust", onActive=true}},
       },
       [UnitDefNames["armpnix"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=8, length=75, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=5, length=52, piece="thrust", onActive=true}},
       },
       [UnitDefNames["corvamp"].id] = {
-        {class='AirJet',options={color={0.6,0.1,0}, width=3.5, length=65, piece="thrustb", onActive=true}},
+        {class='AirJet',options={color={0.6,0.1,0}, width=3.8, length=42, piece="thrustb", onActive=true}},
       },
       [UnitDefNames["corawac"].id] = {
-        {class='AirJet',options={color={0.8,0.2,0}, width=4, length=50, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.8,0.2,0}, width=4, length=45, piece="thrust", onActive=true}},
       },
       [UnitDefNames["corhunt"].id] = {
         {class='AirJet',options={color={0.8,0.2,0}, width=4, length=50, piece="thrust", onActive=true}},
       },
      [UnitDefNames["armawac"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=50, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=45, piece="thrust", onActive=true}},
       },
      [UnitDefNames["armsehak"].id] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=50, piece="thrust", onActive=true}},
       },
       [UnitDefNames["armliche"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=60, piece="thrust1", onActive=true}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=60, piece="thrust2", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4.5, length=38, piece="thrust1", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4.5, length=38, piece="thrust2", onActive=true}},
       },
       [UnitDefNames["armdfly"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=60, piece="jet1", onActive=true}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=60, piece="jet2", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=50, piece="jet1", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=50, piece="jet2", onActive=true}},
       },
       [UnitDefNames["corsb"].id] = {
-        {class='AirJet',options={color={0.6,0.1,0}, width=3.5, length=76, piece="emit1", onActive=true}},
-        {class='AirJet',options={color={0.6,0.1,0}, width=3.5, length=76, piece="emit2", onActive=true}},
+        {class='AirJet',options={color={0.6,0.1,0}, width=3.8, length=50, piece="emit1", onActive=true}},
+        {class='AirJet',options={color={0.6,0.1,0}, width=3.8, length=50, piece="emit2", onActive=true}},
       },
       [UnitDefNames["armsb"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=70, piece="emit1", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4.3, length=50, piece="emit1", onActive=true}},
       },
       [UnitDefNames["armstil"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=60, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=50, piece="thrust", onActive=true}},
       },
       [UnitDefNames["armblade"].id] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=28, piece="thrust1", onActive=true}},

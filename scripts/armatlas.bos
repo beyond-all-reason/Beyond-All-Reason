@@ -107,7 +107,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	turn jet2 to x-axis <180> now;
+	turn jet1 to x-axis <-90> now;
+	turn jet2 to x-axis <-90> now;
+	turn jet3 to x-axis <-90> now;
+	//turn jet2 to x-axis <180> now;
 	move jet2 to y-axis [-2] now;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
@@ -157,52 +160,11 @@ EndTransport()
 	start-script RequestState(1);
 }
 
-ProcessFlames()
-{
-	while( TRUE )
-	{
-		if( Static_Var_1 == 1 OR Static_Var_1 == 2 )
-		{
-			emit-sfx 1024 from jet1;
-			emit-sfx 1024 from jet2;
-			emit-sfx 1024 from jet3;
-			
-			emit-sfx 0 from jet1;
-			emit-sfx 0 from jet2;
-			emit-sfx 0 from jet3;
-		}
-		sleep 50;
-	}
-}
 
 StopMoving()
 {
 	signal 2;
 	Static_Var_1 = 0;
-}
-
-MoveRate1()
-{
-	signal 2;
-	set-signal-mask 2;
-	start-script ProcessFlames();
-	Static_Var_1 = 1;
-}
-
-MoveRate2()
-{
-	signal 2;
-	set-signal-mask 2;
-	start-script ProcessFlames();
-	Static_Var_1 = 2;
-}
-
-MoveRate3()
-{
-	signal 2;
-	set-signal-mask 2;
-	start-script ProcessFlames();
-	Static_Var_1 = 3;
 }
 
 Killed(severity, corpsetype)
