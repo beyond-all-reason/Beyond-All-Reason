@@ -47,7 +47,11 @@ if gadgetHandler:IsSyncedCode() then
 		local t = Spring.GetTeamList()
 		for _,teamID in ipairs(t) do
 			if select(4,Spring.GetTeamInfo(teamID)) then	-- is AI?
-				Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID), "Chicken:")))
+				if select(4,Spring.GetAIInfo(teamID)) == 'NullAI' then	-- doesnt seem to work
+					Spring.SetGameRulesParam('ainame_'..teamID, 'NullAI (idle)')
+				else
+					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID), "Chicken:")))
+				end
 			end
 		end
 		gadgetHandler:RemoveGadget(self)

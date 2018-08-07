@@ -38,7 +38,10 @@ if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401567 
 	enabled = true
 end
 
+local unsupportedAI = false
+
 -- Note: (31/03/13) coop_II deals with the extra startpoints etc needed for teamsIDs with more than one playerID.
+
 
 ----------------------------------------------------------------
 -- Synced 
@@ -561,7 +564,9 @@ function SpawnStartUnit(teamID, x, z)
 end
 
 function gadget:GameFrame()
-    gadgetHandler:RemoveGadget(self)
+	if enabled then
+   		gadgetHandler:RemoveGadget(self)
+	end
 end
 
 
@@ -784,6 +789,24 @@ end
 
 local timer3 = 20
 function gadget:DrawScreen()
+
+	-- only support AI's:  NullAI, DAI and KAIK
+	if enabled then
+		local teams = Spring.GetTeamList()
+		for i =1, #teams do
+			if select(4,Spring.GetTeamInfo(teams[i])) then	-- is AI?
+				local aiName = Spring.GetTeamLuaAI(teams[i])
+				if aiName == "" then
+					aiName = select(4,Spring.GetAIInfo(teams[i]))
+				end
+				if aiName and aiName ~= '' and not string.find(aiName, "Chicken:") and not string.find(aiName, "DAI") and not string.find(aiName, "KAIK") and not string.find(aiName, "NullAI") then
+					enabled = false
+					unsupportedAI = true
+				end
+			end
+		end
+	end
+
 	if enabled then
 
 	 	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
@@ -846,13 +869,17 @@ function gadget:DrawScreen()
 			return
 		end
 	else
+
 		timer3 = timer3 - Spring.GetLastUpdateSeconds()
 		if timer3 < 0 then timer3 = 0 end
 
 		gl.Color(0,0,0,0.7)
 		gl.Rect(0,0,vsx,vsy)
-		gl.Text("\255\200\200\200Running on an unsupported engine\n\nYou need version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
-
+		if unsupportedAI then
+			gl.Text("\255\200\200\200Unsupported AI\n\nYou need \255\255\255\255DAI \255\200\200\200or \255\255\255\255KAIK  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+		else
+			gl.Text("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+		end
 		if timer3 <= 0 then
 			Spring.SendCommands("QuitForce")
 		end

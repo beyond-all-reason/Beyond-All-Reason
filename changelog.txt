@@ -7,6 +7,7 @@ You must have 104.0.1.567 or newer
 Testing: More frequent re-aiming (each frame) (currently enabled on t1 bots/vehicles only)
 
 Other:
+ • Closing game when loaded unsupported AI (supported: DAI, KAIK, NullAI, Chickens)
  • Player camara tracking also limits view to players viewpoint and losmode
  • Removed "GroupMove" widget because it had side effects/downsides
  • Top bar: when low energy: red background, when overflowing: resource colored
