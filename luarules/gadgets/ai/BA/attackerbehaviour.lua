@@ -144,7 +144,7 @@ function AttackerBehaviour:AttackCell(type)
 		end
 	-- Retreating
 		if not (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
-		local nanotcx, nanotcy, nanotcz = GG.GetClosestNanoTC(unitID)
+		local nanotcx, nanotcy, nanotcz = GG.AiHelpers.NanoTC.GetClosestNanoTC(unitID)
 			if nanotcx and nanotcy and nanotcz then
 				p = api.Position()
 				p.x, p.y, p.z = nanotcx, nanotcy, nanotcz

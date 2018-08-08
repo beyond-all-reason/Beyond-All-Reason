@@ -156,13 +156,13 @@ end
 --- OTHERS
 
 function FindBest(unitoptions,ai)
-	if GG.info and GG.info[ai.id] and unitoptions and unitoptions[1] then
+	if unitoptions and unitoptions[1] then
 		local effect = {}
 		local randomization = 1
 		local randomunit = {}
 		for n, unitName in pairs(unitoptions) do
 			local cost = UnitDefs[UnitDefNames[unitName].id].energyCost / 60 + UnitDefs[UnitDefNames[unitName].id].metalCost
-			local avgkilled_cost = GG.info and GG.info[ai.id] and GG.info[ai.id][UnitDefNames[unitName].id] and GG.info[ai.id][UnitDefNames[unitName].id].avgkilled_cost or 200 --start at 200 so that costly units aren't made from the start
+			local avgkilled_cost = GG.AiHelpers.UnitInfo(ai.id, UnitDefNames[unitName].id) and GG.AiHelpers.UnitInfo(ai.id, UnitDefNames[unitName].id).avgkilled_cost or 200 --start at 200 so that costly units aren't made from the start
 			effect[unitName] = math.max(math.floor((avgkilled_cost/cost)^4*100),1)
 			for i = randomization, randomization + effect[unitName] do
 				randomunit[i] = unitName

@@ -73,7 +73,7 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 
 function gadget:Initialize()
-
+	GG.AiHelpers.Start()
 	local numberOfmFAITeams = 0
 	local teamList = spGetTeamList()
 	spEcho( "k9: ailoader gadget go!")
