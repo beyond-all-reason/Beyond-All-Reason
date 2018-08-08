@@ -1,8 +1,8 @@
 
 function gadget:GetInfo()
   return {
-	name 	= "Fido Range Fix",
-	desc	= "Makes sure Gauss range and MaxRange == Plasma range when on plasma mode",
+	name 	= "Ranges Fix",
+	desc	= "Makes sure the unit's maxRange fits its weapons",
 	author	= "Doo",
 	date	= "01/09/2018",
 	license	= "GNU GPL, v2 or later",
@@ -14,6 +14,17 @@ end
 local FIDOID = UnitDefNames["armfido"].id
 local wDef2 = WeaponDefs[UnitDefs[FIDOID].weapons[1].weaponDef]
 
+local Ranges = {}
+for unitDefID, defs in pairs(UnitDefs) do
+	local maxRange = 0
+	for i, weapon in pairs (defs.weapons) do
+		local wDef = WeaponDefs[weapon.weaponDef]
+		if wDef.range >= maxRange and wDef.canAttackGround == true then
+			maxRange = wDef.range
+		end
+	end
+	Ranges[unitDefID] = maxRange
+end
 
 
 if (gadgetHandler:IsSyncedCode()) then --SYNCED
@@ -29,6 +40,11 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
 	if unitDefID == FIDOID then
 		Spring.SetUnitWeaponState(unitID, 1, "range", hplasmarange)
 		Spring.SetUnitMaxRange(unitID, hplasmarange)
+		return
+	end
+	if Ranges[unitDefID] then
+		Spring.SetUnitMaxRange(unitID, Ranges[unitDefID])	
+		return
 	end
   end
   
