@@ -704,6 +704,16 @@ corgantryT3 = {
 	CorGantry,
 }
 
+assistqueuepostt2arm = {
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+}
+
+assistqueuepostt2core = {
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+}
+
 assistqueue = {
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 }
@@ -1285,6 +1295,8 @@ local function armt1con(tqb, ai, unit)
 		end
 	elseif unit.mode == "expand" then
 		return armt1expand
+	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
+		return assistqueuepostt2arm	
 	else
 		return assistqueue
 	end
@@ -1310,6 +1322,8 @@ local function cort1con(tqb, ai, unit)
 		end
 	elseif unit.mode == "expand" then
 		return cort1expand
+	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
+		return assistqueuepostt2core
 	else
 		return assistqueue
 	end
