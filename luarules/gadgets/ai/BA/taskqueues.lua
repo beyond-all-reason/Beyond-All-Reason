@@ -108,6 +108,28 @@ function GetAdvancedLabs(tqb,ai,unit)
 	return #units
 end
 
+function GetFinishedAdvancedLabs(tqb,ai,unit)
+	local list = {
+	UDN.armalab.id,
+	UDN.coralab.id,
+	UDN.armavp.id,
+	UDN.coravp.id,
+	UDN.armaap.id,
+	UDN.coraap.id,	
+	UDN.armasy.id,
+	UDN.corasy.id,
+	}
+	local units = Spring.GetTeamUnitsByDefs(ai.id, list)
+	local count = 0
+	for ct, unitID in pairs (units) do
+		local _,_,_,_,bp = Spring.GetUnitHealth(unitID)
+		if bp == 1 then
+			count = count + 1
+		end
+	end
+	return count
+end
+
 function GetPlannedAdvancedLabs(tqb, ai, unit)
 	local list = {
 	UDN.armalab.id,
@@ -149,7 +171,7 @@ function GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit)
 end
 
 function AllAdvancedLabs(tqb, ai, unit)
-	return GetAdvancedLabs(tqb,ai,unit) + GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit)
+	return GetAdvancedLabs(tqb,ai,unit) + GetPlannedAdvancedLabs(tqb, ai, unit)
 end
  
 
@@ -327,7 +349,7 @@ function CorStarterLabT1(tqb, ai, unit)
 	end
 end
 
-function CorRandomLab(tqb, ai, unit)
+function CorTech(tqb, ai, unit)
 	if AllAdvancedLabs(tqb, ai, unit) == 0 then
 		if timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25 then
 			if unit:Name() == "corck" then
@@ -342,21 +364,31 @@ function CorRandomLab(tqb, ai, unit)
 		else
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit) < 1 then
-		if unit:Name() == "corck" or unit:Name() == "corack" then
-			ai.firstT2 = true
-			return "coralab"
-		elseif unit:Name() == "corcv" or unit:Name() == "coracv" then
-			ai.firstT2 = true
-			return "coravp"
-		elseif unit:Name() == "corca" or unit:Name() == "coraca" then
-			ai.firstT2 = true
-			return "coraap"
-		else 
+	else
+		return {action = "nexttask"}
+	end
+end
+
+function CorT1ExpandRandomLab(tqb, ai, unit)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		if timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit) < 1 then
+			if unit:Name() == "corck" or unit:Name() == "corack" then
+				ai.firstT2 = true
+				return "coralab"
+			elseif unit:Name() == "corcv" or unit:Name() == "coracv" then
+				ai.firstT2 = true
+				return "coravp"
+			elseif unit:Name() == "corca" or unit:Name() == "coraca" then
+				ai.firstT2 = true
+				return "coraap"
+			else 
+				return {action = "nexttask"}
+			end
+		elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit) < 1 then
+			return FindBest({"corlab", "corvp", "corap"}, ai)
+		else
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit) < 1 then
-		return FindBest({"corlab", "corvp", "corap"}, ai)
 	else
 		return {action = "nexttask"}
 	end
@@ -583,7 +615,7 @@ local cort1eco = {
 	CorEnT1,
 	CorEnT1,
 	CorNanoT,
-	CorRandomLab,
+	CorTech,
 }
 
 local cort1expand = {
@@ -596,13 +628,13 @@ local cort1expand = {
 	"corgeo",
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	CorNanoT,
+	CorT1ExpandRandomLab,
 }
 
 local cort2eco = {
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
-	CorRandomLab,
 }
 
 local cort2expand = {
@@ -611,6 +643,7 @@ local cort2expand = {
 	CorTacticalAdvDefT2,
 	"cormoho",
 	"corarad",
+	CorT1ExpandRandomLab,
 }
 
 local corkbotlab = {
@@ -883,7 +916,7 @@ function ArmStarterLabT1(tqb, ai, unit)
 	end
 end
 
-function ArmRandomLab(tqb, ai, unit)
+function ArmTech(tqb, ai, unit)
 	if AllAdvancedLabs(tqb, ai, unit) == 0 then
 		if timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25 then
 			if unit:Name() == "armck" then
@@ -898,21 +931,31 @@ function ArmRandomLab(tqb, ai, unit)
 		else
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit) < 1 then
-		if unit:Name() == "armck" or unit:Name() == "armack" then
-			ai.firstT2 = true
-			return "armalab"
-		elseif unit:Name() == "armcv" or unit:Name() == "armacv" then
-			ai.firstT2 = true
-			return "armavp"
-		elseif unit:Name() == "armca" or unit:Name() == "armaca" then
-			ai.firstT2 = true
-			return "armaap"
-		else 
+	else
+		return {action = "nexttask"}	
+	end
+end
+
+function ArmT1ExpandRandomLab(tqb, ai, unit)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		if timetostore(ai, "metal", 4000) < 25 and timetostore(ai, "energy", 12000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit) < 1 then
+			if unit:Name() == "armck" or unit:Name() == "armack" then
+				ai.firstT2 = true
+				return "armalab"
+			elseif unit:Name() == "armcv" or unit:Name() == "armacv" then
+				ai.firstT2 = true
+				return "armavp"
+			elseif unit:Name() == "armca" or unit:Name() == "armaca" then
+				ai.firstT2 = true
+				return "armaap"
+			else 
+				return {action = "nexttask"}
+			end
+		elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit) < 1 then
+			return FindBest({"armlab", "armvp", "armap"}, ai)
+		else
 			return {action = "nexttask"}
 		end
-	elseif timetostore(ai, "metal", 1200) < 15 and timetostore(ai, "energy", 3000) < 25 and GetPlannedAndUnfinishedAdvancedLabs(tqb, ai, unit) < 1 then
-		return FindBest({"armlab", "armvp", "armap"}, ai)
 	else
 		return {action = "nexttask"}
 	end
@@ -1132,7 +1175,7 @@ local armt1eco = {
 	ArmEnT1,
 	ArmEnT1,
 	ArmNanoT,
-	ArmRandomLab,
+	ArmTech,
 }
 
 local armt1expand = {
@@ -1145,13 +1188,13 @@ local armt1expand = {
 	"armgeo",
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	ArmNanoT,
+	ArmT1ExpandRandomLab,
 }
 
 local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
-	ArmRandomLab,
 }
 
 local armt2expand = {
@@ -1160,6 +1203,7 @@ local armt2expand = {
 	ArmTacticalAdvDefT2,
 	"armmoho",
 	"armarad",
+	ArmT1ExpandRandomLab,
 }
 
 local armkbotlab = {
