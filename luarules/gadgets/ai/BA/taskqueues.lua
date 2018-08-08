@@ -740,11 +740,41 @@ corgantryT3 = {
 assistqueuepostt2arm = {
 	ArmNanoT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	ArmT1ExpandRandomLab,
 }
 
 assistqueuepostt2core = {
 	CorNanoT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	CorT1ExpandRandomLab,
 }
 
 assistqueue = {
