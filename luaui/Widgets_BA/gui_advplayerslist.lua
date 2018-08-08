@@ -1956,7 +1956,7 @@ function CreateBackground()
 			gl_Text(text, widgetPosX - 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
 			gl_Text(text, widgetPosX + 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
 			gl_Color(0.9,0.9,0.9,0.75)
-			gl_Text(text, widgetPosX + xOffset, TRcornerY-padding -yOffset-1.1, 13, "n")
+			gl_Text(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
 		end
 		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
 		-- draws highlight (top and left sides)
@@ -3896,7 +3896,7 @@ function widget:Update(delta) --handles takes & related messages
 			collapsed = false
 			CreateBackground()
 		elseif not collapsed and not energyPlayer and not metalPlayer then
-			local graceDistance = 75*widgetScale
+			local graceDistance = 85*widgetScale
 			if not isInBox(mx, my, {apiAbsPosition[2]-graceDistance,apiAbsPosition[3]-graceDistance,apiAbsPosition[4]+graceDistance,apiAbsPosition[1]+graceDistance}) then
 				collapsed = true
 				CreateBackground()
