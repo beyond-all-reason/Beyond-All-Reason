@@ -165,7 +165,7 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 end
 
 function gadget:AllowUnitDecloak(unitID, objectID, weaponID)
-	recloakFrame[unitID] = currentFrame + DEFAULT_DECLOAK_TIME
+	recloakFrame[unitID] = currentFrame + UnitDefs[Spring.GetUnitDefID(unitID)].cloakTimeout
 end
 
 --------------------------------------------------------------------------------
