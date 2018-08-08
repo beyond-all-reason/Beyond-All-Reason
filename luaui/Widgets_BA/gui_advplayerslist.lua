@@ -56,7 +56,7 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = false
 local lockcameraHideEnemies = true 			-- specfullview
 local lockcameraLos = true					-- togglelos
-local collapsable = true
+local collapsable = false
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
