@@ -15,7 +15,7 @@ function widget:GetInfo()
 		desc      = "Playerlist. Use tweakmode (ctrl+F11) to customize.",
 		author    = "Marmoth. (spiced up by Floris)",
 		date      = "25 april 2015",
-		version   = "21.0",
+		version   = "22.0",
 		license   = "GNU GPL, v2 or later",
 		layer     = -4,
 		enabled   = true,  --  loaded by default?
@@ -41,10 +41,11 @@ end
 -- v18	 (Floris): Player system shown on tooltip + added FPS counter + replaced allycursor data with activity gadget data (all these features need gadgets too)
 -- v19   (Floris): added player resource bars
 -- v20   (Floris): added /alwayshidespecs + fixed drawing when playerlist is at the leftside of the screen
--- v21   (Floris): added toggle LoS and /specfullview when camera tracking a player
+-- v21   (Floris): toggles LoS and /specfullview when camera tracking a player
+-- v22   (Floris): added auto collapse function
 
 --------------------------------------------------------------------------------
--- Widget Scale
+-- Config
 --------------------------------------------------------------------------------
 
 local customScale			= 1
@@ -55,13 +56,14 @@ local drawAlliesLabel = false
 local alwaysHideSpecs = false
 local lockcameraHideEnemies = true 			-- specfullview
 local lockcameraLos = true					-- togglelos
+local collapsable = false
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
 
 local Spring_GetGameSeconds      = Spring.GetGameSeconds
-local Spring_GetGameFrame	    	 = Spring.GetGameFrame
+local Spring_GetGameFrame	     = Spring.GetGameFrame
 local Spring_GetAllyTeamList     = Spring.GetAllyTeamList
 local Spring_GetTeamInfo         = Spring.GetTeamInfo
 local Spring_GetTeamList         = Spring.GetTeamList
@@ -89,17 +91,17 @@ local GetCameraState = Spring.GetCameraState
 local SetCameraState = Spring.SetCameraState
 local GetCameraNames = Spring.GetCameraNames
 
-local gl_Texture          = gl.Texture
-local gl_Rect             = gl.Rect
-local gl_TexRect          = gl.TexRect
-local gl_Color            = gl.Color
-local gl_CreateList	      = gl.CreateList
-local gl_BeginEnd         = gl.BeginEnd
-local gl_DeleteList	      = gl.DeleteList
-local gl_CallList         = gl.CallList
-local gl_Text			  = gl.Text
-local gl_GetTextWidth	  = gl.GetTextWidth
-local gl_GetTextHeight  = gl.GetTextHeight
+local gl_Texture		= gl.Texture
+local gl_Rect			= gl.Rect
+local gl_TexRect	 	= gl.TexRect
+local gl_Color			= gl.Color
+local gl_CreateList		= gl.CreateList
+local gl_BeginEnd		= gl.BeginEnd
+local gl_DeleteList		= gl.DeleteList
+local gl_CallList		= gl.CallList
+local gl_Text			= gl.Text
+local gl_GetTextWidth	= gl.GetTextWidth
+local gl_GetTextHeight	= gl.GetTextHeight
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -171,7 +173,7 @@ local sidePics        = {}  -- loaded in SetSidePics function
 local sidePicsWO      = {}  -- loaded in SetSidePics function
 local originalColourNames = {} -- loaded in SetOriginalColourNames, format is originalColourNames['name'] = colourString
 
-local apiAbsPosition = {0,0,0,0,1,1 }
+local apiAbsPosition = {0,0,0,0,1,1,false}
 
 --------------------------------------------------------------------------------
 -- Colors
@@ -290,7 +292,6 @@ local widgetRelRight = 0
 
 local vsx,vsy  			= gl.GetViewSizes()
 
-local openClose     	= 0
 local widgetTop     	= 0
 local widgetRight   	= 1
 local widgetHeight  	= 0
@@ -312,6 +313,9 @@ local drawList       	= {}
 local teamN	
 local prevClickTime  	= os.clock()
 local specListShow = true
+
+local collapsed = false
+local collapsedHeight = 42
 
 --------------------------------------------------
 -- Modules
@@ -994,13 +998,15 @@ function RecvPlayerScores(newPlayerScores)
 end
 
 function widget:Initialize()
-  widgetHandler:RegisterGlobal('getPlayerScoresAdvplayerslist', RecvPlayerScores)
-  widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
-  widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
-  widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
-  widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
-  widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
-  widgetHandler:RegisterGlobal('PlayerDataBroadcast', PlayerDataBroadcast)
+	widget:ViewResize(gl.GetViewSizes())
+
+	widgetHandler:RegisterGlobal('getPlayerScoresAdvplayerslist', RecvPlayerScores)
+	widgetHandler:RegisterGlobal('CameraBroadcastEvent', CameraBroadcastEvent)
+	widgetHandler:RegisterGlobal('ActivityEvent', ActivityEvent)
+	widgetHandler:RegisterGlobal('FpsEvent', FpsEvent)
+	widgetHandler:RegisterGlobal('GpuMemEvent', GpuMemEvent)
+	widgetHandler:RegisterGlobal('SystemEvent', SystemEvent)
+	widgetHandler:RegisterGlobal('PlayerDataBroadcast', PlayerDataBroadcast)
 	UpdateRecentBroadcasters()
 	
 	mySpecStatus,fullView,_ = Spring.GetSpectatingState()
@@ -1029,6 +1035,17 @@ function widget:Initialize()
 	WG['advplayerlist_api'].GetPosition = function()
 		return apiAbsPosition
 	end
+	WG['advplayerlist_api'].GetCollapsable = function()
+		return collapsable
+	end
+	WG['advplayerlist_api'].SetCollapsable = function(value)
+		collapsable = value
+		if not collapsable and collapsed then
+			collapsed = false
+			CreateBackground()
+		end
+	end
+
     WG['advplayerlist_api'].GetLockPlayerID = function()
         return lockPlayerID
     end
@@ -1078,7 +1095,7 @@ function widget:Initialize()
 end
 
 function widget:GameFrame(n)
-	if n > 0 and not gameStarted then
+	if n > 0 and not gameStarted and not collapsed then
 		if mySpecStatus and not alwaysHideSpecs then
 			specListShow = true
 		else
@@ -1697,59 +1714,68 @@ local ShareSlider
 
 
 function widget:DrawScreen()
-	
+
 	if Spring_IsGUIHidden() then return end
-	
+
+
 	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
 	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
 	gl.Scale(widgetScale,widgetScale,0)
 	gl.Translate(scaleDiffX,scaleDiffY,0)
 
-	
-	-- update lists frequently if there is mouse interaction
-	local NeedUpdate = false 
-	local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
-	if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
-		local DrawFrame = Spring_GetDrawFrame()
-		local CurGameFrame = Spring_GetGameFrame()
-		if PrevGameFrame == nil then PrevGameFrame = CurGameFrame end
-		if (DrawFrame%5==0) or (CurGameFrame>PrevGameFrame+1) then
-			--Echo(DrawFrame)
-			NeedUpdate = true
+	if collapsed then
+		-- draws the background
+		if Background then
+			gl_CallList(Background)
+		else
+			CreateBackground()
+		end
+	else
+		-- update lists frequently if there is mouse interaction
+		local NeedUpdate = false
+		local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
+		if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
+			local DrawFrame = Spring_GetDrawFrame()
+			local CurGameFrame = Spring_GetGameFrame()
+			if PrevGameFrame == nil then PrevGameFrame = CurGameFrame end
+			if (DrawFrame%5==0) or (CurGameFrame>PrevGameFrame+1) then
+				--Echo(DrawFrame)
+				NeedUpdate = true
+			end
+		end
+
+		if NeedUpdate then
+			--Spring.Echo("DS APL update")
+			CreateLists()
+			PrevGameFrame = CurGameFrame
+		end
+
+		-- draws the background
+		if Background then
+			gl_CallList(Background)
+		else
+			CreateBackground()
+		end
+
+		-- draws the main list
+		if MainList then
+			gl_CallList(MainList)
+		else
+			CreateMainList()
+		end
+
+		-- draws share energy/metal sliders
+		if ShareSlider then
+			gl_CallList(ShareSlider)
+		else
+			CreateShareSlider()
 		end
 	end
-	
-	if NeedUpdate then
-		--Spring.Echo("DS APL update")
-		CreateLists()
-		PrevGameFrame = CurGameFrame
-	end
-	
-	-- draws the background
-	if Background then
-		gl_CallList(Background)
-	else
-		CreateBackground()
-	end
-	
-	-- draws the main list
-	if MainList then
-		gl_CallList(MainList)
-	else
-		CreateMainList()
-	end
-	
-	-- draws share energy/metal sliders
-	if ShareSlider then
-		gl_CallList(ShareSlider)
-	else
-		CreateShareSlider()
-	end
-
 
 	local scaleReset = widgetScale / widgetScale / widgetScale
 	gl.Translate(-scaleDiffX,-scaleDiffY,0)
 	gl.Scale(scaleReset,scaleReset,0)
+
 
 	if screenshotDlist then
 		gl_CallList(screenshotDlist)
@@ -1901,11 +1927,15 @@ function CreateBackground()
 	local TRcornerX = widgetPosX + widgetWidth + margin
 	local TRcornerY = widgetPosY + widgetHeight - 1 + margin
 
+	if collapsed then
+		TRcornerY = widgetPosY - margin + collapsedHeight
+	end
+
 	local absLeft		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
 	local absBottom		= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
 	local absRight		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
 	local absTop		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
-	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right}
+	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
 
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
@@ -1917,7 +1947,17 @@ function CreateBackground()
 		local padding = 2.75
 		gl_Color(1,1,1,0.025)
 		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding,true)
-		
+
+		if collapsed then
+			local text = 'Playerlist'
+			local yOffset = collapsedHeight*0.5
+			local xOffset = collapsedHeight/6
+			gl_Color(0,0,0,0.2)
+			gl_Text(text, widgetPosX - 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
+			gl_Text(text, widgetPosX + 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
+			gl_Color(0.9,0.9,0.9,0.75)
+			gl_Text(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
+		end
 		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
 		-- draws highlight (top and left sides)
 		--gl_Color(0.44,0.44,0.44,0.38)	
@@ -3024,6 +3064,9 @@ local prevClickedName
 local clickedName
 
 function widget:MousePress(x,y,button) --super ugly code here
+
+	if collapsed then return end
+
 	local t = false       -- true if the object is a team leader
 	local clickedPlayer
 	local posY
@@ -3218,6 +3261,9 @@ end
 
 local mouseX, mouseY = 0,0
 function widget:MouseMove(x,y,dx,dy,button)
+
+  if collapsed then return end
+
   mouseX, mouseY = x, y
   local moveStartX, moveStartY
 	if energyPlayer ~= nil or metalPlayer ~= nil then                            -- move energy/metal share slider
@@ -3237,6 +3283,9 @@ function widget:MouseMove(x,y,dx,dy,button)
 end
 
 function widget:MouseRelease(x,y,button)
+
+	if collapsed then return end
+
 	if button == 1 then
 		if firstclick ~= nil then                                                  -- double click system for share units
 			release = firstclick
@@ -3375,6 +3424,8 @@ local function DrawArrows()
 end
 
 function widget:TweakDrawScreen()
+
+	if collapsed then return end
 	
 	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
 	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
@@ -3421,6 +3472,9 @@ function checkButton(module, x, y, localLeft, localOffset, localBottom)
 end
 
 function widget:TweakMousePress(x,y,button)
+
+	if collapsed then return end
+
 	if button == 1 then
 		local localLeft = widgetPosX
 		local localBottom = widgetPosY + widgetHeight - 28
@@ -3452,6 +3506,9 @@ end
 
 
 function widget:TweakMouseMove(x,y,dx,dy,button)
+
+	if collapsed then return end
+
 	if clickToMove ~= nil then
 		if moveStartX == nil then                                                      -- move widget on y axis
 			moveStartX = x - widgetPosX
@@ -3490,6 +3547,9 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 end
 
 function widget:TweakMouseRelease(x,y,button)
+
+	if collapsed then return end
+
 	clickToMove = nil                                              -- ends the share slider process
 end
 
@@ -3529,6 +3589,7 @@ function widget:GetConfigData(data)      -- save
 			gameFrame          = Spring.GetGameFrame(),
 			lastSystemData     = lastSystemData,
 			alwaysHideSpecs    = alwaysHideSpecs,
+			collapsable        = collapsable,
 			--lockcameraHideEnemies = lockcameraHideEnemies,
 			--lockcameraLos      = lockcameraLos,
 		}
@@ -3556,6 +3617,10 @@ function widget:SetConfigData(data)      -- load
 
 	if data.lockcameraLos ~= nil then
 		--lockcameraLos = data.lockcameraLos
+	end
+
+	if data.collapsable ~= nil then
+		collapsable = data.collapsable
 	end
 
 	--view
@@ -3644,7 +3709,7 @@ function widget:SetConfigData(data)      -- load
 			end
 		end
 	end
-	
+
 	SetModulesPositionX()
 	
 	if data.lastSystemData ~= nil and data.gameFrame ~= nil and data.gameFrame <= Spring.GetGameFrame() and data.gameFrame > Spring.GetGameFrame()-300 then
@@ -3743,7 +3808,7 @@ function CheckPlayersChange()
 		end
 	end
 
-	if sorting == true then    -- sorts the list again if change needs it
+	if sorting == true and not collapsed then    -- sorts the list again if change needs it
 		SortList()
 		SetModulesPositionX()    -- change the X size if needed (change of widest name)
 	end
@@ -3814,6 +3879,9 @@ function IsTakeable(teamID)
 end
 
 
+function isInBox(mx, my, box)
+	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+end
 
 --timers
 local timeCounter = 0
@@ -3822,6 +3890,22 @@ local updateRatePreStart = 0.25
 local lastTakeMsg = -120
 
 function widget:Update(delta) --handles takes & related messages
+	if collapsable then
+		local mx,my = Spring.GetMouseState()
+		if collapsed and isInBox(mx, my, {apiAbsPosition[2]-1,apiAbsPosition[3]-1,apiAbsPosition[4]+1,apiAbsPosition[1]+1}) then
+			collapsed = false
+			CreateBackground()
+		elseif not collapsed and not energyPlayer and not metalPlayer then
+			local graceDistance = 85*widgetScale
+			if not isInBox(mx, my, {apiAbsPosition[2]-graceDistance,apiAbsPosition[3]-graceDistance,apiAbsPosition[4]+graceDistance,apiAbsPosition[1]+graceDistance}) then
+				collapsed = true
+				CreateBackground()
+			end
+		end
+	end
+
+	if collapsed then return end
+
 	totalTime = totalTime + delta 
 	timeCounter = timeCounter + delta
 	curFrame = Spring_GetGameFrame()
@@ -3930,6 +4014,7 @@ function customScaleDown()
 	customScale		= customScale - customScaleStep
 	updateWidgetScale()
 end
+
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	local dx, dy = vsx - viewSizeX, vsy - viewSizeY
