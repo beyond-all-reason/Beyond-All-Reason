@@ -106,7 +106,6 @@ function widget:Initialize()
     },
 
     vertex = [[
-      // Application to vertex shader
       varying vec3 normal;
       varying vec3 eyeVec;
       varying vec3 color;
@@ -130,6 +129,7 @@ function widget:Initialize()
     ]],  
  
     fragment = [[
+	#version 120
       varying vec3 normal;
       varying vec3 eyeVec;
       varying vec3 color;
