@@ -10,8 +10,10 @@ Other:
  • Advplayerlist can auto collapse (default disabled) in options: Interface -> "Playerlist auto collapses"
  • Player camara tracking also limits view to players viewpoint and losmode
  • Removed "GroupMove" widget because it had side effects/downsides
- • Top bar: when low energy: red background, when overflowing: resource colored
+ • Top bar: when low energy: red background, when overflowing: resource colored (/resbartint to toggle on/off)
  • Closing game when loaded unsupported AI (supported: DAI, KAIK, NullAI, Chickens)
+ • Added lups heat thrusters to armatlas/corvalk + reduces size of air thrusters overall
+ • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
  • Fixed: Decoy com attacked warning sound changed to a regular unit under attack sound
  • Fixed DAI echospam + working with multiple DAI bots + behavior improvements
  • Fixed map edge extension not always showing.
