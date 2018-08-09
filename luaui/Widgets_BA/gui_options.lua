@@ -1019,6 +1019,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("clock "..value)
 			Spring.SendCommands("speed "..value)
 
+		elseif id == 'resourcebarcoloring' then
+			saveOptionValue('Top Bar', 'topbar', 'setResourceBgTint', {'resourcebarBgTint'}, options[i].value)
 		elseif id == 'playerlistcollapse' then
 			saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetCollapsable', {'collapsable'}, options[i].value)
 		elseif id == 'lockcamera_hideenemies' then
@@ -1681,6 +1683,8 @@ function loadAllWidgetData()
 	loadWidgetData("AdvPlayersList", "lockcamera_los", {'lockcameraLos'})
 	loadWidgetData("AdvPlayersList", "playerlistcollapse", {'collapsable'})
 
+	loadWidgetData("Top Bar", "resourcebarcoloring", {'resourcebarBgTint'})
+
 	loadWidgetData("Ally Selected Units", "allyselunits_select", {'selectPlayerUnits'})
 
 	loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'})
@@ -1877,6 +1881,7 @@ function init()
 		--{id="resourceprompts", group="ui", name="Audio/Visual Resource Prompts", type="bool", value=tonumber(Spring.GetConfigInt("evo_resourceprompts",1) or 1) == 1, description="If enabled, messages will be sent to the chat as well as\naudio cues when your resources need attention"},
 
 		--{id="fpstimespeed", group="ui", name="Display FPS, GameTime and Speed", type="bool", value=tonumber(Spring.GetConfigInt("ShowFPS",1) or 1) == 1, description='Located at the top right of the screen\n\nIndividually toggle them with /fps /clock /speed'},
+		{id="resourcebarcoloring", group="ui", name="Resource bar background coloring", type="bool", value=true, description='Colors the resourcebar background when overflowing or low on energy (when playing)'},
 		{id="playerlistcollapse", group="ui", name="Playerlist auto collapses", type="bool", value=false, description='Auto collapses the playerlist, mouseover will show it again'},
 		{id="fpstimespeed-widget", group="ui", widget="AdvPlayersList info", name="Playerlist time/speed/fps", type="bool", value=GetWidgetToggleValue("AdvPlayersList info"), description='Shows time, gamespeed and fps on top of the (adv)playerslist'},
 		{id="mascotte", group="ui", widget="AdvPlayersList mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList mascotte"), description='Shows a mascotte on top of the (adv)playerslist'},
