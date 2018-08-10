@@ -476,7 +476,7 @@ local function processLine(line,g,cfg,newlinecolor)
 	ignoreThisMessage = true
 	end
 
-	if sfind(line, "Input grabbing is enabled") then
+	if sfind(line, "Input grabbing is ") then
 		ignoreThisMessage = true
 	end
 
