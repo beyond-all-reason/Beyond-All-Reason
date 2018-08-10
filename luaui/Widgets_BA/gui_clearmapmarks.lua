@@ -11,7 +11,7 @@ function widget:GetInfo()
 end
 
 local iconTexture = ":n:LuaUI/Images/mapmarksfx/eraser.dds"
-local iconSize = 16
+local iconSize = 19
 
 local glTranslate				= gl.Translate
 local glPushMatrix          	= gl.PushMatrix
@@ -97,7 +97,7 @@ end
 local sec = 0
 function widget:Update(dt)
 	sec = sec + dt
-	if sec > 1 then
+	if sec > 0.5 then
 		sec = 0
 		updatePosition()
 	end
@@ -111,7 +111,7 @@ function widget:DrawScreen()
 				if isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
 					gl.Color(1,1,1,1)
 				else
-					gl.Color(0.96,0.96,0.96,0.87)
+					gl.Color(0.96,0.96,0.96,0.92)
 				end
 			glCallList(drawlist[1])
 		glPopMatrix()
