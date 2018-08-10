@@ -88,8 +88,19 @@ function widget:Initialize()
     message3 = "Armageddon at " .. Spring.GetModOptions().armageddontime .. " minute" .. plural
   end
 end
-	
 
+
+local sec = 0
+local blink = false
+function widget:Update(dt)
+  sec = sec + dt
+  if sec > 1 then
+    sec = sec - 1
+  end
+  if sec>0.5 then
+    blink = true
+  end
+end
 
 function widget:DrawScreen()
   if (spGetGameSeconds() > 0) then
@@ -102,7 +113,13 @@ function widget:DrawScreen()
   local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
   local msg2 = colorStr .. message2
   local msg3 = "\255\255\0\0" .. message3
-  local msg4 = "\255\255\222\111" .. message4
+  local msg4
+  if blink then
+    msg4 = "\255\255\222\111" .. message4
+  else
+    msg4 = "\255\255\150\050" .. message4
+  end
+
   glPushMatrix()
   glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
