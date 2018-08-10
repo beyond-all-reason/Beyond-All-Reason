@@ -2571,45 +2571,45 @@ for t, effects in pairs(types) do
     if t == 'fire' then
       if size == 'tiny' then
         definitions[root.."-"..size.."-"..t].groundfire.count = 1
-        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r2]]
+        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r3]]
         definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-3 r6, 2, -3 r6]]
         definitions[root.."-"..size.."-"..t].groundfire2.count = 2
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r1]]
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r1.5]]
         definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-5 r10, 2, -5 r10]]
       elseif size == 'small' then
         definitions[root.."-"..size.."-"..t].groundfire.count = 3
-        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r4]]
+        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r5]]
         definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-7 r14, 2, -7 r14]]
         definitions[root.."-"..size.."-"..t].groundfire2.count = 6
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r2.8]]
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r3]]
         definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-11 r22, 2, -11 r22]]
       elseif size == 'medium' then
-        definitions[root.."-"..size.."-"..t].groundfire.count = 3
-        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r5]]
+        definitions[root.."-"..size.."-"..t].groundfire.count = 5
+        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r6]]
         definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-12 r24, 2, -12 r24]]
-        definitions[root.."-"..size.."-"..t].groundfire2.count = 7
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r3.5]]
+        definitions[root.."-"..size.."-"..t].groundfire2.count = 8
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r4]]
         definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-17 r34, 2, -17 r34]]
       elseif size == 'large' then
-        definitions[root.."-"..size.."-"..t].groundfire.count = 4
-        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r6]]
-        definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-18 r36, 2, -18 r36]]
-        definitions[root.."-"..size.."-"..t].groundfire2.count = 9
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r4]]
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-25 r50, 2, -25 r50]]
-      elseif size == 'huge' then
-        definitions[root.."-"..size.."-"..t].groundfire.count = 5
-        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r7]]
-        definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-25 r50, 2, -25 r50]]
-        definitions[root.."-"..size.."-"..t].groundfire2.count = 12
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r5]]
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-33 r66, 2, -33 r66]]
-      elseif size == 'gigantic' then
         definitions[root.."-"..size.."-"..t].groundfire.count = 6
         definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r7]]
+        definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-18 r36, 2, -18 r36]]
+        definitions[root.."-"..size.."-"..t].groundfire2.count = 10
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r4.5]]
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-25 r50, 2, -25 r50]]
+      elseif size == 'huge' then
+        definitions[root.."-"..size.."-"..t].groundfire.count = 7
+        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r8]]
+        definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-25 r50, 2, -25 r50]]
+        definitions[root.."-"..size.."-"..t].groundfire2.count = 12
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r5.5]]
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-33 r66, 2, -33 r66]]
+      elseif size == 'gigantic' then
+        definitions[root.."-"..size.."-"..t].groundfire.count = 8
+        definitions[root.."-"..size.."-"..t].groundfire.properties.delay = [[1 r9]]
         definitions[root.."-"..size.."-"..t].groundfire.properties.pos = [[-30 r60, 2, -30 r60]]
         definitions[root.."-"..size.."-"..t].groundfire2.count = 15
-        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r5.5]]
+        definitions[root.."-"..size.."-"..t].groundfire2.properties.delay = [[1 r6]]
         definitions[root.."-"..size.."-"..t].groundfire2.properties.pos = [[-42 r84, 2, -42 r84]]
       end
     end
