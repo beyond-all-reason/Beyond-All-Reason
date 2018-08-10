@@ -464,9 +464,9 @@ local function processLine(line,g,cfg,newlinecolor)
 	local text = ""
 	local linetype = 0 --other
 	if Initialized == true then
-	ignoreThisMessage = false
+		ignoreThisMessage = false
 	else
-	ignoreThisMessage = false
+		ignoreThisMessage = false
 	end
     local playSound = false
 	
@@ -475,7 +475,11 @@ local function processLine(line,g,cfg,newlinecolor)
 	registermyname = true
 	ignoreThisMessage = true
 	end
-	
+
+	if sfind(line, "Input grabbing is enabled") then
+		ignoreThisMessage = true
+	end
+
 	if (not newlinecolor) then
 		if (names[ssub(line,2,(sfind(line,"> ") or 1)-1)] ~= nil) then
 				ignoreThisMessage = true
