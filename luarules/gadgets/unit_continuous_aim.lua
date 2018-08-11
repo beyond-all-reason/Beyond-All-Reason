@@ -65,4 +65,8 @@ local convertedUnits = {
 				Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
 			end
 		end
+		for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+			local range = WeaponDefs[table.weaponDef].range
+			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1*range) or 20)
+		end
     end

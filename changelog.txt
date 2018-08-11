@@ -4,7 +4,7 @@ XX/XX/2018
 Removed support for older engine versions
 You must have 104.0.1.567 or newer
 
-Testing: More frequent re-aiming (each frame) (currently enabled on t1 bots/vehicles only)
+Testing: More frequent re-aiming (each frame) (currently enabled on t1 bots/vehicles and some t2 bots/vehs only) + start targetting before units enters range (starts targetting at maxrange + 10%)
 
 Other:
  • Advplayerlist can auto collapse (default disabled) in options: Interface -> "Playerlist auto collapses"
