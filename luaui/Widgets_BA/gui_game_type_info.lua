@@ -99,6 +99,8 @@ function widget:Update(dt)
   end
   if sec>0.5 then
     blink = true
+  else
+    blink = false
   end
 end
 

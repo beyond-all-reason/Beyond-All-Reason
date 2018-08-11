@@ -1723,6 +1723,7 @@ function widget:DrawScreen()
 	gl.Scale(widgetScale,widgetScale,0)
 	gl.Translate(scaleDiffX,scaleDiffY,0)
 
+	local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
 	if collapsed then
 		-- draws the background
 		if Background then
@@ -1733,7 +1734,6 @@ function widget:DrawScreen()
 	else
 		-- update lists frequently if there is mouse interaction
 		local NeedUpdate = false
-		local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
 		if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
 			local DrawFrame = Spring_GetDrawFrame()
 			local CurGameFrame = Spring_GetGameFrame()
@@ -1799,7 +1799,7 @@ function widget:DrawScreen()
 				screenshotSaveQueued = nil
 			end
 		end
-		if IsOnRectPlain(mouseX,mouseY, screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale)) then
+		if screenshotWidth and IsOnRectPlain(mouseX,mouseY, screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale)) then
 			if mouseButtonL then
 				gl_DeleteList(screenshotDlist)
 				if (WG['guishader_api'] ~= nil) then
