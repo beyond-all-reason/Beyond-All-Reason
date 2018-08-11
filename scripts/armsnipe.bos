@@ -8,7 +8,7 @@ piece  flash, torso, head, hip, rupleg, rleg, lleg, lupleg,
        barrel, scope;
 
 static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, restore_delay,
-            statechg_DesiredState, statechg_StateChanging, moveSpeed, currentSpeed;
+            statechg_DesiredState, statechg_StateChanging, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -1064,10 +1064,13 @@ StopMoving()
 }
 
 RestoreAfterDelay()
-{
+{	
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <200.000000>;
+	wait-for-turn torso around y-axis;
+	wpn1_lasthead = 100000;
 	start-script RequestState(1);
 }
 
@@ -1075,15 +1078,18 @@ AimPrimary(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn torso to y-axis heading speed <210.000000>;
 	turn rarm to x-axis <-23.005495> speed <50.000000>;
 	while( !Static_Var_1 )
 	{
 		sleep 200;
 	}
-	wait-for-turn torso around y-axis;
-	wait-for-turn rarm around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn torso around y-axis;
+		wait-for-turn rarm around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
