@@ -37,17 +37,17 @@ local convertedUnits = {
 	[UnitDefNames.corstorm.id] = true,
 	[UnitDefNames.corcrash.id] = true,
 	[UnitDefNames.armsnipe.id] = true,
-	[UnitDefNames.armfido.id] = true
+	[UnitDefNames.armfido.id] = true,
 	[UnitDefNames.armfboy.id] = true,
-	[UnitDefNames.armfast.id] = true
+	[UnitDefNames.armfast.id] = true,
 	[UnitDefNames.armamph.id] = true,
 	[UnitDefNames.armmav.id] = true,
 	[UnitDefNames.armspid.id] = true,
-	[UnitDefNames.armzeus.id] = true,
+	[UnitDefNames.armzeus.id] = true
 	}
 
     function gadget:UnitCreated(unitID,unitDefID)
-		if convertedUnits[unitDefID] then
+		if convertedUnits[unitDefID] or UnitDefs[unitDefID].scriptName == "scripts/BASICTANKSCRIPT.LUA" then
 			for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
 				Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
 			end
