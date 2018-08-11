@@ -7,7 +7,7 @@ piece  rflare, lflare, body, turret, feetparent, FLFoot, FRFoot, RLFoot,
        RRFoot, rightchunk, leftchunk, faceguard, Lgun, Rgun, Rbarrel, Lbarrel,
        hips, knobs;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -248,11 +248,14 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed 1.5 * <90.000000>;
 	turn Rgun to x-axis <0.000000> speed 1.5 * <45.000000>;
 	turn Lgun to x-axis <0.000000> speed 1.5 * <45.000000>;
 	bAiming = FALSE;
+	wait-for-turn turret around y-axis;
+	wpn1_lasthead = 100000;
 	return (0);
 }
 
@@ -278,15 +281,18 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	turn turret to y-axis heading speed 1.5 * <140.000000>;
 	turn Rgun to x-axis <0.000000> - pitch speed 1.5 * <35.000000>;
 	turn Lgun to x-axis <0.000000> - pitch speed 1.5 * <35.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn Rgun around x-axis;
-	wait-for-turn Lgun around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn Rgun around x-axis;
+		wait-for-turn Lgun around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 

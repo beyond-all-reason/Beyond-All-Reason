@@ -7,7 +7,7 @@ piece  base, gun, gunbarrel, firepoint2, rlathe, llathe, torso, rnanopoint,
        lnanopoint, hip, lleg, rleg, rfoot, lfoot, luparm, ruparm,
        rarm, larm, flare;
 
-static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, Static_Var_5, spray;
+static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, Static_Var_5, spray, wpn1_lasthead;
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -455,11 +455,14 @@ AimFromPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal 2;
-	set-signal-mask 2;
 	turn gun to x-axis <55.000000>-pitch speed <95.000000>;
 	turn torso to y-axis heading speed <300.000000>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn gun around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn torso around y-axis;
+		wait-for-turn gun around x-axis;
+	}
+	wpn1_lasthead = heading;
 	return (1);
 }
 

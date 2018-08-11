@@ -7,7 +7,7 @@ piece  missile1, missile2, torso, Thigh1, Thigh2, Leg2, Foot2, Leg1,
        Foot1, head, launcher, ground;
 
 static-var  gun_1, Static_Var_2, bMoving, bAiming, Static_Var_5,
-            restore_delay, Static_Var_7, statechg_DesiredState, statechg_StateChanging;
+            restore_delay, Static_Var_7, statechg_DesiredState, statechg_StateChanging, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -569,9 +569,11 @@ StopMoving()
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn head to y-axis <0.000000> speed <90.021978>;
 	turn launcher to x-axis <0.000000> speed <45.010989>;
+	wpn1_lasthead = 100000;
 	bAiming = FALSE;
 	return (0);
 }
@@ -580,7 +582,6 @@ AimPrimary(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	turn head to y-axis heading speed <150.032967>;
 	turn launcher to x-axis <-90.021978> speed <200.043956>;
@@ -588,9 +589,13 @@ AimPrimary(heading, pitch)
 	{
 		sleep 100;
 	}
-	wait-for-turn head around y-axis;
-	wait-for-turn launcher around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn head around y-axis;
+		wait-for-turn launcher around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 

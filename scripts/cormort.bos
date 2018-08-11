@@ -7,7 +7,7 @@ piece  support, flare, Thigh1, Thigh2, Torso, Shoulder, Barrel, Foot2,
        Foot1, Forearm, Leg2, Leg1, ground;
 
 static-var  bMoving, bAiming, Static_Var_3, restore_delay, Static_Var_5,
-            Static_Var_6;
+            Static_Var_6, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -389,17 +389,19 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn Torso to y-axis <0.000000> speed <90.021978>;
 	turn support to x-axis <0.000000> speed <45.010989>;
+	wait-for-turn Torso around y-axis;
 	bAiming = FALSE;
+	wpn1_lasthead = 100000;
 	return (0);
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
@@ -407,9 +409,13 @@ AimPrimary(heading, pitch)
 	}
 	turn Torso to y-axis heading speed <190.043956>;
 	turn support to x-axis <0.000000> - pitch speed <150.032967>;
-	wait-for-turn Torso around y-axis;
-	wait-for-turn support around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn Torso around y-axis;
+		wait-for-turn support around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 

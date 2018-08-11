@@ -7,7 +7,7 @@ piece  base, turret, barrel1, barrel2, barrel3, emit1, emit2, emit3,
        leg1, leg2, leg3, leg4, leg5, leg6, bodysect1, sect2,
        sect3, head, turretholder;
 
-static-var  bMoving, Static_Var_2, restore_delay, gun_1;
+static-var  bMoving, Static_Var_2, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -190,33 +190,43 @@ SetMaxReloadTime(Func_Var_1)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed <55.000000>;
 	turn turret to x-axis <0.000000> speed <55.000000>;
+	wait-for-turn turret around y-axis;
+	wpn1_lasthead = 100000;
+	wpn2_lasthead = 100000;
 	Static_Var_2 = 0;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <180.000000>;
 	turn turret to x-axis <0.000000> - pitch speed <110.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn turret around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn turret around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <110.000000>;
 	turn turret to x-axis <0.000000> - pitch speed <80.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn turret around x-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn turret around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn2_lasthead = heading;
 	return (1);
 }
 
