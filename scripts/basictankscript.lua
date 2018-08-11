@@ -181,7 +181,7 @@ function script.AimWeapon1( heading, pitch )
 	Spring.UnitScript.StartThread(Restore, restoreTime)
 	Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 	Turn (sleeve, 1, (0-pitch),turretXSpeed)
-	if not (math.abs(wpn1_lasthead - heading) <= 0.1) then
+	if (math.abs(wpn1_lasthead - heading) > 6.3) or (math.abs(wpn1_lasthead - heading) >= 0.1) and (math.abs(wpn1_lasthead - heading) <= 6.18) then
 		WaitForTurn(turret, 2)
 		WaitForTurn(sleeve, 1)
 	end
@@ -239,7 +239,7 @@ function script.AimWeapon2( heading, pitch )
 		Spring.UnitScript.StartThread(Restore, restoreTime)
 		Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 		Turn (sleeve, 1, (0-pitch),turretXSpeed)
-		if not (math.abs(wpn2_lasthead - heading) <= 0.1) then
+		if (math.abs(wpn2_lasthead - heading) > 6.3) or (math.abs(wpn2_lasthead - heading) >= 0.1) and (math.abs(wpn2_lasthead - heading) <= 6.18) then
 			WaitForTurn(turret, 2)
 			WaitForTurn(sleeve, 1)
 		end

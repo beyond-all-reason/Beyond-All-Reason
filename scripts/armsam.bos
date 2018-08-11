@@ -77,7 +77,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	turn turret to y-axis heading speed <250.060440>;
 	turn launcher to x-axis <0.000000> - pitch speed <150.032967>;
-	if ((get ABS(wpn1_lasthead - heading)) > 5000)
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wait-for-turn turret around y-axis;
 		wait-for-turn launcher around x-axis;

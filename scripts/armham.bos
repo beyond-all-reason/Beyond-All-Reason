@@ -632,7 +632,7 @@ AimPrimary(heading, pitch)
 		{
 			sleep 30;
 		}
-		if ((get ABS(wpn1_lasthead - heading)) > 5000)
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 		{
 			wait-for-turn torso around y-axis;
 			wait-for-turn canbase around x-axis;
@@ -695,7 +695,7 @@ AimSecondary(heading, pitch)
 	{
 		sleep 30;
 	}
-	if ((get ABS(wpn2_lasthead - heading)) > 5000)
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wait-for-turn torso around y-axis;
 		wait-for-turn canbase around x-axis;

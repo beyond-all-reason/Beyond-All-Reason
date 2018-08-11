@@ -494,7 +494,7 @@ AimPrimary(heading, pitch)
 	turn rloarm to x-axis <0.000000> speed <300.000000>;
 	turn luparm to x-axis <0.000000> - pitch speed <300.000000>;
 	turn ruparm to x-axis <0.000000> - pitch speed <300.000000>;
-	if ((get ABS(wpn1_lasthead - heading)) > 5000)
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wait-for-turn torso around y-axis;
 		wait-for-turn lloarm around x-axis;
