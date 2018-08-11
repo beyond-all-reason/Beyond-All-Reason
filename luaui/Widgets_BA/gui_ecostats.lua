@@ -1022,7 +1022,7 @@ function setReclaimerUnits()
 end
 
 function widget:UnitCreated(uID, uDefID, uTeam, builderID)
-	if inSpecMode and reclaimerUnitDefs[uDefID] then
+	if inSpecMode and myFullview and reclaimerUnitDefs[uDefID] then
 		if not reclaimerUnits[uTeam] then
 			reclaimerUnits[uTeam] = {}
 		end
@@ -1031,13 +1031,13 @@ function widget:UnitCreated(uID, uDefID, uTeam, builderID)
 end
 
 function widget:UnitDestroyed(uID, uDefID, uTeam)
-	if inSpecMode and reclaimerUnitDefs[uDefID] and reclaimerUnits[uTeam] then
+	if inSpecMode and myFullview and reclaimerUnitDefs[uDefID] and reclaimerUnits[uTeam] then
 		reclaimerUnits[uTeam][uID] = nil
 	end
 end
 
 function widget:UnitGiven(uID, uDefID, uTeamNew, uTeam)
-	if inSpecMode and reclaimerUnitDefs[uDefID] then
+	if inSpecMode and myFullview and reclaimerUnitDefs[uDefID] then
 		if reclaimerUnits[uTeam] then
 			reclaimerUnits[uTeam][uID] = nil
 			if not reclaimerUnits[uTeamNew] then
@@ -1349,7 +1349,7 @@ end
 
 function widget:PlayerChanged(playerID)
 	if not myFullview then return end
-	
+
 	local frame = GetGameFrame()
 	lastPlayerChange = frame
 	if not (Spring.GetSpectatingState() or isReplay) then
@@ -1487,7 +1487,7 @@ end
 
 
 function widget:MousePress(x, y, button)
-	if not inSpecMode then return end
+	if not inSpecMode or not myFullview then return end
 
 	if button == 1 then	
 		
@@ -1565,9 +1565,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:GameFrame(frameNum)
-	if not myFullview then return end
-
-	if not inSpecMode then return end
+	if not inSpecMode or not myFullview then return end
 	
 	if frameNum == 15 then
 		UpdateAllTeams()
@@ -1620,7 +1618,7 @@ function widget:Update(dt)
 	if myFullview ~= select(2,Spring.GetSpectatingState()) then
 		myFullview = select(2,Spring.GetSpectatingState())
 		if myFullView then
-			makeSideImageList()
+			Reinit()
 		else
 			removeGuiShaderRects()
 		end
