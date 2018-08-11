@@ -40,7 +40,7 @@ local tips = {
 	"Commanders have a manual Dgun weapon, which can decimate every unit with one blow.\nPress D to quickly initiate aiming.",
 	"Spread buildings to prevent chain explosions.\nPress ALT+Z and ALT+X to adjust auto-spacing.",
 	"It is effective to move your units in spread formations.\nDrag your mouse while initiating a move order to draw multiple waypoints.",
-	"Artillery vehicles can move in reverse if you put waypoints close to their backs. Use this to keep shooting during a retreat.",
+	"Artillery vehicles can move in reverse if you press 'Ctrl' while giving a command behind it. Use this to keep shooting during a retreat.",
 	"T2 factories are expensive. Reclaim your T1 lab for metal to fund it",
 	"Air strikes and airdrops may come at any time, always have at least one anti-air unit in your base.",
 	"With ~(tilde)+doubleclick you can place a label with text on the map.\n~(tilde)+middle mouse button for an empty label.\n~(tilde)+mouse drag to draw lines",
