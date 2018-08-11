@@ -10,7 +10,7 @@ piece  flare1, flare2, torso, hips, rlegmain, llegmain, rfoot, head,
 
 static-var  Static_Var_1, gun_1, bMoving, bAiming,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed;
+            moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -1209,26 +1209,32 @@ StopMoving()
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
 	start-script RequestState(1);
 	turn torso to y-axis <0.000000> speed <200.038462>;
+	wait-for-turn torso around y-axis;
 	bAiming = FALSE;
+	wpn1_lasthead = 100000;
 }
 
 AimPrimary(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	start-script RequestState(0);
 	bAiming = TRUE;
 	turn torso to y-axis heading speed <250.027473>;
 	while( !Static_Var_1 )
 	{
 		sleep 50;
 	}
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
 	wait-for-turn torso around y-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 

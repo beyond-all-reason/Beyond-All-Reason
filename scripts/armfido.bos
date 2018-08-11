@@ -8,7 +8,7 @@ piece  barrel, turret, flare, sleeve, torso, ruparm, luparm, pelvis, lthigh,
        rhand, ground;
 
 static-var  restore_delay, Static_Var_2, gun_2, statechg_DesiredState,
-			statechg_StateChanging, moveSpeed, currentSpeed, animSpeed;
+			statechg_StateChanging, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -288,43 +288,52 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <90.000000>;
 	turn sleeve to x-axis <0.000000> speed <50.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
+	wpn1_lasthead = 100000;
+	wpn2_lasthead = 100000;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <150.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
+	}
 	while( Static_Var_2 == 1 OR gun_2 == 1 )
 	{
 		sleep 100;
 	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIM;
 	turn turret to y-axis heading speed <150.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
+	}
 	while( Static_Var_2 == 0 OR gun_2 == 1 )
 	{
 		sleep 100;
 	}
 	start-script RestoreAfterDelay();
+	wpn2_lasthead = heading;
 	return (1);
 }
 

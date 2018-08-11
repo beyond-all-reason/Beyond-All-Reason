@@ -8,7 +8,7 @@ piece  body, flare, rmispoint, lmispoint, lhippivot, rhippivot, rupleg, rfoot,
        wake2, wake3, wake4, lasbarrel;
 
 static-var  bMoving, bAiming, Static_Var_3, Static_Var_4, gun_3,
-            restore_delay, Static_Var_7;
+            restore_delay, Static_Var_7, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -1518,8 +1518,8 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
-	set-signal-mask 0;
 	turn lasturret to y-axis <0.000000> speed <90.000000>;
 	turn lasturret to x-axis <0.000000> speed <90.000000>;
 	turn misturret to y-axis <0.000000> speed <90.000000>;
@@ -1528,6 +1528,8 @@ RestoreAfterDelay()
 	wait-for-turn lasturret around x-axis;
 	wait-for-turn misturret around y-axis;
 	wait-for-turn misturret around x-axis;
+	wpn3_lasthead = 100000;
+	wpn1_lasthead = 100000;
 	bAiming = FALSE;
 	return (0);
 }
@@ -1535,7 +1537,6 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
@@ -1543,9 +1544,13 @@ AimPrimary(heading, pitch)
 	}
 	turn lasturret to y-axis heading speed <200.000000>;
 	turn lasturret to x-axis <0.000000> - pitch speed <200.000000>;
-	wait-for-turn lasturret around y-axis;
-	wait-for-turn lasturret around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn lasturret around y-axis;
+		wait-for-turn lasturret around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 
@@ -1611,8 +1616,7 @@ FireTertiary()
 
 AimTertiary(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
@@ -1620,9 +1624,13 @@ AimTertiary(heading, pitch)
 	}
 	turn misturret to y-axis heading speed <300.000000>;
 	turn misturret to x-axis <0.000000> - pitch speed <300.000000>;
-	wait-for-turn misturret around y-axis;
-	wait-for-turn misturret around x-axis;
+	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn misturret around y-axis;
+		wait-for-turn misturret around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn3_lasthead = heading;
 	return (1);
 }
 
