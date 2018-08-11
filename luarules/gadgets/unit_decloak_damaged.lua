@@ -60,7 +60,7 @@ for i = 1, #WeaponDefs do
 	end
 end
 
-local DEFAULT_DECLOAK_TIME = 100
+local DEFAULT_DECLOAK_TIME = 128
 local UPDATE_FREQUENCY = 10
 local CLOAK_MOVE_THRESHOLD = math.sqrt(0.2)
 
@@ -165,7 +165,7 @@ function gadget:AllowUnitCloak(unitID, enemyID)
 end
 
 function gadget:AllowUnitDecloak(unitID, objectID, weaponID)
-	recloakFrame[unitID] = currentFrame + (UnitDefs[Spring.GetUnitDefID(unitID)].cloakTimeout or 128)
+	recloakFrame[unitID] = currentFrame + DEFAULT_DECLOAK_TIME
 end
 
 --------------------------------------------------------------------------------
