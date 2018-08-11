@@ -11,7 +11,7 @@ piece  ground, hips, luparm, lloarm, lhand, fingerla, fingerlb, thumbl,
        hpoint, smokepoint, smokeemit;
  
 static-var  Static_Var_1, gun_1, bMoving, bAiming, Static_Var_5,
-            Static_Var_6, unitviewer, Static_Var_8, Static_Var_9, moveSpeed, currentSpeed;
+            Static_Var_6, unitviewer, Static_Var_8, Static_Var_9, moveSpeed, currentSpeed, wpn1_lasthead;
  
 // Signal definitions
 #define SIG_MOVE            2
@@ -529,7 +529,8 @@ RestoreTertiary()
 }
  
 RestoreAfterDelay(Func_Var_1)
-{
+{ 
+	set-signal-mask SIG_AIM;
     sleep Static_Var_1;
     Func_Var_1 = bMoving;
     stop-spin canonbarrel1 around z-axis decelerate <25.000000>;
@@ -551,6 +552,7 @@ RestoreAfterDelay(Func_Var_1)
     }
     wait-for-turn cannonr around y-axis;
     Static_Var_5 = 1;
+	wpn1_lasthead = 100000;
     bAiming = FALSE;
 }
  
@@ -575,7 +577,6 @@ AimPrimary(heading, pitch)
 {
     var Func_Var_3, Func_Var_4, Func_Var_5;
     signal SIG_AIM;
-    set-signal-mask SIG_AIM;
     bAiming = TRUE;
     spin canonbarrel1 around z-axis speed <1000.000000> accelerate <30.000000>;
     spin canonbarrel2 around z-axis speed <1000.000000> accelerate <30.000000>;
@@ -610,11 +611,18 @@ AimPrimary(heading, pitch)
         turn body to y-axis heading speed <200.000000>;
         turn axis to y-axis <0.005495> - heading speed <100.000000>;
     }
-    wait-for-turn body around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn body around y-axis;
+	}
     Static_Var_8 = heading;
-    wait-for-turn arml around x-axis;
-    wait-for-turn armr around x-axis;
-    wait-for-turn cannonr around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn arml around x-axis;
+		wait-for-turn armr around x-axis;
+		wait-for-turn cannonr around y-axis;
+	}
+	wpn1_lasthead = heading;
     start-script RestoreAfterDelay();
     return (1);
 }

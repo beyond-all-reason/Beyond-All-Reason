@@ -8,7 +8,7 @@ piece  head, torso, hips, mpack, rgunflare, lgunflare, eyeflare, rmispoint,
        rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2;
 
 static-var  gun_1, gun_3, bMoving, bAiming, Static_Var_5,
-            restore_delay;
+            restore_delay, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -716,6 +716,7 @@ StopMoving()
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn torso to y-axis <0.000000> speed <90.021978>;
 	turn head to y-axis <0.000000> speed <50.010989>;
@@ -739,13 +740,14 @@ RestoreAfterDelay()
 	wait-for-turn larm around x-axis;
 	wait-for-turn head around y-axis;
 	wait-for-turn head around x-axis;
+	wpn1_lasthead = 100000;
+	wpn2_lasthead = 100000;
 	bAiming = FALSE;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_5 )
 	{
@@ -755,8 +757,11 @@ AimPrimary(heading, pitch)
 	move lmissle2 to y-axis [6.000000] speed [10.000000];
 	turn luparm to x-axis <0.000000> speed <120.027473>;
 	turn ruparm to x-axis <0.000000> speed <120.027473>;
-	wait-for-turn luparm around x-axis;
-	wait-for-turn ruparm around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
+	{
+		wait-for-turn luparm around x-axis;
+		wait-for-turn ruparm around x-axis;
+	}
 	turn rmissle2 to z-axis <-15.000000> speed <60.010989>;
 	turn lmissle2 to z-axis <15.000000> speed <60.010989>;
 	turn torso to y-axis heading speed <100.021978>;
@@ -764,32 +769,36 @@ AimPrimary(heading, pitch)
 	turn ruparm to z-axis <45.010989> speed <80.016484>;
 	turn rarm to x-axis <-90.021978> speed <120.027473>;
 	turn larm to x-axis <-90.021978> speed <120.027473>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn luparm around z-axis;
-	wait-for-turn ruparm around z-axis;
-	wait-for-turn rarm around x-axis;
-	wait-for-turn larm around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
+	{
+		wait-for-turn torso around y-axis;
+		wait-for-turn luparm around z-axis;
+		wait-for-turn ruparm around z-axis;
+		wait-for-turn rarm around x-axis;
+		wait-for-turn larm around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIM;
 	bAiming = TRUE;
 	turn head to y-axis heading speed <300.071429>;
-	wait-for-turn head around y-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn head around y-axis;
+	}
+	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 AimTertiary(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
 	bAiming = TRUE;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 

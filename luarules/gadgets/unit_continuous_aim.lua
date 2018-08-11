@@ -51,7 +51,11 @@ local convertedUnits = {
 	[UnitDefNames.cormort.id] = true,
 	[UnitDefNames.corpyro.id] = true,
 	[UnitDefNames.corsumo.id] = true,
-	[UnitDefNames.cortermite.id] = true
+	[UnitDefNames.cortermite.id] = true,
+	[UnitDefNames.armraz.id] = true,
+	[UnitDefNames.armmar.id] = true,
+	[UnitDefNames.armbanth.id] = true,
+	
 	}
 
     function gadget:UnitCreated(unitID,unitDefID)

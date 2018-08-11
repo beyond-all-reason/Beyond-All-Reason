@@ -7,7 +7,7 @@ piece  lleg, rleg, llowleg, rlowleg, lfoot, rfoot, pivot, misflare,
        body, rbarrel, lbarrel, flarea, flareb, mispack, aimpt, guna,
        gunb, misa;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -210,31 +210,35 @@ StopMoving()
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn body to y-axis <0.000000> speed <120.000000>;
 	turn mispack to y-axis <0.000000> speed <120.000000>;
 	bAiming = FALSE;
+	wpn1_lasthead = 100000;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
 		sleep 250;
 	}
 	turn body to y-axis heading speed <140.000000>;
-	wait-for-turn body around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn body around y-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIM;
 	turn mispack to y-axis heading speed <180.000000>;
 	wait-for-turn mispack around y-axis;
 	start-script RestoreAfterDelay();
@@ -243,8 +247,7 @@ AimSecondary(heading, pitch)
 
 AimTertiary(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIG_AIM;
 	turn mispack to y-axis heading speed <180.000000>;
 	wait-for-turn mispack around y-axis;
 	start-script RestoreAfterDelay();
