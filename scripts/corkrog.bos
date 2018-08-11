@@ -8,7 +8,7 @@ piece  head, torso, hips, mpack, rgunflare, lgunflare, eyeflare, rmispoint,
        rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2, weapon1aimpoint, rstomp, lstomp;
 
 static-var  Static_Var_1, Static_Var_2, bMoving, Static_Var_4, Static_Var_5, foot, notrdyStomp,
-            restore_delay, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
+            restore_delay, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging, wpn1_lasthead, wpn2_lasthead;
 
 #define SIG_FOOTSTOMP_L 8
 #define SIG_FOOTSTOMP_R 16
@@ -813,27 +813,32 @@ setSFXoccupy(Func_Var_1)
 }
 
 RestoreBody()
-{
+{	
+	set-signal-mask 2;
 	sleep 10000;
-	set-signal-mask 0;
 	start-script RequestState(1);
 	turn torso to y-axis <0.000000> speed <90.000000>;
+	wpn1_lasthead = 100000;
 }
 
 RestoreHead()
 {
+	set-signal-mask 4;
 	sleep 9000;
-	set-signal-mask 0;
 	turn head to y-axis <0.000000> speed <110.000000>;
+	wpn2_lasthead = 100000;
 }
 
 AimWeapon2(heading, pitch)
 {
 	signal 4;
-	set-signal-mask 4;
 	turn head to y-axis heading speed <130.000000>;
-	wait-for-turn head around y-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - 5000)))
+	{
+		wait-for-turn head around y-axis;
+	}
 	start-script RestoreHead();
+	wpn2_lasthead = heading;
 	return (1);
 }
 
@@ -878,13 +883,16 @@ AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
 	signal 2;
-	set-signal-mask 2;
 	turn torso to y-axis heading speed <50.000000>;
 	while( !Static_Var_8 )
 	{
 		sleep 250;
 	}
-	wait-for-turn torso around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
+	{
+		wait-for-turn torso around y-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreBody();
 	return (1);
 }

@@ -11,7 +11,7 @@ piece  base, pelvis, torso, stick, plasmasprayer, cap, fire, lshoulder,
 
 static-var  gun_1, bMoving, bAiming, Static_Var_4, Static_Var_5,
             Static_Var_6, gun_3, Static_Var_8, Static_Var_9, Static_Var_10,
-            unitviewer, Static_Var_12, Static_Var_13, moveSpeed, currentSpeed;
+            unitviewer, Static_Var_12, Static_Var_13, moveSpeed, currentSpeed, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -282,6 +282,7 @@ RestorePrimary()
 	wait-for-turn rarm around x-axis;
 	wait-for-turn rcannon around y-axis;
 	Static_Var_4 = 0;
+	wpn1_lasthead = 100000;
 	if( bAiming == 1 )
 	{
 		if( Static_Var_5 == 0 AND Static_Var_6 == 0 )
@@ -302,6 +303,7 @@ RestoreSecondary()
 	move stick to y-axis [0.000000] speed [2.500000];
 	wait-for-move stick along y-axis;
 	Static_Var_5 = 0;
+	wpn2_lasthead = 100000;
 	if( bAiming == 1 )
 	{
 		if( ( !Static_Var_4 ) AND ( !Static_Var_6 ) )
@@ -319,6 +321,7 @@ RestoreTertiary()
 	Static_Var_6 = 0;
 	turn launcher to y-axis <0.000000> speed <105.000000>;
 	turn launcher to x-axis <0.000000> speed <105.000000>;
+	wpn3_lasthead = 100000;
 	if( bAiming == 1 )
 	{
 		if( Static_Var_4 == 0 AND Static_Var_5 == 0 )
@@ -401,7 +404,6 @@ AimFromPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	Static_Var_4 = 1;
 	Static_Var_9 = heading;
@@ -424,11 +426,15 @@ AimPrimary(heading, pitch)
 		turn rcannon to y-axis <0.000000> speed <90.000000>;
 		turn lcannon to y-axis <0.000000> speed <90.000000>;
 	}
-	wait-for-turn torso around y-axis;
-	wait-for-turn lshoulder around x-axis;
-	wait-for-turn rshoulder around x-axis;
-	wait-for-turn rcannon around x-axis;
-	wait-for-turn lcannon around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn torso around y-axis;
+		wait-for-turn lshoulder around x-axis;
+		wait-for-turn rshoulder around x-axis;
+		wait-for-turn rcannon around x-axis;
+		wait-for-turn lcannon around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestorePrimary();
 	return (1);
 }
@@ -484,7 +490,6 @@ AimFromSecondary(piecenum)
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
 	Static_Var_5 = 1;
 	bAiming = TRUE;
 	if( Static_Var_8 == 0 )
@@ -509,7 +514,11 @@ AimSecondary(heading, pitch)
 		move stick to y-axis [7.000000] speed [5.000000];
 	}
 	turn stick to y-axis heading speed <140.000000>;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
 	wait-for-turn stick around y-axis;
+	}
+	wpn2_lasthead = heading;
 	start-script RestoreSecondary();
 	return (1);
 }
@@ -570,7 +579,6 @@ AimFromTertiary(piecenum)
 AimTertiary(heading, pitch)
 {
 	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
 	if( !Static_Var_6 )
 	{
 		if( !Static_Var_4 )
@@ -595,8 +603,12 @@ AimTertiary(heading, pitch)
 		turn launcher to y-axis heading speed <160.000000>;
 		turn launcher to x-axis <0.000000> - pitch speed <85.000000>;
 	}
-	wait-for-turn launcher around y-axis;
-	wait-for-turn launcher around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wait-for-turn launcher around y-axis;
+		wait-for-turn launcher around x-axis;
+	}
+	wpn3_lasthead = heading;
 	start-script RestoreTertiary();
 	return (1);
 }
