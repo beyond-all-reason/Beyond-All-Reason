@@ -84,6 +84,8 @@ local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic gra
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
 
+local myFullview = select(2,Spring.GetSpectatingState())
+
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
@@ -1346,6 +1348,8 @@ end
 ---------------------------------------------------------------------------------------------------
 
 function widget:PlayerChanged(playerID)
+	if not myFullview then return end
+	
 	local frame = GetGameFrame()
 	lastPlayerChange = frame
 	if not (Spring.GetSpectatingState() or isReplay) then
@@ -1561,6 +1565,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 function widget:GameFrame(frameNum)
+	if not myFullview then return end
 
 	if not inSpecMode then return end
 	
@@ -1611,9 +1616,16 @@ function widget:TweakDrawScreen()
 	makeStandardList()
 end
 
-
 function widget:Update(dt)
-	if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+	if myFullview ~= select(2,Spring.GetSpectatingState()) then
+		myFullview = select(2,Spring.GetSpectatingState())
+		if myFullView then
+			makeSideImageList()
+		else
+			removeGuiShaderRects()
+		end
+	end
+	if myFullview and not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
 		if myTeamID ~= Spring.GetMyTeamID() then
 			UpdateAllTeams()
 			makeSideImageList()
@@ -1622,7 +1634,7 @@ function widget:Update(dt)
 end
 
 function widget:DrawScreen()
-	if not inSpecMode then return end
+	if not inSpecMode or not myFullview then return end
 	
 	if Spring.IsGUIHidden() or (not inSpecMode) then return end
 	
