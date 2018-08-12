@@ -55,17 +55,20 @@ end
 
 
 function widget:DrawWorldPreUnit()
+  local camX, camY, camZ = Spring.GetCameraPosition()
   gl.DepthTest(true)
   for i=1, #tombstones do
-    tombstones[i][4] = Spring.GetGroundHeight(tombstones[i][3],tombstones[i][5])
-    gl.PushMatrix()
-      gl.LoadIdentity()
-      gl.Translate(tombstones[i][3],tombstones[i][4],tombstones[i][5])
-      gl.Rotate(tombstones[i][6],0,1,1)
-      gl.Rotate(tombstones[i][7],-1,0,0)
-      gl.Rotate(tombstones[i][8],0,0,1)
-      gl.UnitShape(tombstones[i][1],tombstones[i][2], false, false, true)
-    gl.PopMatrix()
+    if Spring.IsSphereInView(tombstones[i][3],tombstones[i][4],tombstones[i][5], 30) and math.diag(camX-tombstones[i][3], camY-tombstones[i][4], camZ-tombstones[i][5]) < 5000 then
+      tombstones[i][4] = Spring.GetGroundHeight(tombstones[i][3],tombstones[i][5])
+      gl.PushMatrix()
+        gl.LoadIdentity()
+        gl.Translate(tombstones[i][3],tombstones[i][4],tombstones[i][5])
+        gl.Rotate(tombstones[i][6],0,1,1)
+        gl.Rotate(tombstones[i][7],-1,0,0)
+        gl.Rotate(tombstones[i][8],0,0,1)
+        gl.UnitShape(tombstones[i][1],tombstones[i][2], false, false, true)
+      gl.PopMatrix()
+    end
   end
   gl.DepthTest(false)
 end
