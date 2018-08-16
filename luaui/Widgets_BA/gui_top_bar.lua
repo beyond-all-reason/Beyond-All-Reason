@@ -1036,7 +1036,7 @@ function widget:DrawScreen()
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
 				if process > 1.3 then process = 1.3 end
-				glColor(1,1,1,0.075*process)
+				glColor(1,1,1,0.085*process)
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end

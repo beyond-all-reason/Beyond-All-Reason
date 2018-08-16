@@ -35,7 +35,7 @@ if LUA_NAME == "LuaUI" then
 
 	ADDON_DIRS     = {
 		LUA_DIRNAME .. 'Addons/';
-		LUA_DIRNAME .. 'Widgets/';
+		LUA_DIRNAME .. 'Widgets_BA/';
 		LUA_DIRNAME .. 'SystemAddons/';
 		LUA_DIRNAME .. 'SystemWidgets/';
 		LUA_DIRNAME .. 'chili/';
