@@ -1162,6 +1162,7 @@ function widget:DrawScreen()
 		if (WG['guishader_api'] ~= nil) then
             guishaderEnabled = true
 			WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
+			WG['guishader_api'].setScreenBlur(true)
 		end
 
 		glColor(0,0,0,(0.15*fadeProgress))
@@ -1277,6 +1278,7 @@ local function hideWindows()
 	showQuitscreen = nil
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('topbar_screenblur')
+		WG['guishader_api'].setScreenBlur(false)
 	end
 end
 
@@ -1299,6 +1301,7 @@ local function applyButtonAction(button)
 				showQuitscreen = oldShowQuitscreen
 				if (WG['guishader_api'] ~= nil) then
 					WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
+					WG['guishader_api'].setScreenBlur(true)
 				end
 			end
 		else
@@ -1411,6 +1414,7 @@ function widget:MousePress(x, y, button)
 					showQuitscreen = nil
 					if (WG['guishader_api'] ~= nil) then
 						WG['guishader_api'].RemoveRect('topbar_screenblur')
+						WG['guishader_api'].setScreenBlur(false)
 					end
 					return true
 				end
@@ -1419,6 +1423,7 @@ function widget:MousePress(x, y, button)
 				showQuitscreen = nil
 				if (WG['guishader_api'] ~= nil) then
 					WG['guishader_api'].RemoveRect('topbar_screenblur')
+					WG['guishader_api'].setScreenBlur(false)
 				end
 				return true
 			end
