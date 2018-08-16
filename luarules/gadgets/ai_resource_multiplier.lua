@@ -65,7 +65,7 @@ function gadget:GameFrame(n)
 				end
 				if n > 1 then
 					local seconds = n / 30
-					local resourcecheat = seconds * 0.00033
+					local resourcecheat = seconds * 0.00020
 					local metalcheat = resourcecheat * mi * 2
 					local energycheat = resourcecheat * ei * 2
 					Spring.AddTeamResource(TeamID,"m", metalcheat * aiResourceMultiplier)
