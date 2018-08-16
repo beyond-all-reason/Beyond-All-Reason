@@ -1208,8 +1208,12 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("WindowPosY ", value)
 		elseif id == 'windowresx' then
 			Spring.SetConfigInt("XResolutionWindowed ", value)
+			--Spring.SendCommands("Fullscreen 1")		--tonumber(Spring.GetConfigInt("Fullscreen",1) or 1)
+			--Spring.SendCommands("Fullscreen 0")
 		elseif id == 'windowresy' then
 			Spring.SetConfigInt("YResolutionWindowed ", value)
+			--Spring.SendCommands("Fullscreen 1")		--tonumber(Spring.GetConfigInt("Fullscreen",1) or 1)
+			--Spring.SendCommands("Fullscreen 0")
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
@@ -1332,6 +1336,21 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
 		elseif id == 'fancyselectedunits_style' then
 			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setStyle', {'currentOption'}, value)
+		elseif id == 'resolution' then
+			local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
+			local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
+			if tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1 then
+				Spring.SendCommands("Fullscreen 0")
+				Spring.SetConfigInt("XResolution", tonumber(resolutionX))
+				Spring.SetConfigInt("YResolution", tonumber(resolutionY))
+				Spring.SendCommands("Fullscreen 1")
+			else
+				Spring.SendCommands("Fullscreen 1")
+				Spring.SetConfigInt("XResolutionWindowed", tonumber(resolutionX))
+				Spring.SetConfigInt("YResolutionWindowed", tonumber(resolutionY))
+				Spring.SendCommands("Fullscreen 0")
+			end
+			options[i].value = 0
 		end
 	end
 	if skipRedrawWindow == nil then
@@ -1743,8 +1762,40 @@ function loadAllWidgetData()
 	return changes
 end
 
+function lines(str)
+	local t = {}
+	local function helper(line) table.insert(t, line) return "" end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
+end
 
 function init()
+
+	local supportedResolutions = {}
+	local infolog = VFS.LoadFile("infolog.txt")
+	if infolog then
+		local fileLines = lines(infolog)
+		for i, line in ipairs(fileLines) do
+			if addResolutions then
+				local resolution = string.match(line, '[0-9]*x[0-9]*')
+				if string.len(resolution) >= 7 then
+					local resolution = string.gsub(resolution, "x", " x ")
+					local resolutionX = string.match(resolution, '[0-9]*')
+					local resolutionY = string.gsub(string.match(resolution, 'x [0-9]*'), 'x ', '')
+					if tonumber(resolutionX) >= 640 and tonumber(resolutionY) >= 480 then
+						supportedResolutions[#supportedResolutions+1] = resolution
+					end
+				end
+			end
+			if string.find(line, '	display=') then
+				if addResolutions then
+					break
+				end
+				addResolutions = true
+			end
+		end
+	end
+
 	-- if you want to add an option it should be added here, and in applyOptionValue(), if option needs shaders than see the code below the options definition
 	optionGroups = {
 		{id='gfx', name='Graphics'},
@@ -1760,11 +1811,12 @@ function init()
 		--GFX
 		--{id="windowposx", group="gfx", name="Window position X", type="slider", min=0, max=math.ceil(ssx/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosX",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
 		--{id="windowposy", group="gfx", name="Window position Y", type="slider", min=0, max=math.ceil(ssy/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosY",1) or 0), description='Set where on the screen the window is positioned on the Y axis'},
-		--{id="windowresx", group="gfx", name="Window width", type="slider", min=math.floor(ssx/3), max=ssx, step=1, value=tonumber(Spring.GetConfigInt("XResolutionWindowed",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
-		--{id="windowresy", group="gfx", name="Window height", type="slider", min=math.floor(ssy/3), max=ssy, step=1, value=tonumber(Spring.GetConfigInt("YResolutionWindowe",1) or 0), description='Set where on the screen the window is positioned on the Y axis'},
+		{id="resolution", group="gfx", name="Resolution", type="select", options=supportedResolutions, value=0, description=''},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
-		{id="borderless", group="gfx", name="  Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
-		{id="windowpos", group="gfx", widget="Move Window Position", name="  Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys'},
+		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
+		--{id="windowresx", group="gfx", name="  Window width", type="slider", min=math.floor(ssx/3), max=ssx, step=1, value=tonumber(Spring.GetConfigInt("XResolutionWindowed",1) or 0), description='Set window resolution width'},
+		--{id="windowresy", group="gfx", name="  Window height", type="slider", min=math.floor(ssy/3), max=ssy, step=1, value=tonumber(Spring.GetConfigInt("YResolutionWindowed",1) or 0), description='Set window resolution height'},
+		{id="windowpos", group="gfx", widget="Move Window Position", name="  Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="grabinput", group="gfx", widget="Grabinput", name="Contain mouse inside window", type="bool", value=GetWidgetToggleValue("Grabinput"), description=''},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
@@ -1967,7 +2019,11 @@ function init()
     end
     if not aiDetected then
         options[getOptionByID('commandsfxfilterai')] = nil
-    end
+	end
+
+	if #supportedResolutions < 2 then
+		options[getOptionByID('resolution')] = nil
+	end
 
 	-- add sound notification widget sound toggle options
 	if widgetHandler.knownWidgets["Voice Notifs"] then
@@ -2284,6 +2340,8 @@ function widget:TextCommand(command)
 				lastOptionCommand = os.clock()
 				options[optionID].value = not options[optionID].value
 				applyOptionValue(optionID)
+			else
+				show = true
 			end
 		else
 			option = Split(option, ' ')

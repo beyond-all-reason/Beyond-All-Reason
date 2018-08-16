@@ -3,7 +3,7 @@ local widgetName = "Move Window Position"
 function widget:GetInfo()
 	return {
 		name	= widgetName,
-		desc	= "Move around window position with the arrow keys",
+		desc	= "Move around window position with the arrow keys or by dragging",
 		author	= "Floris",
 		date	= "August 2018",
 		license	= "GPL v2 or later",
@@ -152,11 +152,10 @@ function widget:Initialize()
 end
 
 function widget:Update(dt)
-	if (changeClock and changeClock < os.clock()-0.5) or escape or applyChanges then
-		if changeClock or applyChanges then
+	if (changeClock and changeClock < os.clock()-0.7) or escape or applyChanges then
+		if changeClock then
 			Spring.SetConfigInt("WindowPosX", windowPosX)
 			Spring.SetConfigInt("WindowPosY", windowPosY)
-			Spring.Echo("window position set at:   x: "..windowPosX.."   y: "..windowPosY)
 			Spring.SendCommands("Fullscreen 1")		--tonumber(Spring.GetConfigInt("Fullscreen",1) or 1)
 			Spring.SendCommands("Fullscreen 0")
 			changeClock = nil
@@ -183,6 +182,7 @@ end
 function widget:MousePress(x, y, button)
 	if applyButtonPos and IsOnRect(x, y, applyButtonPos[1],applyButtonPos[2],applyButtonPos[3],applyButtonPos[4]) then
 		applyChanges = true
+		return true
 	end
 	dragging = true
 	draggingStartX = x
@@ -195,10 +195,9 @@ function widget:MouseRelease(x, y, button)
 		dragging = nil
 		windowPosX = windowPosX + (x-draggingStartX)
 		windowPosY = windowPosY + (draggingStartY-y)
-		if dlistPosX ~= windowPosX or dlistPosY ~= windowPosY then
-			changeClock = os.clock()
-		end
+		changeClock = os.clock()-1
 	end
+	return true
 end
 
 function widget:MouseMove(x, y)
