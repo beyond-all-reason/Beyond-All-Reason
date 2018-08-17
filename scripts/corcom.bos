@@ -455,10 +455,8 @@ Create()
 	move crown to y-axis [8] now;
 	hide bigflsh;
 	hide mlasflsh;
-	turn mlasflsh to x-axis <90> now;
 	move mlasflsh to x-axis [0.5] now;
 	move mlasflsh to z-axis [0.25] now;
-	turn bigflsh to x-axis <90> now;
 	move bigflsh to x-axis [0.5] now;
 	move bigflsh to y-axis [-0.35] now;
 	bMoving = FALSE;
