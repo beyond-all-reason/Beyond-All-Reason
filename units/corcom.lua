@@ -294,7 +294,6 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 1,
-				--explosiongenerator = "custom:UW_LASER_BURN",
 				explosiongenerator = "custom:laserhit-small-blue",
 				firestarter = 35,
 				firesubmersed = true,

@@ -4,7 +4,7 @@ return {
 		craterboost = 0,
 		cratermult = 0,
 		edgeeffectiveness = 0,
-		explosiongenerator = "custom:FLASHSMALLBUILDINGEX",
+		explosiongenerator = "custom:genericbuildingexplosion-small",
 		impulseboost = 1,
 		impulsefactor = 1,
 		name = "Smallbuilding",

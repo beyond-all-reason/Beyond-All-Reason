@@ -34,7 +34,7 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "CORSKTL",
 		seismicsignature = 4,
-		selfdestructas = "cormine6",
+		selfdestructas = "corsktlSelfd",
 		selfdestructcountdown = 0,
 		sightdistance = 260,
 		turninplace = 0,

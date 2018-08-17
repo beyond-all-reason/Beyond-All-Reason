@@ -1,5 +1,5 @@
 return {
-	cormine6 = {
+	corsktlSelfd = {
 		areaofeffect = 480,
 		craterboost = 4,
 		cratermult = 1.25,

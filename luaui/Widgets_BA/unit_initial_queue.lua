@@ -822,9 +822,6 @@ end
 -- Game start
 ------------------------------------------------------------
 
-local comGate = tonumber(Spring.GetModOptions().comgate) or 0 --if comgate is on, all orders are blocked before frame 105
-
-
 function widget:GameFrame(n)
 
 	if not gameStarted then
@@ -857,29 +854,27 @@ function widget:GameFrame(n)
 	end
 	
 
-	if (comGate==0 or Spring.GetGameFrame() == 106) then --comGate takes up until frame 105
-		local tasker
-		-- Search for our starting unit
-		local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
-		for u = 1, #units do
-			local uID = units[u]
-			if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
-				tasker = uID
-				if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
-					--we found our com even if cooping, assigning queue to this particular unit
-					break
-				end
-			end
-		end
-		if tasker then
-			--Spring.Echo("sending queue to unit")
-			for b = 1, #buildQueue do
-				local buildData = buildQueue[b]
-				Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
-			end
-			widgetHandler:RemoveWidget(self)
-		end
-	end
+    local tasker
+    -- Search for our starting unit
+    local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+    for u = 1, #units do
+        local uID = units[u]
+        if GetUnitCanCompleteQueue(uID) then --Spring.GetUnitDefID(uID) == sDefID then
+            tasker = uID
+            if Spring.GetUnitRulesParam(uID,"startingOwner") == Spring.GetMyPlayerID() then
+                --we found our com even if cooping, assigning queue to this particular unit
+                break
+            end
+        end
+    end
+    if tasker then
+        --Spring.Echo("sending queue to unit")
+        for b = 1, #buildQueue do
+            local buildData = buildQueue[b]
+            Spring.GiveOrderToUnit(tasker, -buildData[1], {buildData[2], buildData[3], buildData[4], buildData[5]}, {"shift"})
+        end
+        widgetHandler:RemoveWidget(self)
+    end
 end
 
 ------------------------------------------------------------

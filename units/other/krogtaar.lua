@@ -112,7 +112,6 @@ return {
 				areaofeffect = 64,
 				avoidfeature = false,
 				burnblow = true,
-				cegtag = "krogtaarblaster",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
