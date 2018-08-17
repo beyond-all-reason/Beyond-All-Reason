@@ -54,7 +54,7 @@ return {
 				"deathceg4",
 			},
 			explosiongenerators = {
-				[1] = "custom:thruster-medium",
+
 			},
 		},
 		sounds = {

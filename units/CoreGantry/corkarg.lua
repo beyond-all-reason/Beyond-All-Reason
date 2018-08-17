@@ -239,7 +239,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 0,
-				explosiongenerator = "custom:genericshellexplosion-crusherkrog",
+				explosiongenerator = "custom:crusherkrog",
 				firestarter = 40,
 				impulseboost = 1.5,
 				impulsefactor = 1.5,
