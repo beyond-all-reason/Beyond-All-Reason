@@ -195,7 +195,9 @@ function widget:MouseRelease(x, y, button)
 		dragging = nil
 		windowPosX = windowPosX + (x-draggingStartX)
 		windowPosY = windowPosY + (draggingStartY-y)
-		changeClock = os.clock()-1
+		if initialWindowPosX ~= dlistPosX or initialWindowPosY ~= dlistPosY then
+			changeClock = os.clock()-1
+		end
 	end
 	return true
 end
