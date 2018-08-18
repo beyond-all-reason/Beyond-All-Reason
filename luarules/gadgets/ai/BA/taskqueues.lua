@@ -458,17 +458,47 @@ end
 
 function CorKBotsT1(tqb, ai, unit)
 	local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end
 
 function CorVehT1(tqb, ai, unit)
 	local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end
 
 function CorAirT1(tqb, ai, unit)
 	local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end
 
 function CorKBotsT2(tqb, ai, unit)
@@ -494,9 +524,18 @@ function CorAirT2(tqb, ai, unit)
 end
 
 function CorHover(tqb, ai, unit)
-	
 	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end 
 --[[
 function CorSeaPlanes()
@@ -527,7 +566,17 @@ end
 --constructors:
 
 function CorT1KbotCon(tqb, ai, unit)
-	return "corck"
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.2 and ec > es*0.2 then
+			return "corck"
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return "corck"
+	end
 end
 
 function CorStartT1KbotCon(tqb, ai, unit)
@@ -537,7 +586,7 @@ end
 
 function CorT1RezBot(tqb, ai, unit)
 	local CountRez = UDC(ai.id, UDN.cornecro.id)
-	if CountRez <= 10 then
+	if CountRez <= 20 then
 		return "cornecro"
 	else
 		return {action = "nexttask"}
@@ -545,7 +594,17 @@ function CorT1RezBot(tqb, ai, unit)
 end
 
 function CorT1VehCon(tqb, ai, unit)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.2 and ec > es*0.2 then
+			return "corcv"
+		else
+			return {action = "nexttask"}
+		end
+	else
 		return "corcv"
+	end
 end
 
 function CorStartT1VehCon(tqb, ai, unit)
@@ -554,7 +613,7 @@ function CorStartT1VehCon(tqb, ai, unit)
 
 function CorT1AirCon(tqb, ai, unit)
 	local CountCons = UDC(ai.id, UDN.corca.id)
-	if CountCons <= 4 then
+	if CountCons <= 6 then
 		return "corca"
 	else
 		return {action = "nexttask"}
@@ -1048,17 +1107,47 @@ end
 
 function ArmKBotsT1(tqb, ai, unit)
 	local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armwar", "armjeth",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end
 
 function ArmVehT1(tqb, ai, unit)
 	local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end
 
 function ArmAirT1(tqb, ai, unit)
 	local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end	
 
 function ArmKBotsT2(tqb, ai, unit)
@@ -1084,9 +1173,18 @@ function ArmAirT2(tqb, ai, unit)
 end
 
 function ArmHover(tqb, ai, unit)
-	
 	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh",}
-	return FindBest(unitoptions,ai)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.3 and ec > es*0.3 then
+			return FindBest(unitoptions,ai)
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return FindBest(unitoptions,ai)
+	end
 end
 
 --[[
@@ -1118,8 +1216,17 @@ end
 --constructors:
 
 function ArmT1KbotCon(tqb, ai, unit)
-	local CountCons = UDC(ai.id, UDN.armck.id)
-	return "armck"
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.2 and ec > es*0.2 then
+			return "armck"
+		else
+			return {action = "nexttask"}
+		end
+	else
+		return "armck"
+	end
 end
 
 function ArmStartT1KbotCon(tqb, ai, unit)
@@ -1128,7 +1235,7 @@ end
 
 function ArmT1RezBot(tqb, ai, unit)
 	local CountRez = UDC(ai.id, UDN.armrectr.id)
-	if CountRez <= 10 then
+	if CountRez <= 20 then
 		return "armrectr"
 	else
 		return {action = "nexttask"}
@@ -1136,7 +1243,17 @@ function ArmT1RezBot(tqb, ai, unit)
 end
 
 function ArmT1VehCon(tqb, ai, unit)
+	if GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+		local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+		local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+		if mc > ms*0.2 and ec > es*0.2 then
+			return "armcv"
+		else
+			return {action = "nexttask"}
+		end
+	else
 		return "armcv"
+	end
 end
 
 function ArmStartT1VehCon(tqb, ai, unit)
@@ -1145,7 +1262,7 @@ end
 
 function ArmT1AirCon(tqb, ai, unit)
 	local CountCons = UDC(ai.id, UDN.armca.id)
-	if CountCons <= 4 then
+	if CountCons <= 6 then
 		return "armca"
 	else
 		return {action = "nexttask"}
