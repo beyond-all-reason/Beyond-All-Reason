@@ -189,7 +189,7 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomhighlights = false,
-		water = 5,
+		water = 3,
 		mapedgeextension = true,
 		lighteffects = true,
 		lighteffects_deferred = true,
@@ -214,7 +214,7 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomhighlights = true,
-		water = 3,
+		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
 		lighteffects_deferred = true,
@@ -1816,7 +1816,7 @@ function init()
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
 		--{id="windowresx", group="gfx", name="  Window width", type="slider", min=math.floor(ssx/3), max=ssx, step=1, value=tonumber(Spring.GetConfigInt("XResolutionWindowed",1) or 0), description='Set window resolution width'},
 		--{id="windowresy", group="gfx", name="  Window height", type="slider", min=math.floor(ssy/3), max=ssy, step=1, value=tonumber(Spring.GetConfigInt("YResolutionWindowed",1) or 0), description='Set window resolution height'},
-		{id="windowpos", group="gfx", widget="Move Window Position", name="  Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
+		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="grabinput", group="gfx", widget="Grabinput", name="Contain mouse inside window", type="bool", value=GetWidgetToggleValue("Grabinput"), description=''},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},

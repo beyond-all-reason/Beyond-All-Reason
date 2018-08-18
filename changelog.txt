@@ -16,7 +16,7 @@ Other:
  • Advplayerlist can auto collapse, availible in options: Interface -> "Playerlist auto collapses"
  • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
  • Reduces size of air thrusters overall and they dont show when plane is crashing
- • Added lups thrusters to armatlas/corvalk
+ • Added lups thrusters to armatlas/corvalk/banshee
  • Options widget remembers/restores some spring config settings
 
 Fixes:

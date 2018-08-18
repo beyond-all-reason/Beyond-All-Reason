@@ -40,7 +40,7 @@ MoveRate1()
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
 	turn base to z-axis <0.000000> speed <120.000000>;
-	start-script ProcessFlames();
+	//start-script ProcessFlames();
 }
 
 MoveRate2()
@@ -48,7 +48,7 @@ MoveRate2()
 	start-script RestoreAfterDelay();
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
-	start-script ProcessFlames();
+	//start-script ProcessFlames();
 	sleep 1000;
 	turn base to z-axis <240.000000> speed <120.000000>;
 	wait-for-turn base around z-axis;
@@ -62,7 +62,7 @@ MoveRate3()
 	start-script RestoreAfterDelay();
 	signal SIG_MOVE;
 	set-signal-mask SIG_MOVE;
-	start-script ProcessFlames();
+	//start-script ProcessFlames();
 	turn base to z-axis <0.000000> speed <120.000000>;
 }
 
