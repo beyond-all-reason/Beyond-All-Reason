@@ -2392,11 +2392,22 @@ function getSelectKey(i, value)
 end
 
 
--- preserve data in case of a /luaui reload
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.customPresets = customPresets
 	savedTable.minimapIconsize = minimapIconsize
+	savedTable.savedConfig = {
+		MaxParticles = tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000),
+		VSync = tonumber(Spring.GetConfigInt("VSync",1) or 1),
+		Water = (tonumber(Spring.GetConfigInt("Water",1) or 1)+1),
+		UnitIconDist = tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400),
+		MaxNanoParticles = tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500),
+		GroundDecals = tonumber(Spring.GetConfigInt("GroundDecals",1) or 1),
+		GroundDetail = tonumber(Spring.GetConfigInt("GroundDetail",1) or 1),
+		GrassDetail = tonumber(Spring.GetConfigInt("GrassDetail",1) or 5),
+		Shadows = tonumber(Spring.GetConfigInt("Shadows",1) or 1),
+		AdvSky = tonumber(Spring.GetConfigInt("AdvSky",1) or 1),
+	}
 	return savedTable
 end
 
@@ -2406,5 +2417,10 @@ function widget:SetConfigData(data)
 	end
 	if data.minimapIconsize ~= nil then
 		minimapIconsize = data.minimapIconsize
+	end
+	if data.savedConfig ~= nil then
+		for k, v in pairs(data.savedConfig) do
+			Spring.SetConfigInt(k,v)
+		end
 	end
 end

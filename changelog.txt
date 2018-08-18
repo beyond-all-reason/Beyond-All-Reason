@@ -16,6 +16,7 @@ Other:
  • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
  • Reduces size of air thrusters overall and they dont show when plane is crashing
  • Added lups thrusters to armatlas/corvalk
+ • Options widget remembers/restores some spring config settings
 
 Fixes:
  • Removed "GroupMove" widget because it had side effects/downsides
