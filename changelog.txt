@@ -5,6 +5,7 @@ IMPORTANT: Removed support for older engine versions, use 104.0.1.567 or newer.
 
 Balance:
  • More frequent re-aiming (each frame) + starts targetting before units enters range (at maxrange + 10%)
+ • EMP spider 18% more health
 
 Other:
  • Added option "Move Window Position"

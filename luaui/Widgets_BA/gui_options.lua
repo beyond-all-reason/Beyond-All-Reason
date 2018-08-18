@@ -2399,7 +2399,7 @@ function widget:GetConfigData(data)
 	savedTable.savedConfig = {
 		MaxParticles = tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000),
 		VSync = tonumber(Spring.GetConfigInt("VSync",1) or 1),
-		Water = (tonumber(Spring.GetConfigInt("Water",1) or 1)+1),
+		Water = tonumber(Spring.GetConfigInt("Water",1) or 1),
 		UnitIconDist = tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400),
 		MaxNanoParticles = tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500),
 		GroundDecals = tonumber(Spring.GetConfigInt("GroundDecals",1) or 1),
@@ -2407,6 +2407,10 @@ function widget:GetConfigData(data)
 		GrassDetail = tonumber(Spring.GetConfigInt("GrassDetail",1) or 5),
 		Shadows = tonumber(Spring.GetConfigInt("Shadows",1) or 1),
 		AdvSky = tonumber(Spring.GetConfigInt("AdvSky",1) or 1),
+		CamMode = tonumber(Spring.GetConfigInt("CamMode",1) or 1),
+		AdvModelShading = tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1),
+		AdvMapShading = tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1),
+		HardwareCursor = tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1),
 	}
 	return savedTable
 end
