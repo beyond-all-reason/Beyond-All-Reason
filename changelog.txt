@@ -1,27 +1,32 @@
 ﻿10.11 -> 10.12
 XX/XX/2018
 
-Removed support for older engine versions
-You must have 104.0.1.567 or newer
+IMPORTANT: Removed support for older engine versions, use 104.0.1.567 or newer.
 
-Testing: More frequent re-aiming (each frame) (currently enabled on t1 bots/vehicles and some t2 bots/vehs only) + start targetting before units enters range (starts targetting at maxrange + 10%)
+Balance:
+ • More frequent re-aiming (each frame) + starts targetting before units enters range (at maxrange + 10%)
 
 Other:
- • Advplayerlist can auto collapse (default disabled) in options: Interface -> "Playerlist auto collapses"
- • Player camara tracking also limits view to players viewpoint and losmode
  • Added option "Move Window Position"
  • Added option: resolution selection (doesnt always work in fullscreen mode)
  • Added option "Contain mouse inside window"
- • Removed "GroupMove" widget because it had side effects/downsides
- • Top bar: when low energy: red background, when overflowing: resource colored (see options or /resbartint to toggle)
- • Closing game when loaded unsupported AI (supported: DAI, KAIK, NullAI, Chickens)
- • Added lups heat thrusters to armatlas/corvalk + reduces size of air thrusters overall
+ • Player camara tracking also limits view to players viewpoint and losmode
+ • Top bar: when low energy: red background, when overflowing: resource colored
+ • Advplayerlist can auto collapse, availible in options: Interface -> "Playerlist auto collapses"
  • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
- • Fixed: Decoy com attacked warning sound changed to a regular unit under attack sound
+ • Reduces size of air thrusters overall and they dont show when plane is crashing
+ • Added lups thrusters to armatlas/corvalk
+
+Fixes:
+ • Removed "GroupMove" widget because it had side effects/downsides
+ • Closing game when loaded unsupported AI (supported: DAI, KAIK, NullAI, Chickens)
  • Fixed DAI echospam + working with multiple DAI bots + behavior improvements
- • Fixed map edge extension not always showing.
+ • Changed Decoy com attacked warning sound to a regular unit under attack sound
+ • Fixed "map edge extension" not always showing up when it should
  • Fixed "States Prefs" widget overriding config table with empty table after loading a replay
- • Fixed Bloom rendering the map black on some maps
+ • Fixed Bloom rendering the map black on certain maps
+
+Removed:
  • Removed old console and old ally resource bars widget
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
  • Removed modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock", "reclaimunitefficiency", "mm_diminish_factor", "enemycomcount", "no_close_spawns", "heatmap"
