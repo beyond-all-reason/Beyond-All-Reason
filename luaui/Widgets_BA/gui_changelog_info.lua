@@ -30,7 +30,7 @@ local textareaMinLines = 10		-- wont scroll down more, will show at least this a
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local customScale = 1.06
+local customScale = 1
 
 local startLine = 1
 
@@ -73,12 +73,12 @@ local changelogLines = {}
 local totalChangelogLines = 0
 
 function widget:ViewResize()
-  vsx,vsy = Spring.GetViewGeometry()
-  screenX = (vsx*0.5) - (screenWidth/2)
-  screenY = (vsy*0.5) + (screenHeight/2)
-  widgetScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-  if changelogList then gl.DeleteList(changelogList) end
-  changelogList = gl.CreateList(DrawWindow)
+	vsx,vsy = Spring.GetViewGeometry()
+	screenX = (vsx*0.5) - (screenWidth/2)
+	screenY = (vsy*0.5) + (screenHeight/2)
+	widgetScale = (0.45 + (vsx*vsy / 5500000)) * customScale
+	if changelogList then gl.DeleteList(changelogList) end
+	changelogList = gl.CreateList(DrawWindow)
 end
 
 local myTeamID = Spring.GetMyTeamID()

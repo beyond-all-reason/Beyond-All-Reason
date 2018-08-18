@@ -336,7 +336,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
-	widgetScale = (0.75 + (vsx*vsy / 7500000)) -- only used for minor stuff
+	widgetScale = (0.45 + (vsx*vsy / 5500000))
 	calcAbsSizes()
 	updateFontSize()
 end
