@@ -136,6 +136,18 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+local time = 0
+function AirJet:Update(n)
+  time = time + n
+  if time > 1.5 then
+    time = 0
+    if Spring.GetUnitMoveTypeData(self.unit).aircraftState == "crashing" then
+      self.repeatEffect = false
+      self.dieGameFrame = Spring.GetGameFrame() + 1
+    end
+  end
+end
+
 -- used if repeatEffect=true;
 function AirJet:ReInitialize()
   self.dieGameFrame = self.dieGameFrame + self.life
