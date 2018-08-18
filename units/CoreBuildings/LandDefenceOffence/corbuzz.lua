@@ -145,6 +145,9 @@ return {
 					subs = 5,
 					shields = 665,
 				},
+				customparams = {
+					expl_light_heat_radius_mult = 1.75,
+				},
 			},
 		},
 		weapons = {

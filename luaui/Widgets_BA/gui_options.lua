@@ -2009,6 +2009,14 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
+
+	-- while we have set config-ints, that isnt enough to have these settings applied ingame
+	if savedConfig and Spring.GetGameFrame() == 0 then
+		for k, v in pairs(savedConfig) do
+			applyOptionValue(getOptionByID(k))
+		end
+	end
+
     -- detect AI
     local aiDetected = false
     local t = Spring.GetTeamList()
@@ -2052,7 +2060,8 @@ function init()
 		options[getOptionByID('voicenotifs')] = nil
 		options[getOptionByID('voicenotifs_volume')] = nil
 	end
-	
+
+
 	-- cursors
 	if (WG['cursors'] == nil) then
 		options[getOptionByID('cursor')] = nil
@@ -2397,20 +2406,23 @@ function widget:GetConfigData(data)
 	savedTable.customPresets = customPresets
 	savedTable.minimapIconsize = minimapIconsize
 	savedTable.savedConfig = {
-		MaxParticles = tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000),
-		VSync = tonumber(Spring.GetConfigInt("VSync",1) or 1),
-		Water = tonumber(Spring.GetConfigInt("Water",1) or 1),
-		UnitIconDist = tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400),
-		MaxNanoParticles = tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500),
-		GroundDecals = tonumber(Spring.GetConfigInt("GroundDecals",1) or 1),
-		GroundDetail = tonumber(Spring.GetConfigInt("GroundDetail",1) or 1),
-		GrassDetail = tonumber(Spring.GetConfigInt("GrassDetail",1) or 5),
-		Shadows = tonumber(Spring.GetConfigInt("Shadows",1) or 1),
-		AdvSky = tonumber(Spring.GetConfigInt("AdvSky",1) or 1),
-		CamMode = tonumber(Spring.GetConfigInt("CamMode",1) or 1),
-		AdvModelShading = tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1),
-		AdvMapShading = tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1),
-		HardwareCursor = tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1),
+		maxparticles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000)},
+		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
+		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
+		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
+		maxparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},
+		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
+		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
+		grassdetail = {'GrassDetail', tonumber(Spring.GetConfigInt("GrassDetail",1) or 5)},
+		shadows = {'Shadows', tonumber(Spring.GetConfigInt("Shadows",1) or 1)},
+		advsky = {'AdvSky', tonumber(Spring.GetConfigInt("AdvSky",1) or 1)},
+		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
+		advmodelshading = {'AdvModelShading', tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1)},
+		advmapshading = {'AdvMapShading', tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1)},
+		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
+		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",1) or 50)},
+		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",1) or 50)},
+		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 50)},
 	}
 	return savedTable
 end
@@ -2423,8 +2435,9 @@ function widget:SetConfigData(data)
 		minimapIconsize = data.minimapIconsize
 	end
 	if data.savedConfig ~= nil then
-		for k, v in pairs(data.savedConfig) do
-			Spring.SetConfigInt(k,v)
+		savedConfig = data.savedConfig
+		for k, v in pairs(savedConfig) do
+			Spring.SetConfigInt(v[1],v[2])
 		end
 	end
 end
