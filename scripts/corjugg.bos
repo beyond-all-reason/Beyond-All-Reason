@@ -9,7 +9,7 @@ piece  rflare, lflare, body, turret, feetparent, FLFoot, FRFoot, RLFoot,
        flare1, flare2, flare3;
 
 static-var  bMoving, Static_Var_2, Static_Var_3, restore_delay, Static_Var_5,
-            Static_Var_6, Static_Var_7;
+            Static_Var_6, Static_Var_7, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead, wpn4_lasthead;
 
 walk()
 {
@@ -423,15 +423,21 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask 4;
 	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed <50.000000>;
 	turn Rgun to x-axis <0.000000> speed <30.000000>;
+	turn Lgun to x-axis <0.000000> speed <30.000000>;
 	turn gun1 to x-axis <0.000000> speed <30.000000>;
 	turn gun1 to y-axis <0.000000> speed <30.000000>;
 	turn gun2 to x-axis <0.000000> speed <30.000000>;
 	turn gun2 to y-axis <0.000000> speed <30.000000>;
 	turn gun3 to x-axis <0.000000> speed <30.000000>;
 	turn gun3 to y-axis <0.000000> speed <30.000000>;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
+	wpn3_lasthead = 1000000;
+	wpn4_lasthead = 1000000;
 	Static_Var_2 = 0;
 }
 
@@ -448,14 +454,17 @@ QueryWeapon1(Func_Var_1)
 AimWeapon1(Func_Var_1, Func_Var_2)
 {
 	signal 4;
-	set-signal-mask 4;
 	Static_Var_2 = 1;
 	turn turret to y-axis Func_Var_1 speed <90.000000>;
 	turn Rgun to x-axis <0.000000> - Func_Var_2 speed <50.000000>;
 	turn Lgun to x-axis <0.000000> - Func_Var_2 speed <50.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn Rgun around x-axis;
-	wait-for-turn Lgun around x-axis;
+	if (((get ABS(wpn1_lasthead - Func_Var_1)) > 65536) OR(((get ABS(wpn1_lasthead - Func_Var_1)) > 5000) AND ((get ABS(wpn1_lasthead - Func_Var_1)) < 60536)))
+	{
+		wait-for-turn turret around y-axis;
+		wait-for-turn Rgun around x-axis;
+		wait-for-turn Lgun around x-axis;
+	}
+	wpn1_lasthead = Func_Var_1;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -484,12 +493,15 @@ FireWeapon1()
 
 AimWeapon2(Func_Var_1, Func_Var_2)
 {
-	signal 8;
-	set-signal-mask 8;
+	signal 4;
 	turn gun1 to y-axis Func_Var_1 speed <300.071429>;
 	turn gun1 to x-axis <0.000000> - Func_Var_2 speed <200.038462>;
-	wait-for-turn stand1 around y-axis;
-	wait-for-turn gun1 around x-axis;
+	if (((get ABS(wpn2_lasthead - Func_Var_1)) > 65536) OR(((get ABS(wpn2_lasthead - Func_Var_1)) > 5000) AND ((get ABS(wpn2_lasthead - Func_Var_1)) < 60536)))
+	{
+		wait-for-turn stand1 around y-axis;
+		wait-for-turn gun1 around x-axis;
+	}
+	wpn2_lasthead = Func_Var_1;
 	return (1);
 }
 
@@ -513,12 +525,15 @@ QueryWeapon2(Func_Var_1)
 
 AimWeapon3(Func_Var_1, Func_Var_2)
 {
-	signal 16;
-	set-signal-mask 16;
+	signal 4;
 	turn gun2 to y-axis Func_Var_1 speed <300.071429>;
 	turn gun2 to x-axis <0.000000> - Func_Var_2 speed <200.038462>;
-	wait-for-turn stand2 around y-axis;
-	wait-for-turn gun2 around x-axis;
+	if (((get ABS(wpn3_lasthead - Func_Var_1)) > 65536) OR(((get ABS(wpn3_lasthead - Func_Var_1)) > 5000) AND ((get ABS(wpn3_lasthead - Func_Var_1)) < 60536)))
+	{
+		wait-for-turn stand2 around y-axis;
+		wait-for-turn gun2 around x-axis;
+	}
+	wpn3_lasthead = Func_Var_1;
 	return (1);
 }
 
@@ -542,12 +557,15 @@ QueryWeapon3(Func_Var_1)
 
 AimWeapon4(Func_Var_1, Func_Var_2)
 {
-	signal 32;
-	set-signal-mask 32;
+	signal 4;
 	turn gun3 to y-axis Func_Var_1 speed <300.071429>;
 	turn gun3 to x-axis <0.000000> - Func_Var_2 speed <200.038462>;
-	wait-for-turn stand3 around y-axis;
-	wait-for-turn gun3 around x-axis;
+	if (((get ABS(wpn4_lasthead - Func_Var_1)) > 65536) OR(((get ABS(wpn4_lasthead - Func_Var_1)) > 5000) AND ((get ABS(wpn4_lasthead - Func_Var_1)) < 60536)))
+	{
+		wait-for-turn stand3 around y-axis;
+		wait-for-turn gun3 around x-axis;
+	}
+	wpn4_lasthead = Func_Var_1;
 	return (1);
 }
 

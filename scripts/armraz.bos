@@ -552,7 +552,7 @@ RestoreAfterDelay(Func_Var_1)
     }
     wait-for-turn cannonr around y-axis;
     Static_Var_5 = 1;
-	wpn1_lasthead = 100000;
+	wpn1_lasthead = 1000000;
     bAiming = FALSE;
 }
  
@@ -613,11 +613,13 @@ AimPrimary(heading, pitch)
     }
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn body around y-axis;
 	}
     Static_Var_8 = heading;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn arml around x-axis;
 		wait-for-turn armr around x-axis;
 		wait-for-turn cannonr around y-axis;

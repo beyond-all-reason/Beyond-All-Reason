@@ -297,7 +297,7 @@ RestoreAfterDelay()
 	turn head to y-axis <0.000000> speed <135.000000>;
 	turn sleeve to x-axis <0.000000> speed <85.000000>;
 	wait-for-turn head around y-axis;
-	wpn1_lasthead = 100000;
+	wpn1_lasthead = 1000000;
 	return (0);
 }
 
@@ -308,6 +308,7 @@ AimPrimary(heading, pitch)
 	turn sleeve to x-axis <0.000000> - pitch speed <170.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn head around y-axis;
 		wait-for-turn sleeve around x-axis;
 	}

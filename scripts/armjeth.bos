@@ -367,7 +367,7 @@ RestoreAfterDelay()
 	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	wait-for-turn torso around y-axis;
-	wpn3_lasthead = 100000;
+	wpn3_lasthead = 1000000;
 }
 
 AimTertiary(heading, pitch)
@@ -381,6 +381,7 @@ AimTertiary(heading, pitch)
 	turn torso to y-axis heading speed <275.000000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
 	{
+		wpn3_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
 	}
 	wpn3_lasthead = heading;

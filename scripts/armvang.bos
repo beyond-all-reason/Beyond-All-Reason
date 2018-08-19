@@ -5,7 +5,7 @@
 
 piece  body, turret, flare, barrel, sleeve, rfthigh, rfleg, rffoot, lfthigh, lfleg, lffoot, rbthigh, rbleg, rbfoot, lbthigh, lbleg, lbfoot;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, oldHeading, bSteering;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -409,12 +409,13 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep 8000;
-	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <36.000000>;
 	turn sleeve to x-axis <0.000000> speed <30.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
+	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 }
 
@@ -432,20 +433,15 @@ AimPrimary(heading, pitch)
 {
 	bAiming = TRUE;
 	signal SIG_AIM;
-	set-signal-mask 0;
-	set-signal-mask SIG_AIM;
-	while( !Static_Var_3 )
-	{
-		sleep 400;
-	}
 	turn turret to y-axis heading speed <30.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <45.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
-	while( gun_1 )
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <2>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <2>)))
 	{
-		sleep 250;
+		wpn1_lasthead = 1000000;
+		wait-for-turn turret around y-axis;
+		wait-for-turn sleeve around x-axis;
 	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

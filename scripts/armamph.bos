@@ -1528,8 +1528,8 @@ RestoreAfterDelay()
 	wait-for-turn lasturret around x-axis;
 	wait-for-turn misturret around y-axis;
 	wait-for-turn misturret around x-axis;
-	wpn3_lasthead = 100000;
-	wpn1_lasthead = 100000;
+	wpn3_lasthead = 1000000;
+	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 	return (0);
 }
@@ -1546,6 +1546,7 @@ AimPrimary(heading, pitch)
 	turn lasturret to x-axis <0.000000> - pitch speed <200.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn lasturret around y-axis;
 		wait-for-turn lasturret around x-axis;
 	}
@@ -1626,6 +1627,7 @@ AimTertiary(heading, pitch)
 	turn misturret to x-axis <0.000000> - pitch speed <300.000000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
 	{
+		wpn3_lasthead = 1000000;
 		wait-for-turn misturret around y-axis;
 		wait-for-turn misturret around x-axis;
 	}

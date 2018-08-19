@@ -818,7 +818,7 @@ RestoreBody()
 	sleep 10000;
 	start-script RequestState(1);
 	turn torso to y-axis <0.000000> speed <90.000000>;
-	wpn1_lasthead = 100000;
+	wpn1_lasthead = 1000000;
 }
 
 RestoreHead()
@@ -826,7 +826,7 @@ RestoreHead()
 	set-signal-mask 4;
 	sleep 9000;
 	turn head to y-axis <0.000000> speed <110.000000>;
-	wpn2_lasthead = 100000;
+	wpn2_lasthead = 1000000;
 }
 
 AimWeapon2(heading, pitch)
@@ -890,6 +890,7 @@ AimWeapon1(heading, pitch)
 	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
 	}
 	wpn1_lasthead = heading;

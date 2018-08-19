@@ -645,8 +645,8 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	turn head to y-axis <0.000000> speed <90.000000>;
 	wait-for-turn head around y-axis;
-	wpn1_lasthead = 100000;
-	wpn3_lasthead = 100000;
+	wpn1_lasthead = 1000000;
+	wpn3_lasthead = 1000000;
 	bAiming = FALSE;
 }
 
@@ -660,6 +660,7 @@ AimTertiary(heading, pitch)
 	turn head to y-axis heading speed <60.000000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
 	{
+		wpn3_lasthead = 1000000;
 		wait-for-turn head around y-axis;
 	}
 	wpn3_lasthead = heading;
@@ -692,6 +693,7 @@ AimPrimary(heading, pitch)
 	turn head to y-axis heading speed <200.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn head around y-axis;
 	}
 	wpn1_lasthead = heading;

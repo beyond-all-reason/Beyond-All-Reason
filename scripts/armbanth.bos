@@ -740,8 +740,8 @@ RestoreAfterDelay()
 	wait-for-turn larm around x-axis;
 	wait-for-turn head around y-axis;
 	wait-for-turn head around x-axis;
-	wpn1_lasthead = 100000;
-	wpn2_lasthead = 100000;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
 	bAiming = FALSE;
 }
 
@@ -759,6 +759,7 @@ AimPrimary(heading, pitch)
 	turn ruparm to x-axis <0.000000> speed <120.027473>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn luparm around x-axis;
 		wait-for-turn ruparm around x-axis;
 	}
@@ -771,6 +772,7 @@ AimPrimary(heading, pitch)
 	turn larm to x-axis <-90.021978> speed <120.027473>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
 		wait-for-turn luparm around z-axis;
 		wait-for-turn ruparm around z-axis;
@@ -789,6 +791,7 @@ AimSecondary(heading, pitch)
 	turn head to y-axis heading speed <300.071429>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
+		wpn2_lasthead = 1000000;
 		wait-for-turn head around y-axis;
 	}
 	wpn2_lasthead = heading;

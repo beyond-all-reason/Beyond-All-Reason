@@ -614,8 +614,8 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn canbase to x-axis <0.000000> speed <45.000000>;
-	wpn1_lasthead = 100000;
-	wpn2_lasthead = 100000;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
 	start-script RequestState(1);
 	}
 }
@@ -697,6 +697,7 @@ AimSecondary(heading, pitch)
 	}
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
+		wpn2_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
 		wait-for-turn canbase around x-axis;
 	}

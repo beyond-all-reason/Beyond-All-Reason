@@ -395,7 +395,7 @@ RestoreAfterDelay()
 	turn support to x-axis <0.000000> speed <45.010989>;
 	wait-for-turn Torso around y-axis;
 	bAiming = FALSE;
-	wpn1_lasthead = 100000;
+	wpn1_lasthead = 1000000;
 	return (0);
 }
 
@@ -411,6 +411,7 @@ AimPrimary(heading, pitch)
 	turn support to x-axis <0.000000> - pitch speed <150.032967>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn Torso around y-axis;
 		wait-for-turn support around x-axis;
 	}

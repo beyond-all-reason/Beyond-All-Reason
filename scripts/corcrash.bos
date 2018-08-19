@@ -272,7 +272,7 @@ RestoreAfterDelay()
 	set-signal-mask SIG_AIM_3;
 	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed <90.000000>;
-	wpn3_lasthead = 100000;
+	wpn3_lasthead = 1000000;
 	return (0);
 }
 
@@ -282,6 +282,7 @@ AimTertiary(heading, pitch)
 	turn turret to y-axis heading speed <225.000000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
 	{
+		wpn3_lasthead = 1000000;
 		wait-for-turn turret around y-axis;
 	}
 	wpn3_lasthead = heading;

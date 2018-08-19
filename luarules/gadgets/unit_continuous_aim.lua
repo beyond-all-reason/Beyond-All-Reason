@@ -59,6 +59,8 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
 		[UnitDefNames.armbanth.id] = true,
 		[UnitDefNames.corkrog.id] = true,
 		[UnitDefNames.corkarg.id] = true,
+		[UnitDefNames.corjugg.id] = true,
+		[UnitDefNames.armvang.id] = true,
 		}
 end
 

@@ -1216,7 +1216,7 @@ RestoreAfterDelay()
 	turn torso to y-axis <0.000000> speed <200.038462>;
 	wait-for-turn torso around y-axis;
 	bAiming = FALSE;
-	wpn1_lasthead = 100000;
+	wpn1_lasthead = 1000000;
 }
 
 AimPrimary(heading, pitch)
@@ -1231,6 +1231,7 @@ AimPrimary(heading, pitch)
 	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 	wait-for-turn torso around y-axis;
 	}
 	start-script RestoreAfterDelay();

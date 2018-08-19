@@ -282,7 +282,7 @@ RestorePrimary()
 	wait-for-turn rarm around x-axis;
 	wait-for-turn rcannon around y-axis;
 	Static_Var_4 = 0;
-	wpn1_lasthead = 100000;
+	wpn1_lasthead = 1000000;
 	if( bAiming == 1 )
 	{
 		if( Static_Var_5 == 0 AND Static_Var_6 == 0 )
@@ -303,7 +303,7 @@ RestoreSecondary()
 	move stick to y-axis [0.000000] speed [2.500000];
 	wait-for-move stick along y-axis;
 	Static_Var_5 = 0;
-	wpn2_lasthead = 100000;
+	wpn2_lasthead = 1000000;
 	if( bAiming == 1 )
 	{
 		if( ( !Static_Var_4 ) AND ( !Static_Var_6 ) )
@@ -321,7 +321,7 @@ RestoreTertiary()
 	Static_Var_6 = 0;
 	turn launcher to y-axis <0.000000> speed <105.000000>;
 	turn launcher to x-axis <0.000000> speed <105.000000>;
-	wpn3_lasthead = 100000;
+	wpn3_lasthead = 1000000;
 	if( bAiming == 1 )
 	{
 		if( Static_Var_4 == 0 AND Static_Var_5 == 0 )
@@ -428,6 +428,7 @@ AimPrimary(heading, pitch)
 	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
 		wait-for-turn lshoulder around x-axis;
 		wait-for-turn rshoulder around x-axis;
@@ -516,6 +517,7 @@ AimSecondary(heading, pitch)
 	turn stick to y-axis heading speed <140.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 	wait-for-turn stick around y-axis;
 	}
 	wpn2_lasthead = heading;
@@ -605,6 +607,7 @@ AimTertiary(heading, pitch)
 	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn launcher around y-axis;
 		wait-for-turn launcher around x-axis;
 	}

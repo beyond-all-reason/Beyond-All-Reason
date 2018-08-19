@@ -69,7 +69,7 @@ RestoreAfterDelay()
 	turn launcher to x-axis <0.000000> speed <50.010989>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn launcher around x-axis;
-	wpn1_lasthead = 100000;
+	wpn1_lasthead = 1000000;
 }
 
 AimPrimary(heading, pitch)
@@ -79,6 +79,7 @@ AimPrimary(heading, pitch)
 	turn launcher to x-axis <0.000000> - pitch speed <150.032967>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
+		wpn1_lasthead = 1000000;
 		wait-for-turn turret around y-axis;
 		wait-for-turn launcher around x-axis;
 	}
