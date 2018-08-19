@@ -2443,9 +2443,15 @@ definitions['genericshellexplosion-catapult'].clouddust.properties.numparticles 
 
 
 definitions['genericshellexplosion-sniper'] = deepcopy(definitions[root.."-large"])
-definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0.3 0.15 0.22   1 0.2 0.12 0.16   0.8 0.16 0.09 0.07   0 0 0 0]]
-definitions['genericshellexplosion-sniper'].explosion2.properties.colormap    = [[0 0 0 0   1 0 0 0.22   1 0.1 0.09 0.16   0.8 0.1 0.05 0.07   0 0 0 0]]
+definitions['genericshellexplosion-sniper'].explosion.properties.colormap    = [[0 0 0 0   1 0.3 0.15 0.01   1 0.2 0.12 0.01   0.8 0.16 0.09 0.01   0 0 0 0]]
+definitions['genericshellexplosion-sniper'].explosion.properties.numparticles = definitions['genericshellexplosion-sniper'].explosion.properties.numparticles*1.3
+definitions['genericshellexplosion-sniper'].explosion2.properties.colormap    = [[0 0 0 0   1 0 0 0.01   1 0.1 0.09 0.01   0.8 0.1 0.05 0.01   0 0 0 0]]
+definitions['genericshellexplosion-sniper'].explosion2.properties.numparticles = definitions['genericshellexplosion-sniper'].explosion2.properties.numparticles*1.3
 definitions['genericshellexplosion-sniper'].sparks.properties.colormap        = [[1 0.3 0.1 0.01   0.9 0.3 0.2 0.017   0 0 0 0]]
+definitions['genericshellexplosion-sniper'].explosion.properties.particlesize = definitions['genericshellexplosion-sniper'].explosion.properties.particlesize * 0.85
+definitions['genericshellexplosion-sniper'].explosion.properties.particlesizespread = definitions['genericshellexplosion-sniper'].explosion.properties.particlesizespread * 0.85
+definitions['genericshellexplosion-sniper'].explosion2.properties.particlesize = definitions['genericshellexplosion-sniper'].explosion2.properties.particlesize * 0.85
+definitions['genericshellexplosion-sniper'].explosion2.properties.particlesizespread = definitions['genericshellexplosion-sniper'].explosion2.properties.particlesizespread * 0.85
 
 
 definitions['expldgun'] = deepcopy(definitions[root.."-small"])

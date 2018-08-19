@@ -160,6 +160,7 @@ return {
 				},
 				customparams = {
 					light_skip = true,
+					--expl_light_heat_radius_mult = 5,
 				},
 			},
 
