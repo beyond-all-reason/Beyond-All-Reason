@@ -1,7 +1,7 @@
 return {
 	armspid = {
 		acceleration = 0.18,
-		autoheal = 0,
+		autoheal = 15,
 		brakerate = 0.564,
 		buildcostenergy = 3400,
 		buildcostmetal = 175,
@@ -21,7 +21,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 600,
-		maxdamage = 1000,
+		maxdamage = 850,
 		maxvelocity = 2.385,
 		maxwaterdepth = 16,
 		movementclass = "TKBOT2",

@@ -5,7 +5,7 @@ IMPORTANT: Removed support for older engine versions, use 104.0.1.567 or newer.
 
 Balance:
  • More frequent re-aiming (each frame) + starts targetting before units enters range (at maxrange + 10%)
- • EMP spider 18% more health
+ • EMP spider auto heals itself with 15hp per second (ba9.37 had 30 before it was removed)
 
 Other:
  • Added option "Move Window Position"
@@ -14,13 +14,13 @@ Other:
  • Player camara tracking also limits view to players viewpoint and losmode
  • Top bar: when low energy: red background, when overflowing: resource colored
  • Advplayerlist can auto collapse, availible in options: Interface -> "Playerlist auto collapses"
- • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
  • Reduces size of air thrusters overall and they dont show when plane is crashing
  • Added lups thrusters to armatlas/corvalk/banshee
  • Options widget remembers/restores some spring config settings
+ • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
+ • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
 
 Fixes:
- • Removed "GroupMove" widget because it had side effects/downsides
  • Closing game when loaded unsupported AI (supported: DAI, KAIK, NullAI, Chickens)
  • Fixed DAI echospam + working with multiple DAI bots + behavior improvements
  • Changed Decoy com attacked warning sound to a regular unit under attack sound
@@ -29,8 +29,8 @@ Fixes:
  • Fixed Bloom rendering the map black on certain maps
 
 Removed:
+ • Removed "GroupMove" widget because it had side effects/downsides
  • Removed old console and old ally resource bars widget
- • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
  • Removed modoptions: "Control Victory", "firethroughfriendly", "smallfeaturenoblock", "reclaimunitefficiency", "mm_diminish_factor", "enemycomcount", "no_close_spawns", "heatmap"
 
 
