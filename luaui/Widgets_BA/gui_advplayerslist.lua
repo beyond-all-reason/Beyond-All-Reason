@@ -286,6 +286,8 @@ local dblclickPeriod = 0.4
 local backgroundMargin = 7
 local widgetRelRight = 0
 
+local desiredLosmodeChanged = 0
+
 --------------------------------------------------------------------------------
 -- GEOMETRY VARIABLES
 --------------------------------------------------------------------------------
@@ -908,12 +910,14 @@ local function LockCamera(playerID)
 			end
 			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
 				desiredLosmode = 'los'
+				desiredLosmodeChanged = os.clock()
 			end
 		elseif lockcameraHideEnemies and select(3,Spring_GetPlayerInfo(playerID)) then
 			if not fullView then
 				Spring.SendCommands("specfullview")
 			end
 			desiredLosmode = 'normal'
+			desiredLosmodeChanged = os.clock()
 		end
 		lockPlayerID = playerID
 		myLastCameraState = myLastCameraState or GetCameraState()
@@ -932,6 +936,7 @@ local function LockCamera(playerID)
 			end
 			if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
 				desiredLosmode = 'normal'
+				desiredLosmodeChanged = os.clock()
 			end
 		end
 		lockPlayerID = nil
@@ -1063,6 +1068,7 @@ function widget:Initialize()
 					Spring.SendCommands("specfullview")
 					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
 						desiredLosmode = 'normal'
+						desiredLosmodeChanged = os.clock()
 						Spring.SendCommands("togglelos")
 					end
 				end
@@ -1071,6 +1077,7 @@ function widget:Initialize()
 					Spring.SendCommands("specfullview")
 					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
 						desiredLosmode = 'los'
+						desiredLosmodeChanged = os.clock()
 						Spring.SendCommands("togglelos")
 					end
 				end
@@ -1085,9 +1092,11 @@ function widget:Initialize()
 		if lockcameraHideEnemies and mySpecStatus and lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
 			if lockcameraLos and Spring.GetMapDrawMode()~="los" then
 				desiredLosmode = 'los'
+				desiredLosmodeChanged = os.clock()
 				Spring.SendCommands("togglelos")
 			elseif not lockcameraLos and Spring.GetMapDrawMode()=="los" then
 				desiredLosmode = 'normal'
+				desiredLosmodeChanged = os.clock()
 				Spring.SendCommands("togglelos")
 			end
 		end
@@ -1136,6 +1145,7 @@ function widget:Shutdown()
 	end
 	if lockPlayerID and mySpecStatus and Spring.GetMapDrawMode()=="los" then
 		desiredLosmode = 'normal'
+		desiredLosmodeChanged = os.clock()
 	end
 end
 
@@ -3663,6 +3673,7 @@ function widget:SetConfigData(data)      -- load
 					Spring.SendCommands("specfullview")
 					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()=="los" then
 						desiredLosmode = 'normal'
+						desiredLosmodeChanged = os.clock()
 					end
 				end
 			else
@@ -3670,6 +3681,7 @@ function widget:SetConfigData(data)      -- load
 					Spring.SendCommands("specfullview")
 					if lockcameraLos and mySpecStatus and Spring.GetMapDrawMode()~="los" then
 						desiredLosmode = 'los'
+						desiredLosmodeChanged = os.clock()
 					end
 				end
 			end
@@ -3919,12 +3931,14 @@ function widget:Update(delta) --handles takes & related messages
 		end
 	end
 	if lockcameraLos then
-		if lockPlayerID ~= nil then
-			if desiredLosmode ~= Spring.GetMapDrawMode() then	-- this is needed else the minimap/world doesnt update properly
+		if desiredLosmodeChanged+1 > os.clock() then
+			if lockPlayerID ~= nil then
+				if desiredLosmode ~= Spring.GetMapDrawMode() then	-- this is needed else the minimap/world doesnt update properly
+					Spring.SendCommands("togglelos")
+				end
+			elseif mySpecStatus and Spring.GetMapDrawMode() == 'los' then
 				Spring.SendCommands("togglelos")
 			end
-		elseif mySpecStatus and Spring.GetMapDrawMode() == 'los' then
-			Spring.SendCommands("togglelos")
 		end
 	end
 

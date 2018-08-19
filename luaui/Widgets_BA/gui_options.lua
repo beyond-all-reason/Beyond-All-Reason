@@ -1778,7 +1778,7 @@ function init()
 		for i, line in ipairs(fileLines) do
 			if addResolutions then
 				local resolution = string.match(line, '[0-9]*x[0-9]*')
-				if string.len(resolution) >= 7 then
+				if resolution and string.len(resolution) >= 7 then
 					local resolution = string.gsub(resolution, "x", " x ")
 					local resolutionX = string.match(resolution, '[0-9]*')
 					local resolutionY = string.gsub(string.match(resolution, 'x [0-9]*'), 'x ', '')
@@ -2013,7 +2013,9 @@ function init()
 	-- while we have set config-ints, that isnt enough to have these settings applied ingame
 	if savedConfig and Spring.GetGameFrame() == 0 then
 		for k, v in pairs(savedConfig) do
-			applyOptionValue(getOptionByID(k))
+			if getOptionByID(k) then
+				applyOptionValue(getOptionByID(k))
+			end
 		end
 	end
 
@@ -2423,6 +2425,7 @@ function widget:GetConfigData(data)
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",1) or 50)},
 		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",1) or 50)},
 		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 50)},
+		sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",1) or 50)},
 	}
 	return savedTable
 end
