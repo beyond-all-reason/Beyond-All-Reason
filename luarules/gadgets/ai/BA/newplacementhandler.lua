@@ -121,6 +121,8 @@ function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	local buildtype = "ground"
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
 	if p and p.x and p.y and p.z then
+		p.x = p.x - (p.x%16) + (defs.xsize*4 % 16)
+		p.z = p.z - (p.x%16) + (defs.xsize*4 % 16)
 		if Spring.TestBuildOrder(utype.id, p.x,p.y,p.z, "s") == 0 then
 			return
 		end
@@ -143,6 +145,8 @@ function NewPlacementHandler:CreateNewPlanNoSearch(unit, utype, p)
 	local cellsize = math.max(defs.xsize, defs.zsize) * 8
 	local buildtype = "ground"
 	if p and p.x and p.y and p.z then
+		p.x = p.x - (p.x%16) + defs.xsize*4
+		p.z = p.z - (p.x%16) + defs.xsize*4
 		self:ClosePosition(p.x, p.z, cellsize, self:GetMinimalSpacing(utype))
 		local newplan = {unitID = unit.id, unitDefID = utype.id, p = { x= p.x, y = p.y, z = p.z}}
 		local planID = self:GetIDFromPos(p.x, p.z, cellsize)
