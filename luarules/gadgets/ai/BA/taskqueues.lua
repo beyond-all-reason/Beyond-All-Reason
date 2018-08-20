@@ -459,7 +459,7 @@ function CorAirAdvDefT2(tqb, ai, unit)
 end
 
 function CorTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"corvipe","corflak"}
+	local unitoptions = {"corvipe","corflak", "cordoom", "corint", "corscreamer", "cortoast"}
 	local list = {}
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
@@ -1203,7 +1203,7 @@ function ArmAirAdvDefT2(tqb, ai, unit)
 end
 
 function ArmTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"armpb","armflak"}
+	local unitoptions = {"armpb","armflak", "armamb", "armmercury", "armbrtha", "armanni"}
 	local list = {}
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
