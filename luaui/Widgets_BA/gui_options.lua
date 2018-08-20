@@ -1785,6 +1785,8 @@ function init()
 					if tonumber(resolutionX) >= 640 and tonumber(resolutionY) >= 480 then
 						supportedResolutions[#supportedResolutions+1] = resolution
 					end
+				else
+					break
 				end
 			end
 			if string.find(line, '	display=') then
