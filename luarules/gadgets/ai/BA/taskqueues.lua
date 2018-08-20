@@ -372,6 +372,8 @@ end
 
 
 function CorEnT2( tqb, ai, unit )
+	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 15, 1)/6) ^ 2) * 1000 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
