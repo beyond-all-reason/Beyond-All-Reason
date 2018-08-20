@@ -589,7 +589,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Create()
 {
 	hide flash;
-	move flash to y-axis [4.5] now;
+	move flash to y-axis [11.5] now;
 	show backgun;
 	hide gun;
 	bMoving = FALSE;
