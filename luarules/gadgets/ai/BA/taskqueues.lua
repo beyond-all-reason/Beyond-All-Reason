@@ -767,6 +767,28 @@ function fast(tqb,ai,unit)
 		return {action = "nexttask"}
 	end
 end
+
+function CorVehT2RushOffense(tqb,ai,unit)
+	ai.t2rushoff = ai.t2rushoff or 0
+	ai.t2rushoff = ai.t2rushoff + 1
+	if ai.t2rushoff <= 2 then
+		local unitoptions = {"corsumo","corcan"}
+		return FindBest(unitoptions,ai)
+	else
+		return CorVehT2(tqb,ai,unit)
+	end
+end
+
+function CorKBotsT2RushOffense(tqb,ai,unit)
+	ai.t2rushoff = ai.t2rushoff or 0
+	ai.t2rushoff = ai.t2rushoff + 1
+	if ai.t2rushoff <= 2 then
+		local unitoptions = {"corsumo","corcan"}
+		return FindBest(unitoptions,ai)
+	else
+		return CorKBotsT2(tqb,ai,unit)
+	end
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- CoreTasks ----------------------------------------
 --------------------------------------------------------------------------------------------
@@ -863,9 +885,11 @@ local corairlab = {
 
 corkbotlabT2 = {
 	CorStartT2KbotCon,
+	CorKBotsT2RushOffense,
 	fast,
 	CorStartT2KbotCon,
 	CorStartT2KbotCon,
+	CorKBotsT2RushOffense,
 	CorKBotsT2,
 	CorConKbotT2,
 	CorKBotsT2,
@@ -875,8 +899,10 @@ corkbotlabT2 = {
 
 corvehlabT2 = {
 	CorStartT2VehCon,
+	CorVehT2RushOffense,
 	CorStartT2VehCon,
 	CorStartT2VehCon,
+	CorVehT2RushOffense,
 	CorVehT2,
 	CorConVehT,
 	CorVehT2,
@@ -1551,6 +1577,28 @@ function consul(tqb,ai,unit)
 		return {action = "nexttask"}
 	end
 end
+
+function ArmVehT2RushOffense(tqb,ai,unit)
+	ai.t2rushoff = ai.t2rushoff or 0
+	ai.t2rushoff = ai.t2rushoff + 1
+	if ai.t2rushoff <= 2 then
+		local unitoptions = {"armbull","armmanni"}
+		return FindBest(unitoptions,ai)
+	else
+		return ArmVehT2(tqb,ai,unit)
+	end
+end
+
+function ArmKBotsT2RushOffense(tqb,ai,unit)
+	ai.t2rushoff = ai.t2rushoff or 0
+	ai.t2rushoff = ai.t2rushoff + 1
+	if ai.t2rushoff <= 2 then
+		local unitoptions = {"armmav","armfido", "armfboy"}
+		return FindBest(unitoptions,ai)
+	else
+		return ArmKBotsT2(tqb,ai,unit)
+	end
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- ArmTasks -----------------------------------------
 --------------------------------------------------------------------------------------------
@@ -1646,11 +1694,12 @@ local armairlab = {
 }
 
 armkbotlabT2 = {
-	ArmStartT1KbotCon,
+	ArmStartT2KbotCon,
+	ArmKBotsT2RushOffense,
 	fark,
-	ArmStartT1KbotCon,
-	ArmStartT1KbotCon,
-	ArmKBotsT2,
+	ArmStartT2KbotCon,
+	ArmStartT2KbotCon,
+	ArmKBotsT2RushOffense,
 	ArmConKBotT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
@@ -1658,11 +1707,12 @@ armkbotlabT2 = {
 }
 
 armvehlabT2 = {
-	ArmStartT1VehCon,
+	ArmStartT2VehCon,
+	ArmVehT2RushOffense,
 	consul,
-	ArmStartT1VehCon,
-	ArmStartT1VehCon,
-	ArmVehT2,
+	ArmStartT2VehCon,
+	ArmStartT2VehCon,
+	ArmVehT2RushOffense,
 	ArmConVehT2,
 	ArmVehT2,
 	ArmVehT2,
