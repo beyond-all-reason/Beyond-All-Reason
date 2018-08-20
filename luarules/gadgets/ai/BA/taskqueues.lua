@@ -324,12 +324,12 @@ function CorNanoT(tqb, ai, unit)
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	if not (countAdvBuilders >= 1) then
-		if (UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id)) < 4 and timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 then
+		if (UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id)) < 4 and timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 then
 			return "cornanotc"
 		else
 			return skip
 		end
-	elseif timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
+	elseif timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
 		return "cornanotc"
 	else
 		return skip
@@ -1157,12 +1157,12 @@ function ArmNanoT(tqb, ai, unit)
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countAdvBuilders = UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) + UDC(ai.id, UDN.armaca.id) + UDC(ai.id, UDN.corack.id) + UDC(ai.id, UDN.coracv.id) + UDC(ai.id, UDN.coraca.id)
 	if not (countAdvBuilders >= 1) then
-		if (UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id)) < 4 and timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 then
+		if (UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id)) < 4 and timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 then
 			return "armnanotc"
 		else
 			return skip
 		end
-	elseif timetostore(ai, "energy", 5000) < 10 and timetostore(ai, "metal", 300) < 10 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
+	elseif timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
 		return "armnanotc"
 	else
 		return skip
