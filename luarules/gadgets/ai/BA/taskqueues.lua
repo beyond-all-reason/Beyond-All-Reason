@@ -1077,6 +1077,7 @@ assistqueueconsul = {
 --------------------------------------------------------------------------------------------
 
 local function corcommander(tqb, ai, unit)
+	ai.t1priorityrate = ai.t1priorityrate or 1
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	if countBasicFacs > 0 then
 	--return armcommanderq
