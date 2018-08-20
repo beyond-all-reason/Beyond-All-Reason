@@ -195,6 +195,14 @@ end
 		local h,maxh,_ = Spring.GetUnitHealth(unitID)
 		damage = math.min(h,damage)
 		if paralyzer then damage = damage * 0.2 end
+		if attackerDefID and attackerTeam then
+			local count = Spring.GetTeamUnitDefCount(attackerTeam, attackerDefID)
+			if count > 0 then
+				ratio2 = 30/count
+			else
+				ratio2 = 30
+			end
+		end
 		local ratio = damage/maxh
 		local killed_m = UnitDefs[unitDefID].metalCost * ratio
 		local killed_e = UnitDefs[unitDefID].energyCost * ratio

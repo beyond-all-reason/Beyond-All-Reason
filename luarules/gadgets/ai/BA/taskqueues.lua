@@ -691,6 +691,30 @@ function CorT1VehCon(tqb, ai, unit)
 	end
 end
 
+function CorConVehT2(tqb, ai, unit)
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["coracv"].id].metalCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/350 then
+		return "coracv"
+	else
+		return {action = "nexttask"}
+	end
+end
+
+function CorConKBotT2(tqb, ai, unit)
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corack"].id].metalCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/350 then
+		return "corack"
+	else
+		return {action = "nexttask"}
+	end
+end
+
+function CorStartT2KbotCon(tqb, ai, unit)
+	return (((UDC(ai.id, UDN.corack.id) < 3) and"corack") or CorKBotsT2(tqb, ai, unit))
+end
+
+function CorStartT2VehCon(tqb, ai, unit)
+	return (((UDC(ai.id, UDN.coracv.id) < 3) and"coracv") or CorVehT2(tqb, ai, unit))
+end
+
 function CorStartT1VehCon(tqb, ai, unit)
 	return (((Spring.GetGameSeconds() < 180) and"corcv") or CorVehT1(tqb, ai, unit))
 	end
@@ -736,6 +760,13 @@ function CorThirdMex(tqb, ai, unit)
 	end
 end
 
+function fast(tqb,ai,unit)
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corfast"].id].metalCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/350 then
+		return "corfast"
+	else
+		return {action = "nexttask"}
+	end
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- CoreTasks ----------------------------------------
 --------------------------------------------------------------------------------------------
@@ -755,8 +786,11 @@ local corcommanderfirst = {
 
 local cort1eco = {
 	CorEnT1,
+	CorTech,
 	CorEnT1,
+	CorTech,
 	CorEnT1,
+	CorTech,
 	CorNanoT,
 	CorTech,
 }
@@ -828,23 +862,23 @@ local corairlab = {
 }
 
 corkbotlabT2 = {
-	"corack",
-	"corfast",
+	CorStartT2KbotCon,
+	fast,
+	CorStartT2KbotCon,
+	CorStartT2KbotCon,
 	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	"corack",
+	CorConKbotT2,
 	CorKBotsT2,
 	CorKBotsT2,
 	CorKBotsT2,
 }
 
 corvehlabT2 = {
-	"coracv",
+	CorStartT2VehCon,
+	CorStartT2VehCon,
+	CorStartT2VehCon,
 	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-	"coracv",
+	CorConVehT,
 	CorVehT2,
 	CorVehT2,
 	CorVehT2,
@@ -1477,6 +1511,46 @@ function ArmThirdMex(tqb, ai, unit)
 		return ArmWindOrSolar(tqb,ai,unit)
 	end
 end
+
+function ArmConVehT2(tqb, ai, unit)
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armacv"].id].metalCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/350 then
+		return "armacv"
+	else
+		return {action = "nexttask"}
+	end
+end
+
+function ArmConKBotT2(tqb, ai, unit)
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armack"].id].metalCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/350 then
+		return "armack"
+	else
+		return {action = "nexttask"}
+	end
+end
+
+function ArmStartT2KbotCon(tqb, ai, unit)
+	return (((UDC(ai.id, UDN.armack.id) < 3) and"armack") or ArmKBotsT2(tqb, ai, unit))
+end
+
+function ArmStartT2VehCon(tqb, ai, unit)
+	return (((UDC(ai.id, UDN.armacv.id) < 3) and"armacv") or ArmVehT2(tqb, ai, unit))
+end
+
+function fark(tqb,ai,unit)
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armfark"].id].metalCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/350 then
+		return "armfark"
+	else
+		return {action = "nexttask"}
+	end
+end
+
+function consul(tqb,ai,unit)
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armconsul"].id].metalCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/350 then
+		return "armconsul"
+	else
+		return {action = "nexttask"}
+	end
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- ArmTasks -----------------------------------------
 --------------------------------------------------------------------------------------------
@@ -1496,8 +1570,11 @@ local armcommanderfirst = {
 
 local armt1eco = {
 	ArmEnT1,
+	ArmTech,
 	ArmEnT1,
+	ArmTech,
 	ArmEnT1,
+	ArmTech,
 	ArmNanoT,
 	ArmTech,
 }
@@ -1569,24 +1646,24 @@ local armairlab = {
 }
 
 armkbotlabT2 = {
-	"armack",
-	"armfark",
+	ArmStartT1KbotCon,
+	fark,
+	ArmStartT1KbotCon,
+	ArmStartT1KbotCon,
 	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	"armack",
+	ArmConKBotT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
 	ArmKBotsT2,
 }
 
 armvehlabT2 = {
-	"armacv",
-	"armconsul",
+	ArmStartT1VehCon,
+	consul,
+	ArmStartT1VehCon,
+	ArmStartT1VehCon,
 	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	"armacv",
+	ArmConVehT2,
 	ArmVehT2,
 	ArmVehT2,
 	ArmVehT2,
