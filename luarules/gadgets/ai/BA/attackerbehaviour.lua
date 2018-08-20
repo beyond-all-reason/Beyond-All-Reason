@@ -60,7 +60,7 @@ function AttackerBehaviour:AttackCell(type)
 	local utype = self.game:GetTypeByName(unit:Name())
 	local nearestUnit = Spring.GetUnitNearestEnemy(unitID, _, false)
 	local distance = nearestUnit and Spring.GetUnitSeparation(unitID, nearestUnit)
-	local refreshRate = math.floor((distance or 500)/10)
+	local refreshRate = math.max(math.floor(((distance or 500)/10)),10)
 	local frame = Spring.GetGameFrame()
 	-- Spring.Echo(unitID)
 	if unitID%refreshRate == frame%refreshRate then
