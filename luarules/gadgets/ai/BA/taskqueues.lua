@@ -152,6 +152,35 @@ function GetPlannedAdvancedLabs(tqb, ai, unit)
 	return total
 end
 
+function GetPlannedLabs(tqb, ai, unit)
+	local list = {
+	UDN.armalab.id,
+	UDN.coralab.id,
+	UDN.armavp.id,
+	UDN.coravp.id,
+	UDN.armaap.id,
+	UDN.coraap.id,	
+	UDN.armasy.id,
+	UDN.corasy.id,
+	UDN.armvp.id,
+	UDN.corvp.id,
+	UDN.armap.id,
+	UDN.corap.id,
+	UDN.armlab.id,
+	UDN.corlab.id,
+	UDN.armshltx.id,
+	UDN.corgant.id,
+	}
+	local total = 0
+	for ct, unitDefID in pairs(list) do
+		local planned = ai.newplacementhandler:GetExistingPlansByUnitDefID(unitDefID)
+		for planID, plan in pairs(planned) do
+			total = total + 1
+		end
+	end
+	return total
+end
+
 function GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit)
 	local list = {
 	UDN.armalab.id,
@@ -194,7 +223,7 @@ function GetPlannedAndUnfinishedLabs(tqb,ai,unit)
 	for ct, unitDefID in pairs(list) do
 		count = count + UUDC(UnitDefs[unitDefID].name, ai.id)
 	end
-	count = count + GetPlannedAdvancedLabs(tqb, ai, unit)
+	count = count + GetPlannedLabs(tqb, ai, unit)
 	return count
 end
 
@@ -278,7 +307,7 @@ function CorLLT(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -343,14 +372,27 @@ end
 
 
 function CorEnT2( tqb, ai, unit )
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 15, 1)/6) ^ 2) * 1000 then
-        return "corfus"
-	elseif ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
-		return "corfus"
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "corfus", pos = {x = x, y = y, z = z}}
+		else
+			return "corfus"
+		end
+	elseif ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es and timetostore(ai, "metal", UnitDefs[UnitDefNames["armfus"].id].metalCost) < 120 then
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "corfus", pos = {x = x, y = y, z = z}}
+		else
+			return "corfus"
+		end
     elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
-        return "cormmkr"
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "cormmkr", pos = {x = x, y = y, z = z}}
+		else
+			return "cormmkr"
+		end
 	else
 		return skip
 	end
@@ -428,7 +470,7 @@ function CorExpandRandomLab(tqb, ai, unit)
 	end
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0  and AllAdvancedLabs(tqb,ai,unit) > 0 then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0  and AllAdvancedLabs(tqb,ai,unit) > 0 then
 			labtype = labtype
 		else
 			labtype = skip
@@ -436,7 +478,14 @@ function CorExpandRandomLab(tqb, ai, unit)
 	else
 		labtype = skip
 	end
-	return labtype
+	if labtype == skip then
+		return labtype
+	elseif GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+		local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+		return {action = labtype, pos = {x = x, y = y, z = z}}
+	else
+		return labtype
+	end
 end
 
 function CorGroundAdvDefT1(tqb, ai, unit)
@@ -445,7 +494,7 @@ function CorGroundAdvDefT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -463,7 +512,7 @@ function CorAirAdvDefT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -481,7 +530,7 @@ function CorAirAdvDefT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -499,7 +548,7 @@ function CorTacticalAdvDefT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -536,7 +585,7 @@ function CorKBotsT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -554,7 +603,7 @@ function CorVehT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -572,7 +621,7 @@ function CorAirT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -591,7 +640,7 @@ function CorKBotsT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -609,7 +658,7 @@ function CorVehT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -627,7 +676,7 @@ function CorAirT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -645,7 +694,7 @@ function CorHover(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -683,7 +732,7 @@ function CorGantry(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -698,7 +747,7 @@ end
 --constructors:
 
 function CorT1KbotCon(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corck"].id].metalCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corck"].id].metalCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corck"].id].energyCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/350 then
 		return "corck"
 	else
 		return skip
@@ -719,7 +768,7 @@ function CorT1RezBot(tqb, ai, unit)
 end
 
 function CorT1VehCon(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corcv"].id].metalCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corcv"].id].metalCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corcv"].id].energyCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/350 then
 		return "corcv"
 	else
 		return skip
@@ -727,7 +776,7 @@ function CorT1VehCon(tqb, ai, unit)
 end
 
 function CorConVehT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["coracv"].id].metalCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["coracv"].id].metalCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["coracv"].id].energyCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/350 then
 		return "coracv"
 	else
 		return skip
@@ -735,7 +784,7 @@ function CorConVehT2(tqb, ai, unit)
 end
 
 function CorConKBotT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corack"].id].metalCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corack"].id].metalCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corack"].id].energyCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/350 then
 		return "corack"
 	else
 		return skip
@@ -743,11 +792,11 @@ function CorConKBotT2(tqb, ai, unit)
 end
 
 function CorStartT2KbotCon(tqb, ai, unit)
-	return (((UDC(ai.id, UDN.corack.id) < 3) and"corack") or CorKBotsT2(tqb, ai, unit))
+	return (((UDC(ai.id, UDN.corack.id) < 5) and"corack") or CorKBotsT2(tqb, ai, unit))
 end
 
 function CorStartT2VehCon(tqb, ai, unit)
-	return (((UDC(ai.id, UDN.coracv.id) < 3) and"coracv") or CorVehT2(tqb, ai, unit))
+	return (((UDC(ai.id, UDN.coracv.id) < 5) and"coracv") or CorVehT2(tqb, ai, unit))
 end
 
 function CorStartT1VehCon(tqb, ai, unit)
@@ -796,7 +845,7 @@ function CorThirdMex(tqb, ai, unit)
 end
 
 function fast(tqb,ai,unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corfast"].id].metalCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corfast"].id].metalCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corfast"].id].energyCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/350 then
 		return "corfast"
 	else
 		return skip
@@ -1090,7 +1139,7 @@ function ArmLLT(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1160,11 +1209,26 @@ function ArmEnT2( tqb, ai, unit )
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	if ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 15, 1)/6) ^ 2) * 1000 then
-        return "armfus"
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "armfus", pos = {x = x, y = y, z = z}}
+		else
+			return "armfus"
+		end
 	elseif ei > 800 and mi > 35 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and ei - ee < 0 and ec < 0.8 * es and timetostore(ai, "metal", UnitDefs[UnitDefNames["armfus"].id].metalCost) < 120 then
-		return "armfus"
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "armfus", pos = {x = x, y = y, z = z}}
+		else
+			return "armfus"
+		end
     elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
-        return "armmmkr"
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "armmmkr", pos = {x = x, y = y, z = z}}
+		else
+			return "armmmkr"
+		end
 	else
 		return skip
 	end
@@ -1240,7 +1304,7 @@ function ArmExpandRandomLab(tqb, ai, unit)
 	end
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0 and AllAdvancedLabs(tqb,ai,unit) > 0 then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0 and AllAdvancedLabs(tqb,ai,unit) > 0 then
 			labtype = labtype
 		else
 			labtype = skip
@@ -1248,8 +1312,14 @@ function ArmExpandRandomLab(tqb, ai, unit)
 	else
 		labtype = skip
 	end
-	unit.mode = "assist"
-	return labtype
+	if labtype == skip then
+		return labtype
+	elseif GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+		local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+		return {action = labtype, pos = {x = x, y = y, z = z}}
+	else
+		return labtype
+	end
 end
 
 
@@ -1259,7 +1329,7 @@ function ArmGroundAdvDefT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1277,7 +1347,7 @@ function ArmAirAdvDefT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1295,7 +1365,7 @@ function ArmAirAdvDefT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1313,7 +1383,7 @@ function ArmTacticalAdvDefT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1349,7 +1419,7 @@ function ArmKBotsT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1367,7 +1437,7 @@ function ArmVehT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1385,7 +1455,7 @@ function ArmAirT1(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1404,7 +1474,7 @@ function ArmKBotsT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1422,7 +1492,7 @@ function ArmVehT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1440,7 +1510,7 @@ function ArmAirT2(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1458,7 +1528,7 @@ function ArmHover(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1497,7 +1567,7 @@ function ArmGantry(tqb, ai, unit)
 	local count = 0
 	for ct, unitName in pairs(unitoptions) do
 		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			count = count + 1
 			list[count] = unitName
 		end
@@ -1512,7 +1582,7 @@ end
 --constructors:
 
 function ArmT1KbotCon(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armck"].id].metalCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armck"].id].metalCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armck"].id].energyCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/350 then
 		return "armck"
 	else
 		return skip
@@ -1532,7 +1602,7 @@ function ArmT1RezBot(tqb, ai, unit)
 end
 
 function ArmT1VehCon(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armcv"].id].metalCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armcv"].id].metalCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armcv"].id].energyCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/350 then
 		return "armcv"
 	else
 		return skip
@@ -1584,7 +1654,7 @@ function ArmThirdMex(tqb, ai, unit)
 end
 
 function ArmConVehT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armacv"].id].metalCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armacv"].id].metalCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armacv"].id].energyCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/350 then
 		return "armacv"
 	else
 		return skip
@@ -1592,7 +1662,7 @@ function ArmConVehT2(tqb, ai, unit)
 end
 
 function ArmConKBotT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armack"].id].metalCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armack"].id].metalCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armack"].id].energyCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/350 then
 		return "armack"
 	else
 		return skip
@@ -1600,15 +1670,15 @@ function ArmConKBotT2(tqb, ai, unit)
 end
 
 function ArmStartT2KbotCon(tqb, ai, unit)
-	return (((UDC(ai.id, UDN.armack.id) < 3) and"armack") or ArmKBotsT2(tqb, ai, unit))
+	return (((UDC(ai.id, UDN.armack.id) < 5) and"armack") or ArmKBotsT2(tqb, ai, unit))
 end
 
 function ArmStartT2VehCon(tqb, ai, unit)
-	return (((UDC(ai.id, UDN.armacv.id) < 3) and"armacv") or ArmVehT2(tqb, ai, unit))
+	return (((UDC(ai.id, UDN.armacv.id) < 5) and"armacv") or ArmVehT2(tqb, ai, unit))
 end
 
 function fark(tqb,ai,unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armfark"].id].metalCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armfark"].id].metalCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armfark"].id].energyCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/350 then
 		return "armfark"
 	else
 		return skip
@@ -1616,7 +1686,7 @@ function fark(tqb,ai,unit)
 end
 
 function consul(tqb,ai,unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armconsul"].id].metalCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/350 then
+	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armconsul"].id].metalCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/350 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armconsul"].id].energyCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/350 then
 		return "armconsul"
 	else
 		return skip
@@ -1817,6 +1887,7 @@ assistqueue = {
 --------------------------------------------------------------------------------------------
 
 local function armcommander(tqb, ai, unit)
+	ai.t1priorityrate = ai.t1priorityrate or 1
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	if countBasicFacs > 0 then
 	--return armcommanderq
