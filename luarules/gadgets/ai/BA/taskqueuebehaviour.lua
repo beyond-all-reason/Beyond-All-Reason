@@ -345,7 +345,7 @@ function TaskQueueBehaviour:BuildExtractor(utype)
 	if p and self.game.map:CanBuildHere(utype,p) ~= true then
 		p = self.ai.metalspothandler:GetClosestMexPosition(p, up.x, up.z, utype.id, "s")
 		if p == nil or self.game.map:CanBuildHere(utype,p) ~= true then
-			local blockingUnits = Spring.GetUnitsInCylinder(sp.x, sp.z, 128)
+			local blockingUnits = Spring.GetUnitsInCylinder(sp.x, sp.z, 160)
 			for ct, bunitID in pairs(blockingUnits) do
 				if not (UnitDefs[Spring.GetUnitDefID(bunitID)].canMove == true) then
 					unit:ExecuteCustomCommand(CMD.INSERT, {-1, CMD.RECLAIM, CMD.OPT_INTERNAL, bunitID}, {"alt"})
