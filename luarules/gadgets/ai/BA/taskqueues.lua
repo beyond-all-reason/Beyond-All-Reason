@@ -492,7 +492,7 @@ function CorTech(tqb, ai, unit)
 end
 
 function CorExpandRandomLab(tqb, ai, unit)
-	local labtype = ai.aimodehandler:ArmExpandRandomLab(tqb,ai,unit)
+	local labtype = ai.aimodehandler:CorExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0  and AllAdvancedLabs(tqb,ai,unit) > 0 then
@@ -976,11 +976,14 @@ local cort1expand = {
 	CorExpandRandomLab,
 	-- CorLLT,
 	CorMexT1,
+	CorExpandRandomLab,
 	CorLLT,
 	CorMexT1,
+	CorExpandRandomLab,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	CorLLT,
 	CorRad,
+	CorExpandRandomLab,
 	CorGeo,
 	CorLLT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
@@ -1003,6 +1006,7 @@ local cort2expand = {
 	CorTacticalAdvDefT2,
 	"cormoho",
 	CorTacticalAdvDefT2,
+	CorExpandRandomLab,
 	"cormoho",
 	CorARad,
 	CorExpandRandomLab,
@@ -1850,11 +1854,14 @@ local armt1expand = {
 	ArmExpandRandomLab,
 	-- ArmLLT,
 	ArmMexT1,
+	ArmExpandRandomLab,
 	ArmLLT,
 	ArmMexT1,
+	ArmExpandRandomLab,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	ArmLLT,
 	ArmRad,
+	ArmExpandRandomLab,
 	ArmGeo,
 	-- ArmLLT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
@@ -1876,6 +1883,7 @@ local armt2expand = {
 	"armmoho",
 	ArmTacticalAdvDefT2,
 	"armmoho",
+	ArmExpandRandomLab,
 	ArmTacticalAdvDefT2,
 	"armmoho",
 	ArmARad,
