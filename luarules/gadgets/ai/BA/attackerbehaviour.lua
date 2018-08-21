@@ -72,16 +72,17 @@ function AttackerBehaviour:AttackCell(type)
 		local maxhealth = unit:GetMaxHealth()
 		-- Skirmishing
 		if (not utype:CanFly() == true) then
-			if closestUnit and (closestVisible) and (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
+			if closestUnit and (closestVisible) and (not UnitDefs[Spring.GetUnitDefID(closestUnit)].canFly == true) and (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
 				local enemyRange = Spring.GetUnitMaxRange(closestUnit)
 				if myRange >= enemyRange and enemyRange > 50 and enemyRange ~= nil then
+					local wantedRange = myRange
 					local ex,ey,ez = Spring.GetUnitPosition(closestUnit)
 					local ux,uy,uz = Spring.GetUnitPosition(unitID)
 					local pointDis = Spring.GetUnitSeparation(unitID,closestUnit)
 					local dis = 120
 					local f = dis/pointDis
 					if (pointDis+dis > Spring.GetUnitMaxRange(unitID)) then
-					  f = (Spring.GetUnitMaxRange(unitID)-pointDis)/pointDis
+					  f = (wantedRange-pointDis)/pointDis
 					end
 					local cx = ux+(ux-ex)*f
 					local cy = uy
