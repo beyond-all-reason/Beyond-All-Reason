@@ -471,9 +471,13 @@ function CorTech(tqb, ai, unit)
 	if AllAdvancedLabs(tqb, ai, unit) == 0 then
 		if (income(ai, "metal") > 25 and (income(ai, "energy") > 450)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
 			if unit:Name() == "corck" then
+				pos = unit:GetPosition()
+				ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
 				ai.firstT2 = true
 				return "coralab"
 			elseif unit:Name() == "corcv" then
+				pos = unit:GetPosition()
+				ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
 				ai.firstT2 = true
 				return "coravp"
 			else 
@@ -1346,9 +1350,13 @@ function ArmTech(tqb, ai, unit)
 	if AllAdvancedLabs(tqb, ai, unit) == 0 then
 		if (income(ai, "metal") > 25 and (income(ai, "energy") > 450)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
 			if unit:Name() == "armck" then
+				pos = unit:GetPosition()
+				ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
 				ai.firstT2 = true
 				return "armalab"
 			elseif unit:Name() == "armcv" then
+				pos = unit:GetPosition()
+				ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
 				ai.firstT2 = true
 				return "armavp"
 			else 
