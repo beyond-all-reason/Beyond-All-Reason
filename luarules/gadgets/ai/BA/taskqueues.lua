@@ -926,6 +926,7 @@ local cort2eco = {
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
+	CorExpandRandomLab,
 }
 
 local cort2expand = {
@@ -1762,6 +1763,7 @@ local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
+	ArmExpandRandomLab,
 }
 
 local armt2expand = {
