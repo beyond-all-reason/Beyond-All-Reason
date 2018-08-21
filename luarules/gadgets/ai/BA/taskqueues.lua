@@ -492,24 +492,7 @@ function CorTech(tqb, ai, unit)
 end
 
 function CorExpandRandomLab(tqb, ai, unit)
-	local labtype
-	if UDC(ai.id, UDN.corlab.id) < 1 then
-		labtype = "corlab"
-	elseif UDC(ai.id, UDN.coralab.id) < 1 then
-		labtype = "coralab"
-	elseif UDC(ai.id, UDN.corvp.id) < 1 then
-		labtype = "corvp"
-	elseif UDC(ai.id, UDN.coravp.id) < 1 then
-		labtype = "coravp"
-	elseif UDC(ai.id, UDN.corap.id) < 1 then
-		labtype = "corap"
-	elseif UDC(ai.id, UDN.coraap.id) < 1 then
-		labtype = "coraap"
-	elseif UDC(ai.id, UDN.corgant.id) < 1 then
-		labtype = "corgant"
-	else
-		labtype = FindBest({"corlab", "coralab", "corvp", "coravp", "corap", "coraap", "corgant"}, ai)
-	end
+	local labtype = ai.aimodehandler:ArmExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0  and AllAdvancedLabs(tqb,ai,unit) > 0 then
@@ -1376,24 +1359,7 @@ end
 
 
 function ArmExpandRandomLab(tqb, ai, unit)
-	local labtype
-	if UDC(ai.id, UDN.armlab.id) < 1 then
-		labtype = "armlab"
-	elseif UDC(ai.id, UDN.armalab.id) < 1 then
-		labtype = "armalab"
-	elseif UDC(ai.id, UDN.armvp.id) < 1 then
-		labtype = "armvp"
-	elseif UDC(ai.id, UDN.armavp.id) < 1 then
-		labtype = "armavp"
-	elseif UDC(ai.id, UDN.armap.id) < 1 then
-		labtype = "armap"
-	elseif UDC(ai.id, UDN.armaap.id) < 1 then
-		labtype = "armaap"
-	elseif UDC(ai.id, UDN.armshltx.id) < 1 then
-		labtype = "armshltx"
-	else
-		labtype = FindBest({"armlab", "armalab", "armvp", "armavp", "armap", "armaap", "armshltx"}, ai)
-	end
+	local labtype = ai.aimodehandler:ArmExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0 and AllAdvancedLabs(tqb,ai,unit) > 0 then
