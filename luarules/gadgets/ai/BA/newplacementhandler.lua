@@ -29,7 +29,6 @@ function NewPlacementHandler:FreePosition(x,z,cellsize,spacing)
 end
 
 function NewPlacementHandler:UnitIdle(engineunit)
-	Spring.Echo("idle")
 	local unitDefID = UnitDefNames[unit:Name()].id
 	local defs = UnitDefs[unitDefID]
 	if defs then
