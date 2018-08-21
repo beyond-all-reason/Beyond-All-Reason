@@ -43,7 +43,7 @@ end
 
 function corvehicle(tqb, ai, unit)
 	if UDC(ai.id, UDN.corvp.id) < 1 then
-		return "coravp"
+		return "corvp"
 	elseif UDC(ai.id, UDN.coravp.id) < 1 then
 		return "coravp"
 	end
@@ -81,7 +81,7 @@ end
 
 function armvehicle(tqb, ai, unit)
 	if UDC(ai.id, UDN.armvp.id) < 1 then
-		return "armavp"
+		return "armvp"
 	elseif UDC(ai.id, UDN.armavp.id) < 1 then
 		return "armavp"
 	end
