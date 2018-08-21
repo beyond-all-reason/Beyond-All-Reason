@@ -42,6 +42,7 @@ return {
 		customparams = {
 			techlevel = 3,
 			paralyzemultiplier = 0,
+			customrange = 590,
 		},
 		featuredefs = {
 			dead = {

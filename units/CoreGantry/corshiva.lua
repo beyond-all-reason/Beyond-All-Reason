@@ -36,6 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			techlevel = 3,
+			customrange = 650,
 		},
 		featuredefs = {
 			dead = {

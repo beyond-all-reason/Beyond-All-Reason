@@ -31,6 +31,9 @@ for unitDefID, defs in pairs(UnitDefs) do
 	else
 		Ranges[unitDefID] = maxAARange
 	end
+	if defs.customParams.customrange then
+		Ranges[unitDefID] = tonumber(defs.customParams.customrange)
+	end
 end
 
 
