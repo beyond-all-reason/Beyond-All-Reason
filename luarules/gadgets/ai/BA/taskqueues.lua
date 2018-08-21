@@ -94,6 +94,10 @@ end
 
 -- Useful Unit Counts
 
+function RequestedAction(tqb, ai, unit)
+	return ai.requestshandler:GetRequestedTask()
+end
+
 function GetAdvancedLabs(tqb,ai,unit)
 	local list = {
 	UDN.armalab.id,
@@ -105,6 +109,11 @@ function GetAdvancedLabs(tqb,ai,unit)
 	UDN.armasy.id,
 	UDN.corasy.id,
 	}
+	local units = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return #units
+end
+
+function GetType(tqb,ai,unit,list)
 	local units = Spring.GetTeamUnitsByDefs(ai.id, list)
 	return #units
 end
@@ -181,6 +190,17 @@ function GetPlannedLabs(tqb, ai, unit)
 	return total
 end
 
+function GetPlannedType(tqb, ai, unit,list)
+	local total = 0
+	for ct, unitDefID in pairs(list) do
+		local planned = ai.newplacementhandler:GetExistingPlansByUnitDefID(unitDefID)
+		for planID, plan in pairs(planned) do
+			total = total + 1
+		end
+	end
+	return total
+end
+
 function GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit)
 	local list = {
 	UDN.armalab.id,
@@ -197,6 +217,15 @@ function GetPlannedAndUnfinishedAdvancedLabs(tqb,ai,unit)
 		count = count + UUDC(UnitDefs[unitDefID].name, ai.id)
 	end
 	count = count + GetPlannedAdvancedLabs(tqb, ai, unit)
+	return count
+end
+
+function GetPlannedAndUnfinishedType(tqb,ai,unit,list)
+	local count = 0
+	for ct, unitDefID in pairs(list) do
+		count = count + UUDC(UnitDefs[unitDefID].name, ai.id)
+	end
+	count = count + GetPlannedType(tqb, ai, unit,list)
 	return count
 end
 
@@ -229,6 +258,10 @@ end
 
 function AllAdvancedLabs(tqb, ai, unit)
 	return GetAdvancedLabs(tqb,ai,unit) + GetPlannedAdvancedLabs(tqb, ai, unit)
+end
+
+function AllType(tqb, ai, unit, list)
+	return GetType(tqb,ai,unit,list) + GetPlannedType(tqb, ai, unit, list)
 end
 
 --- OTHERS
@@ -301,7 +334,10 @@ function CorWindOrSolar(tqb, ai, unit)
 end
 
 function CorLLT(tqb, ai, unit)
-
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	if hasTech2 then
+		return skip
+	end
 	local unitoptions = {"corllt", "corhllt", "corhlt", "cormaw", "corrl", "cormadsam", "corerad"}
 	local list = {}
 	local count = 0
@@ -365,14 +401,32 @@ end
 function CorEnT2( tqb, ai, unit )
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ei > 450 and mi > 25 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+	if es < ei * 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0) then
+		return "coruwadves"
+	elseif ms < mi * 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
+		return "coruwadvms"
+	elseif ei > 6000 and mi > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "coracv" then
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "corafus", pos = {x = x, y = y, z = z}}
+		else
+			return "corafus"
+		end
+	elseif ei > 450 and mi > 25 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corfus", pos = {x = x, y = y, z = z}}
 		else
 			return "corfus"
 		end
-	elseif ei > 450 and mi > 25 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["armfus"].id].metalCost) < 120 then
+	elseif ei > 6000 and mi > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corafus"].id].metalCost) < 240 and unit:Name() == "coracv" then
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "corafus", pos = {x = x, y = y, z = z}}
+		else
+			return "corafus"
+		end
+	elseif ei > 450 and mi > 25 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corfus", pos = {x = x, y = y, z = z}}
@@ -392,20 +446,11 @@ function CorEnT2( tqb, ai, unit )
 end
 
 function CorMexT1( tqb, ai, unit )
-	
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc < ms*0.1 then
-		return "cormex"
-	elseif mc < ms*0.3 then
-		return "corexp"
-	elseif ec < es*0.10 then
-        return (CorWindOrSolar(tqb, ai, unit))
-    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
-        return "cormakr"
-	else
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	if hasTech2 then
 		return skip
 	end
+	return "cormex"
 end
 
 function CorStarterLabT1(tqb, ai, unit)
@@ -547,6 +592,8 @@ function CorTacticalAdvDefT2(tqb, ai, unit)
 		end
 	end
 	if list[1] then
+		pos = unit:GetPosition()
+		ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
 		return FindBest(list,ai)
 	else
 		return skip
@@ -874,13 +921,45 @@ function CorGeo(tqb,ai,unit)
 		return "corgeo"
 	end
 end
+
+function CorRad(tqb,ai,unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	if hasTech2 then
+		return skip
+	end
+	local pos = unit:GetPosition()
+	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armrad.id].radarRadius, ai.id)) do
+		local defID = Spring.GetUnitDefID(unitID)
+		if defID == UDN.armrad.id or defID == UDN.corrad.id then
+			return skip
+		end
+	end
+	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
+		local defID = Spring.GetUnitDefID(unitID)
+		if defID == UDN.armarad.id or defID == UDN.corarad.id then
+			return skip
+		end
+	end
+	return "corrad"
+end
+
+function CorARad(tqb,ai,unit)
+	local pos = unit:GetPosition()
+	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
+		local defID = Spring.GetUnitDefID(unitID)
+		if defID == UDN.armarad.id or defID == UDN.corarad.id or defID == UDN.corrad.id or defID == UDN.armrad.id then
+			return skip
+		end
+	end
+	return "corarad"
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- CoreTasks ----------------------------------------
 --------------------------------------------------------------------------------------------
 
 local corcommanderfirst = {
-	"cormex",
-	"cormex",
+	CorMexT1,
+	CorMexT1,
 	CorThirdMex,
 	CorWindOrSolar,
 	CorWindOrSolar,
@@ -888,7 +967,7 @@ local corcommanderfirst = {
 	CorWindOrSolar,
 	CorWindOrSolar,
 	"corllt",
-	"corrad",
+	CorRad,
 }
 
 local cort1eco = {
@@ -908,12 +987,12 @@ local cort1eco = {
 local cort1expand = {
 	CorNanoT,
 	CorExpandRandomLab,
-	"cormex",
+	CorMexT1,
 	CorLLT,
-	"cormex",
+	CorMexT1,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	CorLLT,
-	"corrad",
+	CorRad,
 	CorGeo,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	CorNanoT,
@@ -934,8 +1013,9 @@ local cort2expand = {
 	"cormoho",
 	CorTacticalAdvDefT2,
 	"cormoho",
-	"corarad",
+	CorARad,
 	CorExpandRandomLab,
+	CorTacticalAdvDefT2,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 
 }
@@ -1037,23 +1117,23 @@ corgantryT3 = {
 
 assistqueuepostt2arm = {
 	ArmNanoT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	ArmExpandRandomLab,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	ArmNanoT,
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	RequestedAction,
 }
 
 assistqueuepostt2core = {
 	CorNanoT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
 	CorExpandRandomLab,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	CorNanoT,
-
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	RequestedAction,
 }
 
 assistqueue = {
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	RequestedAction,
 }
 
 assistqueuepatrol = {
@@ -1063,11 +1143,13 @@ assistqueuepatrol = {
 assistqueuefreaker = {
 	CorNanoT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	RequestedAction,
 }
 
 assistqueueconsul = {
 	ArmNanoT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	RequestedAction,
 }
 --------------------------------------------------------------------------------------------
 -------------------------------------- CoreQueuePicker -------------------------------------
@@ -1132,6 +1214,10 @@ function ArmWindOrSolar(tqb, ai, unit)
 end
 
 function ArmLLT(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	if hasTech2 then
+		return skip
+	end
 	local unitoptions = {"armllt", "armbeamer", "armhlt", "armclaw", "armrl", "armpacko", "armcir"}
 	local list = {}
 	local count = 0
@@ -1197,19 +1283,30 @@ end
 function ArmEnT2( tqb, ai, unit )
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if ei > 450 and mi > 25 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+	if es < ei * 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0)then
+		return "armuwadves"
+	elseif ms < mi * 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
+		return "armuwadvms"
+	elseif ei > 6000 and mi > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "armacv" then
+       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+			return {action = "armafus", pos = {x = x, y = y, z = z}}
+		else
+			return "armafus"
+		end
+	elseif ei > 450 and mi > 25 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "armfus", pos = {x = x, y = y, z = z}}
 		else
 			return "armfus"
 		end
-	elseif ei > 450 and mi > 25 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["armfus"].id].metalCost) < 120 then
+	elseif ei > 6000 and mi > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["armafus"].id].metalCost) < 240 and unit:Name() == "armacv" then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "armfus", pos = {x = x, y = y, z = z}}
+			return {action = "armafus", pos = {x = x, y = y, z = z}}
 		else
-			return "armfus"
+			return "armafus"
 		end
     elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
@@ -1224,17 +1321,11 @@ function ArmEnT2( tqb, ai, unit )
 end
 
 function ArmMexT1( tqb, ai, unit )
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc < ms - ms*0.8 then
-		return "armmex"
-	elseif ec < es*0.10 then
-        return (ArmWindOrSolar(tqb, ai, unit))
-    elseif ei - Spring.GetTeamRulesParam(ai.id, "mmCapacity") > 0 then
-        return "armmakr"
-	else
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	if hasTech2 then
 		return skip
 	end
+	return "armmex"
 end
 
 function ArmStarterLabT1(tqb, ai, unit)
@@ -1378,6 +1469,8 @@ function ArmTacticalAdvDefT2(tqb, ai, unit)
 		end
 	end
 	if list[1] then
+		pos = unit:GetPosition()
+		ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
 		return FindBest(list,ai)
 	else
 		return skip
@@ -1711,13 +1804,45 @@ function ArmGeo(tqb,ai,unit)
 		return "armgeo"
 	end
 end
+
+function ArmRad(tqb,ai,unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	if hasTech2 then
+		return skip
+	end
+	local pos = unit:GetPosition()
+	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armrad.id].radarRadius, ai.id)) do
+		local defID = Spring.GetUnitDefID(unitID)
+		if defID == UDN.armrad.id or defID == UDN.corrad.id then
+			return skip
+		end
+	end
+	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
+		local defID = Spring.GetUnitDefID(unitID)
+		if defID == UDN.armarad.id or defID == UDN.corarad.id then
+			return skip
+		end
+	end
+	return "armrad"
+end
+
+function ArmARad(tqb,ai,unit)
+	local pos = unit:GetPosition()
+	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
+		local defID = Spring.GetUnitDefID(unitID)
+		if defID == UDN.armarad.id or defID == UDN.corarad.id or defID == UDN.armrad.id or defID == UDN.corrad.id then
+			return skip
+		end
+	end
+	return "armarad"
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- ArmTasks -----------------------------------------
 --------------------------------------------------------------------------------------------
 
 local armcommanderfirst = {
-	"armmex",
-	"armmex",
+	ArmMexT1,
+	ArmMexT1,
 	ArmThirdMex,
 	ArmWindOrSolar,
 	ArmWindOrSolar,
@@ -1725,7 +1850,7 @@ local armcommanderfirst = {
 	ArmWindOrSolar,
 	ArmWindOrSolar,
 	"armllt",
-	"armrad",
+	ArmRad,
 }
 
 local armt1eco = {
@@ -1745,12 +1870,12 @@ local armt1eco = {
 local armt1expand = {
 	ArmNanoT,
 	ArmExpandRandomLab,
-	"armmex",
+	ArmMexT1,
 	ArmLLT,
-	"armmex",
+	ArmMexT1,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	ArmLLT,
-	"armrad",
+	ArmRad,
 	ArmGeo,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	ArmNanoT,
@@ -1771,8 +1896,9 @@ local armt2expand = {
 	"armmoho",
 	ArmTacticalAdvDefT2,
 	"armmoho",
-	"armarad",
+	ArmARad,
 	ArmExpandRandomLab,
+	ArmTacticalAdvDefT2,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 }
 
@@ -1871,10 +1997,6 @@ armgantryT3 = {
 	ArmGantry,
 }
 
-assistqueue = {
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
-}
-
 --------------------------------------------------------------------------------------------
 -------------------------------------- ArmQueuePicker --------------------------------------
 --------------------------------------------------------------------------------------------
@@ -1894,6 +2016,7 @@ local function armcommander(tqb, ai, unit)
 end
 
 local function armt1con(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
 		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
@@ -1912,7 +2035,7 @@ local function armt1con(tqb, ai, unit)
 		ai.t1priorityrate = 0.2
 			return armt1expand
 		end
-	elseif unit.mode == "expand" then
+	elseif unit.mode == "expand" and (not hasTech2) then
 		return armt1expand
 	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
 		return assistqueuepostt2arm	
@@ -1923,6 +2046,7 @@ local function armt1con(tqb, ai, unit)
 end
 
 local function cort1con(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
 		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
@@ -1941,7 +2065,7 @@ local function cort1con(tqb, ai, unit)
 			ai.t1priorityrate = 0.2
 			return cort1expand
 		end
-	elseif unit.mode == "expand" then
+	elseif unit.mode == "expand" and (not hasTech2) then
 		return cort1expand
 	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
 		return assistqueuepostt2core

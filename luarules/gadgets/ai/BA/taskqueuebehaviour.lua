@@ -232,6 +232,10 @@ function TaskQueueBehaviour:HandleActionTask( task )
 		t = TaskQueueWakeup(self)
 		tqb = self
 		self.ai.sleep:Wait({ wakeup = function() tqb:ProgressQueue() end, },task.frames)
+	elseif action == "command" then
+		if task.params then
+			self.unit:Internal():ExecuteCustomCommand(task.params.cmdID, task.params.cmdParams, task.params.cmdOptions)
+		end
 	elseif UnitDefNames[action] and task.pos then
 		if not task.pos.x then
 			task.pos = nil

@@ -5,6 +5,7 @@ shard_include( "attackhandler" )
 shard_include( "geohandler" )
 -- shard_include( "placementhandler" )
 shard_include( "newplacementhandler" )
+shard_include( "requestshandler" )
 shard_include( "sleep" )
 
-modules = { UnitHandler, AttackHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, Sleep }
+modules = { UnitHandler, AttackHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, Sleep }
