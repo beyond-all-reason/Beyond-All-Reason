@@ -334,7 +334,7 @@ function CorWindOrSolar(tqb, ai, unit)
 end
 
 function CorLLT(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if hasTech2 then
 		return skip
 	end
@@ -367,9 +367,9 @@ function CorEnT1( tqb, ai, unit )
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-	if (income(ai, "energy") < 750) and ei - ee < 0 and ec < 0.5 * es then
+	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and ei - ee < 0 and ec < 0.5 * es then
         return (CorWindOrSolar(tqb, ai, unit))
-	elseif (income(ai, "energy") < 1550) and ei - ee < 0 and ec < 0.8 * es and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and ei - ee < 0 and ec < 0.8 * es and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
 		return (CorWindOrSolar(tqb, ai, unit))
     elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
         return "cormakr"
@@ -412,7 +412,7 @@ function CorEnT2( tqb, ai, unit )
 		else
 			return "corafus"
 		end
-	elseif ei > 450 and mi > 25 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+	elseif ei > ai.aimodehandler.mintecheincome and mi > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corfus", pos = {x = x, y = y, z = z}}
@@ -426,7 +426,7 @@ function CorEnT2( tqb, ai, unit )
 		else
 			return "corafus"
 		end
-	elseif ei > 450 and mi > 25 and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
+	elseif ei > ai.aimodehandler.mintecheincome and mi > ai.aimodehandler.mintechmincome and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corfus", pos = {x = x, y = y, z = z}}
@@ -446,7 +446,7 @@ function CorEnT2( tqb, ai, unit )
 end
 
 function CorMexT1( tqb, ai, unit )
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if hasTech2 then
 		return skip
 	end
@@ -469,7 +469,7 @@ end
 
 function CorTech(tqb, ai, unit)
 	if AllAdvancedLabs(tqb, ai, unit) == 0 then
-		if (income(ai, "metal") > 25 and (income(ai, "energy") > 450)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
+		if (income(ai, "metal") > ai.aimodehandler.mintechmincome and (income(ai, "energy") > ai.aimodehandler.mintecheincome)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
 			if unit:Name() == "corck" then
 				pos = unit:GetPosition()
 				ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
@@ -910,7 +910,7 @@ function CorGeo(tqb,ai,unit)
 end
 
 function CorRad(tqb,ai,unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if hasTech2 then
 		return skip
 	end
@@ -1114,7 +1114,6 @@ assistqueuepostt2arm = {
 	ArmNanoT,
 	ArmExpandRandomLab,
 	ArmNanoT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	RequestedAction,
 }
 
@@ -1122,7 +1121,6 @@ assistqueuepostt2core = {
 	CorNanoT,
 	CorExpandRandomLab,
 	CorNanoT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	RequestedAction,
 }
 
@@ -1151,7 +1149,7 @@ assistqueueconsul = {
 --------------------------------------------------------------------------------------------
 
 local function corcommander(tqb, ai, unit)
-	ai.t1priorityrate = ai.t1priorityrate or 1
+	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	if countBasicFacs > 0 then
 	--return armcommanderq
@@ -1209,7 +1207,7 @@ function ArmWindOrSolar(tqb, ai, unit)
 end
 
 function ArmLLT(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if hasTech2 then
 		return skip
 	end
@@ -1243,9 +1241,9 @@ function ArmEnT1( tqb, ai, unit)
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-	if (income(ai, "energy") < 750) and ei - ee < 0 and ec < 0.8 * es then
+	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and ei - ee < 0 and ec < 0.8 * es then
 		return (ArmWindOrSolar(tqb, ai, unit))
-	elseif (income(ai, "energy") < 1550) and ei - ee < 0 and ec < 0.8 * es and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and ei - ee < 0 and ec < 0.8 * es and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
 		return (ArmWindOrSolar(tqb, ai, unit))
 	elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
 		return "armmakr"
@@ -1289,7 +1287,7 @@ function ArmEnT2( tqb, ai, unit )
 		else
 			return "armafus"
 		end
-	elseif ei > 450 and mi > 25 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+	elseif ei > ai.aimodehandler.mintecheincome and mi > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "armfus", pos = {x = x, y = y, z = z}}
@@ -1316,7 +1314,7 @@ function ArmEnT2( tqb, ai, unit )
 end
 
 function ArmMexT1( tqb, ai, unit )
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if hasTech2 then
 		return skip
 	end
@@ -1339,7 +1337,7 @@ end
 
 function ArmTech(tqb, ai, unit)
 	if AllAdvancedLabs(tqb, ai, unit) == 0 then
-		if (income(ai, "metal") > 25 and (income(ai, "energy") > 450)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
+		if (income(ai, "metal") > ai.aimodehandler.mintechmincome and (income(ai, "energy") > ai.aimodehandler.mintecheincome)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
 			if unit:Name() == "armck" then
 				pos = unit:GetPosition()
 				ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
@@ -1788,7 +1786,7 @@ function ArmGeo(tqb,ai,unit)
 end
 
 function ArmRad(tqb,ai,unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if hasTech2 then
 		return skip
 	end
@@ -1992,7 +1990,7 @@ armgantryT3 = {
 --------------------------------------------------------------------------------------------
 
 local function armcommander(tqb, ai, unit)
-	ai.t1priorityrate = ai.t1priorityrate or 1
+	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	if countBasicFacs > 0 then
 	--return armcommanderq
@@ -2006,7 +2004,7 @@ local function armcommander(tqb, ai, unit)
 end
 
 local function armt1con(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
 		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
@@ -2018,11 +2016,11 @@ local function armt1con(tqb, ai, unit)
 		end
 	end
 	if unit.mode == "eco" then
-		if (income(ai, "energy") < 1550 or AllAdvancedLabs(tqb, ai, unit) < 1) then
-			ai.t1priorityrate = 1
+		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
+			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
 			return armt1eco
 		else
-		ai.t1priorityrate = 0.2
+		ai.t1priorityrate = ai.aimodehandler.t1ratepostt2
 			return armt1expand
 		end
 	elseif unit.mode == "expand" and (not hasTech2) then
@@ -2036,7 +2034,7 @@ local function armt1con(tqb, ai, unit)
 end
 
 local function cort1con(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= 5
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
 		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
@@ -2048,11 +2046,11 @@ local function cort1con(tqb, ai, unit)
 		end
 	end
 	if unit.mode == "eco" then
-		if (income(ai, "energy") < 1550 or AllAdvancedLabs(tqb, ai, unit) < 1) then
-			ai.t1priorityrate = 1
+		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
+			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
 			return cort1eco
 		else
-			ai.t1priorityrate = 0.2
+			ai.t1priorityrate = ai.aimodehandler.t1ratepostt2
 			return cort1expand
 		end
 	elseif unit.mode == "expand" and (not hasTech2) then

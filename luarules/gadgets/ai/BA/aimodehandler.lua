@@ -17,12 +17,39 @@ function AiModeHandler:Init()
 	self:PickASide(math.random(1,2))
 	self:CreateWantedTechTree(math.random(1,12),math.random(1,12))
 	-- self:Difficulties()
-	-- self:Mode(math.random(1,3))
+	self:Mode(math.random(1,3))
 end
 
--- function AiModeHandler:Difficulties()
-	
--- end
+function AiModeHandler:Mode(i)
+	if i == 1 then -- Balanced mode
+		-- Spring.Echo(self.ai.id, "Balanced mode")
+		self.t1ratepret2 = 1
+		self.t1ratepostt2 = 0.4
+		self.eincomelimiterpretech2 = 750
+		self.eincomelimiterposttech2 = 1550
+		self.mintecheincome = 450
+		self.mintechmincome = 25
+		self.mint2countpauset1 = 5
+	elseif i == 2 then -- TechRush mode
+		-- Spring.Echo(self.ai.id, "TechRush mode")
+		self.t1ratepret2 = 0.3
+		self.t1ratepostt2 = 0.05
+		self.eincomelimiterpretech2 = 450
+		self.eincomelimiterposttech2 = 650
+		self.mintecheincome = 300
+		self.mintechmincome = 12
+		self.mint2countpauset1 = 3
+	elseif i == 3 then -- T1 Mode
+		-- Spring.Echo(self.ai.id, "T1 Mode")
+		self.t1ratepret2 = 2
+		self.t1ratepostt2 = 1
+		self.eincomelimiterpretech2 = 1550
+		self.eincomelimiterposttech2 = 2550
+		self.mintecheincome = 950
+		self.mintechmincome = 35
+		self.mint2countpauset1 = 10
+	end
+end
 
 function AiModeHandler:PickASide(i)
 	if i == 1 then
