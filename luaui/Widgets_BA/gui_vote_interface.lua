@@ -5,14 +5,14 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "July 2018",
 		license   = "",
-		layer     = -math.huge,
+		layer     = -2000,
 		enabled   = true,
 	}
 end
 
 local vsx, vsy = gl.GetViewSizes()
-local customScale = 1.25
-local widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
+local customScale = 1.45
+local widgetScale = (0.45 + (vsx*vsy / 5500000)) * customScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -110,12 +110,21 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
+	widgetScale = (0.45 + (vsx*vsy / 5500000)) * customScale
 end
 
 function widget:PlayerChanged(playerID)
 	mySpec = Spring.GetSpectatingState()
 end
+
+--local sec = 0
+--function widget:Update(dt)
+--	myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1)
+--	sec = sec + dt
+--	if sec > 2 and not voteDlist then
+--		StartVote('testvote yeah!', 'somebody')
+--	end
+--end
 
 function widget:Initialize()
 	if Spring.IsReplay() then
@@ -188,8 +197,6 @@ function StartVote(name, owner)
 			voteName = name
 		end
 
-		local fadeProgress = 1
-
 		local x,y,b = Spring.GetMouseState()
 
 		local width = vsx/6.2
@@ -201,19 +208,20 @@ function StartVote(name, owner)
 			width = minWidth
 		end
 
+		local padding = width/70
+		local buttonPadding = width/100
+		local buttonMargin = width/32
+		local buttonHeight = height*0.55
+
 		local xpos = width/2
 		local ypos = vsy-(height/2)
 
 		if WG['topbar'] ~= nil then
 			local topbarArea = WG['topbar'].GetPosition()
-			xpos = vsx-(width/2)
-			ypos = topbarArea[6]-(height/2)
+			--xpos = vsx-(width/2)
+			xpos = topbarArea[1] + (width/2) + ((vsx-topbarArea[1])/1.95)
+			ypos = topbarArea[6]-(5*topbarArea[5])-(height/2)
 		end
-
-		local padding = width/70
-		local buttonPadding = width/100
-		local buttonMargin = width/32
-		local buttonHeight = height*0.55
 
 		hovered = nil
 
@@ -228,19 +236,19 @@ function StartVote(name, owner)
 		end
 
 		-- window
-		gl.Color(0,0,0,0.55+(0.36*fadeProgress))
+		gl.Color(0,0,0,0.82)
 		RectRound(windowArea[1], windowArea[2], windowArea[3], windowArea[4], 5.5*widgetScale)
-		gl.Color(1,1,1,0.03+(0.03*fadeProgress))
+		gl.Color(1,1,1,0.05)
 		RectRound(windowArea[1]+padding, windowArea[2]+padding, windowArea[3]-padding, windowArea[4]-padding, 5*widgetScale)
 
 		-- close
-		--gl.Color(0.1,0.1,0.1,0.55+(0.36*fadeProgress))
+		--gl.Color(0.1,0.1,0.1,0.55+(0.36))
 		--RectRound(closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4], 3.5*widgetScale)
 		if IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4]) then
 			hovered = 'esc'
-			gl.Color(1,1,1,0.5+(0.05*fadeProgress))
+			gl.Color(1,1,1,0.55)
 		else
-			gl.Color(1,1,1,0.025+(0.025*fadeProgress))
+			gl.Color(1,1,1,0.027)
 		end
 		RectRound(closeButtonArea[1]+padding, closeButtonArea[2]+padding, closeButtonArea[3]-padding, closeButtonArea[4]-padding, 3*widgetScale)
 
@@ -254,12 +262,12 @@ function StartVote(name, owner)
 		-- NO
 		if IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
 			hovered = 'n'
-			gl.Color(0.7,0.1,0.1,0.4+(0.4*fadeProgress))
+			gl.Color(0.7,0.1,0.1,0.8)
 		else
-			gl.Color(0.5,0,0,0.35+(0.35*fadeProgress))
+			gl.Color(0.5,0,0,0.7)
 		end
 		RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 5*widgetScale)
-		gl.Color(0,0,0,0.07+(0.05*fadeProgress))
+		gl.Color(0,0,0,0.075)
 		RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 4*widgetScale)
 
 		fontSize = fontSize*0.85
@@ -273,12 +281,12 @@ function StartVote(name, owner)
 		if not voteOwner then
 			if IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4]) then
 				hovered = 'y'
-				gl.Color(0.05,0.6,0.05,0.4+(0.4*fadeProgress))
+				gl.Color(0.05,0.6,0.05,0.8)
 			else
-				gl.Color(0,0.5,0,0+(0.35*fadeProgress))
+				gl.Color(0,0.5,0,0.35)
 			end
 			RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 5*widgetScale)
-			gl.Color(0,0,0,0.07+(0.05*fadeProgress))
+			gl.Color(0,0,0,0.075)
 			RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 4*widgetScale)
 
 			gl.Text("\255\255\255\255YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")

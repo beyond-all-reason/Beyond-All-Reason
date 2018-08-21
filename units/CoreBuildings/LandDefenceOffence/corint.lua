@@ -149,7 +149,7 @@ return {
 					shields = 1000,
 				},
 				customparams = {
-					expl_light_heat_radius_mult = 4,
+					expl_light_heat_radius_mult = 3.5,
 				},
 			},
 		},
