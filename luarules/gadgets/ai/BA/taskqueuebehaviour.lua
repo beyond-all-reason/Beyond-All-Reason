@@ -338,16 +338,25 @@ end
 function TaskQueueBehaviour:BuildExtractor(utype)
 	-- find a free spot!
 	unit = self.unit:Internal()
-	p = unit:GetPosition()
+	local p = unit:GetPosition()
 	local up = p
 	p = self.ai.metalspothandler:ClosestFreeSpot(utype,p)
+	local sp = p
 	if p and self.game.map:CanBuildHere(utype,p) ~= true then
 		p = self.ai.metalspothandler:GetClosestMexPosition(p, up.x, up.z, utype.id, "s")
 		if p == nil or self.game.map:CanBuildHere(utype,p) ~= true then
-			self:OnToNextTask()
-			return false
+			local blockingUnits = Spring.GetUnitsInCylinder(sp.x, sp.z, 128)
+			for ct, bunitID in pairs(blockingUnits) do
+				if not (UnitDefs[Spring.GetUnitDefID(bunitID)].canMove == true) then
+					unit:ExecuteCustomCommand(CMD.INSERT, {-1, CMD.RECLAIM, CMD.OPT_INTERNAL, bunitID}, {"alt"})
+				end
+			end
+			self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
+			unit:ExecuteCustomCommand(CMD.INSERT, {-1,-utype.id,CMD.OPT_INTERNAL,sp.x, sp.y, sp.z, 0}, {"alt"})
+			return true
 		end
 	elseif not p then
+		self:OnToNextTask()
 		return false
 	end
 	self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
