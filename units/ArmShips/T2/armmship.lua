@@ -150,7 +150,7 @@ return {
 				weaponvelocity = 400,
 				damage = {
 					commanders = 500,
-					default = 800,
+					default = 900,
 					subs = 5,
 				},
 				customparams = {
