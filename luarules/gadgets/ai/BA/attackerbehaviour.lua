@@ -67,7 +67,7 @@ function AttackerBehaviour:AttackCell(type)
 		local myRange = Spring.GetUnitMaxRange(unitID)
 		local closestUnit = Spring.GetUnitNearestEnemy(unitID, myRange)
 		local allyTeamID = self.ai.allyId
-		local closestVisible = closestUnit and (Spring.IsUnitInLos(closestUnit, allyTeamID) or Spring.IsUnitInRadar(closestUnit, allyTeamID))
+		local closestVisible = closestUnit and GG.AiHelpers.VisibilityCheck.IsUnitVisible(closestUnit, self.ai.id)
 		local currenthealth = unit:GetHealth()
 		local maxhealth = unit:GetMaxHealth()
 		-- Skirmishing
@@ -96,7 +96,7 @@ function AttackerBehaviour:AttackCell(type)
 	-- Attacking
 		local TeamID = self.ai.id
 		local allyTeamID = self.ai.allyId
-		if nearestUnit and not (Spring.IsUnitInRadar(nearestUnit, allyTeamID) or Spring.IsUnitInLos(nearestUnit, allyTeamID)) then
+		if nearestUnit and not (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestUnit, self.ai.id)) then
 			nearestUnit = nil
 		end
 		if (currenthealth >= maxhealth*0.75 or currenthealth > 3000)  then

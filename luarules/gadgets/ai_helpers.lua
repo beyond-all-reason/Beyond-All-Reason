@@ -121,6 +121,23 @@ GG.AiHelpers.UnitInfo = function(teamID, unitDefID)
 	return info[teamID] and info[teamID][unitDefID] or nil
 end
 
+--------------------------
+--Unit Visibility Checks--
+-------------------------
+GG.AiHelpers.VisibilityCheck = {}
+local SeenBuildings = {}
+
+GG.AiHelpers.VisibilityCheck.IsUnitVisible = function(unitID, teamID)
+	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+	if SeenBuildings[teamID] and SeenBuildings[teamID][unitID] then
+		return true
+	elseif Spring.IsUnitInLos(unitID, allyTeamID) or Spring.IsUnitInRadar(unitID, allyTeamID) then
+		return true
+	end
+	return false
+end
+
+
 -------------------------
 --Gadget Core Functions--
 -------------------------
@@ -174,6 +191,28 @@ end
 		end
 	end
 	
+	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
+		if enabled ~= true then return end
+		local defs = UnitDefs[unitDefID]
+		if defs.isBuilding or string.find(defs.name, "nanotc") then
+			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
+				SeenBuildings[id] = SeenBuildings[id] or {}
+				SeenBuildings[id][unitID] = true
+			end
+		end				
+	end
+	
+	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+		if enabled ~= true then return end
+		local defs = UnitDefs[unitDefID]
+		if defs.isBuilding or string.find(defs.name, "nanotc") then
+			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
+				SeenBuildings[id] = SeenBuildings[id] or {}
+				SeenBuildings[id][unitID] = true
+			end
+		end				
+	end
+	
 	function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 		if enabled ~= true then return end
 		if isNanoTC[unitDefID] then
@@ -215,6 +254,11 @@ end
 		if not NanoTC[unitTeam] then NanoTC[unitTeam] = {} end
 		NanoTC[unitTeam][unitID] = nil
 		gadget:UpdateClosestNanoTCTable(unitTeam)
+		for ct, id in pairs(Spring.GetTeamList()) do
+			if SeenBuildings[id] then
+				SeenBuildings[id][unitID] = nil
+			end
+		end
 	end
 
 	function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
