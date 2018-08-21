@@ -1309,6 +1309,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setTeamcolorOpacity', {'teamcolorOpacity'}, value)
 		elseif id == 'voicenotifs_volume' then
 			saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value)
+		elseif id == 'lockcamera_transitiontime' then
+			saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockTransitionTime', {'transitionTime'}, value)
 		end
 
 	elseif options[i].type == 'select' then
@@ -1700,6 +1702,7 @@ function loadAllWidgetData()
 
 	loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", {'lockcameraHideEnemies'})
 	loadWidgetData("AdvPlayersList", "lockcamera_los", {'lockcameraLos'})
+	loadWidgetData("AdvPlayersList", "lockcamera_transitiontime", {'transitionTime'})
 	loadWidgetData("AdvPlayersList", "playerlistcollapse", {'collapsable'})
 
 	loadWidgetData("Top Bar", "resourcebarcoloring", {'resourcebarBgTint'})
@@ -1909,6 +1912,7 @@ function init()
 		{id="allyselunits_select", group="control", name="Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this will also select the units the player has selected"},
 		{id="lockcamera_hideenemies", group="control", name="Only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will only display what the tracked player sees"},
 		{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too"},
+		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
 
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},

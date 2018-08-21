@@ -12,12 +12,13 @@ Other:
  • Added option "Move Window Position"
  • Added option: resolution selection (doesnt always work in fullscreen mode)
  • Added option "Contain mouse inside window"
+ • Added option "Tracking cam smoothing" slider
  • Player camara tracking also limits view to players viewpoint and losmode
+ • Options widget remembers/restores some spring config settings
  • Top bar: when low energy: red background, when overflowing: resource colored
  • Advplayerlist can auto collapse, availible in options: Interface -> "Playerlist auto collapses"
  • Reduces size of air thrusters overall and they dont show when plane is crashing
  • Added lups thrusters to armatlas/corvalk/banshee
- • Options widget remembers/restores some spring config settings
  • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
 

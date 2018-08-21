@@ -141,7 +141,7 @@ function AirJet:Update(n)
   time = time + n
   if time > 1.5 then
     time = 0
-    if Spring.GetUnitMoveTypeData(self.unit).aircraftState == "crashing" then
+    if Spring.GetUnitMoveTypeData(self.unit) and Spring.GetUnitMoveTypeData(self.unit).aircraftState == "crashing" then
       self.repeatEffect = false
       self.dieGameFrame = Spring.GetGameFrame() + 1
     end
