@@ -140,11 +140,6 @@ else
 				queueScreenShotHeightBatch = 5
 				playerName = string.sub(msg, 17)
 			end
-			queueScreenShotGreyscale = false
-			if string.sub(msg,1,17) == 'getscreenshotgrey' then
-				queueScreenShotGreyscale = true
-				playerName = string.sub(msg, 19)
-			end
 			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
 				local vsx, vsy = Spring.GetViewGeometry()
 				queueScreenshot = true
@@ -154,7 +149,6 @@ else
 				queueScreenShotH = 0
 				queueScreenShotHmax = queueScreenShotH + queueScreenShotHeightBatch
 				queueScreenShotPixels = {}
-				queueScreenShotCamState = getCamStateStr()
 				--queueScreenShotBroadcastDelay = 1
 				queueScreenShotBroadcastChars = 0
 				queueScreenShotCharsPerBroadcast = 7500		-- in practice this will be a bit higher because it finishes adding a whole row of pixels
@@ -173,13 +167,8 @@ else
 					queueScreenShotH = queueScreenShotH + 1
 					for w=1, queueScreenShotWidth do
 						r,g,b = gl.ReadPixels(math.floor(queueScreenShotStep*(w-0.5)),math.floor(queueScreenShotStep*(queueScreenShotH-0.5)),1,1)
-						if queueScreenShotGreyscale then
-							queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 1
-							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_CHAR((r + g + b )*94/3)	-- greyscale
-						else
-							queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
-							queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_CHAR(r*94)..DEC_CHAR(g*94)..DEC_CHAR(b*94)
-						end
+						queueScreenShotBroadcastChars = queueScreenShotBroadcastChars + 3
+						queueScreenShotPixels[#queueScreenShotPixels+1] = DEC_CHAR(r*94)..DEC_CHAR(g*94)..DEC_CHAR(b*94)
 					end
 				end
 
@@ -192,15 +181,7 @@ else
 					if queueScreenShotH >= queueScreenShotHeight then
 						finished = '1'
 					end
-					local rgb = '1'
-					if queueScreenShotGreyscale then
-						rgb = '0'
-					end
-					local camchanged = '0'
-					if queueScreenShotCamState ~= getCamStateStr() then
-						camchanged = '1'
-					end
-					local data =  finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' ..rgb.. ';' .. camchanged .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
+					local data =  finished .. ';' .. queueScreenShotWidth .. ';' .. queueScreenShotHeight .. ';' .. queueScreenshotGameframe .. ';' .. table.concat(queueScreenShotPixels)
 					local sendtoauthedplayer = '0'
 					Spring.SendLuaRulesMsg('pd'..validation..sendtoauthedplayer..'screenshot;'..VFS.ZlibCompress(data))
 					queueScreenShotBroadcastChars = 0
@@ -215,15 +196,6 @@ else
 		end
 	end
 
-	function getCamStateStr()
-		local camstate = Spring.GetCameraState()
-		local str = ''
-		for k,v in pairs(camstate) do
-			str = str .. v
-		end
-		return str
-	end
-
 	function DEC_CHAR(IN)
 		local B,K,OUT,I,D=95,"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()_+-=[]{};:,./<>?~|`'\"\\","",0
 		while IN>0 do
@@ -236,20 +208,13 @@ else
 	end
 
 	function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-
-		-- check if the mouse is in a rectangle
-		return x >= BLcornerX and x <= TRcornerX
-				and y >= BLcornerY
-				and y <= TRcornerY
+		return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 	end
 
 	function SendToWG(_,msg)
 		local myPlayerName,_,mySpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
-		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or string.sub(msg,1,1) == '1' or myPlayerName == 'Player') then
+		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or myPlayerName == 'Player' or string.sub(msg,1,1) == '1') and authorized[myPlayerName] then
 			Script.LuaUI.PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
-		end
-		if authorized[myPlayerName] then
-			--Spring.Echo('PlayerDataBroadcast complete...')
 		end
 	end
 end

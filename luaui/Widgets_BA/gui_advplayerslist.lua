@@ -687,11 +687,11 @@ local function UpdateAlliances()
 	end
 end
 
-function toPixels(str,greyscale)
+function toPixels(str)
 	local chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ !@#$%^&*()_+-=[]{};:,./<>?~|`'\"\\"
 	local pixels = {}
 	for i=1, string.len(str) do
-		if (not greyscale and i%3 == 1) or greyscale then
+		if i%3 == 1 then
 			pixels[#pixels+1] = {}
 		end
 		local char = string.sub(str,i,i)
@@ -745,22 +745,6 @@ function PlayerDataBroadcast(playerName, msg)
 						screenshotHeight = string.sub(data,startPos,i-1)
 						startPos = i+1
 					elseif count == 4 then
-						local rgb = string.sub(data,startPos,i-1)
-						if rgb == '1' then
-							greyscale = false
-						else
-							greyscale = true
-						end
-						startPos = i+1
-					elseif count == 5 then
-						local camChanged = string.sub(data,startPos,i-1)
-						if camChanged == '1' then
-							camChanged = true
-						else
-							camChanged = false
-						end
-						startPos = i+1
-					elseif count == 6 then
 						screenshotGameframe = tonumber(string.sub(data,startPos,i-1))
 						if not screenshotData then
 							screenshotData = string.sub(data, i+1)
@@ -801,7 +785,7 @@ function PlayerDataBroadcast(playerName, msg)
 				local ss = ((s > 9 and tostring(s)) or (s <10 and ("0"..tostring(s))))
 				local engine = Engine.versionFull
 
-				screenshotPixels = toPixels(screenshotData, greyscale)
+				screenshotPixels = toPixels(screenshotData)
 				screenshotPlayer = playerName
 				screenshotFilename = yyyy..mm..dd.."_"..hh..minmin..ss.."_" ..minutes..'.'..seconds.."_"..playerName
 				screenshotSaved = nil
@@ -829,11 +813,7 @@ function PlayerDataBroadcast(playerName, msg)
 							row = row + 1
 							col = 1
 						end
-						if greyscale then
-							gl.Color(screenshotPixels[p][1], screenshotPixels[p][1], screenshotPixels[p][1], 1)
-						elseif screenshotPixels[p][3] then
-							gl.Color(screenshotPixels[p][1], screenshotPixels[p][2], screenshotPixels[p][3], 1)
-						end
+						gl.Color(screenshotPixels[p][1], screenshotPixels[p][2], screenshotPixels[p][3], 1)
 						gl.Rect(col, row, col+1, row+1)
 					end
 					gl.PopMatrix()
