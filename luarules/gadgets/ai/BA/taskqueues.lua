@@ -991,7 +991,7 @@ local cort1eco = {
 local cort1expand = {
 	CorNanoT,
 	CorExpandRandomLab,
-	CorLLT,
+	-- CorLLT,
 	CorMexT1,
 	CorLLT,
 	CorMexT1,
@@ -1003,7 +1003,7 @@ local cort1expand = {
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	CorNanoT,
 	CorExpandRandomLab,
-	CorLLT,
+	-- CorLLT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	CorNanoT,
 }
@@ -1882,7 +1882,7 @@ local armt1eco = {
 local armt1expand = {
 	ArmNanoT,
 	ArmExpandRandomLab,
-	ArmLLT,
+	-- ArmLLT,
 	ArmMexT1,
 	ArmLLT,
 	ArmMexT1,
@@ -1890,7 +1890,7 @@ local armt1expand = {
 	ArmLLT,
 	ArmRad,
 	ArmGeo,
-	ArmLLT,
+	-- ArmLLT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
 	ArmNanoT,
 	ArmExpandRandomLab,
