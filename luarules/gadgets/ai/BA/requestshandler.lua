@@ -26,7 +26,10 @@ function RequestsHandler:Update()
 	end
 end
 
-function RequestsHandler:AddRequest(priority, requestedTask)
+function RequestsHandler:AddRequest(priority, requestedTask, commrequired)
+	if commrequired == true then
+		requestedTask.needCom = true
+	end
 	if not self.requests[1] then
 		self.requests[1] = requestedTask
 		return
@@ -41,6 +44,12 @@ function RequestsHandler:AddRequest(priority, requestedTask)
 	else
 		self.requests[#self.requests+1] = requestedTask
 	end
+	-- if priority == true and commrequired == true then
+		-- local comms = Spring.GetTeamUnitsByDefs(self.ai.id, {UnitDefNames.armcom.id, UnitDefNames.corcom.id})
+		-- for ct, unitID in pairs(comms) do
+			-- Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+		-- end
+	-- end
 end
 
 function RequestsHandler:RemoveRequest(n)
@@ -50,8 +59,11 @@ function RequestsHandler:RemoveRequest(n)
 	self.requests[#self.requests] = nil
 end
 
-function RequestsHandler:GetRequestedTask()
+function RequestsHandler:GetRequestedTask(unit)
 	if self.requests[1] then
+		if self.requests[1].needCom == true and (not (unit:Name() == "armcom" or unit:Name() == "corcom")) then 
+			return {action = "nexttask"} 
+		end
 		local task = self.requests[1]
 		self:RemoveRequest(1)
 		return task
