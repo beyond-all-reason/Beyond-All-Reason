@@ -229,6 +229,9 @@ function TaskQueueBehaviour:HandleActionTask( task )
 	if action == "nexttask" then
 		self:OnToNextTask()
 	elseif action == "wait" then
+		if task.frames == "infinite" then
+			return
+		end
 		t = TaskQueueWakeup(self)
 		tqb = self
 		self.ai.sleep:Wait({ wakeup = function() tqb:ProgressQueue() end, },task.frames)

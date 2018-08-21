@@ -30,6 +30,7 @@ function AiModeHandler:Mode(i)
 		self.mintecheincome = 450
 		self.mintechmincome = 25
 		self.mint2countpauset1 = 5
+		self.t2rusht1reclaim = false
 	elseif i == 2 then -- TechRush mode
 		-- Spring.Echo(self.ai.id, "TechRush mode")
 		self.t1ratepret2 = 0.3
@@ -39,6 +40,7 @@ function AiModeHandler:Mode(i)
 		self.mintecheincome = 300
 		self.mintechmincome = 12
 		self.mint2countpauset1 = 3
+		self.t2rusht1reclaim = true
 	elseif i == 3 then -- T1 Mode
 		-- Spring.Echo(self.ai.id, "T1 Mode")
 		self.t1ratepret2 = 2
@@ -48,6 +50,7 @@ function AiModeHandler:Mode(i)
 		self.mintecheincome = 950
 		self.mintechmincome = 35
 		self.mint2countpauset1 = 10
+		self.t2rusht1reclaim = false
 	end
 end
 

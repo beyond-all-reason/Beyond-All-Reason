@@ -113,6 +113,21 @@ function GetAdvancedLabs(tqb,ai,unit)
 	return #units
 end
 
+function GetLabs(tqb,ai,unit)
+	local list = {
+	UDN.armlab.id,
+	UDN.corlab.id,
+	UDN.armvp.id,
+	UDN.corvp.id,
+	UDN.armap.id,
+	UDN.corap.id,	
+	UDN.armsy.id,
+	UDN.corsy.id,
+	}
+	local units = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return #units
+end
+
 function GetType(tqb,ai,unit,list)
 	local units = Spring.GetTeamUnitsByDefs(ai.id, list)
 	return #units
@@ -258,6 +273,10 @@ end
 
 function AllAdvancedLabs(tqb, ai, unit)
 	return GetAdvancedLabs(tqb,ai,unit) + GetPlannedAdvancedLabs(tqb, ai, unit)
+end
+
+function AllLabs(tqb, ai, unit)
+	return GetLabs(tqb,ai,unit) + GetPlannedLabs(tqb, ai, unit)
 end
 
 function AllType(tqb, ai, unit, list)
@@ -454,6 +473,7 @@ function CorMexT1( tqb, ai, unit )
 end
 
 function CorStarterLabT1(tqb, ai, unit)
+	if ai.aimodehandler.t2rusht1reclaim == true and AllAdvancedLabs(tqb, ai, unit) > 0 then return skip end
 	local countStarterFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id)
 	if countStarterFacs < 1 then
 		local labtype = KbotOrVeh()
@@ -607,6 +627,11 @@ end
 
 
 function CorKBotsT1(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
 	local list = {}
 	local count = 0
@@ -625,6 +650,11 @@ function CorKBotsT1(tqb, ai, unit)
 end
 
 function CorVehT1(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
 	local list = {}
 	local count = 0
@@ -774,6 +804,11 @@ end
 --constructors:
 
 function CorT1KbotCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corck"].id].metalCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corck"].id].energyCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/100 then
 		return "corck"
 	else
@@ -782,11 +817,21 @@ function CorT1KbotCon(tqb, ai, unit)
 end
 
 function CorStartT1KbotCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	return (((Spring.GetGameSeconds() < 180) and"corck") or CorKBotsT1(tqb, ai, unit))
 end
 
 
 function CorT1RezBot(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["cornecro"].id].metalCost) < UnitDefs[UnitDefNames["cornecro"].id].buildTime/100 then
 		return "cornecro"
 	else
@@ -795,6 +840,11 @@ function CorT1RezBot(tqb, ai, unit)
 end
 
 function CorT1VehCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corcv"].id].metalCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corcv"].id].energyCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/100 then
 		return "corcv"
 	else
@@ -819,14 +869,21 @@ function CorConKBotT2(tqb, ai, unit)
 end
 
 function CorStartT2KbotCon(tqb, ai, unit)
+	local pos = unit:GetPosition()
 	return (((UDC(ai.id, UDN.corack.id) < 5) and"corack") or CorKBotsT2(tqb, ai, unit))
 end
 
 function CorStartT2VehCon(tqb, ai, unit)
+	local pos = unit:GetPosition()
 	return (((UDC(ai.id, UDN.coracv.id) < 5) and"coracv") or CorVehT2(tqb, ai, unit))
 end
 
 function CorStartT1VehCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	return (((Spring.GetGameSeconds() < 180) and"corcv") or CorVehT1(tqb, ai, unit))
 	end
 
@@ -1151,11 +1208,11 @@ assistqueueconsul = {
 local function corcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
-	if countBasicFacs > 0 then
+	if AllLabs(tqb,ai,unit) > 0 then
 	--return armcommanderq
 		return assistqueue
 	elseif ai.engineerfirst then
-		return {"corlab"}
+		return {CorStarterLabT1}
 	else
 		ai.engineerfirst = true
 		return corcommanderfirst
@@ -1322,6 +1379,7 @@ function ArmMexT1( tqb, ai, unit )
 end
 
 function ArmStarterLabT1(tqb, ai, unit)
+	if ai.aimodehandler.t2rusht1reclaim == true and AllAdvancedLabs(tqb, ai, unit) > 0 then return skip end
 	local countStarterFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id)
 	if countStarterFacs < 1 then
 		local labtype = KbotOrVeh()
@@ -1476,6 +1534,11 @@ end
 	--return FindBest(unitoptions,ai)
 
 function ArmKBotsT1(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armwar", "armjeth",}
 	local list = {}
 	local count = 0
@@ -1494,6 +1557,11 @@ function ArmKBotsT1(tqb, ai, unit)
 end
 
 function ArmVehT1(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
 	local list = {}
 	local count = 0
@@ -1644,6 +1712,11 @@ end
 --constructors:
 
 function ArmT1KbotCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armck"].id].metalCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armck"].id].energyCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/100 then
 		return "armck"
 	else
@@ -1652,10 +1725,20 @@ function ArmT1KbotCon(tqb, ai, unit)
 end
 
 function ArmStartT1KbotCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	return (((Spring.GetGameSeconds() < 180) and "armck") or ArmKBotsT1(tqb,ai,unit))
 end
 
 function ArmT1RezBot(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armrectr"].id].metalCost) < UnitDefs[UnitDefNames["armrectr"].id].buildTime/100 then
 		return "armrectr"
 	else
@@ -1664,6 +1747,11 @@ function ArmT1RezBot(tqb, ai, unit)
 end
 
 function ArmT1VehCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armcv"].id].metalCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armcv"].id].energyCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/100 then
 		return "armcv"
 	else
@@ -1672,6 +1760,11 @@ function ArmT1VehCon(tqb, ai, unit)
 end
 
 function ArmStartT1VehCon(tqb, ai, unit)
+	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
+	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
+		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {0, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }})
+		return {action = "wait", frames = "infinite"}
+	end
 	return (((Spring.GetGameSeconds() < 180) and "armcv") or ArmVehT1(tqb, ai, unit))
 end
 
@@ -1732,10 +1825,12 @@ function ArmConKBotT2(tqb, ai, unit)
 end
 
 function ArmStartT2KbotCon(tqb, ai, unit)
+	local pos = unit:GetPosition()
 	return (((UDC(ai.id, UDN.armack.id) < 5) and"armack") or ArmKBotsT2(tqb, ai, unit))
 end
 
 function ArmStartT2VehCon(tqb, ai, unit)
+	local pos = unit:GetPosition()
 	return (((UDC(ai.id, UDN.armacv.id) < 5) and"armacv") or ArmVehT2(tqb, ai, unit))
 end
 
@@ -1992,11 +2087,11 @@ armgantryT3 = {
 local function armcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
-	if countBasicFacs > 0 then
+	if AllLabs(tqb,ai,unit) > 0 then
 	--return armcommanderq
 		return assistqueue
 	elseif ai.engineerfirst then
-		return {"armlab"}
+		return {ArmStarterLabT1}
 	else
 		ai.engineerfirst = true
 		return armcommanderfirst
