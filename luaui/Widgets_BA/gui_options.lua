@@ -719,7 +719,9 @@ end
 local sec = 0
 local lastUpdate = 0
 function widget:Update(dt)
-	Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
+		Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+	end
 	sec = sec + dt
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
 		forceUpdate = nil
