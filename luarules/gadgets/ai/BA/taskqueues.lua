@@ -1186,6 +1186,18 @@ assistqueue = {
 	RequestedAction,
 }
 
+corassistqueue = {
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	RequestedAction,
+	CorExpandRandomLab,
+}
+
+armassistqueue = {
+	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	RequestedAction,
+	ArmExpandRandomLab,
+}
+
 assistqueuepatrol = {
 	{ action = "patrolrelative", position = {x = 100, y = 0, z = 100} },
 }
@@ -1210,7 +1222,7 @@ local function corcommander(tqb, ai, unit)
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
 	if AllLabs(tqb,ai,unit) > 0 then
 	--return armcommanderq
-		return assistqueue
+		return corassistqueue
 	elseif ai.engineerfirst then
 		return {CorStarterLabT1}
 	else
@@ -2089,7 +2101,7 @@ local function armcommander(tqb, ai, unit)
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	if AllLabs(tqb,ai,unit) > 0 then
 	--return armcommanderq
-		return assistqueue
+		return armassistqueue
 	elseif ai.engineerfirst then
 		return {ArmStarterLabT1}
 	else

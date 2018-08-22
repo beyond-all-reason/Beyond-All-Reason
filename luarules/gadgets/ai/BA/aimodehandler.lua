@@ -8,17 +8,26 @@ function AiModeHandler:internalName()
 	return "aimodehandler"
 end
 
-local UDC = Spring.GetTeamUnitDefCount
+local UDC = function(teamID, DefID)
+	return #Spring.GetTeamUnitsByDefs(ai.id, DefID)
+end
 local UDN = UnitDefNames
-
+local advBuilders = {UDN.armacv.id, UDN.armack.id, UDN.armaca.id, UDN.coracv.id, UDN.corack.id, UDN.coraca.id}
+local modenames = {"balanced", "t1", "tech"}
 function AiModeHandler:Init()
 	math.randomseed( os.time() + self.ai.id )
 	math.random(); math.random(); math.random()
 	self:PickASide(math.random(1,2))
 	self:CreateWantedTechTree(math.random(1,12),math.random(1,12))
-	-- self:Difficulties()
-	self:Mode(math.random(1,3))
+	local count = #Spring.GetTeamList(self.ai.allyId)
+	if count and count > 1 then
+		self:Mode(math.random(1,count)%3 + 1)
+	else
+		self:Mode(1)
+	end
 end
+
+
 
 function AiModeHandler:Mode(i)
 	if i == 1 then -- Balanced mode
@@ -28,20 +37,20 @@ function AiModeHandler:Mode(i)
 		self.eincomelimiterpretech2 = 750
 		self.eincomelimiterposttech2 = 1550
 		self.mintecheincome = 450
-		self.mintechmincome = 25
+		self.mintechmincome = 22
 		self.mint2countpauset1 = 5
-		self.t2rusht1reclaim = false
-	elseif i == 2 then -- TechRush mode
+		self.t2rusht1reclaim = true
+	elseif i == 3 then -- TechRush mode
 		-- Spring.Echo(self.ai.id, "TechRush mode")
 		self.t1ratepret2 = 0.3
 		self.t1ratepostt2 = 0.05
-		self.eincomelimiterpretech2 = 450
-		self.eincomelimiterposttech2 = 650
+		self.eincomelimiterpretech2 = 300
+		self.eincomelimiterposttech2 = 500
 		self.mintecheincome = 300
 		self.mintechmincome = 12
 		self.mint2countpauset1 = 3
 		self.t2rusht1reclaim = true
-	elseif i == 3 then -- T1 Mode
+	elseif i == 2 then -- T1 Mode
 		-- Spring.Echo(self.ai.id, "T1 Mode")
 		self.t1ratepret2 = 2
 		self.t1ratepostt2 = 1
@@ -64,6 +73,9 @@ end
 
 function corkbot(tqb,ai,unit)
 	if UDC(ai.id, UDN.corlab.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "corlab"
 	elseif UDC(ai.id, UDN.coralab.id) < 1 then
 		return "coralab"
@@ -73,6 +85,9 @@ end
 
 function corvehicle(tqb, ai, unit)
 	if UDC(ai.id, UDN.corvp.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "corvp"
 	elseif UDC(ai.id, UDN.coravp.id) < 1 then
 		return "coravp"
@@ -82,6 +97,9 @@ end
 
 function corair(tqb,ai,unit)
 	if UDC(ai.id, UDN.corap.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "corap"
 	elseif UDC(ai.id, UDN.coraap.id) < 1 then
 		return "coraap"
@@ -91,6 +109,9 @@ end
 
 function cort3(tqb,ai,unit)
 	if UDC(ai.id, UDN.corlab.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "corlab"
 	elseif UDC(ai.id, UDN.coralab.id) < 1 then
 		return "coralab"
@@ -102,6 +123,9 @@ end
 
 function armkbot(tqb,ai,unit)
 	if UDC(ai.id, UDN.armlab.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "armlab"
 	elseif UDC(ai.id, UDN.armalab.id) < 1 then
 		return "armalab"
@@ -111,6 +135,9 @@ end
 
 function armvehicle(tqb, ai, unit)
 	if UDC(ai.id, UDN.armvp.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "armvp"
 	elseif UDC(ai.id, UDN.armavp.id) < 1 then
 		return "armavp"
@@ -120,6 +147,9 @@ end
 
 function armair(tqb,ai,unit)
 	if UDC(ai.id, UDN.armap.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "armap"
 	elseif UDC(ai.id, UDN.armaap.id) < 1 then
 		return "armaap"
@@ -129,6 +159,9 @@ end
 
 function armt3(tqb,ai,unit)
 	if UDC(ai.id, UDN.armlab.id) < 1 then
+		if UDC(ai.id, advBuilders) < ai.aimodehandler.mint2countpauset1 then
+			return {action = "nexttask"}
+		end
 		return "armlab"
 	elseif UDC(ai.id, UDN.armalab.id) < 1 then
 		return "armalab"
