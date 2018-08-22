@@ -134,7 +134,7 @@ return {
 				model = "rocket",
 				name = "Heavy long-range g2g high-trajectory starburst rocket launcher",
 				noselfdamage = true,
-				range = 1215,
+				range = 1300,
 				reloadtime = 18,
 				soundhit = "xplomed4",
 				soundhitwet = "splslrg",

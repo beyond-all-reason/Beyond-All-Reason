@@ -7,6 +7,8 @@ Balance:
  • More frequent re-aiming (each frame) + starts targetting before units enters range (at maxrange + 10%)
  • EMP spider auto heals itself with 15hp per second (ba9.37 had 30 before it was removed)
  • Arm Missile Ship damages increased 800 -> 900 (damages vs commanders unchanged)
+ • Toaster range 1335 => 1390, Ambusher range 1320 => 1380
+ • MERL range 1215 -> 1300, Diplomat range 1240 -> 1310
 
 Other:
  • Added option "Resolution" (doesnt always work in fullscreen mode, and might cause freeze)
