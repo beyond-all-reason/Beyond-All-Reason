@@ -203,7 +203,7 @@ local interRequestTime = 1 -- seconds
 -- LockCamera variables
 --------------------------------------------------------------------------------
 
-local transitionTime	= 0.37 --how long it takes the camera to move when trackign a player
+local transitionTime	= 0.6 --how long it takes the camera to move when trackign a player
 local listTime			= 14 --how long back to look for recent broadcasters
 
 local myPlayerID = Spring.GetMyPlayerID()
@@ -1063,6 +1063,12 @@ function widget:Initialize()
 				end
 			end
 		end
+	end
+	WG['advplayerlist_api'].GetLockTransitionTime = function()
+		return transitionTime
+	end
+	WG['advplayerlist_api'].SetLockTransitionTime = function(value)
+		transitionTime = value
 	end
 	WG['advplayerlist_api'].GetLockLos = function()
 		return lockcameraLos
@@ -3580,8 +3586,9 @@ function widget:GetConfigData(data)      -- save
 			lastSystemData     = lastSystemData,
 			alwaysHideSpecs    = alwaysHideSpecs,
 			collapsable        = collapsable,
-			--lockcameraHideEnemies = lockcameraHideEnemies,
-			--lockcameraLos      = lockcameraLos,
+			transitionTime     = transitionTime,
+			lockcameraHideEnemies = lockcameraHideEnemies,
+			lockcameraLos      = lockcameraLos,
 		}
 		
 		return settings
@@ -3602,11 +3609,15 @@ function widget:SetConfigData(data)      -- load
 	end
 
 	if data.lockcameraHideEnemies ~= nil then
-		--lockcameraHideEnemies = data.lockcameraHideEnemies
+		lockcameraHideEnemies = data.lockcameraHideEnemies
 	end
 
 	if data.lockcameraLos ~= nil then
-		--lockcameraLos = data.lockcameraLos
+		lockcameraLos = data.lockcameraLos
+	end
+
+	if data.lockcameraLos ~= nil then
+		transitionTime = data.transitionTime
 	end
 
 	if data.collapsable ~= nil then
