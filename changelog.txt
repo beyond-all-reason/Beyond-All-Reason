@@ -9,6 +9,7 @@ Balance:
  • Arm Missile Ship damages increased 800 -> 900 (damages vs commanders unchanged)
  • Toaster range 1335 => 1390, Ambusher range 1320 => 1380
  • MERL range 1215 -> 1300, Diplomat range 1240 -> 1310
+ • Ships/Sea wrecks durability increased ("health" + 100%)
 
 Other:
  • Added option "Resolution" (doesnt always work in fullscreen mode, and might cause freeze)

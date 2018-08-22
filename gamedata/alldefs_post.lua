@@ -186,6 +186,12 @@ function UnitDef_Post(name, uDef)
 		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.metal and uDef.buildcostmetal then
 			uDef.featuredefs.heap.metal = uDef.buildcostmetal * 0.25
 		end
+		if uDef.featuredefs and uDef.featuredefs.dead and uDef.featuredefs.dead.damage then
+			uDef.featuredefs.dead.damage = uDef.featuredefs.dead.damage*2
+		end
+		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.damage then
+			uDef.featuredefs.heap.damage = uDef.featuredefs.heap.damage*2
+		end
 	end
 	--Aircraft movements here:
 	if uDef.canfly == true and not uDef.hoverattack == true then
