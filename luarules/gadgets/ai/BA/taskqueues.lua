@@ -492,7 +492,7 @@ function CorTech(tqb, ai, unit)
 		if (income(ai, "metal") > ai.aimodehandler.mintechmincome and (income(ai, "energy") > ai.aimodehandler.mintecheincome)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
 			if unit:Name() == "corck" then
 				local pos = unit:GetPosition()
-				ai.requestshandler:AddRequest(false, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {pos.x, pos.y, pos.z}, cmdOptions = {"shift"}}}, true)
+				ai.requestshandler:AddRequest(false, {action = "command", params = {cmdID = CMD.FIGHT, cmdParams = {pos.x, pos.y, pos.z}, cmdOptions = {"shift"}}}, true)
 				ai.firstT2 = true
 				return "coralab"
 			elseif unit:Name() == "corcv" then
