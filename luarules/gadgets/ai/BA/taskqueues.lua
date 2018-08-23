@@ -987,6 +987,18 @@ function CorRad(tqb,ai,unit)
 	return "corrad"
 end
 
+function CorProtection(tqb,ai,unit)
+	local protype = (math.random(1,2) == 1) and "corgate" or "corfmd"
+	if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
+		return protype
+	end
+	local defs = UnitDefs[UnitDefNames[protype].id]
+	if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		return protype
+	end
+	return skip
+end
+
 function CorARad(tqb,ai,unit)
 	local pos = unit:GetPosition()
 	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
@@ -1056,6 +1068,11 @@ local cort2eco = {
 	CorEnT2,
 	CorEnT2,
 	CorExpandRandomLab,
+	CorProtection,
+	CorEnT2,
+	CorEnT2,
+	CorEnT2,
+	CorExpandRandomLab,
 }
 
 local cort2expand = {
@@ -1069,7 +1086,6 @@ local cort2expand = {
 	CorExpandRandomLab,
 	CorTacticalAdvDefT2,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
-
 }
 
 local corkbotlab = {
@@ -1925,6 +1941,18 @@ function ArmARad(tqb,ai,unit)
 	end
 	return "armarad"
 end
+
+function ArmProtection(tqb,ai,unit)
+	local protype = (math.random(1,2) == 1) and "armgate" or "armamd"
+	if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
+		return protype
+	end
+	local defs = UnitDefs[UnitDefNames[protype].id]
+	if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+		return protype
+	end
+	return skip
+end
 --------------------------------------------------------------------------------------------
 ----------------------------------------- ArmTasks -----------------------------------------
 --------------------------------------------------------------------------------------------
@@ -1980,6 +2008,11 @@ local armt1expand = {
 }
 
 local armt2eco = {
+	ArmEnT2,
+	ArmEnT2,
+	ArmEnT2,
+	ArmExpandRandomLab,
+	ArmProtection,
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
