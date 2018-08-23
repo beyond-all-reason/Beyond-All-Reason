@@ -198,7 +198,7 @@ function AiModeHandler:CreateWantedTechTree(i,j)
 	self.CorExpand = function(tqb,ai,unit)
 		for n = 1,4 do
 			if self.corexpfunctions[self.useCorRandomTable[n]](tqb,ai,unit) then
-				return self.armexpfunctions[self.useCorRandomTable[n]](tqb,ai,unit)
+				return self.corexpfunctions[self.useCorRandomTable[n]](tqb,ai,unit)
 			end
 		end
 		return FindBest({"corlab", "coralab", "corvp", "coravp", "corap", "coraap", "corgant"}, ai)

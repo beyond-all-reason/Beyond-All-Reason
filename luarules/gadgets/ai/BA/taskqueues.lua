@@ -1203,12 +1203,14 @@ assistqueuepatrol = {
 }
 
 assistqueuefreaker = {
+	CorT1KbotCon,
 	CorNanoT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
 	RequestedAction,
 }
 
 assistqueueconsul = {
+	ArmT1VehCon,
 	ArmNanoT,
 	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
 	RequestedAction,
@@ -2135,9 +2137,9 @@ local function armt1con(tqb, ai, unit)
 	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
 		return assistqueuepostt2arm	
 	else
-		return assistqueue
+		return armassistqueue
 	end
-	return assistqueue
+	return armassistqueue
 end
 
 local function cort1con(tqb, ai, unit)
@@ -2165,9 +2167,9 @@ local function cort1con(tqb, ai, unit)
 	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
 		return assistqueuepostt2core
 	else
-		return assistqueue
+		return corassistqueue
 	end
-	return assistqueue
+	return corassistqueue
 end
 
 local function armt2con(tqb, ai, unit)
@@ -2186,9 +2188,9 @@ local function armt2con(tqb, ai, unit)
 	elseif unit.mode == "expand" then
 		return armt2expand
 	else
-		return assistqueue
+		return armassistqueue
 	end
-	return assistqueue
+	return armassistqueue
 end
 
 local function cort2con(tqb, ai, unit)
@@ -2207,9 +2209,9 @@ local function cort2con(tqb, ai, unit)
 	elseif unit.mode == "expand" then
 		return cort2expand
 	else
-		return assistqueue
+		return corassistqueue
 	end
-	return assistqueue
+	return corassistqueue
 end
 
 
