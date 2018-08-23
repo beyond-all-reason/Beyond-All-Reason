@@ -11,8 +11,8 @@ math.random(); math.random(); math.random()
 -- Locals
 ----------------------------------------------------------------------
 -- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
---local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
---local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
+--
+--
 ----------------------------------------------------------------------
 -- for example ------------- UDC(ai.id, UDN.cormex.id) ---------------
 local UDC = Spring.GetTeamUnitDefCount
@@ -21,6 +21,9 @@ local UDN = UnitDefNames
 
 local unitoptions = {}
 local skip = {action = "nexttask"}
+local assistaround = { action = "fightrelative", position = {x = 0, y = 0, z = 0} }
+local patrolaround = { action = "patrolrelative", position = {x = 100, y = 0, z = 100} }
+
 --------------------------------------------------------------------------------------------
 --------------------------------------- Main Functions -------------------------------------
 --------------------------------------------------------------------------------------------
@@ -40,6 +43,16 @@ end
 function income(ai, resource) -- Returns income of resource in realtime
 	local c, s, p, i, e = Spring.GetTeamResources(ai.id, resource)
 	return i
+end
+
+function storabletime(ai, resource)
+	local c,s,p,i,e = Spring.GetTeamResources(ai.id, resource)
+	return s/i
+end
+
+function realincome(ai, resource)
+	local c,s,p,i,e = Spring.GetTeamResources(ai.id, resource)
+	return i-e
 end
 
 ---- TECHTREE RELATED ----
@@ -90,7 +103,6 @@ function KbotOrVeh()
 		return 'kbot'
 	end
 end
-
 
 -- Useful Unit Counts
 
@@ -283,6 +295,20 @@ function AllType(tqb, ai, unit, list)
 	return GetType(tqb,ai,unit,list) + GetPlannedType(tqb, ai, unit, list)
 end
 
+function UUDC(unitName, teamID) -- Unfinished UnitDef Count
+	local count = 0
+	if UnitDefNames[unitName] then
+		local tableUnits = Spring.GetTeamUnitsByDefs(teamID, UnitDefNames[unitName].id)
+		for k, v in pairs(tableUnits) do
+			local _,_,_,_,bp = Spring.GetUnitHealth(v)
+			if bp < 1 then
+				count = count + 1
+			end
+		end
+	end
+	return count
+end
+
 --- OTHERS
 
 function FindBest(unitoptions,ai)
@@ -308,20 +334,6 @@ function FindBest(unitoptions,ai)
 	end
 end
 
-function UUDC(unitName, teamID) -- Unfinished UnitDef Count
-	local count = 0
-	if UnitDefNames[unitName] then
-		local tableUnits = Spring.GetTeamUnitsByDefs(teamID, UnitDefNames[unitName].id)
-		for k, v in pairs(tableUnits) do
-			local _,_,_,_,bp = Spring.GetUnitHealth(v)
-			if bp < 1 then
-				count = count + 1
-			end
-		end
-	end
-	return count
-end
-
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 --------------------------------------- Core Functions -------------------------------------
@@ -336,9 +348,7 @@ function CorWindOrSolar(tqb, ai, unit)
 			if curWind > 7 then
 				return "corwin"
 			else
-				local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-				local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-				if ei > 200 and mi > 15 and (UUDC("armadvsol", ai.id) + UUDC("coradvsol", ai.id)) < 2 then
+				if income(ai, "energy") > 200 and income(ai, "metal") > 15 and (UUDC("armadvsol", ai.id) + UUDC("coradvsol", ai.id)) < 2 then
 					return "coradvsol"
 				else
 					return "corsolar"
@@ -383,69 +393,49 @@ function CorNanoT(tqb, ai, unit)
 end
 
 function CorEnT1( tqb, ai, unit )	
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and ei - ee < 0 and ec < 0.5 * es then
+	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 50 then
         return (CorWindOrSolar(tqb, ai, unit))
-	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and ei - ee < 0 and ec < 0.8 * es and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
 		return (CorWindOrSolar(tqb, ai, unit))
-    elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
+    elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and curstorperc(ai, "energy") > 30 then
         return "cormakr"
-	elseif es < (ei * 8) and ec > (es * 0.8) and countEstore < (ei*8)/6000 then
+	elseif storabletime(ai, "energy") < 8 and curstorperc(ai, "energy") > 80 then
 		return "corestor"
-	elseif ms < (mi * 8) or mc > (ms*0.9) then
+	elseif storabletime(ai, "metal") < 8 or curstorperc(ai, "metal") > 90 then
 		return "cormstor"
 	else
 		return skip
 	end
 end
 
-function CorEcoT1( tqb, ai, unit )
--- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if tqb.ai.map:AverageWind() > 7 and ec < es*0.10 then
-		return "corwin"
-	elseif tqb.ai.map:AverageWind() <= 7 and ec < es*0.10 then
-		return "corsolar"
-	elseif mc < ms*0.1 and ec > es*0.90 then
-		return "cormakr"
-	else
-		return skip
-	end
-end
-
-
 function CorEnT2( tqb, ai, unit )
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if es < ei * 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0) then
+	if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0) then
 		return "coruwadves"
-	elseif ms < mi * 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
+	elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
 		return "coruwadvms"
-	elseif ei > 6000 and mi > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "coracv" then
+	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "coracv" then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corafus", pos = {x = x, y = y, z = z}}
 		else
 			return "corafus"
 		end
-	elseif ei > ai.aimodehandler.mintecheincome and mi > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+	elseif income(ai, "energy") > ai.aimodehandler.mintecheincome and income(ai, "metal") > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corfus", pos = {x = x, y = y, z = z}}
 		else
 			return "corfus"
 		end
-	elseif ei > 6000 and mi > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corafus"].id].metalCost) < 240 and unit:Name() == "coracv" then
+	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corafus"].id].metalCost) < 240 and unit:Name() == "coracv" then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corafus", pos = {x = x, y = y, z = z}}
 		else
 			return "corafus"
 		end
-	elseif ei > ai.aimodehandler.mintecheincome and mi > ai.aimodehandler.mintechmincome and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
+	elseif income(ai, "energy") > ai.aimodehandler.mintecheincome and income(ai, "metal") > ai.aimodehandler.mintechmincome and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corfus", pos = {x = x, y = y, z = z}}
@@ -533,60 +523,6 @@ function CorExpandRandomLab(tqb, ai, unit)
 	end
 end
 
-function CorGroundAdvDefT1(tqb, ai, unit)
-	local unitoptions = {"cormaw", "corhllt", "corhlt",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorAirAdvDefT1(tqb, ai, unit)
-	local unitoptions = {"cormadsam", "corrl",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorAirAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"corflak","corscreamer" }
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
 function CorTacticalAdvDefT2(tqb, ai, unit)
 	local unitoptions = {"corvipe","corflak", "cordoom", "corint", "corscreamer", "cortoast"}
 	local list = {}
@@ -606,24 +542,6 @@ function CorTacticalAdvDefT2(tqb, ai, unit)
 		return skip
 	end
 end
-
-function CorTacticalOffDefT2(tqb, ai, unit)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.1 and ec > es*0.1 then
-		if  UDC(ai.id, UDN.corfmd.id) < 3 then
-			return "corfmd"
-		elseif 	 UDC(ai.id, UDN.corgate.id) < 6 then
-			return "corgate"
-		else
-			return skip
-		end
-	else
-		return skip
-	end
-end
-	--local unitoptions = {"corfmd", "corsilo",}
-	--return unitoptions[math.random(1,#unitoptions)]
 
 
 function CorKBotsT1(tqb, ai, unit)
@@ -762,25 +680,6 @@ function CorHover(tqb, ai, unit)
 		return skip
 	end
 end
---[[
-function CorSeaPlanes()
-	
-	local unitoptions = {"corcsa", "corcut", "corhunt", "corsb", "corseap", "corsfig", }
-	return unitoptions[math.random(1,#unitoptions)]
-end 		
-
-function CorShipT1()
-	
-	local unitoptions = {"corcs", "cordship", "coresupp", "corpship", "corpt", "correcl", "corroy", "corrship", "corsub", "cortship",}
-	return unitoptions[math.random(1,#unitoptions)]
-end		
-
-function CorShipT2()
-	
-	local unitoptions = {"coracsub", "corarch", "corbats", "corblackhy", "corcarry", "corcrus", "cormls", "cormship", "corshark", "corsjam", "corssub", }
-	return unitoptions[math.random(1,#unitoptions)]
-end				
-]]--
 
 function CorGantry(tqb, ai, unit)
 	
@@ -800,8 +699,6 @@ function CorGantry(tqb, ai, unit)
 		return skip
 	end
 end
-
---constructors:
 
 function CorT1KbotCon(tqb, ai, unit)
 	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
@@ -1043,23 +940,21 @@ local cort1eco = {
 local cort1expand = {
 	CorNanoT,
 	CorExpandRandomLab,
-	-- CorLLT,
 	CorMexT1,
 	CorExpandRandomLab,
 	CorLLT,
 	CorMexT1,
 	CorExpandRandomLab,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	CorLLT,
 	CorRad,
 	CorExpandRandomLab,
 	CorGeo,
 	CorLLT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	CorNanoT,
 	CorExpandRandomLab,
-	-- CorLLT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	CorNanoT,
 }
 
@@ -1085,16 +980,16 @@ local cort2expand = {
 	CorARad,
 	CorExpandRandomLab,
 	CorTacticalAdvDefT2,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 }
 
 local corkbotlab = {
-	CorStartT1KbotCon,	-- 	Constructor/KBOT
-	CorT1KbotCon,	-- 	Constructor
+	CorStartT1KbotCon,
+	CorT1KbotCon,
 	CorKBotsT1,
-	CorStartT1KbotCon,	-- 	Constructor/KBOT
+	CorStartT1KbotCon,
 	CorKBotsT1,
-	CorStartT1KbotCon,	-- 	Constructor/KBOT
+	CorStartT1KbotCon,
 	CorKBotsT1,
 	CorKBotsT1,
 	CorKBotsT1,
@@ -1103,19 +998,19 @@ local corkbotlab = {
 }
 
 local corvehlab = {
-	CorStartT1VehCon,	--	Constructor
-	CorT1VehCon,	--	Constructor
+	CorStartT1VehCon,
+	CorT1VehCon,
 	CorVehT1,
 	CorVehT1,
-	CorStartT1VehCon,	--	Constructor
+	CorStartT1VehCon,
 	CorVehT1,
-	CorStartT1VehCon,	--	Constructor
+	CorStartT1VehCon,
 	CorVehT1,
 	CorVehT1,
 }
 
 local corairlab = {
-	CorT1AirCon,	--	Constructor
+	CorT1AirCon,
 	CorAirT1,
 	CorAirT1,
 	CorAirT1,
@@ -1198,76 +1093,43 @@ assistqueuepostt2core = {
 }
 
 assistqueue = {
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	RequestedAction,
 }
 
 corassistqueue = {
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	RequestedAction,
 	CorExpandRandomLab,
 }
 
 armassistqueue = {
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	RequestedAction,
 	ArmExpandRandomLab,
 }
 
 assistqueuepatrol = {
-	{ action = "patrolrelative", position = {x = 100, y = 0, z = 100} },
+	patrolaround,
 }
 
 assistqueuefreaker = {
 	CorT1KbotCon,
 	CorNanoT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	assistaround,	
 	RequestedAction,
 }
 
 assistqueueconsul = {
 	ArmT1VehCon,
 	ArmNanoT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },	
+	assistaround,	
 	RequestedAction,
 }
---------------------------------------------------------------------------------------------
--------------------------------------- CoreQueuePicker -------------------------------------
---------------------------------------------------------------------------------------------
 
-local function corcommander(tqb, ai, unit)
-	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
-	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
-	if AllLabs(tqb,ai,unit) > 0 then
-	--return armcommanderq
-		return corassistqueue
-	elseif ai.engineerfirst then
-		return {CorStarterLabT1}
-	else
-		ai.engineerfirst = true
-		return corcommanderfirst
-	end
-end
-
---local function corT1constructorrandommexer()
-	--if ai.engineerfirst1 == true then
-			--local r = math.random(0,1)
-		--if r == 0 or Spring.GetGameSeconds() < 300 then
-			--return cort1mexingqueue
-		--else
-			--return cort1construction
-		--end
-	--else
-        --ai.engineerfirst1 = true
-        --return corT1ConFirst
-    --end
---end
-
---------------------------------------------------------------------------------------------	
---------------------------------------------------------------------------------------------
---------------------------------------- Arm Functions --------------------------------------
---------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------
+-------------------
+-- Arm Functions --
+-------------------
 
 function ArmWindOrSolar(tqb, ai, unit)
     local _,_,_,curWind = Spring.GetWind()
@@ -1277,9 +1139,9 @@ function ArmWindOrSolar(tqb, ai, unit)
 			if curWind > 7 then
 				return "armwin"
 			else
-				local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-				local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-				if ei > 200 and mi > 15 and (UUDC("armadvsol", ai.id) + UUDC("coradvsol", ai.id)) < 2 then
+				
+				
+				if income(ai, "energy") > 200 and income(ai, "metal") > 15 and (UUDC("armadvsol", ai.id) + UUDC("coradvsol", ai.id)) < 2 then
 					return "armadvsol"
 				else
 					return "armsolar"
@@ -1323,65 +1185,47 @@ function ArmNanoT(tqb, ai, unit)
 	end
 end
 
-
 function ArmEnT1( tqb, ai, unit)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
+	
+	
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and ei - ee < 0 and ec < 0.8 * es then
+	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 then
 		return (ArmWindOrSolar(tqb, ai, unit))
-	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and ei - ee < 0 and ec < 0.8 * es and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
 		return (ArmWindOrSolar(tqb, ai, unit))
-	elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and ec > 0.3 * es then
+	elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and curstorperc(ai, "energy") > 30 then
 		return "armmakr"
-	elseif es < (ei * 8) and ec > (es * 0.8) and countEstore < (ei *8) / 6000 then
+	elseif storabletime(ai, "energy") < 8 and curstorperc(ai, "energy") > 80 then
 		return "armestor"
-	elseif ms < (mi * 8) or mc > (ms*0.9) then
+	elseif storabletime(ai, "metal") < 8 or curstorperc(ai, "metal") > 90 then
 		return "armmstor"
 	else
 		return skip
 	end
 end
 
-function ArmEcoT1( tqb, ai, unit )
--- c = current, s = storage, p = pull(?), i = income, e = expense (Ctrl C Ctrl V into functions)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if tqb.ai.map:AverageWind() > 7 and ec < es*0.10 then
-		return "armwin"
-	elseif tqb.ai.map:AverageWind() <= 7 and ec < es*0.10 then
-		return "armsolar"
-	elseif mc < ms*0.1 and ec > es*0.90 then
-		return "armmakr"
-	else
-		return skip
-	end
-end
-
-
-
 function ArmEnT2( tqb, ai, unit )
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if es < ei * 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0)then
+	
+	
+	if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0)then
 		return "armuwadves"
-	elseif ms < mi * 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
+	elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
 		return "armuwadvms"
-	elseif ei > 6000 and mi > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "armacv" then
+	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "armacv" then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "armafus", pos = {x = x, y = y, z = z}}
 		else
 			return "armafus"
 		end
-	elseif ei > ai.aimodehandler.mintecheincome and mi > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+	elseif income(ai, "energy") > ai.aimodehandler.mintecheincome and income(ai, "metal") > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "armfus", pos = {x = x, y = y, z = z}}
 		else
 			return "armfus"
 		end
-	elseif ei > 6000 and mi > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["armafus"].id].metalCost) < 240 and unit:Name() == "armacv" then
+	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["armafus"].id].metalCost) < 240 and unit:Name() == "armacv" then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "armafus", pos = {x = x, y = y, z = z}}
@@ -1447,7 +1291,6 @@ function ArmTech(tqb, ai, unit)
 	end
 end
 
-
 function ArmExpandRandomLab(tqb, ai, unit)
 	local labtype = ai.aimodehandler:ArmExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
@@ -1470,61 +1313,6 @@ function ArmExpandRandomLab(tqb, ai, unit)
 	end
 end
 
-
-function ArmGroundAdvDefT1(tqb, ai, unit)
-	local unitoptions = {"armclaw", "armbeamer","armhlt",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmAirAdvDefT1(tqb, ai, unit)
-	local unitoptions = {"armrl", "armpacko",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmAirAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"armmercury", "armflak",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
 function ArmTacticalAdvDefT2(tqb, ai, unit)
 	local unitoptions = {"armpb","armflak", "armamb", "armmercury", "armbrtha", "armanni"}
 	local list = {}
@@ -1544,24 +1332,6 @@ function ArmTacticalAdvDefT2(tqb, ai, unit)
 		return skip
 	end
 end
-
-function ArmTacticalOffDefT2(tqb, ai, unit)
-	local ec, es, ep, ei, ee = Spring.GetTeamResources(ai.id, "energy")
-	local mc, ms, mp, mi, me = Spring.GetTeamResources(ai.id, "metal")
-	if mc > ms*0.1 and ec > es*0.1 then
-		if  UDC(ai.id, UDN.armamd.id) < 3 then
-			return "armamd"
-		elseif 	 UDC(ai.id, UDN.armgate.id) < 6 then
-			return "armgate"
-		else
-			return skip
-		end
-	else
-		return skip
-	end
-end
-	--local unitoptions = {"armamd", "armsilo",}
-	--return FindBest(unitoptions,ai)
 
 function ArmKBotsT1(tqb, ai, unit)
 	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
@@ -1627,8 +1397,7 @@ function ArmAirT1(tqb, ai, unit)
 	end
 end
 
-function ArmKBotsT2(tqb, ai, unit)
-	
+function ArmKBotsT2(tqb, ai, unit)	
 	local unitoptions = {"armaak", "armamph", "armaser", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armzeus", "armvader",}
 	local list = {}
 	local count = 0
@@ -1682,44 +1451,6 @@ function ArmAirT2(tqb, ai, unit)
 	end
 end
 
-function ArmHover(tqb, ai, unit)	
-	local unitoptions = {"armah", "armanac", "armch", "armlun", "armmh", "armsh",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
---[[
-function ArmSeaPlanes()
-	
-	local unitoptions = {"armcsa", "armsaber", "armsb", "armseap", "armsehak", "armsfig", }
-	return unitoptions[math.random(1,#unitoptions)]
-end 		
-
-function ArmShipT1()
-	
-	local unitoptions = {"armcs", "armdecade", "armdship", "armpship", "armpt", "armrecl", "armroy", "armrship", "armsub", "armtship",}
-	return unitoptions[math.random(1,#unitoptions)]
-end		
-
-function ArmShipT2()
-	
-	local unitoptions = {"armaas", "armacsub", "armbats", "armcarry", "armcrus", "armepoch", "armmls", "armmship", "armserp", "armsjam", "armsubk", }
-	return unitoptions[math.random(1,#unitoptions)]
-end		
-]]--
-
 function ArmGantry(tqb, ai, unit)
 	
 	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
@@ -1739,7 +1470,6 @@ function ArmGantry(tqb, ai, unit)
 	end
 end
 
---constructors:
 
 function ArmT1KbotCon(tqb, ai, unit)
 	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
@@ -1953,9 +1683,10 @@ function ArmProtection(tqb,ai,unit)
 	end
 	return skip
 end
---------------------------------------------------------------------------------------------
------------------------------------------ ArmTasks -----------------------------------------
---------------------------------------------------------------------------------------------
+
+--------------
+-- ArmTasks --
+--------------
 
 local armcommanderfirst = {
 	ArmMexT1,
@@ -1987,23 +1718,21 @@ local armt1eco = {
 local armt1expand = {
 	ArmNanoT,
 	ArmExpandRandomLab,
-	-- ArmLLT,
 	ArmMexT1,
 	ArmExpandRandomLab,
 	ArmLLT,
 	ArmMexT1,
 	ArmExpandRandomLab,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	ArmLLT,
 	ArmRad,
 	ArmExpandRandomLab,
 	ArmGeo,
-	-- ArmLLT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	ArmNanoT,
 	ArmExpandRandomLab,
 	ArmLLT,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 	ArmNanoT,
 }
 
@@ -2029,16 +1758,16 @@ local armt2expand = {
 	ArmARad,
 	ArmExpandRandomLab,
 	ArmTacticalAdvDefT2,
-	{ action = "fightrelative", position = {x = 0, y = 0, z = 0} },
+	assistaround,
 }
 
 local armkbotlab = {
-	ArmStartT1KbotCon,	-- 	Constructor/KBOT
-	ArmT1KbotCon,	-- 	Constructor
+	ArmStartT1KbotCon,
+	ArmT1KbotCon,
 	ArmKBotsT1,
-	ArmStartT1KbotCon,	-- 	Constructor/KBOT
+	ArmStartT1KbotCon,
 	ArmKBotsT1,
-	ArmStartT1KbotCon,	-- 	Constructor/KBOT
+	ArmStartT1KbotCon,
 	ArmKBotsT1,
 	ArmKBotsT1,
 	ArmKBotsT1,
@@ -2047,19 +1776,19 @@ local armkbotlab = {
 }
 
 local armvehlab = {
-	ArmStartT1VehCon,	--	Constructor
-	ArmT1VehCon,	--	Constructor
+	ArmStartT1VehCon,
+	ArmT1VehCon,
 	ArmVehT1,
 	ArmVehT1,
-	ArmStartT1VehCon,	--	Constructor
+	ArmStartT1VehCon,
 	ArmVehT1,
-	ArmStartT1VehCon,	--	Constructor
+	ArmStartT1VehCon,
 	ArmVehT1,
 	ArmVehT1,
 }
 
 local armairlab = {
-	ArmT1AirCon,	--	Constructor
+	ArmT1AirCon,
 	ArmAirT1,
 	ArmAirT1,
 	ArmAirT1,
@@ -2127,15 +1856,27 @@ armgantryT3 = {
 	ArmGantry,
 }
 
---------------------------------------------------------------------------------------------
--------------------------------------- ArmQueuePicker --------------------------------------
---------------------------------------------------------------------------------------------
+------------------
+-- QueuePickers --
+------------------
+
+local function corcommander(tqb, ai, unit)
+	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
+	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
+	if AllLabs(tqb,ai,unit) > 0 then
+		return corassistqueue
+	elseif ai.engineerfirst then
+		return {CorStarterLabT1}
+	else
+		ai.engineerfirst = true
+		return corcommanderfirst
+	end
+end
 
 local function armcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
 	if AllLabs(tqb,ai,unit) > 0 then
-	--return armcommanderq
 		return armassistqueue
 	elseif ai.engineerfirst then
 		return {ArmStarterLabT1}
@@ -2246,16 +1987,6 @@ local function cort2con(tqb, ai, unit)
 	end
 	return corassistqueue
 end
-
-
---local function armT1constructorrandommexer()
-    --if ai.engineerfirst1 == true then
-		--return armt1construction
-    --else
-        --ai.engineerfirst1 = true
-		--return armT1ConFirst
-    --end
---end
 
 --------------------------------------------------------------------------------------------
 ---------------------------------------- TASKQUEUES ----------------------------------------
