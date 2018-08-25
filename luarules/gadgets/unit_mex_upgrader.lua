@@ -179,13 +179,20 @@ function gadget:GameFrame(n)
   for unitID, data in pairs(scheduledBuilders) do 
     local teamID = GetUnitTeam(unitID) 
     if builders[teamID] then
-      local builder = builders[teamID][unitID] 
-      local y = GetGroundHeight(builder.targetX, builder.targetZ) 
-
-      GiveOrderToUnit(unitID, CMD_INSERT, {0, CMD_RECLAIM, CMD_OPT_INTERNAL, data}, {"alt"});    
-      GiveOrderToUnit(unitID, CMD_INSERT, {1,-builder.targetUpgrade,CMD_OPT_INTERNAL,builder.targetX, y, builder.targetZ, 0}, {"alt"});    
-    
-    
+		local builder = builders[teamID][unitID] 
+		local y = GetGroundHeight(builder.targetX, builder.targetZ) 
+		local blockers = {}
+		local hsize = UnitDefs[builder.targetUpgrade].xsize * 4
+		for x = builder.targetX - hsize, builder.targetX + hsize, 8 do
+			for z = builder.targetX - hsize, builder.targetX + hsize, 8 do
+				local _,blocker = Spring.GetGroundBlocked(x,z,x+7,z+7)
+				if blocker and not blockers[blocker] then 
+					GiveOrderToUnit(unitID, CMD.RECLAIM, {blocker}, {"shift"})
+					blockers[blocker] = true
+				end
+			end
+		end
+      GiveOrderToUnit(unitID, CMD_INSERT, {1,-builder.targetUpgrade,CMD_OPT_INTERNAL,builder.targetX, y, builder.targetZ, 0}, {shift = true, internal = true, alt = true});    
       builder.orderTaken = true 
     end
   end 
