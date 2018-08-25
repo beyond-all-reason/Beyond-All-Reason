@@ -338,7 +338,7 @@ function widget:CommandNotify(id, params, options)
 					local spotSize = 0 -- GetSpotSize(x, z)
 					if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
 					for j=1, mexBuilder[id].buildings do
-						local buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x,spGetGroundHeight(command.x,command.z),command.z,1)
+						local buildable = 0
 						newx, newz = command.x, command.z
 						if not (buildable ~= 0) then -- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
 							local bestPos = GetClosestMexPosition(GetClosestMetalSpot(newx, newz), newx-2*Game.extractorRadius, newz-2*Game.extractorRadius, -mexBuilder[id].building[j], "s")
@@ -384,6 +384,22 @@ function widget:CommandNotify(id, params, options)
 						-- end
 						if buildable ~= 0 then
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], {newx,spGetGroundHeight(newx,newz),newz} , {"shift"})
+							break
+						else
+							local def = UnitDefs[-mexBuilder[id].building[j]]
+							local hsize = def.xsize*4
+							local unitsatmex = Spring.GetUnitsInRectangle(command.x-hsize, command.z-hsize, command.x+hsize, command.z + hsize)
+							local blockers = {}
+							for x = command.x - hsize, command.x + hsize, 8 do
+								for z = command.z - hsize, command.z + hsize, 8 do
+									local _,blocker = Spring.GetGroundBlocked(x,z,x+7,z+7)
+									if blocker and not blockers[blocker] then 
+										spGiveOrderToUnit(id, CMD.RECLAIM, {blocker}, {"shift"})
+										blockers[blocker] = true
+									end
+								end
+							end
+							spGiveOrderToUnit(id, CMD.INSERT, {-1, mexBuilder[id].building[j], CMD.OPT_INTERNAL, command.x,spGetGroundHeight(command.x,command.z),command.z} , {shift = true, internal = true, alt = true})
 							break
 						end
 					end
