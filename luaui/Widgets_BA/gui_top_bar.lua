@@ -103,7 +103,6 @@ local allyComs = 0
 local enemyComs = 0 -- if we are counting ourselves because we are a spec
 local enemyComCount = 0 -- if we are receiving a count from the gadget part (needs modoption on)
 local prevEnemyComCount = 0
-local receiveCount = (tostring(Spring.GetModOptions().mo_enemycomcount) == "1") or false
 
 local guishaderEnabled = false
 local guishaderCheckUpdateRate = 2
@@ -445,10 +444,8 @@ local function updateComs(forceText)
 			local usedEnemyComs = enemyComs
 			if spec then
 				usedEnemyComs = enemyComs
-			elseif receiveCount then
-				usedEnemyComs = enemyComCount
 			else
-				usedEnemyComs = '?'		-- dunno why it was set as 2 here before
+				usedEnemyComs = enemyComCount
 			end
 			glText('\255\255\000\000'..usedEnemyComs, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
@@ -902,7 +899,7 @@ function widget:Update(dt)
 			checkStatus()
 			countComs()
 		end
-		if not spec and receiveCount then	-- check if we have received a TeamRulesParam from the gadget part
+		if not spec then	-- check if we have received a TeamRulesParam from the gadget part
 			local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
 			if type(newEnemyComCount) == 'number' then
 				enemyComCount = newEnemyComCount
