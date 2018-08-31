@@ -319,7 +319,7 @@ function FindBest(unitoptions,ai)
 		for n, unitName in pairs(unitoptions) do
 			local cost = UnitDefs[UnitDefNames[unitName].id].energyCost / 60 + UnitDefs[UnitDefNames[unitName].id].metalCost
 			local avgkilled_cost = GG.AiHelpers.UnitInfo(ai.id, UnitDefNames[unitName].id) and GG.AiHelpers.UnitInfo(ai.id, UnitDefNames[unitName].id).avgkilled_cost or 200 --start at 200 so that costly units aren't made from the start
-			effect[unitName] = math.max(math.floor((avgkilled_cost/cost)^4*100),10)
+			effect[unitName] = math.max(math.floor((avgkilled_cost/cost)^4*10),1)
 			for i = randomization, randomization + effect[unitName] do
 				randomunit[i] = unitName
 			end
