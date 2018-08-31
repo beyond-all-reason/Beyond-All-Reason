@@ -28,6 +28,27 @@ function NewPlacementHandler:FreePosition(x,z,cellsize,spacing)
 	GG.AiHelpers.NewPlacementHandler.FreePosition(x,z,cellsize,spacing)
 end
 
+function generateSpiral()
+	local retTable = {}
+	local attempt = 0
+	local ct = 0
+	while attempt < 50 do
+		attempt = attempt + 1
+		for v = -attempt, attempt do
+			for h = -attempt, attempt do	
+				if math.abs(v) == attempt or math.abs(h) == attempt then
+					ct = ct + 1
+					retTable[ct] = {v, h}
+					Spring.Echo(ct, v, h)
+				end
+			end
+		end
+	end
+	return retTable
+end
+		
+	
+
 function NewPlacementHandler:UnitIdle(engineunit)
 	local unitDefID = UnitDefNames[unit:Name()].id
 	local defs = UnitDefs[unitDefID]
@@ -52,6 +73,9 @@ function NewPlacementHandler:Init()
 	self.plansbyunitID = {}
 	self.plansbyunitDefID = {}	
 	mapwidth = math.max(Game.mapSizeX, Game.mapSizeZ)
+	if not spiral then
+		spiral = generateSpiral()
+	end
 end
 
 function NewPlacementHandler:GetClosestBuildPosition(x, z, cellsize, buildtype)
@@ -62,19 +86,14 @@ function NewPlacementHandler:GetClosestBuildPosition(x, z, cellsize, buildtype)
 	local pos
 	buildable = self:GetIDBuildable(ID, cellsize, buildtype)
 	if buildable == true then bestID = ID end
-	while buildable ~= true and attempt < 50 do
+	while buildable ~= true and attempt <= 10200 do
 		attempt = attempt + 1
-		for v = -attempt, attempt do
-			for h = -attempt, attempt do	
-				local id = ID + (v*cellsize*mapwidth) + (h*cellsize)
-				if self:GetIDBuildable(id, cellsize, buildtype) == true then
-					buildable = true
-					bestID = id
-					break
-				end
-			if buildable == true then break end
-			end
-		if buildable == true then break end
+		v = spiral[attempt][1]
+		h = spiral[attempt][2]
+		local id = ID + (v*cellsize*mapwidth) + (h*cellsize)
+		if self:GetIDBuildable(id, cellsize, buildtype) == true then
+			buildable = true
+			bestID = id
 		end
 	end
 	if bestID then
