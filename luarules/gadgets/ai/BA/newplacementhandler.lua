@@ -39,7 +39,6 @@ function generateSpiral()
 				if math.abs(v) == attempt or math.abs(h) == attempt then
 					ct = ct + 1
 					retTable[ct] = {v, h}
-					Spring.Echo(ct, v, h)
 				end
 			end
 		end
