@@ -164,11 +164,8 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 	
 	-- We have processed units that had to retreat and units that had visible enemies within 2* their range
 	-- what are left are units with no visible enemies within 2*maxRange (no radar/los/prevLOS buildings)
-	-- 2 cases: 
-	-- There are enemies, no mex, and none are visible => what to do ? nothing for now
-	-- There are enemies, including mexes, but none are visible => Search mexes "randomly"
 	local enemyposx, enemyposy, enemyposz
-	if nearestVisibleRangeCheck then
+	if nearestVisibleAcrossMap then
 		enemyposx, enemyposy, enemyposz = SpGetUnitPosition(nearestVisibleAcrossMap) -- visible on map
 	else
 		local attacker = type == "attacker"
