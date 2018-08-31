@@ -368,7 +368,7 @@ function gadget:GameOver(winningAllyTeams)
 	
 	--is the cow awarded?
 	local cowAward = -1
-	if ecoKillAward ~= -1 and (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 then --check if some team got all the awards
+	if ecoKillAward ~= -1 and (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 and nTeams > 3 then --check if some team got all the awards + if more than 3 teams in the game
 		if winningAllyTeams and winningAllyTeams[1] then
 			local won = false
 			local _,_,_,_,_,cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward)
