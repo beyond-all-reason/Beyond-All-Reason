@@ -177,7 +177,7 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 				return
 			end
 		else
-			local cms = self.ai.metalspothandler:ClosestFreeSpot(utype, self.unit:Internal():GetPosition())
+			local cms = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex"), self.unit:Internal():GetPosition())
 			if cms then
 				enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
 			else
