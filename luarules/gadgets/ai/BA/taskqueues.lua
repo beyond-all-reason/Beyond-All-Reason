@@ -719,7 +719,8 @@ function CorStartT1KbotCon(tqb, ai, unit)
 		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
 		return {action = "wait", frames = "infinite"}
 	end
-	return (((Spring.GetGameSeconds() < 180) and"corck") or CorKBotsT1(tqb, ai, unit))
+	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
+	return (((t1cons < 5) and "corck") or CorKBotsT1(tqb, ai, unit))
 end
 
 
@@ -781,7 +782,8 @@ function CorStartT1VehCon(tqb, ai, unit)
 		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
 		return {action = "wait", frames = "infinite"}
 	end
-	return (((Spring.GetGameSeconds() < 180) and"corcv") or CorVehT1(tqb, ai, unit))
+	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
+	return (((t1cons < 5) and"corcv") or CorVehT1(tqb, ai, unit))
 	end
 
 function CorT1AirCon(tqb, ai, unit)
@@ -1490,7 +1492,8 @@ function ArmStartT1KbotCon(tqb, ai, unit)
 		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
 		return {action = "wait", frames = "infinite"}
 	end
-	return (((Spring.GetGameSeconds() < 180) and "armck") or ArmKBotsT1(tqb,ai,unit))
+	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
+	return (((t1cons < 5) and "armck") or ArmKBotsT1(tqb,ai,unit))
 end
 
 function ArmT1RezBot(tqb, ai, unit)
@@ -1525,7 +1528,8 @@ function ArmStartT1VehCon(tqb, ai, unit)
 		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
 		return {action = "wait", frames = "infinite"}
 	end
-	return (((Spring.GetGameSeconds() < 180) and "armcv") or ArmVehT1(tqb, ai, unit))
+	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
+	return (((t1cons < 5) and "armcv") or ArmVehT1(tqb, ai, unit))
 end
 
 function ArmT1AirCon(tqb, ai, unit)
