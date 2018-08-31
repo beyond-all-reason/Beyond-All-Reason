@@ -87,6 +87,7 @@ end
 -- Callins
 ------------------------------------------------------------
 function widget:Initialize()
+	WG.MexSnap = {}
 	if not WG.metalSpots then
 		Spring.Echo("<Snap Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget(self)
@@ -119,9 +120,13 @@ function widget:DrawWorld()
 	-- Get the closet position that would give 100%
 	local bface = Spring.GetBuildFacing()
 	local bestPos = GetClosestMexPosition(closestSpot, bx, bz, -cmdID, bface)
-	if not bestPos then return end
+	if not bestPos then
+		WG.MexSnap.curPosition = nil
+		return 
+	end
 	
 	-- Draw !
+	WG.MexSnap.curPosition = bestPos
 	gl.DepthTest(false)
 	
 	gl.LineWidth(1.49)

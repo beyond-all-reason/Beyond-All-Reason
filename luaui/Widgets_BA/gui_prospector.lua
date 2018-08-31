@@ -135,7 +135,6 @@ end
 
 local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 	local newCenterX, newCenterZ
-	
 	if (mexDefInfo[3]) then
 		newCenterX = (floor( x / METAL_MAP_SQUARE_SIZE) + 0.5) * METAL_MAP_SQUARE_SIZE
 	else
@@ -152,7 +151,7 @@ local function IntegrateMetal(mexDefInfo, x, z, forceUpdate)
 	
 	centerX = newCenterX
 	centerZ = newCenterZ
-	
+		
 	local startX = floor((centerX - MEX_RADIUS) / METAL_MAP_SQUARE_SIZE)
 	local startZ = floor((centerZ - MEX_RADIUS) / METAL_MAP_SQUARE_SIZE)
 	local endX = floor((centerX + MEX_RADIUS) / METAL_MAP_SQUARE_SIZE)
@@ -197,7 +196,10 @@ function widget:DrawWorld()
 	if GetGameFrame() < 1 and defaultDefID and drawMode == "metal" then
 		local mx, my = GetMouseState()
 		local _, coords = TraceScreenRay(mx, my, true, true)
-		
+		if WG.MexSnap and WG.MexSnap.curPosition then
+			coords[1] = WG.MexSnap.curPosition[1]
+			coords[3] = WG.MexSnap.curPosition[3]
+		end
 		if not coords then return end
 		
 		IntegrateMetal(mexDefInfos[defaultDefID], coords[1], coords[3], false)
@@ -248,7 +250,10 @@ function widget:DrawScreen()
 	local _, coords = TraceScreenRay(mx, my, true, true)
 	
 	if (not coords) then return end
-	
+	if WG.MexSnap and WG.MexSnap.curPosition then
+		coords[1] = WG.MexSnap.curPosition[1]
+		coords[3] = WG.MexSnap.curPosition[3]
+	end
 	IntegrateMetal(mexDefInfo, coords[1], coords[3], forceUpdate)
 	DrawTextWithBackground("\255\255\255\255Metal extraction: " .. strFormat("%.2f", extraction), mx, my, textSize, "d")
 	glColor(1, 1, 1, 1)
