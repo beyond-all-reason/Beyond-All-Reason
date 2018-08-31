@@ -94,7 +94,7 @@ function gadget:GameStart()
 				
 				if numPlayers > 0 then
 					present[teamIDs[j]] = true
-					teamInfo[teamIDs[j]] = {allDmg=0, ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, effScore=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0, present=true,}
+					teamInfo[teamIDs[j]] = {allDmg=0, ecoDmg=0, fightDmg=0, otherDmg=0, dmgDealt=0, ecoUsed=0, effScore=0, ecoProd=0, lastKill=0, dmgRec=0, sleepTime=0, present=true, teamDmg = 0,}
 					coopInfo[teamIDs[j]] = {players=numPlayers,}
 				else
 					present[teamIDs[j]] = false
@@ -126,7 +126,17 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if attackerTeamID == gaiaTeamID then return end
 	if not present[attackerTeamID] then return end
 	if (not unitDefID) or (not teamID) then return end
-	if SpAreTeamsAllied(teamID, attackerTeamID) then return end
+	if SpAreTeamsAllied(teamID, attackerTeamID) then 
+		if teamID~=attackerTeamID then
+			local curTime = Spring.GetGameSeconds()
+			
+			local ud = UnitDefs[unitDefID]
+			local cost = ud.energyCost + 60 * ud.metalCost
+			--keep track of teamkilling 
+			teamInfo[attackerTeamID].teamDmg = teamInfo[attackerTeamID].teamDmg + cost
+		end
+		return
+	end
 	
 	--keep track of who didn't kill for longest (sleeptimes)
 	local curTime = Spring.GetGameSeconds()
@@ -263,6 +273,7 @@ function gadget:GameOver(winningAllyTeams)
 	local ecoAward, ecoScore = -1,0
 	local dmgRecAward, dmgRecScore = -1,0
 	local sleepAward, sleepScore = -1,0
+	local traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi = -1,-1,-1,0,0,0
 	for teamID,_ in pairs(teamInfo) do	
 		--deal with sleep times
 		local curTime = Spring.GetGameSeconds()
@@ -336,6 +347,23 @@ function gadget:GameOver(winningAllyTeams)
 			sleepScore = teamInfo[teamID].sleepTime
 			sleepAward = teamID		
 		end
+		--traitor award
+		if traitorScore < teamInfo[teamID].teamDmg then
+			traitorScoreThi = traitorScoreSec
+			traitorAwardThi = traitorAwardSec
+			traitorScoreSec = traitorScore
+			traitorAwardSec = traitorAward
+			traitorScore = teamInfo[teamID].teamDmg
+			traitorAward = teamID
+		elseif traitorScoreSec < teamInfo[teamID].teamDmg then
+			traitorScoreThi = traitorScoreSec
+			traitorAwardThi = traitorAwardSec
+			traitorScoreSec = teamInfo[teamID].teamDmg
+			traitorAwardSec = teamID
+		elseif traitorScoreThi < teamInfo[teamID].teamDmg then
+			traitorScoreThi = teamInfo[teamID].teamDmg
+			traitorAwardThi = teamID		
+		end
 	end	
 	
 	--is the cow awarded?
@@ -382,7 +410,8 @@ function gadget:GameOver(winningAllyTeams)
 									dmgRecAward, dmgRecScore, 
 									sleepAward, sleepScore,
 									cowAward,
-									bettingWinners, bettingScore, bettingParticipants)
+									bettingWinners, bettingScore, bettingParticipants,
+									traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
 
 end
 
@@ -418,7 +447,7 @@ local drawAwards = false
 local cx,cy --coords for center of screen
 local bx,by,bxScaled,byScaled --coords for top left hand corner of box
 local w = 800 
-local h = 500
+local h = 600 
 local bgMargin = 6
 
 --h = 520-bgMargin-bgMargin
@@ -428,6 +457,8 @@ local Background
 local FirstAward
 local SecondAward
 local ThirdAward
+local FourthAward
+local threshold = 150000
 local CowAward
 local OtherAwards
 
@@ -495,7 +526,8 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 						dmgRecAward, dmgRecScore, 
 						sleepAward, sleepScore,
 						cowAward,
-						bettingWinners, bettingScore, bettingParticipants)
+						bettingWinners, bettingScore, bettingParticipants,
+						traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi)
 
 	bettingScores = {bettingWinners, bettingScore, bettingParticipants}
 
@@ -514,9 +546,12 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Efficient use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
 	if cowAward ~= -1 then
-		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 400) 	
+		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 500) 	
 	else
-		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400)		
+		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 500)		
+	end
+	if traitorScore > threshold then
+		FourthAward = CreateAward('traitor',0,'The Traitor - Destroying allied units',white, traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi, 400)		
 	end
 	drawAwards = true
 	
@@ -788,6 +823,10 @@ function gadget:DrawScreen()
 			glCallList(CowAward)
 		elseif OtherAwards then
 			glCallList(OtherAwards)
+		end
+		
+		if FourthAward then
+			glCallList(FourthAward)
 		end
 		
 		--draw buttons, wastefully, but it doesn't matter now game is over
