@@ -56,7 +56,7 @@ function AttackerBehaviour:Update()
 	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
 		self.myRange = SpGetUnitMaxRange(self.unitID)
 	end
-	if (frame%90 == self.unitID%90) or self.nearestVisibleAcrossMap == nil then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%90 == self.unitID%90) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
@@ -146,17 +146,19 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 		end
 		-- offset upos randomly so it moves a bit while keeping distance
 		local dx, _, dz, dw = SpGetUnitVelocity(self.unitID) -- attempt to not always queue awful turns
+		local modifier = "ctrl"
 		ux = ux + 10*dx + math.random (-80,80)
 		uy = uy
 		uz = uz + 10*dz + math.random (-80,80)
 		-- here we find the goal position
 		if (pointDis+dis > wantedRange) then
-		  f = (wantedRange-pointDis)/pointDis
+			modifier = nil -- Do not try to move backwards if attempting to get closer to target
+			f = (wantedRange-pointDis)/pointDis
 		end
 		local cx = ux+(ux-ex)*f
 		local cy = uy
 		local cz = uz+(uz-ez)*f
-		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {"ctrl"})
+		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
 		return
 	end
 	
