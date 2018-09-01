@@ -274,16 +274,14 @@ function widget:DrawScreen()
 	local useHoverID = false
 	local _, activeID = Spring.GetActiveCommand()
 	if not activeID then activeID = 0 end
-	if not uID then
-		if (not WG.hoverID) and not (activeID < 0) then
-			RemoveGuishader() return
-		elseif WG.hoverID and not (activeID < 0) then
-			uID = nil
-			useHoverID = true
-		elseif activeID < 0 then
-			uID = nil
-			useHoverID = false
-		end
+	if not uID and (not WG.hoverID) and not (activeID < 0) then
+		RemoveGuishader() return
+	elseif WG.hoverID and not (activeID < 0) then
+		uID = nil
+		useHoverID = true
+	elseif activeID < 0 then
+		uID = nil
+		useHoverID = false
 	end
 	local useExp = ctrl
 	local uDefID = (uID and spGetUnitDefID(uID)) or (useHoverID and WG.hoverID) or (UnitDefs[-activeID] and -activeID)
