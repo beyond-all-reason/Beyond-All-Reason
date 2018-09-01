@@ -164,7 +164,7 @@ end
 					cells[cellsize][buildtype] = {}
 					for x = 0, Game.mapSizeX-1, cellsize do
 						for z = 0, Game.mapSizeZ-1, cellsize do
-							gadget:SetCellValue(GG.AiHelpers.NewPlacementHandler.GetIDFromPos(x, z, cellsize), cellsize, buildtype, (Spring.TestBuildOrder(unitDefID, x + cellsize/2, Spring.GetGroundHeight(x + cellsize/2, z+cellsize/2), z+cellsize/2, "s") == 2 and Spring.TestBuildOrder(unitDefID, x + cellsize/2, Spring.GetGroundHeight(x + cellsize/2, z+cellsize/2), z+cellsize/2, "e") == 2))
+							gadget:SetCellValue(GG.AiHelpers.NewPlacementHandler.GetIDFromPos(x, z, cellsize), cellsize, buildtype, (Spring.TestBuildOrder(unitDefID, x + cellsize/2, Spring.GetGroundHeight(x + cellsize/2, z+cellsize/2), z+cellsize/2, "s") >= 1 and Spring.TestBuildOrder(unitDefID, x + cellsize/2, Spring.GetGroundHeight(x + cellsize/2, z+cellsize/2), z+cellsize/2, "e") >= 1))
 						end
 					end
 				end
@@ -275,7 +275,7 @@ end
 				for size, metatable in pairs(defidpersizetype) do
 					local pos = GG.AiHelpers.NewPlacementHandler.GetPosFromID(id)
 					for buildtype, unitDefID in pairs(metatable) do
-						gadget:SetCellValue(GG.AiHelpers.NewPlacementHandler.GetIDFromPos(pos.x, pos.z, size), size, buildtype,(Spring.TestBuildOrder(unitDefID, pos.x + size/2, Spring.GetGroundHeight(pos.x + size/2, pos.z+size/2), pos.z+size/2, "s") == 2 and Spring.TestBuildOrder(unitDefID, pos.x + size/2, Spring.GetGroundHeight(pos.x + size/2, pos.z+size/2), pos.z+size/2, "e") == 2))
+						gadget:SetCellValue(GG.AiHelpers.NewPlacementHandler.GetIDFromPos(pos.x, pos.z, size), size, buildtype,(Spring.TestBuildOrder(unitDefID, pos.x + size/2, Spring.GetGroundHeight(pos.x + size/2, pos.z+size/2), pos.z+size/2, "s") >= 1 and Spring.TestBuildOrder(unitDefID, pos.x + size/2, Spring.GetGroundHeight(pos.x + size/2, pos.z+size/2), pos.z+size/2, "e") >= 1))
 						celltoscan[id] = nil
 					end
 				end
