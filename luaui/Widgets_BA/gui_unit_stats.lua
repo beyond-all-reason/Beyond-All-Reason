@@ -96,7 +96,7 @@ local spGetTeamResources = Spring.GetTeamResources
 local spGetTeamInfo = Spring.GetTeamInfo
 local spGetPlayerInfo = Spring.GetPlayerInfo
 local spGetTeamColor = Spring.GetTeamColor
-
+local spIsUserWriting = Spring.IsUserWriting
 local spGetModKeyState = Spring.GetModKeyState
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
@@ -265,12 +265,12 @@ function widget:DrawScreen()
 	if rType == 'unit' then
 		uID = unitID
 	end
-	--if spec and useSelection then
-	--	local selUnits = spGetSelectedUnits()
-	--	if #selUnits >= 1 then
-	--		uID = selUnits[1]
-	--	end
-	--end
+	if useSelection and not spIsUserWriting() then
+		local selUnits = spGetSelectedUnits()
+		if #selUnits >= 1 then
+			uID = selUnits[1]
+		end
+	end
 	local useHoverID = false
 	local _, activeID = Spring.GetActiveCommand()
 	if not activeID then activeID = 0 end

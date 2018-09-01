@@ -2031,8 +2031,8 @@ function init()
 
 	if #supportedResolutions < 2 then
 		options[getOptionByID('resolution')] = nil
-	elseif engineVersion > 1000 and engineVersion < 10401681 then
-		options[getOptionByID('resolution')].description = options[getOptionByID('resolution')].description..'\n\nNOTE: might cause a freeze of the game engine'
+	elseif engineVersion > 1000 and engineVersion < 10401670 then
+		options[getOptionByID('resolution')].description = options[getOptionByID('resolution')].description..'\n\nWarning: sometimes freezes game engine (fixed in 104.0.1.670)'
 	end
 
 	-- add sound notification widget sound toggle options
