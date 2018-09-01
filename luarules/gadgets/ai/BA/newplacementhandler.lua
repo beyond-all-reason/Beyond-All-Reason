@@ -234,7 +234,13 @@ function NewPlacementHandler:GetExistingPlansByUnit(unit)
 end
 
 function NewPlacementHandler:GetMinimalSpacing(utype)
-	if not (UnitDefs[utype.id].extractsMetal>0) then
+	if string.find(UnitDefs[utype.id].name, "nanotc") then
+		return 0
+	elseif string.find(UnitDefs[utype.id].name, "solar") then
+		return 0
+	elseif string.find(UnitDefs[utype.id].name, "win") then
+		return 0
+	elseif not (UnitDefs[utype.id].extractsMetal>0) then
 		return (math.max(UnitDefs[utype.id].xsize, UnitDefs[utype.id].zsize) * 8)
 	else
 		return 80
