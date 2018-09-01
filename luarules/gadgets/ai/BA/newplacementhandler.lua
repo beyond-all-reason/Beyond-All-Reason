@@ -154,6 +154,7 @@ end
 
 function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	local defs = UnitDefs[utype.id]
+	local Building == (defs.isBuilding == true or string.find(defs.name, "nanotc"))
 	local cellsize = math.max(defs.xsize, defs.zsize) * 8
 	local buildtype = "ground"
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
@@ -163,15 +164,17 @@ function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 		if Spring.TestBuildOrder(utype.id, p.x,p.y,p.z, "s") == 0 then
 			return
 		end
-		self:ClosePosition(p.x, p.z, cellsize, self:GetMinimalSpacing(utype))
-		local newplan = {unitID = unit.id, unitDefID = utype.id, p = { x= p.x, y = p.y, z = p.z}}
-		local planID = self:GetIDFromPos(p.x, p.z, cellsize)
-		newplan["planID"] = planID
-		self.plans[planID] = newplan
-		self.plansbyunitID[unit.id] = self.plansbyunitID[unit.id] or {}
-		self.plansbyunitID[unit.id][planID] = newplan
-		self.plansbyunitDefID[utype.id] = self.plansbyunitDefID[utype.id] or {}
-		self.plansbyunitDefID[utype.id][planID] = newplan
+		if Building then -- filter out mobile units built from mobile engineers, these will only need a buildposition, no planning
+			self:ClosePosition(p.x, p.z, cellsize, self:GetMinimalSpacing(utype))
+			local newplan = {unitID = unit.id, unitDefID = utype.id, p = { x= p.x, y = p.y, z = p.z}}
+			local planID = self:GetIDFromPos(p.x, p.z, cellsize)
+			newplan["planID"] = planID
+			self.plans[planID] = newplan
+			self.plansbyunitID[unit.id] = self.plansbyunitID[unit.id] or {}
+			self.plansbyunitID[unit.id][planID] = newplan
+			self.plansbyunitDefID[utype.id] = self.plansbyunitDefID[utype.id] or {}
+			self.plansbyunitDefID[utype.id][planID] = newplan
+		end
 		return p
 	end
 	return
