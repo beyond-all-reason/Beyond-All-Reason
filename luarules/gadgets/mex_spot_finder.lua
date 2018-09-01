@@ -46,7 +46,6 @@ local huge = math.huge
 
 local spGetGroundInfo     = Spring.GetGroundInfo
 local spGetGroundHeight   = Spring.GetGroundHeight
-local spTestBuildOrder    = Spring.TestBuildOrder
 local spSetGameRulesParam = Spring.SetGameRulesParam
 
 local extractorRadius = Game.extractorRadius
@@ -184,11 +183,7 @@ function IntegrateMetal(x, z, radius)
 			local dist = sqrt(dx * dx + dz * dz)
 
 			if (dist < radius) then
-				local _, metal,metal2 = spGetGroundInfo(cx, cz)
-				if type(metal) == 'string' then		-- Spring > v104
-					metal = metal2
-				end
-				result = result + metal
+				result = result + select(3, spGetGroundInfo(cx, cz))
 			end
 		end
 	end
@@ -337,12 +332,7 @@ function GetSpots()
 		local stripWorth = 0
 		
 		for mx = metalmapStartZ, metalmapSizeX, gridSize do
-			local groundMetal
-			if Engine ~= nil and Engine.version ~= nil and Engine.version ~= "104" then
-				_,_, groundMetal = spGetGroundInfo(mx, mz)
-			else
-				_, groundMetal = spGetGroundInfo(mx, mz)
-			end
+			local _,_, groundMetal = spGetGroundInfo(mx, mz)
 			if groundMetal > 0 then
 				stripStart = stripStart or mx
 				stripWorth = stripWorth + groundMetal

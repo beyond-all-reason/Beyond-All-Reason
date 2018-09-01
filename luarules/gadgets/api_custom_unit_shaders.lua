@@ -22,8 +22,6 @@ function gadget:GetInfo()
   }
 end
 
-local engineIsMin101 = (Script.IsEngineMinVersion and Script.IsEngineMinVersion(101,0,0))
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Synced

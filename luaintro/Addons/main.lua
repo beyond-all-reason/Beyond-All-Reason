@@ -202,25 +202,6 @@ end
 local loadedFontSize = 70
 local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
-if Engine and Engine.version then
-	local function Split(s, separator)
-		local results = {}
-		for part in s:gmatch("[^"..separator.."]+") do
-			results[#results + 1] = part
-		end
-		return results
-	end
-	engineVersion = Split(Engine.version, '-')
-	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
-		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
-	else
-		engineVersion = tonumber(Engine.version)
-	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
-end
-
 function DrawRectRound(px,py,sx,sy,cs)
 
 	--local csx = cs
@@ -449,11 +430,7 @@ function addon.DrawLoadScreen()
 			image_text = string.sub(random_tip_or_desc, 0, j)
 			gl.Texture(":n:unitpics/" .. image_text)
 			gl.Color(1.0,1.0,1.0,0.8)
-			if (engineVersion < 1000 and engineVersion >= 105) or engineVersion > 10401151 then
-				gl.TexRect(vsx * 0.21, vsy*(yPos-0.015), vsx*(0.21+image_size), (vsy*(yPos-0.015))-(vsx*image_size),false,true)
-			else
-				gl.TexRect(vsx * 0.21, vsy*(yPos-0.015), vsx*(0.21+image_size), (vsy*(yPos-0.015))-(vsx*image_size))
-			end
+			gl.TexRect(vsx * 0.21, vsy*(yPos-0.015), vsx*(0.21+image_size), (vsy*(yPos-0.015))-(vsx*image_size),false,true)
 			font:Print(text_to_show, vsx * (0.21+image_size+0.012) , vsy * (yPos-0.0175), fontSize, "oa")
 		else
 			font:Print(text_to_show, vsx * 0.21, vsy * (yPos-0.0175), fontSize, "oa")

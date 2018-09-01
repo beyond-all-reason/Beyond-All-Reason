@@ -94,18 +94,6 @@ else
 						end
 					end
 
-					-- Spring v103
-					if s_gpu ~= nil and string.find(line, ' video mode set to ') then
-						s_resolution = string.sub(line, 44)
-					end
-					if s_gpu ~= nil and string.find(line, 'Video RAM:') and not string.find(line, 'unknown') then
-						s_gpuVram = string.sub(line, 14)
-						s_gpuVram = string.gsub(s_gpuVram, "total ", "")
-						if string.find(s_gpuVram, ',') then
-							s_gpuVram = string.sub(s_gpuVram, 0, string.find(s_gpuVram, ',')-1)
-						end
-					end
-
 					if s_gpu == nil and string.find(line, 'GL renderer')  then
 						s_gpu = string.sub(line, 14)
 						s_gpu = string.gsub(s_gpu, "/PCIe", "")

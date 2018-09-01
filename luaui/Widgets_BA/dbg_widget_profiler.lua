@@ -20,32 +20,7 @@ local usePrefixedNames = true
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
-if Engine and Engine.version then
-	local function Split(s, separator)
-		local results = {}
-		for part in s:gmatch("[^"..separator.."]+") do
-			results[#results + 1] = part
-		end
-		return results
-	end
-	engineVersion = Split(Engine.version, '-')
-	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
-		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
-	else
-		engineVersion = tonumber(Engine.version)
-	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
-end
-
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401409 then
-	spGetLuaMemUsage = Spring.GetLuaMemUsage
-else
-	function spGetLuaMemUsage()
-		return 0,0,0,0,0,0,0,0
-	end
-end
+local spGetLuaMemUsage = Spring.GetLuaMemUsage
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

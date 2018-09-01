@@ -108,88 +108,45 @@ if gadgetHandler:IsSyncedCode() then
 	----------------------------------------------------------------
 
 
-	if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
-		function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
-			--Spring.Echo('allowstart',x,z,playerID)
-			for otherplayerID, startPos in pairs(coopStartPoints) do
-				if startPos[1]==x and startPos[3]==z then
-					--Spring.Echo('coop dbg8',playerID,'a real start was attempted to be placed on a coop start ',otherplayerID,'at',x,z,'disallowing!')
+	function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+		--Spring.Echo('allowstart',x,z,playerID)
+		for otherplayerID, startPos in pairs(coopStartPoints) do
+			if startPos[1]==x and startPos[3]==z then
+				--Spring.Echo('coop dbg8',playerID,'a real start was attempted to be placed on a coop start ',otherplayerID,'at',x,z,'disallowing!')
+				return false
+			end
+		end
+		if coopStartPoints[playerID] then
+			-- Spring sometimes(?) has each player re-place their start position on their current team start position pre-gamestart
+			-- To catch this, we don't recognise a coop start position if it is identical to their teams 'normal' start position
+			-- This has the side-effect that a coop player cannot intentionally start directly on their teammate, but this is OK
+
+			-- Since spring is a bitch, and if the first player (the guy who places the real start point) readies up first, and
+			-- his coop buddy readies up after, then the first will have his start point overwritten by the second.
+			-- This can be prevented by not allowing the first to place on second, either.
+
+			local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
+			local osx, _, osz = Spring.GetTeamStartPosition(teamID)
+			if x ~= osx or z ~= osz then
+				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
+				x = math.min(math.max(x, xmin), xmax)
+				z = math.min(math.max(z, zmin), zmax)
+
+				--NewbiePlacer
+				local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
+				if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then
+					Spring.SendMessageToPlayer(playerID,"In this match, teams containing newbies (rank 0) will have factions and startpoints chosen for them!")
+					coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
+					return true --because if we don't the cooped players won't appear readied (even though they are)
+				else
+					SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) --record coop start point, display it
 					return false
 				end
 			end
-			if coopStartPoints[playerID] then
-				-- Spring sometimes(?) has each player re-place their start position on their current team start position pre-gamestart
-				-- To catch this, we don't recognise a coop start position if it is identical to their teams 'normal' start position
-				-- This has the side-effect that a coop player cannot intentionally start directly on their teammate, but this is OK
-
-				-- Since spring is a bitch, and if the first player (the guy who places the real start point) readies up first, and
-				-- his coop buddy readies up after, then the first will have his start point overwritten by the second.
-				-- This can be prevented by not allowing the first to place on second, either.
-
-				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
-				local osx, _, osz = Spring.GetTeamStartPosition(teamID)
-				if x ~= osx or z ~= osz then
-					local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
-					x = math.min(math.max(x, xmin), xmax)
-					z = math.min(math.max(z, zmin), zmax)
-
-					--NewbiePlacer
-					local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
-					if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then
-						Spring.SendMessageToPlayer(playerID,"In this match, teams containing newbies (rank 0) will have factions and startpoints chosen for them!")
-						coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
-						return true --because if we don't the cooped players won't appear readied (even though they are)
-					else
-						SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) --record coop start point, display it
-						return false
-					end
-				end
-			end
-			---Spring.Echo('allowstart true',x,z,playerID)
-
-			return true
 		end
-	else
-		function gadget:AllowStartPosition(x, y, z, playerID)
-			--Spring.Echo('allowstart',x,z,playerID)
-			for otherplayerID, startPos in pairs(coopStartPoints) do
-				if startPos[1]==x and startPos[3]==z then
-					--Spring.Echo('coop dbg8',playerID,'a real start was attempted to be placed on a coop start ',otherplayerID,'at',x,z,'disallowing!')
-					return false
-				end
-			end
-			if coopStartPoints[playerID] then
-				-- Spring sometimes(?) has each player re-place their start position on their current team start position pre-gamestart
-				-- To catch this, we don't recognise a coop start position if it is identical to their teams 'normal' start position
-				-- This has the side-effect that a coop player cannot intentionally start directly on their teammate, but this is OK
+		---Spring.Echo('allowstart true',x,z,playerID)
 
-				-- Since spring is a bitch, and if the first player (the guy who places the real start point) readies up first, and
-				-- his coop buddy readies up after, then the first will have his start point overwritten by the second.
-				-- This can be prevented by not allowing the first to place on second, either.
-
-				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
-				local osx, _, osz = Spring.GetTeamStartPosition(teamID)
-				if x ~= osx or z ~= osz then
-					local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
-					x = math.min(math.max(x, xmin), xmax)
-					z = math.min(math.max(z, zmin), zmax)
-
-					--NewbiePlacer
-					local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
-					if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then
-						Spring.SendMessageToPlayer(playerID,"In this match, teams containing newbies (rank 0) will have factions and startpoints chosen for them!")
-						coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
-						return true --because if we don't the cooped players won't appear readied (even though they are)
-					else
-						SetCoopStartPoint(playerID, x, Spring.GetGroundHeight(x, z), z) --record coop start point, display it
-						return false
-					end
-				end
-			end
-			---Spring.Echo('allowstart true',x,z,playerID)
-
-			return true
-		end
+		return true
 	end
 	
 	function IsSteep(x,z)

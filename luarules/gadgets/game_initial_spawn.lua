@@ -276,166 +276,84 @@ end
 -- Startpoints
 ----------------------------------------------------------------
 
-if Engine ~= nil and Engine.version ~= nil then   -- v104 compatibility
-	function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
-		-- readyState:
-		-- 0: player did not place startpoint, is unready
-		-- 1: game starting, player is ready
-		-- 2: player pressed ready OR game is starting and player is forcibly readied (note: if the player chose a startpoint, reconnected and pressed ready without re-placing, this case will have the wrong x,z)
-		-- 3: game forcestarted & player absent
+function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
+	-- readyState:
+	-- 0: player did not place startpoint, is unready
+	-- 1: game starting, player is ready
+	-- 2: player pressed ready OR game is starting and player is forcibly readied (note: if the player chose a startpoint, reconnected and pressed ready without re-placing, this case will have the wrong x,z)
+	-- 3: game forcestarted & player absent
 
-		-- we also add the following
-		-- -1: players will not be allowed to place startpoints; automatically readied once ingame
-		--  4: player has placed a startpoint but is not yet ready
+	-- we also add the following
+	-- -1: players will not be allowed to place startpoints; automatically readied once ingame
+	--  4: player has placed a startpoint but is not yet ready
 
-		-- communicate readyState to all
-		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState)
+	-- communicate readyState to all
+	Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState)
 
-		--[[
-        -- for debugging
-        local name,_,_,tID = Spring.GetPlayerInfo(playerID)
-        Spring.Echo(name,tID,x,z,readyState, (startPointTable[tID]~=nil))
-        Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
-        ]]
+	--[[
+	-- for debugging
+	local name,_,_,tID = Spring.GetPlayerInfo(playerID)
+	Spring.Echo(name,tID,x,z,readyState, (startPointTable[tID]~=nil))
+	Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
+	]]
 
-		if Game.startPosType ~= 2 then return true end -- accept blindly unless we are in choose-in-game mode
-		if useFFAStartPoints then return true end
+	if Game.startPosType ~= 2 then return true end -- accept blindly unless we are in choose-in-game mode
+	if useFFAStartPoints then return true end
 
-		local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
-		if not teamID or not allyTeamID then return false end --fail
+	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
+	if not teamID or not allyTeamID then return false end --fail
 
-		-- NewbiePlacer
-		if NewbiePlacer then
-			if not processedNewbies then return false end
-			if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
-				return false
-			end
+	-- NewbiePlacer
+	if NewbiePlacer then
+		if not processedNewbies then return false end
+		if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
+			return false
 		end
-
-		-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
-		if allyTeamID == nil then return false end
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		if xmin>=xmax or zmin>=zmax then
-			return true
-		else
-			local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
-			if isOutsideStartbox then
-				return false
-			end
-		end
-
-		-- NoCloseSpawns
-		for otherTeamID,startpoint in pairs(startPointTable) do
-			local sx,sz = startpoint[1],startpoint[2]
-			local tooClose = ((x-sx)^2+(z-sz)^2 <= closeSpawnDist^2)
-			local sameTeam = (teamID == otherTeamID)
-			local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
-			local sameAllyTeam = (allyTeamID == otherAllyTeamID)
-			if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
-				Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another player")
-				return false
-			end
-		end
-
-		-- record table of starting points for startpoint assist to use
-		if readyState == 2 then
-			-- player pressed ready (we have already recorded their startpoint when they placed it) OR game was force started and player is forcibly readied
-			if not startPointTable[teamID] then
-				startPointTable[teamID]={-5000,-5000} -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
-			end
-		else
-			-- player placed startpoint OR game is starting and player is ready
-			startPointTable[teamID]={x,z}
-			if readyState ~= 1 then
-				-- game is not starting (therefore, player cannot yet have pressed ready)
-				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4)
-				SendToUnsynced("StartPointChosen", playerID)
-			end
-		end
-
-		return true
 	end
-else
-	function gadget:AllowStartPosition(x, y, z, playerID,readyState)
-		-- readyState:
-		-- 0: player did not place startpoint, is unready
-		-- 1: game starting, player is ready
-		-- 2: player pressed ready OR game is starting and player is forcibly readied (note: if the player chose a startpoint, reconnected and pressed ready without re-placing, this case will have the wrong x,z)
-		-- 3: game forcestarted & player absent
 
-		-- we also add the following
-		-- -1: players will not be allowed to place startpoints; automatically readied once ingame
-		--  4: player has placed a startpoint but is not yet ready
-
-		-- communicate readyState to all
-		Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , readyState)
-
-		--[[
-        -- for debugging
-        local name,_,_,tID = Spring.GetPlayerInfo(playerID)
-        Spring.Echo(name,tID,x,z,readyState, (startPointTable[tID]~=nil))
-        Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
-        ]]
-
-		if Game.startPosType ~= 2 then return true end -- accept blindly unless we are in choose-in-game mode
-		if useFFAStartPoints then return true end
-
-		local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
-		if not teamID or not allyTeamID then return false end --fail
-
-		-- NewbiePlacer
-		if NewbiePlacer then
-			if not processedNewbies then return false end
-			if readyState == 0 and Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1 then
-				return false
-			end
-		end
-
-		-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
-		if allyTeamID == nil then return false end
-		local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
-		if xmin>=xmax or zmin>=zmax then
-			return true
-		else
-			local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
-			if isOutsideStartbox then
-				return false
-			end
-		end
-
-		-- NoCloseSpawns
-		for otherTeamID,startpoint in pairs(startPointTable) do
-			local sx,sz = startpoint[1],startpoint[2]
-			local tooClose = ((x-sx)^2+(z-sz)^2 <= closeSpawnDist^2)
-			local sameTeam = (teamID == otherTeamID)
-			local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
-			local sameAllyTeam = (allyTeamID == otherAllyTeamID)
-			if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
-				Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another player")
-				return false
-			end
-		end
-
-		-- record table of starting points for startpoint assist to use
-		if readyState == 2 then
-			-- player pressed ready (we have already recorded their startpoint when they placed it) OR game was force started and player is forcibly readied
-			if not startPointTable[teamID] then
-				startPointTable[teamID]={-5000,-5000} -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
-			end
-		else
-			-- player placed startpoint OR game is starting and player is ready
-			startPointTable[teamID]={x,z}
-			if readyState ~= 1 then
-				-- game is not starting (therefore, player cannot yet have pressed ready)
-				Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4)
-				SendToUnsynced("StartPointChosen", playerID)
-			end
-		end
-
+	-- don't allow player to place startpoint unless its inside the startbox, if we have a startbox
+	if allyTeamID == nil then return false end
+	local xmin, zmin, xmax, zmax = spGetAllyTeamStartBox(allyTeamID)
+	if xmin>=xmax or zmin>=zmax then
 		return true
+	else
+		local isOutsideStartbox = (xmin+1 >= x) or (x >= xmax-1) or (zmin+1 >= z) or (z >= zmax-1) -- the engine rounds startpoints to integers but does not round the startbox (wtf)
+		if isOutsideStartbox then
+			return false
+		end
 	end
+
+	-- NoCloseSpawns
+	for otherTeamID,startpoint in pairs(startPointTable) do
+		local sx,sz = startpoint[1],startpoint[2]
+		local tooClose = ((x-sx)^2+(z-sz)^2 <= closeSpawnDist^2)
+		local sameTeam = (teamID == otherTeamID)
+		local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
+		local sameAllyTeam = (allyTeamID == otherAllyTeamID)
+		if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
+			Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another player")
+			return false
+		end
+	end
+
+	-- record table of starting points for startpoint assist to use
+	if readyState == 2 then
+		-- player pressed ready (we have already recorded their startpoint when they placed it) OR game was force started and player is forcibly readied
+		if not startPointTable[teamID] then
+			startPointTable[teamID]={-5000,-5000} -- if the player was forcibly readied without having placed a startpoint, place an invalid one far away (thats what the StartPointGuesser wants)
+		end
+	else
+		-- player placed startpoint OR game is starting and player is ready
+		startPointTable[teamID]={x,z}
+		if readyState ~= 1 then
+			-- game is not starting (therefore, player cannot yet have pressed ready)
+			Spring.SetGameRulesParam("player_" .. playerID .. "_readyState" , 4)
+			SendToUnsynced("StartPointChosen", playerID)
+		end
+	end
+
+	return true
 end
-
 
 
 ----------------------------------------------------------------

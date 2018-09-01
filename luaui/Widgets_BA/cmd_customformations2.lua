@@ -191,18 +191,6 @@ local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
 
---if Game ~= nil and Game.version ~= nil and Game.version <= '103' then   -- v103 compatibility
---	local CMD_RAW_MOVE = 39812
---	formationCmds[CMD_RAW_MOVE] = true
---	overrideCmds = {
---	    [CMD.GUARD] = CMD_RAW_MOVE,
---	    [CMD.ATTACK] = CMD_RAW_MOVE,
---	    [CMD_SETTARGET] = CMD_RAW_MOVE
---	}
---	positionCmds[CMD_RAW_MOVE] = true
---	CMD_MOVE = CMD_RAW_MOVE
---end
-
 --------------------------------------------------------------------------------
 -- Helper Functions
 --------------------------------------------------------------------------------
@@ -510,9 +498,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
             local alt, ctrl, meta, shift = GetModKeys()
             local cmdOpts = GetCmdOpts(false, ctrl, meta, shift, usingRMB) -- using alt uses springs box formation, so we set it off always
-            if CMD_RAW_MOVE ~= nil and usingCmd == CMD_RAW_MOVE then	-- spring v103
-                usingCmd = CMD.MOVE
-            end
+
             GiveNotifyingOrder(usingCmd, pos, cmdOpts)
             lastPathPos = pos
 
@@ -527,9 +513,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 
                 local alt, ctrl, meta, shift = GetModKeys()
                 local cmdOpts = GetCmdOpts(false, ctrl, meta, true, usingRMB) -- using alt uses springs box formation, so we set it off always
-	            if CMD_RAW_MOVE ~= nil and usingCmd == CMD_RAW_MOVE then	-- spring v103
-	                usingCmd = CMD.MOVE
-	            end
+
                 GiveNotifyingOrder(usingCmd, pos, cmdOpts)
                 lastPathPos = pos
             end
@@ -621,18 +605,7 @@ function widget:MouseRelease(mx, my, mButton)
                 -- Give order (i.e. pass the command to the engine to use as normal)
                 GiveNotifyingOrder(usingCmd, {targetID}, cmdOpts)
             elseif usingCmd == CMD_MOVE then
-				if CMD_RAW_MOVE == nil then
-	                GiveNotifyingOrder(usingCmd, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)
-				else	-- spring v103
-	                VFS.Include("LuaRules/Configs/customcmds.h.lua")
-	                local selUnits = spGetSelectedUnits()
-	                local uSpeed = UnitDefs[spGetUnitDefID(selUnits[1])].speed
-	                --spGiveOrderToUnit(selUnits[1],
-	                --		CMD_INSERT,
-	                --		{-1,CMD_RAW_MOVE,0,fNodes[1][1],fNodes[1][2],fNodes[1][3]},
-	                --		{"alt"})
-	                GiveNotifyingOrder(CMD.MOVE, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)
-	            end
+                GiveNotifyingOrder(usingCmd, {fNodes[1][1],fNodes[1][2],fNodes[1][3]}, cmdOpts)
             else
                 -- Deselect command, select default command instead
                 spSetActiveCommand(0)
