@@ -154,7 +154,7 @@ end
 
 function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	local defs = UnitDefs[utype.id]
-	local Building == (defs.isBuilding == true or string.find(defs.name, "nanotc"))
+	local Building = (defs.isBuilding == true or string.find(defs.name, "nanotc"))
 	local cellsize = math.max(defs.xsize, defs.zsize) * 8
 	local buildtype = "ground"
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
