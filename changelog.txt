@@ -24,7 +24,7 @@ Other:
  • Game info screen: grouped chicken modoptions, and hiding them when chickens disabled
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
  • Added the "Traitor" award = destroying allied units.
- • Unit stats show again when having unit selected (if using engine 104.0.1.681 or above)
+ • Unit stats show again when having unit selected (unless you have chat input showing)
 
 Fixes:
  • Options widget remembers/restores some spring config settings (switching engines lately made config be reset)
