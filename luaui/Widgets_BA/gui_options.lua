@@ -24,6 +24,7 @@ end
 ]]--
 
 local cameraTransitionTime = 0.2
+local cameraPanTransitionTime = 0.03
 
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/tock.wav'
@@ -720,7 +721,11 @@ local sec = 0
 local lastUpdate = 0
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-		Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		if select(7, Spring.GetMouseState()) then	-- when camera panning
+			Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		else
+			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		end
 	end
 	sec = sec + dt
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
@@ -989,15 +994,19 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("Vsync "..value)
 			Spring.SetConfigInt("VSync",value)
 		elseif id == 'fullscreen' then
+			if value == 1 then
+				options[getOptionByID('borderless')].value = false
+				applyOptionValue(getOptionByID('borderless'))
+			end
 			Spring.SendCommands("Fullscreen "..value)
 			Spring.SetConfigInt("Fullscreen",value)
 		elseif id == 'borderless' then
 			Spring.SetConfigInt("WindowBorderless",value)
 			if value == 1 then
+				options[getOptionByID('fullscreen')].value = false
+				applyOptionValue(getOptionByID('fullscreen'))
 				Spring.SetConfigInt("WindowPosX",0)
 				Spring.SetConfigInt("WindowPosY",0)
-				Spring.SetConfigInt("XResolutionWindowed",resolutionX)
-				Spring.SetConfigInt("YResolutionWindowed",resolutionY)
 				Spring.SetConfigInt("WindowState",0)
 			else
 				Spring.SetConfigInt("WindowPosX",0)
