@@ -70,19 +70,10 @@ function AttackerBehaviour:Update()
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
 		end
 	end
-	if (frame%60 == self.unitID%60) then -- If there are allies nearby maybe it's ok to be more aggressive
-		local ux, uy, uz = SpGetUnitPosition(self.unitID)
-		local closeAllies = Spring.GetUnitsInCylinder(ux,uz,500, self.ai.id)
-		if #closeAllies > 5 then
-			self.alliedNear = true
-		else
-			self.alliedNear = false
-		end
-	end
 	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 3000
 	local refreshRate = math.max(math.floor(((distance or 500)/10)),10)
 	if self.unitID%refreshRate == frame%refreshRate then
-		self:AttackCell(self.type, self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
+		self:AttackCell(self.type, self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange)
 	end
 end
 
@@ -104,7 +95,7 @@ function AttackerBehaviour:OwnerIdle()
 	self.active = true
 end
 
-function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange, alliedNear)
+function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange)
 	local p
 	local unit = self.unit:Internal()
 	local unitID = unit.id
@@ -148,14 +139,10 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 		local dis = 120
 		local f = dis/pointDis
 		local wantedRange
-		if alliedNear then
-			if self.myRange and enemyRange and self.myRange >= enemyRange and enemyRange > 50 then -- we skirm here
-				wantedRange = self.myRange
-			else -- randomize wantedRange between 25-75% of myRange
-				wantedRange = math.random(self.myRange*0.25, self.myRange*0.75)
-			end
-		else 
-			wantedRange = enemyRange*1.2
+		if self.myRange and enemyRange and self.myRange >= enemyRange and enemyRange > 50 then -- we skirm here
+			wantedRange = self.myRange
+		else -- randomize wantedRange between 25-75% of myRange
+			wantedRange = math.random(self.myRange*0.25, self.myRange*0.75)
 		end
 		-- offset upos randomly so it moves a bit while keeping distance
 		local dx, _, dz, dw = SpGetUnitVelocity(self.unitID) -- attempt to not always queue awful turns
