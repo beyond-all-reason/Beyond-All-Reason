@@ -207,7 +207,7 @@ function MetalSpotHandler:ClosestEnemySpot(unittype,position)
 end
 
 function MetalSpotHandler:GetClosestMexPosition(spot, x, z, uDefID, facing)
-	x, z = spot.x + 200, spot.y + 200 
+	x, z = spot.x + 200, spot.z + 200 
 	local bestPos
 	local bestDist = math.huge
 	local positions = GetMexPositions(spot, uDefID, facing, true)
