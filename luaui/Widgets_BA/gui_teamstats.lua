@@ -26,6 +26,8 @@ local oddLineColour = {0.23,0.23,0.23,0.4}
 local evenLineColour = {0.8,0.8,0.8,0.4}
 local sortLineColour = {0.82,0.82,0.82,0.85}
 
+local customScale = 1
+
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
@@ -336,7 +338,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
-	widgetScale = (0.45 + (vsx*vsy / 5500000))
+	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 	calcAbsSizes()
 	updateFontSize()
 end

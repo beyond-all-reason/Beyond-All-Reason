@@ -23,7 +23,8 @@ end
 --
 ]]--
 
-local cameraTransitionTime = 0.3
+local cameraTransitionTime = 0.2
+local cameraPanTransitionTime = 0.03
 
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/tock.wav'
@@ -251,7 +252,7 @@ function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
   screenX = (vsx*0.5) - (screenWidth/2)
   screenY = (vsy*0.5) + (screenHeight/2)
-  widgetScale = (0.45 + (vsx*vsy / 5500000)) * customScale
+  widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
 end
@@ -720,7 +721,11 @@ local sec = 0
 local lastUpdate = 0
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-		Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		if select(7, Spring.GetMouseState()) then	-- when camera panning
+			Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		else
+			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+		end
 	end
 	sec = sec + dt
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
@@ -989,15 +994,19 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("Vsync "..value)
 			Spring.SetConfigInt("VSync",value)
 		elseif id == 'fullscreen' then
+			if value == 1 then
+				options[getOptionByID('borderless')].value = false
+				applyOptionValue(getOptionByID('borderless'))
+			end
 			Spring.SendCommands("Fullscreen "..value)
 			Spring.SetConfigInt("Fullscreen",value)
 		elseif id == 'borderless' then
 			Spring.SetConfigInt("WindowBorderless",value)
 			if value == 1 then
+				options[getOptionByID('fullscreen')].value = false
+				applyOptionValue(getOptionByID('fullscreen'))
 				Spring.SetConfigInt("WindowPosX",0)
 				Spring.SetConfigInt("WindowPosY",0)
-				Spring.SetConfigInt("XResolutionWindowed",resolutionX)
-				Spring.SetConfigInt("YResolutionWindowed",resolutionY)
 				Spring.SetConfigInt("WindowState",0)
 			else
 				Spring.SetConfigInt("WindowPosX",0)
@@ -1207,18 +1216,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 			Spring.SendCommands("shadows "..enabled.." "..value)
 			Spring.SetConfigInt("shadows", value)
-		elseif id == 'windowposx' then
-			Spring.SetConfigInt("WindowPosX ", value)
-		elseif id == 'windowposy' then
-			Spring.SetConfigInt("WindowPosY ", value)
-		elseif id == 'windowresx' then
-			Spring.SetConfigInt("XResolutionWindowed ", value)
-			--Spring.SendCommands("Fullscreen 1")		--tonumber(Spring.GetConfigInt("Fullscreen",1) or 1)
-			--Spring.SendCommands("Fullscreen 0")
-		elseif id == 'windowresy' then
-			Spring.SetConfigInt("YResolutionWindowed ", value)
-			--Spring.SendCommands("Fullscreen 1")		--tonumber(Spring.GetConfigInt("Fullscreen",1) or 1)
-			--Spring.SendCommands("Fullscreen 0")
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
@@ -1821,13 +1818,9 @@ function init()
 		{id="preset", group="gfx", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset'},
 
 		--GFX
-		--{id="windowposx", group="gfx", name="Window position X", type="slider", min=0, max=math.ceil(ssx/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosX",1) or 0), description='Set where on the screen the window is positioned on the X axis'},
-		--{id="windowposy", group="gfx", name="Window position Y", type="slider", min=0, max=math.ceil(ssy/3), step=1, value=tonumber(Spring.GetConfigInt("WindowPosY",1) or 0), description='Set where on the screen the window is positioned on the Y axis'},
-		{id="resolution", group="gfx", name="Resolution", type="select", options=supportedResolutions, value=0, description='Not guaranteed to work in fullscreen mode\n\nNOTE: might cause a freeze of the game engine'},
+		{id="resolution", group="gfx", name="Resolution", type="select", options=supportedResolutions, value=0, description='Not guaranteed to work in fullscreen mode'},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
-		--{id="windowresx", group="gfx", name="  Window width", type="slider", min=math.floor(ssx/3), max=ssx, step=1, value=tonumber(Spring.GetConfigInt("XResolutionWindowed",1) or 0), description='Set window resolution width'},
-		--{id="windowresy", group="gfx", name="  Window height", type="slider", min=math.floor(ssy/3), max=ssy, step=1, value=tonumber(Spring.GetConfigInt("YResolutionWindowed",1) or 0), description='Set window resolution height'},
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
@@ -1908,6 +1901,7 @@ function init()
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
 		{id="camerasmoothness", group="control", name="Camera smoothing", type="slider", min=0, max=1, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
+		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
 
 		{id="scrollspeed", group="control", name="Scroll zoom speed", type="slider", min=1, max=45, step=1, value=math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25)), description=''},
 		{id="scrollinverse", group="control", name="Scroll inversed", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description=""},
@@ -1920,7 +1914,6 @@ function init()
 		{id="allyselunits_select", group="control", name="Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this will also select the units the player has selected"},
 		{id="lockcamera_hideenemies", group="control", name="Only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will only display what the tracked player sees"},
 		{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too"},
-		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
 
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
@@ -2047,6 +2040,8 @@ function init()
 
 	if #supportedResolutions < 2 then
 		options[getOptionByID('resolution')] = nil
+	elseif engineVersion > 1000 and engineVersion < 10401670 then
+		options[getOptionByID('resolution')].description = options[getOptionByID('resolution')].description..'\n\nWarning: sometimes freezes game engine (fixed in 104.0.1.670)'
 	end
 
 	-- add sound notification widget sound toggle options
