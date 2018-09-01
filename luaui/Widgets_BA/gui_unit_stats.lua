@@ -49,7 +49,31 @@ include("keysym.h.lua")
 -- Globals
 ------------------------------------------------------------------------------------
 local fontSize = 13
-local useSelection = true
+local useSelection = false
+
+
+local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+if Engine and Engine.version then
+	local function Split(s, separator)
+		local results = {}
+		for part in s:gmatch("[^"..separator.."]+") do
+			results[#results + 1] = part
+		end
+		return results
+	end
+	engineVersion = Split(Engine.version, '-')
+	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
+		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
+	else
+		engineVersion = tonumber(Engine.version)
+	end
+elseif Game and Game.version then
+	engineVersion = tonumber(Game.version)
+end
+
+if engineVersion > 104 and engineVersion < 1000 or engineVersion >= 10401681 then
+	useSelection = true
+end
 
 local customFontSize = 13
 
