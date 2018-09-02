@@ -103,6 +103,18 @@ Create()
 	hide flare2c;
 	hide flare4c;
 	hide flare5c;
+	hide flaktur1;
+	hide flaksleeve1;
+	hide flakbarrel1a;
+	hide flakbarrel1b;
+	hide flakflare1a;
+	hide flakflare1b;
+	hide flaktur2;
+	hide flaksleeve2;
+	hide flakbarrel2a;
+	hide flakbarrel2b;
+	hide flakflare2a;
+	hide flakflare2b;
 	Static_Var_1 = 0;
 	Static_Var_2 = 0;
 	Static_Var_3 = 0;

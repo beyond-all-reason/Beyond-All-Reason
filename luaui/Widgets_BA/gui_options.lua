@@ -1818,7 +1818,7 @@ function init()
 		{id="preset", group="gfx", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset'},
 
 		--GFX
-		{id="resolution", group="gfx", name="Resolution", type="select", options=supportedResolutions, value=0, description='Not guaranteed to work in fullscreen mode'},
+		{id="resolution", group="gfx", name="Resolution", type="select", options=supportedResolutions, value=0, description='WARNING: sometimes freezes game engine in windowed mode'},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
@@ -2040,8 +2040,6 @@ function init()
 
 	if #supportedResolutions < 2 then
 		options[getOptionByID('resolution')] = nil
-	elseif engineVersion > 1000 and engineVersion < 10401670 then
-		options[getOptionByID('resolution')].description = options[getOptionByID('resolution')].description..'\n\nWarning: sometimes freezes game engine (fixed in 104.0.1.670)'
 	end
 
 	-- add sound notification widget sound toggle options
