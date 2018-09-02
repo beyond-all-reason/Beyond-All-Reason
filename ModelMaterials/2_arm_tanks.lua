@@ -25,9 +25,14 @@ local function DrawUnit(unitID, material,drawMode)
 	--Spring.Echo('drawing',UnitDefs[Spring.GetUnitDefID(unitID)].name,GetGameFrame())
 	--local  health,maxhealth=GetUnitHealth(unitID)
 	--health= 2*maximum(0, (-2*health)/(maxhealth)+1) --inverse of health, 0 if health is 100%-50%, goes to 1 by 0 health
-	local _ , _ , _ , speed = Spring.GetUnitVelocity(unitID)
-	if speed >0.01 then speed =1 end
-	local offset= (((GetGameFrame())%9) * (2.0/4096.0))*speed 
+	local usx,usy,usz,speed = Spring.GetUnitVelocity(unitID)
+	if speed > 0.01 then speed = 1 end
+	local offset = (((GetGameFrame())%9) * (2.0/4096.0))*speed
+	-- check if moving backwards
+	local udx,udy,udz = Spring.GetUnitDirection(unitID)
+	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
+		offset = 0 - offset
+	end
 	glUniform(etcLocIDs[etcLocIdx], 0.0,0.0,offset) --etcloc.z is the track offset pos.
 
 	--end
