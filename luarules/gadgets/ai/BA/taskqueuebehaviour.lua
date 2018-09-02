@@ -15,23 +15,6 @@ function TaskQueueBehaviour:Init()
 
 end
 
-local function GetFacing(x,z)
-    if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
-      if (2*x>Game.mapSizeX) then
-        facing=3
-      else
-        facing=1
-      end
-    else
-      if (2*z>Game.mapSizeZ) then
-        facing=2
-      else
-        facing=0
-      end
-    end
-	return facing
-end
-
 function dump(o)
 	if type(o) == 'table' then
 		local s = '{ '
@@ -301,11 +284,12 @@ end
 
 function TaskQueueBehaviour:BuildOnMap(utype,pos)
 	unit = self.unit:Internal()
+	local facing = 0
 	if pos then
-		pos = self.ai.newplacementhandler:CreateNewPlan(unit, utype, pos)
+		pos, facing = self.ai.newplacementhandler:CreateNewPlan(unit, utype, pos)
 	else
 		pos = unit:GetPosition()
-		pos = self.ai.newplacementhandler:CreateNewPlan(unit, utype, pos)
+		pos, facing = self.ai.newplacementhandler:CreateNewPlan(unit, utype, pos)
 	end
 	job = {
 			start_position=pos,
@@ -317,7 +301,7 @@ function TaskQueueBehaviour:BuildOnMap(utype,pos)
 			tqb=self
 	}
 	if pos then
-		self:OnBuildingPlacementSuccess( job, pos )
+		self:OnBuildingPlacementSuccess( job, pos, facing )
 		return true
 	else
 		self:OnBuildingPlacementFailure( job, pos )
@@ -328,14 +312,15 @@ end
 function TaskQueueBehaviour:BuildGeo(utype)
 	-- find a free spot!
 	unit = self.unit:Internal()
+	local facing = 0
 	p = unit:GetPosition()
 	p = self.ai.geospothandler:ClosestFreeGeo(utype,p,2500)
 	if p == nil or self.game.map:CanBuildHere(utype,p) ~= true then
 		self:OnToNextTask()
 		return false
 	end
-	self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
-	return self.unit:Internal():Build(utype,p,_,{"shift"})
+	p, facing = self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
+	return self.unit:Internal():Build(utype,p,facing,{"shift"})
 end
 
 function TaskQueueBehaviour:BuildExtractor(utype)
@@ -343,6 +328,7 @@ function TaskQueueBehaviour:BuildExtractor(utype)
 	unit = self.unit:Internal()
 	local p = unit:GetPosition()
 	local up = p
+	local facing = 0
 	p = self.ai.metalspothandler:ClosestFreeSpot(utype,p)
 	local sp = p
 	if p and self.game.map:CanBuildHere(utype,p) ~= true then
@@ -354,16 +340,16 @@ function TaskQueueBehaviour:BuildExtractor(utype)
 					unit:ExecuteCustomCommand(CMD.INSERT, {-1, CMD.RECLAIM, CMD.OPT_INTERNAL, bunitID}, {"alt"})
 				end
 			end
-			self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
-			unit:ExecuteCustomCommand(CMD.INSERT, {-1,-utype.id,CMD.OPT_INTERNAL,sp.x, sp.y, sp.z, 0}, {"alt"})
+			p, facing = self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
+			unit:ExecuteCustomCommand(CMD.INSERT, {-1,-utype.id,CMD.OPT_INTERNAL,sp.x, sp.y, sp.z, facing}, {"alt"})
 			return true
 		end
 	elseif not p then
 		self:OnToNextTask()
 		return false
 	end
-	self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
-	return self.unit:Internal():Build(utype,p,_,{"shift"})
+	p, facing = self.ai.newplacementhandler:CreateNewPlanNoSearch(unit,utype,p)
+	return self.unit:Internal():Build(utype,p,facing,{"shift"})
 end
 
 function TaskQueueBehaviour:OnToNextTask()
@@ -374,10 +360,10 @@ function TaskQueueBehaviour:IsDoingSomething()
 	return ( self.progress == false )
 end
 
-function TaskQueueBehaviour:OnBuildingPlacementSuccess( job, pos )
+function TaskQueueBehaviour:OnBuildingPlacementSuccess( job, pos, facing )
 	self:StopWaitingForPosition()
 	local p = dump( pos )
-	local success self.unit:Internal():Build( job.unittype, pos, GetFacing(pos.x, pos.z),{"shift"})
+	local success self.unit:Internal():Build( job.unittype, pos, facing,{"shift"})
 	if success == false then
 		self:OnToNextTask()
 	end

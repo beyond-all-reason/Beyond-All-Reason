@@ -159,8 +159,14 @@ function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	local buildtype = "ground"
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
 	if p and p.x and p.y and p.z then
-		p.x = p.x - (p.x%16) + (defs.xsize*4 % 16)
-		p.z = p.z - (p.x%16) + (defs.zsize*4 % 16)
+		local facing = self:GetFacing(p)
+		if facing == 0 or 2 then
+			p.x = p.x - (p.x%16) + (defs.xsize*4 % 16)
+			p.z = p.z - (p.z%16) + (defs.zsize*4 % 16)
+		else
+			p.x = p.x - (p.x%16) + (defs.zsize*4 % 16)
+			p.z = p.z - (p.z%16) + (defs.xsize*4 % 16)
+		end
 		if Spring.TestBuildOrder(utype.id, p.x,p.y,p.z, "s") == 0 then
 			return
 		end
@@ -175,7 +181,7 @@ function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 			self.plansbyunitDefID[utype.id] = self.plansbyunitDefID[utype.id] or {}
 			self.plansbyunitDefID[utype.id][planID] = newplan
 		end
-		return p
+		return p, facing
 	end
 	return
 end
@@ -185,8 +191,14 @@ function NewPlacementHandler:CreateNewPlanNoSearch(unit, utype, p)
 	local cellsize = math.max(defs.xsize, defs.zsize) * 8
 	local buildtype = "ground"
 	if p and p.x and p.y and p.z then
-		p.x = p.x - (p.x%16) + (defs.xsize*4 % 16)
-		p.z = p.z - (p.x%16) + (defs.zsize*4 % 16)
+		local facing = self:GetFacing(p)
+		if facing == 0 or 2 then
+			p.x = p.x - (p.x%16) + (defs.xsize*4 % 16)
+			p.z = p.z - (p.z%16) + (defs.zsize*4 % 16)
+		else
+			p.x = p.x - (p.x%16) + (defs.zsize*4 % 16)
+			p.z = p.z - (p.z%16) + (defs.xsize*4 % 16)
+		end
 		self:ClosePosition(p.x, p.z, cellsize, self:GetMinimalSpacing(utype))
 		local newplan = {unitID = unit.id, unitDefID = utype.id, p = { x= p.x, y = p.y, z = p.z}}
 		local planID = self:GetIDFromPos(p.x, p.z, cellsize)
@@ -196,9 +208,28 @@ function NewPlacementHandler:CreateNewPlanNoSearch(unit, utype, p)
 		self.plansbyunitID[unit.id][planID] = newplan
 		self.plansbyunitDefID[utype.id] = self.plansbyunitDefID[utype.id] or {}
 		self.plansbyunitDefID[utype.id][planID] = newplan
-		return p
+		return p, facing
 	end
 	return
+end
+
+function NewPlacementHandler:GetFacing(p)
+	local x = p.x
+	local z = p.z
+    if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
+      if (2*x>Game.mapSizeX) then
+        facing=3
+      else
+        facing=1
+      end
+    else
+      if (2*z>Game.mapSizeZ) then
+        facing=2
+      else
+        facing=0
+      end
+    end
+	return facing
 end
 
 function NewPlacementHandler:GetExistingPlansByUType(utype)
