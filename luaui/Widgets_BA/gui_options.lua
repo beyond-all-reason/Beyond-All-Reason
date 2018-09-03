@@ -121,6 +121,7 @@ local presets = {
 		mapedgeextension = false,
 		lighteffects = false,
 		lighteffects_deferred = false,
+		lighteffects_heatdistortion = false,
 		lups = false,
 		snow = false,
 		xrayshader = false,
@@ -146,6 +147,7 @@ local presets = {
 		mapedgeextension = false,
 		lighteffects = true,
 		lighteffects_deferred = false,
+		lighteffects_heatdistortion = false,
 		lups = true,
 		snow = false,
 		xrayshader = false,
@@ -171,6 +173,7 @@ local presets = {
 		mapedgeextension = true,
 		lighteffects = true,
 		lighteffects_deferred = true,
+		lighteffects_heatdistortion = true,
 		lups = true,
 		snow = true,
 		xrayshader = false,
@@ -196,6 +199,7 @@ local presets = {
 		mapedgeextension = true,
 		lighteffects = true,
 		lighteffects_deferred = true,
+		lighteffects_heatdistortion = true,
 		lups = true,
 		snow = true,
 		xrayshader = false,
@@ -221,6 +225,7 @@ local presets = {
 		mapedgeextension = true,
 		lighteffects = true,
 		lighteffects_deferred = true,
+		lighteffects_heatdistortion = true,
 		lups = true,
 		snow = true,
 		xrayshader = false,
@@ -546,7 +551,7 @@ function DrawWindow()
 	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
 	
 	-- description background
-	gl.Color(0.62,0.5,0.22,0.14)
+	gl.Color(0.55,0.48,0.22,0.14)
 	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6)
 
 	-- draw options
