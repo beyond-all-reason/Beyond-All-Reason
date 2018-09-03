@@ -147,7 +147,7 @@ return {
 					shields = 812,
 				},
 				customparams = {
-					expl_light_heat_radius_mult = 4.4,
+					expl_light_heat_radius_mult = 4,
 				},
 			},
 		},
