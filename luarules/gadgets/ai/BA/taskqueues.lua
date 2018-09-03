@@ -30,28 +30,33 @@ local patrolaround = { action = "patrolrelative", position = {x = 100, y = 0, z 
 
 ---- RESOURCES RELATED ----
 function curstorperc(ai, resource) -- Returns % of storage for resource in real time
-	local c, s, p, i, e = Spring.GetTeamResources(ai.id, resource)
+	local r = ai.aimodehandler.resources[resource]
+	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
 	return ((c / s) * 100)
 end
 
 function timetostore(ai, resource, amount) -- Returns time to gather necessary resource amount in real time
-	local c, s, p, i, e = Spring.GetTeamResources(ai.id, resource)
+	local r = ai.aimodehandler.resources[resource]
+	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
 	local income = (i-e > 0 and i-e) or 0.00001
 	return (amount-c)/(income)
 end
 
 function income(ai, resource) -- Returns income of resource in realtime
-	local c, s, p, i, e = Spring.GetTeamResources(ai.id, resource)
+	local r = ai.aimodehandler.resources[resource]
+	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
 	return i
 end
 
 function storabletime(ai, resource)
-	local c,s,p,i,e = Spring.GetTeamResources(ai.id, resource)
+	local r = ai.aimodehandler.resources[resource]
+	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
 	return s/i
 end
 
 function realincome(ai, resource)
-	local c,s,p,i,e = Spring.GetTeamResources(ai.id, resource)
+	local r = ai.aimodehandler.resources[resource]
+	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
 	return i-e
 end
 

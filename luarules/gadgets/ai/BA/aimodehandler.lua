@@ -15,6 +15,11 @@ local UDN = UnitDefNames
 local advBuilders = {UDN.armacv.id, UDN.armack.id, UDN.armaca.id, UDN.coracv.id, UDN.corack.id, UDN.coraca.id}
 local modenames = {"balanced", "t1", "tech"}
 function AiModeHandler:Init()
+	self.resources = {metal = {}, energy = {}}
+	for res, tab in pairs(self.resources) do
+		local c, s, p, i, e = Spring.GetTeamResources(self.ai.id, res)
+		self.resources[res] = {c = c, s = s, p = p, i = i, e = e}
+	end
 	math.randomseed( os.time() + self.ai.id )
 	math.random(); math.random(); math.random()
 	self:PickASide(math.random(1,2))
@@ -27,6 +32,15 @@ function AiModeHandler:Init()
 	end
 end
 
+function AiModeHandler:Update()
+	local frame = Spring.GetGameFrame()
+	if frame%15 == self.ai.id%15 then
+		for res, tab in pairs(self.resources) do
+			local c, s, p, i, e = Spring.GetTeamResources(self.ai.id, res)
+			self.resources[res] = {c = c, s = s, p = p, i = i, e = e}
+		end
+	end
+end
 
 
 function AiModeHandler:Mode(i)
