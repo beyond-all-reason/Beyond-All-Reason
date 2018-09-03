@@ -75,6 +75,9 @@ function NewPlacementHandler:Init()
 	if not spiral then
 		spiral = generateSpiral()
 	end
+	for i, spot in pairs(self.ai.metalspothandler.spots) do
+		self:ClosePosition(spot.x, spot.z, 32, 80) -- close mex positions (they might get freed during a scan though)
+	end
 end
 
 function NewPlacementHandler:GetClosestBuildPosition(x, z, cellsize, buildtype)
