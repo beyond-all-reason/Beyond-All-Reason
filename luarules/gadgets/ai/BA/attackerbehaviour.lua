@@ -150,9 +150,11 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 		ux = ux + 10*dx + math.random (-80,80)
 		uy = uy
 		uz = uz + 10*dz + math.random (-80,80)
+		if wantedRange <= pointDis then
+			modifier = nil -- Do not try to move backwards if attempting to get closer to target
+		end
 		-- here we find the goal position
 		if (pointDis+dis > wantedRange) then
-			modifier = nil -- Do not try to move backwards if attempting to get closer to target
 			f = (wantedRange-pointDis)/pointDis
 		end
 		local cx = ux+(ux-ex)*f
