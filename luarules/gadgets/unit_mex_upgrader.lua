@@ -324,11 +324,11 @@ function unregisterUnit(unitID, unitDefID, unitTeam, destroyed)
   local mex = mexes[unitTeam][unitID] 
   local builder = builders[unitTeam][unitID] 
   
-  if mex then 
+  if mex then
     local builderID = mex.assignedBuilder 
     if builderID then 
       builder = builders[unitTeam][builderID] 
-      if not (destroyed and getDistance(builderID, unitID, unitTeam) < builder.buildDistance * 2) then        
+      if builder and not (destroyed and getDistance(builderID, unitID, unitTeam) < builder.buildDistance * 2) then
         upgradeClosestMex(builderID, unitTeam) 
       end 
     end 
