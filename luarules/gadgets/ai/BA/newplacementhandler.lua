@@ -271,6 +271,8 @@ function NewPlacementHandler:GetMinimalSpacing(utype)
 		return 0
 	elseif string.find(UnitDefs[utype.id].name, "win") then
 		return 0
+	elseif string.find(UnitDefs[utype.id].name, "makr") then
+		return 0
 	elseif not (UnitDefs[utype.id].extractsMetal>0) then
 		return (math.max(UnitDefs[utype.id].xsize, UnitDefs[utype.id].zsize) * 8)
 	else
