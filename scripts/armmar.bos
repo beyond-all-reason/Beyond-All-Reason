@@ -7,7 +7,7 @@ piece  lleg, rleg, llowleg, rlowleg, lfoot, rfoot, pivot, misflare,
        body, rbarrel, lbarrel, flarea, flareb, mispack, aimpt, guna,
        gunb, misa;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -216,6 +216,8 @@ RestoreAfterDelay()
 	turn mispack to y-axis <0.000000> speed <120.000000>;
 	bAiming = FALSE;
 	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
+	wpn3_lasthead = 1000000;
 }
 
 AimPrimary(heading, pitch)
@@ -241,7 +243,12 @@ AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
 	turn mispack to y-axis heading speed <180.000000>;
-	wait-for-turn mispack around y-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
+		wpn2_lasthead = 1000000;
+		wait-for-turn mispack around y-axis;
+	}
+	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -250,7 +257,12 @@ AimTertiary(heading, pitch)
 {
 	signal SIG_AIM;
 	turn mispack to y-axis heading speed <180.000000>;
-	wait-for-turn mispack around y-axis;
+	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
+	{
+		wpn3_lasthead = 1000000;
+		wait-for-turn mispack around y-axis;
+	}
+	wpn3_lasthead = heading;		
 	start-script RestoreAfterDelay();
 	return (1);
 }
