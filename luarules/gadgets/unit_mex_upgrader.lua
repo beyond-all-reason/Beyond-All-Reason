@@ -184,15 +184,15 @@ function gadget:GameFrame(n)
 		local blockers = {}
 		local hsize = UnitDefs[builder.targetUpgrade].xsize * 4
 		for x = builder.targetX - hsize, builder.targetX + hsize, 8 do
-			for z = builder.targetX - hsize, builder.targetX + hsize, 8 do
-				local _,blocker = Spring.GetGroundBlocked(x,z,x+7,z+7)
+			for z = builder.targetZ - hsize, builder.targetZ + hsize, 8 do
+				local typ,blocker = Spring.GetGroundBlocked(x,z)
 				if blocker and not blockers[blocker] then 
 					GiveOrderToUnit(unitID, CMD.RECLAIM, {blocker}, {"shift"})
 					blockers[blocker] = true
 				end
 			end
 		end
-      GiveOrderToUnit(unitID, CMD_INSERT, {1,-builder.targetUpgrade,CMD_OPT_INTERNAL,builder.targetX, y, builder.targetZ, 0}, {shift = true, internal = true, alt = true});    
+      GiveOrderToUnit(unitID, CMD_INSERT, {-1,-builder.targetUpgrade,CMD_OPT_INTERNAL,builder.targetX, y, builder.targetZ, 0}, {shift = true, internal = true, alt = true});    
       builder.orderTaken = true 
     end
   end 
