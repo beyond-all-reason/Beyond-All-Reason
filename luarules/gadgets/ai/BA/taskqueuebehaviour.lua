@@ -82,14 +82,9 @@ function TaskQueueBehaviour:CanQueueNextTask()
 	-- Unit is not a factory
 	local notfactory = self.unit:Internal():Type():IsFactory() ~= true
 	local notprogressing = self.progress ~= true	-- Not already progressing in queue
-	local _,_,_,speed = Spring.GetUnitVelocity(unitID)
-	local notmoving = speed == 0 	-- Not moving towards next position
-
-	local notwaitingforpos = (self:IsWaitingForPosition() ~= true)	-- must not be waiting for position
-
 	local curqueuelength = #(Spring.GetCommandQueue(unitID,2))
 	local building = Spring.GetUnitIsBuilding(unitID)	-- we check cur buildspeed/power ~= 0
-	if curqueuelength <= 1 and building and notwaitingforpos and notmoving and notprogressing and notfactory then
+	if curqueuelength <= 1 and building and notprogressing and notfactory then
 		return true
 	else
 		return
@@ -101,10 +96,12 @@ function TaskQueueBehaviour:Update()
 		self:DebugPoint("nothing")
 		return
 	end
-	if self:CanQueueNextTask() then
-		self.progress = true
-	end
 	local f = self.game:Frame()
+	if f%15 == self.unit:Internal().id%15 then
+		if self:CanQueueNextTask() then
+			self.progress = true
+		end
+	end
 	if self.progress == true then
 		if self.countdown > 14 then
 			self:ProgressQueue()
