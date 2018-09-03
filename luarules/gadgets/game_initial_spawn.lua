@@ -130,14 +130,9 @@ end
 
 --check if a player is to be considered as a 'newbie', in terms of startpoint placements
 function isPlayerNewbie(pID)
-	local customtable
 	local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID) 
 	playerRank = tonumber(pRank) or 0
-	if select(11,Spring.GetPlayerInfo(pID)) then   -- changed to 11th in engine 104.0.1.547
-		customtable = select(11,Spring.GetPlayerInfo(pID)) or {} -- player custom table
-	else
-		customtable = select(10,Spring.GetPlayerInfo(pID)) or {}
-	end
+	local customtable = select(11,Spring.GetPlayerInfo(pID)) or {} -- player custom table
 	local tsMu = tostring(customtable.skill) or ""
 	local tsSigma = tonumber(customtable.skilluncertainty) or 3
 	local isNewbie

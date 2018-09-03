@@ -61,10 +61,8 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     local pList = Spring.GetPlayerList(teamID)
     local playerID = pList[1]
     local customtable = false
-    if playerID and select(11,Spring.GetPlayerInfo(playerID)) then   -- changed to 11th in engine 104.0.1.547
-        customtable = select(11,Spring.GetPlayerInfo(playerID)) -- player custom table
-    elseif playerID then
-        customtable = select(10,Spring.GetPlayerInfo(playerID))
+    if playerID and select(11,Spring.GetPlayerInfo(playerID)) then
+        customtable = select(11,Spring.GetPlayerInfo(playerID))
     end
     local tsMu = customtable and customtable.skill or ""
     mu = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 25

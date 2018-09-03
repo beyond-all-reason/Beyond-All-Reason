@@ -41,12 +41,7 @@ function gadget:RecvLuaMsg(msg, playerID)
     end
     if msg=='\144' then
         -- do the same eligibility check as in unsynced
-        local customtable
-        if select(11,Spring.GetPlayerInfo(playerID)) then   -- changed to 11th in engine 104.0.1.547
-            customtable = select(11,Spring.GetPlayerInfo(playerID)) -- player custom table
-        else
-            customtable = select(10,Spring.GetPlayerInfo(playerID))
-        end
+        local customtable = select(11,Spring.GetPlayerInfo(playerID))
         if type(customtable) == 'table' then
             local tsMu = customtable.skill
             local tsSigma = customtable.skilluncertainty
@@ -110,12 +105,7 @@ function FindSubs(real)
         local noStartPoint = (readyState==3) or (readyState==0)
         local present = active and (not spec) and (not noStartPoint)
         if not present then
-            local customtable
-            if select(11,Spring.GetPlayerInfo(playerID)) then   -- changed to 11th in engine 104.0.1.547
-                customtable = select(11,Spring.GetPlayerInfo(playerID)) or {} -- player custom table
-            else
-                customtable = select(10,Spring.GetPlayerInfo(playerID)) or {}
-            end
+            local customtable = select(11,Spring.GetPlayerInfo(playerID)) or {}
             local tsMu = customtable.skill
             ts = tsMu and tonumber(tsMu:match("%d+%.?%d*"))
             if ts then
