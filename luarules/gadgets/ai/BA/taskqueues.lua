@@ -415,11 +415,11 @@ function CorEnT1( tqb, ai, unit )
 end
 
 function CorEnT2( tqb, ai, unit )
-	if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0) then
-		return "coruwadves"
-	elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
-		return "coruwadvms"
-	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "coracv" then
+	--if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0) then
+		--return "coruwadves"
+	--elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
+		--return "coruwadvms"
+	if income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "coracv" then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "corafus", pos = {x = x, y = y, z = z}}
@@ -892,13 +892,15 @@ function CorRad(tqb,ai,unit)
 end
 
 function CorProtection(tqb,ai,unit)
-	local protype = (math.random(1,2) == 1) and "corgate" or "corfmd"
-	if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
-		return protype
-	end
-	local defs = UnitDefs[UnitDefNames[protype].id]
-	if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-		return protype
+	if Spring.GetGameSeconds > 1500 then
+		local protype = (math.random(1,2) == 1) and "corgate" or "corfmd"
+		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
+			return protype
+		end
+		local defs = UnitDefs[UnitDefNames[protype].id]
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+			return protype
+		end
 	end
 	return skip
 end
@@ -1214,11 +1216,11 @@ end
 function ArmEnT2( tqb, ai, unit )
 	
 	
-	if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0)then
-		return "armuwadves"
-	elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
-		return "armuwadvms"
-	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "armacv" then
+	--if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0)then
+		--return "armuwadves"
+	--elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
+		--return "armuwadvms"
+	if income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "armacv" then
        	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
 			return {action = "armafus", pos = {x = x, y = y, z = z}}
@@ -1682,13 +1684,15 @@ function ArmARad(tqb,ai,unit)
 end
 
 function ArmProtection(tqb,ai,unit)
-	local protype = (math.random(1,2) == 1) and "armgate" or "armamd"
-	if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
-		return protype
-	end
-	local defs = UnitDefs[UnitDefNames[protype].id]
-	if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-		return protype
+	if Spring.GetGameSeconds > 1500 then
+		local protype = (math.random(1,2) == 1) and "armgate" or "armamd"
+		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
+			return protype
+		end
+		local defs = UnitDefs[UnitDefNames[protype].id]
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
+			return protype
+		end
 	end
 	return skip
 end

@@ -63,14 +63,17 @@ function gadget:GameFrame(n)
 					Spring.AddTeamResource(TeamID,"m", (aiResourceMultiplier - 1) * mi * 2 )
 					Spring.AddTeamResource(TeamID,"e", (aiResourceMultiplier - 1) * ei * 2 )
 				end
-				-- if n > 1 then
-					-- local seconds = n / 30
-					-- local resourcecheat = seconds * 0.00020
-					-- local metalcheat = resourcecheat * mi * 2
-					-- local energycheat = resourcecheat * ei * 2
-					-- Spring.AddTeamResource(TeamID,"m", metalcheat * aiResourceMultiplier)
-					-- Spring.AddTeamResource(TeamID,"e", energycheat * aiResourceMultiplier)
-				-- end
+				if n > 1 then
+					local seconds = n / 30
+					local resourcecheat = seconds * 0.00025
+					if resourcecheat > 2 then
+						resourcecheat = 2
+					end
+					local metalcheat = resourcecheat * mi * 2
+					local energycheat = resourcecheat * ei * 2
+					Spring.AddTeamResource(TeamID,"m", metalcheat * aiResourceMultiplier)
+					Spring.AddTeamResource(TeamID,"e", energycheat * aiResourceMultiplier)
+				end
 			end
 		end
 	end
