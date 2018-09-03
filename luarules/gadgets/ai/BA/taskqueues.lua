@@ -892,7 +892,7 @@ function CorRad(tqb,ai,unit)
 end
 
 function CorProtection(tqb,ai,unit)
-	if Spring.GetGameSeconds > 1500 then
+	if Spring.GetGameSeconds() > 1500 then
 		local protype = (math.random(1,2) == 1) and "corgate" or "corfmd"
 		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
 			return protype
@@ -1684,7 +1684,7 @@ function ArmARad(tqb,ai,unit)
 end
 
 function ArmProtection(tqb,ai,unit)
-	if Spring.GetGameSeconds > 1500 then
+	if Spring.GetGameSeconds() > 1500 then
 		local protype = (math.random(1,2) == 1) and "armgate" or "armamd"
 		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
 			return protype
