@@ -52,7 +52,6 @@ function AttackerBehaviour:Update()
 		self.type = self.ai.attackhandler:GetRole(self)
 	end
 	local frame = SpGetGameFrame()
-	local unit = self.unit:Internal()
 	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
 		self.myRange = SpGetUnitMaxRange(self.unitID)
 	end
