@@ -160,7 +160,7 @@ function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
 	if p and p.x and p.y and p.z then
 		local facing = self:GetFacing(p)
-		if facing == 0 or 2 then
+		if facing == 0 or facing == 2 then
 			p.x = p.x - (p.x%16) + (defs.xsize*4 % 16)
 			p.z = p.z - (p.z%16) + (defs.zsize*4 % 16)
 		else
@@ -192,7 +192,7 @@ function NewPlacementHandler:CreateNewPlanNoSearch(unit, utype, p)
 	local buildtype = "ground"
 	if p and p.x and p.y and p.z then
 		local facing = self:GetFacing(p)
-		if facing == 0 or 2 then
+		if facing == 0 or facing == 2 then
 			p.x = p.x - (p.x%16) + (defs.xsize*4 % 16)
 			p.z = p.z - (p.z%16) + (defs.zsize*4 % 16)
 		else
