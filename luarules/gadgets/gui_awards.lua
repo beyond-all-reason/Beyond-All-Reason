@@ -447,7 +447,7 @@ local drawAwards = false
 local cx,cy --coords for center of screen
 local bx,by,bxScaled,byScaled --coords for top left hand corner of box
 local w = 800 
-local h = 600 
+local h = 500
 local bgMargin = 6
 
 --h = 520-bgMargin-bgMargin
@@ -541,14 +541,19 @@ function ProcessAwards(_,ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKill
 	Spring.SendLuaRulesMsg(awardsMsg)
 
 	--create awards
+	addy = 0
+	if traitorScore > threshold then
+		addy = 100
+		h = 600
+	end
 	CreateBackground()
 	FirstAward = CreateAward('fuscup',0,'Destroying enemy resource production', white, ecoKillAward, ecoKillAwardSec, ecoKillAwardThi, ecoKillScore, ecoKillScoreSec, ecoKillScoreThi, 100) 
 	SecondAward = CreateAward('bullcup',0,'Destroying enemy units and defences',white, fightKillAward, fightKillAwardSec, fightKillAwardThi, fightKillScore, fightKillScoreSec, fightKillScoreThi, 200) 
 	ThirdAward = CreateAward('comwreath',0,'Efficient use of resources',white,effKillAward, effKillAwardSec, effKillAwardThi, effKillScore, effKillScoreSec, effKillScoreThi, 300) 
 	if cowAward ~= -1 then
-		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 500) 	
+		CowAward = CreateAward('cow',1,'Doing everything',white, ecoKillAward, 1,1,1,1,1, 400 + addy) 	
 	else
-		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 500)		
+		OtherAwards = CreateAward('',2,'',white, ecoAward, dmgRecAward, sleepAward, ecoScore, dmgRecScore, sleepScore, 400 + addy)		
 	end
 	if traitorScore > threshold then
 		FourthAward = CreateAward('traitor',0,'The Traitor - Destroying allied units',white, traitorAward, traitorAwardSec, traitorAwardThi, traitorScore, traitorScoreSec, traitorScoreThi, 400)		
@@ -635,7 +640,7 @@ function CreateBackground()
 	if Script.LuaUI("GuishaderInsertRect") then
 		Script.LuaUI.GuishaderInsertRect(math.floor(bxScaled), math.floor(byScaled), math.floor(bxScaled + (w*widgetScale)), math.floor(byScaled + (h*widgetScale)), 'awards')
 	end
-	
+
 	Background = glCreateList(function()
 		-- background
 		gl.Color(0,0,0,0.8)
