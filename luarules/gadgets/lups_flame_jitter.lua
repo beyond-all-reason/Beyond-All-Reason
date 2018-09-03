@@ -113,7 +113,7 @@ else
       speedExp     = 1.5,
 
       size         = 28,
-      sizeGrowth   = 4.5,
+      sizeGrowth   = 4.7,
 
       scale        = 1.5,
       strength     = 1.0,
