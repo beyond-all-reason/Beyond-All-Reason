@@ -1,80 +1,162 @@
 function gadget:GetInfo()
 	return {
-		name = "AI Resource Multiplier",
-		desc = "Hmm",
-		author = "Damgam, used parts of code from resource gifts gadget by lurker (Dylan Petonke) and Google Frog",
-		date = "18 May 2018",
+		name = "AI Resource Multiplier",	-- reclaim excluded + given units excluded + filters units with insignificant production + emp'd units still included
+		desc = "",
+		author = "Floris",
+		date = "September 2018",
 		license = "GPL",
 		layer = 1,
 		enabled = true
 	}
 end
 
-local aiResourceMultiplier = tonumber(Spring.GetModOptions().ai_incomemultiplier) or 1
+local timedResBonusMultiplier = 0.0003
+local timedResBonusMultiplierMax = 2
 
-local UDC = Spring.GetTeamUnitDefCount
-local UDN = UnitDefNames
 
 if (not gadgetHandler:IsSyncedCode()) then
 	return -- No Unsynced
 end
 
--- Initialise ally teams
-local allyTeamInfo = {} -- list of players and mexes on a team
+local aiResourceMultiplier = tonumber(Spring.GetModOptions().ai_incomemultiplier) or 1
 
-local allyTeamList = Spring.GetAllyTeamList()
-local allyTeams = #allyTeamList
+if timedResBonusMultiplier == 0 and aiResourceMultiplier == 1 then
+	return
+end
 
-do
-	for i=1,allyTeams do
-		local allyTeamID = allyTeamList[i]
-		local teamList = Spring.GetTeamList(allyTeamID)
-		allyTeamInfo[allyTeamID] = {
-			teams = 0,
-			team = {},
-			mexes = 0,
-			mex = {},
-			mexIndex = {},
-		}
-		for j=1,#teamList do
-			local teamID = teamList[j]
-			allyTeamInfo[allyTeamID].teams = allyTeamInfo[allyTeamID].teams + 1
-			allyTeamInfo[allyTeamID].team[allyTeamInfo[allyTeamID].teams] = teamID
+
+local aiTeams = {}
+local ecoUnitsDefs = {}
+local energyUnitDefs = {}
+local windUnitDefs = {}
+local metalUnitDefs = {}
+local mexUnitDefs = {}
+local aiGiftedUnits = {}
+local newMexes = {}
+
+local spGetUnitResources = Spring.GetUnitResources
+
+function gadget:UnitGiven(uID, uDefID, uTeam)
+	if aiTeams[uTeam] and ecoUnitsDefs[uDefID] then
+		aiGiftedUnits[uID] = true
+	end
+end
+
+function gadget:UnitFinished(uID, uDefID, uTeam, builderID)
+	if aiTeams[uTeam] and ecoUnitsDefs[uDefID] then
+		if aiGiftedUnits[uID] then
+			aiGiftedUnits[uID] = nil
+		else
+			if windUnitDefs[uDefID] then
+				aiTeams[uTeam].winds = aiTeams[uTeam].winds + 1
+			end
+			if mexUnitDefs[uDefID] then
+				newMexes[uID] = {Spring.GetGameFrame() + 30, uTeam} 	-- unfortunately mex produces nothing yet so we have to scedule it
+			end
+			if energyUnitDefs[uDefID] then
+				aiTeams[uTeam].energy = aiTeams[uTeam].energy + energyUnitDefs[uDefID]
+			end
+			if metalUnitDefs[uDefID] then
+				aiTeams[uTeam].metal = aiTeams[uTeam].metal + metalUnitDefs[uDefID]
+			end
+		end
+	end
+end
+
+function gadget:UnitDestroyed(uID, uDefID, uTeam)
+	if aiTeams[uTeam] and ecoUnitsDefs[uDefID] then
+		if newMexes[uID] then
+			newMexes[uID] = nil
+		end
+		if windUnitDefs[uDefID] then
+			aiTeams[uTeam].winds = aiTeams[uTeam].winds - 1
+		end
+		if mexUnitDefs[uDefID] then
+			aiTeams[uTeam].metal = aiTeams[uTeam].metal - aiTeams[uTeam].mexes[uID]
+			aiTeams[uTeam].mexes[uID] = nil
+		end
+		if energyUnitDefs[uDefID] then
+			aiTeams[uTeam].energy = aiTeams[uTeam].energy - energyUnitDefs[uDefID]
+		end
+		if metalUnitDefs[uDefID] then
+			aiTeams[uTeam].metal = aiTeams[uTeam].metal - metalUnitDefs[uDefID]
 		end
 	end
 end
 
 function gadget:Initialize(n)
-	
-end
-	
-function gadget:GameFrame(n)
-	-- check if team is controled by AI
-	if n%60 == 4 then
-		for _,TeamID in ipairs(Spring.GetTeamList()) do
-			local isAiTeam = select(4, Spring.GetTeamInfo(TeamID))
-			if isAiTeam then
-				
-				-- get resource income
-				local mc, ms, mp, mi, me = Spring.GetTeamResources(TeamID, "metal")
-				local ec, es, ep, ei, ee = Spring.GetTeamResources(TeamID, "energy")	
-				-- give resources
-				if aiResourceMultiplier > 1 then
-					Spring.AddTeamResource(TeamID,"m", (aiResourceMultiplier - 1) * mi * 2 )
-					Spring.AddTeamResource(TeamID,"e", (aiResourceMultiplier - 1) * ei * 2 )
-				end
-				if n > 1 then
-					local seconds = n / 30
-					local resourcecheat = seconds * 0.00025
-					if resourcecheat > 2 then
-						resourcecheat = 2
+	for _,teamID in ipairs(Spring.GetTeamList()) do
+		aiTeams[teamID] = { energy = 0, metal = 0, winds = 0, mexes = {} }
+	end
+	for uDefID,def in ipairs(UnitDefs) do
+		if def.energyMake >= 10 then	-- filter insignificant production to save some performance
+			energyUnitDefs[uDefID] = def.energyMake
+			ecoUnitsDefs[uDefID] = true
+		end
+		if def.energyUpkeep < 0 then
+			energyUnitDefs[uDefID] = -def.energyUpkeep
+			ecoUnitsDefs[uDefID] = true
+		end
+		if def.windGenerator > 0 then
+			windUnitDefs[uDefID] = true
+			ecoUnitsDefs[uDefID] = true
+		end
+		if def.metalMake >= 0.1 then	-- filter insignificant production to save some performance
+			metalUnitDefs[uDefID] = def.metalMake
+			ecoUnitsDefs[uDefID] = true
+		end
+		if def.extractsMetal > 0 then
+			mexUnitDefs[uDefID] = def.extractsMetal
+			ecoUnitsDefs[uDefID] = true
+		end
+		if ecoUnitsDefs[uDefID] then
+			for teamID,_ in pairs(aiTeams) do
+				aiTeams[teamID][uDefID] = 0
+			end
+		end
+	end
+	if Spring.GetGameFrame() > 0 then	-- in case of a luarules reload
+		for teamID,_ in pairs(aiTeams) do
+			local teamUnits = Spring.GetTeamUnitsSorted(teamID)
+			for uDefID, units in pairs(teamUnits) do
+				for _, unitID in pairs(units) do
+					if select(5,Spring.GetUnitHealth(unitID)) >= 1 then
+						gadget:UnitFinished(unitID, uDefID, teamID)
 					end
-					local metalcheat = resourcecheat * mi * 2
-					local energycheat = resourcecheat * ei * 2
-					Spring.AddTeamResource(TeamID,"m", metalcheat * aiResourceMultiplier)
-					Spring.AddTeamResource(TeamID,"e", energycheat * aiResourceMultiplier)
 				end
 			end
+		end
+	end
+end
+
+
+function gadget:GameFrame(n)
+
+	if n % 30 == 1 then
+
+		-- a just finished mex doesnt produce metal yet so we sceduled it
+		for uID,params in pairs(newMexes) do
+			if n > params[1] then
+				aiTeams[params[2]].mexes[uID] = select(1,spGetUnitResources(uID))
+				aiTeams[params[2]].metal = aiTeams[params[2]].metal + aiTeams[params[2]].mexes[uID]
+				newMexes[uID] = nil
+			end
+		end
+
+		local timedResBonus = (n / 30) * timedResBonusMultiplier
+		if timedResBonus > timedResBonusMultiplierMax then
+			timedResBonus = timedResBonusMultiplierMax
+		end
+
+		local currentWind = string.format('%.1f', select(4,Spring.GetWind()))
+		for TeamID, aiRes in pairs(aiTeams) do
+			local totalEnergy = aiRes.energy + (aiRes.winds * currentWind)
+			local totalMetal = aiRes.metal
+
+			--Spring.Echo(totalEnergy..'   +   '..((totalEnergy * (aiResourceMultiplier + timedResBonus)) - totalEnergy))
+			--Spring.Echo(totalMetal..'   +   '..((totalMetal * (aiResourceMultiplier + timedResBonus)) - totalMetal))
+			Spring.AddTeamResource(TeamID,"e", (totalEnergy * (aiResourceMultiplier + timedResBonus)) - totalEnergy)
+			Spring.AddTeamResource(TeamID,"m", (totalMetal * (aiResourceMultiplier + timedResBonus)) - totalMetal)
 		end
 	end
 end
