@@ -24,8 +24,18 @@ if timedResBonusMultiplier == 0 and aiResourceMultiplier == 1 then
 	return
 end
 
-
 local aiTeams = {}
+local aiCount = 0
+for _,teamID in ipairs(Spring.GetTeamList()) do
+	if select(4,Spring.GetTeamInfo(teamID)) then	-- is AI?
+		aiCount = aiCount + 1
+		aiTeams[teamID] = { energy = 0, metal = 0, winds = 0, mexes = {} }
+	end
+end
+if aiCount == 0 then
+	return
+end
+
 local ecoUnitsDefs = {}
 local energyUnitDefs = {}
 local windUnitDefs = {}
@@ -84,10 +94,7 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
 	end
 end
 
-function gadget:Initialize(n)
-	for _,teamID in ipairs(Spring.GetTeamList()) do
-		aiTeams[teamID] = { energy = 0, metal = 0, winds = 0, mexes = {} }
-	end
+function gadget:Initialize()
 	for uDefID,def in ipairs(UnitDefs) do
 		if def.energyMake >= 10 then	-- filter insignificant production to save some performance
 			energyUnitDefs[uDefID] = def.energyMake
