@@ -335,9 +335,11 @@ function widget:CommandNotify(id, params, options)
 		for ct, id in pairs(batchMexBuilder) do 
 
 				for i, command in ipairs(orderedCommands) do
+					local Y = Spring.GetGroundHeight(command.x, command.z)
 					local spotSize = 0 -- GetSpotSize(x, z)
 					if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
 					for j=1, mexBuilder[id].buildings do
+						local def = UnitDefs[-mexBuilder[id].building[j]]
 						local buildable = 0
 						newx, newz = command.x, command.z
 						if not (buildable ~= 0) then -- If location unavailable, check surroundings (extractorRadius - 25). Should consider replacing 25 with avg mex x,z sizes
@@ -385,8 +387,7 @@ function widget:CommandNotify(id, params, options)
 						if buildable ~= 0 then
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], {newx,spGetGroundHeight(newx,newz),newz} , {"shift"})
 							break
-						else
-							local def = UnitDefs[-mexBuilder[id].building[j]]
+						elseif def.maxWaterDepth and -def.maxWaterDepth < Y and def.minWaterDepth and -def.minWaterDepth > Y then
 							local hsize = def.xsize*4
 							local unitsatmex = Spring.GetUnitsInRectangle(command.x-hsize, command.z-hsize, command.x+hsize, command.z + hsize)
 							local blockers = {}
