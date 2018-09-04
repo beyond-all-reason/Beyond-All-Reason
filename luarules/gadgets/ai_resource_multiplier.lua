@@ -43,43 +43,43 @@ function gadget:UnitGiven(uID, uDefID, uTeam)
 end
 
 function gadget:UnitFinished(uID, uDefID, uTeam, builderID)
-	if aiTeams[uTeam] and ecoUnitsDefs[uDefID] then
-		if aiGiftedUnits[uID] then
-			aiGiftedUnits[uID] = nil
-		else
-			if windUnitDefs[uDefID] then
-				aiTeams[uTeam].winds = aiTeams[uTeam].winds + 1
-			end
-			if mexUnitDefs[uDefID] then
-				newMexes[uID] = {Spring.GetGameFrame() + 30, uTeam} 	-- unfortunately mex produces nothing yet so we have to scedule it
-			end
-			if energyUnitDefs[uDefID] then
-				aiTeams[uTeam].energy = aiTeams[uTeam].energy + energyUnitDefs[uDefID]
-			end
-			if metalUnitDefs[uDefID] then
-				aiTeams[uTeam].metal = aiTeams[uTeam].metal + metalUnitDefs[uDefID]
-			end
+	if aiTeams[uTeam] and ecoUnitsDefs[uDefID] and not aiGiftedUnits[uID] then
+		if windUnitDefs[uDefID] then
+			aiTeams[uTeam].winds = aiTeams[uTeam].winds + 1
+		end
+		if mexUnitDefs[uDefID] then
+			newMexes[uID] = {Spring.GetGameFrame() + 30, uTeam} 	-- unfortunately mex produces nothing yet so we have to scedule it
+		end
+		if energyUnitDefs[uDefID] then
+			aiTeams[uTeam].energy = aiTeams[uTeam].energy + energyUnitDefs[uDefID]
+		end
+		if metalUnitDefs[uDefID] then
+			aiTeams[uTeam].metal = aiTeams[uTeam].metal + metalUnitDefs[uDefID]
 		end
 	end
 end
 
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
 	if aiTeams[uTeam] and ecoUnitsDefs[uDefID] then
-		if newMexes[uID] then
-			newMexes[uID] = nil
-		end
-		if windUnitDefs[uDefID] then
-			aiTeams[uTeam].winds = aiTeams[uTeam].winds - 1
-		end
-		if mexUnitDefs[uDefID] then
-			aiTeams[uTeam].metal = aiTeams[uTeam].metal - aiTeams[uTeam].mexes[uID]
-			aiTeams[uTeam].mexes[uID] = nil
-		end
-		if energyUnitDefs[uDefID] then
-			aiTeams[uTeam].energy = aiTeams[uTeam].energy - energyUnitDefs[uDefID]
-		end
-		if metalUnitDefs[uDefID] then
-			aiTeams[uTeam].metal = aiTeams[uTeam].metal - metalUnitDefs[uDefID]
+		if aiGiftedUnits[uID] then
+			aiGiftedUnits[uID] = nil
+		else
+			if newMexes[uID] then
+				newMexes[uID] = nil
+			end
+			if windUnitDefs[uDefID] then
+				aiTeams[uTeam].winds = aiTeams[uTeam].winds - 1
+			end
+			if mexUnitDefs[uDefID] then
+				aiTeams[uTeam].metal = aiTeams[uTeam].metal - aiTeams[uTeam].mexes[uID]
+				aiTeams[uTeam].mexes[uID] = nil
+			end
+			if energyUnitDefs[uDefID] then
+				aiTeams[uTeam].energy = aiTeams[uTeam].energy - energyUnitDefs[uDefID]
+			end
+			if metalUnitDefs[uDefID] then
+				aiTeams[uTeam].metal = aiTeams[uTeam].metal - metalUnitDefs[uDefID]
+			end
 		end
 	end
 end
