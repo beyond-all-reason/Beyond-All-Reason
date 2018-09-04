@@ -70,7 +70,7 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
 			if windUnitDefs[uDefID] then
 				aiTeams[uTeam].winds = aiTeams[uTeam].winds - 1
 			end
-			if mexUnitDefs[uDefID] then
+			if mexUnitDefs[uDefID] and aiTeams[uTeam].mexes[uID] then
 				aiTeams[uTeam].metal = aiTeams[uTeam].metal - aiTeams[uTeam].mexes[uID]
 				aiTeams[uTeam].mexes[uID] = nil
 			end
