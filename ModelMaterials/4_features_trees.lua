@@ -80,7 +80,7 @@ local materials = {
 				//gl_FragColor.r=1.0;
 			]]
 		},
-		force     = false, --// always use the shader even when normalmapping is disabled
+		force     = true, --// always use the shader even when normalmapping is disabled
 		feature = true, --// This is used to define that this is a feature shader
 		usecamera = false,
 		culling   = GL.BACK,
@@ -127,14 +127,14 @@ for id, featureDef in pairs(FeatureDefs) do
 	end
 end
 if echoline ~= '' then
-	Spring.Echo('Adding normal texture to trees: '..echoline)
+	--Spring.Echo('Adding normal texture to trees: '..echoline)
 end
 
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if Spring.GetConfigInt("TreeShader",1) == 0 then
+if Spring.GetConfigInt("TreeWind",1) == 0 then
 	return {}, {}
 else
 	return materials, featureMaterials

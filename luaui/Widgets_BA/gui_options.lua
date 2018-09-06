@@ -129,6 +129,7 @@ local presets = {
 		nanoparticles = 500,
 		grassdetail = 0,
 		treeradius = 0,
+		treewind = false,
 		advsky = false,
 		outline = false,
 		guishader = false,
@@ -155,6 +156,7 @@ local presets = {
 		nanoparticles = 800,
 		grassdetail = 0,
 		treeradius = 200,
+		treewind = false,
 		advsky = false,
 		outline = false,
 		guishader = false,
@@ -181,6 +183,7 @@ local presets = {
 		nanoparticles = 1200,
 		grassdetail = 0,
 		treeradius = 400,
+		treewind = true,
 		advsky = false,
 		outline = false,
 		guishader = false,
@@ -207,6 +210,7 @@ local presets = {
 		nanoparticles = 2000,
 		grassdetail = 0,
 		treeradius = 800,
+		treewind = true,
 		advsky = true,
 		outline = true,
 		guishader = true,
@@ -233,6 +237,7 @@ local presets = {
 		nanoparticles = 5000,
 		grassdetail = 0,
 		treeradius = 800,
+		treewind = true,
 		advsky = true,
 		outline = true,
 		guishader = true,
@@ -988,9 +993,9 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'normalmapping' then
 			Spring.SendCommands("luarules normalmapping "..value)
 			Spring.SetConfigInt("NormalMapping",value)
-			if value == 1 then
-				Spring.SendCommands("luarules reloadluaui")		-- becaue sometimes it ends in too bright unit shading but fixed after a luaui reload
-			end
+		elseif id == 'treewind' then
+			Spring.SendCommands("luarules treewind "..value)
+			Spring.SetConfigInt("TreeWind",value)
 		elseif id == 'advsky' then
 			Spring.SetConfigInt("AdvSky",value)
 		elseif id == 'shadows' then
@@ -1872,6 +1877,7 @@ function init()
 		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
+		{id="treewind", group="gfx", name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)'},
 
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)'},
@@ -2434,6 +2440,7 @@ function widget:GetConfigData(data)
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
 		advmodelshading = {'AdvModelShading', tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1)},
 		advmapshading = {'AdvMapShading', tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1)},
+		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",1) or 50)},
 		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",1) or 50)},
