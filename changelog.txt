@@ -34,6 +34,7 @@ Fixes:
  • Fixed "map edge extension" not always showing up when it should
  • Fixed "States Prefs" widget overriding config table with empty table after loading a replay
  • Fixed Bloom rendering the map black on certain maps
+ • Fixed tree waving only showing when barmodels enabled
 
 Removed:
  • Removed "SmoothCam" widget: its integrated into options widget

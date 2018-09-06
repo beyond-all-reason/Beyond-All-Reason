@@ -727,7 +727,7 @@ local lastUpdate = 0
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		if select(7, Spring.GetMouseState()) then	-- when camera panning
-			Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+			Spring.SetCameraState(Spring.GetCameraState(), math.min(cameraPanTransitionTime, cameraTransitionTime))
 		else
 			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
 		end

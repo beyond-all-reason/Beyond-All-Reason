@@ -629,9 +629,9 @@ function gadget:Initialize()
   --// check user configs
   shadows = Spring.HaveShadows()
   advShading = Spring.HaveAdvShading()
-  if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+  --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
     normalmapping = (Spring.GetConfigInt("NormalMapping", 1)>0)
-  end
+  --end
 
   --// load the materials config files
   local MATERIALS_DIR = "ModelMaterials/"
@@ -645,9 +645,9 @@ function gadget:Initialize()
   --// insert synced actions
 
   gadgetHandler:AddSyncAction("unitshaders_reverse", UnitReverseBuilt)
-  if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+  --if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
     gadgetHandler:AddChatAction("normalmapping", ToggleNormalmapping)
-  end
+  --end
 end
 
 function to_string(data, indent)
