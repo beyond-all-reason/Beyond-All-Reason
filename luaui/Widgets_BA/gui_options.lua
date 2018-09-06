@@ -136,6 +136,7 @@ local presets = {
 		shadows = false,
 		advmapshading = false,
 		advmodelshading = false,
+		normalmapping = false,
 		decals = 0,
 		grounddetail = 60,
 		darkenmap_darkenfeatures = false,
@@ -153,7 +154,7 @@ local presets = {
 		snow = false,
 		xrayshader = false,
 		particles = 10000,
-		nanoparticles = 800,
+		nanoparticles = 900,
 		grassdetail = 0,
 		treeradius = 200,
 		treewind = false,
@@ -163,6 +164,7 @@ local presets = {
 		shadows = false,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = false,
 		decals = 0,
 		grounddetail = 90,
 		darkenmap_darkenfeatures = false,
@@ -180,7 +182,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 15000,
-		nanoparticles = 1200,
+		nanoparticles = 1500,
 		grassdetail = 0,
 		treeradius = 400,
 		treewind = true,
@@ -190,6 +192,7 @@ local presets = {
 		shadows = false,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = true,
 		decals = 1,
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
@@ -207,7 +210,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 20000,
-		nanoparticles = 2000,
+		nanoparticles = 2500,
 		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
@@ -217,6 +220,7 @@ local presets = {
 		shadows = true,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = true,
 		decals = 2,
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
@@ -244,6 +248,7 @@ local presets = {
 		shadows = true,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = true,
 		decals = 3,
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
@@ -991,7 +996,9 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("AdvModelShading "..value)
 			Spring.SetConfigInt("AdvModelShading",value)
 		elseif id == 'normalmapping' then
-			Spring.SendCommands("luarules normalmapping "..value)
+			if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
+				Spring.SendCommands("luarules normalmapping "..value)
+			end
 			Spring.SetConfigInt("NormalMapping",value)
 		elseif id == 'treewind' then
 			Spring.SendCommands("luarules treewind "..value)
@@ -2313,7 +2320,7 @@ function widget:Initialize()
 		Spring.SetConfigInt("UsePBO",0)
 	--end
 
-	--Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
+	Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
 
 	Spring.SendCommands({"bind f10 options"})
 
@@ -2440,6 +2447,7 @@ function widget:GetConfigData(data)
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
 		advmodelshading = {'AdvModelShading', tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1)},
 		advmapshading = {'AdvMapShading', tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1)},
+		normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
 		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",1) or 50)},
