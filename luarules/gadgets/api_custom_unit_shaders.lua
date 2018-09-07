@@ -53,7 +53,8 @@ VFS.Include("luarules/utilities/unitrendering.lua", nil, VFS.ZIP)
 
 local shadows = false
 local advShading = false
-local normalmapping = false
+local normalmapping = ((tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0  and  tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1)
+local treewind = tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1
 
 local unitRendering = {
   drawList        = {},
@@ -349,52 +350,6 @@ local function ToggleAdvShading()
 end
 
 
-function ToggleNormalmapping(_,newSetting,_, playerID)
-  if (playerID ~= Spring.GetMyPlayerID()) then
-    return
-  end
-
-  if newSetting and newSetting~="" then
-    normalmapping = (newSetting=="1")
-  elseif not newSetting or newSetting=="" then
-    normalmapping = not normalmapping
-  end
-
-  Spring.SetConfigInt("NormalMapping", (normalmapping and 1) or 0)
-  Spring.Echo("normalmapping is " .. (normalmapping and "enabled" or "disabled"))
-
-  if (not normalmapping) then
-    --// unload normalmapped materials
-    local units = Spring.GetAllUnits()
-    for _,unitID in pairs(units) do
-      local unitDefID = Spring.GetUnitDefID(unitID)
-      local unitMat = unitRendering.materialInfos[unitDefID]
-      if (unitMat) then
-        local mat = unitRendering.materialDefs[unitMat[1]]
-        if (not mat.force) then
-          gadget:RenderUnitDestroyed(unitID, unitDefID)
-        end
-      end
-    end
-
-    local features = Spring.GetAllFeatures()
-    for _,featureID in pairs(features) do
-      local featureDefID = Spring.GetFeatureDefID(featureID)
-      local featureMat = featureRendering.materialInfos[featureDefID]
-      if (featureMat) then
-        local mat = featureRendering.materialDefs[featureMat[1]]
-        if (not mat.force) then
-          gadget:FeatureDestroyed(featureID,featureDefID)
-        end
-      end
-    end
-  elseif (advShading) then
-    --// reinitializes all shaders
-    ToggleShadows()
-  end
-end
-
-
 local n = -1
 function gadget:Update()
   if (n<Spring.GetDrawFrame()) then
@@ -625,13 +580,139 @@ local function _ProcessMaterials(rendering, materialDefs)
   end
 end
 
+
+function ToggleTreeWind(_,newSetting,_, playerID)
+  if (playerID ~= Spring.GetMyPlayerID()) then
+    return
+  end
+  if newSetting and newSetting~="" then
+    treewind = (newSetting=="1")
+  elseif not newSetting or newSetting=="" then
+    treewind = not treewind
+  end
+  Spring.SetConfigInt("TreeWind", (treewind and 1) or 0)
+  Spring.Echo("TreeWind is " .. (treewind and "enabled" or "disabled"))
+
+  --// unload normalmapped materials
+  local features = Spring.GetAllFeatures()
+  for _,featureID in pairs(features) do
+    local featureDefID = Spring.GetFeatureDefID(featureID)
+    local featureMat = featureRendering.materialInfos[featureDefID]
+    if (featureMat) then
+      gadget:FeatureDestroyed(featureID,featureDefID)
+    end
+  end
+
+  -- reset
+  featureRendering.drawList        = {}
+  featureRendering.materialInfos   = {}
+  featureRendering.bufMaterials    = {}
+  featureRendering.materialDefs    = {}
+  featureRendering.loadedTextures  = {}
+
+  --// load the materials config files
+  local MATERIALS_DIR = "ModelMaterials/"
+  local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
+  _ProcessMaterials(featureRendering, featureMaterialDefs)
+
+  local features = Spring.GetAllFeatures()
+  for _,featureID in pairs(features) do
+    local featureDefID = Spring.GetFeatureDefID(featureID)
+    local featureMat = featureRendering.materialInfos[featureDefID]
+    if (featureMat) then
+      gadget:FeatureCreated(featureID,featureDefID)
+    end
+  end
+end
+
+
+function ToggleNormalmapping(_,newSetting,_, playerID)
+  if (playerID ~= Spring.GetMyPlayerID()) then
+    return
+  end
+
+  if newSetting and newSetting~="" then
+    normalmapping = (newSetting=="1")
+  elseif not newSetting or newSetting=="" then
+    normalmapping = not normalmapping
+  end
+
+  Spring.SetConfigInt("NormalMapping", (normalmapping and 1) or 0)
+  Spring.Echo("normalmapping is " .. (normalmapping and "enabled" or "disabled"))
+
+  --// unload normalmapped materials
+  local features = Spring.GetAllFeatures()
+  for _,featureID in pairs(features) do
+    local featureDefID = Spring.GetFeatureDefID(featureID)
+    local featureMat = featureRendering.materialInfos[featureDefID]
+    if (featureMat) then
+      local mat = featureRendering.materialDefs[featureMat[1]]
+      if (not mat.force) then
+        gadget:FeatureDestroyed(featureID,featureDefID)
+      end
+    end
+  end
+  --// unload normalmapped materials
+  local units = Spring.GetAllUnits()
+  for _,unitID in pairs(units) do
+    local unitDefID = Spring.GetUnitDefID(unitID)
+    local unitMat = unitRendering.materialInfos[unitDefID]
+    if (unitMat) then
+      local mat = unitRendering.materialDefs[unitMat[1]]
+      if (not mat.force) then
+        gadget:RenderUnitDestroyed(unitID,unitDefID)
+      end
+    end
+  end
+
+  -- reset
+  unitRendering.drawList        = {}
+  unitRendering.materialInfos   = {}
+  unitRendering.bufMaterials    = {}
+  unitRendering.materialDefs    = {}
+  unitRendering.loadedTextures  = {}
+  featureRendering.drawList        = {}
+  featureRendering.materialInfos   = {}
+  featureRendering.bufMaterials    = {}
+  featureRendering.materialDefs    = {}
+  featureRendering.loadedTextures  = {}
+
+  --// load the materials config files
+  local MATERIALS_DIR = "ModelMaterials/"
+  local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
+  _ProcessMaterials(unitRendering,    unitMaterialDefs)
+  _ProcessMaterials(featureRendering, featureMaterialDefs)
+
+  local features = Spring.GetAllFeatures()
+  for _,featureID in pairs(features) do
+    local featureDefID = Spring.GetFeatureDefID(featureID)
+    local featureMat = featureRendering.materialInfos[featureDefID]
+    if (featureMat) then
+      local mat = featureRendering.materialDefs[featureMat[1]]
+      if (not mat.force) then
+        gadget:FeatureCreated(featureID,featureDefID)
+      end
+    end
+  end
+  --// load normalmapped materials
+  local units = Spring.GetAllUnits()
+  for _,unitID in pairs(units) do
+    local unitDefID = Spring.GetUnitDefID(unitID)
+    local unitMat = unitRendering.materialInfos[unitDefID]
+    if (unitMat) then
+      local mat = unitRendering.materialDefs[unitMat[1]]
+      if (not mat.force) then
+        gadget:UnitFinished(unitID,unitDefID)
+      end
+    end
+  end
+end
+
+
 function gadget:Initialize()
   --// check user configs
   shadows = Spring.HaveShadows()
   advShading = Spring.HaveAdvShading()
-  if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
-    normalmapping = (Spring.GetConfigInt("NormalMapping", 1)>0)
-  end
 
   --// load the materials config files
   local MATERIALS_DIR = "ModelMaterials/"
@@ -648,6 +729,7 @@ function gadget:Initialize()
   if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
     gadgetHandler:AddChatAction("normalmapping", ToggleNormalmapping)
   end
+  gadgetHandler:AddChatAction("treewind", ToggleTreeWind)
 end
 
 function to_string(data, indent)

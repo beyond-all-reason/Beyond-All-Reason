@@ -129,12 +129,14 @@ local presets = {
 		nanoparticles = 500,
 		grassdetail = 0,
 		treeradius = 0,
+		treewind = false,
 		advsky = false,
 		outline = false,
 		guishader = false,
 		shadows = false,
 		advmapshading = false,
 		advmodelshading = false,
+		normalmapping = false,
 		decals = 0,
 		grounddetail = 60,
 		darkenmap_darkenfeatures = false,
@@ -152,15 +154,17 @@ local presets = {
 		snow = false,
 		xrayshader = false,
 		particles = 10000,
-		nanoparticles = 800,
+		nanoparticles = 900,
 		grassdetail = 0,
 		treeradius = 200,
+		treewind = false,
 		advsky = false,
 		outline = false,
 		guishader = false,
 		shadows = false,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = false,
 		decals = 0,
 		grounddetail = 90,
 		darkenmap_darkenfeatures = false,
@@ -178,15 +182,17 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 15000,
-		nanoparticles = 1200,
+		nanoparticles = 1500,
 		grassdetail = 0,
 		treeradius = 400,
+		treewind = true,
 		advsky = false,
 		outline = false,
 		guishader = false,
 		shadows = false,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = true,
 		decals = 1,
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
@@ -204,15 +210,17 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 20000,
-		nanoparticles = 2000,
+		nanoparticles = 2500,
 		grassdetail = 0,
 		treeradius = 800,
+		treewind = true,
 		advsky = true,
 		outline = true,
 		guishader = true,
 		shadows = true,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = true,
 		decals = 2,
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
@@ -233,12 +241,14 @@ local presets = {
 		nanoparticles = 5000,
 		grassdetail = 0,
 		treeradius = 800,
+		treewind = true,
 		advsky = true,
 		outline = true,
 		guishader = true,
 		shadows = true,
 		advmapshading = true,
 		advmodelshading = true,
+		normalmapping = true,
 		decals = 3,
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
@@ -727,7 +737,7 @@ local lastUpdate = 0
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
 		if select(7, Spring.GetMouseState()) then	-- when camera panning
-			Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+			Spring.SetCameraState(Spring.GetCameraState(), math.min(cameraPanTransitionTime, cameraTransitionTime))
 		else
 			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
 		end
@@ -986,11 +996,13 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("AdvModelShading "..value)
 			Spring.SetConfigInt("AdvModelShading",value)
 		elseif id == 'normalmapping' then
-			Spring.SendCommands("luarules normalmapping "..value)
-			Spring.SetConfigInt("NormalMapping",value)
-			if value == 1 then
-				Spring.SendCommands("luarules reloadluaui")		-- becaue sometimes it ends in too bright unit shading but fixed after a luaui reload
+			if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
+				Spring.SendCommands("luarules normalmapping "..value)
 			end
+			Spring.SetConfigInt("NormalMapping",value)
+		elseif id == 'treewind' then
+			Spring.SendCommands("luarules treewind "..value)
+			Spring.SetConfigInt("TreeWind",value)
 		elseif id == 'advsky' then
 			Spring.SetConfigInt("AdvSky",value)
 		elseif id == 'shadows' then
@@ -1872,6 +1884,7 @@ function init()
 		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
+		{id="treewind", group="gfx", name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)'},
 
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)'},
@@ -2307,7 +2320,7 @@ function widget:Initialize()
 		Spring.SetConfigInt("UsePBO",0)
 	--end
 
-	--Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
+	Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
 
 	Spring.SendCommands({"bind f10 options"})
 
@@ -2434,6 +2447,8 @@ function widget:GetConfigData(data)
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
 		advmodelshading = {'AdvModelShading', tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1)},
 		advmapshading = {'AdvMapShading', tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1)},
+		normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
+		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",1) or 50)},
 		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",1) or 50)},

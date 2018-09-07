@@ -16,6 +16,7 @@ Other:
  • Added option "Move Window Position"
  • Added option "Contain mouse inside window"
  • Added options "Camera smoothing" and "Tracking cam smoothing" slider
+ • Added option "Tree Wind" (before it was only active when barmodels enabled)
  • Player camara tracking also limits view to players viewpoint and losmode
  • Resource bars: when low energy: red background, when overflowing: resource colored
  • Advplayerlist auto collapses, availible in options: Interface -> "Playerlist auto collapses"

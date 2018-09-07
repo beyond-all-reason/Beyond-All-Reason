@@ -55,7 +55,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 and tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1 then
 	return materials, unitMaterials
 else
 	return {}, {}
