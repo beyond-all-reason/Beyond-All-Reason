@@ -50,6 +50,9 @@ local sGetMyPlayerID = Spring.GetMyPlayerID
 local fontsize = 11.5
 local fontsizeMultiplier = 1
 
+local showBackground = false
+local showBackgroundOpacity = 0.19
+
 local Config = {
 	console = {
 		px = vsx*0.3,py = vsy*0.105, --default start position
@@ -844,6 +847,20 @@ function widget:Initialize()
 			console.lines.fontsize = Config.console.fontsize
 		end
 	end
+	WG['red_chatonlyconsole'].getShowBackground = function()
+		return showBackground
+	end
+	WG['red_chatonlyconsole'].setShowBackground = function(value)
+		showBackground = value
+		if showBackground then
+			Config.console.cbackground = {0,0,0,showBackgroundOpacity}
+		else
+			Config.console.cbackground = {0,0,0,0}
+		end
+		if console ~= nil and console.background ~= nil then
+			console.background.color = Config.console.cbackground
+		end
+	end
 end
 
 function widget:GameOver()
@@ -854,6 +871,12 @@ function widget:Shutdown()
 	Initialized = false
 	Spring.SendCommands("console 1")
 	WG['red_chatonlyconsole'] = nil
+end
+
+function widget:TextCommand(command)
+	if (string.find(command, "chatbackground") == 1  and  string.len(command) == 14) then
+		WG['red_chatonlyconsole'].setShowBackground(not showBackground)
+	end
 end
 
 function widget:AddConsoleLine(lines,priority)
@@ -893,7 +916,7 @@ function widget:GetConfigData() --save config
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
-		return {Config=Config, fontsizeMultiplier=fontsizeMultiplier}
+		return {Config=Config, fontsizeMultiplier=fontsizeMultiplier, showBackground=showBackground}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -906,6 +929,14 @@ function widget:SetConfigData(data) --load config
 		if data.fontsizeMultiplier ~= nil then
 			fontsizeMultiplier = data.fontsizeMultiplier
 			Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
+		end
+		if data.showBackground ~= nil then
+			showBackground = data.showBackground
+			if showBackground then
+				Config.console.cbackground = {0,0,0,showBackgroundOpacity}
+			else
+				Config.console.cbackground = {0,0,0,0}
+			end
 		end
 	end
 end

@@ -26,6 +26,7 @@ Other:
  • Renamed modoptions: removed 'mo_' prefix and change for chickens to 'chicken_'
  • Added the "Traitor" award = destroying allied units.
  • Unit stats show again when having unit selected (unless you have chat input showing)
+ • Toggle the background for chat console optionally with /chatbackground
 
 Fixes:
  • Options widget remembers/restores some spring config settings (switching engines lately made config be reset)
