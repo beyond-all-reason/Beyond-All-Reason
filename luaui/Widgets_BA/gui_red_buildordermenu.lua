@@ -1139,8 +1139,6 @@ end
 
 
 
-
-
 --lots of hacks under this line ------------- overrides/disables default spring menu layout and gets current orders + filters out some commands
 local hijackedlayout = false
 function widget:Shutdown()

@@ -2155,7 +2155,7 @@ function DrawPlayer(playerID, leader, vOffset, mouseX, mouseY)
 	local alpha = 0.44-- alpha used to show inactivity for specs
 	
 	if WG['betfrontend'] ~= nil then
-		--playerScores = WG['betfrontend'].GetPlayerScores()
+		playerScores = WG['betfrontend'].GetPlayerScores()
 	end
 
 	alpha = 0.33
@@ -3417,7 +3417,7 @@ end
 function widget:TweakDrawScreen()
 
 	if collapsed then return end
-	
+
 	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
 	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
 	gl.Scale(widgetScale,widgetScale,0)

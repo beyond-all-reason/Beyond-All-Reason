@@ -2086,6 +2086,7 @@ function init()
 	else
 		options[getOptionByID('voicenotifs')] = nil
 		options[getOptionByID('voicenotifs_volume')] = nil
+		options[getOptionByID('voicenotifs_playtrackedplayernotifs')] = nil
 	end
 
 
@@ -2438,11 +2439,11 @@ function widget:GetConfigData(data)
 	savedTable.minimapIconsize = minimapIconsize
 	savedTable.cameraTransitionTime = cameraTransitionTime
 	savedTable.savedConfig = {
-		maxparticles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000)},
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
 		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
-		maxparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},
+		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000)},
+		nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		grassdetail = {'GrassDetail', tonumber(Spring.GetConfigInt("GrassDetail",1) or 5)},
