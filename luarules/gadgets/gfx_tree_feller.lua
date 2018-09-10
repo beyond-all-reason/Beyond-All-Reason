@@ -11,10 +11,10 @@ function gadget:GetInfo()
 end
      
 if  (gadgetHandler:IsSyncedCode()) then
-
-
-	local treefire = {
-		   weaponDef = WeaponDefNames["trees_fire"].id,
+	local treefirewpnname = "trees_fire"
+	local treefirecegname = "treeburn"
+	local treefireExplosion = {
+		   weaponDef = WeaponDefNames[treefirewpnname].id,
 		   -- owner = -1,
 		   hitUnit = 1,
 		   hitFeature = 1,
@@ -85,7 +85,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                     else
                         Damage=0.0 -- so it doesnt take multiple frames for tree to get killed.
                     end
-					if weaponDefID == WeaponDefNames["trees_fire"].id then -- TREE CAUGHT FIRE FROM OTHER TREE
+					if weaponDefID == WeaponDefNames[treefireExplosion].id then -- TREE CAUGHT FIRE FROM OTHER TREE
 						ppx, ppy, ppz = GetFeaturePosition(featureID)
 						ppx, ppy, ppz = ppx +math.random(-5,5), ppy +math.random(-5,5), ppz +math.random(-5,5) -- we don't have an attacker pos/projpos
 						dmg = 40
@@ -154,9 +154,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if gf%1 == featureID%1 then
 							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
 							if gf%10 == featureID%10 then
-								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefire) end
+								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
 							end
-							Spring.SpawnCEG("burnblack", firex,firey,firez,0,0,0,0,0,0)
+							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
 						end
 					end
 					if px and py and pz then
@@ -180,9 +180,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if gf%3 == featureID%3 then
 							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
 							if gf%30 == featureID%30 then
-								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefire) end	
+								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
 							end
-							Spring.SpawnCEG("burnblack", firex,firey,firez,0,0,0,0,0,0)
+							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
 						end
 					end
                     SetFeatureDirection(featureID,dx, dy ,dz)
@@ -192,9 +192,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if gf%6 == featureID%6 then
 							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
 							if gf%60 == featureID%60 then
-								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefire) end	
+								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
 							end
-							Spring.SpawnCEG("burnblack", firex,firey,firez,0,0,0,0,0,0)
+							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
 						end
 					end
 					if math.random(1,30) == 1 then
