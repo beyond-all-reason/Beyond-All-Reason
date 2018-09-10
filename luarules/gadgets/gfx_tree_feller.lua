@@ -43,7 +43,7 @@ if  (gadgetHandler:IsSyncedCode()) then
             return 0.0 , 0.0
         end
         local fx,fy,fz = GetFeaturePosition(featureID)
-    
+		local ppx, ppy, ppz
 
         --Echo("gadget:FeatureDamaged(featureID, featureDefID, featureTeam,Damage, weaponDefID,projectileID,     attackerID, attackerDefID, attackerTeam)")
         --Echo(featureID, featureDefID, featureTeam,Damage, weaponDefID,   projectileID,  attackerID, attackerDefID, attackerTeam)
@@ -52,9 +52,9 @@ if  (gadgetHandler:IsSyncedCode()) then
         if (fx ~= nil) then
             local health, maxhealth, _ = GetFeatureHealth(featureID)
             --Echo('health=',health,' fx=',fx)
-            if (Damage > health) then 
+            if (Damage >= health) then 
                 local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft= GetFeatureResources(featureID)
-                if (health ~= nil and maxMetal==0 and maxEnergy > 0 and (health < Damage or weaponDefID==-7)) then -- weaponDefID == -7 is the weapon that crushes features
+                if (health ~= nil and maxMetal==0 and maxEnergy > 0 and (health <= Damage or weaponDefID==-7)) then -- weaponDefID == -7 is the weapon that crushes features
                     --if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
                     --Echo('tree dying...',featureID)
                     local dx, dy ,dz= GetFeatureDirection( featureID)
@@ -73,12 +73,16 @@ if  (gadgetHandler:IsSyncedCode()) then
 					if projectileID > 0 then
 						ppx, ppy, ppz = Spring.GetProjectilePosition(projectileID)
 						local vpx, vpy, vpz = Spring.GetProjectileVelocity(projectileID)
-						ppx = ppx - 5*vpx
-						ppy = ppy - 5*vpy
-						ppz = ppz - 5*vpz
+						ppx = ppx - 2*vpx
+						ppy = ppy - 2*vpy
+						ppz = ppz - 2*vpz
 						dmg = math.min(FeatureDefs[featureDefID].mass * 2, dmg)
 					elseif attackerID then 
 						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
+						local vpx, vpy, vpz = Spring.GetUnitVelocity(attackerID)
+						ppx = ppx - 2*vpx
+						ppy = ppy - 2*vpy
+						ppz = ppz - 2*vpz
 						dmg = math.min(FeatureDefs[featureDefID].mass * 2, UnitDefs[attackerDefID].mass)
 					end
                     SetFeatureReclaim(featureID,0)
@@ -96,9 +100,14 @@ if  (gadgetHandler:IsSyncedCode()) then
 
     function gadget:GameFrame(gf)
         for featureID, featureinfo in pairs(treesdying) do
+		if not GetFeaturePosition(featureID) then
+			treesdying[featureID] = nil
+			DestroyFeature(featureID)
+		else
+            SetFeatureReclaim(featureID,0)
             local thisfeaturefalltime = falltime * featureinfo.strength
 			local thisfeaturefallspeed = fallspeed * featureinfo.strength
-            if gf-featureinfo.frame~= 0 then
+            if featureinfo.frame + thisfeaturefalltime > gf then
                 local factor = (gf-featureinfo.frame)/thisfeaturefallspeed
                 local fx,fy,fz = GetFeaturePosition(featureID)
 				local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
@@ -114,28 +123,23 @@ if  (gadgetHandler:IsSyncedCode()) then
 						featureinfo.diry = py-fy
 						featureinfo.dirz = dirz
 					end
-                    SetFeaturePosition(featureID, fx,fy-0.55/thisfeaturefalltime,fz, false)
                     SetFeatureDirection(featureID, featureinfo.dirx , factor*factor , featureinfo.dirz )
                 end
-
-                --Odd things about SetFeatureDirection : X is spin around y axis, and so is Y :(
-                --TODO: make features rotate in the direction they were damaged from!
-                --SetFeatureDirection( featureID,  featureinfo.dirx , featureinfo.diry, factor*factor ) 
-            end
-            
-            if (featureinfo.frame + thisfeaturefalltime < gf) then
+            elseif (featureinfo.frame + thisfeaturefalltime <= gf) then
                 local fx,fy,fz = GetFeaturePosition(featureID)
                 if fy ~= nil then
-                    local dx, dy ,dz = GetFeatureDirection( featureID)
-                    SetFeaturePosition(featureID, fx,fy-0.6,fz, false)
+                    local dx, dy ,dz = GetFeatureDirection(featureID)
                     SetFeatureDirection(featureID,dx, dy ,dz)
                 end
-                if featureinfo.frame + falltime + 100 < gf then
-                    treesdying[featureID]=nil
-                    -- Echo('removing feature',featureID)
-                    DestroyFeature(featureID)
+                if featureinfo.frame + thisfeaturefalltime + 100 <= gf then
+					if math.random(1,30) == 1 then
+						treesdying[featureID]=nil
+						-- Echo('removing feature',featureID)
+						DestroyFeature(featureID)
+					end
                 end
             end
         end
+		end
     end
 end
