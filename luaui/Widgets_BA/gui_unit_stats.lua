@@ -483,7 +483,9 @@ function widget:DrawScreen()
 
 			local wDefId = wepsCompact[i]
 			local uWep = wDefs[wDefId]
-
+			if uWep.customParams and uWep.customParams.def then
+				uWep = wDefs[WeaponDefNames[uWep.customParams.def].id]
+			end
 			if uWep.range > 0 then
 				local oBurst = uWep.salvoSize * uWep.projectiles
 				local oRld = max(0.00000000001,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
@@ -766,7 +768,9 @@ function widget:DrawScreen()
 
 			local wDefId = wepsCompact[i]
 			local uWep = wDefs[wDefId]
-
+			if uWep.customParams and uWep.customParams.def then
+				uWep = wDefs[WeaponDefNames[uWep.customParams.def].id]
+			end
 			if uWep.range > 0 then
 				local oBurst = uWep.salvoSize * uWep.projectiles
 				local oRld = max(0.00000000001,uWep.stockpile == true and uWep.stockpileTime/30 or uWep.reload)
