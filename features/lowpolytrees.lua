@@ -26,6 +26,18 @@ local trees = {
     {'snowypinetree1large', 'LowpolyPineTrees/pinetree1snowy-pine-large.s3o', "10 55 10"},
     {'snowypinetree2large', 'LowpolyPineTrees/pinetree2snowy-pine-large.s3o', "10 55 10"},
     {'snowypinetree3large', 'LowpolyPineTrees/pinetree3snowy-pine-large.s3o', "10 55 10"},
+	{'pinetree1tinyburnt', 'LowpolyPineTrees/pinetree1-pine-tiny-burnt.s3o', "4 25 4"},
+    {'pinetree2tinyburnt', 'LowpolyPineTrees/pinetree2-pine-tiny-burnt.s3o', "4 25 4"},
+    {'pinetree3tinyburnt', 'LowpolyPineTrees/pinetree3-pine-tiny-burnt.s3o', "4 25 4"},
+    {'pinetree1smallburnt', 'LowpolyPineTrees/pinetree1-pine-small-burnt.s3o', "6 38 6"},
+    {'pinetree2smallburnt', 'LowpolyPineTrees/pinetree2-pine-small-burnt.s3o', "6 38 6"},
+    {'pinetree3smallburnt', 'LowpolyPineTrees/pinetree3-pine-small-burnt.s3o', "6 38 6"},
+    {'pinetree1mediumburnt', 'LowpolyPineTrees/pinetree1-pine-burnt.s3o', "7 40 7"},
+    {'pinetree2mediumburnt', 'LowpolyPineTrees/pinetree2-pine-burnt.s3o', "7 40 7"},
+    {'pinetree3mediumburnt', 'LowpolyPineTrees/pinetree3-pine-burnt.s3o', "7 40 7"},
+    {'pinetree1largeburnt', 'LowpolyPineTrees/pinetree1-pine-large-burnt.s3o', "10 55 10"},
+    {'pinetree2largeburnt', 'LowpolyPineTrees/pinetree2-pine-large-burnt.s3o', "10 55 10"},
+    {'pinetree3largeburnt', 'LowpolyPineTrees/pinetree3-pine-large-burnt.s3o', "10 55 10"},
 }
 
 local function CreateTreeDef(i)
@@ -33,7 +45,7 @@ local function CreateTreeDef(i)
         name               = trees[i][1],
         description        = [[Pine Tree]],
         blocking           = true,
-        flammable          = false,
+        flammable          = true,
         reclaimable        = true,
         upright            = true,
         indestructible     = false,
