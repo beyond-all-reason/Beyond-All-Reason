@@ -610,8 +610,6 @@ end
 -- function called by explosion_lights gadget
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
-		--Spring.Echo(UnitDefs[unitDefID].name..'    '..params.orgMult)
-
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,

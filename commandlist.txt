@@ -6,6 +6,7 @@ Widget dependent:
 /loscolor                        "BA LOS colors"   Use colors for line-of-sight and radar view.
 /comranges_nearbyenemy           "Comblast & Dgun Range"   Always draw ranges or only when an enemy is near.
 /stockpilecount                  "Stockpiler (dynamic)"   usage: /stockpilecount 10   sets default stockpile amount
+/chatbackground                  "Red Console (In-game chat only)   Toggles a background behind the chat text"
 
 Spring Engine commands:
 
