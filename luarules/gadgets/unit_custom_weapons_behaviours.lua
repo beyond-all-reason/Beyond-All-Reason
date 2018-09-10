@@ -34,12 +34,13 @@ if gadgetHandler:IsSyncedCode() then
 	applyingFunctions.split = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
+		local vw = math.sqrt(vx^2+vy^2+vz^2)
 		local ownerID = Spring.GetProjectileOwnerID(proID)
 		local infos = projectiles[proID]
 		for i = 1, tonumber(infos.number) do
 			local projectileParams = {
 				pos = {px, py, pz},
-				speed = {vx - vx*(math.random(-100,100)/300), vy - vy*(math.random(-100,100)/100), vz - vz*(math.random(-100,100)/300)},
+				speed = {vx - vw*(math.random(-100,100)/500), vy - vw*(math.random(-100,100)/250), vz - vw*(math.random(-100,100)/500)},
 				owner = ownerID,
 				ttl = 3000,
 				gravity = -Game.gravity/900,
