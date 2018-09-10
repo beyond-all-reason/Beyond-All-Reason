@@ -69,9 +69,19 @@ if  (gadgetHandler:IsSyncedCode()) then
                     else
                         Damage=0.0 -- so it doesnt take multiple frames for tree to get killed.
                     end
-
+					if projectileID > 0 then
+						ppx, ppy, ppz = Spring.GetProjectilePosition(projectileID)
+						local vpx, vpy, vpz = Spring.GetProjectileVelocity(projectileID)
+						ppx = ppx - 5*vpx
+						ppy = ppy - 5*vpy
+						ppz = ppz - 5*vpz
+						dmg = math.min(FeatureDefs[featureDefID].mass * 2, dmg)
+					elseif attackerID then 
+						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
+						dmg = math.min(FeatureDefs[featureDefID].mass * 2, UnitDefs[attackerDefID].mass)
+					end
                     SetFeatureReclaim(featureID,0)
-                    treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, }
+                    treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg }
                 else
                     --Echo("feature not a dying tree")
                 end
@@ -85,13 +95,26 @@ if  (gadgetHandler:IsSyncedCode()) then
 
     function gadget:GameFrame(gf)
         for featureID, featureinfo in pairs(treesdying) do
-            
+            local thisfeaturefalltime = falltime * featureinfo.strength
+			local thisfeaturefallspeed = fallspeed * featureinfo.strength
             if gf-featureinfo.frame~= 0 then
-                local factor = (gf-featureinfo.frame)/fallspeed
+                local factor = (gf-featureinfo.frame)/thisfeaturefallspeed
                 local fx,fy,fz = GetFeaturePosition(featureID)
+				local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
                 if fy ~= nil then
-                    SetFeaturePosition(featureID, fx,fy-0.55,fz, false)
-                    SetFeatureDirection(featureID, featureinfo.dirx , factor*factor , featureinfo.dirz/(gf-featureinfo.frame) )
+					if px and py and pz then
+						local difx = px-fx
+						local difz = pz-fz
+						local dirx = (((difx^2 + difz^2)) ~= 0) and math.sqrt((difx^2/(difx^2 + difz^2))) or 0
+						local dirz = (((difx^2 + difz^2)) ~= 0) and math.sqrt((difz^2/(difx^2 + difz^2))) or 0
+						if difx < 0 then dirx = - dirx end
+						if difz < 0 then dirz = - dirz end
+						featureinfo.dirx = dirx
+						featureinfo.diry = py-fy
+						featureinfo.dirz = dirz
+					end
+                    SetFeaturePosition(featureID, fx,fy-0.55/thisfeaturefalltime,fz, false)
+                    SetFeatureDirection(featureID, featureinfo.dirx , factor*factor , featureinfo.dirz )
                 end
 
                 --Odd things about SetFeatureDirection : X is spin around y axis, and so is Y :(
@@ -99,7 +122,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                 --SetFeatureDirection( featureID,  featureinfo.dirx , featureinfo.diry, factor*factor ) 
             end
             
-            if (featureinfo.frame +falltime < gf) then
+            if (featureinfo.frame + thisfeaturefalltime < gf) then
                 local fx,fy,fz = GetFeaturePosition(featureID)
                 if fy ~= nil then
                     local dx, dy ,dz = GetFeatureDirection( featureID)
