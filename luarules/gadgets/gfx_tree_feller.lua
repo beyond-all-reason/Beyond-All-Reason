@@ -124,6 +124,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						fire = false
 					end
                     SetFeatureReclaim(featureID,0)
+					Spring.SetFeatureNoSelect(featureID, true)
                     treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire }
                 else
                     --Echo("feature not a dying tree")
