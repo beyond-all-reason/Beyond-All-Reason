@@ -33,6 +33,7 @@ if  (gadgetHandler:IsSyncedCode()) then
     end
 
     function gadget:FeaturePreDamaged(featureID, featureDefID, featureTeam, Damage, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
+		local dmg = Damage
         if (FeatureDefs[featureDefID]["name"]:find('treetype')~= nil) then 
             --Echo('not killing engine tree')
             return Damage, 0.0
