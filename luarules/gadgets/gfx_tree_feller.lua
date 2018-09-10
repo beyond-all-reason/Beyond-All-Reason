@@ -85,7 +85,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                     else
                         Damage=0.0 -- so it doesnt take multiple frames for tree to get killed.
                     end
-					if weaponDefID == WeaponDefNames[treefireExplosion].id then -- TREE CAUGHT FIRE FROM OTHER TREE
+					if weaponDefID == WeaponDefNames[treefirewpnname].id then -- TREE CAUGHT FIRE FROM OTHER TREE
 						ppx, ppy, ppz = GetFeaturePosition(featureID)
 						ppx, ppy, ppz = ppx +math.random(-5,5), ppy +math.random(-5,5), ppz +math.random(-5,5) -- we don't have an attacker pos/projpos
 						dmg = 40
