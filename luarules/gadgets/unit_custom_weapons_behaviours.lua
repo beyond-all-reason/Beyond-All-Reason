@@ -56,7 +56,6 @@ if gadgetHandler:IsSyncedCode() then
 	for id, def in pairs(WeaponDefs) do
 		if def.customParams and def.customParams.speceffect then
 			local cp = def.customParams
-			Spring.Echo(def.name)
 			specialIDs[id] = cp
 		end
 	end
@@ -64,7 +63,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID)
 		local wDefID = Spring.GetProjectileDefID(proID)
 		if specialIDs[wDefID] then
-			Spring.Echo(wDefID)
 			projectiles[proID] = specialIDs[wDefID]
 		end
 	end
