@@ -49,7 +49,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		local replacementTrees = {}
 		local count = 0
 		for featureDefID, featureDef in pairs(FeatureDefs) do
-			if string.find(featureDef.name, "lowpoly_tree_") then
+			if string.find(featureDef.name, "lowpoly_tree_") and not string.find(featureDef.name, "burnt") then
 				if snowMap then
 					if string.find(featureDef.name, "lowpoly_tree_snowy") then
 						count = count + 1
