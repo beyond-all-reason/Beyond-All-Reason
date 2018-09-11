@@ -24,7 +24,8 @@ return {
             expl_light_mult = 4,
             expl_light_radius_mult = 1.5,
             expl_light_life_mult = 2.5,
-            expl_light_heat_radius_mult = 1.75,
+            expl_light_heat_radius_mult = 2.15,
+			expl_light_heat_life_mult = 4.5,
         },
 	},
 }

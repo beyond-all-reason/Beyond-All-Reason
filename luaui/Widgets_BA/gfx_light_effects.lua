@@ -123,10 +123,15 @@ function loadWeaponDefs()
 			end
 
 			params.heatradius = (WeaponDefs[i].damageAreaOfEffect*0.5)
-			params.heatlife = (13*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
 
 			if customParams.expl_light_heat_radius_mult then
 				params.heatradius = (params.heatradius * tonumber(customParams.expl_light_heat_radius_mult))
+			end
+
+			params.heatlife = (13*(0.8+ params.heatradius/1200)) + (params.heatradius/4)
+
+			if customParams.expl_light_heat_life_mult then
+				params.heatlife = params.heatlife * tonumber(customParams.expl_light_heat_life_mult)
 			end
 
 			params.heatstrength = 1 + (params.heatradius/30)
