@@ -19,5 +19,12 @@ return {
 			crawlingbombs = 10,
 			default = 10,
 		},
+        customparams = {
+            expl_light_color = "1 0.35 0.1",
+            expl_light_mult = 4,
+            expl_light_radius_mult = 1.5,
+            expl_light_life_mult = 2.5,
+            expl_light_heat_radius_mult = 1.75,
+        },
 	},
 }

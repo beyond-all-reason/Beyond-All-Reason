@@ -154,7 +154,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 					if featureinfo.fire then
 						if gf%1 == featureID%1 then
 							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-							if gf%10 == featureID%10 then
+							if gf%5 == featureID%5 then
 								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
 							end
 							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
@@ -180,8 +180,8 @@ if  (gadgetHandler:IsSyncedCode()) then
 					if featureinfo.fire then
 						if gf%3 == featureID%3 then
 							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-							if gf%30 == featureID%30 then
-								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
+							if gf%15 == featureID%15 then
+								if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
 							end
 							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
 						end
@@ -192,8 +192,8 @@ if  (gadgetHandler:IsSyncedCode()) then
 					if featureinfo.fire then
 						if gf%6 == featureID%6 then
 							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-							if gf%60 == featureID%60 then
-								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
+							if gf%30 == featureID%30 then
+								if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
 							end
 							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
 						end
