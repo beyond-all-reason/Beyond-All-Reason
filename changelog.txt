@@ -13,6 +13,7 @@ Balance:
  • Ships/Sea wrecks durability increased ("health" + 100%)
 
 Other:
+ • gfx_tree_feller: Low poly trees can be set on fire! The fire can propagate and even cause slight damages (1-3/second).
  • Added option "Resolution" (might freeze engine, fixed in version 104.0.1.670)
  • Added option "Move Window Position"
  • Added option "Contain mouse inside window"
@@ -30,6 +31,7 @@ Other:
  • Toggle the background for chat console optionally with /chatbackground
 
 Fixes:
+ • gfx_tree_feller: fall in the correct direction (depending on blast origin/unit position)
  • Options widget remembers/restores some spring config settings (switching engines lately made config be reset)
  • Auto closing game when loaded unsupported AI (supported: DAI, KAIK, NullAI, Chickens)
  • Fixed DAI echospam + working with multiple DAI bots + behavior improvements
