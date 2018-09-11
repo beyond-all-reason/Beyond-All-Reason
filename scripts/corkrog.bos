@@ -882,12 +882,12 @@ QueryWeapon3(piecenum)
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
+	if( !Static_Var_8 )
+	{
+		return (0);
+	}
 	signal 2;
 	turn torso to y-axis heading speed <50.000000>;
-	while( !Static_Var_8 )
-	{
-		sleep 250;
-	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
 	{
 		wpn1_lasthead = 1000000;
