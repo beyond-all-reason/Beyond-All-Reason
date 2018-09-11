@@ -76,6 +76,16 @@ if  (gadgetHandler:IsSyncedCode()) then
             --Echo('health=',health,' fx=',fx)
             if (Damage >= health) then 
                 local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft= GetFeatureResources(featureID)
+				local size = 'medium'
+				if FeatureDefs[featureDefID].collisionVolume and FeatureDefs[featureDefID].collisionVolume.scaleY then
+					if FeatureDefs[featureDefID].collisionVolume.scaleY < 40 then
+						size = 'tiny'
+					elseif FeatureDefs[featureDefID].collisionVolume.scaleY < 50 then
+						size = 'small'
+					elseif FeatureDefs[featureDefID].collisionVolume.scaleY > 65 then
+						size = 'large'
+					end
+				end
                 if (health ~= nil and maxMetal==0 and maxEnergy > 0 and (health <= Damage or weaponDefID==-7)) then -- weaponDefID == -7 is the weapon that crushes features
                     --if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
                     --Echo('tree dying...',featureID)
@@ -86,7 +96,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                         --Echo('tree crushed... ',featureID)
                         --crushed features cannot be saved by returning 0 damage. Must create new one!
 						DestroyFeature(featureID)
-						treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire } -- this prevents this tobedestroyed feature to be replaced multiple times
+						treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size } -- this prevents this tobedestroyed feature to be replaced multiple times
                         featureID = CreateFeature(featureDefID,fx,fy,fz)
                         SetFeatureDirection(featureID,dx, dy ,dz)
                         SetFeatureBlocking(featureID, false,false,false,false,false,false,false) 
@@ -125,7 +135,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if not (string.find(name, "burnt")) then
 							name = string.sub(name, string.find(name, "pinetree"), string.len(name))
 							DestroyFeature(featureID)
-							treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire } -- this prevents this tobedestroyed feature to be replaced multiple times
+							treesdying[featureID]={frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size } -- this prevents this tobedestroyed feature to be replaced multiple times
 							featureID = CreateFeature(("lowpoly_tree_"..name.."burnt"),fx,fy,fz)
 							SetFeatureDirection(featureID,dx, dy ,dz)
 							SetFeatureBlocking(featureID, false,false,false,false,false,false,false)
@@ -135,7 +145,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 					end
                     SetFeatureReclaim(featureID,0)
 					Spring.SetFeatureNoSelect(featureID, true)
-                    treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire }
+                    treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size }
                 else
                     --Echo("feature not a dying tree")
                 end
@@ -152,73 +162,73 @@ if  (gadgetHandler:IsSyncedCode()) then
 	
     function gadget:GameFrame(gf)
         for featureID, featureinfo in pairs(treesdying) do
-		if not GetFeaturePosition(featureID) then
-			treesdying[featureID] = nil
-			DestroyFeature(featureID)
-		else
-            SetFeatureReclaim(featureID,0)
-            local thisfeaturefalltime = falltime * featureinfo.strength
-			local thisfeaturefallspeed = fallspeed * featureinfo.strength
-            if featureinfo.frame + thisfeaturefalltime > gf then
-                local factor = (gf-featureinfo.frame)/thisfeaturefallspeed
-                local fx,fy,fz = GetFeaturePosition(featureID)
-				local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
-                if fy ~= nil then
-					if featureinfo.fire then
-						if gf%1 == featureID%1 then
-							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-							if gf%5 == featureID%5 then
-								if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
+			if not GetFeaturePosition(featureID) then
+				treesdying[featureID] = nil
+				DestroyFeature(featureID)
+			else
+				SetFeatureReclaim(featureID,0)
+				local thisfeaturefalltime = falltime * featureinfo.strength
+				local thisfeaturefallspeed = fallspeed * featureinfo.strength
+				if featureinfo.frame + thisfeaturefalltime > gf then
+					local factor = (gf-featureinfo.frame)/thisfeaturefallspeed
+					local fx,fy,fz = GetFeaturePosition(featureID)
+					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
+					if fy ~= nil then
+						if featureinfo.fire then
+							if gf%1 == featureID%1 then
+								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+								if gf%5 == featureID%5 then
+									if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
+								end
+								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
 							end
-							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
+						end
+						if px and py and pz then
+							local difx = px-fx
+							local difz = pz-fz
+							local dirx = (((difx^2 + difz^2)) ~= 0) and math.sqrt((difx^2/(difx^2 + difz^2))) or 0
+							local dirz = (((difx^2 + difz^2)) ~= 0) and math.sqrt((difz^2/(difx^2 + difz^2))) or 0
+							if difx < 0 then dirx = - dirx end
+							if difz < 0 then dirz = - dirz end
+							featureinfo.dirx = dirx
+							featureinfo.diry = py-fy
+							featureinfo.dirz = dirz
+						end
+						SetFeatureDirection(featureID, featureinfo.dirx , factor*factor , featureinfo.dirz )
+					end
+				elseif (featureinfo.frame + thisfeaturefalltime <= gf) then
+					local fx,fy,fz = GetFeaturePosition(featureID)
+					if fy ~= nil then
+						local dx, dy ,dz = GetFeatureDirection(featureID)
+						if featureinfo.fire then
+							if gf%3 == featureID%3 then
+								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+								if gf%15 == featureID%15 then
+									if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
+								end
+								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
+							end
+						end
+						SetFeatureDirection(featureID,dx, dy ,dz)
+					end
+					if featureinfo.frame + thisfeaturefalltime + 100 <= gf then
+						if featureinfo.fire then
+							if gf%6 == featureID%6 then
+								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+								if gf%30 == featureID%30 then
+									if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
+								end
+								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
+							end
+						end
+						if math.random(1,30) == 1 then
+							treesdying[featureID]=nil
+							-- Echo('removing feature',featureID)
+							DestroyFeature(featureID)
 						end
 					end
-					if px and py and pz then
-						local difx = px-fx
-						local difz = pz-fz
-						local dirx = (((difx^2 + difz^2)) ~= 0) and math.sqrt((difx^2/(difx^2 + difz^2))) or 0
-						local dirz = (((difx^2 + difz^2)) ~= 0) and math.sqrt((difz^2/(difx^2 + difz^2))) or 0
-						if difx < 0 then dirx = - dirx end
-						if difz < 0 then dirz = - dirz end
-						featureinfo.dirx = dirx
-						featureinfo.diry = py-fy
-						featureinfo.dirz = dirz
-					end
-                    SetFeatureDirection(featureID, featureinfo.dirx , factor*factor , featureinfo.dirz )
-                end
-            elseif (featureinfo.frame + thisfeaturefalltime <= gf) then
-                local fx,fy,fz = GetFeaturePosition(featureID)
-                if fy ~= nil then
-                    local dx, dy ,dz = GetFeatureDirection(featureID)
-					if featureinfo.fire then
-						if gf%3 == featureID%3 then
-							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-							if gf%15 == featureID%15 then
-								if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
-							end
-							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
-						end
-					end
-                    SetFeatureDirection(featureID,dx, dy ,dz)
-                end
-                if featureinfo.frame + thisfeaturefalltime + 100 <= gf then
-					if featureinfo.fire then
-						if gf%6 == featureID%6 then
-							local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-							if gf%30 == featureID%30 then
-								if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end	
-							end
-							Spring.SpawnCEG(treefirecegname, firex,firey,firez,0,0,0,0,0,0)
-						end
-					end
-					if math.random(1,30) == 1 then
-						treesdying[featureID]=nil
-						-- Echo('removing feature',featureID)
-						DestroyFeature(featureID)
-					end
-                end
-            end
-        end
+				end
+			end
 		end
     end
 end
