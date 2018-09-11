@@ -87,6 +87,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                     if (weaponDefID == -7) then --weapon is crush
                         --Echo('tree crushed... ',featureID)
                         --crushed features cannot be saved by returning 0 damage. Must create new one!
+						DestroyFeature(featureID)
                         featureID = CreateFeature(featureDefID,fx,fy,fz)
                         SetFeatureDirection(featureID,dx, dy ,dz)
                         SetFeatureBlocking(featureID, false,false,false,false,false,false,false) 
