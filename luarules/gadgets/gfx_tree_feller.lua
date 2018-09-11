@@ -68,11 +68,9 @@ if  (gadgetHandler:IsSyncedCode()) then
         local fx,fy,fz = GetFeaturePosition(featureID)
 		local fire
 		local ppx, ppy, ppz
-
         --Echo("gadget:FeatureDamaged(featureID, featureDefID, featureTeam,Damage, weaponDefID,projectileID,     attackerID, attackerDefID, attackerTeam)")
         --Echo(featureID, featureDefID, featureTeam,Damage, weaponDefID,   projectileID,  attackerID, attackerDefID, attackerTeam)
         --Echo('weaponDefID',WeaponDefs[weaponDefID])
-        
         if (fx ~= nil) then
             local health, maxhealth, _ = GetFeatureHealth(featureID)
             --Echo('health=',health,' fx=',fx)
@@ -88,6 +86,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                         --Echo('tree crushed... ',featureID)
                         --crushed features cannot be saved by returning 0 damage. Must create new one!
 						DestroyFeature(featureID)
+						treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire } -- this prevents this tobedestroyed feature to be replaced multiple times
                         featureID = CreateFeature(featureDefID,fx,fy,fz)
                         SetFeatureDirection(featureID,dx, dy ,dz)
                         SetFeatureBlocking(featureID, false,false,false,false,false,false,false) 
@@ -126,6 +125,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if not (string.find(name, "burnt")) then
 							name = string.sub(name, string.find(name, "pinetree"), string.len(name))
 							DestroyFeature(featureID)
+							treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire } -- this prevents this tobedestroyed feature to be replaced multiple times
 							featureID = CreateFeature(("lowpoly_tree_"..name.."burnt"),fx,fy,fz)
 							SetFeatureDirection(featureID,dx, dy ,dz)
 							SetFeatureBlocking(featureID, false,false,false,false,false,false,false)
@@ -146,7 +146,10 @@ if  (gadgetHandler:IsSyncedCode()) then
         --Echo("passthrough damage=",Damage)
         return Damage, 0.0
     end
-
+	
+	function gadget:FeatureDestroyed(fid)
+	end
+	
     function gadget:GameFrame(gf)
         for featureID, featureinfo in pairs(treesdying) do
 		if not GetFeaturePosition(featureID) then
