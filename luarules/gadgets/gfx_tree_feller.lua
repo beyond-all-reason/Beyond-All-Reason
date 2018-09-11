@@ -53,6 +53,9 @@ if  (gadgetHandler:IsSyncedCode()) then
             return Damage, 0.0
         end
         if treesdying[featureID] then --dying trees dont take more damage, and will be removed later
+			if weaponDefID >= 0 then -- UNITEXPLOSION
+				treesdying[featureID].fire = true
+			end
             --Echo('damage removed',Damage,featureID)
             return 0.0 , 0.0
         end
