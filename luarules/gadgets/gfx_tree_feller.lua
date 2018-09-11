@@ -26,6 +26,12 @@ if  (gadgetHandler:IsSyncedCode()) then
 		   ignoreOwner = false,
 		   damageGround = true,
 		   }
+	local noFireWeapons = {}
+	for id, wDefs in pairs(WeaponDefs) do
+		if wDefs.customParams and wDefs.customParams.nofire then
+			noFireWeapons[id] = true
+		end
+	end
     local GetFeaturePosition  = Spring.GetFeaturePosition
     local GetFeatureHealth = Spring.GetFeatureHealth
     local GetFeatureDirection = Spring.GetFeatureDirection
@@ -41,7 +47,7 @@ if  (gadgetHandler:IsSyncedCode()) then
     local treesdying = {}
     local falltime = 55.0 -- in frames
     local fallspeed = 25.0
-
+	
     function gadget:Initialize()
         return
     end
@@ -53,7 +59,7 @@ if  (gadgetHandler:IsSyncedCode()) then
             return Damage, 0.0
         end
         if treesdying[featureID] then --dying trees dont take more damage, and will be removed later
-			if weaponDefID >= 0 then -- UNITEXPLOSION
+			if weaponDefID >= 0 and not (noFireWeapons[weaponDefID]) then -- UNITEXPLOSION
 				treesdying[featureID].fire = true
 			end
             --Echo('damage removed',Damage,featureID)
@@ -93,7 +99,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						ppx, ppy, ppz = ppx +math.random(-5,5), ppy +math.random(-5,5), ppz +math.random(-5,5) -- we don't have an attacker pos/projpos
 						dmg = 40
 						fire = true
-					elseif projectileID > 0 then -- PROJECTILE EXPLOSION
+					elseif projectileID > 0 and weaponDefID and not (noFireWeapons[weaponDefID]) then -- PROJECTILE EXPLOSION
 						ppx, ppy, ppz = Spring.GetProjectilePosition(projectileID)
 						local vpx, vpy, vpz = Spring.GetProjectileVelocity(projectileID)
 						ppx = ppx - 2*vpx
@@ -109,7 +115,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						ppz = ppz - 2*vpz
 						dmg = math.min(FeatureDefs[featureDefID].mass * 2, UnitDefs[attackerDefID].mass)
 						fire = false
-					elseif attackerID then -- UNITEXPLOSION
+					elseif attackerID and weaponDefID and not (noFireWeapons[weaponDefID]) then -- UNITEXPLOSION
 						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
 						dmg = math.min(FeatureDefs[featureDefID].mass * 2, dmg)	
 						fire = true
