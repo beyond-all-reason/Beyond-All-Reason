@@ -1,9 +1,9 @@
 return {
 	fmine_heavy = {
-		areaofeffect = 350,
+		areaofeffect = 250,
 		craterboost = 0,
 		cratermult = 0,
-		edgeeffectiveness = 0.94999998807907,
+		edgeeffectiveness = 0.50,
 		explosiongenerator = "custom:genericunitexplosion-large",
 		impulseboost = 0,
 		impulsefactor = 0,
@@ -15,6 +15,7 @@ return {
 		weaponvelocity = 250,
 		damage = {
 			default = 1750,
+			subs = 1100,
 			mines = 0.5,
 		},
 	},

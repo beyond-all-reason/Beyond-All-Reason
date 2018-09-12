@@ -11,6 +11,7 @@ Balance:
  • Toaster range 1335 => 1390, Ambusher range 1320 => 1380
  • MERL range 1215 -> 1300, Diplomat range 1240 -> 1310
  • Ships/Sea wrecks durability increased ("health" + 100%)
+ • Floating mine AoE reduced from 350 to 250, damages to subs reduced from 1750 to 1100, edge effectiveness reduced from 1.00 to 0.65
 
 Other:
  • gfx_tree_feller: Low poly trees can be set on fire! The fire can propagate and even cause slight damages (1-3/second).
