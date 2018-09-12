@@ -638,6 +638,9 @@ function widget:DrawScreen()
 		text = text .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
 	end
 	local iconHalfSize = titleFontSize*0.75
+	if not uID then
+		iconHalfSize = -bgpadding/2.5
+	end
 	cornersize = 0
 	if not uID then
 		glColor(0.11,0.11,0.11,0.9)
@@ -647,7 +650,7 @@ function widget:DrawScreen()
 	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
 	cornersize = ceil(bgpadding*0.21)
 	glColor(1,1,1,0.025)
-	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
 
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
@@ -655,10 +658,12 @@ function widget:DrawScreen()
 	end
 
 	-- icon
-	glColor(1,1,1,1)
-	glTexture('#' .. uDefID)
-	glTexRect(cX, cYstart+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cYstart+cornersize+iconHalfSize)
-	glTexture(false)
+	if uID then
+		glColor(1,1,1,1)
+		glTexture('#' .. uDefID)
+		glTexRect(cX, cYstart+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cYstart+cornersize+iconHalfSize)
+		glTexture(false)
+	end
 
 	-- title text
 	glColor(1,1,1,1)
