@@ -58,14 +58,16 @@ if  (gadgetHandler:IsSyncedCode()) then
             --Echo('not killing engine tree')
             return Damage, 0.0
         end
+        local fx,fy,fz = GetFeaturePosition(featureID)
         if treesdying[featureID] then --dying trees dont take more damage, and will be removed later
 			if weaponDefID >= 0 and not (noFireWeapons[weaponDefID]) then -- UNITEXPLOSION
-				treesdying[featureID].fire = true
+				if fy and fy >= 0 then
+					treesdying[featureID].fire = true
+				end
 			end
             --Echo('damage removed',Damage,featureID)
             return 0.0 , 0.0
         end
-        local fx,fy,fz = GetFeaturePosition(featureID)
 		local fire
 		local ppx, ppy, ppz
         --Echo("gadget:FeatureDamaged(featureID, featureDefID, featureTeam,Damage, weaponDefID,projectileID,     attackerID, attackerDefID, attackerTeam)")
@@ -108,7 +110,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 						ppx, ppy, ppz = GetFeaturePosition(featureID)
 						ppx, ppy, ppz = ppx +math.random(-5,5), ppy +math.random(-5,5), ppz +math.random(-5,5) -- we don't have an attacker pos/projpos
 						dmg = 40
-						fire = true
+						if fy >= 0 then
+							fire = true
+						end
 					elseif projectileID > 0 and weaponDefID and not (noFireWeapons[weaponDefID]) then -- PROJECTILE EXPLOSION
 						ppx, ppy, ppz = Spring.GetProjectilePosition(projectileID)
 						local vpx, vpy, vpz = Spring.GetProjectileVelocity(projectileID)
@@ -116,7 +120,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 						ppy = ppy - 2*vpy
 						ppz = ppz - 2*vpz
 						dmg = math.min(FeatureDefs[featureDefID].mass * 2, dmg)
-						fire = true
+						if fy >= 0 then
+							fire = true
+						end
 					elseif attackerID and weaponDefID < 0 then -- CRUSH
 						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
 						local vpx, vpy, vpz = Spring.GetUnitVelocity(attackerID)
@@ -128,7 +134,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 					elseif attackerID and weaponDefID and not (noFireWeapons[weaponDefID]) then -- UNITEXPLOSION
 						ppx, ppy, ppz = Spring.GetUnitPosition(attackerID)
 						dmg = math.min(FeatureDefs[featureDefID].mass * 2, dmg)	
-						fire = true
+						if fy >= 0 then
+							fire = true
+						end
 					end
 					local name = FeatureDefs[featureDefID].name
 					if fire and string.find(name,"lowpoly_tree_") then
