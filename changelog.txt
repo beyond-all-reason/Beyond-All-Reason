@@ -7,7 +7,7 @@ IMPORTANT: Removed support for older engine versions, use 104.0.1.567 or newer.
 Balance:
  • More frequent re-aiming (each frame) + starts targetting before units enters range (at maxrange + 10%)
  • EMP spider auto heals itself with 15hp per second (ba9.37 had 30 before it was removed)
- • Arm Missile Ship damages increased 800 -> 900 (damages vs commanders unchanged)
+ • Arm Missile Ship weapon changed into a ballistic missile that splits into 6 (arm) or 8(core) projectiles that will crush on target
  • Toaster range 1335 => 1390, Ambusher range 1320 => 1380
  • MERL range 1215 -> 1300, Diplomat range 1240 -> 1310
  • Ships/Sea wrecks durability increased ("health" + 100%)
