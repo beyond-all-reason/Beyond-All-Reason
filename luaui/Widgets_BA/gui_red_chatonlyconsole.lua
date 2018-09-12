@@ -50,7 +50,7 @@ local sGetMyPlayerID = Spring.GetMyPlayerID
 local fontsize = 11.5
 local fontsizeMultiplier = 1
 
-local showBackground = false
+local showBackground = true
 local showBackgroundOpacity = 0.19
 
 local Config = {
@@ -916,7 +916,7 @@ function widget:GetConfigData() --save config
 		local vsy = Screen.vsy
 		Config.console.px = console.background.px
 		Config.console.py = console.background.py
-		return {Config=Config, fontsizeMultiplier=fontsizeMultiplier, showBackground=showBackground}
+		return {Config=Config, fontsizeMultiplier=fontsizeMultiplier, showBackground2=showBackground}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -930,8 +930,8 @@ function widget:SetConfigData(data) --load config
 			fontsizeMultiplier = data.fontsizeMultiplier
 			Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
 		end
-		if data.showBackground ~= nil then
-			showBackground = data.showBackground
+		if data.showBackground2 ~= nil then
+			showBackground = data.showBackground2
 			if showBackground then
 				Config.console.cbackground = {0,0,0,showBackgroundOpacity}
 			else
