@@ -254,7 +254,7 @@ end
 
 function widget:DrawScreen()
 	local alt, ctrl, meta, shift = spGetModKeyState()
-	if not meta then 
+	if not meta or spIsUserWriting() then
 		WG.hoverID = nil 
 		RemoveGuishader() 
 		return 
@@ -265,7 +265,7 @@ function widget:DrawScreen()
 	if rType == 'unit' then
 		uID = unitID
 	end
-	if useSelection and not spIsUserWriting() then
+	if useSelection then
 		local selUnits = spGetSelectedUnits()
 		if #selUnits >= 1 then
 			uID = selUnits[1]
