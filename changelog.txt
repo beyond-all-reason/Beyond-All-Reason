@@ -2,9 +2,9 @@
 XX/XX/2018
 
 IMPORTANT: Removed support for older engine versions, use 104.0.1.567 or newer.
- • Testing splitting ballistic missiles on missile ships
 
 Balance:
+ • Testing splitting ballistic missiles on missile ships
  • More frequent re-aiming (each frame) + starts targetting before units enters range (at maxrange + 10%)
  • EMP spider auto heals itself with 15hp per second (ba9.37 had 30 before it was removed)
  • Arm Missile Ship weapon changed into a ballistic missile that splits into 6 (arm) or 8(core) projectiles that will crush on target
@@ -14,7 +14,7 @@ Balance:
  • Floating mine AoE reduced from 350 to 250, damages to subs reduced from 1750 to 1100, edge effectiveness reduced from 1.00 to 0.65
 
 Other:
- • gfx_tree_feller: Low poly trees can be set on fire! The fire can propagate and even cause slight damages (1-3/second).
+ • Low poly trees can be set on fire! The fire can propagate and even cause slight damages (1-3/second).
  • Added option "Resolution" (might freeze engine, fixed in version 104.0.1.670)
  • Added option "Move Window Position"
  • Added option "Contain mouse inside window"
