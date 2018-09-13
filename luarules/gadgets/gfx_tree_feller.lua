@@ -78,6 +78,7 @@ if  (gadgetHandler:IsSyncedCode()) then
             --Echo('health=',health,' fx=',fx)
             if (Damage >= health) then 
                 local remainingMetal, maxMetal, remainingEnergy, maxEnergy, reclaimLeft= GetFeatureResources(featureID)
+				local dissapearSpeed = 1
 				local size = 'medium'
 				if FeatureDefs[featureDefID].collisionVolume and FeatureDefs[featureDefID].collisionVolume.scaleY then
 					if FeatureDefs[featureDefID].collisionVolume.scaleY < 40 then
@@ -87,7 +88,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 					elseif FeatureDefs[featureDefID].collisionVolume.scaleY > 65 then
 						size = 'large'
 					end
+					dissapearSpeed = 0.05 + Spring.GetFeatureHeight(featureID) / 600
 				end
+
                 if (health ~= nil and maxMetal==0 and maxEnergy > 0 and (health <= Damage or weaponDefID==-7)) then -- weaponDefID == -7 is the weapon that crushes features
                     --if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
                     --Echo('tree dying...',featureID)
@@ -98,7 +101,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                         --Echo('tree crushed... ',featureID)
                         --crushed features cannot be saved by returning 0 damage. Must create new one!
 						DestroyFeature(featureID)
-						treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size } -- this prevents this tobedestroyed feature to be replaced multiple times
+						treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size, dissapearSpeed = dissapearSpeed } -- this prevents this tobedestroyed feature to be replaced multiple times
                         featureID = CreateFeature(featureDefID,fx,fy,fz)
                         SetFeatureDirection(featureID,dx, dy ,dz)
                         SetFeatureBlocking(featureID, false,false,false,false,false,false,false) 
@@ -143,7 +146,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if not (string.find(name, "burnt")) then
 							name = string.sub(name, string.find(name, "pinetree"), string.len(name))
 							DestroyFeature(featureID)
-							treesdying[featureID]={frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size } -- this prevents this tobedestroyed feature to be replaced multiple times
+							treesdying[featureID]={frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size, dissapearSpeed = dissapearSpeed } -- this prevents this tobedestroyed feature to be replaced multiple times
 							featureID = CreateFeature(("lowpoly_tree_"..name.."burnt"),fx,fy,fz)
 							SetFeatureDirection(featureID,dx, dy ,dz)
 							SetFeatureBlocking(featureID, false,false,false,false,false,false,false)
@@ -153,7 +156,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 					end
                     SetFeatureReclaim(featureID,0)
 					Spring.SetFeatureNoSelect(featureID, true)
-                    treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size }
+                    treesdying[featureID]={ frame = GetGameFrame(), posx=fx, posy=fy, posz=fz,fDefID=featureDefID, dirx=dx, diry=dy, dirz=dz, px = ppx, py = ppy, pz = ppz, strength = FeatureDefs[featureDefID].mass / dmg, fire = fire, size = size, dissapearSpeed = dissapearSpeed }
                 else
                     --Echo("feature not a dying tree")
                 end
@@ -189,7 +192,6 @@ if  (gadgetHandler:IsSyncedCode()) then
 					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
 					if fy ~= nil then
 						if featureinfo.fire then
-
 							if gf%fireFrequency == fireFrequency-3 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
 								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
@@ -230,12 +232,12 @@ if  (gadgetHandler:IsSyncedCode()) then
 						end
 						SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 
-						if featureinfo.frame + thisfeaturefalltime + 500 <= gf then
+						if featureinfo.frame + thisfeaturefalltime + 350 + (treesdying[featureID].dissapearSpeed*3000) <= gf then
 							treesdying[featureID]=nil
 							DestroyFeature(featureID)
-						elseif featureinfo.frame + thisfeaturefalltime + 300 <= gf then
+						elseif featureinfo.frame + thisfeaturefalltime + 350 <= gf then
 							treesdying[featureID].fire = false
-							SetFeaturePosition(featureID, fx, fy-0.15, fz, false)
+							SetFeaturePosition(featureID, fx, fy-treesdying[featureID].dissapearSpeed, fz, false)
 							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
 					end
