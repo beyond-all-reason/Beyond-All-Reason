@@ -177,18 +177,26 @@ if  (gadgetHandler:IsSyncedCode()) then
 				SetFeatureReclaim(featureID,0)
 				local thisfeaturefalltime = falltime * featureinfo.strength
 				local thisfeaturefallspeed = fallspeed * featureinfo.strength
+				local fireFrequency = 5
+				if featureinfo.fire then
+					fireFrequency = math.floor(3 + ((gf - featureinfo.frame) / 50))
+				end
+
+				-- falling
 				if featureinfo.frame + thisfeaturefalltime > gf then
 					local factor = (gf-featureinfo.frame)/thisfeaturefallspeed
 					local fx,fy,fz = GetFeaturePosition(featureID)
 					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
 					if fy ~= nil then
 						if featureinfo.fire then
-							if gf%1 == featureID%1 then
+
+							if gf%fireFrequency == fireFrequency-3 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-								if gf%5 == featureID%5 then
-									if math.random(1,3) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
-								end
 								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
+							end
+							if gf%fireFrequency == math.floor(fireFrequency/2) and math.random(1,5) == 1 then
+								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion)
 							end
 						end
 						if px and py and pz then
@@ -204,35 +212,31 @@ if  (gadgetHandler:IsSyncedCode()) then
 						end
 						SetFeatureDirection(featureID, featureinfo.dirx , factor*factor , featureinfo.dirz )
 					end
+
+				-- fallen
 				elseif (featureinfo.frame + thisfeaturefalltime <= gf) then
 					local fx,fy,fz = GetFeaturePosition(featureID)
+					local dx, dy ,dz = GetFeatureDirection(featureID)
 					if fy ~= nil then
-						local dx, dy ,dz = GetFeatureDirection(featureID)
 						if featureinfo.fire then
-							if gf%3 == featureID%3 then
+							if gf%fireFrequency == fireFrequency-3 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-								if gf%15 == featureID%15 then
-									if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
-								end
 								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
 							end
-						end
-						SetFeatureDirection(featureID,dx, dy ,dz)
-					end
-					if featureinfo.frame + thisfeaturefalltime + 100 <= gf then
-						if featureinfo.fire then
-							if gf%6 == featureID%6 then
+							if gf%fireFrequency == math.floor(fireFrequency/2) and math.random(1,6) == 1 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-								if gf%30 == featureID%30 then
-									if math.random(1,2) == 1 then Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion) end
-								end
-								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
+								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion)
 							end
 						end
-						if math.random(1,30) == 1 then
+						SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
+
+						if featureinfo.frame + thisfeaturefalltime + 500 <= gf then
 							treesdying[featureID]=nil
-							-- Echo('removing feature',featureID)
 							DestroyFeature(featureID)
+						elseif featureinfo.frame + thisfeaturefalltime + 300 <= gf then
+							treesdying[featureID].fire = false
+							SetFeaturePosition(featureID, fx, fy-0.15, fz, false)
+							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
 					end
 				end
