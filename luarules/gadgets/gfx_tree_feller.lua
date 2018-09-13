@@ -11,21 +11,66 @@ function gadget:GetInfo()
 end
      
 if  (gadgetHandler:IsSyncedCode()) then
-	local treefirewpnname = "trees_fire"
-	local treefirecegname = "treeburn"
 	local treefireExplosion = {
-		   weaponDef = WeaponDefNames[treefirewpnname].id,
-		   -- owner = -1,
-		   hitUnit = 1,
-		   hitFeature = 1,
-		   craterAreaOfEffect = 64,
-		   damageAreaOfEffect = 64,
-		   edgeEffectiveness = 1,
-		   explosionSpeed = 1,
-		   impactOnly = false,
-		   ignoreOwner = false,
-		   damageGround = true,
-		   }
+		tiny = {
+			weaponDef = WeaponDefNames['treefire_tiny'].id,
+			-- owner = -1,
+			hitUnit = 1,
+			hitFeature = 1,
+			craterAreaOfEffect = 40,
+			damageAreaOfEffect = 40,
+			edgeEffectiveness = 1,
+			explosionSpeed = 1,
+			impactOnly = false,
+			ignoreOwner = false,
+			damageGround = true,
+		},
+		small = {
+			weaponDef = WeaponDefNames['treefire_small'].id,
+			-- owner = -1,
+			hitUnit = 1,
+			hitFeature = 1,
+			craterAreaOfEffect = 52,
+			damageAreaOfEffect = 52,
+			edgeEffectiveness = 1,
+			explosionSpeed = 1,
+			impactOnly = false,
+			ignoreOwner = false,
+			damageGround = true,
+		},
+		medium = {
+			weaponDef = WeaponDefNames['treefire_medium'].id,
+			-- owner = -1,
+			hitUnit = 1,
+			hitFeature = 1,
+			craterAreaOfEffect = 64,
+			damageAreaOfEffect = 64,
+			edgeEffectiveness = 1,
+			explosionSpeed = 1,
+			impactOnly = false,
+			ignoreOwner = false,
+			damageGround = true,
+		},
+		large = {
+			weaponDef = WeaponDefNames['treefire_large'].id,
+			-- owner = -1,
+			hitUnit = 1,
+			hitFeature = 1,
+			craterAreaOfEffect = 78,
+			damageAreaOfEffect = 78,
+			edgeEffectiveness = 1,
+			explosionSpeed = 1,
+			impactOnly = false,
+			ignoreOwner = false,
+			damageGround = true,
+		},
+	}
+	local treeWeapons = {}
+	treeWeapons[WeaponDefNames['treefire_tiny'].id] = true
+	treeWeapons[WeaponDefNames['treefire_small'].id] = true
+	treeWeapons[WeaponDefNames['treefire_medium'].id] = true
+	treeWeapons[WeaponDefNames['treefire_large'].id] = true
+
 	local noFireWeapons = {}
 	for id, wDefs in pairs(WeaponDefs) do
 		if wDefs.customParams and wDefs.customParams.nofire then
@@ -90,7 +135,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 					end
 					dissapearSpeed = 0.05 + Spring.GetFeatureHeight(featureID) / 600
 				end
-				local destroyFrame = GetGameFrame() + (falltime * (FeatureDefs[featureDefID].mass / dmg)) + 350 + (dissapearSpeed*900)
+				local destroyFrame = GetGameFrame() + (falltime * (FeatureDefs[featureDefID].mass / dmg)) + 400 + (dissapearSpeed*900)
 
                 if (health ~= nil and maxMetal==0 and maxEnergy > 0 and (health <= Damage or weaponDefID==-7)) then -- weaponDefID == -7 is the weapon that crushes features
                     --if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
@@ -110,7 +155,7 @@ if  (gadgetHandler:IsSyncedCode()) then
                     else
                         Damage=0.0 -- so it doesnt take multiple frames for tree to get killed.
                     end
-					if weaponDefID == WeaponDefNames[treefirewpnname].id then -- TREE CAUGHT FIRE FROM OTHER TREE
+					if treeWeapons[weaponDefID] then -- TREE CAUGHT FIRE FROM OTHER TREE
 						ppx, ppy, ppz = GetFeaturePosition(featureID)
 						ppx, ppy, ppz = ppx +math.random(-5,5), ppy +math.random(-5,5), ppz +math.random(-5,5) -- we don't have an attacker pos/projpos
 						dmg = 40
@@ -183,7 +228,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 				local thisfeaturefallspeed = fallspeed * featureinfo.strength
 				local fireFrequency = 5
 				if featureinfo.fire then
-					fireFrequency = math.floor(3 + ((gf - featureinfo.frame) / 50))
+					fireFrequency = math.floor(2 + ((gf - featureinfo.frame) / 40))
 				end
 
 				-- falling
@@ -193,13 +238,13 @@ if  (gadgetHandler:IsSyncedCode()) then
 					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
 					if fy ~= nil then
 						if featureinfo.fire then
-							if gf%fireFrequency == fireFrequency-3 then
+							if gf%fireFrequency == fireFrequency-2 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
+								Spring.SpawnCEG('treeburn-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
 							end
 							if gf%fireFrequency == math.floor(fireFrequency/2) and math.random(1,5) == 1 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion)
+								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
 							end
 						end
 						if px and py and pz then
@@ -224,11 +269,11 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if featureinfo.fire then
 							if gf%fireFrequency == fireFrequency-3 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-								Spring.SpawnCEG(treefirecegname..'-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
+								Spring.SpawnCEG('treeburn-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
 							end
 							if gf%fireFrequency == math.floor(fireFrequency/2) and math.random(1,6) == 1 then
 								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
-								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion)
+								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
 							end
 						end
 						SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
@@ -236,9 +281,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if featureinfo.destroyFrame <= gf then
 							treesdying[featureID]=nil
 							DestroyFeature(featureID)
-							Spring.Echo('destroyed '..featureID)
-						elseif featureinfo.frame + thisfeaturefalltime + 350 <= gf then
+						elseif featureinfo.frame + thisfeaturefalltime + 320 <= gf and treesdying[featureID].fire then
 							treesdying[featureID].fire = false
+						elseif featureinfo.frame + thisfeaturefalltime + 400 <= gf then
 							SetFeaturePosition(featureID, fx, fy-treesdying[featureID].dissapearSpeed, fz, false)
 							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end

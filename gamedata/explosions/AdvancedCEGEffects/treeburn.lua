@@ -16,7 +16,7 @@ local definitions = {
         emitrotspread      = 0,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, -0.3, 0]],
-        numparticles       = 5,
+        numparticles       = 3,
         particlelife       = 15,
         particlelifespread = 10,
         particlesize       = 3,
@@ -52,20 +52,20 @@ local definitions = {
       count              = 1,
       ground             = true,
       properties = {
-        airdrag            = 0.96,
+        airdrag            = 0.94,
         colormap           = [[1 1 0.4 0.04	1.0 0.66 0.2 0.01	1.0 0.55 0.0 0.00]],
         directional        = true,
         emitrot            = 10,
         emitrotspread      = 75,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, 0.5, 0]],
-        numparticles       = 3,
-        particlelife       = 9,
-        particlelifespread = 5,
+        numparticles       = 2,
+        particlelife       = 7,
+        particlelifespread = 4,
         particlesize       = 7,
         particlesizespread = 4,
-        particlespeed      = 2,
-        particlespeedspread = 2,
+        particlespeed      = 1.4,
+        particlespeedspread = 1.2,
         pos                = [[0, 2, 0]],
         sizegrowth         = 1,
         sizemod            = 0.8,
@@ -93,8 +93,8 @@ local definitions = {
         numparticles       = 2,
         particlelife       = 18,
         particlelifespread = 28,
-        particlesize       = 1.2,
-        particlesizespread = 2,
+        particlesize       = 1.5,
+        particlesizespread = 2.3,
         particlespeed      = 0.2,
         particlespeedspread = 0.55,
         pos                = [[-3 r6, -3 r25, -3 r6]],
@@ -165,6 +165,8 @@ function deepcopy(orig)
   return copy
 end
 
+
+
 -- add different sizes
 local root = 'treeburn'
 definitions[root..'-medium'] = definitions[root]
@@ -174,12 +176,12 @@ local sizes = {
     flame = {
       properties = {
         numparticles       = 2,
-        particlesize       = 0.35,
-        particlesizespread = 0.55,
+        particlesize       = 0.5,
+        particlesizespread = 0.66,
         particlespeed      = 0.07,
         particlespeedspread = 0.13,
         particlelifespread = 15,
-        pos                = [[-1 r3, -1 r15, -1 r3]],
+        pos                = [[-0.6 r1.2, -1 r15, -0.6 r1.2]],
       },
     },
     dirtg = {
@@ -198,12 +200,12 @@ local sizes = {
     flame = {
       properties = {
         numparticles       = 2,
-        particlesize       = 1,
-        particlesizespread = 0.5,
+        particlesize       = 1.2,
+        particlesizespread = 0.8,
         particlespeed      = 0.13,
         particlespeedspread = 0.25,
         particlelifespread = 20,
-        pos                = [[-2 r4, -1 r20, -2 r4]],
+        pos                = [[-1.3 r2.6, -1 r20, -1.3 r2.6]],
       },
     },
     dirtg = {
@@ -222,12 +224,12 @@ local sizes = {
     flame = {
       properties = {
         numparticles       = 2,
-        particlesize       = 1.7,
-        particlesizespread = 2.6,
+        particlesize       = 2,
+        particlesizespread = 3.2,
         particlespeed      = 0.35,
         particlespeedspread = 0.75,
         particlelifespread = 32,
-        pos                = [[-4 r7, -4 r30, -4 r7]],
+        pos                = [[-4 r8, -4 r30, -4 r8]],
       },
     },
     dirtg = {
@@ -240,6 +242,47 @@ local sizes = {
         particlelife       = 60,
       },
     },
+  },
+}
+for size, effects in pairs(sizes) do
+  definitions[root..'-'..size] = tableMerge(deepcopy(definitions[root]), deepcopy(effects))
+end
+
+
+
+root = 'treeburnexplode'
+definitions[root..'-medium'] = definitions[root]
+
+local sizes = {
+  tiny = {
+    groundflash = {
+      flashsize = 12,
+    },
+    sparks = {
+      particlelife = 5,
+      particlesizespread = 2,
+      particlespeed = 0.5,
+    }
+  },
+  small = {
+    groundflash = {
+      flashsize = 18,
+    },
+    sparks = {
+      particlelife = 6,
+      particlesizespread = 3,
+      particlespeed = 0.9,
+    }
+  },
+  large = {
+    groundflash = {
+      flashsize = 32,
+    },
+    sparks = {
+      particlelife = 9,
+      particlesizespread = 6,
+      particlespeed = 1.8,
+    }
   },
 }
 for size, effects in pairs(sizes) do
