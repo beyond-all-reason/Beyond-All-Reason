@@ -133,9 +133,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 					elseif FeatureDefs[featureDefID].collisionVolume.scaleY > 65 then
 						size = 'large'
 					end
-					dissapearSpeed = 0.05 + Spring.GetFeatureHeight(featureID) / 600
+					dissapearSpeed = 0.02 + Spring.GetFeatureHeight(featureID) / 4000
 				end
-				local destroyFrame = GetGameFrame() + (falltime * (FeatureDefs[featureDefID].mass / dmg)) + 400 + (dissapearSpeed*900)
+				local destroyFrame = GetGameFrame() + (falltime * (FeatureDefs[featureDefID].mass / dmg)) + 150 + (dissapearSpeed*4000)
 
                 if (health ~= nil and maxMetal==0 and maxEnergy > 0 and (health <= Damage or weaponDefID==-7)) then -- weaponDefID == -7 is the weapon that crushes features
                     --if crushed, attackerID returns unit, but projectileID is nil, if projectile destroys feature, then attackerID is nil, but projectileID contains the projectile.
@@ -228,7 +228,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 				local thisfeaturefallspeed = fallspeed * featureinfo.strength
 				local fireFrequency = 5
 				if featureinfo.fire then
-					fireFrequency = math.floor(2 + ((gf - featureinfo.frame) / 80))
+					fireFrequency = math.floor(2 + ((gf - featureinfo.frame) / 70))
 				end
 
 				-- falling
@@ -293,9 +293,9 @@ if  (gadgetHandler:IsSyncedCode()) then
 						if featureinfo.destroyFrame <= gf then
 							treesdying[featureID]=nil
 							DestroyFeature(featureID)
-						elseif featureinfo.frame + thisfeaturefalltime + 320 <= gf and treesdying[featureID].fire then
+						elseif featureinfo.frame + thisfeaturefalltime + 250 <= gf and treesdying[featureID].fire then
 							treesdying[featureID].fire = false
-						elseif featureinfo.frame + thisfeaturefalltime + 400 <= gf then
+						elseif featureinfo.frame + thisfeaturefalltime + 100 <= gf then
 							SetFeaturePosition(featureID, fx, fy-treesdying[featureID].dissapearSpeed, fz, false)
 							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
