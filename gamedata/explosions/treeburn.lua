@@ -59,13 +59,13 @@ local definitions = {
         emitrotspread      = 75,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, 0.5, 0]],
-        numparticles       = 2,
-        particlelife       = 7,
-        particlelifespread = 4,
+        numparticles       = [[2 r3]],
+        particlelife       = 10,
+        particlelifespread = 15,
         particlesize       = 7,
         particlesizespread = 4,
-        particlespeed      = 1.4,
-        particlespeedspread = 1.2,
+        particlespeed      = 1,
+        particlespeedspread = 0.8,
         pos                = [[0, 2, 0]],
         sizegrowth         = 1,
         sizemod            = 0.8,
@@ -259,9 +259,10 @@ local sizes = {
       flashsize = 12,
     },
     sparks = {
-      particlelife = 5,
+      particlelife = 7,
+      particlelifespread = 9,
       particlesizespread = 2,
-      particlespeed = 0.5,
+      particlespeed = 0.3,
     }
   },
   small = {
@@ -269,9 +270,10 @@ local sizes = {
       flashsize = 18,
     },
     sparks = {
-      particlelife = 6,
+      particlelife = 9,
+      particlelifespread = 12,
       particlesizespread = 3,
-      particlespeed = 0.9,
+      particlespeed = 0.55,
     }
   },
   large = {
@@ -279,9 +281,10 @@ local sizes = {
       flashsize = 32,
     },
     sparks = {
-      particlelife = 9,
+      particlelife = 11,
+      particlelifespread = 17,
       particlesizespread = 6,
-      particlespeed = 1.8,
+      particlespeed = 1.3,
     }
   },
 }
