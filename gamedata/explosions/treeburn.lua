@@ -3,33 +3,6 @@
 
 local definitions = {
   ["treeburnexplode"] = {
-    dirtw1 = {
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      underwater         = 1,
-      water              = true,
-      properties = {
-        airdrag            = 0.9,
-        colormap           = [[0.9 0.9 0.9 1.0	0.5 0.5 0.9 0.0]],
-        directional        = true,
-        emitrot            = 90,
-        emitrotspread      = 0,
-        emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.3, 0]],
-        numparticles       = 3,
-        particlelife       = 15,
-        particlelifespread = 10,
-        particlesize       = 3,
-        particlesizespread = 5,
-        particlespeed      = 1,
-        particlespeedspread = 5,
-        pos                = [[r-1 r1, 1, r-1 r1]],
-        sizegrowth         = 1.2,
-        sizemod            = 1.0,
-        texture            = [[randomdots]],
-        useairlos          = false,
-      },
-    },
     groundflash = {
       air                = true,
       circlealpha        = 0.0,
@@ -55,13 +28,13 @@ local definitions = {
         airdrag            = 0.94,
         colormap           = [[1 1 0.4 0.04	1.0 0.66 0.2 0.01	1.0 0.55 0.0 0.00]],
         directional        = true,
-        emitrot            = 10,
+        emitrot            = 15,
         emitrotspread      = 75,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, 0.5, 0]],
-        numparticles       = [[2 r3]],
-        particlelife       = 10,
-        particlelifespread = 15,
+        numparticles       = [[2 r5]],
+        particlelife       = 9,
+        particlelifespread = 16,
         particlesize       = 7,
         particlesizespread = 4,
         particlespeed      = 1,
@@ -101,34 +74,6 @@ local definitions = {
         sizegrowth         = 0.6,
         sizemod            = 0.99,
         texture            = [[fire]],
-      },
-    },
-    dirtg = { -- ASHES
-      air                = true,
-      class              = [[CSimpleParticleSystem]],
-      count              = 1,
-      ground             = true,
-	  water				 = true,
-	  underwater		 = false,
-      properties = {
-        airdrag            = 0.96,
-        colormap           = [[1 0.5 0 1.0	1 0.5 0 1.0		0.9 0.4 0 1.0	0.6 0.2 0 1.0	0.3 0.1 0 1.0	0 0 0 1.0	0 0 0 0.7	0 0 0 0.4]],
-        directional        = true,
-        emitrot            = 45,
-        emitrotspread      = 32,
-        emitvector         = [[0, 1, 0]],
-        gravity            = [[0, -0.1, 0]],
-        numparticles       = 1,
-        particlelife       = 55,
-        particlelifespread = 20,
-        particlesize       = 0.08,
-        particlesizespread = 0.25,
-        particlespeed      = 0.8,
-        particlespeedspread = 3.3,
-        sizegrowth         = 0.1,
-        sizemod            = 0.9,
-        texture            = [[new_dirta]],
-        useairlos          = false,
       },
     },
   },
@@ -184,16 +129,6 @@ local sizes = {
         pos                = [[-0.6 r1.2, -1 r15, -0.6 r1.2]],
       },
     },
-    dirtg = {
-      properties = {
-        numparticles       = 1,
-        particlesize       = 0.05,
-        particlesizespread = 0.03,
-        particlespeed      = 0.1,
-        particlelife       = 38,
-        particlespeedspread = 1.4,
-      },
-    },
   },
 
   small = {
@@ -208,16 +143,6 @@ local sizes = {
         pos                = [[-1.3 r2.6, -1 r20, -1.3 r2.6]],
       },
     },
-    dirtg = {
-      properties = {
-        numparticles       = 1,
-        particlesize       = 0.1,
-        particlesizespread = 0.18,
-        particlespeed      = 0.5,
-        particlespeedspread = 1.5,
-        particlelife       = 46,
-      },
-    },
   },
 
   large = {
@@ -230,16 +155,6 @@ local sizes = {
         particlespeedspread = 0.75,
         particlelifespread = 32,
         pos                = [[-4 r8, -4 r30, -4 r8]],
-      },
-    },
-    dirtg = {
-      properties = {
-        numparticles       = 2,
-        particlesize       = 0.11,
-        particlesizespread = 0.3,
-        particlespeed      = 0.8,
-        particlespeedspread = 3.5,
-        particlelife       = 60,
       },
     },
   },
@@ -259,10 +174,11 @@ local sizes = {
       flashsize = 12,
     },
     sparks = {
-      particlelife = 7,
-      particlelifespread = 9,
+      particlelife = 6,
+      particlelifespread = 8,
       particlesizespread = 2,
       particlespeed = 0.3,
+      emitrot = 8,
     }
   },
   small = {
@@ -270,10 +186,11 @@ local sizes = {
       flashsize = 18,
     },
     sparks = {
-      particlelife = 9,
-      particlelifespread = 12,
+      particlelife = 8,
+      particlelifespread = 11,
       particlesizespread = 3,
       particlespeed = 0.55,
+      emitrot = 11,
     }
   },
   large = {
@@ -281,10 +198,11 @@ local sizes = {
       flashsize = 32,
     },
     sparks = {
-      particlelife = 11,
-      particlelifespread = 17,
+      particlelife = 10,
+      particlelifespread = 18,
       particlesizespread = 6,
       particlespeed = 1.3,
+      emitrot = 18,
     }
   },
 }

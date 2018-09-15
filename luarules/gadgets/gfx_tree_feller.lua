@@ -228,7 +228,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 				local thisfeaturefallspeed = fallspeed * featureinfo.strength
 				local fireFrequency = 5
 				if featureinfo.fire then
-					fireFrequency = math.floor(2 + ((gf - featureinfo.frame) / 40))
+					fireFrequency = math.floor(2 + ((gf - featureinfo.frame) / 80))
 				end
 
 				-- falling
@@ -238,12 +238,18 @@ if  (gadgetHandler:IsSyncedCode()) then
 					local px, py, pz = featureinfo.px, featureinfo.py, featureinfo.pz
 					if fy ~= nil then
 						if featureinfo.fire then
-							if gf%fireFrequency == fireFrequency-2 then
-								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+							if gf%fireFrequency == math.floor(fireFrequency/1.5) then
+								local firex, firey, firez = fx+math.random(-3,3), fy+math.random(-3,3), fz+math.random(-3,3)
+								local pos =  math.random(12,17)
+								firex = firex - (featureinfo.dirx*pos)
+								firez = firez - (featureinfo.dirz*pos)
 								Spring.SpawnCEG('treeburn-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
 							end
-							if gf%fireFrequency == math.floor(fireFrequency/2) and math.random(1,5) == 1 then
-								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+							if gf%fireFrequency == math.floor(fireFrequency/3) and math.random(1,5) == 1 then
+								local firex, firey, firez = fx+math.random(-3,3), fy+math.random(-3,3), fz+math.random(-3,3)
+								local pos =  math.random(12,17)
+								firex = firex - (featureinfo.dirx*pos)
+								firez = firez - (featureinfo.dirz*pos)
 								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
 							end
 						end
@@ -267,12 +273,18 @@ if  (gadgetHandler:IsSyncedCode()) then
 					local dx, dy ,dz = GetFeatureDirection(featureID)
 					if fy ~= nil then
 						if featureinfo.fire then
-							if gf%fireFrequency == fireFrequency-3 then
-								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+							if gf%fireFrequency == math.floor(fireFrequency/1.5) then
+								local firex, firey, firez = fx+math.random(-3,3), fy+math.random(-3,3), fz+math.random(-3,3)
+								local pos =  math.random(12,17)
+								firex = firex - (featureinfo.dirx*pos)
+								firez = firez - (featureinfo.dirz*pos)
 								Spring.SpawnCEG('treeburn-'..treesdying[featureID].size, firex,firey,firez,0,0,0,0,0,0)
 							end
-							if gf%fireFrequency == math.floor(fireFrequency/2) and math.random(1,6) == 1 then
-								local firex, firey, firez = fx+math.random(-5,5), fy+math.random(-5,5), fz+math.random(-5,5)
+							if gf%fireFrequency == math.floor(fireFrequency/3) and math.random(1,6) == 1 then
+								local firex, firey, firez = fx+math.random(-3,3), fy+math.random(-3,3), fz+math.random(-3,3)
+								local pos =  math.random(12,17)
+								firex = firex - (featureinfo.dirx*pos)
+								firez = firez - (featureinfo.dirz*pos)
 								Spring.SpawnExplosion(firex, firey, firez, 0, 0, 0, treefireExplosion[featureinfo.size])
 							end
 						end
