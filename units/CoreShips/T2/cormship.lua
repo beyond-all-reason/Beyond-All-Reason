@@ -166,7 +166,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				energypershot = 100,
-				cegTag = "missiletrailcorroyspecial",
+				cegTag = "missiletrailmship",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 100,
 				flighttime = 15,

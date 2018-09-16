@@ -114,7 +114,7 @@ return {
 		},
 		weapondefs = {
 			rocket = {
-				cegTag = "missiletrailcorroyspecial",
+				cegTag = "missiletrailmship",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				areaofeffect = 300,
 				avoidfeature = false,
