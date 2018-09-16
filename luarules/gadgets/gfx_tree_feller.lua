@@ -296,7 +296,11 @@ if  (gadgetHandler:IsSyncedCode()) then
 						elseif featureinfo.frame + thisfeaturefalltime + 250 <= gf and treesdying[featureID].fire then
 							treesdying[featureID].fire = false
 						elseif featureinfo.frame + thisfeaturefalltime + 100 <= gf then
-							SetFeaturePosition(featureID, fx, fy-treesdying[featureID].dissapearSpeed, fz, false)
+							if treesdying[featureID].fire then
+								SetFeaturePosition(featureID, fx, fy-treesdying[featureID].dissapearSpeed, fz, false)
+							else
+								SetFeaturePosition(featureID, fx, fy-treesdying[featureID].dissapearSpeed*6, fz, false)
+							end
 							SetFeatureDirection(featureID, dx, dy, dz)		-- gets reset so we re-apply
 						end
 					end

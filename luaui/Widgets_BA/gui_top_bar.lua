@@ -1086,7 +1086,7 @@ function widget:DrawScreen()
 			end
 			glCallList(dlistWindText[currentWind])
 		else
-			if now < 30 and WG['tooltip'] ~= nil then
+			if now < 60 and WG['tooltip'] ~= nil then
 				if (minWind + maxWind)/2 < 5.5 then
 					WG['tooltip'].ShowTooltip('topbar_windinfo', 'Wind isnt worth', windArea[1], windArea[2]-13*widgetScale)
 				elseif (minWind + maxWind)/2 >= 5.5 and (minWind + maxWind)/2 < 7 then
