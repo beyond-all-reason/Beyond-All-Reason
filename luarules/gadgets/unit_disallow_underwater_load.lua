@@ -2,7 +2,7 @@
 function gadget:GetInfo()
    return {
 	  name = "UnderwaterPickup",
-	  desc = "Disallow loading of underwater units",
+	  desc = "Disallow loading/unloading of underwater units",
 	  author = "Doo",
 	  date = "2018",
 	  license = "PD",
@@ -23,5 +23,23 @@ if (gadgetHandler:IsSyncedCode()) then
 			return true
 		end
 		return true
+	end
+	
+	function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, x, y, z) -- disallow unloading underwater
+		local height = Spring.GetUnitHeight(transporteeID)
+		if y + height < 0 then
+			return false
+		else
+			return true
+		end
+	end
+	
+	function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, x, y, z) -- disallow unloading underwater
+		local height = Spring.GetUnitHeight(transporteeID)
+		if y + height < 0 then
+			return false
+		else
+			return true
+		end
 	end
 end
