@@ -18,7 +18,7 @@ local AirTransports = {
 	[UnitDefNames["armdfly"].id] = true,
 	[UnitDefNames["corvalk"].id] = true,
 	[UnitDefNames["corseah"].id] = true,
-	}
+}
 
 if (gadgetHandler:IsSyncedCode()) then
 	function gadget:Distance(pos1, pos2)
@@ -32,8 +32,8 @@ if (gadgetHandler:IsSyncedCode()) then
 
 	function gadget:AllowUnitTransportLoad(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 		if AirTransports[transporterUnitDefID] then
-			local terDefs = UnitDefs[transporterUnitDefID]
-			local teeDefs = UnitDefs[transporteeUnitDefID]
+			--local terDefs = UnitDefs[transporterUnitDefID]
+			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
 			if gadget:Distance(pos1, pos2) <= 16 then
@@ -49,8 +49,8 @@ if (gadgetHandler:IsSyncedCode()) then
 	
 	function gadget:AllowUnitTransportUnload(transporterID, transporterUnitDefID, transporterTeam, transporteeID, transporteeUnitDefID, transporteeTeam, goalX, goalY, goalZ)
 		if AirTransports[transporterUnitDefID] then
-			local terDefs = UnitDefs[transporterUnitDefID]
-			local teeDefs = UnitDefs[transporteeUnitDefID]
+			--local terDefs = UnitDefs[transporterUnitDefID]
+			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
 			if gadget:Distance(pos1, pos2) <= 16 then
