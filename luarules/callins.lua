@@ -84,6 +84,8 @@ CallInsList = {
   "AllowUnitCreation",
   "AllowUnitTransfer",
   "AllowUnitTransport",
+  "AllowUnitTransportLoad",
+  "AllowUnitTransportUnload",
   "AllowUnitBuildStep",
   "AllowUnitCloak",
   "AllowUnitDecloak",
