@@ -23,6 +23,7 @@ function WatchLoad()
 			if not Spring.ValidUnitID(punitID) then
 				unitDied = true
 				link[ct] = nil
+				full = false -- we just unloaded one unit
 			end
 		end
 		if (#unitsToDetach < oldunitsToDetach) and (not unitDied) then
