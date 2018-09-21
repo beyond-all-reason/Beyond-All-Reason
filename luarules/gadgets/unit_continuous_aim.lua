@@ -61,17 +61,24 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
 		[UnitDefNames.corkarg.id] = true,
 		[UnitDefNames.corjugg.id] = true,
 		[UnitDefNames.armvang.id] = true,
-		}
+	}
+elseif Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
+	convertedUnits = {
+		[UnitDefNames.armpw.id] = true,
+		[UnitDefNames.armrock.id] = true,
+		[UnitDefNames.corak.id] = true,
+		[UnitDefNames.corstorm.id] = true,
+	}
 end
 
-    function gadget:UnitCreated(unitID,unitDefID)
-		if convertedUnits[unitDefID] or UnitDefs[unitDefID].scriptName == "scripts/BASICTANKSCRIPT.LUA" then
-			for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-				Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
-			end
-		end
+function gadget:UnitCreated(unitID,unitDefID)
+	if convertedUnits[unitDefID] or UnitDefs[unitDefID].scriptName == "scripts/BASICTANKSCRIPT.LUA" then
 		for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-			local range = WeaponDefs[table.weaponDef].range
-			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1*range) or 20)
+			Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
 		end
-    end
+	end
+	for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+		local range = WeaponDefs[table.weaponDef].range
+		Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1*range) or 20)
+	end
+end

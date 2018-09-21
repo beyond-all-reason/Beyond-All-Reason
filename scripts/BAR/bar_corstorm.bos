@@ -6,7 +6,7 @@
 piece  torso, rfirept, lfirept, pelvis, rfoot, lfoot, launcher, lthigh,
        rthigh, rleg, lleg, turret, base,rexhaust,lexhaust,lknee,rknee;
 
-static-var  gun_1, notMoving, moveSpeed, currentSpeed, animSpeed;
+static-var  gun_1, notMoving, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -261,19 +261,25 @@ QueryPrimary(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep 5000;
 	turn turret to y-axis <0.000000> speed <90.021978>;
 	turn launcher to x-axis <0.000000> speed <45.010989>;
+	wpn1_lasthead = 1000000;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <90.021978>;
 	turn launcher to x-axis <0.000000> - pitch speed <45.010989>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn launcher around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turret around y-axis;
+		wait-for-turn launcher around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
@@ -299,19 +305,19 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		explode turret type BITMAPONLY | NOHEATCLOUD;
-		explode launcher type BITMAPONLY | NOHEATCLOUD;
-		explode rfirept type BITMAPONLY | NOHEATCLOUD;
-		explode lfirept type BITMAPONLY | NOHEATCLOUD;
-		explode lexhaust type BITMAPONLY | NOHEATCLOUD;
-		explode rexhaust type BITMAPONLY | NOHEATCLOUD;
-		explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		explode lknee type BITMAPONLY | NOHEATCLOUD;
-		explode lleg type BITMAPONLY | NOHEATCLOUD;
-		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		explode rknee type BITMAPONLY | NOHEATCLOUD;
-		explode rleg type BITMAPONLY | NOHEATCLOUD;
+		//explode turret type BITMAPONLY | NOHEATCLOUD;
+		//explode launcher type BITMAPONLY | NOHEATCLOUD;
+		//explode rfirept type BITMAPONLY | NOHEATCLOUD;
+		//explode lfirept type BITMAPONLY | NOHEATCLOUD;
+		//explode lexhaust type BITMAPONLY | NOHEATCLOUD;
+		//explode rexhaust type BITMAPONLY | NOHEATCLOUD;
+		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode lknee type BITMAPONLY | NOHEATCLOUD;
+		//explode lleg type BITMAPONLY | NOHEATCLOUD;
+		//explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode rknee type BITMAPONLY | NOHEATCLOUD;
+		//explode rleg type BITMAPONLY | NOHEATCLOUD;
 		explode rfoot type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -323,13 +329,13 @@ Killed(severity, corpsetype)
 		explode torso type FALL | NOHEATCLOUD;
 		explode turret type FALL | NOHEATCLOUD;
 		explode launcher type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfirept type FALL | NOHEATCLOUD;
-		explode lfirept type FALL | NOHEATCLOUD;
-		explode lexhaust type FALL | NOHEATCLOUD;
-		explode rexhaust type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lknee type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lleg type FALL | NOHEATCLOUD;
+		//explode rfirept type FALL | NOHEATCLOUD;
+		//explode lfirept type FALL | NOHEATCLOUD;
+		//explode lexhaust type FALL | NOHEATCLOUD;
+		//explode rexhaust type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lknee type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lleg type FALL | NOHEATCLOUD;
 		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rknee type FALL | NOHEATCLOUD;
@@ -344,13 +350,13 @@ Killed(severity, corpsetype)
 		explode pelvis type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfirept type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode lfirept type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lexhaust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rexhaust type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode lthigh type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode lknee type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode launcher type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rfirept type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode lfirept type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lexhaust type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rexhaust type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode lknee type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -364,11 +370,11 @@ Killed(severity, corpsetype)
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode turret type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode launcher type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rfirept type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lfirept type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lexhaust type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rexhaust type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode launcher type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rfirept type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lfirept type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lexhaust type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rexhaust type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lknee type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;

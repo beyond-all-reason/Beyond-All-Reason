@@ -6,7 +6,7 @@
 piece  torso, lbarrel, lmisspod, rshield, pelvis, rfoot, lfoot, lthigh,
        rthigh, lleg, rleg, flare, exhaust;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -390,6 +390,8 @@ MotionControl(moving, aiming, justmoved)
 				turn lthigh to x-axis <0.000000> speed <200.043956>;
 				turn lleg to x-axis <0.000000> speed <200.043956>;
 				turn lfoot to x-axis <0.000000> speed <200.043956>;
+				turn torso to x-axis <0.000000> speed <90.021978>;
+				turn torso to z-axis <0.000000> speed <90.021978>;
 				if( !aiming )
 				{
 					turn torso to y-axis <0.000000> speed <90.021978>;
@@ -397,7 +399,7 @@ MotionControl(moving, aiming, justmoved)
 				}
 				justmoved = FALSE;
 			}
-			sleep 20;
+			sleep 100;
 		}
 	}
 }
@@ -406,7 +408,7 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
+		currentSpeed = 2 * (get CURRENT_SPEED)*100/moveSpeed;
 		if (currentSpeed<40) currentSpeed=40;
 		sleep 142;
 	}
@@ -447,7 +449,7 @@ Create()
 	bAiming = FALSE;
 	Static_Var_3 = 1;
 	restore_delay = 3000;
-	moveSpeed = ((get MAX_SPEED ) *50)/100;
+	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
 	start-script SmokeUnit();
 }
@@ -474,11 +476,13 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn torso to y-axis <0.000000> speed <90.021978>;
-	turn lmisspod to x-axis <0.000000> speed <45.010989>;
+	turn lmisspod to x-axis <0.000000> speed <90.010989>;
 	wait-for-turn torso around y-axis;
 	wait-for-turn lmisspod around x-axis;
+	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 }
 
@@ -495,17 +499,21 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	turn torso to y-axis heading speed <130.027473>;
-	turn lmisspod to x-axis <-90.021978> speed <95.021978>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn lmisspod around x-axis;
+	turn lmisspod to x-axis <-90> - pitch speed <180.021978>;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+		wait-for-turn lmisspod around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 
@@ -524,14 +532,14 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		explode rshield type BITMAPONLY | NOHEATCLOUD;
-		explode lmisspod type BITMAPONLY | NOHEATCLOUD;
-		explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode exhaust type BITMAPONLY | NOHEATCLOUD;
-		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		explode rleg type BITMAPONLY | NOHEATCLOUD;
-		explode rfoot type BITMAPONLY | NOHEATCLOUD;
+		//explode rshield type BITMAPONLY | NOHEATCLOUD;
+		//explode lmisspod type BITMAPONLY | NOHEATCLOUD;
+		//explode lbarrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode exhaust type BITMAPONLY | NOHEATCLOUD;
+		//explode flare type BITMAPONLY | NOHEATCLOUD;
+		//explode rthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode rleg type BITMAPONLY | NOHEATCLOUD;
+		//explode rfoot type BITMAPONLY | NOHEATCLOUD;
 		explode lthigh type BITMAPONLY | NOHEATCLOUD;
 		explode lleg type BITMAPONLY | NOHEATCLOUD;
 		explode lfoot type BITMAPONLY | NOHEATCLOUD;

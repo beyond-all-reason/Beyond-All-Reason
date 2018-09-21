@@ -520,7 +520,7 @@ AimPrimary(heading, pitch)
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
-		sleep 65;
+		return(0);
 	}
 	turn torso to y-axis heading speed <225.000000>;
 	turn arms to x-axis <0.000000> - pitch speed <75.000000>;

@@ -6,7 +6,7 @@
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
        rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, animSpeed;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -405,10 +405,10 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;  // determine in 1/20ths how fast we're going
-		if (currentSpeed<4) currentSpeed=4;	// prevent infinite timing
-		animSpeed = 760 / currentSpeed;  // 38ms * (20 / currentSpeed in 1/20ths)
-		sleep 142;	// sleep time is always rounded to nearest framerate (0..33, 34..66, 67..99, etc.)
+		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<20) currentSpeed=20;
+		animSpeed = 3700 / currentSpeed;
+		sleep 142;
 	}
 }
 
@@ -464,7 +464,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 {
 	while( get BUILD_PERCENT_LEFT )
 	{
-		sleep 400;
+		sleep 500;
 	}
 	start-script UnitSpeed();
 	start-script MotionControl();
@@ -520,6 +520,7 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep 2750;
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn ruparm to x-axis <0.000000> speed <45.000000>;
@@ -527,6 +528,7 @@ RestoreAfterDelay()
 	wait-for-turn torso around y-axis;
 	wait-for-turn ruparm around x-axis;
 	wait-for-turn luparm around x-axis;
+	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 }
 
@@ -543,62 +545,54 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
-		sleep 66;
+		return(0);
 	}
 	turn torso to y-axis heading speed <225.000000>;
 	turn luparm to x-axis <0.000000> - pitch speed <75.000000>;
 	turn ruparm to x-axis <0.000000> - pitch speed <75.000000>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn luparm around x-axis;
-	wait-for-turn ruparm around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+		wait-for-turn luparm around x-axis;
+		wait-for-turn ruparm around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 FirePrimary()
 {
-	/*
-	if( gun_1 )
-	{
-		show lfire;
-		sleep 100;
-		hide lfire;
-	}
-	else
-	{
-		show rfire;
-		sleep 100;
-		hide rfire;
-	}
-	*/
 	gun_1 = !gun_1;
 }
 
 Killed(severity, corpsetype)
 {
+	hide rfire;
+	hide lfire;
 	if( severity <= 25 )
 	{
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		explode ruparm type BITMAPONLY | NOHEATCLOUD;
-		explode rloarm type BITMAPONLY | NOHEATCLOUD;
-		explode rfire type BITMAPONLY | NOHEATCLOUD;
-		explode luparm type BITMAPONLY | NOHEATCLOUD;
-		explode lloarm type BITMAPONLY | NOHEATCLOUD;
-		explode lfire type BITMAPONLY | NOHEATCLOUD;
-		explode rthigh type BITMAPONLY | NOHEATCLOUD;
-		explode rknee type BITMAPONLY | NOHEATCLOUD;
-		explode rleg type BITMAPONLY | NOHEATCLOUD;
-		explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lthigh type BITMAPONLY | NOHEATCLOUD;
-		explode lknee type BITMAPONLY | NOHEATCLOUD;
-		explode lleg type BITMAPONLY | NOHEATCLOUD;
-		explode lfoot type BITMAPONLY | NOHEATCLOUD;
+		//explode ruparm type BITMAPONLY | NOHEATCLOUD;
+		//explode rloarm type BITMAPONLY | NOHEATCLOUD;
+		//explode rfire type BITMAPONLY | NOHEATCLOUD;
+		//explode luparm type BITMAPONLY | NOHEATCLOUD;
+		//explode lloarm type BITMAPONLY | NOHEATCLOUD;
+		//explode lfire type BITMAPONLY | NOHEATCLOUD;
+		//explode rthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode rknee type BITMAPONLY | NOHEATCLOUD;
+		//explode rleg type BITMAPONLY | NOHEATCLOUD;
+		//explode rfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lthigh type BITMAPONLY | NOHEATCLOUD;
+		//explode lknee type BITMAPONLY | NOHEATCLOUD;
+		//explode lleg type BITMAPONLY | NOHEATCLOUD;
+		//explode lfoot type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -608,14 +602,14 @@ Killed(severity, corpsetype)
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfire type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfire type FALL | NOHEATCLOUD;
+		//explode rfire type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lfire type FALL | NOHEATCLOUD;
 		explode rthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rknee type FALL | NOHEATCLOUD;
-		explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfoot type FALL | NOHEATCLOUD;
+		//explode rknee type FALL | NOHEATCLOUD;
+		//explode rleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rfoot type FALL | NOHEATCLOUD;
 		explode lthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lknee type FALL | NOHEATCLOUD;
 		explode lleg type FALL | NOHEATCLOUD;
@@ -629,12 +623,12 @@ Killed(severity, corpsetype)
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfire type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lloarm type SMOKE | FALL | NOHEATCLOUD;
-		explode lfire type SMOKE | FALL | NOHEATCLOUD;
-		explode rthigh type SMOKE | FALL | NOHEATCLOUD;
-		explode rknee type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		//explode rfire type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode luparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode lloarm type SMOKE | FALL | NOHEATCLOUD;
+		//explode lfire type SMOKE | FALL | NOHEATCLOUD;
+		//explode rthigh type SMOKE | FALL | NOHEATCLOUD;
+		//explode rknee type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode rfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -648,12 +642,12 @@ Killed(severity, corpsetype)
 		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rfire type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode luparm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lloarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lfire type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rknee type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rfire type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode luparm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lloarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode lfire type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		//explode rthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		//explode rknee type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
