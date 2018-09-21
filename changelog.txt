@@ -1,4 +1,11 @@
-﻿10.11 -> 10.12
+﻿10.12 -> 10.13
+XX/XX/2018
+
+Other:
+ • Fixed "Set Target Default" erroring at game start
+
+
+10.11 -> 10.12
 16/09/2018
 
 IMPORTANT: Removed support for older engine versions, use 104.0.1.567 or newer.
