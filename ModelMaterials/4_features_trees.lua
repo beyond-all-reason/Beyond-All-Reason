@@ -101,7 +101,30 @@ local materials = {
 -- affected unitdefs
 
 local featureMaterials = {}
-local featureNameStubs = {"ad0_", "btree", "art"} -- all of the 0ad, beherith and artturi features start with these.
+local featureNameStubs = {
+							"ad0_",
+							"btree",
+							"art",
+							"bush",
+							"tree",
+							"vegetation",
+							"vegitation",
+							"baobab",
+							"aleppo",
+							"pine",
+							"senegal",
+							"palm",
+							"shrub",
+							"bloodthorn",
+							"birch",
+							"maple",
+							"oak",
+							"fern",
+							"grass",
+							"weed",
+							"plant",
+							"palmetto"
+						} -- This list should cover all vegetative features in spring features
 local tex1_to_normaltex = {}
 -- All feature defs that contain the string "aleppo" will be affected by it
 local echoline = ''
