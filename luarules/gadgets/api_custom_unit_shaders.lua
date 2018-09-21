@@ -591,7 +591,9 @@ function ToggleTreeWind(_,newSetting,_, playerID)
     treewind = not treewind
   end
   Spring.SetConfigInt("TreeWind", (treewind and 1) or 0)
-  Spring.Echo("TreeWind is " .. (treewind and "enabled" or "disabled"))
+  if Spring.GetGameFrame() > 0 then
+    Spring.Echo("TreeWind is " .. (treewind and "enabled" or "disabled"))
+  end
 
   --// unload normalmapped materials
   local features = Spring.GetAllFeatures()
