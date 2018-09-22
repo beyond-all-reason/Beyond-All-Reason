@@ -12,6 +12,20 @@
 	smokeCEGName3 = uDef.customParams and uDef.customParams.smokecegname3 or "unitfire"
 	smokeCEGName4 = uDef.customParams and uDef.customParams.smokecegname4 or "unitsparkles"	
 	
+if uDef.weapons[1] and uDef.weapons[1].mainDirX == 0 and uDef.weapons[1].mainDirY == 0 and uDef.weapons[1].maxAngleDif ~= -1 then
+	local maxDiffDeg = uDef.weapons[1].maxAngleDif*360*65536*2
+	local maxDiffRad = math.rad(maxDiffDeg)
+	allowedHeadings1 = {}
+	allowedHeadings1 = {0 - maxDiffDeg, 2*math.pi + maxDiffDeg}
+end
+
+if uDef.weapons[2] and uDef.weapons[2].mainDirX == 0 and uDef.weapons[2].mainDirY == 0 and uDef.weapons[2].maxAngleDif ~= -1 then
+	local maxDiffDeg = uDef.weapons[2].maxAngleDif
+	local maxDiffRad = math.rad(maxDiffDeg)
+	allowedHeadings2 = {}
+	allowedHeadings2 = {0 - maxDiffDeg, 2*math.pi + maxDiffDeg}
+end
+	
 if cannon2name and flare2name then
 	base, turret, sleeve, cannon1, flare1, flare2, cannon2 = piece(basename, turretname, sleevename, cannon1name, flare1name, flare2name, cannon2name)
 	piecetable = {base, turret, sleeve, cannon1, flare1, cannon2, flare2}
@@ -178,10 +192,15 @@ end
 
 function script.AimWeapon1( heading, pitch )
 	Spring.UnitScript.Signal(31)
+	if allowedHeadings1 ~= nil and (heading > allowedHeadings1[1] and heading < allowedHeadings1[2]) then
+		Turn (turret, 2, 0, turretYSpeed)
+		return(false)
+	end
 	Spring.UnitScript.StartThread(Restore, restoreTime)
 	Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 	Turn (sleeve, 1, (0-pitch),turretXSpeed)
 	if (math.abs(wpn1_lasthead - heading) > 6.3) or (math.abs(wpn1_lasthead - heading) >= 0.1) and (math.abs(wpn1_lasthead - heading) <= 6.18) then
+		wpn1_lasthead = 10000
 		WaitForTurn(turret, 2)
 		WaitForTurn(sleeve, 1)
 	end
@@ -236,10 +255,15 @@ function script.AimWeapon2( heading, pitch )
 	x,y,z = Spring.GetUnitPiecePosDir(unitID, turret)
 	if y < 0 then
 		Spring.UnitScript.Signal(31)
+		if allowedHeadings2 ~= nil and (heading > allowedHeadings2[1] and heading < allowedHeadings2[2]) then
+			Turn (turret, 2, 0, turretYSpeed)
+			return(false)
+		end
 		Spring.UnitScript.StartThread(Restore, restoreTime)
 		Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 		Turn (sleeve, 1, (0-pitch),turretXSpeed)
 		if (math.abs(wpn2_lasthead - heading) > 6.3) or (math.abs(wpn2_lasthead - heading) >= 0.1) and (math.abs(wpn2_lasthead - heading) <= 6.18) then
+			wpn2_lasthead = 10000
 			WaitForTurn(turret, 2)
 			WaitForTurn(sleeve, 1)
 		end
