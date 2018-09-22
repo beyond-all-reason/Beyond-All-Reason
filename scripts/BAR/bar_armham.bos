@@ -8,7 +8,7 @@ piece  pelvis, lflare, rflare, lvent,rvent, lthigh, rthigh,
 
 static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed, Aim1, Aim2, restore;
+            moveSpeed, currentSpeed, Aim1, Aim2, restore, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -490,8 +490,8 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
-		if (currentSpeed<20) currentSpeed=20;
+		currentSpeed = 2 * (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<40) currentSpeed=40;
 		sleep 142;
 	}
 }
@@ -568,6 +568,7 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	while (restore == FALSE) // attempt to block restore when switching from 1 to 2 or 2 to 1.
 	{
 	sleep 50;
@@ -580,6 +581,8 @@ RestoreAfterDelay()
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn larm to x-axis <0.000000> speed <45.000000>;
 	turn rarm to x-axis <0.000000> speed <45.000000>;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
 	start-script RequestState(1);
 	}
 }
@@ -590,22 +593,25 @@ AimPrimary(heading, pitch)
 	{
         start-script RequestState(0);
         signal SIG_AIM;
-        set-signal-mask SIG_AIM;
         while( !Static_Var_4 )
         {
-            sleep 30;
+            return(0);
         }
         turn torso to y-axis heading speed <128.000000>;
         turn larm to x-axis <0.000000> - pitch speed <65.000000>;
         turn rarm to x-axis <0.000000> - pitch speed <65.000000>;
-        wait-for-turn torso around y-axis;
-        wait-for-turn larm around x-axis;
-        start-script RestoreAfterDelay();
-        return (1);
+		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+		{
+	        wait-for-turn torso around y-axis;
+	        wait-for-turn larm around x-axis;
+		}
+		start-script RestoreAfterDelay();
+		wpn1_lasthead = heading;
+    	return (1);
 	}
 	else
 	{
-	return (0); // Block fire if 2 was disabled
+		return (0); // Block fire if 2 was disabled
 	}
 }
 
@@ -651,16 +657,20 @@ AimSecondary(heading, pitch)
 	{
         start-script RequestState(0);
         signal SIG_AIM;
-        set-signal-mask SIG_AIM;
         while( !Static_Var_4 )
         {
-            sleep 30;
+            return(0);
         }
         turn torso to y-axis heading speed <128.000000>;
         turn larm to x-axis <0.000000> - pitch speed <65.000000>;
         turn rarm to x-axis <0.000000> - pitch speed <65.000000>;
-        wait-for-turn torso around y-axis;
-        wait-for-turn larm around x-axis;
+		if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+		{
+			wpn2_lasthead = 1000000;
+	        wait-for-turn torso around y-axis;
+	        wait-for-turn larm around x-axis;
+		}
+		wpn2_lasthead = heading;
         start-script RestoreAfterDelay();
         return (1);
 	}

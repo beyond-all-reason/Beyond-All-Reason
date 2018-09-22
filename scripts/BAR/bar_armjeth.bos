@@ -8,7 +8,7 @@ piece  torso, rflare, lflare, pelvis, lleg, rleg, rthigh, lthigh,
 
 static-var  bMoving, Static_Var_2, Static_Var_3, gun_3, restore_delay,
             statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed;
+            moveSpeed, currentSpeed, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM_3			2
@@ -235,7 +235,7 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*160/moveSpeed;
+		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
 		if (currentSpeed<20) currentSpeed=20;
 		sleep 142;
 	}
@@ -308,9 +308,11 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM_3;
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <90.000000>;
+	wpn3_lasthead = 1000000;
 }
 
 AimFromPrimary(piecenum)
@@ -327,13 +329,17 @@ AimTertiary(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
 	while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	turn torso to y-axis heading speed <275.000000>;
-	wait-for-turn torso around y-axis;
+	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
+	{
+		wpn3_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+	}
+	wpn3_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

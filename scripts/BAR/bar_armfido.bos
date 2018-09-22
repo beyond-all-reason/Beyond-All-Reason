@@ -6,7 +6,7 @@
 piece torso, romp, lbthigh, lbleg, lbfoot, rbthigh, rbleg, rbfoot, lfthigh, lfleg, lffoot, rfthigh, rfleg, rffoot, neck, head, barrel, flare;
 
 static-var restore_delay, Static_Var_2, gun_2, statechg_DesiredState,
-			statechg_StateChanging, moveSpeed, currentSpeed, animSpeed;
+			statechg_StateChanging, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -178,9 +178,9 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
-		if (currentSpeed<20) currentSpeed=20;
-		animSpeed = 11000 / currentSpeed;
+		currentSpeed = (1) * (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<40) currentSpeed=40;
+		animSpeed = (11000) / (2.2 * currentSpeed);
 		sleep 142;
 	}
 }
@@ -315,51 +315,54 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn neck to y-axis <0.000000> speed <90.000000>;
 	turn head to x-axis <0.000000> speed <50.000000>;
 	wait-for-turn neck around y-axis;
 	wait-for-turn head around x-axis;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
 }
 
 AimPrimary(heading, pitch)
 {
-	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
-	while( Static_Var_2 == 1 OR gun_2 == 1 )
+	if( Static_Var_2 == 1 OR gun_2 == 1 )
 	{
-		sleep 100;
+		return(0);
 	}
+	signal SIG_AIM;
 	turn neck to y-axis heading speed <150.000000>;
 	turn head to x-axis <0.000000> - pitch speed <50.000000>;
-	wait-for-turn neck around y-axis;
-	wait-for-turn head around x-axis;
-	while( Static_Var_2 == 1 OR gun_2 == 1 )
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
-		sleep 100;
+		wpn1_lasthead = 1000000;
+		wait-for-turn neck around y-axis;
+		wait-for-turn head around x-axis;
 	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
-	while( Static_Var_2 == 0 OR gun_2 == 1 )
+	if( Static_Var_2 == 0 OR gun_2 == 1 )
 	{
-		sleep 100;
+		return(0);
 	}
+	signal SIG_AIM_2;
 	turn neck to y-axis heading speed <150.000000>;
 	turn head to x-axis <0.000000> - pitch speed <50.000000>;
-	wait-for-turn neck around y-axis;
-	wait-for-turn head around x-axis;
-	while( Static_Var_2 == 0 OR gun_2 == 1 )
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
-		sleep 100;
+		wpn2_lasthead = 1000000;
+		wait-for-turn neck around y-axis;
+		wait-for-turn head around x-axis;
 	}
 	start-script RestoreAfterDelay();
+	wpn2_lasthead = heading;
 	return (1);
 }
 

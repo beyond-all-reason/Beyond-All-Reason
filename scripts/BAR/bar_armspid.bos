@@ -11,7 +11,7 @@
 
 piece	flare,base,turret, barrel, leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b;
 
-static-var fire_count,firing,open,maxreloadtime,moving,restore_delay,moveSpeed, currentSpeed,WALK_PERIOD;
+static-var fire_count,firing,open,maxreloadtime,moving,restore_delay,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead;
 
 #define SIG_AIM 2
 #define SIG_FIRE1 4
@@ -359,12 +359,13 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
-	set-signal-mask 0;
 	turn turret to y-axis <0.000000> speed <150.000000>;
 	//turn turret to x-axis <0.000000> speed <150.000000>;
 	wait-for-turn turret around y-axis;
 	//wait-for-turn turret around x-axis;
+	wpn1_lasthead = 1000000;
 	open=FALSE;
 	firing=FALSE;
 }
@@ -375,9 +376,14 @@ AimPrimary(heading, pitch)
 	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <150.000000>;
 	//turn turret to x-axis 0 - pitch speed <150.000000>;
-	wait-for-turn turret around y-axis;
-	//wait-for-turn turret around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turret around y-axis;
+		//wait-for-turn turret around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 

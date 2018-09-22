@@ -9,7 +9,7 @@ piece  rflare, lflare, body, pelvis, rthigh, lthigh, rleg, head,
 
 static-var  ReadyToAim, gun_1, bMoving, bAiming,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed;
+            moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -1112,27 +1112,32 @@ StopMoving()
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
 	start-script RequestState(1);
 	turn body to y-axis <0.000000> speed <200.038462>;
 	bAiming = FALSE;
+	wpn1_lasthead = 1000000;
 }
 
 AimPrimary(heading, pitch)
 {
-	start-script RequestState(0);
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
+	start-script RequestState(0);
 	bAiming = TRUE;
-	sleep 33;
 	turn body to y-axis heading speed <250.027473>;
 	while( !ReadyToAim )
 	{
-		sleep 50;
+		return(0);
 	}
-	wait-for-turn body around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn body around y-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 
