@@ -329,8 +329,8 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
-	sleep restore_delay;
 	set-signal-mask SIG_AIM;
+	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed <300.000000>;
 	wait-for-turn turret around y-axis;
 	wpn1_lasthead = 1000000;
@@ -351,18 +351,18 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	bAiming = TRUE;
+	turn turret to y-axis heading speed <450.000000>;
 	while( !Static_Var_3 )
 	{
 		return(0);
 	}
-	turn turret to y-axis heading speed <450.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn turret around y-axis;
 	}
-	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 

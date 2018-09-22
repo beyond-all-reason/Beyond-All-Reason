@@ -8,7 +8,7 @@ piece  head, torso, hips, mpack, rgunflare, lgunflare, eyeflare, rmispoint,
        rheel, luparm, ruparm, rarm, larm, eyegun, rmissle2, lmissle2,base;
 
 static-var  Static_Var_1, Static_Var_2, bMoving, Static_Var_4, Static_Var_5, foot, notrdyStomp,
-            restore_delay, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging;
+            restore_delay, Static_Var_7, Static_Var_8, statechg_DesiredState, statechg_StateChanging, wpn1_lasthead, wpn2_lasthead;
 
 #define SIG_FOOTSTOMP_L 8
 #define SIG_FOOTSTOMP_R 16
@@ -803,25 +803,30 @@ setSFXoccupy(Func_Var_1)
 
 RestoreBody()
 {
-	sleep 10000;
 	set-signal-mask 0;
+	sleep 10000;
 	start-script RequestState(1);
 	turn torso to y-axis <0.000000> speed <90.000000>;
+	wpn1_lasthead = 1000000;
 }
 
 RestoreHead()
 {
-	sleep 9000;
 	set-signal-mask 0;
+	sleep 9000;
 	turn head to y-axis <0.000000> speed <110.000000>;
+	wpn2_lasthead = 1000000;
 }
 
 AimWeapon2(heading, pitch)
 {
 	signal 4;
-	set-signal-mask 4;
 	turn head to y-axis heading speed <130.000000>;
-	wait-for-turn head around y-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 65536 - 5000)))
+	{
+		wait-for-turn head around y-axis;
+	}
+	wpn2_lasthead = heading;
 	start-script RestoreHead();
 	return (1);
 }
@@ -866,14 +871,18 @@ QueryWeapon3(piecenum)
 AimWeapon1(heading, pitch)
 {
 	start-script RequestState(0);
-	signal 2;
-	set-signal-mask 2;
-	while( !Static_Var_8 )
+	if( !Static_Var_8 )
 	{
-		sleep 250;
+		return (0);
 	}
+	signal 2;
 	turn torso to y-axis heading speed <50.000000>;
-	wait-for-turn torso around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreBody();
 	return (1);
 }
@@ -884,9 +893,9 @@ FireWeapon1()
 	{
 		turn luparm to x-axis <85.000000> speed <140.000000>;
 		turn larm to x-axis <-100.000000> speed <140.000000>;
-		show lgunflare;
+		//show lgunflare;
 		sleep 150;
-		hide lgunflare;
+		//hide lgunflare;
 		turn larm to x-axis <-86.000000> speed <60.000000>;
 		turn luparm to x-axis <0.000000> speed <60.000000>;
 	}
@@ -894,9 +903,9 @@ FireWeapon1()
 	{
 		turn ruparm to x-axis <85.000000> speed <140.000000>;
 		turn rarm to x-axis <-100.000000> speed <140.000000>;
-		show rgunflare;
+		//show rgunflare;
 		sleep 150;
-		hide rgunflare;
+		//hide rgunflare;
 		turn rarm to x-axis <-86.000000> speed <60.000000>;
 		turn ruparm to x-axis <0.000000> speed <60.000000>;
 	}
@@ -923,7 +932,7 @@ AimWeapon4(heading, pitch)
 	signal SIG_FOOTSTOMP_L;
 	set-signal-mask SIG_FOOTSTOMP_L;
 	while(notrdyStomp OR !foot) sleep 65;
-	return (1);
+	return (0);
 }
 
 AimFromWeapon4(piecenum)
@@ -941,7 +950,7 @@ AimWeapon5(heading, pitch)
 	signal SIG_FOOTSTOMP_R;
 	set-signal-mask SIG_FOOTSTOMP_R;
 	while(notrdyStomp OR foot) sleep 65;
-	return (1);
+	return (0);
 }
 
 AimFromWeapon5(piecenum)
