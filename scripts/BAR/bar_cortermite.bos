@@ -5,7 +5,7 @@
 
 piece  body, head, barrel1, barrel2, flare1, flare2,  leg1a,leg1b,leg2a,leg2b,leg3a,leg3b,leg4a,leg4b,leg5a,leg5b,leg6a,leg6b;
 
-static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD;
+static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,WALK_PERIOD, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -98,6 +98,53 @@ static-var  moving, Static_Var_2, restore_delay, gun_1,moveSpeed, currentSpeed,W
 	}
 
 
+DoTheWalking()
+{
+	while(TRUE)
+	{
+		WAIT_WALK
+		FRONT_RIGHT_UP
+		MIDDLE_RIGHT_BACK
+		REAR_LEFT_DOWN
+		WAIT_WALK
+		FRONT_RIGHT_DOWN
+		MIDDLE_LEFT_UP
+		REAR_LEFT_BACK
+		WAIT_WALK
+		FRONT_RIGHT_BACK
+		MIDDLE_LEFT_DOWN
+		REAR_RIGHT_UP
+		WAIT_WALK
+		MIDDLE_LEFT_BACK
+		REAR_RIGHT_DOWN
+		FRONT_LEFT_UP
+		WAIT_WALK
+		REAR_RIGHT_BACK
+		FRONT_LEFT_DOWN
+		MIDDLE_RIGHT_UP
+		WAIT_WALK
+		FRONT_LEFT_BACK
+		MIDDLE_RIGHT_DOWN
+		REAR_LEFT_UP
+	}
+}
+
+UnitSpeed()
+{
+	while(TRUE)
+	{
+		if (moving)
+		{
+			//currentSpeed = (moveSpeed * 80)/(get CURRENT_SPEED);
+			//if (currentSpeed>300) currentSpeed=300;
+			//WALK_PERIOD=currentSpeed;
+			//get PRINT(1,WALK_PERIOD,moveSpeed);
+			WALK_PERIOD=98;
+		}
+		sleep 142;
+		//get PRINT(moving, currentSpeed,0,0);
+	}
+}
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -128,36 +175,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 	return (0);
 	// Build by COBBLER Ver4.0 Copyright @1998 DIGITAL CONCEPT SOFTWARE (MANU@inext.fr) / http://www.annihilationcenter.com/DCS/  
-}
-DoTheWalking()
-{
-	while(TRUE)
-	{
-		WAIT_WALK
-		FRONT_RIGHT_UP
-		MIDDLE_RIGHT_BACK
-		REAR_LEFT_DOWN
-		WAIT_WALK
-		FRONT_RIGHT_DOWN
-		MIDDLE_LEFT_UP
-		REAR_LEFT_BACK
-		WAIT_WALK
-		FRONT_RIGHT_BACK
-		MIDDLE_LEFT_DOWN
-		REAR_RIGHT_UP
-		WAIT_WALK
-		MIDDLE_LEFT_BACK
-		REAR_RIGHT_DOWN
-		FRONT_LEFT_UP
-		WAIT_WALK
-		REAR_RIGHT_BACK
-		FRONT_LEFT_DOWN
-		MIDDLE_RIGHT_UP
-		WAIT_WALK
-		FRONT_LEFT_BACK
-		MIDDLE_RIGHT_DOWN
-		REAR_LEFT_UP
-	}
 }
 
 StartMoving()
@@ -229,22 +246,6 @@ StopMoving()
 	
 }
 
-UnitSpeed()
-{
-	while(TRUE)
-	{
-		if (moving)
-		{
-			//currentSpeed = (moveSpeed * 80)/(get CURRENT_SPEED);
-			//if (currentSpeed>300) currentSpeed=300;
-			//WALK_PERIOD=currentSpeed;
-			//get PRINT(1,WALK_PERIOD,moveSpeed);
-			WALK_PERIOD=98;
-		}
-		sleep 142;
-		//get PRINT(moving, currentSpeed,0,0);
-	}
-}
 
 
 HitByWeapon(anglex, anglez)
@@ -284,33 +285,45 @@ SetMaxReloadTime(Func_Var_1)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn head to y-axis <0.000000> speed <55.000000>;
 	turn head to x-axis <0.000000> speed <55.000000>;
+	wait-for-turn head around y-axis;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
 	Static_Var_2 = 0;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn head to y-axis heading speed <180.000000>;
 	turn head to x-axis <0.000000> - pitch speed <110.000000>;
-	wait-for-turn head around y-axis;
-	wait-for-turn head around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn head around y-axis;
+		wait-for-turn head around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn head to y-axis heading speed <110.000000>;
 	turn head to x-axis <0.000000> - pitch speed <80.000000>;
-	wait-for-turn head around y-axis;
-	wait-for-turn head around x-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
+		wpn2_lasthead = 1000000;
+		wait-for-turn head around y-axis;
+		wait-for-turn head around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn2_lasthead = heading;
 	return (1);
 }
 

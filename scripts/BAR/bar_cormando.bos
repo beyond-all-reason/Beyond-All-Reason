@@ -12,7 +12,7 @@ piece  base, turret, sleeve, barrel, torso, rnano,
 #define SIG_BUILD		4	
 
 
-static-var  bMoving, spray, statechg_DesiredState, statechg_StateChanging, notBuilding;
+static-var  bMoving, spray, statechg_DesiredState, statechg_StateChanging, notBuilding, wpn1_lasthead;
 
 walk()
 {
@@ -545,12 +545,16 @@ AimFromPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal 2;
-	set-signal-mask 2;
 	move turret to y-axis [5.5] speed [10];
 	turn sleeve to x-axis <270.000000>-pitch speed <95.000000>;
 	turn turret to y-axis heading speed <300.000000>;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn turret around y-axis;
+		wait-for-turn sleeve around x-axis;
+	}
+	wpn1_lasthead = heading;
 	return (1);
 }
 

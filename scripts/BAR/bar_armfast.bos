@@ -6,7 +6,7 @@
 piece  torso, flare, pelvis, rthigh, lthigh, lleg, rleg, rfoot,
        ruparm, luparm, lloarm, rloarm, lfoot, gun,head;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -511,6 +511,7 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn torso to y-axis <0.000000> speed <150.000000>;
 	turn rloarm to x-axis <0.000000> speed <45.000000>;
@@ -518,6 +519,7 @@ RestoreAfterDelay()
 	wait-for-turn torso around y-axis;
 	wait-for-turn rloarm around x-axis;
 	wait-for-turn ruparm around x-axis;
+	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 }
 
@@ -534,19 +536,24 @@ QueryPrimary(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		sleep 100;
-	}
 	turn torso to y-axis heading speed <750.000000>;
 	turn ruparm to x-axis <-90.021978> speed <400.000000>;
 	turn rloarm to x-axis <0.000000> - pitch now;
-	wait-for-turn torso around y-axis;
-	wait-for-turn rloarm around x-axis;
-	wait-for-turn ruparm around x-axis;
+	while( !Static_Var_3 )
+	{
+		return(0);
+	}
+
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+		wait-for-turn rloarm around x-axis;
+		wait-for-turn ruparm around x-axis;
+	}
 	start-script RestoreAfterDelay();
+	wpn1_lasthead = heading;
 	return (1);
 }
 

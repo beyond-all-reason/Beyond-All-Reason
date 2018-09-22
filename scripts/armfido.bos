@@ -301,18 +301,18 @@ RestoreAfterDelay()
 
 AimPrimary(heading, pitch)
 {
+	signal SIG_AIM;
+	turn turret to y-axis heading speed <150.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	if( Static_Var_2 == 1 OR gun_2 == 1 )
 	{
 		return(0);
 	}
-	signal SIG_AIM;
-	turn turret to y-axis heading speed <150.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
+        wait-for-turn turret around y-axis;
+        wait-for-turn sleeve around x-axis;
 	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
@@ -321,18 +321,18 @@ AimPrimary(heading, pitch)
 
 AimSecondary(heading, pitch)
 {
+	signal SIG_AIM;
+	turn turret to y-axis heading speed <150.000000>;
+	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	if( Static_Var_2 == 0 OR gun_2 == 1 )
 	{
 		return(0);
 	}
-	signal SIG_AIM;
-	turn turret to y-axis heading speed <150.000000>;
-	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;
-	wait-for-turn turret around y-axis;
-	wait-for-turn sleeve around x-axis;
+        wait-for-turn turret around y-axis;
+        wait-for-turn sleeve around x-axis;
 	}
 	start-script RestoreAfterDelay();
 	wpn2_lasthead = heading;

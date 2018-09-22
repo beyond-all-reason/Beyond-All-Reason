@@ -5,7 +5,7 @@
 
 piece  pelvis, body, rthigh, lthigh , lleg, rleg, rfoot,lfoot, misturret, misflare, lturret, rturret, lbarrel, rbarrel, lflare, rflare;
 
-static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1;
+static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, wpn1_lasthead, wpn2_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -340,49 +340,64 @@ StopMoving()
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn body to y-axis <0.000000> speed <120.000000>;
 	turn lturret to x-axis <0.000000> speed <120.000000>;
 	turn rturret to x-axis <0.000000> speed <120.000000>;
 	turn misturret to y-axis <0.000000> speed <120.000000>;
 	bAiming = FALSE;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
+	wpn3_lasthead = 1000000;
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		sleep 250;
-	}
 	turn body to y-axis heading speed <140.000000>;
 	turn lturret to x-axis 0 - pitch speed <360>;
 	turn rturret to x-axis 0 - pitch speed <360>;
-	wait-for-turn body around y-axis;
-	wait-for-turn lturret around x-axis;
-	
+	while( !Static_Var_3 )
+	{
+		return(0);
+	}
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn body around y-axis;
+		wait-for-turn lturret around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 AimSecondary(heading, pitch)
 {
-	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
+	signal SIG_AIM;
 	turn misturret to y-axis heading speed <180.000000>;
-	wait-for-turn misturret around y-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
+		wpn2_lasthead = 1000000;
+		wait-for-turn misturret around y-axis;
+	}
+	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
 
 AimTertiary(heading, pitch)
 {
-	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
+	signal SIG_AIM;
 	turn misturret to y-axis heading speed <180.000000>;
-	wait-for-turn misturret around y-axis;
+	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
+	{
+		wpn3_lasthead = 1000000;
+		wait-for-turn misturret around y-axis;
+	}
+	wpn3_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }
