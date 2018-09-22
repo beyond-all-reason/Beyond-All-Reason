@@ -749,14 +749,14 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	bAiming = TRUE;
-	while( !Static_Var_5 )
-	{
-		sleep 250;
-	}
 	move rmissle2 to y-axis [6.000000] speed [10.000000];
 	move lmissle2 to y-axis [6.000000] speed [10.000000];
 	turn luparm to x-axis <0.000000> speed <120.027473>;
 	turn ruparm to x-axis <0.000000> speed <120.027473>;
+	while( !Static_Var_5 )
+	{
+		return(0);
+	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
 	{
 		wpn1_lasthead = 1000000;

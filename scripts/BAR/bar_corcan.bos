@@ -333,8 +333,8 @@ AimPrimary(heading, pitch)
 		wait-for-turn head around y-axis;
 		wait-for-turn turret around x-axis;
 	}
-	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 

@@ -106,7 +106,7 @@ elseif Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0
 		[UnitDefNames.cortermite.id] = true,
 		[UnitDefNames.armraz.id] = true,
 		[UnitDefNames.armmar.id] = true,
-		--[UnitDefNames.armbanth.id] = true,
+		[UnitDefNames.armbanth.id] = true,
 		--[UnitDefNames.corkrog.id] = true,
 		--[UnitDefNames.corkarg.id] = true,
 		--[UnitDefNames.corjugg.id] = true,

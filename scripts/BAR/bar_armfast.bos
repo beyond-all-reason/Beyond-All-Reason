@@ -552,8 +552,8 @@ AimPrimary(heading, pitch)
 		wait-for-turn rloarm around x-axis;
 		wait-for-turn ruparm around x-axis;
 	}
-	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
+	start-script RestoreAfterDelay();
 	return (1);
 }
 
