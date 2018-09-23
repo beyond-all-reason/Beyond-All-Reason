@@ -300,19 +300,19 @@ return {
         texture            = [[flare]],
       },
     },
-    electricstorm = {
-      air                = true,
-      class              = [[CExpGenSpawner]],
-      count              = 1,
-      ground             = true,
-      water              = true,
-      underwater         = true,
-      properties = {
-        delay              = [[10 r70]],
-        explosiongenerator = [[custom:lightning_stormbolt]],
-        pos                = [[-55 r70, 1, -55 r70]],
-      },
-    },
+    --electricstorm = {
+    --  air                = true,
+    --  class              = [[CExpGenSpawner]],
+    --  count              = 1,
+    --  ground             = true,
+    --  water              = true,
+    --  underwater         = true,
+    --  properties = {
+    --    delay              = [[10 r70]],
+    --    explosiongenerator = [[custom:lightning_stormbolt]],
+    --    pos                = [[-55 r70, 1, -55 r70]],
+    --  },
+    --},
     groundflash = {
       air                = true,
       flashalpha         = 0.02,
