@@ -837,8 +837,8 @@ AimWeapon2(heading, pitch)
 	{
 		wait-for-turn head around y-axis;
 	}
-	start-script RestoreHead();
 	wpn2_lasthead = heading;
+	start-script RestoreHead();
 	return (1);
 }
 

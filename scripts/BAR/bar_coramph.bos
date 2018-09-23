@@ -7,7 +7,7 @@ piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe;
 
 static-var  bMoving, bAiming, Static_Var_3, restore_delay, Static_Var_5,
-            gun_1, Static_Var_7, Static_Var_8, Unit_Depth;
+            gun_1, Static_Var_7, Static_Var_8, Unit_Depth, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
@@ -672,11 +672,13 @@ SweetSpot(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn head to y-axis <0.000000> speed <90.000000>;
 	
 	wait-for-turn head around y-axis;
-
+	wpn1_lasthead = 1000000;
+	wpn3_lasthead = 1000000;
 	move lancher to y-axis [0] speed [25];
 	turn lancher to y-axis <0> speed <200.000000>;
 	wait-for-turn lancher around y-axis;
@@ -692,11 +694,14 @@ AimSecondary(heading, pitch)
      return (0);
     }
 	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
 	move lancher to y-axis [5] speed [25];
 	turn lancher to y-axis heading speed <200.000000>;
-	wait-for-turn lancher around y-axis;
-	start-script RestoreAfterDelay();
+	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
+	{
+		wpn3_lasthead = 1000000;
+		wait-for-turn lancher around y-axis;
+	}
+	wpn3_lasthead = heading;
 	return (1);
 }
 
@@ -724,10 +729,14 @@ AimPrimary(heading, pitch)
      return (0);
     }
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	turn head to y-axis heading speed <200.000000>;
-	wait-for-turn head around y-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn head around y-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

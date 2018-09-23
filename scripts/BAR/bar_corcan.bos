@@ -6,7 +6,7 @@
 piece  torso, head, flare, lleg, barrel,
        pelvis, rleg, lfoot, rfoot,turret;
 
-static-var  restore_delay,bMoving;
+static-var  restore_delay,bMoving, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -313,20 +313,27 @@ QueryPrimary(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	turn turret to y-axis <0.000000> speed <135.000000>;
 	turn head to x-axis <0.000000> speed <85.000000>;
+	wait-for-turn turret around y-axis;
+	wpn1_lasthead = 1000000;
 	return (0);
 }
 
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	turn turret to y-axis heading speed <270.000000>;
 	turn head to x-axis <0.000000> - pitch speed <170.000000>;
-	wait-for-turn head around y-axis;
-	wait-for-turn turret around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn head around y-axis;
+		wait-for-turn turret around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

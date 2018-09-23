@@ -118,7 +118,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailmedium",
+				cegTag = "missiletrailviper",
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 70,
 				flighttime = 1.05,
@@ -156,6 +156,7 @@ return {
 				},
 				customparams = {
 					bar_model = "cormissile3fast.s3o",
+					light_color = "1 0.4 0.15",
 					expl_light_color = "1 0.5 0.05",
 				},
 			},

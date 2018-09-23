@@ -633,7 +633,7 @@ function widget:DrawScreen()
 	end
 
 	-- title
-	local text = "\255\190\255\190" .. uDef.humanName .. "   " .. grey .. uDef.name .. grey
+	local text = "\255\190\255\190" .. uDef.humanName
 	if uID then
 		text = text .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
 	end

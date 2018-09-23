@@ -578,7 +578,7 @@ AimPrimary(heading, pitch)
 	turn gun to x-axis <0.000000> - pitch speed <60>;
 		while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
@@ -630,7 +630,7 @@ AimSecondary(heading, pitch)
 	turn gun to x-axis <0.000000> - pitch speed <60>;
 	while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{

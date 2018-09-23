@@ -376,7 +376,7 @@ AimTertiary(heading, pitch)
 	signal SIG_AIM_3;
 	while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	turn torso to y-axis heading speed <275.000000>;
 	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))

@@ -1227,7 +1227,7 @@ AimPrimary(heading, pitch)
 	turn torso to y-axis heading speed <250.027473>;
 	while( !Static_Var_1 )
 	{
-		sleep 50;
+		return(0);
 	}
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{

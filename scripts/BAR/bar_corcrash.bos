@@ -6,7 +6,7 @@
 piece  rflare, lflare, torso, pelvis, lleg, rleg, lbarrel,
        rbarrel,head,lthigh,rthigh;
 
-static-var  gun_3, notMoving, restore_delay, currentSpeed, moveSpeed, maxpitch;
+static-var  gun_3, notMoving, restore_delay, currentSpeed, moveSpeed,wpn3_lasthead;
 
 // Signal definitions
 #define SIG_MOVE			2
@@ -235,6 +235,7 @@ QueryPrimary(piecenum)
 AimFromTertiary(piecenum)
 {
 	piecenum = head;
+	return (0);
 }
 
 QueryTertiary(piecenum)
@@ -244,24 +245,23 @@ QueryTertiary(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM_3;
 	sleep restore_delay;
-	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <90.000000>;
+	wpn3_lasthead = 1000000;
+	return (0);
 }
 
 AimTertiary(heading, pitch)
 {
 	signal SIG_AIM_3;
-	set-signal-mask SIG_AIM_3;
 	turn torso to y-axis heading speed <225.000000>;
-	maxpitch=pitch;
-	if (maxpitch > <50>) 
+	if (((get ABS(wpn3_lasthead - heading)) > 65536) OR(((get ABS(wpn3_lasthead - heading)) > 5000) AND ((get ABS(wpn3_lasthead - heading)) < 60536)))
 	{
-		maxpitch = <50>;
+		wpn3_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
 	}
-	turn head to x-axis <0> - maxpitch speed <225>;
-	wait-for-turn head around x-axis;
-	wait-for-turn torso around y-axis;
+	wpn3_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

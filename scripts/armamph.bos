@@ -1540,7 +1540,7 @@ AimPrimary(heading, pitch)
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	turn lasturret to y-axis heading speed <200.000000>;
 	turn lasturret to x-axis <0.000000> - pitch speed <200.000000>;

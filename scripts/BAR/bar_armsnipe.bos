@@ -8,7 +8,7 @@ piece  flare, torso, head, pelvis, rthigh, rleg, lleg, lthigh,
        barrel1, barrel2, rhand, rfoot, lfoot;
 
 static-var  Static_Var_1, bMoving, Static_Var_3, Static_Var_4, restore_delay,
-            statechg_DesiredState, statechg_StateChanging, moveSpeed, currentSpeed;
+            statechg_DesiredState, statechg_StateChanging, moveSpeed, currentSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -995,8 +995,8 @@ UnitSpeed()
 {
 	while(TRUE)
 	{
-		currentSpeed = (get CURRENT_SPEED)*130/moveSpeed;
-		if (currentSpeed<20) currentSpeed=20;
+		currentSpeed = 1.75 * (get CURRENT_SPEED)*100/moveSpeed;
+		if (currentSpeed<35) currentSpeed=35;
 		sleep 142;
 	}
 }
@@ -1063,9 +1063,12 @@ StopMoving()
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <200.000000>;
+	wait-for-turn torso around y-axis;
+	wpn1_lasthead = 1000000;
 	start-script RequestState(1);
 }
 
@@ -1073,15 +1076,19 @@ AimPrimary(heading, pitch)
 {
 	start-script RequestState(0);
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	while( !Static_Var_1 )
 	{
-		sleep 200;
+		return(0);
 	}
 	turn torso to y-axis heading speed <210.000000>;
 	turn rloarm to x-axis <-23.005495> speed <50.000000>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn rloarm around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+		wait-for-turn rloarm around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 }

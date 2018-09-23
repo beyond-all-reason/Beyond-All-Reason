@@ -6,7 +6,7 @@
 piece  torso, gun, rfirept, lfirept, rgun, lgun, pelvis, rleg,
        rfoot, lleg, lfoot, lthigh, rthigh, ground,ltoe,rtoe;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, gun_2, Aim1, Aim2, restore, currentSpeed, moveSpeed;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, gun_2, Aim1, Aim2, restore, currentSpeed, moveSpeed, wpn1_lasthead, wpn2_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
@@ -557,6 +557,7 @@ QuerySecondary(piecenum)
 
 RestoreAfterDelay()
 {
+	set-signal-mask SIG_AIM;
 	while (restore == FALSE)
 	{
 	sleep 50;
@@ -567,6 +568,8 @@ RestoreAfterDelay()
 	sleep 2750;
 	turn torso to y-axis <0.000000> speed <90>;
 	turn gun to x-axis <0.000000> speed <45>;
+	wpn1_lasthead = 1000000;
+	wpn2_lasthead = 1000000;
 	bAiming = FALSE;
 	}
 }
@@ -576,16 +579,20 @@ AimPrimary(heading, pitch)
 	if (Aim1 == TRUE)
 	{
 	signal SIG_AIM;
-	set-signal-mask SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	turn torso to y-axis heading speed <112>;
 	turn gun to x-axis <0.000000> - pitch speed <60>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn gun around x-axis;
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	{
+		wpn1_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+		wait-for-turn gun around x-axis;
+	}
+	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 	}
@@ -624,16 +631,20 @@ AimSecondary(heading, pitch)
 	if (Aim2 == TRUE)
 	{
 	signal SIG_AIM_2;
-	set-signal-mask SIG_AIM_2;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
 	{
-		sleep 100;
+		return(0);
 	}
 	turn torso to y-axis heading speed <112>;
 	turn gun to x-axis <0.000000> - pitch speed <60>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn gun around x-axis;
+	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
+	{
+		wpn2_lasthead = 1000000;
+		wait-for-turn torso around y-axis;
+		wait-for-turn gun around x-axis;
+	}
+	wpn2_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
 	}
