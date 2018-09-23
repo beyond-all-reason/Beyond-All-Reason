@@ -170,14 +170,6 @@ function UnitDef_Post(name, uDef)
 	if uDef.category and uDef.category['chicken'] ~= nil then	-- doesnt seem to work
 		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy
 	end
-
-	if uDef.workertime then
-		if uDef.reclaimspeed then
-			uDef.reclaimspeed =  0.90 * uDef.reclaimspeed
-		else
-			uDef.reclaimspeed = 0.90 * uDef.workertime
-		end
-	end
 	
 	if uDef.icontype and uDef.icontype == "sea" then
 		if uDef.featuredefs and uDef.featuredefs.dead and uDef.featuredefs.dead.metal and uDef.buildcostmetal then

@@ -1,6 +1,9 @@
 ﻿10.12 -> 10.13
 XX/XX/2018
 
+Balance:
+ • Reverted the global 10% reclaimspeed nerf (see 10.00)
+
 Other:
  • Fixed "Set Target Default" erroring at game start
 
