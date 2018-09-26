@@ -7,6 +7,7 @@ Balance:
 Other:
  • Fixed "Set Target Default" erroring at game start
  • "Contain mouse" option fixed and should show up in the options
+ • Auto disabling map widgets: *Mearth Location Tags*1.0 (has render errors) and "Ambient player" (DsD v8)
 
 
 10.11 -> 10.12
