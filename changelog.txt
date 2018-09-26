@@ -6,6 +6,7 @@ Balance:
 
 Other:
  • Fixed "Set Target Default" erroring at game start
+ • "Contain mouse" option fixed and should show up in the options
 
 
 10.11 -> 10.12

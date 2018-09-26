@@ -43,7 +43,30 @@ local isInView = true
 local island = nil -- Later it will be checked and set to true of false
 local drawingEnabled = true
 
-local checkInView = false	-- false because Spring.IsAABBInView isnt working properly it seems
+
+local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+if Engine and Engine.version then
+	local function Split(s, separator)
+		local results = {}
+		for part in s:gmatch("[^"..separator.."]+") do
+			results[#results + 1] = part
+		end
+		return results
+	end
+	engineVersion = Split(Engine.version, '-')
+	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
+		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
+	else
+		engineVersion = tonumber(Engine.version)
+	end
+elseif Game and Game.version then
+	engineVersion = tonumber(Game.version)
+end
+
+local checkInView = false
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401732 then
+	checkInView = true
+end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -424,7 +447,6 @@ function widget:Update(dt)
 			Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+9999,1,Game.mapSizeZ) or
 			Spring.IsAABBInView(-9999,0,Game.mapSizeZ+9999, Game.mapSizeX+9999,1,Game.mapSizeZ)
 		then
-			--Spring.Echo(math.random())
 			isInView = true
 		else
 			isInView = false

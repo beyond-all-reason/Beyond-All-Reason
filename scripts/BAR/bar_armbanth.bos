@@ -450,12 +450,12 @@ AimPrimary(heading, pitch) //hand cannons
 	myHeading = heading;
 	turn torso to y-axis [6.000000] speed <10>;
 	turn lshoulder to x-axis 0 - pitch speed <120>;
-	turn rshoulder to x-axis 0 - pitch speed <120>;
+	turn rshoulder to x-axis 0 - pitch speed <120>;	turn torso to y-axis heading speed <100.021978>;
 	while( !Static_Var_5 )
 	{
 		return(0);
 	}
-	turn torso to y-axis heading speed <100.021978>;
+
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > <5>) AND ((get ABS(wpn1_lasthead - heading)) < 65536 - <5>)))
 	{
 		wpn1_lasthead = 1000000;
