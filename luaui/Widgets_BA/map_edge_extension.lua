@@ -21,6 +21,7 @@ end
 
 local spGetGroundHeight = Spring.GetGroundHeight
 local spTraceScreenRay = Spring.TraceScreenRay
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local gridTex = "LuaUI/Images/vr_grid_large.dds"
@@ -38,6 +39,9 @@ local uup
 local uleft
 local ugrid
 local ubrightness
+local spIsAABBInView = Spring.IsAABBInView
+local mapSizeX = Game.mapSizeX
+local mapSizeZ = Game.mapSizeZ
 local isInView = true
 
 local island = nil -- Later it will be checked and set to true of false
@@ -431,7 +435,6 @@ if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0
 	doWaterLevelCheck = true
 end
 
-isInView = true
 function widget:Update(dt)
 	if doWaterLevelCheck and not resetted then
 		resetsec = resetsec + dt
@@ -442,10 +445,10 @@ function widget:Update(dt)
 	end
 
 	if checkInView then
-		if	Spring.IsAABBInView(-9999,0,-9999, Game.mapSizeX+9999,1,0) or
-			Spring.IsAABBInView(-9999,0,0, 0,1,Game.mapSizeZ) or
-			Spring.IsAABBInView(Game.mapSizeX,0,0, Game.mapSizeX+9999,1,Game.mapSizeZ) or
-			Spring.IsAABBInView(-9999,0,Game.mapSizeZ+9999, Game.mapSizeX+9999,1,Game.mapSizeZ)
+		if	spIsAABBInView(-9999,0,-9999, mapSizeX+9999,1,0) or
+			spIsAABBInView(-9999,0,0, 0,1,mapSizeZ) or
+			spIsAABBInView(mapSizeX,0,0, mapSizeX+9999,1,mapSizeZ) or
+			spIsAABBInView(-9999,0,mapSizeZ+9999, mapSizeX+9999,1,mapSizeZ)
 		then
 			isInView = true
 		else

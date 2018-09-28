@@ -35,8 +35,36 @@ local spTraceScreenRay = Spring.TraceScreenRay
 
 local heights = {}
 local island = false
+local spIsAABBInView = Spring.IsAABBInView
 local mapSizeX = Game.mapSizeX
 local mapSizeZ = Game.mapSizeZ
+local isInView = true
+
+
+local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+if Engine and Engine.version then
+	local function Split(s, separator)
+		local results = {}
+		for part in s:gmatch("[^"..separator.."]+") do
+			results[#results + 1] = part
+		end
+		return results
+	end
+	engineVersion = Split(Engine.version, '-')
+	if engineVersion[2] ~= nil and engineVersion[3] ~= nil then
+		engineVersion = tonumber(string.gsub(engineVersion[1], '%.', '')..engineVersion[2])
+	else
+		engineVersion = tonumber(Engine.version)
+	end
+elseif Game and Game.version then
+	engineVersion = tonumber(Game.version)
+end
+
+local checkInView = false
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401732 then
+	checkInView = true
+end
+
 
 --[[
 local maxHillSize = 800/res
@@ -309,14 +337,14 @@ local function DrawTiles()
 end
 
 function widget:DrawWorldPreUnit()
-	if DspLst then
+	if DspLst and isInView then
 		gl.CallList(DspLst)-- Or maybe you want to keep it cached but not draw it everytime.
 		-- Maybe you want Spring.SetDrawGround(false) somewhere
 	end	
 end
 
 function widget:DrawWorldRefraction()
-	if DspLst then
+	if DspLst and isInView then
 		gl.CallList(DspLst)-- Or maybe you want to keep it cached but not draw it everytime.
 		-- Maybe you want Spring.SetDrawGround(false) somewhere
 	end	
@@ -347,6 +375,18 @@ if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0
 			if resetsec > 1 then
 				resetted = true
 				widget:Initialize()
+			end
+		end
+
+		if checkInView then
+			if	spIsAABBInView(-9999,0,-9999, mapSizeX+9999,1,0) or
+				spIsAABBInView(-9999,0,0, 0,1,mapSizeZ) or
+				spIsAABBInView(mapSizeX,0,0, mapSizeX+9999,1,mapSizeZ) or
+				spIsAABBInView(-9999,0,mapSizeZ+9999, mapSizeX+9999,1,mapSizeZ)
+			then
+				isInView = true
+			else
+				isInView = false
 			end
 		end
 	end
