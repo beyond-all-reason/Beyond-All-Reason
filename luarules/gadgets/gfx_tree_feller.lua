@@ -9,7 +9,7 @@ function gadget:GetInfo()
     enabled   = true,
   }
 end
-     
+
 if  (gadgetHandler:IsSyncedCode()) then
 	local treefireExplosion = {
 		tiny = {
@@ -133,7 +133,7 @@ if  (gadgetHandler:IsSyncedCode()) then
 					elseif FeatureDefs[featureDefID].collisionVolume.scaleY > 65 then
 						size = 'large'
 					end
-					dissapearSpeed = 0.02 + Spring.GetFeatureHeight(featureID) / 4000
+					dissapearSpeed = 0.02 + Spring.GetFeatureHeight(featureID) / math.random(3700,4700)
 				end
 				local destroyFrame = GetGameFrame() + (falltime * (FeatureDefs[featureDefID].mass / dmg)) + 150 + (dissapearSpeed*4000)
 

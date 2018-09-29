@@ -1,13 +1,14 @@
 ﻿10.12 -> 10.13
-XX/XX/2018
+29/09/2018
 
 Balance:
  • Reverted the global 10% reclaimspeed nerf (see 10.00)
 
 Other:
  • Fixed "Set Target Default" erroring at game start
- • "Contain mouse" option fixed and should show up in the options
- • Auto disabling map widgets: *Mearth Location Tags*1.0 (has render errors) and "Ambient player" (DsD v8)
+ • Fixed some missing water-splash effects
+ • Fixed: The new "Contain mouse" option should show up in the options this time
+ • Fixed: Auto disabling map widgets: *Mearth Location Tags*1.0 (render errors) and "Ambient player" (DsD v8)
 
 
 10.11 -> 10.12
