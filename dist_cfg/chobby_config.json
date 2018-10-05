@@ -9,7 +9,7 @@
 
     "games" : ["ba:test", "chobby:test"],
     "maps" : [],
-    "engines" : [ "104.0.1-567-gc484c10 maintenance" ],
+    "engines" : [ "104.0.1-743-g9e82927 maintenance" ],
 
 	"auto_download" : true,
 	"auto_start" : true,

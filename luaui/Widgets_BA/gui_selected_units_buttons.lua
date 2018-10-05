@@ -63,8 +63,6 @@ local spIsGUIHidden            = Spring.IsGUIHidden
 local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 
 
-include("colors.h.lua")
-
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 

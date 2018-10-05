@@ -1,4 +1,3 @@
-include("colors.h.lua")
 include("keysym.h.lua")
 local versionNumber = "2.03"
 

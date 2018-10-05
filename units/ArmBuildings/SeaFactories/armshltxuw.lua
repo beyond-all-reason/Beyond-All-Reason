@@ -50,6 +50,7 @@ return {
 			"armcroc",
 		},
 		customparams = {
+			bar_script = "BAR/bar_armshltx.cob",
 			techlevel = 3,
 		},
 		featuredefs = {

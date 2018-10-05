@@ -51,8 +51,23 @@ function WatchLoad()
 	end
 end
 
+function SmokeUnit (smokePieces)
+	local n = #smokePieces
+	while (GetUnitValue(COB.BUILD_PERCENT_LEFT) ~= 0) do
+		Sleep(1000)
+	end
+	while true do
+		local health = GetUnitValue(COB.HEALTH)
+		if (health <= 66) then -- only smoke if less then 2/3rd health left
+			local x,y,z,dx,dy,dz = Spring.GetUnitPiecePosDir(unitID,smokePieces[math.random(1,n)])
+			Spring.SpawnCEG("blacksmoke", x,y,z, dx, dy, dz)
+		end
+		Sleep(20*health + 200)
+	end
+end
+
 function script.Create()
-	StartThread(common.SmokeUnit, {base, thrust1, thrust2, arm1, arm2, arm3, arm4})
+	StartThread(SmokeUnit, {base, thrust1, thrust2, arm1, arm2, arm3, arm4})
 	StartThread(WatchLoad)
 	Move(link0, y_axis, 0, 5000)
 	Move(link1, y_axis, 0, 5000)
@@ -65,8 +80,6 @@ function script.Create()
 	-- Turn(link4, 2, -math.pi/2)
 	link = {}
 end
-
-common = include("headers/common_includes_lus.lua")
 
 --This is unfortunately necessary due to the fact that the model is a 3do
 

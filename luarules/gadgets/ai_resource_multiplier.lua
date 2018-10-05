@@ -126,9 +126,11 @@ function gadget:Initialize()
 		for teamID,_ in pairs(aiTeams) do
 			local teamUnits = Spring.GetTeamUnitsSorted(teamID)
 			for uDefID, units in pairs(teamUnits) do
-				for _, unitID in pairs(units) do
-					if select(5,Spring.GetUnitHealth(unitID)) >= 1 then
-						gadget:UnitFinished(unitID, uDefID, teamID)
+				if type(units) == 'table' then
+					for _, unitID in pairs(units) do
+						if select(5,Spring.GetUnitHealth(unitID)) >= 1 then
+							gadget:UnitFinished(unitID, uDefID, teamID)
+						end
 					end
 				end
 			end

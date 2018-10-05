@@ -184,6 +184,9 @@ return {
 					subs = 5,
 					vtol = 35,
 				},
+				customparams = {
+					bar_model = "catapultmissile.s3o",
+				},
 			},
 		},
 		weapons = {

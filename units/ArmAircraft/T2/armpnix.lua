@@ -99,7 +99,7 @@ return {
 					l1subs = 5,
 				},
 				customparams = {
-					bar_model = "bombrr.s3o",
+					bar_model = "airbombt2.s3o",
                     expl_light_color = "1 0.5 0.05",
 					expl_light_heat_radius_mult = 1.3,
                 },

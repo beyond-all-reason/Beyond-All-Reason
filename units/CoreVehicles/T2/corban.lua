@@ -189,7 +189,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					bar_model = "tawf114a.s3o",
+					bar_model = "banishermissile.s3o",
                     light_mult = "0.32",		-- used by light_effects widget
                     light_color = "1 0.6 0.05",
                     expl_light_color = "1 0.5 0.05",

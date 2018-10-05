@@ -136,13 +136,28 @@ function UnitDef_Post(name, uDef)
 		end
 
 		-- BAR heap models
-		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.object then
+		if uDef.featuredefs then
 			local faction = 'cor'
 			if string.find(name, 'arm') then
 				faction = 'arm'
 			end
-			if VFS.FileExists('objects3d/BAR/'..faction..uDef.featuredefs.heap.object..".s3o") then
+			if uDef.featuredefs.heap and uDef.featuredefs.heap.object and VFS.FileExists('objects3d/BAR/'..faction..uDef.featuredefs.heap.object..".s3o") then
 				uDef.featuredefs.heap.object = 'BAR/'..faction..uDef.featuredefs.heap.object..".s3o"
+			end
+
+			for fname, params in pairs(uDef.featuredefs) do
+				if params.object then
+					if VFS.FileExists('objects3d/'..params.object) then
+
+					elseif VFS.FileExists('objects3d/'..params.object..".3do") then
+
+					elseif VFS.FileExists('objects3d/'..params.object..".s3o") then
+						uDef.featuredefs[fname].object = params.object..'.s3o'
+					else
+						Spring.Echo('3d object does not exist:  unit: '..name..'   featurename: '..fname..'   object: '..uDef.featuredefs[fname].object)
+						uDef.featuredefs[fname].object = ''
+					end
+				end
 			end
 		end
 

@@ -48,8 +48,6 @@ local message4 = ""
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-include("colors.h.lua")
-
 local floor = math.floor
 
 
@@ -110,10 +108,9 @@ function widget:DrawScreen()
   end
   
   local timer = widgetHandler:GetHourTimer()
-  local colorStr = WhiteStr
- 		
-  local msg = colorStr .. string.format("%s %s", "Gametype: ",  message)
-  local msg2 = colorStr .. message2
+
+  local msg = '\255\255\255\255' .. string.format("%s %s", "Gametype: ",  message)
+  local msg2 = '\255\255\255\255' .. message2
   local msg3 = "\255\255\0\0" .. message3
   local msg4
   if blink then

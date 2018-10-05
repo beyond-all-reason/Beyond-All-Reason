@@ -261,7 +261,7 @@ return {
 					subs = 5,
 				},
 				customparams = {
-					bar_model = "corshiprocket.s3o",
+					bar_model = "airbomb.s3o",
 					light_mult = 3,
 					light_radius_mult = 1.2,
 					light_color = "1 0.6 0.15",

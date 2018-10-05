@@ -51,6 +51,7 @@ return {
 			"corparrow",
 		},
 		customparams = {
+			bar_script = "BAR/bar_corgant.cob",
 			techlevel = 3,
 		},
 		featuredefs = {

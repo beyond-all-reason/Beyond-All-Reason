@@ -3,10 +3,8 @@ base, turret, sleeve, barrel, flare = piece('base', 'turret', 'sleeve', 'barrel'
 local SIG_AIM = {}
 
 function script.Create()
-	--StartThread(common.SmokeUnit, {base, turret, barrel})
-end
 
-common = include("headers/common_includes_lus.lua")
+end
 
 local function RestoreAfterDelay()
 	Sleep(2000)

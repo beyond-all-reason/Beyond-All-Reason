@@ -22,11 +22,12 @@ local random = math.random
 local depthChargeWeapons = {}
 for weaponID, weaponDef in pairs(WeaponDefs) do
     if weaponDef.type == 'TorpedoLauncher' then
-        if weaponDef.visuals.modelName == 'objects3d/minitorpedo.3do' then
-            depthChargeWeapons[weaponID] = 'splash-emerge-tiny'
-        elseif weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
+        --if weaponDef.visuals.modelName == 'objects3d/minitorpedo.3do' then
+        --    depthChargeWeapons[weaponID] = 'splash-emerge-tiny'
+        if weaponDef.visuals.modelName == 'objects3d/torpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/cordepthcharge.s3o'
+        or weaponDef.visuals.modelName == 'objects3d/torpedo.3do' or weaponDef.visuals.modelName == 'objects3d/depthcharge.3do' then
             depthChargeWeapons[weaponID] = 'splash-emerge-small'
-        elseif weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
+        elseif weaponDef.visuals.modelName == 'objects3d/coradvtorpedo.s3o' or weaponDef.visuals.modelName == 'objects3d/Advtorpedo.3do' then
             depthChargeWeapons[weaponID] = 'splash-emerge-large'
         else
             depthChargeWeapons[weaponID] = 'splash-emerge-small'

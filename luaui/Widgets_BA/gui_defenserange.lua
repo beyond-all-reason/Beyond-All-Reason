@@ -1,4 +1,3 @@
--- modinclude("colors.h.lua")
 include("keysym.h.lua")
 
 local versionNumber = "6.32"

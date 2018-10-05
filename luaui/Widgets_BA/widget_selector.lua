@@ -35,7 +35,6 @@ end
 -- relies on a gadget to implement "luarules reloadluaui"
 -- relies on custom stuff in widgetHandler to implement blankOutConfig and allowUserWidgets
 
-include("colors.h.lua")
 include("keysym.h.lua")
 include("fonts.lua")
 
