@@ -48,11 +48,6 @@ local spSendCommands = Spring.SendCommands
 
 local toggledMetal
 
-local unba = false
-if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-	unba = true
-end
-
 local mexIds = {}
 local mexes = {}
 
@@ -64,36 +59,6 @@ local mexBuilderDef = {}
 
 local mexBuilder = {}
 
-local UnbaCommandersMexesDefs = { -- UnbaCommandersMexesDefs[unitDefID][level] = mexBuildDef = {buildings = 2, {[1] = landmexid * -1, [2]= seamexid* -1}}
-	[UnitDefNames["armcom"].id] = {
-		[1] = {buildings = 2, building = { [1] = UnitDefNames["armmex"].id * -1, [2]= UnitDefNames["armuwmex"].id* -1}},
-		[2] = {buildings = 2, building = { [1] = UnitDefNames["armmex"].id* -1, [2]= UnitDefNames["armuwmex"].id* -1}},
-		[3] = {buildings = 2, building = { [1] = UnitDefNames["armmex"].id* -1, [2]= UnitDefNames["armuwmex"].id* -1}},
-		[4] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		[5] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		[6] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		[7] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		[8] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		[9] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		[10] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		[11] = {buildings = 2, building = { [1] = UnitDefNames["armmoho"].id* -1, [2]= UnitDefNames["armuwmme"].id* -1}},
-		},
-	[UnitDefNames["corcom"].id] = {
-		[1] = {buildings = 2, building = { [1] = UnitDefNames["cormex"].id* -1, [2]= UnitDefNames["coruwmex"].id* -1}},
-		[2] = {buildings = 2, building = { [1] = UnitDefNames["cormex"].id* -1, [2]= UnitDefNames["coruwmex"].id* -1}},
-		[3] = {buildings = 2, building = { [1] = UnitDefNames["cormex"].id* -1, [2]= UnitDefNames["coruwmex"].id* -1}},
-		[4] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		[5] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		[6] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		[7] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		[8] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		[9] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		[10] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		[11] = {buildings = 2, building = { [1] = UnitDefNames["cormoho"].id* -1, [2]= UnitDefNames["coruwmme"].id* -1}},
-		}
-	}
-local isUnbaCommander = {}
-
 
 local function Distance(x1,z1,x2,z2)
 	local dis = (x1-x2)*(x1-x2)+(z1-z2)*(z1-z2)
@@ -101,21 +66,15 @@ local function Distance(x1,z1,x2,z2)
 end
 
 function widget:UnitCreated(unitID, unitDefID)
-  
+
 	local ud = UnitDefs[unitDefID]
-	if (Spring.GetModOptions().unba or "disabled") == "enabled" and (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
-		if UnbaCommandersMexesDefs[unitDefID][1] then
-			mexBuilder[unitID] = UnbaCommandersMexesDefs[unitDefID][1]
-		end
-		return
-	else
 	if mexBuilderDef[ud] then
 		mexBuilder[unitID] = mexBuilderDef[ud]
 		return
 	end
-	
+
 	if ud.buildOptions then
-		for i, option in ipairs(ud.buildOptions) do 
+		for i, option in ipairs(ud.buildOptions) do
 			if mexIds[option] then
 				if mexBuilderDef[ud] then
 					mexBuilderDef[ud].buildings = mexBuilderDef[ud].buildings+1
@@ -126,8 +85,6 @@ function widget:UnitCreated(unitID, unitDefID)
 				mexBuilder[unitID] = mexBuilderDef[ud]
 			end
 		end
-	end
-  
 	end
 end
 
@@ -144,17 +101,6 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function widget:Update()
-	if unba then
-		local commanderTable = Spring.GetTeamUnitsByDefs(Spring.GetMyTeamID(), {UnitDefNames["armcom"].id, UnitDefNames["corcom"].id})
-		for ct, unitID in pairs (commanderTable) do
-			local _, realxp = Spring.GetUnitExperience(unitID)
-			local level = (realxp < 0.99) and (math.floor(realxp * 10) + 1 ) or 11
-			if UnbaCommandersMexesDefs[Spring.GetUnitDefID(unitID)][level] then
-				mexBuilder[unitID] = UnbaCommandersMexesDefs[Spring.GetUnitDefID(unitID)][level]
-			end
-		end
-	end
-
 	local _,cmd,_ = spGetActiveCommand()
 	if (cmd == CMD_AREA_MEX) then
 		if (spGetMapDrawMode() ~= 'metal') then

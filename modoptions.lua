@@ -77,20 +77,6 @@ local options={
 		def    = false,
 		section= "ba_modes",
     },
-	
-	{
-		key="unba",
-		name="Unbalanced Commanders",
-		desc="Defines if commanders level up with xp and gain more power or not",
-		type="list",
-		def="disabled",
-		section="ba_modes",
-		items={
-			{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
-			{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
-			{key="exponly", name="ExperienceOnly", desc="Enable Unbalanced Commanders experience to power, health and reload multipliers"},
-		}
-	},
 
 	{
 		key="map_terraintype",

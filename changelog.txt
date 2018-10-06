@@ -1,4 +1,10 @@
-﻿10.12 -> 10.13
+﻿10.13 -> 10.14
+XX/XX/2018
+
+ • Removed unba commanders modoption
+
+
+10.12 -> 10.13
 29/09/2018
 
 Balance:

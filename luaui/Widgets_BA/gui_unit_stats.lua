@@ -220,10 +220,6 @@ function widget:Initialize()
 	WG['unitstats'].setOldUnitIcons = function(value)
 		oldUnitpics = value
 	end
-	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		VFS.Include("unbaconfigs/stats.lua")
-		unba = true
-	end
 	init()
 end
 
@@ -315,16 +311,7 @@ function widget:DrawScreen()
 		local uExp = spGetUnitExperience(uID)
 		armoredMultiple = select(2,Spring.GetUnitArmored(uID))
 
-		local unbacom = unba and (UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(uID)].name == "corcom")
 		local _, xp = Spring.GetUnitExperience(uID)
-		if unbacom then
-			if xp then
-				level = math.floor(xp*10) + 1
-				if xp*10 >= 9.9 then level = 11 end
-			else
-				level = "unknown"
-			end
-		end
 	end
 
 	maxWidth = 0
@@ -388,13 +375,7 @@ function widget:DrawScreen()
 	end
 
 
-	if unbacom then
-		local buildSpeed = BuildSpeed[level] or uDef.buildSpeed
-		DrawText('Build:', yellow .. buildSpeed)
-		if uID then
-			DrawText('Level:', green .. level)
-		end
-	elseif uDef.buildSpeed > 0 then
+	if uDef.buildSpeed > 0 then
 		DrawText('Build:', yellow .. uDef.buildSpeed)
 	end
 
@@ -442,16 +423,7 @@ function widget:DrawScreen()
 	------------------------------------------------------------------------------------
 	local wepCounts = {} -- wepCounts[wepDefID] = #
 	local wepsCompact = {} -- uWepsCompact[1..n] = wepDefID
-	if unbacom then
-		if uDef.weapons[level] and uDef.weapons[level + 11] and uDef.weapons[30] then
-			uWeps = {uDef.weapons[level], uDef.weapons[level + 11], uDef.weapons[30]}
-		else
-			uWeps = uDef.weapons
-		end
-	else
-		uWeps = uDef.weapons
-	end
-	local uWeps = uWeps
+	local uWeps = uDef.weapons
 	local weaponNums = {}
 	for i = 1, #uWeps do
 		local wDefID = uWeps[i].weaponDef
@@ -465,9 +437,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if unbacom then
-		weaponNums = { level, level + 11, 30}
-	end
+	weaponNums = { level, level + 11, 30}
 
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
 	local deathWeaponID = WeaponDefNames[uDef.deathExplosion].id
@@ -530,13 +500,6 @@ function widget:DrawScreen()
 				local range = spGetUnitWeaponState(uID,weaponNums[i] or -1,"range") or uWep.range
 			end
 
-			if unbacom then
-				if i == 1 then
-				range = Range[level]
-				elseif i == 2 then
-				range = Range2[level]
-				end
-			end
 			local range = range
 			local rangeBonus = range ~= 0 and (range/uWep.range-1) or 0
 			if uExp ~= 0 then

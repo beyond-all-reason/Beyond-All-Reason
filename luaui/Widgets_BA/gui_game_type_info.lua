@@ -73,10 +73,6 @@ function widget:Initialize()
   if (tonumber(Spring.GetModOptions().preventcombomb) or 0) ~= 0 then
 	message2 = "Commanders survive DGuns and commander explosions"
   end
-    
-  if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-	message4 = "Unbalanced Commanders is enabled: Commander levels up and gain upgrades"
-  end
   
   if (tonumber(Spring.GetModOptions().armageddontime) or -1) > 0 then
     plural = ""

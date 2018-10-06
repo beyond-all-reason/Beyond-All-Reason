@@ -73,7 +73,7 @@ end
 
 function UnitDef_Post(name, uDef)
 	-- load BAR stuff
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 and not ((Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "enabled") and (name == "armcom" or name == "corcom")) then
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 		-- BAR models
 		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
 		if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then

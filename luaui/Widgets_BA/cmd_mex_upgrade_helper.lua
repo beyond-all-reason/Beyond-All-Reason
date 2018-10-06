@@ -106,12 +106,7 @@ function widget:IsAbove(x,y)
     return false
   end
 
-  rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo}
-    if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		if UnitDefs[Spring.GetUnitDefID(builderID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(builderID)].name == "corcom" then
-			rightClickUpgradeParams = nil
-			return false
-		end
-	end
+  rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo }
+
   return true
 end
