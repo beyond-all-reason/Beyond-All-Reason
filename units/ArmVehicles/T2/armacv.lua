@@ -77,7 +77,6 @@ return {
 			[27] = "armdf",
 			[28] = "armvp",
 			[29] = "armavp",
-			-- [30] = "seaplatform",
 		},
 		customparams = {
 			arm_tank = "1",

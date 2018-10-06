@@ -76,7 +76,6 @@ return {
 			[26] = "corbuzz",
 			[27] = "corvp",
 			[28] = "coravp",
-			-- [29] = "seaplatform",
 		},
 		customparams = {
 			bar_trackstrength = 6,

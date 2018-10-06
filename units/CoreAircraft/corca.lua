@@ -74,7 +74,6 @@ return {
 			"corjamt",
 			"corjuno",
 			"corsy",
-			-- [31] = "seaplatform",
 		},
 		customparams = {
 			wingsurface = 0.5,

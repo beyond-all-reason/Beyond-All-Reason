@@ -79,7 +79,6 @@ return {
 			"armjamt",
             "armjuno",
 			"armsy",
-			-- "seaplatform",
 		},
 		customparams = {
 			arm_tank = "1",

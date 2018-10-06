@@ -53,7 +53,6 @@ return {
 			[5] = "armeyes",
 			[6] = "armmark",
 			[7] = "armaser",
-			-- [8] = "seaplatform",
 		},
 		customparams = {
 			techlevel = 2,

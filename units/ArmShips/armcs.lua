@@ -72,7 +72,6 @@ return {
 			"armfrt",
 			-- "armfrock",
 			"armfhlt",
-			--"seaplatform",
 		},
 		customparams = {
 			

@@ -111,7 +111,6 @@ tablearmcom = {
 			[24] = "armgplat",
 			[25] = "armfrt",
 			[26] = "armfrad",
-			-- [28] = "seaplatform",
 		},
 		customparams = {
 			techlevel = 2,

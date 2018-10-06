@@ -74,7 +74,6 @@ return {
 			[27] = "armdf",
 			[28] = "armlab",
 			[29] = "armalab",
-			-- [30] = "seaplatform",
 		},
 		customparams = {
 			techlevel = 2,

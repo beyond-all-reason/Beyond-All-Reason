@@ -79,7 +79,6 @@ return {
 			"corjamt",
             "corjuno",
 			"corsy",
-			-- "seaplatform",
 		},
 		customparams = {
 			bar_trackoffset = 3,

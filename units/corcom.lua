@@ -109,7 +109,6 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 			[24] = "corgplat",
 			[25] = "corfrt",
 			[26] = "corfrad",
-			-- [28] = "seaplatform",
 		},
 		customparams = {
 			techlevel = 2,

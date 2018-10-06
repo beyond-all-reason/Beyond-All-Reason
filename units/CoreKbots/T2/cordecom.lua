@@ -74,7 +74,6 @@ return {
 			[15] = "coruwes",
 			[16] = "coruwmex",
 			[17] = "corfmkr",
-			-- [18] = "seaplatform",
 		},
 		customparams = {
 			techlevel = 2,

@@ -71,7 +71,6 @@ return {
 			[26] = "corap",
 			[27] = "coraap",
 			[28] = "corplat",
-			-- [29] = "seaplatform",
 		},
 		customparams = {
 			techlevel = 2,
