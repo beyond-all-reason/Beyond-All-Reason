@@ -1,6 +1,6 @@
 function gadget:GetInfo()
    return {
-      name = "Air Transports Fix 2",
+      name = "Air Transports Fix",
       desc = "Prevents transports from moving in XZ plane when it's hitting ground and has to climb up",
       author = "Doo",
       date = "23/03/18",
