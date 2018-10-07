@@ -1293,10 +1293,15 @@ function CreatePlayer(playerID)
 	if aliveAllyTeams[tallyteam] ~= nil  and  (mySpecStatus or myAllyTeamID == tallyteam) then
 		energy, energyStorage,_, energyIncome = Spring_GetTeamResources(tteam, "energy")
 		metal, metalStorage,_, metalIncome = Spring_GetTeamResources(tteam, "metal")
-		energy = math.floor(energy)
-		metal = math.floor(metal)
-		if energy < 0 then energy = 0 end
-		if metal < 0 then metal = 0 end
+		if energy then
+			energy = math.floor(energy)
+			metal = math.floor(metal)
+			if energy < 0 then energy = 0 end
+			if metal < 0 then metal = 0 end
+		else
+			energy = 0
+			metal = 0
+		end
 	end
 	
 	return {
