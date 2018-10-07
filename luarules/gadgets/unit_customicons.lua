@@ -366,7 +366,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
       end
 
       -- submarines
-    elseif ((ud.modCategories["underwater"] ~= nil or ud.name=="armsubsurface") and ud.speed > 0) then
+    elseif ((ud.modCategories["underwater"] ~= nil) and ud.speed > 0) then
       if (ud.name=="armacsub" or ud.name=="coracsub" or ud.name=="armrecl" or ud.name=="correcl" ) then
         Spring.SetUnitDefIcon(udid, "sub_t2_worker.user")
       else
