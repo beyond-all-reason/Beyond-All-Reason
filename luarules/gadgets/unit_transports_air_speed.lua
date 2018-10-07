@@ -1,6 +1,6 @@
 function gadget:GetInfo()
    return {
-      name = "Air Transports Handler",
+      name = "Air Transports Speed",
       desc = "Slows down transport depending on loaded mass (up to 50%)",
       author = "raaar",
       date = "2015",
