@@ -437,8 +437,6 @@ function widget:DrawScreen()
 		end
 	end
 
-	weaponNums = { level, level + 11, 30}
-
 	local selfDWeaponID = WeaponDefNames[uDef.selfDExplosion].id
 	local deathWeaponID = WeaponDefNames[uDef.deathExplosion].id
 	local selfDWeaponIndex
@@ -598,7 +596,7 @@ function widget:DrawScreen()
 	-- title
 	local text = "\255\190\255\190" .. uDef.humanName
 	if uID then
-		text = text .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
+		text = text .. "   " ..  grey ..  uDef.name .. "   #" .. uID .. "   "..GetTeamColorCode(uTeam) .. GetTeamName(uTeam)
 	end
 	local iconHalfSize = titleFontSize*0.75
 	if not uID then
