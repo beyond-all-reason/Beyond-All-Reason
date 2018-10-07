@@ -1,3 +1,7 @@
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
+	return {}
+end
+
 return {
 	freefusion = {
 		acceleration = 0,

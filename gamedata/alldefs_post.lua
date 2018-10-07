@@ -101,8 +101,8 @@ function UnitDef_Post(name, uDef)
 			end
 			if uDef.buildinggrounddecaltype ~= nil then
 				local decalname = oldUnitName[name] and string.gsub(uDef.buildinggrounddecaltype, name, object) or uDef.buildinggrounddecaltype
-				if VFS.FileExists('unittextures/BAR/'..decalname) then
-					uDef.buildinggrounddecaltype = 'BAR/'..decalname
+				if VFS.FileExists('unittextures/decals/BAR/'..decalname) then
+					uDef.buildinggrounddecaltype = 'decals/BAR/'..decalname
 			 	end
 			end
 			if uDef.buildpic ~= nil then
@@ -177,6 +177,14 @@ function UnitDef_Post(name, uDef)
 						end
 					end
 				end
+			end
+		end
+	else	-- normal BA
+
+		if uDef.buildinggrounddecaltype ~= nil then
+			local decalname = uDef.buildinggrounddecaltype
+			if VFS.FileExists('unittextures/decals/'..decalname) then
+				uDef.buildinggrounddecaltype = 'decals/'..decalname
 			end
 		end
 	end

@@ -143,7 +143,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitDefID == xmasballUdefID then
-			createDecorations[#createDecorations+1] = unitID
+			--decorations[#createDecorations+1] = unitID
 		end
 	end
 
