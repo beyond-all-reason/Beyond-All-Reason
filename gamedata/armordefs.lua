@@ -10,9 +10,6 @@ local armorDefs = {
 		"corroach",
 		"corsktl",
 	},
-	platform = {
-		"seaplatform",
-		},
 	["else"] = {
 		"armjuno",
 		"armageo",
