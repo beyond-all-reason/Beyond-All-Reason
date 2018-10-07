@@ -445,10 +445,10 @@ function widget:Update(dt)
 	end
 
 	if checkInView then
-		if	spIsAABBInView(-9999,0,-9999, mapSizeX+9999,1,0) or
-			spIsAABBInView(-9999,0,0, 0,1,mapSizeZ) or
-			spIsAABBInView(mapSizeX,0,0, mapSizeX+9999,1,mapSizeZ) or
-			spIsAABBInView(-9999,0,mapSizeZ+9999, mapSizeX+9999,1,mapSizeZ)
+		if	spIsAABBInView(-9999,0,-9999, mapSizeX+9999,40,22) or
+			spIsAABBInView(-9999,0,-22, 0,40,mapSizeZ) or
+			spIsAABBInView(mapSizeX-22,0,-22, mapSizeX+9999,40,mapSizeZ) or
+			spIsAABBInView(-9999,0,mapSizeZ+9999, mapSizeX+9999,40,mapSizeZ-22)
 		then
 			isInView = true
 		else
@@ -486,13 +486,13 @@ end
 --end
 --function widget:DrawWorld()
 --	gl.Color(1,0,0,0.5)
---	DrawMyBox(-9999,0,-9999, Game.mapSizeX+9999,1,0)
+--	DrawMyBox(-9999,0,-9999, Game.mapSizeX+9999,1,22)
 --	gl.Color(1,1,0,0.5)
---	DrawMyBox(-9999,0,0, 0,1,Game.mapSizeZ)
+--	DrawMyBox(-9999,0,-22, 0,1,Game.mapSizeZ)
 --	gl.Color(0,1,0,0.5)
---	DrawMyBox(Game.mapSizeX,0,0, Game.mapSizeX+9999,1,Game.mapSizeZ)
+--	DrawMyBox(Game.mapSizeX-22,0,-22, Game.mapSizeX+9999,1,Game.mapSizeZ)
 --	gl.Color(0,0,1,0.5)
---	DrawMyBox(-9999,0,Game.mapSizeZ+9999, Game.mapSizeX+9999,1,Game.mapSizeZ)
+--	DrawMyBox(-9999,0,Game.mapSizeZ+9999, Game.mapSizeX+9999,1,Game.mapSizeZ-22)
 --	gl.Color(1,1,1,1)
 --end
 

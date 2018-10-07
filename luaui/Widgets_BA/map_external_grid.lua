@@ -379,10 +379,10 @@ if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0
 		end
 
 		if checkInView then
-			if	spIsAABBInView(-9999,0,-9999, mapSizeX+9999,1,0) or
-				spIsAABBInView(-9999,0,0, 0,1,mapSizeZ) or
-				spIsAABBInView(mapSizeX,0,0, mapSizeX+9999,1,mapSizeZ) or
-				spIsAABBInView(-9999,0,mapSizeZ+9999, mapSizeX+9999,1,mapSizeZ)
+			if	spIsAABBInView(-9999,0,-9999, mapSizeX+9999,40,22) or
+				spIsAABBInView(-9999,0,-22, 0,40,mapSizeZ) or
+				spIsAABBInView(mapSizeX-22,0,-22, mapSizeX+9999,40,mapSizeZ) or
+				spIsAABBInView(-9999,0,mapSizeZ+9999, mapSizeX+9999,40,mapSizeZ-22)
 			then
 				isInView = true
 			else
