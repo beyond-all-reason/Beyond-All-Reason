@@ -17,7 +17,7 @@
 
 function gadget:GetInfo()
   return {
-    name      = "transportfix",
+    name      = "transport_dies_load_dies",
     desc      = "kills units in transports when transports dies (except commandos)",
     author    = "knorke, bluestone",
     date      = "Dec 2012",
