@@ -99,6 +99,7 @@ function UnitDef_Post(name, uDef)
 			elseif VFS.FileExists('scripts/BAR/bar_'..object..'.cob') then
 				uDef.script = 'BAR/bar_'..object..'.cob'
 			end
+
 			if uDef.buildinggrounddecaltype ~= nil then
 				local decalname = oldUnitName[name] and string.gsub(uDef.buildinggrounddecaltype, name, object) or uDef.buildinggrounddecaltype
 				if VFS.FileExists('unittextures/decals/BAR/'..decalname) then
@@ -240,8 +241,6 @@ function UnitDef_Post(name, uDef)
 		if uDef.maxvelocity ~= nil then
 			uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
 		end
-
-		
 	end
 
 	-- kbots

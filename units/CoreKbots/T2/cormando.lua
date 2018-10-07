@@ -131,7 +131,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				explosiongenerator = "custom:NONE",
+				explosiongenerator = "custom:blank",
 				firestarter = 0,
 				gravityaffected = "true",
 				impulseboost = 0,

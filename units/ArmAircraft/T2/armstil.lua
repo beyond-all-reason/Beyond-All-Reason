@@ -103,7 +103,7 @@ return {
 					default = 4000,
 				},
 				customparams = {
-					bar_model = "bombyy.s3o",
+					bar_model = "airbomb.s3o",
                     expl_light_radius_mult = 1.15,
                     expl_light_mult = 1,
                     expl_light_color = "0.5 0.5 1",
