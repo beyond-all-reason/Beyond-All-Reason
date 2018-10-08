@@ -582,7 +582,7 @@ if (ud.name=="armserp" or ud.name=="armsubk" or ud.name=="corshark" or ud.name==
           Spring.SetUnitDefIcon(udid, "kbot_aa1.user")
         end
       else
-        if ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') or ud.name=="orcone" or ud.name=="krogtaar") then
+        if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
           Spring.SetUnitDefIcon(udid, "kbot_t3.user")
         elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
           Spring.SetUnitDefIcon(udid, "kbot_t2.user")
