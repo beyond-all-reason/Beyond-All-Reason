@@ -1,6 +1,10 @@
 ﻿10.13 -> 10.14
 XX/XX/2018
 
+Balance:
+ • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
+
+Other:
  • Removed unba commanders modoption
 
 

@@ -10,7 +10,7 @@ return {
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTSUB ANTIFLAME ANTIEMG ANTILASER VTOL NOTSHIP NOTHOVER",
 		collide = false,
-		cruisealt = 65,
+		cruisealt = 70,
 		description = "Air Transport",
 		energymake = 0.6,
 		energyuse = 0.6,
@@ -40,7 +40,7 @@ return {
 		transportsize = 3,
 		turninplaceanglelimit = 360,
 		turnrate = 550,
-		verticalSpeed = 5.0,
+		verticalSpeed = 3.75,
 		blocking = false,
 		customparams = {
 			description_long = "The Atlas is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti-air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your buildpower where you currently need it.",
