@@ -43,6 +43,9 @@ return {
 				"deathceg3",
 				"deathceg4",
 			},
+			crashExplosionGenerators = {
+				"crashing-small",
+			}
 		},
 		sounds = {
 			build = "nanlath1",

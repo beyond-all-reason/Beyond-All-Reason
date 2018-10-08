@@ -57,6 +57,9 @@ return {
 			explosiongenerators      = {
 				"custom:blacksmoke",
 			},
+			crashExplosionGenerators = {
+				"crashing-large",
+			}
 		},
 		sounds = {
 			canceldestruct = "cancel2",

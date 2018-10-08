@@ -44,6 +44,9 @@ return {
 				"deathceg4",
 				"deathceg2",
 			},
+			crashExplosionGenerators = {
+				"crashing-small",
+			}
 		},
 		sounds = {
 			canceldestruct = "cancel2",
