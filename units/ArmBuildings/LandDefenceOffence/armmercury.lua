@@ -165,6 +165,7 @@ return {
 					expl_light_mult = 0.55,
 					expl_light_color = "1 0.4 0.5",
 					expl_light_radius_mult = 0.66,
+					expl_light_mult = 0.66,
 				},
 			},
 		},
