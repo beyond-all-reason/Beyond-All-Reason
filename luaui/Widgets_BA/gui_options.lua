@@ -1219,13 +1219,13 @@ function applyOptionValue(i, skipRedrawWindow)
 	
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
-		if id == 'fsaa' then
+		if id == 'msaa' then
 			if value > 0 then
-				Spring.SetConfigInt("FSAA",1)
+				Spring.SetConfigInt("MSAALevel",1)
 			else
-				Spring.SetConfigInt("FSAA",0)
+				Spring.SetConfigInt("MSAALevel",0)
 			end
-			Spring.SetConfigInt("FSAALevel",value)
+			Spring.SetConfigInt("MSAALevel",value)
 		elseif id == 'shadowslider' then
 			local enabled = 1
 			if value == options.min then 
@@ -1840,7 +1840,7 @@ function init()
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
-		{id="fsaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("FSAALevel",1) or 2), description='Changes will be applied next game'},
+		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=16, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing; \'level\' is the number of samples used.\n\nChanges will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
 		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
