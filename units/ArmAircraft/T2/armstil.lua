@@ -48,6 +48,10 @@ return {
 			},
 			crashExplosionGenerators = {
 				"crashing-large",
+				"crashing-large",
+				"crashing-large2",
+				"crashing-large3",
+				"crashing-large3",
 			}
 		},
 		sounds = {
