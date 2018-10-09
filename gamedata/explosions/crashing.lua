@@ -148,7 +148,7 @@ local sizeMult = 1.2
 definitions['crashing-small2'] = deepcopy(definitions["crashing-small"])
 definitions['crashing-small2'].smoke.properties.particlelife = definitions['crashing-small2'].smoke.properties.particlelife * 1.3
 definitions['crashing-small2'].smoke.properties.particlelifespread = definitions['crashing-small2'].smoke.properties.particlelifespread * 1.3
-definitions['crashing-small2'].dustparticles.properties.particlelife = definitions['crashing-small2'].dustparticles.properties.particlelife * 1.6
+definitions['crashing-small2'].dustparticles.properties.particlelife = definitions['crashing-small2'].dustparticles.properties.particlelife * 2
 definitions['crashing-small2'].dustparticles.properties.particlelifespread = definitions['crashing-small2'].dustparticles.properties.particlelifespread * 1.6
 definitions['crashing-small2'].flame.properties.particlelife = definitions['crashing-small2'].flame.properties.particlelife * 1.6
 definitions['crashing-small2'].flame.properties.particlelifespread = definitions['crashing-small2'].flame.properties.particlelifespread * 1.6
@@ -167,6 +167,8 @@ definitions['crashing-small3'].smoke.properties.particlesize = definitions['cras
 definitions['crashing-small3'].smoke.properties.particlesizespread = definitions['crashing-small3'].smoke.properties.particlesizespread * sizeMult
 definitions['crashing-small3'].dustparticles.properties.particlesize = definitions['crashing-small3'].dustparticles.properties.particlesize * sizeMult
 definitions['crashing-small3'].dustparticles.properties.particlesizespread = definitions['crashing-small3'].dustparticles.properties.particlesizespread * sizeMult
+definitions['crashing-small3'].dustparticles.properties.particlelife = definitions['crashing-small3'].dustparticles.properties.particlelife * 0.5
+definitions['crashing-small3'].dustparticles.properties.particlelifespread = definitions['crashing-small3'].dustparticles.properties.particlelifespread * 0.5
 
 sizeMult = 1.5
 definitions['crashing-large'] = deepcopy(definitions["crashing-small"])
@@ -194,5 +196,7 @@ definitions['crashing-large3'].smoke.properties.particlesize = definitions['cras
 definitions['crashing-large3'].smoke.properties.particlesizespread = definitions['crashing-large3'].smoke.properties.particlesizespread * sizeMult
 definitions['crashing-large3'].dustparticles.properties.particlesize = definitions['crashing-large3'].dustparticles.properties.particlesize * sizeMult
 definitions['crashing-large3'].dustparticles.properties.particlesizespread = definitions['crashing-large3'].dustparticles.properties.particlesizespread * sizeMult
+definitions['crashing-large3'].dustparticles.properties.particlelife = definitions['crashing-large3'].dustparticles.properties.particlelife * 0.5
+definitions['crashing-large3'].dustparticles.properties.particlelifespread = definitions['crashing-large3'].dustparticles.properties.particlelifespread * 0.5
 
 return definitions
