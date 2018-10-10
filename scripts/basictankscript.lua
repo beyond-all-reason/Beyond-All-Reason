@@ -168,10 +168,10 @@ function Restore(sleeptime)
 	Sleep(sleeptime)
 	Turn (turret, 2, 0, turretYSpeed/2)
 	Turn (sleeve, 1, 0, turretXSpeed/2)	
-	Spring.UnitScript.WaitForTurn ( turret, 2 )
-	Spring.UnitScript.WaitForTurn ( sleeve, 2 )
 	wpn1_lasthead = 10000
 	wpn2_lasthead = 10000
+	Spring.UnitScript.WaitForTurn ( turret, 2 )
+	Spring.UnitScript.WaitForTurn ( sleeve, 2 )
 end
 
 function script.QueryWeapon1()
@@ -199,7 +199,7 @@ function script.AimWeapon1( heading, pitch )
 	Spring.UnitScript.StartThread(Restore, restoreTime)
 	Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 	Turn (sleeve, 1, (0-pitch),turretXSpeed)
-	if (math.abs(wpn1_lasthead - heading) > 6.3) or (math.abs(wpn1_lasthead - heading) >= 0.1) and (math.abs(wpn1_lasthead - heading) <= 6.18) then
+	if (math.abs(wpn1_lasthead - heading) > 2*math.pi) or ((math.abs(wpn1_lasthead - heading) >= turretYSpeed/30) and (math.abs(wpn1_lasthead - heading) <= (2*math.pi - turretYSpeed/30))) then
 		wpn1_lasthead = 10000
 		WaitForTurn(turret, 2)
 		WaitForTurn(sleeve, 1)
@@ -262,7 +262,7 @@ function script.AimWeapon2( heading, pitch )
 		Spring.UnitScript.StartThread(Restore, restoreTime)
 		Turn (turret, 2, heading - difference*(2*math.pi/360), turretYSpeed)
 		Turn (sleeve, 1, (0-pitch),turretXSpeed)
-		if (math.abs(wpn2_lasthead - heading) > 6.3) or (math.abs(wpn2_lasthead - heading) >= 0.1) and (math.abs(wpn2_lasthead - heading) <= 6.18) then
+		if (math.abs(wpn2_lasthead - heading) > 2*math.pi) or ((math.abs(wpn2_lasthead - heading) >= turretYSpeed/30) and (math.abs(wpn2_lasthead - heading) <= (2*math.pi - turretYSpeed/30))) then
 			wpn2_lasthead = 10000
 			WaitForTurn(turret, 2)
 			WaitForTurn(sleeve, 1)
