@@ -49,11 +49,11 @@ else
 
 	local GetLastUpdateSeconds= Spring.GetLastUpdateSeconds
 	local SendLuaRulesMsg			= Spring.SendLuaRulesMsg
-	local GetFPS							= Spring.GetFPS
+	local GetFPS					= Spring.GetFPS
 	
-	local updateTimer					= 0
-	local avgFps							= GetFPS()
-	local numframes						= 0
+	local updateTimer				= 0
+	local avgFps					= GetFPS()
+	local numFrames					= 0
 	local validation = SYNCED.validationFps
 
 	function gadget:Initialize()
@@ -72,7 +72,6 @@ else
 
 	function gadget:Update()
 		updateTimer = updateTimer + GetLastUpdateSeconds()
-		if numFrames == nil then numFrames = 0 end
 		numFrames = numFrames + 1
 		avgFps = ((avgFps*(numFrames-1))+GetFPS()) / numFrames
 		if updateTimer > sendPacketEvery then
