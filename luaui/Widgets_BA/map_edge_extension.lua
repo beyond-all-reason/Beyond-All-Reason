@@ -445,10 +445,10 @@ function widget:Update(dt)
 	end
 
 	if checkInView then
-		if	spIsAABBInView(-9999,0,-9999, mapSizeX+9999,40,22) or
-			spIsAABBInView(-9999,0,-22, 0,40,mapSizeZ) or
-			spIsAABBInView(mapSizeX-22,0,-22, mapSizeX+9999,40,mapSizeZ) or
-			spIsAABBInView(-9999,0,mapSizeZ+9999, mapSizeX+9999,40,mapSizeZ-22)
+		if	spIsAABBInView(-9999,-400,-9999, mapSizeX+9999,50,22) or
+			spIsAABBInView(-9999,-400,-22, 0,50,mapSizeZ) or
+			spIsAABBInView(mapSizeX-22,-400,-22, mapSizeX+9999,50,mapSizeZ) or
+			spIsAABBInView(-9999,-400,mapSizeZ+9999, mapSizeX+9999,50,mapSizeZ-22)
 		then
 			isInView = true
 		else

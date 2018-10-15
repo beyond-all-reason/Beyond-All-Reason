@@ -306,24 +306,24 @@ function DeathRun()
 	smokePieces = {base, turret}
 	if Spring.GetGameFrame() >= 30*60*7 then
 		if f == 1 then
-		Spring.SetUnitNoSelect(unitID, true)
-		while f <=25 do
-			randomnumber = math.random(1,4)
-					if randomnumber == 1 then
-						smokeCEGName = smokeCEGName1
-					elseif randomnumber == 2 then
-						smokeCEGName = smokeCEGName2
-					elseif randomnumber == 3 then
-						smokeCEGName = smokeCEGName3
-					else
-						smokeCEGName = smokeCEGName4
-					end
-					EmitRand(smokePieces[math.random(1,2)], smokeCEGName) --CEG name in quotes (string)
-			Sleep(math.random(5,100))
-			f = f + 1
+			Spring.SetUnitNoSelect(unitID, true)
+			while f <= 18 do
+				randomnumber = math.random(1,4)
+				if randomnumber == 1 then
+					smokeCEGName = smokeCEGName1
+				elseif randomnumber == 2 then
+					smokeCEGName = smokeCEGName2
+				elseif randomnumber == 3 then
+					smokeCEGName = smokeCEGName3
+				else
+					smokeCEGName = smokeCEGName4
+				end
+				EmitRand(smokePieces[math.random(1,2)], smokeCEGName) --CEG name in quotes (string)
+				Sleep(math.random(5,100))
+				f = f + 1
+			end
 		end
-		end
-	EmitRand(base, "genericunitexplosion-small" )
+		EmitRand(base, "genericunitexplosion-small" )
 	end
 	return 1
 end
