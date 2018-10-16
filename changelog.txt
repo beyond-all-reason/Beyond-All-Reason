@@ -6,9 +6,9 @@ Balance:
 
 Other:
  • Removed unba commanders modoption
- • Fixed continuously aiming change always being able to fire, even when turrent was way off
- • Fixed made Anti Aliasing options slider work again (also its MSAA instead of FSAA now)
- • New flak hit expolsion effecct + crashing airplane smoke trails
+ • Fixed continuous aiming change always being able to fire, even when turrent was way off
+ • Made Anti Aliasing options slider work again (nowadays MSAA is used instead of FSAA)
+ • New flak explosion effect + custom crashing airplane smoke trails
 
 
 10.12 -> 10.13
