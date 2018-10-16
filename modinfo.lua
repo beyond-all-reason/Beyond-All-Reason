@@ -8,5 +8,5 @@ return {
   shortGame = 'BA',
   modtype = 1,
   url = "https://www.balancedannihilation.com",
-  engine = "104.0.1-567-gc484c10 maintenance",    -- for chobby
+  engine = "104.0.1-743-g9e82927 maintenance",    -- for chobby
 }
