@@ -1,6 +1,6 @@
 return {
 	armblade = {
-		acceleration = 0.2,
+		acceleration = 0.6,
 		brakerate = 0.35,
 		buildcostenergy = 21000,
 		buildcostmetal = 1300,
