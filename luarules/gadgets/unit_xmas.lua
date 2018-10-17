@@ -8,7 +8,7 @@ function gadget:GetInfo()
 		date		= "October 2017",
 		license		= "",
 		layer		= 0,
-		enabled		= false,
+		enabled		= true,
 	}
 end
 
@@ -42,6 +42,37 @@ if gadgetHandler:IsSyncedCode() then
 	local gaiaTeamID = Spring.GetGaiaTeamID()
 	local random = math.random
 	local GetGroundHeight = Spring.GetGroundHeight
+	local receivedPlayerXmas = {}
+	local receivedPlayerCount = 0
+	local itsXmas = false
+
+	function gadget:RecvLuaMsg(msg, playerID)
+		if msg:sub(1,4)=="xmas" then
+			if receivedPlayerXmas[playerID] == nil then
+				receivedPlayerCount = receivedPlayerCount + 1
+				receivedPlayerXmas[playerID] = (msg:sub(5,6) == '1' and true or false)
+			end
+		end
+	end
+
+	function initiateXmas()
+		if not itsXmas then
+			itsXmas = true
+			-- spawn candy canes
+			for i=1, candycaneAmount do
+				local x = random(0, Game.mapSizeX)
+				local z = random(0, Game.mapSizeZ)
+				local groundType, groundType2 = Spring.GetGroundInfo(x,z)
+				if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
+					local y = GetGroundHeight(x, z)
+					local caneType = math.ceil(random(1,7))
+					local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
+					Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
+					candycanes[featureID] = caneType
+				end
+			end
+		end
+	end
 
 	local function setGaiaUnitSpecifics(unitID)
 		Spring.SetUnitNeutral(unitID, true)
@@ -60,6 +91,23 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
+		if not itsXmas then
+			if n == 1 then
+				local xmasRatio = 0
+				for playerID, xmas in pairs(receivedPlayerXmas) do
+					if xmas then
+						xmasRatio = xmasRatio + (1/receivedPlayerCount)
+					end
+				end
+				if xmasRatio > 0.75 then
+					initiateXmas()
+				else
+					return
+				end
+			else
+				return
+			end
+		end
 		if n % 30 == 1 then
 			for unitID, frame in pairs(decorations) do
 				if frame < n then
@@ -128,6 +176,9 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
+		if not itsXmas then
+			return
+		end
 		if enableUnitDecorations and hasDecoration[unitDefID] ~= nil then
 			local x,y,z = Spring.GetUnitPosition(unitID)
 			createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID}
@@ -143,6 +194,7 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitDefID == xmasballUdefID then
+			setGaiaUnitSpecifics(unitID)
 			--decorations[#createDecorations+1] = unitID
 		end
 	end
@@ -155,20 +207,5 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
-	end
-
-	function gadget:Initialize()
-		for i=1, candycaneAmount do
-			local x = random(0, Game.mapSizeX)
-			local z = random(0, Game.mapSizeZ)
-			local groundType, groundType2 = Spring.GetGroundInfo(x,z)
-			if (type(groundType) == 'string' and groundType ~= "void" or groundType2 ~= "void") then	-- 105 compatibility
-				local y = GetGroundHeight(x, z)
-				local caneType = math.ceil(random(1,7))
-				local featureID = Spring.CreateFeature('candycane'..caneType,x,y,z,random(0,360))
-				Spring.SetFeatureRotation(featureID, random(-12,12), random(-12,12), random(-180,180))
-				candycanes[featureID] = caneType
-			end
-		end
 	end
 end
