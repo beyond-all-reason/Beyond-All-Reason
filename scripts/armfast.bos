@@ -542,14 +542,14 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	bAiming = TRUE;
-	turn torso to y-axis heading speed <750.000000>;
+	turn torso to y-axis heading speed <500.000000>;
 	turn ruparm to x-axis <-90.021978> speed <400.000000>;
 	turn rloarm to x-axis <0.000000> - pitch now;
 	while( !Static_Var_3 )
 	{
 		return(0);
 	}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 2200) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
 	wait-for-turn torso around y-axis;
