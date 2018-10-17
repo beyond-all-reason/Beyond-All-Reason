@@ -731,7 +731,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	bAiming = TRUE;
 	turn head to y-axis heading speed <200.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn head around y-axis;

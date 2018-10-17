@@ -426,7 +426,7 @@ AimPrimary(heading, pitch)
 		turn rcannon to y-axis <0.000000> speed <90.000000>;
 		turn lcannon to y-axis <0.000000> speed <90.000000>;
 	}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
@@ -515,7 +515,7 @@ AimSecondary(heading, pitch)
 		move stick to y-axis [7.000000] speed [5.000000];
 	}
 	turn stick to y-axis heading speed <140.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
 	wait-for-turn stick around y-axis;
@@ -605,7 +605,7 @@ AimTertiary(heading, pitch)
 		turn launcher to y-axis heading speed <160.000000>;
 		turn launcher to x-axis <0.000000> - pitch speed <85.000000>;
 	}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn launcher around y-axis;

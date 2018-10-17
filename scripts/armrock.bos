@@ -495,7 +495,7 @@ AimPrimary(heading, pitch)
 	}
 	turn torso to y-axis heading speed <130.027473>;
 	turn lmisspod to x-axis <-90> - pitch speed <180.021978>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 5000) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;
