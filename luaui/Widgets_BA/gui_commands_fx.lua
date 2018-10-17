@@ -90,7 +90,7 @@ local maxGroundGlowCount		= 50
 local drawUnitHightlightMaxUnits = 70
 
 local glowImg			= ":n:LuaUI/Images/commandsfx/glow.dds"
-local lineImg			= ":n:LuaUI/Images/commandsfx/line2.dds"
+local lineImg			= ":n:LuaUI/Images/commandsfx/line.dds"
 
 local ignoreUnits = {}
 for udefID,def in ipairs(UnitDefs) do

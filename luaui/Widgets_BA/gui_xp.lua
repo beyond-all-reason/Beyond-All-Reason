@@ -50,7 +50,7 @@ local PWUnits = {}
 local iconsize   = 33
 local iconoffset = 14
 
-local rankTexBase = 'LuaUI/Images/Ranks/'
+local rankTexBase = 'LuaUI/Images/ranks/'
 local rankTextures = {
   [0] = nil,
   [1] = rankTexBase .. 'rank1.png',

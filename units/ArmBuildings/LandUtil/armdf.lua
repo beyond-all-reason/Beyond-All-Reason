@@ -35,7 +35,7 @@ return {
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 210,
 		usebuildinggrounddecal = true,
-		yardmap = "ooooooo ooooooo ooooooo ooooooo",
+		yardmap = "ooooo ooooo ooooo ooooo",
 		customparams = {
 			techlevel = 2,
 			removewait = true,

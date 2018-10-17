@@ -42,7 +42,7 @@ return {
 		upright = false,
 		waterline = 0,
 		workertime = 0,
-		yardmap = "ooooooooo",
+		yardmap = "oo oo",
 		customparams = {
 			removewait = true,
 			removestop = true,
