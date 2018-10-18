@@ -1,14 +1,5 @@
 local resources = {
       graphics = {
-         trees = {
-			bark     = 'default/Bark.bmp',
-            leaf     = 'default/bleaf.bmp',
-            gran1    = 'default/gran.bmp',
-            gran2    = 'default/gran2.bmp',
-            birch1   = 'default/birch1.bmp',
-            birch2   = 'default/birch2.bmp',
-            birch3   = 'default/birch3.bmp',
-         },
          maps = {
             detailtex   = 'default/detailtex2.bmp',
             watertex	= 'default/ocean.jpg',
@@ -28,20 +19,20 @@ local resources = {
             flare				= 'default/flare.tga',
             explo				= 'default/explo.tga',
             explo2				= 'default/explo2.tga',
-	    sakexplo2 				= 'default/sakexplo2.tga',
+	        sakexplo2 			= 'default/sakexplo2.tga',
             explofade			= 'default/explofade.tga',
             heatcloud			= 'default/explo.tga',
              flame				= 'default/flame.tga',
-             flame_alt				= 'gpl/flame.png',
+             flame_alt			= 'gpl/flame.png',
              fire				= 'gpl/fire.png',
-            muzzlesideflipped			= 'default/muzzlesideflipped.tga',
+            muzzlesideflipped	= 'default/muzzlesideflipped.tga',
             muzzleside			= 'default/muzzleside.tga',
             muzzlefront			= 'default/muzzlefront.tga',
             largebeam			= 'default/largelaserfalloff.tga',
-						null='PD/null.tga',
+			null='PD/null.tga',
+
 			--Chicken Defense effects
 			uglynovaexplo='CC/uglynovaexplo.tga',
-			orangesmoke3='GPL/smoke_orange.png',
 			sporetrail='GPL/sporetrail.tga',
 			blooddrop='PD/blooddrop.tga',
 			bloodblast='PD/bloodblast.tga',
