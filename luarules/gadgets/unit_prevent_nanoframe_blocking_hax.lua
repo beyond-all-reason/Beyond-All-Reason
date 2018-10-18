@@ -89,9 +89,12 @@ end
 ------------
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-	local _,_,projectileBlocking = Spring.GetUnitBlocking(unitID)
-	if projectileBlocking then 
-		AddNanoFrame(unitID)
+	local health,maxHealth,_,_,buildProgress = Spring.GetUnitHealth(unitID)
+	if health/maxHealth < blockingBuildProgress then	-- sadly buildProgress is always 0 even when cheated in
+		local _,_,projectileBlocking = Spring.GetUnitBlocking(unitID)
+		if projectileBlocking then
+			AddNanoFrame(unitID)
+		end
 	end
 end
 
