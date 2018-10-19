@@ -2,7 +2,7 @@ return {
 	corgator = {
 		acceleration = 0.057,
 		brakerate = 0.18,
-		buildcostenergy = 1100,
+		buildcostenergy = 1000,
 		buildcostmetal = 125,
 		buildpic = "CORGATOR.DDS",
 		buildtime = 1761,
@@ -39,7 +39,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.96,
-		turnrate = 388,
+		turnrate = 427,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 8,

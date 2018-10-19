@@ -39,7 +39,7 @@ return {
 		turninplace = 0,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 3.2274,
-		turnrate = 612,
+		turnrate = 673,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_leavetracks = false,
