@@ -3,13 +3,17 @@ XX/XX/2018
 
 Balance:
  • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
+ • Arm and Core vehicles : scouts/light tanks/medium tanks +10% turnrate
+ • Flash and Instigators -10% energy cost
+ • Stumpy Raider Bulldog and Reaper -5% maxpseed and +5% metal cost
+ • Penetrator and Banisher -5% maxspeed
 
 Other:
  • Removed unba commanders modoption
  • Fixed continuous aiming change always being able to fire, even when turret was way off
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
  • New flak explosion effect + custom crashing airplane smoke trails
-
+ 
 
 10.12 -> 10.13
 29/09/2018
