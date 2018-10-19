@@ -4,7 +4,6 @@ XX/XX/2018
 Balance:
  • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
  • Arm and Core vehicles : scouts/light tanks/medium tanks +10% turnrate
- • Flash and Instigators -10% energy cost
  • Stumpy Raider Bulldog and Reaper -5% maxpseed and +5% metal cost
  • Penetrator and Banisher -5% maxspeed
 
