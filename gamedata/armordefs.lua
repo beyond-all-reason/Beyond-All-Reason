@@ -414,56 +414,83 @@ local armorDefs = {
         "coracsub",
 		"armrecl",
 		"correcl",
-		},
+	},
 
- tinychicken =
-  {
-   "chicken_dodo1",
-   "chickenh1",
-   "chickenh1b",
-  },
-  chicken =
- {
-  	"ve_chickenq",
-	"e_chickenq",
-	"n_chickenq",
-	"h_chickenq",
-	"vh_chickenq",
-	"epic_chickenq",
-	"chicken1",
-	"chicken1b",
-	"chicken1c",
-	"chicken1d",
-	"chicken1x",
-	"chicken1y",
-	"chicken1z",
-	"chicken2",
-	"chicken2b",
-    "chicken_dodo2",
-	"chickena1",
-	"chickena1b",
-	"chickena1c",
-	"chickena2",
-	"chickena2b",
-	"chickenc1",
-	"chickenc2",
-	"chickenc3",
-	"chickenc3b",
-	"chickenc3c",
-	"chickend1",
-	"chickenr1",
-	"chickenr2",
-	"chickenh2",
-	"chickenh3",
-	"chickenh4",
-	"chickenh5",
-    "chickenr3",
-	"chickens1",
-	"chickens2",
-	"chickenp1",
- 	"roost",
-},
+	tinychicken =
+	{
+		"chicken_dodo1",
+		"chickenh1",
+		"chickenh1b",
+	},
+	chicken =
+	{
+		"ve_chickenq",
+		"e_chickenq",
+		"n_chickenq",
+		"h_chickenq",
+		"vh_chickenq",
+		"epic_chickenq",
+		"chicken1",
+		"chicken1b",
+		"chicken1c",
+		"chicken1d",
+		"chicken1x",
+		"chicken1y",
+		"chicken1z",
+		"chicken2",
+		"chicken2b",
+		"chicken_dodo2",
+		"chickena1",
+		"chickena1b",
+		"chickena1c",
+		"chickena2",
+		"chickena2b",
+		"chickenc1",
+		"chickenc2",
+		"chickenc3",
+		"chickenc3b",
+		"chickenc3c",
+		"chickend1",
+		"chickenr1",
+		"chickenr2",
+		"chickenh2",
+		"chickenh3",
+		"chickenh4",
+		"chickenh5",
+		"chickenr3",
+		"chickens1",
+		"chickens2",
+		"chickenp1",
+		"roost",
+	},
 }
 
+-- add BAR variants
+if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
+	function tableMerge(t1, t2)
+		for k,v in pairs(t2) do
+			if type(v) == "table" then
+				if type(t1[k] or false) == "table" then
+					tableMerge(t1[k] or {}, t2[k] or {})
+				else
+					t1[k] = v
+				end
+			else
+				t1[k] = v
+			end
+		end
+		return t1
+	end
+	local armorDefsBar = {}
+	for category,names in pairs(armorDefs) do
+		for _,name in pairs(names) do
+			if armorDefsBar[category] == nil then
+				armorDefsBar[category] = {}
+			end
+			armorDefsBar[category][#armorDefsBar[category]+1] = name..'_bar'
+		end
+	end
+	armorDefs = tableMerge(armorDefs, armorDefsBar)
+end
 
 return armorDefs

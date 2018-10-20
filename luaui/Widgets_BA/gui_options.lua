@@ -996,7 +996,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("AdvModelShading "..value)
 			Spring.SetConfigInt("AdvModelShading",value)
 		elseif id == 'normalmapping' then
-			if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
+			if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) or UnitDefNames["armcom_bar"] then
 				Spring.SendCommands("luarules normalmapping "..value)
 			end
 			Spring.SetConfigInt("NormalMapping",value)
@@ -2034,7 +2034,6 @@ function init()
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
-
 	-- while we have set config-ints, that isnt enough to have these settings applied ingame
 	if savedConfig and Spring.GetGameFrame() == 0 then
 		for k, v in pairs(savedConfig) do
@@ -2042,6 +2041,10 @@ function init()
 				applyOptionValue(getOptionByID(k))
 			end
 		end
+	end
+
+	if UnitDefNames["armcom_bar"] and options[getOptionByID('normalmapping')] then
+		options[getOptionByID('normalmapping')].description = options[getOptionByID('normalmapping')].description..'\n\nOnly applies to remodelled units'
 	end
 
     -- detect AI
@@ -2109,7 +2112,7 @@ function init()
 		options[getOptionByID('cursor')].value = cursor
 	end
 
-	if Spring.GetModOptions == nil or (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
+	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) == 0) and not UnitDefNames["armcom_bar"] then
 		options[getOptionByID('normalmapping')] = nil
 		options[getOptionByID('oldicons')] = nil
 	end
