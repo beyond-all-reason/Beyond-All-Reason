@@ -457,7 +457,7 @@ AimPrimary(heading, pitch)
 	signal 2;
 	turn gun to x-axis <55.000000>-pitch speed <95.000000>;
 	turn torso to y-axis heading speed <300.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
 		wait-for-turn torso around y-axis;

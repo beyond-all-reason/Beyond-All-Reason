@@ -632,7 +632,7 @@ AimPrimary(heading, pitch)
 		{
 			return(0);
 		}
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 60536)))
+	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 		{
 			wait-for-turn torso around y-axis;
 			wait-for-turn canbase around x-axis;
