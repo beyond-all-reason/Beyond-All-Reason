@@ -134,7 +134,7 @@ function GiveCat(_,line)
         ["t1"] = "", ["t2"] = "a" --t3 added later
     }
     for t,suffix in pairs(facSuffix) do
-        local acceptableUDIDs = {} 
+        local acceptableUDIDs = {}
         for _,uDID in ipairs(UnitDefNames["cor" .. suffix].buildOptions) do
             acceptableUDIDs[uDID] = true
         end
@@ -149,6 +149,22 @@ function GiveCat(_,line)
                 acceptableUDIDs[uDID] = true
             end
         end
+        if UnitDefNames['armcom_bar'] then
+            for _,uDID in ipairs(UnitDefNames["cor" .. suffix..'_bar'].buildOptions) do
+                acceptableUDIDs[uDID] = true
+            end
+            for _,uDID in ipairs(UnitDefNames["arm" .. suffix..'_bar'].buildOptions) do
+                acceptableUDIDs[uDID] = true
+            end
+            if t~="hover" then
+                for _,uDID in ipairs(UnitDefNames["arma" .. suffix..'_bar'].buildOptions) do
+                    acceptableUDIDs[uDID] = true
+                end
+                for _,uDID in ipairs(UnitDefNames["cora" .. suffix..'_bar'].buildOptions) do
+                    acceptableUDIDs[uDID] = true
+                end
+            end
+        end
         unitTypes[t] = acceptableUDIDs
     end
 
@@ -161,6 +177,14 @@ function GiveCat(_,line)
                 end
                 for _,uDID in ipairs(UnitDefNames["arm" .. techSuffix .. facSuffix].buildOptions) do
                     acceptableUDIDs[uDID] = true
+                end
+                if UnitDefNames['armcom_bar'] then
+                    for _,uDID in ipairs(UnitDefNames["cor" .. techSuffix .. facSuffix..'_bar'].buildOptions) do
+                        acceptableUDIDs[uDID] = true
+                    end
+                    for _,uDID in ipairs(UnitDefNames["arm" .. techSuffix .. facSuffix..'_bar'].buildOptions) do
+                        acceptableUDIDs[uDID] = true
+                    end
                 end
             end
         end
@@ -197,7 +221,7 @@ function GiveCat(_,line)
         if string.find(line, t) then
             local Condition = function(ud) return unitTypes[t][ud.id] end        
             Accept[#Accept+1] = Condition
-        end    
+        end
     end
     
     -- tech levels
