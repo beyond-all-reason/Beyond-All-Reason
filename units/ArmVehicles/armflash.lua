@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 598,
 		maxslope = 10,
-		maxvelocity = 3.10,
+		maxvelocity = 3.42,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Flash",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 22,
 		turninplace = true,
-		turninplaceanglelimit = 300,
+		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 2.424,
 		turnrate = 520,
 		customparams = {
