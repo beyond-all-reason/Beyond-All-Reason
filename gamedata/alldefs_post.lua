@@ -247,6 +247,7 @@ function UnitDef_Post(name, uDef)
 			uDef.acceleration = uDef.maxvelocity / (2*k)
 			uDef.brakerate = uDef.maxvelocity / (k)
 			uDef.turninplaceanglelimit = 90
+			uDef.turninplace = true
 		end
 		
 	end
