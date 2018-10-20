@@ -1,0 +1,10 @@
+#define TA			// This is a TA script
+
+#include "sfxtype.h"
+#include "exptype.h"
+
+
+Create()
+{
+	return (0);
+}
