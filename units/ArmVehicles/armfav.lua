@@ -37,9 +37,9 @@ return {
 		trackstrength = 3,
 		tracktype = "StdTank",
 		trackwidth = 25,
-		turninplace = false,
+		turninplace = 0,
 		turninplaceanglelimit = 140,
-		turninplacespeedlimit = 5.39,
+		turninplacespeedlimit = 4.224,
 		turnrate = 720,
 		customparams = {
 			bar_leavetracks = false,
