@@ -73,7 +73,15 @@ end
 
 function UnitDef_Post(name, uDef)
 	-- load BAR stuff
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 or string.find(name, '_bar') then
+		if string.find(name, '_bar') then
+			name = string.gsub(name, '_bar', '')
+			if uDef.buildoptions then
+				for k, v in pairs(uDef.buildoptions) do
+					uDef.buildoptions[k] = v..'_bar'
+				end
+			end
+		end
 		-- BAR models
 		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
 		if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
@@ -241,15 +249,6 @@ function UnitDef_Post(name, uDef)
 		if uDef.maxvelocity ~= nil then
 			uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
 		end
-		
-		if uDef.turnrate and uDef.maxvelocity and uDef.brakerate and uDef.acceleration then
-			local k = 1800/(0.164 * uDef.turnrate)
-			uDef.acceleration = uDef.maxvelocity / (2*k)
-			uDef.brakerate = uDef.maxvelocity / (k)
-			uDef.turninplaceanglelimit = 90
-			uDef.turninplace = true
-		end
-		
 	end
 
 	-- kbots
@@ -330,7 +329,10 @@ function WeaponDef_Post(name, wDef)
 	end
 
 
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 or string.find(name, '_bar') then
+		if string.find(name, '_bar') then
+			name = string.gsub(name, '_bar', '')
+		end
 
 		-- load BAR weapon model
 		if wDef.customparams and wDef.customparams.bar_model then

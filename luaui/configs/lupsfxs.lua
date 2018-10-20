@@ -491,7 +491,7 @@ sparks1 = {
 
 
 
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
+--if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
 --if true then
   -- $Id: lupsFXs.lua 3485 2008-12-19 23:06:30Z jk $
 
@@ -696,4 +696,4 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
   }
 
 
-end
+--end

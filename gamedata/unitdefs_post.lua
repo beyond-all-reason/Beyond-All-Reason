@@ -12,8 +12,49 @@ VFS.Include("gamedata/alldefs_post.lua")
 -- load functionality for saving to custom params
 VFS.Include("gamedata/post_save_to_customparams.lua")
 
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
+-- create BAR alternatives
+local createBARalternatives = (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION'))) and true or false
+
+if createBARalternatives then
+    local oldUnitName = {	-- mostly duplicates
+        armdecom = 'armcom',
+        cordecom = 'corcom',
+        armdf = 'armfus',
+        corgantuw = 'corgant',
+        armshltxuw = 'armshltx',
+        armuwmmm = 'armfmmm',
+        coruwmmm = 'corfmmm',
+    }
+    local barUnitDefs = {}
+    for name,uDef in pairs(UnitDefs) do
+        local barUnitName = oldUnitName[name] and oldUnitName[name] or name
+        if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
+            barUnitDefs[name..'_bar'] = deepcopy(uDef)
+        end
+    end
+    for name,ud in pairs(barUnitDefs) do
+        UnitDefs[name] = deepcopy(ud)
+    end
+end
+
 -- handle unitdefs and the weapons they contain
 for name,ud in pairs(UnitDefs) do
+  Spring.Echo(name)
   UnitDef_Post(name,ud)
   if ud.weapondefs then
 	for wname,wd in pairs(ud.weapondefs) do
