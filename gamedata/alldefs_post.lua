@@ -249,6 +249,14 @@ function UnitDef_Post(name, uDef)
 		if uDef.maxvelocity ~= nil then
 			uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
 		end
+
+		if uDef.turnrate and uDef.maxvelocity and uDef.brakerate and uDef.acceleration then
+			local k = 1800/(0.164 * uDef.turnrate)
+			uDef.acceleration = uDef.maxvelocity / (2*k)
+			uDef.brakerate = uDef.maxvelocity / (k)
+			uDef.turninplaceanglelimit = 90
+			uDef.turninplace = true
+		end
 	end
 
 	-- kbots

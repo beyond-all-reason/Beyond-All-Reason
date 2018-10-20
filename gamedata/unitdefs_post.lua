@@ -54,7 +54,6 @@ end
 
 -- handle unitdefs and the weapons they contain
 for name,ud in pairs(UnitDefs) do
-  Spring.Echo(name)
   UnitDef_Post(name,ud)
   if ud.weapondefs then
 	for wname,wd in pairs(ud.weapondefs) do
