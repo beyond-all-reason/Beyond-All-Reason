@@ -28,9 +28,7 @@ function deepcopy(orig)
 end
 
 -- create BAR alternatives
-local createBARalternatives = (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION'))) and true or false
-
-if createBARalternatives then
+if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
     local oldUnitName = {	-- mostly duplicates
         armdecom = 'armcom',
         cordecom = 'corcom',
@@ -48,7 +46,7 @@ if createBARalternatives then
         end
     end
     for name,ud in pairs(barUnitDefs) do
-        UnitDefs[name] = deepcopy(ud)
+        UnitDefs[name] = ud
     end
 end
 

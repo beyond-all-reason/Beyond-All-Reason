@@ -38,6 +38,14 @@ end
 include("keysym.h.lua")
 include("fonts.lua")
 
+local WhiteStr   = "\255\255\255\255"
+local RedStr     = "\255\255\001\001"
+local GreenStr   = "\255\001\255\001"
+local BlueStr    = "\255\001\001\255"
+local CyanStr    = "\255\001\255\255"
+local YellowStr  = "\255\255\255\001"
+local MagentaStr = "\255\255\001\255"
+
 local cutomScale = 1
 local sizeMultiplier = 1
 
