@@ -78,7 +78,9 @@ function UnitDef_Post(name, uDef)
 			name = string.gsub(name, '_bar', '')
 			if uDef.buildoptions then
 				for k, v in pairs(uDef.buildoptions) do
-					uDef.buildoptions[k] = v..'_bar'
+					if UnitDefs[v..'_bar'] then
+						uDef.buildoptions[k] = v..'_bar'
+					end
 				end
 			end
 		end
