@@ -371,9 +371,9 @@ function widget:DrawWorldPreUnit()
 					end
 					comCircleDlist[unitID] = {camDistance}
 					comCircleDlist[unitID][2] = glCreateList( function()
-						glLineWidth(2.5-lineWidthMinus)
-						glColor(1, 0.85, 0, .28*lineOpacityMultiplier*opacityMultiplier)
-						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+1.2 ) --dgunrange + aoe
+						--glLineWidth(3-lineWidthMinus)
+						--glColor(1, 0.85, 0, .28*lineOpacityMultiplier*opacityMultiplier)
+						--glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+1.2 ) --dgunrange + aoe
 
 						--glLineWidth(3.5-lineWidthMinus)
 						--glColor(1, 0, 0, .47*lineOpacityMultiplier*opacityMultiplier)

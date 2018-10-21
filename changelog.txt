@@ -10,6 +10,7 @@ Balance:
 
 Other:
  • Removed unba commanders modoption
+ • Removed dgun range circle when enemy com gets near
  • Fixed continuous aiming change always being able to fire, even when turret was way off
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
  • New flak explosion effect + custom crashing airplane smoke trails
