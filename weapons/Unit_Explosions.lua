@@ -997,7 +997,7 @@ unitDeaths = {
 		turret = 1,
 		damage = {
 			default = 50000,
-			commanders = 14000,
+			commanders = 12500,
 		},
         customparams = {
             expl_light_color = "1 0.85 0.44",
