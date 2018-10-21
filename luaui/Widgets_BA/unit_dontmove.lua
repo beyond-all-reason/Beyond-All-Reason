@@ -109,7 +109,7 @@ local unitArray = {
   "cormabm",
   "armcarry",
   "corcarry",
-  
+
   --misc
   
 }
@@ -120,8 +120,10 @@ if UnitDefNames.armcom_bar then
     return t1
   end
   local unitArrayBAR = {}
+  local unitArrayKeyCount = #unitArray
   for _,name in pairs(unitArray) do
-    unitArrayBAR[#unitArrayBAR+1] = name
+    unitArrayKeyCount = unitArrayKeyCount + 1
+    unitArrayBAR[unitArrayKeyCount] = name
   end
   unitArray = tableMerge(unitArray, unitArrayBAR)
 end
