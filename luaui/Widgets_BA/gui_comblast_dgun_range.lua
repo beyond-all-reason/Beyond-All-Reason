@@ -371,32 +371,33 @@ function widget:DrawWorldPreUnit()
 					end
 					comCircleDlist[unitID] = {camDistance}
 					comCircleDlist[unitID][2] = glCreateList( function()
-						glLineWidth(3-lineWidthMinus)
-						glColor(1, 0.85, 0, .24*lineOpacityMultiplier*opacityMultiplier)
+						glLineWidth(2.5-lineWidthMinus)
+						glColor(1, 0.85, 0, .28*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+1.2 ) --dgunrange + aoe
 
-						glLineWidth(3.5-lineWidthMinus)
-						glColor(1, 0, 0, .47*lineOpacityMultiplier*opacityMultiplier)
-						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange) -- comblast > 3.55k
+						--glLineWidth(3.5-lineWidthMinus)
+						--glColor(1, 0, 0, .47*lineOpacityMultiplier*opacityMultiplier)
+						--glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange) -- comblast > 3.55k
 
-						glLineWidth(6.5*lineScale)
-						glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
-						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.1727))-- comblast > 3k
+						--glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
+						--glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.1727))-- comblast > 3k
 
 						-- glColor(1, 0, 0, .175*lineOpacityMultiplier*opacityMultiplier)
 						-- glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.309))-- comblast > 2.5k
-						
-						glColor(1, 0, 0, .175*lineOpacityMultiplier*opacityMultiplier)
-						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.472))-- comblast > 2k
 
-						-- glColor(1, 0, 0, .15*lineOpacityMultiplier*opacityMultiplier)
-						-- glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.6090))-- comblast > 1.5k
+						glLineWidth(3.6-lineWidthMinus)
+						glColor(1, 0, 0, .42*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.44))-- comblast > 3.55k
 
-						glColor(1, 0, 0, .125*lineOpacityMultiplier*opacityMultiplier)
-						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.7272))-- comblast > 1k
+						glLineWidth(6.5*lineScale)
+						glColor(1, 0, 0, .2*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.56))-- comblast > 3k
 
-						-- glColor(1, 0, 0, .1*lineOpacityMultiplier*opacityMultiplier)
-						-- glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.87272))-- comblast > 0.5k
+						glColor(1, 0, 0, .155*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.715))-- comblast > 2k
+
+						glColor(1, 0, 0, .11*lineOpacityMultiplier*opacityMultiplier)
+						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], dgunRange+((blastRadius-dgunRange)*0.87272))-- comblast > 1k
 
 						glColor(1, 0, 0, .075*lineOpacityMultiplier*opacityMultiplier)
 						glBeginEnd(GL.LINE_LOOP, drawBlast, center[1], center[2], center[3], blastRadius)-- comblast = 0k

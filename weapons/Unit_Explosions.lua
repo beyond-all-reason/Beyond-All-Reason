@@ -997,7 +997,7 @@ unitDeaths = {
 		turret = 1,
 		damage = {
 			default = 50000,
-			commanders = 9500,
+			commanders = 14000,
 		},
         customparams = {
             expl_light_color = "1 0.85 0.44",
@@ -1005,34 +1005,6 @@ unitDeaths = {
             expl_light_radius_mult = 1.3,
             expl_light_life_mult = 1.9,
             expl_light_heat_radius_mult = 1.3,
-        },
-	},
-    commanderexplosionselfd = {
-		name = "Matter/AntimatterExplosion",
-		weaponType = "Cannon",
-		AreaOfEffect = 720,
-		cameraShake = 720,
-		impulseboost = 3,
-		impulsefactor = 3,
-		soundhit = "newboom",
-		soundstart = "largegun",
-		explosiongenerator="custom:COMMANDER_EXPLOSION",
-		range = 380,
-		weaponvelocity = 250,
-		craterboost = 6,
-		cratermult = 3,
-		edgeeffectiveness = 0.25,
-		reloadtime = 3.5999999046326,
-		turret = 1,
-		damage = {
-			default = 50000,
-		},
-        customparams = {
-            expl_light_color = "1 0.85 0.44",
-            expl_light_mult = 1.7,
-            expl_light_radius_mult = 1.3,
-            expl_light_life_mult = 2,
-            expl_light_heat_radius_mult = 1.35,
         },
 	},
 
