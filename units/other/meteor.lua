@@ -84,6 +84,7 @@ return {
 				wobble = 0,
 				stages = 0,
 				damage = {
+					chicken = 0.1,
 					commanders = 10,
 					default = 700,
 					vtol = 2500,
