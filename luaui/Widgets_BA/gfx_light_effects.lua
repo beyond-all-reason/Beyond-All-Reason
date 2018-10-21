@@ -738,6 +738,44 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	end
 end
 
+function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
+	if weaponConf[weaponID] ~= nil then
+		local params = {
+			life = 5*globalLifeMult,
+			orgMult = weaponConf[weaponID].orgMult,
+			frame = Spring.GetGameFrame(),
+			px = px,
+			py = py + 16 + (weaponConf[weaponID].radius/35),
+			pz = pz,
+			param = {
+				type = 'explosion',
+				r = weaponConf[weaponID].r,
+				g = weaponConf[weaponID].g,
+				b = weaponConf[weaponID].b,
+				radius = weaponConf[weaponID].radius*0.4,
+			},
+		}
+
+		if not enableDeferred then
+			if WG['Lups'] then
+				WG['Lups'].AddParticles('GroundFlash', {
+					worldspace = true,
+					layer = -35,
+					life = weaponConf[weaponID].life,
+					pos = {px,py+10,pz},
+					size = weaponConf[weaponID].radius/2.2,
+					sizeGrowth = 0,
+					colormap   = { {weaponConf[weaponID].r, weaponConf[weaponID].g, weaponConf[weaponID].b, weaponConf[weaponID].orgMult*1.33} },
+					texture    = 'LuaUI/Images/glow2.dds',
+				})
+			end
+		else
+			explosionLightsCount = explosionLightsCount + 1
+			explosionLights[explosionLightsCount] = params
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -749,6 +787,7 @@ function widget:Initialize()
 	loadWeaponDefs()
 
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
+	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
 	if WG.DeferredLighting_RegisterFunction then
 		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
 		projectileLightTypes = GetLightsFromUnitDefs()

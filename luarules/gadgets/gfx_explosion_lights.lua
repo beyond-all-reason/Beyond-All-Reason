@@ -11,42 +11,10 @@ function gadget:GetInfo()
   }
 end
 
--- exclude air (to prevent aa missiles that reach ground from having lights)
---local groundTypes = {
---    default = true,
---    commanders = true,
---    crawlingbombs = true,
---    platform = true,
---    heavyunits = true,
---    nanos = true,
---    shields = true,
---    scouts = true,
---    corvettes = true,
---    destroyers = true,
---    cruisers = true,
---    carriers = true,
---    battleships = true,
---    flagships = true
---}
---local skipAirWeapons = {}
---local groundDamage = false
---for weaponID, weaponDef in pairs(WeaponDefs) do
---    groundDamage = false
---    for type, damage in pairs(weaponDef.damages) do            -- weaponDef.damages doesnt contain what i expected
---        Spring.Echo(type..'  '..damage)
---        if groundTypes[type] ~= nil and damage > 0 then
---            groundDamage = true
---            break
---        end
---    end
---    if groundDamage == false then
---        skipAirWeapons[weaponID] = true
---    end
---end
-
 -------------------------------------------------------------------------------
 -- Synced
 -------------------------------------------------------------------------------
+
 
 if (gadgetHandler:IsSyncedCode()) then
 
@@ -62,6 +30,11 @@ if (gadgetHandler:IsSyncedCode()) then
         SendToUnsynced("explosion_light", px, py, pz, weaponID, ownerID)
     end
 
+    function gadget:ProjectileCreated(projectileID, ownerID, weaponID)
+        local px, py, pz = Spring.GetProjectilePosition(projectileID)
+        SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
+    end
+
 else
 	
 -------------------------------------------------------------------------------
@@ -75,7 +48,7 @@ else
             myAllyID = Spring.GetMyAllyTeamID()
         end
     end
-	
+
     local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
         if Script.LuaUI("GadgetWeaponExplosion") then
             if ownerID ~= nil then
@@ -93,11 +66,30 @@ else
         end
     end
 
+    local function SpawnBarrelfire(_,px,py,pz, weaponID, ownerID)
+        if Script.LuaUI("GadgetWeaponBarrelfire") then
+            if ownerID ~= nil then
+                local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
+
+                if (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
+                    --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
+                    Script.LuaUI.GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
+                    --end
+                end
+            else
+                -- dont know when this happens and if we should show the explosion...
+                Script.LuaUI.GadgetWeaponBarrelfire(px, py, pz, weaponID)
+            end
+        end
+    end
+
     function gadget:Initialize()
         gadgetHandler:AddSyncAction("explosion_light", SpawnExplosion)
+        gadgetHandler:AddSyncAction("barrelfire_light", SpawnBarrelfire)
     end
 
     function gadget:Shutdown()
         gadgetHandler.RemoveSyncAction("explosion_light")
+        gadgetHandler.RemoveSyncAction("barrelfire_light")
     end
 end
