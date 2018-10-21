@@ -39,12 +39,16 @@ end
 
 local DAMAGE_LIMITS = {
 	[WeaponDefNames['cordecom_disintegrator'].id] = 10,
-	[WeaponDefNames['armdecom_disintegrator'].id] = 10
+	[WeaponDefNames['armdecom_disintegrator'].id] = 10,
+	[WeaponDefNames['cordecom_bar_disintegrator'].id] = 10,
+	[WeaponDefNames['armdecom_bar_disintegrator'].id] = 10,
 }
 
 local DGUN = {
 	[WeaponDefNames['corcom_disintegrator'].id] = 15000,
-	[WeaponDefNames['armcom_disintegrator'].id] = 15000
+	[WeaponDefNames['armcom_disintegrator'].id] = 15000,
+	[WeaponDefNames['corcom_bar_disintegrator'].id] = 15000,
+	[WeaponDefNames['armcom_bar_disintegrator'].id] = 15000,
 }
 
 local CHICKEN_RESISTS = {

@@ -26,8 +26,13 @@ local lastAlarmTime                 = nil
 local lastCommanderAlarmTime        = nil
 local localTeamID                   = nil
 ----------------------------------------------------------------------------
-local armcomID=UnitDefNames["armcom"].id
-local corcomID=UnitDefNames["corcom"].id
+
+local commanders = {}
+for unitDefID,defs in pairs(UnitDefs) do
+    if unitDefID.customParams and unitDefID.customParams.iscommander then
+        commanders[unitDefID.id] = true
+    end
+end
 
 
 function widget:PlayerChanged(playerID)
@@ -57,7 +62,7 @@ function widget:UnitDamaged (unitID, unitDefID, unitTeam, damage, paralyzer)
 	end
 	--Spring.Echo(corcomID, unitID)
 	local now = spGetTimer()
-	if (unitDefID==corcomID or unitDefID==armcomID) then --commander under attack must always be played! (10 sec retrigger alert though)
+    if (commanders[unitDefID]) then --commander under attack must always be played! (10 sec retrigger alert though)
 		--Spring.Echo("Commander under attack!")
 		if ( spDiffTimers( now, lastCommanderAlarmTime ) < alarmInterval ) then
 			return

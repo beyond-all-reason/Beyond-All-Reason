@@ -51,6 +51,22 @@ local copyLightDefs = {
 		["corjuno_juno_pulse"          ] = "juno",
 	},
 }
+
+if UnitDefNames.armcom_bar then
+	function tableMerge(t1, t2)
+		for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
+		return t1
+	end
+	local copyLightDefsBAR = {['BA']={}}
+	for unitweapon,def in pairs(copyLightDefs["BA"]) do
+		local unitname = string.match(unitweapon, '([a-z]*)')
+		local weaponname = string.gsub(unitweapon, unitname..'_', '')
+		copyLightDefsBAR['BA'][unitname..'_bar_'..weaponname] = def
+	end
+	copyLightDefs = tableMerge(copyLightDefs, copyLightDefsBAR)
+end
+
+
 local dynLightDefs = {
 	["BA"] = {
 		weaponLightDefs = {
@@ -242,6 +258,7 @@ local dynLightDefs = {
 		},
 	},
 }
+
 
 local modLightDefs = dynLightDefs[Game.modShortName]
 local modCopyDefs = copyLightDefs[Game.modShortName]

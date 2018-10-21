@@ -22,7 +22,10 @@ end
 local teamComs = {} -- format is enemyComs[teamID] = total # of coms in enemy teams
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
-
+if UnitDefNames.armcom_bar then
+	local armcom_barDefID = UnitDefNames.armcom_bar.id
+	local corcom_barDefID = UnitDefNames.corcom_bar.id
+end
 local countChanged  = true 
 
 function isCom(unitID,unitDefID)
@@ -64,6 +67,9 @@ local function ReCheck()
 	local teamList = Spring.GetTeamList()
 	for _,teamID in pairs(teamList) do
 		local newCount = Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+		if armcom_barDefID then
+			newCount = newCount + Spring.GetTeamUnitDefCount(teamID, armcom_barDefID) + Spring.GetTeamUnitDefCount(teamID, corcom_barDefID)
+		end
 		if newCount ~= teamComs[teamID] then
 			countChanged = true
 			teamComs[teamID] = newCount

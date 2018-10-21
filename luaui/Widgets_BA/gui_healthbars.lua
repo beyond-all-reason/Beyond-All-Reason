@@ -1060,7 +1060,7 @@ do
           end
           if alwaysDrawBarPercentageForComs then
 			  local unitName = UnitDefs[GetUnitDefID(unitID)].name
-			  if (unitName == 'corcom'  or  unitName == 'armcom') then
+			  if (unitName == 'corcom'  or  unitName == 'armcom'  or  unitName == 'corcom_bar'  or  unitName == 'armcom_bar') then
 				infotext = hp100..'%'
 			  end
           end

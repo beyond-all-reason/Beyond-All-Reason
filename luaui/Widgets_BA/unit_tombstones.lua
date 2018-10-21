@@ -26,6 +26,12 @@ for udefID,def in ipairs(UnitDefs) do
   if def.name == 'corstone' then
     corstoneUdefID = udefID
   end
+  if def.name == 'armstone_bar' then
+    armstone_barUdefID = udefID
+  end
+  if def.name == 'corstone_bar' then
+    corstone_barUdefID = udefID
+  end
   if def.customParams.iscommander ~= nil then
     commanders[def.name] = true
   end
@@ -45,6 +51,10 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     local tombstoneUdefID = armstoneUdefID
     if ud.name == 'corcom' then
       tombstoneUdefID = corstoneUdefID
+    elseif ud.name == 'corcom_bar' then
+      tombstoneUdefID = corstone_barUdefID
+    elseif ud.name == 'armcom_bar' then
+      tombstoneUdefID = armstone_barUdefID
     end
     if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 then
       z = z - 50

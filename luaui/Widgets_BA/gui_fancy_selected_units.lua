@@ -759,7 +759,7 @@ do
 					if type == 'normal solid'  or  type == 'normal alpha' then
 
 						-- special style for coms
-						if drawUnitStyles and OPTIONScurrentOption.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom') then
+						if drawUnitStyles and OPTIONScurrentOption.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom'  or  unit.name == 'corcom_bar'  or  unit.name == 'armcom_bar') then
 							gl.Color(r,g,b,(usedAlpha*usedAlpha)+0.22)
 							usedScale = scale * 1.25
 							glDrawListAtUnit(unitID, unit.shape.inner, false, (unit.xscale*usedScale*changedScale)-((unit.xscale*changedScale-10)/10), 1.0, (unit.zscale*usedScale*changedScale)-((unit.zscale*changedScale-10)/10), currentRotationAngleOpposite, 0, degrot[unitID], 0)

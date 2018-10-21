@@ -20,6 +20,10 @@ local resourcebarBgTint = true		-- will background of resourcebar get colored wh
 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
+if UnitDefNames.armcom_bar then
+	local armcom_barDefID = UnitDefNames.armcom_bar.id
+	local corcom_barDefID = UnitDefNames.corcom_bar.id
+end
 
 local playSounds = true
 local leftclick = 'LuaUI/Sounds/tock.wav'
@@ -1482,6 +1486,9 @@ function countComs()
 	local myAllyTeamList = Spring.GetTeamList(myAllyTeamID)
 	for _,teamID in ipairs(myAllyTeamList) do
 		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+		if armcom_barDefID then
+			allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcom_barDefID) + Spring.GetTeamUnitDefCount(teamID, corcom_barDefID)
+		end
 	end
 	comcountChanged = true
 	
@@ -1494,6 +1501,9 @@ function countComs()
 				local teamList = Spring.GetTeamList(allyTeamID)
 				for _,teamID in ipairs(teamList) do
 					enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
+					if armcom_barDefID then
+						enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcom_barDefID) + Spring.GetTeamUnitDefCount(teamID, corcom_barDefID)
+					end
 				end
 			end
 		end

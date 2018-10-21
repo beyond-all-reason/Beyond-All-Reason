@@ -36,15 +36,20 @@ local UnitTeam = Spring.GetUnitTeam
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local DGUN = {
-    [WeaponDefNames['armcom_disintegrator'].id] = true,
-    [WeaponDefNames['corcom_disintegrator'].id] = true,
+	[WeaponDefNames['armcom_disintegrator'].id] = true,
+	[WeaponDefNames['corcom_disintegrator'].id] = true,
 }
 
 local COMMANDER = {
   [UnitDefNames["corcom"].id] = true,
   [UnitDefNames["armcom"].id] = true,
 }
-
+if UnitDefNames.armcom_bar then
+	DGUN[WeaponDefNames['armcom_bar_disintegrator'].id] = true
+	DGUN[WeaponDefNames['corcom_bar_disintegrator'].id] = true
+	COMMANDER[UnitDefNames["corcom_bar"].id] = true
+	COMMANDER[UnitDefNames["armcom_bar"].id] = true
+end
 
 local immuneDgunList = {}
 local ctrlCom = {}
@@ -54,21 +59,23 @@ local cantFall = {}
 
 function CommCount(unitTeam)
 
-local allyteamlist = Spring.GetAllyTeamList()
-local teamsInAllyID = {}
-local _,_,_,_,_,currentAllyTeamID = Spring.GetTeamInfo(unitTeam)
+	local allyteamlist = Spring.GetAllyTeamList()
+	local teamsInAllyID = {}
+	local _,_,_,_,_,currentAllyTeamID = Spring.GetTeamInfo(unitTeam)
 
-for ct, allyTeamID in pairs(allyteamlist) do
-	teamsInAllyID[allyTeamID] = Spring.GetTeamList(allyTeamID) -- [1] = teamID,
-end
--- Spring.Echo(teamsInAllyID[currentAllyTeamID])
-local count = 0
-for _, teamID in pairs(teamsInAllyID[currentAllyTeamID]) do -- [_] = teamID, 
-count = count + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["armcom"].id) + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["corcom"].id)
-end
--- Spring.Echo(currentAllyTeamID..","..count)
-return count
-
+	for ct, allyTeamID in pairs(allyteamlist) do
+		teamsInAllyID[allyTeamID] = Spring.GetTeamList(allyTeamID) -- [1] = teamID,
+	end
+	-- Spring.Echo(teamsInAllyID[currentAllyTeamID])
+	local count = 0
+	for _, teamID in pairs(teamsInAllyID[currentAllyTeamID]) do -- [_] = teamID,
+		count = count + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["armcom"].id) + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["corcom"].id)
+		if UnitDefNames.armcom_bar then
+			count = count + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["armcom_bar"].id) + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["corcom_bar"].id)
+		end
+	end
+	-- Spring.Echo(currentAllyTeamID..","..count)
+	return count
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
