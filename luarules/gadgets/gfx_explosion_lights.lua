@@ -17,11 +17,25 @@ end
 
 
 if (gadgetHandler:IsSyncedCode()) then
-
+    local cannonWeapons = {}
     function gadget:Initialize()
         for wdid, wd in pairs(WeaponDefs) do
             if wd.type == "Flame" then
                 Script.SetWatchWeapon(wdid, true)     -- watch weapon so explosion gets called for flame weapons
+            end
+            if wd.type == "Cannon" then
+                cannonWeapons[wdid] = true
+                Script.SetWatchWeapon(wdid, true)    -- might be getting too expensive
+            end
+        end
+    end
+    function gadget:Shutdown()
+        for wdid, wd in pairs(WeaponDefs) do
+            if wd.type == "Flame" then
+                Script.SetWatchWeapon(wdid, false)     -- watch weapon so explosion gets called for flame weapons
+            end
+            if wd.type == "Cannon" then
+                --Script.SetWatchWeapon(wdid, false)    -- might be getting too expensive
             end
         end
     end
@@ -31,8 +45,10 @@ if (gadgetHandler:IsSyncedCode()) then
     end
 
     function gadget:ProjectileCreated(projectileID, ownerID, weaponID)
-        local px, py, pz = Spring.GetProjectilePosition(projectileID)
-        SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
+        if cannonWeapons[weaponID] then
+            local px, py, pz = Spring.GetProjectilePosition(projectileID)
+            SendToUnsynced("barrelfire_light", px, py, pz, weaponID, ownerID)
+        end
     end
 
 else
@@ -67,6 +83,7 @@ else
     end
 
     local function SpawnBarrelfire(_,px,py,pz, weaponID, ownerID)
+        --Spring.Echo(weaponID..'  '..math.random())
         if Script.LuaUI("GadgetWeaponBarrelfire") then
             if ownerID ~= nil then
                 local _, _, _, teamID, allyID = Spring.GetPlayerInfo(ownerID)
