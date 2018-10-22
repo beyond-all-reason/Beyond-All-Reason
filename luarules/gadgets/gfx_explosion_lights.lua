@@ -35,7 +35,7 @@ if (gadgetHandler:IsSyncedCode()) then
                 Script.SetWatchWeapon(wdid, false)     -- watch weapon so explosion gets called for flame weapons
             end
             if wd.type == "Cannon" then
-                --Script.SetWatchWeapon(wdid, false)    -- might be getting too expensive
+                Script.SetWatchWeapon(wdid, false)    -- might be getting too expensive
             end
         end
     end

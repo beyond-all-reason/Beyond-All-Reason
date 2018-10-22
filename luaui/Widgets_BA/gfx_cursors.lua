@@ -32,18 +32,20 @@ function widget:Shutdown()
 end
 
 function widget:Initialize()
-    SetCursor(Settings['cursorSet'])
-	  WG['cursors'] = {}
-	  WG['cursors'].getcursor = function()
-	  	return Settings['cursorSet']
-	  end
-	  WG['cursors'].getcursorsets = function()
-	  	return cursorSets
-	  end
-	  WG['cursors'].setcursor = function(cursorSet)
-	  	Settings['cursorSet'] = cursorSet
-	  	SetCursor(cursorSet)
-	  end
+	if Spring.GetGameFrame() == 0 then
+    	SetCursor(Settings['cursorSet'])
+	end
+	WG['cursors'] = {}
+	WG['cursors'].getcursor = function()
+		return Settings['cursorSet']
+	end
+	WG['cursors'].getcursorsets = function()
+		return cursorSets
+	end
+	WG['cursors'].setcursor = function(cursorSet)
+		Settings['cursorSet'] = cursorSet
+		SetCursor(cursorSet)
+	end
 end
 
 ----------------------------
@@ -66,7 +68,7 @@ function SetCursor(cursorSet)
         else
             Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)
         end
-    end
+	end
 end
 
 
