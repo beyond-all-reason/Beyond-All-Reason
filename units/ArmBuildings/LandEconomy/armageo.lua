@@ -37,6 +37,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooooo ooooo ooooo oGGGo oGGGo ooooo",
 		customparams = {
+			bar_footprintx = 6,
+			bar_footprintz = 6,
 			techlevel = 2,
 			cvBuildable = true,
 			removewait = true,

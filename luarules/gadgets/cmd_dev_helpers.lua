@@ -67,7 +67,7 @@ function GiveCat(words)
     end
 
     local arrayWidth = math.ceil(math.sqrt(#giveUnits))
-    local spacing = 100
+    local spacing = 120
     local n = 0
     local x,z = ox,oz
     for _,uDID in ipairs(giveUnits) do
@@ -257,12 +257,16 @@ function GiveCat(_,line)
         local Condition = function (ud) return ud.isFactory end
         Accept[#Accept+1] = Condition
     end
-    if string.find(line, "immobile") then
-        local Condition = function (ud) return ud.isImmobile end
+    if string.find(line, "building") then
+        local Condition = function (ud) return ud.isBuilding end
         Accept[#Accept+1] = Condition
     end
     if string.find(line, "mobile") then
-        local Condition = function (ud) return not ud.isImmobile end
+        local Condition = function (ud) return not ud.isBuilding end
+        Accept[#Accept+1] = Condition
+    end
+    if string.find(line, "all") then
+        local Condition = function (ud) return true end
         Accept[#Accept+1] = Condition
     end
 
