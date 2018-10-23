@@ -14,6 +14,10 @@ local spies  = {
 	[UnitDefNames.armspy.id] = true,
 	[UnitDefNames.corspy.id] = true,
 }
+if UnitDefNames.armcom_bar then
+	spies[UnitDefNames.armspy_bar.id] = true
+	spies[UnitDefNames.corspy_bar.id] = true
+end
 
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local GetUnitStates = Spring.GetUnitStates
