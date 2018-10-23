@@ -197,6 +197,14 @@ function GiveCat(_,line)
     for _,uDID in ipairs(UnitDefNames["armshltx"].buildOptions) do
         t3Units[uDID] = true
     end
+    if UnitDefNames['armcom_bar'] then
+        for _,uDID in ipairs(UnitDefNames["corgant_bar"].buildOptions) do
+            t3Units[uDID] = true
+        end
+        for _,uDID in ipairs(UnitDefNames["armshltx_bar"].buildOptions) do
+            t3Units[uDID] = true
+        end
+    end
     techLevels['t3'] = t3Units
     techSuffix['t3'] = 't3'
     
