@@ -61,6 +61,8 @@ return {
 			[18] = "armmark",
 		},
 		customparams = {
+			bar_buildinggrounddecalsizex = 8.6,
+			bar_buildinggrounddecalsizey = 8.6,
 			bar_yardmap = "oooooo oooooo oooooo cccccc cccccc cccccc",
 			techlevel = 2,
 		},

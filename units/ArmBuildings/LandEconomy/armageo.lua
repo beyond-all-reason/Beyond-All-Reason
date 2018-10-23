@@ -39,6 +39,9 @@ return {
 		customparams = {
 			bar_footprintx = 6,
 			bar_footprintz = 6,
+			bar_collisionvolumeoffsets = "0 10 0",
+			bar_collisionvolumescales = "77 66 77",
+			bar_collisionvolumetype = "CylY",
 			techlevel = 2,
 			cvBuildable = true,
 			removewait = true,

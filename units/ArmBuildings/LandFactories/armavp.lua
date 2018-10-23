@@ -57,6 +57,8 @@ return {
 			[12] = "armjam",
 		},
 		customparams = {
+			bar_buildinggrounddecalsizex = 7.9,
+			bar_buildinggrounddecalsizey = 7.9,
 			techlevel = 2,
 		},
 		featuredefs = {

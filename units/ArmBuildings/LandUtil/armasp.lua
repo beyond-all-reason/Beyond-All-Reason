@@ -44,6 +44,8 @@ return {
 		workertime = 1000,
 		yardmap = "ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			bar_buildinggrounddecalsizex = 11.5,
+			bar_buildinggrounddecalsizey = 11.5,
 			techlevel = 2,
 			removewait = true,
 			removestop = true,
