@@ -49,8 +49,6 @@ local oldUnitName = {	-- mostly duplicates
 	armdf = 'armfus',
 	corgantuw = 'corgant',
 	armshltxuw = 'armshltx',
-	armuwmmm = 'armfmmm',
-	coruwmmm = 'corfmmm',
 }
 
 
