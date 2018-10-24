@@ -39,6 +39,7 @@ return {
 		customparams = {
 			bar_footprintx = 6,
 			bar_footprintz = 6,
+			yardmap = "oooooo oooooo oGGGoo oGGGoo oooooo oooooo",
 			bar_collisionvolumeoffsets = "0 10 0",
 			bar_collisionvolumescales = "77 66 77",
 			bar_collisionvolumetype = "CylY",

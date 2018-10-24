@@ -39,7 +39,7 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 5,
 			bar_buildinggrounddecalsizey = 5,
-			bar_yardmap = "ooooooooo",
+			bar_yardmap = "oooo",
 			techlevel = 2,
 			removewait = true,
 			prioritytarget = "air",
