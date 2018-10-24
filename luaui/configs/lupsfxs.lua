@@ -491,8 +491,7 @@ sparks1 = {
 
 
 
---if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
---if true then
+if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) or UnitDefNames.armcom_bar then
   -- $Id: lupsFXs.lua 3485 2008-12-19 23:06:30Z jk $
 
   ----------------------------------------------------------------------------
@@ -556,7 +555,7 @@ sparks1 = {
   corfusShieldSphere = {
     layer=-35,
     life=20,
-    pos = {0,50,0},
+    pos = {0,51,0},
     size=23,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
@@ -696,4 +695,4 @@ sparks1 = {
   }
 
 
---end
+end

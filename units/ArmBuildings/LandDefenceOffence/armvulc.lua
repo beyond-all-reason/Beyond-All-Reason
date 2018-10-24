@@ -37,6 +37,8 @@ return {
 		collisionvolumetype = "CylY",
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			bar_buildinggrounddecalsizex = 7.5,
+			bar_buildinggrounddecalsizey = 7.5,
 			techlevel = 2,
 			removewait = true,
 		},

@@ -63,6 +63,8 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 13 8",
 			bar_collisionvolumescales = "101 51 90",
+			bar_buildinggrounddecalsizex = 10,
+			bar_buildinggrounddecalsizey = 9,
 			bar_yardmap = "ooooooo ooooooo ooooooo ccccccc ccccccc ccccccc",
 			techlevel = 2,
 		},

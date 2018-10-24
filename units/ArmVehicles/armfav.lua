@@ -140,6 +140,7 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.18,
+				beamttl = 1,
 				burstrate = 0.2,
 				corethickness = 0.3,
 				craterareaofeffect = 0,
