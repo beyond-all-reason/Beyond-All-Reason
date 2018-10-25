@@ -595,12 +595,20 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		previousProjectileDrawParams = projectileDrawParams
 	end
 
-	-- add explosion lights
+	-- add point lights
 	for i, params in pairs(explosionLights) do
-		local progress = 1-((frame-params.frame)/params.life)
-		progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4    -- fade out fast, but ease out at the end
-		params.colMult = params.orgMult * progress
-		if params.colMult <= 0 then
+		local progress = 1
+		if not params.life then
+			params.colMult = params.orgMult
+		else
+			local progress = 1-((frame-params.frame)/params.life)
+			progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4    -- fade out fast, but ease out at the end
+			params.colMult = params.orgMult
+			if not params.nofade then
+				params.colMult = params.orgMult * progress
+			end
+		end
+		if params.life and progress <= 0 then
 			explosionLights[i] = nil
 		else
 			pointLightCount = pointLightCount + 1
@@ -609,6 +617,46 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	end
 
 	return beamLights, beamLightCount, pointLights, pointLightCount
+end
+
+function tableMerge(t1, t2)
+	for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
+	return t1
+end
+
+function CreateLight(x, y, z, radius, rgba)
+	local params = {
+		orgMult = rgba[4],
+		nofade = true,
+		frame = Spring.GetGameFrame(),
+		px = x,
+		py = y,
+		pz = z,
+		param = {
+			type = 'explosion',
+			r = rgba[1],
+			g = rgba[2],
+			b = rgba[3],
+			radius = radius,
+		},
+	}
+	explosionLightsCount = explosionLightsCount + 1
+	explosionLights[explosionLightsCount] = params
+	return explosionLightsCount
+end
+
+function EditLight(lightID, params)
+	if explosionLights[lightID] then
+		explosionLights[lightID] = tableMerge(explosionLights[lightID], params)
+	end
+end
+
+function RemoveLight(lightID)
+	if explosionLights[lightID] then
+		explosionLights[lightID].nofade = nil
+		explosionLights[lightID].life = 30
+		explosionLights[lightID].frame = Spring.GetGameFrame()
+	end
 end
 
 
@@ -772,12 +820,25 @@ function widget:Initialize()
 
 	widgetHandler:RegisterGlobal('GadgetWeaponExplosion', GadgetWeaponExplosion)
 	widgetHandler:RegisterGlobal('GadgetWeaponBarrelfire', GadgetWeaponBarrelfire)
+	widgetHandler:RegisterGlobal('GadgetCreateLight', CreateLight)
+	widgetHandler:RegisterGlobal('GadgetEditLight', EditLight)
+	widgetHandler:RegisterGlobal('GadgetRemoveLight', RemoveLight)
+
 	if WG.DeferredLighting_RegisterFunction then
 		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
 		projectileLightTypes = GetLightsFromUnitDefs()
 	end
 
 	WG['lighteffects'] = {}
+	WG['lighteffects'].createLight = function(x,y,z,radius,rgba)
+		return CreateLight(x,y,z,radius,rgba)
+	end
+	WG['lighteffects'].editLight = function(lightID, params)
+		return EditLight(lightID, params)
+	end
+	WG['lighteffects'].removeLight = function(lightID)
+		return RemoveLight(lightID)
+	end
 	WG['lighteffects'].getGlobalBrightness = function()
 		return globalLightMult
 	end

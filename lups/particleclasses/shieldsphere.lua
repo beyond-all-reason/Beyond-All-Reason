@@ -75,6 +75,10 @@ function ShieldSphereParticle:Draw()
     self.stunned = Spring.GetUnitIsStunned(self.unit)
   end
   if self.stunned then
+    if self.lightID and WG['lighteffects'] and WG['lighteffects'].createLight then
+      WG['lighteffects'].removeLight(self.lightID)
+      self.lightID = nil
+    end
     return
   end
   local color = self.color1
@@ -159,6 +163,7 @@ function ShieldSphereParticle:CreateParticle()
 
   self.firstGameFrame = Spring.GetGameFrame()
   self.dieGameFrame   = self.firstGameFrame + self.clife
+
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -173,6 +178,25 @@ function ShieldSphereParticle:Update(n)
   else
     checkStunned = false
   end
+
+  if not self.stunned and self.light then
+    if WG['lighteffects'] and WG['lighteffects'].createLight then
+      if not self.unitPos then
+        self.unitPos = {}
+        self.unitPos[1], self.unitPos[2], self.unitPos[3] = Spring.GetUnitPosition(self.unit)
+      end
+      local color = {GetColor(self.colormap2,self.life) }
+      color[4]=color[4]*self.light
+      if not self.lightID then
+        self.lightID = WG['lighteffects'].createLight(self.unitPos[1]+self.pos[1], self.unitPos[2]+self.pos[2], self.unitPos[3]+self.pos[1], self.size*6.5, color)
+      else
+        WG['lighteffects'].editLight(self.lightID, {orgMult=color[4],param={r=color[1],g=color[2],b=color[3]}})
+      end
+    else
+      self.lightID = nil
+    end
+  end
+
   if (self.life<1) then
     self.life     = self.life + n*self.life_incr
     self.size     = self.size + n*self.sizeGrowth
@@ -199,6 +223,9 @@ function ShieldSphereParticle.Create(Options)
 end
 
 function ShieldSphereParticle:Destroy()
+  if WG['lighteffects'] and WG['lighteffects'].removeLight then
+    self.lightID = WG['lighteffects'].removeLight(self.lightID)
+  end
 end
 
 -----------------------------------------------------------------------------------------------------------------

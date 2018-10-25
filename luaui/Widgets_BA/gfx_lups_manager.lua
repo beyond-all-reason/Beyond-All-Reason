@@ -88,13 +88,13 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
         --{class='Bursts',options=corafusBursts},
         {class='ShieldSphere',options=corafusShieldSphere},
         {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,58.9,-4.5}, size=24.5, precision=22, repeatEffect=true}},
-        {class='GroundFlash',options=groundFlashBlue},
+        --{class='GroundFlash',options=groundFlashBlue},
       },
       [UnitDefNames["corfus"].id] = {
         --{class='Bursts',options=corfusBursts},
         {class='ShieldSphere',options=corfusShieldSphere},
         {class='ShieldJitter',options={life=math.huge, pos={0,50,-5}, size=23, precision=22, repeatEffect=true}},
-        {class='GroundFlash',options=groundFlashGreen},
+        --{class='GroundFlash',options=groundFlashGreen},
       },
       [UnitDefNames["armafus"].id] = {
         {class='SimpleParticles2', options=MergeTable({pos={-38,70,-10}, delay=10, lifeSpread=300},sparks)},
@@ -256,12 +256,12 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     UnitEffectsBAR = {
 
         [UnitDefNames["armjuno"..nameSuffix].id] = {
-            {class='GroundFlash',options=groundFlashJunoBar},
+            --{class='GroundFlash',options=groundFlashJunoBar},
             {class='ShieldSphere',options=ajunoShieldSphere},
             {class='ShieldJitter',options={life=math.huge, pos={0,72,0}, size=13, precision=22, repeatEffect=true}},
         },
         [UnitDefNames["corjuno"..nameSuffix].id] = {
-            {class='GroundFlash',options=groundFlashJunoBar},
+            --{class='GroundFlash',options=groundFlashJunoBar},
             {class='ShieldSphere',options=cjunoShieldSphere},
             {class='ShieldJitter',options={life=math.huge, pos={0,72,0}, size=13, precision=22, repeatEffect=true}},
         },
@@ -277,18 +277,20 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
         [UnitDefNames["corafus"..nameSuffix].id] = {
             {class='ShieldSphere',options=cafusShieldSphere},
             {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,60,0}, size=32, precision=22, repeatEffect=true}},
-            {class='GroundFlash',options=groundFlashCorafus},
+            --{class='GroundFlash',options=groundFlashCorafus},
         },
         [UnitDefNames["corfus"..nameSuffix].id] = {
             {class='ShieldSphere',options=corfusShieldSphere},
             {class='ShieldJitter',options={life=math.huge, pos={0,50,0}, size=23, precision=22, repeatEffect=true}},
-            {class='GroundFlash',options=groundFlashCorfus},
+            --{class='GroundFlash',options=groundFlashCorfus},
         },
         [UnitDefNames["armafus"..nameSuffix].id] = {
-            {class='SimpleParticles2', options=MergeTable({pos={0,76,0}, delay=0, lifeSpread=30},plasmaball_aafus)},
-            {class='SimpleParticles2', options=MergeTable({pos={0,76,0}, delay=40, lifeSpread=30},plasmaball_aafus)},
-            {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,76,0}, size=30, precision=22, repeatEffect=true}},
-            {class='GroundFlash',options=groundFlashArmafus},
+            {class='ShieldSphere',options=aafusShieldSphere},
+            {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,60,0}, size=28, precision=22, repeatEffect=true}},
+            --{class='SimpleParticles2', options=MergeTable({pos={0,70,0}, delay=0, lifeSpread=30},plasmaball_aafus)},
+            --{class='SimpleParticles2', options=MergeTable({pos={0,70,0}, delay=40, lifeSpread=30},plasmaball_aafus)},
+            --{class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,76,0}, size=30, precision=22, repeatEffect=true}},
+            --{class='GroundFlash',options=groundFlashArmafus},
         },
         [UnitDefNames["corgate"..nameSuffix].id] = {
             {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts550)},
@@ -296,7 +298,7 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
             {class='ShieldSphere',options=corgateShieldSphere},
             {class='SimpleParticles2', options=MergeTable({pos={0,42,0}, lifeSpread=300},shield_corgate)},
             --{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
-            {class='GroundFlash',options=groundFlashShield},
+            --{class='GroundFlash',options=groundFlashShield},
         },
         [UnitDefNames["corfgate"..nameSuffix].id] = {
             {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts600)},
@@ -304,21 +306,21 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
             {class='ShieldSphere',options=corgateShieldSphere},
             {class='SimpleParticles2', options=MergeTable({pos={0,42,0}, lifeSpread=300},shield_corgate)},
             --{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
-            {class='GroundFlash',options=groundFlashShield},
+            --{class='GroundFlash',options=groundFlashShield},
         },
         [UnitDefNames["armgate"..nameSuffix].id] = {
             {class='Bursts',options=MergeTable({pos={0,25,5}},shieldBursts550)},
             {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
             {class='ShieldSphere',options=armgateShieldSphere},
             {class='SimpleParticles2', options=MergeTable({pos={0,25,-5}, lifeSpread=300},shield_armgate)},
-            {class='GroundFlash',options=groundFlashShield},
+            --{class='GroundFlash',options=groundFlashShield},
         },
         [UnitDefNames["armfgate"..nameSuffix].id] = {
             {class='Bursts',options=MergeTable({pos={0,25,0}},shieldBursts600)},
             {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
             {class='ShieldSphere',options=MergeTable(armgateShieldSphere, {pos={0,25,0}})},
             {class='SimpleParticles2', options=MergeTable({pos={0,25,0}, lifeSpread=300},shield_armgate)},
-            {class='GroundFlash',options=groundFlashShield},
+            --{class='GroundFlash',options=groundFlashShield},
         },
 
 

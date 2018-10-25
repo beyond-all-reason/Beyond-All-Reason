@@ -374,6 +374,9 @@ function RemoveParticles(particlesID)
 			end
 		end
 		fx:Destroy()
+		if particles[particlesID].lightID and WG['lighteffects'] and WG['lighteffects'].removeLight then
+			WG['lighteffects'].removeLight(particles[particlesID].lightID)
+		end
 		particles[particlesID] = nil
 		particlesCount = particlesCount-1;
 		return
