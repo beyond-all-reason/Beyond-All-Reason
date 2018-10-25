@@ -498,6 +498,37 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
   -- Groundflashes -----------------------------------------------------------
   ----------------------------------------------------------------------------
 
+  groundFlashCorafus = {
+    life       = 20,
+    size       = 100,
+    texture    = "bitmaps/GPL/Lups/groundflash.png",
+    colormap   = { {0.5, 0.5, 1.0, 0.15},{0.5, 0.5, 1.0, 0.2},{0.5, 0.5, 1.0, 0.2},{0.5, 0.5, 1.0, 0.15}, },
+    repeatEffect = true,
+  }
+  groundFlashArmafus = {
+    life       = 20,
+    size       = 100,
+    texture    = "bitmaps/GPL/Lups/groundflash.png",
+    colormap   = { {0.5, 0.5, 1.0, 0.12},{0.5, 0.5, 1.0, 0.14},{0.5, 0.5, 1.0, 0.11},{0.5, 0.5, 1.0, 0.1}, },
+    repeatEffect = true,
+  }
+
+  groundFlashCorfus = {
+    life       = 50,
+    size       = 75,
+    texture    = "bitmaps/GPL/Lups/groundflash.png",
+    colormap   = { {0.6, 1.0, 0.6, 0.11},{0.6, 1.0, 0.6, 0.13},{0.6, 1.0, 0.6, 0.14},{0.6, 1.0, 0.6, 0.11}, },
+    repeatEffect = true,
+  }
+
+  groundFlashShield = {
+    life       = 50,
+    size       = 60,
+    texture    = "bitmaps/GPL/Lups/groundflash.png",
+    colormap   = { {0.6, 1.0, 0.6, 0.09},{0.6, 1.0, 0.6, 0.115},{0.6, 1.0, 0.6, 0.115},{0.6, 1.0, 0.6, 0.09}, },
+    repeatEffect = true,
+  }
+
   groundFlashBlue = {
     life       = 20,
     size       = 100,
@@ -530,11 +561,11 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     repeatEffect = true,
   }
 
-  groundFlashJuno = {
+  groundFlashJunoBar = {
     life       = 50,
-    size       = 80,
+    size       = 60,
     texture    = "bitmaps/GPL/Lups/groundflash.png",
-    colormap   = { {0.55,0.55,0.9, 0.1}, {0.55,0.55,0.9, 0.12},{0.55,0.55,0.9, 0.12},{0.55,0.55,0.9, 0.1}, },
+    colormap   = { {0.9,0.55,0.55, 0.077}, {0.9,0.55,0.55, 0.09},{0.9,0.55,0.55, 0.09},{0.9,0.55,0.55, 0.077}, },
     repeatEffect = true,
   }
 
@@ -572,11 +603,21 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     repeatEffect=true
   }
 
+  ajunoShieldSphere = {
+    layer=-35,
+    life=20,
+    pos = {0,72,0},
+    size=13,
+    colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
+    colormap2 = { {0.8, 0.2, 0.2, 0.4},{0.8, 0.2, 0.2, 0.45},{0.9, 0.2, 0.2, 0.45},{0.9, 0.1, 0.2, 0.4} },
+    repeatEffect=true
+  }
+
   cjunoShieldSphere = {
     layer=-35,
     life=20,
     pos = {0,72,0},
-    size=16,
+    size=13,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.8, 0.2, 0.2, 0.4},{0.8, 0.2, 0.2, 0.45},{0.9, 0.2, 0.2, 0.45},{0.9, 0.1, 0.2, 0.4} },
     repeatEffect=true
