@@ -1,6 +1,6 @@
 return {
 	armstump = {
-		mass = 500
+		mass = 300
 		acceleration = 0.023,
 		brakerate = 0.095,
 		buildcostenergy = 2100,
