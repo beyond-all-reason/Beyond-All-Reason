@@ -1,6 +1,6 @@
 return {
 	corraid = {
-		mass = 350
+		mass = 550
 		acceleration = 0.021,
 		brakerate = 0.09,
 		buildcostenergy = 2400,
