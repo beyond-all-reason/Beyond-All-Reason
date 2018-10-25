@@ -93,7 +93,7 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
       [UnitDefNames["corfus"].id] = {
         --{class='Bursts',options=corfusBursts},
         {class='ShieldSphere',options=corfusShieldSphere},
-        {class='ShieldJitter',options={life=math.huge, pos={0,50,-5}, size=23, precision=22, repeatEffect=true}},
+        {class='ShieldJitter',options={life=math.huge, pos={0,40,-5}, size=23, precision=22, repeatEffect=true}},
         --{class='GroundFlash',options=groundFlashGreen},
       },
       [UnitDefNames["armafus"].id] = {
@@ -257,7 +257,7 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
 
         [UnitDefNames["armjuno"..nameSuffix].id] = {
             --{class='GroundFlash',options=groundFlashJunoBar},
-            {class='ShieldSphere',options=ajunoShieldSphere},
+            {class='ShieldSphere',options=ajunoShieldSphereBar},
             {class='ShieldJitter',options={life=math.huge, pos={0,72,0}, size=13, precision=22, repeatEffect=true}},
         },
         [UnitDefNames["corjuno"..nameSuffix].id] = {
@@ -280,7 +280,7 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
             --{class='GroundFlash',options=groundFlashCorafus},
         },
         [UnitDefNames["corfus"..nameSuffix].id] = {
-            {class='ShieldSphere',options=corfusShieldSphere},
+            {class='ShieldSphere',options=corfusShieldSphereBar},
             {class='ShieldJitter',options={life=math.huge, pos={0,50,0}, size=23, precision=22, repeatEffect=true}},
             --{class='GroundFlash',options=groundFlashCorfus},
         },

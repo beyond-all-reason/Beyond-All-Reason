@@ -274,7 +274,7 @@ corafusShieldSphere = {
   life=20,
   pos={0,58.9,-4.5},
   size=24,
-  light = 1.8,
+  light = 2.5,
   colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
   colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
   repeatEffect=true
@@ -283,9 +283,9 @@ corafusShieldSphere = {
 corfusShieldSphere = {
   layer=-35,
   life=20,
-  pos = {0,50,-5},
+  pos = {0,40,-5},
   size=22,
-  light = 1.8,
+  light = 2.5,
   colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
   colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
   repeatEffect=true
@@ -580,7 +580,7 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     life=20,
     pos={0,60,0},
     size=32,
-    light = 1.8,
+    light = 2.5,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
     repeatEffect=true
@@ -591,18 +591,18 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     life=20,
     pos={0,60,0},
     size=28,
-    light = 1.8,
+    light = 2.5,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.2, 0.2, 1, 0.7},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.75},{0.2, 0.2, 1, 0.7} },
     repeatEffect=true
   }
 
-  corfusShieldSphere = {
+  corfusShieldSphereBar = {
     layer=-35,
     life=20,
     pos = {0,51,0},
     size=23,
-    light = 1.8,
+    light = 2.5,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
     repeatEffect=true
@@ -613,17 +613,18 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     life=20,
     pos = {0,42,0},
     size= 11,
-    light = 1.3,
+    light = 2,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.2, 0.6, 0.2, 0.4},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.45},{0.2, 0.6, 0.2, 0.4} },
     repeatEffect=true
   }
 
-  ajunoShieldSphere = {
+  ajunoShieldSphereBar = {
     layer=-35,
     life=20,
     pos = {0,72,0},
     size=13,
+    light = 2,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.8, 0.2, 0.2, 0.4},{0.8, 0.2, 0.2, 0.45},{0.9, 0.2, 0.2, 0.45},{0.9, 0.1, 0.2, 0.4} },
     repeatEffect=true
@@ -634,7 +635,7 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     life=20,
     pos = {0,72,0},
     size=13,
-    light = 1.3,
+    light = 2,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.8, 0.2, 0.2, 0.4},{0.8, 0.2, 0.2, 0.45},{0.9, 0.2, 0.2, 0.45},{0.9, 0.1, 0.2, 0.4} },
     repeatEffect=true
@@ -645,7 +646,7 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     life=20,
     pos = {0,23.5,-5},
     size=14.5,
-    light = 1.3,
+    light = 2,
     colormap1 = { {0.9, 0.9, 1, 0.75},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 1.0},{0.9, 0.9, 1, 0.75} },
     colormap2 = { {0.2, 0.8, 0.2, 0.4},{0.2, 0.8, 0.2, 0.45},{0.2, 0.9, 0.2, 0.45},{0.1, 0.9, 0.2, 0.4} },
     repeatEffect=true

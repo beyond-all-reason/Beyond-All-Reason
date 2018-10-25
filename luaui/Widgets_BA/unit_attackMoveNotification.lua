@@ -30,7 +30,7 @@ local localTeamID                   = nil
 local commanders = {}
 for unitDefID,defs in pairs(UnitDefs) do
     if defs and defs.customParams and defs.customParams.iscommander then
-        commanders[unitDefID.id] = true
+        commanders[defs.id] = true
     end
 end
 
