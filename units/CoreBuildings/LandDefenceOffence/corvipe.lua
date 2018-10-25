@@ -35,6 +35,8 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
 		customparams = {
+			bar_buildinggrounddecalsizex = 4.7,
+			bar_buildinggrounddecalsizey = 4.7,
 			techlevel = 2,
 		},
 		featuredefs = {

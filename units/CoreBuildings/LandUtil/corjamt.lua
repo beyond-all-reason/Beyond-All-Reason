@@ -40,6 +40,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
+			bar_buildinggrounddecalsizex = 3.6,
+			bar_buildinggrounddecalsizey = 3.6,
 			removewait = true,
 			removestop = true,
 		},
