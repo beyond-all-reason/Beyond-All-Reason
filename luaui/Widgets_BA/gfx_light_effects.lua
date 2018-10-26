@@ -596,19 +596,19 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 	end
 
 	-- add point lights
+	local progress = 1
 	for i, params in pairs(explosionLights) do
-		local progress = 1
 		if not params.life then
 			params.colMult = params.orgMult
 		else
-			local progress = 1-((frame-params.frame)/params.life)
+			progress = 1-((frame-params.frame)/params.life)
 			progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4    -- fade out fast, but ease out at the end
 			params.colMult = params.orgMult
 			if not params.nofade then
 				params.colMult = params.orgMult * progress
 			end
 		end
-		if params.life and progress <= 0 then
+		if params.colMult <= 0 then
 			explosionLights[i] = nil
 		else
 			pointLightCount = pointLightCount + 1
@@ -625,6 +625,7 @@ function tableMerge(t1, t2)
 end
 
 function CreateLight(x, y, z, radius, rgba)
+	Spring.Echo('created light '..radius..' '..x..' '..y..' '..z)
 	local params = {
 		orgMult = rgba[4],
 		nofade = true,
