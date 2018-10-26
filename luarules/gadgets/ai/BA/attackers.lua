@@ -113,7 +113,6 @@ attackerlist = {
 	"armpt",	--	Skeeter			/	Patrol Boat/Light Anti-Air
 	"armrecl",	--	Grim Reaper		/	Ressurection Sub
 	"armroy",	--	Crusader		/	Destroyer
-	"armrship",	--	Intervention	/	Support Frigate (Depthcharge)
 	"armsub",	--	Lurker			/	Submarine
 	"armtship",	--	Hulk			/	Armored Transport Ship
 
@@ -236,7 +235,6 @@ attackerlist = {
 	"corpt",	--	Searcher;		/	Patrol Boat/Light Anti-Air
 	"correcl",	--	Death Cavalry	/	Ressurection Sub
 	"corroy",	--	Enforcer		/	Destroyer
-	"corrship",	--	Crusher			/	Support Frigate (Depthcharge)
 	"corsub",	--	Snake			/	Submarine
 	"cortship",	--	Envoy			/	Armored Transport Ship
 

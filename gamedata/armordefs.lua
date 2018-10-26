@@ -380,8 +380,6 @@ local armorDefs = {
 		"cormls",
 		"armdecade",
 		"corsjam",
-		"armrship",
-		"corrship",
 	},
 
 	hvyboats = {

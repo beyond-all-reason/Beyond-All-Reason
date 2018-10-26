@@ -62,7 +62,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 0.8*55,
-				object = "ARMRSHIP_DEAD",
+				object = "ARMDSHIP_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
