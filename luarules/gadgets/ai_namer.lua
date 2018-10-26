@@ -299,7 +299,7 @@ if gadgetHandler:IsSyncedCode() then
 				if select(4,Spring.GetAIInfo(teamID)) == 'NullAI' then	-- doesnt seem to work
 					Spring.SetGameRulesParam('ainame_'..teamID, 'NullAI (idle)')
 				else
-					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID), "Chicken:")))
+					Spring.SetGameRulesParam('ainame_'..teamID, getName(teamID, string.find(Spring.GetTeamLuaAI(teamID) or '', "Chicken:")))
 				end
 			end
 		end

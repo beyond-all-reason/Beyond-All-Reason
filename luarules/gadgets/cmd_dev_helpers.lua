@@ -266,7 +266,7 @@ function GiveCat(_,line)
         Accept[#Accept+1] = Condition
     end
     if string.find(line, "all") then
-        local Condition = function (ud) return true end
+        local Condition = function (ud) if ud.name ~= 'meteor' and ud.name ~= 'roost' then return true end end
         Accept[#Accept+1] = Condition
     end
 

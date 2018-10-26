@@ -39,6 +39,8 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		customparams = {
+			bar_buildinggrounddecalsizex = 11.25,
+			bar_buildinggrounddecalsizey = 11.25,
 			faction = "arm",
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normals.dds",

@@ -20,7 +20,7 @@ local widgetScale = customScale
 local teams = Spring.GetTeamList()
 for i =1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
-    if luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
+    if luaAI and luaAI ~= "" and string.sub(luaAI, 1, 9) == 'Chicken: ' then
         chickensEnabled = true
     end
 end

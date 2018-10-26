@@ -591,7 +591,7 @@ function ToggleTreeWind(_,newSetting,_, playerID)
     treewind = not treewind
   end
   Spring.SetConfigInt("TreeWind", (treewind and 1) or 0)
-  if Spring.GetGameFrame() > 0 then
+  if Spring.GetGameFrame() > 1000 then
     Spring.Echo("TreeWind is " .. (treewind and "enabled" or "disabled"))
   end
 

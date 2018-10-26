@@ -31,7 +31,7 @@ function gadget:Initialize()
     local nAITeams = 0
     local nChickenTeams = 0
     for _,teamID in pairs(tList) do
-        local luaAI = Spring.GetTeamLuaAI(teamID)
+        local luaAI = Spring.GetTeamLuaAI(teamID) or ''
         local aiChicken = (luaAI:find("Chicken") ~= nil)
         local _,_,_,aiTeam = Spring.GetTeamInfo(teamID)
         local gaiaTeam = (teamID == Spring.GetGaiaTeamID())
