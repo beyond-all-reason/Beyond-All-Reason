@@ -625,7 +625,6 @@ function tableMerge(t1, t2)
 end
 
 function CreateLight(x, y, z, radius, rgba)
-	Spring.Echo('created light '..radius..' '..x..' '..y..' '..z)
 	local params = {
 		orgMult = rgba[4],
 		nofade = true,
