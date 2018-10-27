@@ -62,19 +62,13 @@ end
 -- Engine Calls
 --------------------------------------------------------------------------------
 
-function widget:PlayerChanged(playerID)
+function init()
 	spec = Spring.GetSpectatingState()
-end
-
-function widget:Initialize()
-	spec = Spring.GetSpectatingState()
-
-	SetUnitConf()
-	
 	-- check all units for selfd cmd
+	selfdUnits = {}
 	local units = spGetAllUnits()
 	for _, unitID in ipairs(units) do
-		if spGetUnitSelfDTime(unitID) ~= nil then 
+		if spGetUnitSelfDTime(unitID) ~= nil then
 			if spGetUnitSelfDTime(unitID) > 0 then
 				selfdUnits[unitID] = true
 			end
@@ -89,6 +83,15 @@ function widget:Initialize()
 			end
 		end
 	end
+end
+
+function widget:PlayerChanged(playerID)
+	init()
+end
+
+function widget:Initialize()
+	SetUnitConf()
+	init()
 end
 
 
