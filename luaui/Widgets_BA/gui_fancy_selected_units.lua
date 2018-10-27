@@ -659,24 +659,26 @@ local function updateSelectedUnitsData()
 					unitID = units[uDID][i]
 					if (UNITCONF[uDID]) then
 						teamID = spGetUnitTeam(unitID)
-						if not selectedUnits[teamID] then
-							selectedUnits[teamID] = {}
-						end
-						if not selectedUnitsInvisible[unitID] then
-							if not selectedUnits[teamID][unitID] then
-								selectedUnits[teamID][unitID] = {}
-								selectedUnits[teamID][unitID].new = currentClock
-							elseif selectedUnits[teamID][unitID].old then
-								clockDifference = OPTIONS[currentOption].selectionEndAnimationTime - (currentClock - selectedUnits[teamID][unitID].old)
-								if clockDifference < 0 then
-									clockDifference = 0
-								end
-								selectedUnits[teamID][unitID].new = currentClock - clockDifference
-								selectedUnits[teamID][unitID].old = nil
+						if teamID then
+							if not selectedUnits[teamID] then
+								selectedUnits[teamID] = {}
 							end
-							selectedUnits[teamID][unitID].selected = true
-							selectedUnits[teamID][unitID].udid = spGetUnitDefID(unitID)
-							selectedUnits[teamID][unitID].visible = spIsUnitVisible(unitID)
+							if not selectedUnitsInvisible[unitID] then
+								if not selectedUnits[teamID][unitID] then
+									selectedUnits[teamID][unitID] = {}
+									selectedUnits[teamID][unitID].new = currentClock
+								elseif selectedUnits[teamID][unitID].old then
+									clockDifference = OPTIONS[currentOption].selectionEndAnimationTime - (currentClock - selectedUnits[teamID][unitID].old)
+									if clockDifference < 0 then
+										clockDifference = 0
+									end
+									selectedUnits[teamID][unitID].new = currentClock - clockDifference
+									selectedUnits[teamID][unitID].old = nil
+								end
+								selectedUnits[teamID][unitID].selected = true
+								selectedUnits[teamID][unitID].udid = spGetUnitDefID(unitID)
+								selectedUnits[teamID][unitID].visible = spIsUnitVisible(unitID)
+							end
 						end
 					end
 				end
