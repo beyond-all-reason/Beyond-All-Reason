@@ -879,8 +879,10 @@ local function UpdateRecentBroadcasters()
 end
 
 local function LockCamera(playerID)
+
 	if playerID and playerID ~= myPlayerID and playerID ~= lockPlayerID then
 		if lockcameraHideEnemies and not select(3,Spring_GetPlayerInfo(playerID)) then
+			Spring.SendCommands("specteam "..select(4,Spring_GetPlayerInfo(playerID)))
 			if not fullView then
 				sceduledSpecFullView = 1	-- this is needed else the minimap/world doesnt update properly
 				Spring.SendCommands("specfullview")
@@ -3123,9 +3125,6 @@ function widget:MousePress(x,y,button) --super ugly code here
 						if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
 							LockCamera(i)
 							prevClickedName = ''
-							if not clickedPlayer.spec then 
-								Spring_SendCommands{"specteam "..i}
-							end
 							SortList()
 							CreateLists()
 							return true
@@ -3238,9 +3237,6 @@ function widget:MousePress(x,y,button) --super ugly code here
 							if (mySpecStatus or player[i].allyteam == myAllyTeamID) and clickTime - prevClickTime < dblclickPeriod and clickedName == prevClickedName then 
 								LockCamera(clickedPlayer.team)
 								prevClickedName = ''
-								if not clickedPlayer.spec then
-									Spring_SendCommands{"specteam "..clickedPlayer.team}
-								end
 								SortList()
 								CreateLists()
 								return true
