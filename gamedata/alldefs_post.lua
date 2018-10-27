@@ -71,7 +71,7 @@ end
 
 function UnitDef_Post(name, uDef)
 	-- load BAR stuff
-	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 or string.find(name, '_bar') then
+	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 or string.find(name, '_bar')) and not ((Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "enabled") and (name == "armcom" or name == "corcom" or name == "armcom_bar" or name == "corcom_bar"))  then
 		if string.find(name, '_bar') then
 			name = string.gsub(name, '_bar', '')
 			if uDef.buildoptions then

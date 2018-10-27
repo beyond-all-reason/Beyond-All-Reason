@@ -399,13 +399,13 @@ function assignClosestBuilder(mexID, mex, teamID)
 end 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) 
-  if not ((UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" or UnitDefs[unitDefID].name == "armcom_bar" or UnitDefs[unitDefID].name == "corcom_bar")) then
+  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and not ((UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" or UnitDefs[unitDefID].name == "armcom_bar" or UnitDefs[unitDefID].name == "corcom_bar")) then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end 
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam) 
-  if not ((UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" or UnitDefs[unitDefID].name == "armcom_bar" or UnitDefs[unitDefID].name == "corcom_bar")) then
+  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and  not ((UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" or UnitDefs[unitDefID].name == "armcom_bar" or UnitDefs[unitDefID].name == "corcom_bar")) then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end 

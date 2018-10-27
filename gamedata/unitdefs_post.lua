@@ -28,7 +28,7 @@ function deepcopy(orig)
 end
 
 -- create BAR alternatives
-if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) then
+if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0)) then
     if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
         local oldUnitName = {	-- mostly duplicates
             armdecom = 'armcom',

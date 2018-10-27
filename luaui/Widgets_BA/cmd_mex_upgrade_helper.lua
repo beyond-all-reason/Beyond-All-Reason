@@ -8,7 +8,7 @@ function widget:GetInfo()
     layer     = -100, 
     enabled   = true -- loaded by default? 
   } 
-end 
+end
 
 
 local upgradeMouseCursor = "Reclaim" 
@@ -107,6 +107,13 @@ function widget:IsAbove(x,y)
   end
 
   rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo }
+
+  if (Spring.GetModOptions().unba or "disabled") == "enabled" then
+    if UnitDefs[Spring.GetUnitDefID(builderID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(builderID)].name == "corcom" then
+      rightClickUpgradeParams = nil
+      return false
+    end
+  end
 
   return true
 end
