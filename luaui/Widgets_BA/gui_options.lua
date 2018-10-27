@@ -1225,6 +1225,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				Spring.SetConfigInt("MSAALevel",0)
 			end
+			Spring.SetConfigInt("FSAALevel",0)
 			Spring.SetConfigInt("MSAALevel",value)
 		elseif id == 'shadowslider' then
 			local enabled = 1
