@@ -874,9 +874,9 @@ function widget:DrawScreen()
 						if options[i].description ~= nil then
 							description = options[i].description
 							glText('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
-							glColor(0.46,0.4,0.3,0.4)
-							glText('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
 						end
+						glColor(0.46,0.4,0.3,0.4)
+						glText('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
 					end
 				end
 				for i, o in pairs(optionButtons) do
