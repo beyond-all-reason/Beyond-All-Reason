@@ -25,7 +25,7 @@ return {
 		maxslope = 26,
 		maxvelocity = 4.9,
 		maxwaterdepth = 12,
-		movementclass = "TANK2",
+		movementclass = "TANK1",
 		name = "Weasel",
 		nochasecategory = "VTOL",
 		objectname = "CORFAV",
