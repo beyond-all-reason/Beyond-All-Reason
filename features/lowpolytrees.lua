@@ -56,7 +56,7 @@ local function CreateTreeDef(i)
         metal              = 0,
         object             = trees[i][2], --math.random() doesnt seem to work
         reclaimTime        = 1500,
-        mass               = 20,
+        mass               = 25,
         drawType           = 1,
         footprintX         = 2,
         footprintZ         = 2,
@@ -64,7 +64,7 @@ local function CreateTreeDef(i)
         collisionvolumescales = trees[i][3],
         collisionvolumetype = "CylY",
         customParams = {
-
+            nohealthbars = true,
         },
     }
 end
