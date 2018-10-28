@@ -100,11 +100,10 @@ function loadWeaponDefs()
 				params.r = colorList[1]
 				params.g = colorList[2]
 				params.b = colorList[3]
-			elseif WeaponDefs[i].rgbColor ~= nil then
-				local colorList = Split(WeaponDefs[i].rgbColor, " ")
-				params.r = colorList[1]
-				params.g = colorList[2]
-				params.b = colorList[3]
+			elseif WeaponDefs[i].visuals ~= nil and WeaponDefs[i].visuals.colorR ~= nil then
+				params.r = WeaponDefs[i].visuals.colorR
+				params.g = WeaponDefs[i].visuals.colorG
+				params.b = WeaponDefs[i].visuals.colorB
 			end
 
 			if customParams.expl_light_opacity ~= nil then
@@ -161,6 +160,28 @@ function loadWeaponDefs()
 			if params.wtype == 'Cannon' then
 				params.cannonsize = WeaponDefs[i].size
 			end
+
+			params.yoffset = 15 + (params.radius/35)
+
+			if WeaponDefs[i].type == 'BeamLaser' then
+				local damage = 20
+				params.radius = params.radius * 3.5
+				for cat=0, #WeaponDefs[i].damages do
+					if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then
+						damage = WeaponDefs[i].damages[cat]
+						break
+					end
+				end
+				params.radius = params.radius + (damage/16)
+				params.life = params.life + (damage/300)
+				if WeaponDefs[i].damages.default then
+					params.radius = params.radius + (WeaponDefs[i].damages.default/110)
+				end
+				params.orgMult = (0.12 + (damage/15000) + (params.radius/10000)) * globalLightMult
+				params.yoffset = 5 + (params.radius/250)
+				--params.radius = params.radius
+			end
+
 			weaponConf[i] = params
 		end
 	end
@@ -668,7 +689,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			orgMult = weaponConf[weaponID].orgMult,
 			frame = Spring.GetGameFrame(),
 			px = px,
-			py = py + 16 + (weaponConf[weaponID].radius/35),
+			py = py + weaponConf[weaponID].yoffset,
 			pz = pz,
 			param = {
 				type = 'explosion',

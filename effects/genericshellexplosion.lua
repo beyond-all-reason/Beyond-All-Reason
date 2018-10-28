@@ -2363,8 +2363,8 @@ for size, e in pairs(sizes) do
     if definitions[defname].groundclouddust ~= nil then
         definitions[defname].groundclouddust.properties.numparticles = nil
     end
-    definitions[defname].groundflash_small.colormap    = [[1 0.7 0.3 0.05   0 0 0 0.01]]
-    definitions[defname].groundflash_large.colormap    = [[1 0.7 0.3 0.016   0 0 0 0.01]]
+    definitions[defname].groundflash_small.colormap    = [[0.5 0.35 0.15 0.02   0 0 0 0.01]]
+    definitions[defname].groundflash_large.colormap    = [[0.5 0.35 0.15 0.01   0 0 0 0.01]]
     definitions[defname].groundflash_white = false
 	definitions[defname].centerflare.properties.heat = math.ceil(definitions[defname].centerflare.properties.heat / devideBy)
 	definitions[defname].centerflare.properties.maxheat = math.ceil(definitions[defname].centerflare.properties.maxheat / devideBy)

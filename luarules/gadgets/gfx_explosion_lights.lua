@@ -27,6 +27,9 @@ if (gadgetHandler:IsSyncedCode()) then
                 cannonWeapons[wdid] = true
                 Script.SetWatchWeapon(wdid, true)    -- might be getting too expensive
             end
+            if wd.type == "BeamLaser" then
+                Script.SetWatchWeapon(wdid, true)    -- might be getting too expensive
+            end
         end
     end
     function gadget:Shutdown()
