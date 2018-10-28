@@ -141,7 +141,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			if (r>47 and not UnitDefs[unitDefID].canFly) then
 				rs, hs, ws = 0.68, 0.68, 0.68
 			elseif (not UnitDefs[unitDefID].canFly) then
-				rs, hs, ws = 0.75, 0.75, 0.75
+				rs, hs, ws = 0.73, 0.73, 0.73
 			else
 				rs, hs, ws = 0.53, 0.17, 0.53
 			end

@@ -9,7 +9,7 @@ return {
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE GROUNDSCOUT",
 		collisionvolumeoffsets = "0 -2 0",
-		collisionvolumescales = "25 18 32",
+		collisionvolumescales = "5 8 6",
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		description = "Light Scout Vehicle",
