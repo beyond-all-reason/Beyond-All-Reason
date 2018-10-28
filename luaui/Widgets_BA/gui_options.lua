@@ -125,7 +125,7 @@ local presets = {
 		lups = false,
 		snow = false,
 		xrayshader = false,
-		particles = 5000,
+		particles = 10000,
 		nanoparticles = 500,
 		grassdetail = 0,
 		treeradius = 0,
@@ -153,7 +153,7 @@ local presets = {
 		lups = true,
 		snow = false,
 		xrayshader = false,
-		particles = 10000,
+		particles = 15000,
 		nanoparticles = 900,
 		grassdetail = 0,
 		treeradius = 200,
@@ -181,7 +181,7 @@ local presets = {
 		lups = true,
 		snow = true,
 		xrayshader = false,
-		particles = 15000,
+		particles = 20000,
 		nanoparticles = 1500,
 		grassdetail = 0,
 		treeradius = 400,
@@ -209,7 +209,7 @@ local presets = {
 		lups = true,
 		snow = true,
 		xrayshader = false,
-		particles = 20000,
+		particles = 25000,
 		nanoparticles = 2500,
 		grassdetail = 0,
 		treeradius = 800,
@@ -237,7 +237,7 @@ local presets = {
 		lups = true,
 		snow = true,
 		xrayshader = false,
-		particles = 25000,
+		particles = 30000,
 		nanoparticles = 5000,
 		grassdetail = 0,
 		treeradius = 800,
@@ -1879,7 +1879,7 @@ function init()
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
 
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
-		{id="particles", group="gfx", name="Max particles", type="slider", min=5000, max=25000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
+		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 		{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
 
 		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
@@ -2325,6 +2325,10 @@ end
 
 
 function widget:Initialize()
+	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000) < 10000 then
+		Spring.SetConfigInt("MaxParticles",10000)
+	end
+
 	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
 		Spring.SetConfigInt("UsePBO",0)
 	--end
@@ -2446,7 +2450,7 @@ function widget:GetConfigData(data)
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
 		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
-		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000)},
+		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000)},
 		nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
