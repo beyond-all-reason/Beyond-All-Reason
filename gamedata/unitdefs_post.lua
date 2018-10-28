@@ -29,7 +29,7 @@ end
 
 -- create BAR alternatives
 if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) then
-    if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
+    --if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
         local oldUnitName = {	-- mostly duplicates
             armdecom = 'armcom',
             cordecom = 'corcom',
@@ -47,7 +47,7 @@ if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 
         for name,ud in pairs(barUnitDefs) do
             UnitDefs[name] = ud
         end
-    end
+    --end
 end
 
 -- handle unitdefs and the weapons they contain

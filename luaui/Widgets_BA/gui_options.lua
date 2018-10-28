@@ -2325,7 +2325,7 @@ end
 
 
 function widget:Initialize()
-	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000) < 10000 then
+	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
 		Spring.SetConfigInt("MaxParticles",10000)
 	end
 
