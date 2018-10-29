@@ -75,7 +75,7 @@ function ShieldSphereParticle:Draw()
     self.stunned = Spring.GetUnitIsStunned(self.unit)
   end
   if self.stunned then
-    if self.lightID and WG['lighteffects'] and WG['lighteffects'].createLight then
+    if self.lightID and WG['lighteffects'] then
       WG['lighteffects'].removeLight(self.lightID)
       self.lightID = nil
     end
@@ -224,7 +224,7 @@ end
 
 function ShieldSphereParticle:Destroy()
   if WG['lighteffects'] and WG['lighteffects'].removeLight then
-    self.lightID = WG['lighteffects'].removeLight(self.lightID)
+    WG['lighteffects'].removeLight(self.lightID)
   end
 end
 

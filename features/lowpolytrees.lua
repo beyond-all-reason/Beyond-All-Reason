@@ -56,7 +56,7 @@ local function CreateTreeDef(i)
         metal              = 0,
         object             = trees[i][2], --math.random() doesnt seem to work
         reclaimTime        = 1500,
-        mass               = 25,
+        mass               = 20,
         drawType           = 1,
         footprintX         = 1,
         footprintZ         = 1,

@@ -498,7 +498,7 @@ function widget:DrawWorld()
 			size = param.glowradius * 0.44
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)
-				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.016 + (size/4000))
+				gl.Color(param.r*colorMultiplier, param.g*colorMultiplier, param.b*colorMultiplier, 0.015 + (size/4000))
 				gl.Translate(light.px, light.py, light.pz)
 				gl.Billboard(true)
 				gl.TexRect(-(size/2), -(size/2), (size/2), (size/2))

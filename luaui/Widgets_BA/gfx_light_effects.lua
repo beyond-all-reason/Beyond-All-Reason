@@ -51,6 +51,7 @@ local globalLifeMult = 0.65
 
 local enableHeatDistortion = true
 local enableDeferred = true     -- else use groundflashes instead
+local enableNanolaser = true
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -66,6 +67,9 @@ local projectileLightTypes = {}
 
 local explosionLightsCount = 0
 local explosionLights = {}
+
+local customBeamLightsCount = 0
+local customBeamLights = {}
 
 
 local function Split(s, separator)
@@ -616,8 +620,29 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 		previousProjectileDrawParams = projectileDrawParams
 	end
 
-	-- add point lights
+	-- add custom beam lights
 	local progress = 1
+	--Spring.Echo(#customBeamLights..'  '..math.random())
+	for i, params in pairs(customBeamLights) do
+		if not params.life then
+			params.colMult = params.orgMult
+		else
+			progress = 1-((frame-params.frame)/params.life)
+			progress = ((progress * (progress*progress)) + (progress*1.4)) / 2.4    -- fade out fast, but ease out at the end
+			params.colMult = params.orgMult
+			if not params.nofade then
+				params.colMult = params.orgMult * progress
+			end
+		end
+		if params.colMult <= 0 then
+			customBeamLights[i] = nil
+		else
+			beamLightCount = beamLightCount + 1
+			beamLights[beamLightCount] = params
+		end
+	end
+
+	-- add explosion/custom lights
 	for i, params in pairs(explosionLights) do
 		if not params.life then
 			params.colMult = params.orgMult
@@ -643,6 +668,66 @@ end
 function tableMerge(t1, t2)
 	for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
 	return t1
+end
+
+function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
+	if name == 'nano' and not enableNanolaser then
+		return false
+	end
+	if y + y2 < -800 then
+		-- The beam has fallen through the world
+		x2, y2, z2 = InterpolateBeam(x, y, z, x2, y2, z2)
+	end
+	local params = {
+		nofade = true,
+		beam = true,
+		frame = Spring.GetGameFrame(),
+		px = x, py = y, pz = z,
+		dx = x2, dy = y2, dz = z2,
+		orgMult = rgba[4],--*globalLightMult,
+		colMult = rgba[4],
+		param = {
+			r = rgba[1],
+			g = rgba[2],
+			b = rgba[3],
+			radius = radius,--*globalRadiusMult,
+		},
+	}
+
+	customBeamLightsCount = customBeamLightsCount + 1
+	customBeamLights[customBeamLightsCount] = params
+	--Spring.Echo('created light: '..customBeamLightsCount..'  '..x..'  '..y..'  '..z..'  '..radius..'  '..rgba[1]..','..rgba[2]..','..rgba[3]..','..rgba[4])
+	return customBeamLightsCount
+end
+
+function EditBeamLight(lightID, params)
+	--if params.orgMult then
+	--	params.orgMult = params.orgMult * globalLightMult
+	--end
+	--if params.param and params.param.radius then
+	--	params.param.radius = params.param.radius * globalRadiusMult
+	--end
+	--if params.py and params.dy and params.py + params.dy < -800 then
+	--	-- The beam has fallen through the world
+	--	params.dx, params.dy, params.dz = InterpolateBeam(params.px, params.py, params.pz, params.dx, params.dy, params.dz)
+	--end
+	--Spring.Echo('editing: '..lightID..'  '..params.px..'  '..params.py..'  '..params.pz..'    '..params.dx..'  '..params.dy..'  '..params.dz)
+	if customBeamLights[lightID] then
+		customBeamLights[lightID] = tableMerge(customBeamLights[lightID], params)
+	end
+end
+
+function RemoveBeamLight(lightID, life)
+	if life == nil then
+		life = 22
+	end
+	if customBeamLights[lightID] then
+		customBeamLights[lightID].nofade = nil
+		customBeamLights[lightID].life = life
+		customBeamLights[lightID].frame = Spring.GetGameFrame()
+	end
+	customBeamLights[lightID] = nil
+	--Spring.Echo('removed light: '..lightID)
 end
 
 function CreateLight(x, y, z, radius, rgba)
@@ -672,12 +757,17 @@ function EditLight(lightID, params)
 	end
 end
 
-function RemoveLight(lightID)
+function RemoveLight(lightID, life)
+	if life == nil then
+		life = 22
+	end
 	if explosionLights[lightID] then
 		explosionLights[lightID].nofade = nil
-		explosionLights[lightID].life = 30
+		explosionLights[lightID].life = life
 		explosionLights[lightID].frame = Spring.GetGameFrame()
 	end
+	explosionLights[lightID] = nil
+	--Spring.Echo('removed light: '..lightID)
 end
 
 
@@ -844,6 +934,9 @@ function widget:Initialize()
 	widgetHandler:RegisterGlobal('GadgetCreateLight', CreateLight)
 	widgetHandler:RegisterGlobal('GadgetEditLight', EditLight)
 	widgetHandler:RegisterGlobal('GadgetRemoveLight', RemoveLight)
+	widgetHandler:RegisterGlobal('GadgetCreateBeamLight', CreateBeamLight)
+	widgetHandler:RegisterGlobal('GadgetEditBeamLight', EditBeamLight)
+	widgetHandler:RegisterGlobal('GadgetRemoveBeamLight', RemoveBeamLight)
 
 	if WG.DeferredLighting_RegisterFunction then
 		WG.DeferredLighting_RegisterFunction(GetProjectileLights)
@@ -857,8 +950,17 @@ function widget:Initialize()
 	WG['lighteffects'].editLight = function(lightID, params)
 		return EditLight(lightID, params)
 	end
-	WG['lighteffects'].removeLight = function(lightID)
-		return RemoveLight(lightID)
+	WG['lighteffects'].removeLight = function(lightID, life)
+		return RemoveLight(lightID, life)
+	end
+	WG['lighteffects'].createBeamLight = function(name,x,y,z,x2,y2,z2,radius,rgba)
+		return CreateBeamLight(name,x,y,z,x2,y2,z2,radius,rgba)
+	end
+	WG['lighteffects'].editBeamLight = function(lightID, params)
+		return EditBeamLight(lightID, params)
+	end
+	WG['lighteffects'].removeBeamLight = function(lightID, life)
+		return RemoveBeamLight(lightID, life)
 	end
 	WG['lighteffects'].getGlobalBrightness = function()
 		return globalLightMult
@@ -875,9 +977,12 @@ function widget:Initialize()
 	WG['lighteffects'].getLife = function()
 		return globalLifeMult
 	end
-    WG['lighteffects'].getHeatDistortion = function()
-        return enableHeatDistortion
-    end
+	WG['lighteffects'].getHeatDistortion = function()
+		return enableHeatDistortion
+	end
+	WG['lighteffects'].getNanolaser = function()
+		return enableNanolaser
+	end
     WG['lighteffects'].getDeferred = function()
         return enableDeferred
     end
@@ -905,7 +1010,10 @@ function widget:Initialize()
 	end
 	WG['lighteffects'].setHeatDistortion = function(value)
 		enableHeatDistortion = value
-    end
+	end
+	WG['lighteffects'].setNanolaser = function(value)
+		enableNanolaser = value
+	end
     WG['lighteffects'].setDeferred = function(value)
         enableDeferred = value
     end
@@ -921,7 +1029,8 @@ function widget:GetConfigData(data)
 		globalRadiusMultLaser = globalRadiusMultLaser,
 		globalLifeMult = globalLifeMult,
 		enableHeatDistortion = enableHeatDistortion,
-        enableDeferred = enableDeferred,
+		enableDeferred = enableDeferred,
+		enableNanolaser = enableNanolaser,
 		resetted = 1.4,
 	}
 	return savedTable
@@ -947,8 +1056,11 @@ function widget:SetConfigData(data)
         if data.enableHeatDistortion ~= nil then
             enableHeatDistortion = data.enableHeatDistortion
         end
-        if data.enableDeferred ~= nil then
-            enableDeferred = data.enableDeferred
-        end
+		if data.enableDeferred ~= nil then
+			enableDeferred = data.enableDeferred
+		end
+		if data.enableNanolaser ~= nil then
+			enableNanolaser = data.enableNanolaser
+		end
 	end
 end

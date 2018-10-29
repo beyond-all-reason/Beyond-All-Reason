@@ -15,8 +15,9 @@ Other:
  • Fixed continuous aiming change always being able to fire, even when turret was way off
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
  • New flak explosion effect + custom crashing airplane smoke trails
- • Added light effects to laser hits, plasma barrel fire and fusion plasma balls
- 
+ • Added nano lasers/particles option
+ • Added light effects to laser hits, plasma barrel fire, nano lasers and fusion balls
+
 
 10.12 -> 10.13
 29/09/2018

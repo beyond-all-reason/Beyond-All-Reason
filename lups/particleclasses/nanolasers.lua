@@ -11,6 +11,7 @@ local laserShader
 local knownNanoLasers = {}
 
 local lastTexture = ""
+local enableLights = true
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
@@ -131,7 +132,7 @@ function NanoLasers:Draw()
   local color = self.color
   local startPos = self.pos
   local endPos   = self.targetpos
-  
+
   glColor(color[1],color[2],color[3],0.0003)
   glMultiTexCoord(0,endPos[1] - self.normdir[3] * self.scane_mult ,endPos[2],endPos[3] + self.normdir[1] * self.scane_mult,1)
   glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],1)
@@ -150,7 +151,14 @@ end
 
 function NanoLasers:Update(n)
   UpdateNanoParticles(self)
-  
+  --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
+  if enableLights and self.lightID and Script.LuaUI("GadgetEditBeamLight") then
+    local dx = self.targetpos[1] - self.pos[1]
+    local dy = self.targetpos[2] - self.pos[2]
+    local dz = self.targetpos[3] - self.pos[3]
+    Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.12+(self.streamSpeed*0.7), param={radius=45+(self.corethickness*60)+(self.streamSpeed*200)}})
+  end
+
   self.fpos = (self.fpos or 0) + self.count * 5 * n
   if (self.inversed) then 
     self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/4000*math.pi)
@@ -276,7 +284,6 @@ function NanoLasers:CreateParticle()
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
 
-
   if (self.flare) then
     --[[if you add those flares, then the laser is slower as the engine, so it needs some tweaking]]--
     if (self.flare1id and particles[self.flare1id] and particles[self.flare2id]) then
@@ -311,12 +318,18 @@ function NanoLasers:CreateParticle()
     end
   end
 
-
   self.visibility = 0
   self:Update(0) --//update los
 
   if (self.streamThickness<0) then
     self.streamThickness = 4+self.count*0.34
+  end
+
+  if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
+    local dx = self.targetpos[1] - self.pos[1]
+    local dy = self.targetpos[2] - self.pos[2]
+    local dz = self.targetpos[3] - self.pos[3]
+    self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, 44+(self.corethickness*40), {self.color[1],self.color[2],self.color[3],0.13+(self.corethickness/3)})
   end
 end
 
@@ -351,6 +364,10 @@ function NanoLasers:Destroy()
   knownNanoLasers[unit][nanopiece] = nil
   if (not next(knownNanoLasers[unit])) then
     knownNanoLasers[unit] = nil
+  end
+
+  if self.lightID and Script.LuaUI("GadgetRemoveBeamLight") then
+    Script.LuaUI.GadgetRemoveBeamLight(self.lightID, 4)
   end
 
   if (self.flare) then

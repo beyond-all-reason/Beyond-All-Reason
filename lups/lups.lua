@@ -374,9 +374,14 @@ function RemoveParticles(particlesID)
 			end
 		end
 		fx:Destroy()
-		if particles[particlesID].lightID and WG['lighteffects'] and WG['lighteffects'].removeLight then
-			WG['lighteffects'].removeLight(particles[particlesID].lightID)
-		end
+	    if fx.lightID then
+	      if WG and WG['lighteffects'] then
+	        WG['lighteffects'].removeLight(fx.lightID)
+	      end
+	      --if Script.LuaUI("GadgetRemoveLight") then
+	      --  Script.LuaUI.GadgetRemoveLight(fx.lightID)
+	      --end
+	    end
 		particles[particlesID] = nil
 		particlesCount = particlesCount-1;
 		return
@@ -1049,12 +1054,22 @@ local function Initialize()
 		end
 	end
 
-	if GetLupsSetting("enablerefraction", 0) ~= 1 then
-		(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldRefraction")
-	end
-	if GetLupsSetting("enablereflection", 0) ~= 1 then
-		(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
-	end
+
+    if Spring.GetConfigInt("lupsenablerefraction", 0) ~= 1 then
+      (gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldRefraction")
+      Spring.Echo("Lups Refraction Pass Disabled")
+    end
+    if Spring.GetConfigInt("lupsenablereflection", 0) ~= 1 then
+      (gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
+      Spring.Echo("Lups Reflection Pass Disabled")
+    end
+
+	--if GetLupsSetting("enablerefraction", 0) ~= 1 then
+	--	(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldRefraction")
+	--end
+	--if GetLupsSetting("enablereflection", 0) ~= 1 then
+	--	(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
+	--end
 
 	--// link backup FXClasses
 	for className,backupName in pairs(linkBackupFXClasses) do
