@@ -266,7 +266,7 @@ function gadget:GameFrame(frame)
 
 	for i=1,#builders do
 		local unitID = builders[i]
-        if Spring.IsUnitIcon(unitID) then return end
+        if Spring.IsUnitIcon(unitID) then break end
         local UnitDefID = Spring.GetUnitDefID(unitID)
         local buildpower = builderWorkTime[UnitDefID] or 1
 		if ((unitID + frame) % updateFramerate < 1) then

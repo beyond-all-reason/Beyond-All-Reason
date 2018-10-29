@@ -1892,13 +1892,13 @@ function init()
 		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius", min=1, max=1.7, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)'},
-		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   nanolasers (needs lups)", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
-		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thrusters (needs lups)", type="bool", value=true, description='Shows a light for every air engine thruster'},
+		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   nano lasers light (needs lups)", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
+		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thruster light (needs lups)", type="bool", value=true, description='Shows a light for every air engine thruster'},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		--{id="lupseffectlevel", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'basic','min','standard','extra','uber'}, value=tonumber(Spring.GetConfigInt("LupsPriority",1) or 3), description='Sets lups particle effects quality'},
 		--{id="lupsdynamic", group="gfx", name=widgetOptionColor.."   dynamic particles", type="bool", value=tonumber(Spring.GetConfigInt("DynamicLups",0) or 0) ==1, description='Auto adjust lups effect level depening on FPS'},
-		{id="lupsnanoeffect", group="gfx", name=widgetOptionColor.."   nano effect", type="select", options={'laser','particles'}, value=tonumber(Spring.GetConfigInt("LupsNanoEffect",2) or 1), description='Sets lups nano effect\n\nRESTART NEEDED'},
+		{id="lupsnanoeffect", group="gfx", name=widgetOptionColor.."   nano effect", type="select", options={'laser','particles'}, value=tonumber(Spring.GetConfigInt("LupsNanoEffect",1) or 1), description='Sets lups nano effect\n\nRESTART NEEDED'},
 		{id="lupsrefraction", group="gfx", name=widgetOptionColor.."   refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablerefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
 		{id="lupsreflection", group="gfx", name=widgetOptionColor.."   reflection pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablereflection",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
 
