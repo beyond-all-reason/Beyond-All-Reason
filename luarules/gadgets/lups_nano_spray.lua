@@ -146,7 +146,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  �� some basic functions ��
+--   some basic functions
 --
 
 local supportedFxs = {}
@@ -206,42 +206,38 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
---  �� NanoSpray handling ��
+--   NanoSpray handling
 --
 
 local nanoParticles = {}
-local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
+--local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
 
-local function GetFaction(udid)
-  --local udef_factions = UnitDefs[udid].factions or {}
-  --return ((#udef_factions~=1) and 'unknown') or udef_factions[1]
-  return "default" -- default 
-end
 
-local factionsNanoFx = {
-  default = {
-    fxtype          = "NanoLasers",
-    alpha           = "0.2+count/100",
-    corealpha       = "0.33",
-    corethickness   = "0.3+count/200",
-    streamThickness = "1.6+10*count/40",
-    streamSpeed     = "limcount*0.15",
-    priority        = 1,
-  },
-  ["default_high_quality"] = {
-    fxtype      = "NanoParticles",
-    alpha       = 1,
-    size        = 7,
-    sizeSpread  = 0.5,
-    sizeGrowth  = 0,
-    rotSpeed    = 0.1,
-    rotSpread   = 360,
-    --texture     = "bitmaps/Other/Poof.png",
-    texture     = "bitmaps/nano.tga",
-    particles   = 1,
-    priority    = 1,
-  },
+local NanoFx = {
+    lasers = {
+        fxtype          = "NanoLasers",
+        alpha           = "0.2+count/100",
+        corealpha       = "0.33",
+        corethickness   = "0.3+count/200",
+        streamThickness = "1.6+10*count/40",
+        streamSpeed     = "limcount*0.15",
+        priority        = 1,
+    },
+    particles = {
+        fxtype      = "NanoParticles",
+        alpha       = 1,
+        size        = 7,
+        sizeSpread  = 0.5,
+        sizeGrowth  = 0,
+        rotSpeed    = 0.7,
+        rotSpread   = 360,
+        --texture     = "bitmaps/Other/Poof.png",
+        texture     = "bitmaps/nano.tga",
+        particles   = 1,
+        priority    = 1,
+    },
 }
+NanoFx.default = NanoFx.lasers
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -307,7 +303,6 @@ function gadget:GameFrame(frame)
                         local teamID = Spring.GetUnitTeam(unitID)
                         local allyID = Spring.GetUnitAllyTeam(unitID)
                         local unitDefID = Spring.GetUnitDefID(unitID)
-                        local faction = GetFaction(unitDefID)
                         local teamColor = {Spring.GetTeamColor(teamID)}
                         local nanoPieces = Spring.GetUnitNanoPieces(unitID) or {}
 
@@ -338,7 +333,7 @@ function gadget:GameFrame(frame)
                                 cmdTag       = cmdTag, --//used to end the fx when the command is finished
                             }
 
-                            local nanoSettings = CopyMergeTables(factionsNanoFx[faction] or factionsNanoFx.default, nanoParams)
+                            local nanoSettings = CopyMergeTables(NanoFx.default, nanoParams)
                             ExecuteLuaCode(nanoSettings)
 
                             local fxType  = nanoSettings.fxtype
@@ -359,59 +354,73 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+local currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
+
+function init()
+
+    if currentLupsNanoEffect == 2 then
+        NanoFx.default = NanoFx.particles
+    else
+        NanoFx.default = NanoFx.lasers
+    end
+
+    --// init user custom nano fxs
+    for _,fx in pairs(Lups.Config or {}) do
+        if (fx and (type(fx)=='table') and fx.fxtype) then
+            local fxType = fx.fxtype
+            local fxSettings = fx
+
+            if (fxType)and
+                    ((fxType:lower()=="nanolasers")or
+                            (fxType:lower()=="nanoparticles"))and
+                    (fxSupported(fxType))and
+                    (fxSettings)
+            then
+                NanoFx.default = fxSettings
+            end
+        end
+    end
+
+    for fxname,fx in pairs(NanoFx) do
+        local NanoEffx = NanoFx[fxname]
+        NanoEffx.delaySpread = 30
+        NanoEffx.fxtype = NanoEffx.fxtype:lower()
+        if ((Spring.GetConfigInt("LupsNanoEffect",1) or 1) == 1) and ((NanoEffx.fxtype=="nanolasers") or (NanoEffx.fxtype=="nanolasersshader")) then
+            NanoEffx.flare = true
+        end
+
+        --// parse lua code in the table, so we can execute it later
+        ParseLuaCode(NanoEffx)
+    end
+end
+
 function gadget:Update()
   if (spGetGameFrame()<1) then 
     return
   end
 
-  gadgetHandler:RemoveCallIn("Update")
+    if initialized then
+        --// enable particle effect?
+        if currentLupsNanoEffect ~= (Spring.GetConfigInt("LupsNanoEffect",1) or 1) then
+            currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
+            init()
+        end
+        return
+    end
+  --gadgetHandler:RemoveCallIn("Update")
 
   Lups = GG['Lups']
-
   if (Lups) then
+      currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
+      init()
     initialized=true
-  else
-    return
-  end
-
-  --// enable freaky arm nano fx when quality>3
-  if ((Spring.GetConfigInt("LupsNanoEffect",1) or 1) == 2) then
-    factionsNanoFx.default = factionsNanoFx["default_high_quality"]
-  end
-
-  --// init user custom nano fxs
-  for faction,fx in pairs(Lups.Config or {}) do
-    if (fx and (type(fx)=='table') and fx.fxtype) then
-      local fxType = fx.fxtype 
-      local fxSettings = fx
-
-      if (fxType)and
-         ((fxType:lower()=="nanolasers")or
-          (fxType:lower()=="nanoparticles"))and
-         (fxSupported(fxType))and
-         (fxSettings)
-      then
-        factionsNanoFx[faction] = fxSettings
-      end
-    end
-  end
-
-  for faction,fx in pairs(factionsNanoFx) do
-    local factionNanoFx = factionsNanoFx[faction]
-    factionNanoFx.delaySpread = 30
-    factionNanoFx.fxtype = factionNanoFx.fxtype:lower()
-    if ((Spring.GetConfigInt("LupsNanoEffect",1) or 1) == 1) and ((factionNanoFx.fxtype=="nanolasers") or (factionNanoFx.fxtype=="nanolasersshader")) then
-      factionNanoFx.flare = true
-    end
-
-    --// parse lua code in the table, so we can execute it later
-    ParseLuaCode(factionNanoFx)
   end
 
 end
+
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-  
+
 local registeredBuilders = {}
 
 function gadget:UnitFinished(uid, udid)

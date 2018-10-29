@@ -1895,10 +1895,10 @@ function init()
 		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   nano beam light", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
 		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thrusters light (needs lups)", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
 
+		{id="lupsnanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("LupsNanoEffect",1) or 1), description='Sets nano effect'},
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		--{id="lupseffectlevel", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'basic','min','standard','extra','uber'}, value=tonumber(Spring.GetConfigInt("LupsPriority",1) or 3), description='Sets lups particle effects quality'},
 		--{id="lupsdynamic", group="gfx", name=widgetOptionColor.."   dynamic particles", type="bool", value=tonumber(Spring.GetConfigInt("DynamicLups",0) or 0) ==1, description='Auto adjust lups effect level depening on FPS'},
-		{id="lupsnanoeffect", group="gfx", name=widgetOptionColor.."   nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("LupsNanoEffect",1) or 1), description='Sets lups nano effect\n\nRESTART NEEDED'},
 		{id="lupsrefraction", group="gfx", name=widgetOptionColor.."   refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablerefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
 		{id="lupsreflection", group="gfx", name=widgetOptionColor.."   reflection pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablereflection",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
 
