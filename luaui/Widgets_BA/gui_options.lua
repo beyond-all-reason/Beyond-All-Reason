@@ -1893,7 +1893,7 @@ function init()
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)'},
 		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   nano lasers light (needs lups)", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
-		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thruster light (needs lups)", type="bool", value=true, description='Shows a light for every air engine thruster'},
+		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thruster light (needs lups)", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
 		--{id="lupseffectlevel", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'basic','min','standard','extra','uber'}, value=tonumber(Spring.GetConfigInt("LupsPriority",1) or 3), description='Sets lups particle effects quality'},

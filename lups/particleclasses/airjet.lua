@@ -149,38 +149,35 @@ function AirJet:Update(n)
 
   if self.light then
     if WG['lighteffects'] then
-      --if self.visible then  -- temporarily disabled for testing purposes
+      if self.visible then  -- temporarily disabled for testing purposes
         local unitPos = {Spring.GetUnitPosition(self.unit)}
         local pitch, yaw = Spring.GetUnitRotation(self.unit)
         local lightOffset = Spring.GetUnitPieceInfo(self.unit, self.piecenum).offset
-        local lightDistance = math.diag(lightOffset[1], lightOffset[2], lightOffset[3])
 
-        -- still incorrect correct :S
+        -- still just only Y thus inacurate
+        local lightOffsetRotYx = lightOffset[1]*math.cos(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math.sin(3.1415+math.rad(90+ (((yaw+1.571)/6.2)*360) ))
+        local lightOffsetRotYz = lightOffset[1]*math.sin(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math.cos(3.1415+math.rad(90+ (((yaw+1.571)/6.2)*360) ))
 		
-		local lightOffsetRotY = {}
-			lightOffsetRotY[1] = lightOffset[1]*math.cos(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math.sin(3.1415+math.rad(90+ (((yaw+1.571)/6.2)*360) ))
-			lightOffsetRotY[3] = lightOffset[1]*math.sin(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math.cos(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))
-		
-        local offsetX = lightOffsetRotY[1]
-        local offsetY = lightOffset[2]
-        local offsetZ = lightOffsetRotY[3]
+        local offsetX = lightOffsetRotYx
+        local offsetY = lightOffset[2] --+ 7  -- add some height to make the light shine a bit more on top (for debugging)
+        local offsetZ = lightOffsetRotYz
 
-        offsetY = offsetY + 12  -- to make the light shine a bit more on top of the model and easier for debugging
+        local radius = 0.8 * ((self.width*self.length) * (0.8+(math.random()/10)))  -- add a bit of flickering
 
         if not self.lightID then
           if not self.color[4] then
-            self.color[4] = self.light
+            self.color[4] = self.light * 0.6
           end
-          self.lightID = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, (self.width*self.length), self.color)
+          self.lightID = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, radius, self.color)
         else
-          if not WG['lighteffects'].editLight(self.lightID, {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ}) then
+          if not WG['lighteffects'].editLight(self.lightID, {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ, param={radius=radius}}) then
             self.lightID = nil
           end
         end
-      --elseif self.lightID then
-      --  WG['lighteffects'].removeLight(self.lightID)
-      --  self.lightID = nil
-      --end
+      elseif self.lightID then
+        WG['lighteffects'].removeLight(self.lightID)
+        self.lightID = nil
+      end
     else
       self.lightID = nil
     end

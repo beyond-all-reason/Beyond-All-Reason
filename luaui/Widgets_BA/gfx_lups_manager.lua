@@ -117,10 +117,10 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
         {class='AirJet',options={color={0.1,0.4,0.6}, width=5.2, length=23, piece="jet3", onActive=true, light=1}},
      },
       [UnitDefNames["corvalk"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust1", onActive=true, light=0.8}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust2", onActive=true, light=0.8}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust3", onActive=true, light=0.8}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust4", onActive=true, light=0.8}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust1", onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust2", onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust3", onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.8, length=20, piece="thrust4", onActive=true, light=1}},
      },
       [UnitDefNames["armkam"].id] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=24, piece="lflare", onActive=true, light=1}},
@@ -370,10 +370,10 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
             {class='AirJet',options={color={0.7,0.4,0.1}, width=5, length=33, piece="thrustb2", onActive=true, light=1}},
         },
         [UnitDefNames["corvalk"..nameSuffix].id] = {
-            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust1", emitVector= {0,1,0}, onActive=true, light=0.8}},
-            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust3", emitVector= {0,1,0}, onActive=true, light=0.8}},
-            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust2", emitVector= {0,1,0}, onActive=true, light=0.8}},
-            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust4", emitVector= {0,1,0}, onActive=true, light=0.8}},
+            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust1", emitVector= {0,1,0}, onActive=true, light=1}},
+            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust3", emitVector= {0,1,0}, onActive=true, light=1}},
+            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust2", emitVector= {0,1,0}, onActive=true, light=1}},
+            {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=17, piece="thrust4", emitVector= {0,1,0}, onActive=true, light=1}},
         },
         [UnitDefNames["corfink"..nameSuffix].id] = {
             {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=20, piece="thrustb", onActive=true}},
