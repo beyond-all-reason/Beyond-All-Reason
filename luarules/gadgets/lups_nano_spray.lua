@@ -90,7 +90,6 @@ else
 
 local Lups  --// Lua Particle System
 local initialized = false --// if LUPS isn't started yet, we try it once a gameframe later
-local tryloading  = 1     --// try to activate lups if it isn't found
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -99,7 +98,6 @@ local tryloading  = 1     --// try to activate lups if it isn't found
 local GetUnitRadius        = Spring.GetUnitRadius
 local GetFeatureRadius     = Spring.GetFeatureRadius
 local spGetFeatureDefID    = Spring.GetFeatureDefID
-local spGetTeamColor       = Spring.GetTeamColor
 local spGetGameFrame       = Spring.GetGameFrame
 
 local type  = type
