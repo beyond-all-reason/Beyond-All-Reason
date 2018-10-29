@@ -188,7 +188,7 @@ function ShieldSphereParticle:Update(n)
       local color = {GetColor(self.colormap2,self.life) }
       color[4]=color[4]*self.light
       if not self.lightID then
-        self.lightID = WG['lighteffects'].createLight(self.unitPos[1]+self.pos[1], self.unitPos[2]+self.pos[2], self.unitPos[3]+self.pos[1], self.size*6, color)
+        self.lightID = WG['lighteffects'].createLight('shieldsphere',self.unitPos[1]+self.pos[1], self.unitPos[2]+self.pos[2], self.unitPos[3]+self.pos[1], self.size*6, color)
       else
         WG['lighteffects'].editLight(self.lightID, {orgMult=color[4],param={r=color[1],g=color[2],b=color[3]}})
       end
@@ -223,7 +223,7 @@ function ShieldSphereParticle.Create(Options)
 end
 
 function ShieldSphereParticle:Destroy()
-  if WG['lighteffects'] and WG['lighteffects'].removeLight then
+  if self.lightID and WG['lighteffects'] and WG['lighteffects'].removeLight then
     WG['lighteffects'].removeLight(self.lightID)
   end
 end

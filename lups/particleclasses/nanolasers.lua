@@ -156,7 +156,9 @@ function NanoLasers:Update(n)
     local dx = self.targetpos[1] - self.pos[1]
     local dy = self.targetpos[2] - self.pos[2]
     local dz = self.targetpos[3] - self.pos[3]
-    Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.12+(self.streamSpeed*0.7), param={radius=45+(self.corethickness*60)+(self.streamSpeed*200)}})
+    if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.12+(self.streamSpeed*0.7), param={radius=45+(self.corethickness*60)+(self.streamSpeed*200)}}) then
+      self.lightID = nil
+    end
   end
 
   self.fpos = (self.fpos or 0) + self.count * 5 * n
@@ -367,7 +369,7 @@ function NanoLasers:Destroy()
   end
 
   if self.lightID and Script.LuaUI("GadgetRemoveBeamLight") then
-    Script.LuaUI.GadgetRemoveBeamLight(self.lightID, 4)
+    Script.LuaUI.GadgetRemoveBeamLight(self.lightID)
   end
 
   if (self.flare) then

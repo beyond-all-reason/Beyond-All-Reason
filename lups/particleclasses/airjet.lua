@@ -146,6 +146,40 @@ function AirJet:Update(n)
       self.dieGameFrame = Spring.GetGameFrame() + 1
     end
   end
+
+  if self.light then
+    if WG['lighteffects'] then
+      --if self.visible then  -- temporarily disabled for testing purposes
+        local unitPos = {Spring.GetUnitPosition(self.unit)}
+        local pitch, yaw = Spring.GetUnitRotation(self.unit)
+        local lightOffset = Spring.GetUnitPieceInfo(self.unit, self.piecenum).offset
+        local lightDistance = math.diag(lightOffset[1], lightOffset[2], lightOffset[3])
+
+        -- still incorrect correct :S
+        local offsetX = lightOffset[1] * math.cos(-math.rad( (((yaw+2)/6.253)*360) ))
+        local offsetY = lightOffset[2]
+        local offsetZ = lightOffset[3] * math.sin(math.rad( (((yaw+2)/6.253)*360) ))
+
+        offsetY = offsetY + 12  -- to make the light shine a bit more on top of the model and easier for debugging
+
+        if not self.lightID then
+          if not self.color[4] then
+            self.color[4] = self.light
+          end
+          self.lightID = WG['lighteffects'].createLight('thruster',unitPos[1]+offsetX, unitPos[2]+offsetY, unitPos[3]+offsetZ, (self.width*self.length), self.color)
+        else
+          if not WG['lighteffects'].editLight(self.lightID, {px=unitPos[1]+offsetX, py=unitPos[2]+offsetY, pz=unitPos[3]+offsetZ}) then
+            self.lightID = nil
+          end
+        end
+      --elseif self.lightID then
+      --  WG['lighteffects'].removeLight(self.lightID)
+      --  self.lightID = nil
+      --end
+    else
+      self.lightID = nil
+    end
+  end
 end
 
 -- used if repeatEffect=true;
@@ -360,6 +394,9 @@ function AirJet.Create(Options)
 end
 
 function AirJet:Destroy()
+  if self.lightID and WG['lighteffects'] and WG['lighteffects'].removeLight then
+    WG['lighteffects'].removeLight(self.lightID)
+  end
   --gl.DeleteTexture(self.texture1)
   --gl.DeleteTexture(self.texture2)
   glDeleteList(self.dList)
@@ -388,6 +425,7 @@ function AirJet:Visible()
       losState = IsPosInLos(posX,posY,posZ)
     end
   end
+  --self.visible = true
   return (losState)and(spIsSphereInView(posX,posY,posZ,radius))
 end
 -----------------------------------------------------------------------------------------------------------------

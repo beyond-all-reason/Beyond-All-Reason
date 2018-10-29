@@ -52,6 +52,9 @@ local globalLifeMult = 0.65
 local enableHeatDistortion = true
 local enableDeferred = true     -- else use groundflashes instead
 local enableNanolaser = true
+local enableThrusters = true
+local nanolaserLights = {}
+local thrusterLights = {}
 
 local gibParams = {r = 0.145*globalLightMult, g = 0.1*globalLightMult, b = 0.05*globalLightMult, radius = 75*globalRadiusMult, gib = true}
 
@@ -671,8 +674,12 @@ function tableMerge(t1, t2)
 end
 
 function CreateBeamLight(name, x, y, z, x2, y2, z2, radius, rgba)
-	if name == 'nano' and not enableNanolaser then
-		return false
+	if name == 'nano' then
+		if enableNanolaser then
+			nanolaserLights[#nanolaserLights+1] = explosionLightsCount + 1
+		else
+			return false
+		end
 	end
 	if y + y2 < -800 then
 		-- The beam has fallen through the world
@@ -714,23 +721,32 @@ function EditBeamLight(lightID, params)
 	--Spring.Echo('editing: '..lightID..'  '..params.px..'  '..params.py..'  '..params.pz..'    '..params.dx..'  '..params.dy..'  '..params.dz)
 	if customBeamLights[lightID] then
 		customBeamLights[lightID] = tableMerge(customBeamLights[lightID], params)
+		return true
+	else
+		return false
 	end
 end
 
 function RemoveBeamLight(lightID, life)
-	if life == nil then
-		life = 22
-	end
 	if customBeamLights[lightID] then
-		customBeamLights[lightID].nofade = nil
-		customBeamLights[lightID].life = life
-		customBeamLights[lightID].frame = Spring.GetGameFrame()
+		if life == nil then
+			customBeamLights[lightID] = nil
+		else
+			customBeamLights[lightID].nofade = nil
+			customBeamLights[lightID].life = life
+			customBeamLights[lightID].frame = Spring.GetGameFrame()
+		end
 	end
-	customBeamLights[lightID] = nil
-	--Spring.Echo('removed light: '..lightID)
 end
 
-function CreateLight(x, y, z, radius, rgba)
+function CreateLight(name, x, y, z, radius, rgba)
+	if name == 'thruster' then
+		if enableThrusters then
+			thrusterLights[#thrusterLights+1] = explosionLightsCount + 1
+		else
+			return false
+		end
+	end
 	local params = {
 		orgMult = rgba[4],
 		nofade = true,
@@ -754,20 +770,22 @@ end
 function EditLight(lightID, params)
 	if explosionLights[lightID] then
 		explosionLights[lightID] = tableMerge(explosionLights[lightID], params)
+		return true
+	else
+		return false
 	end
 end
 
 function RemoveLight(lightID, life)
-	if life == nil then
-		life = 22
-	end
 	if explosionLights[lightID] then
-		explosionLights[lightID].nofade = nil
-		explosionLights[lightID].life = life
-		explosionLights[lightID].frame = Spring.GetGameFrame()
+		if life == nil then
+			explosionLights[lightID] = nil
+		else
+			explosionLights[lightID].nofade = nil
+			explosionLights[lightID].life = life
+			explosionLights[lightID].frame = Spring.GetGameFrame()
+		end
 	end
-	explosionLights[lightID] = nil
-	--Spring.Echo('removed light: '..lightID)
 end
 
 
@@ -944,8 +962,8 @@ function widget:Initialize()
 	end
 
 	WG['lighteffects'] = {}
-	WG['lighteffects'].createLight = function(x,y,z,radius,rgba)
-		return CreateLight(x,y,z,radius,rgba)
+	WG['lighteffects'].createLight = function(name,x,y,z,radius,rgba)
+		return CreateLight(name,x,y,z,radius,rgba)
 	end
 	WG['lighteffects'].editLight = function(lightID, params)
 		return EditLight(lightID, params)
@@ -983,6 +1001,9 @@ function widget:Initialize()
 	WG['lighteffects'].getNanolaser = function()
 		return enableNanolaser
 	end
+	WG['lighteffects'].getThrusters = function()
+		return enableThrusters
+	end
     WG['lighteffects'].getDeferred = function()
         return enableDeferred
     end
@@ -1013,6 +1034,19 @@ function widget:Initialize()
 	end
 	WG['lighteffects'].setNanolaser = function(value)
 		enableNanolaser = value
+		if not enableNanolaser then
+			for i=1, #nanolaserLights do
+				RemoveBeamLight(nanolaserLights[i])
+			end
+		end
+	end
+	WG['lighteffects'].setThrusters = function(value)
+		enableThrusters = value
+		if not enableThrusters then
+			for i=1, #thrusterLights do
+				RemoveLight(thrusterLights[i])
+			end
+		end
 	end
     WG['lighteffects'].setDeferred = function(value)
         enableDeferred = value
@@ -1031,6 +1065,7 @@ function widget:GetConfigData(data)
 		enableHeatDistortion = enableHeatDistortion,
 		enableDeferred = enableDeferred,
 		enableNanolaser = enableNanolaser,
+		enableThrusters = enableThrusters,
 		resetted = 1.4,
 	}
 	return savedTable
@@ -1061,6 +1096,9 @@ function widget:SetConfigData(data)
 		end
 		if data.enableNanolaser ~= nil then
 			enableNanolaser = data.enableNanolaser
+		end
+		if data.enableThrusters ~= nil then
+			enableThrusters = data.enableThrusters
 		end
 	end
 end

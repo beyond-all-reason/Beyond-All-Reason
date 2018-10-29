@@ -16,7 +16,7 @@ Other:
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
  • New flak explosion effect + custom crashing airplane smoke trails
  • Added nano lasers/particles option
- • Added light effects to laser hits, plasma barrel fire, nano lasers and fusion balls
+ • Added light effects to laser hits, plasma barrel fire, air thrusters, nano lasers and fusion balls
 
 
 10.12 -> 10.13
