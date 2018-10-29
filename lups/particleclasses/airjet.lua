@@ -156,9 +156,14 @@ function AirJet:Update(n)
         local lightDistance = math.diag(lightOffset[1], lightOffset[2], lightOffset[3])
 
         -- still incorrect correct :S
-        local offsetX = lightOffset[1] * math.cos(-math.rad( (((yaw+2)/6.253)*360) ))
+		
+		local lightOffsetRotY = {}
+			lightOffsetRotY[1] = lightOffset[1]*math.cos(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))- lightOffset[3]*math.sin(3.1415+math.rad(90+ (((yaw+1.571)/6.2)*360) ))
+			lightOffsetRotY[3] = lightOffset[1]*math.sin(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))+ lightOffset[3]*math.cos(3.1415+math.rad( 90+(((yaw+1.571)/6.2)*360) ))
+		
+        local offsetX = lightOffsetRotY[1]
         local offsetY = lightOffset[2]
-        local offsetZ = lightOffset[3] * math.sin(math.rad( (((yaw+2)/6.253)*360) ))
+        local offsetZ = lightOffsetRotY[3]
 
         offsetY = offsetY + 12  -- to make the light shine a bit more on top of the model and easier for debugging
 
