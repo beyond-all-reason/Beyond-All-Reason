@@ -148,8 +148,15 @@ function AirJet:Update(n)
   end
 
   if self.light then
-    if WG['lighteffects'] then
-      if self.visible then  -- temporarily disabled for testing purposes
+    if not WG['lighteffects'] then
+      self.lightID = nil
+    else
+      if not self.visible then  -- temporarily disabled for testing purposesif self.lightID then
+        if self.lightID then
+          WG['lighteffects'].removeLight(self.lightID)
+          self.lightID = nil
+        end
+      else
         local unitPos = {Spring.GetUnitPosition(self.unit)}
         local pitch, yaw = Spring.GetUnitRotation(self.unit)
         local lightOffset = Spring.GetUnitPieceInfo(self.unit, self.piecenum).offset
@@ -174,12 +181,7 @@ function AirJet:Update(n)
             self.lightID = nil
           end
         end
-      elseif self.lightID then
-        WG['lighteffects'].removeLight(self.lightID)
-        self.lightID = nil
       end
-    else
-      self.lightID = nil
     end
   end
 end
