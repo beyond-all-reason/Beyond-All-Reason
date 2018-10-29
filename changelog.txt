@@ -9,6 +9,7 @@ Balance:
  • Arm and Core vehicles : scouts/light tanks/medium tanks +10% turnrate
  • Stumpy Raider Bulldog and Reaper -5% maxpseed and +5% metal cost
  • Penetrator and Banisher -5% maxspeed
+ • Arm and Core Ressurect kbots +20% reclaim speed
 
 Other:
  • Removed dgun range circle when enemy com gets near
