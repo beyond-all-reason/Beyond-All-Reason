@@ -42,7 +42,14 @@ end
 -- This gadget attempts to catch whenever an air transport's returned speed doesn't match it's displacement on the map (with a threshold) to apply an XZ plane full stop and allow it to climb before it starts moving again.
 
 if (gadgetHandler:IsSyncedCode()) then
-AirTransports = {[UnitDefNames["armatlas"].id]= true,[UnitDefNames["armdfly"].id] = true,[UnitDefNames["corvalk"].id] = true,[UnitDefNames["corseah"].id] = true}
+AirTransports = {[UnitDefNames["armatlas"].id]= true,[UnitDefNames["armdfly"].id] = true,[UnitDefNames["corvalk"].id] = true,[UnitDefNames["corseah"].id] = true }
+if UnitDefNames.armcom_bar then
+	AirTransports[UnitDefNames["armatlas_bar"].id] = true
+	AirTransports[UnitDefNames["corvalk_bar"].id] = true
+	AirTransports[UnitDefNames["corseah_bar"].id] = true
+	AirTransports[UnitDefNames["armdfly_bar"].id] = true
+end
+
 Trans = {}
 Positions = {}
 	function gadget:UnitCreated(unitID) -- get all air transports

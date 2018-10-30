@@ -47,10 +47,19 @@ local AirTrans = {
   [UnitDefNames["armatlas"].id] = true,
   [UnitDefNames["armdfly"].id] = true,
 }
-local Nanos={
+local Nanos = {
 	[UnitDefNames["cornanotc"].id] = true,
 	[UnitDefNames["armnanotc"].id] = true,
 }
+if UnitDefNames.armcom_bar then
+    AirTrans[UnitDefNames["armatlas_bar"].id] = true
+    AirTrans[UnitDefNames["corvalk_bar"].id] = true
+    AirTrans[UnitDefNames["corseah_bar"].id] = true
+    AirTrans[UnitDefNames["armdfly_bar"].id] = true
+    Nanos[UnitDefNames["cornanotc_bar"].id] = true
+    Nanos[UnitDefNames["armnanotc_bar"].id] = true
+end
+
 local watchList = {}
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)

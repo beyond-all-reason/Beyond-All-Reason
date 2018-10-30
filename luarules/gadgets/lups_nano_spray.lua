@@ -207,10 +207,12 @@ end
 --   NanoSpray handling
 --
 
+local currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
+
 local nanoParticles = {}
 --local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
 
-
+local NanoFxNone = 3
 local NanoFx = {
     lasers = {
         fxtype          = "NanoLasers",
@@ -256,10 +258,12 @@ local function BuilderDestroyed(unitID)
 end
 
 function gadget:GameFrame(frame)
+    if currentLupsNanoEffect == NanoFxNone then return end
+
     local updateFramerate = math.min(30, 3 + math.floor(#builders/25)) -- update fast at gamestart and gradually slower
 
-	for i=1,#builders do
-		local unitID = builders[i]
+    for i=1,#builders do
+        local unitID = builders[i]
         if not Spring.IsUnitIcon(unitID) then
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
@@ -345,21 +349,26 @@ function gadget:GameFrame(frame)
                 end
             end
         end
-	end --//for
+    end --//for
 end
 
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-local currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
-
 function init()
-
-    if currentLupsNanoEffect == 2 then
+    if currentLupsNanoEffect == NanoFxNone then
+        registeredBuilders = {}
+        return
+    elseif currentLupsNanoEffect == 2 then
         NanoFx.default = NanoFx.particles
     else
         NanoFx.default = NanoFx.lasers
+    end
+
+    for _,unitID in ipairs(Spring.GetAllUnits()) do
+        local unitDefID = Spring.GetUnitDefID(unitID)
+        gadget:UnitFinished(unitID, unitDefID)
     end
 
     --// init user custom nano fxs
@@ -422,6 +431,7 @@ end
 local registeredBuilders = {}
 
 function gadget:UnitFinished(uid, udid)
+    if currentLupsNanoEffect == NanoFxNone then return end
 	if (UnitDefs[udid].isBuilder) and not registeredBuilders[uid] then
 		BuilderFinished(uid)
 		registeredBuilders[uid] = nil
@@ -429,6 +439,7 @@ function gadget:UnitFinished(uid, udid)
 end
 
 function gadget:UnitDestroyed(uid, udid)
+    if currentLupsNanoEffect == NanoFxNone then return end
 	if (UnitDefs[udid].isBuilder) and registeredBuilders[uid] then
 		BuilderDestroyed(uid)
 		registeredBuilders[uid] = nil
@@ -436,10 +447,7 @@ function gadget:UnitDestroyed(uid, udid)
 end
 
 function gadget:Initialize()
-	for _,unitID in ipairs(Spring.GetAllUnits()) do
-		local unitDefID = Spring.GetUnitDefID(unitID)
-		gadget:UnitFinished(unitID, unitDefID)
-	end
+
 end
 
 -------------------------------------------------------------------------------------

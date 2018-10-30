@@ -86,7 +86,19 @@ if gadgetHandler:IsSyncedCode() then
 		corawac = "Scouts",
 		corhunt = "Scouts",
 	}
-	
+	if UnitDefNames.armcom_bar then
+		function tableMerge(t1, t2)
+			for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
+			return t1
+		end
+		local airCategoriesBAR = {}
+		for unitname,cat in pairs(airCategories) do
+			airCategoriesBAR[unitname..'_bar_'] = cat
+		end
+		airCategories = tableMerge(airCategories, airCategoriesBAR)
+		airCategoriesBAR = nil
+	end
+
 	function gadget:UnitCreated(unitID, unitDefID)
 		local uDef = UnitDefs[unitDefID]
 		if uDef.customParams.prioritytarget and uDef.customParams.prioritytarget == "air" then
