@@ -1886,7 +1886,7 @@ function init()
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
 
-		{id="lighteffects", group="gfx", name="Light effects", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
+		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		{id="lighteffects_deferred", group="gfx", name=widgetOptionColor.."   real lights", type="bool", value=true, description='Otherwise simple ground flashes instead of actual map and model lighting.\n\nExpensive for the gpu when lots of (big) lights are there or when you zoom in on them.'},
 		{id="lighteffects_heatdistortion", group="gfx", name=widgetOptionColor.."   apply heat distortion", type="bool", value=true, description='Enables a distortion on top of explosions to simulate heat'},
 		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.4, max=0.9, step=0.05, type="slider", value=0.65, description='lifetime of explosion lights'},
@@ -1894,17 +1894,14 @@ function init()
 		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius", min=1, max=1.7, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)'},
-		--{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   nano beam light", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
 
 		{id="lupsnanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("LupsNanoEffect",1) or 1), description='Sets nano effect'},
-		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Light effects')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
+		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
 
-		{id="lups", group="gfx", widget="LupsManager", name="Lups particle/shader effects", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet beams, ground flashes, fusion energy balls'},
-		--{id="lupseffectlevel", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'basic','min','standard','extra','uber'}, value=tonumber(Spring.GetConfigInt("LupsPriority",1) or 3), description='Sets lups particle effects quality'},
-		--{id="lupsdynamic", group="gfx", name=widgetOptionColor.."   dynamic particles", type="bool", value=tonumber(Spring.GetConfigInt("DynamicLups",0) or 0) ==1, description='Auto adjust lups effect level depening on FPS'},
+		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet engine thrusters, ground flashes, fusion energy balls'},
 		{id="lupsrefraction", group="gfx", name=widgetOptionColor.."   refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablerefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
 		{id="lupsreflection", group="gfx", name=widgetOptionColor.."   reflection pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablereflection",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
-		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   thrusters light (needs 'Light effects')", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
+		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thrusters light  (needs 'Lights')", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
@@ -1972,11 +1969,11 @@ function init()
 		{id="minimapiconsize", group="ui", name="Minimap icon size", type="slider", min=2, max=3.5, step=0.25, value=minimapIconsize, description=''},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
-		{id="showbuilderqueue", group="ui", widget="Show Builder Queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
+		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
-		{id="healthbarsscale", group="ui", name="Health Bars Scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
+		{id="healthbarsscale", group="ui", name="Health bars scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
 
-		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur shader", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
+		{id="guishader", group="ui", widget="GUI-Shader", name="GUI background blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
@@ -2000,7 +1997,7 @@ function init()
 		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=GetWidgetToggleValue("Display DPS"), description='Display the \'Damage Per Second\' done where target are hit'},
 		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
-		{id="idlebuilders", group="ui", widget="Idle Builders", name="List Idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row containing a list of idle builder units (if there are any)'},
+		{id="idlebuilders", group="ui", widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row containing a list of idle builder units (if there are any)'},
 		{id="betfrontend", group="ui", widget="Bet-Frontend", name="Bet interface", type="bool", value=GetWidgetToggleValue("Bet-Frontend"), description='When spectator: display a betting interface.\nIt allows betting on when you think a unit will be destroyed.\nBeware... you have a limited supply of chips.'},
 		{id="commanderhurt", group="ui", widget="Commander Hurt Vignette", name="Commander hurt vignette", type="bool", value=GetWidgetToggleValue("Commander Hurt Vignette"), description='Shows a red vignette when commander is out of view and gets damaged'},
 
@@ -2031,7 +2028,7 @@ function init()
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
 		{id="givenunits", group="ui", widget="Given Units", name="Given unit icons", type="bool", value=GetWidgetToggleValue("Given Units"), description='Tags given units with \'new\' icon'},
 
-		{id="defrange", group="ui", widget="Defense Range", name="Defense Ranges", type="bool", value=GetWidgetToggleValue("Defense Range"), description='Displays range of defenses (enemy and ally)'},
+		{id="defrange", group="ui", widget="Defense Range", name="Defense ranges", type="bool", value=GetWidgetToggleValue("Defense Range"), description='Displays range of defenses (enemy and ally)'},
 		{id="defrange_allyair", group="ui", name=widgetOptionColor.."   Ally Air", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getAllyAir~=nil and WG['defrange'].getAllyAir()), description='Show Range For Ally Air'},
 		{id="defrange_allyground", group="ui", name=widgetOptionColor.."   Ally Ground", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getAllyGround~=nil and WG['defrange'].getAllyGround()), description='Show Range For Ally Ground'},
 		{id="defrange_allynuke", group="ui", name=widgetOptionColor.."   Ally Nuke", type="bool", value=(WG['defrange']~=nil and WG['defrange'].getAllyNuke~=nil and WG['defrange'].getAllyNuke()), description='Show Range For Ally Air Nuke'},
