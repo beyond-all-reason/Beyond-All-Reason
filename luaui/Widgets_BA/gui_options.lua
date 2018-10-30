@@ -23,7 +23,7 @@ end
 --
 ]]--
 
-local maxNanoParticles = 1000
+local maxNanoParticles = 2000
 
 local cameraTransitionTime = 0.2
 local cameraPanTransitionTime = 0.03
@@ -128,7 +128,8 @@ local presets = {
 		snow = false,
 		xrayshader = false,
 		particles = 10000,
-		--nanoparticles = 500,
+		nanoparticles = 1000,
+		nanobeamamount = 2,
 		grassdetail = 0,
 		treeradius = 0,
 		treewind = false,
@@ -156,7 +157,8 @@ local presets = {
 		snow = false,
 		xrayshader = false,
 		particles = 15000,
-		--nanoparticles = 900,
+		nanoparticles = 2000,
+		nanobeamamount = 3,
 		grassdetail = 0,
 		treeradius = 200,
 		treewind = false,
@@ -184,7 +186,8 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 20000,
-		--nanoparticles = 1500,
+		nanoparticles = 3500,
+		nanobeamamount = 4,
 		grassdetail = 0,
 		treeradius = 400,
 		treewind = true,
@@ -212,7 +215,8 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 25000,
-		--nanoparticles = 2500,
+		nanoparticles = 5000,
+		nanobeamamount = 5,
 		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
@@ -240,7 +244,8 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 30000,
-		--nanoparticles = 5000,
+		nanoparticles = 10000,
+		nanobeamamount = 7,
 		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
@@ -1911,8 +1916,8 @@ function init()
 
 		{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",1) or 1), description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
-		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=2, max=8, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",3) or 3), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
-		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=0, max=10000, step=100, value=maxNanoParticles, description='NOTE: Nano particles are more expensive regarding the CPU'},
+		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=2, max=7, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",3) or 3), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
+		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=1000, max=10000, step=100, value=maxNanoParticles, description=''},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet engine thrusters, ground flashes, fusion energy balls'},
 		{id="lupsrefraction", group="gfx", name=widgetOptionColor.."   refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablerefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
