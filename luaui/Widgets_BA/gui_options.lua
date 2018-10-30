@@ -23,6 +23,8 @@ end
 --
 ]]--
 
+local maxNanoParticles = 1000
+
 local cameraTransitionTime = 0.2
 local cameraPanTransitionTime = 0.03
 
@@ -126,7 +128,7 @@ local presets = {
 		snow = false,
 		xrayshader = false,
 		particles = 10000,
-		nanoparticles = 500,
+		--nanoparticles = 500,
 		grassdetail = 0,
 		treeradius = 0,
 		treewind = false,
@@ -154,7 +156,7 @@ local presets = {
 		snow = false,
 		xrayshader = false,
 		particles = 15000,
-		nanoparticles = 900,
+		--nanoparticles = 900,
 		grassdetail = 0,
 		treeradius = 200,
 		treewind = false,
@@ -182,7 +184,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 20000,
-		nanoparticles = 1500,
+		--nanoparticles = 1500,
 		grassdetail = 0,
 		treeradius = 400,
 		treewind = true,
@@ -210,7 +212,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 25000,
-		nanoparticles = 2500,
+		--nanoparticles = 2500,
 		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
@@ -238,7 +240,7 @@ local presets = {
 		snow = true,
 		xrayshader = false,
 		particles = 30000,
-		nanoparticles = 5000,
+		--nanoparticles = 5000,
 		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
@@ -1266,7 +1268,10 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'particles' then
 			Spring.SetConfigInt("MaxParticles",value)
 		elseif id == 'nanoparticles' then
-			Spring.SetConfigInt("MaxNanoParticles",value)
+			maxNanoParticles = value
+			if options[getOptionByID('nanoeffect')].value == 2 then
+				Spring.SetConfigInt("MaxNanoParticles",value)
+			end
 		elseif id == 'grassdetail' then
 			Spring.SetConfigInt("GrassDetail",value)
 		elseif id == 'grounddetail' then
@@ -1361,8 +1366,13 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SetConfigInt("LupsPriority",value)
 				--Spring.Echo("option for lups",value,WG.LupsPriority)
 			end
-		elseif id == 'lupsnanoeffect' then
-			Spring.SetConfigInt("LupsNanoEffect",value)
+		elseif id == 'nanoeffect' then
+			Spring.SetConfigInt("NanoEffect",value)
+			if value == 1 then
+				Spring.SetConfigInt("MaxNanoParticles",0)
+			else
+				Spring.SetConfigInt("MaxNanoParticles",maxNanoParticles)
+			end
 		elseif id == 'camera' then
 			Spring.SetConfigInt("CamMode",(value-1))
 			if value == 1 then 
@@ -1895,8 +1905,9 @@ function init()
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)'},
 
-		{id="lupsnanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles','none'}, value=tonumber(Spring.GetConfigInt("LupsNanoEffect",1) or 1), description='Sets nano effect'},
+		{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",2) or 2), description='Sets nano effect'},
 		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
+		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=0, max=10000, step=100, value=maxNanoParticles, description='NOTE: Nano particles are more expensive regarding the CPU'},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet engine thrusters, ground flashes, fusion energy balls'},
 		{id="lupsrefraction", group="gfx", name=widgetOptionColor.."   refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablerefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
@@ -1908,7 +1919,6 @@ function init()
 
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
-		--{id="nanoparticles", group="gfx", name="Max nano particles", type="slider", min=500, max=5000, step=100, value=tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500), description='NOTE: Nano particles are more expensive regarding the CPU'},
 
 		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
@@ -2482,12 +2492,13 @@ function widget:GetConfigData(data)
 	savedTable.customPresets = customPresets
 	savedTable.minimapIconsize = minimapIconsize
 	savedTable.cameraTransitionTime = cameraTransitionTime
+	savedTable.maxNanoParticles = maxNanoParticles
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
 		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
 		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000)},
-		nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},
+		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		grassdetail = {'GrassDetail', tonumber(Spring.GetConfigInt("GrassDetail",1) or 5)},
@@ -2516,6 +2527,9 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraTransitionTime ~= nil then
 		cameraTransitionTime = data.cameraTransitionTime
+	end
+	if data.maxNanoParticles ~= nil then
+		maxNanoParticles = data.maxNanoParticles
 	end
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig

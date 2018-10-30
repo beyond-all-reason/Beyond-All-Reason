@@ -207,12 +207,12 @@ end
 --   NanoSpray handling
 --
 
-local currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
+local currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
 
 local nanoParticles = {}
 --local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
 
-local NanoFxNone = 3
+local NanoFxNone = 2
 local NanoFx = {
     lasers = {
         fxtype          = "NanoLasers",
@@ -258,7 +258,7 @@ local function BuilderDestroyed(unitID)
 end
 
 function gadget:GameFrame(frame)
-    if currentLupsNanoEffect == NanoFxNone then return end
+    if currentNanoEffect == NanoFxNone then return end
 
     local updateFramerate = math.min(30, 3 + math.floor(#builders/25)) -- update fast at gamestart and gradually slower
 
@@ -357,11 +357,11 @@ end
 -------------------------------------------------------------------------------------
 
 function init()
-    if currentLupsNanoEffect == NanoFxNone then
+    if currentNanoEffect == NanoFxNone then
         registeredBuilders = {}
         return
-    elseif currentLupsNanoEffect == 2 then
-        NanoFx.default = NanoFx.particles
+    --elseif currentNanoEffect == 2 then
+    --    NanoFx.default = NanoFx.particles
     else
         NanoFx.default = NanoFx.lasers
     end
@@ -392,7 +392,7 @@ function init()
         local NanoEffx = NanoFx[fxname]
         NanoEffx.delaySpread = 30
         NanoEffx.fxtype = NanoEffx.fxtype:lower()
-        if ((Spring.GetConfigInt("LupsNanoEffect",1) or 1) == 1) and ((NanoEffx.fxtype=="nanolasers") or (NanoEffx.fxtype=="nanolasersshader")) then
+        if ((Spring.GetConfigInt("NanoEffect",1) or 1) == 1) and ((NanoEffx.fxtype=="nanolasers") or (NanoEffx.fxtype=="nanolasersshader")) then
             NanoEffx.flare = true
         end
 
@@ -408,8 +408,8 @@ function gadget:Update()
 
     if initialized then
         --// enable particle effect?
-        if currentLupsNanoEffect ~= (Spring.GetConfigInt("LupsNanoEffect",1) or 1) then
-            currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
+        if currentNanoEffect ~= (Spring.GetConfigInt("NanoEffect",1) or 1) then
+            currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
             init()
         end
         return
@@ -418,7 +418,7 @@ function gadget:Update()
 
   Lups = GG['Lups']
   if (Lups) then
-      currentLupsNanoEffect = (Spring.GetConfigInt("LupsNanoEffect",1) or 1)
+      currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
       init()
     initialized=true
   end
@@ -431,7 +431,7 @@ end
 local registeredBuilders = {}
 
 function gadget:UnitFinished(uid, udid)
-    if currentLupsNanoEffect == NanoFxNone then return end
+    if currentNanoEffect == NanoFxNone then return end
 	if (UnitDefs[udid].isBuilder) and not registeredBuilders[uid] then
 		BuilderFinished(uid)
 		registeredBuilders[uid] = nil
@@ -439,7 +439,7 @@ function gadget:UnitFinished(uid, udid)
 end
 
 function gadget:UnitDestroyed(uid, udid)
-    if currentLupsNanoEffect == NanoFxNone then return end
+    if currentNanoEffect == NanoFxNone then return end
 	if (UnitDefs[udid].isBuilder) and registeredBuilders[uid] then
 		BuilderDestroyed(uid)
 		registeredBuilders[uid] = nil

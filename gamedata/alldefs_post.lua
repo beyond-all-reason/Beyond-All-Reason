@@ -234,7 +234,7 @@ function UnitDef_Post(name, uDef)
 		uDef.maxacc = 0.065/2 + uDef.acceleration/2
 	end
 	-- Enable default Nanospray
-	--uDef.shownanospray = true
+	uDef.shownanospray = true
 
 	-- vehicles
 	if uDef.category and string.find(uDef.category, "TANK") then
