@@ -148,12 +148,12 @@ function AirJet:Update(n)
   end
 
   if self.light then
-    if not WG['lighteffects'] then
+    if not WG['lighteffects'] or not WG['lighteffects'].enableThrusters then
       self.lightID = nil
     else
       if not self.visible then  -- temporarily disabled for testing purposesif self.lightID then
         if self.lightID then
-          WG['lighteffects'].removeLight(self.lightID)
+          WG['lighteffects'].removeLight(self.lightID, 3)
           self.lightID = nil
         end
       else

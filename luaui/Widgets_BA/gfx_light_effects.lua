@@ -962,6 +962,7 @@ function widget:Initialize()
 	end
 
 	WG['lighteffects'] = {}
+	WG['lighteffects'].enableThrusters = enableThrusters
 	WG['lighteffects'].createLight = function(name,x,y,z,radius,rgba)
 		return CreateLight(name,x,y,z,radius,rgba)
 	end
@@ -1042,6 +1043,7 @@ function widget:Initialize()
 	end
 	WG['lighteffects'].setThrusters = function(value)
 		enableThrusters = value
+		WG['lighteffects'].enableThrusters = enableThrusters
 		if not enableThrusters then
 			for i=1, #thrusterLights do
 				RemoveLight(thrusterLights[i])
