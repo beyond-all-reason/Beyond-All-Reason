@@ -208,6 +208,7 @@ end
 --
 
 local currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
+local maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 3) or 3)    -- limit for performance reasons
 
 local nanoParticles = {}
 --local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
@@ -257,7 +258,6 @@ local function BuilderDestroyed(unitID)
 	builders[#builders] = nil
 end
 
-local maxNewNanoEmitters = 6    -- limit for performance reasons
 function gadget:GameFrame(frame)
     if currentNanoEffect == NanoFxNone then return end
 
@@ -416,6 +416,7 @@ function gadget:Update()
 
     if initialized then
         --// enable particle effect?
+        maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 3) or 3)
         if currentNanoEffect ~= (Spring.GetConfigInt("NanoEffect",1) or 1) then
             currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
             init()
@@ -426,6 +427,7 @@ function gadget:Update()
 
   Lups = GG['Lups']
   if (Lups) then
+      maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 3) or 3)
       currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
       init()
     initialized=true

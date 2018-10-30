@@ -1267,6 +1267,10 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("TreeRadius",value)
 		elseif id == 'particles' then
 			Spring.SetConfigInt("MaxParticles",value)
+
+
+		elseif id == 'nanobeamamount' then
+			Spring.SetConfigInt("NanoBeamAmount",value)
 		elseif id == 'nanoparticles' then
 			maxNanoParticles = value
 			if options[getOptionByID('nanoeffect')].value == 2 then
@@ -1905,8 +1909,9 @@ function init()
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)'},
 
-		{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",2) or 2), description='Sets nano effect'},
+		{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",1) or 1), description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
+		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=2, max=8, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",3) or 3), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
 		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=0, max=10000, step=100, value=maxNanoParticles, description='NOTE: Nano particles are more expensive regarding the CPU'},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet engine thrusters, ground flashes, fusion energy balls'},
