@@ -32,6 +32,8 @@ end
 local selectBuildingsWithMobile = false
 local includeNanosAsMobile = true
 
+local includeBuilders = true
+
 -- only select new units identical to those already selected
 local sameSelectKey = 'z'
 
@@ -209,12 +211,14 @@ function widget:GetConfigData(data)
     savedTable = {}
     savedTable.selectBuildingsWithMobile = selectBuildingsWithMobile
     savedTable.includeNanosAsMobile = includeNanosAsMobile
+	savedTable.includeBuilders = includeBuilders
     return savedTable
 end
 
 function widget:SetConfigData(data)
     if data.selectBuildingsWithMobile ~= nil 	then  selectBuildingsWithMobile	= data.selectBuildingsWithMobile end
-    if data.includeNanosAsMobile ~= nil 	then  includeNanosAsMobile	= data.includeNanosAsMobile end
+	if data.includeNanosAsMobile ~= nil 	then  includeNanosAsMobile	= data.includeNanosAsMobile end
+	if data.includeBuilders ~= nil 	then  includeBuilders	= data.includeBuilders end
 end
 
 
@@ -350,7 +354,7 @@ function widget:Update()
 					for i=1, #mouseSelection do
 						uid = mouseSelection[i]
 						udid = GetUnitDefID(uid)
-						if (buildingFilter[udid] == false) then
+						if (buildingFilter[udid] == false and (includeBuilders or not builderFilter[udid])) then
 							tmp[#tmp+1] = uid
 						end
 					end
@@ -421,7 +425,7 @@ function init()
 	mobileFilter = {}
 	
 	for udid, udef in pairs(UnitDefs) do
-		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc" or UnitDefs[udid].name == "armnanotcplat" or UnitDefs[udid].name == "cornanotcplat"))
+		local mobile = (udef.canMove and udef.speed > 0.000001) or (includeNanosAsMobile and (UnitDefs[udid].name == "armnanotc" or UnitDefs[udid].name == "cornanotc" or UnitDefs[udid].name == "armnanotc_bar" or UnitDefs[udid].name == "cornanotc_bar"))
 		local builder = (udef.canReclaim and udef.reclaimSpeed > 0) or
 						--(udef.builder and udef.buildSpeed > 0) or					-- udef.builder = deprecated it seems
 						(udef.canResurrect and udef.resurrectSpeed > 0) or
@@ -443,12 +447,18 @@ end
 function widget:Initialize()
 
   WG['smartselect'] = {}
-  WG['smartselect'].getIncludeBuildings = function()
-  	return selectBuildingsWithMobile
-  end
-  WG['smartselect'].setIncludeBuildings = function(value)
-  	selectBuildingsWithMobile = value
-  end
+	WG['smartselect'].getIncludeBuildings = function()
+		return selectBuildingsWithMobile
+	end
+	WG['smartselect'].setIncludeBuildings = function(value)
+		selectBuildingsWithMobile = value
+	end
+	WG['smartselect'].getIncludeBuilders = function()
+		return includeBuilders
+	end
+	WG['smartselect'].setIncludeBuilders = function(value)
+		includeBuilders = value
+	end
 	init()
 end
 

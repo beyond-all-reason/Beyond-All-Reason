@@ -12,6 +12,7 @@ Balance:
  • Arm and Core Ressurect kbots +20% reclaim speed
 
 Other:
+ • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
  • Removed dgun range circle when enemy com gets near
  • Fixed continuous aiming change always being able to fire, even when turret was way off
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
