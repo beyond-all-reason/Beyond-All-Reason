@@ -351,12 +351,21 @@ function widget:Update()
 
 				if (mobiles) then
 					tmp = {}
+					local tmp2 = {}
+					Spring.Echo(#mouseSelection)
 					for i=1, #mouseSelection do
 						uid = mouseSelection[i]
 						udid = GetUnitDefID(uid)
-						if (buildingFilter[udid] == false and (includeBuilders or not builderFilter[udid])) then
-							tmp[#tmp+1] = uid
+						if (buildingFilter[udid] == false) then
+							if (includeBuilders or not builderFilter[udid]) then
+								tmp[#tmp+1] = uid
+							else
+								tmp2[#tmp2+1] = uid
+							end
 						end
+					end
+					if #tmp == 0 then
+						tmp = tmp2
 					end
 					mouseSelection = tmp
 				end
