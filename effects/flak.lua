@@ -11,7 +11,7 @@ local definitions = {
             properties = {
                 delay              = [[r7]],
                 explosiongenerator = [[custom:flakshard]],
-                pos                = [[-45 r90, -40 r80, -45 r90]],
+                pos                = [[-40 r80, -35 r70, -40 r80]],
             },
         },
         glow = {
