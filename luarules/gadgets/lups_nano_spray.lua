@@ -223,19 +223,19 @@ local NanoFx = {
         streamSpeed     = "limcount*0.15",
         priority        = 1,
     },
-    particles = {
-        fxtype      = "NanoParticles",
-        alpha       = 1,
-        size        = 7,
-        sizeSpread  = 0.5,
-        sizeGrowth  = 0,
-        rotSpeed    = 0.7,
-        rotSpread   = 360,
-        --texture     = "bitmaps/Other/Poof.png",
-        texture     = "bitmaps/nano.tga",
-        particles   = 1,
-        priority    = 1,
-    },
+    --particles = {
+    --    fxtype      = "NanoParticles",
+    --    alpha       = 1,
+    --    size        = 7,
+    --    sizeSpread  = 0.5,
+    --    sizeGrowth  = 0,
+    --    rotSpeed    = 0.7,
+    --    rotSpread   = 360,
+    --    --texture     = "bitmaps/Other/Poof.png",
+    --    texture     = "bitmaps/nano.tga",
+    --    particles   = 1,
+    --    priority    = 1,
+    --},
 }
 NanoFx.default = NanoFx.lasers
 
@@ -257,14 +257,18 @@ local function BuilderDestroyed(unitID)
 	builders[#builders] = nil
 end
 
+local maxNewNanoEmitters = 6    -- limit for performance reasons
 function gadget:GameFrame(frame)
     if currentNanoEffect == NanoFxNone then return end
 
     local updateFramerate = math.min(30, 3 + math.floor(#builders/25)) -- update fast at gamestart and gradually slower
-
+    local totalNanoEmitters = 0
     for i=1,#builders do
+        if totalNanoEmitters > maxNewNanoEmitters then
+            break
+        end
         local unitID = builders[i]
-        if not Spring.IsUnitIcon(unitID) then
+        if not Spring.IsUnitIcon(unitID) and Spring.IsUnitInView(unitID) then
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then
@@ -307,7 +311,10 @@ function gadget:GameFrame(frame)
                         local unitDefID = Spring.GetUnitDefID(unitID)
                         local teamColor = {Spring.GetTeamColor(teamID)}
                         local nanoPieces = Spring.GetUnitNanoPieces(unitID) or {}
-
+                        totalNanoEmitters = totalNanoEmitters + #nanoPieces
+                        if totalNanoEmitters > maxNewNanoEmitters then
+                            break
+                        end
                         for j=1,#nanoPieces do
                             local nanoPieceID = nanoPieces[j]
                             --local nanoPieceIDAlt = Spring.GetUnitScriptPiece(unitID, nanoPieceID)
@@ -350,6 +357,7 @@ function gadget:GameFrame(frame)
             end
         end
     end --//for
+    --Spring.Echo(frame..'  '..totalNanoEmitters)
 end
 
 
