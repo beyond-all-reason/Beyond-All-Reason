@@ -352,7 +352,6 @@ function widget:Update()
 				if (mobiles) then
 					tmp = {}
 					local tmp2 = {}
-					Spring.Echo(#mouseSelection)
 					for i=1, #mouseSelection do
 						uid = mouseSelection[i]
 						udid = GetUnitDefID(uid)
