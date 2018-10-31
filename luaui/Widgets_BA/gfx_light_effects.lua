@@ -171,7 +171,7 @@ function loadWeaponDefs()
 			params.yoffset = 15 + (params.radius/35)
 
 			if WeaponDefs[i].type == 'BeamLaser' then
-				local damage = 20
+				local damage = 75
 				params.radius = params.radius * 3.5
 				for cat=0, #WeaponDefs[i].damages do
 					if Game.armorTypes[cat] and Game.armorTypes[cat] == 'default' then

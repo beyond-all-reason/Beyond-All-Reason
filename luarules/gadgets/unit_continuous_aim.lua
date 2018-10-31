@@ -114,14 +114,26 @@ elseif Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0
 	}
 end
 
+local popups = {	-- exclude auto target range boost for popup units
+	[UnitDefNames.armclaw.id] = true,
+	[UnitDefNames.armpb.id] = true,
+	[UnitDefNames.armamb.id] = true,
+	[UnitDefNames.cormaw.id] = true,
+	[UnitDefNames.corvipe.id] = true,
+	[UnitDefNames.corpun.id] = true,
+	[UnitDefNames.corexp.id] = true,
+}
+
 function gadget:UnitCreated(unitID,unitDefID)
 	if convertedUnits[unitDefID] or UnitDefs[unitDefID].scriptName == "scripts/BASICTANKSCRIPT.LUA" then
 		for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
 			Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
 		end
 	end
-	for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-		local range = WeaponDefs[table.weaponDef].range
-		Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1*range) or 20)
+	if not popups[unitDefID] then
+		for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+			local range = WeaponDefs[table.weaponDef].range
+			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1*range) or 20)
+		end
 	end
 end
