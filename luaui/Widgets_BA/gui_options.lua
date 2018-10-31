@@ -2080,6 +2080,11 @@ function init()
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
+	-- remove engine particles if nano beams are enabled
+	if options[getOptionByID('nanoeffect')].value == 1 then
+		Spring.SetConfigInt("MaxNanoParticles", 0)
+	end
+
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
