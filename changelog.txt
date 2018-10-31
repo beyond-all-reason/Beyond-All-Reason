@@ -8,6 +8,7 @@ Balance:
  • Stumpy Raider Bulldog and Reaper metal cost increased +5%
  • Penetrator reversemaxspeed from 60% of maxspeed to 40%
  • Arm and Core Ressurect kbots +20% reclaim speed
+ • Maverick +7% hp (from 1300 to 1400hp)
 
 Other:
  • Fixed: popup units wont start targeting unless enemy is within weapon range
