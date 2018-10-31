@@ -21,6 +21,8 @@ Other:
  • New flak explosion effect + custom crashing airplane smoke trails
  • Removed dgun range circle when enemy com gets near
  • Reduced footprint of engine replacement trees + tree fire wont spread as wildly
+ • Resized and tuned proportions of BAR (remodeled) units to match their BA counterparts more (modoption barmodels)
+ • Auto sets 10000 particles as minimum
 
 
 10.12 -> 10.13

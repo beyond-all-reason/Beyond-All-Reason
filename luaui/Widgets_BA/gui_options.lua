@@ -1304,8 +1304,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
 			saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', {'maps',Game.mapName:lower()}, value)
-		elseif id == 'iconadjuster' then
-			saveOptionValue('Icon adjuster', 'iconadjuster', 'setScale', {'iconScale'}, value)
 		elseif id == 'healthbarsscale' then
 			saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value)
 		elseif id == 'bloombrightness' then
@@ -1898,12 +1896,23 @@ function init()
 		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
+		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
+
+		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
+
+		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
+		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
+
 		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
 		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.55, step=0.05, value=0.4, description=''},
 		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
+
+		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction highlight", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
+		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
+		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
 
 		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		{id="lighteffects_deferred", group="gfx", name=widgetOptionColor.."   real lights", type="bool", value=true, description='Otherwise simple ground flashes instead of actual map and model lighting.\n\nExpensive for the gpu when lots of (big) lights are there or when you zoom in on them.'},
@@ -1924,14 +1933,8 @@ function init()
 		{id="lupsreflection", group="gfx", name=widgetOptionColor.."   reflection pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablereflection",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
 		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thrusters light  (needs 'Lights')", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
 
-		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
-		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
-
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
-		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 
-		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
-		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 		{id="treewind", group="gfx", name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)'},
 
@@ -1944,10 +1947,6 @@ function init()
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
-
-		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction highlight", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
-		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
-		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
@@ -2171,12 +2170,6 @@ function init()
 		options[getOptionByID('healthbarsscale')] = nil
 	elseif WG['healthbars'].getScale ~= nil then
 		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
-	end
-
-	if (WG['iconadjuster'] == nil) then
-		options[getOptionByID('iconadjuster')] = nil
-	else
-		options[getOptionByID('iconadjuster')].value = WG['iconadjuster'].getScale()
 	end
 
 	if (WG['smartselect'] == nil) then
