@@ -2081,7 +2081,7 @@ function init()
 	}
 
 	-- remove engine particles if nano beams are enabled
-	if options[getOptionByID('nanoeffect')].value == 1 then
+	if options[getOptionByID('nanoeffect')] and options[getOptionByID('nanoeffect')].value == 1 then
 		Spring.SetConfigInt("MaxNanoParticles", 0)
 	end
 
