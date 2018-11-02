@@ -14,7 +14,7 @@ end
 function MoveDown()
 	while f > -900 do
 		Move(base, 2, f)
-		f = f - 0.03
+		f = f - 0.04
 		Sleep(1)
 	end
 end
