@@ -793,6 +793,9 @@ function gadget:DrawScreen()
 		else
 			gl.Text("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		end
+		if Script.LuaUI("GuishaderInsertRect") then
+			Script.LuaUI.GuishaderInsertRect(0,0,vsx,vsy,'unsupportedquit')
+		end
 		if timer3 <= 0 then
 			Spring.SendCommands("QuitForce")
 		end

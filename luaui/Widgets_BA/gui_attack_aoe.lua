@@ -119,6 +119,14 @@ local function GetMouseTargetPosition(dgun)
     if ((dgun and WG['dgunnoally'] ~= nil) or (not dgun and WG['attacknoally'] ~= nil)) and Spring.IsUnitAllied(mouseTarget) then
       mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
       return mouseTarget[1], mouseTarget[2], mouseTarget[3]
+    elseif ((dgun and WG['dgunnoenemy'] ~= nil) or (not dgun and WG['attacknoenemy'] ~= nil)) and not Spring.IsUnitAllied(mouseTarget) then
+      local def = UnitDefs[Spring.GetUnitDefID(mouseTarget)]
+      local mouseTargetType2, mouseTarget2 = TraceScreenRay(mx, my, true)
+      if def.isAirUnit or def.modCategories["ship"] or def.modCategories["underwater"] or (Spring.GetGroundHeight(mouseTarget2[1],mouseTarget2[3]) < 0 and def.modCategories["hover"])  then
+        return GetUnitPosition(mouseTarget)
+      else
+        return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
+      end
     else
       return GetUnitPosition(mouseTarget)
     end

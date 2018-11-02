@@ -12,10 +12,11 @@ Balance:
  • Storm Rocko Thud Hammer : torso speed rotation increased
 
 Other:
+ • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units
  • Fixed: popup units wont start targeting unless enemy is within weapon range
  • Fixed: continuous aiming change always being able to fire, even when turret was way off
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
- • Added option: nano effect: beam or particles
+ • Added option: nano effect: beam or particles (old effect)
  • Added lights to laser hits, barrel fire, air thrusters, nano beams and fusion balls
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
  • New flak explosion effect + custom crashing airplane smoke trails
