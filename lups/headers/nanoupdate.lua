@@ -152,7 +152,7 @@ function UpdateNanoParticles(self)
       end
     end
 
-	
+
     local dir      = Vsub(endPos, startPos)
     local half_dir = Vmul(dir, 0.5)
     local length   = Vlength(dir)

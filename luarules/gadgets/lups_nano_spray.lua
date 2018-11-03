@@ -208,7 +208,7 @@ end
 --
 
 local currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
-local maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 3) or 3)    -- limit for performance reasons
+local maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)    -- limit for performance reasons
 
 local nanoParticles = {}
 --local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
@@ -400,9 +400,9 @@ function init()
         local NanoEffx = NanoFx[fxname]
         NanoEffx.delaySpread = 30
         NanoEffx.fxtype = NanoEffx.fxtype:lower()
-        if ((Spring.GetConfigInt("NanoEffect",1) or 1) == 1) and ((NanoEffx.fxtype=="nanolasers") or (NanoEffx.fxtype=="nanolasersshader")) then
-            NanoEffx.flare = true
-        end
+        --if ((Spring.GetConfigInt("NanoEffect",1) or 1) == 1) and ((NanoEffx.fxtype=="nanolasers") or (NanoEffx.fxtype=="nanolasersshader")) then
+        --    NanoEffx.flare = true
+        --end
 
         --// parse lua code in the table, so we can execute it later
         ParseLuaCode(NanoEffx)
@@ -416,7 +416,7 @@ function gadget:Update()
 
     if initialized then
         --// enable particle effect?
-        maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 3) or 3)
+        maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
         if currentNanoEffect ~= (Spring.GetConfigInt("NanoEffect",1) or 1) then
             currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
             init()
@@ -427,7 +427,7 @@ function gadget:Update()
 
   Lups = GG['Lups']
   if (Lups) then
-      maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 3) or 3)
+      maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
       currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
       init()
     initialized=true

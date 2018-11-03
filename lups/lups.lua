@@ -516,7 +516,7 @@ local function RadarDotCheck(unitID)
 	return true
 end
 
-local function Draw(extension,layer)
+local function Draw(extension,layer,water)
 	local FxLayer = RenderSequence[layer];
 	if (not FxLayer) then return end
 
@@ -562,16 +562,18 @@ local function Draw(extension,layer)
 							for i=1,#UnitEffects do
 								local fx = UnitEffects[i]
 								if (fx.alwaysVisible or fx.visible) then
-									if (fx.piecenum) then
-										--// enter piece space
-										glPushMatrix()
-											glUnitPieceMultMatrix(unitID,fx.piecenum)
-											glScale(1,1,-1)
-											drawfunc(fx)
-										glPopMatrix()
-										--// leave piece space
-									else
-										fx[DrawPass](fx)
+									if not water or not fx.nowater then
+										if (fx.piecenum) then
+											--// enter piece space
+											glPushMatrix()
+												glUnitPieceMultMatrix(unitID,fx.piecenum)
+												glScale(1,1,-1)
+												drawfunc(fx)
+											glPopMatrix()
+											--// leave piece space
+										else
+											fx[DrawPass](fx)
+										end
 									end
 								end
 							end
@@ -587,13 +589,15 @@ local function Draw(extension,layer)
 							for i=1,#UnitEffects do
 								local fx = UnitEffects[i]
 								if (fx.alwaysVisible or fx.visible) then
-									glPushMatrix()
-									if fx.projectile and not fx.worldspace then
-										local x,y,z = spGetProjectilePosition(fx.projectile)
-										glTranslate(x,y,z)
+									if not water or not fx.nowater then
+										glPushMatrix()
+										if fx.projectile and not fx.worldspace then
+											local x,y,z = spGetProjectilePosition(fx.projectile)
+											glTranslate(x,y,z)
+										end
+										drawfunc(fx)
+										glPopMatrix()
 									end
-									drawfunc(fx)
-									glPopMatrix()
 								end
 							end -- for
 						end -- if
@@ -682,7 +686,7 @@ local function DrawParticlesWater()
 	--// Draw() (layers: -50 upto 50)
 	glAlphaTest(GL_GREATER, 0)
 	for i=-50,50 do
-		Draw("",i)
+		Draw("",i,true)
 	end
 	glAlphaTest(false)
 end
@@ -1063,13 +1067,6 @@ local function Initialize()
       (gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
       Spring.Echo("Lups Reflection Pass Disabled")
     end
-
-	--if GetLupsSetting("enablerefraction", 0) ~= 1 then
-	--	(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldRefraction")
-	--end
-	--if GetLupsSetting("enablereflection", 0) ~= 1 then
-	--	(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
-	--end
 
 	--// link backup FXClasses
 	for className,backupName in pairs(linkBackupFXClasses) do
