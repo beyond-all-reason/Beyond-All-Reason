@@ -12,7 +12,7 @@ Balance:
  • Storm Rocko Thud Hammer : torso speed rotation increased
 
 Other:
- • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units
+ • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
  • Fixed: popup units wont start targeting unless enemy is within weapon range
  • Fixed: continuous aiming change always being able to fire, even when turret was way off
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
