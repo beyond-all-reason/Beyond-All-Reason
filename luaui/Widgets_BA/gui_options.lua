@@ -1378,6 +1378,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				Spring.SetConfigInt("MaxNanoParticles",maxNanoParticles)
 			end
+		elseif id == 'iconset' then
+			Spring.SendCommands("luarules uniticonset "..options[i].options[value])
 		elseif id == 'camera' then
 			Spring.SetConfigInt("CamMode",(value-1))
 			if value == 1 then 
@@ -1896,6 +1898,7 @@ function init()
 
 		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 
+		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
@@ -2076,6 +2079,18 @@ function init()
         {id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
+
+
+	if options[getOptionByID('iconset')] and #VFS.SubDirs('icons') > 1 then
+		local opts = {}
+		for i, v in pairs(VFS.SubDirs('icons')) do
+			opts[i] = string.sub(v, 7, #v-1)
+		end
+		options[getOptionByID('iconset')].options = opts
+		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'old'))
+	else
+		options[getOptionByID('iconset')] = nil
+	end
 
 	-- remove engine particles if nano beams are enabled
 	if options[getOptionByID('nanoeffect')] and options[getOptionByID('nanoeffect')].value == 1 then

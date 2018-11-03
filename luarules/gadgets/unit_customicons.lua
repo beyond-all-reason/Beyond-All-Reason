@@ -45,166 +45,168 @@ end
 --------------------------------------------------------------------------------
 
 local iconScale = 1
+
 local icons = {
-  {"armcom.user", "icons/armcom.png",1.75*iconScale},
-  {"corcom.user", "icons/corcom.png",1.75*iconScale},
-
-  {"mine1.user", "icons/mine.png",0.36*iconScale},
-  {"mine2.user", "icons/mine.png",0.44*iconScale},
-  {"mine3.user", "icons/mine.png",0.53*iconScale},
-
-  {"sub_t1.user", "icons/sub.png",1.33*iconScale},
-  {"sub_t2.user", "icons/sub.png",1.7*iconScale},
-  {"sub_t1_worker.user", "icons/sub_worker.png",1.33*iconScale},
-  {"sub_t2_worker.user", "icons/sub_worker.png",1.66*iconScale},
-
-
-  {"wind.user", "icons/wind.png",1.1*iconScale},
-  {"energy1.user", "icons/solar.png",1.75*iconScale},   
-  {"energy2.user", "icons/energy.png",1.75*iconScale},
-  {"energy3.user", "icons/fusion.png",1.4*iconScale},
-  {"energy4.user", "icons/hazardous.png",2.5*iconScale},
-  {"energy5.user", "icons/fusion.png",1.8*iconScale},
-  {"energy6.user", "icons/energy.png",2.2*iconScale},
-
-  {"eye.user", "icons/eye.png",0.85*iconScale},
-  {"spy.user", "icons/eye.png",1.25*iconScale},
-
-  {"hover_t1.user", "icons/hover.png",0.9*iconScale},
-  {"hover_t1_worker.user", "icons/hover_worker.png",0.9*iconScale},
-  {"hover_t1_aa.user", "icons/hover_aa.png",0.9*iconScale},
-  {"hover_t2.user", "icons/hover.png",1.3*iconScale},
-  {"hover_t3.user", "icons/hover.png",1.6*iconScale},
-
-  {"ship_tiny.user", "icons/ship.png",0.8*iconScale},
-  {"ship.user", "icons/ship.png",1.2*iconScale},
-  {"ship_destroyer.user", "icons/ship.png",1.44*iconScale},
-  {"ship_t1_worker.user", "icons/ship_worker.png",1.33*iconScale},
-  {"ship_aa1.user", "icons/ship_aa.png",1.2*iconScale},
-  {"ship_t2.user", "icons/ship.png",1.65*iconScale},
-  {"ship_t2_worker.user", "icons/ship_worker.png",1.65*iconScale},
-  {"ship_t2_aa1.user", "icons/ship_aa.png",1.65*iconScale},
-  {"ship_t2_big.user", "icons/ship.png",2*iconScale},
-  {"ship_t2_battleship.user", "icons/ship.png",2.5*iconScale},
-  {"ship_t2_battleship.user", "icons/ship.png",2.5*iconScale},
-  {"ship_t2_flagship.user", "icons/ship.png",3.3*iconScale},
-
-  {"amphib_t1.user", "icons/amphib.png",1.2*iconScale},
-  {"amphib_t1_aa.user", "icons/amphib_aa.png",1.2*iconScale},
-  {"amphib_t1_worker.user", "icons/amphib_worker.png",1.3*iconScale},
-  {"amphib_t2.user", "icons/amphib.png",1.6*iconScale},
-  {"amphib_t2_aa.user", "icons/amphib_aa.png",1.6*iconScale},
-  {"amphib_t3.user", "icons/amphib.png",2.05*iconScale},
-
-  {"shield.user", "icons/shield.png", 2.05*iconScale},
-
-  {"radar_t1.user", "icons/radar.png", 0.9*iconScale},
-  {"jammer_t1.user", "icons/jammer.png", 0.9*iconScale},
-  {"radar_t2.user", "icons/radar.png", 1.2*iconScale},
-  {"jammer_t2.user", "icons/jammer.png", 1.2*iconScale},
-
-  {"krogoth.user", "icons/mech.png",3.2*iconScale},
-  {"bantha.user", "icons/bantha.png",2.6*iconScale},
-  {"juggernaut.user", "icons/kbot.png",2.75*iconScale},
-  {"commando.user", "icons/mech.png",1.3*iconScale},
-
-  {"mex_t1.user", "icons/mex.png",0.85*iconScale},
-  {"mex_t2.user", "icons/mex.png",1.15*iconScale},
-
-  {"metalmaker_t1.user", "icons/metalmaker.png",0.75*iconScale},
-  {"metalmaker_t2.user", "icons/metalmaker.png",1.15*iconScale},
-
-  {"nuke.user", "icons/nuke.png",1.8*iconScale},
-        {"nuke_big.user", "icons/nuke.png",2.5*iconScale},
-        {"antinuke.user", "icons/antinuke.png",1.6*iconScale},
-        {"antinuke_mobile.user", "icons/antinuke.png",1.3*iconScale},
-
-  {"aa1.user", "icons/aa.png", 0.85*iconScale},
-  {"aa2.user", "icons/aa.png", 1.1*iconScale},
-  {"aa_flak.user", "icons/aa.png", 1.4*iconScale},
-  {"aa_longrangenergy1.user", "icons/aa.png", 1.8*iconScale},
-
-  {"worker.user", "icons/worker.png", 0.85*iconScale},
-
-  {"allterrain_t1.user", "icons/allterrain.png",1*iconScale},
-  {"allterrain_t2.user", "icons/allterrain.png",1.33*iconScale},
-  {"allterrain_t3.user", "icons/allterrain.png",1.95*iconScale},
-  {"allterrain_vanguard.user", "icons/allterrain.png",2.3*iconScale},
-
-  {"kbot_t1_flea.user", "icons/kbot.png",0.51*iconScale},
-  {"kbot_t1_tinyworker.user", "icons/worker.png",0.8*iconScale},
-  {"engineer.user", "icons/wrench.png",1.4*iconScale},
-  {"ship_engineer.user", "icons/shipengineer.png",1.5*iconScale},
-  {"kbot_t1_raid.user", "icons/kbot.png",0.7*iconScale},
-  {"kbot_t1.user", "icons/kbot.png",0.95*iconScale},
-  {"kbot_t1_big.user", "icons/kbot.png",1.1*iconScale},
-  {"kbot_t1_worker.user", "icons/kbot_worker.png",0.95*iconScale},
-  {"kbot_t1_aa1.user", "icons/kbot_aa.png",0.95*iconScale},
-  {"kbot_t2.user", "icons/kbot.png",1.28*iconScale},
-  {"kbot_t2_big.user", "icons/kbot.png",1.47*iconScale},
-  {"kbot_t2_worker.user", "icons/kbot_worker.png", 1.33*iconScale},
-  {"kbot_t2_aa1.user", "icons/kbot_aa.png",1.28*iconScale},
-  {"kbot_t3.user", "icons/kbot.png",1.9*iconScale},
-
-  {"tank_t1_flea.user", "icons/vehicle.png",0.55*iconScale},
-  {"tank_t1_raid.user", "icons/vehicle.png",0.75*iconScale},
-  {"tank_t1.user", "icons/vehicle.png",1*iconScale},
-  {"tank_t1_big.user", "icons/vehicle.png",1.15*iconScale},
-  {"tank_t1_aa1.user", "icons/vehicle_aa.png",1*iconScale},
-  {"tank_t2.user", "icons/vehicle.png",1.3*iconScale},
-  {"tank_t2_aa1.user", "icons/vehicle_aa.png",1.3*iconScale},
-  {"tank_t2_big.user", "icons/vehicle.png",1.5*iconScale},
-  {"tank_t1_worker.user", "icons/vehicle_worker.png",0.95*iconScale},
-  {"tank_t2_worker.user", "icons/vehicle_worker.png", 1.3*iconScale},
-
-  {"building_t1.user", "icons/building.png", 1*iconScale},
-  {"building_t2.user", "icons/building.png", 1.3*iconScale},
-
-  {"factory_t1", "icons/factory.png",1.45*iconScale},
-  {"factory_t2", "icons/factory.png",1.85*iconScale},
-  {"factory_t3", "icons/factory.png",2.4*iconScale},
-
-  {"lrpc.user", "icons/lrpc.png", 2.35*iconScale},
-  {"lrpc_lolcannon.user", "icons/lrpc.png", 3.5*iconScale},
-
-  {"chicken_queen.user", "icons/queen.png", 4*iconScale},
-
-  {"meteor.user", "icons/meteor.png", 1*iconScale},
-
-  {"wall.user", "icons/building.png",0.55*iconScale},
-
-  {"air_t1.user", "icons/air.png",0.85*iconScale},
-  {"air_t1_worker.user", "icons/air_worker.png",1.2*iconScale},
-  {"air_t1_hover_t1.user", "icons/air_hover.png",1.25*iconScale},
-  {"air_t1_bomber.user", "icons/air_bomber.png",1.35*iconScale},
-  {"air_t1_transport.user", "icons/transport.png",1.3*iconScale},
-  {"air_t1_scout.user", "icons/air_los.png",0.6*iconScale},
-  {"air_t2.user", "icons/air.png",1.05*iconScale},
-  {"air_t2_worker.user", "icons/air_worker.png",1.6*iconScale},
-  {"air_t2_hover_t1.user", "icons/air_hover.png",1.55*iconScale},
-  {"air_t2_bomber.user", "icons/air_bomber.png",1.66*iconScale},
-  {"air_t2_transport.user", "icons/transport.png",1.6*iconScale},
-  {"veh_transport.user", "icons/vehtrans.png",1.7*iconScale},
-  {"hover_transport.user", "icons/hovertrans.png",1.5*iconScale},
-  {"ship_transport.user", "icons/shiptrans.png",2*iconScale},
-  {"air_t2_radar_t1.user", "icons/air_los.png",1.33*iconScale},
-  {"air_bladew.user", "icons/air_hover_bw.png",0.75*iconScale},
-  {"air_krow.user", "icons/air_hover.png",2*iconScale},
-  {"air_liche.user", "icons/air_bomber.png",2*iconScale},
-
-  {"defence_0", "icons/defence.png", 0.8*iconScale},
-  {"defence_1", "icons/defence.png", 1.05*iconScale},
-  {"defence_2", "icons/defence.png", 1.4*iconScale},
-  {"defence_3", "icons/defence.png", 1.95*iconScale},
-
-  {"blank.user", "icons/blank.png", 1*iconScale},
-  {"unknown.user", "icons/unknown.png", 2*iconScale},
+    {"armcom.user", "armcom.png",1.75},
+    {"corcom.user", "corcom.png",1.75},
+  
+    {"mine1.user", "mine.png",0.36},
+    {"mine2.user", "mine.png",0.44},
+    {"mine3.user", "mine.png",0.53},
+  
+    {"sub_t1.user", "sub.png",1.33},
+    {"sub_t2.user", "sub.png",1.7},
+    {"sub_t1_worker.user", "sub_worker.png",1.33},
+    {"sub_t2_worker.user", "sub_worker.png",1.66},
+  
+  
+    {"wind.user", "wind.png",1.1},
+    {"energy1.user", "solar.png",1.75},   
+    {"energy2.user", "energy.png",1.75},
+    {"energy3.user", "fusion.png",1.4},
+    {"energy4.user", "hazardous.png",2.5},
+    {"energy5.user", "fusion.png",1.8},
+    {"energy6.user", "energy.png",2.2},
+  
+    {"eye.user", "eye.png",0.85},
+    {"spy.user", "eye.png",1.25},
+  
+    {"hover_t1.user", "hover.png",0.9},
+    {"hover_t1_worker.user", "hover_worker.png",0.9},
+    {"hover_t1_aa.user", "hover_aa.png",0.9},
+    {"hover_t2.user", "hover.png",1.3},
+    {"hover_t3.user", "hover.png",1.6},
+  
+    {"ship_tiny.user", "ship.png",0.8},
+    {"ship.user", "ship.png",1.2},
+    {"ship_destroyer.user", "ship.png",1.44},
+    {"ship_t1_worker.user", "ship_worker.png",1.33},
+    {"ship_aa1.user", "ship_aa.png",1.2},
+    {"ship_t2.user", "ship.png",1.65},
+    {"ship_t2_worker.user", "ship_worker.png",1.65},
+    {"ship_t2_aa1.user", "ship_aa.png",1.65},
+    {"ship_t2_big.user", "ship.png",2},
+    {"ship_t2_battleship.user", "ship.png",2.5},
+    {"ship_t2_battleship.user", "ship.png",2.5},
+    {"ship_t2_flagship.user", "ship.png",3.3},
+  
+    {"amphib_t1.user", "amphib.png",1.2},
+    {"amphib_t1_aa.user", "amphib_aa.png",1.2},
+    {"amphib_t1_worker.user", "amphib_worker.png",1.3},
+    {"amphib_t2.user", "amphib.png",1.6},
+    {"amphib_t2_aa.user", "amphib_aa.png",1.6},
+    {"amphib_t3.user", "amphib.png",2.05},
+  
+    {"shield.user", "shield.png", 2.05},
+  
+    {"radar_t1.user", "radar.png", 0.9},
+    {"jammer_t1.user", "jammer.png", 0.9},
+    {"radar_t2.user", "radar.png", 1.2},
+    {"jammer_t2.user", "jammer.png", 1.2},
+  
+    {"krogoth.user", "mech.png",3.2},
+    {"bantha.user", "bantha.png",2.6},
+    {"juggernaut.user", "kbot.png",2.75},
+    {"commando.user", "mech.png",1.3},
+  
+    {"mex_t1.user", "mex.png",0.85},
+    {"mex_t2.user", "mex.png",1.15},
+  
+    {"metalmaker_t1.user", "metalmaker.png",0.75},
+    {"metalmaker_t2.user", "metalmaker.png",1.15},
+  
+    {"nuke.user", "nuke.png",1.8},
+          {"nuke_big.user", "nuke.png",2.5},
+          {"antinuke.user", "antinuke.png",1.6},
+          {"antinuke_mobile.user", "antinuke.png",1.3},
+  
+    {"aa1.user", "aa.png", 0.85},
+    {"aa2.user", "aa.png", 1.1},
+    {"aa_flak.user", "aa.png", 1.4},
+    {"aa_longrangenergy1.user", "aa.png", 1.8},
+  
+    {"worker.user", "worker.png", 0.85},
+  
+    {"allterrain_t1.user", "allterrain.png",1},
+    {"allterrain_t2.user", "allterrain.png",1.33},
+    {"allterrain_t3.user", "allterrain.png",1.95},
+    {"allterrain_vanguard.user", "allterrain.png",2.3},
+  
+    {"kbot_t1_flea.user", "kbot.png",0.51},
+    {"kbot_t1_tinyworker.user", "worker.png",0.8},
+    {"engineer.user", "wrench.png",1.4},
+    {"ship_engineer.user", "shipengineer.png",1.5},
+    {"kbot_t1_raid.user", "kbot.png",0.7},
+    {"kbot_t1.user", "kbot.png",0.95},
+    {"kbot_t1_big.user", "kbot.png",1.1},
+    {"kbot_t1_worker.user", "kbot_worker.png",0.95},
+    {"kbot_t1_aa1.user", "kbot_aa.png",0.95},
+    {"kbot_t2.user", "kbot.png",1.28},
+    {"kbot_t2_big.user", "kbot.png",1.47},
+    {"kbot_t2_worker.user", "kbot_worker.png", 1.33},
+    {"kbot_t2_aa1.user", "kbot_aa.png",1.28},
+    {"kbot_t3.user", "kbot.png",1.9},
+  
+    {"tank_t1_flea.user", "vehicle.png",0.55},
+    {"tank_t1_raid.user", "vehicle.png",0.75},
+    {"tank_t1.user", "vehicle.png",1},
+    {"tank_t1_big.user", "vehicle.png",1.15},
+    {"tank_t1_aa1.user", "vehicle_aa.png",1},
+    {"tank_t2.user", "vehicle.png",1.3},
+    {"tank_t2_aa1.user", "vehicle_aa.png",1.3},
+    {"tank_t2_big.user", "vehicle.png",1.5},
+    {"tank_t1_worker.user", "vehicle_worker.png",0.95},
+    {"tank_t2_worker.user", "vehicle_worker.png", 1.3},
+  
+    {"building_t1.user", "building.png", 1},
+    {"building_t2.user", "building.png", 1.3},
+  
+    {"factory_t1", "factory.png",1.45},
+    {"factory_t2", "factory.png",1.85},
+    {"factory_t3", "factory.png",2.4},
+  
+    {"lrpc.user", "lrpc.png", 2.35},
+    {"lrpc_lolcannon.user", "lrpc.png", 3.5},
+  
+    {"chicken_queen.user", "queen.png", 4},
+  
+    {"meteor.user", "meteor.png", 1},
+  
+    {"wall.user", "building.png",0.55},
+  
+    {"air_t1.user", "air.png",0.85},
+    {"air_t1_worker.user", "air_worker.png",1.2},
+    {"air_t1_hover_t1.user", "air_hover.png",1.25},
+    {"air_t1_bomber.user", "air_bomber.png",1.35},
+    {"air_t1_transport.user", "transport.png",1.3},
+    {"air_t1_scout.user", "air_los.png",0.6},
+    {"air_t2.user", "air.png",1.05},
+    {"air_t2_worker.user", "air_worker.png",1.6},
+    {"air_t2_hover_t1.user", "air_hover.png",1.55},
+    {"air_t2_bomber.user", "air_bomber.png",1.66},
+    {"air_t2_transport.user", "transport.png",1.6},
+    {"veh_transport.user", "vehtrans.png",1.7},
+    {"hover_transport.user", "hovertrans.png",1.5},
+    {"ship_transport.user", "shiptrans.png",2},
+    {"air_t2_radar_t1.user", "air_los.png",1.33},
+    {"air_bladew.user", "air_hover_bw.png",0.75},
+    {"air_krow.user", "air_hover.png",2},
+    {"air_liche.user", "air_bomber.png",2},
+  
+    {"defence_0", "defence.png", 0.8},
+    {"defence_1", "defence.png", 1.05},
+    {"defence_2", "defence.png", 1.4},
+    {"defence_3", "defence.png", 1.95},
+  
+    {"blank.user", "blank.png", 1},
+    {"unknown.user", "unknown.png", 2},
 }
 
-function changeUnitIcons()
+
+function changeUnitIcons(folder)
   for i, icon in ipairs(icons) do
     Spring.FreeUnitIcon(icon[1])
-    Spring.AddUnitIcon(icon[1], icon[2], icon[3])
+    Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2], icon[3]*iconScale)
   end
 
   -- Setup the unitdef icons
@@ -610,8 +612,32 @@ if (name=="armserp" or name=="armsubk" or name=="corshark" or name=="corssub") t
 end
 
 
+local myPlayerID = Spring.GetMyPlayerID()
+
 function gadget:Initialize()
-  changeUnitIcons()
+  gadgetHandler:AddSyncAction("kickplayer", kickplayer)
+end
+
+function gadget:GotChatMsg(msg, playerID)
+  if playerID == myPlayerID and string.sub(msg,1,12) == "uniticonset " then
+    local folder = string.sub(msg,13)
+    if (not VFS.FileExists('icons/'..folder..'/armcom.png')) then
+      Spring.Echo('Icons folder \''..folder..'\' isnt valid')
+    else
+      Spring.Echo('Unit icon set loaded: '..folder)
+      changeUnitIcons(folder)
+      Spring.SetConfigString("UnitIconFolder", folder)
+    end
+  end
+end
+
+
+function gadget:Initialize()
+  local folder = Spring.GetConfigString("UnitIconFolder", 'old')
+  if (not VFS.FileExists('icons/'..folder..'/armcom.png', VFS.RAW_ONLY)) then
+    folder = 'old'
+  end
+  changeUnitIcons('old')
 end
 
 

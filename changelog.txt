@@ -1,6 +1,8 @@
 ﻿10.13 -> 10.14
 XX/XX/2018
 
+NOTE: Requires 104.0.1.853 or later engine versions
+
 Balance:
  • Comblast lethal range to other commanders extended (+35%)
  • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
@@ -12,10 +14,10 @@ Balance:
  • Storm Rocko Thud Hammer : torso speed rotation increased
 
 Other:
- • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
  • Fixed: popup units wont start targeting unless enemy is within weapon range
  • Fixed: continuous aiming change always being able to fire, even when turret was way off
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
+ • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
  • Added option: nano effect: beam or particles (old effect)
  • Added lights to laser hits, barrel fire, air thrusters, nano beams and fusion balls
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
