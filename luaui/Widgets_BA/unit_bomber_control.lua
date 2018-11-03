@@ -137,20 +137,11 @@ function widget:Update(dt)
 				if did_shot then
 					local commands=GetCommandQueue(bomber_id,50)
 					if commands and commands[1] and commands[1].id==CMD.ATTACK and commands[2] then
-						local got_next_orders=false
-						for i=2,#commands do
-							if commands[i].id ~= CMD.SET_WANTED_MAX_SPEED then
-								got_next_orders=true
-								break
-							end
-						end
-						if got_next_orders then
-							--Spring.Echo(CMD[commands[2].id])
-							GiveOrderToUnit(bomber_id, CMD.REMOVE,{commands[1].tag},{})
-							local states=GetUnitStates(bomber_id)
-							if states and (states['repeat']) then
-								GiveOrderToUnit(bomber_id, commands[1].id,commands[1].params,{'shift'})
-							end
+						--Spring.Echo(CMD[commands[2].id])
+						GiveOrderToUnit(bomber_id, CMD.REMOVE,{commands[1].tag},{})
+						local states=GetUnitStates(bomber_id)
+						if states and (states['repeat']) then
+							GiveOrderToUnit(bomber_id, commands[1].id,commands[1].params,{'shift'})
 						end
 					end
 				end

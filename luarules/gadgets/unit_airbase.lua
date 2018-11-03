@@ -347,8 +347,7 @@ function gadget:CommandFallback(unitID, unitDefID, teamID, cmdID, cmdParams, cmd
 end
 
 ---------------------------------------
--- main 
-local CMD_SET_WANTED_MAX_SPEED = CMD.SET_WANTED_MAX_SPEED
+-- main
 local CMD_INSERT = CMD.INSERT
 local CMD_REMOVE = CMD.REMOVE
 
@@ -368,7 +367,6 @@ function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
    if not planes[unitID] then return end
    if cmdID == CMD_LAND_AT_AIRBASE then return end
    if cmdID == CMD_LAND_AT_SPECIFIC_AIRBASE then return end --fixme: case of wanting to force land at a different pad than current reserved
-   if cmdID == CMD_SET_WANTED_MAX_SPEED then return end -- i hate SET_WANTED_MAX_SPEED   
    if cmdID == CMD_INSERT and cmdParams[2] == CMD_LAND_AT_AIRBASE then return end
    if cmdID == CMD_INSERT and cmdParams[2] == CMD_LAND_AT_SPECIFIC_AIRBASE then return end
    if cmdID == CMD_REMOVE then return end
