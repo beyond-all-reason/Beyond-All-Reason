@@ -129,10 +129,14 @@ canDistortions = false --// check Initialize()
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local reflectionrefractionEnabled = false
+
 --// widget/gadget handling
 local handler = (widget and widgetHandler)or(gadgetHandler)
 local GG      = (widget and WG)or(GG)
 local VFSMODE = (widget and VFS.RAW_FIRST)or(VFS.ZIP_ONLY)
+
+local this = widget or gadget
 
 --// locations
 local LUPS_LOCATION    = 'lups/'
@@ -975,6 +979,17 @@ local function Update(_,dt)
 	if (next(particles)) then
 		CreateVisibleFxList()
 	end
+	if reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 1 then
+		handler:RemoveCallIn("DrawWorldReflection")
+		handler:RemoveCallIn("DrawWorldRefraction")
+		reflectionrefractionEnabled = false
+		Spring.Echo("Lups reflection and refraction pass Disabled")
+	elseif not reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 0 then
+		handler:UpdateCallIn("DrawWorldReflection")
+		handler:UpdateCallIn("DrawWorldRefraction")
+		reflectionrefractionEnabled = true
+		Spring.Echo("Lups reflection and refraction pass Enabled")
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -1059,15 +1074,6 @@ local function Initialize()
 	end
 
 
-    if Spring.GetConfigInt("lupsenablerefraction", 0) ~= 1 then
-      (gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldRefraction")
-      Spring.Echo("Lups Refraction Pass Disabled")
-    end
-    if Spring.GetConfigInt("lupsenablereflection", 0) ~= 1 then
-      (gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
-      Spring.Echo("Lups Reflection Pass Disabled")
-    end
-
 	--// link backup FXClasses
 	for className,backupName in pairs(linkBackupFXClasses) do
 		fxClasses[className]=fxClasses[backupName]
@@ -1117,15 +1123,16 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local this = widget or gadget
-
 this.GetInfo    = GetInfo
 this.Initialize = Initialize
 this.Shutdown   = Shutdown
 this.DrawWorldPreUnit    = DrawParticlesOpaque
 this.DrawWorld           = DrawParticles
-this.DrawWorldReflection = DrawParticlesWater
-this.DrawWorldRefraction = DrawParticlesWater
+if Spring.GetConfigInt("lupsreflectionrefraction", 0) == 1 then
+	reflectionrefractionEnabled = true
+	this.DrawWorldReflection = DrawParticlesWater
+	this.DrawWorldRefraction = DrawParticlesWater
+end
 this.ViewResize = ViewResize
 this.Update     = Update
 if gadget then

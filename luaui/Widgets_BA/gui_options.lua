@@ -1009,10 +1009,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("NormalMapping",value)
 		elseif id == 'lupsdynamic' then
 			Spring.SetConfigInt("DynamicLups",value)
-		elseif id == 'lupsrefraction' then
-			Spring.SetConfigInt("lupsenablerefraction",value)
-		elseif id == 'lupsreflection' then
-			Spring.SetConfigInt("lupsenablereflection",value)
+		elseif id == 'lupsreflectionrefraction' then
+			Spring.SetConfigInt("lupsreflectionrefraction",value)
 		elseif id == 'treewind' then
 			Spring.SendCommands("luarules treewind "..value)
 			Spring.SetConfigInt("TreeWind",value)
@@ -1929,8 +1927,7 @@ function init()
 		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=1000, max=15000, step=100, value=maxNanoParticles, description=''},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet engine thrusters, ground flashes, fusion energy balls'},
-		{id="lupsrefraction", group="gfx", name=widgetOptionColor.."   refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablerefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
-		{id="lupsreflection", group="gfx", name=widgetOptionColor.."   reflection pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablereflection",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
+		{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes'},
 		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thrusters light  (needs 'Lights')", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
 
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
