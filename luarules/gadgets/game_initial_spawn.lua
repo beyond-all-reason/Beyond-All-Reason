@@ -32,9 +32,9 @@ elseif Game and Game.version then
 end
 
 -- set minimun engine version
-local minEngineVersionTitle = '104.0.1.743'
+local minEngineVersionTitle = '104.0.1.853'
 local enabled = false
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401743 then
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401853 then
 	enabled = true
 end
 
