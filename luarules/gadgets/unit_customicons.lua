@@ -44,172 +44,178 @@ end
 
 --------------------------------------------------------------------------------
 
-local iconScale = 1
+local iconScale = Spring.GetConfigString("UnitIconScale", 1)
 
 local icons = {
-    {"armcom.user", "armcom.png",1.75},
-    {"corcom.user", "corcom.png",1.75},
+    -- ID,   icon png file,   scale
+    {"armcom.user", "armcom",1.75},
+    {"corcom.user", "corcom",1.75},
   
-    {"mine1.user", "mine.png",0.36},
-    {"mine2.user", "mine.png",0.44},
-    {"mine3.user", "mine.png",0.53},
+    {"mine1.user", "mine",0.36},
+    {"mine2.user", "mine",0.44},
+    {"mine3.user", "mine",0.53},
   
-    {"sub_t1.user", "sub.png",1.33},
-    {"sub_t2.user", "sub.png",1.7},
-    {"sub_t1_worker.user", "sub_worker.png",1.33},
-    {"sub_t2_worker.user", "sub_worker.png",1.66},
+    {"sub_t1.user", "sub",1.33},
+    {"sub_t2.user", "sub",1.7},
+    {"sub_t1_worker.user", "sub_worker",1.33},
+    {"sub_t2_worker.user", "sub_worker",1.66},
   
   
-    {"wind.user", "wind.png",1.1},
-    {"energy1.user", "solar.png",1.75},   
-    {"energy2.user", "energy.png",1.75},
-    {"energy3.user", "fusion.png",1.4},
-    {"energy4.user", "hazardous.png",2.5},
-    {"energy5.user", "fusion.png",1.8},
-    {"energy6.user", "energy.png",2.2},
+    {"wind.user", "wind",1.1},
+    {"energy1.user", "solar",1.75},   
+    {"energy2.user", "energy",1.75},
+    {"energy3.user", "fusion",1.4},
+    {"energy4.user", "hazardous",2.5},
+    {"energy5.user", "fusion",1.8},
+    {"energy6.user", "energy",2.2},
   
-    {"eye.user", "eye.png",0.85},
-    {"spy.user", "eye.png",1.25},
+    {"eye.user", "eye",0.85},
+    {"spy.user", "eye",1.25},
   
-    {"hover_t1.user", "hover.png",0.9},
-    {"hover_t1_worker.user", "hover_worker.png",0.9},
-    {"hover_t1_aa.user", "hover_aa.png",0.9},
-    {"hover_t2.user", "hover.png",1.3},
-    {"hover_t3.user", "hover.png",1.6},
+    {"hover_t1.user", "hover",0.9},
+    {"hover_t1_worker.user", "hover_worker",0.9},
+    {"hover_t1_aa.user", "hover_aa",0.9},
+    {"hover_t2.user", "hover",1.3},
+    {"hover_t3.user", "hover",1.6},
   
-    {"ship_tiny.user", "ship.png",0.8},
-    {"ship.user", "ship.png",1.2},
-    {"ship_destroyer.user", "ship.png",1.44},
-    {"ship_t1_worker.user", "ship_worker.png",1.33},
-    {"ship_aa1.user", "ship_aa.png",1.2},
-    {"ship_t2.user", "ship.png",1.65},
-    {"ship_t2_worker.user", "ship_worker.png",1.65},
-    {"ship_t2_aa1.user", "ship_aa.png",1.65},
-    {"ship_t2_big.user", "ship.png",2},
-    {"ship_t2_battleship.user", "ship.png",2.5},
-    {"ship_t2_battleship.user", "ship.png",2.5},
-    {"ship_t2_flagship.user", "ship.png",3.3},
+    {"ship_tiny.user", "ship",0.8},
+    {"ship.user", "ship",1.2},
+    {"ship_destroyer.user", "ship",1.44},
+    {"ship_t1_worker.user", "ship_worker",1.33},
+    {"ship_aa1.user", "ship_aa",1.2},
+    {"ship_t2.user", "ship",1.65},
+    {"ship_t2_worker.user", "ship_worker",1.65},
+    {"ship_t2_aa1.user", "ship_aa",1.65},
+    {"ship_t2_big.user", "ship",2},
+    {"ship_t2_battleship.user", "ship",2.5},
+    {"ship_t2_battleship.user", "ship",2.5},
+    {"ship_t2_flagship.user", "ship",3.3},
   
-    {"amphib_t1.user", "amphib.png",1.2},
-    {"amphib_t1_aa.user", "amphib_aa.png",1.2},
-    {"amphib_t1_worker.user", "amphib_worker.png",1.3},
-    {"amphib_t2.user", "amphib.png",1.6},
-    {"amphib_t2_aa.user", "amphib_aa.png",1.6},
-    {"amphib_t3.user", "amphib.png",2.05},
+    {"amphib_t1.user", "amphib",1.2},
+    {"amphib_t1_aa.user", "amphib_aa",1.2},
+    {"amphib_t1_worker.user", "amphib_worker",1.3},
+    {"amphib_t2.user", "amphib",1.6},
+    {"amphib_t2_aa.user", "amphib_aa",1.6},
+    {"amphib_t3.user", "amphib",2.05},
   
-    {"shield.user", "shield.png", 2.05},
+    {"shield.user", "shield", 2.05},
   
-    {"radar_t1.user", "radar.png", 0.9},
-    {"jammer_t1.user", "jammer.png", 0.9},
-    {"radar_t2.user", "radar.png", 1.2},
-    {"jammer_t2.user", "jammer.png", 1.2},
+    {"radar_t1.user", "radar", 0.9},
+    {"jammer_t1.user", "jammer", 0.9},
+    {"radar_t2.user", "radar", 1.2},
+    {"jammer_t2.user", "jammer", 1.2},
   
-    {"krogoth.user", "mech.png",3.2},
-    {"bantha.user", "bantha.png",2.6},
-    {"juggernaut.user", "kbot.png",2.75},
-    {"commando.user", "mech.png",1.3},
+    {"krogoth.user", "mech",3.2},
+    {"bantha.user", "bantha",2.6},
+    {"juggernaut.user", "kbot",2.75},
+    {"commando.user", "mech",1.3},
   
-    {"mex_t1.user", "mex.png",0.85},
-    {"mex_t2.user", "mex.png",1.15},
+    {"mex_t1.user", "mex",0.85},
+    {"mex_t2.user", "mex",1.15},
   
-    {"metalmaker_t1.user", "metalmaker.png",0.75},
-    {"metalmaker_t2.user", "metalmaker.png",1.15},
+    {"metalmaker_t1.user", "metalmaker",0.75},
+    {"metalmaker_t2.user", "metalmaker",1.15},
   
-    {"nuke.user", "nuke.png",1.8},
-          {"nuke_big.user", "nuke.png",2.5},
-          {"antinuke.user", "antinuke.png",1.6},
-          {"antinuke_mobile.user", "antinuke.png",1.3},
+    {"nuke.user", "nuke",1.8},
+          {"nuke_big.user", "nuke",2.5},
+          {"antinuke.user", "antinuke",1.6},
+          {"antinuke_mobile.user", "antinuke",1.3},
   
-    {"aa1.user", "aa.png", 0.85},
-    {"aa2.user", "aa.png", 1.1},
-    {"aa_flak.user", "aa.png", 1.4},
-    {"aa_longrangenergy1.user", "aa.png", 1.8},
+    {"aa1.user", "aa", 0.85},
+    {"aa2.user", "aa", 1.1},
+    {"aa_flak.user", "aa", 1.4},
+    {"aa_longrangenergy1.user", "aa", 1.8},
   
-    {"worker.user", "worker.png", 0.85},
+    {"worker.user", "worker", 0.85},
   
-    {"allterrain_t1.user", "allterrain.png",1},
-    {"allterrain_t2.user", "allterrain.png",1.33},
-    {"allterrain_t3.user", "allterrain.png",1.95},
-    {"allterrain_vanguard.user", "allterrain.png",2.3},
+    {"allterrain_t1.user", "allterrain",1},
+    {"allterrain_t2.user", "allterrain",1.33},
+    {"allterrain_t3.user", "allterrain",1.95},
+    {"allterrain_vanguard.user", "allterrain",2.3},
   
-    {"kbot_t1_flea.user", "kbot.png",0.51},
-    {"kbot_t1_tinyworker.user", "worker.png",0.8},
-    {"engineer.user", "wrench.png",1.4},
-    {"ship_engineer.user", "shipengineer.png",1.5},
-    {"kbot_t1_raid.user", "kbot.png",0.7},
-    {"kbot_t1.user", "kbot.png",0.95},
-    {"kbot_t1_big.user", "kbot.png",1.1},
-    {"kbot_t1_worker.user", "kbot_worker.png",0.95},
-    {"kbot_t1_aa1.user", "kbot_aa.png",0.95},
-    {"kbot_t2.user", "kbot.png",1.28},
-    {"kbot_t2_big.user", "kbot.png",1.47},
-    {"kbot_t2_worker.user", "kbot_worker.png", 1.33},
-    {"kbot_t2_aa1.user", "kbot_aa.png",1.28},
-    {"kbot_t3.user", "kbot.png",1.9},
+    {"kbot_t1_flea.user", "kbot",0.51},
+    {"kbot_t1_tinyworker.user", "worker",0.8},
+    {"engineer.user", "wrench",1.4},
+    {"ship_engineer.user", "shipengineer",1.5},
+    {"kbot_t1_raid.user", "kbot",0.7},
+    {"kbot_t1.user", "kbot",0.95},
+    {"kbot_t1_big.user", "kbot",1.1},
+    {"kbot_t1_worker.user", "kbot_worker",0.95},
+    {"kbot_t1_aa1.user", "kbot_aa",0.95},
+    {"kbot_t2.user", "kbot",1.28},
+    {"kbot_t2_big.user", "kbot",1.47},
+    {"kbot_t2_worker.user", "kbot_worker", 1.33},
+    {"kbot_t2_aa1.user", "kbot_aa",1.28},
+    {"kbot_t3.user", "kbot",1.9},
   
-    {"tank_t1_flea.user", "vehicle.png",0.55},
-    {"tank_t1_raid.user", "vehicle.png",0.75},
-    {"tank_t1.user", "vehicle.png",1},
-    {"tank_t1_big.user", "vehicle.png",1.15},
-    {"tank_t1_aa1.user", "vehicle_aa.png",1},
-    {"tank_t2.user", "vehicle.png",1.3},
-    {"tank_t2_aa1.user", "vehicle_aa.png",1.3},
-    {"tank_t2_big.user", "vehicle.png",1.5},
-    {"tank_t1_worker.user", "vehicle_worker.png",0.95},
-    {"tank_t2_worker.user", "vehicle_worker.png", 1.3},
+    {"tank_t1_flea.user", "vehicle",0.55},
+    {"tank_t1_raid.user", "vehicle",0.75},
+    {"tank_t1.user", "vehicle",1},
+    {"tank_t1_big.user", "vehicle",1.15},
+    {"tank_t1_aa1.user", "vehicle_aa",1},
+    {"tank_t2.user", "vehicle",1.3},
+    {"tank_t2_aa1.user", "vehicle_aa",1.3},
+    {"tank_t2_big.user", "vehicle",1.5},
+    {"tank_t1_worker.user", "vehicle_worker",0.95},
+    {"tank_t2_worker.user", "vehicle_worker", 1.3},
   
-    {"building_t1.user", "building.png", 1},
-    {"building_t2.user", "building.png", 1.3},
+    {"building_t1.user", "building", 1},
+    {"building_t2.user", "building", 1.3},
   
-    {"factory_t1", "factory.png",1.45},
-    {"factory_t2", "factory.png",1.85},
-    {"factory_t3", "factory.png",2.4},
+    {"factory_t1", "factory",1.45},
+    {"factory_t2", "factory",1.85},
+    {"factory_t3", "factory",2.4},
   
-    {"lrpc.user", "lrpc.png", 2.35},
-    {"lrpc_lolcannon.user", "lrpc.png", 3.5},
+    {"lrpc.user", "lrpc", 2.35},
+    {"lrpc_lolcannon.user", "lrpc", 3.5},
   
-    {"chicken_queen.user", "queen.png", 4},
+    {"chicken_queen.user", "queen", 4},
   
-    {"meteor.user", "meteor.png", 1},
+    {"meteor.user", "meteor", 1},
   
-    {"wall.user", "building.png",0.55},
+    {"wall.user", "building",0.55},
   
-    {"air_t1.user", "air.png",0.85},
-    {"air_t1_worker.user", "air_worker.png",1.2},
-    {"air_t1_hover_t1.user", "air_hover.png",1.25},
-    {"air_t1_bomber.user", "air_bomber.png",1.35},
-    {"air_t1_transport.user", "transport.png",1.3},
-    {"air_t1_scout.user", "air_los.png",0.6},
-    {"air_t2.user", "air.png",1.05},
-    {"air_t2_worker.user", "air_worker.png",1.6},
-    {"air_t2_hover_t1.user", "air_hover.png",1.55},
-    {"air_t2_bomber.user", "air_bomber.png",1.66},
-    {"air_t2_transport.user", "transport.png",1.6},
-    {"veh_transport.user", "vehtrans.png",1.7},
-    {"hover_transport.user", "hovertrans.png",1.5},
-    {"ship_transport.user", "shiptrans.png",2},
-    {"air_t2_radar_t1.user", "air_los.png",1.33},
-    {"air_bladew.user", "air_hover_bw.png",0.75},
-    {"air_krow.user", "air_hover.png",2},
-    {"air_liche.user", "air_bomber.png",2},
+    {"air_t1.user", "air",0.85},
+    {"air_t1_worker.user", "air_worker",1.2},
+    {"air_t1_hover_t1.user", "air_hover",1.25},
+    {"air_t1_bomber.user", "air_bomber",1.35},
+    {"air_t1_transport.user", "transport",1.3},
+    {"air_t1_scout.user", "air_los",0.6},
+    {"air_t2.user", "air",1.05},
+    {"air_t2_worker.user", "air_worker",1.6},
+    {"air_t2_hover_t1.user", "air_hover",1.55},
+    {"air_t2_bomber.user", "air_bomber",1.66},
+    {"air_t2_transport.user", "transport",1.6},
+    {"veh_transport.user", "vehtrans",1.7},
+    {"hover_transport.user", "hovertrans",1.5},
+    {"ship_transport.user", "shiptrans",2},
+    {"air_t2_radar_t1.user", "air_los",1.33},
+    {"air_bladew.user", "air_hover_bw",0.75},
+    {"air_krow.user", "air_hover",2},
+    {"air_liche.user", "air_bomber",2},
   
-    {"defence_0", "defence.png", 0.8},
-    {"defence_1", "defence.png", 1.05},
-    {"defence_2", "defence.png", 1.4},
-    {"defence_3", "defence.png", 1.95},
+    {"defence_0", "defence", 0.8},
+    {"defence_1", "defence", 1.05},
+    {"defence_2", "defence", 1.4},
+    {"defence_3", "defence", 1.95},
   
-    {"blank.user", "blank.png", 1},
-    {"unknown.user", "unknown.png", 2},
+    {"blank.user", "blank", 1},
+    {"unknown.user", "unknown", 2},
 }
 
 
 function changeUnitIcons(folder)
+    -- load icons
   for i, icon in ipairs(icons) do
     Spring.FreeUnitIcon(icon[1])
-    Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2], icon[3]*iconScale)
+    if VFS.FileExists('icons/'..folder..'/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
+        Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
+    else
+        Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
+    end
   end
 
-  -- Setup the unitdef icons
+  -- assign icons
   for udid,ud in pairs(UnitDefs) do
 
     if (ud == nil) then break end
@@ -616,25 +622,32 @@ local myPlayerID = Spring.GetMyPlayerID()
 
 
 function gadget:GotChatMsg(msg, playerID)
-  if playerID == myPlayerID and string.sub(msg,1,12) == "uniticonset " then
-    local folder = string.sub(msg,13)
-    if (not VFS.FileExists('icons/'..folder..'/armcom.png')) then
-      Spring.Echo('Icons folder \''..folder..'\' isnt valid')
-    else
-      Spring.Echo('Unit icon set loaded: '..folder)
-      changeUnitIcons(folder)
-      Spring.SetConfigString("UnitIconFolder", folder)
-    end
+  if playerID == myPlayerID then
+      if string.sub(msg,1,12) == "uniticonset " then
+          local folder = string.sub(msg,13)
+          if (not VFS.FileExists('icons/'..folder..'/armcom.png')) then
+              Spring.Echo('Icons folder \''..folder..'\' isnt valid')
+          else
+              Spring.Echo('Unit icon set loaded: '..folder)
+              changeUnitIcons(folder)
+              Spring.SetConfigString("UnitIconFolder", folder)
+          end
+      end
+      if string.sub(msg,1,14) == "uniticonscale " then
+          iconScale = tonumber(string.sub(msg,15))
+          Spring.SetConfigString("UnitIconScale", iconScale)
+          changeUnitIcons(Spring.GetConfigString("UnitIconFolder", 'old'))
+      end
   end
 end
 
 
 function gadget:Initialize()
   local folder = Spring.GetConfigString("UnitIconFolder", 'old')
-  if (not VFS.FileExists('icons/'..folder..'/armcom.png', VFS.RAW_ONLY)) then
+  if not VFS.FileExists('icons/'..folder..'/armcom.png') then
     folder = 'old'
   end
-  changeUnitIcons('old')
+  changeUnitIcons(folder)
 end
 
 

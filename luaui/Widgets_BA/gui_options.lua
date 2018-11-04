@@ -1273,6 +1273,8 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SendCommands("distdraw 10000")
 			end
 			Spring.SendCommands("disticon "..value)
+		elseif id == 'iconscale' then
+			Spring.SendCommands("luarules uniticonscale "..value)
 		elseif id == 'treeradius' then
 			Spring.SetConfigInt("TreeRadius",value)
 		elseif id == 'particles' then
@@ -1907,6 +1909,7 @@ function init()
 
 		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
+		{id="iconscale", group="gfx", name="Icon scale", type="slider", min=0.7, max=1.2, step=0.05, value=tonumber(Spring.GetConfigInt("UnitIconScale",1) or 1), description=''},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
