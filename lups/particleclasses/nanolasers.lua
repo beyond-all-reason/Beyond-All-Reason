@@ -150,22 +150,19 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  Spring.Echo(n)
   if not self._lastupdate or thisGameFrame - self._lastupdate > 3 then  -- save some performance/memory
     UpdateNanoParticles(self)
     --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
     if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
       if self.visibility ~= 0 then
+        local dx = self.targetpos[1] - self.pos[1]
+        local dy = self.targetpos[2] - self.pos[2]
+        local dz = self.targetpos[3] - self.pos[3]
+        local radius = 45+(self.corethickness*60)+(self.streamSpeed*200)
         if not self.lightID then
-          local dx = self.targetpos[1] - self.pos[1]
-          local dy = self.targetpos[2] - self.pos[2]
-          local dz = self.targetpos[3] - self.pos[3]
-          self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, 44+(self.corethickness*40), {self.color[1],self.color[2],self.color[3],0.13+(self.corethickness/3)})
+          self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, radius, {self.color[1],self.color[2],self.color[3],0.11+(self.streamSpeed*0.66)})
         else
-          local dx = self.targetpos[1] - self.pos[1]
-          local dy = self.targetpos[2] - self.pos[2]
-          local dz = self.targetpos[3] - self.pos[3]
-          if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=45+(self.corethickness*60)+(self.streamSpeed*200)}}) then
+          if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=radius}}) then
             self.lightID = nil
           end
         end
