@@ -44,7 +44,7 @@ end
 
 --------------------------------------------------------------------------------
 
-local iconScale = Spring.GetConfigString("UnitIconScale", 1)
+local iconScale = Spring.GetConfigFloat("UnitIconScale", 1)
 
 local icons = {
     -- ID,   icon png file,   scale
@@ -205,14 +205,17 @@ local icons = {
 
 
 function changeUnitIcons(folder)
+
     -- load icons
-  for i, icon in ipairs(icons) do
-    Spring.FreeUnitIcon(icon[1])
-    if VFS.FileExists('icons/'..folder..'/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
-        Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
-    else
-        Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
-    end
+  if folder then
+      for i, icon in ipairs(icons) do
+        Spring.FreeUnitIcon(icon[1])
+        if VFS.FileExists('icons/'..folder..'/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
+            Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
+        else
+            Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
+        end
+      end
   end
 
   -- assign icons
@@ -635,8 +638,9 @@ function gadget:GotChatMsg(msg, playerID)
       end
       if string.sub(msg,1,14) == "uniticonscale " then
           iconScale = tonumber(string.sub(msg,15))
-          Spring.SetConfigString("UnitIconScale", iconScale)
+          Spring.SetConfigFloat("UnitIconScale", iconScale)
           changeUnitIcons(Spring.GetConfigString("UnitIconFolder", 'old'))
+          Spring.SendCommands("minimap unitsize "..Spring.GetConfigFloat("MinimapIconScale", 2.5))
       end
   end
 end

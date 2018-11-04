@@ -5,7 +5,7 @@
 function widget:GetInfo()
   return {
     name      = "Lups Nano Beams",
-    desc      = "Enables the use of nano beams/lasers",
+    desc      = "Enables the possibility of nano beams (lasers)",
     author    = "jK, Floris",
     date      = "",
     license   = "GNU GPL, v2 or later",
@@ -360,10 +360,7 @@ function widget:GameFrame(frame)
             break
         end
         local unitID = builders[i]
-        --local ux, uy, uz = Spring.GetUnitPosition(unitID)
-        --local inLos = Spring.IsPosInLos(ux,uy,uz,Spring.GetUnitAllyTeam(unitID))  -- still always in los, weird!
         if (not hideIfIcon or not Spring.IsUnitIcon(unitID)) and Spring.IsUnitInView(unitID) then
-            --Spring.Echo(unitID..'  '..Spring.GetUnitAllyTeam(unitID)..'  '..math.random())
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then
@@ -559,6 +556,5 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    Spring.SetConfigInt("NanoEffect",2)
-    Spring.SetConfigInt("MaxNanoParticles", 3000)
+
 end

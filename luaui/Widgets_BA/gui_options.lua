@@ -112,8 +112,6 @@ local widgetOptionColor = '\255\160\160\160'
 
 local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
 
-local minimapIconsize = 2.5	-- spring wont remember what you set with '/minimap iconssize #'
-
 local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
 	lowest = {
@@ -1331,7 +1329,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Depth of Field', 'dof', 'setIntensity', {'intensity'}, value)
 		elseif id == 'minimapiconsize' then
 			minimapIconsize = value
-			Spring.SendCommands("minimap unitsize "..value)
+			Spring.SetConfigFloat("MinimapIconScale", value)
+			Spring.SendCommands("minimap unitsize "..value)		-- spring wont remember what you set with '/minimap iconssize #'
 		elseif id == 'lighteffects_brightness' then
 			saveOptionValue('Light Effects', 'lighteffects', 'setGlobalBrightness', {'globalLightMult'}, value)
 		elseif id == 'lighteffects_radius' then
@@ -1909,7 +1908,7 @@ function init()
 
 		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
-		{id="iconscale", group="gfx", name="Icon scale", type="slider", min=0.7, max=1.2, step=0.05, value=tonumber(Spring.GetConfigInt("UnitIconScale",1) or 1), description=''},
+		{id="iconscale", group="gfx", name="Icon scale", type="slider", min=0.6, max=1.2, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1) or 1), description=''},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
@@ -1996,7 +1995,7 @@ function init()
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 
-		{id="minimapiconsize", group="ui", name="Minimap icon size", type="slider", min=2, max=3.5, step=0.25, value=minimapIconsize, description=''},
+		{id="minimapiconsize", group="ui", name="Minimap icon size", type="slider", min=2, max=3.5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",2.5) or 1), description=''},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
 		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
@@ -2410,7 +2409,7 @@ function widget:Initialize()
 		Spring.SetConfigInt("UsePBO",0)
 	--end
 
-	Spring.SendCommands("minimap unitsize "..minimapIconsize)		-- spring wont remember what you set with '/minimap iconssize #'
+	Spring.SendCommands("minimap unitsize "..(Spring.GetConfigFloat("MinimapIconScale", 2.5)))		-- spring wont remember what you set with '/minimap iconssize #'
 
 	Spring.SendCommands({"bind f10 options"})
 
@@ -2521,7 +2520,6 @@ end
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.customPresets = customPresets
-	savedTable.minimapIconsize = minimapIconsize
 	savedTable.cameraTransitionTime = cameraTransitionTime
 	savedTable.maxNanoParticles = maxNanoParticles
 	savedTable.savedConfig = {
@@ -2552,9 +2550,6 @@ end
 function widget:SetConfigData(data)
 	if data.customPresets ~= nil then
 		customPresets = data.customPresets
-	end
-	if data.minimapIconsize ~= nil then
-		minimapIconsize = data.minimapIconsize
 	end
 	if data.cameraTransitionTime ~= nil then
 		cameraTransitionTime = data.cameraTransitionTime
