@@ -622,6 +622,7 @@ if (name=="armserp" or name=="armsubk" or name=="corshark" or name=="corssub") t
           local unitname = string.match(name, '([a-z]*)')
           if unitname and UnitDefNames[unitname] then
               local scale = string.gsub(name, unitname, '')
+              scale = string.gsub(scale, '_', '')
               if scale ~= '' then
                   Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
                   Spring.SetUnitDefIcon(UnitDefNames[unitname].id, unitname..".user")
