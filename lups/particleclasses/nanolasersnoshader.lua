@@ -187,7 +187,7 @@ function NanoLasersNoShader:ReInitialize()
 end
 
 function NanoLasersNoShader:Visible()
-  if (self.allyID ~= LocalAllyTeamID)and(self.visibility == 0) then
+  if ((self.allyID ~= LocalAllyTeamID)and(self.visibility == 0)) or not self._midpos then
     return false
   end
 

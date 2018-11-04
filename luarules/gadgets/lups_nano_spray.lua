@@ -106,6 +106,27 @@ local pairs = pairs
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+local hideIfIcon = Spring.GetConfigInt("NanoLaserIcon", 0)
+if hideIfIcon == 1 then
+    hideIfIcon = false
+else
+    hideIfIcon = true
+end
+
+local myPlayerID = Spring.GetMyPlayerID()
+function gadget:GotChatMsg(msg, playerID)
+    if playerID == myPlayerID and string.sub(msg,1,15) == "uniticonlasers " then
+        local value = string.sub(msg,16)
+        if value == '1' then
+            hideIfIcon = false
+            Spring.SetConfigInt("NanoLaserIcon", 1)
+        else
+            hideIfIcon = true
+            Spring.SetConfigInt("NanoLaserIcon", 0)
+        end
+    end
+end
+
 if (not GetFeatureRadius) then
   GetFeatureRadius = function(featureID)
     local fDefID = spGetFeatureDefID(featureID)
@@ -268,7 +289,7 @@ function gadget:GameFrame(frame)
             break
         end
         local unitID = builders[i]
-        if not Spring.IsUnitIcon(unitID) and Spring.IsUnitInView(unitID) then
+        if (not hideIfIcon or not Spring.IsUnitIcon(unitID)) and Spring.IsUnitInView(unitID) then
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then

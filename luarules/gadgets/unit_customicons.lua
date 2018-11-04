@@ -614,9 +614,6 @@ end
 
 local myPlayerID = Spring.GetMyPlayerID()
 
-function gadget:Initialize()
-  gadgetHandler:AddSyncAction("kickplayer", kickplayer)
-end
 
 function gadget:GotChatMsg(msg, playerID)
   if playerID == myPlayerID and string.sub(msg,1,12) == "uniticonset " then
