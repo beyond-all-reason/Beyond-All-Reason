@@ -673,12 +673,22 @@ end
 
 local myPlayerID = Spring.GetMyPlayerID()
 
+local function isFolderValid(folder)
+    local found = false
+    for k, subdir in pairs(VFS.SubDirs('icons')) do
+        if folder == string.gsub(string.sub(subdir, 1, #subdir-1), 'icons/', '')  or  folder == string.gsub(string.sub(subdir, 1, #subdir-1), 'icons\\', '') then
+            found = true
+            break
+        end
+    end
+    return found
+end
 
 function gadget:GotChatMsg(msg, playerID)
   if playerID == myPlayerID then
       if string.sub(msg,1,12) == "uniticonset " then
           local folder = string.sub(msg,13)
-          if (not VFS.FileExists('icons/'..folder..'/armcom.png')) then
+          if not isFolderValid(folder) then
               Spring.Echo('Icons folder \''..folder..'\' isnt valid')
           else
               Spring.Echo('Unit icon set loaded: '..folder)
@@ -697,11 +707,11 @@ end
 
 
 function gadget:Initialize()
-  local folder = Spring.GetConfigString("UnitIconFolder", 'old')
-  if not VFS.FileExists('icons/'..folder..'/armcom.png') then
-    folder = 'old'
-  end
-  changeUnitIcons(folder)
+    local folder = Spring.GetConfigString("UnitIconFolder", 'old')
+    if not isFolderValid(folder) then
+        folder = 'old'
+    end
+    changeUnitIcons(folder)
 end
 
 
