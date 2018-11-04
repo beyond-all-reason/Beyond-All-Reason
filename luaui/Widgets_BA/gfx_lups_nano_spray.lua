@@ -2,19 +2,118 @@
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-function gadget:GetInfo()
+function widget:GetInfo()
   return {
-    name      = "LupsNanoSpray",
-    desc      = "Wraps the nano spray to LUPS",
-    author    = "jK",
-    date      = "2008-2012",
+    name      = "Lups Nano Beams",
+    desc      = "Enables the use of nano beams/lasers",
+    author    = "jK, Floris",
+    date      = "",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
     enabled   = true
   }
 end
 
-local useUnsyncedCode = false   -- disable the unsynced code to do it in a widget instead, because we cant know if unit is in LoS or not
+local function IsFeatureInRange(unitID, featureID, range)
+    range = range + 100 -- fudge factor
+    local x,y,z = Spring.GetFeaturePosition(featureID)
+    local ux,uy,uz = Spring.GetUnitPosition(unitID)
+    return ((ux - x)^2 + (uz - z)^2) <= range^2
+end
+
+local function IsGroundPosInRange(unitID, x, z, range)
+    local ux,uy,uz = Spring.GetUnitPosition(unitID)
+    return ((ux - x)^2 + (uz - z)^2) <= range^2
+end
+
+function GetUnitNanoTarget(unitID)
+    local type = ""
+    local target
+    local isFeature = false
+    local inRange
+
+    local buildID = Spring.GetUnitIsBuilding(unitID)
+    if (buildID) then
+        target = buildID
+        type   = "building"
+        inRange = true
+    else
+        local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)] or {}
+        local buildRange = unitDef.buildDistance or 0
+        local cmds = Spring.GetCommandQueue(unitID,1)
+        if (cmds)and(cmds[1]) then
+            local cmd   = cmds[1]
+            local cmdID = cmd.id
+            local cmdParams = cmd.params
+
+            if cmdID == CMD.RECLAIM then
+                --// anything except "#cmdParams = 1 or 5" is either invalid or discribes an area reclaim
+                if (not cmdParams[2])or(cmdParams[5]) then
+                    local id = cmdParams[1]
+                    local unitID_ = id
+                    local featureID = id - Game.maxUnits
+
+                    if (featureID >= 0) then
+                        if Spring.ValidFeatureID(featureID) then
+                            target    = featureID
+                            isFeature = true
+                            type      = "reclaim"
+                            inRange	= IsFeatureInRange(unitID, featureID, buildRange)
+                        end
+                    else
+                        if Spring.ValidUnitID(unitID_) then
+                            target = unitID_
+                            type   = "reclaim"
+                            inRange = Spring.GetUnitSeparation(unitID, unitID_, true) <= buildRange
+                        end
+                    end
+                end
+
+            elseif cmdID == CMD.REPAIR  then
+                local repairID = cmdParams[1]
+                if Spring.ValidUnitID(repairID) then
+                    target = repairID
+                    type   = "repair"
+                    inRange = Spring.GetUnitSeparation(unitID, repairID, true) <= buildRange
+                end
+
+            elseif cmdID == CMD.RESTORE then
+                local x = cmd.params[1]
+                local z = cmd.params[3]
+                type   = "restore"
+                target = {x, Spring.GetGroundHeight(x,z)+5, z, cmd.params[4]}
+                inRange = IsGroundPosInRange(unitID, x, z, buildRange)
+
+            elseif cmdID == CMD.CAPTURE then
+                if (not cmdParams[2])or(cmdParams[5]) then
+                    local captureID = cmdParams[1]
+                    if Spring.ValidUnitID(captureID) then
+                        target = captureID
+                        type   = "capture"
+                        inRange = Spring.GetUnitSeparation(unitID, captureID, true) <= buildRange
+                    end
+                end
+
+            elseif cmdID == CMD.RESURRECT then
+                local rezzID = cmdParams[1] - Game.maxUnits
+                if Spring.ValidFeatureID(rezzID) then
+                    target    = rezzID
+                    isFeature = true
+                    type      = "resurrect"
+                    inRange	= IsFeatureInRange(unitID, rezzID, buildRange)
+                end
+
+            end
+        end
+    end
+
+    if inRange then
+        return type, target, isFeature
+    else
+        return
+    end
+end
+
 
 local builderWorkTime = {}
 local min, max = 5000,0
@@ -38,7 +137,7 @@ end
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetCommandQueue    = Spring.GetCommandQueue
 
-local function GetCmdTag(unitID) 
+local function GetCmdTag(unitID)
     local cmdTag = 0
     local cmds = spGetFactoryCommands(unitID,1)
 	if (cmds) then
@@ -47,7 +146,7 @@ local function GetCmdTag(unitID)
 			cmdTag = cmd.tag
 		end
 	end
-	if cmdTag == 0 then 
+	if cmdTag == 0 then
 		local cmds = spGetCommandQueue(unitID,1)
 		if (cmds) then
 			local cmd = cmds[1]
@@ -55,41 +154,10 @@ local function GetCmdTag(unitID)
 				cmdTag = cmd.tag
 			end
         end
-	end 
-	return cmdTag
-end 
-	
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-  --// bw-compability
-  local alreadyWarned = 0
-  local function WarnDeprecated()
-	if (alreadyWarned<10) then
-		alreadyWarned = alreadyWarned + 1
-		Spring.Log("LUPS", LOG.WARNING, "LUS/COB: QueryNanoPiece is deprecated! Use Spring.SetUnitNanoPieces() instead!")
 	end
-  end
+	return cmdTag
+end
 
-  function gadget:Initialize()
-	GG.LUPS = GG.LUPS or {}
-	GG.LUPS.QueryNanoPiece = WarnDeprecated
-	gadgetHandler:RegisterGlobal("QueryNanoPiece", WarnDeprecated)
-  end
-
-  function gadget:Shutdown()
-	gadgetHandler:DeregisterGlobal("QueryNanoPiece")
-  end
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-elseif useUnsyncedCode then
-------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-return false
 
 local Lups  --// Lua Particle System
 local initialized = false --// if LUPS isn't started yet, we try it once a gameframe later
@@ -117,7 +185,7 @@ else
 end
 
 local myPlayerID = Spring.GetMyPlayerID()
-function gadget:GotChatMsg(msg, playerID)
+function widget:GotChatMsg(msg, playerID)
     if playerID == myPlayerID and string.sub(msg,1,15) == "uniticonlasers " then
         local value = string.sub(msg,16)
         if value == '1' then
@@ -147,7 +215,7 @@ end
 
 
 local function CopyTable(outtable,intable)
-  for i,v in pairs(intable) do 
+  for i,v in pairs(intable) do
     if (type(v)=='table') then
       if (type(outtable[i])~='table') then outtable[i] = {} end
       CopyTable(outtable[i],v)
@@ -282,7 +350,7 @@ local function BuilderDestroyed(unitID)
 	builders[#builders] = nil
 end
 
-function gadget:GameFrame(frame)
+function widget:GameFrame(frame)
     if currentNanoEffect == NanoFxNone then return end
 
     local updateFramerate = math.min(30, 3 + math.floor(#builders/25)) -- update fast at gamestart and gradually slower
@@ -292,14 +360,17 @@ function gadget:GameFrame(frame)
             break
         end
         local unitID = builders[i]
+        --local ux, uy, uz = Spring.GetUnitPosition(unitID)
+        --local inLos = Spring.IsPosInLos(ux,uy,uz,Spring.GetUnitAllyTeam(unitID))  -- still always in los, weird!
         if (not hideIfIcon or not Spring.IsUnitIcon(unitID)) and Spring.IsUnitInView(unitID) then
+            --Spring.Echo(unitID..'  '..Spring.GetUnitAllyTeam(unitID)..'  '..math.random())
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then
                 local strength = ((Spring.GetUnitCurrentBuildPower(unitID)or 1)*buildpower) or 1	-- * 16
                 --Spring.Echo(strength,Spring.GetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID])
                 if (strength > 0) then
-                    local type, target, isFeature = Spring.Utilities.GetUnitNanoTarget(unitID)
+                    local type, target, isFeature = GetUnitNanoTarget(unitID)
 
                     if (target) then
                         local endpos
@@ -400,7 +471,7 @@ function init()
 
     for _,unitID in ipairs(Spring.GetAllUnits()) do
         local unitDefID = Spring.GetUnitDefID(unitID)
-        gadget:UnitFinished(unitID, unitDefID)
+        widget:UnitFinished(unitID, unitDefID)
     end
 
     --// init user custom nano fxs
@@ -433,8 +504,8 @@ function init()
     end
 end
 
-function gadget:Update()
-  if (spGetGameFrame()<1) then 
+function widget:Update()
+  if (spGetGameFrame()<1) then
     return
   end
 
@@ -449,7 +520,7 @@ function gadget:Update()
     end
   --gadgetHandler:RemoveCallIn("Update")
 
-  Lups = GG['Lups']
+  Lups = WG['Lups']
   if (Lups) then
       maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
       currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
@@ -464,7 +535,7 @@ end
 
 local registeredBuilders = {}
 
-function gadget:UnitFinished(uid, udid)
+function widget:UnitFinished(uid, udid)
     if currentNanoEffect == NanoFxNone then return end
 	if (UnitDefs[udid].isBuilder) and not registeredBuilders[uid] then
 		BuilderFinished(uid)
@@ -472,7 +543,7 @@ function gadget:UnitFinished(uid, udid)
 	end
 end
 
-function gadget:UnitDestroyed(uid, udid)
+function widget:UnitDestroyed(uid, udid)
     if currentNanoEffect == NanoFxNone then return end
 	if (UnitDefs[udid].isBuilder) and registeredBuilders[uid] then
 		BuilderDestroyed(uid)
@@ -480,10 +551,14 @@ function gadget:UnitDestroyed(uid, udid)
 	end
 end
 
-function gadget:Initialize()
 
+function widget:Initialize()
+    if Spring.GetConfigInt("NanoEffect",1) == 1 then
+        Spring.SetConfigInt("MaxNanoParticles", 0)
+    end
 end
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
+function widget:Shutdown()
+    Spring.SetConfigInt("NanoEffect",2)
+    Spring.SetConfigInt("MaxNanoParticles", 3000)
 end
