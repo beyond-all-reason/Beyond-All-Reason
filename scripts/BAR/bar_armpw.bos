@@ -530,15 +530,16 @@ RestoreAfterDelay()
 	sleep restore_delay;
 	wtdHead1 = 0;
 	wtdPitch1 = 0;
+	turn torso to y-axis <0> speed <300.00>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn lloarm to x-axis <90> speed <300.000000>;
 	turn rloarm to x-axis <90> speed <300.000000>;
 	wpnReady1 = 0;
-	wait-for-turn lloarm around x-axis;
-	wait-for-turn rloarm around x-axis;
-	wait-for-turn luparm around x-axis;
-	wait-for-turn ruparm around x-axis;
+	while (curHead1 != wtdHead1)
+	{
+		sleep 25;
+	}
 	bAiming = FALSE;
 }
 
@@ -585,6 +586,7 @@ Shot1()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
+	start-script RestoreAfterDelay();
 	bAiming = TRUE;
 	wtdHead1 = heading;
 	wtdPitch1 = <0> - pitch;
@@ -592,7 +594,6 @@ AimPrimary(heading, pitch)
 	{
 		start-script DrawWeapon1();
 	}
-	start-script RestoreAfterDelay();
 	return (aim1);
 }
 
