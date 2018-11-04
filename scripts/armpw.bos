@@ -506,8 +506,7 @@ AimPrimary(heading, pitch)
 	signal SIG_AIM;
 	start-script RestoreAfterDelay();
 	bAiming = TRUE;
-	wtdHead1 = heading;
-	wtdPitch1 = <0> - pitch;
+	start-script Weapon1SetWtdAim(heading, pitch);
 	if (wpnReady1 == 0)
 	{
 		start-script DrawWeapon1();

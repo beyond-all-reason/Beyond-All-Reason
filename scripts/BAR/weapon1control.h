@@ -147,7 +147,7 @@ Weapon1Restored()
 	return (TRUE);
 }
 
-Weapon1SetWtdAim(heading, pitch)
+Weapon1SetWtdAim(pitch, heading)
 {
 	wtdHead1 = heading;
 	wtdPitch1 = <0> - pitch;

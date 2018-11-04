@@ -2,11 +2,14 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
+#include "unitDefsTurretSpeeds.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis,
-       rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee;
+       rleg, rfoot, lleg, lfoot, lthigh, rthigh,lknee,rknee, aimy1, aimx1;
 
 static-var  bMoving, bAiming, Static_Var_3, gun_1, moveSpeed, currentSpeed, animSpeed, wpn1_lasthead;
+
+#include "weapon1control.h"
 
 // Signal definitions
 #define SIG_AIM				4
@@ -500,6 +503,7 @@ Create()
 	currentSpeed = 100;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 38;
+	start-script InitialSetup1();
 	start-script SmokeUnit();
 }
 
@@ -522,19 +526,14 @@ RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep 2750;
-	turn torso to y-axis <0.000000> speed <90.000000>;
-	turn ruparm to x-axis <0.000000> speed <45.000000>;
-	turn luparm to x-axis <0.000000> speed <45.000000>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn ruparm around x-axis;
-	wait-for-turn luparm around x-axis;
-	wpn1_lasthead = 1000000;
+	start-script RestoreWeapon1();
+	call-script Weapon1Restored();
 	bAiming = FALSE;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = aimy1;
 }
 
 QueryPrimary(piecenum)
@@ -546,23 +545,10 @@ AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	bAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
-	turn torso to y-axis heading speed <225.000000>;
-	turn luparm to x-axis <0.000000> - pitch speed <75.000000>;
-	turn ruparm to x-axis <0.000000> - pitch speed <75.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1800) AND ((get ABS(wpn1_lasthead - heading)) < 63736)))
-	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn torso around y-axis;
-		wait-for-turn luparm around x-axis;
-		wait-for-turn ruparm around x-axis;
-	}
-	wpn1_lasthead = heading;
+	start-script Weapon1Drawn();
+	start-script Weapon1SetWtdAim(heading, pitch);
 	start-script RestoreAfterDelay();
-	return (1);
+	return (aim1);
 }
 
 FirePrimary()
