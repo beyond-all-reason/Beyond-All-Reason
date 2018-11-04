@@ -218,6 +218,35 @@ function changeUnitIcons(folder)
       end
   end
 
+    -- load custom unit icons when availible
+    local customUnitIcons = {}
+    local files = VFS.DirList('icons/'..folder, "*.png")
+    for k, file in ipairs(files) do
+        local name = string.gsub(file, 'icons\\'..folder..'\\', '')   -- when located in spring folder
+        name = string.gsub(name, 'icons/'..folder..'/', '')   -- when located in game archive
+        local iconname = string.gsub(name, '.png', '')
+        if iconname then
+            local iconname = string.match(iconname, '([a-z0-9-_]*)')
+            iconname = string.sub(iconname, 1, #iconname-2)
+            local scale = string.match(name, '[0-9.]*\.png')
+            scale = string.gsub(scale, '.png', '')
+            if scale ~= '' then
+                for i, icon in ipairs(icons) do
+                    if string.gsub(icon[1], '.user', '') == iconname then
+                        Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..'_'..scale..'.png', tonumber(scale)*iconScale)
+                    end
+                end
+            end
+            if unitname and UnitDefNames[unitname] then
+                local scale = string.gsub(name, unitname, '')
+                scale = string.gsub(scale, '_', '')
+                if scale ~= '' then
+                    Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
+                end
+            end
+        end
+    end
+
   -- assign (standard) icons
   for udid,ud in pairs(UnitDefs) do
 
@@ -611,26 +640,6 @@ if (name=="armserp" or name=="armsubk" or name=="corshark" or name=="corssub") t
 
   end
 
-  -- load and assign custom unit icons when availible
-  local customUnitIcons = {}
-  local files = VFS.DirList('icons/'..folder, "*.png")
-  for k, file in ipairs(files) do
-      local name = string.gsub(file, 'icons\\'..folder..'\\', '')   -- when located in spring folder
-      name = string.gsub(name, 'icons/'..folder..'/', '')   -- when located in game archive
-      name = string.gsub(name, '.png', '')
-      if name then
-          local unitname = string.match(name, '([a-z]*)')
-          if unitname and UnitDefNames[unitname] then
-              local scale = string.gsub(name, unitname, '')
-              scale = string.gsub(scale, '_', '')
-              if scale ~= '' then
-                  Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
-                  Spring.SetUnitDefIcon(UnitDefNames[unitname].id, unitname..".user")
-              end
-          end
-      end
-  end
-
   -- Walls
   Spring.SetUnitDefIcon(UnitDefNames["cordrag"].id, "wall.user")
   Spring.SetUnitDefIcon(UnitDefNames["armdrag"].id, "wall.user")
@@ -638,6 +647,27 @@ if (name=="armserp" or name=="armsubk" or name=="corshark" or name=="corssub") t
   Spring.SetUnitDefIcon(UnitDefNames["armfort"].id, "wall.user")
   Spring.SetUnitDefIcon(UnitDefNames["corfdrag"].id, "wall.user")
   Spring.SetUnitDefIcon(UnitDefNames["armfdrag"].id, "wall.user")
+
+
+    -- load and assign custom unit icons when availible
+    local customUnitIcons = {}
+    local files = VFS.DirList('icons/'..folder, "*.png")
+    for k, file in ipairs(files) do
+        local name = string.gsub(file, 'icons\\'..folder..'\\', '')   -- when located in spring folder
+        name = string.gsub(name, 'icons/'..folder..'/', '')   -- when located in game archive
+        name = string.gsub(name, '.png', '')
+        if name then
+            local unitname = string.match(name, '([a-z0-9]*)')
+            if unitname and UnitDefNames[unitname] then
+                local scale = string.gsub(name, unitname, '')
+                scale = string.gsub(scale, '_', '')
+                if scale ~= '' then
+                    Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
+                    Spring.SetUnitDefIcon(UnitDefNames[unitname].id, unitname..".user")
+                end
+            end
+        end
+    end
 end
 
 
