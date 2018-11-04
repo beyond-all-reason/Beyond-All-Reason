@@ -14,8 +14,6 @@ function gadget:GetInfo()
   }
 end
 
-local useUnsyncedCode = false   -- disable the unsynced code to do it in a widget instead, because we cant know if unit is in LoS or not
-
 local builderWorkTime = {}
 local min, max = 5000,0
 for uDefID, uDef in pairs(UnitDefs) do
@@ -86,10 +84,10 @@ if (gadgetHandler:IsSyncedCode()) then
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-elseif useUnsyncedCode then
+else
 ------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-return false
+
 
 local Lups  --// Lua Particle System
 local initialized = false --// if LUPS isn't started yet, we try it once a gameframe later
@@ -102,6 +100,7 @@ local GetUnitRadius        = Spring.GetUnitRadius
 local GetFeatureRadius     = Spring.GetFeatureRadius
 local spGetFeatureDefID    = Spring.GetFeatureDefID
 local spGetGameFrame       = Spring.GetGameFrame
+local spIsUnitInView       = Spring.IsUnitInView
 
 local type  = type
 local pairs = pairs
@@ -287,12 +286,13 @@ function gadget:GameFrame(frame)
 
     local updateFramerate = math.min(30, 3 + math.floor(#builders/25)) -- update fast at gamestart and gradually slower
     local totalNanoEmitters = 0
+    local myTeamID = Spring.GetMyTeamID()
     for i=1,#builders do
         if totalNanoEmitters > maxNewNanoEmitters then
             break
         end
         local unitID = builders[i]
-        if (not hideIfIcon or not Spring.IsUnitIcon(unitID)) and Spring.IsUnitInView(unitID) then
+        if (not hideIfIcon or not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID) then
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then
