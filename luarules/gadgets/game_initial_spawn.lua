@@ -32,9 +32,9 @@ elseif Game and Game.version then
 end
 
 -- set minimun engine version
-local minEngineVersionTitle = '104.0.1.743'
+local minEngineVersionTitle = '104.0.1.853'
 local enabled = false
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401743 then
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401853 then
 	enabled = true
 end
 
@@ -792,6 +792,9 @@ function gadget:DrawScreen()
 			gl.Text("\255\200\200\200Unsupported AI  ("..unsupportedAI..")\n\nYou need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		else
 			gl.Text("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+		end
+		if Script.LuaUI("GuishaderInsertRect") then
+			Script.LuaUI.GuishaderInsertRect(0,0,vsx,vsy,'unsupportedquit')
 		end
 		if timer3 <= 0 then
 			Spring.SendCommands("QuitForce")

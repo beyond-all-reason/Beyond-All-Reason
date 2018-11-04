@@ -150,26 +150,28 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  UpdateNanoParticles(self)
-  --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
-  if enableLights and self.lightID and Script.LuaUI("GadgetEditBeamLight") then
-    local dx = self.targetpos[1] - self.pos[1]
-    local dy = self.targetpos[2] - self.pos[2]
-    local dz = self.targetpos[3] - self.pos[3]
-    if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=45+(self.corethickness*60)+(self.streamSpeed*200)}}) then
-      self.lightID = nil
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 then  -- save some performance/memory
+    UpdateNanoParticles(self)
+    --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
+    if enableLights and self.lightID and Script.LuaUI("GadgetEditBeamLight") then
+      local dx = self.targetpos[1] - self.pos[1]
+      local dy = self.targetpos[2] - self.pos[2]
+      local dz = self.targetpos[3] - self.pos[3]
+      if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=45+(self.corethickness*60)+(self.streamSpeed*200)}}) then
+        self.lightID = nil
+      end
     end
-  end
 
-  self.fpos = (self.fpos or 0) + self.count * 5 * n
-  if (self.inversed) then
-    self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/4000*math.pi)
-  else
-    self.scane_mult = 8 * math.cos(2*(self.fpos%4001)/4000*math.pi)
-  end
+    self.fpos = (self.fpos or 0) + self.count * 5 * n
+    if (self.inversed) then
+      self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/4000*math.pi)
+    else
+      self.scane_mult = 8 * math.cos(2*(self.fpos%4001)/4000*math.pi)
+    end
 
-  if (self._dead) then
-    RemoveParticles(self.id)
+    if (self._dead) then
+      RemoveParticles(self.id)
+    end
   end
 end
 
@@ -285,8 +287,9 @@ function NanoLasers:CreateParticle()
   self.life           = self.life + 1 --// so we can reuse existing fx's
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
+  self.nowater        = true
 
-  if (self.flare) then
+  if (self.flare) then  -- too expensive!
     --[[if you add those flares, then the laser is slower as the engine, so it needs some tweaking]]--
     if (self.flare1id and particles[self.flare1id] and particles[self.flare2id]) then
       local flare1 = particles[self.flare1id]
@@ -310,6 +313,7 @@ function NanoLasers:CreateParticle()
         texture      = 'bitmaps/GPL/groundflash.tga',
         count        = 2,
         repeatEffect = false,
+        nowater      = true
       }
       self.flare1id  = AddParticles("StaticParticles",flare)
       flare.size     = self.count*0.75
@@ -327,7 +331,7 @@ function NanoLasers:CreateParticle()
     self.streamThickness = 4+self.count*0.34
   end
 
-  if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
+  if enableLights and not self.lightID and Script.LuaUI("GadgetCreateBeamLight") then
     local dx = self.targetpos[1] - self.pos[1]
     local dy = self.targetpos[2] - self.pos[2]
     local dz = self.targetpos[3] - self.pos[3]

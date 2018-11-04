@@ -409,7 +409,7 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
   local cnt = 0
   for k, v in ipairs(queue) do
     if (not v.options.internal) then 
-      if ((v.id == CMD.MOVE or (v.id==CMD.WAIT) or v.id == CMD.SET_WANTED_MAX_SPEED) and not ender) then
+      if ((v.id == CMD.MOVE or (v.id==CMD.WAIT)) and not ender) then
         cnt = cnt +1
         if (v.id == CMD.MOVE) then 
           GiveOrderToUnit(transportID, CMD.MOVE, v.params, {"shift"})

@@ -182,7 +182,6 @@ local CMD_MOVE = CMD.MOVE
 local CMD_ATTACK = CMD.ATTACK
 local CMD_UNLOADUNIT = CMD.UNLOAD_UNIT
 local CMD_UNLOADUNITS = CMD.UNLOAD_UNITS
-local CMD_SET_WANTED_MAX_SPEED = CMD.SET_WANTED_MAX_SPEED
 local CMD_OPT_ALT = CMD.OPT_ALT
 local CMD_OPT_CTRL = CMD.OPT_CTRL
 local CMD_OPT_META = CMD.OPT_META
@@ -655,26 +654,6 @@ function widget:MouseRelease(mx, my, mButton)
 
                 spSetActiveCommand(0) -- Deselect command
             end
-        end
-
-        -- Move Speed (Applicable to every order)
-        local wantedSpeed = 99999 -- High enough to exceed all units speed, but not high enough to cause errors (i.e. vs math.huge)
-
-        if ctrl then
-            local selUnits = spGetSelectedUnits()
-            for i = 1, #selUnits do
-                local uSpeed = UnitDefs[spGetUnitDefID(selUnits[i])].speed
-                if uSpeed > 0 and uSpeed < wantedSpeed then
-                    wantedSpeed = uSpeed
-                end
-            end
-        end
-
-        -- Directly giving speed order appears to work perfectly, including with shifted orders ...
-        -- ... But other widgets CMD.INSERT the speed order into the front (Posn 1) of the queue instead (which doesn't work with shifted orders)
-        if usingCmd ~= CMD.ATTACK and usingCmd ~= CMD.UNLOAD then --hack to fix bomber line attack etc.
-            local speedOpts = GetCmdOpts(alt, ctrl, meta, shift, true)
-            GiveNotifyingOrder(CMD_SET_WANTED_MAX_SPEED, {wantedSpeed / 30}, speedOpts)
         end
     end
 

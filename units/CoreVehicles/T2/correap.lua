@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 4800,
 		maxslope = 12,
-		maxvelocity = 2.26,
+		maxvelocity = 2.38,
 		maxwaterdepth = 100,
 		movementclass = "HTANK3",
 		name = "Reaper",
@@ -39,7 +39,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.72656,
-		turnrate = 382,
+		turnrate = 347,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 8,

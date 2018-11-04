@@ -1,6 +1,5 @@
 return {
 	corraid = {
-		mass = 450,
 		acceleration = 0.021,
 		brakerate = 0.09,
 		buildcostenergy = 2400,
@@ -24,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 1769,
 		maxslope = 10,
-		maxvelocity = 2.38,
+		maxvelocity = 2.51,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Raider",
@@ -40,7 +39,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.873,
-		turnrate = 408,
+		turnrate = 371,
 		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 6,

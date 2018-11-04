@@ -268,7 +268,7 @@ RestoreAfterDelay()
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	turn turret to y-axis heading speed <90.021978>;
+	turn turret to y-axis heading speed <230.021978>;
 	turn launcher to x-axis <0.000000> - pitch speed <45.010989>;
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{

@@ -16,22 +16,31 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
+	local maxDecorations = 180
+
+	local itsXmas = false
 
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
 		if def.name == 'xmasball' then
 			xmasballUdefID = udefID
 		end
+		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] then
+			if def.mass >= 35 then
+				local balls = math.floor(((def.radius-15) / 8))
+				if balls > 0 then
+					hasDecoration[udefID] = {balls, (def.radius/12), 30*6}
+				end
+			end
+		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = 30
+			hasDecoration[udefID] = {28, 9, 30*18}
 		end
 	end
 
-	local addGaiaBalls = true
+	local addGaiaBalls = false	-- if false, only own teamcolored balls are added
 
-	local decorationLifeTime = 45*25
-	local decorationLifeTimeVariation = 30*15
-
+	local decorationCount = 0
 	local decorations = {}
 	local decorationsTerminal = {}
 	local createDecorations = {}
@@ -44,7 +53,6 @@ if gadgetHandler:IsSyncedCode() then
 	local GetGroundHeight = Spring.GetGroundHeight
 	local receivedPlayerXmas = {}
 	local receivedPlayerCount = 0
-	local itsXmas = false
 
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,4)=="xmas" then
@@ -115,9 +123,9 @@ if gadgetHandler:IsSyncedCode() then
 					local x,y,z = Spring.GetUnitPosition(unitID)
 					local gy = Spring.GetGroundHeight(x,z)
 
-					decorationsTerminal[unitID] = n+300+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
-					if decorationsTerminal[unitID] > n+1800 then	-- limit time to 1 min
-						decorationsTerminal[unitID] = n+1800
+					decorationsTerminal[unitID] = n+240+((y - gy) * 33)		-- allows if in sea to take longer to go under seafloor
+					if decorationsTerminal[unitID] > n+1400 then	-- limit time
+						decorationsTerminal[unitID] = n+1400
 					end
 					local env = Spring.UnitScript.GetScriptEnv(unitID)
 					Spring.UnitScript.CallAsUnit(unitID,env.Sink)
@@ -141,7 +149,7 @@ if gadgetHandler:IsSyncedCode() then
 			for _, data in ipairs(createDecorations) do
 				local i = 0
 				local uID
-				local amount = hasDecoration[data[5]]
+				local amount = hasDecoration[data[5]][1]
 				while i < amount do
 					local teamID = data[4]
 					if addGaiaBalls and random() > 0.5 then
@@ -149,10 +157,11 @@ if gadgetHandler:IsSyncedCode() then
 					end
 					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, teamID)
 					if uID ~= nil then
-						setGaiaUnitSpecifics(uID)
-						decorations[uID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
+						decorationCount = decorationCount + 1
+						decorations[uID] = Spring.GetGameFrame() + hasDecoration[data[5]][3] + (random()*(hasDecoration[data[5]][3]*0.33))
 						Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
-						Spring.AddUnitImpulse(uID, (random()-0.5)*4.7, 1+(random()*9.5), (random()-0.5)*4.7)
+						local impulseMult = hasDecoration[data[5]][2]
+						Spring.AddUnitImpulse(uID, (random()-0.5)*(impulseMult/2), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/2))
 					end
 					i = i + 1
 				end
@@ -163,11 +172,9 @@ if gadgetHandler:IsSyncedCode() then
 		-- add gifted unit decorations
 		for _, unitID in ipairs(createdDecorations) do
 			if decorations[unitID] == nil then
-				decorations[unitID] = Spring.GetGameFrame() + decorationLifeTime + (random()*decorationLifeTimeVariation)
+				decorationCount = decorationCount + 1
+				decorations[unitID] = Spring.GetGameFrame() + 600 + (random()*300)
 				setGaiaUnitSpecifics(unitID)
-				--local x,y,z = Spring.GetUnitPosition(unitID)
-				--Spring.SetUnitPosition(unitID,x,y,z)
-				--Spring.SetUnitVelocity(unitID,0,random()*20,0)
 				Spring.SetUnitRotation(unitID,random()*360,random()*360,random()*360)
 				Spring.AddUnitImpulse(unitID, (random()-0.5)*2, 3.8+(random()*1), (random()-0.5)*2)
 			end
@@ -179,15 +186,18 @@ if gadgetHandler:IsSyncedCode() then
 		if not itsXmas then
 			return
 		end
-		if enableUnitDecorations and hasDecoration[unitDefID] ~= nil then
-			local x,y,z = Spring.GetUnitPosition(unitID)
-			createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID}
-		end
 		if unitDefID == xmasballUdefID then
 			if decorations[unitID] ~= nil then
 				decorations[unitID] = nil
 			elseif decorationsTerminal[unitID] ~= nil then
 				decorationsTerminal[unitID] = nil
+			end
+			decorationCount = decorationCount - 1
+		else
+			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil then
+				local x,y,z = Spring.GetUnitPosition(unitID)
+				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
+				--Spring.Echo(hasDecoration[unitDefID][1])
 			end
 		end
 	end
@@ -195,7 +205,6 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 		if unitDefID == xmasballUdefID then
 			setGaiaUnitSpecifics(unitID)
-			--decorations[#createDecorations+1] = unitID
 		end
 	end
 

@@ -23,7 +23,7 @@ end
 --
 ]]--
 
-local maxNanoParticles = 2000
+local maxNanoParticles = 4000
 
 local cameraTransitionTime = 0.2
 local cameraPanTransitionTime = 0.03
@@ -125,10 +125,11 @@ local presets = {
 		lighteffects_deferred = false,
 		lighteffects_heatdistortion = false,
 		lups = false,
+		lupsreflectionrefraction = false,
 		snow = false,
 		xrayshader = false,
 		particles = 10000,
-		nanoparticles = 1000,
+		nanoparticles = 1500,
 		nanobeamamount = 2,
 		grassdetail = 0,
 		treeradius = 0,
@@ -154,11 +155,12 @@ local presets = {
 		lighteffects_deferred = false,
 		lighteffects_heatdistortion = false,
 		lups = true,
+		lupsreflectionrefraction = false,
 		snow = false,
 		xrayshader = false,
 		particles = 15000,
-		nanoparticles = 2000,
-		nanobeamamount = 3,
+		nanoparticles = 3000,
+		nanobeamamount = 4,
 		grassdetail = 0,
 		treeradius = 200,
 		treewind = false,
@@ -183,11 +185,12 @@ local presets = {
 		lighteffects_deferred = true,
 		lighteffects_heatdistortion = true,
 		lups = true,
+		lupsreflectionrefraction = false,
 		snow = true,
 		xrayshader = false,
 		particles = 20000,
-		nanoparticles = 3500,
-		nanobeamamount = 4,
+		nanoparticles = 5000,
+		nanobeamamount = 7,
 		grassdetail = 0,
 		treeradius = 400,
 		treewind = true,
@@ -212,11 +215,12 @@ local presets = {
 		lighteffects_deferred = true,
 		lighteffects_heatdistortion = true,
 		lups = true,
+		lupsreflectionrefraction = true,
 		snow = true,
 		xrayshader = false,
 		particles = 25000,
-		nanoparticles = 5000,
-		nanobeamamount = 5,
+		nanoparticles = 9000,
+		nanobeamamount = 12,
 		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
@@ -241,11 +245,12 @@ local presets = {
 		lighteffects_deferred = true,
 		lighteffects_heatdistortion = true,
 		lups = true,
+		lupsreflectionrefraction = true,
 		snow = true,
 		xrayshader = false,
 		particles = 30000,
-		nanoparticles = 10000,
-		nanobeamamount = 7,
+		nanoparticles = 15000,
+		nanobeamamount = 20,
 		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
@@ -1009,10 +1014,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("NormalMapping",value)
 		elseif id == 'lupsdynamic' then
 			Spring.SetConfigInt("DynamicLups",value)
-		elseif id == 'lupsrefraction' then
-			Spring.SetConfigInt("lupsenablerefraction",value)
-		elseif id == 'lupsreflection' then
-			Spring.SetConfigInt("lupsenablereflection",value)
+		elseif id == 'lupsreflectionrefraction' then
+			Spring.SetConfigInt("lupsreflectionrefraction",value)
 		elseif id == 'treewind' then
 			Spring.SendCommands("luarules treewind "..value)
 			Spring.SetConfigInt("TreeWind",value)
@@ -1304,8 +1307,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
 			saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', {'maps',Game.mapName:lower()}, value)
-		elseif id == 'iconadjuster' then
-			saveOptionValue('Icon adjuster', 'iconadjuster', 'setScale', {'iconScale'}, value)
 		elseif id == 'healthbarsscale' then
 			saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value)
 		elseif id == 'bloombrightness' then
@@ -1382,6 +1383,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				Spring.SetConfigInt("MaxNanoParticles",maxNanoParticles)
 			end
+		elseif id == 'iconset' then
+			Spring.SendCommands("luarules uniticonset "..options[i].options[value])
 		elseif id == 'camera' then
 			Spring.SetConfigInt("CamMode",(value-1))
 			if value == 1 then 
@@ -1898,12 +1901,24 @@ function init()
 		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
+		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
+
+		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='Sets nano effect\n\nBeams more expensive than particles'},
+		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
+
+		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
+		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
+
 		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
 		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.25, max=0.55, step=0.05, value=0.4, description=''},
 		{id="bloomhighlights", group="gfx", name=widgetOptionColor.."   highlights", type="bool", value=false, description=''},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
+
+		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction shader", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
+		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
+		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
 
 		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		{id="lighteffects_deferred", group="gfx", name=widgetOptionColor.."   real lights", type="bool", value=true, description='Otherwise simple ground flashes instead of actual map and model lighting.\n\nExpensive for the gpu when lots of (big) lights are there or when you zoom in on them.'},
@@ -1916,22 +1931,15 @@ function init()
 
 		{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",1) or 1), description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
-		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=2, max=7, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",3) or 3), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
-		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=1000, max=10000, step=100, value=maxNanoParticles, description=''},
+		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=2, max=20, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",6) or 6), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
+		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=1000, max=15000, step=100, value=maxNanoParticles, description=''},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet engine thrusters, ground flashes, fusion energy balls'},
-		{id="lupsrefraction", group="gfx", name=widgetOptionColor.."   refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablerefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
-		{id="lupsreflection", group="gfx", name=widgetOptionColor.."   reflection pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsenablereflection",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes\n\nLuaUI RESTART NEEDED'},
+		{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes'},
 		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thrusters light  (needs 'Lights')", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
 
-		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
-		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
-
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
-		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 
-		{id="iconadjuster", group="gfx", name="Unit icon scale", min=0.8, max=1.2, step=0.05, type="slider", value=1, description='Sets radar/unit icon size\n\n(Used for unit icon distance and minimap icons)'},
-		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
 		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 		{id="treewind", group="gfx", name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)'},
 
@@ -1944,10 +1952,6 @@ function init()
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
-
-		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction highlight", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
-		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
-		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
@@ -2081,6 +2085,23 @@ function init()
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
+
+	if options[getOptionByID('iconset')] and #VFS.SubDirs('icons') > 1 then
+		local opts = {}
+		for i, v in pairs(VFS.SubDirs('icons')) do
+			opts[i] = string.sub(v, 7, #v-1)
+		end
+		options[getOptionByID('iconset')].options = opts
+		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'old'))
+	else
+		options[getOptionByID('iconset')] = nil
+	end
+
+	-- remove engine particles if nano beams are enabled
+	if options[getOptionByID('nanoeffect')] and options[getOptionByID('nanoeffect')].value == 1 then
+		Spring.SetConfigInt("MaxNanoParticles", 0)
+	end
+
 	-- loads values via stored game config in luaui/configs
 	loadAllWidgetData()
 
@@ -2171,12 +2192,6 @@ function init()
 		options[getOptionByID('healthbarsscale')] = nil
 	elseif WG['healthbars'].getScale ~= nil then
 		options[getOptionByID('healthbarsscale')].value = WG['healthbars'].getScale()
-	end
-
-	if (WG['iconadjuster'] == nil) then
-		options[getOptionByID('iconadjuster')] = nil
-	else
-		options[getOptionByID('iconadjuster')].value = WG['iconadjuster'].getScale()
 	end
 
 	if (WG['smartselect'] == nil) then

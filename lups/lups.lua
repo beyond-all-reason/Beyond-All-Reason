@@ -129,10 +129,14 @@ canDistortions = false --// check Initialize()
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local reflectionrefractionEnabled = false
+
 --// widget/gadget handling
 local handler = (widget and widgetHandler)or(gadgetHandler)
 local GG      = (widget and WG)or(GG)
 local VFSMODE = (widget and VFS.RAW_FIRST)or(VFS.ZIP_ONLY)
+
+local this = widget or gadget
 
 --// locations
 local LUPS_LOCATION    = 'lups/'
@@ -516,7 +520,7 @@ local function RadarDotCheck(unitID)
 	return true
 end
 
-local function Draw(extension,layer)
+local function Draw(extension,layer,water)
 	local FxLayer = RenderSequence[layer];
 	if (not FxLayer) then return end
 
@@ -562,16 +566,18 @@ local function Draw(extension,layer)
 							for i=1,#UnitEffects do
 								local fx = UnitEffects[i]
 								if (fx.alwaysVisible or fx.visible) then
-									if (fx.piecenum) then
-										--// enter piece space
-										glPushMatrix()
-											glUnitPieceMultMatrix(unitID,fx.piecenum)
-											glScale(1,1,-1)
-											drawfunc(fx)
-										glPopMatrix()
-										--// leave piece space
-									else
-										fx[DrawPass](fx)
+									if not water or not fx.nowater then
+										if (fx.piecenum) then
+											--// enter piece space
+											glPushMatrix()
+												glUnitPieceMultMatrix(unitID,fx.piecenum)
+												glScale(1,1,-1)
+												drawfunc(fx)
+											glPopMatrix()
+											--// leave piece space
+										else
+											fx[DrawPass](fx)
+										end
 									end
 								end
 							end
@@ -587,13 +593,15 @@ local function Draw(extension,layer)
 							for i=1,#UnitEffects do
 								local fx = UnitEffects[i]
 								if (fx.alwaysVisible or fx.visible) then
-									glPushMatrix()
-									if fx.projectile and not fx.worldspace then
-										local x,y,z = spGetProjectilePosition(fx.projectile)
-										glTranslate(x,y,z)
+									if not water or not fx.nowater then
+										glPushMatrix()
+										if fx.projectile and not fx.worldspace then
+											local x,y,z = spGetProjectilePosition(fx.projectile)
+											glTranslate(x,y,z)
+										end
+										drawfunc(fx)
+										glPopMatrix()
 									end
-									drawfunc(fx)
-									glPopMatrix()
 								end
 							end -- for
 						end -- if
@@ -682,7 +690,7 @@ local function DrawParticlesWater()
 	--// Draw() (layers: -50 upto 50)
 	glAlphaTest(GL_GREATER, 0)
 	for i=-50,50 do
-		Draw("",i)
+		Draw("",i,true)
 	end
 	glAlphaTest(false)
 end
@@ -971,6 +979,17 @@ local function Update(_,dt)
 	if (next(particles)) then
 		CreateVisibleFxList()
 	end
+	if reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 1 then
+		handler:RemoveCallIn("DrawWorldReflection")
+		handler:RemoveCallIn("DrawWorldRefraction")
+		reflectionrefractionEnabled = false
+		Spring.Echo("Lups reflection and refraction pass Disabled")
+	elseif not reflectionrefractionEnabled and Spring.GetConfigInt("lupsreflectionrefraction", 0) ~= 0 then
+		handler:UpdateCallIn("DrawWorldReflection")
+		handler:UpdateCallIn("DrawWorldRefraction")
+		reflectionrefractionEnabled = true
+		Spring.Echo("Lups reflection and refraction pass Enabled")
+	end
 end
 
 --------------------------------------------------------------------------------
@@ -1055,22 +1074,6 @@ local function Initialize()
 	end
 
 
-    if Spring.GetConfigInt("lupsenablerefraction", 0) ~= 1 then
-      (gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldRefraction")
-      Spring.Echo("Lups Refraction Pass Disabled")
-    end
-    if Spring.GetConfigInt("lupsenablereflection", 0) ~= 1 then
-      (gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
-      Spring.Echo("Lups Reflection Pass Disabled")
-    end
-
-	--if GetLupsSetting("enablerefraction", 0) ~= 1 then
-	--	(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldRefraction")
-	--end
-	--if GetLupsSetting("enablereflection", 0) ~= 1 then
-	--	(gadgetHandler or widgetHandler):RemoveCallIn("DrawWorldReflection")
-	--end
-
 	--// link backup FXClasses
 	for className,backupName in pairs(linkBackupFXClasses) do
 		fxClasses[className]=fxClasses[backupName]
@@ -1120,15 +1123,16 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local this = widget or gadget
-
 this.GetInfo    = GetInfo
 this.Initialize = Initialize
 this.Shutdown   = Shutdown
 this.DrawWorldPreUnit    = DrawParticlesOpaque
 this.DrawWorld           = DrawParticles
-this.DrawWorldReflection = DrawParticlesWater
-this.DrawWorldRefraction = DrawParticlesWater
+if Spring.GetConfigInt("lupsreflectionrefraction", 0) == 1 then
+	reflectionrefractionEnabled = true
+	this.DrawWorldReflection = DrawParticlesWater
+	this.DrawWorldRefraction = DrawParticlesWater
+end
 this.ViewResize = ViewResize
 this.Update     = Update
 if gadget then

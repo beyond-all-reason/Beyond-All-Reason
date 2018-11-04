@@ -1,24 +1,31 @@
 ﻿10.13 -> 10.14
 XX/XX/2018
 
+NOTE: Requires 104.0.1.853 or later engine versions
+
 Balance:
- • Comblast lethal range to other commanders extended (35%)
+ • Comblast lethal range to other commanders extended (+35%)
  • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
  • Vehicles acceleration and brakerate are now based on maxVel and turnrate
- • Mass change for medium tanks : Raider=450 and Stumpy=400
- • Arm and Core vehicles : scouts/light tanks/medium tanks +10% turnrate
- • Stumpy Raider Bulldog and Reaper -5% maxpseed and +5% metal cost
- • Penetrator and Banisher -5% maxspeed
+ • Stumpy Raider Bulldog and Reaper metal cost increased +5%
+ • Penetrator reversemaxspeed from 60% of maxspeed to 40%
  • Arm and Core Ressurect kbots +20% reclaim speed
+ • Maverick +7% hp (from 1300 to 1400hp)
+ • Storm Rocko Thud Hammer : torso speed rotation increased
 
 Other:
+ • Fixed: popup units wont start targeting unless enemy is within weapon range
+ • Fixed: continuous aiming change always being able to fire, even when turret was way off
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
- • Removed dgun range circle when enemy com gets near
- • Fixed continuous aiming change always being able to fire, even when turret was way off
+ • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
+ • Added option: nano effect: beam or particles (old effect)
+ • Added lights to laser hits, barrel fire, air thrusters, nano beams and fusion balls
  • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
  • New flak explosion effect + custom crashing airplane smoke trails
- • Added nano lasers/particles option
- • Added light effects to laser hits, plasma barrel fire, air thrusters, nano lasers and fusion balls
+ • Removed dgun range circle when enemy com gets near
+ • Reduced footprint of engine replacement trees + tree fire wont spread as wildly
+ • Resized and tuned proportions of BAR (remodeled) units to match their BA counterparts more (modoption barmodels)
+ • Auto sets 10000 particles as minimum
 
 
 10.12 -> 10.13

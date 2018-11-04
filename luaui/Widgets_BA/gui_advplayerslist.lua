@@ -864,6 +864,8 @@ end
 --  LockCamera stuff
 ---------------------------------------------------------------------------------------------------
 
+
+
 local function UpdateRecentBroadcasters()
 	recentBroadcasters = {}
 	local i = 1
@@ -1131,9 +1133,14 @@ function widget:Shutdown()
 	if screenshotDlist then
 		gl_DeleteList(screenshotDlist)
 	end
-	if lockPlayerID and mySpecStatus and Spring.GetMapDrawMode()=="los" then
-		desiredLosmode = 'normal'
-		desiredLosmodeChanged = os.clock()
+	if lockPlayerID then
+		LockCamera()
+	end
+end
+
+function widget:GameOver()
+	if lockPlayerID then
+		LockCamera()
 	end
 end
 
