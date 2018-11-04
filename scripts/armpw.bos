@@ -5,8 +5,9 @@
 #include "unitDefsTurretSpeeds.h"
 
 piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, ground, aimx1, aimy1;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, currentSpeed, curHead1, wtdHead1, head1, curPitch1, wtdPitch1, pitch1, aim1, wpnReady1, burst1 ;
+#include "weapon1control.h"
 
 // Signal definitions
 #define SIG_AIM				4
@@ -389,83 +390,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
-Weapon1Control()
-{
-	while (TRUE)
-	{
-		if (curHead1 > <180>)
-		{
-			curHead1 = <-360> + curHead1;
-		}
-		if (curPitch1 > <180>)
-		{
-			curPitch1 = <-360> + curPitch1;
-		}
-		if (curHead1 < <-180>)
-		{
-			curHead1 = <360> + curHead1;
-		}
-		if (curPitch1 < <-180>)
-		{
-			curPitch1 = <360> + curPitch1;
-		}
-		if (Static_Var_3 == 1)
-		{
-			if (((get ABS(curHead1 - wtdHead1)) > <360>) OR(((get ABS(curHead1 - wtdHead1)) > (Weapon1TurretY / 30)) AND ((get ABS(curHead1 - wtdHead1)) < <360> - (Weapon1TurretY / 30))))
-			{
-				head1 = 0;
-				if(curHead1 < wtdHead1) {
-					if(get ABS(curHead1 - wtdHead1)< <180>)
-					   curHead1 = curHead1 + (Weapon1TurretY / 30);
-					else curHead1 = curHead1 - (Weapon1TurretY / 30);
-					}
-
-				else {
-					if(get ABS(curHead1 - wtdHead1)< <180>)
-					   curHead1 = curHead1 - (Weapon1TurretY / 30);
-					else curHead1 = curHead1 + (Weapon1TurretY / 30);
-					}
-			}
-			else
-			{
-				head1 = 1;
-				curHead1 = wtdHead1;
-			}
-			if (((get ABS(curPitch1 - wtdPitch1)) > <360>) OR(((get ABS(curPitch1 - wtdPitch1)) > (Weapon1TurretX / 30)) AND ((get ABS(curPitch1 - wtdPitch1)) < <360> - (Weapon1TurretX / 30))))
-			{
-				pitch1 = 0;
-				if(curPitch1 < wtdPitch1) {
-					if(get ABS(curPitch1 - wtdPitch1)< <180>)
-					   curPitch1 = curPitch1 + (Weapon1TurretX / 30);
-					else curPitch1 = curPitch1 - (Weapon1TurretX / 30);
-					}
-
-				else {
-					if(get ABS(curPitch1 - wtdPitch1)< <180>)
-					   curPitch1 = curPitch1 - (Weapon1TurretX / 30);
-					else curPitch1 = curPitch1 + (Weapon1TurretX / 30);
-					}
-			}
-			else
-			{
-				pitch1 = 1;
-				curPitch1 = wtdPitch1;
-			}
-			if (pitch1 == 1 AND head1 == 1 AND wpnReady1 == 1 AND wtdHead1 != 0)
-			{
-				aim1 = 1;
-			}
-			else
-			{
-				aim1 = 0;
-			}
-			turn aimy1 to y-axis curHead1 now;
-			turn aimx1 to x-axis curPitch1 now;
-		}
-		sleep 1;
-	}
-}
-
 Create()
 {
 	hide rfire;
@@ -479,13 +403,8 @@ Create()
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
 	restore_delay = 3000;
-	curHead1 = 0;
-	curPitch1 = 0;
-	wtdHead1 = 0;
-	wtdPitch1 = 0;
-	wpnReady1 = 0;
 	burst1 = 1;
-	start-script Weapon1Control();
+	start-script InitialSetup1();
 	start-script SmokeUnit();
 }
 
@@ -521,22 +440,21 @@ DrawWeapon1()
 	wait-for-turn rloarm around x-axis;
 	wait-for-turn luparm around x-axis;
 	wait-for-turn ruparm around x-axis;
-	wpnReady1 = 1;
+	start-script Weapon1Drawn();
 }
 
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep restore_delay;
-	wtdHead1 = 0;
-	wtdPitch1 = 0;
+	start-script RestoreWeapon1();
 	turn torso to y-axis <0> speed <300.00>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn ruparm to x-axis <0> speed <300.000000>;
 	turn lloarm to x-axis <90> speed <300.000000>;
 	turn rloarm to x-axis <90> speed <300.000000>;
 	wpnReady1 = 0;
-	while (curHead1 != wtdHead1)
+	while (curHead1 != 0)
 	{
 		sleep 25;
 	}
