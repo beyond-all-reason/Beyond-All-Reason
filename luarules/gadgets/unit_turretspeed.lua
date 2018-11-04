@@ -7,7 +7,7 @@
         date      = "May 2018",
         license   = "Whatever works",
         layer     = 0,
-        enabled   = false,
+        enabled   = true,
       }
     end
 
