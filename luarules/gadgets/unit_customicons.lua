@@ -364,9 +364,6 @@ function changeUnitIcons(folder)
         Spring.SetUnitDefIcon(udid, "metalmaker_t1.user")
       end
 
-      -- energy generators
-    elseif ((ud.totalEnergyOut > 10) and (ud.speed <= 0)) then
-      Spring.SetUnitDefIcon(udid, "energy1.user")
     elseif (ud.isTransport) then
       -- transports
       if (name=="armdfly" or name=="corseah") then
