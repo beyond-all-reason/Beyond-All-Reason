@@ -219,7 +219,6 @@ function changeUnitIcons(folder)
   end
 
     -- load custom unit icons when availible
-    local customUnitIcons = {}
     local files = VFS.DirList('icons/'..folder, "*.png")
     for k, file in ipairs(files) do
         local name = string.gsub(file, 'icons\\'..folder..'\\', '')   -- when located in spring folder
@@ -229,8 +228,10 @@ function changeUnitIcons(folder)
             local iconname = string.match(iconname, '([a-z0-9-_]*)')
             iconname = string.sub(iconname, 1, #iconname-2)
             local scale = string.match(name, '_[0-9.]*\.png')
-            scale = string.gsub(scale, '_', '')
-            scale = string.gsub(scale, '.png', '')
+            if scale ~= nil then
+                scale = string.gsub(scale, '_', '')
+                scale = string.gsub(scale, '.png', '')
+            end
             if scale == '' then
                 scale = icon[3]
             end
@@ -301,8 +302,10 @@ function changeUnitIcons(folder)
       Spring.SetUnitDefIcon(udid, "energy3.user")
     elseif name=="armgeo" or name=="corgeo" or name=="corbhmth" then
       Spring.SetUnitDefIcon(udid, "energy6.user")
-elseif name=="armadvsol" or name=="coradvsol" then
+    elseif name=="armadvsol" or name=="coradvsol" then
       Spring.SetUnitDefIcon(udid, "energy2.user")
+    elseif name=="armsolar" or name=="corsolar" or name=="armtide" or name=="cortide" then
+        Spring.SetUnitDefIcon(udid, "energy1.user")
 
       -- lrpc
     elseif (name=="armvulc") or (name=="corbuzz") then
