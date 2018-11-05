@@ -17,6 +17,7 @@ Other:
  • Fixed: popup units wont start targeting unless enemy is within weapon range
  • Fixed: continuous aiming change always being able to fire, even when turret was way off
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
+ • Added: Options Game > "passive builders": nanos, cons, labs
  • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
  • Added option: nano effect: beam or particles (old effect)
  • Added lights to laser hits, barrel fire, air thrusters, nano beams and fusion balls

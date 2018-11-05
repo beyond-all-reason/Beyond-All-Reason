@@ -1128,6 +1128,12 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', {'enableThrusters'}, options[i].value)
 		elseif id == 'lighteffects_deferred' then
 			saveOptionValue('Light Effects', 'lighteffects', 'setDeferred', {'enableDeferred'}, options[i].value)
+		elseif id == 'passivebuilders_nanos' then
+			saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveNanos', {'passiveNanos'}, options[i].value)
+		elseif id == 'passivebuilders_cons' then
+			saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveCons', {'passiveCons'}, options[i].value)
+		elseif id == 'passivebuilders_labs' then
+			saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveLabs', {'passiveLabs'}, options[i].value)
 		elseif id == 'defrange_allyair' then
 			if widgetHandler.configData["Defense Range"] == nil then
 				widgetHandler.configData["Defense Range"] = {}
@@ -1812,6 +1818,10 @@ function loadAllWidgetData()
 
 	loadWidgetData("Voice Notifs", "voicenotifs_volume", {'volume'})
 
+	loadWidgetData("Passive builders", "passivebuilders_nanos", {'passiveNanos'})
+	loadWidgetData("Passive builders", "passivebuilders_cons", {'passiveCons'})
+	loadWidgetData("Passive builders", "passivebuilders_labs", {'passiveLabs'})
+
 	loadWidgetData("Defense Range", "defrange_allyair", {'enabled','ally','air'})
 	loadWidgetData("Defense Range", "defrange_allyground", {'enabled','ally','ground'})
 	loadWidgetData("Defense Range", "defrange_allynuke", {'enabled','ally','nuke'})
@@ -2075,6 +2085,9 @@ function init()
 		{id="fightersfly", group="game", widget="Set fighters on Fly mode", name="Set fighters on Fly mode", type="bool", value=GetWidgetToggleValue("Set fighters on Fly mode"), description='Setting fighters on Fly mode when created'},
 
 		{id="passivebuilders", group="game", widget="Passive builders", name="Passive builders", type="bool", value=GetWidgetToggleValue("Passive builders"), description='Sets builders (nanos, labs and cons) on passive mode\n\nPassive mode means that builders will only spend energy when its availible.\nUsage: You could set your most important builders on active and leave the rest on passive'},
+		{id="passivebuilders_nanos", group="game", name=widgetOptionColor.."   nanos", type="bool", value=(WG['passivebuilders']~=nil and WG['passivebuilders'].getPassiveNanos~=nil and WG['passivebuilders'].getPassiveNanos()), description=''},
+		{id="passivebuilders_cons", group="game", name=widgetOptionColor.."   cons", type="bool", value=(WG['passivebuilders']~=nil and WG['passivebuilders'].getPassiveCons~=nil and WG['passivebuilders'].getPassiveCons()), description=''},
+		{id="passivebuilders_labs", group="game", name=widgetOptionColor.."   labs", type="bool", value=(WG['passivebuilders']~=nil and WG['passivebuilders'].getPassiveLabs~=nil and WG['passivebuilders'].getPassiveLabs()), description=''},
 
 		{id="autocloakpopups", group="game", widget="Auto Cloak Popups", name="Auto cloak popups", type="bool", value=GetWidgetToggleValue("Auto Cloak Popups"), description='Auto cloaks Pit Bull and Ambusher'},
 
