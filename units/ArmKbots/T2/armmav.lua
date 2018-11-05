@@ -25,7 +25,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 1.65,
 		maxwaterdepth = 0,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Maverick",
 		nochasecategory = "VTOL",
 		objectname = "ARMMAV",

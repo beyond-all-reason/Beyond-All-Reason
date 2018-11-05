@@ -348,18 +348,30 @@ local moveDatas = {
 			maxValue = 0.7,
 		}	
 	},
-    KBOT2 = {
-        crushstrength = 10,
-        footprintx = 2,
-        footprintz = 2,
-        maxslope = 36,
-        maxwaterdepth = 22,
-        depthModParams = {
-            minHeight = 4,
-            linearCoeff = 0.03,
-            maxValue = 0.7,
-        }
-    },
+	KBOT2 = {
+		crushstrength = 10,
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 36,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
+	KBOT3 = {
+		crushstrength = 15,
+		footprintx = 2,
+		footprintz = 2,
+		maxslope = 36,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
 	TANK1 = {	-- armfav/corfav
 		crushstrength = 10,
 		footprintx = 2,
@@ -374,7 +386,7 @@ local moveDatas = {
 		}
 	},
 	TANK2 = {
-		crushstrength = 15,
+		crushstrength = 18,
 		footprintx = 2,
 		footprintz = 2,
 		maxslope = 18,

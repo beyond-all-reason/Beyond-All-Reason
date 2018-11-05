@@ -26,7 +26,7 @@ return {
 		maxslope = 16,
 		maxvelocity = 1.35,
 		maxwaterdepth = 0,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Marky",
 		objectname = "ARMMARK",
 		onoffable = true,

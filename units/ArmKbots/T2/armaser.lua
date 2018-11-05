@@ -26,7 +26,7 @@ return {
 		maxslope = 32,
 		maxvelocity = 1.61,
 		maxwaterdepth = 112,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Eraser",
 		nochasecategory = "MOBILE",
 		objectname = "ARMASER",

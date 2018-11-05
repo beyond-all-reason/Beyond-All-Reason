@@ -24,7 +24,7 @@
 		maxslope = 14,
 		maxvelocity = 1.69,
 		maxwaterdepth = 12,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Rocko",
 		nochasecategory = "VTOL",
 		objectname = "ARMROCK",

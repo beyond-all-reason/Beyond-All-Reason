@@ -30,7 +30,7 @@ return {
 		maxwaterdepth = 25,
 		metalmake = 0.14,
 		metalstorage = 100,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Advanced Construction Kbot",
 		objectname = "ARMACK",
 		radardistance = 50,

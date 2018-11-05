@@ -24,7 +24,7 @@ return {
 		maxslope = 14,
 		maxvelocity = 1.25,
 		maxwaterdepth = 21,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Can",
 		nochasecategory = "VTOL",
 		objectname = "CORCAN",

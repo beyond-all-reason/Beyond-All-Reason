@@ -27,7 +27,7 @@ return {
 		maxvelocity = 1.18,
 		maxwaterdepth = 22,
 		mincloakdistance = 80,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Sharpshooter",
 		nochasecategory = "VTOL",
 		objectname = "ARMSNIPE",

@@ -23,7 +23,7 @@ return {
 		maxslope = 15,
 		maxvelocity = 1.58,
 		maxwaterdepth = 23,
-		movementclass = "KBOT2",
+		movementclass = "KBOT3",
 		name = "Zeus",
 		nochasecategory = "VTOL",
 		objectname = "ARMZEUS",
