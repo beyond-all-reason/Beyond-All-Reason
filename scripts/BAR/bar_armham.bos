@@ -8,29 +8,10 @@ piece  pelvis, lflare, rflare, lvent,rvent, lthigh, rthigh,
 
 static-var  bMoving, Static_Var_2, Static_Var_3, Static_Var_4, gun_1, gun_2,
             restore_delay, statechg_DesiredState, statechg_StateChanging,
-            moveSpeed, currentSpeed, Aim1, Aim2, restore, wpn1_lasthead, wpn2_lasthead;
+            moveSpeed, currentSpeed, restore, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
-#define SIG_AIM_2			4
-
-SetWeapon(X)
-{
-	if ( X == 1 ) // SetWeapon to 1
-	{
-		Aim1 = TRUE; // Allow 1
-		Aim2 = FALSE; // Block 2
-	}
-	else // SetWeapon to 1
-	{
-		Aim2 = TRUE; // Allow 2
-		Aim1 = FALSE; // Block 1
-	}
-	restore = FALSE; // Attempt to block restoreafterdelay when switching from 1 to 2 or 2 to 1 (doesnt seem like its working for now
-	sleep 500;
-	restore = TRUE;
-}
-
 
 HitByWeapon(anglex, anglez)
 {
@@ -532,13 +513,10 @@ Create()
 	Static_Var_3 = 1;
 	Static_Var_4 = 0;
 	gun_1 = pelvis;
-	gun_2 = pelvis;
 	restore_delay = 3000;
 	hide rflare;
 	hide lflare;
 	restore = TRUE;
-	Aim1 = TRUE; // Base = allow 1 and block 2
-	Aim2 = FALSE;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
 	statechg_DesiredState = TRUE;
@@ -582,15 +560,12 @@ RestoreAfterDelay()
 	turn larm to x-axis <0.000000> speed <45.000000>;
 	turn rarm to x-axis <0.000000> speed <45.000000>;
 	wpn1_lasthead = 1000000;
-	wpn2_lasthead = 1000000;
 	start-script RequestState(1);
 	}
 }
 
 AimPrimary(heading, pitch)
 {
-	if (Aim1 == TRUE) // Only do script when 1 is enabled
-	{
         start-script RequestState(0);
         signal SIG_AIM;
         while( !Static_Var_4 )
@@ -608,11 +583,6 @@ AimPrimary(heading, pitch)
 		start-script RestoreAfterDelay();
 		wpn1_lasthead = heading;
     	return (1);
-	}
-	else
-	{
-		return (0); // Block fire if 2 was disabled
-	}
 }
 
 AimFromPrimary(piecenum)
@@ -622,82 +592,10 @@ AimFromPrimary(piecenum)
 
 QueryPrimary(piecenum)
 {
-	if ( Aim2 == TRUE )// Fixes units going from lowtraj to hightraj and hightraj to lowtraj without shooting because it checks if the unit can shoot from that piece, which is mobile when aimscripts are called
-	{
-	piecenum = torso;
-	}
-	else
-	{
 	piecenum = lflare + gun_1;
-	}
 }
 
 FirePrimary()
-{
-	if( gun_1 )
-	{
-		emit-sfx 1024 + 0 from rflare;
-		move rbarrel to z-axis [-1.500000] speed [25.000000];
-		sleep 100;
-		move rbarrel to z-axis [0.000000] speed [4.000000];
-	}
-	else
-	{
-		emit-sfx 1024 + 0 from lflare;
-		move lbarrel to z-axis [-1.500000] speed [25.000000];
-		sleep 100;
-		move lbarrel to z-axis [0.000000] speed [1.600000];
-	}
-	gun_1 = !gun_1;
-}
-
-AimSecondary(heading, pitch)
-{
-	if (Aim2 == TRUE) // Only do script when 2 is enabled
-	{
-        start-script RequestState(0);
-        signal SIG_AIM;
-        while( !Static_Var_4 )
-        {
-            return(0);
-        }
-        turn torso to y-axis heading speed <128.000000>;
-        turn larm to x-axis <0.000000> - pitch speed <65.000000>;
-        turn rarm to x-axis <0.000000> - pitch speed <65.000000>;
-		if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
-		{
-			wpn2_lasthead = 1000000;
-	        wait-for-turn torso around y-axis;
-	        wait-for-turn larm around x-axis;
-		}
-		wpn2_lasthead = heading;
-        start-script RestoreAfterDelay();
-        return (1);
-	}
-	else
-	{
-	return (0); // Block fire if 2 was disabled
-	}
-}
-
-AimFromSecondary(piecenum)
-{
-	piecenum = pelvis;
-}
-
-QuerySecondary(piecenum)
-{
-	if ( Aim1 == TRUE ) // Fixes units going from lowtraj to hightraj and hightraj to lowtraj without shooting because it checks if the unit can shoot from that piece, which is mobile when aimscripts are called
-	{
-	piecenum = torso;
-	}
-	else
-	{
-	piecenum = rflare + gun_2;
-	}
-}
-
-FireSecondary()
 {
 	if( gun_1 )
 	{

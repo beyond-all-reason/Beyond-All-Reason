@@ -6,28 +6,10 @@
 piece  torso, gun, rfirept, lfirept, rgun, lgun, pelvis, rleg,
        rfoot, lleg, lfoot, lthigh, rthigh, ground,ltoe,rtoe;
 
-static-var  bMoving, bAiming, Static_Var_3, gun_1, gun_2, Aim1, Aim2, restore, currentSpeed, moveSpeed, wpn1_lasthead, wpn2_lasthead;
+static-var  bMoving, bAiming, Static_Var_3, gun_1, restore, currentSpeed, moveSpeed, wpn1_lasthead;
 
 // Signal definitions
 #define SIG_AIM				4
-#define SIG_AIM_2			8
-
-SetWeapon(X)
-{
-	if ( X == 1 )
-	{
-		Aim1 = TRUE;
-		Aim2 = FALSE;
-	}
-	else
-	{
-		Aim2 = TRUE;
-		Aim1 = FALSE;
-	}
-	restore = FALSE;
-	sleep 500;
-	restore = TRUE;
-}
 
 walk()
 {
@@ -496,11 +478,8 @@ Create()
 	hide lfirept;
 	bMoving = FALSE;
 	bAiming = FALSE;
-	Aim1 = TRUE;
-	Aim2 = FALSE;
 	Static_Var_3 = 1;
 	gun_1 = torso;
-	gun_2 = torso;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
 	start-script SmokeUnit();
@@ -538,23 +517,6 @@ QueryPrimary(piecenum)
 	}
 }
 
-AimFromSecondary(piecenum)
-{
-	piecenum = torso;
-}
-
-QuerySecondary(piecenum)
-{
-	if( gun_1 == 0 )
-	{
-		piecenum = rfirept;
-	}
-	if( gun_1 == 1 )
-	{
-		piecenum = lfirept;
-	}
-}
-
 RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
@@ -569,15 +531,12 @@ RestoreAfterDelay()
 	turn torso to y-axis <0.000000> speed <90>;
 	turn gun to x-axis <0.000000> speed <45>;
 	wpn1_lasthead = 1000000;
-	wpn2_lasthead = 1000000;
 	bAiming = FALSE;
 	}
 }
 
 AimPrimary(heading, pitch)
 {
-	if (Aim1 == TRUE)
-	{
 	signal SIG_AIM;
 	bAiming = TRUE;
 	while( !Static_Var_3 )
@@ -595,66 +554,9 @@ AimPrimary(heading, pitch)
 	wpn1_lasthead = heading;
 	start-script RestoreAfterDelay();
 	return (1);
-	}
-	else
-	{
-	return (0);
-	}
 }
 
 FirePrimary()
-{
-	if( gun_1 == 0 )
-	{
-		move rgun to z-axis [-2.000000] speed [60.000000];
-		emit-sfx 1024 + 0 from rfirept;
-		wait-for-move rgun along z-axis;
-		gun_1 = gun;
-		move rgun to z-axis [0.000000] speed [4.000000];
-		wait-for-move rgun along z-axis;
-		return (0);
-	}
-	if( gun_1 == 1 )
-	{
-		move lgun to z-axis [-2.000000] speed [60.000000];
-		emit-sfx 1024 + 0 from lfirept;
-		wait-for-move lgun along z-axis;
-		gun_1 = torso;
-		move lgun to z-axis [0.000000] speed [4.000000];
-		wait-for-move lgun along z-axis;
-		return (0);
-	}
-}
-
-AimSecondary(heading, pitch)
-{
-	if (Aim2 == TRUE)
-	{
-	signal SIG_AIM_2;
-	bAiming = TRUE;
-	while( !Static_Var_3 )
-	{
-		return(0);
-	}
-	turn torso to y-axis heading speed <112>;
-	turn gun to x-axis <0.000000> - pitch speed <60>;
-	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
-	{
-		wpn2_lasthead = 1000000;
-		wait-for-turn torso around y-axis;
-		wait-for-turn gun around x-axis;
-	}
-	wpn2_lasthead = heading;
-	start-script RestoreAfterDelay();
-	return (1);
-	}
-	else
-	{
-	return (0);
-	}
-}
-
-FireSecondary()
 {
 	if( gun_1 == 0 )
 	{

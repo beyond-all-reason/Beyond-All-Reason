@@ -12,6 +12,7 @@ Balance:
  • Arm and Core Ressurect kbots +20% reclaim speed
  • Maverick +7% hp (from 1300 to 1400hp)
  • Storm Rocko Thud Hammer : torso speed rotation increased
+ • Removed high trajectory weapons from armham/corthud
 
 Other:
  • Fixed: popup units wont start targeting unless enemy is within weapon range
