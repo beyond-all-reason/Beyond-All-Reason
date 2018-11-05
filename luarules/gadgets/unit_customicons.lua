@@ -219,7 +219,7 @@ function changeUnitIcons(folder)
   end
 
     -- load custom unit icons when availible
-    local files = VFS.DirList('icons/'..folder..'/categories', "*.png")
+    local files = VFS.DirList('icons/'..folder, "*.png")
     for k, file in ipairs(files) do
         local name = string.gsub(file, 'icons\\'..folder..'\\', '')   -- when located in spring folder
         name = string.gsub(name, 'icons/'..folder..'/', '')   -- when located in game archive
