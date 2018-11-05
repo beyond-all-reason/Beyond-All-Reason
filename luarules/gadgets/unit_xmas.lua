@@ -16,7 +16,7 @@ end
 if gadgetHandler:IsSyncedCode() then
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
-	local maxDecorations = 180
+	local maxDecorations = 150
 
 	local itsXmas = false
 
@@ -193,8 +193,8 @@ if gadgetHandler:IsSyncedCode() then
 				decorationsTerminal[unitID] = nil
 			end
 			decorationCount = decorationCount - 1
-		else
-			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil then
+		elseif attackerID ~= nil then	-- is not reclaimed
+			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and decorationCount < maxDecorations then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
 				--Spring.Echo(hasDecoration[unitDefID][1])

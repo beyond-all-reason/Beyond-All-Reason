@@ -32,10 +32,6 @@ function gadget:GetInfo()
 end
 
 
--- do note BA now includes a widget "Icon adjuster" that does this aswell (can change icon size)
--- so any changes made here will/could be be overwritten by the widget
-
-
 --------------------------------------------------------------------------------
 
 if (gadgetHandler:IsSyncedCode()) then
@@ -168,10 +164,17 @@ local icons = {
   
     {"lrpc.user", "lrpc", 2.35},
     {"lrpc_lolcannon.user", "lrpc", 3.5},
-  
-    {"chicken_queen.user", "queen", 4},
-  
-    {"meteor.user", "meteor", 1},
+
+    {"chicken1.user", "chicken", 0.9},
+    {"chicken2.user", "chicken", 1.2},
+    {"chicken3.user", "chicken", 1.5},
+    {"chicken4.user", "chicken", 2.6},
+    {"chicken_air.user", "chicken_air", 1.3},
+    {"chicken_air2.user", "chicken_air", 1.7},
+    {"chicken_roost.user", "chicken_roost", 1.5},
+    {"chicken_queen.user", "chicken_queen", 4},
+
+    {"meteor.user", "blank", 1},
   
     {"wall.user", "building",0.55},
   
@@ -256,14 +259,12 @@ function changeUnitIcons(folder)
     if (ud == nil) then break end
     local name = string.gsub(ud.name, '_bar', '')
 
-    if (name=="roost") or (name=="meteor") then
-      Spring.SetUnitDefIcon(udid, "meteor.user")
+    if name=="meteor" then
+        Spring.SetUnitDefIcon(udid, "blank.user")
     elseif string.sub(name, 0, 7) == "critter" then
       Spring.SetUnitDefIcon(udid, "blank.user")
     elseif name=="chip" or name=="dice" or name=="xmasball" or name=="corstone" or name=="armstone" then
       Spring.SetUnitDefIcon(udid, "blank.user")
-    elseif (ud.moveDef ~= nil and ud.moveDef.name=="chickqueen") then
-      Spring.SetUnitDefIcon(udid, "chicken_queen.user")
     elseif (name=="corkrog") then
       Spring.SetUnitDefIcon(udid, "krogoth.user")
     elseif (name=="armbanth") then
@@ -272,6 +273,24 @@ function changeUnitIcons(folder)
       Spring.SetUnitDefIcon(udid, "juggernaut.user")
     elseif (name=="cormando") then
       Spring.SetUnitDefIcon(udid, "commando.user")
+
+    -- chickens
+    elseif (name=="chickenr3") then
+        Spring.SetUnitDefIcon(udid, "chicken4.user")
+    elseif (ud.moveDef ~= nil and ud.moveDef.name=="chickqueen") then
+        Spring.SetUnitDefIcon(udid, "chicken_queen.user")
+    elseif name=="roost" or name=="chickend1" then
+        Spring.SetUnitDefIcon(udid, "chicken_roost.user")
+    elseif  ud.modCategories["chicken"] and ud.canFly and ud.xsize >= 3 then
+        Spring.SetUnitDefIcon(udid, "chicken_air2.user")
+    elseif  ud.modCategories["chicken"] and ud.canFly then
+        Spring.SetUnitDefIcon(udid, "chicken_air.user")
+    elseif  ud.modCategories["chicken"] and ud.xsize >= 5 then
+        Spring.SetUnitDefIcon(udid, "chicken3.user")
+    elseif  ud.modCategories["chicken"] and ud.xsize >= 3 then
+        Spring.SetUnitDefIcon(udid, "chicken2.user")
+    elseif  ud.modCategories["chicken"] then
+        Spring.SetUnitDefIcon(udid, "chicken1.user")
 
       -- mine
     elseif ud.modCategories["mine"] ~= nil or ud.modCategories["kamikaze"] ~= nil then
@@ -709,9 +728,9 @@ end
 
 
 function gadget:Initialize()
-    local folder = Spring.GetConfigString("UnitIconFolder", 'old')
+    local folder = Spring.GetConfigString("UnitIconFolder", 'modern')
     if not isFolderValid(folder) then
-        folder = 'old'
+        folder = 'modern'
     end
     changeUnitIcons(folder)
 end

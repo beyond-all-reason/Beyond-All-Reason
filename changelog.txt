@@ -15,6 +15,7 @@ Balance:
  • Removed high trajectory weapons from armham/corthud
 
 Other:
+ • Added new 'modern' unit icon set made by IceXuick, you can choose between 'old' and 'modern' in options
  • Fixed: popup units wont start targeting unless enemy is within weapon range
  • Fixed: continuous aiming change always being able to fire, even when turret was way off
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
