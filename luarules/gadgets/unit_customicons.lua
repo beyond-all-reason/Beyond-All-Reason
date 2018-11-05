@@ -228,13 +228,15 @@ function changeUnitIcons(folder)
         if iconname then
             local iconname = string.match(iconname, '([a-z0-9-_]*)')
             iconname = string.sub(iconname, 1, #iconname-2)
-            local scale = string.match(name, '[0-9.]*\.png')
+            local scale = string.match(name, '_[0-9.]*\.png')
+            scale = string.gsub(scale, '_', '')
             scale = string.gsub(scale, '.png', '')
-            if scale ~= '' then
-                for i, icon in ipairs(icons) do
-                    if string.gsub(icon[1], '.user', '') == iconname then
-                        Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..'_'..scale..'.png', tonumber(scale)*iconScale)
-                    end
+            if scale == '' then
+                scale = icon[3]
+            end
+            for i, icon in ipairs(icons) do
+                if string.gsub(icon[1], '.user', '') == iconname then
+                    Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..'_'..scale..'.png', tonumber(scale)*iconScale)
                 end
             end
             if unitname and UnitDefNames[unitname] then
