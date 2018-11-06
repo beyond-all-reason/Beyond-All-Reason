@@ -40,7 +40,7 @@ end
 
 --------------------------------------------------------------------------------
 
-local iconScale = Spring.GetConfigFloat("UnitIconScale", 1)
+local iconScale = Spring.GetConfigFloat("UnitIconScale", 1.05)
 
 local icons = {
     -- ID,   icon png file,   scale
@@ -721,7 +721,7 @@ function gadget:GotChatMsg(msg, playerID)
           iconScale = tonumber(string.sub(msg,15))
           Spring.SetConfigFloat("UnitIconScale", iconScale)
           changeUnitIcons(Spring.GetConfigString("UnitIconFolder", 'old'))
-          Spring.SendCommands("minimap unitsize "..Spring.GetConfigFloat("MinimapIconScale", 2.5))
+          Spring.SendCommands("minimap unitsize "..Spring.GetConfigFloat("MinimapIconScale", 3.5))
       end
   end
 end
