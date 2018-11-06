@@ -1916,7 +1916,7 @@ function init()
 
 		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 
-		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='Sets nano effect\n\nBeams more expensive than particles'},
+		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='NOTE: when icon edges look jagged: enable more Anti-Aliasing\n...or pick the \'old\' iconset'},
 		{id="disticon", group="gfx", name=widgetOptionColor.."   render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.75, max=1.25, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.05) or 1.05), description=''},
 
@@ -2541,7 +2541,7 @@ function widget:GetConfigData(data)
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
 		disticon = {'UnitIconDist', tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400)},
 		particles = {'MaxParticles', tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000)},
-		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},
+		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		grassdetail = {'GrassDetail', tonumber(Spring.GetConfigInt("GrassDetail",1) or 5)},
