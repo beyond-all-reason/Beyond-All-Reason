@@ -115,7 +115,7 @@ local icons = {
     {"nuke.user", "nuke",1.8},
           {"nuke_big.user", "nuke",2.5},
           {"antinuke.user", "antinuke",1.6},
-          {"antinuke_mobile.user", "antinuke",1.3},
+          {"antinuke_mobile.user", "antinuke",1.4},
   
     {"aa1.user", "aa", 0.85},
     {"aa2.user", "aa", 1.1},

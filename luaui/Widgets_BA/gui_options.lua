@@ -1918,7 +1918,7 @@ function init()
 
 		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="disticon", group="gfx", name=widgetOptionColor.."   render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
-		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.7, max=1.3, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.05) or 1.05), description=''},
+		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.75, max=1.25, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.05) or 1.05), description=''},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
