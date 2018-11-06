@@ -74,7 +74,7 @@ function ShieldSphereParticle:Draw()
   if checkStunned then
     self.stunned = Spring.GetUnitIsStunned(self.unit)
   end
-  if self.stunned then
+  if self.stunned or Spring.IsUnitIcon(self.unit) then
     if self.lightID and WG['lighteffects'] then
       WG['lighteffects'].removeLight(self.lightID)
       self.lightID = nil

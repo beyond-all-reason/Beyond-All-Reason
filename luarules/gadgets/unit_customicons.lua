@@ -317,7 +317,7 @@ function changeUnitIcons(folder)
       Spring.SetUnitDefIcon(udid, "energy5.user")
     elseif (name=="armageo" or name=="corageo") then
       Spring.SetUnitDefIcon(udid, "energy4.user")
-    elseif (name=="armgmm") or  (name=="armfus") or (name=="corfus") or (name=="armckfus") or (name=="armdf") or (name=="armuwfus") or (name=="coruwfus") then
+    elseif (name=="armgmm") or  (name=="armfus") or (name=="corfus") or (name=="armckfus") or (name=="armdf") or (name=="armuwfus") or (name=="coruwfus") or (name=="freefusion") then
       Spring.SetUnitDefIcon(udid, "energy3.user")
     elseif name=="armgeo" or name=="corgeo" or name=="corbhmth" then
       Spring.SetUnitDefIcon(udid, "energy6.user")
