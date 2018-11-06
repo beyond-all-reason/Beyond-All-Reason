@@ -61,7 +61,7 @@ local icons = {
     {"energy1.user", "solar",1.75},   
     {"energy2.user", "energy",1.75},
     {"energy3.user", "fusion",1.4},
-    {"energy4.user", "hazardous",2.5},
+    {"energy4.user", "hazardous",2},
     {"energy5.user", "fusion",1.8},
     {"energy6.user", "energy",2.2},
   
@@ -139,6 +139,7 @@ local icons = {
     {"kbot_t1_worker.user", "kbot_worker",0.95},
     {"kbot_t1_aa1.user", "kbot_aa",0.95},
     {"kbot_t2.user", "kbot",1.28},
+    {"kbot_t2_radar.user", "kbot_radar",1.28},
     {"kbot_t2_big.user", "kbot",1.47},
     {"kbot_t2_worker.user", "kbot_worker", 1.33},
     {"kbot_t2_aa1.user", "kbot_aa",1.28},
@@ -150,6 +151,7 @@ local icons = {
     {"tank_t1_big.user", "vehicle",1.15},
     {"tank_t1_aa1.user", "vehicle_aa",1},
     {"tank_t2.user", "vehicle",1.3},
+    {"tank_t2_radar.user", "vehicle_radar",1.3},
     {"tank_t2_aa1.user", "vehicle_aa",1.3},
     {"tank_t2_big.user", "vehicle",1.5},
     {"tank_t1_worker.user", "vehicle_worker",0.95},
@@ -573,6 +575,8 @@ if (name=="armserp" or name=="armsubk" or name=="corshark" or name=="corssub") t
 
       if (name=="armmanni" or name=="corgol") then
         Spring.SetUnitDefIcon(udid, "tank_t2_big.user")
+      elseif name=="corvrad" or name=="armseer" then
+          Spring.SetUnitDefIcon(udid, "tank_t2_radar.user")
       elseif name=="corfav" or name=="armfav" then
         Spring.SetUnitDefIcon(udid, "tank_t1_flea.user")
       elseif name=="armflash" or name=="corgator" then
@@ -625,6 +629,8 @@ if (name=="armserp" or name=="armsubk" or name=="corshark" or name=="corssub") t
         Spring.SetUnitDefIcon(udid, "kbot_t1_flea.user")
       elseif name=="corak" or name=="armpw" then
         Spring.SetUnitDefIcon(udid, "kbot_t1_raid.user")
+      elseif name=="corvoyr" or name=="armmark" then
+          Spring.SetUnitDefIcon(udid, "kbot_t2_radar.user")
       elseif name=="armham" or name=="armwar" or name=="corthud" then
         Spring.SetUnitDefIcon(udid, "kbot_t1_big.user")
       elseif ud.isBuilder then
