@@ -61,7 +61,7 @@ local icons = {
     {"energy1.user", "solar",1.75},   
     {"energy2.user", "energy",1.75},
     {"energy3.user", "fusion",1.4},
-    {"energy4.user", "hazardous",2},
+    {"energy4.user", "hazardous",1.9},
     {"energy5.user", "fusion",1.8},
     {"energy6.user", "energy",2.2},
   
@@ -92,7 +92,9 @@ local icons = {
     {"ship_transport.user", "shiptrans",2},
 
     {"engineer.user", "wrench",1.4},
-  
+
+    {"commandtower.user", "mission_command_tower",2.35},
+
     {"amphib_t1.user", "amphib",1.2},
     {"amphib_t1_aa.user", "amphib_aa",1.2},
     {"amphib_t1_worker.user", "amphib_worker",1.3},
@@ -315,8 +317,10 @@ function changeUnitIcons(folder)
       Spring.SetUnitDefIcon(udid, "blank.user")
     elseif name=="chip" or name=="dice" or name=="xmasball" or name=="corstone" or name=="armstone" then
       Spring.SetUnitDefIcon(udid, "blank.user")
-    elseif (name=="corkrog") then
-      Spring.SetUnitDefIcon(udid, "krogoth.user")
+    elseif (name=="mission_command_tower") then
+        Spring.SetUnitDefIcon(udid, "commandtower.user")
+    elseif (name=="armbanth") then
+        Spring.SetUnitDefIcon(udid, "krogoth.user")
     elseif (name=="armbanth") then
       Spring.SetUnitDefIcon(udid, "bantha.user")
     elseif (name=="corjugg") then
