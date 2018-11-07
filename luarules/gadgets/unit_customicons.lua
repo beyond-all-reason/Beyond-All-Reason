@@ -167,11 +167,22 @@ local icons = {
   
     {"building_t1.user", "building", 1},
     {"building_t2.user", "building", 1.3},
-  
-    {"factory_t1", "factory",1.45},
-    {"factory_t2", "factory",1.85},
-    {"factory_t3", "factory",2.4},
-  
+
+    {"factory_t1.user", "factory",1.45},
+    {"factory_t2.user", "factory",1.85},
+    {"factory_t3.user", "factory",2.4},
+    {"factory_t1_vehicle.user", "factory_vehicle",1.45},
+    {"factory_t2_vehicle.user", "factory_vehicle_t2",1.85},
+    {"factory_t1_kbot.user", "factory_kbot",1.45},
+    {"factory_t2_kbot.user", "factory_kbot_t2",1.85},
+    {"factory_t1_ship.user", "factory_ship",1.45},
+    {"factory_t2_ship.user", "factory_ship_t2",1.85},
+    {"factory_t1_air.user", "factory_air",1.45},
+    {"factory_t2_air.user", "factory_air_t2",1.85},
+    {"factory_hover.user", "factory_hover",1.45},
+    {"factory_amph.user", "factory_amph",1.45},
+    {"factory_gantry.user", "factory_t3",2.4},
+
     {"lrpc.user", "lrpc", 2.35},
     {"lrpc_lolcannon.user", "lrpc", 3.5},
 
@@ -213,12 +224,28 @@ local icons = {
     {"unknown.user", "unknown", 2},
 }
 
+function getIconID(name)   -- does not check if file exists
+    if string.sub(name, #name-4) ~= '.user' then
+        name = name .. '.user'
+    end
+    for i, icon in ipairs(icons) do
+        if icon[1] == name then
+            if icon[4] then
+                return i
+            else
+                return false
+            end
+        end
+    end
+    return false
+end
 
 function changeUnitIcons(folder)
 
     -- load icons
   if folder then
       for i, icon in ipairs(icons) do
+        icons[i][4] = nil   -- reset
         Spring.FreeUnitIcon(icon[1])
         if VFS.FileExists('icons/'..folder..'/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
             Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
@@ -257,6 +284,13 @@ function changeUnitIcons(folder)
                     Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
                 end
             end
+        end
+    end
+
+    -- remove icons that have no image file for them
+    for i, icon in ipairs(icons) do
+        if VFS.FileExists('icons/'..folder..'/'..icon[2]..'.png') then
+            icons[i][4] = true
         end
     end
 
@@ -350,12 +384,36 @@ function changeUnitIcons(folder)
 
       -- factories
     elseif (ud.isFactory) then
-      if (name=="armshltx" or name=="armshltxuw" or name=="corgant" or name=="corgantuw") then
-        Spring.SetUnitDefIcon(udid, "factory_t3")
+
+      if (name=="armap" or name =="corap" or name=="armplat" or name =="corplat") and getIconID('factory_t1_air') then
+        Spring.SetUnitDefIcon(udid, "factory_t1_air.user")
+      elseif (name=="armaap" or name =="coraap") and getIconID('factory_t1_air') then
+          Spring.SetUnitDefIcon(udid, "factory_t2_air.user")
+      elseif (name=="armlab" or name =="corlab") and getIconID('factory_t1_kbot')then
+          Spring.SetUnitDefIcon(udid, "factory_t1_kbot.user")
+      elseif (name=="armalab" or name =="coralab") and getIconID('factory_t2_kbot') then
+          Spring.SetUnitDefIcon(udid, "factory_t2_kbot.user")
+      elseif (name=="armvp" or name =="corvp") and getIconID('factory_t1_vehicle') then
+          Spring.SetUnitDefIcon(udid, "factory_t1_vehicle.user")
+      elseif (name=="armavp" or name =="coravp") and getIconID('factory_t2_vehicle') then
+          Spring.SetUnitDefIcon(udid, "factory_t2_vehicle.user")
+      elseif (name=="armsy" or name =="corsy") and getIconID('factory_t1_ship') then
+          Spring.SetUnitDefIcon(udid, "factory_t1_ship.user")
+      elseif (name=="armasy" or name =="corasy") and getIconID('factory_t2_ship') then
+          Spring.SetUnitDefIcon(udid, "factory_t2_ship.user")
+      elseif (name=="armhp" or name =="corhp" or name=="armfhp" or name =="corfhp") and getIconID('factory_hover') then
+          Spring.SetUnitDefIcon(udid, "factory_hover.user")
+      elseif (name=="armamsub" or name =="coramsub") and getIconID('factory_amph') then
+          Spring.SetUnitDefIcon(udid, "factory_amph.user")
+      elseif (name=="armshltx" or name=="armshltxuw" or name=="corgant" or name=="corgantuw") and getIconID('factory_gantry') then
+          Spring.SetUnitDefIcon(udid, "factory_gantry.user")
+
+      elseif (name=="armshltx" or name=="armshltxuw" or name=="corgant" or name=="corgantuw") then
+        Spring.SetUnitDefIcon(udid, "factory_t3.user")
       elseif (name=="armaap" or name=="armavp" or name=="armalab" or name=="armasy" or name=="coraap" or name=="coravp" or name=="coralab" or name=="corasy") then
-        Spring.SetUnitDefIcon(udid, "factory_t2")
+        Spring.SetUnitDefIcon(udid, "factory_t2.user")
       else
-        Spring.SetUnitDefIcon(udid, "factory_t1")
+        Spring.SetUnitDefIcon(udid, "factory_t1.user")
       end
 
      -- anti nuke
