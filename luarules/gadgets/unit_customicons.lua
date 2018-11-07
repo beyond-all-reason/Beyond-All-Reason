@@ -215,11 +215,13 @@ local icons = {
     {"air_krow.user", "air_hover",2},
     {"air_liche.user", "air_bomber",2},
   
-    {"defence_0", "defence", 0.8},
-    {"defence_1", "defence", 1.05},
-    {"defence_2", "defence", 1.4},
-    {"defence_3", "defence", 1.95},
-  
+    {"defence_0.user", "defence", 0.8},
+    {"defence_1.user", "defence", 1.05},
+    {"defence_1_arty.user", "arty", 1.3},
+    {"defence_2.user", "defence", 1.4},
+    {"defence_2_arty.user", "arty", 1.5},
+    {"defence_3.user", "defence", 1.95},
+
     {"blank.user", "blank", 1},
     {"unknown.user", "unknown", 2},
 }
@@ -229,7 +231,11 @@ function getIconID(name)   -- does not check if file exists
         name = name .. '.user'
     end
     for i, icon in ipairs(icons) do
-        if icon[1] == name then
+        local iconName = icon[1]
+        if string.sub(iconName, #iconName-4) ~= '.user' then
+            iconName = iconName .. '.user'
+        end
+        if iconName == name then
             if icon[4] then
                 return i
             else
@@ -287,7 +293,7 @@ function changeUnitIcons(folder)
         end
     end
 
-    -- remove icons that have no image file for them
+    -- tag all icons with a valid file
     for i, icon in ipairs(icons) do
         if VFS.FileExists('icons/'..folder..'/'..icon[2]..'.png') then
             icons[i][4] = true
@@ -380,7 +386,7 @@ function changeUnitIcons(folder)
       Spring.SetUnitDefIcon(udid, "corcom.user")
 
     elseif (name=="armclaw") or (name=="cormaw") then
-      Spring.SetUnitDefIcon(udid, "defence_0")
+      Spring.SetUnitDefIcon(udid, "defence_0.user")
 
       -- factories
     elseif (ud.isFactory) then
@@ -389,7 +395,7 @@ function changeUnitIcons(folder)
         Spring.SetUnitDefIcon(udid, "factory_t1_air.user")
       elseif (name=="armaap" or name =="coraap") and getIconID('factory_t1_air') then
           Spring.SetUnitDefIcon(udid, "factory_t2_air.user")
-      elseif (name=="armlab" or name =="corlab") and getIconID('factory_t1_kbot')then
+      elseif (name=="armlab" or name =="corlab") and getIconID('factory_t1_kbot') then
           Spring.SetUnitDefIcon(udid, "factory_t1_kbot.user")
       elseif (name=="armalab" or name =="coralab") and getIconID('factory_t2_kbot') then
           Spring.SetUnitDefIcon(udid, "factory_t2_kbot.user")
@@ -624,13 +630,17 @@ function changeUnitIcons(folder)
           end
         else
           if (name=="armanni" or name=="cordoom") then
-            Spring.SetUnitDefIcon(udid, "defence_3")
+            Spring.SetUnitDefIcon(udid, "defence_3.user")
+          elseif (name=="armguard" or name=="corpun") and getIconID('defence_1_arty') then
+              Spring.SetUnitDefIcon(udid, "defence_1_arty.user")
+          elseif (name=="armamb" or name=="cortoast") and getIconID('defence_2_arty') then
+              Spring.SetUnitDefIcon(udid, "defence_2_arty.user")
           elseif ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name=="armguard" or name=="corpun") then
-            Spring.SetUnitDefIcon(udid, "defence_2")
+              Spring.SetUnitDefIcon(udid, "defence_2.user")
           elseif (name=="armhlt" or name=="corhlt" or name=="armfhlt" or name=="corfhlt") then
-            Spring.SetUnitDefIcon(udid, "defence_1")
+            Spring.SetUnitDefIcon(udid, "defence_1.user")
           else
-            Spring.SetUnitDefIcon(udid, "defence_0")
+            Spring.SetUnitDefIcon(udid, "defence_0.user")
           end
         end
       end
