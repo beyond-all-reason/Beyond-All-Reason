@@ -776,6 +776,27 @@ function widget:Update(dt)
 	end
 end
 
+function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
+	if show then
+		--on window
+		local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+		local x,y,ml = Spring.GetMouseState()
+		local cx, cy = correctMouseForScaling(x,y)
+		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+			return true
+		elseif groupRect ~= nil then
+			for id,group in pairs(optionGroups) do
+				if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+					return true
+				end
+			end
+		end
+	end
+end
+
 function widget:DrawScreen()
 
   if spIsGUIHidden() then return end
@@ -807,7 +828,24 @@ function widget:DrawScreen()
   end
   
   if show or showOnceMore then
-  	
+
+	  --on window
+	  local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+	  local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+	  local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
+	  local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
+	  local x,y,ml = Spring.GetMouseState()
+	  local cx, cy = correctMouseForScaling(x,y)
+	  if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
+	  	Spring.SetMouseCursor('cursornormal')
+	  elseif groupRect ~= nil then
+		  for id,group in pairs(optionGroups) do
+			  if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
+				  Spring.SetMouseCursor('cursornormal')
+				  break
+			  end
+		  end
+	  end
 		-- draw the options panel
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
