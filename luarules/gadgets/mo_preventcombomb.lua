@@ -102,6 +102,8 @@ weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
 		end
 	elseif (weaponID == COM_BLAST and COMMANDER[unitDefID]) and ((CommCount(UnitTeam(unitID)) <= 1) and (CommCount(UnitTeam(attackerID)) <= 1)) then
 		if unitID ~= attackerID then
+			-- make unitID immune to DGun
+			immuneDgunList[unitID] = GetGameFrame() + 45
 			--prevent falling damage to the unitID, and lock position
 			MoveCtrl.Enable(unitID)
 			ctrlCom[unitID] = GetGameFrame() + 30
