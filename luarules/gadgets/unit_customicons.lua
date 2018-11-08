@@ -109,9 +109,9 @@ local icons = {
     {"radar_t2.user", "radar", 1.2},
     {"jammer_t2.user", "jammer", 1.2},
   
-    {"krogoth.user", "mech",3.1},
+    {"krogoth.user", "mech",3.3},
     {"bantha.user", "bantha",2.6},
-    {"juggernaut.user", "juggernaut",3.1},
+    {"juggernaut.user", "juggernaut",3.2},
     {"juggernaut2.user", "kbot",2.75},
     {"commando.user", "commando",1.35},
     {"commando2.user", "mech",1.3},  -- old
@@ -149,6 +149,7 @@ local icons = {
     {"kbot_t1_big.user", "kbot",1.1},
     {"kbot_t1_worker.user", "kbot_worker",0.95},
     {"kbot_t1_aa.user", "kbot_aa",0.95},
+    {"kbot_t2_raid.user", "kbot",1.1},
     {"kbot_t2.user", "kbot",1.28},
     {"kbot_t2_radar.user", "kbot_radar",1.28},
     {"kbot_t2_jammer.user", "kbot_jammer",1.28},
@@ -745,6 +746,8 @@ function changeUnitIcons(folder)
         Spring.SetUnitDefIcon(udid, "kbot_t1_flea.user")
       elseif name=="corak" or name=="armpw" then
         Spring.SetUnitDefIcon(udid, "kbot_t1_raid.user")
+      elseif name=="armfast" then
+          Spring.SetUnitDefIcon(udid, "kbot_t2_raid.user")
       elseif name=="corvoyr" or name=="armmark" then
           Spring.SetUnitDefIcon(udid, "kbot_t2_radar.user")
       elseif name=="corspec" or name=="armaser" then

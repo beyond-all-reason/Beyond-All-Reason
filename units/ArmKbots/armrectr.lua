@@ -92,6 +92,7 @@ return {
  			pieceExplosionGenerators = { 
 				"deathceg3-builder",
 				"deathceg2-builder",
+				"deathceg2",
 			},
 		},
 		sounds = {
