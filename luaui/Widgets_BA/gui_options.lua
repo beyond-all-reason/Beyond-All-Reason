@@ -2128,8 +2128,12 @@ function init()
 
 	if options[getOptionByID('iconset')] and #VFS.SubDirs('icons') > 1 then
 		local opts = {}
+		local optsValues = {}
 		for i, v in pairs(VFS.SubDirs('icons')) do
-			opts[i] = string.sub(v, 7, #v-1)
+			if optsValues[string.sub(v, 7, #v-1)] == nil then	-- to prevent duplicated when gamefolder and spring folder have the same icons subfolder
+				optsValues[string.sub(v, 7, #v-1)] = i
+				opts[i] = string.sub(v, 7, #v-1)
+			end
 		end
 		options[getOptionByID('iconset')].options = opts
 		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'old'))

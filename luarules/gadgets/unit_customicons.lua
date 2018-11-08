@@ -53,6 +53,7 @@ local icons = {
   
     {"sub_t1.user", "sub",1.33},
     {"sub_t2.user", "sub",1.7},
+    {"sub_t3.user", "sub",2},
     {"sub_t1_worker.user", "sub_worker",1.33},
     {"sub_t2_worker.user", "sub_worker",1.66},
   
@@ -79,13 +80,12 @@ local icons = {
     {"ship.user", "ship",1.2},
     {"ship_destroyer.user", "ship",1.44},
     {"ship_t1_worker.user", "ship_worker",1.33},
-    {"ship_aa1.user", "ship_aa",1.2},
+    {"ship_aa.user", "ship_aa",1.2},
     {"ship_t2.user", "ship",1.65},
     {"ship_t2_jammer.user", "ship_jammer",1.65},
     {"ship_t2_worker.user", "ship_worker",1.65},
-    {"ship_t2_aa1.user", "ship_aa",1.65},
+    {"ship_t2_aa.user", "ship_aa",1.65},
     {"ship_t2_big.user", "ship",2},
-    {"ship_t2_battleship.user", "ship",2.5},
     {"ship_t2_battleship.user", "ship",2.5},
     {"ship_t2_flagship.user", "ship",3.3},
     {"ship_engineer.user", "shipengineer",1.5},
@@ -109,9 +109,10 @@ local icons = {
     {"radar_t2.user", "radar", 1.2},
     {"jammer_t2.user", "jammer", 1.2},
   
-    {"krogoth.user", "mech",3.2},
+    {"krogoth.user", "mech",3.1},
     {"bantha.user", "bantha",2.6},
-    {"juggernaut.user", "kbot",2.75},
+    {"juggernaut.user", "juggernaut",3.1},
+    {"juggernaut2.user", "kbot",2.75},
     {"commando.user", "commando",1.35},
     {"commando2.user", "mech",1.3},  -- old
   
@@ -134,8 +135,9 @@ local icons = {
     {"aa_longrangenergy1.user", "aa", 1.8},
   
     {"worker.user", "worker", 0.85},
-  
+
     {"allterrain_t1.user", "allterrain",1},
+    {"allterrain_emp.user", "allterrain",1},
     {"allterrain_t2.user", "allterrain",1.33},
     {"allterrain_t3.user", "allterrain",1.95},
     {"allterrain_vanguard.user", "allterrain",2.3},
@@ -146,29 +148,29 @@ local icons = {
     {"kbot_t1.user", "kbot",0.95},
     {"kbot_t1_big.user", "kbot",1.1},
     {"kbot_t1_worker.user", "kbot_worker",0.95},
-    {"kbot_t1_aa1.user", "kbot_aa",0.95},
+    {"kbot_t1_aa.user", "kbot_aa",0.95},
     {"kbot_t2.user", "kbot",1.28},
     {"kbot_t2_radar.user", "kbot_radar",1.28},
     {"kbot_t2_jammer.user", "kbot_jammer",1.28},
     {"kbot_t2_big.user", "kbot",1.47},
     {"kbot_t2_worker.user", "kbot_worker", 1.33},
-    {"kbot_t2_aa1.user", "kbot_aa",1.28},
+    {"kbot_t2_aa.user", "kbot_aa",1.28},
     {"kbot_t3.user", "kbot",1.9},
   
-    {"tank_t1_flea.user", "vehicle",0.55},
-    {"tank_t1_raid.user", "vehicle",0.75},
-    {"tank_t1.user", "vehicle",1},
-    {"tank_t1_big.user", "vehicle",1.15},
-    {"tank_t1_aa1.user", "vehicle_aa",1},
-    {"tank_t2.user", "vehicle",1.3},
-    {"tank_t2_radar.user", "vehicle_radar",1.3},
-    {"tank_t2_jammer.user", "vehicle_jammer",1.3},
-    {"tank_t2_aa1.user", "vehicle_aa",1.3},
-    {"tank_t2_big.user", "vehicle",1.5},
-    {"tank_t1_worker.user", "vehicle_worker",0.95},
-    {"tank_t2_worker.user", "vehicle_worker", 1.3},
+    {"vehicle_t1_flea.user", "vehicle",0.55},
+    {"vehicle_t1_raid.user", "vehicle",0.75},
+    {"vehicle_t1.user", "vehicle",1},
+    {"vehicle_t1_big.user", "vehicle",1.15},
+    {"vehicle_t1_aa.user", "vehicle_aa",1},
+    {"vehicle_t2.user", "vehicle",1.3},
+    {"vehicle_t2_radar.user", "vehicle_radar",1.3},
+    {"vehicle_t2_jammer.user", "vehicle_jammer",1.3},
+    {"vehicle_t2_aa.user", "vehicle_aa",1.3},
+    {"vehicle_t2_big.user", "vehicle",1.5},
+    {"vehicle_t1_worker.user", "vehicle_worker",0.95},
+    {"vehicle_t2_worker.user", "vehicle_worker", 1.3},
 
-    {"veh_transport.user", "vehtrans",1.7},
+    {"vehicle_trans.user", "vehicle_trans",1.7},
   
     {"building_t1.user", "building", 1},
     {"building_t2.user", "building", 1.3},
@@ -208,17 +210,21 @@ local icons = {
     {"air_t1_worker.user", "air_worker",1.2},
     {"air_t1_hover_t1.user", "air_hover",1.25},
     {"air_t1_bomber.user", "air_bomber",1.35},
-    {"air_t1_transport.user", "transport",1.3},
+    {"air_t1_transport.user", "air_trans",1.3},
     {"air_t1_scout.user", "air_los",0.6},
     {"air_t2.user", "air",1.05},
     {"air_t2_worker.user", "air_worker",1.6},
     {"air_t2_hover_t1.user", "air_hover",1.55},
     {"air_t2_bomber.user", "air_bomber",1.66},
-    {"air_t2_transport.user", "transport",1.75},
+    {"air_t2_transport.user", "air_trans",1.75},
     {"air_t2_radar_t1.user", "air_los",1.33},
     {"air_bladew.user", "air_hover_bw",0.75},
-    {"air_krow.user", "air_hover",2},
-    {"air_liche.user", "air_bomber",2},
+    {"air_stiletto.user", "air_bomber",1.66},
+    {"air_torp.user", "air_hover",1.5},
+    {"air_krow.user", "air_krow",2},
+    {"air_liche.user", "air_liche",2},
+    {"air_krow2.user", "air_hover",2},
+    {"air_liche2.user", "air_bomber",2},
   
     {"defence_0.user", "defence", 0.8},
     {"defence_1.user", "defence", 1.05},
@@ -226,6 +232,8 @@ local icons = {
     {"defence_2.user", "defence", 1.4},
     {"defence_2_arty.user", "arty", 1.5},
     {"defence_3.user", "defence", 1.95},
+    {"defence_1_naval.user", "defence", 1.05},
+    {"defence_2_naval.user", "defence", 1.4},
 
     {"blank.user", "blank", 1},
     {"unknown.user", "unknown", 2},
@@ -274,18 +282,22 @@ function changeUnitIcons(folder)
         local iconname = string.gsub(name, '.png', '')
         if iconname then
             local iconname = string.match(iconname, '([a-z0-9-_]*)')
-            iconname = string.sub(iconname, 1, #iconname-2)
             local scale = string.match(name, '_[0-9.]*\.png')
             if scale ~= nil then
+                iconname = string.gsub(name, scale, '')
                 scale = string.gsub(scale, '_', '')
                 scale = string.gsub(scale, '.png', '')
             end
-            if scale == '' then
-                scale = icon[3]
-            end
             for i, icon in ipairs(icons) do
                 if string.gsub(icon[1], '.user', '') == iconname then
-                    Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..'_'..scale..'.png', tonumber(scale)*iconScale)
+                    local scalenum = icon[3]
+                    if not scale or scale == '' then
+                        scale = ''
+                    else
+                        scalenum = scale
+                        scale = '_'..scale
+                    end
+                    Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..scale..'.png', tonumber(scalenum)*iconScale)
                 end
             end
             if unitname and UnitDefNames[unitname] then
@@ -298,7 +310,7 @@ function changeUnitIcons(folder)
         end
     end
 
-    -- tag all icons with a valid file
+    -- tag all icons that have a valid file
     for i, icon in ipairs(icons) do
         if VFS.FileExists('icons/'..folder..'/'..icon[2]..'.png') then
             icons[i][4] = true
@@ -319,12 +331,14 @@ function changeUnitIcons(folder)
       Spring.SetUnitDefIcon(udid, "blank.user")
     elseif (name=="mission_command_tower") then
         Spring.SetUnitDefIcon(udid, "commandtower.user")
-    elseif (name=="armbanth") then
+    elseif (name=="corkrog") then
         Spring.SetUnitDefIcon(udid, "krogoth.user")
     elseif (name=="armbanth") then
       Spring.SetUnitDefIcon(udid, "bantha.user")
+    elseif (name=="corjugg") and getIconID('juggernaut') then
+        Spring.SetUnitDefIcon(udid, "juggernaut.user")
     elseif (name=="corjugg") then
-      Spring.SetUnitDefIcon(udid, "juggernaut.user")
+        Spring.SetUnitDefIcon(udid, "juggernaut2.user")
     elseif (name=="cormando") and getIconID('commando') then
       Spring.SetUnitDefIcon(udid, "commando.user")
     elseif (name=="cormando") then
@@ -474,7 +488,7 @@ function changeUnitIcons(folder)
       elseif (name=="armthovr" or name=="corthovr") then
         Spring.SetUnitDefIcon(udid, "hover_transport.user")
       elseif name=="corintr" then
-        Spring.SetUnitDefIcon(udid, "veh_transport.user")
+        Spring.SetUnitDefIcon(udid, "vehicle_trans.user")
       elseif (name=="armtship" or name=="cortship") then
         Spring.SetUnitDefIcon(udid, "ship_transport.user")
       else
@@ -536,10 +550,18 @@ function changeUnitIcons(folder)
       -- aircraft
     elseif (ud.canFly) then
 
-      if (name=="armliche") then
-        Spring.SetUnitDefIcon(udid, "air_liche.user")
+      if (name=="armliche") and getIconID('air_liche') then
+          Spring.SetUnitDefIcon(udid, "air_liche.user")
+      elseif (name=="armliche") then
+          Spring.SetUnitDefIcon(udid, "air_liche2.user")
+      elseif (name=="corcrw") and getIconID('air_krow') then
+          Spring.SetUnitDefIcon(udid, "air_krow.user")
       elseif (name=="corcrw") then
-        Spring.SetUnitDefIcon(udid, "air_krow.user")
+          Spring.SetUnitDefIcon(udid, "air_krow2.user")
+      elseif (name=="armstil") then
+          Spring.SetUnitDefIcon(udid, "air_krow2.user")
+      elseif (name=="armseap" or name=="corseap") then
+          Spring.SetUnitDefIcon(udid, "air_torp.user")
       elseif (name=="armawac" or name=="corawac" or name=="armsehak" or name=="corhunt") then
         Spring.SetUnitDefIcon(udid, "air_t2_radar_t1.user")
       elseif ud.isBuilder then
@@ -594,9 +616,9 @@ function changeUnitIcons(folder)
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "ship_t2_aa1.user")
+          Spring.SetUnitDefIcon(udid, "ship_t2_aa.user")
         else
-          Spring.SetUnitDefIcon(udid, "ship_aa1.user")
+          Spring.SetUnitDefIcon(udid, "ship_aa.user")
         end
       else
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
@@ -650,8 +672,12 @@ function changeUnitIcons(folder)
               Spring.SetUnitDefIcon(udid, "defence_2_arty.user")
           elseif ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name=="armguard" or name=="corpun") then
               Spring.SetUnitDefIcon(udid, "defence_2.user")
+          elseif (name=="armtl" or name=="cortl" or name=="armptl" or name=="corptl" or name=="armdl" or name=="cordl") then
+              Spring.SetUnitDefIcon(udid, "defence_1_naval.user")
+          elseif (name=="armatl" or name=="coratl") then
+              Spring.SetUnitDefIcon(udid, "defence_2_naval.user")
           elseif (name=="armhlt" or name=="corhlt" or name=="armfhlt" or name=="corfhlt") then
-            Spring.SetUnitDefIcon(udid, "defence_1.user")
+              Spring.SetUnitDefIcon(udid, "defence_1.user")
           else
             Spring.SetUnitDefIcon(udid, "defence_0.user")
           end
@@ -662,36 +688,36 @@ function changeUnitIcons(folder)
     elseif ud.modCategories["tank"] ~= nil then
 
       if (name=="armmanni" or name=="corgol") then
-        Spring.SetUnitDefIcon(udid, "tank_t2_big.user")
+        Spring.SetUnitDefIcon(udid, "vehicle_t2_big.user")
       elseif name=="corvrad" or name=="armseer" then
-          Spring.SetUnitDefIcon(udid, "tank_t2_radar.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_t2_radar.user")
       elseif name=="coreter" or name=="armjam" then
-          Spring.SetUnitDefIcon(udid, "tank_t2_jammer.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_t2_jammer.user")
       elseif name=="corfav" or name=="armfav" then
-        Spring.SetUnitDefIcon(udid, "tank_t1_flea.user")
+        Spring.SetUnitDefIcon(udid, "vehicle_t1_flea.user")
       elseif name=="armflash" or name=="corgator" then
-        Spring.SetUnitDefIcon(udid, "tank_t1_raid.user")
+        Spring.SetUnitDefIcon(udid, "vehicle_t1_raid.user")
       elseif name=="armjanus" or name=="corlevlr" then
-        Spring.SetUnitDefIcon(udid, "tank_t1_big.user")
+        Spring.SetUnitDefIcon(udid, "vehicle_t1_big.user")
       elseif ud.isBuilder then
       if name=="armconsul" then
         Spring.SetUnitDefIcon(udid, "engineer.user")
         elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "tank_t2_worker.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_t2_worker.user")
         else
-          Spring.SetUnitDefIcon(udid, "tank_t1_worker.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_t1_worker.user")
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "tank_t2_aa1.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_t2_aa.user")
         else
-          Spring.SetUnitDefIcon(udid, "tank_aa1.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_aa.user")
         end
       else
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "tank_t2.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_t2.user")
         else
-          Spring.SetUnitDefIcon(udid, "tank_t1.user")
+          Spring.SetUnitDefIcon(udid, "vehicle_t1.user")
         end
       end
 
@@ -701,7 +727,7 @@ function changeUnitIcons(folder)
       if name=="armvang" then
         Spring.SetUnitDefIcon(udid, "allterrain_vanguard.user")
       elseif name=="armspid" then
-        Spring.SetUnitDefIcon(udid, "allterrain_t1.user")
+        Spring.SetUnitDefIcon(udid, "allterrain_emp.user")
       elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
         Spring.SetUnitDefIcon(udid, "allterrain_t3.user")
       elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
@@ -737,9 +763,9 @@ function changeUnitIcons(folder)
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "kbot_t2_aa1.user")
+          Spring.SetUnitDefIcon(udid, "kbot_t2_aa.user")
         else
-          Spring.SetUnitDefIcon(udid, "kbot_aa1.user")
+          Spring.SetUnitDefIcon(udid, "kbot_aa.user")
         end
       else
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
