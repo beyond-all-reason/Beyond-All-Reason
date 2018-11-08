@@ -1291,7 +1291,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				Spring.SetConfigInt("MSAALevel",0)
 			end
-			Spring.SetConfigInt("FSAALevel",0)
+			Spring.SetConfigInt("FSAALevel",0)		-- engine deprecated it in 104.x
 			Spring.SetConfigInt("MSAALevel",value)
 		elseif id == 'shadowslider' then
 			local enabled = 1
@@ -2163,6 +2163,15 @@ function init()
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 	}
 
+	-- fsaa is deprecated in 104.x
+	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
+		local fsaa = tonumber(Spring.GetConfigInt("msaa",0))
+		if fsaa > options[getOptionByID('iconset')].max then
+			fsaa = options[getOptionByID('iconset')].max
+		end
+		Spring.SetConfigInt("MSAALevel", fsaa)
+		Spring.SetConfigInt("FSAALevel", 0)
+	end
 
 	if options[getOptionByID('iconset')] and #VFS.SubDirs('icons') > 1 then
 		local opts = {}

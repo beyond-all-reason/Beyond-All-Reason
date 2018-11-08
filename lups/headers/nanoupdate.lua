@@ -79,7 +79,7 @@ function UpdateNanoParticles(self)
       else
         if Spring.ValidFeatureID(tid) then
           self.targetpos = {GetFeatureMidPos(tid)}
-          self.targetpos[2] = self.targetpos[2] + 25
+          self.targetpos[2] = self.targetpos[2] + 22
         else
           if (not self._dead) then
             --// assigned target feature died

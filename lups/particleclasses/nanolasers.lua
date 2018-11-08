@@ -173,9 +173,9 @@ function NanoLasers:Update(n)
 
     self.fpos = (self.fpos or 0) + self.count * 5 * n
     if (self.inversed) then
-      self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/4000*math.pi)
+      self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/3000*math.pi)
     else
-      self.scane_mult = 8 * math.cos(2*(self.fpos%4001)/4000*math.pi)
+      self.scane_mult = 8 * math.cos(2*(self.fpos%4001)/3000*math.pi)
     end
 
     if (self._dead) then
