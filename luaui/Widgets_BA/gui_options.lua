@@ -1262,6 +1262,20 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 			Spring.SendCommands("shadows "..enabled.." "..value)
 			Spring.SetConfigInt("shadows", value)
+		elseif id == 'shadows_maxquality' then
+			if value < options[getOptionByID('shadows_minquality')].value then
+				options[getOptionByID('shadows_minquality')].value = value
+				saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMinQuality', {'maxQuality'}, value)
+			end
+			saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMaxQuality', {'maxQuality'}, value)
+		elseif id == 'shadows_minquality' then
+			if value > options[getOptionByID('shadows_maxquality')].value then
+				options[getOptionByID('shadows_maxquality')].value = value
+				saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMaxQuality', {'maxQuality'}, value)
+			end
+			saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMinQuality', {'minQuality'}, value)
+		elseif id == 'shadows_disablefps' then
+			saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setDisableFps', {'disableFps'}, value)
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
@@ -1742,7 +1756,7 @@ function GetWidgetToggleValue(widgetname)
 	end
 end
 
-
+-- configVar = table, add more entries the deeper the configdata table var is: example: {'Config','console','maxlines'}  (limit = 3 deep)
 function loadWidgetData(widgetName, optionId, configVar)
 	if widgetHandler.knownWidgets[widgetName] ~= nil then
 		if getOptionByID(optionId) and widgetHandler.configData[widgetName] ~= nil and widgetHandler.configData[widgetName][configVar[1]] ~= nil then
@@ -1766,6 +1780,10 @@ end
 -- loads values via stored game config in luaui/configs
 function loadAllWidgetData()
 	loadWidgetData("Health Bars", "healthbarsscale", {'barScale'})
+
+	loadWidgetData("Shadow Quality Manager", "shadows_maxquality", {'maxQuality'})
+	loadWidgetData("Shadow Quality Manager", "shadows_minquality", {'minQuality'})
+	loadWidgetData("Shadow Quality Manager", "shadows_disablefps", {'disableFps'})
 
 	loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'})
 	loadWidgetData("Bloom Shader", "bloomhighlights", {'drawHighlights'})
@@ -1902,11 +1920,15 @@ function init()
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
 		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
-		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
 		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=6000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
+		{id="shadows_maxquality", group="gfx", name=widgetOptionColor.."   max quality", min=2000, max=8000, step=500, type="slider", value=8000, description='Maximun shadow detail when having high Frames Per Second'},
+		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail when hasving low Frames Per Second'},
+		{id="shadows_disablefps", group="gfx", name=widgetOptionColor.."   disable at average FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disabled at this average FPS level'},
+
+		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
@@ -2346,7 +2368,7 @@ function init()
 			if option.value < option.min then option.value = option.min end
 			if option.value > option.max then option.value = option.max end
 		end
-		if option.id == "shadows" and (widgetHandler.knownWidgets["Shadow Quality Manager"] == nil or (widgetHandler.orderList["Shadow Quality Manager"] == 0)) then
+		if (option.id == "shadows" or option.id == "shadows_maxquality" or option.id == "shadows_minquality" or option.id == "shadows_disablefps") and (widgetHandler.knownWidgets["Shadow Quality Manager"] == nil or (widgetHandler.orderList["Shadow Quality Manager"] == 0)) then
 			insert = false
 		end
 		if option.id == "shadowslider" and widgetHandler.knownWidgets["Shadow Quality Manager"] ~= nil and (widgetHandler.orderList["Shadow Quality Manager"] > 0) then

@@ -12,7 +12,7 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local minFps = 13	-- disables below this average fps
+local minFps = 16	-- disables below this average fps
 local fpsDiff = 4	-- enabled aain above minFps + fpsDiff
 
 local maxOutlineUnits = 750		-- ignores other units above this amount
@@ -25,7 +25,7 @@ function widget:GetInfo()
     date      = "Dec 06, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = -10,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
