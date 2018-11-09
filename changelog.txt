@@ -5,33 +5,35 @@ NOTE: Requires 104.0.1.853 or later engine versions
 
 Balance:
  • Comblast lethal range to other commanders extended (+35%)
- • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
  • Vehicles acceleration and brakerate are now based on maxVel and turnrate
- • Stumpy Raider Bulldog and Reaper metal cost increased +5%
- • Penetrator reversemaxspeed from 60% of maxspeed to 40%
- • Arm and Core Ressurect kbots +20% reclaim speed
- • Maverick +7% hp (from 1300 to 1400hp)
- • Storm Rocko Thud Hammer : torso speed rotation increased
+ • Stumpy/Raider/Bulldog/Reaper metal cost increased +5%
  • Ak and Peewee -10% turnrate
- • Removed high trajectory weapons from armham/corthud
+ • Storm/Rocko/Thud/Hammer : torso speed rotation increased
+ • Removed high trajectory weapons from Hammer/Thud
+ • Maverick +7% hp (from 1300 to 1400hp)
+ • Penetrator reverse speed from 60% -> 40%
+ • Ressurect kbots +20% reclaim speed
+ • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
+
+Fixes:
+ • Fixed: Popup units wont start targeting unless enemy is within weapon range
+ • Fixed: Reduced footprint of engine replacement trees + tree fire wont spread as wildly
+ • Fixed: Continuous aiming change always being able to fire, even when turret was way off
 
 Other:
- • Added new 'modern' unit icon set made by IceXuick, you can choose between 'old' and 'modern' in options
- • Fixed: popup units wont start targeting unless enemy is within weapon range
- • Fixed: continuous aiming change always being able to fire, even when turret was way off
+ • New 'modern' unit icon set (made by IceXuick), choose between old/modern/modern_simplified in options
+ • Added: Options > Graphics > "Nano effect": beam or particles (old effect)
+ • Added: Options > Graphics > Shadows: "max quality", "min quality", "disable at average FPS"
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
  • Added: Options > Game > "passive builders": nanos, cons, labs
- • Added: Options > Graphics > Shadows: "max quality", "min quality", "disable at average FPS"
+ • Options: Anti Aliasing options slider works again, and limited max value of 4 (MSAA will be used instead of FSAA)
  • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
- • Added option: nano effect: beam or particles (old effect)
- • Added lights to laser hits, barrel fire, air thrusters, nano beams and fusion balls
- • Made Anti Aliasing options slider work again, and limited max value of 4 (MSAA is used instead of FSAA)
+ • Added light effects to: laser hits, barrel fire, air thrusters, nano beams and fusion balls
  • New flak explosion effect + custom crashing airplane smoke trails
  • Removed dgun range circle when enemy com gets near
- • Reduced footprint of engine replacement trees + tree fire wont spread as wildly
- • Resized and tuned proportions of BAR (remodeled) units to match their BA counterparts more (modoption barmodels)
  • Added option: "Icon scale"
- • Auto sets 10000 particles as minimum
+ • Auto set 10000 particles as minimum
+ • Adjusted proportions of all BAR (remodeled) units to match their BA counterparts (modoption: barmodels)
 
 
 10.12 -> 10.13
