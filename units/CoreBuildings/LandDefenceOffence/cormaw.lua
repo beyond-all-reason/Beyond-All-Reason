@@ -14,6 +14,7 @@ return {
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
+		decoyfor = "cordrag",
 		description = "Pop-up Flamethrower Turret",
 		energystorage = 15,
 		explodeas = "flamethrower",

@@ -448,8 +448,8 @@ function changeUnitIcons(folder)
     elseif (name=="corcom") or (name=="cordecom") then
       Spring.SetUnitDefIcon(udid, "corcom.user")
 
-    elseif (name=="armclaw") or (name=="cormaw") then
-      Spring.SetUnitDefIcon(udid, "defence_0.user")
+    --elseif (name=="armclaw") or (name=="cormaw") then
+    --  Spring.SetUnitDefIcon(udid, "defence_0.user")
 
       -- factories
     elseif (ud.isFactory) then
