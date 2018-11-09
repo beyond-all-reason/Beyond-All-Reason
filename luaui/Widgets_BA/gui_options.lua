@@ -2166,7 +2166,7 @@ function init()
 
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
-		local fsaa = tonumber(Spring.GetConfigInt("msaa",0))
+		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel",0))
 		if fsaa > options[getOptionByID('msaa')].max then
 			fsaa = options[getOptionByID('msaa')].max
 		end
