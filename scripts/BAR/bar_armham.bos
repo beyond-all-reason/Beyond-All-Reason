@@ -568,14 +568,14 @@ AimPrimary(heading, pitch)
 {
         start-script RequestState(0);
         signal SIG_AIM;
+        turn torso to y-axis heading speed <220.000000>;
+        turn larm to x-axis <0.000000> - pitch speed <65.000000>;
+        turn rarm to x-axis <0.000000> - pitch speed <65.000000>;
         while( !Static_Var_4 )
         {
             return(0);
         }
-        turn torso to y-axis heading speed <128.000000>;
-        turn larm to x-axis <0.000000> - pitch speed <65.000000>;
-        turn rarm to x-axis <0.000000> - pitch speed <65.000000>;
-		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
+		if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 2300) AND ((get ABS(wpn1_lasthead - heading)) < 63236)))
 		{
 	        wait-for-turn torso around y-axis;
 	        wait-for-turn larm around x-axis;
