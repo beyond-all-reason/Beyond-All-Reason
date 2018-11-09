@@ -7,7 +7,6 @@ Balance:
  • Comblast lethal range to other commanders extended (+35%)
  • Vehicles acceleration and brakerate are now based on maxVel and turnrate
  • Stumpy/Raider/Bulldog/Reaper metal cost increased +5%
- • Ak and Peewee -10% turnrate
  • Storm/Rocko/Thud/Hammer : torso speed rotation increased
  • Removed high trajectory weapons from Hammer/Thud
  • Maverick +7% hp (from 1300 to 1400hp)

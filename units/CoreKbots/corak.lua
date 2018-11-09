@@ -33,7 +33,7 @@ return {
 		sightdistance = 500,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.848,
-		turnrate = 1090,
+		turnrate = 1210,
 		upright = true,
 		customparams = {
 			description_long = "A.K. is a light infantry Kbot which is cheap and quick to build. Proves useful for scouting and taking down unguarded structures like metal extractors and early eco. It is armed with light, but precise laser with a little longer range than PeeWee, so with  little microing skills you can outrange them eaisily. In late T1 warfare A.K.'s can be used for ambushing Commanders and speedy skirmishing. However, light armor and relatively short range makes them very vulnerable to defensive towers and riot tanks.",

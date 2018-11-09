@@ -33,7 +33,7 @@ return {
 		sightdistance = 429,
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 1.848,
-		turnrate = 950,
+		turnrate = 1056,
 		upright = true,
 		customparams = {
 			description_long = "Peewee is a basic infantry Kbot. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Peewees can be used for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",  
