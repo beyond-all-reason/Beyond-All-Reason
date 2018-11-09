@@ -179,9 +179,10 @@ function loadWeaponDefs()
 						break
 					end
 				end
+				params.life = 1 + WeaponDefs[i].beamTTL
 				damage = damage/WeaponDefs[i].beamtime
-				params.radius = (params.radius*1.2) + (damage/160)
-				params.orgMult = (0.145 + (damage/110000)) * globalLightMult
+				params.radius = (params.radius*1.4) + (damage/2000)
+				params.orgMult = (0.3 + (damage/150000)) * globalLightMult
 				params.yoffset = 4 + (params.radius/250)
 				if params.yoffset > 50 then params.yoffset = 50 end
 				--params.radius = params.radius
@@ -790,6 +791,7 @@ end
 -- function called by explosion_lights gadget
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
+		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
