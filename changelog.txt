@@ -18,6 +18,7 @@ Fixes:
  • Fixed: Popup units wont start targeting unless enemy is within weapon range
  • Fixed: Reduced footprint of engine replacement trees + tree fire wont spread as wildly
  • Fixed: Continuous aiming change always being able to fire, even when turret was way off
+ • LLT's will only aim when target is within range
 
 Other:
  • New 'modern' unit icon set (made by IceXuick), choose between old/modern/modern_simplified in options
@@ -25,8 +26,8 @@ Other:
  • Added: Options > Graphics > Shadows: "max quality", "min quality", "disable at average FPS"
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
  • Added: Options > Game > "passive builders": nanos, cons, labs
+ • Added: Options > Game > "Dont snap DGun to ground units" (default disabled), still snaps to air, ships and hovers on land
  • Options: Anti Aliasing options slider works again, and limited max value of 4 (MSAA will be used instead of FSAA)
- • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
  • Added light effects to: laser hits, barrel fire, air thrusters, nano beams and fusion balls
  • New flak explosion effect + custom crashing airplane smoke trails
  • Removed dgun range circle when enemy com gets near

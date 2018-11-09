@@ -283,18 +283,26 @@ function getIconID(name)   -- does not check if file exists
     return false
 end
 
+
+local loadedIcons = {}
 function changeUnitIcons(folder)
+
+    -- free up icons
+    for i, icon in ipairs(loadedIcons) do
+        Spring.FreeUnitIcon(icon)
+    end
 
     -- load icons
   if folder then
       for i, icon in ipairs(icons) do
         icons[i][4] = nil   -- reset
-        Spring.FreeUnitIcon(icon[1])
+        --Spring.FreeUnitIcon(icon[1])
         if VFS.FileExists('icons/'..folder..'/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
             Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
         else
             Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
         end
+          loadedIcons[#loadedIcons+1] = icon[1]
       end
   end
 
@@ -322,6 +330,7 @@ function changeUnitIcons(folder)
                         scale = '_'..scale
                     end
                     Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..scale..'.png', tonumber(scalenum)*iconScale)
+                    loadedIcons[#loadedIcons+1] = icon[1]
                 end
             end
             if unitname and UnitDefNames[unitname] then
@@ -329,6 +338,7 @@ function changeUnitIcons(folder)
                 scale = string.gsub(scale, '_', '')
                 if scale ~= '' then
                     Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
+                    loadedIcons[#loadedIcons+1] = unitname..".user"
                 end
             end
         end
@@ -892,6 +902,7 @@ function changeUnitIcons(folder)
                 if scale ~= '' then
                     Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
                     Spring.SetUnitDefIcon(UnitDefNames[unitname].id, unitname..".user")
+                    loadedIcons[#loadedIcons+1] = unitname..".user"
                 end
             end
         end

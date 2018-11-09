@@ -769,9 +769,9 @@ function widget:Update(dt)
 			end
 			windowList = gl.CreateList(DrawWindow)
 		end
-		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)	-- update value because other widgets can adjust this too
+		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
 		if getOptionByID('sndvolmusic') then
-			options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)
+			options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",40) or 40)
 		end
 	end
 end
@@ -2161,6 +2161,7 @@ function init()
 
         {id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
+		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units, holding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 	}
 
 	-- fsaa is deprecated in 104.x
@@ -2626,10 +2627,10 @@ function widget:GetConfigData(data)
 		normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
 		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
-		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",1) or 50)},
-		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",1) or 50)},
-		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 50)},
-		sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",1) or 50)},
+		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)},
+		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",40) or 40)},
+		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",40) or 40)},
+		sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",40) or 40)},
 	}
 	return savedTable
 end
