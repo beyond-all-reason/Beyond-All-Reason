@@ -122,6 +122,9 @@ local popups = {	-- exclude auto target range boost for popup units
 	[UnitDefNames.corvipe.id] = true,
 	[UnitDefNames.corpun.id] = true,
 	[UnitDefNames.corexp.id] = true,
+	
+	[UnitDefNames.corllt.id] = true,
+	[UnitDefNames.armllt.id] = true,
 }
 
 function gadget:UnitCreated(unitID,unitDefID)
