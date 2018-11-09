@@ -1976,7 +1976,7 @@ function init()
 
 		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 
-		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='NOTE: when icon edges look jagged: enable more Anti-Aliasing\n...or pick the \'old\' iconset'},
+		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern','modern_simplified'}, value=1, description='NOTE: when icon edges look jagged: enable more Anti-Aliasing\n...or pick the \'old\' iconset'},
 		{id="disticon", group="gfx", name=widgetOptionColor.."   render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.75, max=1.25, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.05) or 1.05), description=''},
 
@@ -2166,8 +2166,8 @@ function init()
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
 		local fsaa = tonumber(Spring.GetConfigInt("msaa",0))
-		if fsaa > options[getOptionByID('iconset')].max then
-			fsaa = options[getOptionByID('iconset')].max
+		if fsaa > options[getOptionByID('msaa')].max then
+			fsaa = options[getOptionByID('msaa')].max
 		end
 		Spring.SetConfigInt("MSAALevel", fsaa)
 		Spring.SetConfigInt("FSAALevel", 0)
@@ -2183,7 +2183,7 @@ function init()
 			end
 		end
 		options[getOptionByID('iconset')].options = opts
-		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'old'))
+		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'modern'))
 	else
 		options[getOptionByID('iconset')] = nil
 		options[getOptionByID('disticon')].name = "Icon render distance"
