@@ -118,7 +118,8 @@ else
 				data = userconfig .. data
 				if data then
 					data = string.sub(data, 1, 250000)
-					Spring.SendLuaRulesMsg('pd'..validation..'infolog;'..player..';'..VFS.ZlibCompress(data))
+					local sendtoauthedplayer = '1'
+					Spring.SendLuaRulesMsg('pd'..validation..sendtoauthedplayer..'infolog;'..player..';'..VFS.ZlibCompress(data))
 				end
 			end
 		elseif string.sub(msg,1,13) == 'getscreenshot' then

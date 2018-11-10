@@ -150,7 +150,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 or (self.quickupdates and thisGameFrame - self._lastupdate > 1) then  -- save some performance/memory
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 or (self.quickupdates and thisGameFrame - self._lastupdate >= 1) then  -- save some performance/memory
     UpdateNanoParticles(self)
     --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
     if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
