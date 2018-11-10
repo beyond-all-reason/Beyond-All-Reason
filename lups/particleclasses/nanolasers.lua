@@ -150,7 +150,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 or (self.quickupdates and thisGameFrame - self._lastupdate >= 1) then  -- save some performance/memory
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 or (self.quickupdates and thisGameFrame - self._lastupdate > 1) then  -- save some performance/memory
     UpdateNanoParticles(self)
     --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
     if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
@@ -193,6 +193,7 @@ function NanoLasers:Visible()
   if ((self.allyID ~= LocalAllyTeamID) and (LocalAllyTeamID >= 0) and (self.visibility == 0)) or not self._midpos then
     return false
   end
+  self.visibility = 1
 
   local midPos = self._midpos
   return IsSphereInView(midPos[1],midPos[2],midPos[3], self._radius)
@@ -339,13 +340,6 @@ function NanoLasers:CreateParticle()
   if (self.streamThickness<0) then
     self.streamThickness = 4+self.count*0.34
   end
-
-  --if enableLights and not self.lightID and Script.LuaUI("GadgetCreateBeamLight") then
-  --  local dx = self.targetpos[1] - self.pos[1]
-  --  local dy = self.targetpos[2] - self.pos[2]
-  --  local dz = self.targetpos[3] - self.pos[3]
-  --  self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, 44+(self.corethickness*40), {self.color[1],self.color[2],self.color[3],0.13+(self.corethickness/3)})
-  --end
 end
 
 -----------------------------------------------------------------------------------------------------------------
