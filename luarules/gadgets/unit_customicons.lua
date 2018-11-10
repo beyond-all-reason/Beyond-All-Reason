@@ -939,7 +939,7 @@ function gadget:GotChatMsg(msg, playerID)
           iconScale = tonumber(string.sub(msg,15))
           Spring.SetConfigFloat("UnitIconScale", iconScale)
           changeUnitIcons(Spring.GetConfigString("UnitIconFolder", 'modern'))
-          Spring.SendCommands("minimap unitsize "..Spring.GetConfigFloat("MinimapIconScale", 3.5))
+          --Spring.SendCommands("minimap unitsize "..Spring.GetConfigFloat("MinimapIconScale", 3.5-(iconScale-1)))
       end
   end
 end
