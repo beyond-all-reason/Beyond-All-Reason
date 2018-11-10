@@ -252,8 +252,8 @@ local function GetLightsFromUnitDefs()
 		elseif (weaponDef.type == 'LaserCannon') then
 			weaponData.radius = 70 * weaponDef.size
 		elseif (weaponDef.type == 'DGun') then
-			weaponData.radius = 500
-			lightMultiplier = 0.28
+			weaponData.radius = 450
+			lightMultiplier = 0.55
 		elseif (weaponDef.type == 'MissileLauncher') then
 			weaponData.radius = 125 * weaponDef.size
 			if weaponDef.damageAreaOfEffect ~= nil  then
