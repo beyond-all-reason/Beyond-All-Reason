@@ -249,6 +249,7 @@ local icons = {
 
     {"defence_0.user", "defence", 0.8},
     {"defence_0_laser.user", "defence", 0.8},
+    {"defence_0_laser2.user", "defence", 0.94},
     {"defence_1.user", "defence", 1.05},
     {"defence_1_laser.user", "defence", 1.05},
     {"defence_1_arty.user", "arty", 1.3},
@@ -352,10 +353,10 @@ function changeUnitIcons(folder)
     end
 
   -- assign (standard) icons
+local weaponDef
   for udid,ud in pairs(UnitDefs) do
     if (ud == nil) then break end
     local name = string.gsub(ud.name, '_bar', '')
-
       if ud.weapons[1] then
           weaponDef = WeaponDefs[ud.weapons[1].weaponDef]
       else
@@ -746,9 +747,9 @@ function changeUnitIcons(folder)
           elseif (name=="armamb" or name=="cortoast") and getIconID('defence_2_arty') then
               Spring.SetUnitDefIcon(udid, "defence_2_arty.user")
           elseif ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name=="armguard" or name=="corpun") then
-              if weaponDef and weaponDef.weaponType == 'BeamLaser' then
+              if weaponDef and weaponDef.type == 'BeamLaser' then
                   Spring.SetUnitDefIcon(udid, "defence_2_laser.user")
-              elseif weaponDef and weaponDef.weaponType == 'MissileLauncher' then
+              elseif weaponDef and weaponDef.type == 'MissileLauncher' then
                   Spring.SetUnitDefIcon(udid, "defence_2_missile.user")
               else
                   Spring.SetUnitDefIcon(udid, "defence_2.user")
@@ -759,8 +760,10 @@ function changeUnitIcons(folder)
               Spring.SetUnitDefIcon(udid, "defence_2_naval.user")
           elseif (name=="armhlt" or name=="corhlt" or name=="armfhlt" or name=="corfhlt") then
               Spring.SetUnitDefIcon(udid, "defence_1_laser.user")
+          elseif (name=="armbeamer" or name=="corhllt") then
+              Spring.SetUnitDefIcon(udid, "defence_0_laser2.user")
           else
-              if weaponDef ~= nil and weaponDef.weaponType == 'BeamLaser' then
+              if weaponDef and weaponDef.type == 'BeamLaser' then
                   Spring.SetUnitDefIcon(udid, "defence_0_laser.user")
               else
                   Spring.SetUnitDefIcon(udid, "defence_0.user")
