@@ -1,5 +1,5 @@
 ﻿10.13 -> 10.14
-XX/XX/2018
+10/11/2018
 
 NOTE: Requires 104.0.1.853 or later engine versions
 
@@ -15,23 +15,23 @@ Balance:
  • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
 
 Fixes:
- • Fixed: Popup units wont start targeting unless enemy is within weapon range
  • Fixed: Reduced footprint of engine replacement trees + tree fire wont spread as wildly
  • Fixed: Continuous aiming change always being able to fire, even when turret was way off
- • LLT's will only aim when target is within range
+ • Fixed: Popup units wont start targeting unless enemy is within weapon range
+ • LLT's only aims when target is within range (to keep early scout gameplay intact)
 
 Other:
  • New 'modern' unit icon set (made by IceXuick), choose between old/modern/modern_simplified in options
+ • Added: Options > Graphics > "Icon set", "Icon scale" and moved "Minimap icon size" there as well
  • Added: Options > Graphics > "Nano effect": beam or particles (old effect)
  • Added: Options > Graphics > Shadows: "max quality", "min quality", "disable at average FPS"
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
  • Added: Options > Game > "passive builders": nanos, cons, labs
  • Added: Options > Game > "Dont snap DGun to ground units" (default disabled), still snaps to air, ships and hovers on land
- • Options: Anti Aliasing options slider works again, and limited max value of 4 (MSAA will be used instead of FSAA)
+ • Options > Graphics > "Anti Aliasing" slider works again, but limited max value of 4. (MSAA will be used instead of FSAA)
  • Added light effects to: laser hits, barrel fire, air thrusters, nano beams and fusion balls
  • New flak explosion effect + custom crashing airplane smoke trails
  • Removed dgun range circle when enemy com gets near
- • Added option: "Icon scale"
  • Auto set 10000 particles as minimum
  • Adjusted proportions of all BAR (remodeled) units to match their BA counterparts (modoption: barmodels)
 
