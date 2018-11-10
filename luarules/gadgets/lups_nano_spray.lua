@@ -281,6 +281,14 @@ local function BuilderDestroyed(unitID)
 	builders[#builders] = nil
 end
 
+-- update (position) more frequently for air builders
+local airBuilders = {}
+for udid, unitDef in pairs(UnitDefs) do
+    if unitDef.canFly then
+        airBuilders[udid] = true
+    end
+end
+
 function gadget:GameFrame(frame)
     if currentNanoEffect == NanoFxNone then return end
 
@@ -365,6 +373,9 @@ function gadget:GameFrame(frame)
                                 inversed     = inversed,
                                 cmdTag       = cmdTag, --//used to end the fx when the command is finished
                             }
+                            if airBuilders[UnitDefID] then
+                                nanoParams.quickupdates = true
+                            end
 
                             local nanoSettings = CopyMergeTables(NanoFx.default, nanoParams)
                             ExecuteLuaCode(nanoSettings)
