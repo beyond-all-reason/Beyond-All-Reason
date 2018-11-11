@@ -67,7 +67,7 @@ local icons = {
     {"energy6.user", "energy",2.05},
   
     {"eye.user", "eye",0.85},
-    {"spy.user", "eye",1.25},
+    {"spy.user", "eye",1.18},
 
     {"hover_t1.user", "hover",0.9},
     {"hover_raid.user", "hover",0.9},
@@ -100,7 +100,7 @@ local icons = {
     {"ship_transport.user", "shiptrans",2},
 
     {"engineer.user", "wrench",1.3},
-    {"engineer_small.user", "wrench",1.1},
+    {"engineer_small.user", "wrench",0.9},
 
     {"commandtower.user", "mission_command_tower",2.35},
 
