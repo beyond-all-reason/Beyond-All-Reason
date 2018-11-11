@@ -1,9 +1,9 @@
 ﻿10.14 -> 10.15
-XX/XX/2018
+11/11/2018
 
  • DGun area of effect lines will be yellow when having insufficient energy
  • Fixed nano beam lights turning off immediately
- • Icon tweaks and fixes
+ • Icon tweaks, additions and fixes
 
 
 10.13 -> 10.14
