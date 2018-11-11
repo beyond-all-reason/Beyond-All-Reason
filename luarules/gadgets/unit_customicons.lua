@@ -59,12 +59,12 @@ local icons = {
   
   
     {"wind.user", "wind",1.1},
-    {"energy1.user", "solar",1.6},
-    {"energy2.user", "energy",1.75},
+    {"energy1.user", "solar",1.55},
+    {"energy2.user", "energy",1.65},
     {"energy3.user", "fusion",1.4},
     {"energy4.user", "hazardous",1.9},
     {"energy5.user", "fusion",1.8},
-    {"energy6.user", "energy",2.2},
+    {"energy6.user", "energy",2.05},
   
     {"eye.user", "eye",0.85},
     {"spy.user", "eye",1.25},
@@ -99,7 +99,8 @@ local icons = {
     {"ship_engineer.user", "shipengineer",1.5},
     {"ship_transport.user", "shiptrans",2},
 
-    {"engineer.user", "wrench",1.4},
+    {"engineer.user", "wrench",1.3},
+    {"engineer_small.user", "wrench",1.1},
 
     {"commandtower.user", "mission_command_tower",2.35},
 
@@ -794,8 +795,8 @@ local weaponDef
       elseif name=="armstump" or name=="corraid" then
           Spring.SetUnitDefIcon(udid, "vehicle_t1_tank.user")
       elseif ud.isBuilder then
-      if name=="armconsul" then
-        Spring.SetUnitDefIcon(udid, "engineer.user")
+        if name=="armconsul" then
+          Spring.SetUnitDefIcon(udid, "engineer.user")
         elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "vehicle_t2_worker.user")
         else
@@ -850,8 +851,8 @@ local weaponDef
       elseif ud.isBuilder then
         if (name=="cornecro" or name=="armrectr") then
           Spring.SetUnitDefIcon(udid, "kbot_t1_tinyworker.user")
-        elseif (name=="armfark" or name=="armconsul" or name=="corfast") then
-        Spring.SetUnitDefIcon(udid, "engineer.user")
+        elseif (name=="armfark" or name=="corfast") then
+          Spring.SetUnitDefIcon(udid, "engineer_small.user")
         elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
           Spring.SetUnitDefIcon(udid, "kbot_t2_worker.user")
         else
