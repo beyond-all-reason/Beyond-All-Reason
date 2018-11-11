@@ -159,9 +159,9 @@ function NanoLasers:Update(n)
       local dz = self.targetpos[3] - self.pos[3]
       local radius = 45+(self.corethickness*60)+(self.streamSpeed*200)
       if not self.lightID then
-        self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, radius, {self.color[1],self.color[2],self.color[3],0.11+(self.streamSpeed*0.66)})
+        self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, radius, {self.color[1],self.color[2],self.color[3],0.025+(self.streamSpeed*0.6)})
       else
-        if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=radius}}) then
+        if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.6), param={radius=radius}}) then
           self.lightID = nil
         end
       end

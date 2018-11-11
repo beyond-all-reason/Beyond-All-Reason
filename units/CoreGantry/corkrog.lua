@@ -157,8 +157,6 @@ return {
 				areaofeffect = 72,
 				avoidfeature = false,
 				beamtime = 0.6,
-				beamttl = 5,
-				beamdecay = 0.8,
 				camerashake = 0.1,
 				corethickness = 0.35,
 				craterareaofeffect = 72,
