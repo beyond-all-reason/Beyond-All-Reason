@@ -143,7 +143,7 @@ local icons = {
     {"emp.user", "emp",1.8},
     {"tacnuke.user", "tacnuke",1.8},
     {"nuke.user", "nuke",1.8},
-    {"nuke_big.user", "nuke",2.5},
+    {"nuke_big.user", "nuke",2.4},
     {"antinuke.user", "antinuke",1.6},
     {"antinuke_mobile.user", "antinuke",1.4},
   
