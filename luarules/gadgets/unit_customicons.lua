@@ -59,8 +59,8 @@ local icons = {
   
   
     {"wind.user", "wind",1},
-    {"energy1.user", "solar",1.55},
-    {"energy2.user", "energy",1.65},
+    {"energy1.user", "solar",1.5},
+    {"energy2.user", "energy",1.63},
     {"energy3.user", "fusion",1.4},
     {"energy4.user", "hazardous",1.9},
     {"energy5.user", "fusion",1.8},
@@ -129,7 +129,7 @@ local icons = {
     {"commando.user", "commando",1.35},
     {"commando2.user", "mech",1.3},  -- old
   
-    {"mex_t1.user", "mex",0.8},
+    {"mex_t1.user", "mex",0.77},
     {"mex_t2.user", "mex",1.15},
   
     {"metalmaker_t1.user", "metalmaker",0.75},
