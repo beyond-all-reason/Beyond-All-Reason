@@ -115,6 +115,7 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.1,
+				beamttl = 1,
 				corethickness = 0.14,
 				craterareaofeffect = 0,
 				craterboost = 0,
