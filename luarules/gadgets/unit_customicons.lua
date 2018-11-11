@@ -58,7 +58,7 @@ local icons = {
     {"sub_t2_worker.user", "sub_worker",1.66},
   
   
-    {"wind.user", "wind",1.1},
+    {"wind.user", "wind",1},
     {"energy1.user", "solar",1.55},
     {"energy2.user", "energy",1.65},
     {"energy3.user", "fusion",1.4},
@@ -112,7 +112,7 @@ local icons = {
     {"amphib_t2_aa.user", "amphib_aa",1.6},
     {"amphib_t3.user", "amphib",2.1},
   
-    {"shield.user", "shield", 1.8},
+    {"shield.user", "shield", 1.6},
 
     {"targetting.user", "targetting", 1.3},
     {"seismic.user", "seismic", 1.4},
