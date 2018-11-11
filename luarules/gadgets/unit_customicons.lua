@@ -69,15 +69,15 @@ local icons = {
     {"eye.user", "eye",0.85},
     {"spy.user", "eye",1.18},
 
-    {"hover_t1.user", "hover",0.9},
-    {"hover_raid.user", "hover",0.9},
+    {"hover_t1.user", "hover",1.1},
+    {"hover_raid.user", "hover",1},
     {"hover_gun.user", "hover",1.05},
-    {"hover_t1_worker.user", "hover_worker",0.9},
-    {"hover_t1_aa.user", "hover_aa",0.9},
-    {"hover_t1_missile.user", "hover",1.1},
-    {"hover_t2.user", "hover",1.3},
-    {"hover_t3.user", "hover",1.6},
-    {"hover_transport.user", "hovertrans",1.5},
+    {"hover_t1_worker.user", "hover_worker",1.1},
+    {"hover_t1_aa.user", "hover_aa",1},
+    {"hover_t1_missile.user", "hover",1.25},
+    {"hover_t2.user", "hover",1.44},
+    {"hover_t3.user", "hover",1.75},
+    {"hover_transport.user", "hovertrans",1.66},
   
     {"ship_tiny.user", "ship",0.8},
     {"ship_raid.user", "ship",1.1},
@@ -129,7 +129,7 @@ local icons = {
     {"commando.user", "commando",1.35},
     {"commando2.user", "mech",1.3},  -- old
   
-    {"mex_t1.user", "mex",0.85},
+    {"mex_t1.user", "mex",0.8},
     {"mex_t2.user", "mex",1.15},
   
     {"metalmaker_t1.user", "metalmaker",0.75},
@@ -161,7 +161,7 @@ local icons = {
     {"allterrain_vanguard.user", "allterrain",2.3},
 
     {"kbot_t1_flea.user", "kbot",0.51},
-    {"kbot_t1_tinyworker.user", "worker",0.8},
+    {"kbot_t1_tinyworker.user", "worker",0.66},
     {"kbot_t1_raid.user", "kbot",0.7},
     {"kbot_t1.user", "kbot",0.95},
     {"kbot_t1_big.user", "kbot",1.1},
