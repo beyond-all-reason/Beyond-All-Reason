@@ -59,7 +59,7 @@ local icons = {
   
   
     {"wind.user", "wind",1.1},
-    {"energy1.user", "solar",1.75},   
+    {"energy1.user", "solar",1.6},
     {"energy2.user", "energy",1.75},
     {"energy3.user", "fusion",1.4},
     {"energy4.user", "hazardous",1.9},
@@ -176,7 +176,7 @@ local icons = {
     {"kbot_t3.user", "kbot",1.9},
   
     {"vehicle_t1_flea.user", "vehicle",0.55},
-    {"vehicle_t1_raid.user", "vehicle",0.75},
+    {"vehicle_t1_raid.user", "vehicle",0.85},
     {"vehicle_t1.user", "vehicle",1},
     {"vehicle_t1_tank.user", "vehicle",1.1},
     {"vehicle_t1_missile.user", "vehicle",1},
@@ -229,14 +229,14 @@ local icons = {
   
     {"air_t1.user", "air",0.85},
     {"air_t1_worker.user", "air_worker",1.2},
-    {"air_t1_hover.user", "air_hover",1.25},
+    {"air_t1_hover.user", "air_hover",1.2},
     {"air_t1_bomber.user", "air_bomber",1.35},
     {"air_t1_transport.user", "air_trans",1.3},
     {"air_t1_scout.user", "air_los",0.75},
     {"air_t2.user", "air",1.05},
-    {"air_t2_worker.user", "air_worker",1.6},
-    {"air_t2_hover.user", "air_hover",1.55},
-    {"air_t2_hover_missile.user", "air_hover",1.55},
+    {"air_t2_worker.user", "air_worker",1.55},
+    {"air_t2_hover.user", "air_hover",1.4},
+    {"air_t2_hover_missile.user", "air_hover",1.4},
     {"air_t2_bomber.user", "air_bomber",1.66},
     {"air_t2_transport.user", "air_trans",1.75},
     {"air_t2_radar.user", "air_los",1.33},
