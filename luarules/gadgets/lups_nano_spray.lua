@@ -295,12 +295,13 @@ function gadget:GameFrame(frame)
     local updateFramerate = math.min(30, 3 + math.floor(#builders/25)) -- update fast at gamestart and gradually slower
     local totalNanoEmitters = 0
     local myTeamID = Spring.GetMyTeamID()
+    local _, myFullview = Spring.GetSpectatingState()
     for i=1,#builders do
         if totalNanoEmitters > maxNewNanoEmitters then
             break
         end
         local unitID = builders[i]
-        if (not hideIfIcon or not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID) then
+        if ((not hideIfIcon and (myFullview or Spring.GetMyAllyTeamID() == Spring.GetUnitAllyTeam(unitID))) or not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID)  then
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then

@@ -154,28 +154,24 @@ function NanoLasers:Update(n)
     UpdateNanoParticles(self)
     --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
     if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
-      if self.visibility ~= 0 then
-        local dx = self.targetpos[1] - self.pos[1]
-        local dy = self.targetpos[2] - self.pos[2]
-        local dz = self.targetpos[3] - self.pos[3]
-        local radius = 45+(self.corethickness*60)+(self.streamSpeed*200)
-        if not self.lightID then
-          self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, radius, {self.color[1],self.color[2],self.color[3],0.11+(self.streamSpeed*0.66)})
-        else
-          if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=radius}}) then
-            self.lightID = nil
-          end
+      local dx = self.targetpos[1] - self.pos[1]
+      local dy = self.targetpos[2] - self.pos[2]
+      local dz = self.targetpos[3] - self.pos[3]
+      local radius = 45+(self.corethickness*60)+(self.streamSpeed*200)
+      if not self.lightID then
+        self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, radius, {self.color[1],self.color[2],self.color[3],0.11+(self.streamSpeed*0.66)})
+      else
+        if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=radius}}) then
+          self.lightID = nil
         end
-      elseif self.lightID then
-        Script.LuaUI.GadgetRemoveBeamLight(self.lightID)
       end
     end
 
     self.fpos = (self.fpos or 0) + self.count * 5 * n
     if (self.inversed) then
-      self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/3000*math.pi)
+      self.scane_mult = 4 * math.cos(6*(self.fpos%3001)/3000*math.pi)
     else
-      self.scane_mult = 8 * math.cos(2*(self.fpos%4001)/3000*math.pi)
+      self.scane_mult = 8 * math.cos(2*(self.fpos%3001)/3000*math.pi)
     end
 
     if (self._dead) then
@@ -190,11 +186,9 @@ function NanoLasers:ReInitialize()
 end
 
 function NanoLasers:Visible()
-  if ((self.allyID ~= LocalAllyTeamID) and (LocalAllyTeamID >= 0) and (self.visibility == 0)) or not self._midpos then
-    return false
-  end
-  self.visibility = 1
-
+  --if ((self.allyID ~= LocalAllyTeamID) and (LocalAllyTeamID >= 0) and (self.visibility == 0)) or not self._midpos then
+  --  return false
+  --end
   local midPos = self._midpos
   return IsSphereInView(midPos[1],midPos[2],midPos[3], self._radius)
 end
