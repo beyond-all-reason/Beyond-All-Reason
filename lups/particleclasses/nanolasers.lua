@@ -186,10 +186,11 @@ function NanoLasers:ReInitialize()
 end
 
 function NanoLasers:Visible()
-  --if ((self.allyID ~= LocalAllyTeamID) and (LocalAllyTeamID >= 0) and (self.visibility == 0)) or not self._midpos then
-  --  return false
-  --end
+  if not self._midpos then
+    return false
+  end
   local midPos = self._midpos
+
   return IsSphereInView(midPos[1],midPos[2],midPos[3], self._radius)
 end
 
