@@ -62,7 +62,7 @@ local icons = {
     {"energy1.user", "solar",1.5},
     {"energy2.user", "energy",1.63},
     {"energy3.user", "fusion",1.4},
-    {"energy4.user", "hazardous",1.9},
+    {"energy4.user", "hazardous",1.8},
     {"energy5.user", "fusion",1.8},
     {"energy6.user", "energy",2.05},
   
@@ -112,7 +112,7 @@ local icons = {
     {"amphib_t2_aa.user", "amphib_aa",1.6},
     {"amphib_t3.user", "amphib",2.1},
   
-    {"shield.user", "shield", 1.6},
+    {"shield.user", "shield", 1.5},
 
     {"targetting.user", "targetting", 1.3},
     {"seismic.user", "seismic", 1.4},
@@ -228,13 +228,13 @@ local icons = {
   
     {"wall.user", "building",0.5},
   
-    {"air_t1.user", "air",0.85},
+    {"air_t1.user", "air",0.82},
     {"air_t1_worker.user", "air_worker",1.2},
     {"air_t1_hover.user", "air_hover",1.2},
     {"air_t1_bomber.user", "air_bomber",1.35},
     {"air_t1_transport.user", "air_trans",1.3},
     {"air_t1_scout.user", "air_los",0.75},
-    {"air_t2.user", "air",1.05},
+    {"air_t2.user", "air",0.98},
     {"air_t2_worker.user", "air_worker",1.55},
     {"air_t2_hover.user", "air_hover",1.4},
     {"air_t2_hover_missile.user", "air_hover",1.4},
