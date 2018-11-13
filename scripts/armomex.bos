@@ -107,9 +107,18 @@ Stop()
 	sleep 100;
 	if (curLevel > 64 )
 	{
-		move base to y-axis [24] - (64 * 65536) speed [30];
-		move arms to y-axis [24] - (64 * 65536) speed [30];
+		move base to y-axis [-44] speed [30];
+		move arms to y-axis [-44] speed [30];
 		wait-for-move arms along y-axis;
+	}
+	else
+	{
+		if (curLevel > 34)
+		{
+			move base to y-axis ([10] - curLevel * 65536) speed [30];
+			move arms to y-axis ([10] - curLevel * 65536) speed [30];
+			wait-for-move arms along y-axis;
+		}
 	}
 	set ACTIVATION to FALSE;	
 }
@@ -182,7 +191,7 @@ SetSpeed(Func_Var_1)
 
 HitByWeapon(Func_Var_1, Func_Var_2)
 {
-	if (curLevel > 64)
+	if (curLevel > 34)
 	{
 		if( get ACTIVATION )
 		{
