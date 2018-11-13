@@ -22,7 +22,7 @@ if (gadgetHandler:IsSyncedCode()) then
 		if (unitName == "armuwmex" or unitName == "coruwmex") then
 			GroundHeight = Spring.GetGroundHeight(x,z)
 			Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
-			Spring.SetUnitRadiusAndHeight (unitID, 24, 0 )
+			Spring.SetUnitRadiusAndHeight (unitID, 8, 0 )
 			for piecenum, name in pairs(Spring.GetUnitPieceList(unitID)) do
 				if name == "arms" then
 					toUpdateList[unitID] = piecenum
