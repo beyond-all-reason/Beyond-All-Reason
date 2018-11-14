@@ -301,7 +301,7 @@ function gadget:GameFrame(frame)
             break
         end
         local unitID = builders[i]
-        if ((not hideIfIcon and (myFullview or Spring.GetMyAllyTeamID() == Spring.GetUnitAllyTeam(unitID))) or not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID)  then
+        if ((not hideIfIcon and (myFullview or Spring.GetMyAllyTeamID() == Spring.GetUnitAllyTeam(unitID))) or (not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID))  then
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then

@@ -304,7 +304,7 @@ function changeUnitIcons(folder)
         else
             Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
         end
-          loadedIcons[#loadedIcons+1] = icon[1]
+        loadedIcons[#loadedIcons+1] = icon[1]
       end
   end
 
