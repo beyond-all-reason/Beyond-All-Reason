@@ -1,4 +1,13 @@
-﻿10.14 -> 10.15
+﻿10.15 -> 10.16
+XX/XX/2018
+
+ • Fixed nano beam errors
+ • "Auto quit" widget keeps trying to quit if no mouse movement has been for a minute
+ • Added widget "Player TV": auto camera tracks top trueskill players + switches every 40 secs
+ • Pause screen will show when no new gameframes have been received (host admin pause)
+
+
+10.14 -> 10.15
 11/11/2018
 
  • DGun area of effect lines will be yellow when having insufficient energy

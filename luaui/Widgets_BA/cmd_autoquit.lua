@@ -23,7 +23,7 @@ local GetMouseState = Spring.GetMouseState
 function widget:GetInfo()
   return {
     name      = "Autoquit",
-    desc      = versionNumber .. " Automatically quits "..delay.."s after the game ends. Move mouse to cancel.",
+    desc      = versionNumber .. " Automatically quits "..delay.."s after the game ends. Move mouse to postpone. (each minute) ",
     author    = "Evil4Zerggin & zwzsg",
     date      = "25 December 2008",
     license   = "GNU LGPL, v2.1 or later",
@@ -47,7 +47,9 @@ function widget:Update(dt)
     local nmx,nmy = GetMouseState()
     if nmx~=mx or nmy~=my then
       --Echo("<autoquit> Autoquit canceled.")
-      endTime = false
+      --endTime = false
+      endTime = GetTimer() + 60   -- set new endtime, because I've had times that game was running for ages because i wasnt attending pc but somehow it detect a move
+      mx,my = GetMouseState()
       -- widgetHandler:RemoveWidget(self)
     elseif DiffTimers(GetTimer(), endTime) > delay then
       Echo("<autoquit> Autoquit sending quit command.")
