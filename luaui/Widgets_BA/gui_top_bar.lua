@@ -2,12 +2,12 @@ function widget:GetInfo()
 	return {
 		name		= "Top Bar",
 		desc		= "Shows Resources, wind speed, commander counter, and various options.",
-		author	= "Floris",
+		author		= "Floris",
 		date		= "Feb, 2017",
-		license	= "GNU GPL, v2 or later",
-        layer     = -99999,
-		enabled   = true, --enabled by default
-		handler   = true, --can use widgetHandler:x()
+		license		= "GNU GPL, v2 or later",
+        layer		= -99999,
+		enabled		= true, --enabled by default
+		handler		= true, --can use widgetHandler:x()
 	}
 end
 
@@ -44,6 +44,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*relXpos
 local currentWind = 0
+local currentTidal = 0
 local gameStarted = false
 local displayComCounter = false
 
@@ -73,7 +74,8 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
-local spWind = Spring.GetWind
+local spGetWind = Spring.GetWind
+
 local minWind = Game.windMin
 local maxWind = Game.windMax
 local windRotation = 0
@@ -893,7 +895,7 @@ function widget:Update(dt)
 
 	-- wind
 	if (gameFrame ~= lastFrame) then
-		currentWind = sformat('%.1f', select(4,spWind()))
+		currentWind = sformat('%.1f', select(4,spGetWind()))
 	end
 
 
