@@ -141,7 +141,7 @@ function widget:Update(dt)
     lastPause = paused
 
     local _, _, isPaused = spGetGameSpeed()
-    if isPaused or now - prevGameFrameTime > 1.2 then    -- when host (admin) paused its just gamespeed 0
+    if isPaused or (now - prevGameFrameTime > 1.2 and Spring.GetGameFrame() > 0) then    -- when host (admin) paused its just gamespeed 0
         paused = true
     else
         paused = false

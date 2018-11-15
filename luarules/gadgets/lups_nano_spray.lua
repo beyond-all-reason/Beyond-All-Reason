@@ -323,13 +323,13 @@ function gadget:GameFrame(frame)
                             radius = (GetFeatureRadius(target) or 1) * 0.80
                         end
 
-                        local terraform = false
-                        local inversed  = false
-                        if (type=="restore") then
-                            terraform = true
-                        elseif (type=="reclaim") then
-                            inversed  = true
-                        end
+                        --local terraform = false
+                        --local inversed  = false
+                        --if (type=="restore") then
+                        --    terraform = true
+                        --elseif (type=="reclaim") then
+                        --    inversed  = true
+                        --end
 
                         --[[
                         if (type=="reclaim") and (strength > 0) then
@@ -370,8 +370,7 @@ function gadget:GameFrame(frame)
                                 color        = teamColor,
                                 type         = type,
                                 targetradius = radius,
-                                terraform    = terraform,
-                                inversed     = inversed,
+                                beamtype     = type,
                                 cmdTag       = cmdTag, --//used to end the fx when the command is finished
                             }
                             if airBuilders[UnitDefID] then

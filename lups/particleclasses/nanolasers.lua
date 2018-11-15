@@ -42,8 +42,6 @@ NanoLasers.Default = {
   targetradius = 0,       --// terraform/unit radius
   color        = {0, 0, 0, 0},
   count        = 1,
-  inversed     = false,   --// reclaim?
-  terraform    = false,   --// for terraform (2d target)
   unit         = -1,
   nanopiece    = -1,
 
@@ -137,12 +135,23 @@ function NanoLasers:Draw()
   glMultiTexCoord(0,endPos[1] - self.normdir[3] * self.scane_mult ,endPos[2],endPos[3] + self.normdir[1] * self.scane_mult,1)
   glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],1)
 
-  if (self.inversed) then
+  if (self.beamtype == 'building' or self.beamtype == 'repair') then
+    glTexture('bitmaps/projectiletextures/nanobeam-build.png')
+    glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2.5, self.corealpha, self.corethickness/2.5)
+  elseif (self.beamtype == 'reclaim') then
     glTexture('bitmaps/projectiletextures/nanobeam-reclaim.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
+  elseif (self.beamtype == 'restore') then
+    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
+  elseif (self.beamtype == 'resurrect') then
+    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
+  elseif (self.beamtype == 'capture') then
+    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   else
-    glTexture('bitmaps/projectiletextures/nanobeam-build.png')
-    glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/3, self.corealpha, self.corethickness/3)
+    glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   end
 
   glCallList(dlist)
@@ -170,11 +179,11 @@ function NanoLasers:Update(n)
     end
 
     self.fpos = (self.fpos or 0) + self.count * 5 * n
-    if (self.inversed) then
-      self.scane_mult = 4 * math.cos(6*(self.fpos%3001)/3000*math.pi)
-    else
+    --if (self.inversed) then
+    --  self.scane_mult = 4 * math.cos(6*(self.fpos%3001)/3000*math.pi)
+    --else
       self.scane_mult = 8 * math.cos(2*(self.fpos%3001)/3000*math.pi)
-    end
+    --end
 
     if (self._dead) then
       RemoveParticles(self.id)

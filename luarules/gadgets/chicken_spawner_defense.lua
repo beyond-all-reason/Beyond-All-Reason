@@ -23,6 +23,7 @@ end
 
 if chickensEnabled == true then
 	Spring.Echo("[ChickenDefense: Chicken Defense Spawner] Activated!")
+	chickenGlobalLOS = Spring.GetModOptions().chickengloballos or "enabled"
 else
 	Spring.Echo("[ChickenDefense: Chicken Defense Spawner] Deactivated!")
 	return false
@@ -1286,6 +1287,15 @@ function gadget:GameFrame(n)
 		return
 	end
 
+	if n == 1 then
+		if chickenGlobalLOS == "enabled" then
+			local allyteams = Spring.GetAllyTeamList()
+			for i = 0, #allyteams - 1 do
+				Spring.SetGlobalLos(i, true)
+			end
+		end
+	end
+	
 	if n == 15 then
 		DisableComputerUnits()
 	end
