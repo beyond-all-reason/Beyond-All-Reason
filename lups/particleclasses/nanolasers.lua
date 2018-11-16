@@ -136,8 +136,8 @@ function NanoLasers:Draw()
   glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],1)
 
   if (self.beamtype == 'building' or self.beamtype == 'repair') then
-    glTexture('bitmaps/projectiletextures/nanobeam-build.png')
-    glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2.5, self.corealpha, self.corethickness/2.5)
+    --glTexture('bitmaps/projectiletextures/nanobeam-build.png')
+    glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   elseif (self.beamtype == 'reclaim') then
     glTexture('bitmaps/projectiletextures/nanobeam-reclaim.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
