@@ -12,7 +12,7 @@ end
 
 if not gadgetHandler:IsSyncedCode() then return end
 
-local blockingBuildProgress = 0.1
+local blockingBuildProgress = 0.05
 
 ------------
 
