@@ -1,10 +1,10 @@
 ﻿10.15 -> 10.16
-XX/XX/2018
+16/11/2018
 
- • 'nanoframes' will now block shots when build for 5% (was 10%)
+ • 'nanoframes' will now be hit when build process reaches 5% (was 10%)
  • Fixed nano beam errors + different beam visual for reclaiming
- • "Auto quit" widget keeps trying to quit if no mouse movement has been for a minute
  • Added widget "Player TV": auto camera tracks top trueskill players + switches every 40 secs
+ • "Auto quit" widget will keep trying to quit if there is no mouse movement dectected each minute
  • Pause screen will show when no new gameframes have been received (host admin pause)
 
 

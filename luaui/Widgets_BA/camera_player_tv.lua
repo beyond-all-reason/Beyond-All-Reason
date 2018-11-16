@@ -32,7 +32,7 @@ local nextTrackingPlayerChange = os.clock()
 local tsOrderedPlayerCount = 0
 local tsOrderedPlayers = {}
 
-local show = (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState())
+local show = Spring.GetSpectatingState()
 local vsx, vsy = Spring.GetViewGeometry()
 local widgetScale = (0.7 + (vsx*vsy / 5000000))
 
@@ -321,10 +321,7 @@ end
 
 
 function widget:Initialize()
-	show = (Spring.GetGameFrame() > 0 and Spring.GetSpectatingState())
-	--if not Spring.GetSpectatingState() then
-		--widgetHandler:RemoveWidget()
-	--end
+	show = Spring.GetSpectatingState()
 	if WG['advplayerlist_api'] == nil then
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
 		widgetHandler:RemoveWidget()
@@ -360,10 +357,8 @@ end
 
 
 function widget:PlayerChanged(playerID)
-	if Spring.GetGameFrame() > 0 then
-		show = Spring.GetSpectatingState()
-		tsOrderPlayers()
-	end
+	show = Spring.GetSpectatingState()
+	tsOrderPlayers()
 	if not rejoining then
 		if playerID == currentTrackedPlayer then
 			SelectTrackingPlayer()
@@ -373,12 +368,12 @@ end
 
 local passedTime = 0
 function widget:Update(dt)
-	if show then
-		passedTime = passedTime + dt
-		if passedTime > 0.1 then
-			passedTime = passedTime - 0.1
-			updatePosition()
-		end
+	passedTime = passedTime + dt
+	if passedTime > 0.1 then
+		passedTime = passedTime - 0.1
+		updatePosition()
+	end
+	if show and Spring.GetGameFrame() > 0 then
 		if WG['tooltip'] then
 			if not toggled then
 				mx,my,mb = Spring.GetMouseState()
@@ -484,7 +479,7 @@ function widget:DrawScreen()
 		end
 	end
 
-	if show and toggled and not rejoining then
+	if show and toggled and not rejoining and Spring.GetGameFrame() > 0 then
 		local countDown = math.floor(nextTrackingPlayerChange - os.clock())
 		if drawlistsCountdown[countDown] ~= nil then
 			gl.PushMatrix()
