@@ -437,7 +437,7 @@ function isInBox(mx, my, box)
 end
 
 function widget:MousePress(mx, my, mb)
-	if mb == 1 and (Spring.GetGameFrame() > 0 or lockPlayerID) then
+	if isSpec and mb == 1 and (Spring.GetGameFrame() > 0 or lockPlayerID) then
 		if toggleButton ~= nil and isInBox(mx, my, toggleButton) then
 			prevorderID = nil
 			currentTrackedPlayer = nil
