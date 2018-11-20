@@ -434,13 +434,14 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 					local target = cmdParams
 					--coordinate
 					local validTarget = false
+					if target[2] > Spring.GetGroundHeight(target[1], target[3]) then target[2] = Spring.GetGroundHeight(target[1], target[3]) end -- clip to ground level
 					--only accept valid targets
 					for weaponID in ipairs(weaponList) do
 						validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
 						if validTarget then
 							break
 						elseif target[2] < 0 and spGetUnitWeaponTestTarget(unitID,weaponID,target[1],1,target[3]) then
-							target[2] = 1
+							target[2] = 1 -- clip to waterlevel +1
 							validTarget = spGetUnitWeaponTestTarget(unitID,weaponID,target[1],target[2],target[3])
 							break
 						end
