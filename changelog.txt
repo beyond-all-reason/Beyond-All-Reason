@@ -1,10 +1,19 @@
-﻿10.15 -> 10.16
+﻿10.16 -> 10.17
+21/11/2018
+
+ • Fixed range exploit
+ • Fighters will explode with less damage (half damage, 2/3 AoE)
+ • Fixes and tweaks for Pausescreen, Autoquit, nanobeams and Player TV
+ • Limited MSAA slider option max 8
+
+
+10.15 -> 10.16
 16/11/2018
 
  • 'nanoframes' will now be hit when build process reaches 5% (was 10%)
  • Fixed nano beam errors + different beam visual for reclaiming
  • Added widget "Player TV": auto camera tracks top trueskill players + switches every 40 secs
- • "Auto quit" widget will keep trying to quit if there is no mouse movement dectected each minute
+ • "Auto quit" widget will keep trying to quit if there is no mouse movement detected each minute
  • Pause screen will show when no new gameframes have been received (host admin pause)
 
 
