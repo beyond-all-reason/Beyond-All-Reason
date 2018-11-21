@@ -2,6 +2,7 @@
 XX/XX/2018
 
  • Renamed modoption 'ffa' to 'ffa_mode'
+ • Fixed com counter
 
 
 10.16 -> 10.17

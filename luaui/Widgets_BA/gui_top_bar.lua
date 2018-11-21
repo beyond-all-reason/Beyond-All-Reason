@@ -99,8 +99,8 @@ local currentResCap = {metal=1000,energy=1000}
 local currentResValue = {metal=1000,energy=1000 }
 
 local r = {}
-r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
-r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
+r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+r['energy'] = {spGetTeamResources(myTeamID,'energy') }
 
 local showOverflowTooltip = {}
 
@@ -420,7 +420,7 @@ local function updateComs(forceText)
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
 		end
 	end)
-	
+
 	if dlistComs2 ~= nil then
 		glDeleteList(dlistComs2)
 	end
@@ -435,13 +435,7 @@ local function updateComs(forceText)
 		-- Text
 		if gameFrame > 0 or forceText then
 			local fontsize = (height/2.85)*widgetScale
-			local usedEnemyComs = enemyComs
-			if spec then
-				usedEnemyComs = enemyComs
-			else
-				usedEnemyComs = enemyComCount
-			end
-			glText('\255\255\000\000'..usedEnemyComs, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+			glText('\255\255\000\000'..enemyComCount, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
 			fontSize = (height/2.15)*widgetScale
 			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
@@ -659,7 +653,7 @@ local function updateResbar(res)
 	dlistResbar[res][2] = glCreateList( function()
 		-- Metalmaker Conversion slider
 		if showConversionSlider and res == 'energy' then
-            local convValue = Spring.GetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
+            local convValue = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
             if draggingConversionIndicatorValue ~= nil then
                 convValue = draggingConversionIndicatorValue/100
 			end
@@ -721,8 +715,8 @@ end
 
 function init()
 
-    r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
-    r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
+    r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+    r['energy'] = {spGetTeamResources(myTeamID,'energy') }
 
 	topbarArea = {xPos, vsy-(borderPadding*widgetScale)-(height*widgetScale), vsx, vsy}
 	barContentArea = {xPos+(borderPadding*widgetScale), vsy-(height*widgetScale), vsx, vsy}
@@ -793,7 +787,7 @@ end
 
 function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
+    myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 end
 
@@ -801,21 +795,9 @@ end
 function widget:GameStart()
 	gameStarted = true
 	checkStatus()
-
 	if displayComCounter then
 		countComs()
-        if comsArea[1] ~= nil then
-		    updateComs(true)
-        end
 	end
-
-	-- code for rejoin
-	--local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
-	--local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
-	--local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
-    --Spring.SendLuaUIMsg(timestampMsg, 's') --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-    --Spring.SendLuaUIMsg(timestampMsg, 'a') --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-    --myTimestamp = systemSecond
 end
 
 
@@ -834,15 +816,21 @@ function widget:GameFrame(n)
 end
 
 local sec = 0
+local secComCount = 0
 local t = UPDATE_RATE_S
 function widget:Update(dt)
+    local prevMyTeamID = myTeamID
+    if spec and spGetMyTeamID() ~= prevMyTeamID then  -- check if the team that we are spectating changed
+        checkStatus()
+    end
+
 	local mx,my = spGetMouseState()
 
     sec = sec + dt
     if sec>0.066 then
         sec = 0
-        r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
-        r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
+        r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+        r['energy'] = {spGetTeamResources(myTeamID,'energy') }
     end
 
     now = os.clock()
@@ -875,7 +863,7 @@ function widget:Update(dt)
 			resbarHover = nil
 			updateResbar('metal')
 		end
-	elseif spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
+	elseif spec and myTeamID ~= prevMyTeamID then  -- check if the team that we are spectating changed
 		draggingShareIndicatorValue = {}
 		draggingConversionIndicatorValue = nil
 		updateResbar('metal')
@@ -890,23 +878,11 @@ function widget:Update(dt)
 
  	-- coms
 	if displayComCounter then
-		if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
-			checkStatus()
-			countComs()
-		end
-		if not spec then	-- check if we have received a TeamRulesParam from the gadget part
-			local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
-			if type(newEnemyComCount) == 'number' then
-				enemyComCount = newEnemyComCount
-				if enemyComCount ~= prevEnemyComCount then
-					comcountChanged = true
-					prevEnemyComCount = enemyComCount
-				end
-			end
-		end
-		if comcountChanged then
-			updateComs()
-		end
+        secComCount = secComCount + dt
+        if secComCount>0.5 then
+            secComCount = 0
+            countComs()
+        end
 	end
 
 	-- rejoin
@@ -1452,26 +1428,22 @@ function countComs()
 		end
 	end
 	comcountChanged = true
-	
-	if spec then
-		-- recount enemy coms
-		enemyComs = 0
-		local allyTeamList = Spring.GetAllyTeamList()
-		for _,allyTeamID in ipairs(allyTeamList) do
-			if allyTeamID ~= myAllyTeamID then
-				local teamList = Spring.GetTeamList(allyTeamID)
-				for _,teamID in ipairs(teamList) do
-					enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
-					if armcom_barDefID then
-						enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcom_barDefID) + Spring.GetTeamUnitDefCount(teamID, corcom_barDefID)
-					end
-				end
-			end
-		end
-	end
-	
+
+    local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
+    if type(newEnemyComCount) == 'number' then
+        enemyComCount = newEnemyComCount
+        if enemyComCount ~= prevEnemyComCount then
+            comcountChanged = true
+            prevEnemyComCount = enemyComCount
+        end
+    end
+
 	if allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
 		comcountChanged = true
+	end
+
+	if comcountChanged then
+		updateComs()
 	end
 end
 
