@@ -1,4 +1,9 @@
-﻿10.16 -> 10.17
+﻿10.17 -> 10.18
+XX/XX/2018
+ • Renamed modoption 'ffa' to 'ffa_mode'
+
+
+10.16 -> 10.17
 21/11/2018
 
  • Fixed range exploit
