@@ -56,7 +56,7 @@ for _,teamID in ipairs(GetTeamList()) do
 end
 
 local blowUpWhenEmptyAllyTeam = true
-if Spring.GetModOptions() and Spring.GetModOptions().ffa ~= nil and (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then
+if Spring.GetModOptions() and Spring.GetModOptions().ffa_mode ~= nil and (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
 	blowUpWhenEmptyAllyTeam = false
 end
 if teamCount == 2 then
