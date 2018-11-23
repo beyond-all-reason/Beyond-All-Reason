@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
-		name		= "Player TV",
+		name		= "Player-TV",
 		desc		= "Automaticly tracks players camera, (shows player-switch countdown on top of advplayerlist)",
 		author		= "Floris",
 		date		= "January 2018",
 		license		= "GNU GPL, v2 or later",
 		layer		= -2,
-		show		= true,
+		enabled		= true,
 		handler		= true,
 	}
 end

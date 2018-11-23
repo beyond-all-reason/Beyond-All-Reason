@@ -1,8 +1,9 @@
 ﻿10.17 -> 10.18
 XX/XX/2018
 
- • Renamed modoption 'ffa' to 'ffa_mode'
  • Fixed com counter
+ • Renamed modoption 'ffa' to 'ffa_mode'
+ • Player-TV widget enabled by default (shows on top of advplayerslist when spectator)
 
 
 10.16 -> 10.17
