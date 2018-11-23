@@ -74,7 +74,7 @@ function gadget:GameFrame(n)
 end
 
 function gadget:AllowCommand(unitID, _, _, _, cmdID)
-	if Bombers[unitID] then
+	if Bombers[unitID] and not Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 		if cmdID == CMD.ATTACK then
 			Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
 		else
