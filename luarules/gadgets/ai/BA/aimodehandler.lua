@@ -24,12 +24,12 @@ function AiModeHandler:Init()
 	math.random(); math.random(); math.random()
 	self:PickASide(math.random(1,2))
 	self:CreateWantedTechTree(math.random(1,12),math.random(1,12))
-	local count = #Spring.GetTeamList(self.ai.allyId)
-	if count and count > 1 then
-		self:Mode(math.random(1,count)%3 + 1)
-	else
+	--local count = #Spring.GetTeamList(self.ai.allyId)
+	--if count and count > 1 then
+		--self:Mode(math.random(1,count)%3 + 1)
+	--else
 		self:Mode(1)
-	end
+	--end
 end
 
 function AiModeHandler:Update()
@@ -44,37 +44,54 @@ end
 
 
 function AiModeHandler:Mode(i)
-	if i == 1 then -- Balanced mode
-		-- Spring.Echo(self.ai.id, "Balanced mode")
-		self.t1ratepret2 = 1
-		self.t1ratepostt2 = 0.4
-		self.eincomelimiterpretech2 = 750
-		self.eincomelimiterposttech2 = 1550
-		self.mintecheincome = 450
-		self.mintechmincome = 22
-		self.mint2countpauset1 = 5
-		self.t2rusht1reclaim = true
-	elseif i == 3 then -- TechRush mode
-		-- Spring.Echo(self.ai.id, "TechRush mode")
-		self.t1ratepret2 = 0.3
-		self.t1ratepostt2 = 0.05
-		self.eincomelimiterpretech2 = 300
-		self.eincomelimiterposttech2 = 500
-		self.mintecheincome = 300
-		self.mintechmincome = 12
-		self.mint2countpauset1 = 3
-		self.t2rusht1reclaim = true
-	elseif i == 2 then -- T1 Mode
-		-- Spring.Echo(self.ai.id, "T1 Mode")
-		self.t1ratepret2 = 2
-		self.t1ratepostt2 = 1
-		self.eincomelimiterpretech2 = 1550
-		self.eincomelimiterposttech2 = 2550
-		self.mintecheincome = 950
-		self.mintechmincome = 35
-		self.mint2countpauset1 = 10
-		self.t2rusht1reclaim = false
-	end
+		self.t1ratepret2 = math.random(3,20)*0.1							
+		self.t1ratepostt2 = math.random(5,100)*0.01
+		self.eincomelimiterpretech2 = math.random(300,1550)
+		self.eincomelimiterposttech2 = math.random(500,2550)
+		if self.eincomelimiterposttech2 < self.eincomelimiterpretech2 then
+			local r = math.random(100,500)
+			self.eincomelimiterposttech2 = self.eincomelimiterpretech2 + r
+		end
+		self.mintecheincome = math.random(300,950)
+		self.mintechmincome = math.random(12,35)
+		self.mint2countpauset1 = math.random(3,10)
+		local r = math.random(0,1)
+		if r < 0 then
+			self.t2rusht1reclaim = true
+		else
+			self.t2rusht1reclaim = false
+		end
+	-- if i == 1 then -- Balanced mode
+		-- -- Spring.Echo(self.ai.id, "Balanced mode")
+		-- self.t1ratepret2 = 1
+		-- self.t1ratepostt2 = 0.4
+		-- self.eincomelimiterpretech2 = 750
+		-- self.eincomelimiterposttech2 = 1550
+		-- self.mintecheincome = 450
+		-- self.mintechmincome = 22
+		-- self.mint2countpauset1 = 5
+		-- self.t2rusht1reclaim = true
+	-- elseif i == 3 then -- TechRush mode
+		-- -- Spring.Echo(self.ai.id, "TechRush mode")
+		-- self.t1ratepret2 = 0.3
+		-- self.t1ratepostt2 = 0.05
+		-- self.eincomelimiterpretech2 = 300
+		-- self.eincomelimiterposttech2 = 500
+		-- self.mintecheincome = 300
+		-- self.mintechmincome = 12
+		-- self.mint2countpauset1 = 3
+		-- self.t2rusht1reclaim = true
+	-- elseif i == 2 then -- T1 Mode
+		-- -- Spring.Echo(self.ai.id, "T1 Mode")
+		-- self.t1ratepret2 = 2
+		-- self.t1ratepostt2 = 1
+		-- self.eincomelimiterpretech2 = 1550
+		-- self.eincomelimiterposttech2 = 2550
+		-- self.mintecheincome = 950
+		-- self.mintechmincome = 35
+		-- self.mint2countpauset1 = 10
+		-- self.t2rusht1reclaim = false
+	-- end
 end
 
 function AiModeHandler:PickASide(i)
