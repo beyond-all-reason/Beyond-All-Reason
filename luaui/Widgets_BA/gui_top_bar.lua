@@ -866,6 +866,10 @@ function widget:Update(dt)
 	elseif spec and myTeamID ~= prevMyTeamID then  -- check if the team that we are spectating changed
 		draggingShareIndicatorValue = {}
 		draggingConversionIndicatorValue = nil
+		if sec ~= 0 then
+			r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+			r['energy'] = {spGetTeamResources(myTeamID,'energy') }
+		end
 		updateResbar('metal')
 		updateResbar('energy')
 	end
