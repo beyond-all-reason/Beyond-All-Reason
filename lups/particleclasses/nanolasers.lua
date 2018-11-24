@@ -135,22 +135,23 @@ function NanoLasers:Draw()
   glMultiTexCoord(0,endPos[1] - self.normdir[3] * self.scane_mult ,endPos[2],endPos[3] + self.normdir[1] * self.scane_mult,1)
   glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],1)
 
-  if (self.beamtype == 'building' or self.beamtype == 'repair') then
-    --glTexture('bitmaps/projectiletextures/nanobeam-build.png')
+  if (self.type == 'building' or self.type == 'repair') then
+    glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
     glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
-  elseif (self.beamtype == 'reclaim') then
+  elseif (self.type == 'reclaim') then
     glTexture('bitmaps/projectiletextures/nanobeam-reclaim.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
-  elseif (self.beamtype == 'restore') then
+  elseif (self.type == 'restore') then
     glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
-  elseif (self.beamtype == 'resurrect') then
-    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+  elseif (self.type == 'resurrect') then
+    glTexture('bitmaps/projectiletextures/nanobeam-resurrect.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
-  elseif (self.beamtype == 'capture') then
+  elseif (self.type == 'capture') then
     glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   else
+    glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
     glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   end
 
