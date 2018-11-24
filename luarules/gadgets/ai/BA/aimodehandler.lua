@@ -49,14 +49,14 @@ function AiModeHandler:Mode(i)
 		self.eincomelimiterpretech2 = math.random(300,1550)
 		self.eincomelimiterposttech2 = math.random(500,2550)
 		if self.eincomelimiterposttech2 < self.eincomelimiterpretech2 then
-			local r = math.random(100,500)
+			local r = math.random(1,100)
 			self.eincomelimiterposttech2 = self.eincomelimiterpretech2 + r
 		end
 		self.mintecheincome = math.random(300,950)
 		self.mintechmincome = math.random(12,35)
 		self.mint2countpauset1 = math.random(3,10)
 		local r = math.random(0,1)
-		if r < 0 then
+		if r == 0 then
 			self.t2rusht1reclaim = true
 		else
 			self.t2rusht1reclaim = false
