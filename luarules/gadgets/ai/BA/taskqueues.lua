@@ -150,6 +150,59 @@ function GetType(tqb,ai,unit,list)
 	return #units
 end
 
+function AllowConT1(tqb,ai,unit,name)
+	local udid = UDN[name].id
+	local sametypecon = Spring.GetTeamUnitsByDefs(ai.id, udid)
+	local list = {
+	UDN.armcv.id,
+	UDN.corcv.id,
+	UDN.armca.id,
+	UDN.corca.id,
+	UDN.armck.id,
+	UDN.corck.id,	
+	UDN.armch.id,
+	UDN.corch.id,
+	UDN.armcs.id,
+	UDN.corcs.id,
+	UDN.armcsa.id,
+	UDN.corcsa.id,
+	UDN.armbeaver.id,
+	UDN.cormuskrat.id,
+	}
+	local allt1cons = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return (((#sametypecon < 1) or (#allt1cons < 10)) and name) or skip
+end
+
+function AllowConT2(tqb,ai,unit,name)
+	local udid = UDN[name].id
+	local sametypecon = Spring.GetTeamUnitsByDefs(ai.id, udid)
+	local list = {
+	UDN.armacv.id,
+	UDN.coracv.id,
+	UDN.armaca.id,
+	UDN.coraca.id,
+	UDN.armack.id,
+	UDN.corack.id,	
+	UDN.armacsub.id,
+	UDN.coracsub.id,
+	}
+	local allt2cons = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return (((#sametypecon < 1) or (#allt2cons < 10)) and name) or skip
+end
+
+function AllowEngineer(tqb,ai,unit,name)
+	local udid = UDN[name].id
+	local sametypecon = Spring.GetTeamUnitsByDefs(ai.id, udid)
+	local list = {
+	UDN.armconsul.id,	
+	UDN.corfast.id,
+	UDN.armfark.id,
+	}
+	local allengineers = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return (((#sametypecon < 1) or (#allengineers < 10)) and name) or skip
+end
+
+
 function GetFinishedAdvancedLabs(tqb,ai,unit)
 	local list = {
 	UDN.armalab.id,
@@ -712,7 +765,7 @@ function CorT1KbotCon(tqb, ai, unit)
 		return {action = "wait", frames = "infinite"}
 	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corck"].id].metalCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corck"].id].energyCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/100 then
-		return "corck"
+		return AllowConT1(tqb,ai,unit,"corck")
 	else
 		return skip
 	end
@@ -749,7 +802,7 @@ function CorT1VehCon(tqb, ai, unit)
 		return {action = "wait", frames = "infinite"}
 	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corcv"].id].metalCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corcv"].id].energyCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/100 then
-		return "corcv"
+		return AllowConT1(tqb,ai,unit,"corcv")
 	else
 		return skip
 	end
@@ -757,7 +810,7 @@ end
 
 function CorConVehT2(tqb, ai, unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["coracv"].id].metalCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["coracv"].id].energyCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/100 then
-		return "coracv"
+		return AllowConT2(tqb,ai,unit,"coracv")
 	else
 		return skip
 	end
@@ -765,7 +818,7 @@ end
 
 function CorConKBotT2(tqb, ai, unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corack"].id].metalCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corack"].id].energyCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/100 then
-		return "corack"
+		return AllowConT2(tqb,ai,unit,"corack")
 	else
 		return skip
 	end
@@ -794,7 +847,7 @@ function CorStartT1VehCon(tqb, ai, unit)
 function CorT1AirCon(tqb, ai, unit)
 	local CountCons = UDC(ai.id, UDN.corca.id)
 	if CountCons <= 4 then
-		return "corca"
+		return AllowConT1(tqb,ai,unit,"corca")
 	else
 		return skip
 	end
@@ -834,7 +887,7 @@ end
 
 function fast(tqb,ai,unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corfast"].id].metalCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corfast"].id].energyCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/100 then
-		return "corfast"
+		return AllowEngineer(tqb,ai,unit,"corfast")
 	else
 		return skip
 	end
@@ -1487,7 +1540,7 @@ function ArmT1KbotCon(tqb, ai, unit)
 		return {action = "wait", frames = "infinite"}
 	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armck"].id].metalCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armck"].id].energyCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/100 then
-		return "armck"
+		return AllowConT1(tqb,ai,unit,"armck")
 	else
 		return skip
 	end
@@ -1523,7 +1576,7 @@ function ArmT1VehCon(tqb, ai, unit)
 		return {action = "wait", frames = "infinite"}
 	end
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armcv"].id].metalCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armcv"].id].energyCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/100 then
-		return "armcv"
+		return AllowConT1(tqb,ai,unit,"armcv")
 	else
 		return skip
 	end
@@ -1541,7 +1594,7 @@ end
 
 function ArmT1AirCon(tqb, ai, unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armca"].id].metalCost) < UnitDefs[UnitDefNames["armca"].id].buildTime/100 then
-		return "armca"
+		return AllowConT1(tqb,ai,unit,"armca")
 	else
 		return skip
 	end
@@ -1581,7 +1634,7 @@ end
 
 function ArmConVehT2(tqb, ai, unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armacv"].id].metalCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armacv"].id].energyCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/100 then
-		return "armacv"
+		return AllowConT2(tqb,ai,unit,"armacv")
 	else
 		return skip
 	end
@@ -1589,7 +1642,7 @@ end
 
 function ArmConKBotT2(tqb, ai, unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armack"].id].metalCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armack"].id].energyCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/100 then
-		return "armack"
+		return AllowConT2(tqb,ai,unit,"armack")
 	else
 		return skip
 	end
@@ -1607,7 +1660,7 @@ end
 
 function fark(tqb,ai,unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armfark"].id].metalCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armfark"].id].energyCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/100 then
-		return "armfark"
+		return AllowEngineer(tqb,ai,unit,"armfark")
 	else
 		return skip
 	end
@@ -1615,7 +1668,7 @@ end
 
 function consul(tqb,ai,unit)
 	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armconsul"].id].metalCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armconsul"].id].energyCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/100 then
-		return "armconsul"
+		return AllowEngineer(tqb,ai,unit,"armconsul")
 	else
 		return skip
 	end
