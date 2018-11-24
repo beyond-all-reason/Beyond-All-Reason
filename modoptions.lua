@@ -169,6 +169,14 @@ local options={
 		def    = true,
 		section= 'ba_others',
 	},
+	{
+		key    = "allowmapmutators",
+		name   = "Allow map mutators",
+		desc   = "Allows maps to overwrite files from the game",
+		type   = "bool",
+		def    = true,
+		section= 'ba_others',
+	},
     {
         key    = 'FixedAllies',
         name   = 'Fixed ingame alliances',
