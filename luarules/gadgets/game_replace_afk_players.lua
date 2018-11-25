@@ -169,7 +169,7 @@ function FindSubs(real)
         
         -- tell luaui that if would substitute if the game started now
         --Spring.Echo("wouldSub: " .. (sID or "-1") .. " for pID " .. playerID)
-        Spring.SetGameRulesParam("Player" .. playerID .. "wouldSub", wouldSub and 1 or 0)
+        Spring.SetGameRulesParam("Player" .. playerID .. "willSub", wouldSub and 1 or 0)
     end
 
 end
