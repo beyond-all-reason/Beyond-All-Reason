@@ -6,6 +6,7 @@ XX/XX/2018
  • Made mapmods work again (modoption: allowmapmutators, default enabled)
  • Player-TV widget enabled by default (shows on top of advplayerslist when spectator)
  • Fixed too bright laserhit lights
+ • Reverted "Fighters will explode with less damage (half damage, 2/3 AoE)"
 
 
 10.16 -> 10.17
