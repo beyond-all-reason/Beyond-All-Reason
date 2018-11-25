@@ -19,8 +19,8 @@ if gadgetHandler:IsSyncedCode() then
 
 -- TS difference required for substitutions 
 -- idealDiff is used if possible, validDiff as fall-back, otherwise no
-local validDiff = 4
-local idealDiff = 2
+local validDiff = 6
+local idealDiff = 3
 
 local substitutes = {}
 local players = {}
