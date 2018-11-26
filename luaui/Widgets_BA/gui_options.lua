@@ -1419,6 +1419,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value)
 		elseif id == 'lockcamera_transitiontime' then
 			saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockTransitionTime', {'transitionTime'}, value)
+		elseif id == 'playertv_countdown' then
+			saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value)
 		elseif id == 'camerasmoothness' then
 			cameraTransitionTime = value
 		end
@@ -1873,6 +1875,7 @@ function loadAllWidgetData()
 	loadWidgetData("Fancy Selected Units", "fancyselectedunits_secondline", {'showSecondLine'})
 
 	loadWidgetData("Voice Notifs", "voicenotifs_volume", {'volume'})
+	loadWidgetData("Player-TV", "playertv_countdown", {'playerChangeDelay'})
 
 	loadWidgetData("Passive builders", "passivebuilders_nanos", {'passiveNanos'})
 	loadWidgetData("Passive builders", "passivebuilders_cons", {'passiveCons'})
@@ -2061,6 +2064,7 @@ function init()
 		{id="allyselunits_select", group="control", name="Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this will also select the units the player has selected"},
 		{id="lockcamera_hideenemies", group="control", name="Only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will only display what the tracked player sees"},
 		{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too"},
+		{id="playertv_countdown", group="control", name="Player TV countdown", type="slider", min=8, max=60, step=1, value=(WG['playertv']~=nil and WG['playertv'].GetPlayerChangeDelay()), description="Countdown time before it switches player"},
 
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
@@ -2255,6 +2259,9 @@ function init()
 		options[getOptionByID('voicenotifs_playtrackedplayernotifs')] = nil
 	end
 
+	if not widgetHandler.knownWidgets["Player-TV"] then
+		options[getOptionByID('playertv_countdown')] = nil
+	end
 
 	-- cursors
 	if (WG['cursors'] == nil) then

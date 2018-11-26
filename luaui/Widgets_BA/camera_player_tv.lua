@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
-		name		= "Player TV",
+		name		= "Player-TV",
 		desc		= "Automaticly tracks players camera, (shows player-switch countdown on top of advplayerlist)",
 		author		= "Floris",
 		date		= "January 2018",
 		license		= "GNU GPL, v2 or later",
 		layer		= -2,
-		show		= true,
+		enabled		= true,
 		handler		= true,
 	}
 end
@@ -19,7 +19,7 @@ local parentPos = {}
 local prevPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
-local fontSize = 18	-- 14 to be alike with advplayerslist_lockcamera widget
+local fontSize = 14	-- 14 to be alike with advplayerslist_lockcamera widget
 local top, left, bottom, right, widgetScale = 0,0,0,0,1
 local rejoining = false
 local initGameframe = Spring.GetGameFrame()
@@ -343,6 +343,13 @@ function widget:Initialize()
 	WG['playertv'].isActive = function()
 		return (toggled and isSpec)
 	end
+	WG['playertv'].GetPlayerChangeDelay = function()
+		return playerChangeDelay
+	end
+	WG['playertv'].SetPlayerChangeDelay = function(value)
+		playerChangeDelay = value
+		createCountdownLists()
+	end
 end
 
 
@@ -560,11 +567,15 @@ end
 function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.toggled = toggled
+	savedTable.playerChangeDelay = playerChangeDelay
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if Spring.GetGameFrame() > 0 and data.toggled ~= nil then
 		toggled = data.toggled
+	end
+	if data.playerChangeDelay then
+		playerChangeDelay = data.playerChangeDelay
 	end
 end

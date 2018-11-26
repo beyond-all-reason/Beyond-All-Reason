@@ -17,7 +17,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return
 end
 
-local enabled = tonumber(Spring.GetModOptions().ffa) or 0
+local enabled = tonumber(Spring.GetModOptions().ffa_mode) or 0
 
 --teams dying before this mark don't leave wrecks
 local noWrecksLimit = Game.gameSpeed * 60 * 5--in frames

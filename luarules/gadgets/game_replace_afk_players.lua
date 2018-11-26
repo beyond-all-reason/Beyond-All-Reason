@@ -19,8 +19,8 @@ if gadgetHandler:IsSyncedCode() then
 
 -- TS difference required for substitutions 
 -- idealDiff is used if possible, validDiff as fall-back, otherwise no
-local validDiff = 4
-local idealDiff = 2
+local validDiff = 6
+local idealDiff = 3
 
 local substitutes = {}
 local players = {}
@@ -169,7 +169,7 @@ function FindSubs(real)
         
         -- tell luaui that if would substitute if the game started now
         --Spring.Echo("wouldSub: " .. (sID or "-1") .. " for pID " .. playerID)
-        Spring.SetGameRulesParam("Player" .. playerID .. "wouldSub", wouldSub and 1 or 0)
+        Spring.SetGameRulesParam("Player" .. playerID .. "willSub", wouldSub and 1 or 0)
     end
 
 end
@@ -365,7 +365,7 @@ function MakeButton()
 end
 
 function gadget:Initialize()
-  if isReplay or (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then
+  if isReplay or (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
       gadgetHandler:RemoveGadget() -- don't run in FFA mode
       return 
   end

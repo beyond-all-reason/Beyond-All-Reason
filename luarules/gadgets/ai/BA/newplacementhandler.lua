@@ -269,16 +269,16 @@ end
 
 function NewPlacementHandler:GetMinimalSpacing(utype)
 	if string.find(UnitDefs[utype.id].name, "nanotc") then
-		return 0
+		return math.random(10,30)
 	elseif string.find(UnitDefs[utype.id].name, "solar") then
-		return 0
+		return math.random(10,30)
 	elseif string.find(UnitDefs[utype.id].name, "win") then
-		return 0
+		return math.random(5,20)
 	elseif string.find(UnitDefs[utype.id].name, "makr") then
-		return 0
+		return math.random(10,30)
 	elseif not (UnitDefs[utype.id].extractsMetal>0) then
 		return (math.max(UnitDefs[utype.id].xsize, UnitDefs[utype.id].zsize) * 8)
 	else
-		return 80
+		return math.random(50,100)
 	end
 end

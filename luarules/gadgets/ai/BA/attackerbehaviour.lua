@@ -29,6 +29,7 @@ function AttackerBehaviour:Init()
 	--self.game:AddMarker({ x = startPosx, y = startPosy, z = startPosz }, "my start position")
 	CMD.MOVE_STATE = 50
 	CMD.FIRE_STATE = 45
+	aiTeamsCount = #Spring.GetTeamList()
 end
 
 local function Distance(x1,z1, x2,z2)
@@ -54,6 +55,7 @@ function AttackerBehaviour:Update()
 	local frame = SpGetGameFrame()
 	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
 		self.myRange = SpGetUnitMaxRange(self.unitID)
+		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 	end
 	if (frame%90 == self.unitID%90) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
@@ -69,8 +71,8 @@ function AttackerBehaviour:Update()
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
 		end
 	end
-	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 3000
-	local refreshRate = math.max(math.floor(((distance or 500)/10)),10)
+	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 10000
+	local refreshRate = math.ceil(distance*self.myUnitCount*0.00015)*aiTeamsCount
 	if self.unitID%refreshRate == frame%refreshRate then
 		self:AttackCell(self.type, self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange)
 	end

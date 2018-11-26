@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local timedResBonusMultiplier = 0.0003
+local timedResBonusMultiplier = 0.00015
 local timedResBonusMultiplierMax = 2
 
 

@@ -18,9 +18,22 @@ DEFS = {}
 --------------------------------------------------------------------------------
 local section='defs.lua'
 
+-- https://springrts.com/mantis/view.php?id=6088, remove this when no longer needed!
+if not VFS.BASE then
+  VFS.BASE = "b"
+  VFS.MOD = "M"
+  VFS.MAP = "m"
+end
+
+vfs_modes = VFS.MOD .. VFS.BASE
+allow_map_mutators = (Spring.GetModOptions and tonumber(Spring.GetModOptions().allowmapmutators) or 1) ~= 0 
+if allow_map_mutators then
+  vfs_modes = VFS.MAP .. vfs_modes
+end
+
 local function LoadDefs(name)
   local filename = 'gamedata/' .. name .. '.lua'
-  local success, result = pcall(VFS.Include, filename)
+  local success, result = pcall(VFS.Include, filename, nil, vfs_modes)
   if (not success) then
     Spring.Log(section, LOG.ERROR, 'Failed to load ' .. name)
     error(result)
@@ -49,15 +62,6 @@ Spring.TimeCheck('Loading all definitions: ', function()
 
 end)
 
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- Allow "special" maps to access the DEFS table 
-local ACME = "gamedata/acme_mutate-a-mod.lua"
-if VFS.FileExists(ACME, nil, VFS.MAP) then
-  VFS.Include(ACME, nil, VFS.MAP)
-end
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
