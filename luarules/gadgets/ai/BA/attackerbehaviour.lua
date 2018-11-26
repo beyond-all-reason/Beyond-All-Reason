@@ -41,7 +41,12 @@ end
 
 function AttackerBehaviour:Update()
 	if not self.active then -- do not even attempt anything if the unit is inactive...
-		return
+		local unit = self.unit:Internal()
+		if (unit:GetHealth()/unit:GetMaxHealth())*100 == 100 then
+			self.active = true
+		else
+			return
+		end
 	end
 	if not self.unitID then
 		self.unitID = self.unit:Internal().id
@@ -49,32 +54,42 @@ function AttackerBehaviour:Update()
 	if not self.AggFactor then
 		self.AggFactor = self.ai.attackhandler:GetAggressiveness(self)
 	end
-	if not self.type then
-		self.type = self.ai.attackhandler:GetRole(self)
-	end
 	local frame = SpGetGameFrame()
+	local unit = self.unit:Internal()
 	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
-		self.myRange = SpGetUnitMaxRange(self.unitID)
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
+		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
 	end
 	if (frame%90 == self.unitID%90) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
+			if not self.behaviourcontroled then
+				self.ai.attackhandler:RemoveFromSquad(self)
+			end
 		end
 	end
 	if (frame%45 == self.unitID%45) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
-		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 2*self.myRange)
+		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
 			self.nearestVisibleInRange = nearestVisibleInRange
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
+			if not self.behaviourcontroled then
+				self.ai.attackhandler:RemoveFromSquad(self)
+			end
 		end
 	end
-	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 10000
+	if not (self.nearestVisibleAcrossMap or self.nearestVisibleInRange) then
+		if self.behaviourcontroled then
+			self.ai.attackhandler:AssignToASquad(self)
+			return
+		end
+	end
+	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 3000
 	local refreshRate = math.ceil(distance*self.myUnitCount*0.00015)*aiTeamsCount
 	if self.unitID%refreshRate == frame%refreshRate then
-		self:AttackCell(self.type, self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange)
+		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end
 
@@ -85,10 +100,13 @@ function AttackerBehaviour:OwnerBuilt()
 	self.active = true
 	self.unitID = self.unit:Internal().id
 	self.AggFactor = self.ai.attackhandler:GetAggressiveness(self)
-	self.type = self.ai.attackhandler:GetRole(self)
+	self.ai.attackhandler:AssignToASquad(self)
 end
 
 function AttackerBehaviour:OwnerDead()
+	if not self.behaviourcontroled then
+		self.ai.attackhandler:RemoveFromSquad(self)
+	end
 end
 
 function AttackerBehaviour:OwnerIdle()
@@ -96,7 +114,7 @@ function AttackerBehaviour:OwnerIdle()
 	self.active = true
 end
 
-function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange)
+function AttackerBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange, alliedNear)
 	local p
 	local unit = self.unit:Internal()
 	local unitID = unit.id
@@ -121,7 +139,6 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 	end
 	
 	local utype = self.game:GetTypeByName(unit:Name())
-	local attacker = (type == "attacker")
 	
 	-- nil/invalid checks
 	if nearestVisibleInRange and (not SpValidUnitID(nearestVisibleInRange)) then 
@@ -132,7 +149,9 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 		nearestVisibleAcrossMap = nil 
 		self.nearestVisibleAcrossMap = nil 
 	end
-	
+	if not (nearestVisibleAcrossMap or nearestVisibleInRange) then
+		return
+	end
 	if nearestVisibleInRange and (not utype:CanFly() == true) then -- process cases where there isn't any visible nearestVisibleInRange first
 		local ex,ey,ez = SpGetUnitPosition(nearestVisibleInRange)
 		local ux,uy,uz = SpGetUnitPosition(self.unitID)
@@ -171,22 +190,7 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 	if nearestVisibleAcrossMap then
 		enemyposx, enemyposy, enemyposz = SpGetUnitPosition(nearestVisibleAcrossMap) -- visible on map
 	else
-		local attacker = type == "attacker"
-		if attacker then
-			local cms = self.ai.attackhandler.targetMexes[(self.unitID%5)+1]
-			if cms then -- there is an enemy metal spot
-				enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
-			else -- there is nothing to target
-				return
-			end
-		else
-			local cms = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex"), self.unit:Internal():GetPosition())
-			if cms then
-				enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
-			else
-				return
-			end
-		end
+		return
 	end
 
 	p = api.Position()
