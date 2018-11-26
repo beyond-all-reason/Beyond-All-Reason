@@ -110,7 +110,7 @@ local enemyComCount = 0 -- if we are receiving a count from the gadget part (nee
 local prevEnemyComCount = 0
 
 local guishaderEnabled = false
-local guishaderCheckUpdateRate = 2
+local guishaderCheckUpdateRate = 1
 local nextGuishaderCheck = guishaderCheckUpdateRate
 local now = os.clock()
 local gameFrame = Spring.GetGameFrame()
