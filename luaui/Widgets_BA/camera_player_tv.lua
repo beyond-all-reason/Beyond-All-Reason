@@ -7,7 +7,6 @@ function widget:GetInfo()
 		license		= "GNU GPL, v2 or later",
 		layer		= -2,
 		enabled		= true,
-		handler		= true,
 	}
 end
 
@@ -295,13 +294,9 @@ function updatePosition(force)
 	prevPos = parentPos
 	if (WG['advplayerlist_api'] ~= nil) then
 		if WG['displayinfo'] ~= nil then
-			if widgetHandler.orderList["AdvPlayersList info"] ~= nil and (widgetHandler.orderList["AdvPlayersList info"] > 0) then
-				parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-			end
+			parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		elseif WG['music'] ~= nil then
-			if widgetHandler.orderList["Music Player"] ~= nil and (widgetHandler.orderList["Music Player"] > 0) then
-				parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-			end
+			parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		else
 			parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
@@ -324,7 +319,7 @@ function widget:Initialize()
 	isSpec = Spring.GetSpectatingState()
 	if WG['advplayerlist_api'] == nil then
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
-		widgetHandler:RemoveWidget()
+		widgetHandler:RemoveWidget(self)
 	end
 	local playersList = Spring.GetPlayerList()
 	for _,playerID in ipairs(playersList) do
