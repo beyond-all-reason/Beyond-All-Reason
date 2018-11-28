@@ -146,7 +146,7 @@ function NanoLasers:Draw()
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   elseif (self.type == 'resurrect') then
     glTexture('bitmaps/projectiletextures/nanobeam-resurrect.png')
-    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2.5, self.corealpha, self.corethickness/2.5)
   elseif (self.type == 'capture') then
     glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
