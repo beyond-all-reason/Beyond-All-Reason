@@ -30,6 +30,7 @@ return {
 		movementclass = "TANK3",
 		name = "Hedgehog",
 		nochasecategory = "ALL",
+		noAutoFire = true,
 		objectname = "CORMABM",
 		radardistance = 50,
 		seismicsignature = 0,
