@@ -1,4 +1,12 @@
-﻿10.17 -> 10.18
+﻿10.18 -> 10.19
+XX/XX/2018
+
+ • Removed iconset: modern_simplified
+ • Removed firestate button from anti's
+ • Fixed pyro pilotlight showing up out of los
+
+
+10.17 -> 10.18
 28/11/2018
 
  • Fixed com counter
