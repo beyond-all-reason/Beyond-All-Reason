@@ -281,6 +281,11 @@ function UnitDef_Post(name, uDef)
 	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
 		uDef.builddistance = minimumbuilddistancerange
 	end
+
+	-- health multiplier
+	if Spring.GetModOptions and Spring.GetModOptions().hpmult and Spring.GetModOptions().hpmult ~= 1 then
+		uDef.maxdamage = uDef.maxdamage * Spring.GetModOptions().hpmult
+	end
 end
 
 

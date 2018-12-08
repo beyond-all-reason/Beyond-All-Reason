@@ -224,6 +224,25 @@ local options={
 		step   = 1,
 	},
 
+	{
+		key = 'globallos',
+		name = 'Full visibility',
+		desc = 'No fog of war, everyone can see the entire map.',
+		type = 'bool',
+		section = 'ba_enhancements_misc',
+		def = false,
+	},
+	{
+		key    = 'hpmult',
+		name   = 'Unit Health Multiplier',
+		desc   = 'Multiplies all unit HPs.',
+		type   = 'number',
+		section= 'ba_enhancements_misc',
+		def    = 1,
+		min    = 0.05,
+		max    = 10,
+		step   = 0.05,
+	},
 -- Chicken Defense Options
 	{
 		key    = 'chicken_defense_options',
