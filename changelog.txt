@@ -1,6 +1,7 @@
 ﻿10.18 -> 10.19
 XX/XX/2018
 
+ • Added option: GUI opacity
  • Removed iconset: modern_simplified
  • Removed firestate button from anti's
  • Fixed pyro pilotlight showing up out of los

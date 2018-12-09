@@ -1379,6 +1379,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		elseif id == 'guishaderintensity' then
 			saveOptionValue('GUI-Shader', 'guishader_api', 'setBlurIntensity', {'blurIntensity'}, value)
+		elseif id == 'guiopacity' then
+			Spring.SetConfigFloat("ui_opacity", value)
 		elseif id == 'snowamount' then
 			saveOptionValue('Snow', 'snow', 'setMultiplier', {'customParticleMultiplier'}, value)
 		elseif id == 'commandsfxopacity' then
@@ -1450,15 +1452,15 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("luarules uniticonset "..options[i].options[value])
 		elseif id == 'camera' then
 			Spring.SetConfigInt("CamMode",(value-1))
-			if value == 1 then 
+			if value == 1 then
 				Spring.SendCommands('viewfps')
-			elseif value == 2 then 
+			elseif value == 2 then
 				Spring.SendCommands('viewta')
-			elseif value == 3 then 
+			elseif value == 3 then
 				Spring.SendCommands('viewspring')
-			elseif value == 4 then 
+			elseif value == 4 then
 				Spring.SendCommands('viewrot')
-			elseif value == 5 then 
+			elseif value == 5 then
 				Spring.SendCommands('viewfree')
 			end
 		elseif id == 'cursor' then
@@ -1509,7 +1511,7 @@ function widget:KeyPress(key)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-	
+
 	-- check if the mouse is in a rectangle
 	return x >= BLcornerX and x <= TRcornerX
 	                      and y >= BLcornerY
@@ -1538,7 +1540,7 @@ end
 function widget:MouseWheel(up, value)
 	local x,y = Spring.GetMouseState()
 	local cx, cy = correctMouseForScaling(x,y)
-	if show then	
+	if show then
 		return true
 	end
 end
@@ -2071,12 +2073,14 @@ function init()
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
-		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
-
-		{id="healthbarsscale", group="ui", name="Health bars scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
+		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI background blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
+
+		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
+
+		{id="healthbarsscale", group="ui", name="Health bars scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
 
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
@@ -2637,6 +2641,7 @@ function widget:GetConfigData(data)
 		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",40) or 40)},
 		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",40) or 40)},
 		sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",40) or 40)},
+		guiopacity = {'ui_opacity', Spring.GetConfigFloat("ui_opacity",0.66)},
 	}
 	return savedTable
 end
@@ -2654,7 +2659,7 @@ function widget:SetConfigData(data)
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig
 		for k, v in pairs(savedConfig) do
-			Spring.SetConfigInt(v[1],v[2])
+			Spring.SetConfigFloat(v[1],v[2])
 		end
 	end
 end

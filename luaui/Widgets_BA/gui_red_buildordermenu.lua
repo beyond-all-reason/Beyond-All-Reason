@@ -36,6 +36,8 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
 local playSounds = true
 local iconScaling = true
 local highlightscale = true
@@ -83,13 +85,13 @@ local Config = {
 		margin = 5, --distance from background border
 		
 		padding = 3*widgetScale, -- for border effect
-		color2 = {1,1,1,0.025}, -- for border effect
+		color2 = {1,1,1,ui_opacity*0.04}, -- for border effect
 		
 		fadetime = 0.14, --fade effect time, in seconds
 		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
-		cbackground = {0,0,0,0.66},
+		cbackground = {0,0,0,ui_opacity},
 		cborder = {0,0,0,1},
 		cbuttonbackground = {0.1,0.1,0.1,1},
 		dragbutton = {2,3}, --middle mouse button
@@ -120,7 +122,7 @@ local Config = {
 		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1},
-		cbackground = {0,0,0,0.66},
+		cbackground = {0,0,0,ui_opacity},
 		cborder = {0,0,0,1},
 		cbuttonbackground={0.1,0.1,0.1,1},
 		
@@ -1242,7 +1244,19 @@ function widget:CommandsChanged()
 end
 local sec = 0
 local guishaderCheckInterval = 1
+local uiOpacitySec = 0
 function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			ordermenu.background.color = {0,0,0,ui_opacity}
+			buildmenu.background.color = {0,0,0,ui_opacity}
+			ordermenu.background2.color = {1,1,1,ui_opacity*0.04}
+			buildmenu.background2.color = {1,1,1,ui_opacity*0.04}
+		end
+	end
 	sec=sec+dt
 	if (sec>1/guishaderCheckInterval) then
 		sec = 0

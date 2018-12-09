@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
 local height = 38
 local relXpos = 0.3
 local borderPadding = 5
@@ -265,10 +267,10 @@ local function updateRejoin()
 	dlistRejoin = glCreateList( function()
 	
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
 		if (WG['guishader_api'] ~= nil) then
@@ -336,10 +338,10 @@ local function updateButtons()
 	dlistButtons1 = glCreateList( function()
 	
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -409,10 +411,10 @@ local function updateComs(forceText)
 	dlistComs1 = glCreateList( function()
 	
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -468,9 +470,9 @@ local function updateWind()
 	dlistWind1 = glCreateList( function()
 
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
 		if (WG['guishader_api'] ~= nil) then
@@ -618,10 +620,10 @@ local function updateResbar(res)
 	dlistResbar[res][1] = glCreateList( function()
 
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -815,6 +817,7 @@ function widget:GameFrame(n)
     end
 end
 
+local uiOpacitySec = 0
 local sec = 0
 local secComCount = 0
 local t = UPDATE_RATE_S
@@ -825,6 +828,15 @@ function widget:Update(dt)
     end
 
 	local mx,my = spGetMouseState()
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			init()
+		end
+	end
 
     sec = sec + dt
     if sec>0.066 then
@@ -1529,6 +1541,7 @@ function widget:TextCommand(command)
 		end
 	end
 end
+
 
 function widget:Shutdown()
 	Spring.SendCommands("resbar 1")

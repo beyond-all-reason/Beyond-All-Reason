@@ -11,46 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-local consoleBlur = false
-local blurShaderStartColor = 0.31		-- will apply guishader if alpha >= ...
-
-function widget:TextCommand(command)
-	if (string.find(command, "consoleblur") == 1  and  string.len(command) == 11) then 
-		if (WG['guishader_api'] ~= nil) then
-			consoleBlur = not consoleBlur
-			processConsoleBlur()
-			if consoleBlur then
-				Spring.Echo("Console blur:  enabled")
-			else
-				Spring.Echo("Console blur:  disabled")
-			end
-		else
-			Spring.Echo("Console blur: enable 'GUI-Shader' widget first!")
-		end
-	end
-end
-
-function processConsoleBlur()
-	if not consoleBlur then
-		blurShaderStartColor = 0.34		-- will add guishader if alpha >= ...
-	else
-		blurShaderStartColor = 0
-	end
-end
-
-function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.consoleBlur = consoleBlur
-    return savedTable
-end
-
-function widget:SetConfigData(data)
-    if data.consoleBlur ~= nil 	then
-		consoleBlur = data.consoleBlur 
-		processConsoleBlur()
-	end
-end
-
 local bgcornerSize = 8
 local bgcorner = "LuaUI/Images/bgcorner.png"
 	
@@ -226,7 +186,7 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx, sy-cs, 0)
 end
 
-local function RectRound(px,py,sx,sy,c,cs,scale,glone)
+local function RectRound(px,py,sx,sy,c,cs,scale,glone,noblur)
 
 	if (c) then
 		glColor(c[1],c[2],c[3],c[4])
@@ -242,7 +202,7 @@ local function RectRound(px,py,sx,sy,c,cs,scale,glone)
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 	end
 	-- add blur shader
-	if c and c[4] >= blurShaderStartColor then
+	if c and not noblur then
 		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy}
 	end
 	
@@ -344,8 +304,8 @@ function widget:Initialize()
 	T.Text = function(a,b,c,d,e,f)
 		Todo[#Todo+1] = {5,a,b,c,d,e,f}
 	end
-	T.RectRound = function(a,b,c,d,e,f,g,h)
-		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h}
+	T.RectRound = function(a,b,c,d,e,f,g,h,i)
+		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h,i}
 	end
 	
 	F[1] = Color
@@ -420,12 +380,12 @@ function widget:DrawScreen()
 			if dList[t[1]][id] == nil then
 				dlistCount = dlistCount + 1
 				dList[t[1]][id] = glCreateList(function()
-					F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9])
+					F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
 				end)
 			end
 			glCallList(dList[t[1]][id])
 		else
-			F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9])
+			F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
 		end
 			
 		Todo[i] = nil
