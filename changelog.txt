@@ -5,7 +5,6 @@ XX/XX/2018
  • Removed firestate button from anti's
  • Fixed pyro pilotlight showing up out of los
  • Added modoption: "globallos", enables full visibility
- • Added modoption: "hpmult", unit health multiplier
 
 
 10.17 -> 10.18

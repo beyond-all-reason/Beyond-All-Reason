@@ -216,7 +216,7 @@ local presets = {
 		lupsreflectionrefraction = true,
 		snow = true,
 		xrayshader = false,
-		particles = 25000,
+		particles = 30000,
 		nanoparticles = 9000,
 		nanobeamamount = 12,
 		grassdetail = 0,
@@ -246,7 +246,7 @@ local presets = {
 		lupsreflectionrefraction = true,
 		snow = true,
 		xrayshader = false,
-		particles = 30000,
+		particles = 40000,
 		nanoparticles = 15000,
 		nanobeamamount = 20,
 		grassdetail = 0,
@@ -1977,7 +1977,7 @@ function init()
 		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
-		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
+		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=40000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 
 		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern','modern_simplified'}, value=1, description='NOTE: when icon edges look jagged: enable more Anti-Aliasing\n...or pick the \'old\' iconset'},
 		{id="disticon", group="gfx", name=widgetOptionColor.."   render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
