@@ -4,7 +4,7 @@ XX/XX/2018
  • Added option: GUI opacity
  • Removed iconset: modern_simplified
  • Removed firestate button from anti's
- • Fixed pyro pilotlight showing up out of los
+ • Fixed pyro pilotlight showing when out of los
  • Added modoption: "globallos", enables full visibility
 
 
