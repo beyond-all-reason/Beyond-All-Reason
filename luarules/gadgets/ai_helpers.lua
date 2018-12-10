@@ -187,7 +187,7 @@ local function IsAntiNukeCovered(unitID, attackerTeamID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
 	local unitsNear = Spring.GetUnitsInCylinder(x,z,2000)
 	for ct, id in pairs(unitsNear) do
-		if (UnitDefs[Spring.GetUnitDefID(id)].name == "armamd" or UnitDefs[Spring.GetUnitDefID(id)].name == "corfmd") and Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID) then
+		if (UnitDefs[Spring.GetUnitDefID(id)].name == "armamd" or UnitDefs[Spring.GetUnitDefID(id)].name == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
 			if SeenBuildings[attackerTeamID][unitID] then
 				return true
 			end
