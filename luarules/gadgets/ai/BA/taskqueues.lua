@@ -758,28 +758,6 @@ function CorWindOrSolar(tqb, ai, unit)
 	end
 end
 
-function CorLLT(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if hasTech2 then
-		return skip
-	end
-	local unitoptions = {"corllt", "corhllt", "corhlt", "cormaw", "corrl", "cormadsam", "corerad"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
 function CorNanoT(tqb, ai, unit)
 	if timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
 		return "cornanotc"
@@ -916,26 +894,6 @@ function CorExpandRandomLab(tqb, ai, unit)
 		return {action = labtype, pos = {x = x, y = y, z = z}}
 	else
 		return labtype
-	end
-end
-
-function CorTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"corvipe","corflak", "cordoom", "corint", "corscreamer", "cortoast"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		pos = unit:GetPosition()
-		ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
-		return FindBest(list,ai)
-	else
-		return skip
 	end
 end
 
@@ -1180,28 +1138,6 @@ function ArmWindOrSolar(tqb, ai, unit)
 	end
 end
 
-function ArmLLT(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if hasTech2 then
-		return skip
-	end
-	local unitoptions = {"armllt", "armbeamer", "armhlt", "armclaw", "armrl", "armpacko", "armcir"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
 function ArmNanoT(tqb, ai, unit)
 	if timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
 		return "armnanotc"
@@ -1331,26 +1267,6 @@ function ArmExpandRandomLab(tqb, ai, unit)
 		return {action = labtype, pos = {x = x, y = y, z = z}}
 	else
 		return labtype
-	end
-end
-
-function ArmTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"armpb","armflak", "armamb", "armmercury", "armbrtha", "armanni"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		pos = unit:GetPosition()
-		ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
-		return FindBest(list,ai)
-	else
-		return skip
 	end
 end
 
