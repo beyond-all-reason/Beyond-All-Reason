@@ -184,6 +184,15 @@ local Interest = {
 GG.AiHelpers.TargetsOfInterest = {}
 local TargetsOfInterest = {}
 local function IsAntiNukeCovered(unitID, attackerTeamID)
+	local x,y,z = Spring.GetUnitPosition(unitID)
+	local unitsNear = Spring.GetUnitsInCylinder(x,z,2000)
+	for ct, id in pairs(unitsNear) do
+		if (UnitDefs[Spring.GetUnitDefID(id)].name == "armamd" or UnitDefs[Spring.GetUnitDefID(id)].name == "corfmd") and Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID) then
+			if SeenBuildings[attackerTeamID][unitID] then
+				return true
+			end
+		end
+	end
 	return false
 end
 
@@ -191,7 +200,7 @@ local function IsInAttackRange(unitID, attackerID)
 	local weapons = UnitDefs[Spring.GetUnitDefID(attackerID)].weapons
 	local x, y, z = Spring.GetUnitPosition(unitID)
 	for i,_ in pairs(weapons) do
-		if Spring.GetUnitWeaponTestTarget(attackerID, i, x, y, z) then
+		if (Spring.GetUnitWeaponTestTarget(attackerID, i, x, y, z) and Spring.GetUnitWeaponTestRange(attackerID, i, x, y, z) and Spring.GetUnitWeaponHaveFreeLineOfFire(attackerID, i, x, y, z)) then
 			return true
 		end
 	end
@@ -216,20 +225,22 @@ end
 
 GG.AiHelpers.TargetsOfInterest.Nuke = function(teamID)
 	if not TargetsOfInterest[teamID] then return end
-	local list = {}
+	local target
 	local ct = 0
 	for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
-		if (not IsAntiNukeCovered(unitID, attackerTeamID)) and ct <= 2 then
-			list[ct + 1] = unitID
-			ct = ct + 1
-		else
+		if (not IsAntiNukeCovered(unitID, teamID)) and ct <= 2 then
+			target = unitID
 			break
 		end
 	end
-	return list
+	if target then
+		return target
+	else
+		return nil
+	end
 end
 
-GG.AiHelpers.TargetsOfInterest.LongRangeWeapon = function(unitID, teamID)
+GG.AiHelpers.TargetsOfInterest.LongRangeWeapon = function(attackerID, teamID)
 	if not TargetsOfInterest[teamID] then return end
 	local target
 	local targetpos
@@ -241,10 +252,10 @@ GG.AiHelpers.TargetsOfInterest.LongRangeWeapon = function(unitID, teamID)
 		end
 	end
 	if target then
-		local x, y, z = Spring.GetUnitPosition(target)
-		targetpos = {x = x, y = y, z = z}
+		return target
+	else
+		return nil
 	end
-	return targetpos
 end
 
 GG.AiHelpers.TargetsOfInterest.GetTarget = function(teamID)
