@@ -146,7 +146,7 @@ function NanoLasers:Draw()
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   elseif (self.type == 'resurrect') then
     glTexture('bitmaps/projectiletextures/nanobeam-resurrect.png')
-    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2.5, self.corealpha, self.corethickness/2.5)
   elseif (self.type == 'capture') then
     glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
@@ -162,7 +162,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 or (self.quickupdates and thisGameFrame - self._lastupdate > 1) then  -- save some performance/memory
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 2 or (self.quickupdates and thisGameFrame - self._lastupdate > 1) then  -- save some performance/memory
     UpdateNanoParticles(self)
     --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
     if enableLights and Script.LuaUI("GadgetCreateBeamLight") then

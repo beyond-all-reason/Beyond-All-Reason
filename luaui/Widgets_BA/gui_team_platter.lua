@@ -412,17 +412,20 @@ function widget:DrawWorldPreUnit()
   if useSelections then
     glColor(1, 1, 1, highlightOpacity)
     for _,unitID in ipairs(spGetSelectedUnits()) do
-      local unitScale = unitConf[spGetUnitDefID(unitID)].scale
-      if drawDonuts then
-        glDrawListAtUnit(unitID, spotterList, false,  unitScale, unitScale, unitScale, 90, 1,0,0)
-      else
-        --if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
-        --  glDrawListAtUnit(unitID, platterSquareList, false,  unitScale, 1.0, unitScale)
-        --elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
-        --  glDrawListAtUnit(unitID, platterTriangleList, false,  unitScale, 1.0, unitScale)
-        --else
-          glDrawListAtUnit(unitID, platterCircleList, false,  unitScale, 1.0, unitScale)
-        --end
+      local udefid = spGetUnitDefID(unitID)
+      if udefid then
+        local unitScale = unitConf[udefid].scale
+        if drawDonuts then
+          glDrawListAtUnit(unitID, spotterList, false,  unitScale, unitScale, unitScale, 90, 1,0,0)
+        else
+          --if unitConf[Spring.GetUnitDefID(unitID)].shape == 'square' then
+          --  glDrawListAtUnit(unitID, platterSquareList, false,  unitScale, 1.0, unitScale)
+          --elseif unitConf[Spring.GetUnitDefID(unitID)].shape == 'triangle' then
+          --  glDrawListAtUnit(unitID, platterTriangleList, false,  unitScale, 1.0, unitScale)
+          --else
+            glDrawListAtUnit(unitID, platterCircleList, false,  unitScale, 1.0, unitScale)
+          --end
+        end
       end
     end
   end

@@ -13,18 +13,21 @@ function gadget:GetInfo()
 end
 
 
+for udefID,def in ipairs(UnitDefs) do
+	if def.name == 'xmasball' then
+		xmasballUdefID = udefID
+	end
+end
+
 if gadgetHandler:IsSyncedCode() then
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
 
-	local itsXmas = false
+	_G.itsXmas = false
 
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
-		if def.name == 'xmasball' then
-			xmasballUdefID = udefID
-		end
 		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-15) / 8))
@@ -64,8 +67,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function initiateXmas()
-		if not itsXmas then
-			itsXmas = true
+		if not _G.itsXmas then
+			_G.itsXmas = true
 			-- spawn candy canes
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
@@ -99,7 +102,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
-		if not itsXmas then
+		if not _G.itsXmas then
 			if n == 1 then
 				local xmasRatio = 0
 				for playerID, xmas in pairs(receivedPlayerXmas) do
@@ -183,7 +186,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-		if not itsXmas then
+		if not _G.itsXmas then
 			return
 		end
 		if unitDefID == xmasballUdefID then
@@ -216,5 +219,39 @@ if gadgetHandler:IsSyncedCode() then
 
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
+	end
+
+else
+	--SYNCED.itsXmas
+	local xmasballs = {}
+
+	function gadget:UnitCreated(unitID, unitDefID, team)
+		if unitDefID == xmasballUdefID then
+			xmasballs[unitID] = 0.7 + (math.random()*0.4)
+			Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
+		end
+	end
+	function gadget:UnitDestroyed(unitID, unitDefID, team)
+		if unitDefID == xmasballUdefID then
+			xmasballs[unitID] = nil
+		end
+	end
+
+	function gadget:Initialize()
+		local allUnits = Spring.GetAllUnits()
+		for i = 1, #allUnits do
+			local unitID = allUnits[i]
+			local udID = Spring.GetUnitDefID(unitID)
+			local team = Spring.GetUnitTeam(unitID)
+			gadget:UnitCreated(unitID, udID, team)
+		end
+	end
+
+	function gadget:DrawUnit(unitID, drawMode)
+		local unitScale = xmasballs[unitID]
+		if unitScale then
+			gl.Scale( unitScale, unitScale, unitScale )
+			return false
+		end
 	end
 end

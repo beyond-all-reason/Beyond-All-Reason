@@ -30,6 +30,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Fortitude",
+		noAutoFire = true,
 		objectname = "CORFMD",
 		radardistance = 50,
 		seismicsignature = 0,

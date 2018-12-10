@@ -182,10 +182,11 @@ function loadWeaponDefs()
 				params.life = 1
 				damage = damage/WeaponDefs[i].beamtime
 				params.radius = (params.radius*1.4) + (damage/2500)
-				params.orgMult = (0.3 + (damage/4000)) * globalLightMult
-				if params.orgMult > 1 then
-					params.orgMult = 1
+				params.orgMult = (0.22 + (damage/3000))
+				if params.orgMult > 0.8 then
+					params.orgMult = 0.8
 				end
+				params.orgMult = params.orgMult * globalLightMult
 				params.yoffset = 4 + (params.radius/300)
 				if params.yoffset > 25 then params.yoffset = 25 end
 			end

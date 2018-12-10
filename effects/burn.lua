@@ -175,7 +175,7 @@ return {
     },
     groundflash = {
       air                = true,
-            circlealpha        = 0.0,
+      circlealpha        = 0.0,
       circlegrowth       = 6,
       flashalpha         = 0.9,
       flashsize          = 25,
@@ -312,6 +312,7 @@ return {
         sizegrowth         = 0.9,
         sizemod            = 1.0,
         texture            = [[flame]],
+        useairlos          = false,
       },
     },
   },

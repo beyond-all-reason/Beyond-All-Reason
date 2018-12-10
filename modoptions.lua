@@ -224,6 +224,14 @@ local options={
 		step   = 1,
 	},
 
+	{
+		key = 'globallos',
+		name = 'Full visibility',
+		desc = 'No fog of war, everyone can see the entire map.',
+		type = 'bool',
+		section = 'ba_enhancements_misc',
+		def = false,
+	},
 -- Chicken Defense Options
 	{
 		key    = 'chicken_defense_options',

@@ -13,6 +13,7 @@ function widget:GetInfo()
 end
 local vsx, vsy = gl.GetViewSizes()
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 local rescalevalue = 1.26
 local buttonScale = 2
 local NeededFrameworkVersion = 8
@@ -42,7 +43,7 @@ local Config = {
 		cmovecolor = {0.9,0.9,0.9,0.8},
 		
 		cborder = {0,0,0,0},
-		cbackground = {0,0,0,0.55},
+		cbackground = {0,0,0,ui_opacity},
 		cbordersize = 2.25*widgetScale,
 		
 		dragbutton = {1}, --left mouse button
@@ -290,7 +291,10 @@ local function createminimap(r)
 		movebutton,
 	}
 	
-	return minimap
+	return {
+		minimap = minimap,
+		minimapbg = minimapbg
+	}
 end
 
 function widget:Initialize()
@@ -315,7 +319,17 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 end
 
 
-function widget:Update()
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			rMinimap.minimapbg.color = {0,0,0,ui_opacity}
+		end
+	end
+
 	local _,_,_,_,minimized,maximized = sGetMiniMapGeometry()
 	if (maximized) then
 		--hack to reset state minimap
@@ -325,40 +339,44 @@ function widget:Update()
 	end
 	
 	if (minimized) then
-		rMinimap.active = false
+		rMinimap.minimap.active = false
+		rMinimap.minimapbg.active = false
 		--hack to reset state minimap
 		gl.SlaveMiniMap(false) 
 		gl.SlaveMiniMap(true)
 		----
 	else
-		rMinimap.active = nil
+		rMinimap.minimap.active = nil
+		rMinimap.minimapbg.active = nil
 	end
 	
 	local st = sGetCameraState()
 	if (st.name == "ov") then --overview camera
-		rMinimap.active = false
+		rMinimap.minimap.active = false
+		rMinimap.minimapbg.active = false
 	else
-		rMinimap.active = nil
+		rMinimap.minimap.active = nil
+		rMinimap.minimapbg.active = nil
 	end
 
 	AutoResizeObjects()
-	if ((lastPos.px ~= rMinimap.px) or (lastPos.py ~= rMinimap.py) or (lastPos.sx ~= rMinimap.sx) or (lastPos.sy ~= rMinimap.sy) or sceduleMinimapGeometry) then
+	if ((lastPos.px ~= rMinimap.minimap.px) or (lastPos.py ~= rMinimap.minimap.py) or (lastPos.sx ~= rMinimap.minimap.sx) or (lastPos.sy ~= rMinimap.minimap.sy) or sceduleMinimapGeometry) then
 		sSendCommands(sformat("minimap geometry %i %i %i %i",
-		rMinimap.px,
-		rMinimap.py,
-		rMinimap.sx,
-		rMinimap.sy))
+		rMinimap.minimap.px,
+		rMinimap.minimap.py,
+		rMinimap.minimap.sx,
+		rMinimap.minimap.sy))
 		sceduleMinimapGeometry = false
 	end
-	lastPos.px = rMinimap.px
-	lastPos.py = rMinimap.py
-	lastPos.sx = rMinimap.sx
-	lastPos.sy = rMinimap.sy
+	lastPos.px = rMinimap.minimap.px
+	lastPos.py = rMinimap.minimap.py
+	lastPos.sx = rMinimap.minimap.sx
+	lastPos.sy = rMinimap.minimap.sy
 end
 
 function widget:DrawScreen()
 
-	if (rMinimap.active ~= nil) then
+	if (rMinimap.minimap.active ~= nil) then
 		return
 	end
 	-- this makes jK rage
@@ -388,8 +406,8 @@ function widget:GetConfigData() --save config
 	if (PassedStartupCheck) then
 		local vsy = Screen.vsy
 		local unscale = CanvasY/vsy --needed due to autoresize, stores unresized variables
-		Config.minimap.px = rMinimap.px * unscale
-		Config.minimap.py = rMinimap.py * unscale
+		Config.minimap.px = rMinimap.minimap.px * unscale
+		Config.minimap.py = rMinimap.minimap.py * unscale
 		return {Config=Config}
 	end
 end

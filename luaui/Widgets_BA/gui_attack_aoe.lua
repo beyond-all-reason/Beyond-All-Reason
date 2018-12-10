@@ -653,7 +653,7 @@ function widget:DrawWorld()
       dx = fx + offset_x
       dz = fz + offset_z
     end
-    DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range+(info.aoe*0.7), info.requiredEnergy)
+    DrawNoExplode(info.aoe, dx, fy, dz, tx, ty, tz, info.range+(info.aoe*0.7), 500) --info.requiredEnergy, returns 26700 somehow so we put 500 manually now
     glColor(1, 0, 0, 0.75)
     glLineWidth(1.5)
 	glDrawGroundCircle(fx, fy, fz, info.range+(info.aoe*0.7), circleDivs)

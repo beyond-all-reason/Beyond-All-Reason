@@ -1,12 +1,21 @@
-﻿10.17 -> 10.18
+﻿10.18 -> 10.19
 XX/XX/2018
 
+ • Added option: GUI opacity
+ • Removed iconset: modern_simplified
+ • Removed firestate button from anti's
+ • Fixed pyro pilotlight showing when out of los
+ • Added modoption: "globallos", enables full visibility
+
+
+10.17 -> 10.18
+28/11/2018
+
  • Fixed com counter
+ • Fixed too bright laserhit lights
  • Renamed modoption 'ffa' to 'ffa_mode'
  • Made mapmods work again (modoption: allowmapmutators, default enabled)
  • Player-TV widget enabled by default (shows on top of advplayerslist when spectator)
- • Fixed too bright laserhit lights
- • Reverted "Fighters will explode with less damage (half damage, 2/3 AoE)"
 
 
 10.16 -> 10.17
