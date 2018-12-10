@@ -23,6 +23,7 @@ local possibilities = {} -- Possibilities[builderName][tableName] = {unit1, unit
 shard_include('attackers')
 shard_include('scouts')
 shard_include('builders')
+shard_include('defenses')
 
 local unitoptions = {}
 local skip = {action = "nexttask"}
@@ -129,7 +130,7 @@ function Attacker(tqb, ai, unit)
 			end
 		end
 		if list[1] then
-			return FindBest(possibilities[unit:Name()]["attacker"], ai)
+			return FindBest(list, ai)
 		else
 			return skip
 		end
@@ -161,7 +162,167 @@ function Scout(tqb, ai, unit)
 			end
 		end
 		if list[1] then
-			return FindBest(possibilities[unit:Name()]["scouts"], ai)
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function ShortDefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["shortdef"] then
+		possibilities[unit:Name()]["shortdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (shortrangelist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["shortdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["shortdef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["shortdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function MediumDefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["mediumdef"] then
+		possibilities[unit:Name()]["mediumdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (mediumrangelist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["mediumdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["mediumdef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["mediumdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function LongDefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["longdef"] then
+		possibilities[unit:Name()]["longdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (longrangelist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["longdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["longdef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["longdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Epic(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["epicdef"] then
+		possibilities[unit:Name()]["epicdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (epiclist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["epicdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["epicdef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["epicdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function AADefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["aadef"] then
+		possibilities[unit:Name()]["aadef"] = {}
+		local ct = 0
+		for i, unitName in pairs (antiairlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["aadef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["aadef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["aadef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
 		else
 			return skip
 		end
@@ -876,7 +1037,7 @@ local corcommanderfirst = {
 	CorStarterLabT1,
 	CorWindOrSolar,
 	CorWindOrSolar,
-	"corllt",
+	ShortDefense,
 	CorRad,
 }
 
@@ -899,15 +1060,16 @@ local cort1expand = {
 	CorExpandRandomLab,
 	CorMexT1,
 	CorExpandRandomLab,
-	CorLLT,
+	ShortDefense,
 	CorMexT1,
 	CorExpandRandomLab,
 	assistaround,
-	CorLLT,
+	MediumDefense,
 	CorRad,
 	CorExpandRandomLab,
 	CorGeo,
-	CorLLT,
+	ShortDefense,
+	AADefense,
 	assistaround,
 	CorNanoT,
 	CorExpandRandomLab,
@@ -925,19 +1087,22 @@ local cort2eco = {
 	CorEnT2,
 	CorEnT2,
 	CorExpandRandomLab,
+	Epic,
 }
 
 local cort2expand = {
 	"cormoho",
-	CorTacticalAdvDefT2,
+	ShortDefense,
 	"cormoho",
-	CorTacticalAdvDefT2,
+	MediumDefense,
 	CorExpandRandomLab,
 	"cormoho",
 	CorARad,
 	CorExpandRandomLab,
-	CorTacticalAdvDefT2,
+	AADefense,
 	assistaround,
+	Epic,
+	LongDefense,
 }
 
 assistqueuepostt2arm = {
@@ -1288,7 +1453,7 @@ local armcommanderfirst = {
 	ArmStarterLabT1,
 	ArmWindOrSolar,
 	ArmWindOrSolar,
-	"armllt",
+	ShortDefense,
 	ArmRad,
 }
 
@@ -1311,18 +1476,19 @@ local armt1expand = {
 	ArmExpandRandomLab,
 	ArmMexT1,
 	ArmExpandRandomLab,
-	ArmLLT,
+	ShortDefense,
 	ArmMexT1,
 	ArmExpandRandomLab,
 	assistaround,
-	ArmLLT,
+	MediumDefense,
 	ArmRad,
 	ArmExpandRandomLab,
 	ArmGeo,
 	assistaround,
 	ArmNanoT,
 	ArmExpandRandomLab,
-	ArmLLT,
+	ShortDefense,
+	AADefense,
 	assistaround,
 	ArmNanoT,
 }
@@ -1337,19 +1503,22 @@ local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
 	ArmExpandRandomLab,
+	Epic,
 }
 
 local armt2expand = {
 	"armmoho",
-	ArmTacticalAdvDefT2,
+	ShortDefense,
 	"armmoho",
 	ArmExpandRandomLab,
-	ArmTacticalAdvDefT2,
+	MediumDefense,
 	"armmoho",
 	ArmARad,
 	ArmExpandRandomLab,
-	ArmTacticalAdvDefT2,
+	AADefense,
 	assistaround,
+	Epic,
+	LongDefense,
 }
 
 
