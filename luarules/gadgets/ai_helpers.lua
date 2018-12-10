@@ -123,7 +123,7 @@ end
 
 --------------------------
 --Unit Visibility Checks--
--------------------------
+--------------------------
 GG.AiHelpers.VisibilityCheck = {}
 local SeenBuildings = {}
 
@@ -137,6 +137,133 @@ GG.AiHelpers.VisibilityCheck.IsUnitVisible = function(unitID, teamID)
 	return false
 end
 
+-----------------------
+--Targets Of Interest--
+-----------------------
+
+local Interest = {
+	armfus = true,
+	armafus = true,
+	armckfus = true,
+	armmmkr = true,
+	armlab = true,
+	armvp = true,
+	armap = true,
+	armalab = true,
+	armaap = true,
+	armavp = true,
+	armamd = true,
+	armbrtha = true,
+	armemp = true,
+	armsilo = true,
+	armvulc = true,
+	armanni = true,
+	armshltx = true,
+	armnanotc = true,
+	armgate = true,
+	corfus = true,
+	corafus = true,
+	cormmkr = true,
+	corlab = true,
+	corvp = true,
+	corap = true,
+	coralab = true,
+	coraap = true,
+	coravp = true,
+	corfmd = true,
+	corint = true,
+	cortron = true,
+	corsilo = true,
+	corbuzz = true,
+	cordoom = true,
+	corgant = true,
+	cornanotc = true,
+	corgate = true,
+}
+
+GG.AiHelpers.TargetsOfInterest = {}
+local TargetsOfInterest = {}
+local function IsAntiNukeCovered(unitID, attackerTeamID)
+	return false
+end
+
+local function IsInAttackRange(unitID, attackerID)
+	local weapons = UnitDefs[Spring.GetUnitDefID(attackerID)].weapons
+	local x, y, z = Spring.GetUnitPosition(unitID)
+	for i,_ in pairs(weapons) do
+		if Spring.GetUnitWeaponTestTarget(attackerID, i, x, y, z) then
+			return true
+		end
+	end
+	return false
+end
+	
+
+GG.AiHelpers.TargetsOfInterest.BombingRun = function(teamID)
+	if not TargetsOfInterest[teamID] then return end
+	local list = {}
+	local ct = 0
+	for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
+		if ct <= 5 then
+			list[ct + 1] = unitID
+			ct = ct + 1
+		else
+			break
+		end
+	end
+	return list
+end
+
+GG.AiHelpers.TargetsOfInterest.Nuke = function(teamID)
+	if not TargetsOfInterest[teamID] then return end
+	local list = {}
+	local ct = 0
+	for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
+		if (not IsAntiNukeCovered(unitID, attackerTeamID)) and ct <= 2 then
+			list[ct + 1] = unitID
+			ct = ct + 1
+		else
+			break
+		end
+	end
+	return list
+end
+
+GG.AiHelpers.TargetsOfInterest.LongRangeWeapon = function(unitID, teamID)
+	if not TargetsOfInterest[teamID] then return end
+	local target
+	local targetpos
+	local ct = 0
+	for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
+		if (IsInAttackRange(unitID, attackerID)) then
+			target = unitID
+			break
+		end
+	end
+	if target then
+		local x, y, z = Spring.GetUnitPosition(target)
+		targetpos = {x = x, y = y, z = z}
+	end
+	return targetpos
+end
+
+GG.AiHelpers.TargetsOfInterest.GetTarget = function(teamID)
+	if not TargetsOfInterest[teamID] then return end
+	local target
+	local targetpos
+	local ct = 0
+	for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
+		if math.random(1,20) == 1 then
+			target = unitID
+			break
+		end
+	end
+	if target then
+		local x, y, z = Spring.GetUnitPosition(target)
+		targetpos = {x = x, y = y, z = z}
+	end
+	return targetpos
+end
 
 -------------------------
 --Gadget Core Functions--
@@ -196,6 +323,10 @@ end
 		local defs = UnitDefs[unitDefID]
 		if defs.isBuilding or string.find(defs.name, "nanotc") then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
+				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, allyTeam)) then
+					TargetsOfInterest[id] = TargetsOfInterest[id] or {}
+					TargetsOfInterest[id][unitID] = true
+				end
 				SeenBuildings[id] = SeenBuildings[id] or {}
 				SeenBuildings[id][unitID] = true
 			end
@@ -207,6 +338,10 @@ end
 		local defs = UnitDefs[unitDefID]
 		if defs.isBuilding or string.find(defs.name, "nanotc") then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
+				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, unitTeam)) then
+					TargetsOfInterest[id] = TargetsOfInterest[id] or {}
+					TargetsOfInterest[id][unitID] = true
+				end
 				SeenBuildings[id] = SeenBuildings[id] or {}
 				SeenBuildings[id][unitID] = true
 			end
@@ -257,6 +392,9 @@ end
 		for ct, id in pairs(Spring.GetTeamList()) do
 			if SeenBuildings[id] then
 				SeenBuildings[id][unitID] = nil
+			end
+			if TargetsOfInterest[id] then
+				TargetsOfInterest[id][unitID] = nil
 			end
 		end
 	end

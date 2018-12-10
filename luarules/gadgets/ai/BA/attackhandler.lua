@@ -43,12 +43,17 @@ function AttackHandler:Update()
 			elseif self.targetPool[3] then
 				self.squads[i].target = self.targetPool[3]
 			else
-				if squad.role == "attacker" then
-					self.squads[i].target = self.ai.metalspothandler:ClosestEnemySpot(self.game:GetTypeByName("armmex") , self.squads[i].position )
-					self:SetSquadAggressiveness(i, 2)
+				local target = GG.AiHelpers.TargetsOfInterest.GetTarget(self.ai.id)
+				if target then
+					self.squads[i].target = target
 				else
-					self.squads[i].target = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position)
-					self:SetSquadAggressiveness(i, 3)
+					if squad.role == "attacker" then
+						self.squads[i].target = self.ai.metalspothandler:ClosestEnemySpot(self.game:GetTypeByName("armmex") , self.squads[i].position )
+						self:SetSquadAggressiveness(i, 2)
+					else
+						self.squads[i].target = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position)
+						self:SetSquadAggressiveness(i, 3)
+					end
 				end
 			end
 		end
@@ -91,7 +96,6 @@ function AttackHandler:TargetPoolThread() -- targetPool[1]= top priority targetp
 			self.targetPool[1] = nil
 		end
 	end
-	
 end
 
 function AttackHandler:SetSquadAggressiveness(i, value)
