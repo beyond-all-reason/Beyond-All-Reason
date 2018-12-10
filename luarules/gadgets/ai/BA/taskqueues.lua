@@ -55,7 +55,6 @@ function Builder(tqb, ai, unit)
 		local ct = 0
 		for i, unitName in pairs (builderlist) do	
 			if CanBuild(tqb, ai, unit, unitName) then
-				Spring.Echo("yes")
 				possibilities[unit:Name()]["builder"][ct + 1] = unitName
 				ct = ct + 1
 			end
