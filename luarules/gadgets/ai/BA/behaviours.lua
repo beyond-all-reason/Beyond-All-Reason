@@ -7,6 +7,8 @@ shard_include(  "bootbehaviour" )
 shard_include(  "stockpilebehavior" )
 shard_include(  "mexupgradebehaviour" )
 shard_include(  "scoutsbehaviour" )
+shard_include(  "staticweaponbehaviour" )
+shard_include(  "nukebehaviour" )
 
 behaviours = {
 	--CoreNanoTurret
@@ -65,8 +67,12 @@ behaviours = {
 		TaskQueueBehaviour,
 		-- MexUpgradeBehavior,
 		},
-
-
+	armsilo = {
+		NukeBehaviour,
+		},
+	corsilo = {
+		NukeBehaviour,
+		},
 }
 
 function defaultBehaviours(unit)
@@ -81,6 +87,9 @@ function defaultBehaviours(unit)
 	end
 	if IsScouts(unit) then
 		table.insert(b,ScoutsBehaviour)
+	end
+	if IsStaticWeapon(unit) then
+		table.insert(b,StaticWeaponBehaviour)
 	end
 	--if IsPointCapturer(unit) then
 		--table.insert(b,PointCapturerBehaviour)
