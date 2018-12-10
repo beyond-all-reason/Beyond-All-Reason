@@ -321,58 +321,58 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
+
 	local offset = 0.07		-- texture offset, because else gaps could show
-	
+
 	-- bottom left
 	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
 	-- bottom right
 	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- top left
 	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
 	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
@@ -393,7 +393,7 @@ function DrawButton()
 	glShape(GL_LINE_STRIP, vertices)
   glText("Settings", textMargin, textMargin, textSize, "nos")
 end
-	
+
 function lines(str)
   local t = {}
   local function helper(line) t[#t+1]=line return "" end
@@ -507,7 +507,7 @@ function DrawWindow()
 		gl.Color(0.33,0.33,0.33,0.15)
 	end
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
-	
+
 	--[[ close button
 	local size = closeButtonSize*0.7
 	local width = size*0.055
@@ -559,17 +559,17 @@ function DrawWindow()
 	-- title drawing
 	gl.Color(0,0,0,0.8)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
-	
+
 	font:Begin()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
 	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font:End()
-	
+
 	local width = screenWidth/3
 	--gl.Color(0.66,0.66,0.66,0.08)
 	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
-	
+
 	-- description background
 	gl.Color(0.55,0.48,0.22,0.14)
 	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6)
@@ -819,14 +819,14 @@ function widget:DrawScreen()
   if not windowList then
     --windowList = gl.CreateList(DrawWindow)
   end
-  
+
   -- update new slider value
 	if sliderValueChanged then
 		gl.DeleteList(windowList)
 		windowList = gl.CreateList(DrawWindow)
 		sliderValueChanged = nil
   end
-  
+
   if show or showOnceMore then
 
 	  --on window
@@ -879,11 +879,11 @@ function widget:DrawScreen()
 				end
 			end
 			showOnceMore = false
-			
+
 			-- draw button hover
 			local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 			local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-			
+
 			-- mouseover (highlight and tooltip)
 
 		  	local description = ''
@@ -923,7 +923,7 @@ function widget:DrawScreen()
 							description = options[i].description
 							glText('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
 						end
-						glColor(0.46,0.4,0.3,0.4)
+						glColor(0.46,0.4,0.3,0.45)
 						glText('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
 					end
 				end

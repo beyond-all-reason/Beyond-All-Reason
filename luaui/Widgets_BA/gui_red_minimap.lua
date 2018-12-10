@@ -340,12 +340,14 @@ function widget:Update(dt)
 	
 	if (minimized) then
 		rMinimap.minimap.active = false
+		rMinimap.minimapbg.active = false
 		--hack to reset state minimap
 		gl.SlaveMiniMap(false) 
 		gl.SlaveMiniMap(true)
 		----
 	else
 		rMinimap.minimap.active = nil
+		rMinimap.minimapbg.active = nil
 	end
 	
 	local st = sGetCameraState()
