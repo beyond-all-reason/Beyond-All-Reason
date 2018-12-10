@@ -8,5 +8,6 @@ shard_include( "newplacementhandler" )
 shard_include( "requestshandler" )
 shard_include( "aimodehandler" )
 shard_include( "sleep" )
+shard_include( "scoutshandler" )
 
-modules = { UnitHandler, AttackHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, AiModeHandler, Sleep }
+modules = { UnitHandler, AttackHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, AiModeHandler, Sleep, ScoutsHandler }

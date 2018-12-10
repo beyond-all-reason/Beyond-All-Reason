@@ -6,6 +6,7 @@ shard_include(  "attackerbehaviour" )
 shard_include(  "bootbehaviour" )
 shard_include(  "stockpilebehavior" )
 shard_include(  "mexupgradebehaviour" )
+shard_include(  "scoutsbehaviour" )
 
 behaviours = {
 	--CoreNanoTurret
@@ -77,6 +78,9 @@ function defaultBehaviours(unit)
 	end
 	if IsAttacker(unit) then
 		table.insert(b,AttackerBehaviour)
+	end
+	if IsScouts(unit) then
+		table.insert(b,ScoutsBehaviour)
 	end
 	--if IsPointCapturer(unit) then
 		--table.insert(b,PointCapturerBehaviour)

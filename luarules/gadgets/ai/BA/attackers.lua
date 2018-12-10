@@ -14,7 +14,7 @@ attackerlist = {
 	"armrectr",	--	Rector			/	Rez-Reclaim
 	"armrock",	--	Rocko			/	Rocket Bot
 	"armjeth",	--	Jethro			/	Anti-Air
-	"armflea",	--	Flea			/	Scout
+	-- "armflea",	--	Flea			/	Scout
 	"armwar",	--	Warrior			/	Medium Infantry
 
 ------------------------------T2 KBOT
@@ -24,7 +24,7 @@ attackerlist = {
 	"armaser",  --  Eraser          /   Radar Jammer Kbot
 	"armdecom", --  Decoy Commander /   Decoy Commander
 	"armfark",  --  Fark            /   Fast Assist/Repair Kbot
-	"armfast",  --  Zipper          /   Fast Raider Kbot
+	-- "armfast",  --  Zipper          /   Fast Raider Kbot
 	"armfboy",  --  Fatboy          /   Heavy Plasma Bot
 	"armfido",  --  Fido            /   Mortar/Skirmish Kbot
 	"armmark",  --  Marky           /   Radar Kbot
@@ -33,14 +33,14 @@ attackerlist = {
 	"armsnipe", --  Sharpshooter    /   Sniper Kbot
 	"armspid",  --  Spider          /   All-Terrain EMP Spider
 	"armspkt",  --  Recluse         /   All-Terrain Rocket Spider
-	"armspy",   --  Infiltrator     /   Radar-Invisibility Spy Kbot
+	-- "armspy",   --  Infiltrator     /   Radar-Invisibility Spy Kbot
 	"armvader", --  Invader         /   Amphibious Crawling Bomb
 	"armzeus",  --  Zeus            /   Assault Kbot
 
 
 -------------------------------T1 VEH
 
-	"armfav",	--	Jeffy			/	Scout
+	-- "armfav",	--	Jeffy			/	Scout
 	"armflash",	-- 	Flash			/	Fast Assault Tank
 	"armstump",	--	Stumpy			/	Medium Assault Tank
 	"armjanus",	--	Janus			/	Rocket Tank
@@ -59,19 +59,19 @@ attackerlist = {
 	"armmart",	--	Lugger			/	Mobile Artillery
 	"armmerl",	--	Merl			/	Stealthy Rocket Launcher
 	"armseer",	--	Seer			/	Radar Vehicle
-	"armst",	--	Gremlin			/	Stealth Tank
+	-- "armst",	--	Gremlin			/	Stealth Tank
 	"armyork",	--	Phalanx			/	Anti-Air Flak Vehicle
 
 -------------------------------T1 AIR
 
-	"armpeep",	--	Peeper			/	Scout
+	-- "armpeep",	--	Peeper			/	Scout
 	"armthund",	--	Thunder			/	Bomber
 	"armfig",	-- 	Freedom Fighter /	Fighter
 	"armkam",	--	Banshee			/	Light Gunship
 
 -------------------------------T2 AIR
 
-	"armawac",	--	Eagle			/	Radar/Sonar Plane
+	-- "armawac",	--	Eagle			/	Radar/Sonar Plane
 	"armblade",	--	Blade			/	Rapid Assault Gunship
 	"armbrawl",	--	Brawler			/	Gunship
 	"armdfly",	--	Dragonfly		/	Sealthy Armed Transport
@@ -94,7 +94,7 @@ attackerlist = {
 	"armanac",	--	Anaconda		/	Hovertank
 	"armlun",	--	Lun				/	Heavy Hovertank
 	"armmh",	--	Wombat			/	Hovercraft Rocket Launcher
-	"armsh",	--	Skimmer			/	Fast Attack Hovercraft
+	-- "armsh",	--	Skimmer			/	Fast Attack Hovercraft
 	"armthovr",	--	Bear			/	Transport Hovercraft
 
 ----------------------------Seaplanes
@@ -102,7 +102,7 @@ attackerlist = {
 	"armsaber",	--	Sabre			/	Seaplane Gunship
 	"armsb",	--	Tsunami			/	Seaplane Bomber
 	"armseap",	--	Albatross		/	Torpedo Gunship
-	"armsehak",	--	Seahawk			/	Advanced Radar/Sonar Plane
+	-- "armsehak",	--	Seahawk			/	Advanced Radar/Sonar Plane
 	"armsfig",	--	Tornado			/	Seaplane Swarmer
 
 -----------------------------T1 Ships
@@ -110,7 +110,7 @@ attackerlist = {
 	"armdecade",--	Decade			/	Fast Assault Corvette
 	"armdship",	--	Hunter			/	Light Torpedo Boat
 	"armpship",	--	Ellysaw			/	Assault Frigate
-	"armpt",	--	Skeeter			/	Patrol Boat/Light Anti-Air
+	-- "armpt",	--	Skeeter			/	Patrol Boat/Light Anti-Air
 	"armrecl",	--	Grim Reaper		/	Ressurection Sub
 	"armroy",	--	Crusader		/	Destroyer
 	"armsub",	--	Lurker			/	Submarine
@@ -153,14 +153,14 @@ attackerlist = {
 	"corroach",	--	Roach			/	Amphibious Crawling Bomb
 	"corsktl",	--	Skuttle			/	Advanced Amphibious Crawling Bomb
 	"corspec",	--	Spectre			/	Radar Jamming Kbot
-	"corspy",	--	Parasite		/	Radar-Invisibility Spy Kbot
+	-- "corspy",	--	Parasite		/	Radar-Invisibility Spy Kbot
 	"corsumo",	--	Sumo			/	Heavily-Armored Assault Kbot
 	"cortermite", -- Termite		/	Heavy All-Terrain Assault Spider
 	"corvoyr",	--	Voyeur			/	Radar Kbot
 
 -------------------------------T1 VEH
 
-	"corfav",	--	Weasel			/	Scout
+	-- "corfav",	--	Weasel			/	Scout
 	"corgator",	--	Instigator		/	Fast Assault Tank
 	"corraid",	--	Raider			/	Medium Assault Tank
 	"corlevlr",	--	Leveler			/	Riot Tank
@@ -186,7 +186,7 @@ attackerlist = {
 
 -------------------------------T1 AIR
 
-	"corfink",	--	Fink			/	Scout
+	-- "corfink",	--	Fink			/	Scout
 	"corveng",	--	Avenger			/	Fighter
 	"corshad",	--	Shadow			/	Bomber
 	"corbw",	--	Bladewing		/	Paralyzer Drone
@@ -194,7 +194,7 @@ attackerlist = {
 -------------------------------T2 AIR
 
 	"corape",	--	Rapier			/	Gunship
-	"corawac",	--	Vulture			/	Radar/Sonar Plane
+	-- "corawac",	--	Vulture			/	Radar/Sonar Plane
 	"corcrw",	--	Krow			/	Flying Fortress
 	"corhurc",	--	Hurricane		/	Heavy Strategic Bomber
 	"corseah",	--	Seahook			/	Assault Transport
@@ -214,7 +214,7 @@ attackerlist = {
 	"corah",	--	Slinger			/	Anti-Air Hovercraft
 	"corhal",	--	Halberd			/	Assault Hovertank
 	"cormh",	--	Nixer			/	Hovercraft Rocket Launcher
-	"corsh",	--	Scrubber		/	Fast Attack Hovercraft
+	-- "corsh",	--	Scrubber		/	Fast Attack Hovercraft
 	"corsnap",	--	Snapper			/	Hovertank
 	"corsok",	--	Sokolov			/	Heavy Laser Hovertank
 	"corthovr",	--	Turtle			/	Transport Hovercraft
@@ -222,7 +222,7 @@ attackerlist = {
 ----------------------------Seaplanes
 
 	"corcut",	--	Cutlass			/	Seaplane Gunship
-	"corhunt",	--	Hunter			/	Advanced Radar/Sonar Plane
+	-- "corhunt",	--	Hunter			/	Advanced Radar/Sonar Plane
 	"corsb",	--	Dam Buster		/	Seaplane Bomber
 	"corseap",	--	Typhoon			/	Torpedo Gunship
 	"corsfig",	--	Voodoo			/	Seaplane Swarmer
@@ -232,7 +232,7 @@ attackerlist = {
 	"cordship",	--	Chaser			/	Light Torpedo Boat
 	"coresupp",	--	Supporter		/	Fast Assault Corvette
 	"corpship",	--	Era				/	Assault Frigate
-	"corpt",	--	Searcher;		/	Patrol Boat/Light Anti-Air
+	-- "corpt",	--	Searcher;		/	Patrol Boat/Light Anti-Air
 	"correcl",	--	Death Cavalry	/	Ressurection Sub
 	"corroy",	--	Enforcer		/	Destroyer
 	"corsub",	--	Snake			/	Submarine
