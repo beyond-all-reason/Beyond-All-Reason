@@ -89,7 +89,7 @@ function gadget:Initialize()
 		if (isAI) then
 			spEcho( "K9: IT IS AI")
 			local aiInfo = spGetTeamLuaAI(id)
-			if (string.sub(aiInfo,1,8) == "DAI") then
+			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,8) == "DAI") then
 				numberOfmFAITeams = numberOfmFAITeams + 1
 				spEcho("Moomin Player " .. teamList[i] .. " is " .. aiInfo)
 				-- add AI object
