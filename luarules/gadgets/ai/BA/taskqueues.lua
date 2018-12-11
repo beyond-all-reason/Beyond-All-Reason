@@ -107,22 +107,86 @@ function Helper(tqb, ai, unit)
 	end
 end
 
-function Attacker(tqb, ai, unit)
+function Raider(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
-	if not possibilities[unit:Name()]["attacker"] then
-		possibilities[unit:Name()]["attacker"] = {}
+	if not possibilities[unit:Name()]["raider"] then
+		possibilities[unit:Name()]["raider"] = {}
 		local ct = 0
-		for i, unitName in pairs (attackerlist) do
+		for i, unitName in pairs (raiderlist) do
 			if CanBuild(tqb, ai, unit, unitName) then
-				possibilities[unit:Name()]["attacker"][ct + 1] = unitName
+				possibilities[unit:Name()]["raider"][ct + 1] = unitName
 				ct = ct + 1
 			end
 		end
 	end
-	if possibilities[unit:Name()]["attacker"][1] then
+	if possibilities[unit:Name()]["raider"][1] then
 		local list = {}
 		local count = 0
-		for ct, unitName in pairs(possibilities[unit:Name()]["attacker"]) do
+		for ct, unitName in pairs(possibilities[unit:Name()]["raider"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Skirmisher(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["skirmisher"] then
+		possibilities[unit:Name()]["skirmisher"] = {}
+		local ct = 0
+		for i, unitName in pairs (skirmisherlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["skirmisher"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["skirmisher"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["skirmisher"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Artillery(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["artillery"] then
+		possibilities[unit:Name()]["artillery"] = {}
+		local ct = 0
+		for i, unitName in pairs (artillerylist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["artillery"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["artillery"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["artillery"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
 			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 				count = count + 1
@@ -155,6 +219,70 @@ function Scout(tqb, ai, unit)
 		local list = {}
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["scouts"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Bomber(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["bomber"] then
+		possibilities[unit:Name()]["bomber"] = {}
+		local ct = 0
+		for i, unitName in pairs (bomberlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["bomber"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["bomber"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["bomber"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Fighter(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["fighter"] then
+		possibilities[unit:Name()]["fighter"] = {}
+		local ct = 0
+		for i, unitName in pairs (fighterlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["fighter"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["fighter"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["fighter"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
 			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
 				count = count + 1
@@ -718,15 +846,34 @@ lab = {
 	Scout,
 	Builder,
 	Scout,
-	Attacker,
-	Attacker,
-	Attacker,
+	Raider,
+	Raider,
+	Raider,
 	Helper,
-	Attacker,
-	Attacker,
-	Attacker,
+	Raider,
+	Skirmisher,
+	Skirmisher,
 	Helper,
+	Skirmisher,
+	Artillery,
+	Builder,
+}
+
+airlab = {
+	Builder,
 	Scout,
+	Builder,
+	Scout,
+	Fighter,
+	Fighter,
+	Bomber,
+	Helper,
+	Bomber,
+	Bomber,
+	Fighter,
+	Helper,
+	Fighter,
+	Fighter,
 	Builder,
 }
 
@@ -1591,10 +1738,10 @@ taskqueues = {
 	--factories
 	corlab = lab,
 	corvp = lab,
-	corap = lab,
+	corap = airlab,
 	coralab = lab,
 	coravp = lab,
-	coraap = lab,
+	coraap = airlab,
 	corhp = lab,
 	corgant = lab,
 
@@ -1615,10 +1762,10 @@ taskqueues = {
 	--factories
 	armlab = lab,
 	armvp = lab,
-	armap = lab,
+	armap = airlab,
 	armalab = lab,
 	armavp = lab,
-	armaap = lab,
+	armaap = airlab,
 	armhp = lab,
 	armshltx = lab,
 }

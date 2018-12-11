@@ -1,7 +1,10 @@
 
 shard_include(  "taskqueues" )
 shard_include(  "taskqueuebehaviour" )
-shard_include(  "attackerbehaviour" )
+shard_include(  "raiderbehaviour" )
+shard_include(  "skirmisherbehaviour" )
+shard_include(  "artillerybehaviour" )
+shard_include(  "bomberbehaviour" )
 --shard_include(  "pointcapturerbehaviour" )
 shard_include(  "bootbehaviour" )
 shard_include(  "stockpilebehavior" )
@@ -9,6 +12,7 @@ shard_include(  "mexupgradebehaviour" )
 shard_include(  "scoutsbehaviour" )
 shard_include(  "staticweaponbehaviour" )
 shard_include(  "nukebehaviour" )
+shard_include(  "fighterbehaviour" )
 
 behaviours = {
 	--CoreNanoTurret
@@ -82,8 +86,20 @@ function defaultBehaviours(unit)
 	if u:CanBuild() then
 		table.insert(b,TaskQueueBehaviour)
 	end
-	if IsAttacker(unit) then
-		table.insert(b,AttackerBehaviour)
+	if IsSkirmisher(unit) then
+		table.insert(b,SkirmisherBehaviour)
+	end
+	if IsRaider(unit) then
+		table.insert(b,RaiderBehaviour)
+	end
+	if IsFighter(unit) then
+		table.insert(b,FighterBehaviour)
+	end
+	if IsBomber(unit) then
+		table.insert(b,BomberBehaviour)
+	end
+	if IsArtillery(unit) then
+		table.insert(b,ArtilleryBehaviour)
 	end
 	if IsScouts(unit) then
 		table.insert(b,ScoutsBehaviour)

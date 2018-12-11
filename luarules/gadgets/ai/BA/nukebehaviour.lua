@@ -9,10 +9,11 @@ end
 function NukeBehaviour:Update()
 	if Spring.GetGameFrame() % 120 == 0 then
 		if self.stockpiler then
-			local _,curStockQ = Spring.GetUnitStockpile(self.unit:Internal().id)
+			local curStocked,curStockQ = Spring.GetUnitStockpile(self.unit:Internal().id)
 			if curStockQ <1 then
 				self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE)
-			else
+			end
+			if curStocked > 0 then
 				if not self.target then
 					self.target = GG.AiHelpers.TargetsOfInterest.Nuke(self.ai.id)
 				end

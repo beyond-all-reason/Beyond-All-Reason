@@ -1,21 +1,21 @@
-AttackHandler = class(Module)
+SkirmisherHandler = class(Module)
 
-function AttackHandler:Name()
-	return "AttackHandler"
+function SkirmisherHandler:Name()
+	return "SkirmisherHandler"
 end
 
-function AttackHandler:internalName()
-	return "attackhandler"
+function SkirmisherHandler:internalName()
+	return "skirmisherhandler"
 end
 
-function AttackHandler:Init()
+function SkirmisherHandler:Init()
 	self.targetPool = {}
 	self.ratio = 10
 	self.squads = {}
 	self.squadmaxsize = 15 -- Smaller size = more cpu usage !
 end
 
-function AttackHandler:Update()
+function SkirmisherHandler:Update()
 
 	--Commander position for atk behaviour
 	local frame = Spring.GetGameFrame()
@@ -70,7 +70,7 @@ function AttackHandler:Update()
 	end
 end
 
-function AttackHandler:GetMovePosition(target, position)
+function SkirmisherHandler:GetMovePosition(target, position)
 	local movex = (target.x - position.x)
 	local movez = (target.z - position.z)
 	local distancesqr = movex^2 + movez^2
@@ -82,7 +82,7 @@ function AttackHandler:GetMovePosition(target, position)
 	return {goalx, goaly,goalz}
 end
 
-function AttackHandler:TargetPoolThread() -- targetPool[1]= top priority targetpos, [2] = secondary, [3] = tertiary
+function SkirmisherHandler:TargetPoolThread() -- targetPool[1]= top priority targetpos, [2] = secondary, [3] = tertiary
 	-- Commander Protection
 	local comms = Spring.GetTeamUnitsByDefs(self.ai.id, {UnitDefNames.armcom.id, UnitDefNames.corcom.id})
 	if comms[1] then
@@ -98,17 +98,17 @@ function AttackHandler:TargetPoolThread() -- targetPool[1]= top priority targetp
 	end
 end
 
-function AttackHandler:SetSquadAggressiveness(i, value)
+function SkirmisherHandler:SetSquadAggressiveness(i, value)
 	for unitID, atkbehaviour in pairs (self.squads[i].units) do
 		atkbehaviour.AggFactor = value
 	end
 end
 
-function AttackHandler:GetAggressiveness(atkbehaviour)
+function SkirmisherHandler:GetAggressiveness(atkbehaviour)
 	return (2)
 end
 
-function AttackHandler:GetSquadRole(atkbehaviour)
+function SkirmisherHandler:GetSquadRole(atkbehaviour)
 	if math.random(1, self.ratio) == 1 then
 		return ("defender")
 	else
@@ -116,12 +116,12 @@ function AttackHandler:GetSquadRole(atkbehaviour)
 	end
 end
 
-function AttackHandler:PickRandomPositionsOnMap()
+function SkirmisherHandler:PickRandomPositionsOnMap()
 	local pos = {{math.random(0,Game.mapSizeX), math.random(0,Game.mapSizeZ)},{math.random(0,Game.mapSizeX), math.random(0,Game.mapSizeZ)},{math.random(0,Game.mapSizeX), math.random(0,Game.mapSizeZ)},{math.random(0,Game.mapSizeX), math.random(0,Game.mapSizeZ)},{math.random(0,Game.mapSizeX), math.random(0,Game.mapSizeZ)}}
 	return pos
 end
 
-function AttackHandler:GetSquadPosition(i)
+function SkirmisherHandler:GetSquadPosition(i)
 	local pos = {x = 0, y = 0, z = 0}
 	for unitID, atkbehaviour in pairs(self.squads[i].units) do
 		local thisUnitPos = atkbehaviour.unit:Internal():GetPosition()
@@ -137,17 +137,17 @@ end
 
 -- Squads management
 
-function AttackHandler:CreateSquad(i)
+function SkirmisherHandler:CreateSquad(i)
 	self.squads[i] = {size = 0, target = {}, units = {}, role = self:GetSquadRole(), position = {x = 0, y = 0, z = 0}}
 	--Spring.Echo("Squad "..i.." created")
 end
 
-function AttackHandler:RemoveSquad(i)
+function SkirmisherHandler:RemoveSquad(i)
 	self.squads[i] = nil
 	--Spring.Echo("Squad "..i.." removed")
 end
 
-function AttackHandler:AssignToASquad(atkbehaviour)
+function SkirmisherHandler:AssignToASquad(atkbehaviour)
 	local done = false
 	for i, squad in pairs(self.squads) do
 		if self.squads[i].size < self.squadmaxsize then
@@ -171,7 +171,7 @@ function AttackHandler:AssignToASquad(atkbehaviour)
 	atkbehaviour.behaviourcontroled = false
 end
 
-function AttackHandler:RemoveFromSquad(atkbehaviour)
+function SkirmisherHandler:RemoveFromSquad(atkbehaviour)
 	for i, squad in pairs(self.squads) do
 		if self.squads[i].units[atkbehaviour.unit:Internal().id] then
 			self.squads[i].units[atkbehaviour.unit:Internal().id] = nil
@@ -187,7 +187,7 @@ function AttackHandler:RemoveFromSquad(atkbehaviour)
 end
 --
 
-function AttackHandler:ScoreUnit(unit)
+function SkirmisherHandler:ScoreUnit(unit)
 	local value = 1
 	--[[
 	if unit:CanMove() then

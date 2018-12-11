@@ -210,17 +210,16 @@ end
 
 GG.AiHelpers.TargetsOfInterest.BombingRun = function(teamID)
 	if not TargetsOfInterest[teamID] then return end
-	local list = {}
-	local ct = 0
+	local target
 	for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
-		if ct <= 5 then
-			list[ct + 1] = unitID
-			ct = ct + 1
-		else
-			break
-		end
+		target = unitID
+		break
 	end
-	return list
+	if target then
+		return target
+	else
+		return nil
+	end
 end
 
 GG.AiHelpers.TargetsOfInterest.Nuke = function(teamID)
