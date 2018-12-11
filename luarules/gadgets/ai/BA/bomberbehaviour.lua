@@ -15,11 +15,12 @@ function BomberBehaviour:Init()
 end
 
 function BomberBehaviour:Update()
-	Spring.Echo("bomberbehaviourUpdate")
-	if not Spring.ValidUnitID(self.target) then
-		self.target = nil
-		self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {})
-		self.ai.bomberhandler:AddRecruit(self)
+	if Spring.GetGameFrame() %30 == 0 then
+		if self.target and not Spring.ValidUnitID(self.target) then
+			self.target = nil
+			self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {})
+			self.ai.bomberhandler:AddRecruit(self)
+		end
 	end
 end
 		

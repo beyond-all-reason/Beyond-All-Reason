@@ -22,9 +22,12 @@ end
 function BomberHandler:Update()
 	if Spring.GetGameFrame()% 1800 == 0 then
 		self:UpdatePatrolPositions()
-		self:DoPatrol()
 	end
-	if #self.standbypatrol >= Spring.GetGameSeconds()/60 then
+	
+	if Spring.GetGameFrame()% 300 == 0 and #self.standbypatrol >= Spring.GetGameSeconds()/120 then
+		if self.PatrolPositions then
+			self:DoPatrol()
+		end
 		self:DoBombingRun()
 	end
 end

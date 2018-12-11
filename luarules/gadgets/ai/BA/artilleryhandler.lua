@@ -56,15 +56,9 @@ function ArtilleryHandler:Update()
 					end
 				end
 			end
-		end
-	end
-	--Perform Actions
-	for i, squad in pairs(self.squads) do
-		if frame%90 == i%90 then -- move squad units
-			self.squads[i].position = self:GetSquadPosition(i)-- update position
 			if squad.target and squad.target.x then -- Queue commands midway so it tries to group up the units first
-				local movetargetpos = self:GetMovePosition(squad.target, self.squads[i].position)
-				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, movetargetpos, {""})
+				local movetargetpos = squad.target
+				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
 			end
 		end
 	end

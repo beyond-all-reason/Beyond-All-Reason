@@ -40,16 +40,21 @@ local function Distance(x1,z1, x2,z2)
 end
 
 function ArtilleryBehaviour:Update()
-	if not self.active then -- do not even attempt anything if the unit is inactive...
-		local unit = self.unit:Internal()
-		if (unit:GetHealth()/unit:GetMaxHealth())*100 == 100 then
-			self.active = true
+	local frame = SpGetGameFrame()
+	if not self.unitID then
+		self.unitID = self.unit:Internal().id
+	end
+	if not self.active then -- do not even attempt anything if the unit is inactive...	
+		if frame%90 == self.unitID%90 then
+			local unit = self.unit:Internal()
+			if (unit:GetHealth()/unit:GetMaxHealth())*100 == 100 then
+				self.active = true
+			else
+				return
+			end
 		else
 			return
 		end
-	end
-	if not self.unitID then
-		self.unitID = self.unit:Internal().id
 	end
 	if not self.AggFactor then
 		self.AggFactor = self.ai.artilleryhandler:GetAggressiveness(self)
@@ -86,7 +91,6 @@ function ArtilleryBehaviour:Update()
 			return
 		end
 	end
-	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 3000
 	local refreshRate = 60
 	if self.unitID%refreshRate == frame%refreshRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)

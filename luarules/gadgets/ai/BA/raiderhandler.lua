@@ -12,14 +12,14 @@ function RaiderHandler:Init()
 	self.targetPool = {}
 	self.ratio = 10
 	self.squads = {}
-	self.squadmaxsize = 15 -- Smaller size = more cpu usage !
+	self.squadmaxsize = 30 -- Smaller size = more cpu usage !
 end
 
 function RaiderHandler:Update()
 
 	--Commander position for atk behaviour
 	local frame = Spring.GetGameFrame()
-	if frame%150 == 0 then
+	if frame%600 == 150 then
 		local x,y,z
 		local comms = Spring.GetTeamUnitsByDefs(self.ai.id, {UnitDefNames.armcom.id, UnitDefNames.corcom.id})
 		if comms[1] then
@@ -28,7 +28,7 @@ function RaiderHandler:Update()
 		end
 	end
 	--TargetPoolThread
-	if frame%300 == 0 then
+	if frame%300 == 75 then
 		self:TargetPoolThread()	
 	end
 	--Assign Targets To Squads
@@ -56,26 +56,21 @@ function RaiderHandler:Update()
 					end
 				end
 			end
-		end
-	end
-	--Perform Actions
-	for i, squad in pairs(self.squads) do
-		if frame%90 == i%90 then -- move squad units
-			self.squads[i].position = self:GetSquadPosition(i)-- update position
 			if squad.target and squad.target.x then -- Queue commands midway so it tries to group up the units first
-				local movetargetpos = self:GetMovePosition(squad.target, self.squads[i].position)
-				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, movetargetpos, {""})
+				local movetargetpos = squad.target
+				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
 			end
 		end
 	end
 end
+
 
 function RaiderHandler:GetMovePosition(target, position)
 	local movex = (target.x - position.x)
 	local movez = (target.z - position.z)
 	local distancesqr = movex^2 + movez^2
 	local distance = math.sqrt(distancesqr)
-	local limitedDistance = math.min(distance, 500)
+	local limitedDistance = math.min(distance, 1000)
 	local factor = limitedDistance / distance
 	local goalx, goalz = position.x + movex*factor, position.z + movez*factor
 	local goaly = Spring.GetGroundHeight(goalx, goalz)

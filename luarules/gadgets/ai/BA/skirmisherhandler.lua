@@ -19,7 +19,7 @@ function SkirmisherHandler:Update()
 
 	--Commander position for atk behaviour
 	local frame = Spring.GetGameFrame()
-	if frame%150 == 0 then
+	if frame%600 == 300 then
 		local x,y,z
 		local comms = Spring.GetTeamUnitsByDefs(self.ai.id, {UnitDefNames.armcom.id, UnitDefNames.corcom.id})
 		if comms[1] then
@@ -28,7 +28,7 @@ function SkirmisherHandler:Update()
 		end
 	end
 	--TargetPoolThread
-	if frame%300 == 0 then
+	if frame%300 == 75 then
 		self:TargetPoolThread()	
 	end
 	--Assign Targets To Squads
@@ -56,19 +56,14 @@ function SkirmisherHandler:Update()
 					end
 				end
 			end
-		end
-	end
-	--Perform Actions
-	for i, squad in pairs(self.squads) do
-		if frame%90 == i%90 then -- move squad units
-			self.squads[i].position = self:GetSquadPosition(i)-- update position
 			if squad.target and squad.target.x then -- Queue commands midway so it tries to group up the units first
-				local movetargetpos = self:GetMovePosition(squad.target, self.squads[i].position)
-				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, movetargetpos, {""})
+				local movetargetpos = squad.target
+				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
 			end
 		end
 	end
 end
+
 
 function SkirmisherHandler:GetMovePosition(target, position)
 	local movex = (target.x - position.x)

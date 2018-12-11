@@ -40,21 +40,25 @@ local function Distance(x1,z1, x2,z2)
 end
 
 function SkirmisherBehaviour:Update()
-	if not self.active then -- do not even attempt anything if the unit is inactive...
-		local unit = self.unit:Internal()
-		if (unit:GetHealth()/unit:GetMaxHealth())*100 == 100 then
-			self.active = true
+	local frame = SpGetGameFrame()
+	if not self.unitID then
+		self.unitID = self.unit:Internal().id
+	end
+	if not self.active then -- do not even attempt anything if the unit is inactive...	
+		if frame%90 == self.unitID%90 then
+			local unit = self.unit:Internal()
+			if (unit:GetHealth()/unit:GetMaxHealth())*100 == 100 then
+				self.active = true
+			else
+				return
+			end
 		else
 			return
 		end
 	end
-	if not self.unitID then
-		self.unitID = self.unit:Internal().id
-	end
 	if not self.AggFactor then
 		self.AggFactor = self.ai.skirmisherhandler:GetAggressiveness(self)
 	end
-	local frame = SpGetGameFrame()
 	local unit = self.unit:Internal()
 	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
@@ -86,8 +90,7 @@ function SkirmisherBehaviour:Update()
 			return
 		end
 	end
-	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 3000
-	local refreshRate = 15
+	local refreshRate = 20
 	if self.unitID%refreshRate == frame%refreshRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
