@@ -77,8 +77,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function initiateXmas()
-		if not _G.itsXmas then
-			_G.itsXmas = true
+		if not initiated then
+			initiated = true
 			-- spawn candy canes
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
@@ -121,6 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if xmasRatio > 0.75 then
+					_G.itsXmas = true
 					initiateXmas()
 				else
 					return
@@ -231,7 +232,7 @@ if gadgetHandler:IsSyncedCode() then
 				decorationsTerminal[unitID] = nil
 			end
 			decorationCount = decorationCount - 1
-		elseif attackerID ~= nil then	-- is not reclaimed
+		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
 			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][4]) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
