@@ -24,7 +24,14 @@ if gadgetHandler:IsSyncedCode() then
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
 
-	_G.itsXmas = false
+	_G.itsXmas = true
+
+	for fdefID,def in ipairs(FeatureDefs) do
+		if def.tooltip == "Xmas Commander Wreckage" then
+			xmascomwreckDefID = fdefID
+			break
+		end
+	end
 
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
@@ -183,6 +190,28 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		createdDecorations = {}
+	end
+
+	if Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "disabled" then
+		function gadget:FeatureCreated(featureID, allyTeam)
+			-- replace comwreck with xmas comwreck
+			if FeatureDefs[Spring.GetFeatureDefID(featureID)] and FeatureDefs[Spring.GetFeatureDefID(featureID)].tooltip == "Commander Wreckage" then
+				local px,py,pz = Spring.GetFeaturePosition(featureID)
+				local rx,ry,rz = Spring.GetFeatureRotation(featureID)
+				local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+				Spring.DestroyFeature(featureID)
+				local xmasFeatureID = Spring.CreateFeature(xmascomwreckDefID, px,py,pz)
+				if xmasFeatureID then
+					Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
+					Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+					local comtype = 'armcom'
+					if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
+						comtype = 'corcom'
+					end
+					Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+				end
+			end
+		end
 	end
 
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
