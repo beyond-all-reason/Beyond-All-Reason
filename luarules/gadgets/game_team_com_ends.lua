@@ -190,7 +190,11 @@ function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
 			aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 			if aliveCount[allyTeam] <= 0 then
 				local x,y,z = Spring.GetUnitPosition(u)
-				destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a}
+				destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a }
+				if not _G.destroyingTeam then
+					_G.destroyingTeam = {}
+				end
+				_G.destroyingTeam[allyTeam] = true
             end
 		end
 	end

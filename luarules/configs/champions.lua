@@ -1,3 +1,3 @@
 crown  = {
-	 ["Raghna"] = true,
-	}
+	--["Raghna"] = true,
+}

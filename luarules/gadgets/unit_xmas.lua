@@ -23,8 +23,18 @@ if gadgetHandler:IsSyncedCode() then
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
+	if Spring.GetModOptions and Spring.GetModOptions().xmasballsmax then
+		maxDecorations = Spring.GetModOptions().xmasballsmax
+	end
 
 	_G.itsXmas = false
+
+	for fdefID,def in ipairs(FeatureDefs) do
+		if def.tooltip == "Xmas Commander Wreckage" then
+			xmascomwreckDefID = fdefID
+			break
+		end
+	end
 
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
@@ -32,12 +42,12 @@ if gadgetHandler:IsSyncedCode() then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-15) / 8))
 				if balls > 0 then
-					hasDecoration[udefID] = {balls, (def.radius/12), 30*6}
+					hasDecoration[udefID] = {balls, (def.radius/12), 30*9}
 				end
 			end
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = {28, 9, 30*18}
+			hasDecoration[udefID] = {28, 9, 30*18, true} -- always shows decorations for commander even if maxDecorations is reached
 		end
 	end
 
@@ -67,8 +77,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function initiateXmas()
-		if not _G.itsXmas then
-			_G.itsXmas = true
+		if not initiated then
+			initiated = true
 			-- spawn candy canes
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
@@ -111,6 +121,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if xmasRatio > 0.75 then
+					_G.itsXmas = true
 					initiateXmas()
 				else
 					return
@@ -118,7 +129,10 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				return
 			end
+		elseif n == 1 then	-- only when manually enablinb xmas in gadget to test
+			initiateXmas()
 		end
+
 		if n % 30 == 1 then
 			for unitID, frame in pairs(decorations) do
 				if frame < n then
@@ -185,6 +199,28 @@ if gadgetHandler:IsSyncedCode() then
 		createdDecorations = {}
 	end
 
+	if Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "disabled" then
+		function gadget:FeatureCreated(featureID, allyTeam)
+			-- replace comwreck with xmas comwreck
+			if FeatureDefs[Spring.GetFeatureDefID(featureID)] and FeatureDefs[Spring.GetFeatureDefID(featureID)].tooltip == "Commander Wreckage" then
+				local px,py,pz = Spring.GetFeaturePosition(featureID)
+				local rx,ry,rz = Spring.GetFeatureRotation(featureID)
+				local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+				Spring.DestroyFeature(featureID)
+				local xmasFeatureID = Spring.CreateFeature(xmascomwreckDefID, px,py,pz)
+				if xmasFeatureID then
+					Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
+					Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+					local comtype = 'armcom'
+					if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
+						comtype = 'corcom'
+					end
+					Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+				end
+			end
+		end
+	end
+
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
 		if not _G.itsXmas then
 			return
@@ -196,8 +232,8 @@ if gadgetHandler:IsSyncedCode() then
 				decorationsTerminal[unitID] = nil
 			end
 			decorationCount = decorationCount - 1
-		elseif attackerID ~= nil then	-- is not reclaimed
-			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and decorationCount < maxDecorations then
+		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
+			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][4]) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
 				--Spring.Echo(hasDecoration[unitDefID][1])
