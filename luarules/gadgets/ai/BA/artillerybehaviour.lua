@@ -13,8 +13,8 @@ local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 ------
 
 
-function IsAttacker(unit)
-	for i,name in ipairs(attackerlist) do
+function IsArtillery(unit)
+	for i,name in ipairs(artillerylist) do
 		if name == unit:Internal():Name() then
 			return true
 		end
@@ -22,10 +22,10 @@ function IsAttacker(unit)
 	return false
 end
 
-AttackerBehaviour = class(Behaviour)
+ArtilleryBehaviour = class(Behaviour)
 
-function AttackerBehaviour:Init()
-	--self.ai.game:SendToConsole("attacker!")
+function ArtilleryBehaviour:Init()
+	--self.ai.game:SendToConsole("artillery!")
 	--self.game:AddMarker({ x = startPosx, y = startPosy, z = startPosz }, "my start position")
 	CMD.MOVE_STATE = 50
 	CMD.FIRE_STATE = 45
@@ -39,64 +39,86 @@ local function Distance(x1,z1, x2,z2)
 	return dis
 end
 
-function AttackerBehaviour:Update()
-	if not self.active then -- do not even attempt anything if the unit is inactive...
-		return
-	end
+function ArtilleryBehaviour:Update()
+	local frame = SpGetGameFrame()
 	if not self.unitID then
 		self.unitID = self.unit:Internal().id
 	end
-	if not self.AggFactor then
-		self.AggFactor = self.ai.attackhandler:GetAggressiveness(self)
+	if not self.active then -- do not even attempt anything if the unit is inactive...	
+		if frame%90 == self.unitID%90 then
+			local unit = self.unit:Internal()
+			if (unit:GetHealth()/unit:GetMaxHealth())*100 == 100 then
+				self.active = true
+			else
+				return
+			end
+		else
+			return
+		end
 	end
-	if not self.type then
-		self.type = self.ai.attackhandler:GetRole(self)
+	if not self.AggFactor then
+		self.AggFactor = self.ai.artilleryhandler:GetAggressiveness(self)
 	end
 	local frame = SpGetGameFrame()
-	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
-		self.myRange = SpGetUnitMaxRange(self.unitID)
+	local unit = self.unit:Internal()
+	if (frame%1800 == self.unitID%1800) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
+		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
 	end
-	if (frame%90 == self.unitID%90) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%180 == self.unitID%180) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
+			if not self.behaviourcontroled then
+				self.ai.artilleryhandler:RemoveFromSquad(self)
+			end
 		end
 	end
-	if (frame%45 == self.unitID%45) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
-		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 2*self.myRange)
+	if (frame%120 == self.unitID%120) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
 			self.nearestVisibleInRange = nearestVisibleInRange
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
+			if not self.behaviourcontroled then
+				self.ai.artilleryhandler:RemoveFromSquad(self)
+			end
 		end
 	end
-	local distance = (self.nearestVisibleAcrossMap and SpGetUnitSeparation(self.unitID, self.nearestVisibleAcrossMap)) or 10000
-	local refreshRate = math.ceil(distance*self.myUnitCount*0.00015)*aiTeamsCount
+	if not (self.nearestVisibleAcrossMap or self.nearestVisibleInRange) then
+		if self.behaviourcontroled then
+			self.ai.artilleryhandler:AssignToASquad(self)
+			return
+		end
+	end
+	local refreshRate = 120
 	if self.unitID%refreshRate == frame%refreshRate then
-		self:AttackCell(self.type, self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange)
+		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end
 
-function AttackerBehaviour:OwnerBuilt()
+function ArtilleryBehaviour:OwnerBuilt()
 	self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 	self.unit:Internal():ExecuteCustomCommand(CMD.FIRE_STATE, { 2 }, {})
 	self.attacking = true
 	self.active = true
 	self.unitID = self.unit:Internal().id
-	self.AggFactor = self.ai.attackhandler:GetAggressiveness(self)
-	self.type = self.ai.attackhandler:GetRole(self)
+	self.AggFactor = self.ai.artilleryhandler:GetAggressiveness(self)
+	self.ai.artilleryhandler:AssignToASquad(self)
 end
 
-function AttackerBehaviour:OwnerDead()
+function ArtilleryBehaviour:OwnerDead()
+	if not self.behaviourcontroled then
+		self.ai.artilleryhandler:RemoveFromSquad(self)
+	end
 end
 
-function AttackerBehaviour:OwnerIdle()
+function ArtilleryBehaviour:OwnerIdle()
 	self.attacking = true
 	self.active = true
 end
 
-function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange)
+function ArtilleryBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange, alliedNear)
 	local p
 	local unit = self.unit:Internal()
 	local unitID = unit.id
@@ -109,7 +131,7 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 			p = api.Position()
 			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
 		else
-			p = self.ai.attackhandler.commpos
+			p = self.ai.artilleryhandler.commpos
 		end
 		self.target = p
 		self.attacking = false
@@ -121,7 +143,6 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 	end
 	
 	local utype = self.game:GetTypeByName(unit:Name())
-	local attacker = (type == "attacker")
 	
 	-- nil/invalid checks
 	if nearestVisibleInRange and (not SpValidUnitID(nearestVisibleInRange)) then 
@@ -132,36 +153,36 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 		nearestVisibleAcrossMap = nil 
 		self.nearestVisibleAcrossMap = nil 
 	end
-	
-	if nearestVisibleInRange and (not utype:CanFly() == true) then -- process cases where there isn't any visible nearestVisibleInRange first
+	if not (nearestVisibleAcrossMap or nearestVisibleInRange) then
+		return
+	end
+	if nearestVisibleInRange then -- process cases where there isn't any visible nearestVisibleInRange first
 		local ex,ey,ez = SpGetUnitPosition(nearestVisibleInRange)
 		local ux,uy,uz = SpGetUnitPosition(self.unitID)
 		local pointDis = SpGetUnitSeparation(self.unitID,nearestVisibleInRange)
-		local dis = 120
-		local f = dis/pointDis
-		local wantedRange
-		if self.myRange and enemyRange and self.myRange >= enemyRange and enemyRange > 50 then -- we skirm here
+		if pointDis >= self.myRange then
+			local dis = 120
+			local f = dis/pointDis
+			local wantedRange
 			wantedRange = self.myRange
-		else -- randomize wantedRange between 25-75% of myRange
-			wantedRange = math.random(self.myRange*0.25, self.myRange*0.75)
+			-- offset upos randomly so it moves a bit while keeping distance
+			local dx, _, dz, dw = SpGetUnitVelocity(self.unitID) -- attempt to not always queue awful turns
+			local modifier = "ctrl"
+			ux = ux + 10*dx + math.random (-80,80)
+			uy = uy
+			uz = uz + 10*dz + math.random (-80,80)
+			if wantedRange <= pointDis then
+				modifier = nil -- Do not try to move backwards if attempting to get closer to target
+			end
+			-- here we find the goal position
+			if (pointDis+dis > wantedRange) then
+				f = (wantedRange-pointDis)/pointDis
+			end
+			local cx = ux+(ux-ex)*f
+			local cy = uy
+			local cz = uz+(uz-ez)*f
+			self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
 		end
-		-- offset upos randomly so it moves a bit while keeping distance
-		local dx, _, dz, dw = SpGetUnitVelocity(self.unitID) -- attempt to not always queue awful turns
-		local modifier = "ctrl"
-		ux = ux + 10*dx + math.random (-80,80)
-		uy = uy
-		uz = uz + 10*dz + math.random (-80,80)
-		if wantedRange <= pointDis then
-			modifier = nil -- Do not try to move backwards if attempting to get closer to target
-		end
-		-- here we find the goal position
-		if (pointDis+dis > wantedRange) then
-			f = (wantedRange-pointDis)/pointDis
-		end
-		local cx = ux+(ux-ex)*f
-		local cy = uy
-		local cz = uz+(uz-ez)*f
-		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
 		return
 	end
 	
@@ -171,46 +192,19 @@ function AttackerBehaviour:AttackCell(type, nearestVisibleAcrossMap, nearestVisi
 	if nearestVisibleAcrossMap then
 		enemyposx, enemyposy, enemyposz = SpGetUnitPosition(nearestVisibleAcrossMap) -- visible on map
 	else
-		local attacker = type == "attacker"
-		if attacker then
-			local cms = self.ai.attackhandler.targetMexes[(self.unitID%5)+1]
-			if cms then -- there is an enemy metal spot
-				enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
-			else -- there is nothing to target
-				return
-			end
-		else
-			local cms = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex"), self.unit:Internal():GetPosition())
-			if cms then
-				enemyposx, enemyposy, enemyposz = cms.x, cms.y, cms.z
-			else
-				return
-			end
-		end
+		return
 	end
-
 	p = api.Position()
 	p.x = enemyposx + math.random(-math.sqrt(2)/2*self.myRange*0.90, math.sqrt(2)/2*self.myRange*0.90)
 	p.z = enemyposz + math.random(-math.sqrt(2)/2*self.myRange*0.90, math.sqrt(2)/2*self.myRange*0.90)
 	p.y = enemyposy
 	self.target = p
 	self.attacking = true
-	if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
-		if SpGetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
-			unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
-		end
-	else
-		if (utype:CanFly() == true) then
-			unit:MoveAndFire(self.target)
-		else
-			unit:Move(self.target)
-		end
-	return
-	end
+	unit:Move(self.target)
 end
 
 
-function AttackerBehaviour:Priority()
+function ArtilleryBehaviour:Priority()
 	if not self.attacking then
 		return 0
 	else
@@ -218,7 +212,7 @@ function AttackerBehaviour:Priority()
 	end
 end
 
-function AttackerBehaviour:Activate()
+function ArtilleryBehaviour:Activate()
 	self.active = true
 	if self.target then
 		self.unit:Internal():MoveAndFire(self.target)
@@ -228,7 +222,7 @@ function AttackerBehaviour:Activate()
 end
 
 
-function AttackerBehaviour:OwnerDied()
+function ArtilleryBehaviour:OwnerDied()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil

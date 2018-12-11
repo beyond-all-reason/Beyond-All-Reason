@@ -164,8 +164,10 @@ function EnemyMex(x,z, batchextracts,teamID) -- Is there any better mex at this 
 	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius+16)
 		for ct, uid in pairs(mexesatspot) do
 			if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal > 0 and (teamID and not Spring.AreTeamsAllied(Spring.GetUnitTeam(uid), teamID)) then
-				return true
-			end	
+				if GG.AiHelpers.VisibilityCheck.IsUnitVisible(uid, teamID) then
+					return true
+				end
+			end
 		end
 	return false
 end

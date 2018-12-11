@@ -89,7 +89,7 @@ function gadget:Initialize()
 		if (isAI) then
 			spEcho( "K9: IT IS AI")
 			local aiInfo = spGetTeamLuaAI(id)
-			if (string.sub(aiInfo,1,8) == "DAI") then
+			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,8) == "DAI") then
 				numberOfmFAITeams = numberOfmFAITeams + 1
 				spEcho("Moomin Player " .. teamList[i] .. " is " .. aiInfo)
 				-- add AI object
@@ -121,6 +121,10 @@ function gadget:Initialize()
 		-- spEcho("AI "..thisAI.id.." : allies="..#alliedTeamIds.." enemies="..#enemyTeamIds)
 		thisAI.alliedTeamIds = alliedTeamIds
 		thisAI.enemyTeamIds = enemyTeamIds
+		thisAI.ownUnitIds = thisAI.ownUnitIds or {}
+        thisAI.friendlyUnitIds = thisAI.friendlyUnitIds or {}
+        thisAI.alliedUnitIds = thisAI.alliedUnitIds or {}
+        thisAI.enemyUnitIds = thisAI.enemyUnitIds or {}
 	end
 
 	-- catch up to started game
@@ -152,23 +156,6 @@ function gadget:GameFrame(n)
     for _,thisAI in ipairs(AIs) do
 
         -- update sets of unit ids : own, friendlies, enemies
-		thisAI.ownUnitIds = {}
-        thisAI.friendlyUnitIds = {}
-        thisAI.alliedUnitIds = {}
-        thisAI.enemyUnitIds = {}
-
-        for _,uId in ipairs(spGetAllUnits()) do
-        	if (spGetUnitTeam(uId) == thisAI.id) then
-        		thisAI.ownUnitIds[uId] = true
-        		thisAI.friendlyUnitIds[uId] = true
-        	elseif (thisAI.alliedTeamIds[spGetUnitTeam(uId)] or spGetUnitTeam(uId) == thisAI.id) then
-        		thisAI.alliedUnitIds[uId] = true
-        		thisAI.friendlyUnitIds[uId] = true
-        	else
-        		thisAI.enemyUnitIds[uId] = true
-        	end
-        end
-
 		-- run AI game frame update handlers
 		prepareTheAI(thisAI)
 		thisAI:Update()
@@ -180,6 +167,16 @@ function gadget:UnitCreated(unitId, unitDefId, teamId, builderId)
 	-- for each AI...
 	local unit = Shard:shardify_unit(unitId)
     for _,thisAI in ipairs(AIs) do
+        if (spGetUnitTeam(unitId) == thisAI.id) then
+        	thisAI.ownUnitIds[unitId] = true
+        	thisAI.friendlyUnitIds[unitId] = true
+        elseif (thisAI.alliedTeamIds[spGetUnitTeam(unitId)] or spGetUnitTeam(unitId) == thisAI.id) then
+       		thisAI.alliedUnitIds[unitId] = true
+       		thisAI.friendlyUnitIds[unitId] = true
+       	else
+        	thisAI.enemyUnitIds[unitId] = true
+        end
+		
     	if Spring.GetUnitTeam(unitId) == thisAI.id then
 	    	prepareTheAI(thisAI)
 	    	thisAI:UnitCreated(unit)
@@ -195,6 +192,10 @@ function gadget:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDef
 		for _,thisAI in ipairs(AIs) do
 			prepareTheAI(thisAI)
 			thisAI:UnitDead(unit)
+		    thisAI.ownUnitIds[unitId] = nil
+        	thisAI.friendlyUnitIds[unitId] = nil
+		    thisAI.alliedUnitIds[unitId] = nil
+		    thisAI.enemyUnitIds[unitId] = nil
 			-- thisAI:UnitDestroyed(unitId, unitDefId, teamId, attackerId, attackerDefId, attackerTeamId)
 		end
 		Shard:unshardify_unit(self.engineUnit)
@@ -247,7 +248,7 @@ function gadget:UnitTaken(unitId, unitDefId, teamId, newTeamId)
 	    for _,thisAI in ipairs(AIs) do
 	    	prepareTheAI(thisAI)
 			-- thisAI:UnitTaken(unitId, unitDefId, teamId, newTeamId)
-			-- thisAI:UnitDead(unit)
+			thisAI:UnitDead(unit)
 		end
 	end
 end

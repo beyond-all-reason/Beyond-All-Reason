@@ -61,6 +61,9 @@ function AiModeHandler:Mode(i)
 		else
 			self.t2rusht1reclaim = false
 		end
+		-- Make sure it can always tech
+		self.eincomelimiterpretech2 = math.max(self.mintecheincome, self.eincomelimiterpretech2)
+		self.mintechmincome = math.min(self.mintechmincome, self.eincomelimiterpretech2/70)
 	-- if i == 1 then -- Balanced mode
 		-- -- Spring.Echo(self.ai.id, "Balanced mode")
 		-- self.t1ratepret2 = 1
