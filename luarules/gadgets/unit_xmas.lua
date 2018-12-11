@@ -23,8 +23,11 @@ if gadgetHandler:IsSyncedCode() then
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
+	if Spring.GetModOptions and Spring.GetModOptions().xmasballsmax then
+		maxDecorations = Spring.GetModOptions().xmasballsmax
+	end
 
-	_G.itsXmas = true
+	_G.itsXmas = false
 
 	for fdefID,def in ipairs(FeatureDefs) do
 		if def.tooltip == "Xmas Commander Wreckage" then
@@ -39,12 +42,12 @@ if gadgetHandler:IsSyncedCode() then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-15) / 8))
 				if balls > 0 then
-					hasDecoration[udefID] = {balls, (def.radius/12), 30*6}
+					hasDecoration[udefID] = {balls, (def.radius/12), 30*9}
 				end
 			end
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = {28, 9, 30*18}
+			hasDecoration[udefID] = {28, 9, 30*18, true} -- always shows decorations for commander even if maxDecorations is reached
 		end
 	end
 
@@ -125,7 +128,10 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				return
 			end
+		elseif n == 1 then	-- only when manually enablinb xmas in gadget to test
+			initiateXmas()
 		end
+
 		if n % 30 == 1 then
 			for unitID, frame in pairs(decorations) do
 				if frame < n then
@@ -226,7 +232,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			decorationCount = decorationCount - 1
 		elseif attackerID ~= nil then	-- is not reclaimed
-			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and decorationCount < maxDecorations then
+			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][4]) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
 				--Spring.Echo(hasDecoration[unitDefID][1])
