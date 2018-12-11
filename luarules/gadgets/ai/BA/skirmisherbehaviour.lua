@@ -62,7 +62,7 @@ function SkirmisherBehaviour:Update()
 	local unit = self.unit:Internal()
 	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
-		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
+		self.myRange = (self.isHelper and 700) or math.min(SpGetUnitMaxRange(self.unitID),500)
 	end
 	if (frame%90 == self.unitID%90) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
@@ -73,7 +73,7 @@ function SkirmisherBehaviour:Update()
 			end
 		end
 	end
-	if (frame%45 == self.unitID%45) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%60 == self.unitID%60) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -90,7 +90,7 @@ function SkirmisherBehaviour:Update()
 			return
 		end
 	end
-	local refreshRate = 20
+	local refreshRate = 60
 	if self.unitID%refreshRate == frame%refreshRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
@@ -104,6 +104,7 @@ function SkirmisherBehaviour:OwnerBuilt()
 	self.unitID = self.unit:Internal().id
 	self.AggFactor = self.ai.skirmisherhandler:GetAggressiveness(self)
 	self.ai.skirmisherhandler:AssignToASquad(self)
+	self.isHelper = UnitDefs[UnitDefNames[self.unit:Internal():Name()].id].canRepair == true
 end
 
 function SkirmisherBehaviour:OwnerDead()
@@ -155,7 +156,7 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 	if not (nearestVisibleAcrossMap or nearestVisibleInRange) then
 		return
 	end
-	if nearestVisibleInRange and (not utype:CanFly() == true) then -- process cases where there isn't any visible nearestVisibleInRange first
+	if nearestVisibleInRange then -- process cases where there isn't any visible nearestVisibleInRange first
 		local ex,ey,ez = SpGetUnitPosition(nearestVisibleInRange)
 		local ux,uy,uz = SpGetUnitPosition(self.unitID)
 		local pointDis = SpGetUnitSeparation(self.unitID,nearestVisibleInRange)
@@ -179,7 +180,13 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 		local cx = ux+(ux-ex)*f
 		local cy = uy
 		local cz = uz+(uz-ez)*f
-		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
+		if self.isHelper then
+			if SpGetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
+				self.unit:Internal():ExecuteCustomCommand(CMD.FIGHT, {cx, cy, cz}, {"ctrl"})
+			end
+		else
+			self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
+		end
 		return
 	end
 	
@@ -198,17 +205,12 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 	p.y = enemyposy
 	self.target = p
 	self.attacking = true
-	if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
+	if self.isHelper then
 		if SpGetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
 			unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
 		end
 	else
-		if (utype:CanFly() == true) then
-			unit:MoveAndFire(self.target)
-		else
-			unit:Move(self.target)
-		end
-	return
+		unit:Move(self.target)
 	end
 end
 

@@ -20,11 +20,11 @@ function BomberHandler:Init()
 end
 
 function BomberHandler:Update()
-	if Spring.GetGameFrame()% 1800 == 0 then
+	if Spring.GetGameFrame()% 1800 == (self.ai.id*200)%1800 then
 		self:UpdatePatrolPositions()
 	end
 	
-	if Spring.GetGameFrame()% 300 == 0 and #self.standbypatrol >= Spring.GetGameSeconds()/120 then
+	if Spring.GetGameFrame()% 300 == (self.ai.id*15)%300 and #self.standbypatrol >= Spring.GetGameSeconds()/120 then
 		if self.PatrolPositions then
 			self:DoPatrol()
 		end

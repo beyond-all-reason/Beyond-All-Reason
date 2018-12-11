@@ -74,7 +74,7 @@ function ArtilleryBehaviour:Update()
 			end
 		end
 	end
-	if (frame%90 == self.unitID%90) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%120 == self.unitID%120) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -91,7 +91,7 @@ function ArtilleryBehaviour:Update()
 			return
 		end
 	end
-	local refreshRate = 60
+	local refreshRate = 120
 	if self.unitID%refreshRate == frame%refreshRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
@@ -156,7 +156,7 @@ function ArtilleryBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleIn
 	if not (nearestVisibleAcrossMap or nearestVisibleInRange) then
 		return
 	end
-	if nearestVisibleInRange and (not utype:CanFly() == true) then -- process cases where there isn't any visible nearestVisibleInRange first
+	if nearestVisibleInRange then -- process cases where there isn't any visible nearestVisibleInRange first
 		local ex,ey,ez = SpGetUnitPosition(nearestVisibleInRange)
 		local ux,uy,uz = SpGetUnitPosition(self.unitID)
 		local pointDis = SpGetUnitSeparation(self.unitID,nearestVisibleInRange)
@@ -194,25 +194,13 @@ function ArtilleryBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleIn
 	else
 		return
 	end
-
 	p = api.Position()
 	p.x = enemyposx + math.random(-math.sqrt(2)/2*self.myRange*0.90, math.sqrt(2)/2*self.myRange*0.90)
 	p.z = enemyposz + math.random(-math.sqrt(2)/2*self.myRange*0.90, math.sqrt(2)/2*self.myRange*0.90)
 	p.y = enemyposy
 	self.target = p
 	self.attacking = true
-	if unit:Name() == "armrectr" or unit:Name() == "cornecro" then
-		if SpGetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
-			unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
-		end
-	else
-		if (utype:CanFly() == true) then
-			unit:MoveAndFire(self.target)
-		else
-			unit:Move(self.target)
-		end
-	return
-	end
+	unit:Move(self.target)
 end
 
 

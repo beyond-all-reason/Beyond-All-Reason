@@ -46,7 +46,18 @@ behaviours = {
 	armmercury = {
 		StockpileBehavior,
 	},
-
+	armrectr = {
+		SkirmisherBehaviour,
+	},
+	cornecro = {
+		SkirmisherBehaviour,
+	},
+	armdecom = {
+		SkirmisherBehaviour,
+	},
+	cordecom = {
+		SkirmisherBehaviour,
+	},
 	corack = {
 		TaskQueueBehaviour,
 		-- MexUpgradeBehavior,

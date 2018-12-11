@@ -20,7 +20,7 @@ function FighterHandler:Init()
 end
 
 function FighterHandler:Update()
-	if Spring.GetGameFrame()% 1800 == 0 then
+	if Spring.GetGameFrame()% 1800 == (self.ai.id*200)%1800 then
 		self:UpdatePatrolPositions()
 		self:DoPatrol()
 	end

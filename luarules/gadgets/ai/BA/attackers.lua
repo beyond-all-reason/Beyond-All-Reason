@@ -24,6 +24,8 @@ skirmisherlist = {
 	"corparrow",--	Posion Arrow	/	Very Heavy Amphibious Tank
 	"corshiva",	--	Shiva			/	Amphibious Siege Mech
 	"corkrog",	--	Krogoth			/	Experimental Assault Kbot
+	"cordecom",	--	Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
+	"armdecom", --  Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
 }
 
 artillerylist = {
@@ -45,14 +47,12 @@ artillerylist = {
 attackerlist = {
 	"armrectr",	--	Rector			/	Rez-Reclaim
 	"armaser",  --  Eraser          /   Radar Jammer Kbot
-	"armdecom", --  Decoy Commander /   Decoy Commander
 	"armfark",  --  Fark            /   Fast Assist/Repair Kbot
 	"armmark",  --  Marky           /   Radar Kbot
 	"armconsul",--	Consul			/	Combat Engineer
 	"armjam",	--	Jammer			/	Radar Jammer Vehicle
 	"armseer",	--	Seer			/	Radar Vehicle
 	"cornecro",	--	Necro			/ 	Rez-Reclaim
-	"cordecom",	--	Decoy Commander /   Decoy Commander
 	"corspec",	--	Spectre			/	Radar Jamming Kbot
 	"corvoyr",	--	Voyeur			/	Radar Kbot
 	"coreter",	--	Deleter			/	Radar Jammer Vehicle

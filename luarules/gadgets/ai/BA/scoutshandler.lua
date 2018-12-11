@@ -19,7 +19,7 @@ function ScoutsHandler:Init()
 end
 
 function ScoutsHandler:Update()
-	if Spring.GetGameFrame()%60 == 0 then
+	if Spring.GetGameFrame()%300 == (self.ai.id*50)%300 then
 		self:WatchPositionsThread()
 	end
 end
@@ -35,7 +35,7 @@ function ScoutsHandler:WatchPositionsThread()
 end
 
 function ScoutsHandler:GetPosToScout()
-	local minDelay = 360
+	local minDelay = 1200
 	local pos = {x = Game.mapSizeX/2, y = 0, z = Game.mapSizeZ/2}
 	for k = -Game.mapSizeX/2,Game.mapSizeX/2, 256 do
 		for v = -Game.mapSizeZ/2,Game.mapSizeZ/2, 256 do
