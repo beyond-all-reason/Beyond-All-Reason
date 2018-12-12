@@ -368,7 +368,7 @@ local weaponDef
         Spring.SetUnitDefIcon(udid, "blank.user")
     elseif string.sub(name, 0, 7) == "critter" then
       Spring.SetUnitDefIcon(udid, "blank.user")
-    elseif name=="chip" or name=="dice" or name=="xmasball" or name=="corstone" or name=="armstone" then
+    elseif name=="chip" or name=="dice" or name=="xmasball" or name=="xmasball2" or name=="corstone" or name=="armstone" then
       Spring.SetUnitDefIcon(udid, "blank.user")
     elseif (name=="mission_command_tower") then
         Spring.SetUnitDefIcon(udid, "commandtower.user")

@@ -6,6 +6,8 @@ XX/XX/2018
  • Removed firestate button from anti's
  • Fixed pyro pilotlight showing when out of los
  • Added modoption: "globallos", enables full visibility
+ • DAI general improvements and units are categorized to provide more variability in behaviours
+ • DAI now uses emp/tactical/nukes + Longrange weapons remember seen buildings and try to take these down.
 
 
 10.17 -> 10.18

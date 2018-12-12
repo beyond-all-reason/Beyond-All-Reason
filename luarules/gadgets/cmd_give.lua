@@ -23,7 +23,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 
 	local authorizedPlayers  = {'[teh]Flow', 'FlowerPower', 'Floris'}
 
-	local isSilentUnitGift = {armstone=true, corstone=true, chip=true, dice=true, xmasball=true}
+	local isSilentUnitGift = {armstone=true, corstone=true, chip=true, dice=true, xmasball=true, xmasball2=true}
 
 	if gadgetHandler:IsSyncedCode() then
 
@@ -131,9 +131,13 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 		end
 
 		local isObjectUnit = {}
-		if UnitDefNames['armstone'] ~= nil and UnitDefNames['corstone'] ~= nil then
+		if UnitDefNames['armstone'] ~= nil and UnitDefNames['corstone_bar'] ~= nil then
 			isObjectUnit[UnitDefNames['armstone'].id] = true
 			isObjectUnit[UnitDefNames['corstone'].id] = true
+		end
+		if UnitDefNames['armstone_bar'] ~= nil and UnitDefNames['corstone_bar'] ~= nil then
+			isObjectUnit[UnitDefNames['armstone_bar'].id] = true
+			isObjectUnit[UnitDefNames['corstone_bar'].id] = true
 		end
 		function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 			if isObjectUnit[unitDefID] then

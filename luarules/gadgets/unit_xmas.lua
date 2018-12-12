@@ -12,10 +12,12 @@ function gadget:GetInfo()
 	}
 end
 
-
+local decorationUdefIDs = {}
+local decorationUdefIDlist = {}
 for udefID,def in ipairs(UnitDefs) do
-	if def.name == 'xmasball' then
-		xmasballUdefID = udefID
+	if def.name == 'xmasball' or def.name == 'xmasball2' then
+		decorationUdefIDlist[#decorationUdefIDlist+1] = udefID
+		decorationUdefIDs[udefID] = true
 	end
 end
 
@@ -95,6 +97,8 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	_G.xmasDecorations = {}
+
 	local function setGaiaUnitSpecifics(unitID)
 		Spring.SetUnitNeutral(unitID, true)
 		Spring.SetUnitNoSelect(unitID, true)
@@ -172,13 +176,20 @@ if gadgetHandler:IsSyncedCode() then
 					if addGaiaBalls and random() > 0.5 then
 						teamID = gaiaTeamID
 					end
-					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, teamID)
+					local decorationDefID = decorationUdefIDlist[math.floor(1 + (math.random() * (#decorationUdefIDlist-0.001)))]
+					uID = Spring.CreateUnit(decorationDefID, data[1],data[2],data[3], 0, teamID)
 					if uID ~= nil then
 						decorationCount = decorationCount + 1
 						decorations[uID] = Spring.GetGameFrame() + hasDecoration[data[5]][3] + (random()*(hasDecoration[data[5]][3]*0.33))
 						Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
 						local impulseMult = hasDecoration[data[5]][2]
 						Spring.AddUnitImpulse(uID, (random()-0.5)*(impulseMult/2), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/2))
+						if UnitDefs[data[5]].radius then
+							local size = (UnitDefs[data[5]].radius/33)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
+							if size > 1.4 then size = 1.4 end
+							if size < 0.55 then size = 0.55 end
+							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.35))
+						end
 					end
 					i = i + 1
 				end
@@ -225,7 +236,7 @@ if gadgetHandler:IsSyncedCode() then
 		if not _G.itsXmas then
 			return
 		end
-		if unitDefID == xmasballUdefID then
+		if decorationUdefIDs[unitDefID] then
 			if decorations[unitID] ~= nil then
 				decorations[unitID] = nil
 			elseif decorationsTerminal[unitID] ~= nil then
@@ -242,13 +253,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if unitDefID == xmasballUdefID then
+		if decorationUdefIDs[unitDefID] then
 			setGaiaUnitSpecifics(unitID)
 		end
 	end
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-		if unitDefID == xmasballUdefID then
+		if decorationUdefIDs[unitDefID] then
 			setGaiaUnitSpecifics(unitID)
 		end
 	end
@@ -262,18 +273,23 @@ else
 	local xmasballs = {}
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
-		if unitDefID == xmasballUdefID then
-			xmasballs[unitID] = 0.7 + (math.random()*0.4)
+		if decorationUdefIDs[unitDefID] then
+			xmasballs[unitID] = 0.75 + (math.random()*0.4)
 			Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
 		end
 	end
 	function gadget:UnitDestroyed(unitID, unitDefID, team)
-		if unitDefID == xmasballUdefID then
+		if decorationUdefIDs[unitDefID] then
 			xmasballs[unitID] = nil
 		end
 	end
 
+	function setDecorationSize(_, unitID, size)
+		xmasballs[unitID] = size
+	end
+
 	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("setDecorationSize", setDecorationSize)
 		local allUnits = Spring.GetAllUnits()
 		for i = 1, #allUnits do
 			local unitID = allUnits[i]
