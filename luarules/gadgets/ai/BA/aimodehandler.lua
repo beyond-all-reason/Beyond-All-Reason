@@ -37,6 +37,9 @@ function AiModeHandler:Update()
 	if frame%15 == self.ai.id%15 then
 		for res, tab in pairs(self.resources) do
 			local c, s, p, i, e = Spring.GetTeamResources(self.ai.id, res)
+			if Spring.GetTeamRulesParam(self.ai.id,'mmUse') and tonumber(Spring.GetTeamRulesParam(self.ai.id,'mmUse')) then
+				e = e - tonumber(Spring.GetTeamRulesParam(self.ai.id,'mmUse'))
+			end
 			self.resources[res] = {c = c, s = s, p = p, i = i, e = e}
 		end
 	end
@@ -44,6 +47,8 @@ end
 
 
 function AiModeHandler:Mode(i)
+		self.perraider = 60
+		self.perskirmer = 30
 		self.t1ratepret2 = math.random(3,20)*0.1							
 		self.t1ratepostt2 = math.random(5,100)*0.01
 		self.eincomelimiterpretech2 = math.random(300,1550)

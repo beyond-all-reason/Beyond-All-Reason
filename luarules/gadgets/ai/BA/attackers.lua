@@ -3,6 +3,10 @@ Attackers!
 ]]--
 
 skirmisherlist = {
+	"armseer",	--	Seer			/	Radar Vehicle	
+	"corvrad",	--	Informer		/	Radar Vehicle	
+	"armmark",  --  Marky           /   Radar Kbot	
+	"corvoyr",	--	Voyeur			/	Radar Kbot
 	"armham", 	--	Hammer 			/	Light Plasma
 	"armrock",	--	Rocko			/	Rocket Bot
 	"armfboy",  --  Fatboy          /   Heavy Plasma Bot
@@ -48,15 +52,11 @@ attackerlist = {
 	"armrectr",	--	Rector			/	Rez-Reclaim
 	"armaser",  --  Eraser          /   Radar Jammer Kbot
 	"armfark",  --  Fark            /   Fast Assist/Repair Kbot
-	"armmark",  --  Marky           /   Radar Kbot
 	"armconsul",--	Consul			/	Combat Engineer
 	"armjam",	--	Jammer			/	Radar Jammer Vehicle
-	"armseer",	--	Seer			/	Radar Vehicle
 	"cornecro",	--	Necro			/ 	Rez-Reclaim
 	"corspec",	--	Spectre			/	Radar Jamming Kbot
-	"corvoyr",	--	Voyeur			/	Radar Kbot
 	"coreter",	--	Deleter			/	Radar Jammer Vehicle
-	"corvrad",	--	Informer		/	Radar Vehicle
 	"corcat",	--	Catapult		/	Heavy Rocket Kbot
 }
 

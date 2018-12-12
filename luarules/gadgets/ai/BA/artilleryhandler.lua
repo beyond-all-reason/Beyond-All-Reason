@@ -82,7 +82,8 @@ function ArtilleryHandler:TargetPoolThread() -- targetPool[1]= top priority targ
 	if comms[1] then
 		local nearestEnemy = Spring.GetUnitNearestEnemy(comms[1], 2500)
 		local visionCheck = nearestEnemy and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestEnemy, self.ai.id)
-		if nearestEnemy and visionCheck then
+		local isNotAir = nearestEnemy and (UnitDefs[Spring.GetUnitDefID(nearestEnemy)].canFly == false)
+		if nearestEnemy and visionCheck and isNotAir then
 			local pos = {}
 			pos.x, pos.y, pos.z = Spring.GetUnitPosition(nearestEnemy)
 			self.targetPool[1] = pos
