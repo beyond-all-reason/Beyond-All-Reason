@@ -94,6 +94,14 @@ function defaultBehaviours(unit)
 	b = {}
 	u = unit:Internal()
 	table.insert(b, BootBehaviour )
+	if unit:Internal():Name() == "corak" then
+		if math.random(1,5) == 1 then
+			table.insert(b,ScoutsBehaviour)
+		else
+			table.insert(b,RaiderBehaviour)
+		end
+		return b
+	end
 	if u:CanBuild() then
 		table.insert(b,TaskQueueBehaviour)
 	end
