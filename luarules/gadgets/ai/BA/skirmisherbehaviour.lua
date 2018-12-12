@@ -182,7 +182,7 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 		local cz = uz+(uz-ez)*f
 		if self.isHelper then
 			if SpGetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
-				self.unit:Internal():ExecuteCustomCommand(CMD.FIGHT, {cx, cy, cz}, {"ctrl"})
+				self.unit:Internal():ExecuteCustomCommand(CMD.FIGHT, {cx, cy, cz}, {"alt"})
 			end
 		else
 			self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
