@@ -159,7 +159,7 @@ local Interest = {
 	armvulc = true,
 	armanni = true,
 	armshltx = true,
-	armnanotc = true,
+	-- armnanotc = true,
 	armgate = true,
 	corfus = true,
 	corafus = true,
@@ -177,7 +177,7 @@ local Interest = {
 	corbuzz = true,
 	cordoom = true,
 	corgant = true,
-	cornanotc = true,
+	-- cornanotc = true,
 	corgate = true,
 }
 
@@ -185,6 +185,10 @@ GG.AiHelpers.TargetsOfInterest = {}
 local TargetsOfInterest = {}
 local function IsAntiNukeCovered(unitID, attackerTeamID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
+	if not x and z then
+		TargetsOfInterest[attackerTeamID][unitID] = nil
+		return true
+	end
 	local unitsNear = Spring.GetUnitsInCylinder(x,z,2000)
 	for ct, id in pairs(unitsNear) do
 		if (UnitDefs[Spring.GetUnitDefID(id)].name == "armamd" or UnitDefs[Spring.GetUnitDefID(id)].name == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
@@ -225,11 +229,20 @@ end
 GG.AiHelpers.TargetsOfInterest.Nuke = function(teamID)
 	if not TargetsOfInterest[teamID] then return end
 	local target
-	local ct = 0
 	for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
-		if (not IsAntiNukeCovered(unitID, teamID)) and ct <= 2 then
+		if (not IsAntiNukeCovered(unitID, teamID)) then
 			target = unitID
 			break
+		end
+	end
+	if target then
+		return target
+	else
+		for unitID, isTarget in pairs(TargetsOfInterest[teamID]) do
+			if math.random(1,30) == 1 then
+				target = unitID
+				break
+			end
 		end
 	end
 	if target then
