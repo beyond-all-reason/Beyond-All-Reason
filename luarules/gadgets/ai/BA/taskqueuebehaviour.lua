@@ -126,6 +126,9 @@ function TaskQueueBehaviour:Update()
 			if self:IsRunningAQueue() and (not self:IsBusy()) and self:CompareWithOldPos() then -- check stucked cons
 				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {})
 				self.OnToNextTask()
+			elseif (not self:IsRunningAQueue()) and (not self:IsBusy()) then 
+				self:OnToNextTask()
+				self:CompareWithOldPos()
 			else
 				self:CompareWithOldPos() -- still register current position
 			end		
