@@ -84,6 +84,8 @@ local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic gra
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
 local myFullview = select(2,Spring.GetSpectatingState())
 
 local myTeamID = Spring.GetMyTeamID()
@@ -670,9 +672,9 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	local y2 = widgetPosY - posY + tH + widgetHeight
 	local area = {widgetPosX, y1, widgetPosX+widgetWidth, y2 }
 
-	glColor(0,0,0,0.66)
+	glColor(0,0,0,ui_opacity)
 	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
-	glColor(1,1,1,0.025)
+	glColor(1,1,1,ui_opacity*0.04)
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
 
 	if (WG['guishader_api'] ~= nil) then
