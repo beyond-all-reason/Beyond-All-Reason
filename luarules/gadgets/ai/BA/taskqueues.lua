@@ -40,9 +40,31 @@ function CanBuild(tqb, ai, unit, name)
 	return false
 end
 
+function GetTechLevelRate(ai, unit, name)
+	local rate
+	if unit:Name() == "armalab" or unit:Name() == "armavp" or unit:Name() == "armaap" or unit:Name() == "coralab" or unit:Name() == "coravp" or unit:Name() == "coraap" then
+		rate = math.max(0.2,math.min(1, 3 - income(ai, "energy")/1500))
+		if name == "armaca" or name == "armack" or name == "armacv" or name == "coraca" or name == "coracv" or name == "corack" then
+			rate = 1	
+		end
+	elseif unit:Name() == "armlab" or unit:Name() == "armvp" or unit:Name() == "armap" or unit:Name() == "corlab" or unit:Name() == "corvp" or unit:Name() == "corap" then
+		rate = math.max(0.001,math.min(1, 1 - income(ai, "energy")/1500))
+		if name == "armca" or name == "armck" or name == "armcv" or name == "corca" or name == "corcv" or name == "corck" then
+			rate = 1	
+		end
+	elseif unit:Name() == "corgant" or unit:Name() == "armshltx" then
+		rate = 1
+	else
+		rate = 1
+	end
+	-- Spring.Echo(name, rate)
+	return rate
+end
+
 function ResourceCheck(tqb, ai, unit, name)
 	local defs = UnitDefs[UnitDefNames[name].id]
-	if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed) and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed) then
+	local techlevelRate = GetTechLevelRate(ai, unit, name)
+	if newtimetostore(ai, "metal", defs.metalCost,(defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*techlevelRate)and timetostore(ai, "energy", defs.energyCost,(defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*techlevelRate) then
 		return name
 	else
 		return nil
@@ -107,6 +129,17 @@ function Helper(tqb, ai, unit)
 	end
 end
 
+function OffensiveUnit(tqb,ai,unit)
+	local r = math.random(1,100)
+	if r <= ai.aimodehandler.perraider then
+		return Raider(tqb,ai,unit)
+	elseif r <=(ai.aimodehandler.perraider + ai.aimodehandler.perskirmer) then
+		return Skirmisher(tqb, ai, unit)
+	else
+		return Artillery(tqb,ai,unit)
+	end
+end
+
 function Raider(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	if not possibilities[unit:Name()]["raider"] then
@@ -124,7 +157,7 @@ function Raider(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["raider"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -156,7 +189,7 @@ function Skirmisher(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["skirmisher"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -188,7 +221,7 @@ function Artillery(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["artillery"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -220,7 +253,7 @@ function Scout(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["scouts"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -252,7 +285,7 @@ function Bomber(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["bomber"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -284,7 +317,7 @@ function Fighter(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["fighter"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -316,7 +349,7 @@ function ShortDefense(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["shortdef"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -348,7 +381,7 @@ function MediumDefense(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["mediumdef"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -376,17 +409,24 @@ function LongDefense(tqb, ai, unit)
 		end
 	end
 	if possibilities[unit:Name()]["longdef"][1] then
+		local choice
 		local list = {}
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["longdef"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
 		end
 		if list[1] then
-			return FindBest(list, ai)
+			choice = FindBest(list, ai)
+			if UnitDefNames[choice] and GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+				local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+				return {action = choice, pos = {x = x, y = y, z = z}}
+			else
+				return skip
+			end
 		else
 			return skip
 		end
@@ -412,13 +452,19 @@ function Epic(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["epicdef"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
 		end
 		if list[1] then
-			return FindBest(list, ai)
+			choice = FindBest(list, ai)
+			if UnitDefNames[choice] and GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+				local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+				return {action = choice, pos = {x = x, y = y, z = z}}
+			else
+				return skip
+			end
 		else
 			return skip
 		end
@@ -444,7 +490,7 @@ function AADefense(tqb, ai, unit)
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["aadef"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
-			if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
+			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
 				list[count] = unitName
 			end
@@ -470,11 +516,18 @@ function curstorperc(ai, resource) -- Returns % of storage for resource in real 
 	return ((c / s) * 100)
 end
 
-function timetostore(ai, resource, amount) -- Returns time to gather necessary resource amount in real time
+function timetostore(ai, resource, amount, btime) -- Returns time to gather necessary resource amount in real time
 	local r = ai.aimodehandler.resources[resource]
 	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
-	local income = (i-e > 0 and i-e) or 0.00001
+	local income = (i-e>0 and i-e) or 0.000001
 	return (amount-c)/(income)
+end
+
+function newtimetostore(ai, resource, amount, btime) -- Returns time to gather necessary resource amount in real time
+	local r = ai.aimodehandler.resources[resource]
+	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
+	local income = i-e
+	return (c-amount)+(income*btime) > 0
 end
 
 function income(ai, resource) -- Returns income of resource in realtime
@@ -846,16 +899,17 @@ lab = {
 	Scout,
 	Builder,
 	Scout,
-	Raider,
-	Raider,
-	Raider,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
 	Helper,
-	Raider,
-	Skirmisher,
-	Skirmisher,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
 	Helper,
-	Skirmisher,
-	Artillery,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
 	Builder,
 }
 

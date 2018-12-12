@@ -44,6 +44,8 @@ end
 
 
 function AiModeHandler:Mode(i)
+		self.perraider = math.random(10,90)
+		self.perskirmer = math.random(95,98)-self.perraider
 		self.t1ratepret2 = math.random(3,20)*0.1							
 		self.t1ratepostt2 = math.random(5,100)*0.01
 		self.eincomelimiterpretech2 = math.random(300,1550)
