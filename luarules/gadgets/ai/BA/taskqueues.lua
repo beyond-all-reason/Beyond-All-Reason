@@ -25,6 +25,37 @@ shard_include('scouts')
 shard_include('builders')
 shard_include('defenses')
 
+local epicIDlist = {}
+	for ct, unitName in pairs(epiclist) do
+		if UnitDefNames[unitName] then
+		epicIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+local longrangeIDlist = {}
+	for ct, unitName in pairs(longrangelist) do
+		if UnitDefNames[unitName] then
+		longrangeIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+local mediumrangeIDlist = {}
+	for ct, unitName in pairs(mediumrangelist) do
+		if UnitDefNames[unitName] then
+		mediumrangeIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+local shortrangeIDlist = {}
+	for ct, unitName in pairs(shortrangelist) do
+		if UnitDefNames[unitName] then
+		shortrangeIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+	local antiairIDlist = {}
+	for ct, unitName in pairs(antiairlist) do
+		if UnitDefNames[unitName] then
+		antiairIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+
 local unitoptions = {}
 local skip = {action = "nexttask"}
 local assistaround = { action = "fightrelative", position = {x = 0, y = 0, z = 0} }
@@ -334,6 +365,10 @@ end
 
 function ShortDefense(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, shortrangeIDlist)
+	if ct > 7 then
+		return skip
+	end
 	if not possibilities[unit:Name()]["shortdef"] then
 		possibilities[unit:Name()]["shortdef"] = {}
 		local ct = 0
@@ -366,6 +401,10 @@ end
 
 function MediumDefense(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, mediumrangeIDlist)
+	if ct > 5 then
+		return skip
+	end
 	if not possibilities[unit:Name()]["mediumdef"] then
 		possibilities[unit:Name()]["mediumdef"] = {}
 		local ct = 0
@@ -398,6 +437,10 @@ end
 
 function LongDefense(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, longrangeIDlist)
+	if ct > 2 then
+		return skip
+	end
 	if not possibilities[unit:Name()]["longdef"] then
 		possibilities[unit:Name()]["longdef"] = {}
 		local ct = 0
@@ -437,6 +480,10 @@ end
 
 function Epic(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, epicIDlist)
+	if ct > 0 then
+		return skip
+	end
 	if not possibilities[unit:Name()]["epicdef"] then
 		possibilities[unit:Name()]["epicdef"] = {}
 		local ct = 0
@@ -475,6 +522,10 @@ end
 
 function AADefense(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, antiairIDlist)
+	if ct > 3 then
+		return skip
+	end
 	if not possibilities[unit:Name()]["aadef"] then
 		possibilities[unit:Name()]["aadef"] = {}
 		local ct = 0
