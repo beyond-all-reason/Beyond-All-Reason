@@ -91,7 +91,46 @@ function TaskQueueBehaviour:CanQueueNextTask()
 	end
 end
 
+function TaskQueueBehaviour:IsRunningAQueue()
+	if Spring.GetCommandQueue(self.unit:Internal().id,0) > 0 then
+		return true
+	else
+		return false
+	end
+end
+
+function TaskQueueBehaviour:IsBusy()
+	if Spring.GetUnitCurrentBuildPower(self.unit:Internal().id) == 0 then
+		return false
+	else
+		return true
+	end
+end
+
+function TaskQueueBehaviour:CompareWithOldPos()
+	local result = false
+	local x,y,z = Spring.GetUnitPosition(self.unit:Internal().id)
+	if self.oldPos then
+		if math.sqrt((x-self.oldPos.x)^2+(y-self.oldPos.y)^2+(z-self.oldPos.z)^2) < 128 then
+			result = true
+		else
+			result = false
+		end
+	end
+	self.oldPos = {x = x, y = y, z = z}
+end
+
 function TaskQueueBehaviour:Update()
+	if Spring.GetGameFrame()%60 == 0 then
+		if (not self.unit:Internal():Type():IsFactory()) then
+			if self:IsRunningAQueue() and (not self:IsBusy()) and self:CompareWithOldPos() then -- check stucked cons
+				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {})
+				self.OnToNextTask()
+			else
+				self:CompareWithOldPos() -- still register current position
+			end		
+		end
+	end
 	if not self:IsActive() then
 		self:DebugPoint("nothing")
 		return
