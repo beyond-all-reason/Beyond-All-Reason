@@ -111,23 +111,23 @@ function TaskQueueBehaviour:CompareWithOldPos()
 	local result = false
 	local x,y,z = Spring.GetUnitPosition(self.unit:Internal().id)
 	if self.oldPos then
-		if math.sqrt((x-self.oldPos.x)^2+(y-self.oldPos.y)^2+(z-self.oldPos.z)^2) < 128 then
+		if math.sqrt((x-self.oldPos.x)^2+(y-self.oldPos.y)^2+(z-self.oldPos.z)^2) < 16 then
 			result = true
 		else
 			result = false
 		end
 	end
 	self.oldPos = {x = x, y = y, z = z}
+	return result
 end
 
 function TaskQueueBehaviour:Update()
 	if Spring.GetGameFrame()%60 == 0 then
 		if (not self.unit:Internal():Type():IsFactory()) then
 			if self:IsRunningAQueue() and (not self:IsBusy()) and self:CompareWithOldPos() then -- check stucked cons
-				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {})
-				self.OnToNextTask()
+				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {}) --> Triggers UnitIdle -> Next Task
 			elseif (not self:IsRunningAQueue()) and (not self:IsBusy()) then 
-				self:OnToNextTask()
+				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {}) --> Triggers UnitIdle -> Next Task
 				self:CompareWithOldPos()
 			else
 				self:CompareWithOldPos() -- still register current position
