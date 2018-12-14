@@ -23,8 +23,8 @@ local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
 local Config = {
 	tooltip = {
-		px = -0.5,py = CanvasY-82, --default start position
-		sx = 270,sy = 82, --background size
+		px = -0.5,py = CanvasY-75, --default start position
+		sx = 270,sy = 75, --background size
 		
 		fontsize = 10.5,
 		

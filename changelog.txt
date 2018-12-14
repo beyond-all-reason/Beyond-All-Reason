@@ -3,7 +3,7 @@ XX/XX/2018
 
  • Hover constructors buildpower 140->110
  • Added option: GUI opacity
- • Added option: Buildmenu radar icons
+ • Added option: Buildmenu radar icons + buildmenu icons are more squared
  • Removed iconset: modern_simplified
  • Removed firestate button from anti's
  • Fixed pyro pilotlight showing when out of los

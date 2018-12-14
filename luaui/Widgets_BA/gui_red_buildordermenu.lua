@@ -55,19 +55,19 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 
 local normalUnitIconSize = {
-	isx = 45,isy = 40, --icon size
+	isx = 41,isy = 41, --icon size
 	ix = 5,iy = 8, --icons x/y
 }
 local largeUnitIconSize = {
-	isx = 50,isy = 45, --icon size
+	isx = 47,isy = 47, --icon size
 	ix = 5,iy = 7, --icons x/y
 }
 local normalOrderIconSize = {
-	isx = 45,isy = 33, --icon size
+	isx = 41,isy = 33, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local largeOrderIconSize = {
-	isx = 50,isy = 33, --icon size
+	isx = 47,isy = 33, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local Config = {
@@ -522,8 +522,8 @@ local function CreateGrid(r)
 			texts[#texts+1] = b
 
 			b = New(Copy(queuetext,true))
-			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx -(r.margin*1.6)
-			b.py = background.py + r.margin + (y-1)*(r.ispready + r.isy)
+			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx -(r.margin*1.4)
+			b.py = background.py + r.margin + (y-1)*(r.ispready + r.isy) - (r.margin*0.2)
 			b.py = b.py - (b.sy/4.7)
 			background.movableslaves[#background.movableslaves+1] = b
 			queuetexts[#queuetexts+1] = b
@@ -717,8 +717,8 @@ local function UpdateGrid(g,cmds,ordertype)
 			
 			if (not cmd.disabled) then
 				local text = g.texts[i]
-				text.px = icon.px
-				text.py = icon.py-(icon.sy/50)
+				text.px = icon.px+(icon.sy/100)
+				text.py = icon.py+(icon.sy/60)
 				
 				local captionColor = "\255\175\175\175"
 				
