@@ -344,7 +344,7 @@ local function CreateGrid(r)
 		color={0,0,0,0},
 		border={0,0,0,0},
 		options="n",
-		texturecolor={0.75,0.75,0.75,1},
+		texturecolor={0.77,0.77,0.77,1},
 	}
 	local icon = {"rectangle",
 		px=0,py=0,
@@ -528,7 +528,7 @@ local function CreateGrid(r)
 			background.movableslaves[#background.movableslaves+1] = b
 			queuetexts[#queuetexts+1] = b
 
-			local iconsize = 0.28
+			local iconsize = 0.23
 			b = New(Copy(radaricon,true))
 			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/1.33)
 			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy) -(r.margin/1.33) +(b.sy*(1-iconsize))
