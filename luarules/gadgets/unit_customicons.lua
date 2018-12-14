@@ -285,6 +285,11 @@ function getIconID(name)   -- does not check if file exists
     return false
 end
 
+local iconTypes = {}
+function addUnitIcon(icon, file, size)
+    Spring.AddUnitIcon(icon, file, size)
+    iconTypes[icon] = file
+end
 
 local loadedIcons = {}
 function changeUnitIcons(folder)
@@ -293,6 +298,7 @@ function changeUnitIcons(folder)
     for i, icon in ipairs(loadedIcons) do
         Spring.FreeUnitIcon(icon)
     end
+    iconTypes = {}
 
     -- load icons
   if folder then
@@ -300,9 +306,9 @@ function changeUnitIcons(folder)
         icons[i][4] = nil   -- reset
         --Spring.FreeUnitIcon(icon[1])
         if VFS.FileExists('icons/'..folder..'/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
-            Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
+            addUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
         else
-            Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
+            addUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
         end
         loadedIcons[#loadedIcons+1] = icon[1]
       end
@@ -331,7 +337,7 @@ function changeUnitIcons(folder)
                         scalenum = scale
                         scale = '_'..scale
                     end
-                    Spring.AddUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..scale..'.png', tonumber(scalenum)*iconScale)
+                    addUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..scale..'.png', tonumber(scalenum)*iconScale)
                     loadedIcons[#loadedIcons+1] = icon[1]
                 end
             end
@@ -339,7 +345,7 @@ function changeUnitIcons(folder)
                 local scale = string.gsub(name, unitname, '')
                 scale = string.gsub(scale, '_', '')
                 if scale ~= '' then
-                    Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
+                    addUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
                     loadedIcons[#loadedIcons+1] = unitname..".user"
                 end
             end
@@ -904,7 +910,7 @@ local weaponDef
                 local scale = string.gsub(name, unitname, '')
                 scale = string.gsub(scale, '_', '')
                 if scale ~= '' then
-                    Spring.AddUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
+                    addUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
                     Spring.SetUnitDefIcon(UnitDefNames[unitname].id, unitname..".user")
                     if UnitDefNames[unitname..'_bar'] then
                         Spring.SetUnitDefIcon(UnitDefNames[unitname..'_bar'].id, unitname..".user")
@@ -952,7 +958,13 @@ function gadget:GotChatMsg(msg, playerID)
 end
 
 
+function GetIconTypes()
+    return iconTypes
+end
+
+
 function gadget:Initialize()
+    gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
     local folder = Spring.GetConfigString("UnitIconFolder", 'modern')
     if not isFolderValid(folder) then
         folder = 'modern'
