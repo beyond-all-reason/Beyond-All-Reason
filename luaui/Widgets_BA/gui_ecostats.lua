@@ -1616,7 +1616,17 @@ function widget:TweakDrawScreen()
 	makeStandardList()
 end
 
+local uiOpacitySec = 0.5
 function widget:Update(dt)
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			Reinit()
+		end
+	end
 	if myFullview ~= select(2,Spring.GetSpectatingState()) then
 		myFullview = select(2,Spring.GetSpectatingState())
 		if myFullView then

@@ -510,13 +510,42 @@ if (t.yday>343) then --(t.month==12)
     {class='SantaHat',options={color={1,0.1,0,1}, pos={0,4,0.35}, emitVector={0.3,1,0.2}, width=2.7, height=6, ballSize=0.7, piecenum=8, piece="head"}},
   }
   UnitEffects[UnitDefNames["corcom"].id] = {
-    {class='SantaHat',options={color={1,0.1,0,1}, pos={0,0,0.35}, emitVector={0.3,1,0.2}, width=2.7, height=6, ballSize=0.7, piecenum=16, piece="head"}},
+    {class='SantaHat',options={color={1,0.1,0,1}, pos={0,5,0.35}, emitVector={0.3,1,0.2}, width=2.7, height=6, ballSize=0.7, piecenum=16, piece="head"}},
   }
   UnitEffects[UnitDefNames["cordecom"].id] = {
-    {class='SantaHat',options={color={1,0.1,0,1}, pos={0,0,0.35}, emitVector={0.3,1,0.2}, width=2.7, height=6, ballSize=0.7, piecenum=16, piece="head"}},
+    {class='SantaHat',options={color={1,0.1,0,1}, pos={0,5,0.35}, emitVector={0.3,1,0.2}, width=2.7, height=6, ballSize=0.7, piecenum=16, piece="head"}},
   }
-end
 
+    if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1)  then
+        UnitEffects[UnitDefNames["armcom"].id] = {
+            {class='SantaHat',options={color={1,0.1,0,1}, pos={0,21,-5.35}, emitVector={0.3,1,0.2}, width=3.3, height=7, ballSize=0.85, piecenum=8, piece="torso"}},
+        }
+        UnitEffects[UnitDefNames["armdecom"].id] = {
+            {class='SantaHat',options={color={1,0.1,0,1}, pos={0,21,-5.35}, emitVector={0.3,1,0.2}, width=3.3, height=7, ballSize=0.85, piecenum=8, piece="torso"}},
+        }
+        UnitEffects[UnitDefNames["corcom"].id] = {
+            {class='SantaHat',options={color={1,0.1,0,1}, pos={0,5.5,-0.3}, emitVector={0.3,1,0.2}, width=4.2, height=7.5, ballSize=0.9, piecenum=16, piece="head"}},
+        }
+        UnitEffects[UnitDefNames["cordecom"].id] = {
+            {class='SantaHat',options={color={1,0.1,0,1}, pos={0,5.5,-0.3}, emitVector={0.3,1,0.2}, width=4.2, height=7.5, ballSize=0.9, piecenum=16, piece="head"}},
+        }
+  else
+      if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
+          UnitEffects[UnitDefNames["armcom_bar"].id] = {
+              {class='SantaHat',options={color={1,0.1,0,1}, pos={0,21,-5.35}, emitVector={0.3,1,0.15}, width=3.5, height=7, ballSize=0.9, piecenum=8, piece="torso"}},
+          }
+          UnitEffects[UnitDefNames["armdecom_bar"].id] = {
+              {class='SantaHat',options={color={1,0.1,0,1}, pos={0,21,-5.35}, emitVector={0.3,1,0.15}, width=3.5, height=7, ballSize=0.9, piecenum=8, piece="torso"}},
+          }
+          UnitEffects[UnitDefNames["corcom_bar"].id] = {
+              {class='SantaHat',options={color={1,0.1,0,1}, pos={0,5.5,-0.3}, emitVector={0.3,1,0.2}, width=4.2, height=7.5, ballSize=0.9, piecenum=16, piece="head"}},
+          }
+          UnitEffects[UnitDefNames["cordecom_bar"].id] = {
+              {class='SantaHat',options={color={1,0.1,0,1}, pos={0,5.5,-0.3}, emitVector={0.3,1,0.2}, width=4.2, height=7.5, ballSize=0.9, piecenum=16, piece="head"}},
+          }
+      end
+  end
+end
 local abs = math.abs
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetUnitDefID       = Spring.GetUnitDefID
