@@ -122,7 +122,7 @@ function TaskQueueBehaviour:CompareWithOldPos()
 end
 
 function TaskQueueBehaviour:Update()
-	if Spring.GetGameFrame()%60 == 0 then
+	if Spring.GetGameFrame()%600 == 0 then
 		if (not self.unit:Internal():Type():IsFactory()) then
 			if self:IsRunningAQueue() and (not self:IsBusy()) and self:CompareWithOldPos() then -- check stucked cons
 				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {}) --> Triggers UnitIdle -> Next Task
