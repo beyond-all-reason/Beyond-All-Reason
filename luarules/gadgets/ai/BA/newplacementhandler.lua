@@ -49,18 +49,20 @@ end
 	
 
 function NewPlacementHandler:UnitIdle(engineunit)
-	local unitDefID = UnitDefNames[unit:Name()].id
-	local defs = UnitDefs[unitDefID]
-	if defs then
-		if defs.canBuild == true then
-			local unitID = unit.id
-			if self.plansbyunitID[unitID] then
-				for planID, plan in pairs(self.plansbyunitID[unitID]) do
-					self:ClearPlan(planID)
-					local pos = self:GetPosFromID(planID)
-					local spacing = self:GetMinimalSpacing(self.game:GetTypeByName(def.name))
-					local cellsize = math.max(defs.xsize, defs.zsize) * 8
-					self:FreePosition(pos.x, pos.z, cellsize, spacing)
+	if not Spring.GetGameFrame() == 0 then
+		local unitDefID = UnitDefNames[unit:Name()].id
+		local defs = UnitDefs[unitDefID]
+		if defs then
+			if defs.canBuild == true then
+				local unitID = unit.id
+				if self.plansbyunitID[unitID] then
+					for planID, plan in pairs(self.plansbyunitID[unitID]) do
+						self:ClearPlan(planID)
+						local pos = self:GetPosFromID(planID)
+						local spacing = self:GetMinimalSpacing(self.game:GetTypeByName(def.name))
+						local cellsize = math.max(defs.xsize, defs.zsize) * 8
+						self:FreePosition(pos.x, pos.z, cellsize, spacing)
+					end
 				end
 			end
 		end
