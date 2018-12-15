@@ -187,8 +187,8 @@ if gadgetHandler:IsSyncedCode() then
 						if UnitDefs[data[5]].radius then
 							local size = (UnitDefs[data[5]].radius/33)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
 							if size > 1.4 then size = 1.4 end
-							if size < 0.55 then size = 0.55 end
-							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.35))
+							if size < 0.5 then size = 0.5 end
+							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.25) + (size * (math.random()*0.2)))
 						end
 					end
 					i = i + 1
@@ -276,7 +276,7 @@ else
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
 		if decorationUdefIDs[unitDefID] then
-			xmasballs[unitID] = 0.75 + (math.random()*0.4)
+			xmasballs[unitID] = 0.73 + (math.random()*0.44)
 			Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
 		end
 	end

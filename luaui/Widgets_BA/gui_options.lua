@@ -2509,8 +2509,6 @@ function widget:Initialize()
 		Spring.SetConfigInt("MaxParticles",10000)
 	end
 
-	Spring.SendCommands("setmaxspeed 100")
-
 	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
 		Spring.SetConfigInt("UsePBO",0)
 	--end
