@@ -10,7 +10,7 @@ end
 
 function RaiderHandler:Init()
 	self.targetPool = {}
-	self.ratio = 3
+	self.ratio = 2
 	self.squads = {}
 	self.squadmaxsize = 30 -- Smaller size = more cpu usage !
 end
@@ -33,7 +33,13 @@ function RaiderHandler:Update()
 	end
 	--Assign Targets To Squads
 	for i, squad in pairs(self.squads) do
-		if frame%300 == (i*15+(self.ai.id*4))%300 then -- Generate squad targets
+		if frame%900 == (i*15+(self.ai.id*4))%900 then
+			self.squads[i].position = self:GetSquadPosition(i)
+			if squad.position and squad.position.x then -- squad.target and squad.target.x-- Queue commands midway so it tries to group up the units first
+				local movetargetpos = squad.position
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
+			end
+		elseif frame%300 == (i*15+(self.ai.id*4))%300 then -- Generate squad targets
 			--update position
 			self.squads[i].position = self:GetSquadPosition(i)
 			if self.targetPool[1] then
@@ -44,7 +50,7 @@ function RaiderHandler:Update()
 				self.squads[i].target = self.targetPool[3]
 			else
 				local target = GG.AiHelpers.TargetsOfInterest.GetTarget(self.ai.id)
-				if target then
+				if target and squad.role == "attacker" then
 					self.squads[i].target = target
 				else
 					if squad.role == "attacker" then
@@ -56,15 +62,9 @@ function RaiderHandler:Update()
 					end
 				end
 			end
-			if squad.target and squad.target.x then -- Queue commands midway so it tries to group up the units first
+			if squad.target and squad.target.x and squad.role then -- Queue commands midway so it tries to group up the units first
 				local movetargetpos = squad.target
-				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
-			end
-		end
-		if frame%900 == (i*15+(self.ai.id*4))%900 then
-			if squad.position and squad.position.x then -- squad.target and squad.target.x-- Queue commands midway so it tries to group up the units first
-				local movetargetpos = squad.position
-				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{"ctrl"})
 			end
 		end
 	end

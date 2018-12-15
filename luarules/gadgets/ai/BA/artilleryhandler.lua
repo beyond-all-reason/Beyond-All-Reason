@@ -12,7 +12,7 @@ function ArtilleryHandler:Init()
 	self.targetPool = {}
 	self.ratio = 2
 	self.squads = {}
-	self.squadmaxsize = 20 -- Smaller size = more cpu usage !
+	self.squadmaxsize = 15 -- Smaller size = more cpu usage !
 end
 
 function ArtilleryHandler:Update()
@@ -33,7 +33,13 @@ function ArtilleryHandler:Update()
 	end
 	--Assign Targets To Squads
 	for i, squad in pairs(self.squads) do
-		if frame%500 == (i*15+(self.ai.id*4))%500 then -- Generate squad targets
+		if frame%1500 == (i*15+(self.ai.id*4))%1500 then
+			self.squads[i].position = self:GetSquadPosition(i)
+			if squad.position and squad.position.x then -- squad.target and squad.target.x -- Queue commands midway so it tries to group up the units first
+				local movetargetpos = squad.position
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
+			end
+		elseif frame%500 == (i*15+(self.ai.id*4))%500 then -- Generate squad targets
 			--update position
 			self.squads[i].position = self:GetSquadPosition(i)
 			if self.targetPool[1] then
@@ -44,7 +50,7 @@ function ArtilleryHandler:Update()
 				self.squads[i].target = self.targetPool[3]
 			else
 				local target = GG.AiHelpers.TargetsOfInterest.GetTarget(self.ai.id)
-				if target then
+				if target and squad.role == "attacker" then
 					self.squads[i].target = target
 				else
 					if squad.role == "attacker" then
@@ -56,15 +62,9 @@ function ArtilleryHandler:Update()
 					end
 				end
 			end
-			if squad.target and squad.target.x then -- Queue commands midway so it tries to group up the units first
+			if squad.target and squad.target.x and squad.role then -- Queue commands midway so it tries to group up the units first
 				local movetargetpos = squad.target
-				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
-			end
-		end
-		if frame%1500 == (i*15+(self.ai.id*4))%1500 then
-			if squad.position and squad.position.x then -- squad.target and squad.target.x -- Queue commands midway so it tries to group up the units first
-				local movetargetpos = squad.position
-				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{"ctrl"})
 			end
 		end
 	end
