@@ -1298,10 +1298,10 @@ local cort1expand = {
 
 local cort2eco = {
 	CorEnT2,
+	CorProtection,
 	CorEnT2,
 	CorEnT2,
 	CorExpandRandomLab,
-	CorProtection,
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
@@ -1675,10 +1675,10 @@ local armt1expand = {
 
 local armt2eco = {
 	ArmEnT2,
+	ArmProtection,
 	ArmEnT2,
 	ArmEnT2,
 	ArmExpandRandomLab,
-	ArmProtection,
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
