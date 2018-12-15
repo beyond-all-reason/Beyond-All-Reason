@@ -404,7 +404,7 @@ function mouseEvent(x, y, button, release)
 		end
 		if button == 1 and buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
 			fadeOut = true
-			--PlayNewTrack()
+			PlayNewTrack()
 			return true
 		end
 		return true
