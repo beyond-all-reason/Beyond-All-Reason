@@ -28,6 +28,8 @@ for ct,name in pairs (corlevel1buildoptions) do
 	corlevel1buildoptions[ct] = UnitDefNames[name].id
 end
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
@@ -44,9 +46,7 @@ local drawTooltip = true		-- drawBigTooltip = true... this needs to be true aswe
 local drawBigTooltip = false
 
 local borderPadding = 2.5
-local borderColor = {1,1,1,0.025}
 
-local backgroundColor = {0,0,0,0.66}
 local hoverColor = {1,1,1,0.25}
 local pushedColor = {1,0.1,0,0.33}
 local clickColor = {0.66,1,0,0.25}
@@ -513,9 +513,9 @@ function InitializeFaction(sDefID)
 			-- background
 			local bgheight = ((#cellRows*iconHeight)+margin)
 			local bgwidth = ((maxCols*iconWidth)+margin)
-			gl.Color(backgroundColor)
+			gl.Color(0,0,0,ui_opacity)
 			RectRound(-(margin), -bgheight, bgwidth, margin, ((iconWidth+iconPadding+iconPadding)/7))
-			gl.Color(borderColor)
+			gl.Color(1,1,1,ui_opacity*0.04)
 			RectRound(-(margin)+borderPadding, -bgheight+borderPadding, bgwidth-borderPadding, margin-borderPadding, ((iconWidth+iconPadding+iconPadding)/9))
 
 			for r = 1, #cellRows do
@@ -820,6 +820,17 @@ end
 ------------------------------------------------------------
 -- Game start
 ------------------------------------------------------------
+
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+		end
+	end
+end
 
 function widget:GameFrame(n)
 
