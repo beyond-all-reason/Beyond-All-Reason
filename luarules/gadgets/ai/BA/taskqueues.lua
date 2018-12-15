@@ -1255,6 +1255,14 @@ local corcommanderfirst = {
 	CorWindOrSolar,
 	ShortDefense,
 	CorRad,
+	CorWindOrSolar,
+	CorWindOrSolar,
+	CorWindOrSolar,
+	CorWindOrSolar,
+	CorWindOrSolar,
+	CorWindOrSolar,
+	CorWindOrSolar,
+	CorWindOrSolar,
 }
 
 local cort1eco = {
@@ -1274,6 +1282,8 @@ local cort1eco = {
 local cort1expand = {
 	CorNanoT,
 	CorExpandRandomLab,
+	CorMexT1,
+	CorMexT1,
 	CorMexT1,
 	CorExpandRandomLab,
 	ShortDefense,
@@ -1632,6 +1642,14 @@ local armcommanderfirst = {
 	ArmWindOrSolar,
 	ShortDefense,
 	ArmRad,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
+	ArmWindOrSolar,
 }
 
 local armt1eco = {
@@ -1651,6 +1669,8 @@ local armt1eco = {
 local armt1expand = {
 	ArmNanoT,
 	ArmExpandRandomLab,
+	ArmMexT1,
+	ArmMexT1,
 	ArmMexT1,
 	ArmExpandRandomLab,
 	ShortDefense,
