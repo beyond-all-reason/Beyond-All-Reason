@@ -233,7 +233,7 @@ function updatePosition(force)
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		
-		if WG['music'] ~= nil then
+		if WG['music'] and WG['music'].GetPosition and WG['music'].GetPosition() then
             advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
 		left = advplayerlistPos[2]
