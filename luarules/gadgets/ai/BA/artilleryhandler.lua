@@ -10,9 +10,9 @@ end
 
 function ArtilleryHandler:Init()
 	self.targetPool = {}
-	self.ratio = 10
+	self.ratio = 2
 	self.squads = {}
-	self.squadmaxsize = 15 -- Smaller size = more cpu usage !
+	self.squadmaxsize = 20 -- Smaller size = more cpu usage !
 end
 
 function ArtilleryHandler:Update()
@@ -33,7 +33,7 @@ function ArtilleryHandler:Update()
 	end
 	--Assign Targets To Squads
 	for i, squad in pairs(self.squads) do
-		if frame%300 == (i*15+(self.ai.id*4))%300 then -- Generate squad targets
+		if frame%500 == (i*15+(self.ai.id*4))%500 then -- Generate squad targets
 			--update position
 			self.squads[i].position = self:GetSquadPosition(i)
 			if self.targetPool[1] then
@@ -58,6 +58,12 @@ function ArtilleryHandler:Update()
 			end
 			if squad.target and squad.target.x then -- Queue commands midway so it tries to group up the units first
 				local movetargetpos = squad.target
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
+			end
+		end
+		if frame%1500 == (i*15+(self.ai.id*4))%1500 then
+			if squad.position and squad.position.x then -- squad.target and squad.target.x -- Queue commands midway so it tries to group up the units first
+				local movetargetpos = squad.position
 				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
 			end
 		end
@@ -122,10 +128,10 @@ function ArtilleryHandler:GetSquadPosition(i)
 		local thisUnitPos = atkbehaviour.unit:Internal():GetPosition()
 		pos.x = pos.x + thisUnitPos.x
 		pos.z = pos.z + thisUnitPos.z
-		break
+		--break
 	end
-	-- pos.x = pos.x/self.squads[i].size
-	-- pos.z = pos.z/self.squads[i].size
+	pos.x = pos.x/self.squads[i].size
+	pos.z = pos.z/self.squads[i].size
 	pos.y = Spring.GetGroundHeight(pos.x, pos.z)
 	return pos
 end

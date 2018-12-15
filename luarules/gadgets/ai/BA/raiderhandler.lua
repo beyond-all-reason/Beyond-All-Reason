@@ -10,7 +10,7 @@ end
 
 function RaiderHandler:Init()
 	self.targetPool = {}
-	self.ratio = 10
+	self.ratio = 3
 	self.squads = {}
 	self.squadmaxsize = 30 -- Smaller size = more cpu usage !
 end
@@ -58,6 +58,12 @@ function RaiderHandler:Update()
 			end
 			if squad.target and squad.target.x then -- Queue commands midway so it tries to group up the units first
 				local movetargetpos = squad.target
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
+			end
+		end
+		if frame%900 == (i*15+(self.ai.id*4))%900 then
+			if squad.position and squad.position.x then -- squad.target and squad.target.x-- Queue commands midway so it tries to group up the units first
+				local movetargetpos = squad.position
 				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
 			end
 		end
@@ -123,10 +129,10 @@ function RaiderHandler:GetSquadPosition(i)
 		local thisUnitPos = atkbehaviour.unit:Internal():GetPosition()
 		pos.x = pos.x + thisUnitPos.x
 		pos.z = pos.z + thisUnitPos.z
-		break
+		--break
 	end
-	-- pos.x = pos.x/self.squads[i].size
-	-- pos.z = pos.z/self.squads[i].size
+	pos.x = pos.x/self.squads[i].size
+	pos.z = pos.z/self.squads[i].size
 	pos.y = Spring.GetGroundHeight(pos.x, pos.z)
 	return pos
 end
