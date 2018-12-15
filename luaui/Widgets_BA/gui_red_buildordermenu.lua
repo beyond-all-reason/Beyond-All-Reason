@@ -741,7 +741,7 @@ local function UpdateGrid(g,cmds,ordertype)
 				end
 				
 				if not drawPrice then
-					text.caption = "\n"..shotcutCaption.."\n\n\n"
+					text.caption = ""..shotcutCaption.."\n\n\n\n"
 				else
 					-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 					local str = tostring(math.max(metalCost, energyCost))
@@ -765,7 +765,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					for digit in string.gmatch(str, "%d") do
 					  addedSpaces = string.sub(addedSpaces, 0, -2)
 					end
-					text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces
+					text.caption = ""..shotcutCaption.."\n\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces
 				end
 				text.options = "bs"
 				if drawRadaricon then
