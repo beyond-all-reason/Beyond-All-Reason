@@ -16,12 +16,12 @@ shortrangelist = {
 
 mediumrangelist = {
 	"armhlt",
-	"armguard",
+	-- "armguard",
 	"armamb",
 	"armanni",
 	
 	"corhlt",
-	"corpun",
+	-- "corpun",
 	"cortoast",
 	"cordoom",
 }
@@ -37,6 +37,8 @@ longrangelist = {
 epiclist = {
 	"armsilo",
 	"corsilo",
+	"armamd",
+	"corfmd",
 	-- "armvulc",
 	-- "corbuzz",
 }
