@@ -100,7 +100,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "SabotFire",
 				soundtrigger = true,
-				startvelocity = 133,
+				startvelocity = 500,
 				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				tolerance = 8000,
