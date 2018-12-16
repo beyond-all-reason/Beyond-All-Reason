@@ -283,7 +283,11 @@ l},
 },
 
 ["Nuclear_Winter_v1"] = {
-  { spawnBox = {x1=50, z1=50, x2=10100, z2=6100}, unitNames = {["critter_penguin"]=rnd(8,12)} },
+  { spawnBox = {x1=50, z1=50, x2=10100, z2=6100}, unitNames = {["critter_penguin"]=rnd(9,13)} },
+},
+
+["Nuclear Winter v3"] = {
+  { spawnBox = {x1=50, z1=50, x2=10100, z2=6100}, unitNames = {["critter_penguin"]=rnd(9,13)} },
 },
 
 ["Melt_V2"] = {

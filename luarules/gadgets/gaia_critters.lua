@@ -48,7 +48,7 @@ local maxMulti = 5
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
 
-local critterConfig = include("LuaRules/configs/gaia_critters_config.lua")
+local critterConfig = include("LuaRules/configs/critters_map_config.lua")
 local critterUnits = {}	--critter units that are currently alive
 local companionCritters = {}
 local sceduledOrders = {}
@@ -496,7 +496,7 @@ function gadget:GameFrame(gameFrame)
 	
 	-- update companion critters
 	if totalCritters > 0 then
-		if gameFrame%77==0 then
+		if gameFrame%77==1 then
 			for unitID, critters in pairs(companionCritters) do
 				local x,y,z = GetUnitPosition(unitID)
 				local radius = companionPatrolRadius

@@ -57,7 +57,9 @@ local glTexCoord = gl.TexCoord
 local glUnit = gl.Unit
 local GL_QUADS = GL.QUADS
 
-	--------------------------------------------------------------------------------
+local GaiaTeamID  = Spring.GetGaiaTeamID()
+
+--------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
 
@@ -489,12 +491,14 @@ end
 local newUnitCommands = {}
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
 	if enabledTeams[teamID] ~= nil then
-		if ignoreUnits[unitDefID] == nil then
-			if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
-				addUnitCommand(unitID, unitDefID, cmdID)
-				newUnitCommands[unitID] = true
-			else
-				newUnitCommands[unitID] = {unitDefID, cmdID}
+		if teamID ~= GaiaTeamID or not string.find(UnitDefs[unitDefID].name, "critter_") then
+			if ignoreUnits[unitDefID] == nil then
+				if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
+					addUnitCommand(unitID, unitDefID, cmdID)
+					newUnitCommands[unitID] = true
+				else
+					newUnitCommands[unitID] = {unitDefID, cmdID}
+				end
 			end
 		end
 	end
