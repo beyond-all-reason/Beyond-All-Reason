@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maxdamage = 780,
 		maxslope = 10,
-		maxvelocity = 1.8,
+		maxvelocity = 1.57,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Hedgehog",

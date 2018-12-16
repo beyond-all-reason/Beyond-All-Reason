@@ -26,7 +26,7 @@ return {
 		loadingradius = 110,
 		mass = 200000000,
 		maxdamage = 20000,
-		maxvelocity = 1.9,
+		maxvelocity = 1.65,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		name = "Intruder",
