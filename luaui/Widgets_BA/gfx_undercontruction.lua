@@ -127,7 +127,7 @@ function widget:Initialize()
     return useHighlightShader
   end
   WG['underconstructiongfx'].setShader = function(value)
-    if (Spring.GetConfigInt("ForceShaders") or 1) ~= 1 then
+    if value and (Spring.GetConfigInt("ForceShaders") or 1) ~= 1 then
       Spring.SetConfigInt("ForceShaders",1)
       Spring.Echo('enabled lua shaders')
     end
