@@ -1,4 +1,11 @@
-﻿10.18 -> 10.19
+﻿10.19 -> Vehicles Speeds test Branch
+
+ • Applied a maxVelocity equal to initial BA 9.46 value *0.66 + initial BA9.46 turninplacespeedlimitvalue*0.34 which *seems to* simulate 9.46, engine 103, speeds on BA10 engine 104
+ • Apart from the maxvelocities, the basedefs are still BA 10.19: meaning turninplace is enabled, the turninplace anglelimit is 90 degrees, and the accel/brakerate values are directly linked to maxVelocity and turnrate.
+ • The goal is to replicate the performing speeds of 9.46 while keeping the v10+ improvements in overall maneuvrability and responsiveness.
+
+
+10.18 -> 10.19
 15/12/2018
 
  • Hover constructors buildpower 140->110

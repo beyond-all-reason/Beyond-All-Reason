@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 5700,
 		maxslope = 12,
-		maxvelocity = 1.95,
+		maxvelocity = 1.46,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		name = "Poison Arrow",
