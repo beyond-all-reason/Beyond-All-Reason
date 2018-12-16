@@ -46,55 +46,57 @@ function CreateHighlightShader()
   if shader then
     gl.DeleteShader(shader)
   end
-  shader = gl.CreateShader({
+  if gl.CreateShader then
+    shader = gl.CreateShader({
 
-    uniform = {
-      edgeExponent = edgeExponent/(0.8+highlightAlpha),
-      plainAlpha = highlightAlpha*0.8,
-    },
+      uniform = {
+        edgeExponent = edgeExponent/(0.8+highlightAlpha),
+        plainAlpha = highlightAlpha*0.8,
+      },
 
-    vertex = [[
-	  // Application to vertex shader
-	  varying vec3 normal;
-	  varying vec3 eyeVec;
-	  varying vec3 color;
-	  uniform mat4 camera;
-	  uniform mat4 caminv;
+      vertex = [[
+        // Application to vertex shader
+        varying vec3 normal;
+        varying vec3 eyeVec;
+        varying vec3 color;
+        uniform mat4 camera;
+        uniform mat4 caminv;
 
-	  void main()
-	  {
-		vec4 P = gl_ModelViewMatrix * gl_Vertex;
+        void main()
+        {
+          vec4 P = gl_ModelViewMatrix * gl_Vertex;
 
-		eyeVec = P.xyz;
+          eyeVec = P.xyz;
 
-		normal  = gl_NormalMatrix * gl_Normal;
+          normal  = gl_NormalMatrix * gl_Normal;
 
-		color = gl_Color.rgb;
+          color = gl_Color.rgb;
 
-		gl_Position = gl_ProjectionMatrix * P;
-	  }
-	]],
+          gl_Position = gl_ProjectionMatrix * P;
+        }
+      ]],
 
-    fragment = [[
-	  varying vec3 normal;
-	  varying vec3 eyeVec;
-	  varying vec3 color;
+      fragment = [[
+        varying vec3 normal;
+        varying vec3 eyeVec;
+        varying vec3 color;
 
-	  uniform float edgeExponent;
-	  uniform float plainAlpha;
+        uniform float edgeExponent;
+        uniform float plainAlpha;
 
-	  void main()
-	  {
-		float opac = dot(normalize(normal), normalize(eyeVec));
-		opac = 1.0 - abs(opac);
-		opac = pow(opac, edgeExponent)*0.45;
+        void main()
+        {
+          float opac = dot(normalize(normal), normalize(eyeVec));
+          opac = 1.0 - abs(opac);
+          opac = pow(opac, edgeExponent)*0.45;
 
-		gl_FragColor.rgb = color + (opac*1.3);
-		gl_FragColor.a = plainAlpha + opac;
+          gl_FragColor.rgb = color + (opac*1.3);
+          gl_FragColor.a = plainAlpha + opac;
 
-	  }
-	]],
-  })
+        }
+      ]],
+    })
+  end
 end
 --------------------------------------------------------------------------------
 
@@ -125,6 +127,10 @@ function widget:Initialize()
     return useHighlightShader
   end
   WG['underconstructiongfx'].setShader = function(value)
+    if (Spring.GetConfigInt("ForceShaders") or 1) ~= 1 then
+      Spring.SetConfigInt("ForceShaders",1)
+      Spring.Echo('enabled lua shaders')
+    end
     useHighlightShader = value
     CreateHighlightShader()
   end
