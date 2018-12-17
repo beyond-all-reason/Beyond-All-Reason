@@ -12,7 +12,7 @@ function ArtilleryHandler:Init()
 	self.targetPool = {}
 	self.ratio = 5
 	self.squads = {}
-	self.squadmaxsize = 15 -- Smaller size = more cpu usage !
+	self.squadmaxsize = 20 -- Smaller size = more cpu usage !
 end
 
 function ArtilleryHandler:Update()

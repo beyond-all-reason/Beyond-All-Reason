@@ -12,7 +12,7 @@ function RaiderHandler:Init()
 	self.targetPool = {}
 	self.ratio = 3
 	self.squads = {}
-	self.squadmaxsize = 20 -- Smaller size = more cpu usage !
+	self.squadmaxsize = 40 -- Smaller size = more cpu usage !
 end
 
 function RaiderHandler:Update()
