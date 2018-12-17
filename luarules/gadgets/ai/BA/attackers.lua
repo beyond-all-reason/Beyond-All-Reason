@@ -3,10 +3,6 @@ Attackers!
 ]]--
 
 skirmisherlist = {
-	"armseer",	--	Seer			/	Radar Vehicle	
-	"corvrad",	--	Informer		/	Radar Vehicle	
-	"armmark",  --  Marky           /   Radar Kbot	
-	"corvoyr",	--	Voyeur			/	Radar Kbot
 	"armham", 	--	Hammer 			/	Light Plasma
 	"armrock",	--	Rocko			/	Rocket Bot
 	"armfboy",  --  Fatboy          /   Heavy Plasma Bot
@@ -28,8 +24,10 @@ skirmisherlist = {
 	"corparrow",--	Posion Arrow	/	Very Heavy Amphibious Tank
 	"corshiva",	--	Shiva			/	Amphibious Siege Mech
 	"corkrog",	--	Krogoth			/	Experimental Assault Kbot
-	"cordecom",	--	Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
-	"armdecom", --  Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
+	--"cordecom",	--	Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
+	--"armdecom", --  Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
+	"armrectr",	--	Rector			/	Rez-Reclaim
+	"cornecro",	--	Necro			/ 	Rez-Reclaim
 }
 
 artillerylist = {
@@ -46,6 +44,12 @@ artillerylist = {
 	"corvroc",	--	Diplomat		/	Stealthy Rocket Launcher
 	"cormh",	--	Nixer			/	Hovercraft Rocket Launcher
 	"corsok",	--	Sokolov			/	Heavy Laser Hovertank
+	"armseer",	--	Seer			/	Radar Vehicle	
+	"corvrad",	--	Informer		/	Radar Vehicle	
+	"armmark",  --  Marky           /   Radar Kbot	
+	"corvoyr",	--	Voyeur			/	Radar Kbot
+	"armrectr",	--	Rector			/	Rez-Reclaim
+	"cornecro",	--	Necro			/ 	Rez-Reclaim
 }
 
 attackerlist = {
@@ -149,6 +153,8 @@ mobileaalist = {
 	"armjeth",	--	Jethro			/	Anti-Air
 	"armaak",   --  Archangel       /   Advanced Amphibious Anti-Air Kbot
 	"armah",	--	Swatter			/	Anti-Air Hovercraft
+	"armrectr",	--	Rector			/	Rez-Reclaim
+	"cornecro",	--	Necro			/ 	Rez-Reclaim
 }
 
 raiderlist = {
@@ -187,4 +193,6 @@ raiderlist = {
 	"coresupp",	--	Supporter		/	Fast Assault Corvette
 	"corpship",	--	Era				/	Assault Frigate
 	"corcrus",	--	Executioner		/	Cruiser
+	"armrectr",	--	Rector			/	Rez-Reclaim
+	"cornecro",	--	Necro			/ 	Rez-Reclaim
 }	

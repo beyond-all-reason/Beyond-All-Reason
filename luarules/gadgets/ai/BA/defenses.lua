@@ -37,10 +37,13 @@ longrangelist = {
 epiclist = {
 	"armsilo",
 	"corsilo",
-	"armamd",
-	"corfmd",
-	-- "armvulc",
-	-- "corbuzz",
+	--"armamd",
+	--"corfmd",
+}
+
+lolcannonlist= {
+	"armvulc",
+	"corbuzz",
 }
 
 antiairlist = {

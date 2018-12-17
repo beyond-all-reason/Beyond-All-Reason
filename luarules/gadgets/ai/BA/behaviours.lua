@@ -53,10 +53,10 @@ behaviours = {
 		SkirmisherBehaviour,
 	},
 	armdecom = {
-		SkirmisherBehaviour,
+		TaskQueueBehaviour,
 	},
 	cordecom = {
-		SkirmisherBehaviour,
+		TaskQueueBehaviour,
 	},
 	corack = {
 		TaskQueueBehaviour,
@@ -87,6 +87,12 @@ behaviours = {
 		},
 	corsilo = {
 		NukeBehaviour,
+		},
+	armvulc = {
+		StaticWeaponBehaviour,
+		},
+	corbuzz = {
+		StaticWeaponBehaviour,
 		},
 }
 

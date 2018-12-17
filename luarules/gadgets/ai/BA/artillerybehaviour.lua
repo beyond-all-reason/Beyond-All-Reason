@@ -72,6 +72,12 @@ function ArtilleryBehaviour:Update()
 			if not self.behaviourcontroled then
 				self.ai.artilleryhandler:RemoveFromSquad(self)
 			end
+		elseif not (nearestVisibleAcrossMap) then
+			self.nearestVisibleAcrossMap = nil
+			if self.behaviourcontroled then
+				self.ai.artilleryhandler:AssignToASquad(self)
+				return
+			end
 		end
 	end
 	if (frame%120 == self.unitID%120) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
@@ -82,6 +88,12 @@ function ArtilleryBehaviour:Update()
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
 			if not self.behaviourcontroled then
 				self.ai.artilleryhandler:RemoveFromSquad(self)
+			end
+		elseif not (nearestVisibleInRange) then
+			self.nearestVisibleInRange = nil
+			if self.behaviourcontroled then
+				self.ai.artilleryhandler:AssignToASquad(self)
+				return
 			end
 		end
 	end
@@ -125,7 +137,7 @@ function ArtilleryBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleIn
 	local currenthealth = unit:GetHealth()
 	local maxhealth = unit:GetMaxHealth()
 	-- Retreating first so we have less data process/only what matters
-	if not (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
+	if not (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
 	local nanotcx, nanotcy, nanotcz = GG.AiHelpers.NanoTC.GetClosestNanoTC(self.unitID)
 		if nanotcx and nanotcy and nanotcz then
 			p = api.Position()

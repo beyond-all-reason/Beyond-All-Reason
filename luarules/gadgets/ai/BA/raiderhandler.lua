@@ -10,9 +10,9 @@ end
 
 function RaiderHandler:Init()
 	self.targetPool = {}
-	self.ratio = 2
+	self.ratio = 3
 	self.squads = {}
-	self.squadmaxsize = 30 -- Smaller size = more cpu usage !
+	self.squadmaxsize = 20 -- Smaller size = more cpu usage !
 end
 
 function RaiderHandler:Update()
@@ -58,7 +58,7 @@ function RaiderHandler:Update()
 						self:SetSquadAggressiveness(i, 2)
 					else
 						self.squads[i].target = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position)
-						self:SetSquadAggressiveness(i, 3)
+						self:SetSquadAggressiveness(i, 5)
 					end
 				end
 			end
@@ -111,7 +111,7 @@ function RaiderHandler:GetAggressiveness(atkbehaviour)
 end
 
 function RaiderHandler:GetSquadRole(atkbehaviour)
-	if math.random(1, self.ratio) == 1 then
+	if math.random(1, self.ratio) > 1 then
 		return ("defender")
 	else
 		return ("attacker")

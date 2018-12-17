@@ -72,6 +72,12 @@ function RaiderBehaviour:Update()
 			if not self.behaviourcontroled then
 				self.ai.raiderhandler:RemoveFromSquad(self)
 			end
+		elseif not (nearestVisibleAcrossMap) then
+			self.nearestVisibleAcrossMap = nil
+			if self.behaviourcontroled then
+				self.ai.raiderhandler:AssignToASquad(self)
+				return
+			end
 		end
 	end
 	if (frame%90 == self.unitID%90) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
@@ -82,6 +88,12 @@ function RaiderBehaviour:Update()
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
 			if not self.behaviourcontroled then
 				self.ai.raiderhandler:RemoveFromSquad(self)
+			end
+		elseif not (nearestVisibleInRange) then
+			self.nearestVisibleInRange = nil
+			if self.behaviourcontroled then
+				self.ai.raiderhandler:AssignToASquad(self)
+				return
 			end
 		end
 	end

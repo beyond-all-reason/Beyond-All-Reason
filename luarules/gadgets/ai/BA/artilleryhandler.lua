@@ -10,7 +10,7 @@ end
 
 function ArtilleryHandler:Init()
 	self.targetPool = {}
-	self.ratio = 2
+	self.ratio = 5
 	self.squads = {}
 	self.squadmaxsize = 15 -- Smaller size = more cpu usage !
 end
@@ -58,7 +58,7 @@ function ArtilleryHandler:Update()
 						self:SetSquadAggressiveness(i, 2)
 					else
 						self.squads[i].target = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position)
-						self:SetSquadAggressiveness(i, 3)
+						self:SetSquadAggressiveness(i, 5)
 					end
 				end
 			end
@@ -110,7 +110,7 @@ function ArtilleryHandler:GetAggressiveness(atkbehaviour)
 end
 
 function ArtilleryHandler:GetSquadRole(atkbehaviour)
-	if math.random(1, self.ratio) == 1 then
+	if math.random(1, self.ratio) > 1 then
 		return ("defender")
 	else
 		return ("attacker")

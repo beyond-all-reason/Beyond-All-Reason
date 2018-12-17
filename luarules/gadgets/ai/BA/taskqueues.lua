@@ -25,6 +25,12 @@ shard_include('scouts')
 shard_include('builders')
 shard_include('defenses')
 
+local lolCannonIDlist = {}
+	for ct, unitName in pairs(lolcannonlist) do
+		if UnitDefNames[unitName] then
+		lolCannonIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
 local epicIDlist = {}
 	for ct, unitName in pairs(epiclist) do
 		if UnitDefNames[unitName] then
@@ -59,7 +65,10 @@ local shortrangeIDlist = {}
 local unitoptions = {}
 local skip = {action = "nexttask"}
 local assistaround = { action = "fightrelative", position = {x = 0, y = 0, z = 0} }
-local patrolaround = { action = "patrolrelative", position = {x = 100, y = 0, z = 100} }
+local patrolaround1 = { action = "fightrelative", position = {x = 200, y = 0, z = 200} }
+local patrolaround2 = { action = "fightrelative", position = {x = -200, y = 0, z = 200} }
+local patrolaround3 = { action = "fightrelative", position = {x = 200, y = 0, z = -200} }
+local patrolaround4 = { action = "fightrelative", position = {x = -200, y = 0, z = -200} }
 
 function CanBuild(tqb, ai, unit, name)
 	local ID = UnitDefNames[name] and UnitDefNames[name].id or 0
@@ -366,7 +375,7 @@ end
 function ShortDefense(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, shortrangeIDlist)
-	if ct > 7 then
+	if ct > 2 then
 		return skip
 	end
 	if not possibilities[unit:Name()]["shortdef"] then
@@ -402,7 +411,7 @@ end
 function MediumDefense(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, mediumrangeIDlist)
-	if ct > 5 then
+	if ct > 0 then
 		return skip
 	end
 	if not possibilities[unit:Name()]["mediumdef"] then
@@ -438,7 +447,7 @@ end
 function LongDefense(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, longrangeIDlist)
-	if ct > 2 then
+	if ct > 0 then
 		return skip
 	end
 	if not possibilities[unit:Name()]["longdef"] then
@@ -480,6 +489,7 @@ end
 
 function Epic(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, epicIDlist)
 	if ct > 0 then
 		return skip
@@ -498,6 +508,49 @@ function Epic(tqb, ai, unit)
 		local list = {}
 		local count = 0
 		for ct, unitName in pairs(possibilities[unit:Name()]["epicdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			choice = FindBest(list, ai)
+			if UnitDefNames[choice] and GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+				local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+				return {action = choice, pos = {x = x, y = y, z = z}}
+			else
+				return skip
+			end
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function LolCannon(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, lolCannonIDlist)
+	if ct > 0 or Spring.GetGameSeconds() < 1800 then
+		return skip
+	end
+	if not possibilities[unit:Name()]["lolcannondef"] then
+		possibilities[unit:Name()]["lolcannondef"] = {}
+		local ct = 0
+		for i, unitName in pairs (lolcannonlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["lolcannondef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["lolcannondef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["lolcannondef"]) do
 			local defs = UnitDefs[UnitDefNames[unitName].id]
 			if ResourceCheck(tqb, ai, unit, unitName) then
 				count = count + 1
@@ -970,6 +1023,8 @@ lab = {
 	OffensiveUnit,
 	OffensiveUnit,
 	Builder,
+	"cordecom",
+	"armdecom",
 }
 
 airlab = {
@@ -1219,8 +1274,11 @@ function CorRad(tqb,ai,unit)
 end
 
 function CorProtection(tqb,ai,unit)
-	if Spring.GetGameSeconds() > 1500 then
+	--if Spring.GetGameSeconds() > 1500 then
 		local protype = (math.random(1,2) == 1) and "corgate" or "corfmd"
+		if AllType(tqb, ai, unit, {"corfmd",}) < 1 then
+			return "corfmd"
+		end
 		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
 			return protype
 		end
@@ -1228,7 +1286,7 @@ function CorProtection(tqb,ai,unit)
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			return protype
 		end
-	end
+	--end
 	return skip
 end
 
@@ -1257,14 +1315,6 @@ local corcommanderfirst = {
 	CorWindOrSolar,
 	ShortDefense,
 	CorRad,
-	CorWindOrSolar,
-	CorWindOrSolar,
-	CorWindOrSolar,
-	CorWindOrSolar,
-	CorWindOrSolar,
-	CorWindOrSolar,
-	CorWindOrSolar,
-	CorWindOrSolar,
 }
 
 local cort1eco = {
@@ -1285,7 +1335,9 @@ local cort1expand = {
 	CorNanoT,
 	CorExpandRandomLab,
 	CorMexT1,
+	ShortDefense,
 	CorMexT1,
+	ShortDefense,
 	CorMexT1,
 	CorExpandRandomLab,
 	ShortDefense,
@@ -1310,8 +1362,8 @@ local cort1expand = {
 
 local cort2eco = {
 	CorEnT2,
-	CorProtection,
 	CorEnT2,
+	CorProtection,
 	CorEnT2,
 	CorExpandRandomLab,
 	CorEnT2,
@@ -1319,6 +1371,7 @@ local cort2eco = {
 	CorEnT2,
 	CorExpandRandomLab,
 	Epic,
+	LolCannon,
 }
 
 local cort2expand = {
@@ -1332,8 +1385,23 @@ local cort2expand = {
 	CorExpandRandomLab,
 	AADefense,
 	assistaround,
-	Epic,
 	LongDefense,
+}
+
+local cordecomqueue = {
+	CorNanoT,
+	CorNanoT,
+	CorMexT1,
+	assistaround,
+	CorRad,
+	ShortDefense,
+	AADefense,
+	CorEnT1,
+	"cormine1",
+	"cormine2",
+	"cormine3",
+	"cormine4",
+	assistaround,
 }
 
 assistqueuepostt2arm = {
@@ -1341,6 +1409,7 @@ assistqueuepostt2arm = {
 	ArmExpandRandomLab,
 	ArmNanoT,
 	RequestedAction,
+	assistaround,
 }
 
 assistqueuepostt2core = {
@@ -1348,6 +1417,7 @@ assistqueuepostt2core = {
 	CorExpandRandomLab,
 	CorNanoT,
 	RequestedAction,
+	assistaround,
 }
 
 assistqueue = {
@@ -1368,7 +1438,10 @@ armassistqueue = {
 }
 
 assistqueuepatrol = {
-	patrolaround,
+	patrolaround1,
+	patrolaround2,
+	patrolaround3,
+	patrolaround4,
 }
 
 assistqueuefreaker = {
@@ -1616,8 +1689,11 @@ function ArmARad(tqb,ai,unit)
 end
 
 function ArmProtection(tqb,ai,unit)
-	if Spring.GetGameSeconds() > 1500 then
+	--if Spring.GetGameSeconds() > 1500 then
 		local protype = (math.random(1,2) == 1) and "armgate" or "armamd"
+		if AllType(tqb, ai, unit, {"armamd",}) < 1 then
+			return "armamd"
+		end
 		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
 			return protype
 		end
@@ -1625,7 +1701,7 @@ function ArmProtection(tqb,ai,unit)
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			return protype
 		end
-	end
+	--end
 	return skip
 end
 
@@ -1644,14 +1720,6 @@ local armcommanderfirst = {
 	ArmWindOrSolar,
 	ShortDefense,
 	ArmRad,
-	ArmWindOrSolar,
-	ArmWindOrSolar,
-	ArmWindOrSolar,
-	ArmWindOrSolar,
-	ArmWindOrSolar,
-	ArmWindOrSolar,
-	ArmWindOrSolar,
-	ArmWindOrSolar,
 }
 
 local armt1eco = {
@@ -1670,9 +1738,12 @@ local armt1eco = {
 
 local armt1expand = {
 	ArmNanoT,
+	ArmNanoT,
 	ArmExpandRandomLab,
 	ArmMexT1,
+	ShortDefense,
 	ArmMexT1,
+	ShortDefense,
 	ArmMexT1,
 	ArmExpandRandomLab,
 	ShortDefense,
@@ -1697,8 +1768,8 @@ local armt1expand = {
 
 local armt2eco = {
 	ArmEnT2,
-	ArmProtection,
 	ArmEnT2,
+	ArmProtection,
 	ArmEnT2,
 	ArmExpandRandomLab,
 	ArmEnT2,
@@ -1706,6 +1777,7 @@ local armt2eco = {
 	ArmEnT2,
 	ArmExpandRandomLab,
 	Epic,
+	LolCannon,
 }
 
 local armt2expand = {
@@ -1719,11 +1791,24 @@ local armt2expand = {
 	ArmExpandRandomLab,
 	AADefense,
 	assistaround,
-	Epic,
 	LongDefense,
 }
 
-
+local armdecomqueue = {
+	ArmNanoT,
+	ArmNanoT,
+	ArmMexT1,
+	assistaround,
+	ArmRad,
+	ShortDefense,
+	AADefense,
+	ArmEnT1,
+	"armmine1",
+	"armmine2",
+	"armmine3",
+	assistaround,
+}
+	
 ------------------
 -- QueuePickers --
 ------------------
@@ -1731,7 +1816,7 @@ local armt2expand = {
 local function corcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
-	if AllLabs(tqb,ai,unit) > 0 then
+	if GetLabs(tqb,ai,unit) > 0 then
 		return corassistqueue
 	elseif ai.engineerfirst then
 		return {CorStarterLabT1}
@@ -1744,7 +1829,7 @@ end
 local function armcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
-	if AllLabs(tqb,ai,unit) > 0 then
+	if GetLabs(tqb,ai,unit) > 0 then
 		return armassistqueue
 	elseif ai.engineerfirst then
 		return {ArmStarterLabT1}
@@ -1819,7 +1904,7 @@ local function armt2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 2 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -1840,7 +1925,7 @@ local function cort2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 2 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -1864,6 +1949,7 @@ taskqueues = {
 	---CORE
 	--constructors
 	corcom = corcommander,
+	cordecom = cordecomqueue,
 	corck = cort1con,
 	corcv = cort1con,
 	corca = cort1con,
@@ -1887,6 +1973,7 @@ taskqueues = {
 	---ARM
 	--constructors
 	armcom = armcommander,
+	armdecom = armdecomqueue,
 	armck = armt1con,
 	armcv = armt1con,
 	armca = armt1con,
