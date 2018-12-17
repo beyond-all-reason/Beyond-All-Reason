@@ -42,14 +42,14 @@ if gadgetHandler:IsSyncedCode() then
 	for udefID,def in ipairs(UnitDefs) do
 		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] then
 			if def.mass >= 35 then
-				local balls = math.floor(((def.radius-15) / 8))
+				local balls = math.floor(((def.radius-15) / 7))
 				if balls > 0 then
-					hasDecoration[udefID] = {balls, (def.radius/12), 30*9}
+					hasDecoration[udefID] = {balls, (def.radius/12), 30*14}
 				end
 			end
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = {28, 9, 30*18, true} -- always shows decorations for commander even if maxDecorations is reached
+			hasDecoration[udefID] = {28, 9, 30*22, true} -- always shows decorations for commander even if maxDecorations is reached
 		end
 	end
 
@@ -185,10 +185,10 @@ if gadgetHandler:IsSyncedCode() then
 						local impulseMult = hasDecoration[data[5]][2]
 						Spring.AddUnitImpulse(uID, (random()-0.5)*(impulseMult/2), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/2))
 						if UnitDefs[data[5]].radius then
-							local size = (UnitDefs[data[5]].radius/33)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
+							local size = (UnitDefs[data[5]].radius/35)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
 							if size > 1.4 then size = 1.4 end
 							if size < 0.5 then size = 0.5 end
-							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.25) + (size * (math.random()*0.2)))
+							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.3) + (size * (math.random()*0.22)))
 						end
 					end
 					i = i + 1
@@ -247,9 +247,13 @@ if gadgetHandler:IsSyncedCode() then
 			decorationCount = decorationCount - 1
 		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
 			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][4]) then
-				local x,y,z = Spring.GetUnitPosition(unitID)
-				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
-				--Spring.Echo(hasDecoration[unitDefID][1])
+
+				local _,_,_,_,buildProgress=Spring.GetUnitHealth(unitID)
+				if buildProgress and buildProgress == 1 then	-- exclude incompleted nanoframes
+					local x,y,z = Spring.GetUnitPosition(unitID)
+					createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
+					--Spring.Echo(hasDecoration[unitDefID][1])
+				end
 			end
 		end
 	end
