@@ -30,7 +30,7 @@ for _,teamID in ipairs(Spring.GetTeamList()) do
 	if select(4,Spring.GetTeamInfo(teamID)) then	-- is AI?
 		aiCount = aiCount + 1
 		aiTeams[teamID] = { energy = 0, metal = 0, winds = 0, mexes = {} }
-		aiCountResMultiplier = aiCount*0.2 + 1
+		aiCountResMultiplier = aiCount*0.2 + 0.8
 	end
 end
 if aiCount == 0 then
