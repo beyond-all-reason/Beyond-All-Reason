@@ -313,7 +313,7 @@ function WeaponDef_Post(name, wDef)
 		wDef["damage"].hvyboats = wDef["damage"].default
 	end
   -- end of artificial ArmorDefs tree
- 
+
 	if wDef.weapontype == "Cannon" then
 		if wDef.stages == nil then
 			wDef.stages = 10
@@ -324,6 +324,11 @@ function WeaponDef_Post(name, wDef)
 			end
 		end
 	end
+
+	if wDef.damage ~= nil then
+		wDef.damage.indestructable = 0
+	end
+
 	if wDef.weapontype == "BeamLaser" then
 		if wDef.beamttl == nil then
 			wDef.beamttl = 3
