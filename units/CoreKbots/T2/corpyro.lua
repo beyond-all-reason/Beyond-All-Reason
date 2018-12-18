@@ -7,7 +7,7 @@ return {
 		buildpic = "CORPYRO.DDS",
 		buildtime = 5027,
 		canmove = true,
-		category = "KBOT MOBILE WEAPON ALL ANTIFLAME NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -4 -5",
 		collisionvolumescales = "25 31 25",
 		collisionvolumetype = "CylY",

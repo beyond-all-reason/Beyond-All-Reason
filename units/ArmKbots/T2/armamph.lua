@@ -26,7 +26,7 @@ return {
 		maxvelocity = 3,
 		movementclass = "HOVER3",
 		name = "Pelican",
-		nochasecategory = "ANTILASER",
+		nochasecategory = "VTOL",
 		objectname = "ARMAMPH",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",

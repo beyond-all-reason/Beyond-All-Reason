@@ -100,13 +100,13 @@ unitDeaths = {
         explosiongenerator = "custom:genericunitexplosion-medium-fire",
         damage = {
             default = 35,
-            customparams = {
-                expl_light_color = "1 0.5 0.2",
-                expl_light_mult = 1.1,
-                expl_light_radius_mult = 1.1,
-                expl_light_life_mult = 1.1,
-                expl_light_heat_radius_mult = 1.15,
-            },
+        },
+        customparams = {
+            expl_light_color = "1 0.5 0.2",
+            expl_light_mult = 1.1,
+            expl_light_radius_mult = 1.1,
+            expl_light_life_mult = 1.1,
+            expl_light_heat_radius_mult = 1.15,
         },
     },
     flamethrowerSelfd = {

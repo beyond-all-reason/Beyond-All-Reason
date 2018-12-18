@@ -413,6 +413,9 @@ function addMapCritters()
 		elseif cC.spawnCircle then			
 			for unitName, unitAmount in pairs(cC.unitNames) do
 				local unitDefID = getUnitDefIdbyName(unitName)
+				if not UnitDefs[unitDefID] then
+					break
+				end
 				local minWaterDepth = 0 - UnitDefs[unitDefID].minWaterDepth
 				local waterunit = false
 				if minWaterDepth < 0 then waterunit = true end

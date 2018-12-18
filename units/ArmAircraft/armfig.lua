@@ -9,7 +9,7 @@ return {
 		buildtime = 3500,
 		canfly = true,
 		canmove = true,
-		category = "ALL MOBILE WEAPON NOTSUB ANTIFLAME ANTIEMG ANTILASER NOTLAND VTOL NOTSHIP NOTHOVER",
+		category = "ALL MOBILE WEAPON NOTSUB NOTLAND VTOL NOTSHIP NOTHOVER",
 		collide = false,
 		cruisealt = 125,
 		description = "Fighter",

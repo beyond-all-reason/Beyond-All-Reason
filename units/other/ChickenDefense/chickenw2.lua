@@ -20,7 +20,7 @@ return {
 		canpatrol = true,
 		canstop = true,
 		cansubmerge = false,
-		category = "ALL MOBILE WEAPON NOTLAND VTOL ANTIFLAME ANTIEMG ANTILASER NOTSUB NOTSHIP NOTHOVER CHICKEN",
+		category = "ALL MOBILE WEAPON NOTLAND VTOL NOTSUB NOTSHIP NOTHOVER CHICKEN",
 		collide = false,
 		collisionvolumeoffsets = "0 7 -6",
 		collisionvolumescales = "48 12 22",
