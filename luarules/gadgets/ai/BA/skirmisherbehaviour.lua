@@ -60,18 +60,18 @@ function SkirmisherBehaviour:Update()
 		self.AggFactor = self.ai.skirmisherhandler:GetAggressiveness(self)
 	end
 	local unit = self.unit:Internal()
-	if (frame%450 == self.unitID%450) or self.myRange == nil then --refresh "myRange" casually because it can change with experience
+	if (frame%2000 == self.unitID%2000) or self.myRange == nil or self.myUnitCount == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = (self.isHelper and 700) or math.min(SpGetUnitMaxRange(self.unitID),500)
 	end
-	if (frame%90 == self.unitID%90) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%self.myUnitCount*3 == self.unitID%self.myUnitCount*3) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
 			if not self.behaviourcontroled then
 				self.ai.skirmisherhandler:RemoveFromSquad(self)
 			end
-		elseif not (nearestVisibleAcrossMap) then
+		else
 			self.nearestVisibleAcrossMap = nil
 			if self.behaviourcontroled then
 				self.ai.skirmisherhandler:AssignToASquad(self)
@@ -79,7 +79,7 @@ function SkirmisherBehaviour:Update()
 			end
 		end
 	end
-	if (frame%60 == self.unitID%60) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%self.myUnitCount == self.unitID%self.myUnitCount) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -88,7 +88,7 @@ function SkirmisherBehaviour:Update()
 			if not self.behaviourcontroled then
 				self.ai.skirmisherhandler:RemoveFromSquad(self)
 			end
-		elseif not (nearestVisibleInRange) then
+		else
 			self.nearestVisibleInRange = nil
 			if self.behaviourcontroled then
 				self.ai.skirmisherhandler:AssignToASquad(self)
@@ -102,8 +102,7 @@ function SkirmisherBehaviour:Update()
 			return
 		end
 	end
-	local refreshRate = 60
-	if self.unitID%refreshRate == frame%refreshRate then
+	if self.unitID%self.myUnitCount == frame%self.myUnitCount then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end

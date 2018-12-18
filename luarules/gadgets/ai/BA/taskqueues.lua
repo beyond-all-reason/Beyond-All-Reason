@@ -1074,7 +1074,7 @@ function CorWindOrSolar(tqb, ai, unit)
 end
 
 function CorNanoT(tqb, ai, unit)
-	if timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
+	if timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/500 then
 		return "cornanotc"
 	else
 		return skip
@@ -1485,7 +1485,7 @@ function ArmWindOrSolar(tqb, ai, unit)
 end
 
 function ArmNanoT(tqb, ai, unit)
-	if timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
+	if timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/500 then
 		return "armnanotc"
 	else
 		return skip

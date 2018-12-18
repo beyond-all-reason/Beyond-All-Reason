@@ -10,7 +10,7 @@ end
 
 function SkirmisherHandler:Init()
 	self.targetPool = {}
-	self.ratio = 5
+	self.ratio = math.random(1,10)
 	self.squads = {}
 	self.squadmaxsize = 20 -- Smaller size = more cpu usage !
 end
@@ -31,15 +31,20 @@ function SkirmisherHandler:Update()
 	if frame%300 == 150+(self.ai.id*7) then
 		self:TargetPoolThread()	
 	end
+	if frame%2000 == 0 or self.myUnitCount == nil or skirAttackRefreshRate == nil or skirRegroupRefreshRate == nil then
+		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
+		skirAttackRefreshRate = self.myUnitCount*7
+		skirRegroupRefreshRate = skirAttackRefreshRate*3
+	end
 	--Assign Targets To Squads
 	for i, squad in pairs(self.squads) do
-		if frame%1200 == (i*15+(self.ai.id*4))%1200 then
+		if Spring.GetGameSeconds() < ai.aimodehandler.noregroupcounter and (frame%skirRegroupRefreshRate == (i*15+(self.ai.id*4))%skirRegroupRefreshRate) then
 			self.squads[i].position = self:GetSquadPosition(i)
 			if squad.position and squad.position.x then -- squad.target and squad.target.x  -- Queue commands midway so it tries to group up the units first
 				local movetargetpos = squad.position
 				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{""})
 			end
-		elseif frame%400 == (i*15+(self.ai.id*4))%400 then -- Generate squad targets
+		elseif (frame%skirAttackRefreshRate == (i*15+(self.ai.id*4))%skirAttackRefreshRate) then -- Generate squad targets
 			--update position
 			self.squads[i].position = self:GetSquadPosition(i)
 			if self.targetPool[1] then
@@ -50,15 +55,20 @@ function SkirmisherHandler:Update()
 				self.squads[i].target = self.targetPool[3]
 			else
 				local target = GG.AiHelpers.TargetsOfInterest.GetTarget(self.ai.id)
-				if target and squad.role == "attacker" then
+				if target and (squad.role == "attacker" or Spring.GetGameSeconds() < ai.aimodehandler.nodefenderscounter) then
 					self.squads[i].target = target
 				else
 					if squad.role == "attacker" then
 						self.squads[i].target = self.ai.metalspothandler:ClosestEnemySpot(self.game:GetTypeByName("armmex") , self.squads[i].position )
 						self:SetSquadAggressiveness(i, 2)
 					else
-						self.squads[i].target = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position)
-						self:SetSquadAggressiveness(i, 5)
+						if Spring.GetGameSeconds() < ai.aimodehandler.nodefenderscounter then
+							self.squads[i].target = self.ai.metalspothandler:ClosestFreeSpot(self.game:GetTypeByName("armmex") , self.squads[i].position)
+							self:SetSquadAggressiveness(i, 5)
+						else
+							self.squads[i].target = self.ai.metalspothandler:ClosestEnemySpot(self.game:GetTypeByName("armmex") , self.squads[i].position )
+							self:SetSquadAggressiveness(i, 2)
+						end
 					end
 				end
 			end
@@ -111,10 +121,10 @@ function SkirmisherHandler:GetAggressiveness(atkbehaviour)
 end
 
 function SkirmisherHandler:GetSquadRole(atkbehaviour)
-	if math.random(1, self.ratio) > 1 then
-		return ("defender")
-	else
+	if self.ratio == 1 or math.random(1, self.ratio) == 1 then
 		return ("attacker")
+	else
+		return ("defender")
 	end
 end
 
