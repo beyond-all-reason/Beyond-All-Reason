@@ -270,6 +270,18 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	-- prevents area targetting xmasballs
+	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+		if cmdID and cmdID == CMD.ATTACK then
+			if cmdParams and #cmdParams == 1 then
+				if decorationUdefIDs[Spring.GetUnitDefID(cmdParams[1])] then
+					return false
+				end
+			end
+		end
+		return true
+	end
+
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
 	end
