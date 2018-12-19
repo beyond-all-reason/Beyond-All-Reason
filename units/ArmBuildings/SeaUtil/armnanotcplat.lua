@@ -15,7 +15,7 @@ return {
 		buildtime = 5312,
 		cantbetransported = true,
 		canrepeat = false,
-		category = "ALL NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
 		collisionvolumetype = "CylY",

@@ -42,9 +42,9 @@ if gadgetHandler:IsSyncedCode() then
 	for udefID,def in ipairs(UnitDefs) do
 		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] then
 			if def.mass >= 35 then
-				local balls = math.floor(((def.radius-15) / 7))
+				local balls = math.floor(((def.radius-13) / 7.5))
 				if balls > 0 then
-					hasDecoration[udefID] = {balls, (def.radius/12), 30*14}
+					hasDecoration[udefID] = {balls, 0.3+(def.radius/11), 30*14}
 				end
 			end
 		end
@@ -186,8 +186,8 @@ if gadgetHandler:IsSyncedCode() then
 						Spring.AddUnitImpulse(uID, (random()-0.5)*(impulseMult/2), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/2))
 						if UnitDefs[data[5]].radius then
 							local size = (UnitDefs[data[5]].radius/35)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
-							if size > 1.4 then size = 1.4 end
-							if size < 0.5 then size = 0.5 end
+							if size > 1.45 then size = 1.45 end
+							if size < 0.55 then size = 0.55 end
 							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.3) + (size * (math.random()*0.22)))
 						end
 					end

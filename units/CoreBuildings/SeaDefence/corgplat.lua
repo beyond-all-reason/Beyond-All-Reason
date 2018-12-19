@@ -135,7 +135,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL LIGHTBOAT CAPITALSHIP",
+				badtargetcategory = "VTOL",
 				def = "GUN",
 				onlytargetcategory = "NOTSUB",
 			},

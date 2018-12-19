@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 12000,
 		canmove = true,
-		category = "ALL PLANT NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Builds Seaplanes",
 		energystorage = 200,

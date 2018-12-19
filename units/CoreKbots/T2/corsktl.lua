@@ -8,7 +8,7 @@ return {
 		buildtime = 16975,
 		canmove = true,
 		cantbetransported = true,
-		category = "KBOT MOBILE WEAPON ALL KAMIKAZE NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
+		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
 		cloakcost = 150,
 		cloakcostmoving = 400,
 		collisionvolumeoffsets = "0.5 4 0",

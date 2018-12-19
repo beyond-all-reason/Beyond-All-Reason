@@ -13,7 +13,7 @@ return {
 		buildpic = "CORAMSUB.DDS",
 		buildtime = 11402,
 		canmove = true,
-		category = "ALL PLANT NOWEAPON NOTSUB NOTAIR NOTHOVER SURFACE UNDERWATER",
+		category = "ALL NOWEAPON NOTSUB NOTAIR NOTHOVER SURFACE UNDERWATER",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "115 36 112",
 		collisionvolumetype = "Box",

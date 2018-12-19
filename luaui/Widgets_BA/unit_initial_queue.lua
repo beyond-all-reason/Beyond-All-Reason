@@ -36,7 +36,7 @@ local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 -- Panel
 
 local iconWidth = 50
-local iconHeight = 47
+local iconHeight = 50
 local iconPadding = 2
 local borderSize = 0
 local maxCols = 5

@@ -14,7 +14,7 @@ return {
 		buildpic = "CORVP.DDS",
 		buildtime = 7151,
 		canmove = true,
-		category = "ALL PLANT NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "90 30 90",
 		collisionvolumetype = "Box",

@@ -9,7 +9,7 @@ return {
 		buildpic = "CORTL.DDS",
 		buildtime = 4700,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSHIP NOTSUB NOTAIR NOTHOVER SURFACE",
 		corpse = "DEAD",
 		description = "Pop-up Torpedo Launcher",
 		energymake = 0.2,

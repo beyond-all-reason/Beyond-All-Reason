@@ -9,7 +9,7 @@ return {
 		buildpic = "CORSY.DDS",
 		buildtime = 6600,
 		canmove = true,
-		category = "ALL PLANT NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "124 56 128",
 		collisionvolumetype = "Box",

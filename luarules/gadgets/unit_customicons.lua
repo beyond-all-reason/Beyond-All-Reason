@@ -409,15 +409,13 @@ local weaponDef
     elseif  ud.modCategories["chicken"] then
         Spring.SetUnitDefIcon(udid, "chicken1.user")
 
-      -- mine
-    elseif ud.modCategories["mine"] ~= nil or ud.modCategories["kamikaze"] ~= nil then
-      if (name=="cormine3" or name=="armmine3" or name=="corfmine3" or name=="armfmine3" or name=="corsktl") then
+    -- mines
+    elseif (name=="cormine3" or name=="armmine3" or name=="corfmine3" or name=="armfmine3" or name=="corsktl") then
         Spring.SetUnitDefIcon(udid, "mine3.user")
-      elseif (name=="cormine2" or name=="armmine2" or name=="cormine4" or name=="armmine4" or name=="corroach" or name=="armvader") then
+    elseif (name=="cormine2" or name=="armmine2" or name=="cormine4" or name=="armmine4" or name=="corroach" or name=="armvader") then
         Spring.SetUnitDefIcon(udid, "mine2.user")
-      else
+    elseif ud.modCategories["mine"] ~= nil then
         Spring.SetUnitDefIcon(udid, "mine1.user")
-      end
 
     -- targetting
     elseif ud.targfac then

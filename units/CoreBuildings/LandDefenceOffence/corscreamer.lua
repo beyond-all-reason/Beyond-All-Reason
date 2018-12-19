@@ -13,7 +13,7 @@ return {
 		buildpic = "CORSCREAMER.DDS",
 		buildtime = 28000,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB SPECIAL NOTAIR NOTHOVER SURFACE",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "63 57 63",
 		collisionvolumetype = "CylY",
