@@ -32,17 +32,17 @@ for i =1, #teams do
 	end
 end
 
-local changelogFile = ""
-changelogFile = changelogFile .. titlecolor..Game.gameName..valuegreycolor.." ("..Game.gameMutator..") "..titlecolor..Game.gameVersion.."\n"
-changelogFile = changelogFile .. keycolor.."Engine"..separator..valuegreycolor..((Game and Game.version) or (Engine and Engine.version) or "Engine version error").."\n"
-changelogFile = changelogFile .. "\n"
+local content = ""
+content = content .. titlecolor..Game.gameName..valuegreycolor.." ("..Game.gameMutator..") "..titlecolor..Game.gameVersion.."\n"
+content = content .. keycolor.."Engine"..separator..valuegreycolor..((Game and Game.version) or (Engine and Engine.version) or "Engine version error").."\n"
+content = content .. "\n"
 
 -- map info
-changelogFile = changelogFile .. titlecolor..Game.mapName.."\n"
-changelogFile = changelogFile .. valuegreycolor..Game.mapDescription.."\n"
-changelogFile = changelogFile .. keycolor.."Size"..separator..valuegreycolor..Game.mapX..valuegreycolor.." x "..valuegreycolor..Game.mapY.."\n"
-changelogFile = changelogFile .. keycolor.."Gravity"..separator..valuegreycolor..Game.gravity.."\n"
-changelogFile = changelogFile .. keycolor.."Hardness"..separator..valuegreycolor..Game.mapHardness.. keycolor.."\n"
+content = content .. titlecolor..Game.mapName.."\n"
+content = content .. valuegreycolor..Game.mapDescription.."\n"
+content = content .. keycolor.."Size"..separator..valuegreycolor..Game.mapX..valuegreycolor.." x "..valuegreycolor..Game.mapY.."\n"
+content = content .. keycolor.."Gravity"..separator..valuegreycolor..Game.gravity.."\n"
+content = content .. keycolor.."Hardness"..separator..valuegreycolor..Game.mapHardness.. keycolor.."\n"
 tidal = Game.tidal
 if Spring.GetModOptions() and Spring.GetModOptions().map_tidal then
 	map_tidal = Spring.GetModOptions().map_tidal
@@ -55,21 +55,24 @@ if Spring.GetModOptions() and Spring.GetModOptions().map_tidal then
 		tidal = 23
 	end
 end
-changelogFile = changelogFile .. keycolor.."Tidal speed"..separator..valuegreycolor..tidal.. keycolor.."\n"
+if Spring.GetTidal then
+	tidal = Spring.GetTidal()
+end
+content = content .. keycolor.."Tidal speed"..separator..valuegreycolor..tidal.. keycolor.."\n"
 
 
 if Game.windMin == Game.windMax then
-	changelogFile = changelogFile .. keycolor.."Wind speed"..separator..valuegreycolor..Game.windMin..valuegreycolor.."\n"
+	content = content .. keycolor.."Wind speed"..separator..valuegreycolor..Game.windMin..valuegreycolor.."\n"
 else
-	changelogFile = changelogFile .. keycolor.."Wind speed"..separator..valuegreycolor..Game.windMin..valuegreycolor.."  -  "..valuegreycolor..Game.windMax.."\n"
+	content = content .. keycolor.."Wind speed"..separator..valuegreycolor..Game.windMin..valuegreycolor.."  -  "..valuegreycolor..Game.windMax.."\n"
 end
 if Game.waterDamage == 0 then
 	vcolor = valuegreycolor
 else
 	vcolor = valuecolor
 end
-changelogFile = changelogFile .. keycolor.."Water damage"..separator..vcolor..Game.waterDamage .. keycolor.."\n"
-changelogFile = changelogFile .. "\n"
+content = content .. keycolor.."Water damage"..separator..vcolor..Game.waterDamage .. keycolor.."\n"
+content = content .. "\n"
 
 -- modoptions
 local defaultModoptions = VFS.Include("modoptions.lua")
@@ -122,21 +125,21 @@ for key, value in pairs(modoptions) do
 	end
 end
 if chickensEnabled then	-- filter chicken modoptions
-	changelogFile = changelogFile .. titlecolor.."Chicken options\n"
+	content = content .. titlecolor.."Chicken options\n"
 	for key, value in pairs(changedChickenModoptions) do
-		changelogFile = changelogFile .. keycolor..string.sub(key, 9)..separator..valuecolor..value.."\n"
+		content = content .. keycolor..string.sub(key, 9)..separator..valuecolor..value.."\n"
 	end
 	for key, value in pairs(unchangedChickenModoptions) do
-		changelogFile = changelogFile .. keycolor..string.sub(key, 9)..separator..valuegreycolor..value.."\n"
+		content = content .. keycolor..string.sub(key, 9)..separator..valuegreycolor..value.."\n"
 	end
-	changelogFile = changelogFile .. "\n"
+	content = content .. "\n"
 end
-changelogFile = changelogFile .. titlecolor.."Mod options\n"
+content = content .. titlecolor.."Mod options\n"
 for key, value in pairs(changedModoptions) do
-	changelogFile = changelogFile .. keycolor..key..separator..valuecolor..value.."\n"
+	content = content .. keycolor..key..separator..valuecolor..value.."\n"
 end
 for key, value in pairs(unchangedModoptions) do
-	changelogFile = changelogFile .. keycolor..key..separator..valuegreycolor..value.."\n"
+	content = content .. keycolor..key..separator..valuegreycolor..value.."\n"
 end
 
 
@@ -226,41 +229,41 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
 	-- bottom right
 	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- top left
 	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
 	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
@@ -324,7 +327,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 	end
 
 	-- draw textarea
-	if changelogFile then
+	if content then
 		font:Begin()
 		local lineKey = startLine
 		local j = 1
@@ -578,7 +581,7 @@ function toggle()
 end
 
 function widget:Initialize()
-	if changelogFile then
+	if content then
 
 		widgetHandler:AddAction("customgameinfo", toggle)
 		Spring.SendCommands("unbind any+i gameinfo")
@@ -598,10 +601,10 @@ function widget:Initialize()
 		end
 
 		-- somehow there are a few characters added at the start that we need to remove
-		--changelogFile = string.sub(changelogFile, 4)
+		--content = string.sub(content, 4)
 
 		-- store changelog into array
-		changelogLines = lines(changelogFile)
+		changelogLines = lines(content)
 
 		for i, line in ipairs(changelogLines) do
 			totalChangelogLines = i

@@ -102,53 +102,55 @@ function CreateHighlightShader()
   if shader then
     gl.DeleteShader(shader)
   end
-  shader = gl.CreateShader({
+  if gl.CreateShader ~= nil then
+    shader = gl.CreateShader({
 
-    uniform = {
-      edgeExponent = edgeExponent,
-    },
+      uniform = {
+        edgeExponent = edgeExponent,
+      },
 
-    vertex = [[
-	  // Application to vertex shader
-	  varying vec3 normal;
-	  varying vec3 eyeVec;
-	  varying vec3 color;
-	  uniform mat4 camera;
-	  uniform mat4 caminv;
+      vertex = [[
+        // Application to vertex shader
+        varying vec3 normal;
+        varying vec3 eyeVec;
+        varying vec3 color;
+        uniform mat4 camera;
+        uniform mat4 caminv;
 
-	  void main()
-	  {
-		vec4 P = gl_ModelViewMatrix * gl_Vertex;
+        void main()
+        {
+          vec4 P = gl_ModelViewMatrix * gl_Vertex;
 
-		eyeVec = P.xyz;
+          eyeVec = P.xyz;
 
-		normal  = gl_NormalMatrix * gl_Normal;
+          normal  = gl_NormalMatrix * gl_Normal;
 
-		color = gl_Color.rgb;
+          color = gl_Color.rgb;
 
-		gl_Position = gl_ProjectionMatrix * P;
-	  }
-	]],
+          gl_Position = gl_ProjectionMatrix * P;
+        }
+      ]],
 
-    fragment = [[
-	  varying vec3 normal;
-	  varying vec3 eyeVec;
-	  varying vec3 color;
+      fragment = [[
+        varying vec3 normal;
+        varying vec3 eyeVec;
+        varying vec3 color;
 
-	  uniform float edgeExponent;
+        uniform float edgeExponent;
 
-	  void main()
-	  {
-		float opac = dot(normalize(normal), normalize(eyeVec));
-		opac = 1.0 - abs(opac);
-		opac = pow(opac, edgeExponent)*0.4;
+        void main()
+        {
+          float opac = dot(normalize(normal), normalize(eyeVec));
+          opac = 1.0 - abs(opac);
+          opac = pow(opac, edgeExponent)*0.4;
 
-		gl_FragColor.rgb = color + opac);
-		gl_FragColor.a = opac;
+          gl_FragColor.rgb = color + opac);
+          gl_FragColor.a = opac;
 
-	  }
-	]],
-  })
+        }
+      ]],
+    })
+  end
 end
 
 
@@ -157,9 +159,7 @@ end
 
 function widget:Initialize()
   cylList = glCreateList(DrawCylinder, cylDivs)
-  if gl.CreateShader ~= nil then
-    CreateHighlightShader()
-  end
+  CreateHighlightShader()
 end
 
 

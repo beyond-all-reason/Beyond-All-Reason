@@ -172,7 +172,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasersNoShader:Update(n)
-  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 then  -- save some performance/memory
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 2 or (self.quickupdates and thisGameFrame - self._lastupdate >= 1) then  -- save some performance/memory
     UpdateNanoParticles(self)
 
     if (self._dead) then

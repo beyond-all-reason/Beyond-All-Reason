@@ -66,6 +66,9 @@ local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
 local bgcorner = ":n:LuaUI/Images/bgcorner.png"
 local highlightImg = ":n:LuaUI/Images/button-highlight.dds"
 
@@ -233,7 +236,19 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 end
 
 local sec = 0
+local uiOpacitySec = 0.5
 function widget:Update(dt)
+
+  uiOpacitySec = uiOpacitySec + dt
+  if uiOpacitySec>0.5 then
+    uiOpacitySec = 0
+    if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+      ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+      gl.DeleteList(picList)
+      picList = gl.CreateList(DrawPicList)
+    end
+  end
+
   sec = sec + dt
   if (checkSelectedUnits and sec>0.09) then
     sec = 0
@@ -323,10 +338,10 @@ function DrawPicList()
   local ymid = (ymin + ymax) * 0.5
   
   backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
-  gl.Color(0,0,0,0.66)
+  gl.Color(0,0,0,ui_opacity)
   RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 7)
 	local borderPadding = iconMargin
-	glColor(1,1,1,0.025)
+	glColor(1,1,1,ui_opacity*0.04)
   RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 9)
 
   -- draw the buildpics

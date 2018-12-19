@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, wing1, wing2, thrustb;
+piece  base, wing1, wing2, thrustb, emitnano;
 
 static-var  Static_Var_1, Static_Var_2;
 
@@ -117,7 +117,7 @@ StopBuilding()
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = base;
+	piecenum = emitnano;
 	return (0);
 }
 

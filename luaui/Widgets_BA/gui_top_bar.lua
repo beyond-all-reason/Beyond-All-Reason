@@ -2,14 +2,16 @@ function widget:GetInfo()
 	return {
 		name		= "Top Bar",
 		desc		= "Shows Resources, wind speed, commander counter, and various options.",
-		author	= "Floris",
+		author		= "Floris",
 		date		= "Feb, 2017",
-		license	= "GNU GPL, v2 or later",
-        layer     = -99999,
-		enabled   = true, --enabled by default
-		handler   = true, --can use widgetHandler:x()
+		license		= "GNU GPL, v2 or later",
+        layer		= -99999,
+		enabled		= true, --enabled by default
+		handler		= true, --can use widgetHandler:x()
 	}
 end
+
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
 local height = 38
 local relXpos = 0.3
@@ -44,6 +46,7 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
 local xPos = vsx*relXpos
 local currentWind = 0
+local currentTidal = 0
 local gameStarted = false
 local displayComCounter = false
 
@@ -73,14 +76,14 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
-local spWind = Spring.GetWind
+local spGetWind = Spring.GetWind
+
 local minWind = Game.windMin
 local maxWind = Game.windMax
 local windRotation = 0
 
 local startComs = 0
 local lastFrame = -1
-local gameFrame = 0
 local topbarArea = {}
 local barContentArea = {}
 local resbarArea = {metal={}, energy={}}
@@ -98,8 +101,8 @@ local currentResCap = {metal=1000,energy=1000}
 local currentResValue = {metal=1000,energy=1000 }
 
 local r = {}
-r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
-r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
+r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+r['energy'] = {spGetTeamResources(myTeamID,'energy') }
 
 local showOverflowTooltip = {}
 
@@ -109,7 +112,7 @@ local enemyComCount = 0 -- if we are receiving a count from the gadget part (nee
 local prevEnemyComCount = 0
 
 local guishaderEnabled = false
-local guishaderCheckUpdateRate = 2
+local guishaderCheckUpdateRate = 1
 local nextGuishaderCheck = guishaderCheckUpdateRate
 local now = os.clock()
 local gameFrame = Spring.GetGameFrame()
@@ -119,22 +122,14 @@ local draggingShareIndicatorValue = {}
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
-local serverFrameRate = 30 --//constant: assume server run at x1.0 gamespeed. 
-local oneSecondElapsed = 0 --//variable: a timer for 1 second, used in Update(). Update UI every 1 second.
 local showRejoinUI = false --//variable:indicate whether UI is shown or hidden.
-local averageLocalSpeed = {sumOfSpeed= 0, sumCounter= 0} --//variable: store the local-gameFrame speeds so that an average can be calculated. 
-local defaultAverage = 30 --//constant: Initial/Default average is set at 30gfps (x1.0 gameSpeed)
-local simpleMovingAverageLocalSpeed = {storage={},index = 1, runningAverage=defaultAverage} --//variable: for calculating rolling average. Initial/Default average is set at 30gfps (x1.0 gameSpeed)
 
---Variable for fixing GameProgress delay at rejoin------------------------------
-local myTimestamp = 0 --//variable: store my own timestamp at GameStart
-local submittedTimestamp = {} --//variable: store all timestamp at GameStart submitted by original players (assuming we are rejoining)
-local functionContainer = function(x) end --//variable object: store a function 
-local gameProgressActive = false --//variable: signal whether GameProgress has been updated.
+local CATCH_UP_THRESHOLD = 10 * Game.gameSpeed -- only show the window if behind this much
+local UPDATE_RATE_F = 10 -- frames
+local MOVING_AVG_COUNT = 30 -- update periods
 
-local serverFrameNum1 = 0
-local serverFrameNum2 = 0
-local myLastFrameNum = 0
+local UPDATE_RATE_S = UPDATE_RATE_F / Game.gameSpeed
+local serverFrame
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -200,41 +195,41 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
 	-- top right
 	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- bottom left
 	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- bottom right
 	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
 
@@ -263,11 +258,8 @@ end
 
 local function updateRejoin()
 	local area = rejoinArea
-	local catchup = gameFrame / serverFrameNum1
-	
-	if serverFrameNum1 - gameFrame < 20 then
-		showRejoinUI = false
-	end
+
+	local catchup = gameFrame / serverFrame
 	
 	if dlistRejoin ~= nil then
 		glDeleteList(dlistRejoin)
@@ -275,10 +267,10 @@ local function updateRejoin()
 	dlistRejoin = glCreateList( function()
 	
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
 		if (WG['guishader_api'] ~= nil) then
@@ -346,10 +338,10 @@ local function updateButtons()
 	dlistButtons1 = glCreateList( function()
 	
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -419,10 +411,10 @@ local function updateComs(forceText)
 	dlistComs1 = glCreateList( function()
 	
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -430,7 +422,7 @@ local function updateComs(forceText)
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
 		end
 	end)
-	
+
 	if dlistComs2 ~= nil then
 		glDeleteList(dlistComs2)
 	end
@@ -445,13 +437,7 @@ local function updateComs(forceText)
 		-- Text
 		if gameFrame > 0 or forceText then
 			local fontsize = (height/2.85)*widgetScale
-			local usedEnemyComs = enemyComs
-			if spec then
-				usedEnemyComs = enemyComs
-			else
-				usedEnemyComs = enemyComCount
-			end
-			glText('\255\255\000\000'..usedEnemyComs, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+			glText('\255\255\000\000'..enemyComCount, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
 			fontSize = (height/2.15)*widgetScale
 			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
@@ -484,9 +470,9 @@ local function updateWind()
 	dlistWind1 = glCreateList( function()
 
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
 		if (WG['guishader_api'] ~= nil) then
@@ -634,10 +620,10 @@ local function updateResbar(res)
 	dlistResbar[res][1] = glCreateList( function()
 
 		-- background
-		glColor(0,0,0,0.7)
+		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,0.03)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -669,7 +655,7 @@ local function updateResbar(res)
 	dlistResbar[res][2] = glCreateList( function()
 		-- Metalmaker Conversion slider
 		if showConversionSlider and res == 'energy' then
-            local convValue = Spring.GetTeamRulesParam(spGetMyTeamID(), 'mmLevel')
+            local convValue = Spring.GetTeamRulesParam(myTeamID, 'mmLevel')
             if draggingConversionIndicatorValue ~= nil then
                 convValue = draggingConversionIndicatorValue/100
 			end
@@ -731,8 +717,8 @@ end
 
 function init()
 
-    r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
-    r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
+    r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+    r['energy'] = {spGetTeamResources(myTeamID,'energy') }
 
 	topbarArea = {xPos, vsy-(borderPadding*widgetScale)-(height*widgetScale), vsx, vsy}
 	barContentArea = {xPos+(borderPadding*widgetScale), vsy-(height*widgetScale), vsx, vsy}
@@ -803,7 +789,7 @@ end
 
 function checkStatus()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-	myTeamID = Spring.GetMyTeamID()
+    myTeamID = Spring.GetMyTeamID()
 	myPlayerID = Spring.GetMyPlayerID()
 end
 
@@ -811,21 +797,9 @@ end
 function widget:GameStart()
 	gameStarted = true
 	checkStatus()
-
 	if displayComCounter then
 		countComs()
-        if comsArea[1] ~= nil then
-		    updateComs(true)
-        end
 	end
-
-	-- code for rejoin
-	local currentTime = os.date("!*t") --ie: clock on "gui_epicmenu.lua" (widget by CarRepairer), UTC & format: http://lua-users.org/wiki/OsLibraryTutorial
-	local systemSecond = currentTime.hour*3600 + currentTime.min*60 + currentTime.sec
-	local timestampMsg = "rejnProg " .. systemSecond --currentTime --create a timestamp message
-    Spring.SendLuaUIMsg(timestampMsg, 's') --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-    Spring.SendLuaUIMsg(timestampMsg, 'a') --this message will remain in server's cache as a LUA message which rejoiner can intercept. Thus allowing the game to leave a clue at game start for latecomer.  The latecomer will compare the previous timestamp with present and deduce the catch-up time.
-    myTimestamp = systemSecond
 end
 
 
@@ -835,7 +809,7 @@ function widget:GameFrame(n)
     windRotation = windRotation + (currentWind * bladeSpeedMultiplier)
     gameFrame = n
 
-    functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
+    --functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
 
 	if n % 30 == 1 then
 		updateResbarText('metal')
@@ -843,15 +817,32 @@ function widget:GameFrame(n)
     end
 end
 
+local uiOpacitySec = 0
 local sec = 0
+local secComCount = 0
+local t = UPDATE_RATE_S
 function widget:Update(dt)
+    local prevMyTeamID = myTeamID
+    if spec and spGetMyTeamID() ~= prevMyTeamID then  -- check if the team that we are spectating changed
+        checkStatus()
+    end
+
 	local mx,my = spGetMouseState()
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			init()
+		end
+	end
 
     sec = sec + dt
     if sec>0.066 then
         sec = 0
-        r['metal'] = {spGetTeamResources(spGetMyTeamID(),'metal') }
-        r['energy'] = {spGetTeamResources(spGetMyTeamID(),'energy') }
+        r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+        r['energy'] = {spGetTeamResources(myTeamID,'energy') }
     end
 
     now = os.clock()
@@ -884,91 +875,53 @@ function widget:Update(dt)
 			resbarHover = nil
 			updateResbar('metal')
 		end
-	elseif spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
+	elseif spec and myTeamID ~= prevMyTeamID then  -- check if the team that we are spectating changed
 		draggingShareIndicatorValue = {}
 		draggingConversionIndicatorValue = nil
+		if sec ~= 0 then
+			r['metal'] = {spGetTeamResources(myTeamID,'metal') }
+			r['energy'] = {spGetTeamResources(myTeamID,'energy') }
+		end
 		updateResbar('metal')
 		updateResbar('energy')
 	end
 
 	-- wind
 	if (gameFrame ~= lastFrame) then
-		currentWind = sformat('%.1f', select(4,spWind()))
+		currentWind = sformat('%.1f', select(4,spGetWind()))
 	end
 
 
  	-- coms
 	if displayComCounter then
-		if spec and myTeamID ~= spGetMyTeamID() then  -- check if the team that we are spectating changed
-			checkStatus()
-			countComs()
-		end
-		if not spec then	-- check if we have received a TeamRulesParam from the gadget part
-			local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
-			if type(newEnemyComCount) == 'number' then
-				enemyComCount = newEnemyComCount
-				if enemyComCount ~= prevEnemyComCount then
-					comcountChanged = true
-					prevEnemyComCount = enemyComCount
-				end
-			end
-		end
-		if comcountChanged then
-			updateComs()
-		end
+        secComCount = secComCount + dt
+        if secComCount>0.5 then
+            secComCount = 0
+            countComs()
+        end
 	end
 
 	-- rejoin
-	if (gameFrame ~= lastFrame) then
-		if showRejoinUI then
-			oneSecondElapsed = oneSecondElapsed + dt
-			if oneSecondElapsed >= 1 then --wait for 1 second period
-				-----var localize-----
-				-----localize
+	if not isReplay and serverFrame then
+		t = t - dt
+		if t <= 0 then
+			t = t + UPDATE_RATE_S
 
-				local serverFrameNum = serverFrameNum1 or serverFrameNum2 --use FrameNum from GameProgress if available, else use FrameNum derived from LUA_msg.
-				serverFrameNum = serverFrameNum + serverFrameRate*oneSecondElapsed -- estimate Server's frame number after each widget:Update() while waiting for GameProgress() to refresh with actual value.
-				local frameDistanceToFinish = serverFrameNum-gameFrame
-
-				local myGameFrameRate = (gameFrame - myLastFrameNum) / oneSecondElapsed
-				--Method1: simple average
-				--[[
-				averageLocalSpeed.sumOfSpeed = averageLocalSpeed.sumOfSpeed + myGameFrameRate -- try to calculate the average of local gameFrame speed.
-				averageLocalSpeed.sumCounter = averageLocalSpeed.sumCounter + 1
-				myGameFrameRate = averageLocalSpeed.sumOfSpeed/averageLocalSpeed.sumCounter -- using the average to calculate the estimate for time of completion.
-				--]]
-				--Method2: simple moving average
-				myGameFrameRate = SimpleMovingAverage(myGameFrameRate, simpleMovingAverageLocalSpeed) -- get our average frameRate
-
-				local timeToComplete = frameDistanceToFinish/myGameFrameRate -- estimate the time to completion.
-				local timeToComplete_string = "?/?"
-
-				local minute, second = math.modf(timeToComplete/60) --second divide by 60sec-per-minute, then saperate result from its remainder
-				second = 60*second --multiply remainder with 60sec-per-minute to get second back.
-				timeToComplete_string = string.format ("Time Remaining: %d:%02d" , minute, second)
-
-				oneSecondElapsed = 0
-				myLastFrameNum = gameFrame
-
-				if serverFrameNum1 then
-					serverFrameNum1 = serverFrameNum --update serverFrameNum1 if value from GameProgress() is used,
-				else
-					serverFrameNum2 = serverFrameNum
-				end --update serverFrameNum2 if value from LuaRecvMsg() is used.
-
+			--Estimate Server Frame
+			local speedFactor, _, isPaused = Spring.GetGameSpeed()
+			if gameStarted and not isPaused then
+				serverFrame = serverFrame + math.ceil(speedFactor * UPDATE_RATE_F)
 			end
 
-			if gameFrame / serverFrameNum1 < 1 then
+			local framesLeft = serverFrame - gameFrame
+			if framesLeft > CATCH_UP_THRESHOLD then
+				showRejoinUI = true
+				updateRejoin()
+			elseif showRejoinUI then
+				showRejoinUI = false
 				updateRejoin()
 			end
 		end
-
-	--elseif dlistRejoin ~= nil then
-	--	glDeleteList(dlistRejoin)
-	end
-
-	if (gameFrame ~= lastFrame) then
-		lastFrame = gameFrame
 	end
 end
 
@@ -1491,26 +1444,22 @@ function countComs()
 		end
 	end
 	comcountChanged = true
-	
-	if spec then
-		-- recount enemy coms
-		enemyComs = 0
-		local allyTeamList = Spring.GetAllyTeamList()
-		for _,allyTeamID in ipairs(allyTeamList) do
-			if allyTeamID ~= myAllyTeamID then
-				local teamList = Spring.GetTeamList(allyTeamID)
-				for _,teamID in ipairs(teamList) do
-					enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
-					if armcom_barDefID then
-						enemyComs = enemyComs + Spring.GetTeamUnitDefCount(teamID, armcom_barDefID) + Spring.GetTeamUnitDefCount(teamID, corcom_barDefID)
-					end
-				end
-			end
-		end
-	end
-	
+
+    local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
+    if type(newEnemyComCount) == 'number' then
+        enemyComCount = newEnemyComCount
+        if enemyComCount ~= prevEnemyComCount then
+            comcountChanged = true
+            prevEnemyComCount = enemyComCount
+        end
+    end
+
 	if allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
 		comcountChanged = true
+	end
+
+	if comcountChanged then
+		updateComs()
 	end
 end
 
@@ -1543,113 +1492,10 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 
-
 -- used for rejoin progress functionality
-local function ActivateGUI_n_TTS (frameDistanceToFinish, ui_active, altThreshold)
-	if frameDistanceToFinish >= (altThreshold or 120) then
-		if not ui_active then
-			ui_active = true
-		end
-	elseif frameDistanceToFinish < (altThreshold or 120) then
-		if ui_active then
-			ui_active = false
-		end
-	end
-	return ui_active
+function widget:GameProgress (n) -- happens every 300 frames
+	serverFrame = n
 end
-
--- used for rejoin progress functionality
-function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
-	local ui_active = showRejoinUI
-
-	local frameDistanceToFinish = serverFrameNum-gameFrame
-	ui_active = ActivateGUI_n_TTS (frameDistanceToFinish, ui_active)
-	
-	serverFrameNum1 = serverFrameNum
-	showRejoinUI = ui_active
-	gameProgressActive = true
-end
-
--- used for rejoin progress functionality
-function widget:RecvLuaMsg(bigMsg, playerID) --this function run 2nd. It read the LUA timestamp
-	
-	if gameProgressActive or isReplay then --skip LUA message if gameProgress is already active OR game is a replay
-		return false 
-	end
-
-	local myMsg = (playerID == myPlayerID)
-	if (myMsg or spec) then
-		if bigMsg:sub(1,9) == "rejnProg " then --check for identifier
-			-----var localize-----
-			local ui_active = showRejoinUI
-			-----localize
-			
-			local timeMsg = bigMsg:sub(10) --saperate time-message from the identifier
-			local systemSecond = tonumber(timeMsg)
-			--Spring.Echo(systemSecond ..  " B")
-			submittedTimestamp[#submittedTimestamp +1] = systemSecond --store all submitted timestamp from each players
-			local sumSecond= 0
-			for i=1, #submittedTimestamp,1 do
-				sumSecond = sumSecond + submittedTimestamp[i]
-			end
-			--Spring.Echo(sumSecond ..  " C")
-			local avgSecond = sumSecond/#submittedTimestamp
-			--Spring.Echo(avgSecond ..  " D")
-			local secondDiff = myTimestamp - avgSecond
-			--Spring.Echo(secondDiff ..  " E")
-			local frameDiff = secondDiff*30
-			
-			serverFrameNum2 = frameDiff --this value represent the estimate difference in frame when everyone was submitting their timestamp at game start. Therefore the difference in frame will represent how much frame current player are ahead of us.
-			ui_active = ActivateGUI_n_TTS (frameDiff, ui_active, 1800)
-			
-			-----return
-			showRejoinUI = ui_active
-		end
-	end
-end
-
-
--- used for rejoin progress functionality
-local function RemoveLUARecvMsg(n)
-	if n > 150 then
-		isReplay = nil
-		--widgetHandler:RemoveCallIn("RecvLuaMsg") --remove unused method for increase efficiency after frame> timestampLimit (150frame or 5 second).
-		functionContainer = function(x) end --replace this function with an empty function/method
-	end 
-end
-
--- used for rejoin progress functionality
-function SimpleMovingAverage(myGameFrameRate, simpleMovingAverageLocalSpeed)
-	--//remember current frameRate, and advance table index by 1
-	local index = (simpleMovingAverageLocalSpeed.index) --retrieve current index.
-	simpleMovingAverageLocalSpeed.storage[index] = myGameFrameRate --remember current frameRate at current index.
-	simpleMovingAverageLocalSpeed.index = simpleMovingAverageLocalSpeed.index +1 --advance index by 1.
-	--//wrap table index around. Create a circle
-	local poolingSize = 10 --//number of sample. note: simpleMovingAverage() is executed every second, so the value represent an average spanning 10 second.
-	if (simpleMovingAverageLocalSpeed.index == (poolingSize + 2)) then --when table out-of-bound:
-		simpleMovingAverageLocalSpeed.index = 1 --wrap the table index around (create a circle of 150 + 1 (ie: poolingSize plus 1 space) entry).
-	end
-	--//update averages
-	index = (simpleMovingAverageLocalSpeed.index) --retrieve an index advanced by 1.
-	local oldAverage = (simpleMovingAverageLocalSpeed.storage[index] or defaultAverage) --retrieve old average or use initial/default average as old average.
-	simpleMovingAverageLocalSpeed.runningAverage = simpleMovingAverageLocalSpeed.runningAverage + myGameFrameRate/poolingSize - oldAverage/poolingSize --calculate average: add new value, remove old value. Ref: http://en.wikipedia.org/wiki/Moving_average#Simple_moving_average
-	local avgGameFrameRate = simpleMovingAverageLocalSpeed.runningAverage -- replace myGameFrameRate with its average value.
-
-	return avgGameFrameRate, simpleMovingAverageLocalSpeed
-end
-
-
-function widget:GameProgress(serverFrameNum) --this function run 3rd. It read the official serverFrameNumber
-	local ui_active = showRejoinUI
-
-	serverFrameNum1 = serverFrameNum
-	local frameDistanceToFinish = serverFrameNum-gameFrame
-	ui_active = ActivateGUI_n_TTS (frameDistanceToFinish, ui_active)
-	
-	showRejoinUI = ui_active
-	gameProgressActive = true
-end
-
 
 function widget:Initialize()
 	gameFrame = Spring.GetGameFrame()
@@ -1669,9 +1515,6 @@ function widget:Initialize()
 	if gameFrame > 0 then
 		widget:GameStart()
 	end
-
-	-- used for rejoin progress functionality
-	functionContainer = RemoveLUARecvMsg
 
 	WG['topbar'] = {}
 	WG['topbar'].showingRejoining = function()
@@ -1698,6 +1541,7 @@ function widget:TextCommand(command)
 		end
 	end
 end
+
 
 function widget:Shutdown()
 	Spring.SendCommands("resbar 1")

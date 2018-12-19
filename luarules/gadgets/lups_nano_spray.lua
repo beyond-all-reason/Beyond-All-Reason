@@ -281,18 +281,27 @@ local function BuilderDestroyed(unitID)
 	builders[#builders] = nil
 end
 
+-- update (position) more frequently for air builders
+local airBuilders = {}
+for udid, unitDef in pairs(UnitDefs) do
+    if unitDef.canFly then
+        airBuilders[udid] = true
+    end
+end
+
 function gadget:GameFrame(frame)
     if currentNanoEffect == NanoFxNone then return end
 
     local updateFramerate = math.min(30, 3 + math.floor(#builders/25)) -- update fast at gamestart and gradually slower
     local totalNanoEmitters = 0
     local myTeamID = Spring.GetMyTeamID()
+    local _, myFullview = Spring.GetSpectatingState()
     for i=1,#builders do
         if totalNanoEmitters > maxNewNanoEmitters then
             break
         end
         local unitID = builders[i]
-        if (not hideIfIcon or not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID) then
+        if ((not hideIfIcon and (myFullview or Spring.GetMyAllyTeamID() == Spring.GetUnitAllyTeam(unitID))) or (not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID))  then
             local UnitDefID = Spring.GetUnitDefID(unitID)
             local buildpower = builderWorkTime[UnitDefID] or 1
             if ((unitID + frame) % updateFramerate < 1) then
@@ -314,7 +323,7 @@ function gadget:GameFrame(frame)
                             radius = (GetFeatureRadius(target) or 1) * 0.80
                         end
 
-                        local terraform = false
+                        --local terraform = false
                         local inversed  = false
                         if (type=="restore") then
                             terraform = true
@@ -361,10 +370,11 @@ function gadget:GameFrame(frame)
                                 color        = teamColor,
                                 type         = type,
                                 targetradius = radius,
-                                terraform    = terraform,
-                                inversed     = inversed,
                                 cmdTag       = cmdTag, --//used to end the fx when the command is finished
                             }
+                            if airBuilders[UnitDefID] then
+                                nanoParams.quickupdates = true
+                            end
 
                             local nanoSettings = CopyMergeTables(NanoFx.default, nanoParams)
                             ExecuteLuaCode(nanoSettings)

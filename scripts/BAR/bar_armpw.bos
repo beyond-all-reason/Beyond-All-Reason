@@ -4,7 +4,7 @@
 #include "exptype.h"
 #include "unitDefsTurretSpeeds.h"
 
-piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, ground, aimx1, aimy1;
+piece  torso, ruparm, luparm, rfire, lfire, rloarm, lloarm, pelvis, rthigh, lthigh, lleg, rleg, rfoot, lfoot, rgun, lgun, aimx1, aimy1;
 static-var  bMoving, bAiming, Static_Var_3, gun_1, restore_delay, moveSpeed, currentSpeed, burst1 ;
 
 #include "weapon1control.h"
@@ -521,13 +521,12 @@ Killed(severity, corpsetype)
 	if( severity <= 25 )
 	{
 		corpsetype = 1;
-		explode ground type FALL | BITMAP1 | NOHEATCLOUD;
+		explode torso type SHATTER | BITMAP5 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2;
-		//explode ground type FALL | BITMAP1 | NOHEATCLOUD;
 		//explode lfire type FALL | BITMAP2 | NOHEATCLOUD;
 		//explode lloarm type FALL | BITMAP5 | NOHEATCLOUD;
 		//explode lthigh type FALL | BITMAP1 | NOHEATCLOUD;
@@ -543,7 +542,6 @@ Killed(severity, corpsetype)
 	if( severity <= 99 )
 	{
 		corpsetype = 3;
-		//explode ground type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
 		//explode lfoot type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
 		//explode lleg type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
 		//explode lloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
@@ -559,7 +557,6 @@ Killed(severity, corpsetype)
 		return (corpsetype);
 	}
 	corpsetype = 3;
-	//explode ground type FALL | SMOKE | FIRE | BITMAP1 | NOHEATCLOUD;
 	//explode lfoot type FALL | SMOKE | FIRE | BITMAP3 | NOHEATCLOUD;
 	//explode lleg type FALL | SMOKE | FIRE | BITMAP4 | NOHEATCLOUD;
 	//explode lloarm type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;

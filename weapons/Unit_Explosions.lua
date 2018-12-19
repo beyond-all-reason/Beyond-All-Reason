@@ -1530,6 +1530,27 @@ unitDeaths = {
         },
     },
 
+    smallExplosionGenericAir = {
+        weaponType = "Cannon",
+        AreaOfEffect = 24,
+        cameraShake = 0,
+        impulseboost = impulseboost,
+        impulsefactor = impulsefactor,
+        soundhit = "xplolrg3",
+        soundstart = "largegun",
+        explosiongenerator="custom:genericunitexplosion-small",
+        damage = {
+            default = 5,
+        },
+        customparams = {
+            expl_light_color = "1 0.52 0.33",
+            expl_light_mult = 1.04,
+            expl_light_radius_mult = 1.04,
+            expl_light_life_mult = 1.06,
+            expl_light_heat_radius_mult = 1.1,
+        },
+    },
+
     smallExplosionGeneric = {
         weaponType = "Cannon",
         AreaOfEffect = 36,

@@ -123,8 +123,6 @@ return {
 				avoidfeature = false,
 				collideFriendly = false,
 				beamtime = 1.5,
-				beamttl = 5,
-				beamdecay = 0.7,
 				corethickness = 0.4,
 				craterareaofeffect = 0,
 				craterboost = 0,

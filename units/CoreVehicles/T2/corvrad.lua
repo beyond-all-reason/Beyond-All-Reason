@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maxdamage = 510,
 		maxslope = 16,
-		maxvelocity = 1.25,
+		maxvelocity = 1.09,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Informer",

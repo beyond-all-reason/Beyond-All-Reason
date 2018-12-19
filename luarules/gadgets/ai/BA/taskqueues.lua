@@ -19,10 +19,595 @@ local UDC = Spring.GetTeamUnitDefCount
 local UDN = UnitDefNames
 ----------------------------------------------------------------------
 
+local possibilities = {} -- Possibilities[builderName][tableName] = {unit1, unit2, unit3,...,unitN} -> Register "attackers", "scouts"... and other premade unitTables for everykind of lab to generate lists of possible buildoptions
+shard_include('attackers')
+shard_include('scouts')
+shard_include('builders')
+shard_include('defenses')
+
+local lolCannonIDlist = {}
+	for ct, unitName in pairs(lolcannonlist) do
+		if UnitDefNames[unitName] then
+		lolCannonIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+local epicIDlist = {}
+	for ct, unitName in pairs(epiclist) do
+		if UnitDefNames[unitName] then
+		epicIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+local longrangeIDlist = {}
+	for ct, unitName in pairs(longrangelist) do
+		if UnitDefNames[unitName] then
+		longrangeIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+local mediumrangeIDlist = {}
+	for ct, unitName in pairs(mediumrangelist) do
+		if UnitDefNames[unitName] then
+		mediumrangeIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+local shortrangeIDlist = {}
+	for ct, unitName in pairs(shortrangelist) do
+		if UnitDefNames[unitName] then
+		shortrangeIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+	local antiairIDlist = {}
+	for ct, unitName in pairs(antiairlist) do
+		if UnitDefNames[unitName] then
+		antiairIDlist[ct] = UnitDefNames[unitName].id
+		end
+	end
+
 local unitoptions = {}
 local skip = {action = "nexttask"}
 local assistaround = { action = "fightrelative", position = {x = 0, y = 0, z = 0} }
-local patrolaround = { action = "patrolrelative", position = {x = 100, y = 0, z = 100} }
+local patrolaround1 = { action = "fightrelative", position = {x = 200, y = 0, z = 200} }
+local patrolaround2 = { action = "fightrelative", position = {x = -200, y = 0, z = 200} }
+local patrolaround3 = { action = "fightrelative", position = {x = 200, y = 0, z = -200} }
+local patrolaround4 = { action = "fightrelative", position = {x = -200, y = 0, z = -200} }
+
+function CanBuild(tqb, ai, unit, name)
+	local ID = UnitDefNames[name] and UnitDefNames[name].id or 0
+	for k, v in pairs (UnitDefs[UnitDefNames[unit:Name()].id].buildOptions) do
+		if v == ID then
+			return true
+		end
+	end
+	return false
+end
+
+function GetTechLevelRate(ai, unit, name)
+	local rate
+	if unit:Name() == "armalab" or unit:Name() == "armavp" or unit:Name() == "armaap" or unit:Name() == "coralab" or unit:Name() == "coravp" or unit:Name() == "coraap" then
+		rate = math.max(0.2,math.min(1, 3 - income(ai, "energy")/1500))
+		if name == "armaca" or name == "armack" or name == "armacv" or name == "coraca" or name == "coracv" or name == "corack" then
+			rate = 1	
+		end
+	elseif unit:Name() == "armlab" or unit:Name() == "armvp" or unit:Name() == "armap" or unit:Name() == "corlab" or unit:Name() == "corvp" or unit:Name() == "corap" then
+		rate = math.max(0.001,math.min(1, 1 - income(ai, "energy")/1500))
+		if name == "armca" or name == "armck" or name == "armcv" or name == "corca" or name == "corcv" or name == "corck" then
+			rate = 1	
+		end
+	elseif unit:Name() == "corgant" or unit:Name() == "armshltx" then
+		rate = 1
+	else
+		rate = 1
+	end
+	-- Spring.Echo(name, rate)
+	return rate
+end
+
+function ResourceCheck(tqb, ai, unit, name)
+	local defs = UnitDefs[UnitDefNames[name].id]
+	local techlevelRate = GetTechLevelRate(ai, unit, name)
+	if newtimetostore(ai, "metal", defs.metalCost,(defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*techlevelRate)and timetostore(ai, "energy", defs.energyCost,(defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*techlevelRate) then
+		return name
+	else
+		return nil
+	end		
+end
+
+function Builder(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["builder"] then
+		possibilities[unit:Name()]["builder"] = {}
+		local ct = 0
+		for i, unitName in pairs (builderlist) do	
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["builder"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["builder"][1] then
+		local unitName = AllowCon(tqb, ai, unit, possibilities[unit:Name()]["builder"][1])
+		if unitName then
+			unitName = ResourceCheck(tqb, ai, unit, unitName)
+			if unitName then
+				return unitName
+			else
+				return skip
+			end
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Helper(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["helper"] then
+		possibilities[unit:Name()]["helper"] = {}
+		local ct = 0
+		for i, unitName in pairs (helperlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["helper"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["helper"][1] then
+		local unitName = AllowCon(tqb, ai, unit, possibilities[unit:Name()]["helper"][1])
+		if unitName then
+			unitName = ResourceCheck(tqb, ai, unit, unitName)
+			if unitName then
+				return unitName
+			else
+				return skip
+			end
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function OffensiveUnit(tqb,ai,unit)
+	local r = math.random(1,100)
+	if r <= ai.aimodehandler.perraider then
+		return Raider(tqb,ai,unit)
+	elseif r <=(ai.aimodehandler.perraider + ai.aimodehandler.perskirmer) then
+		return Skirmisher(tqb, ai, unit)
+	else
+		return Artillery(tqb,ai,unit)
+	end
+end
+
+function Raider(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["raider"] then
+		possibilities[unit:Name()]["raider"] = {}
+		local ct = 0
+		for i, unitName in pairs (raiderlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["raider"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["raider"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["raider"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Skirmisher(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["skirmisher"] then
+		possibilities[unit:Name()]["skirmisher"] = {}
+		local ct = 0
+		for i, unitName in pairs (skirmisherlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["skirmisher"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["skirmisher"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["skirmisher"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Artillery(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["artillery"] then
+		possibilities[unit:Name()]["artillery"] = {}
+		local ct = 0
+		for i, unitName in pairs (artillerylist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["artillery"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["artillery"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["artillery"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Scout(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["scouts"] then
+		possibilities[unit:Name()]["scouts"] = {}
+		local ct = 0
+		for i, unitName in pairs (scoutslist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["scouts"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["scouts"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["scouts"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Bomber(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["bomber"] then
+		possibilities[unit:Name()]["bomber"] = {}
+		local ct = 0
+		for i, unitName in pairs (bomberlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["bomber"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["bomber"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["bomber"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Fighter(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	if not possibilities[unit:Name()]["fighter"] then
+		possibilities[unit:Name()]["fighter"] = {}
+		local ct = 0
+		for i, unitName in pairs (fighterlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["fighter"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["fighter"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["fighter"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function ShortDefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, shortrangeIDlist)
+	if ct > 2 then
+		return skip
+	end
+	if not possibilities[unit:Name()]["shortdef"] then
+		possibilities[unit:Name()]["shortdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (shortrangelist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["shortdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["shortdef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["shortdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function MediumDefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, mediumrangeIDlist)
+	if ct > 0 then
+		return skip
+	end
+	if not possibilities[unit:Name()]["mediumdef"] then
+		possibilities[unit:Name()]["mediumdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (mediumrangelist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["mediumdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["mediumdef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["mediumdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function LongDefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, longrangeIDlist)
+	if ct > 0 then
+		return skip
+	end
+	if not possibilities[unit:Name()]["longdef"] then
+		possibilities[unit:Name()]["longdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (longrangelist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["longdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["longdef"][1] then
+		local choice
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["longdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			choice = FindBest(list, ai)
+			if UnitDefNames[choice] and GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+				local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+				return {action = choice, pos = {x = x, y = y, z = z}}
+			else
+				return skip
+			end
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function Epic(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, epicIDlist)
+	if ct > 0 then
+		return skip
+	end
+	if not possibilities[unit:Name()]["epicdef"] then
+		possibilities[unit:Name()]["epicdef"] = {}
+		local ct = 0
+		for i, unitName in pairs (epiclist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["epicdef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["epicdef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["epicdef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			choice = FindBest(list, ai)
+			if UnitDefNames[choice] and GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+				local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+				return {action = choice, pos = {x = x, y = y, z = z}}
+			else
+				return skip
+			end
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function LolCannon(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, lolCannonIDlist)
+	if ct > 0 or Spring.GetGameSeconds() < 1800 then
+		return skip
+	end
+	if not possibilities[unit:Name()]["lolcannondef"] then
+		possibilities[unit:Name()]["lolcannondef"] = {}
+		local ct = 0
+		for i, unitName in pairs (lolcannonlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["lolcannondef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["lolcannondef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["lolcannondef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			choice = FindBest(list, ai)
+			if UnitDefNames[choice] and GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
+				local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
+				return {action = choice, pos = {x = x, y = y, z = z}}
+			else
+				return skip
+			end
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
+function AADefense(tqb, ai, unit)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, antiairIDlist)
+	if ct > 3 then
+		return skip
+	end
+	if not possibilities[unit:Name()]["aadef"] then
+		possibilities[unit:Name()]["aadef"] = {}
+		local ct = 0
+		for i, unitName in pairs (antiairlist) do
+			if CanBuild(tqb, ai, unit, unitName) then
+				possibilities[unit:Name()]["aadef"][ct + 1] = unitName
+				ct = ct + 1
+			end
+		end
+	end
+	if possibilities[unit:Name()]["aadef"][1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(possibilities[unit:Name()]["aadef"]) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
 
 --------------------------------------------------------------------------------------------
 --------------------------------------- Main Functions -------------------------------------
@@ -35,11 +620,18 @@ function curstorperc(ai, resource) -- Returns % of storage for resource in real 
 	return ((c / s) * 100)
 end
 
-function timetostore(ai, resource, amount) -- Returns time to gather necessary resource amount in real time
+function timetostore(ai, resource, amount, btime) -- Returns time to gather necessary resource amount in real time
 	local r = ai.aimodehandler.resources[resource]
 	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
-	local income = (i-e > 0 and i-e) or 0.00001
+	local income = (i-e>0 and i-e) or 0.000001
 	return (amount-c)/(income)
+end
+
+function newtimetostore(ai, resource, amount, btime) -- Returns time to gather necessary resource amount in real time
+	local r = ai.aimodehandler.resources[resource]
+	local c, s, p, i, e = r.c, r.s, r.p, r.i, r.e
+	local income = i-e
+	return (c-amount)+(income*btime) > 0
 end
 
 function income(ai, resource) -- Returns income of resource in realtime
@@ -150,6 +742,70 @@ function GetType(tqb,ai,unit,list)
 	return #units
 end
 
+function AllowConT1(tqb,ai,unit,name)
+	local udid = UDN[name].id
+	local sametypecon = Spring.GetTeamUnitsByDefs(ai.id, udid)
+	local list = {
+	UDN.armcv.id,
+	UDN.corcv.id,
+	UDN.armca.id,
+	UDN.corca.id,
+	UDN.armck.id,
+	UDN.corck.id,	
+	UDN.armch.id,
+	UDN.corch.id,
+	UDN.armcs.id,
+	UDN.corcs.id,
+	UDN.armcsa.id,
+	UDN.corcsa.id,
+	UDN.armbeaver.id,
+	UDN.cormuskrat.id,
+	}
+	local allt1cons = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return (((#sametypecon < 1) or (#allt1cons < 10)) and name) or nil
+end
+
+function AllowConT2(tqb,ai,unit,name)
+	local udid = UDN[name].id
+	local sametypecon = Spring.GetTeamUnitsByDefs(ai.id, udid)
+	local list = {
+	UDN.armacv.id,
+	UDN.coracv.id,
+	UDN.armaca.id,
+	UDN.coraca.id,
+	UDN.armack.id,
+	UDN.corack.id,	
+	UDN.armacsub.id,
+	UDN.coracsub.id,
+	}
+	local allt2cons = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return (((#sametypecon < 1) or (#allt2cons < 10)) and name) or nil
+end
+
+function AllowEngineer(tqb,ai,unit,name)
+	local udid = UDN[name].id
+	local sametypecon = Spring.GetTeamUnitsByDefs(ai.id, udid)
+	local list = {
+	UDN.armconsul.id,	
+	UDN.corfast.id,
+	UDN.armfark.id,
+	}
+	local allengineers = Spring.GetTeamUnitsByDefs(ai.id, list)
+	return (((#sametypecon < 1) or (#allengineers < 10)) and name) or nil
+end
+
+function AllowCon(tqb,ai,unit,name)
+	if string.find(name, "ac") then
+		return AllowConT2(tqb, ai, unit, name)
+	elseif name == "armconsul" or name == "armfark" or name == "corfast" then
+		return AllowEngineer(tqb, ai, unit, name)
+	elseif name ~= 'armrectr' or name ~= "cornecro" then
+		return AllowConT1(tqb, ai, unit, name)
+	else
+		return name
+	end
+end
+	
 function GetFinishedAdvancedLabs(tqb,ai,unit)
 	local list = {
 	UDN.armalab.id,
@@ -339,6 +995,56 @@ function FindBest(unitoptions,ai)
 	end
 end
 
+
+-- COMMON QUEUES --
+
+lab = {
+	Builder,
+	Scout,
+	Builder,
+	Scout,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	Helper,
+	Scout,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	Helper,
+	Scout,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	Builder,
+	"cordecom",
+	"armdecom",
+}
+
+airlab = {
+	Builder,
+	Scout,
+	Builder,
+	Scout,
+	Fighter,
+	Fighter,
+	Bomber,
+	Helper,
+	Bomber,
+	Bomber,
+	Fighter,
+	Helper,
+	Fighter,
+	Fighter,
+	Builder,
+}
+
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
 --------------------------------------- Core Functions -------------------------------------
@@ -364,28 +1070,6 @@ function CorWindOrSolar(tqb, ai, unit)
 		end
 	else
 		return "corsolar"
-	end
-end
-
-function CorLLT(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if hasTech2 then
-		return skip
-	end
-	local unitoptions = {"corllt", "corhllt", "corhlt", "cormaw", "corrl", "cormadsam", "corerad"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
 	end
 end
 
@@ -510,7 +1194,7 @@ function CorExpandRandomLab(tqb, ai, unit)
 	local labtype = ai.aimodehandler:CorExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0  and AllAdvancedLabs(tqb,ai,unit) > 0 then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and AllAdvancedLabs(tqb,ai,unit) > 0 and GetPlannedAndUnfinishedLabs(tqb,ai,unit) <1 then
 			labtype = labtype
 		else
 			labtype = skip
@@ -525,278 +1209,6 @@ function CorExpandRandomLab(tqb, ai, unit)
 		return {action = labtype, pos = {x = x, y = y, z = z}}
 	else
 		return labtype
-	end
-end
-
-function CorTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"corvipe","corflak", "cordoom", "corint", "corscreamer", "cortoast"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		pos = unit:GetPosition()
-		ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-
-function CorKBotsT1(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local unitoptions = {"corak", "corthud", "corstorm", "cornecro", "corcrash",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorVehT1(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local unitoptions = {"corfav", "corgator", "corraid", "corlevlr", "cormist", "corwolv", "corgarp",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorAirT1(tqb, ai, unit)
-	local unitoptions = {"corveng", "corshad", "corbw", "corfink",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorKBotsT2(tqb, ai, unit)
-	
-	local unitoptions = {"coraak", "coramph", "corcan", "corhrk", "cormort", "corpyro", "corroach", "cortermite", "corspec", "corsumo",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorVehT2(tqb, ai, unit)
-	local unitoptions = {"corban", "coreter", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorAirT2(tqb, ai, unit)
-	local unitoptions = {"corape", "corcrw", "corhurc", "corvamp",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorHover(tqb, ai, unit)
-	local unitoptions = {"corah", "corch", "corhal", "cormh", "corsh", "corsnap","corsok",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorGantry(tqb, ai, unit)
-	
-	local unitoptions = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", }
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function CorT1KbotCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corck"].id].metalCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corck"].id].energyCost) < UnitDefs[UnitDefNames["corck"].id].buildTime/100 then
-		return "corck"
-	else
-		return skip
-	end
-end
-
-function CorStartT1KbotCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
-	return (((t1cons < 5) and "corck") or CorKBotsT1(tqb, ai, unit))
-end
-
-
-function CorT1RezBot(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["cornecro"].id].metalCost) < UnitDefs[UnitDefNames["cornecro"].id].buildTime/100 then
-		return "cornecro"
-	else
-		return skip
-	end
-end
-
-function CorT1VehCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corcv"].id].metalCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corcv"].id].energyCost) < UnitDefs[UnitDefNames["corcv"].id].buildTime/100 then
-		return "corcv"
-	else
-		return skip
-	end
-end
-
-function CorConVehT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["coracv"].id].metalCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["coracv"].id].energyCost) < UnitDefs[UnitDefNames["coracv"].id].buildTime/100 then
-		return "coracv"
-	else
-		return skip
-	end
-end
-
-function CorConKBotT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corack"].id].metalCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corack"].id].energyCost) < UnitDefs[UnitDefNames["corack"].id].buildTime/100 then
-		return "corack"
-	else
-		return skip
-	end
-end
-
-function CorStartT2KbotCon(tqb, ai, unit)
-	local pos = unit:GetPosition()
-	return (((UDC(ai.id, UDN.corack.id) < 5) and"corack") or CorKBotsT2(tqb, ai, unit))
-end
-
-function CorStartT2VehCon(tqb, ai, unit)
-	local pos = unit:GetPosition()
-	return (((UDC(ai.id, UDN.coracv.id) < 5) and"coracv") or CorVehT2(tqb, ai, unit))
-end
-
-function CorStartT1VehCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
-	return (((t1cons < 5) and"corcv") or CorVehT1(tqb, ai, unit))
-	end
-
-function CorT1AirCon(tqb, ai, unit)
-	local CountCons = UDC(ai.id, UDN.corca.id)
-	if CountCons <= 4 then
-		return "corca"
-	else
-		return skip
 	end
 end
 
@@ -832,36 +1244,6 @@ function CorThirdMex(tqb, ai, unit)
 	end
 end
 
-function fast(tqb,ai,unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["corfast"].id].metalCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["corfast"].id].energyCost) < UnitDefs[UnitDefNames["corfast"].id].buildTime/100 then
-		return "corfast"
-	else
-		return skip
-	end
-end
-
-function CorVehT2RushOffense(tqb,ai,unit)
-	ai.t2rushoff = ai.t2rushoff or 0
-	ai.t2rushoff = ai.t2rushoff + 1
-	if ai.t2rushoff <= 2 then
-		local unitoptions = {"corgol","corban","correap"}
-		return FindBest(unitoptions,ai)
-	else
-		return CorVehT2(tqb,ai,unit)
-	end
-end
-
-function CorKBotsT2RushOffense(tqb,ai,unit)
-	ai.t2rushoff = ai.t2rushoff or 0
-	ai.t2rushoff = ai.t2rushoff + 1
-	if ai.t2rushoff <= 2 then
-		local unitoptions = {"corsumo","corcan"}
-		return FindBest(unitoptions,ai)
-	else
-		return CorKBotsT2(tqb,ai,unit)
-	end
-end
-
 function CorGeo(tqb,ai,unit)
 	if income(ai, "metal") < 20 then
 		return skip
@@ -892,8 +1274,11 @@ function CorRad(tqb,ai,unit)
 end
 
 function CorProtection(tqb,ai,unit)
-	if Spring.GetGameSeconds() > 1500 then
+	--if Spring.GetGameSeconds() > 1500 then
 		local protype = (math.random(1,2) == 1) and "corgate" or "corfmd"
+		if AllType(tqb, ai, unit, {"corfmd",}) < 1 then
+			return "corfmd"
+		end
 		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
 			return protype
 		end
@@ -901,7 +1286,7 @@ function CorProtection(tqb,ai,unit)
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			return protype
 		end
-	end
+	--end
 	return skip
 end
 
@@ -928,7 +1313,7 @@ local corcommanderfirst = {
 	CorStarterLabT1,
 	CorWindOrSolar,
 	CorWindOrSolar,
-	"corllt",
+	ShortDefense,
 	CorRad,
 }
 
@@ -950,141 +1335,73 @@ local cort1expand = {
 	CorNanoT,
 	CorExpandRandomLab,
 	CorMexT1,
+	ShortDefense,
+	CorMexT1,
+	ShortDefense,
+	CorMexT1,
 	CorExpandRandomLab,
-	CorLLT,
+	ShortDefense,
 	CorMexT1,
 	CorExpandRandomLab,
 	assistaround,
-	CorLLT,
+	MediumDefense,
+	CorMexT1,
 	CorRad,
 	CorExpandRandomLab,
 	CorGeo,
-	CorLLT,
+	ShortDefense,
+	AADefense,
+	CorMexT1,
 	assistaround,
 	CorNanoT,
 	CorExpandRandomLab,
 	assistaround,
+	CorMexT1,
 	CorNanoT,
 }
 
 local cort2eco = {
 	CorEnT2,
 	CorEnT2,
-	CorEnT2,
-	CorExpandRandomLab,
 	CorProtection,
 	CorEnT2,
+	CorExpandRandomLab,
+	CorEnT2,
 	CorEnT2,
 	CorEnT2,
 	CorExpandRandomLab,
+	Epic,
+	LolCannon,
 }
 
 local cort2expand = {
 	"cormoho",
-	CorTacticalAdvDefT2,
+	ShortDefense,
 	"cormoho",
-	CorTacticalAdvDefT2,
+	MediumDefense,
 	CorExpandRandomLab,
 	"cormoho",
 	CorARad,
 	CorExpandRandomLab,
-	CorTacticalAdvDefT2,
+	AADefense,
 	assistaround,
+	LongDefense,
 }
 
-local corkbotlab = {
-	CorStartT1KbotCon,
-	CorT1KbotCon,
-	CorKBotsT1,
-	CorStartT1KbotCon,
-	CorKBotsT1,
-	CorStartT1KbotCon,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorKBotsT1,
-	CorT1RezBot,
-}
-
-local corvehlab = {
-	CorStartT1VehCon,
-	CorT1VehCon,
-	CorVehT1,
-	CorVehT1,
-	CorStartT1VehCon,
-	CorVehT1,
-	CorStartT1VehCon,
-	CorVehT1,
-	CorVehT1,
-}
-
-local corairlab = {
-	CorT1AirCon,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-	CorAirT1,
-}
-
-corkbotlabT2 = {
-	CorStartT2KbotCon,
-	CorKBotsT2RushOffense,
-	fast,
-	CorStartT2KbotCon,
-	CorStartT2KbotCon,
-	CorKBotsT2RushOffense,
-	CorKBotsT2,
-	CorConKbotT2,
-	CorKBotsT2,
-	CorKBotsT2,
-	CorKBotsT2,
-}
-
-corvehlabT2 = {
-	CorStartT2VehCon,
-	CorVehT2RushOffense,
-	CorStartT2VehCon,
-	CorStartT2VehCon,
-	CorVehT2RushOffense,
-	CorVehT2,
-	CorConVehT,
-	CorVehT2,
-	CorVehT2,
-	CorVehT2,
-}
-
-corairlabT2 = {
-	"coraca",
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-	CorAirT2,
-}
-corhoverlabT2 = {
-	"armch",
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-	CorHover,
-}
-corgantryT3 = {
-	CorGantry,
+local cordecomqueue = {
+	CorNanoT,
+	CorNanoT,
+	CorMexT1,
+	assistaround,
+	CorRad,
+	ShortDefense,
+	AADefense,
+	CorEnT1,
+	"cormine1",
+	"cormine2",
+	"cormine3",
+	"cormine4",
+	assistaround,
 }
 
 assistqueuepostt2arm = {
@@ -1092,6 +1409,7 @@ assistqueuepostt2arm = {
 	ArmExpandRandomLab,
 	ArmNanoT,
 	RequestedAction,
+	assistaround,
 }
 
 assistqueuepostt2core = {
@@ -1099,6 +1417,7 @@ assistqueuepostt2core = {
 	CorExpandRandomLab,
 	CorNanoT,
 	RequestedAction,
+	assistaround,
 }
 
 assistqueue = {
@@ -1119,18 +1438,19 @@ armassistqueue = {
 }
 
 assistqueuepatrol = {
-	patrolaround,
+	patrolaround1,
+	patrolaround2,
+	patrolaround3,
+	patrolaround4,
 }
 
 assistqueuefreaker = {
-	CorT1KbotCon,
 	CorNanoT,
 	assistaround,	
 	RequestedAction,
 }
 
 assistqueueconsul = {
-	ArmT1VehCon,
 	ArmNanoT,
 	assistaround,	
 	RequestedAction,
@@ -1164,28 +1484,6 @@ function ArmWindOrSolar(tqb, ai, unit)
 	end
 end
 
-function ArmLLT(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if hasTech2 then
-		return skip
-	end
-	local unitoptions = {"armllt", "armbeamer", "armhlt", "armclaw", "armrl", "armpacko", "armcir"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
 function ArmNanoT(tqb, ai, unit)
 	if timetostore(ai, "energy", 5000) < 40 and timetostore(ai, "metal", 300) < 40 and UDC(ai.id, UDN.armnanotc.id) + UDC(ai.id, UDN.cornanotc.id) < income(ai, "energy")/150 then
 		return "armnanotc"
@@ -1195,8 +1493,6 @@ function ArmNanoT(tqb, ai, unit)
 end
 
 function ArmEnT1( tqb, ai, unit)
-	
-	
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
 	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 then
 		return (ArmWindOrSolar(tqb, ai, unit))
@@ -1214,8 +1510,6 @@ function ArmEnT1( tqb, ai, unit)
 end
 
 function ArmEnT2( tqb, ai, unit )
-	
-	
 	--if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0)then
 		--return "armuwadves"
 	--elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
@@ -1304,7 +1598,7 @@ function ArmExpandRandomLab(tqb, ai, unit)
 	local labtype = ai.aimodehandler:ArmExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 0 and AllAdvancedLabs(tqb,ai,unit) > 0 then
+		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and AllAdvancedLabs(tqb,ai,unit) > 0  and GetPlannedAndUnfinishedLabs(tqb,ai,unit) <1 then
 			labtype = labtype
 		else
 			labtype = skip
@@ -1319,231 +1613,6 @@ function ArmExpandRandomLab(tqb, ai, unit)
 		return {action = labtype, pos = {x = x, y = y, z = z}}
 	else
 		return labtype
-	end
-end
-
-function ArmTacticalAdvDefT2(tqb, ai, unit)
-	local unitoptions = {"armpb","armflak", "armamb", "armmercury", "armbrtha", "armanni"}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		pos = unit:GetPosition()
-		ai.requestshandler:AddRequest(false, {action = "fight", position = { x = pos.x, y = pos.y, z = pos.z}})
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmKBotsT1(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local unitoptions = {"armpw", "armham", "armrectr", "armrock", "armwar", "armjeth",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmVehT1(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local unitoptions = {"armstump", "armjanus", "armsam", "armfav", "armflash", "armart", "armpincer",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmAirT1(tqb, ai, unit)
-	local unitoptions = {"armpeep", "armthund", "armfig", "armkam",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate and timetostore(ai, "energy", defs.energyCost) < (defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed)*ai.t1priorityrate then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmKBotsT2(tqb, ai, unit)	
-	local unitoptions = {"armaak", "armamph", "armaser", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armzeus", "armvader",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmVehT2(tqb, ai, unit)
-	local unitoptions = {"armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmAirT2(tqb, ai, unit)
-	local unitoptions = {"armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-function ArmGantry(tqb, ai, unit)
-	
-	local unitoptions = {"armbanth", "armmar", "armraz", "armvang", }
-	local list = {}
-	local count = 0
-	for ct, unitName in pairs(unitoptions) do
-		local defs = UnitDefs[UnitDefNames[unitName].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
-			count = count + 1
-			list[count] = unitName
-		end
-	end
-	if list[1] then
-		return FindBest(list,ai)
-	else
-		return skip
-	end
-end
-
-
-function ArmT1KbotCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armck"].id].metalCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armck"].id].energyCost) < UnitDefs[UnitDefNames["armck"].id].buildTime/100 then
-		return "armck"
-	else
-		return skip
-	end
-end
-
-function ArmStartT1KbotCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
-	return (((t1cons < 5) and "armck") or ArmKBotsT1(tqb,ai,unit))
-end
-
-function ArmT1RezBot(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armrectr"].id].metalCost) < UnitDefs[UnitDefNames["armrectr"].id].buildTime/100 then
-		return "armrectr"
-	else
-		return skip
-	end
-end
-
-function ArmT1VehCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armcv"].id].metalCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armcv"].id].energyCost) < UnitDefs[UnitDefNames["armcv"].id].buildTime/100 then
-		return "armcv"
-	else
-		return skip
-	end
-end
-
-function ArmStartT1VehCon(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if ai.aimodehandler.t2rusht1reclaim == true and GetPlannedAndUnfinishedLabs(tqb, ai, unit) == 1 and not hasTech2 then
-		ai.requestshandler:AddRequest(true, {action = "command", params = {cmdID = CMD.INSERT, cmdParams = {1, CMD.RECLAIM, CMD.OPT_SHIFT, unit.id}, cmdOptions = {"alt"} }},true)
-		return {action = "wait", frames = "infinite"}
-	end
-	local t1cons = (UDC(ai.id, UDN.armck.id) + UDC(ai.id, UDN.armcv.id) +UDC(ai.id, UDN.armca.id) +UDC(ai.id, UDN.corck.id) +UDC(ai.id, UDN.corcv.id) +UDC(ai.id, UDN.corca.id))
-	return (((t1cons < 5) and "armcv") or ArmVehT1(tqb, ai, unit))
-end
-
-function ArmT1AirCon(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armca"].id].metalCost) < UnitDefs[UnitDefNames["armca"].id].buildTime/100 then
-		return "armca"
-	else
-		return skip
 	end
 end
 
@@ -1576,70 +1645,6 @@ function ArmThirdMex(tqb, ai, unit)
 		return 'armmex'
 	else
 		return ArmWindOrSolar(tqb,ai,unit)
-	end
-end
-
-function ArmConVehT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armacv"].id].metalCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armacv"].id].energyCost) < UnitDefs[UnitDefNames["armacv"].id].buildTime/100 then
-		return "armacv"
-	else
-		return skip
-	end
-end
-
-function ArmConKBotT2(tqb, ai, unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armack"].id].metalCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armack"].id].energyCost) < UnitDefs[UnitDefNames["armack"].id].buildTime/100 then
-		return "armack"
-	else
-		return skip
-	end
-end
-
-function ArmStartT2KbotCon(tqb, ai, unit)
-	local pos = unit:GetPosition()
-	return (((UDC(ai.id, UDN.armack.id) < 5) and"armack") or ArmKBotsT2(tqb, ai, unit))
-end
-
-function ArmStartT2VehCon(tqb, ai, unit)
-	local pos = unit:GetPosition()
-	return (((UDC(ai.id, UDN.armacv.id) < 5) and"armacv") or ArmVehT2(tqb, ai, unit))
-end
-
-function fark(tqb,ai,unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armfark"].id].metalCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armfark"].id].energyCost) < UnitDefs[UnitDefNames["armfark"].id].buildTime/100 then
-		return "armfark"
-	else
-		return skip
-	end
-end
-
-function consul(tqb,ai,unit)
-	if timetostore(ai, "metal", UnitDefs[UnitDefNames["armconsul"].id].metalCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/100 and timetostore(ai, "energy", UnitDefs[UnitDefNames["armconsul"].id].energyCost) < UnitDefs[UnitDefNames["armconsul"].id].buildTime/100 then
-		return "armconsul"
-	else
-		return skip
-	end
-end
-
-function ArmVehT2RushOffense(tqb,ai,unit)
-	ai.t2rushoff = ai.t2rushoff or 0
-	ai.t2rushoff = ai.t2rushoff + 1
-	if ai.t2rushoff <= 2 then
-		local unitoptions = {"armbull","armmanni"}
-		return FindBest(unitoptions,ai)
-	else
-		return ArmVehT2(tqb,ai,unit)
-	end
-end
-
-function ArmKBotsT2RushOffense(tqb,ai,unit)
-	ai.t2rushoff = ai.t2rushoff or 0
-	ai.t2rushoff = ai.t2rushoff + 1
-	if ai.t2rushoff <= 2 then
-		local unitoptions = {"armmav","armfido", "armfboy"}
-		return FindBest(unitoptions,ai)
-	else
-		return ArmKBotsT2(tqb,ai,unit)
 	end
 end
 
@@ -1684,8 +1689,11 @@ function ArmARad(tqb,ai,unit)
 end
 
 function ArmProtection(tqb,ai,unit)
-	if Spring.GetGameSeconds() > 1500 then
+	--if Spring.GetGameSeconds() > 1500 then
 		local protype = (math.random(1,2) == 1) and "armgate" or "armamd"
+		if AllType(tqb, ai, unit, {"armamd",}) < 1 then
+			return "armamd"
+		end
 		if AllType(tqb, ai, unit, {UDN[protype].id}) < 1 then
 			return protype
 		end
@@ -1693,7 +1701,7 @@ function ArmProtection(tqb,ai,unit)
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			return protype
 		end
-	end
+	--end
 	return skip
 end
 
@@ -1710,7 +1718,7 @@ local armcommanderfirst = {
 	ArmStarterLabT1,
 	ArmWindOrSolar,
 	ArmWindOrSolar,
-	"armllt",
+	ShortDefense,
 	ArmRad,
 }
 
@@ -1730,21 +1738,30 @@ local armt1eco = {
 
 local armt1expand = {
 	ArmNanoT,
+	ArmNanoT,
 	ArmExpandRandomLab,
 	ArmMexT1,
+	ShortDefense,
+	ArmMexT1,
+	ShortDefense,
+	ArmMexT1,
 	ArmExpandRandomLab,
-	ArmLLT,
+	ShortDefense,
 	ArmMexT1,
 	ArmExpandRandomLab,
 	assistaround,
-	ArmLLT,
+	MediumDefense,
+	ArmMexT1,
 	ArmRad,
 	ArmExpandRandomLab,
 	ArmGeo,
 	assistaround,
+	ArmMexT1,
 	ArmNanoT,
 	ArmExpandRandomLab,
-	ArmLLT,
+	ShortDefense,
+	AADefense,
+	ArmMexT1,
 	assistaround,
 	ArmNanoT,
 }
@@ -1752,123 +1769,46 @@ local armt1expand = {
 local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
-	ArmEnT2,
-	ArmExpandRandomLab,
 	ArmProtection,
 	ArmEnT2,
+	ArmExpandRandomLab,
+	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
 	ArmExpandRandomLab,
+	Epic,
+	LolCannon,
 }
 
 local armt2expand = {
 	"armmoho",
-	ArmTacticalAdvDefT2,
+	ShortDefense,
 	"armmoho",
 	ArmExpandRandomLab,
-	ArmTacticalAdvDefT2,
+	MediumDefense,
 	"armmoho",
 	ArmARad,
 	ArmExpandRandomLab,
-	ArmTacticalAdvDefT2,
+	AADefense,
+	assistaround,
+	LongDefense,
+}
+
+local armdecomqueue = {
+	ArmNanoT,
+	ArmNanoT,
+	ArmMexT1,
+	assistaround,
+	ArmRad,
+	ShortDefense,
+	AADefense,
+	ArmEnT1,
+	"armmine1",
+	"armmine2",
+	"armmine3",
 	assistaround,
 }
-
-local armkbotlab = {
-	ArmStartT1KbotCon,
-	ArmT1KbotCon,
-	ArmKBotsT1,
-	ArmStartT1KbotCon,
-	ArmKBotsT1,
-	ArmStartT1KbotCon,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmKBotsT1,
-	ArmT1RezBot,
-}
-
-local armvehlab = {
-	ArmStartT1VehCon,
-	ArmT1VehCon,
-	ArmVehT1,
-	ArmVehT1,
-	ArmStartT1VehCon,
-	ArmVehT1,
-	ArmStartT1VehCon,
-	ArmVehT1,
-	ArmVehT1,
-}
-
-local armairlab = {
-	ArmT1AirCon,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-	ArmAirT1,
-}
-
-armkbotlabT2 = {
-	ArmStartT2KbotCon,
-	ArmKBotsT2RushOffense,
-	fark,
-	ArmStartT2KbotCon,
-	ArmStartT2KbotCon,
-	ArmKBotsT2RushOffense,
-	ArmConKBotT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-	ArmKBotsT2,
-}
-
-armvehlabT2 = {
-	ArmStartT2VehCon,
-	ArmVehT2RushOffense,
-	consul,
-	ArmStartT2VehCon,
-	ArmStartT2VehCon,
-	ArmVehT2RushOffense,
-	ArmConVehT2,
-	ArmVehT2,
-	ArmVehT2,
-	ArmVehT2,
-}
-
-armairlabT2 = {
-	"armaca",
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-	ArmAirT2,
-}
-
-armhoverlabT2 = {
-	"armch",
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-	ArmHover,
-}
-armgantryT3 = {
-	ArmGantry,
-}
-
+	
 ------------------
 -- QueuePickers --
 ------------------
@@ -1876,7 +1816,7 @@ armgantryT3 = {
 local function corcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.corvp.id) + UDC(ai.id, UDN.corlab.id) + UDC(ai.id, UDN.corap.id) + UDC(ai.id, UDN.corhp.id)
-	if AllLabs(tqb,ai,unit) > 0 then
+	if GetLabs(tqb,ai,unit) > 0 then
 		return corassistqueue
 	elseif ai.engineerfirst then
 		return {CorStarterLabT1}
@@ -1889,7 +1829,7 @@ end
 local function armcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
 	local countBasicFacs = UDC(ai.id, UDN.armvp.id) + UDC(ai.id, UDN.armlab.id) + UDC(ai.id, UDN.armap.id) + UDC(ai.id, UDN.armhp.id)
-	if AllLabs(tqb,ai,unit) > 0 then
+	if GetLabs(tqb,ai,unit) > 0 then
 		return armassistqueue
 	elseif ai.engineerfirst then
 		return {ArmStarterLabT1}
@@ -1964,7 +1904,7 @@ local function armt2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 2 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -1985,7 +1925,7 @@ local function cort2con(tqb, ai, unit)
 		ai.t2concounter = (ai.t2concounter or 0) + 1
 		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 1 or ai.t2concounter%10 == 2 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
@@ -2009,6 +1949,7 @@ taskqueues = {
 	---CORE
 	--constructors
 	corcom = corcommander,
+	cordecom = cordecomqueue,
 	corck = cort1con,
 	corcv = cort1con,
 	corca = cort1con,
@@ -2020,18 +1961,19 @@ taskqueues = {
 	-- ASSIST
 	corfast = assistqueuefreaker,
 	--factories
-	corlab = corkbotlab,
-	corvp = corvehlab,
-	corap = corairlab,
-	coralab = corkbotlabT2,
-	coravp = corvehlabT2,
-	coraap = corairlabT2,
-	corhp = corhoverlabT2,
-	corgant = corgantryT3,
+	corlab = lab,
+	corvp = lab,
+	corap = airlab,
+	coralab = lab,
+	coravp = lab,
+	coraap = airlab,
+	corhp = lab,
+	corgant = lab,
 
 	---ARM
 	--constructors
 	armcom = armcommander,
+	armdecom = armdecomqueue,
 	armck = armt1con,
 	armcv = armt1con,
 	armca = armt1con,
@@ -2044,12 +1986,12 @@ taskqueues = {
 	armconsul = assistqueueconsul,
 	armfark = assistqueuepatrol,
 	--factories
-	armlab = armkbotlab,
-	armvp = armvehlab,
-	armap = armairlab,
-	armalab = armkbotlabT2,
-	armavp = armvehlabT2,
-	armaap = armairlabT2,
-	armhp = armhoverlabT2,
-	armshltx = armgantryT3,
+	armlab = lab,
+	armvp = lab,
+	armap = airlab,
+	armalab = lab,
+	armavp = lab,
+	armaap = airlab,
+	armhp = lab,
+	armshltx = lab,
 }

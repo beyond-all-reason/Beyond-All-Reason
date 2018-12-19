@@ -49,18 +49,20 @@ end
 	
 
 function NewPlacementHandler:UnitIdle(engineunit)
-	local unitDefID = UnitDefNames[unit:Name()].id
-	local defs = UnitDefs[unitDefID]
-	if defs then
-		if defs.canBuild == true then
-			local unitID = unit.id
-			if self.plansbyunitID[unitID] then
-				for planID, plan in pairs(self.plansbyunitID[unitID]) do
-					self:ClearPlan(planID)
-					local pos = self:GetPosFromID(planID)
-					local spacing = self:GetMinimalSpacing(self.game:GetTypeByName(def.name))
-					local cellsize = math.max(defs.xsize, defs.zsize) * 8
-					self:FreePosition(pos.x, pos.z, cellsize, spacing)
+	if not Spring.GetGameFrame() == 0 then
+		local unitDefID = UnitDefNames[unit:Name()].id
+		local defs = UnitDefs[unitDefID]
+		if defs then
+			if defs.canBuild == true then
+				local unitID = unit.id
+				if self.plansbyunitID[unitID] then
+					for planID, plan in pairs(self.plansbyunitID[unitID]) do
+						self:ClearPlan(planID)
+						local pos = self:GetPosFromID(planID)
+						local spacing = self:GetMinimalSpacing(self.game:GetTypeByName(def.name))
+						local cellsize = math.max(defs.xsize, defs.zsize) * 8
+						self:FreePosition(pos.x, pos.z, cellsize, spacing)
+					end
 				end
 			end
 		end
@@ -268,17 +270,42 @@ function NewPlacementHandler:GetExistingPlansByUnit(unit)
 end
 
 function NewPlacementHandler:GetMinimalSpacing(utype)
+	local r = math.random(0,5)
 	if string.find(UnitDefs[utype.id].name, "nanotc") then
-		return 0
+		if r <= 1 then
+			return 0
+		elseif r == 2 then
+			return 60
+		else
+			return 20
+		end
 	elseif string.find(UnitDefs[utype.id].name, "solar") then
-		return 0
+		if r <= 1 then
+			return 0
+		elseif r == 2 then
+			return 60
+		else
+			return 20
+		end
 	elseif string.find(UnitDefs[utype.id].name, "win") then
-		return 0
+		if r <= 1 then
+			return 0
+		elseif r == 2 then
+			return 60
+		else
+			return 20
+		end
 	elseif string.find(UnitDefs[utype.id].name, "makr") then
-		return 0
+		if r <= 1 then
+			return 0
+		elseif r == 2 then
+			return 60
+		else
+			return 20
+		end
 	elseif not (UnitDefs[utype.id].extractsMetal>0) then
 		return (math.max(UnitDefs[utype.id].xsize, UnitDefs[utype.id].zsize) * 8)
 	else
-		return 80
+		return math.random(50,100)
 	end
 end

@@ -23,7 +23,7 @@ return {
 		leavetracks = true,
 		maxdamage = 598,
 		maxslope = 10,
-		maxvelocity = 3.42,
+		maxvelocity = 3.15,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Flash",

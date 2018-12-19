@@ -223,7 +223,7 @@ local myLastCameraState
 --------------------------------------------------------------------------------
 -- 
 --------------------------------------------------------------------------------
-
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -1876,41 +1876,41 @@ local function DrawRectRound(px,py,sx,sy,cs,ignoreBorder)
 	if (py+((sy-py)*widgetScale) >= vsy-backgroundMargin or px <= backgroundMargin) and ignoreBorder == nil then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
 	if (py+((sy-py)*widgetScale) >= vsy-backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
 	-- bottom left
 	if (py <= backgroundMargin or px <= backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- bottom right
 	if (py <= backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs,ignoreBorder)		-- (coordinates work differently than the RectRound func in other widgets)
@@ -1946,11 +1946,11 @@ function CreateBackground()
 		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
-		gl_Color(0,0,0,0.66)
+		gl_Color(0,0,0,ui_opacity)
 		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
 		
 		local padding = 2.75
-		gl_Color(1,1,1,0.025)
+		gl_Color(1,1,1,ui_opacity*0.04)
 		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding,true)
 
 		if collapsed then
@@ -3894,8 +3894,18 @@ local timeCounter = 0
 local updateRate = 0.75
 local updateRatePreStart = 0.25
 local lastTakeMsg = -120
-
+local uiOpacitySec = 0.5
 function widget:Update(delta) --handles takes & related messages
+
+	uiOpacitySec = uiOpacitySec + delta
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			CreateBackground()
+		end
+	end
+
 	if collapsable then
 		local mx,my = Spring.GetMouseState()
 		if collapsed and isInBox(mx, my, {apiAbsPosition[2]-1,apiAbsPosition[3]-1,apiAbsPosition[4]+1,apiAbsPosition[1]+1}) then

@@ -29,6 +29,7 @@ return {
 		movementclass = "TKBOT3",
 		name = "Scarab",
 		nochasecategory = "ALL",
+		noAutoFire = true,
 		objectname = "ARMSCAB",
 		radardistance = 50,
 		seismicsignature = 0,

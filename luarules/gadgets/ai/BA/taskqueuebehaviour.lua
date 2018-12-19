@@ -91,7 +91,49 @@ function TaskQueueBehaviour:CanQueueNextTask()
 	end
 end
 
+function TaskQueueBehaviour:IsRunningAQueue()
+	if Spring.GetCommandQueue(self.unit:Internal().id,0) > 0 then
+		return true
+	else
+		return false
+	end
+end
+
+function TaskQueueBehaviour:IsBusy()
+	if Spring.GetUnitCurrentBuildPower(self.unit:Internal().id) == 0 then
+		return false
+	else
+		return true
+	end
+end
+
+function TaskQueueBehaviour:CompareWithOldPos()
+	local result = false
+	local x,y,z = Spring.GetUnitPosition(self.unit:Internal().id)
+	if self.oldPos then
+		if math.sqrt((x-self.oldPos.x)^2+(y-self.oldPos.y)^2+(z-self.oldPos.z)^2) < 16 then
+			result = true
+		else
+			result = false
+		end
+	end
+	self.oldPos = {x = x, y = y, z = z}
+	return result
+end
+
 function TaskQueueBehaviour:Update()
+	if Spring.GetGameFrame()%600 == 0 then
+		if (not self.unit:Internal():Type():IsFactory()) then
+			if self:IsRunningAQueue() and (not self:IsBusy()) and self:CompareWithOldPos() then -- check stucked cons
+				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {}) --> Triggers UnitIdle -> Next Task
+			elseif (not self:IsRunningAQueue()) and (not self:IsBusy()) then 
+				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {}) --> Triggers UnitIdle -> Next Task
+				self:CompareWithOldPos()
+			else
+				self:CompareWithOldPos() -- still register current position
+			end		
+		end
+	end
 	if not self:IsActive() then
 		self:DebugPoint("nothing")
 		return
@@ -244,6 +286,8 @@ function TaskQueueBehaviour:HandleActionTask( task )
 		self.unit:Internal():MoveAndFire(newpos)
 	elseif action == "patrol" then
 		self.unit:Internal():MoveAndPatrol(task.position)
+		self.active = false
+		return
 	elseif action == "patrolrelative" then
 		local upos = self.unit:Internal():GetPosition()
 		local newpos = api.Position()
@@ -251,6 +295,8 @@ function TaskQueueBehaviour:HandleActionTask( task )
 		newpos.y = upos.y + task.position.y
 		newpos.z = upos.z + task.position.z
 		self.unit:Internal():MoveAndPatrol(newpos)
+		self.active = false
+		return
 	else
 		self.game:SendToConsole("Error: Unknown action task "..value.." given to a "..self.name)
 		self:DebugPoint("nothing")

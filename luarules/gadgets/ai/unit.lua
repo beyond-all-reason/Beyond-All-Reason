@@ -32,11 +32,13 @@ function Unit:GameEnd()
 end
 
 function Unit:UnitCreated(unit)
-	if unit.engineID == self.engineID then
-		return
-	end
-	for k,v in pairs(self.behaviours) do
-		v:UnitCreated(unit)
+	if unit then -- TEMPORARY FIX
+		if unit.engineID == self.engineID then
+			return
+		end
+		for k,v in pairs(self.behaviours) do
+			v:UnitCreated(unit)
+		end
 	end
 end
 

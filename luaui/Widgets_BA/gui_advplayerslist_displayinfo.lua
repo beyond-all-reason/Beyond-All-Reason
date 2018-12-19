@@ -29,6 +29,7 @@ end
 
 local vsx, vsy   = widgetHandler:GetViewSizes()
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 local bgcorner				= ":n:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1
@@ -86,41 +87,41 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
 	-- top right
 	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- bottom left
 	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- bottom right
 	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
 
@@ -170,11 +171,11 @@ local function createList()
 		WG['guishader_api'].InsertRect(left, bottom, right, top, 'displayinfo')
 	end
 	drawlist[1] = glCreateList( function()
-		glColor(0, 0, 0, 0.66)
+		glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		
 		local borderPadding = 2.75*widgetScale
-		glColor(1,1,1,0.025)
+		glColor(1,1,1,ui_opacity*0.04)
 		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
 		
 	end)
@@ -195,9 +196,21 @@ function widget:Shutdown()
 	WG['displayinfo'] = nil
 end
 
+local guishaderEnabled = (WG['guishader_api'] ~= nil)
+
 local passedTime = 0
 local passedTime2 = 0
+local uiOpacitySec = 0.5
 function widget:Update(dt)
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			createList()
+		end
+	end
 	passedTime = passedTime + dt
 	passedTime2 = passedTime2 + dt
 	if passedTime > 0.1 then
@@ -208,6 +221,10 @@ function widget:Update(dt)
 		updateValues()
 		passedTime2 = passedTime2 - 1
 	end
+	if guishaderEnabled ~= (WG['guishader_api'] ~= nil) then
+		guishaderEnabled = (WG['guishader_api'] ~= nil)
+		createList()
+	end
 end
 
 
@@ -216,7 +233,7 @@ function updatePosition(force)
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		
-		if WG['music'] ~= nil then
+		if WG['music'] and WG['music'].GetPosition and WG['music'].GetPosition() then
             advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
 		left = advplayerlistPos[2]

@@ -84,13 +84,15 @@ local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic gra
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
 local myFullview = select(2,Spring.GetSpectatingState())
 
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local enableStartposbuttons = true
-if (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then		-- spots wont match when ffa
+if (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then		-- spots wont match when ffa
 	enableStartposbuttons = false
 end
 
@@ -418,41 +420,41 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
 	-- top right
 	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- bottom left
 	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- bottom right
 	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
 
@@ -670,9 +672,9 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	local y2 = widgetPosY - posY + tH + widgetHeight
 	local area = {widgetPosX, y1, widgetPosX+widgetWidth, y2 }
 
-	glColor(0,0,0,0.66)
+	glColor(0,0,0,ui_opacity)
 	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
-	glColor(1,1,1,0.025)
+	glColor(1,1,1,ui_opacity*0.04)
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
 
 	if (WG['guishader_api'] ~= nil) then
@@ -1614,7 +1616,17 @@ function widget:TweakDrawScreen()
 	makeStandardList()
 end
 
+local uiOpacitySec = 0.5
 function widget:Update(dt)
+
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			Reinit()
+		end
+	end
 	if myFullview ~= select(2,Spring.GetSpectatingState()) then
 		myFullview = select(2,Spring.GetSpectatingState())
 		if myFullView then

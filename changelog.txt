@@ -1,5 +1,66 @@
-﻿10.13 -> 10.14
-XX/XX/2018
+﻿10.19 -> 10.20
+XX/XX/XXXX
+
+Vehicles Speeds test
+
+ • Applied a maxVelocity equal to initial BA 9.46 value *0.66 + initial BA9.46 turninplacespeedlimitvalue*0.34 which *seems to* simulate 9.46, engine 103, speeds on BA10 engine 104
+ • Apart from the maxvelocities, the basedefs are still BA 10.19: meaning turninplace is enabled, the turninplace anglelimit is 90 degrees, and the accel/brakerate values are directly linked to maxVelocity and turnrate.
+ • The goal is to replicate the performing speeds of 9.46 while keeping the v10+ improvements in overall maneuvrability and responsiveness.
+
+
+10.18 -> 10.19
+15/12/2018
+
+ • Hover constructors buildpower 140->110
+ • Added option: GUI opacity
+ • Added option: Buildmenu radar icons + buildmenu icons are more squared
+ • Removed iconset: modern_simplified
+ • Removed firestate button from anti's
+ • Fixed pyro pilotlight showing when out of los
+ • Added modoption: "globallos", enables full visibility
+ • DAI uses emp/tactical/nukes + remembers seen buildings and try to take these down.
+ • Added "Music Player" widget. Music excluded. (download from https://springfiles.com/spring/games/ota-music-ba-v10)
+
+
+10.17 -> 10.18
+28/11/2018
+
+ • Fixed com counter
+ • Fixed too bright laserhit lights
+ • Renamed modoption 'ffa' to 'ffa_mode'
+ • Made mapmods work again (modoption: allowmapmutators, default enabled)
+ • Player-TV widget enabled by default (shows on top of advplayerslist when spectator)
+
+
+10.16 -> 10.17
+21/11/2018
+
+ • Fixed range exploit
+ • Fighters will explode with less damage (half damage, 2/3 AoE)
+ • Fixes and tweaks for Pausescreen, Autoquit, nanobeams and Player TV
+ • Limited MSAA slider option max 8
+
+
+10.15 -> 10.16
+16/11/2018
+
+ • 'nanoframes' will now be hit when build process reaches 5% (was 10%)
+ • Fixed nano beam errors + different beam visual for reclaiming
+ • Added widget "Player TV": auto camera tracks top trueskill players + switches every 40 secs
+ • "Auto quit" widget will keep trying to quit if there is no mouse movement detected each minute
+ • Pause screen will show when no new gameframes have been received (host admin pause)
+
+
+10.14 -> 10.15
+11/11/2018
+
+ • DGun area of effect lines will be yellow when having insufficient energy
+ • Fixed nano beam lights turning off immediately
+ • Icon tweaks, additions and fixes
+
+
+10.13 -> 10.14
+10/11/2018
 
 NOTE: Requires 104.0.1.853 or later engine versions
 
@@ -15,22 +76,23 @@ Balance:
  • T1 air transports vertical speed reduced 25% + cruisealtitude 65 -> 70
 
 Fixes:
- • Fixed: Popup units wont start targeting unless enemy is within weapon range
  • Fixed: Reduced footprint of engine replacement trees + tree fire wont spread as wildly
  • Fixed: Continuous aiming change always being able to fire, even when turret was way off
+ • Fixed: Popup units wont start targeting unless enemy is within weapon range
+ • LLT's only aims when target is within range (to keep early scout gameplay intact)
 
 Other:
  • New 'modern' unit icon set (made by IceXuick), choose between old/modern/modern_simplified in options
+ • Added: Options > Graphics > "Icon set", "Icon scale" and moved "Minimap icon size" there as well
  • Added: Options > Graphics > "Nano effect": beam or particles (old effect)
  • Added: Options > Graphics > Shadows: "max quality", "min quality", "disable at average FPS"
  • Added: Options > Game > '   include builders' .. in area-selection, you can disable to exclude builders
  • Added: Options > Game > "passive builders": nanos, cons, labs
- • Options: Anti Aliasing options slider works again, and limited max value of 4 (MSAA will be used instead of FSAA)
- • Added widget: "DGun no ground enemy", mainly to prevent snap dgun on close raiding units (default disabled)
+ • Added: Options > Game > "Dont snap DGun to ground units" (default disabled), still snaps to air, ships and hovers on land
+ • Options > Graphics > "Anti Aliasing" slider works again, but limited max value of 4. (MSAA will be used instead of FSAA)
  • Added light effects to: laser hits, barrel fire, air thrusters, nano beams and fusion balls
  • New flak explosion effect + custom crashing airplane smoke trails
  • Removed dgun range circle when enemy com gets near
- • Added option: "Icon scale"
  • Auto set 10000 particles as minimum
  • Adjusted proportions of all BAR (remodeled) units to match their BA counterparts (modoption: barmodels)
 

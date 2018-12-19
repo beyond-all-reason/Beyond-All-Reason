@@ -216,7 +216,7 @@ local presets = {
 		lupsreflectionrefraction = true,
 		snow = true,
 		xrayshader = false,
-		particles = 25000,
+		particles = 30000,
 		nanoparticles = 9000,
 		nanobeamamount = 12,
 		grassdetail = 0,
@@ -246,7 +246,7 @@ local presets = {
 		lupsreflectionrefraction = true,
 		snow = true,
 		xrayshader = false,
-		particles = 30000,
+		particles = 40000,
 		nanoparticles = 15000,
 		nanobeamamount = 20,
 		grassdetail = 0,
@@ -321,58 +321,58 @@ local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
+
 	local offset = 0.07		-- texture offset, because else gaps could show
-	
+
 	-- bottom left
 	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
 	-- bottom right
 	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
 	-- top left
 	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
 	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
 function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
@@ -393,7 +393,7 @@ function DrawButton()
 	glShape(GL_LINE_STRIP, vertices)
   glText("Settings", textMargin, textMargin, textSize, "nos")
 end
-	
+
 function lines(str)
   local t = {}
   local function helper(line) t[#t+1]=line return "" end
@@ -507,7 +507,7 @@ function DrawWindow()
 		gl.Color(0.33,0.33,0.33,0.15)
 	end
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
-	
+
 	--[[ close button
 	local size = closeButtonSize*0.7
 	local width = size*0.055
@@ -559,17 +559,17 @@ function DrawWindow()
 	-- title drawing
 	gl.Color(0,0,0,0.8)
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
-	
+
 	font:Begin()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
 	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
 	font:End()
-	
+
 	local width = screenWidth/3
 	--gl.Color(0.66,0.66,0.66,0.08)
 	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
-	
+
 	-- description background
 	gl.Color(0.55,0.48,0.22,0.14)
 	RectRound(x,y-screenHeight,x+width+width,y-screenHeight+90,6)
@@ -769,9 +769,9 @@ function widget:Update(dt)
 			end
 			windowList = gl.CreateList(DrawWindow)
 		end
-		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)	-- update value because other widgets can adjust this too
+		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
 		if getOptionByID('sndvolmusic') then
-			options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)
+			options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",40) or 40)
 		end
 	end
 end
@@ -819,14 +819,14 @@ function widget:DrawScreen()
   if not windowList then
     --windowList = gl.CreateList(DrawWindow)
   end
-  
+
   -- update new slider value
 	if sliderValueChanged then
 		gl.DeleteList(windowList)
 		windowList = gl.CreateList(DrawWindow)
 		sliderValueChanged = nil
   end
-  
+
   if show or showOnceMore then
 
 	  --on window
@@ -879,11 +879,11 @@ function widget:DrawScreen()
 				end
 			end
 			showOnceMore = false
-			
+
 			-- draw button hover
 			local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
 			local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
-			
+
 			-- mouseover (highlight and tooltip)
 
 		  	local description = ''
@@ -923,7 +923,7 @@ function widget:DrawScreen()
 							description = options[i].description
 							glText('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
 						end
-						glColor(0.46,0.4,0.3,0.4)
+						glColor(0.46,0.4,0.3,0.45)
 						glText('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
 					end
 				end
@@ -1124,6 +1124,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, options[i].value)
 		elseif id == 'buildmenuprices' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitPrice', {'drawPrice'}, options[i].value)
+		elseif id == 'buildmenuradaricons' then
+			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitRadaricon', {'drawRadaricon'}, options[i].value)
 		elseif id == 'buildmenusounds' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, options[i].value)
 		elseif id == 'buildmenutooltip' then
@@ -1379,6 +1381,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		elseif id == 'guishaderintensity' then
 			saveOptionValue('GUI-Shader', 'guishader_api', 'setBlurIntensity', {'blurIntensity'}, value)
+		elseif id == 'guiopacity' then
+			Spring.SetConfigFloat("ui_opacity", value)
 		elseif id == 'snowamount' then
 			saveOptionValue('Snow', 'snow', 'setMultiplier', {'customParticleMultiplier'}, value)
 		elseif id == 'commandsfxopacity' then
@@ -1419,6 +1423,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Voice Notifs', 'voicenotifs', 'setVolume', {'volume'}, value)
 		elseif id == 'lockcamera_transitiontime' then
 			saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockTransitionTime', {'transitionTime'}, value)
+		elseif id == 'playertv_countdown' then
+			saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value)
 		elseif id == 'camerasmoothness' then
 			cameraTransitionTime = value
 		end
@@ -1448,15 +1454,15 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("luarules uniticonset "..options[i].options[value])
 		elseif id == 'camera' then
 			Spring.SetConfigInt("CamMode",(value-1))
-			if value == 1 then 
+			if value == 1 then
 				Spring.SendCommands('viewfps')
-			elseif value == 2 then 
+			elseif value == 2 then
 				Spring.SendCommands('viewta')
-			elseif value == 3 then 
+			elseif value == 3 then
 				Spring.SendCommands('viewspring')
-			elseif value == 4 then 
+			elseif value == 4 then
 				Spring.SendCommands('viewrot')
-			elseif value == 5 then 
+			elseif value == 5 then
 				Spring.SendCommands('viewfree')
 			end
 		elseif id == 'cursor' then
@@ -1507,7 +1513,7 @@ function widget:KeyPress(key)
 end
 
 function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
-	
+
 	-- check if the mouse is in a rectangle
 	return x >= BLcornerX and x <= TRcornerX
 	                      and y >= BLcornerY
@@ -1536,7 +1542,7 @@ end
 function widget:MouseWheel(up, value)
 	local x,y = Spring.GetMouseState()
 	local cx, cy = correctMouseForScaling(x,y)
-	if show then	
+	if show then
 		return true
 	end
 end
@@ -1873,6 +1879,7 @@ function loadAllWidgetData()
 	loadWidgetData("Fancy Selected Units", "fancyselectedunits_secondline", {'showSecondLine'})
 
 	loadWidgetData("Voice Notifs", "voicenotifs_volume", {'volume'})
+	loadWidgetData("Player-TV", "playertv_countdown", {'playerChangeDelay'})
 
 	loadWidgetData("Passive builders", "passivebuilders_nanos", {'passiveNanos'})
 	loadWidgetData("Passive builders", "passivebuilders_cons", {'passiveCons'})
@@ -1954,7 +1961,7 @@ function init()
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
-		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=4, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
+		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
 		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
 		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
 		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
@@ -1962,9 +1969,9 @@ function init()
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
 		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=6000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
-		{id="shadows_maxquality", group="gfx", name=widgetOptionColor.."   max quality", min=2000, max=8000, step=500, type="slider", value=8000, description='Maximun shadow detail when having high Frames Per Second'},
-		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail when hasving low Frames Per Second'},
-		{id="shadows_disablefps", group="gfx", name=widgetOptionColor.."   disable at average FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disabled at this average FPS level'},
+		{id="shadows_maxquality", group="gfx", name=widgetOptionColor.."   max quality", min=2000, max=8000, step=500, type="slider", value=8000, description='Maximum shadow detail when having high Frames Per Second'},
+		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail when having low Frames Per Second'},
+		{id="shadows_disablefps", group="gfx", name=widgetOptionColor.."   disable at FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disables shadows at this average FPS value'},
 
 		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
@@ -1974,11 +1981,12 @@ function init()
 		{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
-		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=30000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
+		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=40000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
 
-		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern'}, value=1, description='NOTE: when icon edges look jagged: enable more Anti-Aliasing\n...or pick the \'old\' iconset'},
+		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern','modern_simplified'}, value=1, description='NOTE: when icon edges look jagged: enable more Anti-Aliasing\n...or pick the \'old\' iconset'},
 		{id="disticon", group="gfx", name=widgetOptionColor.."   render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
-		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.75, max=1.25, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.05) or 1.05), description=''},
+		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
+		{id="minimapiconsize", group="gfx", name=widgetOptionColor.."   minimap scale", type="slider", min=1.5, max=5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",3.5) or 1), description=''},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
@@ -1990,28 +1998,28 @@ function init()
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
 
-		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction shader", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
-		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
-		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
-
 		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		{id="lighteffects_deferred", group="gfx", name=widgetOptionColor.."   real lights", type="bool", value=true, description='Otherwise simple ground flashes instead of actual map and model lighting.\n\nExpensive for the gpu when lots of (big) lights are there or when you zoom in on them.'},
 		{id="lighteffects_heatdistortion", group="gfx", name=widgetOptionColor.."   apply heat distortion", type="bool", value=true, description='Enables a distortion on top of explosions to simulate heat'},
 		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.4, max=0.9, step=0.05, type="slider", value=0.65, description='lifetime of explosion lights'},
-		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2.2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
-		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius", min=1, max=1.7, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
+		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
+		{id="lighteffects_radius", group="gfx", name=widgetOptionColor.."   radius", min=1, max=1.6, step=0.1, type="slider", value=1.2, description='Set the radius of the lights\n\nWARNING: the bigger the radius the heavier on the GPU'},
 		{id="lighteffects_laserbrightness", group="gfx", name=widgetOptionColor.."   laser brightness", min=0.4, max=2, step=0.1, type="slider", value=1.2, description='laser lights brightness RELATIVE to global light brightness set above\n\n(only applies to real map and model lighting)'},
 		{id="lighteffects_laserradius", group="gfx", name=widgetOptionColor.."   laser radius", min=0.5, max=1.6, step=0.1, type="slider", value=1, description='laser lights radius RELATIVE to global light radius set above\n\n(only applies to real map and model lighting)'},
 
 		{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",1) or 1), description='Sets nano effect\n\nBeams more expensive than particles'},
 		{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
-		{id="nanobeamicon", group="gfx", name=widgetOptionColor.."   beam when uniticon", type="bool", value=tonumber(Spring.GetConfigInt("NanoLaserIcon",0) or 0) == 1, description='Shows nano beams when unti is displayed as icon'},
+		{id="nanobeamicon", group="gfx", name=widgetOptionColor.."   beam when uniticon", type="bool", value=tonumber(Spring.GetConfigInt("NanoLaserIcon",0) or 0) == 1, description='Shows nano beams when unit is displayed as icon'},
 		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=2, max=20, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",6) or 6), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
 		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=1000, max=15000, step=100, value=maxNanoParticles, description=''},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Toggle unit particle effects: jet engine thrusters, ground flashes, fusion energy balls'},
 		{id="lupsreflectionrefraction", group="gfx", name=widgetOptionColor.."   reflection and refraction pass", type="bool", value=tonumber(Spring.GetConfigInt("lupsreflectionrefraction",1) or 0) == 1, description='The settings seem only relevant near water\nand disabling them reduces draw passes'},
 		{id="lighteffects_thrusters", group="gfx", name=widgetOptionColor.."   air thrusters light  (needs 'Lights')", type="bool", value=true, description='Shows a light for air engine thrusters (fighters and scouts excluded)'},
+
+		{id="underconstructiongfx", group="gfx", widget="Under construction gfx", name="Under construction shader", type="bool", value=GetWidgetToggleValue("Under construction gfx"), description='Highlights unit models when under construction'},
+		{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
+		{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
 
 		{id="xrayshader", group="gfx", widget="XrayShader", name="Unit xray shader", type="bool", value=GetWidgetToggleValue("XrayShader"), description='Highlights all units, highlight effect dissolves on close camera range.\n\nFades out and disables at low fps\nWorks less on dark teamcolors'},
 
@@ -2036,7 +2044,7 @@ function init()
 		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
 		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
-        {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Shown on top of (adv)playerlist'},
+        {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Enable music player (on top of advplayerlist)\n\nMusic not included by default. (downloadable from springfiles.com)\nPlace music files in "spring/widgets_ba/music/peace"  and  ".../war'},
 		{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
 
         {id="voicenotifs", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
@@ -2060,20 +2068,21 @@ function init()
 		{id="allyselunits_select", group="control", name="Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this will also select the units the player has selected"},
 		{id="lockcamera_hideenemies", group="control", name="Only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will only display what the tracked player sees"},
 		{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too"},
+		{id="playertv_countdown", group="control", name="Player TV countdown", type="slider", min=8, max=60, step=1, value=(WG['playertv']~=nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description="Countdown time before it switches player"},
 
 		-- UI
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
-
-		{id="minimapiconsize", group="ui", name="Minimap icon size", type="slider", min=2.5, max=4.5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",3.5) or 1), description=''},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
+
+		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
+
+		{id="guishader", group="ui", widget="GUI-Shader", name="GUI background blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
+		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 
 		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
 		{id="healthbarsscale", group="ui", name="Health bars scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
-
-		{id="guishader", group="ui", widget="GUI-Shader", name="GUI background blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
-		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
 
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
@@ -2081,7 +2090,8 @@ function init()
 		{id="oldicons", group="ui", name="Old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
-		{id="buildmenulargeicons", group="ui", name="Buildmenu large icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons'},
+		{id="buildmenuradaricons", group="ui", name="Buildmenu radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)'},
+		{id="buildmenulargeicons", group="ui", name="Buildmenu enlarged", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons~=nil and WG['red_buildmenu'].getConfigLargeUnitIcons()), description='Use large unit icons'},
 		{id="buildmenutooltip", group="ui", name="Buildmenu tooltip", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitTooltip~=nil and WG['red_buildmenu'].getConfigUnitTooltip()), description='Enables unit tooltip when hovering over unit in buildmenu'},
 		{id="buildmenubigtooltip", group="ui", name=widgetOptionColor.."   extensive unit info", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip~=nil and WG['red_buildmenu'].getConfigUnitBigTooltip()), description='Displays elaborative unit description when availible'},
 
@@ -2161,13 +2171,14 @@ function init()
 
         {id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
+		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units, holding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 	}
 
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
-		local fsaa = tonumber(Spring.GetConfigInt("msaa",0))
-		if fsaa > options[getOptionByID('iconset')].max then
-			fsaa = options[getOptionByID('iconset')].max
+		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel",0))
+		if fsaa > options[getOptionByID('msaa')].max then
+			fsaa = options[getOptionByID('msaa')].max
 		end
 		Spring.SetConfigInt("MSAALevel", fsaa)
 		Spring.SetConfigInt("FSAALevel", 0)
@@ -2183,7 +2194,7 @@ function init()
 			end
 		end
 		options[getOptionByID('iconset')].options = opts
-		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'old'))
+		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'modern'))
 	else
 		options[getOptionByID('iconset')] = nil
 		options[getOptionByID('disticon')].name = "Icon render distance"
@@ -2255,6 +2266,9 @@ function init()
 		options[getOptionByID('voicenotifs_playtrackedplayernotifs')] = nil
 	end
 
+	if not widgetHandler.knownWidgets["Player-TV"] then
+		options[getOptionByID('playertv_countdown')] = nil
+	end
 
 	-- cursors
 	if (WG['cursors'] == nil) then
@@ -2319,6 +2333,9 @@ function init()
 	end
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigUnitPrice == nil then
 		options[getOptionByID('buildmenuprices')] = nil
+	end
+	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigUnitRadaricon == nil then
+		options[getOptionByID('buildmenuradaricons')] = nil
 	end
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigPlaySounds == nil then
 		options[getOptionByID('buildmenusounds')] = nil
@@ -2593,7 +2610,6 @@ function widget:TextCommand(command)
 	end
 end
 
-
 function getSelectKey(i, value)
 	for k, v in pairs(options[i].options) do
 		if v == value then
@@ -2626,10 +2642,11 @@ function widget:GetConfigData(data)
 		normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
 		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
-		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",1) or 50)},
-		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",1) or 50)},
-		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 50)},
-		sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",1) or 50)},
+		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)},
+		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",40) or 40)},
+		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",40) or 40)},
+		sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",40) or 40)},
+		guiopacity = {'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)},
 	}
 	return savedTable
 end
@@ -2647,7 +2664,7 @@ function widget:SetConfigData(data)
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig
 		for k, v in pairs(savedConfig) do
-			Spring.SetConfigInt(v[1],v[2])
+			Spring.SetConfigFloat(v[1],v[2])
 		end
 	end
 end

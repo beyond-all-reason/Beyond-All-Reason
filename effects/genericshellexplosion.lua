@@ -2492,16 +2492,19 @@ definitions['expldgun'].heatedgroundflash = {
   unit               = false,
   water              = false,
   properties = {
-    colormap           = [[0.6 0.1 0.03 0.4   0 0 0 0.01]],
+    colormap           = [[0.4 0.06 0.02 0.6   0 0 0 0.01]],
     size               = 16,
     sizegrowth         = 0,
-    ttl                = 55,
+    ttl                = 80,
     texture            = [[groundflash]],
   },
 }
-definitions['expldgun'].sparks.properties.numparticles = 1
-definitions['expldgun'].dirt.properties.numparticles = 2
-definitions['expldgun'].dirt2.properties.numparticles = 1
+definitions['expldgun'].sparks.properties.particlespeedspread   = definitions['expldgun'].sparks.properties.particlespeedspread * 0.6
+definitions['expldgun'].sparks.properties.particlelife   = definitions['expldgun'].sparks.properties.particlelife * 0.33
+definitions['expldgun'].sparks.properties.particlesize   = definitions['expldgun'].sparks.properties.particlesize * 0.7
+definitions['expldgun'].sparks.properties.numparticles = 3
+definitions['expldgun'].dirt.properties.numparticles = 3
+definitions['expldgun'].dirt2.properties.numparticles = 2
 
 --definitions['expldgun'].groundflash2 = {
 --    class              = [[CSimpleGroundFlash]],
@@ -2514,11 +2517,11 @@ definitions['expldgun'].dirt2.properties.numparticles = 1
 --}
 
 definitions['expldgun'].centerflare.properties.size               = definitions['expldgun'].centerflare.properties.size*2.2
-definitions['expldgun'].explosion.properties.numparticles         = definitions['expldgun'].explosion.properties.numparticles/1.4
+definitions['expldgun'].explosion.properties.numparticles         = definitions['expldgun'].explosion.properties.numparticles
 definitions['expldgun'].explosion.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.8
 definitions['expldgun'].explosion.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
 definitions['expldgun'].explosion.properties.particlespeedspread  = definitions['expldgun'].explosion.properties.particlespeedspread*0.85
-definitions['expldgun'].explosion2.properties.numparticles         = definitions['expldgun'].explosion.properties.numparticles/1.4
+definitions['expldgun'].explosion2.properties.numparticles         = definitions['expldgun'].explosion.properties.numparticles
 definitions['expldgun'].explosion2.properties.particlesize         = definitions['expldgun'].explosion.properties.particlesize*1.8
 definitions['expldgun'].explosion2.properties.particlesizespread   = definitions['expldgun'].explosion.properties.particlesizespread*1.5
 definitions['expldgun'].explosion2.properties.particlespeedspread  = definitions['expldgun'].explosion.properties.particlespeedspread*0.85
@@ -2534,10 +2537,11 @@ definitions['expldgun'].dustparticles.properties.particlespeedspread  = definiti
 
 definitions['expldgun'].clouddust.properties.numparticles = definitions['expldgun'].clouddust.properties.numparticles/2
 definitions['expldgun'].innersmoke.properties.particleSize = definitions['expldgun'].innersmoke.properties.particleSize*0.6
-definitions['expldgun'].innersmoke.properties.numparticles = definitions['expldgun'].innersmoke.properties.numparticles*0.5
+definitions['expldgun'].innersmoke.properties.numparticles = definitions['expldgun'].innersmoke.properties.numparticles*0.7
+definitions['expldgun'].innersmoke.properties.sizeGrowth = definitions['expldgun'].innersmoke.properties.sizeGrowth*0.6
 definitions['expldgun'].innersmoke.properties.particleLife = definitions['expldgun'].innersmoke.properties.particleLife*2
 definitions['expldgun'].outersmoke.properties.particleSize = definitions['expldgun'].outersmoke.properties.particleSize*0.65
-definitions['expldgun'].outersmoke.properties.numparticles = definitions['expldgun'].outersmoke.properties.numparticles*0.5
+definitions['expldgun'].outersmoke.properties.numparticles = definitions['expldgun'].outersmoke.properties.numparticles*0.7
 definitions['expldgun'].outersmoke.properties.particleLife = definitions['expldgun'].outersmoke.properties.particleLife*1.5
 --definitions['expldgun'].grounddust = nil
 

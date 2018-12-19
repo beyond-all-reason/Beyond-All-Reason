@@ -19,20 +19,21 @@ local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
 local Config = {
 	tooltip = {
-		px = -0.5,py = CanvasY-82, --default start position
-		sx = 270,sy = 82, --background size
+		px = -0.5,py = CanvasY-75, --default start position
+		sx = 270,sy = 75, --background size
 		
 		fontsize = 10.5,
 		
 		padding = 3*widgetScale,
-		color2 = {1,1,1,0.025},
+		color2 = {1,1,1,ui_opacity*0.04},
 		
 		margin = 11, --distance from background border
 		
-		cbackground = {0,0,0,0.66}, --color {r,g,b,alpha}
+		cbackground = {0,0,0,ui_opacity}, --color {r,g,b,alpha}
 		cborder = {0,0,0,0.2},
 		
 		dragbutton = {2,3}, --middle mouse button
@@ -282,7 +283,17 @@ function widget:Shutdown()
 	Spring.SendCommands("tooltip 1")
 end
 
-function widget:Update()
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			tooltip.background.color = {0,0,0,ui_opacity}
+			tooltip.background2.color = {1,1,1,ui_opacity*0.04}
+		end
+	end
 	AutoResizeObjects()
 end
 

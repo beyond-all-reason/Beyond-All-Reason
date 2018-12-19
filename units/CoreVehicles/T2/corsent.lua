@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2425,
 		maxslope = 14,
-		maxvelocity = 2.48,
+		maxvelocity = 2.16,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Copperhead",

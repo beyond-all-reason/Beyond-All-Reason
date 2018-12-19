@@ -70,7 +70,7 @@ local options={
         step   = 1,
     },
     {
-		key    = "ffa",
+		key    = "ffa_mode",
 		name   = "FFA Mode",
 		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
 		type   = "bool",
@@ -169,6 +169,14 @@ local options={
 		def    = true,
 		section= 'ba_others',
 	},
+	{
+		key    = "allowmapmutators",
+		name   = "Allow map mutators",
+		desc   = "Allows maps to overwrite files from the game",
+		type   = "bool",
+		def    = true,
+		section= 'ba_others',
+	},
     {
         key    = 'FixedAllies',
         name   = 'Fixed ingame alliances',
@@ -216,6 +224,25 @@ local options={
 		step   = 1,
 	},
 
+	{	-- temporary modoption
+		key = 'xmasballmax',
+		name = 'Max spawned xmas balls',
+		desc = 'At xmas time, this limits the amount of balls spawn. (so you can turn it off) default: 150',
+		type = 'bool',
+		section = 'ba_enhancements_misc',
+		def    = 150,
+		min    = 0,
+		max    = 500,
+		step   = 1,
+	},
+	{
+		key = 'globallos',
+		name = 'Full visibility',
+		desc = 'No fog of war, everyone can see the entire map.',
+		type = 'bool',
+		section = 'ba_enhancements_misc',
+		def = false,
+	},
 -- Chicken Defense Options
 	{
 		key    = 'chicken_defense_options',

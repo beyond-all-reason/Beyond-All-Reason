@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, wing1, wing2;
+piece  base, wing1, wing2,emitnano;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -140,7 +140,7 @@ StopBuilding()
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = base;
+	piecenum = emitnano;
 	return (0);
 }
 

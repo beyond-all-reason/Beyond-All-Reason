@@ -42,8 +42,6 @@ NanoLasers.Default = {
   targetradius = 0,       --// terraform/unit radius
   color        = {0, 0, 0, 0},
   count        = 1,
-  inversed     = false,   --// reclaim?
-  terraform    = false,   --// for terraform (2d target)
   unit         = -1,
   nanopiece    = -1,
 
@@ -137,9 +135,23 @@ function NanoLasers:Draw()
   glMultiTexCoord(0,endPos[1] - self.normdir[3] * self.scane_mult ,endPos[2],endPos[3] + self.normdir[1] * self.scane_mult,1)
   glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],1)
 
-  if (self.inversed) then
-    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
+  if (self.type == 'building' or self.type == 'repair') then
+    glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
+    glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
+  elseif (self.type == 'reclaim') then
+    glTexture('bitmaps/projectiletextures/nanobeam-reclaim.png')
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
+  elseif (self.type == 'restore') then
+    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
+  elseif (self.type == 'resurrect') then
+    glTexture('bitmaps/projectiletextures/nanobeam-resurrect.png')
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2.5, self.corealpha, self.corethickness/2.5)
+  elseif (self.type == 'capture') then
+    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+    glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   else
+    glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
     glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   end
 
@@ -150,33 +162,29 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  if not self._lastupdate or thisGameFrame - self._lastupdate > 3 then  -- save some performance/memory
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 2 or (self.quickupdates and thisGameFrame - self._lastupdate > 1) then  -- save some performance/memory
     UpdateNanoParticles(self)
     --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
     if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
-      if self.visibility ~= 0 then
-        local dx = self.targetpos[1] - self.pos[1]
-        local dy = self.targetpos[2] - self.pos[2]
-        local dz = self.targetpos[3] - self.pos[3]
-        local radius = 45+(self.corethickness*60)+(self.streamSpeed*200)
-        if not self.lightID then
-          self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, radius, {self.color[1],self.color[2],self.color[3],0.11+(self.streamSpeed*0.66)})
-        else
-          if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.66), param={radius=radius}}) then
-            self.lightID = nil
-          end
+      local dx = self.targetpos[1] - self.pos[1]
+      local dy = self.targetpos[2] - self.pos[2]
+      local dz = self.targetpos[3] - self.pos[3]
+      local radius = 45+(self.corethickness*60)+(self.streamSpeed*200)
+      if not self.lightID then
+        self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, radius, {self.color[1],self.color[2],self.color[3],0.025+(self.streamSpeed*0.6)})
+      else
+        if not Script.LuaUI.GadgetEditBeamLight(self.lightID, {px=self.pos[1],py=self.pos[2],pz=self.pos[3],dx=dx,dy=dy,dz=dz,orgMult=0.11+(self.streamSpeed*0.6), param={radius=radius}}) then
+          self.lightID = nil
         end
-      elseif self.lightID then
-        Script.LuaUI.GadgetRemoveBeamLight(self.lightID)
       end
     end
 
     self.fpos = (self.fpos or 0) + self.count * 5 * n
-    if (self.inversed) then
-      self.scane_mult = 4 * math.cos(6*(self.fpos%4001)/3000*math.pi)
-    else
-      self.scane_mult = 8 * math.cos(2*(self.fpos%4001)/3000*math.pi)
-    end
+    --if (self.inversed) then
+    --  self.scane_mult = 4 * math.cos(6*(self.fpos%3001)/3000*math.pi)
+    --else
+      self.scane_mult = 8 * math.cos(2*(self.fpos%3001)/3000*math.pi)
+    --end
 
     if (self._dead) then
       RemoveParticles(self.id)
@@ -190,11 +198,11 @@ function NanoLasers:ReInitialize()
 end
 
 function NanoLasers:Visible()
-  if ((self.allyID ~= LocalAllyTeamID) and (LocalAllyTeamID >= 0) and (self.visibility == 0)) or not self._midpos then
+  if not self._midpos then
     return false
   end
-
   local midPos = self._midpos
+
   return IsSphereInView(midPos[1],midPos[2],midPos[3], self._radius)
 end
 
@@ -339,13 +347,6 @@ function NanoLasers:CreateParticle()
   if (self.streamThickness<0) then
     self.streamThickness = 4+self.count*0.34
   end
-
-  --if enableLights and not self.lightID and Script.LuaUI("GadgetCreateBeamLight") then
-  --  local dx = self.targetpos[1] - self.pos[1]
-  --  local dy = self.targetpos[2] - self.pos[2]
-  --  local dz = self.targetpos[3] - self.pos[3]
-  --  self.lightID = Script.LuaUI.GadgetCreateBeamLight('nano', self.pos[1], self.pos[2], self.pos[1], dx, dy, dz, 44+(self.corethickness*40), {self.color[1],self.color[2],self.color[3],0.13+(self.corethickness/3)})
-  --end
 end
 
 -----------------------------------------------------------------------------------------------------------------

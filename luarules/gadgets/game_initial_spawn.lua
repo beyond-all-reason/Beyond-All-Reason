@@ -103,7 +103,7 @@ include("luarules/gadgets/lib_startpoint_guesser.lua") --start point guessing ro
 
 -- ffaStartPoints is "global"
 local useFFAStartPoints = false
-if (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then
+if (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
     useFFAStartPoints = true
 end
 
@@ -494,7 +494,7 @@ local uiScale = customScale
 local myPlayerID = Spring.GetMyPlayerID()
 local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
 local amNewbie
-local ffaMode = (tonumber(Spring.GetModOptions().ffa) or 0) == 1
+local ffaMode = (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1
 local isReplay = Spring.IsReplay()
 
 local readied = false --make sure we return true,true for newbies at least once
@@ -725,7 +725,7 @@ function gadget:DrawScreen()
 	 	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
 
 		if Script.LuaUI("GuishaderInsertRect") then
-			if not readied then
+			if not readied and not spec then
 				Script.LuaUI.GuishaderInsertRect(
 					readyX+(readyW/2)-(((readyW/2)+bgMargin)*uiScale),
 					readyY+(readyH/2)-(((readyH/2)+bgMargin)*uiScale),

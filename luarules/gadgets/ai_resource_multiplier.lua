@@ -10,7 +10,7 @@ function gadget:GetInfo()
 	}
 end
 
-local timedResBonusMultiplier = 0.0003
+local timedResBonusMultiplier = 0.00020 
 local timedResBonusMultiplierMax = 2
 
 
@@ -30,6 +30,8 @@ for _,teamID in ipairs(Spring.GetTeamList()) do
 	if select(4,Spring.GetTeamInfo(teamID)) then	-- is AI?
 		aiCount = aiCount + 1
 		aiTeams[teamID] = { energy = 0, metal = 0, winds = 0, mexes = {} }
+		aiCountEResMultiplier = aiCount*0.2 + 0.8
+		aiCountMResMultiplier = aiCount*0.1 + 0.9
 	end
 end
 if aiCount == 0 then
@@ -164,8 +166,8 @@ function gadget:GameFrame(n)
 
 			--Spring.Echo(totalEnergy..'   +   '..((totalEnergy * (aiResourceMultiplier + timedResBonus)) - totalEnergy))
 			--Spring.Echo(totalMetal..'   +   '..((totalMetal * (aiResourceMultiplier + timedResBonus)) - totalMetal))
-			Spring.AddTeamResource(TeamID,"e", (totalEnergy * (aiResourceMultiplier + timedResBonus)) - totalEnergy)
-			Spring.AddTeamResource(TeamID,"m", (totalMetal * (aiResourceMultiplier + timedResBonus)) - totalMetal)
+			Spring.AddTeamResource(TeamID,"e", (totalEnergy * (aiResourceMultiplier + timedResBonus)*aiCountEResMultiplier) - totalEnergy)
+			Spring.AddTeamResource(TeamID,"m", (totalMetal * (aiResourceMultiplier + timedResBonus)*aiCountMResMultiplier) - totalMetal)
 		end
 	end
 end

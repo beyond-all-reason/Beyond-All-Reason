@@ -25,7 +25,7 @@ return {
 		leavetracks = true,
 		maxdamage = 2340,
 		maxslope = 12,
-		maxvelocity = 2.52,
+		maxvelocity = 2.31,
 		maxwaterdepth = 255,
 		movementclass = "ATANK3",
 		name = "Croc",

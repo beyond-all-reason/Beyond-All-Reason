@@ -5,6 +5,7 @@ function widget:GetInfo()
         author    = "Bluestone, based on similar widgets by vbs, tfc, decay  (made fancy by Floris)",
         date      = "14 february 2015",
         license   = "GPL v3 or later",
+        license   = "GPL v3 or later",
         layer     = 0,
         enabled   = true  -- loaded by default
     }

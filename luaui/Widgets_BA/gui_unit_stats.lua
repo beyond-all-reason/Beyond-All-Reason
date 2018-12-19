@@ -430,7 +430,9 @@ function widget:DrawScreen()
 			DrawText("Exp:                 unknown",'\255\255\77\77')
 		end
 	end
-	DrawText("Open:", format("maxHP: %d", maxHP) )
+	if maxHP then
+		DrawText("Open:", format("maxHP: %d", maxHP) )
+	end
 	if armoredMultiple and armoredMultiple ~= 1 then
 		DrawText("Closed:", format(" +%d%%, maxHP: %d", (1/armoredMultiple-1) *100,maxHP/armoredMultiple))
 	end

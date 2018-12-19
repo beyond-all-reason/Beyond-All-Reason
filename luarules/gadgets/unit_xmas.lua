@@ -12,29 +12,44 @@ function gadget:GetInfo()
 	}
 end
 
+local decorationUdefIDs = {}
+local decorationUdefIDlist = {}
+for udefID,def in ipairs(UnitDefs) do
+	if def.name == 'xmasball' or def.name == 'xmasball2' then
+		decorationUdefIDlist[#decorationUdefIDlist+1] = udefID
+		decorationUdefIDs[udefID] = true
+	end
+end
 
 if gadgetHandler:IsSyncedCode() then
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
+	if Spring.GetModOptions and Spring.GetModOptions().xmasballsmax then
+		maxDecorations = Spring.GetModOptions().xmasballsmax
+	end
 
-	local itsXmas = false
+	_G.itsXmas = false
+
+	for fdefID,def in ipairs(FeatureDefs) do
+		if def.tooltip == "Xmas Commander Wreckage" then
+			xmasComwreckDefID = fdefID
+			break
+		end
+	end
 
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
-		if def.name == 'xmasball' then
-			xmasballUdefID = udefID
-		end
 		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-15) / 8))
 				if balls > 0 then
-					hasDecoration[udefID] = {balls, (def.radius/12), 30*6}
+					hasDecoration[udefID] = {balls, (def.radius/12), 30*9}
 				end
 			end
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = {28, 9, 30*18}
+			hasDecoration[udefID] = {28, 9, 30*18, true} -- always shows decorations for commander even if maxDecorations is reached
 		end
 	end
 
@@ -64,8 +79,8 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function initiateXmas()
-		if not itsXmas then
-			itsXmas = true
+		if not initiated then
+			initiated = true
 			-- spawn candy canes
 			for i=1, candycaneAmount do
 				local x = random(0, Game.mapSizeX)
@@ -81,6 +96,8 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 	end
+
+	_G.xmasDecorations = {}
 
 	local function setGaiaUnitSpecifics(unitID)
 		Spring.SetUnitNeutral(unitID, true)
@@ -99,7 +116,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
-		if not itsXmas then
+		if not _G.itsXmas then
 			if n == 1 then
 				local xmasRatio = 0
 				for playerID, xmas in pairs(receivedPlayerXmas) do
@@ -108,6 +125,7 @@ if gadgetHandler:IsSyncedCode() then
 					end
 				end
 				if xmasRatio > 0.75 then
+					_G.itsXmas = true
 					initiateXmas()
 				else
 					return
@@ -115,7 +133,10 @@ if gadgetHandler:IsSyncedCode() then
 			else
 				return
 			end
+		elseif n == 1 then	-- only when manually enablinb xmas in gadget to test
+			initiateXmas()
 		end
+
 		if n % 30 == 1 then
 			for unitID, frame in pairs(decorations) do
 				if frame < n then
@@ -155,13 +176,20 @@ if gadgetHandler:IsSyncedCode() then
 					if addGaiaBalls and random() > 0.5 then
 						teamID = gaiaTeamID
 					end
-					uID = Spring.CreateUnit(xmasballUdefID, data[1],data[2],data[3], 0, teamID)
+					local decorationDefID = decorationUdefIDlist[math.floor(1 + (math.random() * (#decorationUdefIDlist-0.001)))]
+					uID = Spring.CreateUnit(decorationDefID, data[1],data[2],data[3], 0, teamID)
 					if uID ~= nil then
 						decorationCount = decorationCount + 1
 						decorations[uID] = Spring.GetGameFrame() + hasDecoration[data[5]][3] + (random()*(hasDecoration[data[5]][3]*0.33))
 						Spring.SetUnitRotation(uID,random()*360,random()*360,random()*360)
 						local impulseMult = hasDecoration[data[5]][2]
 						Spring.AddUnitImpulse(uID, (random()-0.5)*(impulseMult/2), 1+(random()*impulseMult), (random()-0.5)*(impulseMult/2))
+						if UnitDefs[data[5]].radius then
+							local size = (UnitDefs[data[5]].radius/33)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
+							if size > 1.4 then size = 1.4 end
+							if size < 0.5 then size = 0.5 end
+							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.25) + (size * (math.random()*0.2)))
+						end
 					end
 					i = i + 1
 				end
@@ -182,19 +210,43 @@ if gadgetHandler:IsSyncedCode() then
 		createdDecorations = {}
 	end
 
+	if Spring.GetModOptions and (Spring.GetModOptions().unba or "disabled") == "disabled" then
+		function gadget:FeatureCreated(featureID, allyTeam)
+			if _G.itsXmas then
+				-- replace comwreck with xmas comwreck
+				if FeatureDefs[Spring.GetFeatureDefID(featureID)] and FeatureDefs[Spring.GetFeatureDefID(featureID)].tooltip == "Commander Wreckage" then
+					local px,py,pz = Spring.GetFeaturePosition(featureID)
+					local rx,ry,rz = Spring.GetFeatureRotation(featureID)
+					local dx,dy,dz = Spring.GetFeatureDirection(featureID)
+					Spring.DestroyFeature(featureID)
+					local xmasFeatureID = Spring.CreateFeature(xmasComwreckDefID, px,py,pz)
+					if xmasFeatureID then
+						Spring.SetFeatureRotation(xmasFeatureID, rx,ry,rz)
+						Spring.SetFeatureDirection(xmasFeatureID, dx,dy,dz)
+						local comtype = 'armcom'
+						if string.find(FeatureDefs[Spring.GetFeatureDefID(featureID)].modelname:lower(), 'corcom') then
+							comtype = 'corcom'
+						end
+						Spring.SetFeatureResurrect(xmasFeatureID, comtype, "s", 0)
+					end
+				end
+			end
+		end
+	end
+
 	function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-		if not itsXmas then
+		if not _G.itsXmas then
 			return
 		end
-		if unitDefID == xmasballUdefID then
+		if decorationUdefIDs[unitDefID] then
 			if decorations[unitID] ~= nil then
 				decorations[unitID] = nil
 			elseif decorationsTerminal[unitID] ~= nil then
 				decorationsTerminal[unitID] = nil
 			end
 			decorationCount = decorationCount - 1
-		elseif attackerID ~= nil then	-- is not reclaimed
-			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and decorationCount < maxDecorations then
+		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
+			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][4]) then
 				local x,y,z = Spring.GetUnitPosition(unitID)
 				createDecorations[#createDecorations+1] = {x,y,z, teamID, unitDefID }
 				--Spring.Echo(hasDecoration[unitDefID][1])
@@ -203,18 +255,57 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if unitDefID == xmasballUdefID then
+		if decorationUdefIDs[unitDefID] then
 			setGaiaUnitSpecifics(unitID)
 		end
 	end
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
-		if unitDefID == xmasballUdefID then
+		if decorationUdefIDs[unitDefID] then
 			setGaiaUnitSpecifics(unitID)
 		end
 	end
 
 	function gadget:GameOver()
 		gadgetHandler:RemoveGadget(self)
+	end
+
+else
+	--SYNCED.itsXmas
+	local xmasballs = {}
+
+	function gadget:UnitCreated(unitID, unitDefID, team)
+		if decorationUdefIDs[unitDefID] then
+			xmasballs[unitID] = 0.73 + (math.random()*0.44)
+			Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
+		end
+	end
+	function gadget:UnitDestroyed(unitID, unitDefID, team)
+		if decorationUdefIDs[unitDefID] then
+			xmasballs[unitID] = nil
+		end
+	end
+
+	function setDecorationSize(_, unitID, size)
+		xmasballs[unitID] = size
+	end
+
+	function gadget:Initialize()
+		gadgetHandler:AddSyncAction("setDecorationSize", setDecorationSize)
+		local allUnits = Spring.GetAllUnits()
+		for i = 1, #allUnits do
+			local unitID = allUnits[i]
+			local udID = Spring.GetUnitDefID(unitID)
+			local team = Spring.GetUnitTeam(unitID)
+			gadget:UnitCreated(unitID, udID, team)
+		end
+	end
+
+	function gadget:DrawUnit(unitID, drawMode)
+		local unitScale = xmasballs[unitID]
+		if unitScale then
+			gl.Scale( unitScale, unitScale, unitScale )
+			return false
+		end
 	end
 end

@@ -56,7 +56,7 @@ for _,teamID in ipairs(GetTeamList()) do
 end
 
 local blowUpWhenEmptyAllyTeam = true
-if Spring.GetModOptions() and Spring.GetModOptions().ffa ~= nil and (tonumber(Spring.GetModOptions().ffa) or 0) == 1 then
+if Spring.GetModOptions() and Spring.GetModOptions().ffa_mode ~= nil and (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1 then
 	blowUpWhenEmptyAllyTeam = false
 end
 if teamCount == 2 then
@@ -190,7 +190,11 @@ function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
 			aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 			if aliveCount[allyTeam] <= 0 then
 				local x,y,z = Spring.GetUnitPosition(u)
-				destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a}
+				destroyQueue[allyTeam] = {x = x, y = y, z = z, a = a }
+				if not _G.destroyingTeam then
+					_G.destroyingTeam = {}
+				end
+				_G.destroyingTeam[allyTeam] = true
             end
 		end
 	end

@@ -168,7 +168,9 @@ function widget:MousePress(x, y, button)
 		referenceSelectionTypes = {}
 		for i=1, #referenceSelection do
 			udid = GetUnitDefID(referenceSelection[i])
-			referenceSelectionTypes[udid] = 1
+			if udid then
+				referenceSelectionTypes[udid] = 1
+			end
 		end
 		referenceScreenCoords = {x, y}
 		lastMeta = nil

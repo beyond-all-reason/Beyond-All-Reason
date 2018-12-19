@@ -30,6 +30,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Protector",
+		noAutoFire = true,
 		objectname = "ARMAMD",
 		radardistance = 50,
 		seismicsignature = 0,

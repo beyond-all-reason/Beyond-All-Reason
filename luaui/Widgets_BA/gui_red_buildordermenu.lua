@@ -30,11 +30,14 @@ local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
+local iconTypesMap = {}
 local NeededFrameworkVersion = 9
 local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 1:1 size)
 --1272,734 == 1280,768 windowed
 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
+
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
 local playSounds = true
 local iconScaling = true
@@ -42,28 +45,29 @@ local highlightscale = true
 local drawPrice = true
 local drawTooltip = true
 local drawBigTooltip = false
+local drawRadaricon = true
 local largePrice = true
 local shortcutsInfo = false
 local oldUnitpics = false
-local largeUnitIcons = false
+local largeUnitIcons = true
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 
 local normalUnitIconSize = {
-	isx = 45,isy = 40, --icon size
+	isx = 41,isy = 41, --icon size
 	ix = 5,iy = 8, --icons x/y
 }
 local largeUnitIconSize = {
-	isx = 50,isy = 45, --icon size
+	isx = 47,isy = 47, --icon size
 	ix = 5,iy = 7, --icons x/y
 }
 local normalOrderIconSize = {
-	isx = 45,isy = 33, --icon size
+	isx = 41,isy = 33, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local largeOrderIconSize = {
-	isx = 50,isy = 33, --icon size
+	isx = 47,isy = 33, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local Config = {
@@ -83,13 +87,13 @@ local Config = {
 		margin = 5, --distance from background border
 		
 		padding = 3*widgetScale, -- for border effect
-		color2 = {1,1,1,0.025}, -- for border effect
+		color2 = {1,1,1,ui_opacity*0.04}, -- for border effect
 		
 		fadetime = 0.14, --fade effect time, in seconds
 		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
-		cbackground = {0,0,0,0.66},
+		cbackground = {0,0,0,ui_opacity},
 		cborder = {0,0,0,1},
 		cbuttonbackground = {0.1,0.1,0.1,1},
 		dragbutton = {2,3}, --middle mouse button
@@ -120,7 +124,7 @@ local Config = {
 		fadetimeOut = 0.022, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1},
-		cbackground = {0,0,0,0.66},
+		cbackground = {0,0,0,ui_opacity},
 		cborder = {0,0,0,1},
 		cbuttonbackground={0.1,0.1,0.1,1},
 		
@@ -319,7 +323,29 @@ local function CreateGrid(r)
 	heldhighlight.border={1,1,0,0}
 	heldhighlight.texture = "LuaUI/Images/button-pushed.dds"
 	heldhighlight.texturecolor={1,0.75,0,0.06}
-	
+
+	local queuetext = {"rectangle",
+		px=0,py=0,
+		sx=r.isx,sy=r.isy,
+		iconscale=(iconScaling and r.iconscale or 1),
+		iconhoverscale=(iconScaling and r.iconhoverscale or 1),
+		iconnormalscale=(iconScaling and r.iconscale or 1),
+		color={0,0,0,0},
+		border={0,0,0,0},
+		options="onr",
+		captioncolor={1,0.7,0.3,1},
+	}
+	local radaricon = {"rectangle",
+		px=0,py=0,
+		sx=r.isx,sy=r.isy,
+		iconscale=(iconScaling and r.iconscale or 1),
+		iconhoverscale=(iconScaling and r.iconhoverscale or 1),
+		iconnormalscale=(iconScaling and r.iconscale or 1),
+		color={0,0,0,0},
+		border={0,0,0,0},
+		options="n",
+		texturecolor={0.77,0.77,0.77,1},
+	}
 	local icon = {"rectangle",
 		px=0,py=0,
 		sx=r.isx,sy=r.isy,
@@ -450,7 +476,14 @@ local function CreateGrid(r)
 		
 		active=false,
 	}
-	
+
+	local text = {"rectangle",
+		px,py = 0, 0,
+		sx=r.isx,sy=r.isy,
+		captioncolor={0.8,0.8,0.8,1},
+		caption = nil,
+		options = "on",
+	}
 	New(background)
 	New(background2)
 	
@@ -469,8 +502,11 @@ local function CreateGrid(r)
 		effects = background.effects,
 	})
 	background.movableslaves={backward,forward,indicator}
-	
+
 	local icons = {}
+	local texts = {}
+	local queuetexts = {}
+	local radaricons = {}
 	for y=1,r.iy do
 		for x=1,r.ix do
 			local b = New(Copy(icon,true))
@@ -478,6 +514,28 @@ local function CreateGrid(r)
 			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
 			background.movableslaves[#background.movableslaves+1] = b
 			icons[#icons+1] = b
+
+			b = New(Copy(text,true))
+			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx)
+			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
+			background.movableslaves[#background.movableslaves+1] = b
+			texts[#texts+1] = b
+
+			b = New(Copy(queuetext,true))
+			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx -(r.margin*1.4)
+			b.py = background.py + r.margin + (y-1)*(r.ispready + r.isy) - (r.margin*0.2)
+			b.py = b.py - (b.sy/4.7)
+			background.movableslaves[#background.movableslaves+1] = b
+			queuetexts[#queuetexts+1] = b
+
+			local iconsize = 0.24
+			b = New(Copy(radaricon,true))
+			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/1.33)
+			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy) -(r.margin/1.33) +(b.sy*(1-iconsize))
+			b.sx = b.sx*iconsize
+			b.sy = b.sy*iconsize
+			background.movableslaves[#background.movableslaves+1] = b
+			radaricons[#radaricons+1] = b
 			if ((y==r.iy) and (x==r.ix)) then
 				backward.px = icons[#icons-r.ix+1].px
 				forward.px = icons[#icons].px
@@ -487,24 +545,6 @@ local function CreateGrid(r)
 				forward.py = backward.py
 				indicator.py = backward.py
 			end
-		end
-	end
-	
-	local text = {"rectangle",
-		px,py = 0, 0,
-		sx=r.isx,sy=r.isy,
-		captioncolor={0.8,0.8,0.8,1},
-		caption = nil,
-		options = "on",
-	}
-	local texts = {}
-	for y=1,r.iy do
-		for x=1,r.ix do
-			local b = New(Copy(text,true))
-			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx)
-			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy)
-			background.movableslaves[#background.movableslaves+1] = b
-			texts[#texts+1] = b
 		end
 	end
 	
@@ -536,6 +576,8 @@ local function CreateGrid(r)
 		["staterectanglesglow"] = staterectanglesglow,
 		["staterect"] = staterect,
 		["texts"] = texts,
+		["radaricons"] = radaricons,
+		["queuetexts"] = queuetexts,
 	}
 end
 
@@ -587,10 +629,16 @@ local function UpdateGrid(g,cmds,ordertype)
 		g.staterectanglesglow[i].active = false
 	end
 	local usedstaterectanglesglow = 0
-	
+
 	for i=1,#g.texts do
 		local text = g.texts[i]
 		text.caption = nil
+	end
+	for i=1,#g.radaricons do
+		g.radaricons[i].texture = nil
+	end
+	for i=1,#g.queuetexts do
+		g.queuetexts[i].caption = nil
 	end
 	
 	for i=1,#page[curpage] do
@@ -637,9 +685,18 @@ local function UpdateGrid(g,cmds,ordertype)
 
 			if (cmd.params[1]) then
 				icon.options = "o"
-				icon.caption = "     "..cmd.params[1].."  "
+				--icon.caption = "    "..cmd.params[1].."  "
+				local color = "\255\190\255\190"
+				if tonumber(cmd.params[1]) < 10 then
+					g.queuetexts[i].caption = color.."        "..cmd.params[1]
+				elseif tonumber(cmd.params[1]) < 100 then
+					g.queuetexts[i].caption = color.."       "..cmd.params[1]
+				else
+					g.queuetexts[i].caption = color.."      "..cmd.params[1]
+				end
 			else
 				icon.caption = nil
+				g.queuetexts[i].caption = nil
 			end
 			icon.texturecolor = {0.95,0.95,0.95,1}
 			
@@ -660,8 +717,8 @@ local function UpdateGrid(g,cmds,ordertype)
 			
 			if (not cmd.disabled) then
 				local text = g.texts[i]
-				text.px = icon.px+(icon.sx/45)
-				text.py = icon.py-(icon.sy/25)
+				text.px = icon.px+(icon.sy/100)
+				text.py = icon.py+(icon.sy/60)
 				
 				local captionColor = "\255\175\175\175"
 				
@@ -684,7 +741,7 @@ local function UpdateGrid(g,cmds,ordertype)
 				end
 				
 				if not drawPrice then
-					text.caption = "\n"..shotcutCaption.."\n\n\n"
+					text.caption = ""..shotcutCaption.."\n\n\n\n"
 				else
 					-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 					local str = tostring(math.max(metalCost, energyCost))
@@ -708,9 +765,12 @@ local function UpdateGrid(g,cmds,ordertype)
 					for digit in string.gmatch(str, "%d") do
 					  addedSpaces = string.sub(addedSpaces, 0, -2)
 					end
-					text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..offwhite..metalCost.."\n"..yellow..energyCost..addedSpaces
+					text.caption = ""..shotcutCaption.."\n\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces
 				end
 				text.options = "bs"
+				if drawRadaricon then
+					g.radaricons[i].texture = iconTypesMap[UnitDefs[icon.udid].iconType]
+				end
 			end
 		else
 			if buttonTexture ~= nil then
@@ -997,7 +1057,12 @@ function deepcopy(orig)
 	return copy
 end
 
+
 function widget:Initialize()
+	if Script.LuaRules('GetIconTypes') then
+		iconTypesMap = Script.LuaRules.GetIconTypes()
+	end
+
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 
@@ -1016,10 +1081,13 @@ function widget:Initialize()
 
 	AutoResizeObjects() --fix for displacement on crash issue
 
-	
+
   WG['red_buildmenu'] = {}
   WG['red_buildmenu'].getConfigUnitPrice = function()
   	return drawPrice
+  end
+  WG['red_buildmenu'].getConfigUnitRadaricon = function()
+  	return drawRadaricon
   end
   WG['red_buildmenu'].getConfigUnitTooltip = function()
   	return drawTooltip
@@ -1045,6 +1113,9 @@ function widget:Initialize()
 
   WG['red_buildmenu'].setConfigUnitPrice = function(value)
   	drawPrice = value
+  end
+  WG['red_buildmenu'].setConfigUnitRadaricon = function(value)
+	drawRadaricon = value
   end
   WG['red_buildmenu'].setConfigUnitTooltip = function(value)
   	drawTooltip = value
@@ -1095,7 +1166,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo, playSounds=playSounds, largeUnitIcons=largeUnitIcons}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawRadaricon=drawRadaricon, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo, playSounds=playSounds, largeUnitIcons=largeUnitIcons}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -1106,6 +1177,9 @@ function widget:SetConfigData(data) --load config
 		Config.ordermenu.py = data.Config.ordermenu.py
 		if (data.drawPrice ~= nil) then
 			drawPrice = data.drawPrice
+		end
+		if (data.drawRadaricon ~= nil) then
+			drawRadaricon = data.drawRadaricon
 		end
 		if (data.drawTooltip ~= nil) then
 			drawTooltip = data.drawTooltip
@@ -1242,7 +1316,19 @@ function widget:CommandsChanged()
 end
 local sec = 0
 local guishaderCheckInterval = 1
+local uiOpacitySec = 0
 function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			ordermenu.background.color = {0,0,0,ui_opacity}
+			buildmenu.background.color = {0,0,0,ui_opacity}
+			ordermenu.background2.color = {1,1,1,ui_opacity*0.04}
+			buildmenu.background2.color = {1,1,1,ui_opacity*0.04}
+		end
+	end
 	sec=sec+dt
 	if (sec>1/guishaderCheckInterval) then
 		sec = 0
