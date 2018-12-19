@@ -2,12 +2,13 @@
 
 #include "sfxtype.h"
 #include "exptype.h"
-
+#include "unitDefsTurretSpeeds.h"
 piece  torso, gunflare, emgflare, hips, l_thigh, r_thigh, head, luparm,
        ruparm, rarm, larm, rleg, rfoot, lleg, lfoot, lemg,
-       rgun;
+       rgun, aimx1, aimy1;
 
 static-var  bMoving, bAiming, Static_Var_3, restore_delay, gun_1, moveSpeed, currentSpeed, wpn1_lasthead;
+#include "weapon1control.h"
 
 // Signal definitions
 #define SIG_AIM				4
@@ -538,6 +539,11 @@ MotionControl(moving, aiming, justmoved)
 		{
 			if( aiming )
 			{
+				turn torso to y-axis <0> speed <200>;
+				turn larm to x-axis <0> speed <200>;
+				turn rarm to x-axis <0> speed <200>;
+				turn luparm to x-axis <0> speed <200>;
+				turn ruparm to x-axis <0> speed <200>;
 				Static_Var_3 = 1;
 				call-script walklegs();
 			}
@@ -626,6 +632,7 @@ Create()
 	gun_1 = gunflare;
 	moveSpeed = get MAX_SPEED;
 	currentSpeed = 100;
+	start-script InitialSetup1();
 	start-script SmokeUnit();
 }
 
@@ -653,21 +660,14 @@ RestoreAfterDelay()
 {
 	set-signal-mask SIG_AIM;
 	sleep restore_delay;
-	turn torso to y-axis <0.000000> speed <90.000000>;
-	turn ruparm to x-axis <0.000000> speed <45.000000>;
-	turn rarm to y-axis <0.000000> speed <45.000000>;
-	turn luparm to x-axis <0.000000> speed <45.000000>;
-	wait-for-turn torso around y-axis;
-	wait-for-turn ruparm around x-axis;
-	wait-for-turn rarm around y-axis;
-	wait-for-turn luparm around x-axis;
-	wpn1_lasthead = 1000000;
+	start-script RestoreWeapon1();
+	call-script Weapon1Restored();
 	bAiming = FALSE;
 }
 
 AimFromPrimary(piecenum)
 {
-	piecenum = torso;
+	piecenum = aimy1;
 }
 
 QueryPrimary(piecenum)
@@ -680,29 +680,31 @@ FirePrimary()
 	gun_1 = !gun_1;
 }
 
+DrawWeapon1()
+	{
+	turn torso to y-axis <0> speed <200>;
+	turn larm to x-axis <0> speed <200>;
+	turn rarm to x-axis <0> speed <200>;
+	turn luparm to x-axis <0> speed <200>;
+	turn ruparm to x-axis <0> speed <200>;
+	wait-for-turn ruparm around x-axis;
+	wait-for-turn luparm around x-axis;
+	wait-for-turn rarm around x-axis;
+	wait-for-turn larm around x-axis;
+	start-script Weapon1Drawn();
+	}
+
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
 	bAiming = TRUE;
-	while( !Static_Var_3 )
+	if (wpnReady1 != 1)
 	{
-		return(0);
+		start-script DrawWeapon1();
 	}
-	turn torso to y-axis heading speed <200.000000>;
-	turn ruparm to x-axis <0.000000> - pitch speed <200.000000>;
-	turn rarm to x-axis <0.000000> speed <200.000000>;
-	turn luparm to x-axis <0.000000> - pitch speed <200.000000>;
-	turn larm to x-axis <0.000000> speed <200.000000>;
-	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
-	{
-		wpn1_lasthead = 1000000;
-		wait-for-turn torso around y-axis;
-		wait-for-turn luparm around x-axis;
-		wait-for-turn ruparm around x-axis;
-	}
+	start-script Weapon1SetWtdAim(heading, pitch);
 	start-script RestoreAfterDelay();
-	wpn1_lasthead = heading;
-	return (1);
+	return (aim1);
 }
 
 Killed(severity, corpsetype)
