@@ -15,6 +15,8 @@ StaticWeaponBehaviour = class(Behaviour)
 
 function StaticWeaponBehaviour:Init()
 	self.stockpiler = UnitDefs[UnitDefNames[self.unit:Internal():Name()].id].canStockpile
+	CMD.FIRE_STATE = 45
+	self.unit:Internal():ExecuteCustomCommand(CMD.FIRE_STATE, { 2 }, {})
 end
 
 function StaticWeaponBehaviour:Update()
