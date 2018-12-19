@@ -8,6 +8,10 @@ local armorDefs = {
 	indestructable = {
 		"xmasball",
 		"xmasball2",
+		"armstone",
+		"corstone",
+		"dice",
+		"chip",
 	},
 	crawlingbombs = {
 		"armvader",

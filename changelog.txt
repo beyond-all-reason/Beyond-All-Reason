@@ -1,7 +1,7 @@
 ﻿10.19 -> 10.20
 XX/12/2018
 
- • Lowered vehicle max speeds, aiming to be more comparingly to BA 9.46
+ • Lowered vehicle max speeds, aiming to be more comparable to BA 9.46
  • Fixed xmasballs taking damage and area targetting onto them
 
 

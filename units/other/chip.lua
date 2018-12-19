@@ -6,7 +6,7 @@ return {
 		buildtime = 255,
 		canattack = false,
 		canrepeat = false,
-		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "OBJECT",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "12 1.7 12",
 		collisionvolumetype = "CylY",
