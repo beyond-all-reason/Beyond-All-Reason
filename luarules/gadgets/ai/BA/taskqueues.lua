@@ -1008,13 +1008,7 @@ lab = {
 	OffensiveUnit,
 	OffensiveUnit,
 	OffensiveUnit,
-	Helper,
-	Scout,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
+	Builder,
 	Helper,
 	Scout,
 	OffensiveUnit,
@@ -1023,8 +1017,31 @@ lab = {
 	OffensiveUnit,
 	OffensiveUnit,
 	Builder,
+	Helper,
+	Scout,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	Builder,
+	Helper,
+	Scout,
+	"armrectr",
+	"cornecro",
 	"cordecom",
 	"armdecom",
+	"armrectr",
+	"cornecro",
+	"armrectr",
+	"cornecro",
+	"armrectr",
+	"cornecro",
+	"armrectr",
+	"cornecro",
+	"armrectr",
+	"cornecro",
+	Scout,
 }
 
 airlab = {
@@ -1274,7 +1291,7 @@ function CorRad(tqb,ai,unit)
 end
 
 function CorProtection(tqb,ai,unit)
-	--if Spring.GetGameSeconds() > 1500 then
+	if Spring.GetGameSeconds()*0.0011 > UDC(ai.id, UDN.corfmd.id) then
 		local protype = (math.random(1,2) == 1) and "corgate" or "corfmd"
 		if AllType(tqb, ai, unit, {"corfmd",}) < 1 then
 			return "corfmd"
@@ -1286,7 +1303,7 @@ function CorProtection(tqb,ai,unit)
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			return protype
 		end
-	--end
+	end
 	return skip
 end
 
@@ -1389,18 +1406,7 @@ local cort2expand = {
 }
 
 local cordecomqueue = {
-	CorNanoT,
-	CorNanoT,
 	CorMexT1,
-	assistaround,
-	CorRad,
-	ShortDefense,
-	AADefense,
-	CorEnT1,
-	"cormine1",
-	"cormine2",
-	"cormine3",
-	"cormine4",
 	assistaround,
 }
 
@@ -1689,7 +1695,7 @@ function ArmARad(tqb,ai,unit)
 end
 
 function ArmProtection(tqb,ai,unit)
-	--if Spring.GetGameSeconds() > 1500 then
+	if Spring.GetGameSeconds()*0.0011 > UDC(ai.id, UDN.armamd.id) then
 		local protype = (math.random(1,2) == 1) and "armgate" or "armamd"
 		if AllType(tqb, ai, unit, {"armamd",}) < 1 then
 			return "armamd"
@@ -1701,7 +1707,7 @@ function ArmProtection(tqb,ai,unit)
 		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed then
 			return protype
 		end
-	--end
+	end
 	return skip
 end
 
@@ -1795,17 +1801,7 @@ local armt2expand = {
 }
 
 local armdecomqueue = {
-	ArmNanoT,
-	ArmNanoT,
 	ArmMexT1,
-	assistaround,
-	ArmRad,
-	ShortDefense,
-	AADefense,
-	ArmEnT1,
-	"armmine1",
-	"armmine2",
-	"armmine3",
 	assistaround,
 }
 	

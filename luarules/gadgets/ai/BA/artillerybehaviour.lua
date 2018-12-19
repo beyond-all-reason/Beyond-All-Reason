@@ -44,6 +44,9 @@ function ArtilleryBehaviour:Update()
 	if not self.unitID then
 		self.unitID = self.unit:Internal().id
 	end
+	if not self.unitIDrefreshrate then
+		self.unitIDrefreshrate = self.unitID*10000
+	end
 	if not self.active then -- do not even attempt anything if the unit is inactive...	
 		if frame%90 == self.unitID%90 then
 			local unit = self.unit:Internal()
@@ -61,11 +64,13 @@ function ArtilleryBehaviour:Update()
 	end
 	local frame = SpGetGameFrame()
 	local unit = self.unit:Internal()
-	if (frame%2000 == self.unitID%2000) or self.myRange == nil or self.myUnitCount == nil then --refresh "myRange" casually because it can change with experience
+	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or artyRangeUpdateRate == nil or artyMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
+		artyRangeUpdateRate = self.myUnitCount
+		artyMapUpdateRate = artyRangeUpdateRate*3
 	end
-	if (frame%self.myUnitCount*3 == self.unitID%self.myUnitCount*3) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%artyMapUpdateRate == self.unitIDrefreshrate%artyMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
@@ -80,7 +85,7 @@ function ArtilleryBehaviour:Update()
 			end
 		end
 	end
-	if (frame%self.myUnitCount == self.unitID%self.myUnitCount) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%artyRangeUpdateRate == self.unitIDrefreshrate%artyRangeUpdateRate) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -103,7 +108,7 @@ function ArtilleryBehaviour:Update()
 			return
 		end
 	end
-	if self.unitID%self.myUnitCount == frame%self.myUnitCount then
+	if self.unitIDrefreshrate%artyRangeUpdateRate == frame%artyRangeUpdateRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end

@@ -10,7 +10,7 @@ function NukeBehaviour:Update()
 	if Spring.GetGameFrame() % 120 == 0 then
 		if self.stockpiler then
 			local curStocked,curStockQ = Spring.GetUnitStockpile(self.unit:Internal().id)
-			if curStockQ <1 then
+			if curStockQ < 2 then
 				self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE)
 			end
 			if curStocked > 0 then

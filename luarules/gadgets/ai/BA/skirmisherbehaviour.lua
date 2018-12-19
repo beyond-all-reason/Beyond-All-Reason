@@ -44,6 +44,9 @@ function SkirmisherBehaviour:Update()
 	if not self.unitID then
 		self.unitID = self.unit:Internal().id
 	end
+	if not self.unitIDrefreshrate then
+		self.unitIDrefreshrate = self.unitID*10000
+	end
 	if not self.active then -- do not even attempt anything if the unit is inactive...	
 		if frame%90 == self.unitID%90 then
 			local unit = self.unit:Internal()
@@ -60,11 +63,13 @@ function SkirmisherBehaviour:Update()
 		self.AggFactor = self.ai.skirmisherhandler:GetAggressiveness(self)
 	end
 	local unit = self.unit:Internal()
-	if (frame%2000 == self.unitID%2000) or self.myRange == nil or self.myUnitCount == nil then --refresh "myRange" casually because it can change with experience
+	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or skirRangeUpdateRate == nil or skirMapUpdateRate == nil  then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = (self.isHelper and 700) or math.min(SpGetUnitMaxRange(self.unitID),500)
+		skirRangeUpdateRate = self.myUnitCount
+		skirMapUpdateRate = skirRangeUpdateRate*3
 	end
-	if (frame%self.myUnitCount*3 == self.unitID%self.myUnitCount*3) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%skirMapUpdateRate == self.unitIDrefreshrate%skirMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
@@ -79,7 +84,7 @@ function SkirmisherBehaviour:Update()
 			end
 		end
 	end
-	if (frame%self.myUnitCount == self.unitID%self.myUnitCount) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%skirRangeUpdateRate == self.unitIDrefreshrate%skirRangeUpdateRate) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -102,7 +107,7 @@ function SkirmisherBehaviour:Update()
 			return
 		end
 	end
-	if self.unitID%self.myUnitCount == frame%self.myUnitCount then
+	if self.unitIDrefreshrate%skirRangeUpdateRate == frame%skirRangeUpdateRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end

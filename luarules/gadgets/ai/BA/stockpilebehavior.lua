@@ -18,7 +18,7 @@ end
 function StockpileBehavior:Update()
 	if Spring.GetGameFrame() % 300 == 0 then
 		local _,curStockQ = Spring.GetUnitStockpile(self.unit:Internal().id)
-		if curStockQ <1 then
+		if curStockQ < 2 then
 			self.unit:Internal():ExecuteCustomCommand(CMD_STOCKPILE)
 		end
 	end

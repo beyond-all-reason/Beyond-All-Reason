@@ -44,6 +44,9 @@ function RaiderBehaviour:Update()
 	if not self.unitID then
 		self.unitID = self.unit:Internal().id
 	end
+	if not self.unitIDrefreshrate then
+		self.unitIDrefreshrate = self.unitID*10000
+	end
 	if not self.active then -- do not even attempt anything if the unit is inactive...	
 		if frame%90 == self.unitID%90 then
 			local unit = self.unit:Internal()
@@ -61,11 +64,13 @@ function RaiderBehaviour:Update()
 	end
 	local frame = SpGetGameFrame()
 	local unit = self.unit:Internal()
-	if (frame%2000 == self.unitID%2000) or self.myRange == nil or self.myUnitCount == nil then --refresh "myRange" casually because it can change with experience
+	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or raidRangeUpdateRate == nil or raidMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
+		raidRangeUpdateRate = self.myUnitCount
+		raidMapUpdateRate = raidRangeUpdateRate*3
 	end
-	if (frame%self.myUnitCount*3 == self.unitID%self.myUnitCount*3) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%raidMapUpdateRate == self.unitIDrefreshrate%raidMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
@@ -80,7 +85,7 @@ function RaiderBehaviour:Update()
 			end
 		end
 	end
-	if (frame%self.myUnitCount == self.unitID%self.myUnitCount) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%raidRangeUpdateRate == self.unitIDrefreshrate%raidRangeUpdateRate) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -103,7 +108,7 @@ function RaiderBehaviour:Update()
 			return
 		end
 	end
-	if self.unitID%self.myUnitCount == frame%self.myUnitCount then
+	if self.unitIDrefreshrate%raidRangeUpdateRate == frame%raidRangeUpdateRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end

@@ -26,8 +26,6 @@ skirmisherlist = {
 	"corkrog",	--	Krogoth			/	Experimental Assault Kbot
 	--"cordecom",	--	Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
 	--"armdecom", --  Decoy Commander /   Decoy Commander -- I know it's weird but it's not that bad
-	"armrectr",	--	Rector			/	Rez-Reclaim
-	"cornecro",	--	Necro			/ 	Rez-Reclaim
 }
 
 artillerylist = {
@@ -48,8 +46,6 @@ artillerylist = {
 	"corvrad",	--	Informer		/	Radar Vehicle	
 	"armmark",  --  Marky           /   Radar Kbot	
 	"corvoyr",	--	Voyeur			/	Radar Kbot
-	"armrectr",	--	Rector			/	Rez-Reclaim
-	"cornecro",	--	Necro			/ 	Rez-Reclaim
 }
 
 attackerlist = {
@@ -193,6 +189,4 @@ raiderlist = {
 	"coresupp",	--	Supporter		/	Fast Assault Corvette
 	"corpship",	--	Era				/	Assault Frigate
 	"corcrus",	--	Executioner		/	Cruiser
-	"armrectr",	--	Rector			/	Rez-Reclaim
-	"cornecro",	--	Necro			/ 	Rez-Reclaim
 }	

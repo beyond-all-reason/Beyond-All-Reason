@@ -69,7 +69,7 @@ function AiModeHandler:Mode(i)
 		-- Make sure it can always tech
 		self.eincomelimiterpretech2 = math.max(self.mintecheincome, self.eincomelimiterpretech2)
 		self.mintechmincome = math.min(self.mintechmincome, self.eincomelimiterpretech2/70)
-		self.nodefenderscounter = math.random(1200,3000)
+		self.nodefenderscounter = math.random(1200,2400)
 		self.noregroupcounter = self.nodefenderscounter + math.random(600,1200)
 	-- if i == 1 then -- Balanced mode
 		-- -- Spring.Echo(self.ai.id, "Balanced mode")

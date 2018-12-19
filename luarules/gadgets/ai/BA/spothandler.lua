@@ -222,6 +222,8 @@ function MetalSpotHandler:GetClosestMexPosition(spot, x, z, uDefID, facing)
 			bestDist = dist
 		end
 	end
-	if bestPos then bestPos = {x = bestPos[1], y = bestPos[2], z = bestPos[3]} end
+	if bestPos then 
+		bestPos = {x = bestPos[1], y = bestPos[2], z = bestPos[3]} 
+	end
 	return bestPos
 end
