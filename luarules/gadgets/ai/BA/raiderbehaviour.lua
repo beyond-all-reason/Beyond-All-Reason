@@ -67,7 +67,7 @@ function RaiderBehaviour:Update()
 	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or raidRangeUpdateRate == nil or raidMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
-		raidRangeUpdateRate = self.myUnitCount
+		raidRangeUpdateRate = self.myUnitCount*2
 		raidMapUpdateRate = raidRangeUpdateRate*3
 	end
 	if (frame%raidMapUpdateRate == self.unitIDrefreshrate%raidMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag

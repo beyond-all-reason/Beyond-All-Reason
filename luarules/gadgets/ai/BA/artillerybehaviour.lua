@@ -67,7 +67,7 @@ function ArtilleryBehaviour:Update()
 	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or artyRangeUpdateRate == nil or artyMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
-		artyRangeUpdateRate = self.myUnitCount
+		artyRangeUpdateRate = self.myUnitCount*2
 		artyMapUpdateRate = artyRangeUpdateRate*3
 	end
 	if (frame%artyMapUpdateRate == self.unitIDrefreshrate%artyMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag

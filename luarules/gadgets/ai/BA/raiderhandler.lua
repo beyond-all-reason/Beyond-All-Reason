@@ -19,33 +19,16 @@ function RaiderHandler:Update()
 
 	--Commander position for atk behaviour
 	local frame = Spring.GetGameFrame()
-	if frame%600 == 150+(self.ai.id*15) then
-		local x,y,z
-		local comms = Spring.GetTeamUnitsByDefs(self.ai.id, {UnitDefNames.armcom.id, UnitDefNames.corcom.id})
-		if comms[1] then
-			x,y,z = Spring.GetUnitPosition(comms[1])
-			self.commpos = {x = x, y = y, z = z}
-			local CommSurrounding = Spring.GetUnitsInCylinder(self.commpos.x, self.commpos.z, 1500)
-			for ct, uid in pairs(CommSurrounding) do
-				if not Spring.GetUnitIsBuilding(uid) and not Spring.AreTeamsAllied(Spring.GetUnitTeam(uid), self.ai.id) then
-					ax,ay,az = Spring.GetUnitPosition(uid)
-					self.CommAttackerPos = {x = ax, y = ay, z = az}
-					self.CommInDanger = true
-					break
-				else
-					self.CommAttackerPos = nil
-					self.CommInDanger = false
-				end
-			end
-		end
-	end
+	
+	-- commpos stuff was here
+	
 	--TargetPoolThread
 	if frame%300 == 75+(self.ai.id*7) then
 		self:TargetPoolThread()	
 	end
 	if self.myUnitCount == nil or raidAttackRefreshRate == nil or raidRegroupRefreshRate == nil or (frame+self.myUnitCount)%2000 == 0 then
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
-		raidAttackRefreshRate = self.myUnitCount
+		raidAttackRefreshRate = self.myUnitCount*3
 		if raidAttackRefreshRate < 120 then
 			raidAttackRefreshRate = 120
 		end
@@ -70,8 +53,8 @@ function RaiderHandler:Update()
 				self.squads[i].target = self.targetPool[3]
 			else
 				local target = GG.AiHelpers.TargetsOfInterest.GetTarget(self.ai.id)
-				if self.CommInDanger then
-					self.squads[i].target = self.CommAttackerPos
+				if ai.triggerhandler.CommInDanger and ai.triggerhandler.CommAttackerPos and ai.triggerhandler.CommAttackerPos.x then
+					self.squads[i].target = ai.triggerhandler.CommAttackerPos
 				elseif target and squad.role == "attacker" then
 					self.squads[i].target = target
 				else
