@@ -36,8 +36,6 @@ return {
 		upright = true,
 		customparams = {
 			techlevel = 2,
-			wpn1turretx = 400,
-			wpn1turrety = 500,
 		},
 		featuredefs = {
 			dead = {
