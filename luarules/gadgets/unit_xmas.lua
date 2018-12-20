@@ -29,7 +29,7 @@ if gadgetHandler:IsSyncedCode() then
 		maxDecorations = Spring.GetModOptions().xmasballsmax
 	end
 
-	_G.itsXmas = true
+	_G.itsXmas = false
 
 	for fdefID,def in ipairs(FeatureDefs) do
 		if def.tooltip == "Xmas Commander Wreckage" then
@@ -43,9 +43,12 @@ if gadgetHandler:IsSyncedCode() then
 		{40, 1, 0.7},
 		{100, 1, 0.8},
 		{200, 1, 0.9},
-		{400, 2, 0.95},
-		{750, 3, 1.05},
+		{350, 2, 0.9},
+		{600, 2, 1},
+		{900, 3, 1.05},
+		{1200, 3, 1.15},
 		{1500, 4, 1.15},
+		{2000, 4, 1.25},
 		{2500, 5, 1.25},
 		{4000, 6, 1.35},
 		{7000, 7, 1.45},
@@ -54,7 +57,7 @@ if gadgetHandler:IsSyncedCode() then
 	}
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
-		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] then
+		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] and not def.modCategories["object"] then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-13) / 7.5))
 				local cost = def.metalCost + (def.energyCost/100)
@@ -64,7 +67,7 @@ if gadgetHandler:IsSyncedCode() then
 					if cost > v[1] then
 						balls = v[2]
 						radius = v[3] --+ impulse
-						impulse = impulse + (radius/1.5)
+						impulse = impulse + (radius/1.7)
 					else
 						break
 					end
@@ -75,7 +78,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		if def.customParams.iscommander ~= nil then
-			hasDecoration[udefID] = {28, 9, 30*22, true} -- always shows decorations for commander even if maxDecorations is reached
+			hasDecoration[udefID] = {28, 9, 30*22, 1, true} -- always shows decorations for commander even if maxDecorations is reached
 		end
 	end
 
@@ -214,7 +217,7 @@ if gadgetHandler:IsSyncedCode() then
 							local size = (UnitDefs[data[5]].radius/35)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
 							if size > 1.45 then size = 1.45 end
 							if size < 0.55 then size = 0.55 end
-							SendToUnsynced("setDecorationSize", uID, 0.5 + hasDecoration[data[5]][4] + ((hasDecoration[data[5]][4] * 0.85) * (math.random()-0.5)))--size + (math.random()*0.3) + (size * (math.random()*0.22)))
+							SendToUnsynced("setDecorationSize", uID, 0.55 + hasDecoration[data[5]][4] + ((hasDecoration[data[5]][4] * 0.85) * (math.random()-0.5)))--size + (math.random()*0.3) + (size * (math.random()*0.22)))
 						end
 					end
 					i = i + 1
@@ -272,7 +275,7 @@ if gadgetHandler:IsSyncedCode() then
 			end
 			decorationCount = decorationCount - 1
 		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
-			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][4]) then
+			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][5]) then
 
 				local _,_,_,_,buildProgress=Spring.GetUnitHealth(unitID)
 				if buildProgress and buildProgress == 1 then	-- exclude incompleted nanoframes

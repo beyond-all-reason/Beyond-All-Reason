@@ -18,7 +18,7 @@ return {
 		idleautoheal = 0,
 		maxdamage = 500000,
 		maxslope = 64,
-		mass = 35,
+		mass = 50,
 		maxwaterdepth = 0,
 		name = "Xmas ball",
 		objectname = "xmasball.s3o",
