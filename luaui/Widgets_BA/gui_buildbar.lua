@@ -483,7 +483,7 @@ function widget:Update(dt)
 
   sec = sec + dt
   local doupdate = false
-  if sec > 0.5 then
+  if sec > 0.2 then
     doupdate = true
   end
   if factoriesArea ~= nil then

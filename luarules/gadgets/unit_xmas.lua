@@ -29,7 +29,7 @@ if gadgetHandler:IsSyncedCode() then
 		maxDecorations = Spring.GetModOptions().xmasballsmax
 	end
 
-	_G.itsXmas = false
+	_G.itsXmas = true
 
 	for fdefID,def in ipairs(FeatureDefs) do
 		if def.tooltip == "Xmas Commander Wreckage" then
@@ -38,13 +38,39 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
+	local costSettings = {
+		{0, 0, 0},
+		{40, 1, 0.7},
+		{100, 1, 0.8},
+		{200, 1, 0.9},
+		{400, 2, 0.95},
+		{750, 3, 1.05},
+		{1500, 4, 1.15},
+		{2500, 5, 1.25},
+		{4000, 6, 1.35},
+		{7000, 7, 1.45},
+		{12000, 8, 1.55},
+		{20000, 9, 1.7},
+	}
 	local hasDecoration = {}
 	for udefID,def in ipairs(UnitDefs) do
 		if not def.isAirUnit and not def.modCategories["ship"] and not def.modCategories["hover"] and not def.modCategories["underwater"] then
 			if def.mass >= 35 then
 				local balls = math.floor(((def.radius-13) / 7.5))
+				local cost = def.metalCost + (def.energyCost/100)
+				local impulse = 0.35
+				local radius = 0.8
+				for _,v in ipairs(costSettings) do
+					if cost > v[1] then
+						balls = v[2]
+						radius = v[3] --+ impulse
+						impulse = impulse + (radius/1.5)
+					else
+						break
+					end
+				end
 				if balls > 0 then
-					hasDecoration[udefID] = {balls, 0.3+(def.radius/11), 30*14}
+					hasDecoration[udefID] = {balls, impulse, 30*14, radius}
 				end
 			end
 		end
@@ -188,7 +214,7 @@ if gadgetHandler:IsSyncedCode() then
 							local size = (UnitDefs[data[5]].radius/35)-- + ((UnitDefs[data[5]].xsize-1.9)/20)
 							if size > 1.45 then size = 1.45 end
 							if size < 0.55 then size = 0.55 end
-							SendToUnsynced("setDecorationSize", uID, size + (math.random()*0.3) + (size * (math.random()*0.22)))
+							SendToUnsynced("setDecorationSize", uID, 0.5 + hasDecoration[data[5]][4] + ((hasDecoration[data[5]][4] * 0.85) * (math.random()-0.5)))--size + (math.random()*0.3) + (size * (math.random()*0.22)))
 						end
 					end
 					i = i + 1
@@ -292,7 +318,7 @@ else
 
 	function gadget:UnitCreated(unitID, unitDefID, team)
 		if decorationUdefIDs[unitDefID] then
-			xmasballs[unitID] = 0.73 + (math.random()*0.44)
+			xmasballs[unitID] = 0.8 + (math.random()*0.45)
 			Spring.UnitRendering.SetUnitLuaDraw(unitID, true)
 		end
 	end
