@@ -60,13 +60,13 @@ function SkirmisherBehaviour:Update()
 		end
 	end
 	if not self.AggFactor then
-		self.AggFactor = self.ai.skirmisherhandler:GetAggressiveness(self)
+		self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
 	end
 	local unit = self.unit:Internal()
 	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or skirRangeUpdateRate == nil or skirMapUpdateRate == nil  then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = (self.isHelper and 700) or math.min(SpGetUnitMaxRange(self.unitID),500)
-		skirRangeUpdateRate = self.myUnitCount*2
+		skirRangeUpdateRate = self.myUnitCount
 		skirMapUpdateRate = skirRangeUpdateRate*3
 	end
 	if (frame%skirMapUpdateRate == self.unitIDrefreshrate%skirMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
@@ -74,12 +74,12 @@ function SkirmisherBehaviour:Update()
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
 			if not self.behaviourcontroled then
-				self.ai.skirmisherhandler:RemoveFromSquad(self)
+				self.ai.mainsquadhandler:RemoveFromSquad(self)
 			end
 		else
 			self.nearestVisibleAcrossMap = nil
 			if self.behaviourcontroled then
-				self.ai.skirmisherhandler:AssignToASquad(self)
+				self.ai.mainsquadhandler:AssignToASquad(self)
 			return
 			end
 		end
@@ -91,19 +91,19 @@ function SkirmisherBehaviour:Update()
 			self.nearestVisibleInRange = nearestVisibleInRange
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
 			if not self.behaviourcontroled then
-				self.ai.skirmisherhandler:RemoveFromSquad(self)
+				self.ai.mainsquadhandler:RemoveFromSquad(self)
 			end
 		else
 			self.nearestVisibleInRange = nil
 			if self.behaviourcontroled then
-				self.ai.skirmisherhandler:AssignToASquad(self)
+				self.ai.mainsquadhandler:AssignToASquad(self)
 			return
 			end
 		end
 	end
 	if not (self.nearestVisibleAcrossMap or self.nearestVisibleInRange) then
 		if self.behaviourcontroled then
-			self.ai.skirmisherhandler:AssignToASquad(self)
+			self.ai.mainsquadhandler:AssignToASquad(self)
 			return
 		end
 	end
@@ -118,14 +118,14 @@ function SkirmisherBehaviour:OwnerBuilt()
 	self.attacking = true
 	self.active = true
 	self.unitID = self.unit:Internal().id
-	self.AggFactor = self.ai.skirmisherhandler:GetAggressiveness(self)
-	self.ai.skirmisherhandler:AssignToASquad(self)
+	self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
+	self.ai.mainsquadhandler:AssignToASquad(self)
 	self.isHelper = UnitDefs[UnitDefNames[self.unit:Internal():Name()].id].canRepair == true
 end
 
 function SkirmisherBehaviour:OwnerDead()
 	if not self.behaviourcontroled then
-		self.ai.skirmisherhandler:RemoveFromSquad(self)
+		self.ai.mainsquadhandler:RemoveFromSquad(self)
 	end
 end
 
@@ -147,7 +147,7 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 			p = api.Position()
 			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
 		else
-			p = self.ai.skirmisherhandler.commpos
+			p = self.ai.triggerhandler.commpos
 		end
 		self.target = p
 		self.attacking = false

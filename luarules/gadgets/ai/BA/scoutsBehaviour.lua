@@ -28,10 +28,8 @@ function ScoutsBehaviour:Init()
 end
 
 function ScoutsBehaviour:Update()
-	if Spring.GetGameFrame() % 120 == 0 then
-		if Spring.GetCommandQueue (self.unit:Internal().id, 0) < 1 then
-			self:ExecuteScouting()
-		end
+	if Spring.GetGameFrame() % 360 == 0 then
+		self:ExecuteScouting()
 	end
 end
 

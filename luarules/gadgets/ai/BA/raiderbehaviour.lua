@@ -60,14 +60,14 @@ function RaiderBehaviour:Update()
 		end
 	end
 	if not self.AggFactor then
-		self.AggFactor = self.ai.raiderhandler:GetAggressiveness(self)
+		self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
 	end
 	local frame = SpGetGameFrame()
 	local unit = self.unit:Internal()
 	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or raidRangeUpdateRate == nil or raidMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
-		raidRangeUpdateRate = self.myUnitCount*2
+		raidRangeUpdateRate = self.myUnitCount
 		raidMapUpdateRate = raidRangeUpdateRate*3
 	end
 	if (frame%raidMapUpdateRate == self.unitIDrefreshrate%raidMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
@@ -75,12 +75,12 @@ function RaiderBehaviour:Update()
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
 			if not self.behaviourcontroled then
-				self.ai.raiderhandler:RemoveFromSquad(self)
+				self.ai.mainsquadhandler:RemoveFromSquad(self)
 			end
 		else
 			self.nearestVisibleAcrossMap = nil
 			if self.behaviourcontroled then
-				self.ai.raiderhandler:AssignToASquad(self)
+				self.ai.mainsquadhandler:AssignToASquad(self)
 				return
 			end
 		end
@@ -92,19 +92,19 @@ function RaiderBehaviour:Update()
 			self.nearestVisibleInRange = nearestVisibleInRange
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
 			if not self.behaviourcontroled then
-				self.ai.raiderhandler:RemoveFromSquad(self)
+				self.ai.mainsquadhandler:RemoveFromSquad(self)
 			end
 		else
 			self.nearestVisibleInRange = nil
 			if self.behaviourcontroled then
-				self.ai.raiderhandler:AssignToASquad(self)
+				self.ai.mainsquadhandler:AssignToASquad(self)
 				return
 			end
 		end
 	end
 	if not (self.nearestVisibleAcrossMap or self.nearestVisibleInRange) then
 		if self.behaviourcontroled then
-			self.ai.raiderhandler:AssignToASquad(self)
+			self.ai.mainsquadhandler:AssignToASquad(self)
 			return
 		end
 	end
@@ -119,13 +119,13 @@ function RaiderBehaviour:OwnerBuilt()
 	self.attacking = true
 	self.active = true
 	self.unitID = self.unit:Internal().id
-	self.AggFactor = self.ai.raiderhandler:GetAggressiveness(self)
-	self.ai.raiderhandler:AssignToASquad(self)
+	self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
+	self.ai.mainsquadhandler:AssignToASquad(self)
 end
 
 function RaiderBehaviour:OwnerDead()
 	if not self.behaviourcontroled then
-		self.ai.raiderhandler:RemoveFromSquad(self)
+		self.ai.mainsquadhandler:RemoveFromSquad(self)
 	end
 end
 
@@ -147,7 +147,7 @@ function RaiderBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRan
 			p = api.Position()
 			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
 		else
-			p = self.ai.raiderhandler.commpos
+			p = self.ai.triggerhandler.commpos
 		end
 		self.target = p
 		self.attacking = false

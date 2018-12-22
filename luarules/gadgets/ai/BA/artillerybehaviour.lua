@@ -60,7 +60,7 @@ function ArtilleryBehaviour:Update()
 		end
 	end
 	if not self.AggFactor then
-		self.AggFactor = self.ai.artilleryhandler:GetAggressiveness(self)
+		self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
 	end
 	local frame = SpGetGameFrame()
 	local unit = self.unit:Internal()
@@ -75,12 +75,12 @@ function ArtilleryBehaviour:Update()
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
 			if not self.behaviourcontroled then
-				self.ai.artilleryhandler:RemoveFromSquad(self)
+				self.ai.mainsquadhandler:RemoveFromSquad(self)
 			end
 		else
 			self.nearestVisibleAcrossMap = nil
 			if self.behaviourcontroled then
-				self.ai.artilleryhandler:AssignToASquad(self)
+				self.ai.mainsquadhandler:AssignToASquad(self)
 				return
 			end
 		end
@@ -92,19 +92,19 @@ function ArtilleryBehaviour:Update()
 			self.nearestVisibleInRange = nearestVisibleInRange
 			self.enemyRange = SpGetUnitMaxRange(nearestVisibleInRange)
 			if not self.behaviourcontroled then
-				self.ai.artilleryhandler:RemoveFromSquad(self)
+				self.ai.mainsquadhandler:RemoveFromSquad(self)
 			end
 		else
 			self.nearestVisibleInRange = nil
 			if self.behaviourcontroled then
-				self.ai.artilleryhandler:AssignToASquad(self)
+				self.ai.mainsquadhandler:AssignToASquad(self)
 				return
 			end
 		end
 	end
 	if not (self.nearestVisibleAcrossMap or self.nearestVisibleInRange) then
 		if self.behaviourcontroled then
-			self.ai.artilleryhandler:AssignToASquad(self)
+			self.ai.mainsquadhandler:AssignToASquad(self)
 			return
 		end
 	end
@@ -119,13 +119,13 @@ function ArtilleryBehaviour:OwnerBuilt()
 	self.attacking = true
 	self.active = true
 	self.unitID = self.unit:Internal().id
-	self.AggFactor = self.ai.artilleryhandler:GetAggressiveness(self)
-	self.ai.artilleryhandler:AssignToASquad(self)
+	self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
+	self.ai.mainsquadhandler:AssignToASquad(self)
 end
 
 function ArtilleryBehaviour:OwnerDead()
 	if not self.behaviourcontroled then
-		self.ai.artilleryhandler:RemoveFromSquad(self)
+		self.ai.mainsquadhandler:RemoveFromSquad(self)
 	end
 end
 
@@ -147,7 +147,7 @@ function ArtilleryBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleIn
 			p = api.Position()
 			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
 		else
-			p = self.ai.artilleryhandler.commpos
+			p = self.ai.triggerhandler.commpos
 		end
 		self.target = p
 		self.attacking = false
