@@ -34,7 +34,6 @@ local vehAccelerationMultiplier = 1
 
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1
-local vehRSpeedFactor = 0.35
 
 local kbotAdditionalTurnrate = 0
 local kbotTurnrateMultiplier = 1.15
@@ -42,6 +41,25 @@ local kbotTurnrateMultiplier = 1.15
 local kbotAdditionalAcceleration = 0
 local kbotAccelerationMultiplier = 1.15
 local kbotBrakerateMultiplier = 1.15
+
+
+local function getFilePath(filename, path)
+	local files = VFS.DirList(path, '*.lua')
+	for i=1,#files do
+		if path..filename == files[i] then
+			return path
+		end
+	end
+	local subdirs = VFS.SubDirs(path)
+	for i=1,#subdirs do
+		local result = getFilePath(filename, subdirs[i])
+		if result then
+			return result
+		end
+	end
+	return false
+end
+
 
 local oldUnitName = {	-- mostly duplicates
 	armdecom = 'armcom',
@@ -281,6 +299,17 @@ function UnitDef_Post(name, uDef)
 	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
 		uDef.builddistance = minimumbuilddistancerange
 	end
+
+	-- usable when baking ... keeping subfolder structure
+	if SaveDefsToCustomParams then
+		local filepath = getFilePath(name..'.lua', 'units/')
+		if filepath then
+			if not uDef.customparams then
+				uDef.customparams = {}
+			end
+			uDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
+		end
+	end
 end
 
 
@@ -420,16 +449,16 @@ function ModOptions_Post (UnitDefs, WeaponDefs)
 	local map_tidal = modOptions and modOptions.map_tidal
 		if map_tidal and map_tidal ~= "unchanged" then
 			for id, unitDef in pairs(UnitDefs) do
-					if unitDef.tidalgenerator == 1 then
-						unitDef.tidalgenerator = 0
-						if map_tidal == "low" then
-							unitDef.energymake = 13
-						elseif map_tidal == "medium" then
-							unitDef.energymake = 18
-						elseif map_tidal == "high" then
-							unitDef.energymake = 23
-						end
+				if unitDef.tidalgenerator == 1 then
+					unitDef.tidalgenerator = 0
+					if map_tidal == "low" then
+						unitDef.energymake = 13
+					elseif map_tidal == "medium" then
+						unitDef.energymake = 18
+					elseif map_tidal == "high" then
+						unitDef.energymake = 23
 					end
+				end
 			end
 		end
 
