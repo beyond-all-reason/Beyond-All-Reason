@@ -129,12 +129,12 @@ if gadgetHandler:IsSyncedCode() then
 		if cmdID == CMD_SET_PRIORITY then
 			if cmdParams and cmdParams[1] then
 				if cmdParams[1] == 0 then
-					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 0.0001)
-					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 1)			
+					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 1)
+					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 10)			
 					Spring.SetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				elseif cmdParams[1] == 1 then
-					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 1)
-					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 0.0001)			
+					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 10)
+					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 1)			
 					Spring.SetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				elseif cmdParams[1] == 2 then
 					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 1)
@@ -146,10 +146,13 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
+		if (targetID == 4294967296) and (attackerWeaponNum == 0) then
+			return true, defPriority
+		end
 		if Spring.GetUnitDefID(targetID) then
 			local allowed = true
 			local unitName = UnitDefs[Spring.GetUnitDefID(targetID)].name
-			local priority = defPriority
+			local priority = defPriority or 1.0
 			local hasPriority = (Spring.GetUnitRulesParam(unitID, "targetPriorityFighters") and Spring.GetUnitRulesParam(unitID, "targetPriorityBombers") and Spring.GetUnitRulesParam(unitID, "targetPriorityScouts"))
 			if hasPriority then
 				if airCategories[unitName] then
