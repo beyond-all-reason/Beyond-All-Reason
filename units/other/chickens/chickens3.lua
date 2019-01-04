@@ -49,7 +49,6 @@ return {
 		unitname = "chickens3",
 		customparams = {
 			subfolder = "other/chickens/",
-			unittype = "mobile",
 		},
 		featuredefs = {
 			dead = {},

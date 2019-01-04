@@ -46,7 +46,6 @@ return {
 		yardmap = "oo oo",
 		customparams = {
 			subfolder = "other/chickens/",
-			unittype = "mobile",
 		},
 		featuredefs = {},
 		sfxtypes = {

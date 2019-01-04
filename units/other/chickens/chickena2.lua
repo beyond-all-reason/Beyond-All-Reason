@@ -59,7 +59,6 @@ return {
 		customparams = {
 			maxrange = "200",
 			subfolder = "other/chickens/",
-			unittype = "mobile",
 		},
 		featuredefs = {
 			dead = {},

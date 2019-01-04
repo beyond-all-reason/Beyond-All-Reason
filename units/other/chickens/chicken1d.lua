@@ -57,7 +57,6 @@ return {
 		workertime = 0,
 		customparams = {
 			subfolder = "other/chickens/",
-			unittype = "mobile",
 		},
 		featuredefs = {
 			dead = {},
