@@ -1,7 +1,7 @@
 ﻿10.20 -> 10.21
 XX/XX/XXXX
 
- • unit_targetting_priorities compatibility for latest maintenance engines (960+) (issue #6112)
+ • unit_targetting_priorities compatibility for latest maintenance engines (963+) (issue #6112)
 
 
 10.19 -> 10.20

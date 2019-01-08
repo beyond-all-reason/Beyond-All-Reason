@@ -146,7 +146,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	
 	function gadget:AllowWeaponTarget(unitID, targetID, attackerWeaponNum, attackerWeaponDefID, defPriority)
-		if (targetID == 4294967296) and (attackerWeaponNum == 0) then
+		if (targetID == -1) and (attackerWeaponNum == -1) then
 			return true, defPriority
 		end
 		if Spring.GetUnitDefID(targetID) then
