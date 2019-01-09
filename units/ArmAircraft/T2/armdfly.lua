@@ -136,7 +136,7 @@ return {
 			[1] = {
 				badtargetcategory = "VTOL",
 				def = "ARMDFLY_PARALYZER",
-				onlytargetcategory = "NOTSUB",
+				onlytargetcategory = "EMPABLE",
 			},
 		},
 	},

@@ -25,7 +25,7 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	and cmdParams[2] == nil
 	and type(cmdParams[1]) == 'number'
 	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil
-	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
+	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].modCategories.empable == nil then		--	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
 		return false
 	else
 		return true

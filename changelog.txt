@@ -1,7 +1,8 @@
 ﻿10.20 -> 10.21
-XX/XX/XXXX
+XX/XX/2019
 
- • Fixed fusions' globes not hiding when LUPS is enabled
+ • EMP units wont target non-emapable units any longer when patrolling
+ • Fixed fusions globes not hiding when LUPS is enabled
  • Fixed critters gadget casually triggering non game-breaking errors
  • unit_targetting_priorities compatibility for latest maintenance engines (963+) (issue #6112)
 

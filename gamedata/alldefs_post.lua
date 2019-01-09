@@ -217,7 +217,7 @@ function UnitDef_Post(name, uDef)
 	end
 
 
-	if uDef.category and uDef.category['chicken'] ~= nil then
+	if uDef.category and string.find(uDef.category, "CHICKEN") then
 		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy
 	end
 	
@@ -298,6 +298,15 @@ function UnitDef_Post(name, uDef)
 	--Set a minimum for builddistance
 	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
 		uDef.builddistance = minimumbuilddistancerange
+	end
+
+	-- add unit category: EMPABLE
+	if uDef.category and string.find(uDef.category, "SURFACE") then
+		if uDef.customparams and uDef.customparams.paralyzemultiplier and uDef.customparams.paralyzemultiplier == 0 then
+
+		else
+			uDef.category = uDef.category ..' EMPABLE'
+		end
 	end
 
 	-- usable when baking ... keeping subfolder structure
