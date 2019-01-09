@@ -24,9 +24,17 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdO
 	and empUnits[unitDefID]
 	and cmdParams[2] == nil
 	and type(cmdParams[1]) == 'number'
-	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil
-	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].modCategories.empable == nil then		--	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
-		return false
+	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])] ~= nil then
+		if UnitDefs[Spring.GetUnitDefID(cmdParams[1])].modCategories.empable == nil then		--	and UnitDefs[Spring.GetUnitDefID(cmdParams[1])].customParams.paralyzemultiplier == '0' then
+			return false
+		else
+			local _,_,_,_,y = Spring.GetUnitPosition(cmdParams[1], true)
+			if y and y >= 0 then
+				return true
+			else
+				return false
+			end
+		end
 	else
 		return true
 	end
