@@ -6,7 +6,7 @@ return {
 		brakerate = 1.125,
 		buildcostenergy = 10000,
 		buildcostmetal = 700,
-		builddistance = 112,
+		builddistance = 145,
 		builder = true,
 		shownanospray = false,
 		buildpic = "CORDECOM.DDS",

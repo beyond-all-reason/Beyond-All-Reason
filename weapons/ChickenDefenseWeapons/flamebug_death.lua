@@ -11,8 +11,8 @@ return {
 		name = "flamebug_death",
 		range = "450",
 		reloadtime = "3.6",
-		soundhit = "ChickenDefenseSounds/chicken_nuke",
-		soundstart = "ChickenDefenseSounds/bigbugdie",
+		soundhit = "chickens/chicken_nuke",
+		soundstart = "chickens/bigbugdie",
 		turret = "1",
 		weaponvelocity = "250",
 		damage = {

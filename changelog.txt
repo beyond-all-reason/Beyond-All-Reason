@@ -1,6 +1,7 @@
 ﻿10.20 -> 10.21
-XX/XX/2019
+11/01/2019
 
+ • Removed global minimum buildrange of 155, commanders remain having 145
  • EMP units (bladewing/emp-spider/stiletto/dragonfly) wont target non-emapable/underwater units anymore
  • Fixed fusions globes not hiding when LUPS is enabled
  • Fixed critters gadget casually triggering non game-breaking errors

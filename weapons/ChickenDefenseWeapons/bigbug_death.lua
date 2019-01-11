@@ -9,7 +9,7 @@ return {
 		name = "bigbug_death",
 		range = "450",
 		reloadtime = "3.6",
-		soundhit = "ChickenDefenseSounds/bigbugdie",
+		soundhit = "chickens/bigbugdie",
 		turret = "1",
 		weaponvelocity = "250",
 		damage = {

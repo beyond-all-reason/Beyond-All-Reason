@@ -9,7 +9,7 @@ return {
 		name = "queen_death",
 		range = "450",
 		reloadtime = "3.6",
-		soundhit = "ChickenDefenseSounds/bigchickendead",
+		soundhit = "chickens/bigchickendead",
 		turret = "1",
 		weaponvelocity = "250",
 		damage = {

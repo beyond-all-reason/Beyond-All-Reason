@@ -9,7 +9,7 @@ return {
 		name = "roost_death",
 		range = "450",
 		reloadtime = "3.6",
-		soundhit = "ChickenDefenseSounds/roostdie",
+		soundhit = "chickens/roostdie",
 		turret = "1",
 		weaponvelocity = "250",
 		damage = {

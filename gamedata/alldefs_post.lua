@@ -24,8 +24,6 @@ SaveDefsToCustomParams = false
 -------------------------
 
 -- process unitdef
-local minimumbuilddistancerange = 155
-
 local vehAdditionalTurnrate = 0
 local vehTurnrateMultiplier = 1.0
 
@@ -293,11 +291,6 @@ function UnitDef_Post(name, uDef)
 		
 		uDef.turninplace = true
 		uDef.turninplaceanglelimit = 90
-	end
-
-	--Set a minimum for builddistance
-	if uDef.builddistance ~= nil and uDef.builddistance < minimumbuilddistancerange then
-		uDef.builddistance = minimumbuilddistancerange
 	end
 
 	-- add unit category: EMPABLE

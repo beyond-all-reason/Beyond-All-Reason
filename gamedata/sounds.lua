@@ -139,7 +139,7 @@ for i=1,#files do
 	}
 end
 
-local files = VFS.DirList("sounds/ChickenDefenseSounds/")
+local files = VFS.DirList("sounds/chickens/")
 local t = Sounds.SoundItems
 for i=1,#files do
    local fileName = files[i]
