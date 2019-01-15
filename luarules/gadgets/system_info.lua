@@ -42,8 +42,6 @@ else
 	--------------------------------------------------------------------------------
 
 	local SendLuaRulesMsg				= Spring.SendLuaRulesMsg
-	local GetMyPlayerID					= Spring.GetMyPlayerID
-	local myPlayerID					= GetMyPlayerID()
 	local systems						= {}
 	local validation = SYNCED.validationSys
 	
@@ -64,6 +62,11 @@ else
 		if Engine ~= nil and Platform ~= nil then	-- v104
 			if Platform.gpu ~= nil then
 				s_gpu = Platform.gpu
+				s_gpu = string.gsub(s_gpu, "/PCIe", "")
+				s_gpu = string.gsub(s_gpu, "/SSE2", "")
+				s_gpu = string.gsub(s_gpu, " Series", "")
+				s_gpu = string.gsub(s_gpu, "%((.*)%)", "")
+				s_gpu = string.gsub(s_gpu, "Gallium ([0-9].*) on ", "")
 				if Platform.gpuVendor == 'Nvidia' then
 					s_gpuVram = Platform.gpuMemorySize
 				end
@@ -92,22 +95,7 @@ else
 				if s_gpu ~= nil and string.match(line, 'current=\{[0-9]*x[0-9]*') then
 					s_resolution = string.sub(string.match(line, 'current=\{[0-9]*x[0-9]*'), 10)
 				end
-				if s_gpu ~= nil and string.find(line, 'GPU memory') and not string.find(line, 'unknown') then
-					s_gpuVram = string.match(line, '[0-9]*MB')
-					s_gpuVram = string.gsub(s_gpuVram, "MB ", "")
-					if string.find(s_gpuVram, ',') then
-						s_gpuVram = string.sub(s_gpuVram, 0, string.find(s_gpuVram, ',')-1)
-					end
-				end
 
-				if s_gpu == nil and string.find(line, 'GL renderer')  then
-					s_gpu = string.sub(line, 14)
-					s_gpu = string.gsub(s_gpu, "/PCIe", "")
-					s_gpu = string.gsub(s_gpu, "/SSE2", "")
-					s_gpu = string.gsub(s_gpu, " Series", "")
-					s_gpu = string.gsub(s_gpu, "%((.*)%)", "")
-					s_gpu = string.gsub(s_gpu, "Gallium ([0-9].*) on ", "")
-				end
 				if s_gpu == nil and string.find(line, '(Supported Video modes on Display )')  then
 					if s_displays == nil then
 						s_displays = ''
@@ -122,27 +110,28 @@ else
 				if string.find(line, 'Logical CPU Cores') then
 					s_cpuCoresLogical = string.match(line, '([0-9].*)')
 				end
-				if (string.find(line:lower(), 'hardware config')) then
-					s_cpu = string.sub(line, 23)
+				if (string.find(line:lower(), 'hardware config: ')) then
+					s_cpu = string.sub(line, select(2, string.find(line:lower(), 'hardware config: ')))
 					s_cpu = string.match(s_cpu, '([\+a-zA-Z0-9 ()@._-]*)')
 					s_cpu = string.gsub(s_cpu, " Processor", "")
 					s_cpu = string.gsub(s_cpu, " Eight[-]Core", "")
 					s_cpu = string.gsub(s_cpu, " Six[-]Core", "")
 					s_cpu = string.gsub(s_cpu, " Quad[-]Core", "")
+					s_cpu = string.gsub(s_cpu, " CPU", "")
 					s_cpu = string.gsub(s_cpu, "%((.*)%)", "")
 					s_ram = string.match(line, '([0-9]*MB RAM)')
 					s_ram = string.gsub(s_ram, " RAM", "")
 				end
-				if (string.find(line:lower(), 'operating system')) then
-					s_os = string.sub(line, 23)
+				if (string.find(line:lower(), 'operating system: ')) then
+					s_os = string.sub(line, select(2, string.find(line:lower(), 'operating system: ')))
 				end
 			end
 
 
-			if s_os == nil and s_configs_os == nil and string.find(line, 'Operating System:') then
-				local charStart = string.find(line, 'Operating System:')
-				s_os = string.sub(line, 18 + charStart)
-			end
+			--if s_os == nil and s_configs_os == nil and string.find(line, 'Operating System:') then
+			--	local charStart = string.find(line, 'Operating System:')
+			--	s_os = string.sub(line, 18 + charStart)
+			--end
 
 			if s_config ~= nil and configEnd == nil and line == '============== </User Config> ==============' then
 				configEnd = true
@@ -157,8 +146,13 @@ else
 			end
 		end
 
-		if string.find(s_os, 'Windows') then	-- simplyfy, also for some privacy (hiding build number)
-			s_os = string.match(s_os, "(Windows [0-9.]*)")
+		if s_os then
+			if string.find(s_os, 'Windows') then	-- simplyfy, also for some privacy (hiding build number)
+				s_os = string.match(s_os, "(Windows [0-9.]*)")
+			end
+			if string.find(s_os, 'Linux') then	-- simplyfy, also for some privacy (hiding build number)
+				s_os = 'Linux'
+			end
 		end
 
 		local system = ''

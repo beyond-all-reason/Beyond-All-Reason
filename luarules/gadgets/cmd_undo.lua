@@ -7,7 +7,7 @@ function gadget:GetInfo()
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= true
+		enabled	= false
 	}
 end
 
@@ -36,11 +36,7 @@ if gadgetHandler:IsSyncedCode() then
 
 
 	local authorizedPlayers  = {
-		'[teh]Flow',
-		'Floris',
-		'FlowerPower',
-		'[Fx]Doo',
-		'[PiRO]JiZaH',
+
 	}
 
 	local teamSelfdUnits = {}

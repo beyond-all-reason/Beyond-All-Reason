@@ -2,17 +2,22 @@
 function gadget:GetInfo()
 	return {
 		name    = "Give Command",
-		desc	= 'Give units (only availible to a select few playernames)',
+		desc	= 'Give units (only availible to a select few playernames in testhost only)',
 		author	= 'Floris',
 		date	= 'June 2017',
 		license	= 'GNU GPL, v2 or later',
 		layer	= 1,
-		enabled	= true
+		enabled	= false
 	}
 end
 
 
 if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION'))) then
+
+	local authorizedPlayers  = {
+
+	}
+
 
 	-- usage: /luarules give 1 armcom 0
 
@@ -20,8 +25,6 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 
 	local PACKET_HEADER = "$g$"
 	local PACKET_HEADER_LENGTH = string.len(PACKET_HEADER)
-
-	local authorizedPlayers  = {'[teh]Flow', 'FlowerPower', 'Floris'}
 
 	local isSilentUnitGift = {armstone=true, corstone=true, chip=true, dice=true, xmasball=true, xmasball2=true}
 
