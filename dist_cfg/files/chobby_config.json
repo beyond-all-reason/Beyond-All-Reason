@@ -1,0 +1,9 @@
+{
+    "server" : {
+        "address"    : "springrts.com",
+        "port"       : 8200,
+        "protocol"   : "spring",
+        "serverName" : "Spring"
+    },
+    "game" : "generic"
+}
