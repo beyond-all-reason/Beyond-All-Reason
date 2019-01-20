@@ -68,7 +68,7 @@ else
 				s_gpu = string.gsub(s_gpu, "%((.*)%)", "")
 				s_gpu = string.gsub(s_gpu, "Gallium ([0-9].*) on ", "")
 				if Platform.gpuVendor == 'Nvidia' then
-					s_gpuVram = Platform.gpuMemorySize
+					s_gpuVram = math.floor(Platform.gpuMemorySize/1000)..'MB'
 				end
 			end
 			if Platform.osFamily ~= nil then

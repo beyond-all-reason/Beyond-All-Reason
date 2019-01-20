@@ -8,7 +8,7 @@
             },
             "downloads": {
                 "games" : ["ba:test", "chobby:test"],
-                "engines" : [ "104.0.1-968-gb54c668 maintenance" ]
+                "engines" : [ "104.0.1-969-ga0e1218 maintenance" ]
             },
             "no_start_script" : true,
             "launch": {
