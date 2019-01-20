@@ -3,8 +3,8 @@ return {
 		acceleration = 0.049,
 		activatewhenbuilt = true,
 		brakerate = 0.045,
-		buildcostenergy = 1300,
-		buildcostmetal = 100,
+		buildcostenergy = 1350,
+		buildcostmetal = 99,
 		buildpic = "CORVOYR.DDS",
 		buildtime = 3945,
 		canattack = false,
@@ -38,6 +38,7 @@ return {
 		turninplacespeedlimit = 0.99,
 		turnrate = 583,
 		customparams = {
+			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 250,
 				description = "Voyeur Heap",
 				energy = 0,
@@ -75,19 +78,17 @@ return {
 				hitdensity = 100,
 				metal = 24,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

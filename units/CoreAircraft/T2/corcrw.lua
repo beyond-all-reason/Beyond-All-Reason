@@ -2,9 +2,10 @@ return {
 	corcrw = {
 		acceleration = 0.15,
 		activatewhenbuilt = true,
+		blocking = false,
 		brakerate = 0.375,
-		buildcostenergy = 74000,
-		buildcostmetal = 5000,
+		buildcostenergy = 72000,
+		buildcostmetal = 5100,
 		buildpic = "CORCRW.DDS",
 		buildtime = 84229,
 		canfly = true,
@@ -13,7 +14,7 @@ return {
 		collide = true,
 		cruisealt = 80,
 		description = "Flying Fortress",
-        energymake = 50,
+		energymake = 50,
 		explodeas = "largeexplosiongeneric",
 		footprintx = 3,
 		footprintz = 3,
@@ -34,24 +35,24 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 300,
 		upright = true,
-		blocking = false,
 		customparams = {
+			subfolder = "coreaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.8,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-large",
+				[2] = "crashing-large",
+				[3] = "crashing-large2",
+				[4] = "crashing-large3",
+				[5] = "crashing-large3",
 			},
-			crashExplosionGenerators = {
-				"crashing-large",
-				"crashing-large",
-				"crashing-large2",
-				"crashing-large3",
-				"crashing-large3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -79,7 +80,7 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamtime = 0.1,
-				beamTTL = 1,
+				beamttl = 1,
 				corethickness = 0.13,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -108,19 +109,19 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					light_radius_mult = "1.1",
+				},
 				damage = {
 					default = 90,
 					subs = 5,
-				},
-				customparams = {
-					light_radius_mult = "1.1",		-- used by light_effects widget
 				},
 			},
 			krowlaser2 = {
 				areaofeffect = 32,
 				avoidfeature = false,
 				beamtime = 0.25,
-				beamTTL = 1,
+				beamttl = 1,
 				corethickness = 0.2,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -148,12 +149,12 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					light_radius_mult = "1.1",
+				},
 				damage = {
 					default = 250,
 					subs = 5,
-				},
-				customparams = {
-					light_radius_mult = "1.1",		-- used by light_effects widget
 				},
 			},
 		},

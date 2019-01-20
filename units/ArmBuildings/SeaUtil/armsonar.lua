@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 450,
-		buildcostmetal = 20,
+		buildcostenergy = 430,
+		buildcostmetal = 21,
 		buildpic = "ARMSONAR.DDS",
 		buildtime = 912,
 		canattack = false,
@@ -36,8 +36,9 @@ return {
 		sonardistance = 1200,
 		yardmap = "oooo",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/seautil",
 		},
 		featuredefs = {
 			dead = {
@@ -60,10 +61,10 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

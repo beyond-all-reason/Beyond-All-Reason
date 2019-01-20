@@ -1,9 +1,10 @@
 return {
 	armblade = {
 		acceleration = 0.6,
+		blocking = false,
 		brakerate = 0.35,
-		buildcostenergy = 21000,
-		buildcostmetal = 1300,
+		buildcostenergy = 22000,
+		buildcostmetal = 1250,
 		buildpic = "ARMBLADE.DDS",
 		buildtime = 23964,
 		canfly = true,
@@ -33,24 +34,24 @@ return {
 		sightdistance = 624,
 		turninplaceanglelimit = 360,
 		turnrate = 720,
-		blocking = false,
 		customparams = {
-			wingsurface = 0.2,
+			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			wingsurface = 0.2,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -80,11 +81,11 @@ return {
 				burnblow = true,
 				burst = 2,
 				burstrate = 0.24,
+				cegtag = "missiletrailsmall",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
 				impulseboost = 1,
@@ -110,14 +111,14 @@ return {
 				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
+				customparams = {
+					bar_model = "cormissile2.s3o",
+				},
 				damage = {
 					commanders = 95,
 					default = 190,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "cormissile2.s3o",
-				}
 			},
 		},
 		weapons = {

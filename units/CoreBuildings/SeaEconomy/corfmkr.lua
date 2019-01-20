@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 2500,
+		buildcostenergy = 2400,
 		buildcostmetal = 1,
 		buildpic = "CORFMKR.DDS",
 		buildtime = 2682,
@@ -28,15 +28,16 @@ return {
 		waterline = 24,
 		yardmap = "wwwwwwwww",
 		customparams = {
-            bar_waterline = 3.5,
-			removewait = true,
+			bar_waterline = 3.5,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/seaeconomy",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

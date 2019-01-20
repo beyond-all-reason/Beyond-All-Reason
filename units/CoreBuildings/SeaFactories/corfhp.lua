@@ -5,7 +5,6 @@ return {
 		buildcostenergy = 5500,
 		buildcostmetal = 1150,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORFHP.DDS",
 		buildtime = 17817,
 		canmove = true,
@@ -29,6 +28,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 312,
 		terraformspeed = 1000,
 		waterline = 4,
@@ -44,7 +44,7 @@ return {
 			[7] = "corthovr",
 		},
 		customparams = {
-			
+			subfolder = "corebuildings/seafactories",
 		},
 		featuredefs = {
 			dead = {
@@ -67,11 +67,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -1,8 +1,9 @@
 return {
 	corape = {
 		acceleration = 0.15,
+		blocking = false,
 		brakerate = 0.356,
-		buildcostenergy = 7000,
+		buildcostenergy = 6800,
 		buildcostmetal = 370,
 		buildpic = "CORAPE.DDS",
 		buildtime = 14500,
@@ -33,24 +34,24 @@ return {
 		sightdistance = 550,
 		turninplaceanglelimit = 360,
 		turnrate = 600,
-		blocking = false,
 		customparams = {
+			subfolder = "coreaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.65,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -78,18 +79,18 @@ return {
 				areaofeffect = 128,
 				avoidfeature = false,
 				burnblow = true,
+				cegtag = "missiletrailsmall",
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
+				flighttime = 2,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "missile_medium_fast",
 				name = "Heavy a2g shrapnel rockets",
 				noselfdamage = true,
-				flighttime = 2,
 				range = 410,
 				reloadtime = 1.1,
 				smoketrail = false,
@@ -108,6 +109,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 700,
+				customparams = {
+					bar_model = "cormissile2fast.s3o",
+				},
 				damage = {
 					bombers = 15,
 					commanders = 61,
@@ -116,9 +120,6 @@ return {
 					subs = 5,
 					vtol = 15,
 				},
-				customparams = {
-					bar_model = "cormissile2fast.s3o",
-				}
 			},
 		},
 		weapons = {

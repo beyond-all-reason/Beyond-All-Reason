@@ -1,6 +1,7 @@
 return {
 	corcut = {
 		acceleration = 0.18,
+		blocking = false,
 		brakerate = 0.3938,
 		buildcostenergy = 5400,
 		buildcostmetal = 230,
@@ -34,23 +35,22 @@ return {
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
 		turnrate = 550,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "coreseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

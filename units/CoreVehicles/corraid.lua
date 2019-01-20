@@ -2,8 +2,8 @@ return {
 	corraid = {
 		acceleration = 0.021,
 		brakerate = 0.09,
-		buildcostenergy = 2400,
-		buildcostmetal = 230,
+		buildcostenergy = 2300,
+		buildcostmetal = 240,
 		buildpic = "CORRAID.DDS",
 		buildtime = 3312,
 		canmove = true,
@@ -23,12 +23,13 @@ return {
 		leavetracks = true,
 		maxdamage = 1769,
 		maxslope = 10,
-		maxvelocity = 2.40,
+		maxvelocity = 2.4,
 		maxwaterdepth = 12,
 		movementclass = "TANK2",
 		name = "Raider",
 		nochasecategory = "VTOL",
 		objectname = "CORRAID",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 325,
@@ -40,35 +41,29 @@ return {
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.873,
 		turnrate = 371,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 6,
 			bar_trackstrength = 5,
-			bar_trackwidth = 28,
 			bar_tracktype = "corwidetracks",
+			bar_trackwidth = 28,
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "45",
+			cobturretyspeed = "80",
 			description_long = "The Raider a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Raiders can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Slashers or artillery for a great frontline push or use large packs for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "flare",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-tiny",
-					driftratio = "0.1", --How likely will the unit drift when performing turns?
-					rockstrength = "5", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "80", --turretSpeed as seen in COB script
-					cobturretxspeed = "45", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
-			},
+			driftratio = "0.1",
+			firingceg = "barrelshot-tiny",
+			flare1name = "flare",
+			kickback = "-2.4",
+			restoretime = "3000",
+			rockrestorespeed = "20",
+			rockspeed = "80",
+			rockstrength = "5",
+			sleevename = "sleeve",
+			subfolder = "corevehicles",
+			turretname = "turret",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -94,6 +89,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 488,
 				description = "Raider Heap",
 				energy = 0,
@@ -104,22 +101,20 @@ return {
 				hitdensity = 100,
 				metal = 67,
 				object = "2X2E",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

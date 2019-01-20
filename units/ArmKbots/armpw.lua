@@ -2,8 +2,8 @@ return {
 	armpw = {
 		acceleration = 0.36,
 		brakerate = 0.6,
-		buildcostenergy = 1000,
-		buildcostmetal = 45,
+		buildcostenergy = 960,
+		buildcostmetal = 48,
 		buildpic = "ARMPW.DDS",
 		buildtime = 1420,
 		canmove = true,
@@ -36,7 +36,8 @@ return {
 		turnrate = 1056,
 		upright = true,
 		customparams = {
-			description_long = "Peewee is a basic infantry Kbot. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Peewees can be used for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",  
+			description_long = "Peewee is a basic infantry Kbot. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Peewees can be used for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",
+			subfolder = "armkbots",
 			wpn1turretx = 300,
 			wpn1turrety = 300,
 		},
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 96,
 				description = "Peewee Heap",
 				energy = 0,
@@ -75,21 +78,19 @@ return {
 				hitdensity = 100,
 				metal = 12,
 				object = "2X2F",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg2",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg2",
 			},
 		},
 		sounds = {

@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 1200,
+		buildcostenergy = 1250,
 		buildcostmetal = 1,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "cormakr_aoplane.dds",
+		buildinggrounddecaltype = "decals/cormakr_aoplane.dds",
 		buildpic = "CORMAKR.DDS",
 		buildtime = 2682,
 		canrepeat = false,
@@ -40,14 +40,15 @@ return {
 			bar_footprintx = 3,
 			bar_footprintz = 3,
 			bar_yardmap = "ooooooooo",
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landeconomy",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

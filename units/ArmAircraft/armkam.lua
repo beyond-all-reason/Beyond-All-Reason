@@ -1,9 +1,10 @@
 return {
 	armkam = {
 		acceleration = 0.15,
+		blocking = false,
 		brakerate = 0.375,
-		buildcostenergy = 2400,
-		buildcostmetal = 130,
+		buildcostenergy = 2300,
+		buildcostmetal = 135,
 		buildpic = "ARMKAM.DDS",
 		buildtime = 5046,
 		canfly = true,
@@ -32,24 +33,24 @@ return {
 		sightdistance = 520,
 		turninplaceanglelimit = 360,
 		turnrate = 700,
-		blocking = false,
 		customparams = {
 			description_long = "The Banshee is a light gunship that can deal damage to land based units. It has very weak armor, that can be shattered by T1 anti air with ease, so always send them in packs and scout before striking. It is a weapon of surprise, try to keep it away from your foe's radars before attacking. If you succeed to put your gunships into an unguarded base, or over hostile Commander it will have no chance to survive. An effective attacking order is: nano towers -> AA towers,units -> eco and labs.",
+			subfolder = "armaircraft",
 			wingsurface = 0.25,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

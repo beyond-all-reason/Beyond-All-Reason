@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 1200,
-		buildcostmetal = 400,
+		buildcostenergy = 1350,
+		buildcostmetal = 380,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "armuwms_aoplane.dds",
+		buildinggrounddecaltype = "decals/armuwms_aoplane.dds",
 		buildpic = "ARMUWMS.DDS",
 		buildtime = 3741,
 		canrepeat = false,
@@ -35,8 +35,9 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 4,
 			bar_buildinggrounddecalsizey = 3.6,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/seaeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -62,6 +63,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 975,
 				description = "Underwater Metal Storage Heap",
 				energy = 0,
@@ -71,19 +74,17 @@ return {
 				hitdensity = 100,
 				metal = 94,
 				object = "4X4B",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

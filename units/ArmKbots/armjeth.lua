@@ -3,8 +3,8 @@ return {
 		acceleration = 0.12,
 		airsightdistance = 800,
 		brakerate = 0.564,
-		buildcostenergy = 1200,
-		buildcostmetal = 120,
+		buildcostenergy = 1100,
+		buildcostmetal = 125,
 		buildpic = "ARMJETH.DDS",
 		buildtime = 1831,
 		canmove = true,
@@ -36,8 +36,9 @@ return {
 		turnrate = 1118,
 		upright = true,
 		customparams = {
-			description_long = "Jethro is a cheap mobile anti air (AA) Kbot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can even prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",  
-			prioritytarget = "air",		
+			description_long = "Jethro is a cheap mobile anti air (AA) Kbot, that can easily take down light aircrafts, like scouts, or transporters. Always send a few with your army to protect it from EMP drones/gunships or commander drop tactics. Remember that it has no land-to-land weapons, so it is not able to defend itself. In bigger numbers it can even prevent bombing runs. It is able to walk underwater - combine it with amphibious units!",
+			prioritytarget = "air",
+			subfolder = "armkbots",
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 271,
 				description = "Jethro Heap",
 				energy = 0,
@@ -74,21 +77,19 @@ return {
 				hitdensity = 100,
 				metal = 30,
 				object = "2X2C",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -117,10 +118,10 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
+				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailaa",
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 1.75,
@@ -148,18 +149,18 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
+				customparams = {
+					bar_model = "cormissile.s3o",
+					expl_light_color = "1 0.4 0.5",
+					expl_light_mult = 0.4,
+					expl_light_radius_mult = 0.66,
+					light_color = "1 0.5 0.6",
+					light_skip = true,
+				},
 				damage = {
 					bombers = 110,
 					fighters = 110,
 					vtol = 110,
-				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-					light_skip = true,		-- used by light_effects widget
-					light_color = "1 0.5 0.6",
-					expl_light_color = "1 0.4 0.5",
-					expl_light_radius_mult = 0.66,
-					expl_light_mult = 0.4,
 				},
 			},
 			bogus_missile = {

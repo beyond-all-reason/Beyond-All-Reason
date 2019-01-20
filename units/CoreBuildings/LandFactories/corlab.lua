@@ -3,14 +3,13 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 1024,
-		buildcostenergy = 1200,
-		buildcostmetal = 650,
+		buildcostenergy = 1300,
+		buildcostmetal = 620,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
-		buildinggrounddecaltype = "corlab_aoplane.dds",
+		buildinggrounddecaltype = "decals/corlab_aoplane.dds",
 		buildpic = "CORLAB.DDS",
 		buildtime = 6500,
 		canmove = true,
@@ -35,6 +34,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 290,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
@@ -53,6 +53,7 @@ return {
 			bar_buildinggrounddecalsizey = 5.85,
 			bar_collisionvolumeoffsets = "4 0 2",
 			bar_collisionvolumescales = "93 92 87",
+			subfolder = "corebuildings/landfactories",
 		},
 		featuredefs = {
 			dead = {
@@ -95,13 +96,13 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

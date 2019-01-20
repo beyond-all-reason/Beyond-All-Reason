@@ -3,8 +3,8 @@ return {
 		acceleration = 0.015,
 		activatewhenbuilt = true,
 		brakerate = 0.2145,
-		buildcostenergy = 30000,
-		buildcostmetal = 1000,
+		buildcostenergy = 29000,
+		buildcostmetal = 1050,
 		buildpic = "CORPARROW.DDS",
 		buildtime = 22181,
 		canmove = true,
@@ -30,47 +30,41 @@ return {
 		name = "Poison Arrow",
 		nochasecategory = "VTOL",
 		objectname = "CORPARROW",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 385,
-		sonardistance = 385*0.75,
+		sonardistance = 288.75,
 		trackoffset = -6,
 		trackstrength = 10,
 		tracktype = "StdTank",
 		trackwidth = 45,
-		turninplace = 0,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.31,
 		turnrate = 400,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = -6,
 			bar_trackstrength = 10,
 			bar_tracktype = "corparrowtracks",
 			bar_trackwidth = 46,
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "35",
+			cobturretyspeed = "55",
+			driftratio = "0.25",
+			firingceg = "barrelshot-medium",
+			flare1name = "emit",
+			kickback = "-4",
+			restoretime = "3000",
+			rockrestorespeed = "20",
+			rockspeed = "80",
+			rockstrength = "2",
+			sleevename = "sleeve",
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "emit",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-medium",
-					driftratio = "0.25", --How likely will the unit drift when performing turns?
-					rockstrength = "2", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "55", --turretSpeed as seen in COB script
-					cobturretxspeed = "35", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -97,6 +91,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 3000,
 				description = "Poison Arrow Heap",
 				energy = 0,
@@ -106,23 +102,21 @@ return {
 				hitdensity = 100,
 				metal = 257,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
 				[2] = "custom:DUST_CLOUD",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -176,37 +170,6 @@ return {
 					vtol = 60,
 				},
 			},
-			-- core_uwparrow = {
-				-- areaofeffect = 160,
-				-- avoidfeature = false,
-				-- craterareaofeffect = 160,
-				-- craterboost = 0,
-				-- cratermult = 0,
-				-- explosiongenerator = "custom:genericshellexplosion-medium",
-				-- gravityaffected = "true",
-				-- impulseboost = 0.123,
-				-- impulsefactor = 0.123,
-				-- model = "torpedo",
-				-- name = "PoisonArrowCannon",
-				-- noselfdamage = true,
-				-- range = 575,
-				-- reloadtime = 1.8,
-				-- soundhit = "xplomed1",
-				-- soundhitwet = "splslrg",
-				-- soundhitwetvolume = 0.5,
-				-- soundstart = "largegun",
-				-- turret = true,
-				-- waterweapon = true, 
-				-- weapontype = "Cannon",
-				-- weaponvelocity = 225,
-				-- damage = {
-					-- bombers = 60,
-					-- default = 185,
-					-- fighters = 60,
-					-- subs = 145,
-					-- vtol = 60,
-				-- },
-			-- },
 		},
 		weapons = {
 			[1] = {
@@ -214,11 +177,6 @@ return {
 				def = "CORE_PARROW",
 				onlytargetcategory = "SURFACE",
 			},
-			-- [2] = {
-				-- badtargetcategory = "VTOL",
-				-- def = "CORE_UWPARROW",
-				-- onlytargetcategory = "NOTHOVER",
-			-- },
 		},
 	},
 }

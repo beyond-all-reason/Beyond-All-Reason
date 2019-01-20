@@ -2,11 +2,11 @@ return {
 	corsok = {
 		acceleration = 0.09,
 		brakerate = 0.135,
-		buildcostenergy = 12000,
-		buildcostmetal = 950,
+		buildcostenergy = 62000,
+		buildcostmetal = 4200,
 		builder = false,
-		buildtime = 27000,
 		buildpic = "CORSOK.DDS",
+		buildtime = 27000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -45,7 +45,7 @@ return {
 		turnrate = 290,
 		waterline = 7,
 		customparams = {
-			
+			subfolder = "corehovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -68,6 +68,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 3500,
 				description = "Sokolov Heap",
 				featurereclamate = "smudge01",
@@ -77,19 +79,17 @@ return {
 				hitdensity = 100,
 				metal = 221,
 				object = "4x4d",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -199,10 +199,6 @@ return {
 				def = "CORSOK_LASER",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [3] = {
-				-- badtargetcategory = "VTOL",
-				-- def = "CORSOK_DEPTHCHARGE",
-			-- },
 		},
 	},
 }

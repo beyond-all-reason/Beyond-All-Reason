@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 32768,
-		buildcostenergy = 1700,
-		buildcostmetal = 200,
+		buildcostenergy = 1750,
+		buildcostmetal = 195,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "corhllt_aoplane.dds",
+		buildinggrounddecaltype = "decals/corhllt_aoplane.dds",
 		buildpic = "CORHLLT.DDS",
 		buildtime = 5448,
 		canrepeat = false,
@@ -39,6 +39,7 @@ return {
 			bar_collisionvolumeoffsets = "0 1 0",
 			bar_collisionvolumescales = "32 100 32",
 			removewait = true,
+			subfolder = "corebuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 450,
 				description = "HLLT Heap",
 				energy = 0,
@@ -75,18 +78,16 @@ return {
 				hitdensity = 100,
 				metal = 48,
 				object = "4X4D",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

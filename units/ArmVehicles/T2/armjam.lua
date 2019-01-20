@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.036,
 		buildcostenergy = 1700,
-		buildcostmetal = 100,
+		buildcostmetal = 105,
 		buildpic = "ARMJAM.DDS",
 		buildtime = 5933,
 		canattack = false,
@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 505,
 		customparams = {
+			subfolder = "armvehicles/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -71,6 +72,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 368,
 				description = "Jammer Heap",
 				featurereclamate = "SMUDGE01",
@@ -80,19 +83,17 @@ return {
 				hitdensity = 100,
 				metal = 39,
 				object = "3X3B",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

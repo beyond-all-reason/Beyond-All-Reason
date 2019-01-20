@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 2200,
-		buildcostmetal = 240,
+		buildcostenergy = 2500,
+		buildcostmetal = 290,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "armdl_aoplane.dds",
+		buildinggrounddecaltype = "decals/armdl_aoplane.dds",
 		buildpic = "ARMDL.DDS",
 		buildtime = 4180,
 		canrepeat = false,
@@ -38,6 +38,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			removewait = true,
+			subfolder = "armbuildings/seadefence",
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 305,
 				description = "Anemone Heap",
 				energy = 0,
@@ -74,19 +77,17 @@ return {
 				hitdensity = 100,
 				metal = 70,
 				object = "3X3C",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -143,13 +144,13 @@ return {
 				waterweapon = true,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				},
 				damage = {
 					commanders = 400,
 					default = 225,
 				},
-				customparams = {
-					bar_model = "cordepthcharge.s3o",
-				}
 			},
 		},
 		weapons = {

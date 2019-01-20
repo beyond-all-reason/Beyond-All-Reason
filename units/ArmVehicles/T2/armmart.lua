@@ -22,16 +22,16 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 600,
+		maxreversevelocity = 0.948,
 		maxslope = 12,
 		maxvelocity = 1.58,
-		maxreversevelocity = 1.58*0.60,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Luger",
 		nochasecategory = "NOTLAND VTOL",
 		objectname = "ARMMART",
-		seismicsignature = 0,
 		script = "BASICTANKSCRIPT.LUA",
+		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 286,
 		trackoffset = -8,
@@ -44,29 +44,24 @@ return {
 		turnrate = 300,
 		customparams = {
 			arm_tank = "1",
-			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "flare",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-medium",
-					driftratio = "0.2", --How likely will the unit drift when performing turns?
-					rockstrength = "10", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "10", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "7.5", --How fast will the cannon come back in position?
-					kickback = "-6", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "35", --turretSpeed as seen in COB script
-					cobturretxspeed = "35", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			basename = "base",
 			canareaattack = 1,
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "7.5",
+			cobturretxspeed = "35",
+			cobturretyspeed = "35",
+			driftratio = "0.2",
+			firingceg = "barrelshot-medium",
+			flare1name = "flare",
+			kickback = "-6",
+			restoretime = "3000",
+			rockrestorespeed = "10",
+			rockspeed = "80",
+			rockstrength = "10",
+			sleevename = "sleeve",
+			subfolder = "armvehicles/t2",
+			techlevel = 2,
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -93,6 +88,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 400,
 				description = "Luger Heap",
 				energy = 0,
@@ -103,22 +100,20 @@ return {
 				hitdensity = 100,
 				metal = 79,
 				object = "2X2E",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

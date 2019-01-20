@@ -4,12 +4,11 @@ return {
 		blocking = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 300,
-		buildcostmetal = 15,
+		buildcostenergy = 640,
+		buildcostmetal = 21,
 		buildpic = "ARMFDRAG.DDS",
 		buildtime = 370,
 		canattack = false,
-		canrepeat = false,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 -10 0",
@@ -31,16 +30,17 @@ return {
 		sightdistance = 1,
 		waterline = 12,
 		yardmap = "oooo",
-		sfxtypes = { 
-			pieceExplosionGenerators = { 
-				"deathceg2", 
-				"deathceg3", 
-			}, 
-		},
 		customparams = {
 			bar_waterline = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/seautil",
+		},
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+			},
 		},
 	},
 }

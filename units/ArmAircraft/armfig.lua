@@ -1,10 +1,11 @@
 return {
 	armfig = {
-		acceleration = 0.30,
+		acceleration = 0.3,
 		airsightdistance = 950,
+		blocking = false,
 		brakerate = 0.075,
-		buildcostenergy = 2800,
-		buildcostmetal = 70,
+		buildcostenergy = 2900,
+		buildcostmetal = 73,
 		buildpic = "ARMFIG.DDS",
 		buildtime = 3500,
 		canfly = true,
@@ -28,15 +29,15 @@ return {
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 210,
 		turnrate = 850,
-		blocking = false,
 		customparams = {
 			description_long = "The Freedom Fighter is a fast moving fighter jet that is designed for eliminating air units. It is the most effective form of T1 air defense that can access all parts of the map to get rid of any air threats. In large packs, it is also able to destroy weak land-based structures, like nano towers. Always put your fighters on patrol in front of your base, so they attack any aircraft moving in the vicinity. Send fighters with your bombing runs to disable opponent's fighter wall before your bombers come to deliver the final blow.",
+			subfolder = "armaircraft",
 			wingsurface = 0.5,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -65,12 +66,12 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				burnblow = true,
-		    	canattackground = false,
+				canattackground = false,
+				cegtag = "missiletrailfighter",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailfighter",
 				explosiongenerator = "custom:genericshellexplosion-tiny-air",
 				firestarter = 0,
 				impulseboost = 0,
@@ -95,17 +96,17 @@ return {
 				weaponacceleration = 400,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 850,
-				damage = {
-					bombers = 125,
-					fighters = 200,
-					vtol = 125,
-					commanders = 4,
-					default = 12,
-					subs = 4,
-				},
 				customparams = {
 					bar_model = "cormissile.s3o",
-					light_skip = true,		-- used by light_effects widget
+					light_skip = true,
+				},
+				damage = {
+					bombers = 125,
+					commanders = 4,
+					default = 12,
+					fighters = 200,
+					subs = 4,
+					vtol = 125,
 				},
 			},
 		},

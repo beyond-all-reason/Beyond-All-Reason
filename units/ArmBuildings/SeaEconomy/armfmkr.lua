@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 2500,
+		buildcostenergy = 2400,
 		buildcostmetal = 1,
 		buildpic = "ARMFMKR.DDS",
 		buildtime = 2958,
@@ -28,14 +28,15 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/seaeconomy",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

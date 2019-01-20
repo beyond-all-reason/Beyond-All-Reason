@@ -2,10 +2,9 @@ return {
 	armplat = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5000,
-		buildcostmetal = 1450,
+		buildcostenergy = 18000,
+		buildcostmetal = 1700,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMPLAT.DDS",
 		buildtime = 12000,
 		canmove = true,
@@ -28,6 +27,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 169,
 		terraformspeed = 1000,
 		waterline = 53,
@@ -43,6 +43,7 @@ return {
 		},
 		customparams = {
 			bar_waterline = 39,
+			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {
 			dead = {
@@ -65,11 +66,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

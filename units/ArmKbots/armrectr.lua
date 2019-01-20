@@ -2,11 +2,10 @@ return {
 	armrectr = {
 		acceleration = 0.2,
 		brakerate = 0.75,
-		buildcostenergy = 1500,
+		buildcostenergy = 1400,
 		buildcostmetal = 110,
 		builddistance = 96,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMRECTR.DDS",
 		buildtime = 2400,
 		canassist = false,
@@ -35,6 +34,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "smallbuilderSelfd",
+		shownanospray = false,
 		sightdistance = 430,
 		stealth = true,
 		terraformspeed = 1000,
@@ -43,9 +43,9 @@ return {
 		turnrate = 1122,
 		upright = true,
 		workertime = 150,
-		-- reclaimspeed = 100,
 		customparams = {
-			description_long = "Rector is a resurrection Kbot which can turn wrecks into brand new army members or reclaim them to get back your metal! It is fast and cheap to build, therefore it can serve as and ideal solution for reclaiming trees, rocks and other structures scattered across the map. It is essential to combine resurrection Kbots with any attacking units so they can repair and resurrect/reclaim wrecks in real-time constantly reinforcing your army. It can be used to obtain constructors of the other fraction by resurrecting enemies wrecks.",  
+			description_long = "Rector is a resurrection Kbot which can turn wrecks into brand new army members or reclaim them to get back your metal! It is fast and cheap to build, therefore it can serve as and ideal solution for reclaiming trees, rocks and other structures scattered across the map. It is essential to combine resurrection Kbots with any attacking units so they can repair and resurrect/reclaim wrecks in real-time constantly reinforcing your army. It can be used to obtain constructors of the other fraction by resurrecting enemies wrecks.",
+			subfolder = "armkbots",
 		},
 		featuredefs = {
 			dead = {
@@ -71,6 +71,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 344,
 				description = "Rector Heap",
 				featurereclamate = "SMUDGE01",
@@ -80,19 +82,17 @@ return {
 				hitdensity = 100,
 				metal = 36,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3-builder",
-				"deathceg2-builder",
-				"deathceg2",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg3-builder",
+				[2] = "deathceg2-builder",
+				[3] = "deathceg2",
 			},
 		},
 		sounds = {

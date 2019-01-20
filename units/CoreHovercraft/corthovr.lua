@@ -3,8 +3,8 @@ return {
 		acceleration = 0.036,
 		brakerate = 0.186,
 		buildangle = 16384,
-		buildcostenergy = 8000,
-		buildcostmetal = 700,
+		buildcostenergy = 8100,
+		buildcostmetal = 690,
 		buildpic = "CORTHOVR.DDS",
 		buildtime = 19587,
 		canmove = true,
@@ -43,7 +43,7 @@ return {
 		turnrate = 370,
 		waterline = 4,
 		customparams = {
-			
+			subfolder = "corehovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -66,11 +66,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

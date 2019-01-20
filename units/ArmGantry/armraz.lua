@@ -2,7 +2,7 @@ return {
 	armraz = {
 		acceleration = 0.206,
 		brakerate = 0.786,
-		buildcostenergy = 67000,
+		buildcostenergy = 68000,
 		buildcostmetal = 3800,
 		buildpic = "ARMRAZ.DDS",
 		buildtime = 88566,
@@ -34,6 +34,7 @@ return {
 		turnrate = 668,
 		upright = true,
 		customparams = {
+			subfolder = "armgantry",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -61,6 +62,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 2000,
 				description = "Razorback Heap",
 				energy = 0,
@@ -71,19 +74,17 @@ return {
 				hitdensity = 100,
 				metal = 930,
 				object = "3X3B",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

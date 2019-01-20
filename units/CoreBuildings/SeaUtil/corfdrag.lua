@@ -4,8 +4,8 @@ return {
 		blocking = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 300,
-		buildcostmetal = 15,
+		buildcostenergy = 670,
+		buildcostmetal = 21,
 		buildpic = "CORFDRAG.DDS",
 		buildtime = 400,
 		canattack = false,
@@ -30,14 +30,13 @@ return {
 		sightdistance = 1,
 		waterline = 3,
 		yardmap = "oooo",
-			sfxtypes = { 
-			pieceExplosionGenerators = { 
-			
-			}, 
-		},
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/seautil",
+		},
+		sfxtypes = {
+			pieceexplosiongenerators = {},
 		},
 	},
 }

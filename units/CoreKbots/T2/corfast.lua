@@ -3,10 +3,9 @@ return {
 		acceleration = 0.2,
 		brakerate = 1.5,
 		buildcostenergy = 3800,
-		buildcostmetal = 200,
+		buildcostmetal = 210,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORFAST.DDS",
 		buildtime = 6488,
 		canmove = true,
@@ -35,6 +34,7 @@ return {
 		objectname = "CORFAST",
 		seismicsignature = 0,
 		selfdestructas = "smallbuilderSelfd",
+		shownanospray = false,
 		sightdistance = 520,
 		terraformspeed = 750,
 		turninplace = 1,
@@ -68,8 +68,9 @@ return {
 			[22] = "corroy",
 		},
 		customparams = {
-			techlevel = 2,
 			area_mex_def = "cormex",
+			subfolder = "corekbots/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -96,6 +97,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 500,
 				description = "Freaker Heap",
 				energy = 0,
@@ -106,19 +109,17 @@ return {
 				hitdensity = 100,
 				metal = 50,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2-builder",
-				"deathceg3-builder",
-				"deathceg4-builder",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2-builder",
+				[2] = "deathceg3-builder",
+				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

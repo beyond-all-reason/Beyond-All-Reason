@@ -3,7 +3,7 @@ return {
 		acceleration = 0.045,
 		activatewhenbuilt = true,
 		brakerate = 0.054,
-		buildcostenergy = 1200,
+		buildcostenergy = 1250,
 		buildcostmetal = 100,
 		buildpic = "ARMMARK.DDS",
 		buildtime = 3800,
@@ -38,6 +38,7 @@ return {
 		turninplacespeedlimit = 0.891,
 		turnrate = 505,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 256,
 				description = "Marky Heap",
 				featurereclamate = "SMUDGE01",
@@ -73,19 +76,17 @@ return {
 				hitdensity = 100,
 				metal = 38,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

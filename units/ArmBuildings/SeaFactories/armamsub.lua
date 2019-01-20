@@ -2,14 +2,13 @@ return {
 	armamsub = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5500,
+		buildcostenergy = 5400,
 		buildcostmetal = 1200,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
-		buildinggrounddecaltype = "armamsub_aoplane.dds",
+		buildinggrounddecaltype = "decals/armamsub_aoplane.dds",
 		buildpic = "ARMAMSUB.DDS",
 		buildtime = 11112,
 		canmove = true,
@@ -35,6 +34,7 @@ return {
 		objectname = "ARMAMSUB",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd-uw",
+		shownanospray = false,
 		sightdistance = 234,
 		terraformspeed = 750,
 		usebuildinggrounddecal = true,
@@ -47,10 +47,9 @@ return {
 			[4] = "armjeth",
 			[5] = "armaak",
 			[6] = "armdecom",
-			-- [7] = "armsub",
 		},
 		customparams = {
-			
+			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {
 			dead = {
@@ -74,11 +73,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -1,9 +1,10 @@
 return {
 	corhurc = {
 		acceleration = 0.04,
+		blocking = false,
 		brakerate = 0.045,
-		buildcostenergy = 18500,
-		buildcostmetal = 310,
+		buildcostenergy = 26000,
+		buildcostmetal = 320,
 		buildpic = "CORHURC.DDS",
 		buildtime = 31000,
 		canfly = true,
@@ -32,23 +33,23 @@ return {
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 221,
 		turnrate = 400,
-		blocking = false,
 		customparams = {
+			subfolder = "coreaircraft/t2",
 			techlevel = 2,
-		    wingsurface = 0.4,
+			wingsurface = 0.4,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-large",
+				[2] = "crashing-large",
+				[3] = "crashing-large2",
+				[4] = "crashing-large3",
+				[5] = "crashing-large3",
 			},
-			crashExplosionGenerators = {
-				"crashing-large",
-				"crashing-large",
-				"crashing-large2",
-				"crashing-large3",
-				"crashing-large3",
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -99,16 +100,16 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
+				customparams = {
+					bar_model = "airbombt2.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_heat_radius_mult = 1.3,
+				},
 				damage = {
 					antibomber = 120,
 					default = 333,
 					l1bombers = 5,
 					l1subs = 5,
-				},
-				customparams = {
-					bar_model = "airbombt2.s3o",
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
 				},
 			},
 		},

@@ -2,12 +2,12 @@ return {
 	cormaw = {
 		acceleration = 0,
 		buildangle = 8192,
-		buildcostenergy = 1500,
+		buildcostenergy = 1550,
 		buildcostmetal = 290,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "cormaw_aoplane.dds",
+		buildinggrounddecaltype = "decals/cormaw_aoplane.dds",
 		buildpic = "CORMAW.DDS",
 		buildtime = 4419,
 		canrepeat = false,
@@ -42,6 +42,7 @@ return {
 		usebuildinggrounddecal = true,
 		customparams = {
 			removewait = true,
+			subfolder = "corebuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -71,6 +72,8 @@ return {
 				animtrans = 0,
 				blocking = false,
 				category = "rocks NOTHOVER",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 500,
 				description = "Rubble",
 				footprintx = 2,
@@ -79,17 +82,15 @@ return {
 				hitdensity = 100,
 				metal = 2,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				shadtrans = 1,
 				world = "greenworld",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = {
-				"deathceg3",
-				"deathceg4-fire",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4-fire",
 			},
 		},
 		sounds = {
@@ -151,16 +152,16 @@ return {
 				weapontimer = 1,
 				weapontype = "Flame",
 				weaponvelocity = 300,
+				customparams = {
+					expl_light_color = "1 0.33 0.04",
+					expl_light_life_mult = 1.1,
+					expl_light_radius_mult = 1.15,
+					light_color = "1 0.5 0.05",
+				},
 				damage = {
 					commanders = 16,
 					default = 22,
 					subs = 1,
-				},
-				customparams = {
-					light_color = "1 0.5 0.05",
-					expl_light_color = "1 0.33 0.04",
-					expl_light_radius_mult = 1.15,
-					expl_light_life_mult = 1.1,
 				},
 			},
 		},

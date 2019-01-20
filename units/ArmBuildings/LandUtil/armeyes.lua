@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 900,
-		buildcostmetal = 30,
+		buildcostenergy = 850,
+		buildcostmetal = 32,
 		buildpic = "ARMEYES.DDS",
 		buildtime = 750,
 		canrepeat = false,
@@ -33,16 +33,17 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landutil",
 		},
 		featuredefs = {
 			dragonseyes_dead = {
 				blocking = false,
 				category = "heaps",
 				collisionvolumeoffsets = "-0.0323944091797 0.0 0.00588226318359",
-				collisionvolumescales = "15.8270874023 2.5 15.2345123291",
-				collisionvolumetype = "Box",
+				collisionvolumescales = "21.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 120,
 				description = "Dragon's Eye Heap",
 				energy = 0,
@@ -53,17 +54,15 @@ return {
 				hitdensity = 100,
 				metal = 12,
 				object = "1X1B",
-                collisionvolumescales = "21.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
 			},
 		},
 		sounds = {

@@ -29,6 +29,7 @@ return {
 		name = "Reaper",
 		nochasecategory = "VTOL",
 		objectname = "CORREAP",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 462,
@@ -40,35 +41,31 @@ return {
 		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.72656,
 		turnrate = 347,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 8,
 			bar_trackstrength = 8,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 33,
-            core_tank = "1",
+			basename = "base",
+			cannon1name = "barrel1",
+			cannon2name = "barrel2",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "65",
+			cobturretyspeed = "105",
+			core_tank = "1",
+			driftratio = "0.25",
+			firingceg = "barrelshot-medium",
+			flare1name = "flare1",
+			flare2name = "flare2",
+			kickback = "-2.4",
+			restoretime = "3000",
+			rockrestorespeed = "20",
+			rockspeed = "80",
+			rockstrength = "5",
+			sleevename = "sleeves",
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeves",
-					cannon1name = "barrel1",
-					flare1name = "flare1",
-					cannon2name = "barrel2", --optional (replace with nil)
-					flare2name = "flare2", --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-medium",
-					driftratio = "0.25", --How likely will the unit drift when performing turns?
-					rockstrength = "5", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "105", --turretSpeed as seen in COB script
-					cobturretxspeed = "65", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -95,6 +92,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 2500,
 				description = "Reaper Heap",
 				energy = 0,
@@ -105,22 +104,20 @@ return {
 				hitdensity = 100,
 				metal = 150,
 				object = "3X3C",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:DUST_CLOUD",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

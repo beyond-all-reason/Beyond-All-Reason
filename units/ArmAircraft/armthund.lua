@@ -2,8 +2,8 @@ return {
 	armthund = {
 		acceleration = 0.05,
 		brakerate = 0.05,
-		buildcostenergy = 4000,
-		buildcostmetal = 150,
+		buildcostenergy = 4200,
+		buildcostmetal = 145,
 		buildpic = "ARMTHUND.DDS",
 		buildtime = 4778,
 		canfly = true,
@@ -34,20 +34,21 @@ return {
 		turnrate = 850,
 		customparams = {
 			description_long = "The Thunder is a bomber, designed for destroying buildings. A little bit weaker than its CORE counterpart - Shadow. It drops bombs over the target and makes a flyby to reload its ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle.",
+			subfolder = "armaircraft",
 			wingsurface = 0.4,
 		},
 		sfxtypes = {
-			pieceExplosionGenerators = {
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -99,14 +100,14 @@ return {
 				soundstart = "bombrel",
 				sprayangle = 300,
 				weapontype = "AircraftBomb",
-				damage = {
-					default = 105,
-					subs = 5,
-				},
 				customparams = {
 					bar_model = "airbomb.s3o",
 					expl_light_color = "1 0.5 0.05",
 					expl_light_heat_radius_mult = 1.3,
+				},
+				damage = {
+					default = 105,
+					subs = 5,
 				},
 			},
 		},

@@ -2,11 +2,10 @@ return {
 	corack = {
 		acceleration = 0.408,
 		brakerate = 2.55,
-		buildcostenergy = 7000,
+		buildcostenergy = 6900,
 		buildcostmetal = 410,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORACK.DDS",
 		buildtime = 9709,
 		canmove = true,
@@ -36,6 +35,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
+		shownanospray = false,
 		sightdistance = 318.5,
 		terraformspeed = 900,
 		turninplace = 1,
@@ -75,8 +75,9 @@ return {
 			[28] = "coralab",
 		},
 		customparams = {
-			techlevel = 2,
 			area_mex_def = "cormoho",
+			subfolder = "corekbots/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -103,6 +104,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 600,
 				description = "Advanced Construction Kbot Heap",
 				energy = 0,
@@ -113,19 +116,17 @@ return {
 				hitdensity = 100,
 				metal = 83,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2-builder",
-				"deathceg3-builder",
-				"deathceg4-builder",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2-builder",
+				[2] = "deathceg3-builder",
+				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

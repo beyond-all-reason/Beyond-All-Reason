@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		blocking = true,
 		brakerate = 0,
-		buildcostenergy = 200,
-		buildcostmetal = 10,
+		buildcostenergy = 160,
+		buildcostmetal = 11,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "cordrag_aoplane.dds",
+		buildinggrounddecaltype = "decals/cordrag_aoplane.dds",
 		buildpic = "CORDRAG.DDS",
 		buildtime = 255,
 		canattack = false,
@@ -36,9 +36,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ffff",
 		customparams = {
-			removewait = true,
-			removestop = true,
 			paralyzemultiplier = 0,
+			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landutil",
 		},
 		featuredefs = {
 			rockteeth = {
@@ -46,6 +47,8 @@ return {
 				animtrans = 0,
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 500,
 				description = "Rubble",
 				footprintx = 2,
@@ -54,18 +57,14 @@ return {
 				hitdensity = 100,
 				metal = 2,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				shadtrans = 1,
 				world = "greenworld",
 			},
 		},
-		sfxtypes = { 
-			pieceExplosionGenerators = { 
-			
-			}, 
+		sfxtypes = {
+			pieceexplosiongenerators = {},
 		},
 	},
 }

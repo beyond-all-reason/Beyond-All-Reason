@@ -9,7 +9,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "cortoast_aoplane.dds",
+		buildinggrounddecaltype = "decals/cortoast_aoplane.dds",
 		buildpic = "CORTOAST.DDS",
 		buildtime = 25717,
 		canrepeat = false,
@@ -37,8 +37,9 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "ooooooooo",
 		customparams = {
-			techlevel = 2,
 			removewait = true,
+			subfolder = "corebuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 576,
 				description = "Toaster Heap",
 				energy = 0,
@@ -74,21 +77,19 @@ return {
 				hitdensity = 100,
 				metal = 241,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -141,12 +142,12 @@ return {
 				weaponvelocity = 450,
 				damage = {
 					bombers = 90,
-					default = 350,
 					commanders = 650,
+					default = 350,
 					fighters = 90,
-					subs = 90,
-					lboats = 650,
 					hvyboats = 500,
+					lboats = 650,
+					subs = 90,
 					vtol = 90,
 				},
 			},
@@ -179,9 +180,9 @@ return {
 					commanders = 1200,
 					default = 800,
 					fighters = 90,
-					subs = 90,
-					lboats = 1200,
 					hvyboats = 1000,
+					lboats = 1200,
+					subs = 90,
 					vtol = 90,
 				},
 			},

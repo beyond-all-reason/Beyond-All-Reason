@@ -2,11 +2,11 @@ return {
 	armlun = {
 		acceleration = 0.035,
 		brakerate = 0.15,
-		buildcostenergy = 33000,
-		buildcostmetal = 1150,
+		buildcostenergy = 84000,
+		buildcostmetal = 5800,
 		builder = false,
-		buildtime = 32000,
 		buildpic = "ARMLUN.DDS",
+		buildtime = 32000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -40,7 +40,7 @@ return {
 		turninplacespeedlimit = 1.122,
 		turnrate = 250,
 		customparams = {
-			
+			subfolder = "armhovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -63,6 +63,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 3500,
 				description = "Lun Heap",
 				featurereclamate = "smudge01",
@@ -72,22 +74,20 @@ return {
 				hitdensity = 100,
 				metal = 188,
 				object = "4x4d",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -115,8 +115,8 @@ return {
 			armlun_cannon = {
 				areaofeffect = 160,
 				avoidfeature = false,
-				craterareaofeffect = 160,
 				cegtag = "missiletrailcorroyspecial",
+				craterareaofeffect = 160,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-medium",
@@ -147,10 +147,10 @@ return {
 			armlun_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
+				cegtag = "missiletrailsmall",
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
 				impulsefactor = 1.015,
@@ -177,15 +177,15 @@ return {
 				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
+				customparams = {
+					bar_model = "catapultmissile.s3o",
+				},
 				damage = {
 					bombers = 35,
 					default = 330,
 					fighters = 35,
 					subs = 5,
 					vtol = 35,
-				},
-				customparams = {
-					bar_model = "catapultmissile.s3o",
 				},
 			},
 		},
@@ -195,7 +195,7 @@ return {
 				def = "ARMLUN_CANNON",
 				maindir = "0 1 0",
 				maxangledif = 270,
-				onlytargetcategory = "",	
+				onlytargetcategory = "",
 			},
 		},
 	},

@@ -1,9 +1,11 @@
 return {
 	corroy = {
+		acceleration = 0.03,
 		activatewhenbuilt = true,
+		brakerate = 0.051,
 		buildangle = 16384,
-		buildcostenergy = 4800,
-		buildcostmetal = 960,
+		buildcostenergy = 6100,
+		buildcostmetal = 1100,
 		buildpic = "CORROY.DDS",
 		buildtime = 10600,
 		canmove = true,
@@ -23,6 +25,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 3950,
+		maxvelocity = 1.81,
 		minwaterdepth = 12,
 		movementclass = "BOAT44X4",
 		name = "Enforcer",
@@ -32,17 +35,12 @@ return {
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 500,
 		sonardistance = 400,
-		waterline = 0,
-		--move
-		acceleration = 0.03,
-		brakerate = 0.051,
 		turninplace = true,
-		maxvelocity = 1.81,
 		turninplaceanglelimit = 140,
 		turnrate = 194,
-		--end move
+		waterline = 0,
 		customparams = {
-
+			subfolder = "coreships",
 		},
 		featuredefs = {
 			dead = {
@@ -59,7 +57,7 @@ return {
 				footprintz = 5,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*577,
+				metal = 461.60001,
 				object = "CORROY_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -75,7 +73,7 @@ return {
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*249,
+				metal = 199.2,
 				object = "5X5D",
 				reclaimable = true,
 				resurrectable = 0,
@@ -83,14 +81,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -115,38 +113,6 @@ return {
 			},
 		},
 		weapondefs = {
-			plasma = {
-				accuracy = 512,
-				areaofeffect = 64,
-				avoidfeature = false,
-				craterareaofeffect = 64,
-				craterboost = 0,
-				cratermult = 0,
-				explosiongenerator = "custom:genericshellexplosion-medium",
-				gravityaffected = "true",
-				impulseboost = 0.123,
-				impulsefactor = 0.123,
-				name = "HeavyCannon",
-				noselfdamage = true,
-				proximitypriority = -0.1,
-				range = 700,
-				reloadtime = 3.9,
-				soundhit = "xplomed2",
-				soundhitwet = "splssml",
-				soundhitwetvolume = 0.5,
-				soundstart = "cannhvy1",
-				targetmoveerror = 0.1,
-				turret = true,
-				weapontype = "Cannon",
-				weaponvelocity = 336,
-				damage = {
-					bombers = 62,
-					default = 530,
-					fighters = 62,
-					vtol = 62,
-					subs = 5,
-				},
-			},
 			depthcharge = {
 				areaofeffect = 24,
 				avoidfeature = false,
@@ -179,13 +145,45 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 140,
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				},
 				damage = {
 					default = 212,
 					subs = 283,
 				},
-				customparams = {
-					bar_model = "cordepthcharge.s3o",
-				}
+			},
+			plasma = {
+				accuracy = 512,
+				areaofeffect = 64,
+				avoidfeature = false,
+				craterareaofeffect = 64,
+				craterboost = 0,
+				cratermult = 0,
+				explosiongenerator = "custom:genericshellexplosion-medium",
+				gravityaffected = "true",
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
+				name = "HeavyCannon",
+				noselfdamage = true,
+				proximitypriority = -0.1,
+				range = 700,
+				reloadtime = 3.9,
+				soundhit = "xplomed2",
+				soundhitwet = "splssml",
+				soundhitwetvolume = 0.5,
+				soundstart = "cannhvy1",
+				targetmoveerror = 0.1,
+				turret = true,
+				weapontype = "Cannon",
+				weaponvelocity = 336,
+				damage = {
+					bombers = 62,
+					default = 530,
+					fighters = 62,
+					subs = 5,
+					vtol = 62,
+				},
 			},
 		},
 		weapons = {

@@ -5,8 +5,8 @@ return {
 		airsightdistance = 750,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 1000,
-		buildcostmetal = 90,
+		buildcostenergy = 1050,
+		buildcostmetal = 91,
 		buildpic = "ARMFRT.DDS",
 		buildtime = 2200,
 		canrepeat = false,
@@ -35,8 +35,9 @@ return {
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			bar_collisionvolumeoffsets = "0 15 0",
-			removewait = true,
 			prioritytarget = "air",
+			removewait = true,
+			subfolder = "armbuildings/seadefence",
 		},
 		featuredefs = {
 			dead = {
@@ -59,10 +60,10 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -91,11 +92,11 @@ return {
 				areaofeffect = 64,
 				avoidfeature = false,
 				canattackground = false,
+				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.6,
-				cegTag = "missiletrailaa",
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 1.75,
@@ -124,18 +125,18 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
+				customparams = {
+					bar_model = "cormissile.s3o",
+					expl_light_color = "1 0.4 0.5",
+					expl_light_mult = 0.4,
+					expl_light_radius_mult = 0.66,
+					light_color = "1 0.5 0.6",
+					light_skip = true,
+				},
 				damage = {
 					bombers = 115,
 					fighters = 115,
 					vtol = 115,
-				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-					light_skip = true,		-- used by light_effects widget
-					light_color = "1 0.5 0.6",
-					expl_light_color = "1 0.4 0.5",
-					expl_light_radius_mult = 0.66,
-					expl_light_mult = 0.4,
 				},
 			},
 		},

@@ -6,7 +6,6 @@ return {
 		buildcostmetal = 250,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMCONSUL.DDS",
 		buildtime = 6793,
 		canmove = true,
@@ -36,6 +35,7 @@ return {
 		objectname = "ARMCONSUL",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
+		shownanospray = false,
 		sightdistance = 500,
 		terraformspeed = 750,
 		trackoffset = 6,
@@ -72,9 +72,10 @@ return {
 			[22] = "armroy",
 		},
 		customparams = {
-			arm_tank = "1",
-			techlevel = 2,
 			area_mex_def = "armmex",
+			arm_tank = "1",
+			subfolder = "armvehicles/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -101,6 +102,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 700,
 				description = "Consul Heap",
 				energy = 0,
@@ -111,19 +114,17 @@ return {
 				hitdensity = 100,
 				metal = 61,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2-builder",
-				"deathceg3-builder",
-				"deathceg4-builder",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2-builder",
+				[2] = "deathceg3-builder",
+				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

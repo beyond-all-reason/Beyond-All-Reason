@@ -2,9 +2,10 @@ return {
 	armsfig = {
 		acceleration = 0.35,
 		airsightdistance = 950,
+		blocking = false,
 		brakerate = 0.1,
-		buildcostenergy = 4500,
-		buildcostmetal = 90,
+		buildcostenergy = 4600,
+		buildcostmetal = 77,
 		buildpic = "ARMSFIG.DDS",
 		buildtime = 5500,
 		canfly = true,
@@ -29,15 +30,14 @@ return {
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 230,
 		turnrate = 750,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "armseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -69,12 +69,12 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				burnblow = true,
-		    	canattackground = false,
+				canattackground = false,
+				cegtag = "missiletrailfighter",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailfighter",
 				explosiongenerator = "custom:genericshellexplosion-tiny-air",
 				firestarter = 0,
 				impulseboost = 0,
@@ -91,7 +91,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "Rocklit3",
 				startvelocity = 480,
-                texture1 = "trans",
+				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				tolerance = 8000,
 				tracks = true,
@@ -100,17 +100,17 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
-				damage = {
-					bombers = 210,
-					fighters = 210,
-					vtol = 210,
-					commanders = 4,
-					default = 12,
-					subs = 4,
-				},
 				customparams = {
 					bar_model = "cormissile.s3o",
-					light_skip = true,		-- used by light_effects widget
+					light_skip = true,
+				},
+				damage = {
+					bombers = 210,
+					commanders = 4,
+					default = 12,
+					fighters = 210,
+					subs = 4,
+					vtol = 210,
 				},
 			},
 		},

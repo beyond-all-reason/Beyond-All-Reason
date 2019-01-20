@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 0.9768,
 		turnrate = 410,
 		customparams = {
-			
+			subfolder = "corehovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -63,6 +63,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1040,
 				description = "Halberd Heap",
 				energy = 0,
@@ -72,19 +74,17 @@ return {
 				hitdensity = 100,
 				metal = 156,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -140,15 +140,15 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 700,
+				customparams = {
+					light_mult = "0.75",
+				},
 				damage = {
 					bombers = 55,
 					default = 275,
 					fighters = 55,
 					subs = 5,
 					vtol = 55,
-				},
-				customparams = {
-					light_mult = "0.75",		-- used by light_effects widget
 				},
 			},
 		},

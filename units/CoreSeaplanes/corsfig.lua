@@ -2,9 +2,10 @@ return {
 	corsfig = {
 		acceleration = 0.37,
 		airsightdistance = 950,
+		blocking = false,
 		brakerate = 0.1,
-		buildcostenergy = 4600,
-		buildcostmetal = 90,
+		buildcostenergy = 3800,
+		buildcostmetal = 68,
 		buildpic = "CORSFIG.DDS",
 		buildtime = 5200,
 		canfly = true,
@@ -29,15 +30,14 @@ return {
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 230,
 		turnrate = 680,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "coreseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -69,12 +69,12 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				burnblow = true,
-		    	canattackground = false,
+				canattackground = false,
+				cegtag = "missiletrailfighter",
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailfighter",
 				explosiongenerator = "custom:genericshellexplosion-tiny-air",
 				firestarter = 0,
 				impulseboost = 0,
@@ -100,17 +100,17 @@ return {
 				weapontimer = 9,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
-				damage = {
-					bombers = 200,
-					fighters = 200,
-					vtol = 200,
-					commanders = 4,
-					default = 12,
-					subs = 4,
-				},
 				customparams = {
 					bar_model = "cormissile.s3o",
-					light_skip = true,		-- used by light_effects widget
+					light_skip = true,
+				},
+				damage = {
+					bombers = 200,
+					commanders = 4,
+					default = 12,
+					fighters = 200,
+					subs = 4,
+					vtol = 200,
 				},
 			},
 		},

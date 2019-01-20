@@ -3,11 +3,11 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildcostenergy = 17000,
-		buildcostmetal = 650,
+		buildcostmetal = 640,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "armjuno_aoplane.dds",
+		buildinggrounddecaltype = "decals/armjuno_aoplane.dds",
 		buildpic = "ARMJUNO.DDS",
 		buildtime = 21833,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
@@ -35,6 +35,7 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			removewait = true,
+			subfolder = "armbuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -61,6 +62,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 636,
 				description = "Arm Juno Heap",
 				energy = 0,
@@ -71,21 +74,19 @@ return {
 				hitdensity = 100,
 				metal = 145,
 				object = "4X4A",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:juno_sphere_emit",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -113,13 +114,13 @@ return {
 			juno_pulse = {
 				areaofeffect = 1400,
 				avoidfeature = false,
+				cegtag = "missiletrail-juno",
 				commandfire = true,
 				craterareaofeffect = 1400,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 1,
 				energypershot = 12000,
-				cegTag = "missiletrail-juno",
 				explosiongenerator = "custom:genericshellexplosion-juno-lightning",
 				flighttime = 400,
 				impulseboost = 0,
@@ -129,21 +130,34 @@ return {
 				name = "Anti radar/minefield/jammer magnetic impulse rocket",
 				range = 32000,
 				reloadtime = 2,
+				smoketrail = false,
 				soundhit = "junohit2",
 				soundstart = "junofir2",
 				stockpile = true,
 				stockpiletime = 75,
 				targetable = 0,
-				tolerance = 4000,
-				turnrate = 24384,
-				smoketrail = false,
 				texture1 = "trans",
 				texture2 = "null",
 				texture3 = "null",
+				tolerance = 4000,
+				turnrate = 24384,
 				weaponacceleration = 75,
 				weapontimer = 5,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 500,
+				customparams = {
+					bar_model = "epulse.s3o",
+					expl_light_color = "0.6 1 0.4",
+					expl_light_life_mult = "2.2",
+					expl_light_mult = "0.3",
+					expl_light_radius_mult = "0.6",
+					expl_noheatdistortion = 1,
+					light_color = "0.45 1 0.2",
+					light_mult = "3.5",
+					light_radius_mult = "1.4",
+					lups_noshockwave = 1,
+					nofire = true,
+				},
 				damage = {
 					bombers = 1,
 					commanders = 1,
@@ -155,19 +169,6 @@ return {
 					nanos = 1,
 					subs = 1,
 					vtol = 1,
-				},
-				customparams = {
-					nofire = true,
-					bar_model = "epulse.s3o",
-					light_color = "0.45 1 0.2",		-- used by light_effects widget
-					light_radius_mult = "1.4",		-- used by light_effects widget
-					light_mult = "3.5",		-- used by light_effects widget
-                    expl_light_radius_mult = "0.6",		-- used by light_effects widget
-                    expl_light_color = "0.6 1 0.4",		-- used by light_effects widget
-                    expl_light_mult = "0.3",		-- used by light_effects widget
-                    expl_light_life_mult = "2.2",		-- used by light_effects widget
-					expl_noheatdistortion = 1,
-					lups_noshockwave = 1,
 				},
 			},
 		},

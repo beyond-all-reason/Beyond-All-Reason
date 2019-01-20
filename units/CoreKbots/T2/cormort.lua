@@ -3,7 +3,7 @@ return {
 		acceleration = 0.132,
 		brakerate = 0.675,
 		buildcostenergy = 2200,
-		buildcostmetal = 400,
+		buildcostmetal = 410,
 		buildpic = "CORMORT.DDS",
 		buildtime = 5139,
 		canmove = true,
@@ -36,6 +36,7 @@ return {
 		turnrate = 1099,
 		upright = true,
 		customparams = {
+			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 400,
 				description = "Morty Heap",
 				energy = 0,
@@ -72,21 +75,19 @@ return {
 				hitdensity = 100,
 				metal = 47,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

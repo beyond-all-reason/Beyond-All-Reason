@@ -3,11 +3,10 @@ return {
 		acceleration = 0.24,
 		activatewhenbuilt = true,
 		brakerate = 0.525,
-		buildcostenergy = 12000,
-		buildcostmetal = 170,
+		buildcostenergy = 12500,
+		buildcostmetal = 165,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORSPY.DDS",
 		buildtime = 22247,
 		canassist = false,
@@ -42,6 +41,7 @@ return {
 		seismicsignature = 2,
 		selfdestructas = "SPYBOMBX",
 		selfdestructcountdown = 1,
+		shownanospray = false,
 		sightdistance = 550,
 		sonarstealth = true,
 		stealth = true,
@@ -51,6 +51,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -77,6 +78,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "21.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 150,
 				description = "Parasite Heap",
 				energy = 0,
@@ -86,19 +89,17 @@ return {
 				hitdensity = 100,
 				metal = 40,
 				object = "1X1A",
-                collisionvolumescales = "21.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

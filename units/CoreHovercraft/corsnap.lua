@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.518,
 		turnrate = 500,
 		customparams = {
-			
+			subfolder = "corehovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -62,6 +62,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 439,
 				description = "Snapper Heap",
 				energy = 0,
@@ -71,22 +73,20 @@ return {
 				hitdensity = 100,
 				metal = 77,
 				object = "3X3D",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

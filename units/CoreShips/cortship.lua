@@ -1,9 +1,11 @@
 return {
 	cortship = {
+		acceleration = 0.018,
 		autoheal = 5,
+		brakerate = 0.048,
 		buildangle = 16384,
-		buildcostenergy = 3700,
-		buildcostmetal = 350,
+		buildcostenergy = 6700,
+		buildcostmetal = 760,
 		buildpic = "CORTSHIP.DDS",
 		buildtime = 6400,
 		canattack = false,
@@ -21,6 +23,7 @@ return {
 		icontype = "sea",
 		loadingradius = 250,
 		maxdamage = 3000,
+		maxvelocity = 2.313,
 		minwaterdepth = 0,
 		movementclass = "DBOAT66X6",
 		name = "Envoy",
@@ -34,18 +37,13 @@ return {
 		transportcapacity = 40,
 		transportsize = 4,
 		transportunloadmethod = 0,
-		unloadspread = 1,
-		waterline = 0,
-		--move
-		brakerate =  0.048,
-		acceleration = 0.018,
-		maxvelocity = 2.313,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turnrate = 175,	
-		--end move
+		turnrate = 175,
+		unloadspread = 1,
+		waterline = 0,
 		customparams = {
-
+			subfolder = "coreships",
 		},
 		featuredefs = {
 			dead = {
@@ -56,13 +54,13 @@ return {
 				collisionvolumetype = "Box",
 				damage = 6852,
 				description = "Envoy Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
 				footprintz = 5,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*577,
+				metal = 461.60001,
 				object = "CORTSHIP_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -73,12 +71,12 @@ return {
 				category = "heaps",
 				damage = 2016,
 				description = "Envoy Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*291,
+				metal = 232.8,
 				object = "5X5A",
 				reclaimable = true,
 				resurrectable = 0,
@@ -86,14 +84,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
-				"deathceg2",
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:shallow_water_dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 1200,
+		buildcostenergy = 1150,
 		buildcostmetal = 1,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "armmakr_aoplane.dds",
+		buildinggrounddecaltype = "decals/armmakr_aoplane.dds",
 		buildpic = "ARMMAKR.DDS",
 		buildtime = 2605,
 		canrepeat = false,
@@ -35,14 +35,15 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landeconomy",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

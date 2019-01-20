@@ -2,7 +2,6 @@ return {
 	armcroc = {
 		acceleration = 0.0528,
 		activatewhenbuilt = true,
-
 		brakerate = 0.0627,
 		buildcostenergy = 12000,
 		buildcostmetal = 500,
@@ -31,11 +30,11 @@ return {
 		name = "Triton",
 		nochasecategory = "VTOL",
 		objectname = "ARMCROC",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd-phib",
 		sightdistance = 372,
-		sonardistance = 372*0.75,
-		script = "BASICTANKSCRIPT.LUA",
+		sonardistance = 279,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "StdTank",
@@ -46,28 +45,23 @@ return {
 		turnrate = 433,
 		customparams = {
 			arm_tank = "1",
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "45",
+			cobturretyspeed = "75",
+			driftratio = "0.3",
+			firingceg = "barrelshot-medium",
+			flare1name = "flare1",
+			kickback = "-2.4",
+			restoretime = "3000",
+			rockrestorespeed = "15",
+			rockspeed = "60",
+			rockstrength = "5",
+			sleevename = "turret",
+			subfolder = "armvehicles/t2",
 			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "turret",
-					cannon1name = "barrel",
-					flare1name = "flare1",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name =  nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-medium",
-					driftratio = "0.3", --How likely will the unit drift when performing turns?
-					rockstrength = "5", --Howmuch will its weapon make it rock ?
-					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "15", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "75", --turretSpeed as seen in COB script
-					cobturretxspeed = "45", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -92,6 +86,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1500,
 				description = "Triton Heap",
 				energy = 0,
@@ -101,22 +97,20 @@ return {
 				hitdensity = 100,
 				metal = 119,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -170,37 +164,6 @@ return {
 					vtol = 30,
 				},
 			},
-			-- arm_uwtriton = {
-				-- areaofeffect = 96,
-				-- avoidfeature = false,
-				-- craterareaofeffect = 96,
-				-- craterboost = 0,
-				-- cratermult = 0,
-				-- explosiongenerator = "custom:genericshellexplosion-medium",
-				-- gravityaffected = "true",
-				-- impulseboost = 0.123,
-				-- impulsefactor = 0.123,
-				-- model = "torpedo",
-				-- name = "PlasmaCannon",
-				-- noselfdamage = true,
-				-- range = 480,
-				-- reloadtime = 1.5,
-				-- soundhit = "xplomed4",
-				-- soundhitwet = "splsmed",
-				-- soundhitwetvolume = 0.5,
-				-- soundstart = "cannon2",
-				-- turret = true,
-				-- waterweapon = true,
-				-- weapontype = "Cannon",
-				-- weaponvelocity = 205,
-				-- damage = {
-					-- bombers = 30,
-					-- default = 87,
-					-- fighters = 30,
-					-- subs = 67,
-					-- vtol = 30,
-				-- },
-			-- },
 		},
 		weapons = {
 			[1] = {
@@ -208,11 +171,6 @@ return {
 				def = "ARM_TRITON",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [2] = {
-				-- badtargetcategory = "VTOL",
-				-- def = "ARM_UWTRITON",
-				-- onlytargetcategory = "NOTHOVER",
-			-- },
 		},
 	},
 }

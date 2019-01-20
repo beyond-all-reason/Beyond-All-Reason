@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 300,
-		buildcostmetal = 90,
+		buildcostenergy = 310,
+		buildcostmetal = 87,
 		buildpic = "ARMTIDE.DDS",
 		buildtime = 2188,
 		canrepeat = false,
@@ -36,8 +36,9 @@ return {
 		yardmap = "wwwwwwwww",
 		customparams = {
 			bar_waterline = 2.5,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/seaeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 185,
 				description = "Tidal Generator Heap",
 				energy = 0,
@@ -73,19 +76,17 @@ return {
 				hitdensity = 100,
 				metal = 17,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

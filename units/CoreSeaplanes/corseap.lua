@@ -1,9 +1,10 @@
 return {
 	corseap = {
 		acceleration = 0.22,
+		blocking = false,
 		brakerate = 0.375,
 		buildcostenergy = 6100,
-		buildcostmetal = 240,
+		buildcostmetal = 250,
 		buildpic = "CORSEAP.DDS",
 		buildtime = 10698,
 		canfly = true,
@@ -33,23 +34,22 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
 		turnrate = 610,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "coreseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",
@@ -107,6 +107,9 @@ return {
 				weapontimer = 5,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 100,
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				},
 				damage = {
 					bombers = 15,
 					commanders = 63,
@@ -114,9 +117,6 @@ return {
 					fighters = 15,
 					vtol = 15,
 				},
-				customparams = {
-					bar_model = "cortorpedo.s3o",
-				}
 			},
 		},
 		weapons = {

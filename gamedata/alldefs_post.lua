@@ -58,6 +58,20 @@ local function getFilePath(filename, path)
 	return false
 end
 
+local function lines(str)
+	local t = {}
+	local function helper(line) table.insert(t, line) return "" end
+	helper((str:gsub("(.-)\r?\n", helper)))
+	return t
+end
+
+local function Split(s, separator)
+	local results = {}
+	for part in s:gmatch("[^"..separator.."]+") do
+		results[#results + 1] = part
+	end
+	return results
+end
 
 local oldUnitName = {	-- mostly duplicates
 	armdecom = 'armcom',
@@ -126,6 +140,7 @@ function UnitDef_Post(name, uDef)
 
 			if uDef.buildinggrounddecaltype ~= nil then
 				local decalname = oldUnitName[name] and string.gsub(uDef.buildinggrounddecaltype, name, object) or uDef.buildinggrounddecaltype
+				decalname = string.gsub(decalname, 'decals/', '')
 				if VFS.FileExists('unittextures/decals/BAR/'..decalname) then
 					uDef.buildinggrounddecaltype = 'decals/BAR/'..decalname
 			 	end
@@ -204,20 +219,8 @@ function UnitDef_Post(name, uDef)
 				end
 			end
 		end
-	else	-- normal BA
-
-		if uDef.buildinggrounddecaltype ~= nil then
-			local decalname = uDef.buildinggrounddecaltype
-			if VFS.FileExists('unittextures/decals/'..decalname) then
-				uDef.buildinggrounddecaltype = 'decals/'..decalname
-			end
-		end
 	end
 
-
-	if uDef.category and string.find(uDef.category, "CHICKEN") then
-		uDef.buildtime = uDef.buildtime * 1.5 -- because rezzing is too easy
-	end
 	
 	if uDef.icontype and uDef.icontype == "sea" then
 		if uDef.featuredefs and uDef.featuredefs.dead and uDef.featuredefs.dead.metal and uDef.buildcostmetal then
@@ -257,7 +260,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
 		end
-		
+
 		if uDef.acceleration ~= nil then
 			uDef.acceleration = (uDef.acceleration + vehAdditionalAcceleration) * vehAccelerationMultiplier
 		end
@@ -288,7 +291,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.brakerate ~= nil then
 			uDef.brakerate = uDef.brakerate * kbotBrakerateMultiplier
 		end
-		
+
 		uDef.turninplace = true
 		uDef.turninplaceanglelimit = 90
 	end
@@ -299,6 +302,20 @@ function UnitDef_Post(name, uDef)
 
 		else
 			uDef.category = uDef.category ..' EMPABLE'
+		end
+	end
+
+	-- import csv unitdef changes
+	local file = VFS.LoadFile("costs_revision.csv")
+	if file then
+		local fileLines = lines(file)
+		for i, line in ipairs(fileLines) do
+			local t = Split(line, ';')
+			if t[1] and t[2] and t[3] and name == t[1] then
+				uDef.buildcostmetal = tonumber(t[2])
+				uDef.buildcostenergy = tonumber(t[3])
+				Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
+			end
 		end
 	end
 
@@ -333,14 +350,14 @@ function WeaponDef_Post(name, wDef)
 	if wDef.edgeeffectiveness >= 1 then
 	wDef.edgeeffectiveness = 1
 	end
-	
+
 	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
 	-- wDef.targetborder = 1.0
-	
+
   -- artificial Armordefs tree: Default < heavyunits < hvyboats, allows me to specify bonus damages towards ships
-	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then 
-		wDef["damage"].hvyboats = wDef["damage"].heavyunits 
-	elseif (not (wDef["damage"].hvyboats)) and (not wDef["damage"].heavyunits) then 
+	if (not (wDef["damage"].hvyboats)) and (wDef["damage"].heavyunits) then
+		wDef["damage"].hvyboats = wDef["damage"].heavyunits
+	elseif (not (wDef["damage"].hvyboats)) and (not wDef["damage"].heavyunits) then
 		wDef["damage"].hvyboats = wDef["damage"].default
 	end
   -- end of artificial ArmorDefs tree

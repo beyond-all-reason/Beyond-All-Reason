@@ -4,15 +4,14 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 0,
-		buildcostenergy = 4500,
+		buildcostenergy = 4300,
 		buildcostmetal = 400,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 12,
 		buildinggrounddecalsizey = 12,
-		buildinggrounddecaltype = "armasp_aoplane.dds",
+		buildinggrounddecaltype = "decals/armasp_aoplane.dds",
 		buildpic = "ARMASP.DDS",
 		buildtime = 9090,
 		canrepeat = false,
@@ -38,6 +37,7 @@ return {
 		onoffable = true,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 357.5,
 		terraformspeed = 5000,
 		usebuildinggrounddecal = true,
@@ -46,9 +46,10 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 11.5,
 			bar_buildinggrounddecalsizey = 11.5,
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landutil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -75,6 +76,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 558,
 				description = "Air Repair Pad Heap",
 				energy = 0,
@@ -85,19 +88,17 @@ return {
 				hitdensity = 100,
 				metal = 126,
 				object = "4X4A",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

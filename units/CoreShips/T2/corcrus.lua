@@ -1,9 +1,11 @@
 return {
 	corcrus = {
+		acceleration = 0.025,
 		activatewhenbuilt = true,
+		brakerate = 0.087,
 		buildangle = 16384,
-		buildcostenergy = 12000,
-		buildcostmetal = 1000,
+		buildcostenergy = 14500,
+		buildcostmetal = 1900,
 		buildpic = "CORCRUS.DDS",
 		buildtime = 17000,
 		canmove = true,
@@ -23,6 +25,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 4000,
+		maxvelocity = 2.19,
 		minwaterdepth = 30,
 		movementclass = "BOAT55X5",
 		name = "Executioner",
@@ -32,16 +35,12 @@ return {
 		selfdestructas = "largeexplosiongenericSelfd",
 		sightdistance = 533,
 		sonardistance = 375,
-		--move
-		acceleration = 0.025,
-		brakerate = 0.087,
-		maxvelocity = 2.19,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 177,
-		--end move
 		waterline = 0,
 		customparams = {
+			subfolder = "coreships/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -53,13 +52,13 @@ return {
 				collisionvolumetype = "Box",
 				damage = 2789,
 				description = "Executioner Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
 				footprintz = 5,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*1241,
+				metal = 992.79999,
 				object = "CORCRUS_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -68,28 +67,28 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 2016,
 				description = "Executioner Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*476,
+				metal = 380.80002,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -183,12 +182,12 @@ return {
 				weapontimer = 10,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				},
 				damage = {
 					default = 300,
 				},
-				customparams = {
-					bar_model = "cordepthcharge.s3o",
-				}
 			},
 			cor_crus = {
 				areaofeffect = 8,
@@ -238,8 +237,6 @@ return {
 			},
 			[3] = {
 				def = "ADVDEPTHCHARGE",
-				-- maindir = "0 -1 0",
-				-- maxangledif = 179,
 				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},

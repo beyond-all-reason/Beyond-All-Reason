@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.564,
 		buildcostenergy = 9500,
-		buildcostmetal = 320,
+		buildcostmetal = 330,
 		buildpic = "CORAMPH.DDS",
 		buildtime = 9650,
 		canmove = true,
@@ -40,12 +40,15 @@ return {
 		turnrate = 998,
 		upright = true,
 		customparams = {
+			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 920,
 				description = "Gimp Heap",
 				energy = 0,
@@ -55,19 +58,17 @@ return {
 				hitdensity = 100,
 				metal = 114,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -120,12 +121,12 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 135,
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				},
 				damage = {
 					default = 250,
 				},
-				customparams = {
-					bar_model = "cortorpedo.s3o",
-				}
 			},
 			coramph_weapon2 = {
 				areaofeffect = 12,

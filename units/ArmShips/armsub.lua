@@ -1,9 +1,11 @@
 return {
 	armsub = {
+		acceleration = 0.035,
 		activatewhenbuilt = true,
 		autoheal = 2,
-		buildcostenergy = 3500,
-		buildcostmetal = 500,
+		brakerate = 0.105,
+		buildcostenergy = 4000,
+		buildcostmetal = 690,
 		buildpic = "ARMSUB.DDS",
 		buildtime = 6600,
 		canmove = true,
@@ -12,14 +14,16 @@ return {
 		collisionvolumescales = "35 17 50",
 		collisionvolumetype = "box",
 		corpse = "DEAD",
-		explodeas = "smallExplosionGeneric-uw",
 		description = "Submarine",
+		explodeas = "smallExplosionGeneric-uw",
 		footprintx = 3,
 		footprintz = 3,
 		icontype = "sea",
 		idleautoheal = 8,
 		idletime = 900,
 		maxdamage = 635,
+		maxreversevelocity = 0.84,
+		maxvelocity = 2.1,
 		minwaterdepth = 15,
 		movementclass = "UBOAT33X3",
 		name = "Lurker",
@@ -29,19 +33,13 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd-uw",
 		sightdistance = 400,
 		sonardistance = 475,
-		upright = true,
-		waterline = 30,
-		--move
-		brakerate =  0.105,
-		acceleration = 0.035,
-		maxvelocity = 2.10,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 320,	
-		maxreversevelocity = 2.10*0.40,
-		--end move
+		turnrate = 320,
+		upright = true,
+		waterline = 30,
 		customparams = {
-			
+			subfolder = "armships",
 		},
 		featuredefs = {
 			dead = {
@@ -67,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 2016,
 				description = "Lurker Heap",
 				energy = 0,
@@ -76,19 +76,17 @@ return {
 				hitdensity = 100,
 				metal = 201,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -144,14 +142,14 @@ return {
 				weapontimer = 3.25,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 160,
+				customparams = {
+					bar_model = "torpedo.s3o",
+				},
 				damage = {
 					commanders = 600,
 					default = 650,
 					subs = 150,
 				},
-				customparams = {
-					bar_model = "torpedo.s3o",
-				}
 			},
 		},
 		weapons = {

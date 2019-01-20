@@ -2,7 +2,7 @@ return {
 	armflash = {
 		acceleration = 0.058,
 		brakerate = 0.195,
-		buildcostenergy = 1000,
+		buildcostenergy = 980,
 		buildcostmetal = 115,
 		buildpic = "ARMFLASH.DDS",
 		buildtime = 1963,
@@ -43,28 +43,25 @@ return {
 		turnrate = 473,
 		customparams = {
 			arm_tank = "1",
+			basename = "base",
+			cannon1name = "barrel1",
+			cannon2name = "barrel2",
+			cobkickbackrestorespeed = "10",
+			cobturretxspeed = "200",
+			cobturretyspeed = "200",
 			description_long = "Flash is a light, fast moving tank with close combat rapid fire weapon. It is slightly more powerful and faster than Peewee and A.K. on flat terrain. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks.",
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeves",
-					cannon1name = "barrel1",
-					flare1name = "flare1",
-					cannon2name = "barrel2", --optional (replace with nil)
-					flare2name = "flare2", --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-tiny",
-					driftratio = "0.7", --How likely will the unit drift when performing turns?
-					rockstrength = "2", --Howmuch will its weapon make it rock ?
-					rockspeed = "40", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "10", --How fast will the cannon come back in position?
-					kickback = "-2", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "200", --turretSpeed as seen in COB script
-					cobturretxspeed = "200", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			driftratio = "0.7",
+			firingceg = "barrelshot-tiny",
+			flare1name = "flare1",
+			flare2name = "flare2",
+			kickback = "-2",
+			restoretime = "3000",
+			rockrestorespeed = "20",
+			rockspeed = "40",
+			rockstrength = "2",
+			sleevename = "sleeves",
+			subfolder = "armvehicles",
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -91,6 +88,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 193,
 				description = "Flash Heap",
 				energy = 0,
@@ -101,21 +100,19 @@ return {
 				hitdensity = 100,
 				metal = 28,
 				object = "2X2C",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -143,8 +140,6 @@ return {
 			emgx = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				--burst = 3,
-				--burstrate = 0.1,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,

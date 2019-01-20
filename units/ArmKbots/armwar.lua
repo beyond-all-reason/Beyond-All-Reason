@@ -2,8 +2,8 @@ return {
 	armwar = {
 		acceleration = 0.072,
 		brakerate = 0.714,
-		buildcostenergy = 3000,
-		buildcostmetal = 250,
+		buildcostenergy = 3100,
+		buildcostmetal = 270,
 		buildpic = "ARMWAR.DDS",
 		buildtime = 3828,
 		canmove = true,
@@ -37,6 +37,7 @@ return {
 		upright = true,
 		customparams = {
 			description_long = "Warrior is a durable Kbot armed with a rapid firing double laser. It has a relatively high HP for T1 and can easily take down multiple light assault units, like A.K.'s, Peewees etc. Often referred to as \"mobile LLT\". Their range is enough to overshoot Commanders, so with a little micro it may be used to force them to retreat. Always combine with resurrection Kbots for healing and resurrecting fallen units.",
+			subfolder = "armkbots",
 			wpn1turretx = 200,
 			wpn1turrety = 200,
 		},
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 490,
 				description = "Warrior Heap",
 				energy = 0,
@@ -75,18 +78,16 @@ return {
 				hitdensity = 100,
 				metal = 64,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg2",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg2",
 			},
 		},
 		sounds = {

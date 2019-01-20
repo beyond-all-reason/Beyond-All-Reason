@@ -1,4 +1,10 @@
-﻿10.20 -> 10.21
+﻿10.21 -> 10.22
+XX/XX/2019
+
+ • Rounded costs closer to original using algorithm, based on values from 9.46
+
+
+10.20 -> 10.21
 11/01/2019
 
  • Removed global minimum buildrange of 155, commanders remain having 145

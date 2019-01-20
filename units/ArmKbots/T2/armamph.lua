@@ -2,7 +2,7 @@ return {
 	armamph = {
 		acceleration = 0.12,
 		brakerate = 0.564,
-		buildcostenergy = 2600,
+		buildcostenergy = 2700,
 		buildcostmetal = 260,
 		buildpic = "ARMAMPH.DDS",
 		buildtime = 5182,
@@ -37,6 +37,7 @@ return {
 		turnrate = 440,
 		upright = true,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 500,
 				description = "Pelican Heap",
 				energy = 0,
@@ -72,19 +75,17 @@ return {
 				hitdensity = 100,
 				metal = 64,
 				object = "3X3D",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -113,10 +114,10 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
+				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailaa",
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 1.75,
@@ -144,17 +145,17 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
+				customparams = {
+					bar_model = "cormissile.s3o",
+					expl_light_color = "1 0.4 0.5",
+					light_color = "1 0.5 0.6",
+					light_skip = true,
+				},
 				damage = {
 					bombers = 85,
 					fighters = 85,
 					vtol = 85,
 				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-                    light_skip = true,		-- used by light_effects widget
-                    light_color = "1 0.5 0.6",
-                    expl_light_color = "1 0.4 0.5",
-                },
 			},
 			armamph_weapon1 = {
 				areaofeffect = 8,

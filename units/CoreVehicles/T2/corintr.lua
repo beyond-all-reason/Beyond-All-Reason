@@ -4,7 +4,7 @@ return {
 		brakerate = 0.495,
 		buildangle = 16384,
 		buildcostenergy = 16000,
-		buildcostmetal = 1400,
+		buildcostmetal = 1350,
 		buildpic = "CORINTR.DDS",
 		buildtime = 14177,
 		canmove = true,
@@ -51,8 +51,9 @@ return {
 			bar_trackoffset = -10,
 			bar_trackstrength = 10,
 			bar_tracktype = "corwidetracks",
-			trackwidth = 32,
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
+			trackwidth = 32,
 		},
 		featuredefs = {
 			dead = {
@@ -79,6 +80,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 3750,
 				description = "Intruder Heap",
 				energy = 0,
@@ -89,19 +92,17 @@ return {
 				hitdensity = 100,
 				metal = 329,
 				object = "4X4C",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

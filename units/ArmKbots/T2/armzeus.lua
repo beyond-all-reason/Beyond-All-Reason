@@ -2,7 +2,7 @@ return {
 	armzeus = {
 		acceleration = 0.12,
 		brakerate = 0.75,
-		buildcostenergy = 6000,
+		buildcostenergy = 6100,
 		buildcostmetal = 350,
 		buildpic = "ARMZEUS.DDS",
 		buildtime = 7252,
@@ -35,6 +35,7 @@ return {
 		turnrate = 1056,
 		upright = true,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -62,6 +63,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 800,
 				description = "Zeus Heap",
 				energy = 0,
@@ -72,21 +75,19 @@ return {
 				hitdensity = 100,
 				metal = 86,
 				object = "2X2E",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = {
-				"deathceg2",
-				"deathceg3",
-				"deathceg2",
-				"deathceg3",
-				"deathceg4-lightning",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg2",
+				[4] = "deathceg3",
+				[5] = "deathceg4-lightning",
 			},
 		},
 		sounds = {
@@ -115,8 +116,8 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				beamttl = 1,
-                burst = 10,
-                burstrate = 0.03,
+				burst = 10,
+				burstrate = 0.03,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -144,6 +145,10 @@ return {
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
+				customparams = {
+					expl_light_color = "0.2 0.5 1",
+					light_color = "0.2 0.5 1",
+				},
 				damage = {
 					bombers = 6.5,
 					default = 22,
@@ -151,10 +156,6 @@ return {
 					subs = 0.5,
 					vtol = 6.5,
 				},
-                customparams = {
-                    light_color = "0.2 0.5 1",
-                    expl_light_color = "0.2 0.5 1",
-                },
 			},
 		},
 		weapons = {

@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.0594,
 		buildcostenergy = 1900,
-		buildcostmetal = 100,
+		buildcostmetal = 105,
 		buildpic = "CORETER.DDS",
 		buildtime = 6404,
 		canattack = false,
@@ -47,8 +47,9 @@ return {
 			bar_trackoffset = 3,
 			bar_trackstrength = 6,
 			bar_tracktype = "corwidetracks",
-			trackwidth = 27,
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
+			trackwidth = 27,
 		},
 		featuredefs = {
 			dead = {
@@ -75,6 +76,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 350,
 				description = "Deleter Heap",
 				energy = 0,
@@ -85,19 +88,17 @@ return {
 				hitdensity = 100,
 				metal = 26,
 				object = "3X3F",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

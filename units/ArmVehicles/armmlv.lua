@@ -4,10 +4,9 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 1.65,
 		buildcostenergy = 1100,
-		buildcostmetal = 60,
+		buildcostmetal = 57,
 		builddistance = 96,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMMLV.DDS",
 		buildtime = 3519,
 		canassist = false,
@@ -43,6 +42,7 @@ return {
 		radardistancejam = 64,
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 201,
 		stealth = true,
 		terraformspeed = 120,
@@ -64,6 +64,7 @@ return {
 		customparams = {
 			arm_tank = "1",
 			description_long = "The Podger is a stealthy minelayer/minesweeper unit, that can make your base feel really safe. It produces light and heavy mines which are designed to eliminate different levels of threat. Light mines can stop Pewees, A.K., Flashes etc. and heavy can even stop most T2 units. IT's a cheap way to secure places where you don't have time to set up proper defenses, like your flanks. Always lay mines away from your opponent's line of sight and avoid having your own units on the minefield. To create effective minefields use Shift and drag with LMB while ordering a queue. REMEMBER that mines use energy to remain cloaked! Podgers can also detonate enemy's mines using the attack command.",
+			subfolder = "armvehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -90,6 +91,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 70,
 				description = "Podger Heap",
 				energy = 0,
@@ -100,18 +103,16 @@ return {
 				hitdensity = 100,
 				metal = 14,
 				object = "3X3B",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 6200,
-		buildcostmetal = 470,
+		buildcostenergy = 6100,
+		buildcostmetal = 560,
 		buildpic = "ARMFHLT.DDS",
 		buildtime = 9670,
 		canrepeat = false,
@@ -37,6 +37,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 15 0",
 			removewait = true,
+			subfolder = "armbuildings/seadefence",
 		},
 		featuredefs = {
 			dead = {
@@ -59,11 +60,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

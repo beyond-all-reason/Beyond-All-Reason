@@ -35,8 +35,9 @@ return {
 		turninplacespeedlimit = 1.1352,
 		turnrate = 1122,
 		customparams = {
-			techlevel = 2,
 			paralyzemultiplier = 0.125,
+			subfolder = "armkbots/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 500,
 				description = "Recluse Heap",
 				energy = 0,
@@ -73,19 +76,17 @@ return {
 				hitdensity = 100,
 				metal = 98,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -113,14 +114,14 @@ return {
 			adv_rocket = {
 				areaofeffect = 72,
 				avoidfeature = false,
-				collidefriendly = false,
 				burst = 4,
 				burstrate = 0.3,
+				cegtag = "missiletrailsmall",
+				collidefriendly = false,
 				craterareaofeffect = 72,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
-				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
 				flighttime = 3,
@@ -139,7 +140,7 @@ return {
 				soundtrigger = true,
 				startvelocity = 80,
 				targetmoveerror = 0.2,
-                texture1 = "trans",
+				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				trajectoryheight = 1,
 				turnrate = 2000,
@@ -149,13 +150,13 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 450,
 				wobble = 2500,
+				customparams = {
+					bar_model = "cormissile2.s3o",
+					light_mult = "0.66",
+				},
 				damage = {
 					default = 120,
 					subs = 5,
-				},
-				customparams = {
-					bar_model = "cormissile2.s3o",
-					light_mult = "0.66",		-- used by light_effects widget
 				},
 			},
 		},

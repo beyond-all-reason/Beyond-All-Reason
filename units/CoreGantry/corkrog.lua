@@ -2,7 +2,7 @@ return {
 	corkrog = {
 		acceleration = 0.108,
 		brakerate = 0.714,
-		buildcostenergy = 620000,
+		buildcostenergy = 615000,
 		buildcostmetal = 29000,
 		buildpic = "CORKROG.DDS",
 		buildtime = 555000,
@@ -40,9 +40,10 @@ return {
 		turnrate = 380,
 		upright = true,
 		customparams = {
-			techlevel = 3,
-			paralyzemultiplier = 0,
 			customrange = 590,
+			paralyzemultiplier = 0,
+			subfolder = "coregantry",
+			techlevel = 3,
 		},
 		featuredefs = {
 			dead = {
@@ -69,6 +70,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 28800,
 				description = "Krogoth Heap",
 				energy = 0,
@@ -79,19 +82,17 @@ return {
 				hitdensity = 100,
 				metal = 15067,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -145,12 +146,12 @@ return {
 				weapontimer = 2,
 				weapontype = "Cannon",
 				weaponvelocity = 900,
+				customparams = {
+					light_mult = "0.03",
+				},
 				damage = {
 					default = 165,
 					subs = 5,
-				},
-				customparams = {
-					light_mult = "0.03",		-- used by light_effects widget
 				},
 			},
 			corkrog_laser = {
@@ -186,24 +187,24 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					light_mult = "1.2",
+					light_radius_mult = "0.6",
+				},
 				damage = {
 					commanders = 1200,
 					default = 5500,
 					subs = 5,
 				},
-				customparams = {
-					light_mult = "1.2",		-- used by light_effects widget
-					light_radius_mult = "0.6",		-- used by light_effects widget
-				},
 			},
 			corkrog_rocket = {
 				areaofeffect = 200,
 				avoidfeature = false,
+				cegtag = "missiletrailmedium-starburst",
 				craterareaofeffect = 200,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.7,
-				cegTag = "missiletrailmedium-starburst",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 70,
 				impulseboost = 1,
@@ -215,15 +216,15 @@ return {
 				proximitypriority = -5,
 				range = 950,
 				reloadtime = 6,
+				smoketrail = false,
 				soundhit = "xplosml2",
 				soundhitwet = "splslrg",
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
 				startvelocity = 250,
-                smoketrail = false,
 				texture1 = "trans",
-                texture2 = "null",
-                texture3 = "null",
+				texture2 = "null",
+				texture3 = "null",
 				tolerance = 9000,
 				tracks = true,
 				turnrate = 50000,
@@ -231,25 +232,26 @@ return {
 				weapontimer = 2,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 2600,
+				customparams = {
+					bar_model = "corkbmissl1.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_heat_radius_mult = 1.25,
+					expl_light_life_mult = 1.3,
+					expl_light_mult = 1.25,
+					expl_light_radius_mult = 1.3,
+					light_color = "1 0.6 0.15",
+					light_mult = 3.5,
+					light_radius_mult = 1.2,
+				},
 				damage = {
 					default = 800,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "corkbmissl1.s3o",
-					light_mult = 3.5,
-					light_radius_mult = 1.2,
-					light_color = "1 0.6 0.15",
-					expl_light_mult = 1.25,
-					expl_light_radius_mult = 1.3,
-					expl_light_life_mult = 1.3,
-                    expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.25,
-                },
 			},
 			krogkick = {
 				areaofeffect = 192,
 				avoidfeature = false,
+				camerashake = 1500,
 				collidefriendly = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -264,7 +266,6 @@ return {
 				noselfdamage = true,
 				proximitypriority = 5,
 				range = 55,
-				camerashake = 1500,
 				reloadtime = 0.2,
 				rgbcolor = "0 0 0",
 				soundhitwet = "splssml",
@@ -276,13 +277,13 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1650,
+				customparams = {
+					expl_light_skip = true,
+					lups_noshockwave = true,
+					nofire = true,
+				},
 				damage = {
 					default = 150,
-				},
-				customparams = {
-					nofire = true,
-					expl_light_skip = true,		-- used by light_effects widget
-					lups_noshockwave = true,
 				},
 			},
 		},

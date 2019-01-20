@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 1260*1.35,
-		buildcostmetal = 140*1.35,
+		buildcostenergy = 2200,
+		buildcostmetal = 320,
 		buildpic = "ARMTL.DDS",
 		buildtime = 4680,
 		canrepeat = false,
@@ -20,7 +20,7 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		maxdamage = 1200*1.15,
+		maxdamage = 1380,
 		minwaterdepth = 12,
 		name = "Harpoon",
 		objectname = "ARMTL",
@@ -33,6 +33,7 @@ return {
 		customparams = {
 			bar_waterline = 0,
 			removewait = true,
+			subfolder = "armbuildings/seadefence",
 		},
 		featuredefs = {
 			dead = {
@@ -55,11 +56,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -114,13 +115,13 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 280,
-				damage = {
-					commanders = 300*1.25,
-					default = 165*1.35*1.25,
-				},
 				customparams = {
 					bar_model = "cortorpedo.s3o",
-				}
+				},
+				damage = {
+					commanders = 375,
+					default = 278.4375,
+				},
 			},
 		},
 		weapons = {

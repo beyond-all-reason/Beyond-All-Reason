@@ -37,8 +37,9 @@ return {
 		turninplacespeedlimit = 1.749,
 		turnrate = 1122,
 		customparams = {
-			techlevel = 2,
 			paralyzemultiplier = 0.125,
+			subfolder = "armkbots/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 400,
 				description = "Spider Heap",
 				energy = 0,
@@ -75,19 +78,17 @@ return {
 				hitdensity = 100,
 				metal = 43,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -115,10 +116,10 @@ return {
 			spider = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				collidefriendly = false,
+				beamdecay = 0.5,
 				beamtime = 0.2,
 				beamttl = 1,
-				beamdecay = 0.5,
+				collidefriendly = false,
 				corethickness = 0.2,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -146,12 +147,12 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					expl_light_color = "0.7 0.7 1",
+					light_color = "0.7 0.7 1",
+				},
 				damage = {
 					default = 850,
-				},
-				customparams = {
-					light_color = "0.7 0.7 1",
-					expl_light_color = "0.7 0.7 1",
 				},
 			},
 		},

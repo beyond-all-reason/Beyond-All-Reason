@@ -1,9 +1,10 @@
 return {
 	armbrawl = {
 		acceleration = 0.24,
+		blocking = false,
 		brakerate = 0.44,
-		buildcostenergy = 6400,
-		buildcostmetal = 300,
+		buildcostenergy = 6200,
+		buildcostmetal = 310,
 		buildpic = "ARMBRAWL.DDS",
 		buildtime = 13500,
 		canfly = true,
@@ -33,24 +34,24 @@ return {
 		sightdistance = 550,
 		turninplaceanglelimit = 360,
 		turnrate = 800,
-		blocking = false,
 		customparams = {
-			wingsurface = 0.35,
+			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			wingsurface = 0.35,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

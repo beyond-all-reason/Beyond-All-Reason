@@ -1,9 +1,10 @@
 return {
 	corseah = {
 		acceleration = 0.15,
+		blocking = false,
 		brakerate = 0.5,
-		buildcostenergy = 6500,
-		buildcostmetal = 350,
+		buildcostenergy = 6400,
+		buildcostmetal = 370,
 		buildpic = "CORSEAH.DDS",
 		buildtime = 15289,
 		canfly = true,
@@ -30,36 +31,36 @@ return {
 		name = "Seahook",
 		objectname = "CORSEAH",
 		releaseheld = true,
+		script = "corseah_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 260,
-		script = "corseah_lus.lua",
 		transportcapacity = 8,
 		transportsize = 4,
 		transportunloadmethod = 0,
 		turninplaceanglelimit = 360,
 		turnrate = 380,
-		upright = true,
 		unloadspread = 0,
-		blocking = false,
+		upright = true,
 		customparams = {
-			techlevel = 2,
-			wingsurface = 0.50,
 			paralyzemultiplier = 0.025,
+			subfolder = "coreaircraft/t2",
+			techlevel = 2,
+			wingsurface = 0.5,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

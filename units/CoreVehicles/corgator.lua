@@ -2,7 +2,7 @@ return {
 	corgator = {
 		acceleration = 0.057,
 		brakerate = 0.18,
-		buildcostenergy = 1100,
+		buildcostenergy = 1150,
 		buildcostmetal = 125,
 		buildpic = "CORGATOR.DDS",
 		buildtime = 1761,
@@ -29,6 +29,7 @@ return {
 		name = "Instigator",
 		nochasecategory = "VTOL",
 		objectname = "CORGATOR",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 273,
@@ -40,35 +41,29 @@ return {
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.96,
 		turnrate = 388,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 8,
 			bar_trackstrength = 5,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 21,
-			description_long = "The Instigator is a light, fast moving tank armed with a weak, but very precise laser weapon, accurate even when fired on the move. This makes it useful against fast lightly armored units, such as Peewees. A bit slower than its ARM counterpart - flash, but it has a higher range, so always try to keep distance. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",  
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "flare",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-tiny",
-					driftratio = "0.6", --How likely will the unit drift when performing turns?
-					rockstrength = "0", --Howmuch will its weapon make it rock ?
-					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "175", --turretSpeed as seen in COB script
-					cobturretxspeed = "175", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
-			},
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "175",
+			cobturretyspeed = "175",
+			description_long = "The Instigator is a light, fast moving tank armed with a weak, but very precise laser weapon, accurate even when fired on the move. This makes it useful against fast lightly armored units, such as Peewees. A bit slower than its ARM counterpart - flash, but it has a higher range, so always try to keep distance. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",
+			driftratio = "0.6",
+			firingceg = "barrelshot-tiny",
+			flare1name = "flare",
+			kickback = "-2.4",
+			restoretime = "3000",
+			rockrestorespeed = "0",
+			rockspeed = "0",
+			rockstrength = "0",
+			sleevename = "sleeve",
+			subfolder = "corevehicles",
+			turretname = "turret",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -94,6 +89,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 225,
 				description = "Instigator Heap",
 				energy = 0,
@@ -104,18 +101,16 @@ return {
 				hitdensity = 100,
 				metal = 31,
 				object = "2X2F",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

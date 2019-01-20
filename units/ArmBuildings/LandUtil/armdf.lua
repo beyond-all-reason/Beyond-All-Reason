@@ -8,7 +8,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "armdf_aoplane.dds",
+		buildinggrounddecaltype = "decals/armdf_aoplane.dds",
 		buildpic = "ARMDF.DDS",
 		buildtime = 7500,
 		canrepeat = false,
@@ -37,9 +37,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooooo ooooo",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landutil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -66,6 +67,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1395,
 				description = "Fusion Reactor Heap",
 				energy = 0,
@@ -76,19 +79,17 @@ return {
 				hitdensity = 100,
 				metal = 89,
 				object = "4X4A",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

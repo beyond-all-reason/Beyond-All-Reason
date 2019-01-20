@@ -5,7 +5,6 @@ return {
 		buildcostenergy = 5300,
 		buildcostmetal = 1100,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMFHP.DDS",
 		buildtime = 17362,
 		canmove = true,
@@ -29,6 +28,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 286,
 		terraformspeed = 1000,
 		waterline = 4,
@@ -43,7 +43,7 @@ return {
 			[6] = "armthovr",
 		},
 		customparams = {
-			
+			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {
 			dead = {
@@ -66,11 +66,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

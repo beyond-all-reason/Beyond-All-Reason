@@ -1,8 +1,9 @@
 return {
 	armsehak = {
-		acceleration = 0.20,
+		acceleration = 0.2,
+		blocking = false,
 		brakerate = 0.05,
-		buildcostenergy = 7000,
+		buildcostenergy = 7100,
 		buildcostmetal = 125,
 		buildpic = "ARMSEHAK.DDS",
 		buildtime = 9064,
@@ -33,23 +34,22 @@ return {
 		sightdistance = 1100,
 		sonardistance = 900,
 		turnrate = 750,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "armseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

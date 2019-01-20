@@ -9,13 +9,13 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "cormoho_aoplane.dds",
-		buildingMask = 0,
+		buildinggrounddecaltype = "decals/cormoho_aoplane.dds",
+		buildingmask = 0,
 		buildpic = "CORMEXP.DDS",
 		buildtime = 32500,
+		canattack = true,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
-		canattack = true,
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "75 44 75",
 		collisionvolumetype = "CylY",
@@ -44,9 +44,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
-			cvBuildable = true,
+			cvbuildable = true,
 			metal_extractor = 4,
 			removewait = true,
+			subfolder = "corebuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -89,11 +90,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -121,12 +122,13 @@ return {
 			cormexp_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
+				cegtag = "missiletrailsmall",
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-medium",
 				firestarter = 70,
+				flighttime = 2,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				model = "missile",
@@ -146,7 +148,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 750,
-				flighttime = 2,
+				customparams = {
+					bar_model = "cormissile.s3o",
+				},
 				damage = {
 					bombers = 45,
 					commanders = 550,
@@ -155,9 +159,6 @@ return {
 					subs = 5,
 					vtol = 45,
 				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-				}
 			},
 			corsumo_weapon = {
 				areaofeffect = 12,

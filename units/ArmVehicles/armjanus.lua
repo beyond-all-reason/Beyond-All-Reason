@@ -2,7 +2,7 @@ return {
 	armjanus = {
 		acceleration = 0.0196,
 		brakerate = 0.162,
-		buildcostenergy = 2500,
+		buildcostenergy = 2600,
 		buildcostmetal = 240,
 		buildpic = "ARMJANUS.DDS",
 		buildtime = 3545,
@@ -43,6 +43,7 @@ return {
 		customparams = {
 			arm_tank = "1",
 			description_long = "The Janus is a heavy dual rocket tank. Its slow moving speed and fire rate makes it susceptible to groups of fast moving units like PeeWees, but once it shoots it deals massive AoE damage, which can eliminate virtually all Kbots (except Warriors) in a single blow. Combine with Samsons (rocket trucks) and repairing units to achieve devastating effect on enemy defenses. It is also a perfect unit for destroying Commanders, as only 5 shots is enough to deal lethal damage. It requires some good micro, so focus!",
+			subfolder = "armvehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -69,6 +70,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 364,
 				description = "Janus Heap",
 				energy = 0,
@@ -79,19 +82,17 @@ return {
 				hitdensity = 100,
 				metal = 59,
 				object = "2X2C",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -119,10 +120,10 @@ return {
 			janus_rocket = {
 				areaofeffect = 128,
 				avoidfeature = false,
+				cegtag = "missiletrailsmall-red",
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
-                cegTag = "missiletrailsmall-red",
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 70,
 				impulsefactor = 1.015,
@@ -148,7 +149,12 @@ return {
 				weaponacceleration = 80,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 230,
-				--flighttime = 1.8,
+				customparams = {
+					bar_model = "catapultmissile.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_radius_mult = 1.05,
+					light_color = "1 0.6 0.05",
+				},
 				damage = {
 					bombers = 35,
 					default = 330,
@@ -156,12 +162,6 @@ return {
 					subs = 5,
 					vtol = 35,
 				},
-				customparams = {
-					bar_model = "catapultmissile.s3o",
-                    light_color = "1 0.6 0.05",
-                    expl_light_color = "1 0.5 0.05",
-                    expl_light_radius_mult = 1.05,
-                },
 			},
 		},
 		weapons = {

@@ -2,7 +2,7 @@ return {
 	armflea = {
 		acceleration = 0.5,
 		brakerate = 1.5,
-		buildcostenergy = 350,
+		buildcostenergy = 340,
 		buildcostmetal = 15,
 		buildpic = "ARMFLEA.DDS",
 		buildtime = 800,
@@ -37,6 +37,7 @@ return {
 		turnrate = 1572,
 		customparams = {
 			description_long = "Fleas are supercheap and fast to build Kbots used for scouting and damaging the early eco structures of enemies. It is faster than all Kbots and most vehicles but any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe’s expansion! In T2 warfare fleas come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery.",
+			subfolder = "armkbots",
 		},
 		featuredefs = {
 			dead = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "21.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 15,
 				description = "Flea Heap",
 				energy = 0,
@@ -73,17 +76,15 @@ return {
 				hitdensity = 100,
 				metal = 4,
 				object = "1X1A",
-                collisionvolumescales = "21.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
 			},
 		},
 		sounds = {

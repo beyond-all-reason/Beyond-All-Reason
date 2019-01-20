@@ -1,9 +1,10 @@
 return {
 	armliche = {
 		acceleration = 0.15,
+		blocking = false,
 		brakerate = 0.05,
-		buildcostenergy = 45150,
-		buildcostmetal = 2250,
+		buildcostenergy = 46000,
+		buildcostmetal = 2200,
 		buildpic = "ARMLICHE.DDS",
 		buildtime = 57400,
 		canfly = true,
@@ -32,24 +33,24 @@ return {
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 455,
 		turnrate = 540,
-		blocking = false,
 		customparams = {
-			wingsurface = 0.8,
+			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			wingsurface = 0.8,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-large",
+				[2] = "crashing-large",
+				[3] = "crashing-large2",
+				[4] = "crashing-large3",
+				[5] = "crashing-large3",
 			},
-			crashExplosionGenerators = {
-				"crashing-large",
-				"crashing-large",
-				"crashing-large2",
-				"crashing-large3",
-				"crashing-large3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -77,12 +78,12 @@ return {
 				areaofeffect = 256,
 				avoidfeature = false,
 				avoidfriendly = false,
+				cegtag = "missiletrailmedium-red",
 				collidefriendly = false,
 				craterareaofeffect = 256,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.5,
-				cegTag = "missiletrailmedium-red",
 				explosiongenerator = "custom:nukedatbewmsmall",
 				firestarter = 100,
 				flighttime = 1.75,
@@ -108,19 +109,19 @@ return {
 				weapontimer = 6,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 420,
+				customparams = {
+					bar_model = "catapultmissile.s3o",
+					expl_light_life_mult = 1.7,
+					expl_light_mult = 1.3,
+					expl_light_radius_mult = 1.3,
+					light_color = "1 0.5 0.05",
+					light_mult = "0.6",
+					light_radius_mult = "0.4",
+				},
 				damage = {
 					commanders = 3150,
 					default = 5625,
 					subs = 5,
-				},
-				customparams = {
-					bar_model = "catapultmissile.s3o",
-					light_radius_mult = "0.4",		-- used by light_effects widget
-					light_mult = "0.6",		-- used by light_effects widget
-					light_color = "1 0.5 0.05",
-					expl_light_mult = 1.3,
-					expl_light_radius_mult = 1.3,
-					expl_light_life_mult = 1.7,
 				},
 			},
 			arm_pidrbomb = {
@@ -156,19 +157,19 @@ return {
 				weapontimer = 0,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 0,
+				customparams = {
+					bar_model = "catapultmissile.s3o",
+					expl_light_color = "1 0.9 0.7",
+					expl_light_life_mult = 1.7,
+					expl_light_mult = 1.3,
+					expl_light_radius_mult = 1.3,
+					light_mult = "0.6",
+					light_radius_mult = "0.4",
+				},
 				damage = {
 					commanders = 3350,
 					default = 5625,
 					subs = 5,
-				},
-				customparams = {
-					bar_model = "catapultmissile.s3o",
-					light_radius_mult = "0.4",		-- used by light_effects widget
-					light_mult = "0.6",		-- used by light_effects widget
-					expl_light_color = "1 0.9 0.7",
-					expl_light_mult = 1.3,
-					expl_light_radius_mult = 1.3,
-					expl_light_life_mult = 1.7,
 				},
 			},
 		},

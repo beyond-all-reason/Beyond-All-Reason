@@ -1,8 +1,10 @@
 return {
 	armdecade = {
+		acceleration = 0.072,
+		brakerate = 0.23,
 		buildangle = 16384,
-		buildcostenergy = 1650,
-		buildcostmetal = 195,
+		buildcostenergy = 2700,
+		buildcostmetal = 320,
 		buildpic = "ARMDECADE.DDS",
 		buildtime = 2590,
 		canmove = true,
@@ -20,6 +22,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 950,
+		maxvelocity = 3.39,
 		minwaterdepth = 12,
 		movementclass = "BOAT43X3",
 		name = "Decade",
@@ -28,17 +31,12 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 375,
-		waterline = 0,
-		--move
-		acceleration = 0.072,
-		brakerate = 0.23,
-		maxvelocity = 3.39,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 421,
-		--end move
+		waterline = 0,
 		customparams = {
-			
+			subfolder = "armships",
 		},
 		featuredefs = {
 			dead = {
@@ -49,14 +47,14 @@ return {
 				collisionvolumetype = "Box",
 				damage = 150,
 				description = "Decade Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
 				footprintz = 3,
 				height = 20,
 				hitdensity = 100,
-				metal = 0.8*197,
+				metal = 157.60001,
 				object = "ARMDECADE_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -65,31 +63,31 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 250,
 				description = "Decade Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*97,
+				metal = 77.6,
 				object = "4X4B",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -148,21 +146,20 @@ return {
 					subs = 3,
 					vtol = 3,
 				},
+			},
 		},
-	},
-	
 		weapons = {
 			[1] = {
 				def = "EMG",
-				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
 				maxangledif = 285,
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "EMG",
-				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 -1",
 				maxangledif = 285,
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

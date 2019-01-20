@@ -45,7 +45,7 @@ return {
 		upright = false,
 		customparams = {
 			nohealthbars = true,
-			subfolder = "other/critters/",
+			subfolder = "other/critters",
 		},
 	},
 }

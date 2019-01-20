@@ -37,7 +37,8 @@ return {
 		turnrate = 1094,
 		upright = true,
 		customparams = {
-			description_long = "The Hammer is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has a shorter range than rocket Kbots, but if you manage to reach them, it can easily eliminate them. It has slightly higher HP than rocket Kbots, hence it can be used in big numbers to destroy T1 defensive structures. Combine with resurrection Kbots (Rectors), for healing and resurrecting fallen units, to quickly push the frontline. Effective for defending mountain tops, as their range is longer when shooting downhill. Watch out for Heavy Laser Turrets",  
+			description_long = "The Hammer is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has a shorter range than rocket Kbots, but if you manage to reach them, it can easily eliminate them. It has slightly higher HP than rocket Kbots, hence it can be used in big numbers to destroy T1 defensive structures. Combine with resurrection Kbots (Rectors), for healing and resurrecting fallen units, to quickly push the frontline. Effective for defending mountain tops, as their range is longer when shooting downhill. Watch out for Heavy Laser Turrets",
+			subfolder = "armkbots",
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 343,
 				description = "Hammer Heap",
 				energy = 0,
@@ -74,22 +77,20 @@ return {
 				hitdensity = 100,
 				metal = 32,
 				object = "2X2E",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

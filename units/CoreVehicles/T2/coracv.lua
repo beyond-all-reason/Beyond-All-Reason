@@ -6,7 +6,6 @@ return {
 		buildcostmetal = 580,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORACV.DDS",
 		buildtime = 12882,
 		canmove = true,
@@ -37,6 +36,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
+		shownanospray = false,
 		sightdistance = 295.10001,
 		terraformspeed = 1250,
 		trackstrength = 6,
@@ -78,11 +78,12 @@ return {
 			[28] = "coravp",
 		},
 		customparams = {
+			area_mex_def = "cormoho",
 			bar_trackstrength = 6,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 28,
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
-			area_mex_def = "cormoho",
 		},
 		featuredefs = {
 			dead = {
@@ -109,6 +110,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1000,
 				description = "Advanced Construction Vehicle Heap",
 				energy = 0,
@@ -119,19 +122,17 @@ return {
 				hitdensity = 100,
 				metal = 118,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2-builder",
-				"deathceg3-builder",
-				"deathceg4-builder",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2-builder",
+				[2] = "deathceg3-builder",
+				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

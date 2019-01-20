@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 2400,
+		buildcostenergy = 2500,
 		buildcostmetal = 160,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "corason_aoplane.dds",
+		buildinggrounddecaltype = "decals/corason_aoplane.dds",
 		buildpic = "CORASON.DDS",
 		buildtime = 6096,
 		canattack = false,
@@ -41,9 +41,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/seautil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -66,11 +67,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

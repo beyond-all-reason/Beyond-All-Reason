@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16400,
-		buildcostenergy = 7300,
-		buildcostmetal = 800,
+		buildcostenergy = 7200,
+		buildcostmetal = 810,
 		buildpic = "ARMFATF.DDS",
 		buildtime = 9886,
 		canrepeat = false,
@@ -35,9 +35,10 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/seautil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 436,
 				description = "Floating Targeting Facility Heap",
 				energy = 0,
@@ -74,19 +77,17 @@ return {
 				hitdensity = 100,
 				metal = 187,
 				object = "4X4A",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

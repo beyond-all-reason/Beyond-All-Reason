@@ -10,7 +10,7 @@ return {
 		builddistance = 200,
 		builder = true,
 		buildpic = "chickens/chickend1.dds",
-		buildtime = 1800,
+		buildtime = 2700,
 		canattack = true,
 		canreclaim = true,
 		canrestore = false,
@@ -54,7 +54,7 @@ return {
 		waterline = 1,
 		workertime = 125,
 		customparams = {
-			subfolder = "other/chickens/",
+			subfolder = "other/chickens",
 		},
 		featuredefs = {
 			dead = {},

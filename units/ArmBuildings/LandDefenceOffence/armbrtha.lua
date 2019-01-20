@@ -8,11 +8,14 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "armbrtha_aoplane.dds",
+		buildinggrounddecaltype = "decals/armbrtha_aoplane.dds",
 		buildpic = "ARMBRTHA.DDS",
 		buildtime = 85185,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		collisionvolumeoffsets = "0 0 -20",
+		collisionvolumescales = "48 90 48",
+		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Long Range Plasma Cannon",
 		explodeas = "hugeBuildingExplosionGeneric",
@@ -31,14 +34,12 @@ return {
 		sightdistance = 273,
 		usebuildinggrounddecal = true,
 		usepiececollisionvolumes = 1,
-		collisionvolumeoffsets = "0 0 -20",
-		collisionvolumescales = "48 90 48",
-		collisionvolumetype = "CylY",
 		yardmap = "oooooooooooooooo",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			canareaattack = 1,
+			removewait = true,
+			subfolder = "armbuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1260,
 				description = "Big Bertha Heap",
 				energy = 0,
@@ -75,21 +78,19 @@ return {
 				hitdensity = 100,
 				metal = 1088,
 				object = "3X3E",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -141,13 +142,13 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1100,
-				damage = {
-					default = 1625,
-					subs = 5,
-					shields = 812,
-				},
 				customparams = {
 					expl_light_heat_radius_mult = 4,
+				},
+				damage = {
+					default = 1625,
+					shields = 812,
+					subs = 5,
 				},
 			},
 		},

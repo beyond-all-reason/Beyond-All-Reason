@@ -34,7 +34,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 240,
-		sonardistance = 240*0.75,
+		sonardistance = 180,
 		trackoffset = 3,
 		trackstrength = 6,
 		tracktype = "StdTank",
@@ -45,29 +45,24 @@ return {
 		turnrate = 398,
 		customparams = {
 			arm_tank = "1",
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "6",
+			cobturretxspeed = "64",
+			cobturretyspeed = "75",
 			description_long = "A pincer is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way.",
+			driftratio = "0.3",
+			firingceg = "barrelshot-small",
+			flare1name = "emit",
+			kickback = "-2.7",
 			paralyzemultiplier = 0.125,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "turret",
-					cannon1name = "barrel",
-					flare1name = "emit",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-small",
-					driftratio = "0.3", --How likely will the unit drift when performing turns?
-					rockstrength = "5", --Howmuch will its weapon make it rock ?
-					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "10", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "6", --How fast will the cannon come back in position?
-					kickback = "-2.7", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "75", --turretSpeed as seen in COB script
-					cobturretxspeed = "64", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			restoretime = "3000",
+			rockrestorespeed = "10",
+			rockspeed = "60",
+			rockstrength = "5",
+			sleevename = "turret",
+			subfolder = "armvehicles",
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -91,13 +86,13 @@ return {
 				world = "all",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -150,36 +145,6 @@ return {
 					vtol = 25,
 				},
 			},
-			-- arm_pincer_uwgauss = {
-				-- areaofeffect = 8,
-				-- avoidfeature = false,
-				-- craterareaofeffect = 0,
-				-- craterboost = 0,
-				-- cratermult = 0,
-				-- explosiongenerator = "custom:genericshellexplosion-small",
-				-- impulseboost = 0.123,
-				-- impulsefactor = 0.123,
-				-- name = "PincerCannon",
-				-- model = "minitorpedo",
-				-- noselfdamage = true,
-				-- range = 305,
-				-- reloadtime = 2.0,
-				-- soundhit = "xplomed2",
-				-- soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
-				-- soundstart = "cannhvy1",
-				-- turret = true,
-				-- waterweapon = true,
-				-- weapontype = "Cannon",
-				-- weaponvelocity = 225,
-				-- damage = {
-					-- bombers = 10,
-					-- default = 68,
-					-- fighters = 10,
-					-- subs = 48,
-					-- vtol = 10,
-				-- },
-			-- },
 		},
 		weapons = {
 			[1] = {
@@ -187,11 +152,6 @@ return {
 				def = "ARM_PINCER_GAUSS",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [2] = {
-				-- badtargetcategory = "VTOL",
-				-- def = "ARM_PINCER_UWGAUSS",
-				-- onlytargetcategory = "",
-			-- },
 		},
 	},
 }

@@ -5,7 +5,7 @@ return {
 		bmcode = 0,
 		brakerate = 0,
 		buildangle = 2048,
-		buildcostenergy = 74000,
+		buildcostenergy = 73000,
 		buildcostmetal = 4100,
 		builder = 0,
 		buildpic = "CORFGATE.DDS",
@@ -46,12 +46,13 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			shield_color_mult = 0.8,
 			shield_power = 5000,
 			shield_radius = 600,
-			shield_color_mult = 0.8,
+			subfolder = "corebuildings/seautil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -78,6 +79,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 900,
 				description = "Atoll Heap",
 				energy = 0,
@@ -88,19 +91,17 @@ return {
 				hitdensity = 100,
 				metal = 918,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -135,6 +136,9 @@ return {
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
 				weapontype = "Shield",
+				damage = {
+					default = 100,
+				},
 				shield = {
 					alpha = 0.17,
 					armortype = "shields",
@@ -148,9 +152,7 @@ return {
 					repulser = true,
 					smart = true,
 					startingpower = 1100,
-					--visible = true,
-					--visiblehitframes = 70,
-					visibleRepulse = true,
+					visiblerepulse = true,
 					badcolor = {
 						[1] = 1,
 						[2] = 0.2,
@@ -163,9 +165,6 @@ return {
 						[3] = 0.2,
 						[4] = 0.17,
 					},
-				},
-				damage = {
-					default = 100,
 				},
 			},
 		},

@@ -2,11 +2,10 @@ return {
 	armacv = {
 		acceleration = 0.0726,
 		brakerate = 0.9108,
-		buildcostenergy = 6700,
+		buildcostenergy = 6800,
 		buildcostmetal = 550,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMACV.DDS",
 		buildtime = 12397,
 		canmove = true,
@@ -37,6 +36,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-builder",
+		shownanospray = false,
 		sightdistance = 289.89999,
 		terraformspeed = 1250,
 		trackstrength = 6,
@@ -79,9 +79,10 @@ return {
 			[29] = "armavp",
 		},
 		customparams = {
-			arm_tank = "1",
-			techlevel = 2,
 			area_mex_def = "armmoho",
+			arm_tank = "1",
+			subfolder = "armvehicles/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -108,6 +109,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1000,
 				description = "Advanced Construction Vehicle Heap",
 				energy = 0,
@@ -118,19 +121,17 @@ return {
 				hitdensity = 100,
 				metal = 112,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2-builder",
-				"deathceg3-builder",
-				"deathceg4-builder",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2-builder",
+				[2] = "deathceg3-builder",
+				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

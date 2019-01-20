@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 1000,
+		buildcostenergy = 1150,
 		buildcostmetal = 130,
 		buildpic = "CORFRAD.DDS",
 		buildtime = 1800,
@@ -32,16 +32,17 @@ return {
 		objectname = "CORFRAD",
 		onoffable = true,
 		radardistance = 2100,
-		sonardistance = 1200,
 		radaremitheight = 72,
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 740,
+		sonardistance = 1200,
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/seautil",
 		},
 		featuredefs = {
 			dead = {
@@ -64,10 +65,10 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

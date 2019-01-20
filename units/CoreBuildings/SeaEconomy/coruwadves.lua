@@ -1,12 +1,12 @@
 return {
 	coruwadves = {
 		buildangle = 7822,
-		buildcostenergy = 10000,
-		buildcostmetal = 850,
+		buildcostenergy = 11000,
+		buildcostmetal = 840,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "coruwadves_aoplane.dds",
+		buildinggrounddecaltype = "decals/coruwadves_aoplane.dds",
 		buildpic = "CORUWADVES.DDS",
 		buildtime = 20416,
 		canrepeat = false,
@@ -34,9 +34,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/seaeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -78,11 +79,11 @@ return {
 				world = "all",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

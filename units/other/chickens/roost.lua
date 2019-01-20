@@ -10,7 +10,7 @@ return {
 		builddistance = 90,
 		builder = true,
 		buildpic = "chickens/roost.dds",
-		buildtime = 7000,
+		buildtime = 10500,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 11 56",
@@ -45,7 +45,7 @@ return {
 		workertime = 1500,
 		yardmap = "oo oo",
 		customparams = {
-			subfolder = "other/chickens/",
+			subfolder = "other/chickens",
 		},
 		featuredefs = {},
 		sfxtypes = {

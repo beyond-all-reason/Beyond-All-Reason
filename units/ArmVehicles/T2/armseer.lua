@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.0495,
 		buildcostenergy = 2000,
-		buildcostmetal = 120,
+		buildcostmetal = 125,
 		buildpic = "ARMSEER.DDS",
 		buildtime = 6186,
 		canattack = false,
@@ -45,6 +45,7 @@ return {
 		turnrate = 605,
 		customparams = {
 			arm_tank = "1",
+			subfolder = "armvehicles/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -72,6 +73,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 500,
 				description = "Seer Heap",
 				energy = 0,
@@ -82,19 +85,17 @@ return {
 				hitdensity = 100,
 				metal = 48,
 				object = "3X3E",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

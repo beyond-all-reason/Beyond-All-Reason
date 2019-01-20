@@ -1,8 +1,8 @@
-	return {
+return {
 	armrock = {
 		acceleration = 0.12,
 		brakerate = 0.564,
-		buildcostenergy = 1050,
+		buildcostenergy = 1000,
 		buildcostmetal = 120,
 		buildpic = "ARMROCK.DDS",
 		buildtime = 2015,
@@ -36,7 +36,8 @@
 		turnrate = 1106,
 		upright = true,
 		customparams = {
-			description_long = "Rocko is a light rocket Kbot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Rockos can force him to retreat. In bigger numbers and with repairing support of resurrection Kbots they are able to take down more advanced defensive structures. Very ineffective against fast mobile units, watch out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing defense. In comparison to their CORE counterpart (Storms) thay are a bit faster, but weaker at the same time",  
+			description_long = "Rocko is a light rocket Kbot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Rockos can force him to retreat. In bigger numbers and with repairing support of resurrection Kbots they are able to take down more advanced defensive structures. Very ineffective against fast mobile units, watch out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing defense. In comparison to their CORE counterpart (Storms) thay are a bit faster, but weaker at the same time",
+			subfolder = "armkbots",
 		},
 		featuredefs = {
 			dead = {
@@ -63,6 +64,8 @@
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 295,
 				description = "Rocko Heap",
 				energy = 0,
@@ -73,21 +76,19 @@
 				hitdensity = 100,
 				metal = 25,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg2",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -115,10 +116,10 @@
 			arm_kbot_rocket = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				cegtag = "missiletrailsmall",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
 				impulseboost = 0.123,
@@ -141,13 +142,13 @@
 				weaponacceleration = 120,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 223,
+				customparams = {
+					bar_model = "cormissile2.s3o",
+				},
 				damage = {
 					default = 157,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "cormissile2.s3o",
-				}
 			},
 		},
 		weapons = {

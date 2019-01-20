@@ -1,9 +1,11 @@
 return {
 	armtship = {
+		acceleration = 0.019,
 		autoheal = 5,
+		brakerate = 0.05,
 		buildangle = 16384,
-		buildcostenergy = 3500,
-		buildcostmetal = 350,
+		buildcostenergy = 6700,
+		buildcostmetal = 780,
 		buildpic = "ARMTSHIP.DDS",
 		buildtime = 6500,
 		canattack = false,
@@ -21,6 +23,7 @@ return {
 		icontype = "sea",
 		loadingradius = 250,
 		maxdamage = 2900,
+		maxvelocity = 2.4,
 		minwaterdepth = 0,
 		movementclass = "DBOAT66X6",
 		name = "Hulk",
@@ -34,18 +37,13 @@ return {
 		transportcapacity = 40,
 		transportsize = 4,
 		transportunloadmethod = 0,
-		unloadspread = 1,
-		waterline = 8,
-		--move
-		brakerate =  0.05,
-		acceleration = 0.019,
-		maxvelocity = 2.40,
 		turninplace = true,
 		turninplaceanglelimit = 110,
-		turnrate = 180,	
-		--end move
+		turnrate = 180,
+		unloadspread = 1,
+		waterline = 8,
 		customparams = {
-			
+			subfolder = "armships",
 		},
 		featuredefs = {
 			dead = {
@@ -56,13 +54,13 @@ return {
 				collisionvolumetype = "Box",
 				damage = 6606,
 				description = "Hulk Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 5,
 				footprintz = 5,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*597,
+				metal = 477.60001,
 				object = "ARMTSHIP_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -73,12 +71,12 @@ return {
 				category = "heaps",
 				damage = 2016,
 				description = "Hulk Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*209,
+				metal = 167.2,
 				object = "5X5A",
 				reclaimable = true,
 				resurrectable = 0,
@@ -86,14 +84,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
-				"deathceg2",
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:shallow_water_dirt",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

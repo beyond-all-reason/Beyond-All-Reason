@@ -2,7 +2,7 @@ return {
 	armart = {
 		acceleration = 0.0154,
 		brakerate = 0.0462,
-		buildcostenergy = 2100,
+		buildcostenergy = 2200,
 		buildcostmetal = 135,
 		buildpic = "armart.DDS",
 		buildtime = 2998,
@@ -23,16 +23,16 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 556,
+		maxreversevelocity = 0.912,
 		maxslope = 15,
 		maxvelocity = 1.52,
-		maxreversevelocity = 1.52*0.60,
 		maxwaterdepth = 8,
 		movementclass = "TANK3",
 		name = "Shellshocker",
 		nochasecategory = "VTOL",
 		objectname = "armart",
-		script = "BASICTANKSCRIPT.LUA",
 		pushresistant = true,
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 364,
@@ -45,33 +45,28 @@ return {
 		turninplacespeedlimit = 1.29228,
 		turnrate = 393.79999,
 		customparams = {
+			arm_tank = "1",
 			bar_trackoffset = 6,
 			bar_trackstrength = 5,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 22,
-			arm_tank = "1",
-			description_long = "Shellshocker is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Stumpies/Flashes, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
+			basename = "base",
 			canareaattack = 1,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "gun",
-					flare1name = "flare",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					driftratio = "0.2", --How likely will the unit drift when performing turns?
-					rockstrength = "20", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "5", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "13.25", --How fast will the cannon come back in position?
-					kickback = "-6.25", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "110", --turretSpeed as seen in COB script
-					cobturretxspeed = "40", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			cannon1name = "gun",
+			cobkickbackrestorespeed = "13.25",
+			cobturretxspeed = "40",
+			cobturretyspeed = "110",
+			description_long = "Shellshocker is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Stumpies/Flashes, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
+			driftratio = "0.2",
+			flare1name = "flare",
+			kickback = "-6.25",
+			restoretime = "3000",
+			rockrestorespeed = "5",
+			rockspeed = "80",
+			rockstrength = "20",
+			sleevename = "sleeve",
+			subfolder = "armvehicles",
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -98,6 +93,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 259,
 				description = "Shellshocker Heap",
 				energy = 0,
@@ -108,22 +105,20 @@ return {
 				hitdensity = 100,
 				metal = 37,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

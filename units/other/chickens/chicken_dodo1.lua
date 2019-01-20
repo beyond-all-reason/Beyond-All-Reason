@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 128,
 		builder = false,
 		buildpic = "chickens/chicken_dodo1.dds",
-		buildtime = 3000,
+		buildtime = 4500,
 		canguard = true,
 		canhover = "1",
 		canmove = true,
@@ -64,7 +64,7 @@ return {
 		waterline = 1,
 		workertime = 0,
 		customparams = {
-			subfolder = "other/chickens/",
+			subfolder = "other/chickens",
 		},
 		featuredefs = {
 			dead = {},
