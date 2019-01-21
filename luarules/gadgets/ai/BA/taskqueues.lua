@@ -1377,6 +1377,11 @@ local cort1expand = {
 	CorNanoT,
 }
 
+local cormexspam = {
+	CorMexT1,
+	assistaround,
+}
+
 local cort2eco = {
 	CorEnT2,
 	CorEnT2,
@@ -1772,6 +1777,11 @@ local armt1expand = {
 	ArmNanoT,
 }
 
+local armmexspam = {
+	ArmMexT1,
+	assistaround,
+}
+
 local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
@@ -1839,15 +1849,19 @@ local function armt1con(tqb, ai, unit)
 	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
-		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
+		if ai.t1concounter < 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return armmexspam
+	elseif unit.mode == "eco" then
 		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
 			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
 			return armt1eco
@@ -1869,15 +1883,19 @@ local function cort1con(tqb, ai, unit)
 	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
-		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
+		if ai.t1concounter < 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return cormexspam
+	elseif unit.mode == "eco" then
 		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
 			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
 			return cort1eco
