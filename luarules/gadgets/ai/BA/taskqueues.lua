@@ -655,7 +655,7 @@ end
 ---- TECHTREE RELATED ----
 function KbotOrVeh()
 	local veh = 0
-	local kbot = 0
+	local kbot = 10
 	-- mapsize
 	mapsize = Game.mapX * Game.mapY
 	local randomnumber = math.random(1,mapsize+1)
