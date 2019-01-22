@@ -14,7 +14,6 @@ builderlist = {
 	"armcsa",
 	"armch",
 	"armbeaver",
-	
 	"corck",
 	"corcv",
 	"corca",

@@ -655,7 +655,7 @@ end
 ---- TECHTREE RELATED ----
 function KbotOrVeh()
 	local veh = 0
-	local kbot = 10
+	local kbot = 1
 	-- mapsize
 	mapsize = Game.mapX * Game.mapY
 	local randomnumber = math.random(1,mapsize+1)
@@ -1384,12 +1384,12 @@ local cort2eco = {
 	CorEnT2,
 	CorEnT2,
 	CorExpandRandomLab,
+	CorProtection,
+	AADefense,
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
 	CorExpandRandomLab,
-	AADefense,
-	CorProtection,
 	Epic,
 	LolCannon,
 }
@@ -1791,12 +1791,12 @@ local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
 	ArmExpandRandomLab,
+	ArmProtection,
+	AADefense,
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
 	ArmExpandRandomLab,
-	AADefense,
-	ArmProtection,
 	Epic,
 	LolCannon,
 }
