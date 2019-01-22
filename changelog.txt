@@ -2,6 +2,7 @@
 XX/XX/2019
 
  • Rounded costs closer to original using algorithm, based on values from 9.46
+ • Restored 9.46 rezbot health 250->200 and 'buildpower' 150->200
 
 
 10.20 -> 10.21
