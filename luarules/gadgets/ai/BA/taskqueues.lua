@@ -491,7 +491,7 @@ function Epic(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, epicIDlist)
-	if ct > 0 then
+	if ct > 0 or Spring.GetGameSeconds() < math.random(1200,2700) then
 		return skip
 	end
 	if not possibilities[unit:Name()]["epicdef"] then
@@ -534,7 +534,7 @@ function LolCannon(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, lolCannonIDlist)
-	if ct > 0 or Spring.GetGameSeconds() < 1800 then
+	if ct > 0 or Spring.GetGameSeconds() < 3600 then
 		return skip
 	end
 	if not possibilities[unit:Name()]["lolcannondef"] then
@@ -1037,10 +1037,6 @@ lab = {
 	"cornecro",
 	"armrectr",
 	"cornecro",
-	"armrectr",
-	"cornecro",
-	"armrectr",
-	"cornecro",
 	Scout,
 }
 
@@ -1358,6 +1354,7 @@ local cort1expand = {
 	CorMexT1,
 	CorExpandRandomLab,
 	ShortDefense,
+	AADefense,
 	CorMexT1,
 	CorExpandRandomLab,
 	assistaround,
@@ -1385,13 +1382,14 @@ local cormexspam = {
 local cort2eco = {
 	CorEnT2,
 	CorEnT2,
+	CorEnT2,
+	CorExpandRandomLab,
+	CorEnT2,
+	CorEnT2,
+	CorEnT2,
+	CorExpandRandomLab,
+	AADefense,
 	CorProtection,
-	CorEnT2,
-	CorExpandRandomLab,
-	CorEnT2,
-	CorEnT2,
-	CorEnT2,
-	CorExpandRandomLab,
 	Epic,
 	LolCannon,
 }
@@ -1408,6 +1406,11 @@ local cort2expand = {
 	AADefense,
 	assistaround,
 	LongDefense,
+}
+
+local cort2mexspam = {
+	"cormoho",
+	assistaround,
 }
 
 local cordecomqueue = {
@@ -1758,6 +1761,7 @@ local armt1expand = {
 	ArmMexT1,
 	ArmExpandRandomLab,
 	ShortDefense,
+	AADefense,
 	ArmMexT1,
 	ArmExpandRandomLab,
 	assistaround,
@@ -1785,13 +1789,14 @@ local armmexspam = {
 local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
+	ArmEnT2,
+	ArmExpandRandomLab,
+	ArmEnT2,
+	ArmEnT2,
+	ArmEnT2,
+	ArmExpandRandomLab,
+	AADefense,
 	ArmProtection,
-	ArmEnT2,
-	ArmExpandRandomLab,
-	ArmEnT2,
-	ArmEnT2,
-	ArmEnT2,
-	ArmExpandRandomLab,
 	Epic,
 	LolCannon,
 }
@@ -1808,6 +1813,11 @@ local armt2expand = {
 	AADefense,
 	assistaround,
 	LongDefense,
+}
+
+local armt2mexspam = {
+	"armmoho",
+	assistaround,
 }
 
 local armdecomqueue = {
@@ -1916,15 +1926,19 @@ end
 local function armt2con(tqb, ai, unit)
 	if not unit.mode then
 		ai.t2concounter = (ai.t2concounter or 0) + 1
-		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
+		if ai.t2concounter < 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return armt2mexspam
+	elseif unit.mode == "eco" then
 		return armt2eco
 	elseif unit.mode == "expand" then
 		return armt2expand
@@ -1937,15 +1951,19 @@ end
 local function cort2con(tqb, ai, unit)
 	if not unit.mode then
 		ai.t2concounter = (ai.t2concounter or 0) + 1
-		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
+		if ai.t2concounter < 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return cort2mexspam
+	elseif unit.mode == "eco" then
 		return cort2eco
 	elseif unit.mode == "expand" then
 		return cort2expand
