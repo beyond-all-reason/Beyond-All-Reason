@@ -1,8 +1,10 @@
 ﻿10.21 -> 10.22
-XX/XX/2019
+23/01/2019
+
+NOTE: Requires 104.0.1.969 or later engine versions
 
  • Rounded costs closer to original using algorithm, based on values from 9.46
- • Restored 9.46 rezbot health 250->200 and 'buildpower' 150->200
+ • Restored 9.46 rezbot stats: health 250->200 and workertime 150->200
 
 
 10.20 -> 10.21
