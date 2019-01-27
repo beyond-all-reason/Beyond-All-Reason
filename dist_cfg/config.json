@@ -24,6 +24,7 @@
                 "engines" : [ "104.0.1-968-gb54c668 maintenance" ]
             },
             "no_start_script" : true,
+            "no_downloads" : true,
             "launch": {
                 "start_args" : ["--menu", "Chobby $VERSION"]
             }
