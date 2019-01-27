@@ -24,7 +24,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 5160,
-		maxvelocity = 2.07,
+		maxvelocity = 1.77,
 		minwaterdepth = 12,
 		movementclass = "HOVER4",
 		name = "Bear",
