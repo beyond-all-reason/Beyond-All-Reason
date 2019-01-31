@@ -223,18 +223,6 @@ local options={
 		max    = 5000,
 		step   = 1,
 	},
-
-	{	-- temporary modoption
-		key = 'xmasballmax',
-		name = 'Max spawned xmas balls',
-		desc = 'At xmas time, this limits the amount of balls spawn. (so you can turn it off) default: 150',
-		type = 'bool',
-		section = 'ba_enhancements_misc',
-		def    = 150,
-		min    = 0,
-		max    = 500,
-		step   = 1,
-	},
 	{
 		key = 'globallos',
 		name = 'Full visibility',

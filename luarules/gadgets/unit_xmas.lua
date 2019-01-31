@@ -25,9 +25,6 @@ if gadgetHandler:IsSyncedCode() then
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
-	if Spring.GetModOptions and Spring.GetModOptions().xmasballsmax then
-		maxDecorations = Spring.GetModOptions().xmasballsmax
-	end
 
 	_G.itsXmas = false
 
