@@ -112,7 +112,7 @@ local enemyComCount = 0 -- if we are receiving a count from the gadget part (nee
 local prevEnemyComCount = 0
 
 local guishaderEnabled = false
-local guishaderCheckUpdateRate = 1
+local guishaderCheckUpdateRate = 0.5
 local nextGuishaderCheck = guishaderCheckUpdateRate
 local now = os.clock()
 local gameFrame = Spring.GetGameFrame()
@@ -274,7 +274,6 @@ local function updateRejoin()
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
 		if (WG['guishader_api'] ~= nil) then
-            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_rejoin')
 		end
 		
@@ -345,7 +344,6 @@ local function updateButtons()
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
-            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_buttons')
 		end
 		
@@ -418,7 +416,6 @@ local function updateComs(forceText)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
-            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
 		end
 	end)
@@ -476,7 +473,6 @@ local function updateWind()
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
 		if (WG['guishader_api'] ~= nil) then
-            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_wind')
 		end
 
@@ -627,7 +623,6 @@ local function updateResbar(res)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 		
 		if (WG['guishader_api'] ~= nil) then
-            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_'..res)
 		end
 		
@@ -739,7 +734,6 @@ function init()
 		--RectRound(barContentArea[1], barContentArea[2], barContentArea[3], barContentArea[4]+(10*widgetScale), 5*widgetScale)
 		
 		--if (WG['guishader_api'] ~= nil) then
-        --  guishaderEnabled = true3
 		--	WG['guishader_api'].InsertRect(topbarArea[1]+((borderPadding*widgetScale)/2), topbarArea[2], topbarArea[3], topbarArea[4], 'topbar')
 		--end
 	end)
@@ -846,12 +840,12 @@ function widget:Update(dt)
     end
 
     now = os.clock()
-	if now > nextGuishaderCheck then
+	if now > nextGuishaderCheck and widgetHandler.orderList["GUI-Shader"] ~= nil then
         nextGuishaderCheck = now+guishaderCheckUpdateRate
-		if guishaderEnabled == false and widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] > 0) then
+		if guishaderEnabled == false and widgetHandler.orderList["GUI-Shader"] ~= 0 then
 			guishaderEnabled = true
 			init()
-		elseif guishaderEnabled and widgetHandler.orderList["GUI-Shader"] ~= nil and (widgetHandler.orderList["GUI-Shader"] == 0) then
+		elseif guishaderEnabled and (widgetHandler.orderList["GUI-Shader"] == 0) then
 			guishaderEnabled = false
 		end
 	end
@@ -1114,7 +1108,6 @@ function widget:DrawScreen()
 
 		-- background
 		if (WG['guishader_api'] ~= nil) then
-            guishaderEnabled = true
 			WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
 			WG['guishader_api'].setScreenBlur(true)
 		end

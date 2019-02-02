@@ -990,7 +990,7 @@ FFA
 Balance changes:
 • Gremlin (Stealth Tank) harder to EMP
 • Annihilator, Doomsday Machine damage reduced by 10% (all weapons)
-• Re• implement Sniper weapon using "cannon" (was "riffle"). Snipers will not kill each other anymore
+• Re implement Sniper weapon using "cannon" (was "riffle"). Snipers will not kill each other anymore
 
 Others:
 • Added workaround for bug with "camera scroll at the beginning of the game"
@@ -1282,7 +1282,7 @@ Others:
 07/08/2015
 
 Balance changes:
-• Area• of• effect for "Dominator Heavy Rocket Kbot" increased, but edge-effectiveness was decreased a little
+• Area of effect for "Dominator Heavy Rocket Kbot" increased, but edge-effectiveness was decreased a little
 • Max paralysis time of mobile units was increased to 20 seconds
 • HP was increased for "Spider All Terrain EMP Spider"
 • Increased metal cost of t1 air scouts
