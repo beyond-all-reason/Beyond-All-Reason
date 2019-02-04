@@ -2,8 +2,8 @@ return {
 	cormart = {
 		acceleration = 0.0204,
 		brakerate = 0.3696,
-		buildcostenergy = 3000,
-		buildcostmetal = 300,
+		buildcostenergy = 3300,
+		buildcostmetal = 280,
 		buildpic = "CORMART.DDS",
 		buildtime = 4270,
 		canmove = true,
@@ -22,14 +22,15 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 560,
+		maxreversevelocity = 1.02,
 		maxslope = 12,
-		maxvelocity = 1.70,
-		maxreversevelocity = 1.70*0.60,
+		maxvelocity = 1.7,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Pillager",
 		nochasecategory = "NOTLAND VTOL",
 		objectname = "CORMART",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 299,
@@ -41,35 +42,29 @@ return {
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.287,
 		turnrate = 330,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 8,
 			bar_trackstrength = 8,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 31,
-			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "flare",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-tiny",
-					driftratio = "0.4", --How likely will the unit drift when performing turns?
-					rockstrength = "10", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "5", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "7.5", --How fast will the cannon come back in position?
-					kickback = "-6", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "35", --turretSpeed as seen in COB script
-					cobturretxspeed = "35", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			basename = "base",
 			canareaattack = 1,
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "7.5",
+			cobturretxspeed = "35",
+			cobturretyspeed = "35",
+			driftratio = "0.4",
+			firingceg = "barrelshot-tiny",
+			flare1name = "flare",
+			kickback = "-6",
+			restoretime = "3000",
+			rockrestorespeed = "5",
+			rockspeed = "80",
+			rockstrength = "10",
+			sleevename = "sleeve",
+			subfolder = "corevehicles/t2",
+			techlevel = 2,
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -96,6 +91,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 350,
 				description = "Pillager Heap",
 				energy = 0,
@@ -106,22 +103,20 @@ return {
 				hitdensity = 100,
 				metal = 55,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 32768,
-		buildcostenergy = 700,
-		buildcostmetal = 85,
+		buildcostenergy = 680,
+		buildcostmetal = 86,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "armllt_aoplane.dds",
+		buildinggrounddecaltype = "decals/armllt_aoplane.dds",
 		buildpic = "ARMLLT.DDS",
 		buildtime = 2662,
 		canrepeat = false,
@@ -38,6 +38,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			removewait = true,
+			subfolder = "armbuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 168,
 				description = "LLT Heap",
 				energy = 0,
@@ -74,18 +77,16 @@ return {
 				hitdensity = 100,
 				metal = 21,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

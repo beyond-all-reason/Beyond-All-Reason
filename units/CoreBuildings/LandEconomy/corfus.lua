@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 27000,
+		buildcostenergy = 26000,
 		buildcostmetal = 4500,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "corfus_aoplane.dds",
+		buildinggrounddecaltype = "decals/corfus_aoplane.dds",
 		buildpic = "CORFUS.DDS",
 		buildtime = 75424,
 		canrepeat = false,
@@ -36,11 +36,12 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
-			removestop = true,
 			bar_buildinggrounddecalsizex = 7,
 			bar_buildinggrounddecalsizey = 7,
+			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -83,11 +84,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

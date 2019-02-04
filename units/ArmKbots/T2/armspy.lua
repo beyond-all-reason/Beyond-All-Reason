@@ -3,10 +3,9 @@ return {
 		acceleration = 0.24,
 		activatewhenbuilt = true,
 		brakerate = 0.6,
-		buildcostenergy = 8000,
-		buildcostmetal = 150,
+		buildcostenergy = 8800,
+		buildcostmetal = 135,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMSPY.DDS",
 		buildtime = 17631,
 		canassist = false,
@@ -41,6 +40,7 @@ return {
 		seismicsignature = 2,
 		selfdestructas = "SPYBOMBX",
 		selfdestructcountdown = 1,
+		shownanospray = false,
 		sightdistance = 550,
 		sonarstealth = true,
 		stealth = true,
@@ -50,6 +50,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -76,6 +77,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 150,
 				description = "Infiltrator Heap",
 				energy = 0,
@@ -85,19 +88,17 @@ return {
 				hitdensity = 100,
 				metal = 33,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

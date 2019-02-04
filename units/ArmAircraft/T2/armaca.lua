@@ -1,12 +1,12 @@
 return {
 	armaca = {
 		acceleration = 0.07,
+		blocking = false,
 		brakerate = 0.4275,
 		buildcostenergy = 12000,
 		buildcostmetal = 280,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMACA.DDS",
 		buildtime = 17763,
 		canfly = true,
@@ -36,12 +36,12 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
+		shownanospray = false,
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
 		workertime = 100,
-		blocking = false,
 		buildoptions = {
 			[1] = "armfus",
 			[2] = "armckfus",
@@ -74,23 +74,24 @@ return {
 			[29] = "armplat",
 		},
 		customparams = {
-			wingsurface = 0.25,
 			area_mex_def = "armmoho",
+			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			wingsurface = 0.25,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3-builder",
-				"deathceg4-builder",
-				"deathceg2-builder",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3-builder",
+				[2] = "deathceg4-builder",
+				[3] = "deathceg2-builder",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

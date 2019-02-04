@@ -59,7 +59,7 @@ return {
 		workertime = 0,
 		customparams = {
 			nohealthbars = true,
-			subfolder = "other/critters/",
+			subfolder = "other/critters",
 		},
 	},
 }

@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 34000,
+		buildcostenergy = 33000,
 		buildcostmetal = 5400,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "coruwfus_aoplane.dds",
+		buildinggrounddecaltype = "decals/coruwfus_aoplane.dds",
 		buildpic = "CORUWFUS.DDS",
 		buildtime = 105004,
 		canrepeat = false,
@@ -36,8 +36,9 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/seaeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -78,11 +79,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

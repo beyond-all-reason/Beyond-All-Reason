@@ -1,6 +1,7 @@
 return {
 	cortitan = {
-		acceleration = 0.20,
+		acceleration = 0.2,
+		blocking = false,
 		brakerate = 0.0725,
 		buildcostenergy = 7200,
 		buildcostmetal = 340,
@@ -31,24 +32,24 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
 		turnrate = 600,
-		blocking = false,
 		customparams = {
+			subfolder = "coreaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.4,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -102,12 +103,12 @@ return {
 				weapontimer = 5,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				},
 				damage = {
 					default = 1500,
 				},
-				customparams = {
-					bar_model = "cortorpedo.s3o",
-				}
 			},
 		},
 		weapons = {

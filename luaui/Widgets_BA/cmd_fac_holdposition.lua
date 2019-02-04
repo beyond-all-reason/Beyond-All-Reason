@@ -55,19 +55,7 @@ local unitArray = {
   "corcom",
 }
 
-if UnitDefNames.armcom_bar then
-  function tableMerge(t1, t2)
-    for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
-    return t1
-  end
-  local unitArrayBAR = {}
-  local unitArrayKeyCount = #unitArray
-  for _,name in pairs(unitArray) do
-    unitArrayKeyCount = unitArrayKeyCount + 1
-    unitArrayBAR[unitArrayKeyCount] = name
-  end
-  unitArray = tableMerge(unitArray, unitArrayBAR)
-end
+
 ----------------------------------------------
 ------------------------------------------
 

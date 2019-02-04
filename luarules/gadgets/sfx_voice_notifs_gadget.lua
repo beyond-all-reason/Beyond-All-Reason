@@ -220,7 +220,7 @@ else
 	-- Unit Lost send to all in team
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		if not Spring.IsUnitInView(unitID) then
-			if not (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom" or UnitDefs[unitDefID].name == "armcom_bar" or UnitDefs[unitDefID].name == "corcom_bar") then
+			if not (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
 				if attackerID or attackerDefID or attackerTeam then
 					local event = "UnitLost"
 					local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))

@@ -4,12 +4,12 @@ return {
 		airsightdistance = 1060,
 		brakerate = 0,
 		buildangle = 65536,
-		buildcostenergy = 7000,
+		buildcostenergy = 7300,
 		buildcostmetal = 750,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "armcir_aoplane.dds",
+		buildinggrounddecaltype = "decals/armcir_aoplane.dds",
 		buildpic = "ARMCIR.DDS",
 		buildtime = 12000,
 		canrepeat = false,
@@ -33,8 +33,9 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
-			removewait = true,
 			prioritytarget = "air",
+			removewait = true,
+			subfolder = "armbuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -61,6 +62,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 750,
 				description = "Chainsaw Heap",
 				energy = 0,
@@ -71,19 +74,17 @@ return {
 				hitdensity = 100,
 				metal = 150,
 				object = "3X3B",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -117,10 +118,10 @@ return {
 				burst = 4,
 				burstrate = 0.28,
 				canattackground = false,
+				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailaa",
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 20,
 				flighttime = 2.3,
@@ -149,18 +150,18 @@ return {
 				weaponacceleration = 300,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1300,
+				customparams = {
+					bar_model = "cormissile.s3o",
+					expl_light_color = "1 0.4 0.5",
+					expl_light_mult = 0.4,
+					expl_light_radius_mult = 0.66,
+					light_color = "1 0.5 0.6",
+					light_skip = true,
+				},
 				damage = {
 					bombers = 265,
 					fighters = 215,
 					vtol = 170,
-				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-					light_skip = true,		-- used by light_effects widget
-					light_color = "1 0.5 0.6",
-					expl_light_color = "1 0.4 0.5",
-					expl_light_radius_mult = 0.66,
-					expl_light_mult = 0.4,
 				},
 			},
 		},

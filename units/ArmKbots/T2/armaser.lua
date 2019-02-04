@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0.45,
 		buildcostenergy = 1400,
-		buildcostmetal = 80,
+		buildcostmetal = 78,
 		buildpic = "ARMASER.DDS",
 		buildtime = 4937,
 		canattack = false,
@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 1.0626,
 		turnrate = 1045,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -66,6 +67,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "21.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 150,
 				description = "Eraser Heap",
 				energy = 0,
@@ -76,19 +79,17 @@ return {
 				hitdensity = 100,
 				metal = 19,
 				object = "1X1A",
-                collisionvolumescales = "21.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

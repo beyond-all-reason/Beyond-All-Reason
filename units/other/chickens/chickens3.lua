@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 72,
 		builder = false,
 		buildpic = "chickens/chickens3.dds",
-		buildtime = 1700,
+		buildtime = 2550,
 		canfly = true,
 		canguard = true,
 		canland = true,
@@ -48,7 +48,7 @@ return {
 		turnrate = 1600,
 		unitname = "chickens3",
 		customparams = {
-			subfolder = "other/chickens/",
+			subfolder = "other/chickens",
 		},
 		featuredefs = {
 			dead = {},

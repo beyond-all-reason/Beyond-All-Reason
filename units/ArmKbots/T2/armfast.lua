@@ -2,7 +2,7 @@ return {
 	armfast = {
 		acceleration = 0.36,
 		brakerate = 1.125,
-		buildcostenergy = 4700,
+		buildcostenergy = 4600,
 		buildcostmetal = 190,
 		buildpic = "ARMFAST.DDS",
 		buildtime = 3960,
@@ -35,6 +35,7 @@ return {
 		turnrate = 1430,
 		upright = true,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 			wpn1turretx = 400,
 			wpn1turrety = 500,
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 300,
 				description = "Zipper Heap",
 				energy = 0,
@@ -74,22 +77,20 @@ return {
 				hitdensity = 100,
 				metal = 42,
 				object = "2X2E",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

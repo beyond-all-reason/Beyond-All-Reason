@@ -37,8 +37,9 @@ return {
 		turninplacespeedlimit = 0.495,
 		turnrate = 320,
 		customparams = {
-			techlevel = 2,
 			paralyzemultiplier = 0.5,
+			subfolder = "corekbots/t2",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 4200,
 				description = "Sumo Heap",
 				energy = 0,
@@ -75,19 +78,17 @@ return {
 				hitdensity = 100,
 				metal = 447,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -143,15 +144,15 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					light_mult = "0.8",
+				},
 				damage = {
 					bombers = 65,
 					default = 275,
 					fighters = 65,
 					subs = 5,
 					vtol = 65,
-				},
-				customparams = {
-					light_mult = "0.8",		-- used by light_effects widget
 				},
 			},
 		},

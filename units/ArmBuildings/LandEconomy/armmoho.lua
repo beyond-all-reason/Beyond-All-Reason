@@ -4,13 +4,13 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 2048,
-		buildcostenergy = 8000,
-		buildcostmetal = 600,
+		buildcostenergy = 7700,
+		buildcostmetal = 620,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "armmoho_aoplane.dds",
-		buildingMask = 0,
+		buildinggrounddecaltype = "decals/armmoho_aoplane.dds",
+		buildingmask = 0,
 		buildpic = "ARMMOHO.DDS",
 		buildtime = 14938,
 		canrepeat = false,
@@ -43,11 +43,12 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 7.55,
 			bar_buildinggrounddecalsizey = 7.55,
-			techlevel = 2,
-			cvBuildable = true,
+			cvbuildable = true,
 			metal_extractor = 4,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -90,11 +91,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

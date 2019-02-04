@@ -17,7 +17,6 @@ skirmisherlist = {
 	"corstorm",	--	Storm			/	Rocket Bot
 	"cormando",	--	Commando		/	Sealthy Paratrooper Kbot
 	"cormort",	--	Morty			/	Mobile Mortar Kbot
-	"corsumo",	--	Sumo			/	Heavily-Armored Assault Kbot
 	"cormist",	--	Slasher			/	Misile Truck
 	"corban",	--	Banisher		/	Heavy Missile Tank
 	"corgol",	--	Goliath			/	Very heavy Assault Tank
@@ -177,6 +176,7 @@ raiderlist = {
 	"corcan",	--	Can				/	Armored Assault Kbot
 	"corpyro",	--	Pyro			/	Fast Assault Kbot
 	"cortermite", -- Termite		/	Heavy All-Terrain Assault Spider
+	"corsumo",	--	Sumo			/	Heavily-Armored Assault Kbot
 	"corgator",	--	Instigator		/	Fast Assault Tank
 	"corraid",	--	Raider			/	Medium Assault Tank
 	"corgarp",	--	Garpike			/	Light Amphibious Tank

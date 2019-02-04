@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 33000,
-		buildcostmetal = 3200,
+		buildcostenergy = 35000,
+		buildcostmetal = 3100,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "corbhmth_aoplane.dds",
+		buildinggrounddecaltype = "decals/corbhmth_aoplane.dds",
 		buildpic = "CORBHMTH.DDS",
 		buildtime = 59640,
 		canrepeat = false,
@@ -36,9 +36,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
 		customparams = {
-			techlevel = 2,
-			cvBuildable = true,
+			cvbuildable = true,
 			removewait = true,
+			subfolder = "corebuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -81,14 +82,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

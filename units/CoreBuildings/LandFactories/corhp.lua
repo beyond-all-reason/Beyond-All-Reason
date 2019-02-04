@@ -2,14 +2,13 @@ return {
 	corhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4200,
+		buildcostenergy = 4300,
 		buildcostmetal = 1100,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
-		buildinggrounddecaltype = "corhp_aoplane.dds",
+		buildinggrounddecaltype = "decals/corhp_aoplane.dds",
 		buildpic = "CORHP.DDS",
 		buildtime = 14253,
 		canmove = true,
@@ -34,21 +33,23 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 312,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
 		workertime = 200,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
-			"corch",
-			"corsh",
-			"corsnap",
-			"corah",
-			"cormh",
-			"corhal",
-			"corthovr",
+			[1] = "corch",
+			[2] = "corsh",
+			[3] = "corsnap",
+			[4] = "corah",
+			[5] = "cormh",
+			[6] = "corhal",
+			[7] = "corthovr",
 		},
 		customparams = {
+			subfolder = "corebuildings/landfactories",
 		},
 		featuredefs = {
 			dead = {
@@ -91,11 +92,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

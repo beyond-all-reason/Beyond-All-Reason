@@ -5,11 +5,11 @@ return {
 		brakerate = 0,
 		buildangle = 8196,
 		buildcostenergy = 1800,
-		buildcostmetal = 170,
+		buildcostmetal = 175,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "corestor_aoplane.dds",
+		buildinggrounddecaltype = "decals/corestor_aoplane.dds",
 		buildpic = "CORESTOR.DDS",
 		buildtime = 4257,
 		canrepeat = false,
@@ -29,7 +29,7 @@ return {
 		maxdamage = 1800,
 		maxslope = 10,
 		maxwaterdepth = 0,
-		name = "Karate Energy Storage",
+		name = "Energy Storage",
 		objectname = "CORESTOR",
 		seismicsignature = 0,
 		selfdestructas = "energystorageSelfd",
@@ -37,8 +37,9 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 540,
 				description = "Energy Storage Heap",
 				energy = 0,
@@ -75,19 +78,17 @@ return {
 				hitdensity = 100,
 				metal = 43,
 				object = "4X4A",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -24,7 +24,7 @@ return {
 		leavetracks = true,
 		maxdamage = 735,
 		maxslope = 16,
-		maxvelocity = 1.40,
+		maxvelocity = 1.4,
 		maxwaterdepth = 12,
 		movementclass = "TANK3",
 		name = "Samson",
@@ -43,6 +43,7 @@ return {
 		customparams = {
 			arm_tank = "1",
 			description_long = "Samsons are long range light missile trucks. They can outrange most T1 defensive units and deal constant damage to it. They can also serve as basic anti-air defense. Very ineffective in close combat, so always try to keep them at full distance by using FIGHT command. In larger packs Samsons can even take down Heavy Laser Turrets. Combine with janus/stumpies and repairing units for a devastating frontline push! Move them in line, because they can't shoot over each other.",
+			subfolder = "armvehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -69,6 +70,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 320,
 				description = "Samson Heap",
 				energy = 0,
@@ -79,22 +82,20 @@ return {
 				hitdensity = 100,
 				metal = 45,
 				object = "3X3D",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
-				"deathceg2",
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -124,10 +125,10 @@ return {
 				avoidfeature = false,
 				burst = 2,
 				burstrate = 0.33,
+				cegtag = "missiletrailtiny",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailtiny",
 				explosiongenerator = "custom:genericshellexplosion-tiny",
 				firestarter = 70,
 				flighttime = 2,
@@ -156,6 +157,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 670,
+				customparams = {
+					bar_model = "cormissile.s3o",
+				},
 				damage = {
 					bombers = 80,
 					commanders = 22,
@@ -164,9 +168,6 @@ return {
 					subs = 5,
 					vtol = 80,
 				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-				}
 			},
 		},
 		weapons = {

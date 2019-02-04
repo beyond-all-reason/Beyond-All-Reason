@@ -491,7 +491,7 @@ function Epic(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, epicIDlist)
-	if ct > 0 then
+	if ct > 0 or Spring.GetGameSeconds() < math.random(1200,2700) then
 		return skip
 	end
 	if not possibilities[unit:Name()]["epicdef"] then
@@ -534,7 +534,7 @@ function LolCannon(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
 	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, lolCannonIDlist)
-	if ct > 0 or Spring.GetGameSeconds() < 1800 then
+	if ct > 0 or Spring.GetGameSeconds() < 3600 then
 		return skip
 	end
 	if not possibilities[unit:Name()]["lolcannondef"] then
@@ -655,7 +655,7 @@ end
 ---- TECHTREE RELATED ----
 function KbotOrVeh()
 	local veh = 0
-	local kbot = 0
+	local kbot = 1
 	-- mapsize
 	mapsize = Game.mapX * Game.mapY
 	local randomnumber = math.random(1,mapsize+1)
@@ -1037,10 +1037,6 @@ lab = {
 	"cornecro",
 	"armrectr",
 	"cornecro",
-	"armrectr",
-	"cornecro",
-	"armrectr",
-	"cornecro",
 	Scout,
 }
 
@@ -1358,6 +1354,7 @@ local cort1expand = {
 	CorMexT1,
 	CorExpandRandomLab,
 	ShortDefense,
+	AADefense,
 	CorMexT1,
 	CorExpandRandomLab,
 	assistaround,
@@ -1377,12 +1374,18 @@ local cort1expand = {
 	CorNanoT,
 }
 
+local cormexspam = {
+	CorMexT1,
+	assistaround,
+}
+
 local cort2eco = {
 	CorEnT2,
 	CorEnT2,
-	CorProtection,
 	CorEnT2,
 	CorExpandRandomLab,
+	CorProtection,
+	AADefense,
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
@@ -1403,6 +1406,11 @@ local cort2expand = {
 	AADefense,
 	assistaround,
 	LongDefense,
+}
+
+local cort2mexspam = {
+	"cormoho",
+	assistaround,
 }
 
 local cordecomqueue = {
@@ -1753,6 +1761,7 @@ local armt1expand = {
 	ArmMexT1,
 	ArmExpandRandomLab,
 	ShortDefense,
+	AADefense,
 	ArmMexT1,
 	ArmExpandRandomLab,
 	assistaround,
@@ -1772,12 +1781,18 @@ local armt1expand = {
 	ArmNanoT,
 }
 
+local armmexspam = {
+	ArmMexT1,
+	assistaround,
+}
+
 local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
-	ArmProtection,
 	ArmEnT2,
 	ArmExpandRandomLab,
+	ArmProtection,
+	AADefense,
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
@@ -1798,6 +1813,11 @@ local armt2expand = {
 	AADefense,
 	assistaround,
 	LongDefense,
+}
+
+local armt2mexspam = {
+	"armmoho",
+	assistaround,
 }
 
 local armdecomqueue = {
@@ -1839,15 +1859,19 @@ local function armt1con(tqb, ai, unit)
 	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
-		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
+		if ai.t1concounter < 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return armmexspam
+	elseif unit.mode == "eco" then
 		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
 			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
 			return armt1eco
@@ -1869,15 +1893,19 @@ local function cort1con(tqb, ai, unit)
 	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
 	if not unit.mode then
 		ai.t1concounter = (ai.t1concounter or 0) + 1
-		if ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
+		if ai.t1concounter < 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
+		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return cormexspam
+	elseif unit.mode == "eco" then
 		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
 			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
 			return cort1eco
@@ -1898,15 +1926,19 @@ end
 local function armt2con(tqb, ai, unit)
 	if not unit.mode then
 		ai.t2concounter = (ai.t2concounter or 0) + 1
-		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
+		if ai.t2concounter < 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return armt2mexspam
+	elseif unit.mode == "eco" then
 		return armt2eco
 	elseif unit.mode == "expand" then
 		return armt2expand
@@ -1919,15 +1951,19 @@ end
 local function cort2con(tqb, ai, unit)
 	if not unit.mode then
 		ai.t2concounter = (ai.t2concounter or 0) + 1
-		if ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
+		if ai.t2concounter < 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+			unit.mode = "mexspam"
+		elseif ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
 			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
+		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 then
 			unit.mode = "expand"
 		else
 			unit.mode = "eco"
 		end
 	end
-	if unit.mode == "eco" then
+	if unit.mode == "mexspam" then
+		return cort2mexspam
+	elseif unit.mode == "eco" then
 		return cort2eco
 	elseif unit.mode == "expand" then
 		return cort2expand

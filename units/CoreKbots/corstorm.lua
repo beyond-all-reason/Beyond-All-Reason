@@ -2,7 +2,7 @@ return {
 	corstorm = {
 		acceleration = 0.108,
 		brakerate = 0.564,
-		buildcostenergy = 1100,
+		buildcostenergy = 1150,
 		buildcostmetal = 110,
 		buildpic = "CORSTORM.DDS",
 		buildtime = 1949,
@@ -37,6 +37,7 @@ return {
 		upright = true,
 		customparams = {
 			description_long = "Storm is a light rocket Kbot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Storms can force him to retreat. In bigger numbers and with repairing support of resurrection Kbots they are able to take down more advanced defensive structures. Very ineffective against fast mobile units, watch out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing defense. In comparison to their ARM counterpart (Rockos) they are a bit slower, but stonger at the same time",
+			subfolder = "corekbots",
 		},
 		featuredefs = {
 			dead = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 251,
 				description = "Storm Heap",
 				energy = 0,
@@ -73,21 +76,19 @@ return {
 				hitdensity = 100,
 				metal = 22,
 				object = "2X2C",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg2",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -115,10 +116,10 @@ return {
 			core_kbot_rocket = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				cegtag = "missiletrailsmall",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall",
 				explosiongenerator = "custom:genericshellexplosion-small",
 				firestarter = 70,
 				impulseboost = 0.123,
@@ -134,21 +135,21 @@ return {
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
-				startvelocity = 156,
-                texture1 = "trans",
+				startvelocity = 190,
+				texture1 = "trans",
 				texture2 = "coresmoketrail",
 				turret = true,
 				weaponacceleration = 120,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 223,
+				weaponvelocity = 190,
+				customparams = {
+					bar_model = "cormissile2.s3o",
+				},
 				damage = {
 					default = 157,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "cormissile2.s3o",
-				}
 			},
 		},
 		weapons = {

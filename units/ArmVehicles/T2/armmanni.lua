@@ -2,7 +2,7 @@ return {
 	armmanni = {
 		acceleration = 0.0132,
 		brakerate = 0.4125,
-		buildcostenergy = 13000,
+		buildcostenergy = 13500,
 		buildcostmetal = 1200,
 		buildpic = "ARMMANNI.DDS",
 		buildtime = 25706,
@@ -21,18 +21,18 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-        mass = 5001,
+		mass = 5001,
 		maxdamage = 2500,
+		maxreversevelocity = 0.608,
 		maxslope = 12,
-		maxvelocity = 1.30,
-		maxreversevelocity = 1.52*0.40,
+		maxvelocity = 1.3,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
 		name = "Penetrator",
 		nochasecategory = "VTOL",
 		objectname = "ARMMANNI",
-		seismicsignature = 0,
 		script = "BASICTANKSCRIPT.LUA",
+		seismicsignature = 0,
 		selfdestructas = "penetrator",
 		sightdistance = 650,
 		trackoffset = 16,
@@ -42,31 +42,26 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.00188,
-		turnrate = 151*0.8,
+		turnrate = 120.8,
 		customparams = {
 			arm_tank = "1",
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "5",
+			cobturretxspeed = "50",
+			cobturretyspeed = "50",
+			driftratio = "0",
+			firingceg = "barrelshot-small",
+			flare1name = "flash",
+			kickback = "-2",
+			restoretime = "3000",
+			rockrestorespeed = "0",
+			rockspeed = "0",
+			rockstrength = "0",
+			sleevename = "sleeve",
+			subfolder = "armvehicles/t2",
 			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "flash",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-small",
-					driftratio = "0", --How likely will the unit drift when performing turns?
-					rockstrength = "0", --Howmuch will its weapon make it rock ?
-					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "5", --How fast will the cannon come back in position?
-					kickback = "-2", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "50", --turretSpeed as seen in COB script
-					cobturretxspeed = "50", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -93,6 +88,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1500,
 				description = "Penetrator Heap",
 				energy = 0,
@@ -103,19 +100,17 @@ return {
 				hitdensity = 100,
 				metal = 294,
 				object = "3X3C",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -152,34 +147,34 @@ return {
 				explosiongenerator = "custom:genericshellexplosion-medium-beam",
 				impulseboost = 0,
 				impulsefactor = 0,
+				largebeamlaser = true,
 				laserflaresize = 5.5,
-				largeBeamLaser = true,
-				texture3 = "largebeam",
-				tileLength = 150,
-				scrollSpeed = 5,
 				name = "Heavy long-range g2g tachyon beam",
 				noselfdamage = true,
 				range = 950,
 				reloadtime = 4.7,
 				rgbcolor = "0 0 1",
+				scrollspeed = 5,
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
 				soundstart = "annigun1",
 				soundtrigger = 1,
 				targetmoveerror = 0.3,
+				texture3 = "largebeam",
 				thickness = 5.5,
+				tilelength = 150,
 				tolerance = 10000,
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1500,
+				customparams = {
+					light_radius_mult = "1.2",
+				},
 				damage = {
 					commanders = 1000,
 					default = 2500,
 					subs = 5,
-				},
-				customparams = {
-					light_radius_mult = "1.2",		-- used by light_effects widget
 				},
 			},
 		},

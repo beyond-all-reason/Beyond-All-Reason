@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 2200,
-		buildcostmetal = 250,
+		buildcostenergy = 2400,
+		buildcostmetal = 300,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "cordl_aoplane.dds",
+		buildinggrounddecaltype = "decals/cordl_aoplane.dds",
 		buildpic = "CORDL.DDS",
 		buildtime = 4280,
 		canrepeat = false,
@@ -40,6 +40,7 @@ return {
 			bar_collisionvolumeoffsets = "0 3 0",
 			bar_collisionvolumescales = "38 52 38",
 			removewait = true,
+			subfolder = "corebuildings/seadefence",
 		},
 		featuredefs = {
 			dead = {
@@ -66,6 +67,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 323,
 				description = "Jellyfish Heap",
 				energy = 0,
@@ -76,19 +79,17 @@ return {
 				hitdensity = 100,
 				metal = 73,
 				object = "3X3B",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -145,13 +146,13 @@ return {
 				waterweapon = true,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				},
 				damage = {
 					commanders = 400,
 					default = 225,
 				},
-				customparams = {
-					bar_model = "cordepthcharge.s3o",
-				}
 			},
 		},
 		weapons = {

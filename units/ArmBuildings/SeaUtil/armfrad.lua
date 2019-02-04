@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 1000,
-		buildcostmetal = 130,
+		buildcostenergy = 1050,
+		buildcostmetal = 135,
 		buildpic = "ARMFRAD.DDS",
 		buildtime = 1800,
 		canattack = false,
@@ -32,18 +32,19 @@ return {
 		objectname = "ARMFRAD",
 		onoffable = true,
 		radardistance = 2100,
-		sonardistance = 1200, 
 		radaremitheight = 52,
 		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 760,
+		sonardistance = 1200,
 		waterline = 1,
 		yardmap = "wwwwwwwww",
 		customparams = {
 			bar_collisionvolumeoffsets = "0 15 0",
 			bar_collisionvolumescales = "36 59 36",
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/seautil",
 		},
 		featuredefs = {
 			dead = {
@@ -66,10 +67,10 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

@@ -2,8 +2,8 @@ return {
 	cortrem = {
 		acceleration = 0.0528,
 		brakerate = 0.33,
-		buildcostenergy = 48000,
-		buildcostmetal = 1800,
+		buildcostenergy = 49000,
+		buildcostmetal = 1850,
 		buildpic = "CORTREM.DDS",
 		buildtime = 31100,
 		canmove = true,
@@ -22,11 +22,11 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		leavetracks = true,
-        mass = 5001,
+		mass = 5001,
 		maxdamage = 2700,
+		maxreversevelocity = 0.762,
 		maxslope = 14,
 		maxvelocity = 1.27,
-		maxreversevelocity = 1.27*0.60,
 		maxwaterdepth = 15,
 		movementclass = "HTANK4",
 		name = "Tremor",
@@ -48,6 +48,7 @@ return {
 			bar_trackstrength = 8,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 50,
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -75,6 +76,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1500,
 				description = "Tremor Heap",
 				energy = 0,
@@ -85,22 +88,20 @@ return {
 				hitdensity = 100,
 				metal = 474,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

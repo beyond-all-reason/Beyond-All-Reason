@@ -1,9 +1,10 @@
 return {
 	armdfly = {
 		acceleration = 0.2,
+		blocking = false,
 		brakerate = 0.625,
-		buildcostenergy = 9000,
-		buildcostmetal = 330,
+		buildcostenergy = 6600,
+		buildcostmetal = 320,
 		buildpic = "ARMDFLY.DDS",
 		buildtime = 16022,
 		canfly = true,
@@ -32,38 +33,38 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMDFLY",
 		releaseheld = true,
+		script = "armdfly_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 318,
 		stealth = true,
-		script = "armdfly_lus.lua",
 		transportcapacity = 8,
 		transportsize = 4,
 		transportunloadmethod = 0,
 		turninplaceanglelimit = 360,
 		turnrate = 420,
 		unloadspread = 0,
-		blocking = false,
 		customparams = {
-		wingsurface = 0.35,
 			paralyzemultiplier = 0.025,
+			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			wingsurface = 0.35,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-large",
+				[2] = "crashing-large",
+				[3] = "crashing-large2",
+				[4] = "crashing-large3",
+				[5] = "crashing-large3",
 			},
-			explosiongenerators      = {
-				"custom:blacksmoke",
+			explosiongenerators = {
+				[1] = "custom:blacksmoke",
 			},
-			crashExplosionGenerators = {
-				"crashing-large",
-				"crashing-large",
-				"crashing-large2",
-				"crashing-large3",
-				"crashing-large3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -90,9 +91,9 @@ return {
 			armdfly_paralyzer = {
 				areaofeffect = 32,
 				avoidfeature = false,
+				beamdecay = 0.5,
 				beamtime = 0.5,
 				beamttl = 1,
-				beamdecay = 0.5,
 				collidefriendly = false,
 				corethickness = 0.4,
 				craterareaofeffect = 0,
@@ -121,14 +122,14 @@ return {
 				turret = false,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					expl_light_color = "0.7 0.7 1",
+					light_color = "0.7 0.7 1",
+					light_mult = "0.8",
+					light_radius_mult = "0.8",
+				},
 				damage = {
 					default = 22500,
-				},
-				customparams = {
-					light_mult = "0.8",		-- used by light_effects widget
-					light_radius_mult = "0.8",		-- used by light_effects widget
-                    light_color = "0.7 0.7 1",
-                    expl_light_color = "0.7 0.7 1",
 				},
 			},
 		},

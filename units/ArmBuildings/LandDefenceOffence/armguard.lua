@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 12000,
+		buildcostenergy = 12500,
 		buildcostmetal = 1250,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "armguard_aoplane.dds",
+		buildinggrounddecaltype = "decals/armguard_aoplane.dds",
 		buildpic = "ARMGUARD.DDS",
 		buildtime = 21377,
 		canrepeat = false,
@@ -38,6 +38,7 @@ return {
 		yardmap = "ooooooooo",
 		customparams = {
 			removewait = true,
+			subfolder = "armbuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 828,
 				description = "Guardian Heap",
 				energy = 0,
@@ -74,22 +77,20 @@ return {
 				hitdensity = 100,
 				metal = 357,
 				object = "3X3D",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -117,7 +118,6 @@ return {
 		},
 		weapondefs = {
 			plasma = {
-				explosiongenerator = "custom:genericshellexplosion-medium",
 				accuracy = 75,
 				areaofeffect = 128,
 				avoidfeature = false,
@@ -125,6 +125,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.25,
+				explosiongenerator = "custom:genericshellexplosion-medium",
 				gravityaffected = "true",
 				impulseboost = 0.123,
 				impulsefactor = 0.5,
@@ -144,14 +145,12 @@ return {
 					commanders = 550,
 					default = 250,
 					fighters = 90,
-					subs = 90,
-					lboats = 630,
 					hvyboats = 630,
+					lboats = 630,
+					subs = 90,
 					vtol = 90,
 				},
 			},
-				
-				
 			plasma_high = {
 				accuracy = 75,
 				areaofeffect = 192,
@@ -180,10 +179,10 @@ return {
 					bombers = 90,
 					commanders = 950,
 					default = 550,
-					subs = 90,
 					fighters = 90,
-					lboats = 1100,
 					hvyboats = 1100,
+					lboats = 1100,
+					subs = 90,
 					vtol = 90,
 				},
 			},

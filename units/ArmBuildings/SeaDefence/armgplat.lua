@@ -36,6 +36,7 @@ return {
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			removewait = true,
+			subfolder = "armbuildings/seadefence",
 		},
 		featuredefs = {
 			dead = {
@@ -58,14 +59,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -94,37 +95,37 @@ return {
 		weapondefs = {
 			gun = {
 				accuracy = 4,
+				alphadecay = 0.5,
 				areaofeffect = 16,
 				avoidfeature = false,
-				sizedecay = 0.1,
-				alphadecay = 0.5,
 				burst = 2,
 				burstrate = 0.1,
-				projectiles = 1,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:plasmahit-medium",
+				firetolerance = 200,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
 				name = "Rapid-fire close-quarters plasma turret",
+				nogap = false,
 				noselfdamage = true,
+				projectiles = 1,
 				range = 430,
 				reloadtime = 0.4,
+				separation = 1,
+				size = 1.75,
+				sizedecay = 0.1,
 				soundhit = "xplomed2",
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "cannhvy1",
+				stages = 20,
 				targetmoveerror = 0.1,
-				turret = true,
-				size = 1.75,
 				tolerance = 0,
-				firetolerance = 200,
+				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 924,
-				separation = 1.0,
-				nogap = false,
-				stages = 20,
 				damage = {
 					default = 22.5,
 				},

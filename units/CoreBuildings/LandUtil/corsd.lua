@@ -2,12 +2,12 @@ return {
 	corsd = {
 		activatewhenbuilt = true,
 		buildangle = 4096,
-		buildcostenergy = 6800,
+		buildcostenergy = 6700,
 		buildcostmetal = 750,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "corsd_aoplane.dds",
+		buildinggrounddecaltype = "decals/corsd_aoplane.dds",
 		buildpic = "CORSD.DDS",
 		buildtime = 11955,
 		canrepeat = false,
@@ -38,9 +38,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landutil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -67,6 +68,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 750,
 				description = "Nemesis Heap",
 				energy = 0,
@@ -77,19 +80,17 @@ return {
 				hitdensity = 100,
 				metal = 234,
 				object = "4X4A",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

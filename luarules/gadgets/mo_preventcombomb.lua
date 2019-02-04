@@ -44,13 +44,6 @@ local COMMANDER = {
   [UnitDefNames["corcom"].id] = true,
   [UnitDefNames["armcom"].id] = true,
 }
-if UnitDefNames.armcom_bar then
-	DGUN[WeaponDefNames['armcom_bar_disintegrator'].id] = true
-	DGUN[WeaponDefNames['corcom_bar_disintegrator'].id] = true
-	COMMANDER[UnitDefNames["corcom_bar"].id] = true
-	COMMANDER[UnitDefNames["armcom_bar"].id] = true
-end
-
 local immuneDgunList = {}
 local ctrlCom = {}
 local cantFall = {}
@@ -70,9 +63,6 @@ function CommCount(unitTeam)
 	local count = 0
 	for _, teamID in pairs(teamsInAllyID[currentAllyTeamID]) do -- [_] = teamID,
 		count = count + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["armcom"].id) + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["corcom"].id)
-		if UnitDefNames.armcom_bar then
-			count = count + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["armcom_bar"].id) + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["corcom_bar"].id)
-		end
 	end
 	-- Spring.Echo(currentAllyTeamID..","..count)
 	return count

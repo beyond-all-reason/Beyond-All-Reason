@@ -9,7 +9,7 @@ return {
 		builddistance = 425,
 		builder = true,
 		buildpic = "chickens/chickenh5.dds",
-		buildtime = 12000,
+		buildtime = 18000,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -63,7 +63,7 @@ return {
 		workertime = 450,
 		customparams = {
 			maxrange = "200",
-			subfolder = "other/chickens/",
+			subfolder = "other/chickens",
 		},
 		featuredefs = {
 			dead = {},

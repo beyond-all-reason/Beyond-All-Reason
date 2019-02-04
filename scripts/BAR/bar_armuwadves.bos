@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, ring1, ring2 ;
+piece  base ;
 
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -37,8 +37,6 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 
 Create()
 {
-	spin ring1 around y-axis speed <360> accelerate <60>;
-	spin ring2 around y-axis speed <-360> accelerate <60>;
 	start-script SmokeUnit();
 }
 
@@ -53,29 +51,21 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ring2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ring1 type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ring2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ring1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ring2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ring1 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode ring2 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode ring1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }

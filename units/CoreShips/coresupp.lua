@@ -1,8 +1,10 @@
 return {
 	coresupp = {
+		acceleration = 0.074,
+		brakerate = 0.23,
 		buildangle = 16384,
-		buildcostenergy = 1550,
-		buildcostmetal = 160,
+		buildcostenergy = 2500,
+		buildcostmetal = 310,
 		buildpic = "CORESUPP.DDS",
 		buildtime = 2475,
 		canmove = true,
@@ -21,6 +23,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 720,
+		maxvelocity = 3.56,
 		minwaterdepth = 12,
 		movementclass = "BOAT43X3",
 		name = "Supporter",
@@ -29,17 +32,12 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumexplosiongenericSelfd",
 		sightdistance = 320,
-		waterline = 0,
-		--move
-		acceleration = 0.074,
-		brakerate = 0.23,
-		maxvelocity = 3.56,		
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 442,
-		--end move
+		waterline = 0,
 		customparams = {
-
+			subfolder = "coreships",
 		},
 		featuredefs = {
 			dead = {
@@ -50,14 +48,14 @@ return {
 				collisionvolumetype = "Box",
 				damage = 150,
 				description = "Supporter Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				featurereclamate = "SMUDGE01",
 				footprintx = 3,
 				footprintz = 3,
 				height = 20,
 				hitdensity = 100,
-				metal = 0.8*191,
+				metal = 152.8,
 				object = "CORESUPP_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -66,28 +64,28 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 250,
 				description = "Supporter Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*91,
+				metal = 72.8,
 				object = "4X4B",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -157,15 +155,15 @@ return {
 		weapons = {
 			[1] = {
 				def = "LASER",
-				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 1",
 				maxangledif = 285,
+				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				def = "LASER",
-				onlytargetcategory = "NOTSUB",
 				maindir = "0 0 -1",
 				maxangledif = 285,
+				onlytargetcategory = "NOTSUB",
 			},
 		},
 	},

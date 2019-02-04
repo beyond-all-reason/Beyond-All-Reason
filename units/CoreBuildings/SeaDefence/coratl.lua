@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 8500,
-		buildcostmetal = 1050,
+		buildcostenergy = 4900,
+		buildcostmetal = 430,
 		buildpic = "CORATL.DDS",
 		buildtime = 10875,
 		canrepeat = false,
@@ -31,9 +31,10 @@ return {
 		yardmap = "ooooooooo",
 		customparams = {
 			bar_waterline = 2,
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/seadefence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -56,11 +57,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -93,8 +94,8 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "Advtorpedo",
 				name = "Long-range advanced torpedo launcher",
 				noselfdamage = true,
@@ -111,12 +112,12 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 580,
+				customparams = {
+					bar_model = "torpedo.s3o",
+				},
 				damage = {
 					default = 1400,
 				},
-				customparams = {
-					bar_model = "torpedo.s3o",
-				}
 			},
 		},
 		weapons = {

@@ -2,10 +2,9 @@ return {
 	corasy = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 10000,
+		buildcostenergy = 10500,
 		buildcostmetal = 3100,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORASY.DDS",
 		buildtime = 15696,
 		canmove = true,
@@ -29,35 +28,29 @@ return {
 		objectname = "CORASY",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 301.60001,
 		terraformspeed = 1000,
 		waterline = 32,
 		workertime = 300,
 		yardmap = "wCCCCCCCCCCwCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCwCCCCCCCCCCw",
 		buildoptions = {
-			"coracsub",
-			"cormls",
-			"corcrus",			
-			"corshark",			
-			"corarch",	
-			"corsjam",			
-			"corcarry",			
-			"corbats",
-			"cormship",
-			"corblackhy",
-			-- "corsnap",
-			-- "corssub",
-			-- "corhal",
-			-- "corsok",
-			-- "cormh",
-
-			-- "corthovr",
-
+			[1] = "coracsub",
+			[2] = "cormls",
+			[3] = "corcrus",
+			[4] = "corshark",
+			[5] = "corarch",
+			[6] = "corsjam",
+			[7] = "corcarry",
+			[8] = "corbats",
+			[9] = "cormship",
+			[10] = "corblackhy",
 		},
 		customparams = {
 			bar_collisionvolumeoffsets = "0 10 -2",
 			bar_collisionvolumescales = "186 78 183",
 			bar_waterline = 19,
+			subfolder = "corebuildings/seafactories",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -81,13 +74,13 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

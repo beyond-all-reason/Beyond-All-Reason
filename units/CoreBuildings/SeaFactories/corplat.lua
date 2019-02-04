@@ -2,10 +2,9 @@ return {
 	corplat = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5500,
-		buildcostmetal = 1400,
+		buildcostenergy = 18000,
+		buildcostmetal = 1650,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORPLAT.DDS",
 		buildtime = 11800,
 		canmove = true,
@@ -28,6 +27,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 169,
 		terraformspeed = 1000,
 		waterline = 43,
@@ -42,7 +42,7 @@ return {
 			[6] = "corhunt",
 		},
 		customparams = {
-			
+			subfolder = "corebuildings/seafactories",
 		},
 		featuredefs = {
 			dead = {
@@ -65,11 +65,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

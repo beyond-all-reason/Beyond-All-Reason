@@ -1201,10 +1201,15 @@ function GetAllPlayers()
 			player[playerID] = CreatePlayer(playerID)
 			tplayerCount = tplayerCount + 1
 		end
-		if tplayerCount > 0 then
-			playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
+
+		local _,_,_,isAiTeam = Spring.GetTeamInfo(teamN)
+		local isLuaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
+		if not (isAiTeam or isLuaAI) then
+			if tplayerCount > 0 then
+				playerSpecs[i] = true		-- (this isnt correct when team consists of only AI)
+			end
+			tplayerCount = 0
 		end
-		tplayerCount = 0
 	end
 	specPlayers = Spring_GetTeamList()
 	for _,playerID in ipairs(specPlayers) do
@@ -1315,7 +1320,7 @@ function CreatePlayer(playerID)
 	
 	return {
 		rank             = trank,
-		skill			       = tskill,
+		skill			 = tskill,
 		name             = tname,
 		team             = tteam,
 		allyteam         = tallyteam,

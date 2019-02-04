@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 1.5972,
 		turnrate = 470,
 		customparams = {
-			
+			subfolder = "armhovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -62,6 +62,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 143,
 				description = "Wombat Heap",
 				energy = 0,
@@ -71,19 +73,17 @@ return {
 				hitdensity = 100,
 				metal = 42,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -111,10 +111,10 @@ return {
 			armmh_weapon = {
 				areaofeffect = 64,
 				avoidfeature = false,
+				cegtag = "missiletrailsmall-starburst",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailsmall-starburst",
 				explosiongenerator = "custom:genericshellexplosion-medium-bomb",
 				firestarter = 100,
 				flighttime = 10,
@@ -126,11 +126,11 @@ return {
 				noselfdamage = true,
 				range = 710,
 				reloadtime = 6,
+				smoketrail = false,
 				soundhit = "xplomed4",
 				soundhitwet = "splssml",
 				soundhitwetvolume = 0.5,
 				soundstart = "Rockhvy1",
-				smoketrail = false,
 				texture1 = "trans",
 				texture2 = "null",
 				texture3 = "null",
@@ -140,21 +140,21 @@ return {
 				weapontimer = 3,
 				weapontype = "StarburstLauncher",
 				weaponvelocity = 600,
+				customparams = {
+					bar_model = "corkbmissl1.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_heat_radius_mult = 2.2,
+					expl_light_life_mult = 1.1,
+					expl_light_mult = 1.1,
+					expl_light_radius_mult = 1.1,
+					light_color = "1 0.6 0.17",
+					light_mult = 2,
+					light_radius_mult = 1,
+				},
 				damage = {
 					default = 300,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "corkbmissl1.s3o",
-                    light_mult = 2,
-                    light_radius_mult = 1,
-                    light_color = "1 0.6 0.17",
-                    expl_light_mult = 1.1,
-                    expl_light_radius_mult = 1.1,
-                    expl_light_life_mult = 1.1,
-                    expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 2.2,
-                },
 			},
 		},
 		weapons = {

@@ -2,8 +2,8 @@ return {
 	armsb = {
 		acceleration = 0.055,
 		brakerate = 1.5,
-		buildcostenergy = 7500,
-		buildcostmetal = 240,
+		buildcostenergy = 31000,
+		buildcostmetal = 310,
 		buildpic = "ARMSB.DDS",
 		buildtime = 8000,
 		canfly = true,
@@ -34,21 +34,21 @@ return {
 		sightdistance = 455,
 		turnrate = 600,
 		customparams = {
-			
+			subfolder = "armseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",
@@ -101,16 +101,16 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "bombrel",
 				weapontype = "AircraftBomb",
+				customparams = {
+					bar_model = "airbombsea.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_heat_radius_mult = 1.3,
+				},
 				damage = {
 					antibomber = 67,
 					bombers = 5,
 					default = 200,
 					subs = 5,
-				},
-				customparams = {
-					bar_model = "airbombsea.s3o",
-					expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
 				},
 			},
 		},

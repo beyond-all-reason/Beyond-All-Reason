@@ -6,11 +6,10 @@ return {
 		buildcostenergy = 1200,
 		buildcostmetal = 650,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
-		buildinggrounddecaltype = "armlab_aoplane.dds",
+		buildinggrounddecaltype = "decals/armlab_aoplane.dds",
 		buildpic = "ARMLAB.DDS",
 		buildtime = 6500,
 		canmove = true,
@@ -36,6 +35,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 290,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
@@ -54,6 +54,7 @@ return {
 		customparams = {
 			bar_collisionvolumescales = "95 22 95",
 			bar_yardmap = "oooooooooooooooooocccccccccccccccccc",
+			subfolder = "armbuildings/landfactories",
 		},
 		featuredefs = {
 			dead = {
@@ -96,11 +97,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

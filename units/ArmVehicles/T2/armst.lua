@@ -44,32 +44,26 @@ return {
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.64802,
 		turnrate = 701.79999,
-        customparams = {
-			--arm_tank = "1",	-- cloak shader wont work if this is set
+		customparams = {
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "2",
+			cobturretxspeed = "200",
+			cobturretyspeed = "200",
+			driftratio = "0.1",
+			firingceg = "barrelshot-small",
+			flare1name = "flare",
+			kickback = "-0.65",
+			paralyzemultiplier = 0.2,
+			restoretime = "3000",
+			rockrestorespeed = "5",
+			rockspeed = "40",
+			rockstrength = "3",
+			sleevename = "turret",
+			subfolder = "armvehicles/t2",
 			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "turret",
-					cannon1name = "barrel",
-					flare1name = "flare",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-small",
-					driftratio = "0.1", --How likely will the unit drift when performing turns?
-					rockstrength = "3", --Howmuch will its weapon make it rock ?
-					rockspeed = "40", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "5", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "2", --How fast will the cannon come back in position?
-					kickback = "-0.65", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "200", --turretSpeed as seen in COB script
-					cobturretxspeed = "200", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
-            paralyzemultiplier = 0.2,
-        },
+			turretname = "turret",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -95,6 +89,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 700,
 				description = "Gremlin Heap",
 				energy = 0,
@@ -105,8 +101,6 @@ return {
 				hitdensity = 100,
 				metal = 55,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -114,13 +108,13 @@ return {
 			},
 		},
 		sfxtypes = {
- 			pieceExplosionGenerators = {
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

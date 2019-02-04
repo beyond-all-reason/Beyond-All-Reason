@@ -1,4 +1,13 @@
-﻿10.20 -> 10.21
+﻿10.21 -> 10.22
+23/01/2019
+
+NOTE: Requires 104.0.1.969 or later engine versions
+
+ • Rounded costs closer to original using algorithm, based on values from 9.46
+ • Restored 9.46 rezbot stats: health 250->200 and workertime 150->200
+
+
+10.20 -> 10.21
 11/01/2019
 
  • Removed global minimum buildrange of 155, commanders remain having 145
@@ -981,7 +990,7 @@ FFA
 Balance changes:
 • Gremlin (Stealth Tank) harder to EMP
 • Annihilator, Doomsday Machine damage reduced by 10% (all weapons)
-• Re• implement Sniper weapon using "cannon" (was "riffle"). Snipers will not kill each other anymore
+• Re implement Sniper weapon using "cannon" (was "riffle"). Snipers will not kill each other anymore
 
 Others:
 • Added workaround for bug with "camera scroll at the beginning of the game"
@@ -1273,7 +1282,7 @@ Others:
 07/08/2015
 
 Balance changes:
-• Area• of• effect for "Dominator Heavy Rocket Kbot" increased, but edge-effectiveness was decreased a little
+• Area of effect for "Dominator Heavy Rocket Kbot" increased, but edge-effectiveness was decreased a little
 • Max paralysis time of mobile units was increased to 20 seconds
 • HP was increased for "Spider All Terrain EMP Spider"
 • Increased metal cost of t1 air scouts

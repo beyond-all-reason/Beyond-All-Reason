@@ -6,11 +6,10 @@ return {
 		buildcostenergy = 16000,
 		buildcostmetal = 2800,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 0.01,
 		buildinggrounddecalsizex = 10,
 		buildinggrounddecalsizey = 10,
-		buildinggrounddecaltype = "coravp_aoplane.dds",
+		buildinggrounddecaltype = "decals/coravp_aoplane.dds",
 		buildpic = "CORAVP.DDS",
 		buildtime = 18492,
 		canmove = true,
@@ -36,6 +35,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 286,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
@@ -60,6 +60,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "1 0 0",
 			bar_collisionvolumescales = "124 70 109",
+			subfolder = "corebuildings/landfactories",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -103,13 +104,13 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:WhiteLight",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

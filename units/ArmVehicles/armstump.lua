@@ -2,7 +2,7 @@ return {
 	armstump = {
 		acceleration = 0.023,
 		brakerate = 0.095,
-		buildcostenergy = 2100,
+		buildcostenergy = 2000,
 		buildcostmetal = 220,
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 2904,
@@ -44,28 +44,23 @@ return {
 		turnrate = 380,
 		customparams = {
 			arm_tank = "1",
+			basename = "base",
+			cannon1name = "cannon1",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "45",
+			cobturretyspeed = "80",
 			description_long = "A stumpy is a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Stumpies can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Samsons or artillery for a great frontline push or use large pasks for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "cannon1",
-					flare1name = "flare1",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-small",
-					driftratio = "0.3", --How likely will the unit drift when performing turns?
-					rockstrength = "4", --Howmuch will its weapon make it rock ?
-					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "20", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "80", --turretSpeed as seen in COB script
-					cobturretxspeed = "45", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			driftratio = "0.3",
+			firingceg = "barrelshot-small",
+			flare1name = "flare1",
+			kickback = "-2.4",
+			restoretime = "3000",
+			rockrestorespeed = "20",
+			rockspeed = "60",
+			rockstrength = "4",
+			sleevename = "sleeve",
+			subfolder = "armvehicles",
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -92,6 +87,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 528,
 				description = "Stumpy Heap",
 				energy = 0,
@@ -102,21 +99,19 @@ return {
 				hitdensity = 100,
 				metal = 61,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -163,7 +158,6 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 225,
-				--stages = 10,
 				damage = {
 					bombers = 18,
 					default = 97,

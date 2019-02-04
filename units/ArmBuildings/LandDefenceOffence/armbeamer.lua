@@ -8,10 +8,10 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "armbeamer_aoplane.dds",
+		buildinggrounddecaltype = "decals/armbeamer_aoplane.dds",
 		buildpic = "armbeamer.DDS",
 		buildtime = 5324,
-        canrepeat = false,
+		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "33 85 33",
@@ -38,6 +38,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			removewait = true,
+			subfolder = "armbuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 387,
 				description = "Beamer Heap",
 				energy = 0,
@@ -74,18 +77,16 @@ return {
 				hitdensity = 100,
 				metal = 46,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -115,9 +116,9 @@ return {
 			armbeamer_weapon = {
 				areaofeffect = 8,
 				avoidfeature = false,
+				beamdecay = 0.5,
 				beamtime = 0.1,
 				beamttl = 1,
-				beamdecay = 0.5,
 				corethickness = 0.233,
 				craterareaofeffect = 0,
 				craterboost = 0,
@@ -145,6 +146,9 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 1000,
+				customparams = {
+					light_radius_mult = "1.1",
+				},
 				damage = {
 					bombers = 1,
 					commanders = 53.2,
@@ -152,9 +156,6 @@ return {
 					fighters = 1,
 					subs = 1,
 					vtol = 1,
-				},
-				customparams = {
-					light_radius_mult = "1.1",		-- used by light_effects widget
 				},
 			},
 		},

@@ -2,8 +2,8 @@ return {
 	corak = {
 		acceleration = 0.384,
 		brakerate = 0.75,
-		buildcostenergy = 900,
-		buildcostmetal = 35,
+		buildcostenergy = 880,
+		buildcostmetal = 36,
 		buildpic = "CORAK.DDS",
 		buildtime = 1279,
 		canmove = true,
@@ -37,6 +37,7 @@ return {
 		upright = true,
 		customparams = {
 			description_long = "A.K. is a light infantry Kbot which is cheap and quick to build. Proves useful for scouting and taking down unguarded structures like metal extractors and early eco. It is armed with light, but precise laser with a little longer range than PeeWee, so with  little microing skills you can outrange them eaisily. In late T1 warfare A.K.'s can be used for ambushing Commanders and speedy skirmishing. However, light armor and relatively short range makes them very vulnerable to defensive towers and riot tanks.",
+			subfolder = "corekbots",
 			wpn1turretx = 75,
 			wpn1turrety = 225,
 		},
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 83,
 				description = "A.K. Heap",
 				energy = 0,
@@ -75,18 +78,16 @@ return {
 				hitdensity = 100,
 				metal = 9,
 				object = "2X2C",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg2",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg2",
 			},
 		},
 		sounds = {

@@ -19,12 +19,6 @@ local AirTransports = {
 	[UnitDefNames["corvalk"].id] = true,
 	[UnitDefNames["corseah"].id] = true,
 }
-if UnitDefNames.armcom_bar then
-	AirTransports[UnitDefNames["armatlas_bar"].id] = true
-	AirTransports[UnitDefNames["armdfly_bar"].id] = true
-	AirTransports[UnitDefNames["corvalk_bar"].id] = true
-	AirTransports[UnitDefNames["corseah_bar"].id] = true
-end
 
 
 if (gadgetHandler:IsSyncedCode()) then

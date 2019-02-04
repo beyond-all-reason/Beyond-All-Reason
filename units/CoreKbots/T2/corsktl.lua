@@ -2,8 +2,8 @@ return {
 	corsktl = {
 		acceleration = 0.12,
 		brakerate = 0.564,
-		buildcostenergy = 25000,
-		buildcostmetal = 550,
+		buildcostenergy = 26000,
+		buildcostmetal = 540,
 		buildpic = "CORSKTL.DDS",
 		buildtime = 16975,
 		canmove = true,
@@ -43,13 +43,14 @@ return {
 		turnrate = 1122,
 		upright = true,
 		customparams = {
+			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -101,6 +102,7 @@ return {
 			crawl_dummy = {
 				areaofeffect = 0,
 				avoidfeature = false,
+				avoidground = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -115,9 +117,8 @@ return {
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
 				tolerance = 100000,
-				weapontype = "Melee",
-				avoidground = false,
 				waterweapon = true,
+				weapontype = "Melee",
 				weaponvelocity = 100000,
 				damage = {
 					default = 0,
@@ -131,7 +132,7 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "CRAWL_DETONATOR",		-- gadget uses this name to filter targetting on air
+				def = "CRAWL_DETONATOR",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

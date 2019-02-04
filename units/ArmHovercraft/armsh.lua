@@ -2,8 +2,8 @@ return {
 	armsh = {
 		acceleration = 0.132,
 		brakerate = 0.336,
-		buildcostenergy = 1400,
-		buildcostmetal = 95,
+		buildcostenergy = 1450,
+		buildcostmetal = 93,
 		buildpic = "ARMSH.DDS",
 		buildtime = 3896,
 		canmove = true,
@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 2.9634,
 		turnrate = 640,
 		customparams = {
-			
+			subfolder = "armhovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -62,6 +62,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 93,
 				description = "Skimmer Heap",
 				energy = 0,
@@ -71,18 +73,16 @@ return {
 				hitdensity = 100,
 				metal = 20,
 				object = "3X3D",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -136,12 +136,12 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 450,
+				customparams = {
+					light_mult = "0.5",
+				},
 				damage = {
 					default = 48,
 					subs = 2,
-				},
-				customparams = {
-					light_mult = "0.5",		-- used by light_effects widget
 				},
 			},
 		},

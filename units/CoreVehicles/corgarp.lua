@@ -2,7 +2,6 @@ return {
 	corgarp = {
 		acceleration = 0.0243,
 		activatewhenbuilt = true,
-
 		brakerate = 0.063,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,
@@ -31,10 +30,11 @@ return {
 		name = "Garpike",
 		nochasecategory = "VTOL",
 		objectname = "CORGARP",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 234,
-		sonardistance = 234*0.75,
+		sonardistance = 175.5,
 		trackoffset = -6,
 		trackstrength = 6,
 		tracktype = "StdTank",
@@ -43,36 +43,30 @@ return {
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.386,
 		turnrate = 387,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 0,
 			bar_trackstrength = 6,
-			bar_trackwidth = 22,
 			bar_tracktype = "corparrowtracks",
-			description_long = "Garpike  is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way. ",  
+			bar_trackwidth = 22,
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "90",
+			cobturretyspeed = "90",
+			description_long = "Garpike  is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way. ",
+			driftratio = "0.5",
+			firingceg = "barrelshot-tiny",
+			flare1name = "emit",
+			kickback = "-2.4",
 			paralyzemultiplier = 0.125,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "emit",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-tiny",
-					driftratio = "0.5", --How likely will the unit drift when performing turns?
-					rockstrength = "5", --Howmuch will its weapon make it rock ?
-					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "15", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "90", --turretSpeed as seen in COB script
-					cobturretxspeed = "90", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
-			},
+			restoretime = "3000",
+			rockrestorespeed = "15",
+			rockspeed = "60",
+			rockstrength = "5",
+			sleevename = "sleeve",
+			subfolder = "corevehicles",
+			turretname = "turret",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -95,13 +89,13 @@ return {
 				world = "all",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -154,37 +148,6 @@ return {
 					vtol = 25,
 				},
 			},
-			-- arm_pincer_uwgauss = {
-				-- areaofeffect = 8,
-				-- avoidfeature = false,
-				-- craterareaofeffect = 0,
-				-- craterboost = 0,
-				-- cratermult = 0,
-				-- explosiongenerator = "custom:genericshellexplosion-small",
-				-- impulseboost = 0.123,
-				-- impulsefactor = 0.123,
-				-- model = "minitorpedo",
-				-- name = "PincerCannon",
-				-- noselfdamage = true,
-				-- range = 305,
-				-- reloadtime = 2,
-				-- soundhit = "xplomed2",
-				-- soundhitwet = "splshbig",
-				-- soundhitwetvolume = 0.5,
-				-- soundstart = "cannhvy1",
-				-- turret = true,
-				-- waterweapon = true,
-				-- weapontype = "Cannon",
-				-- weaponvelocity = 225,
-				-- damage = {
-					-- bombers = 25,
-					-- default = 58,
-					-- fighters = 25,
-					-- subs = 48,
-					-- vtol = 25,
-				-- },
-			-- },
-			
 		},
 		weapons = {
 			[1] = {
@@ -192,11 +155,6 @@ return {
 				def = "ARM_PINCER_GAUSS",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [2] = {
-				-- badtargetcategory = "VTOL",
-				-- def = "ARM_PINCER_UWGAUSS",
-				-- onlytargetcategory = "NOTHOVER",
-			-- },
 		},
 	},
 }

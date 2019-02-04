@@ -2,7 +2,7 @@ return {
 	corban = {
 		acceleration = 0.0209,
 		brakerate = 0.0594,
-		buildcostenergy = 20000,
+		buildcostenergy = 23000,
 		buildcostmetal = 1000,
 		buildpic = "CORBAN.DDS",
 		buildtime = 23129,
@@ -23,15 +23,16 @@ return {
 		idletime = 1800,
 		leavetracks = true,
 		maxdamage = 2250,
+		maxreversevelocity = 0.996,
 		maxslope = 20,
 		maxvelocity = 1.66,
-		maxreversevelocity = 1.66*0.60,
 		maxwaterdepth = 20,
 		metalstorage = 4,
 		movementclass = "HTANK4",
 		name = "Banisher",
 		nochasecategory = "VTOL",
 		objectname = "CORBAN",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 546,
@@ -42,35 +43,31 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.2573,
-		turnrate = 375*0.8,
-		script = "BASICTANKSCRIPT.LUA",
+		turnrate = 300,
 		customparams = {
 			bar_trackoffset = 8,
 			bar_trackstrength = 10,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 34,
+			basename = "base",
+			cannon1name = "missile1",
+			cannon2name = "missile2",
+			cobkickbackrestorespeed = "0.005",
+			cobturretxspeed = "125",
+			cobturretyspeed = "125",
+			driftratio = "0.25",
+			firingceg = "barrelshot-medium",
+			flare1name = "flare1",
+			flare2name = "flare2",
+			kickback = "-12",
+			restoretime = "3000",
+			rockrestorespeed = "3",
+			rockspeed = "80",
+			rockstrength = "15",
+			sleevename = "sleeve",
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "missile1",
-					flare1name = "flare1",
-					cannon2name = "missile2", --optional (replace with nil)
-					flare2name = "flare2", --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-medium",
-					driftratio = "0.25", --How likely will the unit drift when performing turns?
-					rockstrength = "15", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "3", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "0.005", --How fast will the cannon come back in position?
-					kickback = "-12", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "125", --turretSpeed as seen in COB script
-					cobturretxspeed = "125", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -97,6 +94,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1500,
 				description = "Banisher Heap",
 				energy = 0,
@@ -107,23 +106,21 @@ return {
 				hitdensity = 100,
 				metal = 244,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare-large",
 				[2] = "custom:DUST_CLOUD",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -152,11 +149,11 @@ return {
 				areaofeffect = 128,
 				avoidfeature = false,
 				burnblow = true,
+				cegtag = "missiletraillarge-red",
 				craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.4,
-				cegTag = "missiletraillarge-red",
 				explosiongenerator = "custom:genericshellexplosion-large-bomb",
 				firestarter = 20,
 				flighttime = 2.33,
@@ -183,18 +180,18 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 650,
+				customparams = {
+					bar_model = "banishermissile.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_radius_mult = 1.1,
+					light_color = "1 0.6 0.05",
+					light_mult = "0.32",
+				},
 				damage = {
 					commanders = 1000,
 					default = 1000,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "banishermissile.s3o",
-                    light_mult = "0.32",		-- used by light_effects widget
-                    light_color = "1 0.6 0.05",
-                    expl_light_color = "1 0.5 0.05",
-                    expl_light_radius_mult = 1.1,
-                },
 			},
 		},
 		weapons = {

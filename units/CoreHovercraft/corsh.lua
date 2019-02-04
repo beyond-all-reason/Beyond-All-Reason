@@ -2,8 +2,8 @@ return {
 	corsh = {
 		acceleration = 0.12,
 		brakerate = 0.336,
-		buildcostenergy = 1500,
-		buildcostmetal = 75,
+		buildcostenergy = 1550,
+		buildcostmetal = 76,
 		buildpic = "CORSH.DDS",
 		buildtime = 4079,
 		canmove = true,
@@ -36,7 +36,7 @@ return {
 		turninplacespeedlimit = 2.8116,
 		turnrate = 615,
 		customparams = {
-			
+			subfolder = "corehovercraft",
 		},
 		featuredefs = {
 			dead = {
@@ -62,6 +62,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 81,
 				description = "Scrubber Heap",
 				energy = 0,
@@ -71,18 +73,16 @@ return {
 				hitdensity = 100,
 				metal = 16,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

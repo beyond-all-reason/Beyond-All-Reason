@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16000,
-		buildcostenergy = 700,
-		buildcostmetal = 60,
+		buildcostenergy = 640,
+		buildcostmetal = 58,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "corrad_aoplane.dds",
+		buildinggrounddecaltype = "decals/corrad_aoplane.dds",
 		buildpic = "CORRAD.DDS",
 		buildtime = 1137,
 		canattack = false,
@@ -45,8 +45,9 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 -12 0",
 			bar_collisionvolumescales = "32 99 32",
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landutil",
 		},
 		featuredefs = {
 			dead = {
@@ -73,6 +74,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 25,
 				description = "Radar Tower Heap",
 				energy = 0,
@@ -83,18 +86,16 @@ return {
 				hitdensity = 100,
 				metal = 14,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

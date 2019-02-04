@@ -2,14 +2,13 @@ return {
 	armhp = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 4200,
-		buildcostmetal = 1020,
+		buildcostenergy = 4300,
+		buildcostmetal = 1000,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
-		buildinggrounddecaltype = "armhp_aoplane.dds",
+		buildinggrounddecaltype = "decals/armhp_aoplane.dds",
 		buildpic = "ARMHP.DDS",
 		buildtime = 13890,
 		canmove = true,
@@ -34,21 +33,23 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 286,
 		terraformspeed = 1000,
 		usebuildinggrounddecal = true,
 		workertime = 200,
 		yardmap = "occccccooccccccooccccccooccccccooccccccooccccccoocccccco",
 		buildoptions = {
-			"armch",
-			"armsh",
-			"armanac",
-			"armah",
-			"armmh",
-			"armthovr",
+			[1] = "armch",
+			[2] = "armsh",
+			[3] = "armanac",
+			[4] = "armah",
+			[5] = "armmh",
+			[6] = "armthovr",
 		},
 		customparams = {
 			bar_collisionvolumescales = "100 40 90",
+			subfolder = "armbuildings/landfactories",
 		},
 		featuredefs = {
 			dead = {
@@ -91,11 +92,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

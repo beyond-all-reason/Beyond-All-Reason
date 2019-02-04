@@ -1,8 +1,10 @@
 return {
 	corbats = {
+		acceleration = 0.0152,
+		brakerate = 0.0665,
 		buildangle = 16000,
-		buildcostenergy = 22000,
-		buildcostmetal = 3300,
+		buildcostenergy = 23000,
+		buildcostmetal = 5800,
 		buildpic = "CORBATS.DDS",
 		buildtime = 35000,
 		canmove = true,
@@ -22,6 +24,7 @@ return {
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 8000,
+		maxvelocity = 1.77,
 		minwaterdepth = 15,
 		movementclass = "DBOAT67X7",
 		name = "Warlord",
@@ -30,16 +33,12 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "hugeexplosiongenericSelfD",
 		sightdistance = 455,
-		waterline = 0,
-		--move
-		acceleration = 0.0152,
-		brakerate = 0.0665,
-		maxvelocity = 1.77,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 118,
-		--end move
+		waterline = 0,
 		customparams = {
+			subfolder = "coreships/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -51,13 +50,13 @@ return {
 				collisionvolumetype = "Box",
 				damage = 6831,
 				description = "Warlord Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
 				footprintz = 6,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*3513,
+				metal = 2810.40015,
 				object = "CORBATS_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -68,12 +67,12 @@ return {
 				category = "heaps",
 				damage = 2016,
 				description = "Warlord Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*1066,
+				metal = 852.79999,
 				object = "6X6C",
 				reclaimable = true,
 				resurrectable = 0,
@@ -81,14 +80,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-large",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

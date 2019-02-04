@@ -5,11 +5,10 @@ return {
 		buildcostenergy = 58000,
 		buildcostmetal = 7900,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 12,
 		buildinggrounddecalsizey = 12,
-		buildinggrounddecaltype = "armshltx_aoplane.dds",
+		buildinggrounddecaltype = "decals/armshltx_aoplane.dds",
 		buildpic = "ARMSHLTX.DDS",
 		buildtime = 61380,
 		canmove = true,
@@ -34,21 +33,23 @@ return {
 		objectname = "ARMSHLTX",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
 		workertime = 600,
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
-			"armbanth",
-			"armraz",
-			"armmar",
-			"armvang",
-			"armlun",
+			[1] = "armbanth",
+			[2] = "armraz",
+			[3] = "armmar",
+			[4] = "armvang",
+			[5] = "armlun",
 		},
 		customparams = {
 			bar_collisionvolumescales = "137 58 145",
 			bar_yardmap = "ooooooooooooooooooooooooooooooooooooooooooooocccccccccccccccccccccccccccccccccccc",
+			subfolder = "armbuildings/landfactories",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -92,13 +93,13 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

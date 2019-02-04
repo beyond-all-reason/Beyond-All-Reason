@@ -4,11 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 33000,
+		buildcostenergy = 0,
 		buildcostmetal = 150,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "corsolar_aoplane.dds",
+		buildinggrounddecaltype = "decals/corsolar_aoplane.dds",
 		buildpic = "CORSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
@@ -41,8 +42,9 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 0 0",
 			bar_collisionvolumescales = "77 78 77",
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -85,11 +87,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

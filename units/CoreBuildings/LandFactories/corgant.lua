@@ -2,14 +2,13 @@ return {
 	corgant = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 62500,
-		buildcostmetal = 8350,
+		buildcostenergy = 62000,
+		buildcostmetal = 8400,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 12,
 		buildinggrounddecalsizey = 12,
-		buildinggrounddecaltype = "corgant_aoplane.dds",
+		buildinggrounddecaltype = "decals/corgant_aoplane.dds",
 		buildpic = "CORGANT.DDS",
 		buildtime = 67321,
 		canmove = true,
@@ -35,6 +34,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
@@ -42,14 +42,15 @@ return {
 		workertime = 600,
 		yardmap = "oooooooooooooooooooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoooocccccoo",
 		buildoptions = {
-			"corkrog",
-			"corkarg",
-			"corjugg",
-			"corshiva",
-			"corcat",
-			"corsok",
+			[1] = "corkrog",
+			[2] = "corkarg",
+			[3] = "corjugg",
+			[4] = "corshiva",
+			[5] = "corcat",
+			[6] = "corsok",
 		},
 		customparams = {
+			subfolder = "corebuildings/landfactories",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -93,15 +94,15 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:GantWhiteLight",
 				[2] = "custom:YellowLight",
 				[3] = "custom:WhiteLight",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -13,10 +13,6 @@ end
 local CMD_CLOAK = 37382
 
 local clockingUnitDefs = {[UnitDefNames["armpb"].id]=true, [UnitDefNames["armamb"].id]=true}
-if UnitDefNames.armcom_bar then
-    clockingUnitDefs[UnitDefNames.armpb_bar.id] = true
-    clockingUnitDefs[UnitDefNames.armamb_bar.id] = true
-end
 local cloakunits = {}
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)

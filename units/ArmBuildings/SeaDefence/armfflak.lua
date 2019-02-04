@@ -4,8 +4,8 @@ return {
 		airsightdistance = 1000,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 23000,
-		buildcostmetal = 850,
+		buildcostenergy = 24000,
+		buildcostmetal = 860,
 		buildpic = "ARMFFLAK.DDS",
 		buildtime = 21855,
 		canrepeat = false,
@@ -33,9 +33,10 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 -10 0",
 			bar_collisionvolumescales = "42 64 42",
-			techlevel = 2,
-			removewait = true,
 			prioritytarget = "air",
+			removewait = true,
+			subfolder = "armbuildings/seadefence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -59,14 +60,14 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
-				"custom:barrelshot-medium-aa",
+				[1] = "custom:barrelshot-medium-aa",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -112,33 +113,37 @@ return {
 				impulsefactor = 0,
 				mygravity = 0.01,
 				name = "Heavy g2a flak cannon",
-				size = 4.5,
-				sizedecay = 0.08,
-				stages = 8,
 				noselfdamage = true,
 				predictboost = 1,
 				range = 775,
 				reloadtime = 0.55,
-				rgbcolor = {1, 0.33, 0.7},
+				size = 4.5,
+				sizedecay = 0.08,
 				soundhit = "flakhit",
 				soundhitwet = "splslrg",
 				soundhitwetvolume = 0.5,
 				soundstart = "flakfire",
+				stages = 8,
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
 				weaponvelocity = 2450,
+				customparams = {
+					expl_light_color = "1 0.4 0.5",
+					light_color = "1 0.5 0.6",
+					light_mult = 0.8,
+					light_radius_mult = 0.55,
+				},
 				damage = {
 					bombers = 250,
 					fighters = 500,
 					vtol = 250,
 				},
-                customparams = {
-                    light_radius_mult = 0.55,
-                    light_mult = 0.8,
-                    light_color = "1 0.5 0.6",
-                    expl_light_color = "1 0.4 0.5",
-                },
+				rgbcolor = {
+					[1] = 1,
+					[2] = 0.33,
+					[3] = 0.7,
+				},
 			},
 		},
 		weapons = {

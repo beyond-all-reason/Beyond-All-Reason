@@ -9,11 +9,11 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "armamex_aoplane.dds",
-		buildingMask = 0,
+		buildinggrounddecaltype = "decals/armamex_aoplane.dds",
+		buildingmask = 0,
 		buildpic = "ARMAMEX.DDS",
 		buildtime = 1800,
-        canrepeat = false,
+		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		cloakcost = 12,
 		collisionvolumeoffsets = "0 0 0",
@@ -45,9 +45,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
-			cvBuildable = true,
+			cvbuildable = true,
 			metal_extractor = 1,
 			removewait = true,
+			subfolder = "armbuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -74,6 +75,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 435,
 				description = "Twilight Heap",
 				energy = 0,
@@ -83,19 +86,17 @@ return {
 				hitdensity = 100,
 				metal = 41,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "all",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

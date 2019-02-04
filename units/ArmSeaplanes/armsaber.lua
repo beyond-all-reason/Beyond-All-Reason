@@ -1,6 +1,7 @@
 return {
 	armsaber = {
 		acceleration = 0.24,
+		blocking = false,
 		brakerate = 0.46,
 		buildcostenergy = 6400,
 		buildcostmetal = 210,
@@ -34,23 +35,22 @@ return {
 		sightdistance = 595,
 		turninplaceanglelimit = 360,
 		turnrate = 720,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "armseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

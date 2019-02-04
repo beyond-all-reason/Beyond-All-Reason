@@ -125,7 +125,6 @@ local presets = {
 		lups = false,
 		lupsreflectionrefraction = false,
 		snow = false,
-		xrayshader = false,
 		particles = 10000,
 		nanoparticles = 1500,
 		nanobeamamount = 2,
@@ -155,7 +154,6 @@ local presets = {
 		lups = true,
 		lupsreflectionrefraction = false,
 		snow = false,
-		xrayshader = false,
 		particles = 15000,
 		nanoparticles = 3000,
 		nanobeamamount = 4,
@@ -185,7 +183,6 @@ local presets = {
 		lups = true,
 		lupsreflectionrefraction = false,
 		snow = true,
-		xrayshader = false,
 		particles = 20000,
 		nanoparticles = 5000,
 		nanobeamamount = 7,
@@ -215,7 +212,6 @@ local presets = {
 		lups = true,
 		lupsreflectionrefraction = true,
 		snow = true,
-		xrayshader = false,
 		particles = 30000,
 		nanoparticles = 9000,
 		nanobeamamount = 12,
@@ -245,7 +241,6 @@ local presets = {
 		lups = true,
 		lupsreflectionrefraction = true,
 		snow = true,
-		xrayshader = false,
 		particles = 40000,
 		nanoparticles = 15000,
 		nanobeamamount = 20,
@@ -471,7 +466,6 @@ function orderOptions()
 	options = deepcopy(newOptions)
 end
 
---local currentGroupTab = 'ui'
 
 function mouseoverGroupTab(id)
 	if optionGroups[id].id == currentGroupTab then return end
@@ -1751,8 +1745,8 @@ function mouseEvent(x, y, button, release)
 				end
 			-- on title
 			elseif titleRect ~= nil and IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
-				currentGroupTab = nil
-				startColumn = 1
+				--currentGroupTab = nil
+				--startColumn = 1
 				returnTrue = true
 			elseif not tabClicked then
 				if release and draggingSlider == nil then
@@ -1951,6 +1945,22 @@ function init()
 		{id='control', name='Control'},
 		{id='game', name='Game'},
 	}
+	if not currentGroupTab or Spring.GetGameFrame() == 0 then
+		currentGroupTab = optionGroups[1].id
+	else
+		-- check if group exists
+		local found = false
+		for id,group in pairs(optionGroups) do
+			if group.id == currentGroupTab then
+				found = true
+				break
+			end
+		end
+		if not found then
+			currentGroupTab = optionGroups[1].id
+		end
+	end
+
 	options = {
 		-- PRESET
 		{id="preset", group="gfx", name="Load graphics preset", type="select", options=presetNames, value=0, description='This wont set the preset every time you restart a game. So feel free to adjust things.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset'},
@@ -2625,6 +2635,7 @@ function widget:GetConfigData(data)
 	savedTable.customPresets = customPresets
 	savedTable.cameraTransitionTime = cameraTransitionTime
 	savedTable.maxNanoParticles = maxNanoParticles
+	savedTable.currentGroupTab = currentGroupTab
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -2660,6 +2671,9 @@ function widget:SetConfigData(data)
 	end
 	if data.maxNanoParticles ~= nil then
 		maxNanoParticles = data.maxNanoParticles
+	end
+	if data.currentGroupTab ~= nil then
+		currentGroupTab = data.currentGroupTab
 	end
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig

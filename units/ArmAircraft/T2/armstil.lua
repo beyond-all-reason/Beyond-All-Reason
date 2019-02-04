@@ -1,9 +1,10 @@
 return {
 	armstil = {
 		acceleration = 0.25,
+		blocking = false,
 		brakerate = 0.04,
-		buildcostenergy = 20000,
-		buildcostmetal = 240,
+		buildcostenergy = 19000,
+		buildcostmetal = 230,
 		buildpic = "ARMSTIL.DDS",
 		buildtime = 21522,
 		canfly = true,
@@ -35,24 +36,24 @@ return {
 		sightdistance = 390,
 		stealth = true,
 		turnrate = 600,
-		blocking = false,
 		customparams = {
-			wingsurface = 0.25,
+			subfolder = "armaircraft/t2",
 			techlevel = 2,
+			wingsurface = 0.25,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-large",
+				[2] = "crashing-large",
+				[3] = "crashing-large2",
+				[4] = "crashing-large3",
+				[5] = "crashing-large3",
 			},
-			crashExplosionGenerators = {
-				"crashing-large",
-				"crashing-large",
-				"crashing-large2",
-				"crashing-large3",
-				"crashing-large3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -106,16 +107,16 @@ return {
 				soundstart = "bombrel",
 				tolerance = 7000,
 				weapontype = "AircraftBomb",
+				customparams = {
+					bar_model = "airbomb.s3o",
+					expl_light_color = "0.5 0.5 1",
+					expl_light_life_mult = 1.3,
+					expl_light_mult = 1,
+					expl_light_radius_mult = 1.15,
+				},
 				damage = {
 					default = 4000,
 				},
-				customparams = {
-					bar_model = "airbomb.s3o",
-                    expl_light_radius_mult = 1.15,
-                    expl_light_mult = 1,
-                    expl_light_color = "0.5 0.5 1",
-                    expl_light_life_mult = 1.3,
-                },
 			},
 		},
 		weapons = {

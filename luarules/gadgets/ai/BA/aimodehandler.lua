@@ -37,7 +37,7 @@ function AiModeHandler:Update()
 	if frame%15 == self.ai.id%15 then
 		for res, tab in pairs(self.resources) do
 			local c, s, p, i, e = Spring.GetTeamResources(self.ai.id, res)
-			if Spring.GetTeamRulesParam(self.ai.id,'mmUse') and tonumber(Spring.GetTeamRulesParam(self.ai.id,'mmUse')) then
+			if res == "energy" and Spring.GetTeamRulesParam(self.ai.id,'mmUse') and tonumber(Spring.GetTeamRulesParam(self.ai.id,'mmUse')) then
 				e = e - tonumber(Spring.GetTeamRulesParam(self.ai.id,'mmUse'))
 			end
 			self.resources[res] = {c = c, s = s, p = p, i = i, e = e}
@@ -47,18 +47,18 @@ end
 
 
 function AiModeHandler:Mode(i)
-		self.perraider = 30
+		self.perraider = 50
 		self.perskirmer = 40
 		self.t1ratepret2 = math.random(3,20)*0.1							
 		self.t1ratepostt2 = math.random(5,100)*0.01
-		self.eincomelimiterpretech2 = math.random(700,1550)
+		self.eincomelimiterpretech2 = math.random(950,2550)
 		self.eincomelimiterposttech2 = math.random(950,2550)
 		if self.eincomelimiterposttech2 < self.eincomelimiterpretech2 then
 			local r = math.random(1,100)
 			self.eincomelimiterposttech2 = self.eincomelimiterpretech2 + r
 		end
 		self.mintecheincome = self.eincomelimiterpretech2 - 200
-		self.mintechmincome = math.random(12,35)
+		self.mintechmincome = math.random(25,50)
 		self.mint2countpauset1 = math.random(3,10)
 		local r = math.random(0,1)
 		if r == 0 then

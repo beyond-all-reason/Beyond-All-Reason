@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 6200,
-		buildcostmetal = 480,
+		buildcostenergy = 6100,
+		buildcostmetal = 600,
 		buildpic = "CORFHLT.DDS",
 		buildtime = 11386,
 		canrepeat = false,
@@ -36,6 +36,7 @@ return {
 		yardmap = "wwwwwwwww",
 		customparams = {
 			removewait = true,
+			subfolder = "corebuildings/seadefence",
 		},
 		featuredefs = {
 			dead = {
@@ -58,11 +59,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

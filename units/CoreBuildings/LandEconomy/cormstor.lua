@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		brakerate = 0,
-		buildcostenergy = 600,
-		buildcostmetal = 330,
+		buildcostenergy = 590,
+		buildcostmetal = 340,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "cormstor_aoplane.dds",
+		buildinggrounddecaltype = "decals/cormstor_aoplane.dds",
 		buildpic = "CORMSTOR.DDS",
 		buildtime = 2925,
 		canrepeat = false,
@@ -36,8 +36,9 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -80,11 +81,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

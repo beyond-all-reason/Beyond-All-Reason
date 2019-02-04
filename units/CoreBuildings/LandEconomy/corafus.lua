@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 4096,
-		buildcostenergy = 47000,
+		buildcostenergy = 48000,
 		buildcostmetal = 9700,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
-		buildinggrounddecaltype = "corafus_aoplane.dds",
+		buildinggrounddecaltype = "decals/corafus_aoplane.dds",
 		buildpic = "CORAFUS.DDS",
 		buildtime = 329243,
 		canrepeat = false,
@@ -38,9 +38,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooooooooooooooooooo",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landeconomy",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -67,6 +68,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 8550,
 				description = "Advanced Fusion Reactor Heap",
 				energy = 0,
@@ -77,19 +80,17 @@ return {
 				hitdensity = 100,
 				metal = 2576,
 				object = "4X4A",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

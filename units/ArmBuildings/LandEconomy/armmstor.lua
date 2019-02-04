@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 4096,
-		buildcostenergy = 600,
+		buildcostenergy = 570,
 		buildcostmetal = 330,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "armmstor_aoplane.dds",
+		buildinggrounddecaltype = "decals/armmstor_aoplane.dds",
 		buildpic = "ARMMSTOR.DDS",
 		buildtime = 2925,
 		canrepeat = false,
@@ -38,8 +38,9 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			bar_collisionvolumescales = "56 61 56",
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -66,6 +67,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 798,
 				description = "Metal Storage Heap",
 				energy = 0,
@@ -76,19 +79,17 @@ return {
 				hitdensity = 100,
 				metal = 79,
 				object = "4X4E",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

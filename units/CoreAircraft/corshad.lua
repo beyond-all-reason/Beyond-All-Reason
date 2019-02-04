@@ -1,6 +1,7 @@
 return {
 	corshad = {
 		acceleration = 0.05,
+		blocking = false,
 		brakerate = 0.055,
 		buildcostenergy = 4600,
 		buildcostmetal = 150,
@@ -32,24 +33,23 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 169,
 		turnrate = 800,
-		blocking = false,
 		customparams = {
-			wingsurface = 0.3,
 			description_long = "The Shadow is a bomber, designed for destroying buildings. Its DPS is higher than that of ARM T1 bomber. It drops bombs over the target and makes a flyby to reload ammunition. It can strike every 9 seconds. Always scout first and combine with fighters to eliminate enemy's airwall before  bombing. Click A for attack and drag your RMB to execute a carpet bombing, or use area attack command to strike targets within a circle.",
-
+			subfolder = "coreaircraft",
+			wingsurface = 0.3,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -101,15 +101,15 @@ return {
 				soundstart = "bombrel",
 				sprayangle = 300,
 				weapontype = "AircraftBomb",
+				customparams = {
+					bar_model = "airbomb.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_heat_radius_mult = 1.3,
+				},
 				damage = {
 					default = 112,
 					subs = 5,
 				},
-				customparams = {
-					bar_model = "airbomb.s3o",
-                    expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
-                },
 			},
 		},
 		weapons = {

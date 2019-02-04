@@ -1,17 +1,18 @@
 return {
 	corbw = {
 		acceleration = 0.25,
+		blocking = false,
 		brakerate = 0.55,
 		buildcostenergy = 1300,
-		buildcostmetal = 60,
+		buildcostmetal = 58,
 		buildpic = "CORBW.DDS",
 		buildtime = 2073,
 		canfly = true,
 		canmove = true,
+		cantbetransported = false,
 		category = "ALL WEAPON VTOL NOTSUB NOTHOVER",
 		collide = true,
 		cruisealt = 78,
-		cantbetransported = false,
 		description = "Light Paralyzer Drone",
 		energymake = 2,
 		explodeas = "tinyExplosionGeneric",
@@ -35,14 +36,14 @@ return {
 		turnrate = 1100,
 		upright = true,
 		usesmoothmesh = 0,
-		blocking = false,
 		customparams = {
 			description_long = "Bladewings are little drones armed with EMP lasers. They can paralyze opponents units, but they can't deal any damage. They serve as a great support for your attacks and can turn the tide of war easily. However, they have very little armor and quickly vanish if faced with even basic anti-air. Always try to hide them from enemy's radars - surprise is their strength. Useful as a defense of last resort too.",
-			wingsurface = 1.0,
+			subfolder = "coreaircraft",
+			wingsurface = 1,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -71,9 +72,9 @@ return {
 				areaofeffect = 8,
 				avoidfeature = false,
 				avoidfriendly = false,
+				beamdecay = 0.5,
 				beamtime = 0.1,
 				beamttl = 1,
-				beamdecay = 0.5,
 				collidefriendly = false,
 				corethickness = 0.12,
 				craterareaofeffect = 0,
@@ -104,14 +105,14 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					expl_light_color = "0.7 0.7 1",
+					light_color = "0.7 0.7 1",
+					light_mult = "0.6",
+					light_radius_mult = "0.6",
+				},
 				damage = {
 					default = 800,
-				},
-				customparams = {
-					light_mult = "0.6",		-- used by light_effects widget
-					light_radius_mult = "0.6",		-- used by light_effects widget
-					light_color = "0.7 0.7 1",
-					expl_light_color = "0.7 0.7 1",
 				},
 			},
 		},

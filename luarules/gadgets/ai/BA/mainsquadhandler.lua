@@ -40,7 +40,7 @@ function MainSquadHandler:Update()
 			self.squads[i].position = self:GetSquadPosition(i)
 			if squad.position and squad.position.x then -- squad.target and squad.target.x-- Queue commands midway so it tries to group up the units first
 				local movetargetpos = squad.position
-				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{"ctrl", "alt"})
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{"ctrl", "alt"})
 			end
 		elseif (frame%mainAttackRefreshRate == (i*1500+(self.ai.id*4000))%mainAttackRefreshRate) then -- Generate squad targets
 			--update position

@@ -4,11 +4,10 @@ return {
 		activatewhenbuilt = true,
 		autoheal = 9,
 		brakerate = 1.5,
-		buildcostenergy = 15000,
+		buildcostenergy = 15500,
 		buildcostmetal = 1200,
 		builddistance = 275,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORMANDO.DDS",
 		buildtime = 17131,
 		canassist = true,
@@ -39,6 +38,7 @@ return {
 		radardistancejam = 150,
 		seismicsignature = 4,
 		selfdestructas = "mediumExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 600,
 		turninplace = 0,
 		turninplaceanglelimit = 140,
@@ -56,16 +56,17 @@ return {
 			[7] = "corjamt",
 		},
 		customparams = {
+			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

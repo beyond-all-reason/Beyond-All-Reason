@@ -1,6 +1,7 @@
 return {
 	corawac = {
 		acceleration = 0.25,
+		blocking = false,
 		brakerate = 0.0375,
 		buildcostenergy = 8300,
 		buildcostmetal = 180,
@@ -32,24 +33,24 @@ return {
 		sightdistance = 1250,
 		sonardistance = 1200,
 		turnrate = 650,
-		blocking = false,
 		customparams = {
+			subfolder = "coreaircraft/t2",
 			techlevel = 2,
-			wingsurface = 0.50,
+			wingsurface = 0.5,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg4",
-				"deathceg2",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+				[3] = "deathceg2",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

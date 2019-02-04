@@ -2,7 +2,7 @@ return {
 	armvang = {
 		acceleration = 0.023,
 		brakerate = 0.3,
-		buildcostenergy = 70000,
+		buildcostenergy = 71000,
 		buildcostmetal = 3300,
 		buildpic = "ARMVANG.DDS",
 		buildtime = 91096,
@@ -35,6 +35,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 231,
 		customparams = {
+			subfolder = "armgantry",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -62,6 +63,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 3015,
 				description = "Vanguard Heap",
 				energy = 0,
@@ -72,22 +75,20 @@ return {
 				hitdensity = 100,
 				metal = 811,
 				object = "4X4D",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -142,8 +143,8 @@ return {
 				weapontype = "Cannon",
 				weaponvelocity = 500,
 				damage = {
-					default = 1265,
 					commanders = 1100,
+					default = 1265,
 					shields = 765,
 					subs = 5,
 				},

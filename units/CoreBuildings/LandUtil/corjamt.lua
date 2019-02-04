@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 9821,
-		buildcostenergy = 5000,
-		buildcostmetal = 110,
+		buildcostenergy = 5200,
+		buildcostmetal = 115,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "corjamt_aoplane.dds",
+		buildinggrounddecaltype = "decals/corjamt_aoplane.dds",
 		buildpic = "CORJAMT.DDS",
 		buildtime = 4577,
 		canattack = false,
@@ -42,8 +42,9 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 3.6,
 			bar_buildinggrounddecalsizey = 3.6,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landutil",
 		},
 		featuredefs = {
 			dead = {
@@ -67,10 +68,10 @@ return {
 				world = "all",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

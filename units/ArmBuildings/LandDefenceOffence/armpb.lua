@@ -2,12 +2,12 @@ return {
 	armpb = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 13000,
-		buildcostmetal = 700,
+		buildcostenergy = 14000,
+		buildcostmetal = 680,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "armpb_aoplane.dds",
+		buildinggrounddecaltype = "decals/armpb_aoplane.dds",
 		buildpic = "ARMPB.DDS",
 		buildtime = 14961,
 		canrepeat = false,
@@ -36,8 +36,9 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
-			techlevel = 2,
 			removewait = true,
+			subfolder = "armbuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -64,6 +65,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 760,
 				description = "Pit Bull Heap",
 				energy = 0,
@@ -74,22 +77,20 @@ return {
 				hitdensity = 100,
 				metal = 140,
 				object = "3X3D",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -142,8 +143,8 @@ return {
 				damage = {
 					bombers = 26,
 					default = 675,
-					hvyboats = 675*0.7,
 					fighters = 26,
+					hvyboats = 472.5,
 					subs = 5,
 					vtol = 26,
 				},

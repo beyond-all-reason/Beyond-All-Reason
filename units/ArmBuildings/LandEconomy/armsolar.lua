@@ -4,11 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 4000,
-		buildcostmetal = 150,
+		buildcostenergy = 0,
+		buildcostmetal = 155,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
-		buildinggrounddecaltype = "armsolar_aoplane.dds",
+		buildinggrounddecaltype = "decals/armsolar_aoplane.dds",
 		buildpic = "ARMSOLAR.DDS",
 		buildtime = 2800,
 		canrepeat = false,
@@ -39,8 +40,9 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "yyoyy yoooy ooooo yoooy yyoyy",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -83,11 +85,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

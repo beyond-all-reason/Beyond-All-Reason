@@ -8,8 +8,8 @@ return {
 		buildcostmetal = 240,
 		buildpic = "ARMJAMT.DDS",
 		buildtime = 9955,
-		canrepeat = false,
 		canattack = false,
+		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
 		cloakcost = 25,
 		collisionvolumeoffsets = "0 0 0",
@@ -37,8 +37,9 @@ return {
 		sightdistance = 195,
 		yardmap = "oooo",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landutil",
 		},
 		featuredefs = {
 			dead = {
@@ -62,10 +63,10 @@ return {
 				world = "all",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {

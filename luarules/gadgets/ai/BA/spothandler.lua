@@ -151,6 +151,10 @@ function distance(pos1,pos2)
 	return dist
 end
 function NoMex(x,z, batchextracts,teamID) -- Is there any better mex at this location (returns false if there is)
+	local y = Spring.GetGroundOrigHeight(x,z)
+	if y < 0 then
+		return false
+	end
 	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius+32)
 		for ct, uid in pairs(mexesatspot) do
 			if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal >= batchextracts or UnitDefs[Spring.GetUnitDefID(uid)].canMove then
@@ -161,6 +165,10 @@ function NoMex(x,z, batchextracts,teamID) -- Is there any better mex at this loc
 end
 
 function EnemyMex(x,z, batchextracts,teamID) -- Is there any better mex at this location (returns false if there is)
+	local y = Spring.GetGroundOrigHeight(x,z)
+	if y < 0 then
+		return false
+	end
 	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius+16)
 		for ct, uid in pairs(mexesatspot) do
 			if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal > 0 and (teamID and not Spring.AreTeamsAllied(Spring.GetUnitTeam(uid), teamID)) then

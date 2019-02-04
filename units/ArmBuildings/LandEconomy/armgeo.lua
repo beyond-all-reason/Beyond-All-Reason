@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 2048,
-		buildcostenergy = 14000,
-		buildcostmetal = 550,
+		buildcostenergy = 13000,
+		buildcostmetal = 560,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
-		buildinggrounddecaltype = "armgeo_aoplane.dds",
+		buildinggrounddecaltype = "decals/armgeo_aoplane.dds",
 		buildpic = "ARMGEO.DDS",
 		buildtime = 13078,
 		canrepeat = false,
@@ -38,9 +38,10 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo oGGo oGGo oooo",
 		customparams = {
-			cvBuildable = true,
-			removewait = true,
+			cvbuildable = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -67,6 +68,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 525,
 				description = "Geothermal Powerplant Heap",
 				energy = 0,
@@ -77,19 +80,17 @@ return {
 				hitdensity = 100,
 				metal = 135,
 				object = "4X4B",
-                collisionvolumescales = "85.0 14.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -44,16 +44,17 @@ return {
 		workertime = 0,
 		yardmap = "oo oo",
 		customparams = {
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "other",
 		},
 		featuredefs = {},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+			},
 		},
 		weapondefs = {
 			weapon = {
@@ -76,19 +77,19 @@ return {
 				soundhit = "xplonuk4",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
+				stages = 0,
 				startvelocity = 2000,
 				turret = 1,
 				weaponacceleration = 120,
 				weapontimer = 10,
 				weaponvelocity = 2000,
 				wobble = 0,
-				stages = 0,
 				damage = {
+					chicken = 0.001,
 					commanders = 10,
 					default = 700,
-					vtol = 2500,
-					chicken = 0.001,
 					tinychicken = 0.001,
+					vtol = 2500,
 				},
 			},
 		},

@@ -3,7 +3,7 @@ return {
 		acceleration = 0.12,
 		autoheal = 50,
 		brakerate = 0.375,
-		buildcostenergy = 13000,
+		buildcostenergy = 12000,
 		buildcostmetal = 700,
 		buildpic = "ARMMAV.DDS",
 		buildtime = 18384,
@@ -37,6 +37,7 @@ return {
 		turnrate = 1118,
 		upright = true,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 696,
 				description = "Maverick Heap",
 				featurereclamate = "smudge01",
@@ -72,22 +75,20 @@ return {
 				hitdensity = 100,
 				metal = 196,
 				object = "2x2e",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

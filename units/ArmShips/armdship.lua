@@ -1,9 +1,11 @@
 return {
 	armdship = {
+		acceleration = 0.036,
 		activatewhenbuilt = true,
 		airsightdistance = 400,
 		autoheal = 1.5,
 		blocking = true,
+		brakerate = 0.088,
 		buildcostenergy = 1350,
 		buildcostmetal = 220,
 		buildpic = "ARMDSHIP.DDS",
@@ -25,6 +27,7 @@ return {
 		idleautoheal = 2,
 		idletime = 900,
 		maxdamage = 1400,
+		maxvelocity = 2.15,
 		minwaterdepth = 6,
 		movementclass = "BOAT43X3",
 		name = "Hunter",
@@ -34,17 +37,12 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 600,
 		sonardistance = 400,
-		waterline = 0,
-		-- move
-		acceleration = 0.036,
-		brakerate = 0.088,
-		maxvelocity = 2.15,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 250,
-		--end move
+		waterline = 0,
 		customparams = {
-			
+			subfolder = "armships",
 		},
 		featuredefs = {
 			dead = {
@@ -55,13 +53,13 @@ return {
 				collisionvolumetype = "Box",
 				damage = 250,
 				description = "Intervention Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 1,
 				footprintz = 3,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*55,
+				metal = 44,
 				object = "ARMDSHIP_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -70,27 +68,27 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 516,
 				description = "Intervention Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 3,
 				footprintz = 3,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*27,
+				metal = 21.6,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -140,7 +138,7 @@ return {
 				startvelocity = 140,
 				tolerance = 1000,
 				tracks = true,
-				turnrate = 1.5*4000,
+				turnrate = 6000,
 				turret = true,
 				waterweapon = true,
 				weaponacceleration = 27.5,
@@ -148,9 +146,9 @@ return {
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 190,
 				damage = {
+					commanders = 70,
 					default = 60,
 					subs = 150,
-					commanders = 70,
 				},
 			},
 		},
@@ -158,7 +156,7 @@ return {
 			[1] = {
 				badtargetcategory = "NOTSUB",
 				def = "DEPTHCHARGE",
-				onlytargetcategory = "CANBEUW UNDERWATER",		
+				onlytargetcategory = "CANBEUW UNDERWATER",
 			},
 		},
 	},

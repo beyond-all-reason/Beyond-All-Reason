@@ -2,14 +2,13 @@ return {
 	armap = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 1400,
-		buildcostmetal = 850,
+		buildcostenergy = 1350,
+		buildcostmetal = 860,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 9,
 		buildinggrounddecalsizey = 9,
-		buildinggrounddecaltype = "armap_aoplane.dds",
+		buildinggrounddecaltype = "decals/armap_aoplane.dds",
 		buildpic = "ARMAP.DDS",
 		buildtime = 7240,
 		canmove = true,
@@ -36,25 +35,27 @@ return {
 		radaremitheight = 72,
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 292,
 		terraformspeed = 500,
 		usebuildinggrounddecal = true,
 		workertime = 100,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooo",
 		buildoptions = {
-			"armca",
-			"armpeep",
-			"armfig",
-			"armthund",
-			"armatlas",
-			"armkam",
+			[1] = "armca",
+			[2] = "armpeep",
+			[3] = "armfig",
+			[4] = "armthund",
+			[5] = "armatlas",
+			[6] = "armkam",
 		},
 		customparams = {
 			bar_collisionvolumeoffsets = "0 8 1",
 			bar_collisionvolumescales = "134 49 82",
-			bar_yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
 			bar_footprintx = 9,
 			bar_footprintz = 6,
+			bar_yardmap = "ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo ooooooooo",
+			subfolder = "armbuildings/landfactories",
 		},
 		featuredefs = {
 			dead = {
@@ -97,13 +98,13 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 1.848,
 		turnrate = 1540,
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -62,6 +63,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "21.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 200,
 				description = "Invader Heap",
 				footprintx = 1,
@@ -70,19 +73,17 @@ return {
 				hitdensity = 100,
 				metal = 12,
 				object = "1X1B",
-                collisionvolumescales = "21.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -134,6 +135,7 @@ return {
 			crawl_dummy = {
 				areaofeffect = 0,
 				avoidfeature = false,
+				avoidground = false,
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
@@ -148,10 +150,9 @@ return {
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
 				tolerance = 100000,
+				waterweapon = true,
 				weapontype = "Melee",
 				weaponvelocity = 100000,
-				avoidground = false,
-				waterweapon = true,
 				damage = {
 					default = 0,
 				},
@@ -164,7 +165,7 @@ return {
 				onlytargetcategory = "SURFACE",
 			},
 			[2] = {
-				def = "CRAWL_DETONATOR",		-- gadget uses this name to filter targetting on air
+				def = "CRAWL_DETONATOR",
 				onlytargetcategory = "NOTSUB",
 			},
 		},

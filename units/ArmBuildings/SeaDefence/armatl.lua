@@ -4,8 +4,8 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 16384,
-		buildcostenergy = 8500,
-		buildcostmetal = 1000,
+		buildcostenergy = 4400,
+		buildcostmetal = 390,
 		buildpic = "ARMATL.DDS",
 		buildtime = 9262,
 		canrepeat = false,
@@ -31,8 +31,9 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			bar_waterline = 2,
-			techlevel = 2,
 			removewait = true,
+			subfolder = "armbuildings/seadefence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -55,11 +56,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -92,8 +93,8 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				explosiongenerator = "custom:genericshellexplosion-large-uw",
-				impulseboost = 0.12300000339746,
-				impulsefactor = 0.12300000339746,
+				impulseboost = 0.123,
+				impulsefactor = 0.123,
 				model = "Advtorpedo",
 				name = "Heavy long-range homing torpedo launcher",
 				noselfdamage = true,
@@ -111,12 +112,12 @@ return {
 				weapontimer = 10,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 380,
+				customparams = {
+					bar_model = "torpedo.s3o",
+				},
 				damage = {
 					default = 780,
 				},
-				customparams = {
-					bar_model = "torpedo.s3o",
-				}
 			},
 		},
 		weapons = {

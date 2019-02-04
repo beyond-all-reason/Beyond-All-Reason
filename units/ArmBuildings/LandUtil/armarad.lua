@@ -4,12 +4,12 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 20000,
-		buildcostmetal = 550,
+		buildcostenergy = 19000,
+		buildcostmetal = 560,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "armarad_aoplane.dds",
+		buildinggrounddecaltype = "decals/armarad_aoplane.dds",
 		buildpic = "ARMARAD.DDS",
 		buildtime = 11800,
 		canattack = false,
@@ -43,9 +43,10 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 3.6,
 			bar_buildinggrounddecalsizey = 3.6,
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landutil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -72,6 +73,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 96,
 				description = "Advanced Radar Tower Heap",
 				energy = 0,
@@ -82,19 +85,17 @@ return {
 				hitdensity = 100,
 				metal = 136,
 				object = "2X2C",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

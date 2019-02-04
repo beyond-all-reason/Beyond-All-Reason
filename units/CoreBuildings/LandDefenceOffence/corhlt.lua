@@ -8,7 +8,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "corhlt_aoplane.dds",
+		buildinggrounddecaltype = "decals/corhlt_aoplane.dds",
 		buildpic = "CORHLT.DDS",
 		buildtime = 12650,
 		canrepeat = false,
@@ -40,6 +40,7 @@ return {
 			bar_collisionvolumeoffsets = "0 -8 0",
 			bar_collisionvolumescales = "38 90 38",
 			removewait = true,
+			subfolder = "corebuildings/landdefenceoffence",
 		},
 		featuredefs = {
 			dead = {
@@ -66,6 +67,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 743,
 				description = "Gaat Gun Heap",
 				energy = 0,
@@ -76,19 +79,17 @@ return {
 				hitdensity = 100,
 				metal = 117,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

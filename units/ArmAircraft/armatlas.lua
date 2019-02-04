@@ -1,9 +1,13 @@
 return {
 	armatlas = {
-		acceleration = 0.10,
+		acceleration = 0.1,
+		airhoverfactor = 0,
+		airstrafe = false,
+		bankingallowed = false,
+		blocking = false,
 		brakerate = 0.75,
-		buildcostenergy = 1400,
-		buildcostmetal = 70,
+		buildcostenergy = 1300,
+		buildcostmetal = 68,
 		buildpic = "ARMATLAS.DDS",
 		buildtime = 3850,
 		canfly = true,
@@ -18,9 +22,6 @@ return {
 		footprintx = 2,
 		footprintz = 3,
 		hoverattack = true,
-		airStrafe = false,
-		airhoverfactor = 0,
-		bankingAllowed = false,
 		icontype = "air",
 		idleautoheal = 5,
 		idletime = 1800,
@@ -40,26 +41,26 @@ return {
 		transportsize = 3,
 		turninplaceanglelimit = 360,
 		turnrate = 550,
-		verticalSpeed = 3.75,
-		blocking = false,
+		verticalspeed = 3.75,
 		customparams = {
 			description_long = "The Atlas is an airborne transportation unit. It can pick up all T1 land based units and T2, with exception of heavy ones, like Fatboy or Goliath. Use it for unexpected unit drops bypassing your enemy's defense line, but don't forget to scout first for any anti-air units. Drop your commander into their bases to Dgun all structures and humiliate your opponents. Can be used for transporting nano towers too, which enables you to move your buildpower where you currently need it.",
 			paralyzemultiplier = 0.025,
+			subfolder = "armaircraft",
 			wingsurface = 0.1,
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",

@@ -1,8 +1,10 @@
 return {
 	corshark = {
+		acceleration = 0.0252,
 		activatewhenbuilt = true,
-		buildcostenergy = 18000,
-		buildcostmetal = 900,
+		brakerate = 0.07,
+		buildcostenergy = 9900,
+		buildcostmetal = 1000,
 		buildpic = "CORSHARK.DDS",
 		buildtime = 22000,
 		canmove = true,
@@ -21,6 +23,8 @@ return {
 		idleautoheal = 10,
 		idletime = 900,
 		maxdamage = 850,
+		maxreversevelocity = 0.525,
+		maxvelocity = 2.1,
 		minwaterdepth = 20,
 		movementclass = "UBOAT33X3",
 		name = "Shark",
@@ -31,18 +35,13 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd-uw",
 		sightdistance = 390,
 		sonardistance = 525,
-		--move
-		brakerate =  0.07,
-		acceleration = 0.0252,
-		maxvelocity = 2.10,
-		maxreversevelocity = 0.25*2.10,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 203,	
-		--end move
+		turnrate = 203,
 		upright = true,
 		waterline = 40,
 		customparams = {
+			subfolder = "coreships/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -54,13 +53,13 @@ return {
 				collisionvolumetype = "Box",
 				damage = 681,
 				description = "Shark Wreckage",
-				energy = 0.8*0,
+				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 6,
 				footprintz = 6,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*321,
+				metal = 256.80002,
 				object = "CORSHARK_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -69,28 +68,28 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 2016,
 				description = "Shark Heap",
-				energy = 0.8*0,
+				energy = 0,
 				footprintx = 2,
 				footprintz = 2,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*127,
+				metal = 101.6,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -144,12 +143,12 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
+				customparams = {
+					bar_model = "cortorpedo.s3o",
+				},
 				damage = {
 					default = 900,
 				},
-				customparams = {
-					bar_model = "cortorpedo.s3o",
-				}
 			},
 		},
 		weapons = {

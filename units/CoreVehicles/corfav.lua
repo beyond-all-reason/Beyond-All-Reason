@@ -2,8 +2,8 @@ return {
 	corfav = {
 		acceleration = 0.11,
 		brakerate = 0.435,
-		buildcostenergy = 280,
-		buildcostmetal = 25,
+		buildcostenergy = 270,
+		buildcostmetal = 26,
 		buildpic = "CORFAV.DDS",
 		buildtime = 1150,
 		canmove = true,
@@ -29,6 +29,7 @@ return {
 		name = "Weasel",
 		nochasecategory = "VTOL",
 		objectname = "CORFAV",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "tinyExplosionGenericSelfd",
 		sightdistance = 535,
@@ -40,32 +41,26 @@ return {
 		turninplaceanglelimit = 140,
 		turninplacespeedlimit = 3.2274,
 		turnrate = 612,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_leavetracks = false,
+			basename = "base",
+			cannon1name = "turret",
+			cobkickbackrestorespeed = "0",
+			cobturretxspeed = "200",
+			cobturretyspeed = "200",
 			description_long = "Weasels are supercheap and fast to build vehicles used for scouting and damaging the early eco structures of enemies. It is the fastest moving unit in the whole game (except ARM counterpart -Jeffy) but due to light armor any close confrontation will be lethal to it. Evade laser towers and destroy metal extractors to slow down your foe's expansion! In T2 warfare Weasels come as an effective counter to slow shooting units, like snipers, penetrators and artillery. When produced constantly and sent to the front they can pull the heavy fire on themselves while your T2 units deal damage to artillery.",
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "turret",
-					cannon1name = "turret",
-					flare1name = "flare",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "",
-					driftratio = "0.7", --How likely will the unit drift when performing turns?
-					rockstrength = "0", --Howmuch will its weapon make it rock ?
-					rockspeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "0", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "0", --How fast will the cannon come back in position?
-					kickback = "0", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "200", --turretSpeed as seen in COB script
-					cobturretxspeed = "200", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
-			},
+			driftratio = "0.7",
+			firingceg = "",
+			flare1name = "flare",
+			kickback = "0",
+			restoretime = "3000",
+			rockrestorespeed = "0",
+			rockspeed = "0",
+			rockstrength = "0",
+			sleevename = "turret",
+			subfolder = "corevehicles",
+			turretname = "turret",
+		},
 		featuredefs = {
 			dead = {
 				blocking = false,
@@ -91,6 +86,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 66,
 				description = "Weasel Heap",
 				energy = 0,
@@ -101,17 +98,15 @@ return {
 				hitdensity = 100,
 				metal = 6,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
 			},
 		},
 		sounds = {
@@ -171,15 +166,15 @@ return {
 				turret = true,
 				weapontype = "BeamLaser",
 				weaponvelocity = 800,
+				customparams = {
+					light_mult = "0.45",
+				},
 				damage = {
 					bombers = 2,
 					default = 35,
 					fighters = 2,
 					subs = 5,
 					vtol = 2,
-				},
-				customparams = {
-					light_mult = "0.45",		-- used by light_effects widget
 				},
 			},
 		},

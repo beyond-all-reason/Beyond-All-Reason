@@ -2,14 +2,13 @@ return {
 	coramsub = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5600,
-		buildcostmetal = 1200,
+		buildcostenergy = 5700,
+		buildcostmetal = 1250,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
-		buildinggrounddecaltype = "coramsub_aoplane.dds",
+		buildinggrounddecaltype = "decals/coramsub_aoplane.dds",
 		buildpic = "CORAMSUB.DDS",
 		buildtime = 11402,
 		canmove = true,
@@ -35,6 +34,7 @@ return {
 		objectname = "CORAMSUB",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
+		shownanospray = false,
 		sightdistance = 240,
 		terraformspeed = 750,
 		usebuildinggrounddecal = true,
@@ -49,10 +49,9 @@ return {
 			[6] = "coraak",
 			[7] = "cordecom",
 			[8] = "corintr",
-			-- [9] = "corsub",
 		},
 		customparams = {
-			
+			subfolder = "corebuildings/seafactories",
 		},
 		featuredefs = {
 			dead = {
@@ -76,11 +75,11 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

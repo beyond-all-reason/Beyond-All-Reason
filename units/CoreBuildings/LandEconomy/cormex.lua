@@ -4,13 +4,13 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 2048,
-		buildcostenergy = 500,
-		buildcostmetal = 55,
+		buildcostenergy = 550,
+		buildcostmetal = 54,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
-		buildinggrounddecaltype = "cormex_aoplane.dds",
-		buildingMask = 0,
+		buildinggrounddecaltype = "decals/cormex_aoplane.dds",
+		buildingmask = 0,
 		buildpic = "CORMEX.DDS",
 		buildtime = 1874,
 		canrepeat = false,
@@ -41,10 +41,11 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
-			cvBuildable = true,
+			cvbuildable = true,
 			metal_extractor = 1,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landeconomy",
 		},
 		featuredefs = {
 			dead = {
@@ -71,6 +72,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 53,
 				description = "Metal Extractor Heap",
 				energy = 0,
@@ -81,19 +84,17 @@ return {
 				hitdensity = 100,
 				metal = 13,
 				object = "3X3E",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

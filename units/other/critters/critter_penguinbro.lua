@@ -59,7 +59,7 @@ return {
 		waterline = 6,
 		workertime = 0,
 		customparams = {
-			subfolder = "other/critters/",
+			subfolder = "other/critters",
 		},
 		weapondefs = {
 			eyelaser = {

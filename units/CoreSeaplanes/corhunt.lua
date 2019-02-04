@@ -1,8 +1,9 @@
 return {
 	corhunt = {
 		acceleration = 0.22,
+		blocking = false,
 		brakerate = 0.0375,
-		buildcostenergy = 6900,
+		buildcostenergy = 6800,
 		buildcostmetal = 130,
 		buildpic = "CORHUNT.DDS",
 		buildtime = 9512,
@@ -33,23 +34,22 @@ return {
 		sightdistance = 1130,
 		sonardistance = 900,
 		turnrate = 680,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "coreseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",

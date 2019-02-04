@@ -39,9 +39,10 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 2.19516,
-		turnrate = 550*0.8,
+		turnrate = 440,
 		customparams = {
 			arm_tank = "1",
+			subfolder = "armvehicles/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -69,6 +70,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 500,
 				description = "Panther Heap",
 				energy = 0,
@@ -79,19 +82,17 @@ return {
 				hitdensity = 100,
 				metal = 80,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg3-lightning",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg3-lightning",
 			},
 		},
 		sounds = {
@@ -120,10 +121,10 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				canattackground = false,
+				cegtag = "missiletrailaa",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailaa",
 				explosiongenerator = "custom:genericshellexplosion-tiny-aa",
 				firestarter = 70,
 				flighttime = 1.75,
@@ -151,16 +152,16 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
+				customparams = {
+					bar_model = "cormissile.s3o",
+					expl_light_color = "1 0.4 0.5",
+					light_color = "1 0.5 0.6",
+					light_skip = true,
+				},
 				damage = {
 					bombers = 85,
 					fighters = 85,
 					vtol = 85,
-				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-					light_skip = true,		-- used by light_effects widget
-                    light_color = "1 0.5 0.6",
-                    expl_light_color = "1 0.4 0.5",
 				},
 			},
 			armlatnk_weapon = {
@@ -193,14 +194,14 @@ return {
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,
+				customparams = {
+					expl_light_color = "0.2 0.5 1",
+					light_color = "0.2 0.5 1",
+					light_mult = "0.44",
+				},
 				damage = {
 					default = 22.7,
 					subs = 0.5,
-				},
-				customparams = {
-					light_mult = "0.44",		-- used by light_effects widget
-                    light_color = "0.2 0.5 1",
-                    expl_light_color = "0.2 0.5 1",
 				},
 			},
 		},

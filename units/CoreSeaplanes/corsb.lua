@@ -1,9 +1,10 @@
 return {
 	corsb = {
 		acceleration = 0.055,
+		blocking = false,
 		brakerate = 0.045,
-		buildcostenergy = 8200,
-		buildcostmetal = 200,
+		buildcostenergy = 29000,
+		buildcostmetal = 270,
 		buildpic = "CORSB.DDS",
 		buildtime = 7000,
 		canfly = true,
@@ -33,23 +34,22 @@ return {
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 455,
 		turnrate = 600,
-		blocking = false,
 		customparams = {
-			
+			subfolder = "coreseaplanes",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
+			},
 		},
 		sounds = {
 			build = "nanlath1",
@@ -111,17 +111,17 @@ return {
 				sprayangle = 6000,
 				waterbounce = true,
 				weapontype = "AircraftBomb",
+				customparams = {
+					bar_model = "airbombsea.s3o",
+					expl_light_color = "1 0.5 0.05",
+					expl_light_heat_radius_mult = 1.3,
+				},
 				damage = {
 					bombers = 5,
 					default = 50,
 					ship = 100,
 					subs = 70,
 				},
-				customparams = {
-					bar_model = "airbombsea.s3o",
-                    expl_light_color = "1 0.5 0.05",
-					expl_light_heat_radius_mult = 1.3,
-                },
 			},
 		},
 		weapons = {

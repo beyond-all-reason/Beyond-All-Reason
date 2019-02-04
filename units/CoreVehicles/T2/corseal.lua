@@ -2,10 +2,9 @@ return {
 	corseal = {
 		acceleration = 0.0462,
 		activatewhenbuilt = true,
-
 		brakerate = 0.0627,
-		buildcostenergy = 9000,
-		buildcostmetal = 500,
+		buildcostenergy = 9100,
+		buildcostmetal = 480,
 		buildpic = "CORSEAL.DDS",
 		buildtime = 12051,
 		canmove = true,
@@ -31,10 +30,11 @@ return {
 		name = "Croc",
 		nochasecategory = "VTOL",
 		objectname = "CORSEAL",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-phib",
 		sightdistance = 399,
-		sonardistance = 399*0.75,
+		sonardistance = 299.25,
 		trackoffset = 6,
 		trackstrength = 5,
 		tracktype = "StdTank",
@@ -43,34 +43,30 @@ return {
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 1.7457,
 		turnrate = 487,
-		script = "BASICTANKSCRIPT.LUA",
 		customparams = {
 			bar_trackoffset = 6,
 			bar_trackstrength = 5,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 30,
+			basename = "base",
+			cannon1name = "barrel1",
+			cannon2name = "barrel2",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "45",
+			cobturretyspeed = "75",
+			driftratio = "0.2",
+			firingceg = "barrelshot-medium",
+			flare1name = "flare1",
+			flare2name = "flare2",
+			kickback = "-2.4",
+			restoretime = "3000",
+			rockrestorespeed = "10",
+			rockspeed = "80",
+			rockstrength = "5",
+			sleevename = "sleeves",
+			subfolder = "corevehicles/t2",
 			techlevel = 2,
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeves",
-					cannon1name = "barrel1",
-					flare1name = "flare1",
-					cannon2name = "barrel2", --optional (replace with nil)
-					flare2name = "flare2", --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-medium",
-					driftratio = "0.2", --How likely will the unit drift when performing turns?
-					rockstrength = "5", --Howmuch will its weapon make it rock ?
-					rockspeed = "80", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "10", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-2.4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "75", --turretSpeed as seen in COB script
-					cobturretxspeed = "45", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
+			turretname = "turret",
 		},
 		featuredefs = {
 			dead = {
@@ -95,6 +91,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1500,
 				description = "Croc Heap",
 				energy = 0,
@@ -104,23 +102,21 @@ return {
 				hitdensity = 100,
 				metal = 118,
 				object = "2X2E",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
 				[2] = "custom:DUST_CLOUD",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -174,37 +170,6 @@ return {
 					vtol = 29,
 				},
 			},
-			-- core_uwcroc = {
-				-- areaofeffect = 64,
-				-- avoidfeature = false,
-				-- craterareaofeffect = 0,
-				-- craterboost = 0,
-				-- cratermult = 0,
-				-- explosiongenerator = "custom:genericshellexplosion-small",
-				-- gravityaffected = "true",
-				-- impulseboost = 0.123,
-				-- impulsefactor = 0.123,
-				-- model = "minitorpedo",
-				-- name = "PlasmaCannon",
-				-- noselfdamage = true,
-				-- range = 440,
-				-- reloadtime = 0.9,
-				-- soundhit = "xplomed4",
-				-- soundhitwet = "splssml",
-				-- soundhitwetvolume = 0.5,
-				-- soundstart = "cannon2",
-				-- turret = true,
-				-- waterweapon = true,
-				-- weapontype = "Cannon",
-				-- weaponvelocity = 200,
-				-- damage = {
-					-- bombers = 29,
-					-- default = 58,
-					-- fighters = 29,
-					-- subs = 48,
-					-- vtol = 29,
-				-- },
-			-- },
 		},
 		weapons = {
 			[1] = {
@@ -212,11 +177,6 @@ return {
 				def = "CORE_CROC",
 				onlytargetcategory = "NOTSUB",
 			},
-			-- [2] = {
-				-- badtargetcategory = "VTOL",
-				-- def = "CORE_UWCROC",
-				-- onlytargetcategory = "NOTHOVER",
-			-- },
 		},
 	},
 }

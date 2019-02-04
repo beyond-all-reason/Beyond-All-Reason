@@ -2,7 +2,7 @@ return {
 	corlevlr = {
 		acceleration = 0.0364,
 		brakerate = 1.0854,
-		buildcostenergy = 2500,
+		buildcostenergy = 2600,
 		buildcostmetal = 220,
 		buildpic = "CORLEVLR.DDS",
 		buildtime = 3009,
@@ -29,6 +29,7 @@ return {
 		name = "Leveler",
 		nochasecategory = "VTOL",
 		objectname = "CORLEVLR",
+		script = "BASICTANKSCRIPT.LUA",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 286,
@@ -39,36 +40,30 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turninplacespeedlimit = 0.94149,
-		turnrate = 366*0.8,
-		script = "BASICTANKSCRIPT.LUA",
+		turnrate = 292.80002,
 		customparams = {
 			bar_trackoffset = 7,
 			bar_trackstrength = 6,
-			bar_trackwidth = 30,
 			bar_tracktype = "corwidetracks",
+			bar_trackwidth = 30,
+			basename = "base",
+			cannon1name = "barrel",
+			cobkickbackrestorespeed = "3",
+			cobturretxspeed = "20",
+			cobturretyspeed = "170",
 			description_long = "The Leveler is a powerful tank armed with an impulse weapon that deals AoE damage and repels light units. It makes it highly effective against swarms of peewees, flashes etc. A drawback is their low speed and inability to shoot over each other, therefore always try to move them in a line. Rather ineffective against long range defense towers - combine them with Slashers (rocket trucks) or Storms (rocket Kbots) to push the front and constructors for repairing.",
-			--ANIMATION DATA
-				--PIECENAMES HERE
-					basename = "base",
-					turretname = "turret",
-					sleevename = "sleeve",
-					cannon1name = "barrel",
-					flare1name = "flash",
-					cannon2name = nil, --optional (replace with nil)
-					flare2name = nil, --optional (replace with nil)
-				--SFXs HERE
-					firingceg = "barrelshot-tiny",
-					driftratio = "0.4", --How likely will the unit drift when performing turns?
-					rockstrength = "15", --Howmuch will its weapon make it rock ?
-					rockspeed = "60", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					rockrestorespeed = "15", -- More datas about rock(honestly you can keep 2 and 1 as default here)
-					cobkickbackrestorespeed = "3", --How fast will the cannon come back in position?
-					kickback = "-4", --How much will the cannon kickback
-				--AIMING HERE
-					cobturretyspeed = "170", --turretSpeed as seen in COB script
-					cobturretxspeed = "20", --turretSpeed as seen in COB script
-					restoretime = "3000", --restore delay as seen in COB script
-			},
+			driftratio = "0.4",
+			firingceg = "barrelshot-tiny",
+			flare1name = "flash",
+			kickback = "-4",
+			restoretime = "3000",
+			rockrestorespeed = "15",
+			rockspeed = "60",
+			rockstrength = "15",
+			sleevename = "sleeve",
+			subfolder = "corevehicles",
+			turretname = "turret",
+		},
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -94,6 +89,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 383,
 				description = "Leveler Heap",
 				energy = 0,
@@ -104,22 +101,20 @@ return {
 				hitdensity = 100,
 				metal = 76,
 				object = "2X2B",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-medium",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

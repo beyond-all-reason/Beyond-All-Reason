@@ -50,19 +50,6 @@ local exceptionList = { --add exempt units here
 	"armpacko",
 	"armsnipe",
 }
-if UnitDefNames.armcom_bar then
-	function tableMerge(t1, t2)
-		for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
-		return t1
-	end
-	local exceptionListBAR = {}
-	local exceptionListKeyCount = #exceptionList
-	for _,name in pairs(exceptionList) do
-		exceptionListKeyCount = exceptionListKeyCount + 1
-		exceptionListBAR[exceptionListKeyCount] = name
-	end
-	exceptionList = tableMerge(exceptionList, exceptionListBAR)
-end
 
 local exceptionArray = {}
 for _,name in pairs(exceptionList) do

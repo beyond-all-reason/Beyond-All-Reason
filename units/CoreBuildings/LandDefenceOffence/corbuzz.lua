@@ -3,12 +3,12 @@ return {
 		acceleration = 0,
 		brakerate = 0,
 		buildangle = 29096,
-		buildcostenergy = 666000,
-		buildcostmetal = 66600,
+		buildcostenergy = 718000,
+		buildcostmetal = 61000,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
-		buildinggrounddecaltype = "corbuzz_aoplane.dds",
+		buildinggrounddecaltype = "decals/corbuzz_aoplane.dds",
 		buildpic = "CORBUZZ.DDS",
 		buildtime = 1400000,
 		canrepeat = false,
@@ -19,13 +19,13 @@ return {
 		corpse = "DEAD",
 		description = "Rapid-Fire Long-Range Plasma Cannon",
 		explodeas = "advancedFusionExplosion",
+		firestate = 0,
 		footprintx = 8,
 		footprintz = 8,
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
 		maxdamage = 30000,
-		fireState = 0,
 		maxslope = 13,
 		maxwaterdepth = 0,
 		name = "Buzzsaw",
@@ -36,8 +36,9 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",
 		customparams = {
-			techlevel = 2,
 			removewait = true,
+			subfolder = "corebuildings/landdefenceoffence",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -80,13 +81,13 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -115,8 +116,8 @@ return {
 				accuracy = 750,
 				areaofeffect = 256,
 				avoidfeature = false,
-				avoidground = false,
 				avoidfriendly = false,
+				avoidground = false,
 				collidefriendly = false,
 				craterareaofeffect = 256,
 				craterboost = 0.1,
@@ -140,13 +141,13 @@ return {
 				weapontimer = 14,
 				weapontype = "Cannon",
 				weaponvelocity = 1150,
-				damage = {
-					default = 1330,
-					subs = 5,
-					shields = 665,
-				},
 				customparams = {
 					expl_light_heat_radius_mult = 1.75,
+				},
+				damage = {
+					default = 1330,
+					shields = 665,
+					subs = 5,
 				},
 			},
 		},

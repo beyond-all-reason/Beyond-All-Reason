@@ -2,7 +2,7 @@ return {
 	corthud = {
 		acceleration = 0.113,
 		brakerate = 0.675,
-		buildcostenergy = 1100,
+		buildcostenergy = 1150,
 		buildcostmetal = 140,
 		buildpic = "CORTHUD.DDS",
 		buildtime = 1971,
@@ -44,6 +44,7 @@ return {
 		upright = true,
 		customparams = {
 			description_long = "Thud is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has a shorter range than rocket Kbots, but if you manage to reach them, it can easily eliminate them. It has slightly higher HP than rocket Kbots, hence it can be used in big numbers to destroy T1 defensive structures. Combine with resurrection Kbots (Necros), for healing and resurrecting fallen units, to quickly push the frontline. Effective for defending mountain tops, as their range is longer when shooting downhill. Watch out for Heavy Laser Turrets.",
+			subfolder = "corekbots",
 		},
 		featuredefs = {
 			dead = {
@@ -70,6 +71,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 370,
 				description = "Thud Heap",
 				energy = 0,
@@ -80,21 +83,19 @@ return {
 				hitdensity = 100,
 				metal = 38,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3",
-				"deathceg2",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg2",
 			},
 		},
 		sounds = {

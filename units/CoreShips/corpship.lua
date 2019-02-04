@@ -1,8 +1,10 @@
 return {
 	corpship = {
+		acceleration = 0.041,
 		airsightdistance = 470,
 		autoheal = 1.5,
 		blocking = true,
+		brakerate = 0.1,
 		buildcostenergy = 2700,
 		buildcostmetal = 410,
 		buildpic = "CORPSHIP.DDS",
@@ -24,6 +26,7 @@ return {
 		idleautoheal = 2,
 		idletime = 900,
 		maxdamage = 2100,
+		maxvelocity = 2.52,
 		minwaterdepth = 6,
 		movementclass = "BOAT44X4",
 		name = "Era",
@@ -32,18 +35,12 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 500,
-		turnrate = 120,
-		waterline = 0,
-		--move
-		acceleration = 0.041,
-		brakerate = 0.100,
-		maxvelocity = 2.52,
 		turninplace = true,
 		turninplaceanglelimit = 110,
 		turnrate = 255,
-		--end move
+		waterline = 0,
 		customparams = {
-			
+			subfolder = "coreships",
 		},
 		featuredefs = {
 			dead = {
@@ -53,14 +50,14 @@ return {
 				collisionvolumescales = "20.0704803467 16.0 67.0992736816",
 				collisionvolumetype = "Box",
 				damage = 250,
-				description =  "Era Wreckage",
+				description = "Era Wreckage",
 				energy = 0,
 				featuredead = "HEAP",
 				footprintx = 2,
 				footprintz = 6,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*320,
+				metal = 256,
 				object = "CORPSHIP_DEAD",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -69,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 516,
 				description = "Era Heap",
 				energy = 0,
@@ -76,23 +75,21 @@ return {
 				footprintz = 3,
 				height = 4,
 				hitdensity = 100,
-				metal = 0.8*160,
+				metal = 128,
 				object = "3X3A",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-tiny",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
 			},
 		},
 		sounds = {
@@ -117,7 +114,7 @@ return {
 			},
 		},
 		weapondefs = {
-		plasma = {
+			plasma = {
 				areaofeffect = 48,
 				avoidfeature = false,
 				craterareaofeffect = 0,

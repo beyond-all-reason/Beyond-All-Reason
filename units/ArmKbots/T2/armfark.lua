@@ -7,7 +7,6 @@ return {
 		buildcostmetal = 210,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "ARMFARK.DDS",
 		buildtime = 4302,
 		canmove = true,
@@ -37,6 +36,7 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "smallbuilderSelfd",
+		shownanospray = false,
 		sightdistance = 377,
 		terraformspeed = 600,
 		turninplace = 1,
@@ -55,6 +55,7 @@ return {
 			[7] = "armaser",
 		},
 		customparams = {
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -82,6 +83,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 150,
 				description = "Fark Heap",
 				energy = 0,
@@ -92,19 +95,17 @@ return {
 				hitdensity = 100,
 				metal = 52,
 				object = "2X2D",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2-builder",
-				"deathceg3-builder",
-				"deathceg4-builder",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2-builder",
+				[2] = "deathceg3-builder",
+				[3] = "deathceg4-builder",
 			},
 		},
 		sounds = {

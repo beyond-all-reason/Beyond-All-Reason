@@ -7,7 +7,7 @@ return {
 		buildcostmetal = 99,
 		builder = false,
 		buildpic = "chickens/chickenc3c.dds",
-		buildtime = 1250,
+		buildtime = 1875,
 		canattack = true,
 		canguard = true,
 		canmove = true,
@@ -56,7 +56,7 @@ return {
 		upright = false,
 		workertime = 0,
 		customparams = {
-			subfolder = "other/chickens/",
+			subfolder = "other/chickens",
 		},
 		featuredefs = {
 			dead = {},

@@ -1,12 +1,12 @@
 return {
 	coraca = {
 		acceleration = 0.065,
+		blocking = false,
 		brakerate = 0.4275,
 		buildcostenergy = 11000,
 		buildcostmetal = 300,
 		builddistance = 136,
 		builder = true,
-		shownanospray = false,
 		buildpic = "CORACA.DDS",
 		buildtime = 18001,
 		canfly = true,
@@ -36,12 +36,12 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
+		shownanospray = false,
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,
 		turnrate = 240,
 		workertime = 100,
-		blocking = false,
 		buildoptions = {
 			[1] = "corfus",
 			[2] = "corageo",
@@ -73,23 +73,24 @@ return {
 			[28] = "corplat",
 		},
 		customparams = {
+			area_mex_def = "cormoho",
+			subfolder = "coreaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.7,
-			area_mex_def = "cormoho",
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg3-builder",
-				"deathceg4-builder",
-				"deathceg2-builder",
+		sfxtypes = {
+			crashexplosiongenerators = {
+				[1] = "crashing-small",
+				[2] = "crashing-small",
+				[3] = "crashing-small2",
+				[4] = "crashing-small3",
+				[5] = "crashing-small3",
 			},
-			crashExplosionGenerators = {
-				"crashing-small",
-				"crashing-small",
-				"crashing-small2",
-				"crashing-small3",
-				"crashing-small3",
-			}
+			pieceexplosiongenerators = {
+				[1] = "deathceg3-builder",
+				[2] = "deathceg4-builder",
+				[3] = "deathceg2-builder",
+			},
 		},
 		sounds = {
 			build = "nanlath2",

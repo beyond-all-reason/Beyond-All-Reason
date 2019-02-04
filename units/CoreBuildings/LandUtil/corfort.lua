@@ -5,11 +5,11 @@ return {
 		brakerate = 0,
 		buildangle = 0,
 		buildcostenergy = 1100,
-		buildcostmetal = 40,
+		buildcostmetal = 38,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "corfort_aoplane.dds",
+		buildinggrounddecaltype = "decals/corfort_aoplane.dds",
 		buildpic = "CORFORT.DDS",
 		buildtime = 1010,
 		canattack = false,
@@ -37,10 +37,11 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ffff",
 		customparams = {
-			techlevel = 2,
-			removewait = true,
-			removestop = true,
 			paralyzemultiplier = 0,
+			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landutil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			rockteethx = {
@@ -48,6 +49,8 @@ return {
 				animtrans = 0,
 				blocking = true,
 				category = "rocks NOTHOVER",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 3000,
 				description = "Rubble",
 				footprintx = 2,
@@ -56,18 +59,16 @@ return {
 				hitdensity = 100,
 				metal = 7,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				shadtrans = 1,
 				world = "greenworld",
 			},
 		},
-		sfxtypes = { 
-			pieceExplosionGenerators = { 
-				"deathceg3", 
-				"deathceg4", 
-			}, 
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+			},
 		},
 	},
 }

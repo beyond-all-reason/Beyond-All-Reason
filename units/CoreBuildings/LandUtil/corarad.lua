@@ -9,7 +9,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "corarad_aoplane.dds",
+		buildinggrounddecaltype = "decals/corarad_aoplane.dds",
 		buildpic = "CORARAD.DDS",
 		buildtime = 11960,
 		canattack = false,
@@ -45,9 +45,10 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 40 0",
 			bar_collisionvolumescales = "35 98 35",
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "corebuildings/landutil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -74,6 +75,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 99,
 				description = "Advanced Radar Tower Heap",
 				energy = 0,
@@ -84,19 +87,17 @@ return {
 				hitdensity = 100,
 				metal = 136,
 				object = "3X3C",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

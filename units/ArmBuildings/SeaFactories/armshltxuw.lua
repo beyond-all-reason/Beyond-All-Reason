@@ -5,11 +5,10 @@ return {
 		buildcostenergy = 58000,
 		buildcostmetal = 7900,
 		builder = true,
-		shownanospray = false,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 10,
 		buildinggrounddecalsizey = 10,
-		buildinggrounddecaltype = "armshltx_aoplane.dds",
+		buildinggrounddecaltype = "decals/armshltx_aoplane.dds",
 		buildpic = "ARMSHLTXUW.DDS",
 		buildtime = 61380,
 		canmove = true,
@@ -36,6 +35,7 @@ return {
 		script = "armshltx.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
+		shownanospray = false,
 		sightdistance = 273,
 		terraformspeed = 3000,
 		usebuildinggrounddecal = true,
@@ -44,13 +44,13 @@ return {
 		buildoptions = {
 			bar_collisionvolumescales = "137 58 145",
 			bar_yardmap = "ooooooooooooooooooooooooooooooooooooooooooooocccccccccccccccccccccccccccccccccccc",
-			"armbanth",
-			"armmar",
-			--"armlun",
-			"armcroc",
+			[1] = "armbanth",
+			[2] = "armmar",
+			[3] = "armcroc",
 		},
 		customparams = {
 			bar_script = "BAR/bar_armshltx.cob",
+			subfolder = "armbuildings/seafactories",
 			techlevel = 3,
 		},
 		featuredefs = {
@@ -94,13 +94,13 @@ return {
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:YellowLight",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 		sounds = {

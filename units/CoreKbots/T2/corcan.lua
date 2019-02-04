@@ -2,8 +2,8 @@ return {
 	corcan = {
 		acceleration = 0.12,
 		brakerate = 0.564,
-		buildcostenergy = 9500,
-		buildcostmetal = 550,
+		buildcostenergy = 9300,
+		buildcostmetal = 560,
 		buildpic = "CORCAN.DDS",
 		buildtime = 11734,
 		canmove = true,
@@ -36,6 +36,7 @@ return {
 		turnrate = 970,
 		upright = true,
 		customparams = {
+			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -63,6 +64,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 2500,
 				description = "Can Heap",
 				energy = 0,
@@ -73,19 +76,17 @@ return {
 				hitdensity = 100,
 				metal = 136,
 				object = "2X2F",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

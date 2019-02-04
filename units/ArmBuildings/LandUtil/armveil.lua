@@ -5,11 +5,11 @@ return {
 		brakerate = 0,
 		buildangle = 8192,
 		buildcostenergy = 19000,
-		buildcostmetal = 120,
+		buildcostmetal = 125,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
-		buildinggrounddecaltype = "armveil_aoplane.dds",
+		buildinggrounddecaltype = "decals/armveil_aoplane.dds",
 		buildpic = "ARMVEIL.DDS",
 		buildtime = 9080,
 		canattack = false,
@@ -40,9 +40,10 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 4.3,
 			bar_buildinggrounddecalsizey = 4.3,
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "armbuildings/landutil",
+			techlevel = 2,
 		},
 		featuredefs = {
 			dead = {
@@ -69,6 +70,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 225,
 				description = "Veil Heap",
 				energy = 0,
@@ -79,19 +82,17 @@ return {
 				hitdensity = 100,
 				metal = 31,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {

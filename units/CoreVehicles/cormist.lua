@@ -3,8 +3,8 @@ return {
 		acceleration = 0.027,
 		airsightdistance = 900,
 		brakerate = 0.0495,
-		buildcostenergy = 2300,
-		buildcostmetal = 150,
+		buildcostenergy = 2400,
+		buildcostmetal = 155,
 		buildpic = "CORMIST.DDS",
 		buildtime = 3435,
 		canmove = true,
@@ -46,6 +46,7 @@ return {
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 30,
 			description_long = "Slashers are long range light missile trucks. They can outrange most T1 defensive units and deal constant damage to it. They can also serve as basic anti-air defense. Very ineffective in close combat, so always try to keep them at full distance by using FIGHT command, avoid flashes and other fast infantry. In larger packs Slashers can even take down Heavy Laser Turrets. Combine with Levelers/Raiders and repairing units for a devastating frontline push! Move them in line, because they can't shoot over each other.",
+			subfolder = "corevehicles",
 		},
 		featuredefs = {
 			dead = {
@@ -72,6 +73,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "55.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 336,
 				description = "Slasher Heap",
 				energy = 0,
@@ -82,22 +85,20 @@ return {
 				hitdensity = 100,
 				metal = 46,
 				object = "3X3F",
-                collisionvolumescales = "55.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			 pieceExplosionGenerators = { 
-				"deathceg2",
- 				"deathceg3",
- 				"deathceg4",
- 			}, 
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:rocketflare",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
@@ -125,10 +126,10 @@ return {
 			cortruck_missile = {
 				areaofeffect = 48,
 				avoidfeature = false,
+				cegtag = "missiletrailtiny",
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
-				cegTag = "missiletrailtiny",
 				explosiongenerator = "custom:genericshellexplosion-tiny",
 				firestarter = 70,
 				flighttime = 2,
@@ -146,7 +147,7 @@ return {
 				soundhitwetvolume = 0.5,
 				soundstart = "rockhvy2",
 				startvelocity = 420,
-                texture1 = "trans",
+				texture1 = "trans",
 				texture2 = "coresmoketrail",
 				tolerance = 8000,
 				tracks = true,
@@ -156,6 +157,9 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 680,
+				customparams = {
+					bar_model = "cormissile.s3o",
+				},
 				damage = {
 					bombers = 120,
 					commanders = 32,
@@ -164,9 +168,6 @@ return {
 					subs = 5,
 					vtol = 120,
 				},
-				customparams = {
-					bar_model = "cormissile.s3o",
-				}
 			},
 		},
 		weapons = {

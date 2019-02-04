@@ -1,6 +1,7 @@
 return {
 	armfido = {
 		acceleration = 0.12,
+		activatewhenbuilt = true,
 		brakerate = 1.125,
 		buildcostenergy = 5600,
 		buildcostmetal = 270,
@@ -29,7 +30,6 @@ return {
 		nochasecategory = "VTOL",
 		objectname = "ARMFIDO",
 		onoffable = true,
-		activateWhenBuilt = true,
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 400,
@@ -38,6 +38,7 @@ return {
 		turnrate = 990,
 		customparams = {
 			onoffname = "gauss",
+			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},
 		featuredefs = {
@@ -65,6 +66,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "35.0 4.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 600,
 				description = "Fido Heap",
 				energy = 0,
@@ -75,22 +78,20 @@ return {
 				hitdensity = 100,
 				metal = 66,
 				object = "2X2A",
-                collisionvolumescales = "35.0 4.0 6.0",
-                collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
 			},
 		},
-		sfxtypes = { 
- 			pieceExplosionGenerators = { 
-				"deathceg2",
-				"deathceg3",
-				"deathceg4",
-			},
+		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-small",
+			},
+			pieceexplosiongenerators = {
+				[1] = "deathceg2",
+				[2] = "deathceg3",
+				[3] = "deathceg4",
 			},
 		},
 		sounds = {
