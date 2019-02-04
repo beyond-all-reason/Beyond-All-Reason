@@ -51,14 +51,6 @@ local Nanos = {
 	[UnitDefNames["cornanotc"].id] = true,
 	[UnitDefNames["armnanotc"].id] = true,
 }
-if UnitDefNames.armcom_bar then
-    AirTrans[UnitDefNames["armatlas_bar"].id] = true
-    AirTrans[UnitDefNames["corvalk_bar"].id] = true
-    AirTrans[UnitDefNames["corseah_bar"].id] = true
-    AirTrans[UnitDefNames["armdfly_bar"].id] = true
-    Nanos[UnitDefNames["cornanotc_bar"].id] = true
-    Nanos[UnitDefNames["armnanotc_bar"].id] = true
-end
 
 local watchList = {}
 

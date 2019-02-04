@@ -19,10 +19,6 @@ local isCommander = {
     [UnitDefNames.armcom.id] = true,
     [UnitDefNames.corcom.id] = true,
 }
-if UnitDefNames.armcom_bar then
-	isCommander[UnitDefNames.armcom_bar.id] = true
-	isCommander[UnitDefNames.corcom_bar.id] = true
-end
 
 ----------------------------------------------------------------
 -- Speedups
