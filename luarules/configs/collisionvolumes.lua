@@ -156,13 +156,12 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~=
 	}
 	dynamicPieceCollisionVolume["corvipe"] = {
 		on = {
-			["0"]={39,39,39,0,-2,0,0,1},
+			["0"]={40,12,30,0,0,0,2,0},
 			["5"]={25,46,25,0,25,0,1,1},
 			["offsets"]={0,23,0},
 		},
 		off = {
 			["0"]={39,39,39,0,-2,0,0,1},
-			["5"]={25,46,25,0,-20,0,1,1},
 			["offsets"]={0, 2, 0}, --["offsets"]={0,10,0}, TODO: revert back when issue fixed: https://springrts.com/mantis/view.php?id=5144
 		}
 	}
