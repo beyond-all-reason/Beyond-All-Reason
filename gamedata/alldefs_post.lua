@@ -33,6 +33,15 @@ local vehAccelerationMultiplier = 1
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1
 
+local hoverAdditionalTurnrate = 0
+local hoverTurnrateMultiplier = 1.0
+
+local hoverAdditionalAcceleration = 0.00
+local hoverAccelerationMultiplier = 1
+
+local hoverAdditionalVelocity = 0
+local hoverVelocityMultiplier = 1
+
 local kbotAdditionalTurnrate = 0
 local kbotTurnrateMultiplier = 1.15
 
@@ -294,6 +303,29 @@ function UnitDef_Post(name, uDef)
 
 		uDef.turninplace = true
 		uDef.turninplaceanglelimit = 90
+	end
+
+	-- hovers
+	if uDef.category and string.find(uDef.category, "HOVER") then
+		if uDef.turnrate ~= nil then
+			uDef.turnrate = (uDef.turnrate + hoverAdditionalTurnrate) * hoverTurnrateMultiplier
+		end
+		
+		if uDef.acceleration ~= nil then
+			uDef.acceleration = (uDef.acceleration + hoverAdditionalAcceleration) * hoverAccelerationMultiplier
+		end
+
+		if uDef.maxvelocity ~= nil then
+			uDef.maxvelocity = (uDef.maxvelocity + hoverAdditionalVelocity) * hoverVelocityMultiplier
+		end
+
+		if uDef.turnrate and uDef.maxvelocity and uDef.brakerate and uDef.acceleration then
+			local k = 1800/(0.164 * uDef.turnrate)
+			uDef.acceleration = uDef.maxvelocity / (2*k)
+			uDef.brakerate = uDef.maxvelocity / (2*k)
+			uDef.turninplaceanglelimit = 90
+			uDef.turninplace = true
+		end
 	end
 
 	-- add unit category: EMPABLE

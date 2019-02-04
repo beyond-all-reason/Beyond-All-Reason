@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 495,
 		maxslope = 16,
-		maxvelocity = 2.42,
+		maxvelocity = 2.13,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Nixer",
