@@ -82,7 +82,7 @@ backgrounds = {
   {check={name="eexkrabgroth"},							texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
   {check={name="eextankdestroyer"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
   {check={name="eexnukearty"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  
+
   {check={name="eminifac"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
   {check={name="eallterrengineer"},							texture="LuaRules/Images/IconGenBkgs/allterrcon.png"},
   {check={name="eallterrriot"}, 								texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
@@ -101,7 +101,7 @@ backgrounds = {
   {check={name="eamphibriot"}, 								texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
   {check={name="eamphibrock"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
   {check={name="esubmarine"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  
+
   {check={name="eairplant"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
   {check={name="eairengineer"},							texture="LuaRules/Images/IconGenBkgs/aircon.png"},
   {check={name="escout"}, 								texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
@@ -111,7 +111,7 @@ backgrounds = {
   {check={name="etransport"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
   {check={name="esubplane"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
   {check={name="edrone"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-  
+
   {check={name="ecommandfactory"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
   {check={name="ebasefactory"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
   {check={name="eorb"},							texture="LuaRules/Images/IconGenBkgs/hovercon.png"},
@@ -126,7 +126,7 @@ backgrounds = {
   {check={name="emediumtank3"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
   {check={name="emissiletank"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
   {check={name="eriottank2"}, 								texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  
+
   {check={name="eaaturret"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
   {check={name="ebarricade"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
   {check={name="efusion2"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
@@ -142,12 +142,12 @@ backgrounds = {
   {check={name="esilo"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
   {check={name="esolar2"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
   {check={name="estorage"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-  
+
   {check={name="euwfusion2"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
   {check={name="euwmetalextractor"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
   {check={name="euwsolar2"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
   {check={name="euwstorage"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
-  
+
   {check={name="randagorm"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
   {check={name="randartturilo"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
   {check={name="randcactus"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
@@ -164,7 +164,7 @@ backgrounds = {
   {check={name="goldtree"}, 								texture="LuaRules/Images/IconGenBkgs/goldtree.png"},
 
   ]]--
-  
+
   -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/transparent.png"}, -- allpurpose blank background
   {check={},                                                 texture="LuaRules/Images/IconGenBkgs/ssbwater.png"}, -- for arm and core sea units
   -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/ssbgrass.png"}, -- for arm land units
