@@ -1,12 +1,11 @@
 ﻿10.22 -> 10.23
-XX/02/2019
+06/02/2019
 
- • Hovercraft movement correction due to 104 engine
+ • Hovercraft movement correction due to 104 engine (same as vehicle correction in 10.20)
  • Rock/storm rocket speed as it was in 9.46
- • Nanoframe blocking start percentage reduced
- • Resource bars show 'expense' value again
- • Advplayerlist spec-color fix when AI teams are preset
- • More deathmessages
+ • Resource bars are showing 'expense' value again
+ • Advplayerlist spec-color fix when AI teams are present
+ • More deathmessages and loadscreens
 
 
 10.21 -> 10.22
