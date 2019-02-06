@@ -38,7 +38,7 @@ factionColors = function(faction)
     arm     = {0.08, 0.17, 1.0},   --// arm
     core    = {1.0, 0.03, 0.0},   --// core
     chicken = {1.0,0.8,0.2},   --// chicken
-    unknown = {0, 0, 0},   --// unknown
+    unknown = {0.03, 1, 0.03},   --// unknown
     Blue   = {0,0,0},
     Red   = {1,1,1}
   }
@@ -155,7 +155,7 @@ local Default = {
     scale    = 1.5,--was 1.5
     empty    = false,
     attempts = 2,
-    wait     = 300,
+    wait     = 60,
     zoom     = 1.0,
     offset   = {0,0,0},
     unfold = true, --new for bar
@@ -169,7 +169,7 @@ local Default = {
     scale    = 1.5,
     empty    = false,
     attempts = 2,
-    wait     = 300,
+    wait     = 60,
     zoom     = 1.0,
     offset   = {0,0,0},
     unfold = true, --new for bar
@@ -245,9 +245,24 @@ unitConfigs = {
   [UnitDefNames.cormexp.id] = {
     unfold = false,
   },
-
   [UnitDefNames.corsolar.id] = {
     unfold = true,
+    wait = 80,
+  },
+  [UnitDefNames.armrad.id] = {
+    wait = 360,
+  },
+  [UnitDefNames.corgant.id] = {
+    wait = 90,
+  },
+  [UnitDefNames.corgantuw.id] = {
+    wait = 90,
+  },
+  [UnitDefNames.cortoast.id] = {
+    wait = 1,
+  },
+  [UnitDefNames.armplat.id] = {
+    wait = 65,
   },
 
 }
