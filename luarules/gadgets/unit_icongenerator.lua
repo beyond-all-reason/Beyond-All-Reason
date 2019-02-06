@@ -794,16 +794,16 @@ end
 	  end
 	  
 	  if amfibianunit then 
-	    gl.Texture("LuaRules/Images/IconGenBkgs/amfibianunit.png");
+	    gl.Texture("LuaRules/Images/amfibianunit.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 		elseif waterunit then
-	    gl.Texture("LuaRules/Images/IconGenBkgs/waterunit.png");
+	    gl.Texture("LuaRules/Images/waterunit.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 	  end
 	  if builderunit then
-	  	 gl.Texture("LuaRules/Images/IconGenBkgs/constructionunit.png");
+	  	 gl.Texture("LuaRules/Images/constructionunit.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 	  end
