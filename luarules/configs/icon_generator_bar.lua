@@ -1,4 +1,4 @@
--- $Id: icon_generator.lua 4354 2009-04-11 14:32:28Z licho $
+
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 --
@@ -7,9 +7,9 @@
 
 --// Info
 if (info) then
-  local ratios      = {["1to1"]=(1/1)} --{["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
-  local resolutions = {{256,256}} --{{128,128},{64,64}}
-  local schemes     = {""}
+  local ratios      = {[""]=(1/1)} -- {["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
+  local resolutions = {{256,256}} -- {{128,128},{64,64}}
+  local schemes     = {"arm"}  --, "core"}
 
   return schemes,resolutions,ratios
 end
@@ -30,105 +30,156 @@ factionTeams = {
   chicken = 2,   --// chicken
   unknown = 2,   --// unknown
 }
-factionColors = {
-  arm     = {0, 0, 1},   --// arm
-  core    = {1, 0, 0},   --// core
-  chicken = {1.0,0.8,0.2},   --// chicken
-  unknown = {1.0, 0, 0},   --// unknown -- This is what is being used to color the units when processed, as it cannot tell the side of a unit when using "/luarules buildicon unitName"
+
+-- Gets scheme from gadget when this is included
+factionColors = function(faction)
+
+  color = {
+    arm     = {0.08, 0.17, 1.0},   --// arm
+    core    = {1.0, 0.03, 0.0},   --// core
+    chicken = {1.0,0.8,0.2},   --// chicken
+    unknown = {0, 0, 0},   --// unknown
+    Blue   = {0,0,0},
+    Red   = {1,1,1}
+  }
+  Spring.Echo('Queried faction: ' .. faction .. ', scheme: ' ..scheme)
+
+
+  if color[faction] then
+    return color[faction]
+  else
+    if color[scheme] then
+      return color[scheme]
+    else
+      return color['unknown']
+    end
+  end
+
+end
+
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+
+local IconConfig = {
+  [1] = {
+    --// render options textured
+    textured     = true,
+    lightAmbient = {0.44,0.44,0.44},
+    lightDiffuse = {1.2,1.2,1.2},
+    lightPos     = {-0.3,0.5,0.55},  --{-0.2,0.4,0.5},
+
+    --// Ambient Occlusion & Outline settings
+    aoPower     =  3,
+    aoContrast  =  3,
+    aoTolerance =  0,
+    olContrast  =  0,
+    olTolerance =  0,
+
+    halo = false,
+  },
+  [2] = {
+    textured     = true,
+    lightAmbient = {0.44,0.44,0.44},
+    lightDiffuse = {1.2,1.2,1.2},
+    lightPos     = {-0.3,0.5,0.55},
+    aoPower      =  3,
+    aoContrast   =  3,
+    aoTolerance  =  0,
+    olContrast   =  0,
+    olTolerance  =  0,
+    halo         = false,
+  },
 }
 
+local selConfig = 1
 
------------------------------------------------------------------------
------------------------------------------------------------------------
-
---// render options textured
-textured = (scheme~="bw")
-lightAmbient = {0.44,0.44,0.44}
-lightDiffuse = {1.2,1.2,1.2}
-lightPos     = {-0.33,0.5,0.6}
-
---// Ambient Occlusion & Outline settings
-aoPower     =  3
-aoContrast  =  3
-aoTolerance =  0
-olContrast  =  0
-olTolerance =  0
-
---// halo (white)
-halo  = false --(scheme~="bw")
+textured     = IconConfig[selConfig].textured
+lightAmbient = IconConfig[selConfig].lightAmbient
+lightDiffuse = IconConfig[selConfig].lightDiffuse
+lightPos     = IconConfig[selConfig].lightPos
+aoPower      = IconConfig[selConfig].aoPower
+aoContrast   = IconConfig[selConfig].aoContrast
+aoTolerance  = IconConfig[selConfig].aoTolerance
+olContrast   = IconConfig[selConfig].olContrast
+olTolerance  = IconConfig[selConfig].olTolerance
+halo         = IconConfig[selConfig].halo
 
 
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
 --// backgrounds
-background = false
+background = true
+local water = "LuaRules/Images/bg_water.png"
+local builder = "LuaRules/Images/constructionunit.png"
+
 local function Greater30(a)     return a>30;  end
 local function GreaterEq15(a)   return a>=15; end
 local function GreaterZero(a)   return a>0;   end
 local function GreaterEqZero(a) return a>=0;  end
 local function GreaterFour(a)   return a>4;   end
 local function LessEqZero(a)    return a<=0;  end
-local function IsCoreOrChicken(a)
-	if a then return a.chicken
-	else return false end
-end
-backgrounds = {
---//chicken queen has air movementtype
-  {check={name="chickenq"},                                  texture="LuaRules/Images/IconGenBkgs/bg_ground_rock.png"},
 
---[[terraforms
-  {check={name="rampup"},                                    texture="LuaRules/Images/IconGenBkgs/rampup.png"},
-  {check={name="rampdown"},                                  texture="LuaRules/Images/IconGenBkgs/rampdown.png"},
-  {check={name="levelterra"},                                texture="LuaRules/Images/IconGenBkgs/level.png"},
-  {check={name="armblock"},                                  texture="LuaRules/Images/IconGenBkgs/block.png"},
-  {check={name="corblock"},                                  texture="LuaRules/Images/IconGenBkgs/block.png"},
-  {check={name="armtrench"},                                 texture="LuaRules/Images/IconGenBkgs/trench.png"},
-  {check={name="cortrench"},                                 texture="LuaRules/Images/IconGenBkgs/trench.png"},
-]]--
---//air
-  {check={canFly=true},                                      texture="LuaRules/Images/IconGenBkgs/bg_air.png"},
---//hovers
-  {check={factions=IsCoreOrChicken,canHover=true},                                    texture="LuaRules/Images/IconGenBkgs/bg_hover_rock.png"},
-  {check={factions=IsCoreOrChicken,floatOnWater=true,minWaterDepth=LessEqZero},            texture="LuaRules/Images/IconGenBkgs/bg_hover_rock.png"},
-  {check={factions=IsCoreOrChicken,waterline=GreaterZero,minWaterDepth=LessEqZero},   texture="LuaRules/Images/IconGenBkgs/bg_hover_rock.png"},
-  --{check={canHover=true},                                    texture="LuaRules/Images/IconGenBkgs/bg_hover.png"},
-  {check={floatOnWater=true,minWaterDepth=LessEqZero},            texture="LuaRules/Images/IconGenBkgs/bg_hover.png"},
-  {check={waterline=GreaterZero,minWaterDepth=LessEqZero},   texture="LuaRules/Images/IconGenBkgs/bg_hover.png"},
---//subs
-  {check={waterline=GreaterEq15,minWaterDepth=GreaterZero},  texture="LuaRules/Images/IconGenBkgs/bg_underwater.png"},
-  {check={floatOnWater=false,minWaterDepth=GreaterFour},          texture="LuaRules/Images/IconGenBkgs/bg_underwater.png"},
---//sea
-  {check={floatOnWater=true,minWaterDepth=GreaterZero},           texture="LuaRules/Images/IconGenBkgs/bg_water.png"},
---//amphibous
-  {check={factions=IsCoreOrChicken,maxWaterDepth=Greater30,minWaterDepth=LessEqZero}, texture="LuaRules/Images/IconGenBkgs/bg_amphibous_rock.png"},
-  {check={maxWaterDepth=Greater30,minWaterDepth=LessEqZero}, texture="LuaRules/Images/IconGenBkgs/bg_amphibous.png"},
---//ground
-  {check={factions=IsCoreOrChicken},                         texture="LuaRules/Images/IconGenBkgs/bg_ground_rock.png"},
-  {check={},                                                 texture="LuaRules/Images/IconGenBkgs/bg_ground.png"},
+backgrounds = {
+  --{check={waterline=GreaterEq15,minWaterDepth=GreaterZero},texture=water},
+  --{check={floatOnWater=false,minWaterDepth=GreaterFour},texture=water},
+  --{check={floatOnWater=true,minWaterDepth=GreaterZero},texture=water},
+  --{check={isBuilder=true,canMove = true},texture=builder},
 }
 
 
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
+local Default = {
+  --  default settings for rendering
+  -- zoom   := used to make all model icons same in size (DON'T USE, it is just for auto-configuration!)
+  -- offset := used to center the model in the fbo (not in the final icon!) (DON'T USE, it is just for auto-configuration!)
+  -- rot    := facing direction
+  -- angle  := topdown angle of the camera (0 degree = frontal, 90 degree = topdown)
+  -- clamp  := clip everything beneath it (hide underground stuff)
+  -- scale  := render the model x times as large and then scale down, to replaces missing AA support of FBOs (and fix rendering of very tine structures like antennas etc.))
+  -- unfold := unit needs cob to unfolds
+  -- move   := send moving cob events (works only with unfold)
+  -- attack := send attack cob events (works only with unfold)
+  -- shotangle := vertical aiming, useful for arties etc. (works only with unfold+attack)
+  -- wait   := wait that time in gameframes before taking the screenshot (default 300) (works only with unfold)
+  -- border := free space around the final icon (in percent/100)
+  -- empty  := empty model (used for fake units in CA)
+  -- attempts := number of tries to scale the model to fit in the icon
 
---// default settings for rendering
---//zoom   := used to make all model icons same in size (DON'T USE, it is just for auto-configuration!)
---//offset := used to center the model in the fbo (not in the final icon!) (DON'T USE, it is just for auto-configuration!)
---//rot    := facing direction
---//angle  := topdown angle of the camera (0 degree = frontal, 90 degree = topdown)
---//clamp  := clip everything beneath it (hide underground stuff)
---//scale  := render the model x times as large and then scale down, to replaces missing AA support of FBOs (and fix rendering of very tine structures like antennas etc.))
---//unfold := unit needs cob to unfolds
---//move   := send moving cob events (works only with unfold)
---//attack := send attack cob events (works only with unfold)
---//shotangle := vertical aiming, useful for arties etc. (works only with unfold+attack)
---//wait   := wait that time in gameframes before taking the screenshot (default 300) (works only with unfold)
---//border := free space around the final icon (in percent/100)
---//empty  := empty model (used for fake units in CA)
---//attempts := number of tries to scale the model to fit in the icon
+  [1]	= {
+    border   = 0.05,
+    angle    = 26,
+    rot      = "right",
+    clamp    = -50, --i dont think BAR has to really clamp stuff
+    scale    = 1.5,--was 1.5
+    empty    = false,
+    attempts = 2,
+    wait     = 300,
+    zoom     = 1.0,
+    offset   = {0,0,0},
+    unfold = true, --new for bar
+  },
 
-defaults = {border=0.05, angle=26, rot="right", clamp=-10000, scale=1.5, empty=false, attempts=10, wait=300, zoom=1.0, offset={0,0,0},};
+  [2] = {
+    border   = 0,
+    angle    = 26,
+    rot      = "right",
+    clamp    = -50,
+    scale    = 1.5,
+    empty    = false,
+    attempts = 2,
+    wait     = 300,
+    zoom     = 1.0,
+    offset   = {0,0,0},
+    unfold = true, --new for bar
+  },
+  [3] = {},
+  [4] = {},
+
+}
+
+defaults = Default[1]
 
 
 -----------------------------------------------------------------------
@@ -136,8 +187,8 @@ defaults = {border=0.05, angle=26, rot="right", clamp=-10000, scale=1.5, empty=f
 
 --// per unitdef settings
 unitConfigs = {
-  
-  
+
+
   [UnitDefNames.cormex.id] = {
     clamp  = 0,
     unfold = true,
@@ -147,6 +198,57 @@ unitConfigs = {
     unfold = true,
   },
 
+  [UnitDefNames.armamd.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.armclaw.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.armmmkr.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.armpb.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.armpacko.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.armptl.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.corcs.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.corfmd.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.corptl.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.corsilo.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.corvipe.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.armsilo.id] = {
+    unfold = false,
+  },
+  [UnitDefNames.cortron.id] = {
+    unfold = false,
+  },
+
+  [UnitDefNames.cormaw.id] = {
+    unfold = false,
+  },
+
+  [UnitDefNames.cormexp.id] = {
+    unfold = false,
+  },
+
+  [UnitDefNames.corsolar.id] = {
+    unfold = true,
+  },
 
 }
 
@@ -160,13 +262,15 @@ for i=1,#UnitDefs do
     else
       unitConfigs[i] = {unfold = true, move = true}
     end
+
+    -- give ticks etc.. larger padding
   elseif (UnitDefs[i].canKamikaze) then
     if (unitConfigs[i]) then
       if (not unitConfigs[i].border) then
-        unitConfigs[i].border = 0.156
+        unitConfigs[i].border = 0.256
       end
     else
-      unitConfigs[i] = {border = 0.156}
+      unitConfigs[i] = {border = 0.256}
     end
   end
 end

@@ -962,7 +962,7 @@ end
       repeat
         myGLClear();
 
-        gl.Color(factionColors[faction]);
+        gl.Color(factionColors(faction));
 
         gl.UseShader(pre_shader);
         gl.ActiveFBO(fbo, DrawIcon, udid, factionTeams[faction], uid);
