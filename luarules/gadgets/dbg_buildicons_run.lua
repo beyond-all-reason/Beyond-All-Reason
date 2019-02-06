@@ -18,7 +18,7 @@ local startframe = 1000000000
 local index=1
 local counter = 1
 local unitnames={}
-local timedelay=45*10 --yeah this crap takes 8 hours, for a total of 427 units :D
+local timedelay=20*30 --yeah this crap takes 8 hours, for a total of 427 units :D
 
 function buildslowly(_,_,params)
 	if #params == 1 then
@@ -28,22 +28,56 @@ function buildslowly(_,_,params)
 	end
 	Spring.Echo('building icons all slow-like, starting from '..index)
 	startframe=Spring.GetGameFrame()
+	
+	for i,unitdefname in pairs(UnitDefNames) do
+		--Spring.Echo('unitdefname',i,unitdefname)
+		local filepath = '../buildicons/arm__256x256/'..i..'.png'
+		if VFS.FileExists( filepath, VFS.RAW) then
+			Spring.Echo("File exists for: "..i.. ' '..filepath)
+		else
+			Spring.Echo("Building filepath: "..filepath)
+			unitnames[#unitnames+1]=i
+		end
+    end
+	
+	--overwrite list if you want others:
+		--[[
+	unitnames={
+		-- "armah",
+		-- "armanni",
+		-- "armason",
+		-- "armawac",
+		'armamd',
+		'armclaw',
+		'armmkr',
+		'armpb',
+		'armpack',
+		'armptl',
+		'corcs',
+		'corfmd',
+		'corptl',
+		'corsilo',
+		'corvipe',
+		'cortron',
+		'cormaw',
+		'cormexp',
+		'armnanotc',
+		'armnanotcplat',
+		'cornanotc',
+		'cornanotcplat',
+		'cornecro'
+		
+	}
+	]]--
+	
 end
 
 
 function gadget:Initialize()
 	gadgetHandler:AddChatAction('buildiconslow', buildslowly, "")
 	
-	for i,unitdefname in pairs(UnitDefNames) do
-		--Spring.Echo('unitdefname',i,unitdefname)
-		unitnames[#unitnames+1]=i
-    end
-	-- unitnames={
-		-- "armah",
-		-- "armanni",
-		-- "armason",
-		-- "armawac",
-	-- }
+
+
 end
 
 function gadget:GameFrame(n)

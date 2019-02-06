@@ -31,8 +31,8 @@ factionTeams = {
   unknown = 2,   --// unknown
 }
 factionColors = {
-  arm     = {0, 0.2, 1},   --// arm
-  core    = {1, 0.7, 0.2},   --// core
+  arm     = {0, 0, 1},   --// arm
+  core    = {1, 0, 0},   --// core
   chicken = {1.0,0.8,0.2},   --// chicken
   unknown = {1.0, 0, 0},   --// unknown -- This is what is being used to color the units when processed, as it cannot tell the side of a unit when using "/luarules buildicon unitName"
 }

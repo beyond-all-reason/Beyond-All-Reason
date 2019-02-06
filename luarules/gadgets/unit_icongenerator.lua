@@ -16,7 +16,11 @@
 example usage (need cheats):
 /luarules buildicons all
 /luarules buildicon armcom
-]]
+]]--
+--TODO:
+--1. make blue water drop 256
+--2. fix the culling of floating structures
+--3. make units get their default stance (e.g. armcom)
 
 function gadget:GetInfo()
   return {
@@ -124,7 +128,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 
   function gadget:RecvLuaMsg(msg, playerID)
-    if (string.sub(msg,1,9) == 'buildicon') then
+    if (msg:find("buildicon",1,true)) then
       if (not Spring.IsCheatingEnabled()) then
         Spring.SendMessageToPlayer(playerID, "Cheating must be enabled");
         return true;
@@ -282,10 +286,14 @@ local function CreateResources()
       varying vec3 normal;
       varying vec4 pos;
       varying float clamp;
-
+      
+      varying float aoTerm;
+	  
       void main(void) {
         gl_FrontColor = gl_Color;
         gl_TexCoord[0] = gl_MultiTexCoord0;
+		
+         aoTerm= max(0.4,fract(gl_MultiTexCoord0.s*16384.0)*1.3); // great
         clamp = gl_MultiTexCoord1.x;
         normal = gl_Normal;
 
@@ -296,22 +304,28 @@ local function CreateResources()
     ]],
     fragment = [[
       uniform sampler2D unitTex;
+      uniform sampler2D unitTex2;
+	  
 
       varying vec3 normal;
       varying vec4 pos;
       varying float clamp;
 
+      in float aoTerm;
       void main(void) {
-        if (pos.y<clamp) discard;
+        ;//if (pos.y<clamp) discard;
 
-        gl_FragData[0]     = texture2D(unitTex,gl_TexCoord[0].st);
+        gl_FragData[0]     = texture2D(unitTex,gl_TexCoord[0].st) *  aoTerm;
+		gl_FragData[2] = texture2D(unitTex2,gl_TexCoord[0].st);
         gl_FragData[0].rgb = mix(gl_FragData[0].rgb, gl_Color.rgb, gl_FragData[0].a);
+		gl_FragData[0].rgb += (gl_FragData[2].rrr)*0.5; 
         gl_FragData[0].a   = gl_FragCoord.z; //we save and read t from here cuz of the higher precision (the depthtex uses just bytes)
         gl_FragData[1]     = vec4(normal,1.0);
       }
     ]],
     uniformInt = {
       unitTex = 0,
+      unitTex2 = 1,
     },
   })
 
@@ -329,7 +343,6 @@ local function CreateResources()
     fragment = [[
       uniform sampler2D albedoTex;
       uniform sampler2D normalTex;
-
       //////////////////////////////////////////////////
       // Main
 
@@ -732,10 +745,10 @@ end
         end
       end
 
-      --gl.Shape(GL.QUADS,elements);
+      gl.Shape(GL.QUADS,elements);
     else
       gl.Texture(background);
-      --gl.TexRect(-1,-1,1,1);
+      gl.TexRect(-1,-1,1,1);
       gl.Texture(false);
     end
   end
@@ -765,26 +778,35 @@ end
   
   
   local function Overlay(unitdefid)
-  	local waterunit, amfibianunit = false, false
+  	local waterunit, amfibianunit, builderunit = false, false,false
 	  if (UnitDefs[unitdefid].waterline ~= nil and UnitDefs[unitdefid].waterline > 0) or (UnitDefs[unitdefid].minWaterDepth ~= nil and UnitDefs[unitdefid].minWaterDepth > 0) then
 	  	waterunit = true
 	  	if UnitDefs[unitdefid].levelGround == false then
 		    amfibianunit = true
 		  end
+		
 	  end
 	  if (UnitDefs[unitdefid].maxWaterDepth ~= nil and UnitDefs[unitdefid].maxWaterDepth >= 255 and (UnitDefs[unitdefid].waterline == nil or UnitDefs[unitdefid].waterline <= 0)) and (UnitDefs[unitdefid].minWaterDepth == nil or UnitDefs[unitdefid].minWaterDepth <= 0) then
 		  amfibianunit = true
 	  end
+	  if (UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true) or ( UnitDefs[unitdefid].name == 'armnanotc' or UnitDefs[unitdefid].name == 'armnanotcplat' or UnitDefs[unitdefid].name == 'cornanotc' or UnitDefs[unitdefid].name == 'cornanotcplat')then
+		builderunit = true
+	  end
+	  
 	  if amfibianunit then 
-	    gl.Texture(":n:LuaRules/Images/blank.png");
+	    gl.Texture("LuaRules/Images/IconGenBkgs/amfibianunit.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 		elseif waterunit then
-	    gl.Texture(":n:LuaRules/Images/blank.png");
+	    gl.Texture("LuaRules/Images/IconGenBkgs/waterunit.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
 	  end
-	   
+	  if builderunit then
+	  	 gl.Texture("LuaRules/Images/IconGenBkgs/constructionunit.png");
+	    gl.TexRect(-1,-1,1,1);
+	    gl.Texture(false);
+	  end
 	  --if (UnitDefs[unitdefid].buildSpeed ~= nil and UnitDefs[unitdefid].buildSpeed > 0) and  (UnitDefs[unitdefid].canAssist == nil or UnitDefs[unitdefid].canAssist == true) then
 	  --  gl.Texture(":n:LuaRules/Images/constructionunit.png");
 	  --  gl.TexRect(-1,-1,1,1);
@@ -858,11 +880,11 @@ local function CheckBoundings(udid,top,left,bottom,right,scale,border)
   if ((bottom_+height_)>renderY or left_<0 or bottom_<0 or (left_+width_)>renderX) then
     local offX,offY = CheckOutsideBoundings(left_,bottom_,width_,height_,wantedSpace);
     if (offX) then
-      --Spring.Echo(i,UnitDefs[udid].name .. ": Boundings outside of the texture",offX,offY);
+      Spring.Echo(i,UnitDefs[udid].name .. ": Boundings outside of the texture",offX,offY);
       autoConfigs[udid].offset = {autoConfigs[udid].offset[1] + offX, autoConfigs[udid].offset[2] + offY,0};
       return false, left_,bottom_, width_,height_;
     else
-      --Spring.Echo(i,UnitDefs[udid].name .. ": Render Context too small (you have to increase renderX&renderY)");
+      Spring.Echo(i,UnitDefs[udid].name .. ": Render Context too small (you have to increase renderX&renderY)");
     end;
   end;
 
@@ -913,13 +935,21 @@ function gadget:DrawGenesis()
 end
 
 
-  local function GetFaction(udef_factions)
-    return ((#udef_factions~=1) and 'unknown') or udef_factions[1];
+  local function GetFaction(unitdef)
+	local name = unitdef.name
+	if string.find(name, 'arm') then
+		return 'arm'
+	elseif string.find(name, 'cor') then
+		return 'core'
+	elseif string.find(name, 'chicken') then
+		return 'chicken'
+	end
+	return 'unknown'
   end
 
 
   local function CreateIcon(udid,uid)
-    local faction = GetFaction(UnitDefs[udid].factions or {});
+    local faction = GetFaction(UnitDefs[udid]);
 
     local cfg = unitConfigs[udid]
 
@@ -1013,7 +1043,7 @@ end
 
       jobsInSynced = jobsInSynced + 1
 
-      local factionTeam = factionTeams[GetFaction(UnitDefs[udid].factions or {})];
+      local factionTeam = factionTeams[GetFaction(UnitDefs[udid] or {})];
 
       local msg = "buildicon " ..
                   UnitDefs[udid].name .. ";" ..
@@ -1069,32 +1099,33 @@ local schemes,resolutions,ratios = {},{},{}
     for _,res in pairs(resolutions) do
       for _,_scheme in pairs(schemes) do
         for _ratio_name,_ratio in pairs(ratios) do
+          
 
-          AddJob( FreeResources );
 
-          AddJob( WaitForSyncedJobs );
+			  AddJob( FreeResources );
 
-          if (words[1] and words[1]~="all") then
-            AddJob( function () AddUnitJob(UnitDefNames[ words[1] ].id); end);
-          else
-            for udid=#UnitDefs,1,-1 do
-              AddJob( function () AddUnitJob(udid); end);
-            end;
-          end;
+			  AddJob( WaitForSyncedJobs );
 
-          AddJob( CreateResources );
+			  if (words[1] and words[1]~="all") then
+				AddJob( function () AddUnitJob(UnitDefNames[ words[1] ].id); end);
+			  else
+				for udid=#UnitDefs,1,-1 do
+					AddJob( function () AddUnitJob(udid); end);
+				end;
+			  end;
 
-          AddJob( function ()
-            scheme            = _scheme;
-            ratio, ratio_name = _ratio, _ratio_name;
-            iconX, iconY      = res[1], res[2];
+			  AddJob( CreateResources );
 
-            outdir = "buildicons/".. (scheme) .."_".. (ratio_name) .."_".. (iconX) .."x".. (iconY);
-            Spring.CreateDir(outdir);
+			  AddJob( function ()
+				scheme            = _scheme;
+				ratio, ratio_name = _ratio, _ratio_name;
+				iconX, iconY      = res[1], res[2];
 
-            LoadScheme();
-          end );
+				outdir = "buildicons/".. (scheme) .."_".. (ratio_name) .."_".. (iconX) .."x".. (iconY);
+				Spring.CreateDir(outdir);
 
+				LoadScheme();
+			  end );
         end;
       end;
     end;

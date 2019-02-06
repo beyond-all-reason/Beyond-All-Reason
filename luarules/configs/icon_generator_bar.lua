@@ -31,8 +31,8 @@ factionTeams = {
   unknown = 2,   --// unknown
 }
 factionColors = {
-  arm     = {0, 0.2, 1},   --// arm
-  core    = {1, 0.7, 0.2},   --// core
+  arm     = {0, 0, 1},   --// arm
+  core    = {1, 0, 0},   --// core
   chicken = {1.0,0.8,0.2},   --// chicken
   unknown = {1.0, 0, 0},   --// unknown -- This is what is being used to color the units when processed, as it cannot tell the side of a unit when using "/luarules buildicon unitName"
 }
@@ -43,14 +43,14 @@ factionColors = {
 
 --// render options textured
 textured = (scheme~="bw")
-lightAmbient = {0.2,0.2,0.2}
-lightDiffuse = {1.25,1.25,1.25}
-lightPos     = {-0.5,0.6,0.5}
+lightAmbient = {0.44,0.44,0.44}
+lightDiffuse = {1.2,1.2,1.2}
+lightPos     = {-0.33,0.5,0.6}
 
 --// Ambient Occlusion & Outline settings
 aoPower     =  3
 aoContrast  =  3
-aoTolerance =  1
+aoTolerance =  0
 olContrast  =  0
 olTolerance =  0
 
