@@ -50,6 +50,7 @@ return {
 			[6] = "corsok",
 		},
 		customparams = {
+			model_author = "Mr Bob",
 			subfolder = "corebuildings/landfactories",
 			techlevel = 3,
 		},

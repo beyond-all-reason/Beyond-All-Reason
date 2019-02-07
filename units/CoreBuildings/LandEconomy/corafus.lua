@@ -38,6 +38,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooooooooooooooooooooooo",
 		customparams = {
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landeconomy",

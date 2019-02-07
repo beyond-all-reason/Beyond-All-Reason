@@ -41,6 +41,7 @@ return {
 		usepiececollisionvolumes = 1,
 		yardmap = "oooo",
 		customparams = {
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",

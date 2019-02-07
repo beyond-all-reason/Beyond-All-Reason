@@ -33,6 +33,7 @@ return {
 		turnrate = 912,
 		upright = true,
 		customparams = {
+			model_author = "Beherith",
 			prioritytarget = "air",
 			subfolder = "corekbots/t2",
 			techlevel = 2,

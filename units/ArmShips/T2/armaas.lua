@@ -40,6 +40,7 @@ return {
 		turnrate = 270,
 		waterline = 0,
 		customparams = {
+			model_author = "FireStorm",
 			prioritytarget = "air",
 			subfolder = "armships/t2",
 			techlevel = 2,

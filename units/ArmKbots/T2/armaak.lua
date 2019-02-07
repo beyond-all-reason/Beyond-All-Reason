@@ -34,6 +34,7 @@ return {
 		turnrate = 1021,
 		upright = true,
 		customparams = {
+			model_author = "Kaiser",
 			prioritytarget = "air",
 			subfolder = "armkbots/t2",
 			techlevel = 2,

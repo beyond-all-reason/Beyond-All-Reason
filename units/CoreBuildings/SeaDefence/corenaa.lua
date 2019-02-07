@@ -33,6 +33,7 @@ return {
 		waterline = 0.3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			model_author = "Mr Bob",
 			prioritytarget = "air",
 			removewait = true,
 			subfolder = "corebuildings/seadefence",

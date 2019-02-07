@@ -53,6 +53,7 @@ return {
 			firingceg = "",
 			flare1name = "flare",
 			kickback = "0",
+			model_author = "Mr Bob",
 			restoretime = "3000",
 			rockrestorespeed = "0",
 			rockspeed = "0",

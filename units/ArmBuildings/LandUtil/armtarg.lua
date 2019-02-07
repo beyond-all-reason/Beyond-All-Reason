@@ -41,6 +41,7 @@ return {
 			bar_footprintx = 3,
 			bar_footprintz = 3,
 			bar_yardmap = "ooooooooo",
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",

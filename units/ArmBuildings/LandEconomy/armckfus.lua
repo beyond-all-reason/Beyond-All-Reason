@@ -36,6 +36,7 @@ return {
 		yardmap = "oooooooooooooooooooo",
 		customparams = {
 			bar_collisionvolumescales = "97 42 51",
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

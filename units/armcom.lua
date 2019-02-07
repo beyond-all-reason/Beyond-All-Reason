@@ -90,6 +90,7 @@ return {
 		customparams = {
 			area_mex_def = "armmex",
 			iscommander = true,
+			model_author = "FireStorm",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			techlevel = 2,

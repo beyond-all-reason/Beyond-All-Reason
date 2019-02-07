@@ -41,6 +41,7 @@ return {
 		upright = true,
 		waterline = 40,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreships/t2",
 			techlevel = 2,
 		},

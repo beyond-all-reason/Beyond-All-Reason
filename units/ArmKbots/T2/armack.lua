@@ -77,6 +77,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armmoho",
+			model_author = "Kaiser",
 			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},

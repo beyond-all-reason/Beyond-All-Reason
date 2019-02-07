@@ -43,6 +43,7 @@ return {
 			bar_footprintx = 6,
 			bar_footprintz = 6,
 			cvbuildable = true,
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

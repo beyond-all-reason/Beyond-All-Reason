@@ -43,6 +43,7 @@ return {
 		unloadspread = 0,
 		upright = true,
 		customparams = {
+			model_author = "Mr Bob",
 			paralyzemultiplier = 0.025,
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,

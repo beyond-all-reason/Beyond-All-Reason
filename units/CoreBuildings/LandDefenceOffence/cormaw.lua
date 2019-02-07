@@ -41,6 +41,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = true,
 		customparams = {
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/landdefenceoffence",
 		},

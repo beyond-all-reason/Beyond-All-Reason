@@ -59,6 +59,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "coruwmme",
+			model_author = "Beherith",
 			subfolder = "coreships/t2",
 			techlevel = 2,
 		},

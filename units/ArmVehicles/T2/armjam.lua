@@ -45,6 +45,7 @@ return {
 		turninplacespeedlimit = 0.792,
 		turnrate = 505,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 		},

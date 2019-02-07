@@ -47,6 +47,7 @@ return {
 		customparams = {
 			cvbuildable = true,
 			metal_extractor = 1,
+			model_author = "Beherith",
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",
 		},

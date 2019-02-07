@@ -37,6 +37,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooo",
 		customparams = {
+			model_author = "Cremuss",
 			prioritytarget = "air",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",

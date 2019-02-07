@@ -40,6 +40,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			model_author = "Mr Bob",
 			removestop = true,
 			removewait = true,
 			shield_color_mult = 0.8,

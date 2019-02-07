@@ -47,6 +47,7 @@ return {
 		},
 		customparams = {
 			bar_waterline = 1,
+			model_author = "FireStorm",
 			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {

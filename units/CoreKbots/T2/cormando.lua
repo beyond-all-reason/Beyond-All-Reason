@@ -56,6 +56,7 @@ return {
 			[7] = "corjamt",
 		},
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},

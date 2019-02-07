@@ -41,6 +41,7 @@ return {
 		upright = true,
 		customparams = {
 			customrange = 460,
+			model_author = "FireStorm",
 			paralyzemultiplier = 0.9,
 			subfolder = "armgantry",
 			techlevel = 3,

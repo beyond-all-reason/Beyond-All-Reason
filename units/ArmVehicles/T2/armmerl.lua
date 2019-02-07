@@ -43,6 +43,7 @@ return {
 		turnrate = 520.29999,
 		customparams = {
 			arm_tank = "1",
+			model_author = "FireStorm",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 		},

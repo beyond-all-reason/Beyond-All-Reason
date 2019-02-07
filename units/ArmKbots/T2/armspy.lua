@@ -50,6 +50,7 @@ return {
 		upright = true,
 		workertime = 50,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},

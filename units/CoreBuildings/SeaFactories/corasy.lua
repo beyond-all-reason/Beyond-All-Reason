@@ -50,6 +50,7 @@ return {
 			bar_collisionvolumeoffsets = "0 10 -2",
 			bar_collisionvolumescales = "186 78 183",
 			bar_waterline = 19,
+			model_author = "Mr Bob",
 			subfolder = "corebuildings/seafactories",
 			techlevel = 2,
 		},

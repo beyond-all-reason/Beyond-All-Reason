@@ -38,6 +38,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			model_author = "Beherith",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",

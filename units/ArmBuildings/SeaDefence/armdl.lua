@@ -37,6 +37,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooo",
 		customparams = {
+			model_author = "Beherith",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",
 		},

@@ -51,6 +51,7 @@ return {
 			[6] = "corbw",
 		},
 		customparams = {
+			model_author = "Mr Bob",
 			subfolder = "corebuildings/landfactories",
 		},
 		featuredefs = {

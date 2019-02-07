@@ -33,6 +33,7 @@ return {
 		yardmap = "wwwwwwwww",
 		customparams = {
 			bar_waterline = 2,
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/seadefence",
 		},

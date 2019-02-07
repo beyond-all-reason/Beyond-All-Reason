@@ -35,6 +35,7 @@ return {
 		turnrate = 979,
 		upright = true,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "coregantry",
 			techlevel = 3,
 		},

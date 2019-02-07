@@ -40,6 +40,7 @@ return {
 		turnrate = 256,
 		waterline = 0,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreships/t2",
 			techlevel = 2,
 		},

@@ -42,6 +42,7 @@ return {
 		waterline = 0,
 		customparams = {
 			maxrange = "260",
+			model_author = "FireStorm",
 			paralyzemultiplier = 0.1,
 			prioritytarget = "air",
 			subfolder = "armships",

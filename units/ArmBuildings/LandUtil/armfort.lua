@@ -37,6 +37,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ffff",
 		customparams = {
+			model_author = "Beherith",
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,

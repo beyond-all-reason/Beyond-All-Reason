@@ -48,6 +48,7 @@ return {
 			bar_trackstrength = 8,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 50,
+			model_author = "Mr Bob",
 			subfolder = "corevehicles/t2",
 			techlevel = 2,
 		},

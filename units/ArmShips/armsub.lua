@@ -39,6 +39,7 @@ return {
 		upright = true,
 		waterline = 30,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armships",
 		},
 		featuredefs = {

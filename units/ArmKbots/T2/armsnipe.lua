@@ -38,6 +38,7 @@ return {
 		turnrate = 1338,
 		upright = true,
 		customparams = {
+			model_author = "Kaiser",
 			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},

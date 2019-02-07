@@ -230,7 +230,7 @@ function UnitDef_Post(name, uDef)
 		end
 	end
 
-	
+
 	if uDef.icontype and uDef.icontype == "sea" then
 		if uDef.featuredefs and uDef.featuredefs.dead and uDef.featuredefs.dead.metal and uDef.buildcostmetal then
 			uDef.featuredefs.dead.metal = uDef.buildcostmetal * 0.5
@@ -310,7 +310,7 @@ function UnitDef_Post(name, uDef)
 		if uDef.turnrate ~= nil then
 			uDef.turnrate = (uDef.turnrate + hoverAdditionalTurnrate) * hoverTurnrateMultiplier
 		end
-		
+
 		if uDef.acceleration ~= nil then
 			uDef.acceleration = (uDef.acceleration + hoverAdditionalAcceleration) * hoverAccelerationMultiplier
 		end
@@ -338,18 +338,41 @@ function UnitDef_Post(name, uDef)
 	end
 
 	-- import csv unitdef changes
-	local file = VFS.LoadFile("costs_revision.csv")
-	if file then
-		local fileLines = lines(file)
-		for i, line in ipairs(fileLines) do
-			local t = Split(line, ';')
-			if t[1] and t[2] and t[3] and name == t[1] then
-				uDef.buildcostmetal = tonumber(t[2])
-				uDef.buildcostenergy = tonumber(t[3])
-				Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
-			end
-		end
-	end
+	--local file = VFS.LoadFile("modelauthors.csv")
+	--if file then
+	--	local fileLines = lines(file)
+	--	local found = false
+	--	for i, line in ipairs(fileLines) do
+	--		local t = Split(line, ';')
+	--		if t[1] and t[2] and t[3] then
+	--			if t[1] == name then
+	--				if uDef.customparams == nil then
+	--					uDef.customparams = {}
+	--				end
+	--				uDef.customparams.model_author = t[3]
+	--				Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
+	--				found = true
+	--				break
+	--			end
+	--		end
+	--	end
+	--	if not found then
+	--		for i, line in ipairs(fileLines) do
+	--			local t = Split(line, ';')
+	--			if t[1] and t[2] and t[3] then
+	--				if t[2] == uDef.name then
+	--					if uDef.customparams == nil then
+	--						uDef.customparams = {}
+	--					end
+	--					uDef.customparams.model_author = t[3]
+	--					Spring.Echo('imported2:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
+	--					found = true
+	--					break
+	--				end
+	--			end
+	--		end
+	--	end
+	--end
 
 	-- usable when baking ... keeping subfolder structure
 	if SaveDefsToCustomParams then

@@ -31,6 +31,7 @@ return {
 		sonardistance = 230,
 		yardmap = "ooooooooo",
 		customparams = {
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/seadefence",
 		},

@@ -36,6 +36,7 @@ return {
 		turninplacespeedlimit = 2.8116,
 		turnrate = 615,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "corehovercraft",
 		},
 		featuredefs = {

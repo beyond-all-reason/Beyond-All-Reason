@@ -43,6 +43,7 @@ return {
 			[6] = "armthovr",
 		},
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {

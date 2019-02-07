@@ -38,6 +38,7 @@ return {
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
 		customparams = {
 			cvbuildable = true,
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

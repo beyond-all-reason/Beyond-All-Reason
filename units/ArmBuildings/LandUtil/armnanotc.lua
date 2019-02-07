@@ -43,6 +43,7 @@ return {
 		usebuildinggrounddecal = true,
 		workertime = 200,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "armbuildings/landutil",
 		},
 		sfxtypes = {

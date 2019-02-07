@@ -38,6 +38,7 @@ return {
 		turnrate = 109,
 		customparams = {
 			customrange = 435,
+			model_author = "FireStorm",
 			paralyzemultiplier = 0,
 			subfolder = "coregantry",
 			techlevel = 3,

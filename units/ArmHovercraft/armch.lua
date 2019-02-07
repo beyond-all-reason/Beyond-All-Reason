@@ -91,6 +91,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armmex",
+			model_author = "Beherith",
 			subfolder = "armhovercraft",
 		},
 		featuredefs = {

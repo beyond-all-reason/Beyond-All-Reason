@@ -35,6 +35,7 @@ return {
 		sonardistance = 900,
 		turnrate = 680,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {

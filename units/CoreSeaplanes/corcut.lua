@@ -36,6 +36,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 550,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {

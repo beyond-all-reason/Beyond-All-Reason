@@ -54,6 +54,7 @@ return {
 		customparams = {
 			bar_collisionvolumescales = "95 22 95",
 			bar_yardmap = "oooooooooooooooooocccccccccccccccccc",
+			model_author = "Cremuss",
 			subfolder = "armbuildings/landfactories",
 		},
 		featuredefs = {

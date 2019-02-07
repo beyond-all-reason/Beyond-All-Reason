@@ -32,6 +32,7 @@ return {
 		sightdistance = 455,
 		turnrate = 700,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.5,

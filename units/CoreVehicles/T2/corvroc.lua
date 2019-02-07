@@ -44,6 +44,7 @@ return {
 			bar_trackstrength = 8,
 			bar_tracktype = "corwidetracks",
 			bar_trackwidth = 40,
+			model_author = "Beherith",
 			subfolder = "corevehicles/t2",
 			techlevel = 2,
 		},

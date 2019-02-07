@@ -55,6 +55,7 @@ return {
 			[7] = "armaser",
 		},
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},

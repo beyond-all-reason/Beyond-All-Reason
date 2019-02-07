@@ -59,6 +59,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armuwmme",
+			model_author = "FireStorm",
 			subfolder = "armships/t2",
 			techlevel = 2,
 		},

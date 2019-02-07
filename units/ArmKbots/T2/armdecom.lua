@@ -77,6 +77,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armmex",
+			model_author = "FireStorm",
 			paralyzemultiplier = 0.025,
 			subfolder = "armkbots/t2",
 			techlevel = 2,

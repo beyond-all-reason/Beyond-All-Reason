@@ -76,6 +76,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "cormoho",
+			model_author = "Mr Bob",
 			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},

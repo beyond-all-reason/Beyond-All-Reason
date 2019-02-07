@@ -39,6 +39,7 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 7.5,
 			bar_buildinggrounddecalsizey = 7.5,
+			model_author = "Beherith",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,

@@ -40,6 +40,7 @@ return {
 		turnrate = 200,
 		waterline = 0,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armships",
 		},
 		featuredefs = {

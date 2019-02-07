@@ -37,6 +37,7 @@ return {
 		yardmap = "oooooooooooooooo",
 		customparams = {
 			canareaattack = 1,
+			model_author = "Cremuss",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,

@@ -37,6 +37,7 @@ return {
 		upright = true,
 		customparams = {
 			description_long = "Warrior is a durable Kbot armed with a rapid firing double laser. It has a relatively high HP for T1 and can easily take down multiple light assault units, like A.K.'s, Peewees etc. Often referred to as \"mobile LLT\". Their range is enough to overshoot Commanders, so with a little micro it may be used to force them to retreat. Always combine with resurrection Kbots for healing and resurrecting fallen units.",
+			model_author = "Kaiser",
 			subfolder = "armkbots",
 			wpn1turretx = 200,
 			wpn1turrety = 200,

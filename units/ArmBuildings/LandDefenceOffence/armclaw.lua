@@ -44,6 +44,7 @@ return {
 			bar_collisionvolumeoffsets = "0 -24 0",
 			bar_collisionvolumescales = "30 51 30",
 			bar_collisionvolumetype = "Ell",
+			model_author = "Beherith",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 		},

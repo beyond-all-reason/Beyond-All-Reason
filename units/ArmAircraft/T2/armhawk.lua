@@ -31,6 +31,7 @@ return {
 		stealth = true,
 		turnrate = 900,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.4,

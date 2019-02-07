@@ -36,6 +36,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
+			model_author = "Mr Bob",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/seaeconomy",

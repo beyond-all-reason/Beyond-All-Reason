@@ -35,6 +35,7 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seautil",

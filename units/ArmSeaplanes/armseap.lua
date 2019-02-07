@@ -35,6 +35,7 @@ return {
 		sightdistance = 455,
 		turnrate = 720,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armseaplanes",
 		},
 		sfxtypes = {

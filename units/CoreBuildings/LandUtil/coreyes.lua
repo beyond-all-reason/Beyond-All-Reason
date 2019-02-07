@@ -33,6 +33,7 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
+			model_author = "Mr Bob",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landutil",

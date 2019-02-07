@@ -28,27 +28,27 @@ function deepcopy(orig)
 end
 
 -- create BAR alternatives
-if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) then
-    if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
-        local oldUnitName = {	-- mostly duplicates
-            armdecom = 'armcom',
-            cordecom = 'corcom',
-            armdf = 'armfus',
-            corgantuw = 'corgant',
-            armshltxuw = 'armshltx',
-        }
-        local barUnitDefs = {}
-        for name,uDef in pairs(UnitDefs) do
-            local barUnitName = oldUnitName[name] and oldUnitName[name] or name
-            if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
-                barUnitDefs[name..'_bar'] = deepcopy(uDef)
-            end
-        end
-        for name,ud in pairs(barUnitDefs) do
-            UnitDefs[name] = ud
-        end
-    end
-end
+--if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) then
+--    if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
+--        local oldUnitName = {	-- mostly duplicates
+--            armdecom = 'armcom',
+--            cordecom = 'corcom',
+--            armdf = 'armfus',
+--            corgantuw = 'corgant',
+--            armshltxuw = 'armshltx',
+--        }
+--        local barUnitDefs = {}
+--        for name,uDef in pairs(UnitDefs) do
+--            local barUnitName = oldUnitName[name] and oldUnitName[name] or name
+--            if VFS.FileExists('objects3d/BAR/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/BAR/'..barUnitName..'.s3o') then
+--                barUnitDefs[name..'_bar'] = deepcopy(uDef)
+--            end
+--        end
+--        for name,ud in pairs(barUnitDefs) do
+--            UnitDefs[name] = ud
+--        end
+--    end
+--end
 
 -- handle unitdefs and the weapons they contain
 for name,ud in pairs(UnitDefs) do

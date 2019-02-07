@@ -55,6 +55,7 @@ return {
 			flare1name = "flare1",
 			flare2name = "flare2",
 			kickback = "0",
+			model_author = "Beherith",
 			restoretime = "3000",
 			rockrestorespeed = "0",
 			rockspeed = "0",

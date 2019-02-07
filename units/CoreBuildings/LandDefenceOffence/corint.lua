@@ -39,6 +39,7 @@ return {
 			bar_buildinggrounddecalsizex = 7.5,
 			bar_buildinggrounddecalsizey = 7.5,
 			canareaattack = 1,
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/landdefenceoffence",
 			techlevel = 2,

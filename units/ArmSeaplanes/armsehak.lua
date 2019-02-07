@@ -35,6 +35,7 @@ return {
 		sonardistance = 900,
 		turnrate = 750,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armseaplanes",
 		},
 		sfxtypes = {

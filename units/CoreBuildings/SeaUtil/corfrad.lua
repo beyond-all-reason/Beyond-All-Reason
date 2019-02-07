@@ -40,6 +40,7 @@ return {
 		waterline = 4,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			model_author = "Mr Bob",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/seautil",

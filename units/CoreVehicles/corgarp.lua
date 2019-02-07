@@ -58,6 +58,7 @@ return {
 			firingceg = "barrelshot-tiny",
 			flare1name = "emit",
 			kickback = "-2.4",
+			model_author = "Mr Bob",
 			paralyzemultiplier = 0.125,
 			restoretime = "3000",
 			rockrestorespeed = "15",

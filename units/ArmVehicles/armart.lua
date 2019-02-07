@@ -60,6 +60,7 @@ return {
 			driftratio = "0.2",
 			flare1name = "flare",
 			kickback = "-6.25",
+			model_author = "Beherith",
 			restoretime = "3000",
 			rockrestorespeed = "5",
 			rockspeed = "80",

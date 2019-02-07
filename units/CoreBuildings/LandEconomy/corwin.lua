@@ -39,6 +39,7 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 4.5,
 			bar_buildinggrounddecalsizey = 4.5,
+			model_author = "Mr Bob",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landeconomy",

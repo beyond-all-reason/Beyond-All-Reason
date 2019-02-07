@@ -35,6 +35,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 800,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.35,

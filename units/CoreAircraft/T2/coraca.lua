@@ -74,6 +74,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "cormoho",
+			model_author = "Mr Bob",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.7,

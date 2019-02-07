@@ -36,6 +36,7 @@ return {
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			bar_collisionvolumeoffsets = "0 15 0",
+			model_author = "FireStorm",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",
 		},

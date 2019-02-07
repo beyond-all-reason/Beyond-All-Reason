@@ -45,6 +45,7 @@ return {
 		customparams = {
 			cvbuildable = true,
 			metal_extractor = 1,
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/landdefenceoffence",
 		},

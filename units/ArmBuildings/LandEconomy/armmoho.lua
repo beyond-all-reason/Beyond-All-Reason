@@ -45,6 +45,7 @@ return {
 			bar_buildinggrounddecalsizey = 7.55,
 			cvbuildable = true,
 			metal_extractor = 4,
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

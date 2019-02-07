@@ -37,6 +37,7 @@ return {
 		windgenerator = 25,
 		yardmap = "ooo ooo ooo",
 		customparams = {
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

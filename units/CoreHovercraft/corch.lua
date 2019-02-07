@@ -91,6 +91,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "cormex",
+			model_author = "Beherith",
 			subfolder = "corehovercraft",
 		},
 		featuredefs = {

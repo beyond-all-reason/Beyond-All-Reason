@@ -36,6 +36,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 720,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armseaplanes",
 		},
 		sfxtypes = {

@@ -90,6 +90,7 @@ return {
 		customparams = {
 			area_mex_def = "cormex",
 			iscommander = true,
+			model_author = "Mr Bob",
 			paralyzemultiplier = 0.025,
 			subfolder = "",
 			techlevel = 2,

@@ -44,6 +44,7 @@ return {
 		turnrate = 90,
 		waterline = 0,
 		customparams = {
+			model_author = "FireStorm",
 			paralyzemultiplier = 0,
 			subfolder = "armships/t2",
 			techlevel = 2,

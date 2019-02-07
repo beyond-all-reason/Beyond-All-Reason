@@ -37,6 +37,7 @@ return {
 		yardmap = "ooooo ooooo ooGoo ooooo ooooo",
 		customparams = {
 			cvbuildable = true,
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/landdefenceoffence",
 			techlevel = 2,

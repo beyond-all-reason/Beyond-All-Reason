@@ -35,6 +35,7 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 4,
 			bar_buildinggrounddecalsizey = 3.6,
+			model_author = "FireStorm",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seaeconomy",

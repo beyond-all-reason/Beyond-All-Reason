@@ -45,6 +45,7 @@ return {
 			bar_collisionvolumescales = "13 8 13",
 			bar_yardmap = "y",
 			detonaterange = "64",
+			model_author = "Beherith",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",

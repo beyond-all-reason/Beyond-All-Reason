@@ -22,7 +22,7 @@ return {
 		idletime = 1800,
 		maxdamage = 3465,
 		maxslope = 16,
-		maxvelocity = 1.30,
+		maxvelocity = 1.3,
 		maxwaterdepth = 0,
 		movementclass = "HOVER3",
 		name = "Halberd",
@@ -36,6 +36,7 @@ return {
 		turninplacespeedlimit = 0.9768,
 		turnrate = 410,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "corehovercraft",
 		},
 		featuredefs = {

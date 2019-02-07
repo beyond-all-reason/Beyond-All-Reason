@@ -71,6 +71,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "armuwmex",
+			model_author = "FireStorm",
 			subfolder = "armships",
 		},
 		featuredefs = {

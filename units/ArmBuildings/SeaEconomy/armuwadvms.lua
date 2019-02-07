@@ -38,6 +38,7 @@ return {
 			bar_buildinggrounddecalsizey = 6,
 			bar_collisionvolumeoffsets = "0 0 0",
 			bar_collisionvolumescales = "88 38 72",
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seaeconomy",

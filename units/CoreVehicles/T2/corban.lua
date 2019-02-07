@@ -60,6 +60,7 @@ return {
 			flare1name = "flare1",
 			flare2name = "flare2",
 			kickback = "-12",
+			model_author = "Mr Bob",
 			restoretime = "3000",
 			rockrestorespeed = "3",
 			rockspeed = "80",

@@ -41,6 +41,7 @@ return {
 			bar_footprintz = 6,
 			bar_yardmap = "oooooo oooooo oGGGoo oGGGoo oooooo oooooo",
 			cvbuildable = true,
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landeconomy",

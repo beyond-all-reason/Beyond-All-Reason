@@ -49,6 +49,7 @@ return {
 		customparams = {
 			bar_collisionvolumescales = "160 60 160",
 			bar_waterline = 1.5,
+			model_author = "FireStorm",
 			subfolder = "armbuildings/seafactories",
 			techlevel = 2,
 		},

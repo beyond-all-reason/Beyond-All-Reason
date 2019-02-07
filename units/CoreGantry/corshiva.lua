@@ -36,6 +36,7 @@ return {
 		upright = true,
 		customparams = {
 			customrange = 650,
+			model_author = "FireStorm",
 			subfolder = "coregantry",
 			techlevel = 3,
 		},

@@ -43,6 +43,7 @@ return {
 		unloadspread = 1,
 		waterline = 8,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armships",
 		},
 		featuredefs = {

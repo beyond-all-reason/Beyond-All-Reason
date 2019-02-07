@@ -37,6 +37,7 @@ return {
 			bar_buildinggrounddecalsizex = 6,
 			bar_buildinggrounddecalsizey = 6,
 			bar_collisionvolumescales = "112 80 80",
+			model_author = "Beherith",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",
 			techlevel = 2,

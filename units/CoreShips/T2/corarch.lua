@@ -39,6 +39,7 @@ return {
 		turnrate = 227,
 		waterline = 0,
 		customparams = {
+			model_author = "Beherith",
 			prioritytarget = "air",
 			subfolder = "coreships/t2",
 			techlevel = 2,

@@ -55,6 +55,7 @@ return {
 		upright = false,
 		workertime = 0,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "other/chickens",
 		},
 		featuredefs = {

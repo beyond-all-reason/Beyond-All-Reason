@@ -31,6 +31,7 @@ return {
 		sightdistance = 230,
 		turnrate = 680,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {

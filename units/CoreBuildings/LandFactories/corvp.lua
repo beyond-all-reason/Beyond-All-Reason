@@ -62,6 +62,7 @@ return {
 			bar_footprintx = 7,
 			bar_footprintz = 7,
 			bar_yardmap = "yyyyyyyyyoooyyooooooooocccoooocccoooocccoooocccoo",
+			model_author = "Mr Bob",
 			subfolder = "corebuildings/landfactories",
 		},
 		featuredefs = {

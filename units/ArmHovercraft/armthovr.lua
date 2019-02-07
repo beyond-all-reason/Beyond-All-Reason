@@ -43,6 +43,7 @@ return {
 		turnrate = 370,
 		waterline = 4,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "armhovercraft",
 		},
 		featuredefs = {

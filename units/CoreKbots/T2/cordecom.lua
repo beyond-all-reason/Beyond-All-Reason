@@ -77,6 +77,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "cormex",
+			model_author = "Beherith",
 			paralyzemultiplier = 0.025,
 			subfolder = "corekbots/t2",
 			techlevel = 2,

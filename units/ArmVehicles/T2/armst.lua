@@ -54,6 +54,7 @@ return {
 			firingceg = "barrelshot-small",
 			flare1name = "flare",
 			kickback = "-0.65",
+			model_author = "FireStorm",
 			paralyzemultiplier = 0.2,
 			restoretime = "3000",
 			rockrestorespeed = "5",

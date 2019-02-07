@@ -33,6 +33,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooooooo",
 		customparams = {
+			model_author = "Mr Bob",
 			prioritytarget = "air",
 			removestop = true,
 			removewait = true,

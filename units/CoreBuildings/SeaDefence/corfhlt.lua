@@ -35,6 +35,7 @@ return {
 		waterline = 3,
 		yardmap = "wwwwwwwww",
 		customparams = {
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/seadefence",
 		},

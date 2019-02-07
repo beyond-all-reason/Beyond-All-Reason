@@ -38,6 +38,7 @@ return {
 			bar_buildinggrounddecalsizey = 5.4,
 			bar_collisionvolumeoffsets = "0 -2 0",
 			bar_collisionvolumescales = "50 88 50",
+			model_author = "Mr Bob",
 			removewait = true,
 			subfolder = "corebuildings/landdefenceoffence",
 		},

@@ -55,6 +55,7 @@ return {
 		waterline = 8,
 		workertime = 1000,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreships/t2",
 			techlevel = 2,
 		},

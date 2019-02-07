@@ -36,6 +36,7 @@ return {
 		turnrate = 1103,
 		upright = true,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},

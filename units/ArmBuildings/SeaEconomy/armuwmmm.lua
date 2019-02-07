@@ -38,6 +38,7 @@ return {
 		waterline = 5,
 		yardmap = "oooooooooooooooooooo",
 		customparams = {
+			model_author = "FireStorm",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seaeconomy",

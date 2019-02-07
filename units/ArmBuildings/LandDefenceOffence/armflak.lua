@@ -39,6 +39,7 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 5,
 			bar_buildinggrounddecalsizey = 5,
+			model_author = "Cremuss",
 			prioritytarget = "air",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",

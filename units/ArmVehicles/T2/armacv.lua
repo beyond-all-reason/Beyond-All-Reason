@@ -81,6 +81,7 @@ return {
 		customparams = {
 			area_mex_def = "armmoho",
 			arm_tank = "1",
+			model_author = "FireStorm",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 		},

@@ -33,6 +33,7 @@ return {
 		waterline = 5,
 		yardmap = "o",
 		customparams = {
+			model_author = "Beherith",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",

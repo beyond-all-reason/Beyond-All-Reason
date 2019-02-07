@@ -37,6 +37,7 @@ return {
 		turninplacespeedlimit = 0.66,
 		turnrate = 320,
 		customparams = {
+			model_author = "Kaiser",
 			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},

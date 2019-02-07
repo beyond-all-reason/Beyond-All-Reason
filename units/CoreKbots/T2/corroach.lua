@@ -39,6 +39,7 @@ return {
 		turninplacespeedlimit = 1.782,
 		turnrate = 1507,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "corekbots/t2",
 			techlevel = 2,
 		},

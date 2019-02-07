@@ -42,6 +42,7 @@ return {
 		waterline = 17,
 		workertime = 150,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreships",
 		},
 		sfxtypes = {

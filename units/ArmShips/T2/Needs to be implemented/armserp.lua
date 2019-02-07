@@ -40,6 +40,7 @@ return {
 		upright = true,
 		waterline = 45,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armships/t2/needs to be implemented",
 			techlevel = 2,
 		},

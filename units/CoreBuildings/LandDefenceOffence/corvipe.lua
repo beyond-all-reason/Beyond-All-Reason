@@ -37,6 +37,7 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 4.7,
 			bar_buildinggrounddecalsizey = 4.7,
+			model_author = "Mr Bob",
 			subfolder = "corebuildings/landdefenceoffence",
 			techlevel = 2,
 		},

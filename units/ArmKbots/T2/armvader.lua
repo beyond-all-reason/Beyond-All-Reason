@@ -40,6 +40,7 @@ return {
 		turninplacespeedlimit = 1.848,
 		turnrate = 1540,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armkbots/t2",
 			techlevel = 2,
 		},

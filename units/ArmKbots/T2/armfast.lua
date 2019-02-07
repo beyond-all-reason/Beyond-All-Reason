@@ -35,6 +35,7 @@ return {
 		turnrate = 1430,
 		upright = true,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armkbots/t2",
 			techlevel = 2,
 			wpn1turretx = 400,

@@ -43,6 +43,7 @@ return {
 		unloadspread = 1,
 		waterline = 0,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "coreships",
 		},
 		featuredefs = {

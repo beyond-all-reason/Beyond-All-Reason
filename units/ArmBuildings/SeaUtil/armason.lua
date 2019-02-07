@@ -39,6 +39,7 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "yooy oooo oooo yooy",
 		customparams = {
+			model_author = "FireStorm",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seautil",

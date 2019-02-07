@@ -56,6 +56,7 @@ return {
 		waterline = 0,
 		workertime = 1000,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armships/t2",
 			techlevel = 2,
 		},

@@ -36,6 +36,7 @@ return {
 		turninplacespeedlimit = 1.5972,
 		turnrate = 470,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "armhovercraft",
 		},
 		featuredefs = {

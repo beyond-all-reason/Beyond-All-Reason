@@ -45,6 +45,7 @@ return {
 		usebuildinggrounddecal = false,
 		workertime = 200,
 		customparams = {
+			model_author = "Beherith",
 			subfolder = "corebuildings/seautil",
 		},
 		sfxtypes = {

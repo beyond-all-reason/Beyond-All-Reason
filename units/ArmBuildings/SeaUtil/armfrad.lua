@@ -42,6 +42,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 15 0",
 			bar_collisionvolumescales = "36 59 36",
+			model_author = "FireStorm",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seautil",

@@ -36,6 +36,7 @@ return {
 		turnrate = 1056,
 		upright = true,
 		customparams = {
+			model_author = "Kaiser",
 			subfolder = "armgantry",
 			techlevel = 3,
 		},

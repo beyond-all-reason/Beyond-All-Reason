@@ -40,6 +40,7 @@ return {
 		customparams = {
 			bar_buildinggrounddecalsizex = 4.3,
 			bar_buildinggrounddecalsizey = 4.3,
+			model_author = "Cremuss",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",

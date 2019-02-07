@@ -90,6 +90,7 @@ return {
 		},
 		customparams = {
 			area_mex_def = "coruwmex",
+			model_author = "Beherith",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {

@@ -35,6 +35,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 231,
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armgantry",
 			techlevel = 3,
 		},

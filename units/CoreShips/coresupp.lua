@@ -37,6 +37,7 @@ return {
 		turnrate = 442,
 		waterline = 0,
 		customparams = {
+			model_author = "Mr Bob",
 			subfolder = "coreships",
 		},
 		featuredefs = {

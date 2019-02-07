@@ -36,6 +36,7 @@ return {
 		turnrate = 300,
 		upright = true,
 		customparams = {
+			model_author = "Mr Bob",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.8,

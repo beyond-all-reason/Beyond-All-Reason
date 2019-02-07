@@ -51,6 +51,7 @@ return {
 			[8] = "corintr",
 		},
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "corebuildings/seafactories",
 		},
 		featuredefs = {

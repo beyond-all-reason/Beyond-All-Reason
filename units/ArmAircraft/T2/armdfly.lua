@@ -45,6 +45,7 @@ return {
 		turnrate = 420,
 		unloadspread = 0,
 		customparams = {
+			model_author = "FireStorm",
 			paralyzemultiplier = 0.025,
 			subfolder = "armaircraft/t2",
 			techlevel = 2,

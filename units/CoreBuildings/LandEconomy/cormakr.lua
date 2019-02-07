@@ -40,6 +40,7 @@ return {
 			bar_footprintx = 3,
 			bar_footprintz = 3,
 			bar_yardmap = "ooooooooo",
+			model_author = "Mr Bob",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landeconomy",

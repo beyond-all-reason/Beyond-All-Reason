@@ -49,6 +49,7 @@ return {
 			[6] = "armdecom",
 		},
 		customparams = {
+			model_author = "FireStorm",
 			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {

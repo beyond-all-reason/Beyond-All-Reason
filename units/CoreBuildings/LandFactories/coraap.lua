@@ -52,6 +52,7 @@ return {
 		customparams = {
 			bar_collisionvolumeoffsets = "0 10 -2",
 			bar_collisionvolumescales = "113 43 89",
+			model_author = "Mr Bob",
 			subfolder = "corebuildings/landfactories",
 			techlevel = 2,
 		},

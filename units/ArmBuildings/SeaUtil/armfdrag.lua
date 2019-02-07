@@ -32,6 +32,7 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			bar_waterline = 2,
+			model_author = "FireStorm",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seautil",

@@ -36,6 +36,7 @@ return {
 		sonardistance = 1200,
 		yardmap = "oooo",
 		customparams = {
+			model_author = "FireStorm",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seautil",

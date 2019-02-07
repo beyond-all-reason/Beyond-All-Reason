@@ -57,6 +57,7 @@ return {
 			firingceg = "barrelshot-medium",
 			flare1name = "emit",
 			kickback = "-4",
+			model_author = "Mr Bob",
 			restoretime = "3000",
 			rockrestorespeed = "20",
 			rockspeed = "80",

@@ -43,6 +43,7 @@ return {
 		customparams = {
 			cvbuildable = true,
 			metal_extractor = 4,
+			model_author = "Mr Bob",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/landeconomy",

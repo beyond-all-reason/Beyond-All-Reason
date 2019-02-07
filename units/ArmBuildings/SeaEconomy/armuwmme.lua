@@ -40,6 +40,7 @@ return {
 		customparams = {
 			cvbuildable = true,
 			metal_extractor = 4,
+			model_author = "FireStorm",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seaeconomy",

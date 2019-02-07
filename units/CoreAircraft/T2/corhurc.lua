@@ -34,6 +34,7 @@ return {
 		sightdistance = 221,
 		turnrate = 400,
 		customparams = {
+			model_author = "Mr Bob",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,
 			wingsurface = 0.4,

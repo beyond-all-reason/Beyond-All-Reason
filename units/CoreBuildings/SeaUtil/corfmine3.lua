@@ -47,6 +47,7 @@ return {
 			bar_collisionvolumetype = "Ell",
 			bar_yardmap = "w",
 			detonaterange = "64",
+			model_author = "Beherith",
 			removestop = true,
 			removewait = true,
 			subfolder = "corebuildings/seautil",
