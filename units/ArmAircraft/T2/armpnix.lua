@@ -3,7 +3,7 @@ return {
 		acceleration = 0.04,
 		blocking = false,
 		brakerate = 0.045,
-		buildcostenergy = 16500,
+		buildcostenergy = 12500,
 		buildcostmetal = 230,
 		buildpic = "ARMPNIX.DDS",
 		buildtime = 21000,
