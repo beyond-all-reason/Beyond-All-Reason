@@ -3,7 +3,7 @@ return {
 		acceleration = 0.22,
 		blocking = false,
 		brakerate = 0.0375,
-		buildcostenergy = 6800,
+		buildcostenergy = 6900,
 		buildcostmetal = 130,
 		buildpic = "CORHUNT.DDS",
 		buildtime = 9512,

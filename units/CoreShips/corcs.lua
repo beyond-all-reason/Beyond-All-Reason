@@ -2,8 +2,8 @@ return {
 	corcs = {
 		acceleration = 0.044,
 		brakerate = 0.08,
-		buildcostenergy = 2500,
-		buildcostmetal = 280,
+		buildcostenergy = 2000,
+		buildcostmetal = 200,
 		builddistance = 200,
 		builder = true,
 		buildpic = "CORCS.DDS",

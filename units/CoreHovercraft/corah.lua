@@ -3,7 +3,7 @@ return {
 		acceleration = 0.096,
 		airsightdistance = 800,
 		brakerate = 0.336,
-		buildcostenergy = 4800,
+		buildcostenergy = 4700,
 		buildcostmetal = 250,
 		buildpic = "CORAH.DDS",
 		buildtime = 3650,

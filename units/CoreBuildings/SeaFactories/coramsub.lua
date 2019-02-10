@@ -2,8 +2,8 @@ return {
 	coramsub = {
 		acceleration = 0,
 		brakerate = 0,
-		buildcostenergy = 5700,
-		buildcostmetal = 1250,
+		buildcostenergy = 5600,
+		buildcostmetal = 1200,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11,

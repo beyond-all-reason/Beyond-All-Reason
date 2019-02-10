@@ -2,8 +2,8 @@ return {
 	armmls = {
 		acceleration = 0.048,
 		brakerate = 0.088,
-		buildcostenergy = 3900,
-		buildcostmetal = 230,
+		buildcostenergy = 3200,
+		buildcostmetal = 190,
 		builddistance = 135,
 		builder = true,
 		buildpic = "ARMMLS.DDS",

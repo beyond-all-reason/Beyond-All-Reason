@@ -3,7 +3,7 @@ return {
 		acceleration = 0.072,
 		brakerate = 0.336,
 		buildcostenergy = 3300,
-		buildcostmetal = 195,
+		buildcostmetal = 200,
 		buildpic = "CORMH.DDS",
 		buildtime = 3500,
 		canmove = true,

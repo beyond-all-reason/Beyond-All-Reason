@@ -2,8 +2,8 @@ return {
 	cormls = {
 		acceleration = 0.042,
 		brakerate = 0.077,
-		buildcostenergy = 4100,
-		buildcostmetal = 260,
+		buildcostenergy = 3300,
+		buildcostmetal = 200,
 		builddistance = 136,
 		builder = true,
 		buildpic = "CORMLS.DDS",

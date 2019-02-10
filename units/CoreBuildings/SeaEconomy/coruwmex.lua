@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 550,
+		buildcostenergy = 500,
 		buildcostmetal = 60,
 		buildingmask = 0,
 		buildpic = "COROMEX.DDS",

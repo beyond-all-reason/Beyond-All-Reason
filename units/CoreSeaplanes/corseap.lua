@@ -4,7 +4,7 @@ return {
 		blocking = false,
 		brakerate = 0.375,
 		buildcostenergy = 6100,
-		buildcostmetal = 250,
+		buildcostmetal = 240,
 		buildpic = "CORSEAP.DDS",
 		buildtime = 10698,
 		canfly = true,

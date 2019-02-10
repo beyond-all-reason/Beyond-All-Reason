@@ -5,7 +5,7 @@ return {
 		bmcode = 0,
 		brakerate = 0,
 		buildangle = 2048,
-		buildcostenergy = 73000,
+		buildcostenergy = 74000,
 		buildcostmetal = 4100,
 		builder = 0,
 		buildpic = "CORFGATE.DDS",

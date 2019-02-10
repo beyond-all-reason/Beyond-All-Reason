@@ -5,7 +5,7 @@ return {
 		bmcode = 0,
 		brakerate = 0,
 		buildangle = 2048,
-		buildcostenergy = 73000,
+		buildcostenergy = 72000,
 		buildcostmetal = 3900,
 		builder = 0,
 		buildpic = "ARMFGATE.DDS",

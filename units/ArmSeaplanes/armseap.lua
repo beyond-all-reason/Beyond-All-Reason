@@ -3,7 +3,7 @@ return {
 		acceleration = 0.2,
 		blocking = false,
 		brakerate = 0.375,
-		buildcostenergy = 6600,
+		buildcostenergy = 6500,
 		buildcostmetal = 290,
 		buildpic = "ARMSEAP.DDS",
 		buildtime = 14825,

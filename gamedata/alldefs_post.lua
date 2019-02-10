@@ -374,6 +374,22 @@ function UnitDef_Post(name, uDef)
 	--	end
 	--end
 
+	--local filename = "unitlist_checked.csv"
+	--local file = VFS.LoadFile(filename)
+	--if file then
+	--	local fileLines = lines(file)
+	--	for i, line in ipairs(fileLines) do
+	--		local t = Split(line, ';')
+	--		if t[1] and t[2] and t[3] and name == t[1] then
+	--			uDef.buildcostmetal = tonumber(t[2])
+	--			uDef.buildcostenergy = tonumber(t[3])
+	--			Spring.Echo('imported:  '..t[1]..':  '..t[2]..'  ,  '..t[3])
+	--		end
+	--	end
+	--else
+	--	Spring.Echo('import file not found: '..filename)
+	--end
+
 	-- usable when baking ... keeping subfolder structure
 	if SaveDefsToCustomParams then
 		local filepath = getFilePath(name..'.lua', 'units/')

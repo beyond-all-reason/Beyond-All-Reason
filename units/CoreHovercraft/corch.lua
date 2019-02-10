@@ -2,8 +2,8 @@ return {
 	corch = {
 		acceleration = 0.12,
 		brakerate = 0.372,
-		buildcostenergy = 2900,
-		buildcostmetal = 165,
+		buildcostenergy = 3000,
+		buildcostmetal = 190,
 		builddistance = 112,
 		builder = true,
 		buildpic = "CORCH.DDS",
