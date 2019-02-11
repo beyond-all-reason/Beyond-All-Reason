@@ -176,14 +176,8 @@ vertex = [[
 		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
 		vec3 reflectDir = reflect(cameraDir, normal);
 
-		#if (deferred_mode == 0)
 			vec3 specular   = texture(specularTex, reflectDir).rgb * extraColor.g * SPECULARMULT;
 			vec3 reflection = texture(reflectTex,  reflectDir).rgb;
-		#endif
-		#if (deferred_mode == 1)
-			vec3 specular   = vec3(1.0,1.0,1.0) * extraColor.g * SPECULARMULT;
-			vec3 reflection = vec3(0.0,0.0,0.0);
-		#endif
 		float shadow = GetShadowCoeff(tex_coord1 + vec4(0.0, 0.0, -0.00005, 0.0));
 		light     = mix(sunAmbient, light, shadow);
 		specular *= shadow;
