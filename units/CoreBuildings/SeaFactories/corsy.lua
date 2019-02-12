@@ -37,13 +37,12 @@ return {
 		buildoptions = {
 			[1] = "corcs",
 			[2] = "correcl",
-			[3] = "corpt",
-			[4] = "coresupp",
+			[3] = "coresupp",
+			[4] = "corpt",
 			[5] = "corpship",
 			[6] = "corroy",
 			[7] = "corsub",
-			[8] = "cordship",
-			[9] = "cortship",
+			[8] = "cortship",
 		},
 		customparams = {
 			bar_collisionvolumeoffsets = "0 0 2",

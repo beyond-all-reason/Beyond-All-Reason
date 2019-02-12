@@ -115,7 +115,7 @@ return {
 		weapondefs = {
 			arm_bats = {
 				accuracy = 350,
-				areaofeffect = 128,
+				areaofeffect = 140,
 				avoidfeature = false,
 				craterareaofeffect = 128,
 				craterboost = 0,

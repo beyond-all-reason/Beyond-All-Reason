@@ -42,6 +42,15 @@ local hoverAccelerationMultiplier = 1
 local hoverAdditionalVelocity = 0
 local hoverVelocityMultiplier = 1
 
+local shipAdditionalTurnrate = 0
+local shipTurnrateMultiplier = 1.0
+
+local shipAdditionalAcceleration = 0.00
+local shipAccelerationMultiplier = 1
+
+local shipAdditionalVelocity = 0
+local shipVelocityMultiplier = 1
+
 local kbotAdditionalTurnrate = 0
 local kbotTurnrateMultiplier = 1.15
 
@@ -245,6 +254,7 @@ function UnitDef_Post(name, uDef)
 			uDef.featuredefs.heap.damage = uDef.featuredefs.heap.damage*2
 		end
 	end
+	
 	--Aircraft movements here:
 	if uDef.canfly == true and not uDef.hoverattack == true then
 		turn = (((uDef.turnrate)*0.16)/360)/30
@@ -327,6 +337,29 @@ function UnitDef_Post(name, uDef)
 			uDef.turninplace = true
 		end
 	end
+	
+		if uDef.movementclass and string.find(uDef.movementclass, "BOAT") then
+			Spring.Echo(name)
+			if uDef.turnrate ~= nil then
+				uDef.turnrate = (uDef.turnrate + shipAdditionalTurnrate) * shipTurnrateMultiplier
+			end
+
+			if uDef.acceleration ~= nil then
+				uDef.acceleration = (uDef.acceleration + shipAdditionalAcceleration) * shipAccelerationMultiplier
+			end
+
+			if uDef.maxvelocity ~= nil then
+				uDef.maxvelocity = (uDef.maxvelocity + shipAdditionalVelocity) * shipVelocityMultiplier
+			end
+
+			if uDef.turnrate and uDef.maxvelocity and uDef.brakerate and uDef.acceleration then
+				local k = 1800/(0.164 * uDef.turnrate)
+				uDef.acceleration = uDef.maxvelocity / (2*k)
+				uDef.brakerate = uDef.maxvelocity / (2*k)
+				uDef.turninplaceanglelimit = 90
+				uDef.turninplace = true
+			end
+		end
 
 	-- add unit category: EMPABLE
 	if uDef.category and string.find(uDef.category, "SURFACE") then

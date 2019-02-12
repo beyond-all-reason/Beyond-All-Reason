@@ -37,13 +37,12 @@ return {
 		buildoptions = {
 			[1] = "armcs",
 			[2] = "armrecl",
-			[3] = "armpt",
-			[4] = "armdecade",
+			[3] = "armdecade",
+			[4] = "armpt",
 			[5] = "armpship",
 			[6] = "armroy",
 			[7] = "armsub",
-			[8] = "armdship",
-			[9] = "armtship",
+			[8] = "armtship",
 		},
 		customparams = {
 			bar_waterline = 1,
