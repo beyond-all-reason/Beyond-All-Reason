@@ -142,13 +142,10 @@ local function MakeBloomShaders()
 
 			void main(void) {
 				vec4 a = texture2D(texture0, gl_TexCoord[0].st);
-
-				if (!debugDraw) {
-					gl_FragColor = a;
-				} else {
+				if (debugDraw == 1) {
 					a.a= 1.0;
-					gl_FragColor = a;
 				}
+				gl_FragColor = a;
 			}
 		]],
 		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
