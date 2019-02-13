@@ -2312,6 +2312,11 @@ function init()
 		options[getOptionByID('oldicons')] = nil
 	end
 
+	if WG['bloomdeferred'] == nil or WG['bloomdeferred'].getBrightness == nil then
+		options[getOptionByID('bloomdeferredbrightness')] = nil
+		options[getOptionByID('bloomdeferredquality')] = nil
+	end
+
 	if (WG['healthbars'] == nil) then
 		options[getOptionByID('healthbarsscale')] = nil
 	elseif WG['healthbars'].getScale ~= nil then
