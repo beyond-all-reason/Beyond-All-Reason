@@ -2312,7 +2312,7 @@ function init()
 		options[getOptionByID('oldicons')] = nil
 	end
 
-	if WG['bloomdeferred'] == nil or WG['bloomdeferred'].getBrightness == nil then
+	if widgetHandler.knownWidgets["Bloom Shader Deferred"] == nil then
 		options[getOptionByID('bloomdeferredbrightness')] = nil
 		options[getOptionByID('bloomdeferredquality')] = nil
 	end
