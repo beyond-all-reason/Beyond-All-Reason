@@ -173,10 +173,10 @@ return {
 				tracks = true,
 				turnrate = 68000,
 				turret = true,
-				weaponacceleration = 200,
+				weaponacceleration = 160,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 900,
+				weaponvelocity = 820,
 				customparams = {
 					bar_model = "cormissile.s3o",
 					expl_light_color = "1 0.4 0.5",

@@ -132,7 +132,7 @@ return {
 				model = "missile",
 				name = "Advanced g2a rapid missile launcher",
 				noselfdamage = true,
-				range = 1000,
+				range = 840,
 				reloadtime = 0.425,
 				smoketrail = false,
 				soundhit = "packohit",

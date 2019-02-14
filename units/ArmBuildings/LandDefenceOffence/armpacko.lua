@@ -134,7 +134,7 @@ return {
 				model = "missile",
 				name = "Pop-up rapid-fire g2a missile launcher",
 				noselfdamage = true,
-				range = 1000,
+				range = 840,
 				reloadtime = 0.425,
 				smoketrail = false,
 				soundhit = "packohit",
@@ -152,7 +152,7 @@ return {
 				weaponacceleration = 200,
 				weapontimer = 2,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 1250,
+				weaponvelocity = 1200,
 				customparams = {
 					bar_model = "cormissile.s3o",
 					expl_light_color = "1 0.4 0.5",

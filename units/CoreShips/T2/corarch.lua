@@ -210,7 +210,7 @@ return {
 				impulsefactor = 0,
 				name = "FlakCannon",
 				noselfdamage = true,
-				range = 800,
+				range = 775,
 				reloadtime = 0.75,
 				size = 4.5,
 				sizedecay = 0.08,

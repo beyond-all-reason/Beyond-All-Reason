@@ -139,7 +139,7 @@ return {
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "rocklit1",
-				startvelocity = 480,
+				startvelocity = 650,
 				texture1 = "trans",
 				texture2 = "armsmoketrail",
 				tolerance = 9000,
@@ -149,7 +149,7 @@ return {
 				weaponacceleration = 200,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
-				weaponvelocity = 900,
+				weaponvelocity = 850,
 				customparams = {
 					bar_model = "cormissile.s3o",
 					expl_light_color = "1 0.4 0.5",
