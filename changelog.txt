@@ -1,5 +1,10 @@
 ﻿10.23 -> 10.24
 XX/XX/2019
+
+ • Reverted Packo/Sam change to be like 9.46
+ • Restored small (short range) AA missile speeds/range to be that of 9.46
+
+Sea
  • Destroyer: reverted plasma weapon damages, accuracy, reloadtime to 9.46 values, restored DC damages and firerate to 9.46 values, increased speed +15%, decreased hp -10%
  • Patrol Boat/ligh anti air/sonar: +15% size, hp 120 -> 700, speed -30%, dps +60%, aa damages +66%, aa reloadTime -40%, mcost + 190%, ecost +70%, buildTime +100%)
  • Corvettes: sizes -5%, ARM: hp -15%, m/e costs -15%, CORE: hp -10%, m/e costs -7%
@@ -9,6 +14,7 @@ XX/XX/2019
  • Arm Offshore Mex: model "base" piece sized up a bit
  • Missile Ships: Cluster Missiles +25% aoe and +16% damages
  • Ships accelerations/brakerates now based on maxSpeed and turnrate
+ • Sea aircons same buildpower (+10%) as regular t1 aircons
 
 
 10.22 -> 10.23

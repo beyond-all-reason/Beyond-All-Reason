@@ -1833,7 +1833,7 @@ function loadAllWidgetData()
 	loadWidgetData("Bloom Shader Deferred", "bloomdeferredquality", {'qualityPreset'})
 
 	loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'})
-	loadWidgetData("Bloom Shader", "bloombrightness", {'globalBlursizeMult'})
+	loadWidgetData("Bloom Shader", "bloomsize", {'globalBlursizeMult'})
 	loadWidgetData("Bloom Shader", "bloomquality", {'qualityPreset'})
 
 	loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", {'Config','console','maxlines'})
