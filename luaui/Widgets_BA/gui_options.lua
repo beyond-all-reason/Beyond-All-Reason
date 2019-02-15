@@ -1367,6 +1367,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', {'glowAmplifier'}, value)
 		elseif id == 'bloombrightness' then
 			saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', {'basicAlpha'}, value)
+		elseif id == 'bloomsize' then
+			saveOptionValue('Bloom Shader', 'bloom', 'setBlursize', {'globalBlursizeMult'}, value)
 		elseif id == 'consolemaxlines' then
 			saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setMaxLines', {'Config','console','maxlines'}, value)
 			saveOptionValue('Red Console (old)', 'red_console', 'setMaxLines', {'Config','console','maxlines'}, value)
@@ -1448,6 +1450,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("luarules uniticonset "..options[i].options[value])
 		elseif id == 'bloomdeferredquality' then
 			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setPreset', {'qualityPreset'}, value)
+		elseif id == 'bloomquality' then
+			saveOptionValue('Bloom Shader', 'bloom', 'setPreset', {'qualityPreset'}, value)
 		elseif id == 'camera' then
 			Spring.SetConfigInt("CamMode",(value-1))
 			if value == 1 then
@@ -1829,6 +1833,8 @@ function loadAllWidgetData()
 	loadWidgetData("Bloom Shader Deferred", "bloomdeferredquality", {'qualityPreset'})
 
 	loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'})
+	loadWidgetData("Bloom Shader", "bloombrightness", {'globalBlursizeMult'})
+	loadWidgetData("Bloom Shader", "bloomquality", {'qualityPreset'})
 
 	loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", {'Config','console','maxlines'})
 	loadWidgetData("Red Console (In-game chat only)", "consolefontsize", {'fontsizeMultiplier'})
@@ -1996,10 +2002,12 @@ function init()
 
 		{id="bloomdeferred", group="gfx", widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.'},
 		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description=''},
-		{id="bloomdeferredquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
+		--{id="bloomdeferredquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
 
 		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom (global)", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
 		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.15, max=0.5, step=0.05, value=0.3, description=''},
+		{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.75, max=1.5, step=0.05, value=1, description=''},
+		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
@@ -2312,6 +2320,11 @@ function init()
 		options[getOptionByID('oldicons')] = nil
 	end
 
+	if widgetHandler.knownWidgets["Bloom Shader"] == nil then
+		options[getOptionByID('bloombrightness')] = nil
+		options[getOptionByID('bloomsize')] = nil
+		options[getOptionByID('bloomquality')] = nil
+	end
 	if widgetHandler.knownWidgets["Bloom Shader Deferred"] == nil then
 		options[getOptionByID('bloomdeferredbrightness')] = nil
 		options[getOptionByID('bloomdeferredquality')] = nil

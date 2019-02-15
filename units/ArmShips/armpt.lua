@@ -1,4 +1,4 @@
-3return {
+return {
 	armpt = {
 		acceleration = 0.133,
 		activatewhenbuilt = true,

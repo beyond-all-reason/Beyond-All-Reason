@@ -339,7 +339,7 @@ function UnitDef_Post(name, uDef)
 	end
 	
 		if uDef.movementclass and string.find(uDef.movementclass, "BOAT") then
-			Spring.Echo(name)
+			--Spring.Echo(name)
 			if uDef.turnrate ~= nil then
 				uDef.turnrate = (uDef.turnrate + shipAdditionalTurnrate) * shipTurnrateMultiplier
 			end

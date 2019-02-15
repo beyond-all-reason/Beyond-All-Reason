@@ -15,8 +15,29 @@ end
 --------------------------------------------------------------------------------
 
 local basicAlpha = 0.3
+local globalBlursizeMult = 1
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
+
+local presets = {
+	{
+		blursize = 1.66,
+		blurPasses = 1,
+		quality = 4,	-- high value creates flickering, but lower is more expensive
+	},
+	{
+		blursize = 1.25,
+		blurPasses = 2,
+		quality = 4,
+	},
+	{
+		blursize = 0.7,
+		blurPasses = 3,
+		quality = 3,
+	},
+}
+local qualityPreset = 1
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -123,24 +144,37 @@ local function RemoveMe(msg)
 	--widgetHandler:RemoveWidget(self)
 end
 
+
+blursize = presets[qualityPreset].blursize
+blurPasses = presets[qualityPreset].blurPasses
+quality = presets[qualityPreset].quality
+function loadPreset()
+	if presets[qualityPreset] ~= nil then
+		blursize = presets[qualityPreset].blursize
+		blurPasses = presets[qualityPreset].blurPasses
+		quality = presets[qualityPreset].quality
+		reset()
+	end
+end
+
 function reset()
 
 	--if not initialized then return end
 
 	usedBasicAlpha = basicAlpha
-	drawWorldAlpha = 0.035 + (usedBasicAlpha/11)
+	drawWorldAlpha = 0.03 + (usedBasicAlpha/12)
 	drawWorldPreUnitAlpha = 0.2 - (illumThreshold*0.4) + (usedBasicAlpha/6)
 
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
 	gl.DeleteTexture(screenTexture or "")
 	
-	local btQuality = 4.6		-- high value creates flickering, but lower is more expensive
-	brightTexture1 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
+	--local quality = 4.6		-- high value creates flickering, but lower is more expensive
+	brightTexture1 = glCreateTexture(vsx/quality, vsy/quality, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
-	brightTexture2 = glCreateTexture(vsx/btQuality, vsy/btQuality, {
+	brightTexture2 = glCreateTexture(vsx/quality, vsy/quality, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGB16F_ARB, wrap_s = GL.CLAMP, wrap_t = GL.CLAMP,
 	})
@@ -209,15 +243,32 @@ function widget:Initialize()
   SetIllumThreshold()
 
   WG['bloom'] = {}
-  WG['bloom'].getBrightness = function()
-  	return basicAlpha
+	WG['bloom'].getBrightness = function()
+		return basicAlpha
+	end
+	WG['bloom'].setBrightness = function(value)
+		basicAlpha = value
+		reset()
+		if initialized == false then
+			Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+		end
+	end
+	WG['bloom'].getBlursize = function()
+		return globalBlursizeMult
+	end
+	WG['bloom'].setBlursize = function(value)
+		globalBlursizeMult = value
+		reset()
+		if initialized == false then
+			Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+		end
+	end
+  WG['bloom'].getPreset = function()
+  	return qualityPreset
   end
-  WG['bloom'].setBrightness = function(value)
-	basicAlpha = value
-	reset()
-  	if initialized == false then
-  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
-  	end
+  WG['bloom'].setPreset = function(value)
+  	qualityPreset = value
+  	loadPreset()
   end
 
   if (gl.CreateShader == nil) then
@@ -444,17 +495,17 @@ local function Bloom()
 		mglRenderToTexture(brightTexture1, screenTexture, 1, -1)
 	glUseShader(0)
 	
-	for i = 1, 4 do
+	for i = 1, blurPasses do
 		glUseShader(blurShaderH71)
 			glUniformInt(blurShaderH71Text0Loc, 0)
 			glUniform(   blurShaderH71InvRXLoc, ivsx)
-			glUniform(	 blurShaderH71FragLoc, kernelRadius)
+			glUniform(	 blurShaderH71FragLoc, kernelRadius*blursize*globalBlursizeMult)
 			mglRenderToTexture(brightTexture2, brightTexture1, 1, -1)
 		glUseShader(0)
 		glUseShader(blurShaderV71)
 			glUniformInt(blurShaderV71Text0Loc, 0)
 			glUniform(   blurShaderV71InvRYLoc, ivsy)
-			glUniform(	 blurShaderV71FragLoc, kernelRadius)
+			glUniform(	 blurShaderV71FragLoc, kernelRadius*blursize*globalBlursizeMult)
 			mglRenderToTexture(brightTexture1, brightTexture2, 1, -1)
 		glUseShader(0)
 	end
@@ -478,11 +529,24 @@ end
 function widget:GetConfigData(data)
     savedTable = {}
     savedTable.basicAlpha = basicAlpha
+	savedTable.qualityPreset = qualityPreset
+	savedTable.globalBlursizeMult = globalBlursizeMult
     return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.basicAlpha ~= nil then
 		basicAlpha = data.basicAlpha
+	end
+	if data.globalBlursizeMult ~= nil then
+		globalBlursizeMult = data.globalBlursizeMult
+	end
+	if data.qualityPreset ~= nil then
+		if presets[data.qualityPreset] ~= nil then
+			qualityPreset = data.qualityPreset
+			blursize = presets[qualityPreset].blursize
+			blurPasses = presets[qualityPreset].blurPasses
+			quality = presets[qualityPreset].quality
+		end
 	end
 end
