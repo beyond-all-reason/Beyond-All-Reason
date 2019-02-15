@@ -243,26 +243,26 @@ function widget:Initialize()
   SetIllumThreshold()
 
   WG['bloom'] = {}
-	WG['bloom'].getBrightness = function()
-		return basicAlpha
-	end
-	WG['bloom'].setBrightness = function(value)
-		basicAlpha = value
-		reset()
-		if initialized == false then
-			Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
-		end
-	end
-	WG['bloom'].getBlursize = function()
-		return globalBlursizeMult
-	end
-	WG['bloom'].setBlursize = function(value)
-		globalBlursizeMult = value
-		reset()
-		if initialized == false then
-			Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
-		end
-	end
+  WG['bloom'].getBrightness = function()
+  	return basicAlpha
+  end
+  WG['bloom'].setBrightness = function(value)
+  	basicAlpha = value
+  	reset()
+  	if initialized == false then
+  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+  	end
+  end
+  WG['bloom'].getBlursize = function()
+  	return globalBlursizeMult
+  end
+  WG['bloom'].setBlursize = function(value)
+  	globalBlursizeMult = value
+  	reset()
+  	if initialized == false then
+  		Spring.Echo('Bloom shader doesnt work (enable shaders: \'ForceShaders = 1\' in springsettings.cfg)')
+  	end
+  end
   WG['bloom'].getPreset = function()
   	return qualityPreset
   end

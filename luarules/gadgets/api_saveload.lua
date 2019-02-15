@@ -363,7 +363,7 @@ local function LoadUnits()
 			else
 				Spring.SetUnitCloak(newID, false)	-- workaround cloak persisting even when unit's "want cloak" state is false
 			end
-			GG.UpdateUnitAttributes(newID)
+			--GG.UpdateUnitAttributes(newID) -- BA doesnt have the gadget ZK has
 			
 			-- is neutral
 			spSetUnitNeutral(newID, data.neutral or false)
@@ -409,7 +409,7 @@ local function LoadUnits()
 	-- second pass for orders
 	for oldID, data in pairs(savedata.unit) do
 		LoadOrdersForUnit(unitID, data)
-		
+
 		if data.factoryData then
 			for i=1,#data.factoryData.commands do
 				local facCmd = data.factoryData.commands[i]
@@ -421,7 +421,7 @@ local function LoadUnits()
 				buildeeData.unitID = GetNewUnitID(buildeeData.unitID)
 				buildeeData.factoryID = GetNewUnitID(buildeeData.factoryID)
 				factoryBuildeesToDelete[index] = buildeeData
-				
+
 				Spring.SetUnitCOBValue(data.newID, COB.YARD_OPEN, 1)
 				Spring.SetUnitCOBValue(data.newID, COB.INBUILDSTANCE, 1)
 				Spring.SetUnitCOBValue(data.newID, COB.BUGGER_OFF, 1)

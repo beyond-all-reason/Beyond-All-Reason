@@ -15,22 +15,18 @@ end
 
 -- config params
 local dbgDraw = 0                -- draw only the bloom-mask? [0 | 1]
+local globalBlursizeMult = 1
+
 local glowAmplifier = 0.75            -- intensity multiplier when filtering a glow source fragment [1, n]
 local blurAmplifier = 1        -- intensity multiplier when applying a blur pass [1, n] (should be set close to 1)
 local drawWorldAlpha = 0.08		-- darken world so bloom doesnt blown-white out the brightest areas too much
 local illumThreshold = 0            -- how bright does a fragment need to be before being considered a glow source? [0, 1]
-local blursize = 24 			-- gaussian blur iteration blur size
-local blurPasses = 1                -- how many iterations of Gaussian blur should be applied to the glow sources?
---quality =1 : 90 fps, 9% memctrler load, 99% shader load
---quality =2 : 113 fps, 57% memctrler load, 99% shader load
---quality =4 : 123 fps, 9% memctrler load, 99% shader load
-local quality = 3
 
 local presets = {
 	{
-		blursize = 22,
-		blurPasses = 1,
-		quality = 4,
+		blursize = 22,	-- gaussian blur iteration blur size
+		blurPasses = 1,	-- how many iterations of Gaussian blur should be applied to the glow sources?
+		quality = 4,	-- resolution divider
 	},
 	{
 		blursize = 17,
@@ -43,10 +39,13 @@ local presets = {
 		quality = 2,
 	},
 }
+--quality =1 : 90 fps, 9% memctrler load, 99% shader load
+--quality =2 : 113 fps, 57% memctrler load, 99% shader load
+--quality =4 : 123 fps, 9% memctrler load, 99% shader load
 local qualityPreset = 1
-blursize = presets[qualityPreset].blursize
-blurPasses = presets[qualityPreset].blurPasses
-quality = presets[qualityPreset].quality
+local blursize = presets[qualityPreset].blursize
+local blurPasses = presets[qualityPreset].blurPasses
+local quality = presets[qualityPreset].quality
 
 	-- non-editables
 local vsx = 1                        -- current viewport width
@@ -190,7 +189,7 @@ local function MakeBloomShaders()
 				gl_FragColor = vec4(newblur * invKernelSum * fragBlurAmplifier, 1.0);
 			}
 		]],
-		uniformInt = {texture0 = 0, blursize = blursize},
+		uniformInt = {texture0 = 0, blursize = math.floor(blursize*globalBlursizeMult)},
 		uniformFloat = {inverseRX, fragBlurAmplifier}
 	})
 
@@ -218,7 +217,7 @@ local function MakeBloomShaders()
 			}
 		]],
 
-		uniformInt = {texture0 = 0, blursize = blursize},
+		uniformInt = {texture0 = 0, blursize = math.floor(blursize*globalBlursizeMult)},
 		uniformFloat = {inverseRY, fragBlurAmplifier}
 	})
 
@@ -327,6 +326,13 @@ function widget:Initialize()
 	end
 	WG['bloomdeferred'].setBrightness = function(value)
 		glowAmplifier = value
+		MakeBloomShaders()
+	end
+	WG['bloomdeferred'].getBlursize = function()
+		return globalBlursizeMult
+	end
+	WG['bloomdeferred'].setBlursize = function(value)
+		globalBlursizeMult = value
 		MakeBloomShaders()
 	end
 	WG['bloomdeferred'].getPreset = function()
@@ -451,12 +457,16 @@ function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.glowAmplifier = glowAmplifier
 	savedTable.qualityPreset = qualityPreset
+	savedTable.globalBlursizeMult = globalBlursizeMult
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.glowAmplifier ~= nil then
 		glowAmplifier = data.glowAmplifier
+	end
+	if data.globalBlursizeMult ~= nil then
+		globalBlursizeMult = data.globalBlursizeMult
 	end
 	if data.qualityPreset ~= nil then
 		if presets[data.qualityPreset] ~= nil then

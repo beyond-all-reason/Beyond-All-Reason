@@ -1365,6 +1365,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value)
 		elseif id == 'bloomdeferredbrightness' then
 			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', {'glowAmplifier'}, value)
+		elseif id == 'bloomdeferredsize' then
+			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBlursize', {'globalBlursizeMult'}, value)
 		elseif id == 'bloombrightness' then
 			saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', {'basicAlpha'}, value)
 		elseif id == 'bloomsize' then
@@ -1830,6 +1832,7 @@ function loadAllWidgetData()
 	loadWidgetData("Shadow Quality Manager", "shadows_disablefps", {'disableFps'})
 
 	loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", {'glowAmplifier'})
+	loadWidgetData("Bloom Shader Deferred", "bloomdeferredsize", {'qualityBlursizeMult'})
 	loadWidgetData("Bloom Shader Deferred", "bloomdeferredquality", {'qualityPreset'})
 
 	loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'})
@@ -2000,11 +2003,12 @@ function init()
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
 
-		{id="bloomdeferred", group="gfx", widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.'},
+		{id="bloomdeferred", group="gfx", widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)'},
 		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description=''},
+		--{id="bloomdeferredsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.8, max=1.5, step=0.05, value=1, description=''},
 		--{id="bloomdeferredquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
 
-		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom (global)", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow'},
+		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom (global)", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow\n\n(might result in more laggy experience)'},
 		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.15, max=0.5, step=0.05, value=0.3, description=''},
 		{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.75, max=1.5, step=0.05, value=1, description=''},
 		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
@@ -2335,6 +2339,7 @@ function init()
 	end
 	if widgetHandler.knownWidgets["Bloom Shader Deferred"] == nil then
 		options[getOptionByID('bloomdeferredbrightness')] = nil
+		options[getOptionByID('bloomdeferredsize')] = nil
 		options[getOptionByID('bloomdeferredquality')] = nil
 	end
 
