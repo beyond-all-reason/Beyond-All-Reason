@@ -2200,6 +2200,7 @@ function init()
 		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units, holding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 	}
 
+
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
 		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel",0))
@@ -2261,6 +2262,13 @@ function init()
 
 	if #supportedResolutions < 2 then
 		options[getOptionByID('resolution')] = nil
+	else
+		for id,res in pairs(options[getOptionByID('resolution')].options) do
+			if res == vsx..' x '..vsy then
+				options[getOptionByID('resolution')].value = id
+				break
+			end
+		end
 	end
 
 	-- add sound notification widget sound toggle options

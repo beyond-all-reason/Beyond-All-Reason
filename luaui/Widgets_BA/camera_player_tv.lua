@@ -302,15 +302,17 @@ function updatePosition(force)
 		end
 	end
 
-	left = parentPos[2]
-	bottom = parentPos[1]
-	right = parentPos[4]
-	top = parentPos[1]+(widgetHeight*parentPos[5])
-	widgetScale = parentPos[5]
+	if parentPos[1] then
+		left = parentPos[2]
+		bottom = parentPos[1]
+		right = parentPos[4]
+		top = parentPos[1]+(widgetHeight*parentPos[5])
+		widgetScale = parentPos[5]
 
-	if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
-		createCountdownLists()
-		createList()
+		if (prevPos[1] == nil or prevPos[1] ~= parentPos[1] or prevPos[2] ~= parentPos[2] or prevPos[5] ~= parentPos[5]) or force then
+			createCountdownLists()
+			createList()
+		end
 	end
 end
 
