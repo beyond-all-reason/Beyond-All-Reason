@@ -1483,7 +1483,7 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SetConfigInt("YResolutionWindowed", tonumber(resolutionY))
 				Spring.SendCommands("Fullscreen 0")
 			end
-			options[i].value = 0
+			--options[i].value = 0
 		end
 	end
 	if skipRedrawWindow == nil then
