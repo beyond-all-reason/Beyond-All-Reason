@@ -103,7 +103,6 @@ end
 
 function widget:UpdateCallIns()
   self:ViewResize(vsx, vsy)
-
   self.DrawScreenEffects = DrawScreenEffectsBlur
   widgetHandler:UpdateCallIn("DrawScreenEffects")
 end
@@ -187,14 +186,13 @@ local function CheckHardware()
     return false
   end
 
-  if Platform ~= nil then
-     if Platform.gpuVendor == 'Intel' then
-         Spring.Echo("guishader api: you use an Intel GPU, it will malfunction so we'll disable")
-         widgetHandler:RemoveWidget(self)
-         --Spring.SendCommands("luaui disablewidget "..widgetName)
-         return false
-     end
-  end
+  --if Platform ~= nil then
+  --   if Platform.gpuVendor == 'Intel' then
+  --       widgetHandler:RemoveWidget(self)
+  --       Spring.SendCommands("luaui disablewidget "..widgetName)
+  --       return false
+  --   end
+  --end
   return true
 end
 
@@ -263,9 +261,11 @@ function CreateShaders()
         void main(void)
         {
             vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
-            float stencil = texture2D(tex2, texCoord).a; if (stencil<0.01)
+            float stencil = texture2D(tex2, texCoord).a;
+            if (stencil<0.01)
             {
-                gl_FragColor = texture2D(tex0, texCoord); return;
+                gl_FragColor = texture2D(tex0, texCoord);
+                return;
             }
             gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 
@@ -282,12 +282,13 @@ function CreateShaders()
             gl_FragColor.rgb += 0.11 * texture2D(tex0, texCoord + vec2( intensity,  intensity)).rgb;
         }
     ]],
-    uniform = {
-      intensity = blurIntensity,
-    },
+
     uniformInt = {
       tex0 = 0,
       tex2 = 2,
+    },
+    uniformFloat = {
+      intensity = blurIntensity,
     }
   })
 	
@@ -351,8 +352,8 @@ end
 --------------------------------------------------------------------------------
 
 function widget:DrawScreenEffectsBlur()
-	if Spring.IsGUIHidden() then return end
-	
+  if Spring.IsGUIHidden() then return end
+
   if not screenBlur or not allowScreenBlur then
 	  if not next(guishaderRects) then return end
 
