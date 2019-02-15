@@ -55,6 +55,7 @@ function script.Create()
 	gun1 = 1
 	difference = 0
 	StartThread(SmokeUnit, {base, turret})
+	StartThread(AccelBrakeAnimations)
 	hp = 100
 	if flare1 then
 		Hide(flare1)
@@ -99,16 +100,34 @@ function SmokeUnit(smokePieces)
 end
 
 function script.RockUnit (x,z)
-	local ux, uy, uz = Spring.GetUnitDirection(unitID)
-	nux = (ux /math.sqrt(ux^2 + uz^2))
-	nuz = (uz /math.sqrt(ux^2 + uz^2))
+	local maxReloadTime = Spring.GetUnitWeaponState(unitID, 1, "reloadTimeXP") * 1000
 	RockXFactor = -z
 	RockZFactor = x
-	Turn (base, 1, -RockXFactor*rockStrength, rockSpeed)
-	Turn (base, 3, RockZFactor*rockStrength, rockSpeed)
-	Sleep (50)
-	Turn (base, 1, 0, rockRestoreSpeed)
-	Turn (base, 3, 0, rockRestoreSpeed)
+	local moveamnt = -RockXFactor * rockStrength * 50
+	local turnamnt = RockZFactor*rockStrength
+
+	Move (base, 3, moveamnt, moveamnt / ((maxReloadTime/1000) / 8))
+	Turn (base, 3, turnamnt,  turnamnt / ((maxReloadTime/1000) / 8))
+	Sleep (maxReloadTime/16)
+
+	Move (base, 3, moveamnt, moveamnt / ((maxReloadTime/1000) / 4))
+	Turn (base, 3, turnamnt,  turnamnt / ((maxReloadTime/1000) / 4))
+	Sleep (maxReloadTime/16)
+
+	Move (base, 3, moveamnt, moveamnt / ((maxReloadTime/1000) / 2))
+	Turn (base, 3, turnamnt,  turnamnt / ((maxReloadTime/1000) / 2))
+	Sleep (maxReloadTime/16)
+
+	Move (base, 3, moveamnt, moveamnt / ((maxReloadTime/1000) / 1))
+	Turn (base, 3, turnamnt,  turnamnt / ((maxReloadTime/1000) / 1))
+	Sleep (maxReloadTime/16)
+	
+	Move (base, 3, 0, moveamnt / ((maxReloadTime/1000) * 6 / 4))
+	Turn (base, 3, 0, turnamnt / ((maxReloadTime/1000) * 6 / 4))
+	Sleep (maxReloadTime/12)
+	
+	Move (base, 3, 0, moveamnt / ((maxReloadTime/1000) * 3 / 4))
+	Turn (base, 3, 0, turnamnt / ((maxReloadTime/1000) * 3 / 4))
 end
 
 function ProcessAngularSpeeds(speed)
@@ -124,6 +143,19 @@ function GetIsTerrainWater()
 		return false
 	end
 end
+
+function AccelBrakeAnimations()
+	while (true) do
+		_,_,_,curSpeed = Spring.GetUnitVelocity(unitID)
+		if lastSpeed then
+			local deltaSpeed = (curSpeed - lastSpeed)*30 / uDef.speed
+			Turn(base, 1, -deltaSpeed*5, 0.2 + math.abs(2*deltaSpeed))
+		end
+		lastSpeed = curSpeed
+		Sleep (33)
+	end
+end
+		
 
 function script.ChangeHeading(curDelta)
 	if not lastDelta then lastDelta = curDelta end
