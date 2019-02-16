@@ -58,7 +58,7 @@ return {
 			restoretime = "3000",
 			rockrestorespeed = "15",
 			rockspeed = "60",
-			rockstrength = "8",
+			rockstrength = "6",
 			sleevename = "turret",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,

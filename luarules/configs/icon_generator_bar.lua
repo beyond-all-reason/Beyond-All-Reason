@@ -65,7 +65,7 @@ local IconConfig = {
     --// render options textured
     textured     = true,
     lightAmbient = {0.6,0.6,0.6},
-    lightDiffuse = {1.12,1.12,1.12},
+    lightDiffuse = {1.1,1.1,1.1},
     lightPos     = {-0.3,0.5,0.55},  --{-0.2,0.4,0.5},
 
     --// Ambient Occlusion & Outline settings

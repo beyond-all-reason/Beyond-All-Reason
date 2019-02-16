@@ -64,7 +64,7 @@ return {
 			restoretime = "3000",
 			rockrestorespeed = "3",
 			rockspeed = "80",
-			rockstrength = "15",
+			rockstrength = "8",
 			sleevename = "sleeve",
 			subfolder = "corevehicles/t2",
 			techlevel = 2,

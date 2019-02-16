@@ -162,8 +162,8 @@ function reset()
 	--if not initialized then return end
 
 	usedBasicAlpha = basicAlpha
-	drawWorldAlpha = 0.03 + (usedBasicAlpha/12)
-	drawWorldPreUnitAlpha = 0.2 - (illumThreshold*0.4) + (usedBasicAlpha/6)
+	drawWorldAlpha = 0.04 + (usedBasicAlpha/12)
+	drawWorldPreUnitAlpha = 0.3 - (illumThreshold*0.4) + (usedBasicAlpha/6)
 
 	gl.DeleteTexture(brightTexture1 or "")
 	gl.DeleteTexture(brightTexture2 or "")
@@ -215,7 +215,7 @@ function widget:DrawWorldPreUnit()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	if initialized == false or drawWorldPreUnitAlpha <= 0.05 then return end
 	gl.PushMatrix()
-	gl.Color(0,0,0,drawWorldPreUnitAlpha*(basicAlpha*2))
+	gl.Color(0,0,0,drawWorldPreUnitAlpha*(basicAlpha*1.5))
 	gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
 	gl.Billboard()
 	gl.Rect(-500, -500, 500, 500)
@@ -226,7 +226,7 @@ function widget:DrawWorld()
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 	if initialized == false or drawWorldAlpha <= 0.05 then return end
 	gl.PushMatrix()
-	gl.Color(0,0,0,drawWorldAlpha*(basicAlpha*2))
+	gl.Color(0,0,0,drawWorldAlpha*(basicAlpha*1.5))
 	gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
 	gl.Billboard()
 	gl.Rect(-500, -500, 500, 500)
