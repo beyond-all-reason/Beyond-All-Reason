@@ -96,9 +96,9 @@ function SmokeUnit(smokePieces)
 end
 
 function script.RockUnit (x,z)
-	local maxReloadTime = math.min(Spring.GetUnitWeaponState(unitID, 1, "reloadTimeXP") * 1000 , 1500)
-	RockXFactor = -z
-	RockZFactor = x
+	local maxReloadTime = math.min(Spring.GetUnitWeaponState(unitID, 1, "reloadTimeXP") * 240 , 360)
+	RockXFactor = -z/3.5
+	RockZFactor = x/3.5
 	local moveamnt = -RockXFactor * rockStrength * 50
 	local turnamnt = RockZFactor*rockStrength
 
