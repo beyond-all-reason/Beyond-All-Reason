@@ -64,8 +64,8 @@ local IconConfig = {
   [1] = {
     --// render options textured
     textured     = true,
-    lightAmbient = {0.44,0.44,0.44},
-    lightDiffuse = {1.2,1.2,1.2},
+    lightAmbient = {0.6,0.6,0.6},
+    lightDiffuse = {1.12,1.12,1.12},
     lightPos     = {-0.3,0.5,0.55},  --{-0.2,0.4,0.5},
 
     --// Ambient Occlusion & Outline settings
@@ -77,18 +77,18 @@ local IconConfig = {
 
     halo = false,
   },
-  [2] = {
-    textured     = true,
-    lightAmbient = {0.44,0.44,0.44},
-    lightDiffuse = {1.2,1.2,1.2},
-    lightPos     = {-0.3,0.5,0.55},
-    aoPower      =  3,
-    aoContrast   =  3,
-    aoTolerance  =  0,
-    olContrast   =  0,
-    olTolerance  =  0,
-    halo         = false,
-  },
+  --[2] = {
+  --  textured     = true,
+  --  lightAmbient = {0.44,0.44,0.44},
+  --  lightDiffuse = {1.2,1.2,1.2},
+  --  lightPos     = {-0.3,0.5,0.55},
+  --  aoPower      =  3,
+  --  aoContrast   =  3,
+  --  aoTolerance  =  0,
+  --  olContrast   =  0,
+  --  olTolerance  =  0,
+  --  halo         = false,
+  --},
 }
 
 local selConfig = 1
