@@ -1,3 +1,5 @@
+local weaponScripts = {}
+
 	uDef = UnitDefs[Spring.GetUnitDefID(unitID)]
 	basename = uDef.customParams and uDef.customParams.basename or "base"
 	turretname = uDef.customParams and uDef.customParams.turretname or "turret"
@@ -37,21 +39,15 @@ end
 function script.Create()	
 	wpn1_lasthead = 10000
 	wpn2_lasthead = 10000
-	COBturretYSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretyspeed) or 200
-	COBturretXSpeed = tonumber(uDef.customParams and uDef.customParams.cobturretxspeed) or 200
-	COBkickbackRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.kickbackrestorespeed) or 10
+	COBturretYSpeed = tonumber(uDef.customParams and uDef.customParams.wpn1turrety) or 200
+	COBturretXSpeed = tonumber(uDef.customParams and uDef.customParams.wpn1turretx) or 200
 	kickback = tonumber(uDef.customParams and uDef.customParams.kickback) or -2	
 	restoreTime = tonumber(uDef.customParams and uDef.customParams.restoretime) or 3000	
 	COBrockStrength = tonumber(uDef.customParams and uDef.customParams.rockstrength) or 20
-	COBrockSpeed = tonumber(uDef.customParams and uDef.customParams.rockspeed) or 60
-	COBrockRestoreSpeed = tonumber(uDef.customParams and uDef.customParams.rockrestorespeed) or 60
 	firingCEG = uDef.customParams and uDef.customParams.firingceg or "barrelshot-medium"
-	rockStrength = ProcessAngularSpeeds(COBrockStrength)
-	rockSpeed = ProcessAngularSpeeds(COBrockSpeed)
-	rockRestoreSpeed = ProcessAngularSpeeds(COBrockRestoreSpeed)
-	turretYSpeed = ProcessAngularSpeeds(COBturretYSpeed)
-	turretXSpeed = ProcessAngularSpeeds(COBturretXSpeed)
-	kickbackRestoreSpeed = COBkickbackRestoreSpeed
+	rockStrength = math.rad(COBrockStrength)
+	turretYSpeed = math.rad(COBturretYSpeed)
+	turretXSpeed = math.rad(COBturretXSpeed)
 	gun1 = 1
 	difference = 0
 	StartThread(SmokeUnit, {base, turret})
@@ -241,16 +237,19 @@ function script.AimWeapon1( heading, pitch )
 end
 
 function script.Shot1()
+	local maxReloadTime = math.min(Spring.GetUnitWeaponState(unitID, 1, "reloadTimeXP") * 1000 , 1500)
+	local kbsize = kickback
+	local kbspeed = kbsize/(maxReloadTime / 1000)
 	if flare2 then
 		if gun1 == 1 then
 			Emit(flare1, firingCEG)
-			Move(cannon1, 3, kickback)
-			Move(cannon1, 3, 0, kickbackRestoreSpeed)
+			Move(cannon1, 3, kbsize)
+			Move(cannon1, 3, 0, kbspeed)
 			gun1 = 2
 		else
 			Emit(flare2, firingCEG)
-			Move(cannon2, 3, kickback)
-			Move(cannon2, 3, 0, kickbackRestoreSpeed)
+			Move(cannon2, 3, kbsize)
+			Move(cannon2, 3, 0, kbspeed)
 			gun1 = 1
 			if hp < 30 then
 			Explode(cannon2, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
@@ -260,8 +259,8 @@ function script.Shot1()
 		end
 	else
 		Emit(flare1, firingCEG)
-		Move(cannon1, 3, kickback)
-		Move(cannon1, 3, 0, kickbackRestoreSpeed)
+		Move(cannon1, 3, kbsize)
+		Move(cannon1, 3, 0, kbspeed)
 	end
 	Spring.UnitScript.Signal(31)
 	Spring.UnitScript.StartThread(Restore,restoreTime)
@@ -308,16 +307,19 @@ function script.AimWeapon2( heading, pitch )
 end
 
 function script.Shot2()
+	local maxReloadTime = math.min(Spring.GetUnitWeaponState(unitID, 2, "reloadTimeXP") * 1000 , 1500)
+	local kbsize = kickback
+	local kbspeed = kbsize/(maxReloadTime / 1000)
 	if flare2 then
 		if gun1 == 1 then
 			Emit(flare1, firingCEG)
-			Move(cannon1, 3, kickback)
-			Move(cannon1, 3, 0, kickbackRestoreSpeed)
+			Move(cannon1, 3, kbsize)
+			Move(cannon1, 3, 0, kbspeed)
 			gun1 = 2
 		else
 			Emit(flare2, firingCEG)
-			Move(cannon2, 3, kickback)
-			Move(cannon2, 3, 0, kickbackRestoreSpeed)
+			Move(cannon2, 3, kbsize)
+			Move(cannon2, 3, 0, kbspeed)
 			gun1 = 1
 			if hp < 30 then
 			Explode(cannon2, SFX.EXPLODE_ON_HIT + SFX.FIRE + SFX.SMOKE + SFX.NO_HEATCLOUD + SFX.FALL)
@@ -327,8 +329,8 @@ function script.Shot2()
 		end
 	else
 		Emit(flare1, firingCEG)
-		Move(cannon1, 3, kickback)
-		Move(cannon1, 3, 0, kickbackRestoreSpeed)
+		Move(cannon1, 3, kbsize)
+		Move(cannon1, 3, 0, kbspeed)
 	end
 	Spring.UnitScript.Signal(31)
 	Spring.UnitScript.StartThread(Restore,restoreTime)

@@ -31,16 +31,16 @@
 	end
 	
     function gadget:UnitCreated(unitID, unitDefID)
-		if UnitDefs[unitDefID].weapons then
-		for i = 1, 32 do
-			if UnitDefs[unitDefID].weapons[i] then
-				local customParamName = "wpn"..(tostring(i)).."turret"
-				if UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams[customParamName.."x"] and UnitDefs[unitDefID].customParams[customParamName.."y"] then
-					local TurretX = (tonumber(UnitDefs[unitDefID].customParams[customParamName.."x"]))*182
-					local TurretY = (tonumber(UnitDefs[unitDefID].customParams[customParamName.."y"]))*182
-					Spring.CallCOBScript(unitID, "SetWeapon"..(tostring(i)).."TurretSpeed", 0, TurretX, TurretY)
+		if UnitDefs[unitDefID].weapons and (not string.find((UnitDefs[unitDefID].scriptName), "BASICTANKSCRIPT.LUA")) then
+			for i = 1, 32 do
+				if UnitDefs[unitDefID].weapons[i] then
+					local customParamName = "wpn"..(tostring(i)).."turret"
+					if UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams[customParamName.."x"] and UnitDefs[unitDefID].customParams[customParamName.."y"] then
+						local TurretX = (tonumber(UnitDefs[unitDefID].customParams[customParamName.."x"]))*182
+						local TurretY = (tonumber(UnitDefs[unitDefID].customParams[customParamName.."y"]))*182
+						Spring.CallCOBScript(unitID, "SetWeapon"..(tostring(i)).."TurretSpeed", 0, TurretX, TurretY)
+					end
 				end
 			end
-		end
 		end
     end
