@@ -18,7 +18,7 @@ local startframe = 1000000000
 local index=1
 local counter = 1
 local unitnames={}
-local timedelay=6*30 --yeah this crap takes 8 hours, for a total of 427 units :D
+local timedelay=7*30 -- delay to let garbage collector do its work, increase this if UI crashes (this crap takes hours for 400+ units)
 
 function buildslowly(_,_,params)
 	if #params == 1 then

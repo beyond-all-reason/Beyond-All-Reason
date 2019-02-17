@@ -144,7 +144,7 @@ return {
 				tracks = true,
 				turnrate = 63000,
 				turret = true,
-				weaponacceleration = 200,
+				weaponacceleration = 164,
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 670,

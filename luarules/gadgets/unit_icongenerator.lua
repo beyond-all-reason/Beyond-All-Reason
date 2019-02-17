@@ -41,11 +41,13 @@ if (gadgetHandler:IsSyncedCode()) then
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-  local units = {};
-  local createunits  = {};
-  local curTeam;
-  local nextUnitX,nextUnitZ = 100,100;
+  local renderOverlay = true
 
+
+  local units = {}
+  local createunits  = {}
+  local curTeam
+  local nextUnitX,nextUnitZ = 100,100
 
   local function GameFrame(_,n)
     local new = {};
@@ -792,8 +794,8 @@ end
 	  if (UnitDefs[unitdefid].isBuilder == true and UnitDefs[unitdefid].canMove == true) or ( UnitDefs[unitdefid].name == 'armnanotc' or UnitDefs[unitdefid].name == 'armnanotcplat' or UnitDefs[unitdefid].name == 'cornanotc' or UnitDefs[unitdefid].name == 'cornanotcplat')then
 		builderunit = true
 	  end
-	  
-	  if amfibianunit then 
+
+	  if amfibianunit then
 	    gl.Texture("LuaRules/Images/amfibianunit.png");
 	    gl.TexRect(-1,-1,1,1);
 	    gl.Texture(false);
@@ -1009,9 +1011,10 @@ end
       gl.TexRect(-1,-1,1,1,
         left/(renderX), bottom/(renderY),
         (left+width)/(renderX), (bottom+height)/(renderY));
-        
-      Overlay(udid)	-- draw water drop if water unit
-      
+      if renderOverlay then
+        Overlay(udid)	-- draw water drop if water unit
+      end
+
       gl.Blending(false);
       gl.Texture(false);
 
