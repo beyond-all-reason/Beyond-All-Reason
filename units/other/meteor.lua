@@ -89,7 +89,6 @@ return {
 					commanders = 10,
 					default = 700,
 					tinychicken = 0.001,
-					vtol = 2500,
 				},
 			},
 		},

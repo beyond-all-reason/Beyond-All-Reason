@@ -118,9 +118,7 @@ return {
 					expl_light_heat_radius_mult = 1.3,
 				},
 				damage = {
-					bombers = 5,
 					default = 50,
-					ship = 100,
 					subs = 70,
 				},
 			},

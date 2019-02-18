@@ -107,7 +107,7 @@ return {
 				name = "HeadRockets",
 				noselfdamage = true,
 				proximitypriority = -1,
-				range = 660,
+				range = 650,
 				reloadtime = 4,
 				smoketrail = false,
 				soundhit = "packohit",
