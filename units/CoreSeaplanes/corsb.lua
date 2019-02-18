@@ -119,6 +119,7 @@ return {
 				},
 				damage = {
 					default = 50,
+					bombers = 10,
 					subs = 70,
 				},
 			},
