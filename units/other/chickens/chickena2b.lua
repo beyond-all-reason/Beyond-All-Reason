@@ -111,7 +111,6 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 400,
-					hvyboats = 400,
 				},
 			},
 			weapon = {
@@ -139,7 +138,6 @@ return {
 				weaponvelocity = 700,
 				damage = {
 					default = 300,
-					hvyboats = 300,
 				},
 			},
 		},

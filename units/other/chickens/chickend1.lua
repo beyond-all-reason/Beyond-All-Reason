@@ -106,7 +106,6 @@ return {
 				wobble = 32000,
 				damage = {
 					default = 400,
-					hvyboats = 400,
 				},
 			},
 		},

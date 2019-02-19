@@ -94,7 +94,6 @@ return {
 				weapontype = "AircraftBomb",
 				damage = {
 					default = 250,
-					hvyboats = 250,
 				},
 			},
 		},

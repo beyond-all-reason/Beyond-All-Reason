@@ -90,7 +90,6 @@ return {
 				damage = {
 					chicken = 0.1,
 					default = 5000,
-					hvyboats = 5000,
 				},
 			},
 		},

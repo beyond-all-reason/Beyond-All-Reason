@@ -105,7 +105,6 @@ return {
 					bombers = 7,
 					default = 70,
 					fighters = 7,
-					hvyboats = 70,
 					vtol = 7,
 				},
 			},

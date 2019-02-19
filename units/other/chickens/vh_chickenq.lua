@@ -109,7 +109,6 @@ return {
 				weaponvelocity = 800,
 				damage = {
 					default = 1000,
-					hvyboats = 1000,
 				},
 			},
 			melee = {
@@ -139,7 +138,6 @@ return {
 				weaponvelocity = 2500,
 				damage = {
 					default = 900,
-					hvyboats = 900,
 				},
 			},
 			spores1 = {
@@ -185,7 +183,6 @@ return {
 				wobble = 64000,
 				damage = {
 					default = 285,
-					hvyboats = 285,
 				},
 			},
 			spores2 = {
@@ -231,7 +228,6 @@ return {
 				wobble = 64000,
 				damage = {
 					default = 285,
-					hvyboats = 285,
 				},
 			},
 			spores3 = {
@@ -277,7 +273,6 @@ return {
 				wobble = 64000,
 				damage = {
 					default = 285,
-					hvyboats = 285,
 				},
 			},
 		},
