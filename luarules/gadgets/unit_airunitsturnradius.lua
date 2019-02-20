@@ -50,7 +50,14 @@ function gadget:UnitCreated(unitID, unitDefID)
 		Bombers[unitID] = true
 	end
 	if fighters[unitDefID] then
+		local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
+		if curMoveCtrl then
+			Spring.MoveCtrl.Disable(unitID)
+		end
 		Spring.MoveCtrl.SetAirMoveTypeData(unitID, "attackSafetyDistance", 300)
+		if curMoveCtrl then
+			Spring.MoveCtrl.Enable(unitID)
+		end
 	end
 end
 
@@ -65,9 +72,23 @@ function gadget:GameFrame(n)
 		for unitID, isbomber in pairs (Bombers) do
 			local cQueue = Spring.GetCommandQueue(unitID,1)
 			if (cQueue[1] and cQueue[1].id == CMD.ATTACK) or (not cQueue[1]) then
+				local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
+				if curMoveCtrl then
+					Spring.MoveCtrl.Disable(unitID)
+				end
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
+				if curMoveCtrl then
+					Spring.MoveCtrl.Enable(unitID)
+				end
 			elseif Spring.GetUnitMoveTypeData(unitID).turnRadius then
+				local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
+				if curMoveCtrl then
+					Spring.MoveCtrl.Disable(unitID)
+				end
 				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
+				if curMoveCtrl then
+					Spring.MoveCtrl.Enable(unitID)
+				end
 			end
 		end
 	end
@@ -76,9 +97,23 @@ end
 function gadget:AllowCommand(unitID, _, _, _, cmdID)
 	if Bombers[unitID] and not Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 		if cmdID == CMD.ATTACK then
+			local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
+			if curMoveCtrl then
+				Spring.MoveCtrl.Disable(unitID)
+			end
 			Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", 500)
+			if curMoveCtrl then
+				Spring.MoveCtrl.Enable(unitID)
+			end
 		else
+			local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)
+			if curMoveCtrl then
+				Spring.MoveCtrl.Disable(unitID)
+			end
 			Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
+			if curMoveCtrl then
+				Spring.MoveCtrl.Enable(unitID)
+			end
 		end
 	end
 	return true
