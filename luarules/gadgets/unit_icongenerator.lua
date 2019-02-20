@@ -52,7 +52,7 @@ if (gadgetHandler:IsSyncedCode()) then
   local function GameFrame(_,n)
     local new = {};
     for i=1,#units do
-      if ((units[i].frame + 30) == n) then
+      if ((units[i].frame + 5) == n) then
         Spring.DestroyUnit(units[i].id,false,true);
       elseif (units[i].frame == n) then
         SendToUnsynced("buildicon_unitcreated",units[i].id,units[i].defname);
@@ -79,6 +79,7 @@ if (gadgetHandler:IsSyncedCode()) then
         Spring.LevelHeightMap(x-50,z-50,x+50,z+50,y);
 
         local uid = Spring.CreateUnit(cunit.defname,x,y,z,"south", 0);	-- FIXME needs to be a non-gaia team if gaia doesn't have its unitlimit assigned
+
         if uid then
 			units[#units+1] = {id=uid,defname=cunit.defname,frame=n+cunit.time};
 			curTeam = cunit.team;
@@ -183,6 +184,8 @@ local scheme;
 local ratio, ratio_name;
 local iconX, iconY;
 local outdir;
+
+local unitAnimCfg = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -647,7 +650,9 @@ local function DrawIcon(udid,teamID,uid)
   gl.LoadIdentity();
 
   gl.Rotate(cfg.angle,1,0,0);
-
+  if cfg.rotation then
+    gl.Rotate(cfg.rotation,0,1,0);
+  end
   if (cfg.rot=="right") then
     gl.Rotate(45,0,1,0);
   elseif (cfg.rot=="left") then
@@ -895,7 +900,23 @@ end
 
 
 local function CenterIcon(udid)
-  local top,left,bottom,right = DetectBoundings();
+  local ac = autoConfigs[udid];
+  ac.attempt = (ac.attempt or (1/0.99)) * 0.99;
+
+  local top,left,bottom,right
+  if unitAnimCfg[udid] and unitAnimCfg[udid][ac.attempt] then  -- when for anim-gif rotating, use same center cfg
+    top,left,bottom,right = unitAnimCfg[udid][ac.attempt][1],unitAnimCfg[udid][ac.attempt][2],unitAnimCfg[udid][ac.attempt][3],unitAnimCfg[udid][ac.attempt][4]
+  else
+    top,left,bottom,right = DetectBoundings();
+    if not unitAnimCfg[udid] then
+      unitAnimCfg[udid] = {}
+    end
+    if not unitAnimCfg[udid][ac.attempt] then
+      unitAnimCfg[udid][ac.attempt] = {}
+    end
+    unitAnimCfg[udid][ac.attempt][1],unitAnimCfg[udid][ac.attempt][2],unitAnimCfg[udid][ac.attempt][3],unitAnimCfg[udid][ac.attempt][4] = top,left,bottom,right
+  end
+  --local top,left,bottom,right = DetectBoundings();
 
   if (not top) then
     autoConfigs[udid].offset = {autoConfigs[udid].offset[1], autoConfigs[udid].offset[2] - 10,0};
@@ -974,7 +995,14 @@ end
 
         gl.Flush();
         gl.ActiveFBO(post_fbo, GL_READ_FRAMEBUFFER_EXT, function()
-          result,left,bottom,width,height = CenterIcon(udid);
+          --if unitAnimCfg[udid] then  -- when for anim-gif rotating, use same center cfg
+          --  result,left,bottom,width,height = unitAnimCfg[udid][1],unitAnimCfg[udid][2],unitAnimCfg[udid][3],unitAnimCfg[udid][4],unitAnimCfg[udid][5]
+          --else
+            result,left,bottom,width,height = CenterIcon(udid);
+          --  unitAnimCfg[udid] = {}
+          --  unitAnimCfg[udid][1],unitAnimCfg[udid][2],unitAnimCfg[udid][3],unitAnimCfg[udid][4],unitAnimCfg[udid][5] = result,left,bottom,width,height
+          --  result,left,bottom,width,height = unitAnimCfg[udid][1],unitAnimCfg[udid][2],unitAnimCfg[udid][3],unitAnimCfg[udid][4],unitAnimCfg[udid][5]
+          --end
         end);
 
         attempts = attempts + 1;
@@ -1018,7 +1046,12 @@ end
       gl.Blending(false);
       gl.Texture(false);
 
-      local outfile = (outdir) .."/".. (UnitDefs[udid].name) .. (imageExt);
+      local outfile = (outdir) .."/".. (UnitDefs[udid].name)
+      if cfg.frame ~= nil then
+        outfile = outfile .. '_'..cfg.frame;
+      end
+      outfile = outfile .. (imageExt);
+
       --if (VFS.FileExists(outfile, VFS.RAW)) then
       --  os.remove(outfile);
       --end;
@@ -1032,13 +1065,21 @@ end
   end
 
 
-  local function AddUnitJob(udid)
+  local function AddUnitJob(udid, angle, frame)
+
     --// generate unit icon settings (and merge defaults)
     local cfg = unitConfigs[udid] or {};
     autoConfigs[udid] = {};
     local auto = autoConfigs[udid];
     setmetatable(auto,{__index=defaults})
     setmetatable(cfg,{__index=auto});
+
+    if angle then
+      unitConfigs[udid].rotation = angle
+    end
+    if frame then
+      unitConfigs[udid].frame = frame
+    end
 
     if (cfg.unfold) then
       --// unit does some unfolding/animation in cob,
@@ -1108,9 +1149,8 @@ local schemes,resolutions,ratios = {},{},{}
 			  AddJob( FreeResources );
 
 			  AddJob( WaitForSyncedJobs );
-
 			  if (words[1] and words[1]~="all") then
-				AddJob( function () AddUnitJob(UnitDefNames[ words[1] ].id); end);
+				AddJob( function () AddUnitJob(UnitDefNames[ words[1] ].id, words[2], words[3]); end);
 			  else
 				for udid=#UnitDefs,1,-1 do
 					AddJob( function () AddUnitJob(udid); end);
@@ -1126,6 +1166,11 @@ local schemes,resolutions,ratios = {},{},{}
 
 				outdir = "buildicons/".. (scheme) .."_".. (ratio_name) .."_".. (iconX) .."x".. (iconY);
 				Spring.CreateDir(outdir);
+
+                if words[3] then  -- if animation
+                  outdir = "buildicons/".. (scheme) .."_".. (ratio_name) .."_".. (iconX) .."x".. (iconY)..'/'..words[1];
+                  Spring.CreateDir(outdir);
+                end
 
 				LoadScheme();
 			  end );
