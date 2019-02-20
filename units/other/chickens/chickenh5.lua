@@ -109,7 +109,6 @@ return {
 				weaponvelocity = 420,
 				damage = {
 					default = 225,
-					hvyboats = 225,
 				},
 			},
 			weapon = {
@@ -139,7 +138,6 @@ return {
 				damage = {
 					chicken = 200,
 					default = 900,
-					hvyboats = 900,
 				},
 			},
 		},

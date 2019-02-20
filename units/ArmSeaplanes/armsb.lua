@@ -108,9 +108,8 @@ return {
 					expl_light_heat_radius_mult = 1.3,
 				},
 				damage = {
-					antibomber = 67,
-					bombers = 5,
 					default = 200,
+					bombers = 40,
 					subs = 5,
 				},
 			},

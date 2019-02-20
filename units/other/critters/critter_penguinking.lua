@@ -104,7 +104,6 @@ return {
 				damage = {
 					commanders = 750,
 					default = 2000,
-					hvyboats = 2000,
 				},
 			},
 		},

@@ -99,7 +99,6 @@ return {
 				weaponvelocity = 425,
 				damage = {
 					default = 120,
-					hvyboats = 120,
 				},
 			},
 		},

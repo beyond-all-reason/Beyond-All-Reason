@@ -235,14 +235,7 @@ return {
 				},
 				damage = {
 					bombers = 200,
-					commanders = 10,
-					crawlingbombs = 10,
-					default = 850,
 					fighters = 400,
-					heavyunits = 10,
-					mines = 10,
-					nanos = 10,
-					subs = 5,
 					vtol = 200,
 				},
 				rgbcolor = {

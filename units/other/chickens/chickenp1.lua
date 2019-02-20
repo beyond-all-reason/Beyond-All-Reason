@@ -88,7 +88,6 @@ return {
 				weaponvelocity = 500,
 				damage = {
 					default = 0.001,
-					hvyboats = 0.001,
 				},
 			},
 			flamer = {
@@ -134,7 +133,6 @@ return {
 				},
 				damage = {
 					default = 32,
-					hvyboats = 32,
 				},
 			},
 		},
