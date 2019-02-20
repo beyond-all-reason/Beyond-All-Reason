@@ -247,7 +247,6 @@ if ValidID(unitID) then
 	level = curLevel + 1
 	Spring.SetUnitMaxRange(unitID, Range[level])
 	Spring.SetUnitArmored(unitID, true, DamageMultiplierNoDgun[level])
-
 	for i = 23, 29 do
 		if i - 22 == level - 1 or (i == 29 and i - 22 <= level -1) then
 			Spring.SetUnitShieldState(unitID, i, true)
@@ -267,6 +266,7 @@ if ValidID(unitID) then
 	Spring.SetUnitSensorRadius(unitID,"airLos",LOS[level])
 	Spring.SetUnitSensorRadius(unitID,"radar",Radar[level])
 	Spring.SetUnitSensorRadius(unitID,"sonar",Sonar[level])
+	Spring.MoveCtrl.Disable(unitID)
 	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])

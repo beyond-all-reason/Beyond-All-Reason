@@ -266,6 +266,7 @@ if ValidID(unitID) then
 	Spring.SetUnitSensorRadius(unitID,"airLos",LOS[level])
 	Spring.SetUnitSensorRadius(unitID,"radar",Radar[level])
 	Spring.SetUnitSensorRadius(unitID,"sonar",Sonar[level])
+	Spring.MoveCtrl.Disable(unitID)
 	Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", MoveSpeed[level]*30)
 	curHP = Spring.GetUnitHealth(unitID)
 	Spring.SetUnitHealth(unitID, curHP + HealOnLevelUp[level])
