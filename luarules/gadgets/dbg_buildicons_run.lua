@@ -48,11 +48,18 @@ function buildslowly(_,_,params)
     end
 end
 
+local framenumLength = string.len(tostring(animationFrames))
+function addZeros(number)
+    for length=string.len(tostring(number)), framenumLength-1 do
+        number = '0'..number
+    end
+    return number
+end
 
 function buildUnitAnim(unitName)
     local angleStep = 360/animationFrames
     for frame=0,animationFrames-1 do
-        unitnames[#unitnames+1]=unitName..' '..(angleStep*frame)..' '..frame
+        unitnames[#unitnames+1]=unitName..' '..(angleStep*frame)..' '..addZeros(frame)
     end
 end
 
