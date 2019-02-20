@@ -1,5 +1,22 @@
-return {
-	armcom = {
+local wreck_metal = 2500
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+--Stats Table:
+VFS.Include("unbaconfigs/stats.lua")
+VFS.Include("unbaconfigs/buildoptions.lua")
+	tablearmcom = {
 		acceleration = 0.18,
 		activatewhenbuilt = true,
 		autoheal = 5,
@@ -355,5 +372,121 @@ return {
 				onlytargetcategory = "NOTSUB",
 			},
 		},
-	},
-}
+	}
+if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
+	tablearmcom.autoheal = 2
+	tablearmcom.power = CommanderPower
+	tablearmcom.weapondefs.armcomlaser.weapontype = "LaserCannon"
+	tablearmcom.weapons = {}
+	tablearmcom.script = "armcom_lus.lua"
+	tablearmcom.objectname = "UNBAARMCOM.3DO"
+		--Weapon: Laser
+	tablearmcom.weapondefs.armcomlaser2 = deepcopy(tablearmcom.weapondefs.armcomlaser)
+	tablearmcom.weapondefs.armcomlaser.weapontype = "BeamLaser"
+	tablearmcom.weapondefs.armcomlaser2.damage.default = Damages[2]
+	tablearmcom.weapondefs.armcomlaser2.range = Range[2]
+	tablearmcom.weapondefs.armcomlaser2.areaofeffect = AOE[2]
+	tablearmcom.weapondefs.armcomlaser2.reloadtime = ReloadTime[2]
+for i = 3,11 do
+	I = tostring(i)
+	H = tostring(i-1)
+	tablearmcom.weapondefs["armcomlaser"..I] = deepcopy(tablearmcom.weapondefs["armcomlaser"..H])
+	tablearmcom.weapondefs["armcomlaser"..I].damage.default = Damages[i]
+	tablearmcom.weapondefs["armcomlaser"..I].range = Range[i]
+	tablearmcom.weapondefs["armcomlaser"..I].areaofeffect = AOE[i]
+	tablearmcom.weapondefs["armcomlaser"..I].reloadtime = ReloadTime[i]
+	if i == 3 then
+		tablearmcom.weapondefs.armcomlaser3.rgbcolor = "0.75 0.25 0"
+	elseif i == 6 then
+		tablearmcom.weapondefs.armcomlaser6.rgbcolor = "0.5 0.5 0"
+	elseif i == 8 then
+		tablearmcom.weapondefs.armcomlaser8.rgbcolor = "0.25 0.75 0"
+	elseif i == 10 then
+		tablearmcom.weapondefs.armcomlaser10.rgbcolor = "0 1 0"
+	end
+end
+
+for i = 1,11 do
+	if i == 1 then
+		tablearmcom.weapons[1] = {
+				def = "ARMCOMLASER",
+				onlytargetcategory = "NOTSUB",
+				}
+	else
+		tablearmcom.weapons[i] = {
+				def = "ARMCOMLASER"..tostring(i),
+				onlytargetcategory = "NOTSUB",
+				}
+	end
+end
+	--Weapon: SeaLaser
+tablearmcom.weapondefs.armcomsealaser2 = deepcopy(tablearmcom.weapondefs.armcomsealaser)
+	tablearmcom.weapondefs["armcomsealaser2"].damage.default = Damages21[2]
+	tablearmcom.weapondefs["armcomsealaser2"].damage.subs = Damages22[2]*Damages21[2]
+	tablearmcom.weapondefs["armcomsealaser2"].range = Range2[2]
+	tablearmcom.weapondefs["armcomsealaser2"].areaofeffect = AOE2[2]
+	tablearmcom.weapondefs["armcomsealaser2"].reloadtime = ReloadTime2[2]
+for i = 3,11 do
+	I = tostring(i)
+	H = tostring(i-1)
+	tablearmcom.weapondefs["armcomsealaser"..I] = deepcopy(tablearmcom.weapondefs["armcomsealaser"..H])
+	tablearmcom.weapondefs["armcomsealaser"..I].damage.default = Damages21[i]
+	tablearmcom.weapondefs["armcomsealaser"..I].damage.subs = Damages22[i] * Damages21[i]
+	tablearmcom.weapondefs["armcomsealaser"..I].range = Range2[i]
+	tablearmcom.weapondefs["armcomsealaser"..I].areaofeffect = AOE2[i]
+	tablearmcom.weapondefs["armcomsealaser"..I].reloadtime = ReloadTime2[i]
+	if i == 3 then
+		tablearmcom.weapondefs.armcomsealaser3.rgbcolor = "0.75 0.25 0"
+	elseif i == 6 then
+		tablearmcom.weapondefs.armcomsealaser6.rgbcolor = "0.5 0.5 0"
+	elseif i == 8 then
+		tablearmcom.weapondefs.armcomsealaser8.rgbcolor = "0.25 0.75 0"
+	elseif i == 10 then
+		tablearmcom.weapondefs.armcomsealaser10.rgbcolor = "0 1 0"
+	end
+end
+
+for i = 12,22 do
+	if i - 11 == 1 then
+		tablearmcom.weapons[12] = {
+				def = "ARMCOMSEALASER",
+				badtargetcategory = "VTOL",
+				}
+	else
+		tablearmcom.weapons[i] = {
+				def = "ARMCOMSEALASER"..tostring(i-11),
+				badtargetcategory = "VTOL",
+				}
+	end
+end
+
+	--Weapon: Shield
+
+for i = 2,7 do
+	I = tostring(i)
+	H = tostring(i-1)
+	tablearmcom.weapondefs["repulsor"..I] = deepcopy(tablearmcom.weapondefs["repulsor"..H])
+	tablearmcom.weapondefs["repulsor"..I].shield.power = ShieldPower[i]
+end
+
+for i = 23,29 do
+	tablearmcom.weapons[i] = {
+			def = "REPULSOR"..tostring(i-22),
+			}
+end
+	
+tablearmcom.weapons[30] ={
+				def = "DISINTEGRATOR",
+				onlytargetcategory = "NOTSUB",
+			}
+tablearmcom.buildoptions = ArmDefsBuildOptions
+for i = 1,11 do
+	tablearmcom.featuredefs["dead"..tostring(i)] = deepcopy(tablearmcom.featuredefs.dead)
+	tablearmcom.featuredefs["heap"..tostring(i)] = deepcopy(tablearmcom.featuredefs.heap)
+	tablearmcom.featuredefs["dead"..tostring(i)].metal = tablearmcom.featuredefs["dead"].metal * WreckMetal[i]
+	tablearmcom.featuredefs["heap"..tostring(i)].metal = tablearmcom.featuredefs["heap"].metal * WreckMetal[i]
+	tablearmcom.featuredefs["dead"..tostring(i)].featuredead = "heap"..tostring(i)
+	tablearmcom.featuredefs["dead"..tostring(i)].resurrectable = 1
+end
+end
+return { armcom = deepcopy(tablearmcom) }
