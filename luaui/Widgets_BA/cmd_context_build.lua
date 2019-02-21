@@ -33,8 +33,8 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 {'corsolar','cortide'},
 {'armlab','armsy'},
 {'corlab','corsy'},
-{'armllt','armgplat'},
-{'corllt','corgplat'},
+{'armllt','armtl'},
+{'corllt','cortl'},
 {'armnanotc','armnanotcplat'},
 {'cornanotc','cornanotcplat'},
 -- XTA - arm

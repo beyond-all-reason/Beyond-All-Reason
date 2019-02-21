@@ -43,7 +43,7 @@ local hoverAdditionalVelocity = 0
 local hoverVelocityMultiplier = 1
 
 local shipAdditionalTurnrate = 0
-local shipTurnrateMultiplier = 1.0
+local shipTurnrateMultiplier = 1.5
 
 local shipAdditionalAcceleration = 0.00
 local shipAccelerationMultiplier = 1

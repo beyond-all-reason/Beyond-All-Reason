@@ -26,7 +26,7 @@ return {
 		idleautoheal = 5,
 		idletime = 900,
 		maxdamage = 710,
-		maxvelocity = 2.60,
+		maxvelocity = 2.73,
 		minwaterdepth = 6,
 		movementclass = "BOAT43X3",
 		name = "Searcher",

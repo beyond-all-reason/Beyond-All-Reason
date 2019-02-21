@@ -100,9 +100,8 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 			[21] = "armsy",
 			[22] = "armfdrag",
 			[23] = "armtl",
-			[24] = "armgplat",
-			[25] = "armfrt",
-			[26] = "armfrad",
+			[24] = "armfrt",
+			[25] = "armfrad",
 		},
 		customparams = {
 			area_mex_def = "armmex",

@@ -85,10 +85,9 @@ return {
 			[36] = "coruwes",
 			[37] = "corfdrag",
 			[38] = "corfrad",
-			[39] = "corgplat",
-			[40] = "corfhlt",
-			[41] = "corfrt",
-			[42] = "corptl",
+			[39] = "corfhlt",
+			[40] = "corfrt",
+			[41] = "corptl",
 		},
 		customparams = {
 			area_mex_def = "cormex",

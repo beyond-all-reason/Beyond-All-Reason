@@ -22,7 +22,7 @@ return {
 		idleautoheal = 8,
 		idletime = 900,
 		maxdamage = 635,
-		maxreversevelocity = 0.86,
+		-- maxreversevelocity = 0.86,
 		maxvelocity = 2.15,
 		minwaterdepth = 15,
 		movementclass = "UBOAT33X3",
@@ -149,7 +149,7 @@ return {
 				damage = {
 					commanders = 600,
 					default = 650,
-					subs = 150,
+					subs = 180,
 				},
 			},
 		},

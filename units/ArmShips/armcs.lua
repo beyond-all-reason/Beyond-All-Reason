@@ -65,9 +65,8 @@ return {
 			[20] = "armfrad",
 			[21] = "armfdrag",
 			[22] = "armtl",
-			[23] = "armgplat",
-			[24] = "armfrt",
-			[25] = "armfhlt",
+			[23] = "armfrt",
+			[24] = "armfhlt",
 		},
 		customparams = {
 			area_mex_def = "armuwmex",

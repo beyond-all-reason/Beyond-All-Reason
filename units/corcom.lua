@@ -100,9 +100,8 @@ VFS.Include("unbaconfigs/buildoptions.lua")
 			[21] = "corsy",
 			[22] = "corfdrag",
 			[23] = "cortl",
-			[24] = "corgplat",
-			[25] = "corfrt",
-			[26] = "corfrad",
+			[24] = "corfrt",
+			[25] = "corfrad",
 		},
 		customparams = {
 			area_mex_def = "cormex",

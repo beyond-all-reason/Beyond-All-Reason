@@ -26,7 +26,7 @@ return {
 		idleautoheal = 5,
 		idletime = 900,
 		maxdamage = 700,
-		maxvelocity = 2.72,
+		maxvelocity = 2.85,
 		minwaterdepth = 6,
 		movementclass = "BOAT42X2",
 		name = "Skeeter",
