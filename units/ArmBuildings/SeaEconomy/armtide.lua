@@ -4,7 +4,7 @@ return {
 		activatewhenbuilt = true,
 		brakerate = 0,
 		buildangle = 8192,
-		buildcostenergy = 300,
+		buildcostenergy = 250,
 		buildcostmetal = 90,
 		buildpic = "ARMTIDE.DDS",
 		buildtime = 2188,
