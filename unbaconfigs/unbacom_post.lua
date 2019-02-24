@@ -1,10 +1,6 @@
 function UnbaCom_Post(name)
 	local lowername = string.lower(name)
 	local uppername = string.upper(name)
-	Spring.Echo(uppername)
-	Spring.Echo(lowername)
-	Spring.Echo(name)
-	Spring.Echo(UnitDefs[name].weapondefs[lowername.."laser"].weapontype)
 	local tablecom = deepcopy(UnitDefs[name])
 		tablecom.autoheal = 2
 		tablecom.power = CommanderPower
