@@ -40,7 +40,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armaircraft",
-			wingsurface = 0.25,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

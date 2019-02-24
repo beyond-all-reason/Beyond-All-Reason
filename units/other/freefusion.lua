@@ -1,7 +1,3 @@
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
-	return {}
-end
-
 return {
 	freefusion = {
 		acceleration = 0,
@@ -28,16 +24,17 @@ return {
 		maxslope = 20,
 		maxwaterdepth = 0,
 		name = "Free Fusion Reactor",
-		objectname = "BAR/freefusion.s3o",
+		objectname = "Units/freefusion.s3o",
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
 		sightdistance = 250,
 		yardmap = "ooooooooooooooooooooooooo",
 		customparams = {
 			faction = "none",
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "other",
+			techlevel = 2,
 		},
 		featuredefs = {
 			free_fusion_dead = {
@@ -60,6 +57,8 @@ return {
 			heap = {
 				blocking = false,
 				category = "heaps",
+				collisionvolumescales = "85.0 14.0 6.0",
+				collisionvolumetype = "cylY",
 				damage = 1350,
 				description = "Free Fusion Reactor Heap",
 				energy = 0,
@@ -70,8 +69,6 @@ return {
 				hitdensity = 100,
 				metal = 10,
 				object = "5X5A",
-				collisionvolumescales = "85.0 14.0 6.0",
-				collisionvolumetype = "cylY",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",
@@ -79,9 +76,9 @@ return {
 			},
 		},
 		sfxtypes = {
-			pieceExplosionGenerators = {
-				"deathceg3",
-				"deathceg4",
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
 			},
 		},
 	},

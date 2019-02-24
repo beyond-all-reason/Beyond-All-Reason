@@ -149,7 +149,6 @@ return {
 				waterweapon = true,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
-				customparams = {},
 				damage = {
 					commanders = 400,
 					default = 225,

@@ -46,6 +46,7 @@ function widget:Initialize()
 		Settings['cursorSet'] = cursorSet
 		SetCursor(cursorSet)
 	end
+
 end
 
 ----------------------------
@@ -60,14 +61,10 @@ function SetCursor(cursorSet)
         'cursorrepair','cursorrevive','cursorrepair','cursorrestore','cursorrepair',
         'cursormove','cursorpatrol','cursorreclamate','cursorselfd','cursornumber',
         'cursorsettarget','cursorupgmex',
-    }
+	}
     for i=1, #cursorNames do
         local topLeft = (cursorNames[i] == 'cursornormal')
-        if cursorSet == 'bar' then
-            Spring.ReplaceMouseCursor(cursorNames[i], cursorNames[i], topLeft)
-        else
-            Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)
-        end
+		Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)
 	end
 end
 
@@ -78,10 +75,6 @@ end
 
 function widget:SetConfigData(data)
     if data and type(data) == 'table' then
-		if 'number' == type(data['cursorSet']) then -- correct legacy settings
-			data['cursorSet'] = 'bar'
-			if data['cursorSet'] == 1 then data['cursorSet'] = 'old' end
-		end
 		if not cursorSetsInv[data['cursorSet']] then
 			data['cursorSet'] = Settings['defaultCursorSet']
 		end

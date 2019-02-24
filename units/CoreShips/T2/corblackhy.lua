@@ -156,7 +156,6 @@ return {
 				weapontimer = 7,
 				weapontype = "Cannon",
 				weaponvelocity = 950,
-				customparams = {},
 				damage = {
 					default = 125,
 					subs = 5,

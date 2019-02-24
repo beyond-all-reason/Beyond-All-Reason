@@ -51,7 +51,6 @@ return {
 			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
-			wingsurface = 0.5,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

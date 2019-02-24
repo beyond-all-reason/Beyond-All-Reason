@@ -51,7 +51,6 @@ return {
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,
-			wingsurface = 0.5,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

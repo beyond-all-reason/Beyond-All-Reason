@@ -41,7 +41,6 @@ return {
 			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
-			wingsurface = 0.2,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -116,7 +115,6 @@ return {
 				weapontimer = 3,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 1000,
-				customparams = {},
 				damage = {
 					commanders = 95,
 					default = 190,

@@ -70,7 +70,6 @@ end
 
 function UnitDef_Post(name, uDef)
 
-
     -- vehicles
     --if uDef.category and string.find(uDef.category, "TANK") then
     --	if uDef.turnrate ~= nil then

@@ -50,7 +50,6 @@ return {
 			normaltex = "unittextures/Arm_normals.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "armaircraft",
-			wingsurface = 0.1,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

@@ -49,7 +49,6 @@ return {
 			paralyzemultiplier = 0.025,
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,
-			wingsurface = 0.5,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {

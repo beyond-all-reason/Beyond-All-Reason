@@ -146,7 +146,6 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 200,
-				customparams = {},
 				damage = {
 					default = 900,
 				},

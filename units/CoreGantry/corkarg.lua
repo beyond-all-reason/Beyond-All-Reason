@@ -266,7 +266,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 600,
-				customparams = {},
 				damage = {
 					bombers = 150,
 					default = 120,

@@ -41,7 +41,6 @@ return {
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,
-			wingsurface = 0.65,
 		},
 		sfxtypes = {
 			crashexplosiongenerators = {
@@ -114,7 +113,6 @@ return {
 				weapontimer = 5,
 				weapontype = "MissileLauncher",
 				weaponvelocity = 700,
-				customparams = {},
 				damage = {
 					bombers = 15,
 					commanders = 61,

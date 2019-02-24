@@ -51,7 +51,6 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreaircraft",
-			wingsurface = 0.25,
 		},
 		sfxtypes = {
 			pieceexplosiongenerators = {

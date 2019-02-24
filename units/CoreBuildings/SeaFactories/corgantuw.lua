@@ -33,7 +33,7 @@ return {
 		name = "Experimental Gantry",
 		objectname = "Units/CORGANT.s3o",
 		radardistance = 50,
-		script = "BAR/bar_corgant.cob",
+		script = "Units/corgant.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 273,

@@ -1,7 +1,3 @@
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) == 0 then
-	return {}
-end
-
 return {
 	mission_command_tower = {
 		acceleration = 0,
@@ -11,8 +7,8 @@ return {
 		buildcostenergy = 100000,
 		buildcostmetal = 10000,
 		buildinggrounddecaldecayspeed = 30,
-		buildinggrounddecalsizex = 15,
-		buildinggrounddecalsizey = 15,
+		buildinggrounddecalsizex = 11.25,
+		buildinggrounddecalsizey = 11.25,
 		buildinggrounddecaltype = "mission_command_tower_aoplane.dds",
 		buildpic = "MISSION_COMMAND_TOWER.DDS",
 		buildtime = 100000,
@@ -31,7 +27,7 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Command Tower",
-		objectname = "BAR/mission_command_tower.s3o",
+		objectname = "Units/mission_command_tower.s3o",
 		reclaimable = false,
 		seismicsignature = 0,
 		selfdestructas = "fusionExplosionSelfd",
@@ -39,14 +35,19 @@ return {
 		usebuildinggrounddecal = true,
 		yardmap = "oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo oooooooooooo",
 		customparams = {
-			bar_buildinggrounddecalsizex = 11.25,
-			bar_buildinggrounddecalsizey = 11.25,
 			faction = "arm",
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normals.dds",
-			techlevel = 2,
-			removewait = true,
 			removestop = true,
+			removewait = true,
+			subfolder = "other",
+			techlevel = 2,
+		},
+		sfxtypes = {
+			pieceexplosiongenerators = {
+				[1] = "deathceg3",
+				[2] = "deathceg4",
+			},
 		},
 		sounds = {
 			canceldestruct = "cancel2",
@@ -61,12 +62,6 @@ return {
 			},
 			select = {
 				[1] = "geothrm1",
-			},
-		},
-		sfxtypes = {
-			pieceExplosionGenerators = {
-				"deathceg3",
-				"deathceg4",
 			},
 		},
 	},
