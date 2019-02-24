@@ -1,8 +1,8 @@
 function gadget:GetInfo()
   return {
-    name      = "Build Icons Slowy (/luarules buildiconslow)",
-    desc      = "builds them all slow-like, 1 per minute for hours on end",
-    author    = "Beherith",
+    name      = "Build Icons Slowy (/luarules buildiconslow or buildiconanim or buildiconanimslow)",
+    desc      = "builds them all slow-like",
+    author    = "Beherith, Floris",
     date      = "2015",
     license   = "Horses",
     layer     = 0,
@@ -10,9 +10,26 @@ function gadget:GetInfo()
   }
 end
 
+-- when using /luarules buildiconanim unitname:
+-- to convert the resulting png sequence into 30 fps gif: install imagemagick.
+-- use cmd: magick convert -dispose background -colors 32 -mattecolor #222222 -delay 3.33 -loop 0 *.png result.gif
+
+-- to batch convert: create a .bat file in folder above the result folders:
+--for /f %%f in ('dir /ad /b') do (
+--cd %%f
+--magick convert -dispose background -colors 32 -mattecolor #222222 -delay 3.33 -loop 0 *.png ..\%%f.gif
+--cd..
+--)
+
+
 if (not gadgetHandler:IsSyncedCode()) then
 	return
 end
+
+local skipUnits = {
+    meteor = true,
+    roost = true,
+}
 
 local index=1
 local counter = 1
@@ -20,7 +37,7 @@ local unitnames={}
 
 local timedelay=9*30 -- delay to let garbage collector do its work, increase this if UI crashes (this crap takes hours for 400+ units)
 local timedelayFirstFrame=5*30 -- delay to let garbage collector do its work, increase this if UI crashes (this crap takes hours for 400+ units)
-local timedelayFrame=75 -- delay only needs to be long for the 1st frame due to its centering function mem usage
+local timedelayFrame=80 -- delay only needs to be long for the 1st frame due to its centering function mem usage
 local animationFrames = 120
 
 function buildslowly(_,_,params)
@@ -33,16 +50,18 @@ function buildslowly(_,_,params)
     Spring.Echo('building icons all slow-like, starting from '..index)
 
     local counter = 1
-    for i,unitdefname in pairs(UnitDefNames) do
+    for unitName,unitdefname in pairs(UnitDefNames) do
         counter = counter + 1
         --Spring.Echo('unitdefname',i,unitdefname)
-        local filepath = '../buildicons/__256x256/'..i..'.png'
+        local filepath = '../buildicons/__256x256/'..unitName..'.png'
         if VFS.FileExists( filepath, VFS.RAW) then
             --Spring.Echo("File exists for: "..i.. ' '..filepath)
         else
             --Spring.Echo("Building filepath: "..filepath)
             if not index or counter >= index then
-                unitnames[#unitnames+1]=i
+                if not skipUnits[unitName]then
+                    unitnames[#unitnames+1]=unitName
+                end
             end
         end
     end
@@ -109,8 +128,10 @@ function buildanimslowly(_,_,params)
             if VFS.FileExists( filepath, VFS.RAW) then
                 Spring.Echo("File exists for: "..unitName.. ' '..filepath)
             else
-                Spring.Echo("Building filepath: "..filepath)
-                buildUnitAnim(unitName)
+                if not skipUnits[unitName]then
+                    Spring.Echo("Building filepath: "..filepath)
+                    buildUnitAnim(unitName)
+                end
             end
         end
     end
@@ -122,30 +143,52 @@ function gadget:Initialize()
     gadgetHandler:AddChatAction('buildiconanimslow', buildanimslowly, "")
 end
 
+local unitConfigs = {   -- copy from configs/icon_generator_bar.lua, included.. because else it will miss frames when animating
+    [UnitDefNames.cormex.id] = {
+        wait = 600,
+    },
+    [UnitDefNames.corsolar.id] = {
+        wait = 80,
+    },
+    [UnitDefNames.armrad.id] = {
+        wait = 360,
+    },
+    [UnitDefNames.corgant.id] = {
+        wait = 90,
+    },
+    [UnitDefNames.corgantuw.id] = {
+        wait = 90,
+    },
+    [UnitDefNames.cortoast.id] = {
+        wait = 1,
+    },
+    [UnitDefNames.armplat.id] = {
+        wait = 65,
+    },
+
+}
 function gadget:GameFrame(n)
     if (nextFrame and n>nextFrame and index <=#unitnames) then
-        -- Spring.Echo(" Drawing unit ",index,UnitDefNames[index]["name"])
-        Spring.Echo(" Drawing:  ",index,unitnames[index],"   out of ", #unitnames)
         Spring.SendCommands("luarules buildicon "..unitnames[index])
         index=index+1
         counter=counter+1
 
-        if not string.find(unitnames[index], ' ') then
+        if not string.find(unitnames[index], ' ') then -- single buildpic
             nextFrame = n + timedelay
-        else
+        else    -- animation
             if not string.find(unitnames[index], ' ') or string.match(unitnames[index], ' 1$') then
                 nextFrame = n + timedelayFirstFrame
             else
                 nextFrame = n + timedelayFrame
             end
+            -- added custom wait period on top, because else it will miss frames
+            local unitName = string.match(unitnames[index], '[a-zA-Z0-9]*')
+            if unitName then
+                if unitConfigs and unitConfigs[UnitDefNames[unitName].id] and unitConfigs[UnitDefNames[unitName].id].wait then
+                    nextFrame = nextFrame + unitConfigs[UnitDefNames[unitName].id].wait
+                end
+            end
         end
-        --local unitName = string.match(unitnames[index], '[a-zA-Z0-9]*')
-        --if unitName then
-        --    if unitConfigs and unitConfigs[UnitDefNames[unitName].id] and unitConfigs[UnitDefNames[unitName].id].wait then
-        --        Spring.Echo(nextFrame + unitConfigs[UnitDefNames[unitName].id].wait)
-        --        nextFrame = nextFrame + unitConfigs[UnitDefNames[unitName].id].wait
-        --    end
-        --end
     end
 end
 

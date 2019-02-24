@@ -9,7 +9,7 @@ Sea
  • Removed Gun Platform
  • Torpedo Launchers -10% ecost, -10% mcost, -20% buildTime, -15% hp
  • Patrol Boat/ligh anti air/sonar: +15% size, hp 120 -> 700, speed -26%, dps +60%, aa damages +66%, aa reloadTime -40%, mcost + 190%, ecost +70%, buildTime +100%)
- • Corvettes: speed +3%, sizes -5%, ARM: hp -15%, m/e costs -15%, CORE: hp -10%, m/e costs -7%
+ • Corvettes: speed +3%, ARM: hp -15%, m/e costs -15%, size -10%, CORE: hp -10%, m/e costs -7%, size -5%
  • Removed Depthcharge Ships
  • T2 submarines: -10%speed and -6% reloadTime, removed reverse move
  • T1 submarines: removed reverse move, increased damages to subs from 150 to 180
@@ -18,7 +18,7 @@ Sea
  • Missile Ships: Cluster Missiles +25% aoe and +16% damages
  • Ships accelerations/brakerates now based on maxSpeed and turnrate. Turnrates globally increased for ships (+50%)
  • Sea aircons same buildpower (+10%) as regular t1 aircons
-
+ • Tidals energy cost -17% (300 -> 250)
 
 10.22 -> 10.23
 06/02/2019
