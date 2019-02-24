@@ -143,7 +143,7 @@ function gadget:Initialize()
     gadgetHandler:AddChatAction('buildiconanimslow', buildanimslowly, "")
 end
 
-local unitConfigs = {   -- copy from configs/icon_generator_bar.lua, included.. because else it will miss frames when animating
+local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. because else it will miss frames when animating
     [UnitDefNames.cormex.id] = {
         wait = 60,
     },

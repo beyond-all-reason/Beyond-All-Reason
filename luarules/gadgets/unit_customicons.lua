@@ -362,8 +362,8 @@ function changeUnitIcons(folder)
   -- assign (standard) icons
 local weaponDef
   for udid,ud in pairs(UnitDefs) do
+    local name = ud.name
     if (ud == nil) then break end
-    local name = string.gsub(ud.name, '_bar', '')
       if ud.weapons[1] then
           weaponDef = WeaponDefs[ud.weapons[1].weaponDef]
       else
@@ -910,9 +910,6 @@ local weaponDef
                 if scale ~= '' then
                     addUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
                     Spring.SetUnitDefIcon(UnitDefNames[unitname].id, unitname..".user")
-                    if UnitDefNames[unitname..'_bar'] then
-                        Spring.SetUnitDefIcon(UnitDefNames[unitname..'_bar'].id, unitname..".user")
-                    end
                     loadedIcons[#loadedIcons+1] = unitname..".user"
                 end
             end

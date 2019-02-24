@@ -146,6 +146,9 @@ return {
 				weapontimer = 3,
 				weapontype = "TorpedoLauncher",
 				weaponvelocity = 190,
+				customparams = {
+					bar_model = "cordepthcharge.s3o",
+				},
 				damage = {
 					commanders = 70,
 					default = 60,

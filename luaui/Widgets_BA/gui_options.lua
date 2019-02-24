@@ -1038,9 +1038,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("AdvModelShading "..value)
 			Spring.SetConfigInt("AdvModelShading",value)
 		elseif id == 'normalmapping' then
-			if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) or UnitDefNames["armcom_bar"] then
-				Spring.SendCommands("luarules normalmapping "..value)
-			end
+			Spring.SendCommands("luarules normalmapping "..value)
 			Spring.SetConfigInt("NormalMapping",value)
 		elseif id == 'lupsdynamic' then
 			Spring.SetConfigInt("DynamicLups",value)
@@ -1108,12 +1106,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', {'selectPlayerUnits'}, options[i].value)
 		elseif id == 'voicenotifs_playtrackedplayernotifs' then
 			saveOptionValue('Voice Notifs', 'voicenotifs', 'setPlayTrackedPlayerNotifs', {'playTrackedPlayerNotifs'}, options[i].value)
-		elseif id == 'oldicons' then
-			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigOldUnitIcons', {'oldUnitpics'}, options[i].value)
-			saveOptionValue('Selected Units Buttons', 'selunitbuttons', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
-			saveOptionValue('BuildBar', 'buildbar', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
-			saveOptionValue('Unit Stats', 'unitstats', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
-			saveOptionValue('Initial Queue', 'initialqueue', 'setOldUnitIcons', {'oldUnitpics'}, options[i].value)
 		elseif id == 'buildmenushortcuts' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigShortcutsInfo', {'shortcutsInfo'}, options[i].value)
 		elseif id == 'buildmenuprices' then
@@ -2117,7 +2109,6 @@ function init()
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name="Console font size", type="slider", min=0.9, max=1.2, step=0.05, value=1, description=''},
 
-		{id="oldicons", group="ui", name="Old unit icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigOldUnitIcons()), description='Use the old unit icons in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenushortcuts", group="ui", name="Buildmenu shortcuts", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigShortcutsInfo()), description='Enables and shows shortcut keys in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuprices", group="ui", name="Buildmenu prices", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitPrice~=nil and WG['red_buildmenu'].getConfigUnitPrice()), description='Enables and shows unit prices in the buildmenu\n\n(reselect something to see the change applied)'},
 		{id="buildmenuradaricons", group="ui", name="Buildmenu radar icons", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigUnitRadaricon~=nil and WG['red_buildmenu'].getConfigUnitRadaricon()), description='Shows unit radar icon in the buildmenu\n\n(reselect something to see the change applied)'},
@@ -2248,10 +2239,6 @@ function init()
 		end
 	end
 
-	if UnitDefNames["armcom_bar"] and options[getOptionByID('normalmapping')] then
-		options[getOptionByID('normalmapping')].description = options[getOptionByID('normalmapping')].description..'\n\nOnly applies to remodelled units'
-	end
-
     -- detect AI
     local aiDetected = false
     local t = Spring.GetTeamList()
@@ -2325,11 +2312,6 @@ function init()
 		end
 		options[getOptionByID('cursor')].options = cursorsets
 		options[getOptionByID('cursor')].value = cursor
-	end
-
-	if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) == 0) and not UnitDefNames["armcom_bar"] then
-		options[getOptionByID('normalmapping')] = nil
-		options[getOptionByID('oldicons')] = nil
 	end
 
 	if widgetHandler.knownWidgets["Bloom Shader"] == nil then

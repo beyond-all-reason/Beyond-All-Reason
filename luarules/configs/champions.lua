@@ -1,3 +1,0 @@
-crown  = {
-	--["Raghna"] = true,
-}

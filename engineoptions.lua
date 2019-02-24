@@ -29,8 +29,8 @@ local options =
 {
   {
     key="ba_others",
-    name="Balanced Annihilation - Other Settings",
-    name="Balanced Annihilation - Other Settings",
+    name="Beyond All Reason - Other Settings",
+    name="Beyond All Reason - Other Settings",
     type="section",
   },
   {

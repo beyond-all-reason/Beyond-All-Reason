@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 -- note: first entry should be icons inside base /anims folder
-local cursorSets = {'old', 'old_150', 'old_200', 'bar', 'bar_133', 'bar_166', 'bar_200'}
+local cursorSets = {'bar', 'bar_133', 'bar_166', 'bar_200'}
 
 local Settings = {}
 Settings['defaultCursorSet'] = 'bar'
@@ -63,7 +63,7 @@ function SetCursor(cursorSet)
     }
     for i=1, #cursorNames do
         local topLeft = (cursorNames[i] == 'cursornormal')
-        if cursorSet == 'old' then 
+        if cursorSet == 'bar' then
             Spring.ReplaceMouseCursor(cursorNames[i], cursorNames[i], topLeft)
         else
             Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)

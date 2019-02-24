@@ -138,11 +138,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) or UnitDefNames["armcom_bar"] then
-	return materials, featureMaterials
-else
-	return {}, {}
-end
+return materials, featureMaterials
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

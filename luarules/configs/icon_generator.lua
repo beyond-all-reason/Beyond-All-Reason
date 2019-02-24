@@ -1,15 +1,17 @@
--- $Id: icon_generator.lua 4354 2009-04-11 14:32:28Z licho $
+
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 --
 --  Icon Generator Config File
 --
 
+
+
 --// Info
 if (info) then
-  local ratios      = {["1to1"]=(1/1)} --{["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
-  local resolutions = {{256,256}} --{{128,128},{64,64}}
-  local schemes     = {""}
+  local ratios      = {[""]=(1/1)} -- {["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
+  local resolutions = {{256,256}} -- {{128,128},{64,64}}
+  local schemes     = {""}  --, "core"}
 
   return schemes,resolutions,ratios
 end
@@ -25,37 +27,92 @@ renderScale = 4
 
 --// faction colors (check (and needs) LuaRules/factions.lua)
 factionTeams = {
-  arm     = 0,   --// arm
+  arm     = 1,   --// arm
   core    = 1,   --// core
   chicken = 2,   --// chicken
   unknown = 2,   --// unknown
 }
-factionColors = {
-  arm     = {0, 0, 1},   --// arm
-  core    = {1, 0, 0},   --// core
-  chicken = {1.0,0.8,0.2},   --// chicken
-  unknown = {1.0, 0, 0},   --// unknown -- This is what is being used to color the units when processed, as it cannot tell the side of a unit when using "/luarules buildicon unitName"
+
+-- Gets scheme from gadget when this is included
+factionColors = function(faction)
+
+  color = {
+    arm     = {0.08, 0.17, 1.0},   --// arm
+    core    = {1.0, 0.03, 0.0},   --// core
+    chicken = {1.0,0.8,0.2},   --// chicken
+    unknown = {0.03, 1, 0.03},   --// unknown
+    Blue   = {0,0,0},
+    Red   = {1,1,1}
+  }
+  Spring.Echo('Queried faction: ' .. faction .. ', scheme: ' ..scheme)
+
+
+  if color[faction] then
+    return color[faction]
+  else
+    if color[scheme] then
+      return color[scheme]
+    else
+      return color['unknown']
+    end
+  end
+
+end
+
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+
+local IconConfig = {
+  [1] = { -- for buildpics (use 256x256)
+    --// render options textured
+    textured     = true,
+    lightAmbient = {0.6,0.6,0.6},
+    lightDiffuse = {1.05,1.05,1.05},
+    lightPos     = {-0.3,0.5,0.55},  --{-0.2,0.4,0.5},
+
+    --// Ambient Occlusion & Outline settings
+    aoPower     =  3,
+    aoContrast  =  3,
+    aoTolerance =  0,
+    olContrast  =  0,
+    olTolerance =  0,
+
+    halo = false,
+  },
+
+  [2] = { -- gif animation (use 350x350)
+    --// render options textured
+    textured     = true,
+    lightAmbient = {1,1,1},
+    lightDiffuse = {0,0,0},
+    lightPos     = {0,0,0},  --{-0.2,0.4,0.5},
+
+    --// Ambient Occlusion & Outline settings
+    aoPower     =  3,
+    aoContrast  =  2,
+    aoTolerance =  0,
+    olContrast  =  0,
+    olTolerance =  0,
+
+    halo = false,
+
+  },
 }
 
+local selConfig = 1
 
------------------------------------------------------------------------
------------------------------------------------------------------------
 
---// render options textured
-textured = (scheme~="bw")
-lightAmbient = {1,1,1}
-lightDiffuse = {0,0,0}
-lightPos     = {-0.3,0.5,0.6}
 
---// Ambient Occlusion & Outline settings
-aoPower     = ((scheme=="bw") and 1.5) or 1
-aoContrast  = ((scheme=="bw") and 2.5) or 1
-aoTolerance = 0
-olContrast  = ((scheme=="bw") and 5) or 2
-olTolerance = 0
-
---// halo (white)
-halo  = false --(scheme~="bw")
+textured     = IconConfig[selConfig].textured
+lightAmbient = IconConfig[selConfig].lightAmbient
+lightDiffuse = IconConfig[selConfig].lightDiffuse
+lightPos     = IconConfig[selConfig].lightPos
+aoPower      = IconConfig[selConfig].aoPower
+aoContrast   = IconConfig[selConfig].aoContrast
+aoTolerance  = IconConfig[selConfig].aoTolerance
+olContrast   = IconConfig[selConfig].olContrast
+olTolerance  = IconConfig[selConfig].olTolerance
+halo         = IconConfig[selConfig].halo
 
 
 -----------------------------------------------------------------------
@@ -63,145 +120,151 @@ halo  = false --(scheme~="bw")
 
 --// backgrounds
 background = true
+local water = "LuaRules/Images/bg_water.png"
+local builder = "LuaRules/Images/constructionunit.png"
+
 local function Greater30(a)     return a>30;  end
 local function GreaterEq15(a)   return a>=15; end
 local function GreaterZero(a)   return a>0;   end
 local function GreaterEqZero(a) return a>=0;  end
 local function GreaterFour(a)   return a>4;   end
 local function LessEqZero(a)    return a<=0;  end
-local function IsCoreOrChicken(a)
-	if a then return a.chicken
-	else return false end
-end
+
 backgrounds = {
-
---[[
-  {check={name="ecommander"},							texture="LuaRules/Images/IconGenBkgs/allterrcon.png"},
-
-  {check={name="eexperimentalfac"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
-  {check={name="eexkrabgroth"},							texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
-  {check={name="eextankdestroyer"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  {check={name="eexnukearty"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-
-  {check={name="eminifac"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
-  {check={name="eallterrengineer"},							texture="LuaRules/Images/IconGenBkgs/allterrcon.png"},
-  {check={name="eallterrriot"}, 								texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
-  {check={name="eallterrheavy"},							texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
-  {check={name="eallterrlight"},							texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
-  {check={name="eallterrmed"},							texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
-  {check={name="eallterrshield"},							texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
-  {check={name="eallterrassault"},							texture="LuaRules/Images/IconGenBkgs/allterrgeneral.png"},
-
-  {check={name="eamphibfac"},							texture="LuaRules/Images/IconGenBkgs/uwfactory.png"},
-  {check={name="eamphibengineer"},							texture="LuaRules/Images/IconGenBkgs/amphibcon.png"},
-  {check={name="eamphibarty"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  {check={name="eamphibbuggy"}, 								texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  {check={name="eamphibdrone"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  {check={name="eamphibmedtank"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  {check={name="eamphibriot"}, 								texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  {check={name="eamphibrock"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-  {check={name="esubmarine"},							texture="LuaRules/Images/IconGenBkgs/amphibgeneral.png"},
-
-  {check={name="eairplant"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
-  {check={name="eairengineer"},							texture="LuaRules/Images/IconGenBkgs/aircon.png"},
-  {check={name="escout"}, 								texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-  {check={name="ebomber"}, 								texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-  {check={name="efighter"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-  {check={name="egunship2"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-  {check={name="etransport"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-  {check={name="esubplane"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-  {check={name="edrone"},							texture="LuaRules/Images/IconGenBkgs/airgeneral.png"},
-
-  {check={name="ecommandfactory"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
-  {check={name="ebasefactory"},							texture="LuaRules/Images/IconGenBkgs/factory.png"},
-  {check={name="eorb"},							texture="LuaRules/Images/IconGenBkgs/hovercon.png"},
-  {check={name="eengineer5"},							texture="LuaRules/Images/IconGenBkgs/hovercon.png"},
-  {check={name="eaatank"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="eartytank"}, 								texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="ebomb"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="efatso2"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="eflametank"}, 								texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="eheavytank3"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="elighttank3"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="emediumtank3"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="emissiletank"},							texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-  {check={name="eriottank2"}, 								texture="LuaRules/Images/IconGenBkgs/hovergeneral.png"},
-
-  {check={name="eaaturret"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="ebarricade"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="efusion2"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="egeothermal"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="eheavyturret2"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="ejammer2"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="elightturret2"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="elrpc"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="emaker"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="emetalextractor"},							texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="eradar2"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="eshieldgen"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="esilo"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="esolar2"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-  {check={name="estorage"}, 								texture="LuaRules/Images/IconGenBkgs/building.png"},
-
-  {check={name="euwfusion2"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
-  {check={name="euwmetalextractor"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
-  {check={name="euwsolar2"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
-  {check={name="euwstorage"}, 								texture="LuaRules/Images/IconGenBkgs/uwbuilding.png"},
-
-  {check={name="randagorm"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randartturilo"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randcactus"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randespire"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randrock"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randsnowtree"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randtree"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="rand0adbush"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="rand0adsnowtree"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randartturiwinterlo"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randbehartlo"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-  {check={name="randbehetree"}, 								texture="LuaRules/Images/IconGenBkgs/random.png"},
-
-  {check={name="goldtree"}, 								texture="LuaRules/Images/IconGenBkgs/goldtree.png"},
-
-  ]]--
-
-  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/transparent.png"}, -- allpurpose blank background
-  {check={},                                                 texture="LuaRules/Images/IconGenBkgs/ssbwater.png"}, -- for arm and core sea units
-  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/ssbgrass.png"}, -- for arm land units
-  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/sand.png"}, -- for amphibs
-  -- {check={},                                                 texture="LuaRules/Images/IconGenBkgs/dryground.png"}, -- for corland units
-
-
+  --{check={waterline=GreaterEq15,minWaterDepth=GreaterZero},texture=water},
+  --{check={floatOnWater=false,minWaterDepth=GreaterFour},texture=water},
+  --{check={floatOnWater=true,minWaterDepth=GreaterZero},texture=water},
+  --{check={isBuilder=true,canMove = true},texture=builder},
 }
 
 
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
---// default settings for rendering
---//zoom   := used to make all model icons same in size (DON'T USE, it is just for auto-configuration!)
---//offset := used to center the model in the fbo (not in the final icon!) (DON'T USE, it is just for auto-configuration!)
---//rot    := facing direction
---//angle  := topdown angle of the camera (0 degree = frontal, 90 degree = topdown)
---//clamp  := clip everything beneath it (hide underground stuff)
---//scale  := render the model x times as large and then scale down, to replaces missing AA support of FBOs (and fix rendering of very tine structures like antennas etc.))
---//unfold := unit needs cob to unfolds
---//move   := send moving cob events (works only with unfold)
---//attack := send attack cob events (works only with unfold)
---//shotangle := vertical aiming, useful for arties etc. (works only with unfold+attack)
---//wait   := wait that time in gameframes before taking the screenshot (default 300) (works only with unfold)
---//border := free space around the final icon (in percent/100)
---//empty  := empty model (used for fake units in CA)
---//attempts := number of tries to scale the model to fit in the icon
 
-defaults = {border=0.05, angle=30, rot="right", clamp=-10000, scale=2, empty=false, attempts=10, wait=300, zoom=1.0, offset={0,0,0},};
+local Default = {
+  --  default settings for rendering
+  -- zoom   := used to make all model icons same in size (DON'T USE, it is just for auto-configuration!)
+  -- offset := used to center the model in the fbo (not in the final icon!) (DON'T USE, it is just for auto-configuration!)
+  -- rot    := facing direction
+  -- angle  := topdown angle of the camera (0 degree = frontal, 90 degree = topdown)
+  -- clamp  := clip everything beneath it (hide underground stuff)
+  -- scale  := render the model x times as large and then scale down, to replaces missing AA support of FBOs (and fix rendering of very tine structures like antennas etc.))
+  -- unfold := unit needs cob to unfolds
+  -- move   := send moving cob events (works only with unfold)
+  -- attack := send attack cob events (works only with unfold)
+  -- shotangle := vertical aiming, useful for arties etc. (works only with unfold+attack)
+  -- wait   := wait that time in gameframes before taking the screenshot (default 300) (works only with unfold)
+  -- border := free space around the final icon (in percent/100)
+  -- empty  := empty model (used for fake units in CA)
+  -- attempts := number of tries to scale the model to fit in the icon
+
+  [1]	= {
+    border   = 0.05,
+    angle    = 26,
+    rot      = "right",
+    clamp    = -50, --i dont think BAR has to really clamp stuff
+    scale    = 1.5,--was 1.5
+    empty    = false,
+    attempts = 2,
+    wait     = 60,
+    zoom     = 1.0,
+    offset   = {0,0,0},
+    unfold = true, --new for bar
+  },
+
+  [2] = {},
+  [3] = {},
+  [4] = {},
+
+}
+
+defaults = Default[1]
 
 
 -----------------------------------------------------------------------
 -----------------------------------------------------------------------
 
-unitConfigs = {
---  [UnitDefNames.eartytank.id]  = { wait = 30 },
+--// per unitdef settings
+  unitConfigs = {
+
+
+    [UnitDefNames.cormex.id] = {
+      clamp  = 0,
+      unfold = true,
+      wait   = 60,
+    },
+    [UnitDefNames.cordoom.id] = {
+      unfold = true,
+    },
+
+    [UnitDefNames.armamd.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.armclaw.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.armmmkr.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.armpb.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.armpacko.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.armptl.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.corcs.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.corfmd.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.corptl.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.corsilo.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.corvipe.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.armsilo.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.cortron.id] = {
+      unfold = false,
+    },
+
+    [UnitDefNames.cormaw.id] = {
+      unfold = false,
+    },
+
+    [UnitDefNames.cormexp.id] = {
+      unfold = false,
+    },
+    [UnitDefNames.corsolar.id] = {
+      unfold = true,
+      wait = 80,
+    },
+    [UnitDefNames.armrad.id] = {
+      wait = 360,
+    },
+    [UnitDefNames.corgant.id] = {
+      wait = 90,
+    },
+    [UnitDefNames.corgantuw.id] = {
+      wait = 90,
+    },
+    [UnitDefNames.cortoast.id] = {
+      wait = 1,
+    },
+    [UnitDefNames.armplat.id] = {
+      wait = 65,
+    },
+
 }
 
 for i=1,#UnitDefs do
@@ -214,13 +277,15 @@ for i=1,#UnitDefs do
     else
       unitConfigs[i] = {unfold = true, move = true}
     end
+
+    -- give ticks etc.. larger padding
   elseif (UnitDefs[i].canKamikaze) then
     if (unitConfigs[i]) then
       if (not unitConfigs[i].border) then
-        unitConfigs[i].border = 0.156
+        unitConfigs[i].border = 0.256
       end
     else
-      unitConfigs[i] = {border = 0.156}
+      unitConfigs[i] = {border = 0.256}
     end
   end
 end

@@ -108,7 +108,7 @@ return {
 				firetolerance = 200,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
-				model = "bomb",
+				model = "bomb.3do",
 				name = "Cannon",
 				nogap = false,
 				noselfdamage = true,
@@ -129,6 +129,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 726,
+				customparams = {
+					bar_model = "airbomb.s3o",
+				},
 				damage = {
 					default = 45,
 				},

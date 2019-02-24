@@ -1,5 +1,3 @@
-if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) then
-
 function widget:GetInfo()
 	return {
 		name      = "Bloom Shader Deferred", --(v0.5)
@@ -476,7 +474,4 @@ function widget:SetConfigData(data)
 			quality = presets[qualityPreset].quality
 		end
 	end
-end
-
-
 end

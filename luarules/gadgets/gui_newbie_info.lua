@@ -144,7 +144,7 @@ function gadget:Initialize()
 		curPos = curPos + lineHeight
 		gl.Text("With a constructor selected, use \255\255\150\000z\255\255\255\255,\255\255\150\000x\255\255\255\255,\255\255\150\000c\255\255\255\255,\255\255\150\000v\255\255\255\255 to cycle through some useful buildings", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("Check out the Balanced Annihilation forum on \255\200\200\255springrts.com\255\255\255\255 for a list of all keybinds", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("Check out the forum on \255\200\200\255springrts.com\255\255\255\255 for a list of all keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize	
 		gl.Text("For your first few (multiplayer) games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight

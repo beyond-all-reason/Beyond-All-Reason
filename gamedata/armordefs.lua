@@ -470,24 +470,4 @@ local armorDefs = {
 	},
 }
 
--- add BAR variants
-if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then
-	function tableMerge(t1, t2)
-		for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
-		return t1
-	end
-	local armorDefsBar = {}
-	for category,names in pairs(armorDefs) do
-		local catkeycount = #names
-		for _,name in pairs(names) do
-			if armorDefsBar[category] == nil then
-				armorDefsBar[category] = {}
-			end
-			catkeycount = catkeycount + 1
-			armorDefsBar[category][catkeycount] = name..'_bar'
-		end
-	end
-	armorDefs = tableMerge(armorDefs, armorDefsBar)
-end
-
 return armorDefs

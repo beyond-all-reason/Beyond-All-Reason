@@ -1,11 +1,11 @@
 return {
-  name = 'Balanced Annihilation',
-  description = 'Balanced Annihilation',
-  shortname = 'BA',
+  name = 'Beyond All Reason',
+  description = 'Beyond All Reason',
+  shortname = 'BAR',
   version = '$VERSION',
   mutator = 'Official',
-  game = 'Balanced Annihilation',
+  game = 'Beyond All Reason',
   shortGame = 'BA',
   modtype = 1,
-  url = "https://www.balancedannihilation.com",
+  url = "",
 }

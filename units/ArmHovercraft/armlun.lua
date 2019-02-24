@@ -136,6 +136,10 @@ return {
 				waterweapon = true,
 				weapontype = "Cannon",
 				weaponvelocity = 300,
+                customparams = {
+                    bar_model = "airbombt2.s3o",
+                    light_skip = true,
+                },
 				damage = {
 					bombers = 60,
 					default = 370,

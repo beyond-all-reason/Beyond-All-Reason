@@ -8,31 +8,15 @@ local options={
 	},
     {
        key="ba_modes",
-       name="Balanced Annihilation - Game Modes",
-       desc="Balanced Annihilation - Game Modes",
+       name="Beyond All Reason - Game Modes",
+       desc="Beyond All Reason - Game Modes",
        type="section",
     },
     {
        key="ba_options",
-       name="Balanced Annihilation - Options",
-       desc="Balanced Annihilation - Options",
+       name="Beyond All Reason - Options",
+       desc="Beyond All Reason - Options",
        type="section",
-    },
-    {
-        key    = "barmodels",
-        name   = "Remodelled units",
-        desc   = "Activate BAR unit model integration",
-        type   = "bool",
-        section= 'ba_enhancements_misc',
-        def = false,
-    },
-    {
-        key    = "barsounds",
-        name   = "alternative sounds",
-        desc   = "Activate BAR sound replacements (barmodels (Remodelled units) must be enabled)",
-        type   = "bool",
-        section= 'ba_enhancements_misc',
-        def = false,
     },
 	{
         key    = 'ai_incomemultiplier',
@@ -207,8 +191,8 @@ local options={
 	
     {
        key="ba_enhancements_misc",
-       name="Balanced Annihilation - Gameplay Enhancements: Miscellaneous",
-       desc="Balanced Annihilation - Gameplay Enhancements: Miscellaneous",
+       name="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
+       desc="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
        type="section",
     },
 

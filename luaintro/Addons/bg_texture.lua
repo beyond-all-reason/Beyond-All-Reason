@@ -13,12 +13,7 @@ if addon.InGetInfo then
 end
 
 ------------------------------------------
-local loadscreens
-if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
-	loadscreens = VFS.DirList("bitmaps/loadpicturesBAR/")
-else
-	loadscreens = VFS.DirList("bitmaps/loadpictures/")
-end
+local loadscreens = VFS.DirList("bitmaps/loadpictures/")
 
 local screenNum = math.random(#loadscreens) 
 --local backgroundTexture = loadscreens[screenNum]

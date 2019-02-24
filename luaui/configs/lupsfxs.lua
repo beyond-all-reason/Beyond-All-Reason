@@ -493,7 +493,8 @@ sparks1 = {
 
 
 
-if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) or UnitDefNames.armcom_bar then
+
+
   -- $Id: lupsFXs.lua 3485 2008-12-19 23:06:30Z jk $
 
   ----------------------------------------------------------------------------
@@ -754,5 +755,3 @@ if (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~
     repeatEffect = true,
   }
 
-
-end

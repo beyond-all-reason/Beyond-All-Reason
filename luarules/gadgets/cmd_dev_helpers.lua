@@ -149,22 +149,6 @@ else
                     acceptableUDIDs[uDID] = true
                 end
             end
-            if UnitDefNames['armcom_bar'] then
-                for _,uDID in ipairs(UnitDefNames["cor" .. suffix..'_bar'].buildOptions) do
-                    acceptableUDIDs[uDID] = true
-                end
-                for _,uDID in ipairs(UnitDefNames["arm" .. suffix..'_bar'].buildOptions) do
-                    acceptableUDIDs[uDID] = true
-                end
-                if t~="hover" then
-                    for _,uDID in ipairs(UnitDefNames["arma" .. suffix..'_bar'].buildOptions) do
-                        acceptableUDIDs[uDID] = true
-                    end
-                    for _,uDID in ipairs(UnitDefNames["cora" .. suffix..'_bar'].buildOptions) do
-                        acceptableUDIDs[uDID] = true
-                    end
-                end
-            end
             unitTypes[t] = acceptableUDIDs
         end
 
@@ -178,14 +162,6 @@ else
                     for _,uDID in ipairs(UnitDefNames["arm" .. techSuffix .. facSuffix].buildOptions) do
                         acceptableUDIDs[uDID] = true
                     end
-                    if UnitDefNames['armcom_bar'] then
-                        for _,uDID in ipairs(UnitDefNames["cor" .. techSuffix .. facSuffix..'_bar'].buildOptions) do
-                            acceptableUDIDs[uDID] = true
-                        end
-                        for _,uDID in ipairs(UnitDefNames["arm" .. techSuffix .. facSuffix..'_bar'].buildOptions) do
-                            acceptableUDIDs[uDID] = true
-                        end
-                    end
                 end
             end
             techLevels[t] = acceptableUDIDs
@@ -196,14 +172,6 @@ else
         end
         for _,uDID in ipairs(UnitDefNames["armshltx"].buildOptions) do
             t3Units[uDID] = true
-        end
-        if UnitDefNames['armcom_bar'] then
-            for _,uDID in ipairs(UnitDefNames["corgant_bar"].buildOptions) do
-                t3Units[uDID] = true
-            end
-            for _,uDID in ipairs(UnitDefNames["armshltx_bar"].buildOptions) do
-                t3Units[uDID] = true
-            end
         end
         techLevels['t3'] = t3Units
         techSuffix['t3'] = 't3'

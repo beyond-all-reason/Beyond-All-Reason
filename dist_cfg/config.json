@@ -1,13 +1,13 @@
 {
-    "title" : "Balanced Annihilation",
+    "title" : "Beyond All Reason",
     "setups" : [
         {
             "package": {
-                "id": "ba",
-                "display": "Balanced Annihilation"
+                "id": "bar",
+                "display": "Beyond All Reason"
             },
             "downloads": {
-                "games" : ["ba:test", "chobby:test"],
+                "games" : ["bar:test", "chobby:test"],
                 "engines" : [ "104.0.1-969-ga0e1218 maintenance" ]
             },
             "no_start_script" : true,
@@ -21,7 +21,7 @@
                 "display": "Dev Lobby"
             },
             "downloads": {
-                "engines" : [ "104.0.1-968-gb54c668 maintenance" ]
+                "engines" : [ "104.0.1-969-ga0e1218 maintenance" ]
             },
             "no_start_script" : true,
             "no_downloads" : true,

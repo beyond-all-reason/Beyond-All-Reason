@@ -24,8 +24,6 @@ local buttonTexture		     = "LuaUI/Images/button.dds"
 local barGlowCenterTexture = ":n:LuaUI/Images/barglow-center.png"
 local barGlowEdgeTexture   = ":n:LuaUI/Images/barglow-edge.png"
 
-local oldUnitpicsDir   = "unitpics/"
-
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
 local sound_button = 'LuaUI/Sounds/buildbar_waypoint.wav'
@@ -48,7 +46,6 @@ local drawBigTooltip = false
 local drawRadaricon = true
 local largePrice = true
 local shortcutsInfo = false
-local oldUnitpics = false
 local largeUnitIcons = true
 
 local vsx, vsy = gl.GetViewSizes()
@@ -676,11 +673,7 @@ local function UpdateGrid(g,cmds,ordertype)
 		}
 		
 		if (ordertype == 1) then --build icons
-			if Spring.GetModOptions ~= nil and (tonumber(Spring.GetModOptions().barmodels) or 0) == 1 and oldUnitpics and UnitDefs[cmd.id*-1] ~= nil and VFS.FileExists(oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds') then
-				icon.texture = oldUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds'
-			else
-				icon.texture = "#"..cmd.id*-1
-			end
+			icon.texture = "#"..cmd.id*-1
 			icon.udid = cmd.id*-1
 
 			if (cmd.params[1]) then
@@ -995,16 +988,6 @@ function widget:TextCommand(command)
 			Spring.Echo("Build/order menu icon info:  small")
 		end
 	end
-	if (string.find(command, "olduniticons") == 1  and  string.len(command) == 12) then
-		oldUnitpics = not oldUnitpics
-		--AutoResizeObjects()
-		Spring.ForceLayoutUpdate()
-		if oldUnitpics then
-			Spring.Echo("Using old unit icons in buildmenu")
-		else
-			Spring.Echo("Not using old unit icons in buildmenu")
-		end
-	end
 	if (string.find(command, "iconinfokeys") == 1  and  string.len(command) == 12) then 
 		shortcutsInfo = not shortcutsInfo
 		--AutoResizeObjects()
@@ -1098,9 +1081,6 @@ function widget:Initialize()
   WG['red_buildmenu'].getConfigUnitPriceLarge = function()
   	return largePrice
   end
-  WG['red_buildmenu'].getConfigOldUnitIcons = function()
-  	return oldUnitpics
-  end
   WG['red_buildmenu'].getConfigShortcutsInfo = function()
   	return shortcutsInfo
   end
@@ -1125,9 +1105,6 @@ function widget:Initialize()
   end
   WG['red_buildmenu'].setConfigUnitPriceLarge = function(value)
   	largePrice = value
-  end
-  WG['red_buildmenu'].setConfigOldUnitIcons = function(value)
-  	oldUnitpics = value
   end
   WG['red_buildmenu'].setConfigShortcutsInfo = function(value)
   	shortcutsInfo = value
@@ -1166,7 +1143,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawRadaricon=drawRadaricon, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, oldUnitpics=oldUnitpics, shortcutsInfo=shortcutsInfo, playSounds=playSounds, largeUnitIcons=largeUnitIcons}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawRadaricon=drawRadaricon, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, shortcutsInfo=shortcutsInfo, playSounds=playSounds, largeUnitIcons=largeUnitIcons}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -1192,9 +1169,6 @@ function widget:SetConfigData(data) --load config
 		end
 		if (data.largePrice ~= nil) then
 			largePrice = data.largePrice
-		end
-		if (data.oldUnitpics ~= nil) then
-			oldUnitpics = data.oldUnitpics
 		end
 		if (data.shortcutsInfo ~= nil) then
 			shortcutsInfo = data.shortcutsInfo

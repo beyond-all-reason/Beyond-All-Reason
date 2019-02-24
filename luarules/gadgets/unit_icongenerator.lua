@@ -226,11 +226,7 @@ local function LoadScheme()
 
   autoConfigs = {} --// reset
 
-  if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
-    include("LuaRules/Configs/","icon_generator_bar.lua")
-  else
-    include("LuaRules/Configs/","icon_generator.lua")
-  end
+  include("LuaRules/Configs/","icon_generator.lua")
 
   setmetatable(unitConfigs,{__index=autoConfigs});
 end
@@ -1191,11 +1187,7 @@ local schemes,resolutions,ratios = {},{},{}
 
   function gadget:Initialize()
     --// get all known configurations
-    if Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0 then
-      schemes,resolutions,ratios = include("LuaRules/Configs/","icon_generator_bar.lua",{info=true})
-    else
-      schemes,resolutions,ratios = include("LuaRules/Configs/","icon_generator.lua",{info=true})
-    end
+    schemes,resolutions,ratios = include("LuaRules/Configs/","icon_generator.lua",{info=true})
 
     gadgetHandler:AddChatAction("buildicon", BuildIcon," : auto generates creates buildicons");
     gadgetHandler:AddChatAction("buildicons", BuildIcon," : auto generates creates buildicons");
