@@ -84,7 +84,7 @@ return {
 				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.48,
+				edgeeffectiveness = 0.63,
 				explosiongenerator = "custom:ELECTRIC_EXPLOSION",
 				impulseboost = 0,
 				impulsefactor = 0.4,

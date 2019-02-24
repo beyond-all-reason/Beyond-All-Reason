@@ -31,7 +31,8 @@ return {
 		maxwaterdepth = 255,
 		name = "Voodoo",
 		nochasecategory = "NOTAIR",
-		objectname = "CORSFIG",
+		objectname = "Units/CORSFIG.s3o",
+		script = "Units/CORSFIG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 230,
@@ -43,6 +44,8 @@ return {
 		wingdrag = 0.235,
 		customparams = {
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {
@@ -87,12 +90,13 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-tiny-air",
 				firestarter = 0,
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
-				model = "missile",
+				model = "cormissile.s3o",
 				name = "GuidedMissiles",
 				noselfdamage = true,
 				range = 710,
@@ -113,7 +117,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,
 				},
 				damage = {

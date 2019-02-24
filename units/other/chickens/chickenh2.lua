@@ -77,7 +77,7 @@ return {
 				avoidfriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:chickenspike-large-sparks-burn",
 				impulseboost = 2.2,
 				impulsefactor = 1,

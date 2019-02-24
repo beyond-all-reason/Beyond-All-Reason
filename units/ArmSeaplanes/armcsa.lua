@@ -33,7 +33,8 @@ return {
 		metalmake = 0.2,
 		metalstorage = 75,
 		name = "Construction Seaplane",
-		objectname = "ARMCSA",
+		objectname = "Units/ARMCSA.s3o",
+		script = "Units/ARMCSA.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 364,
@@ -89,6 +90,8 @@ return {
 		customparams = {
 			area_mex_def = "armuwmex",
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armseaplanes",
 		},
 		sfxtypes = {

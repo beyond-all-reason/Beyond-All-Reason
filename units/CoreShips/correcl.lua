@@ -28,8 +28,9 @@ return {
 		minwaterdepth = 15,
 		movementclass = "UBOAT33X3",
 		name = "Death Cavalry",
-		objectname = "CORRECL",
+		objectname = "Units/CORRECL.s3o",
 		reclaimspeed = 100,
+		script = "Units/CORRECL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
 		sightdistance = 300,
@@ -42,6 +43,8 @@ return {
 		workertime = 150,
 		customparams = {
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships",
 		},
 		sfxtypes = {

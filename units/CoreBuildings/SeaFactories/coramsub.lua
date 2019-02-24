@@ -31,7 +31,8 @@ return {
 		metalstorage = 160,
 		minwaterdepth = 25,
 		name = "Amphibious Complex",
-		objectname = "CORAMSUB",
+		objectname = "Units/CORAMSUB.s3o",
+		script = "Units/CORAMSUB.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 240,
@@ -51,6 +52,8 @@ return {
 		},
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/seafactories",
 		},
 		featuredefs = {
@@ -69,7 +72,7 @@ return {
 				height = 5,
 				hitdensity = 100,
 				metal = 596,
-				object = "CORAMSUB_DEAD",
+				object = "Units/coramsub_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

@@ -28,8 +28,9 @@ return {
 		minwaterdepth = 15,
 		movementclass = "UBOAT33X3",
 		name = "Grim Reaper",
-		objectname = "ARMRECL",
+		objectname = "Units/ARMRECL.s3o",
 		reclaimspeed = 100,
+		script = "Units/ARMRECL.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
 		sightdistance = 300,
@@ -42,6 +43,8 @@ return {
 		workertime = 150,
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armships",
 		},
 		sfxtypes = {

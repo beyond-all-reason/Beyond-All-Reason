@@ -31,7 +31,8 @@ return {
 		metalstorage = 150,
 		minwaterdepth = 25,
 		name = "Amphibious Complex",
-		objectname = "ARMAMSUB",
+		objectname = "Units/ARMAMSUB.s3o",
+		script = "Units/ARMAMSUB.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd-uw",
 		sightdistance = 234,
@@ -49,6 +50,8 @@ return {
 		},
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {
@@ -67,7 +70,7 @@ return {
 				height = 5,
 				hitdensity = 100,
 				metal = 559,
-				object = "ARMAMSUB_DEAD",
+				object = "Units/armamsub_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

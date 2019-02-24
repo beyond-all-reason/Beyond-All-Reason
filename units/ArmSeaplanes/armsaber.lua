@@ -29,7 +29,8 @@ return {
 		maxwaterdepth = 255,
 		name = "Sabre",
 		nochasecategory = "VTOL",
-		objectname = "ARMSABER",
+		objectname = "Units/ARMSABER.s3o",
+		script = "Units/ARMSABER.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 595,
@@ -37,6 +38,8 @@ return {
 		turnrate = 720,
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armseaplanes",
 		},
 		sfxtypes = {
@@ -87,6 +90,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				duration = 0.05,
+				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulseboost = 0,
 				impulsefactor = 0,

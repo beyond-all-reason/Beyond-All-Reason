@@ -71,7 +71,7 @@ return {
 			chaseweapon = {
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:chickenspike-large-sparks-burn",
 				impulseboost = 0,
 				impulsefactor = 0,
@@ -100,7 +100,7 @@ return {
 				colormap = "1 0.95 0.82 0.03   0.7 0.4 0.25 0.027   0.44 0.25 0.15 0.024   0.033 0.018 0.011 0.02   0.0 0.0 0.0 0.01",
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:burnblack",
 				firestarter = 100,
 				flamegfxtime = 1,

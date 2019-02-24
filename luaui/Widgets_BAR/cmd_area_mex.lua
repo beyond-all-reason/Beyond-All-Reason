@@ -23,7 +23,7 @@ end
 
 
 local maxMetalData = 40000 --2500000
-local pathToSave = "LuaUI/Widgets_BA/MetalMaps/" -- where to store mexmaps (MaDDoX: edited for BA 9.5x)
+local pathToSave = "LuaUI/Widgets_BAR/MetalMaps/" -- where to store mexmaps (MaDDoX: edited for BA 9.5x)
 -----------------
 --command notification and mex placement
 

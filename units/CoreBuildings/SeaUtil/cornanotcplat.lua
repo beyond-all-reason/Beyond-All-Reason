@@ -34,7 +34,8 @@ return {
 		minwaterdepth = 12,
 		movementclass = "NANO",
 		name = "Nano Turret",
-		objectname = "CORNANOTCPLAT",
+		objectname = "Units/CORNANOTCPLAT.s3o",
+		script = "Units/CORNANOTCPLAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "nanoselfd",
 		sightdistance = 380,
@@ -45,6 +46,8 @@ return {
 		workertime = 200,
 		customparams = {
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/seautil",
 		},
 		sfxtypes = {

@@ -70,7 +70,7 @@ return {
 				collidefriendly = false,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:chickenspike-large-sparks-burn",
 				impulseboost = 0,
 				impulsefactor = 0.4,

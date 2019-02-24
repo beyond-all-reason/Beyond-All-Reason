@@ -24,8 +24,9 @@ return {
 		metalstorage = 200,
 		minwaterdepth = 30,
 		name = "Floating Hovercraft Platform",
-		objectname = "CORFHP",
+		objectname = "Units/CORFHP.s3o",
 		radardistance = 50,
+		script = "Units/CORFHP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 312,
@@ -44,6 +45,8 @@ return {
 		},
 		customparams = {
 			model_author = "Mr Bob",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/seafactories",
 		},
 		featuredefs = {
@@ -61,7 +64,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 715,
-				object = "CORFHP_DEAD",
+				object = "Units/corfhp_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

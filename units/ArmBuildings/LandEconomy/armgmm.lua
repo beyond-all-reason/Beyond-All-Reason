@@ -30,7 +30,8 @@ return {
 		maxslope = 10,
 		maxwaterdepth = 0,
 		name = "Prude",
-		objectname = "ARMGMM",
+		objectname = "Units/ARMGMM.s3o",
+		script = "Units/ARMGMM.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
@@ -39,6 +40,8 @@ return {
 		customparams = {
 			cvbuildable = true,
 			model_author = "Cremuss",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

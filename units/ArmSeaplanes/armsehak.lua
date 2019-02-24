@@ -33,8 +33,9 @@ return {
 		maxvelocity = 11.27,
 		maxwaterdepth = 255,
 		name = "Seahawk",
-		objectname = "ARMSEHAK",
+		objectname = "Units/ARMSEHAK.s3o",
 		radardistance = 2250,
+		script = "Units/ARMSEHAK.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1100,
@@ -47,6 +48,8 @@ return {
 		wingdrag = 0.135,
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armseaplanes",
 		},
 		sfxtypes = {

@@ -33,8 +33,9 @@ return {
 		maxvelocity = 10.81,
 		maxwaterdepth = 255,
 		name = "Hunter",
-		objectname = "CORHUNT",
+		objectname = "Units/CORHUNT.s3o",
 		radardistance = 2200,
+		script = "Units/CORHUNT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 1130,
@@ -47,6 +48,8 @@ return {
 		wingdrag = 0.11,
 		customparams = {
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {

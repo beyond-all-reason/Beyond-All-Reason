@@ -31,7 +31,8 @@ return {
 		maxwaterdepth = 255,
 		name = "Tornado",
 		nochasecategory = "NOTAIR",
-		objectname = "ARMSFIG",
+		objectname = "Units/ARMSFIG.s3o",
+		script = "Units/ARMSFIG.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericAir",
 		sightdistance = 230,
@@ -43,6 +44,8 @@ return {
 		wingdrag = 0.235,
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armseaplanes",
 		},
 		sfxtypes = {
@@ -87,12 +90,13 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-tiny-air",
 				firestarter = 0,
 				impulseboost = 0,
 				impulsefactor = 0,
 				metalpershot = 0,
-				model = "missile",
+				model = "cormissile.s3o",
 				name = "Guided a2a/a2g missile launcher",
 				noselfdamage = true,
 				range = 710,
@@ -113,7 +117,6 @@ return {
 				weapontype = "MissileLauncher",
 				weaponvelocity = 900,
 				customparams = {
-					bar_model = "cormissile.s3o",
 					light_skip = true,
 				},
 				damage = {

@@ -21,7 +21,8 @@ return {
 		maxslope = 10,
 		minwaterdepth = 11,
 		name = "Floating Energy Converter",
-		objectname = "ARMFMKR",
+		objectname = "Units/ARMFMKR.s3o",
+		script = "Units/ARMFMKR.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 273,
@@ -29,6 +30,8 @@ return {
 		yardmap = "wwwwwwwww",
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/seaeconomy",

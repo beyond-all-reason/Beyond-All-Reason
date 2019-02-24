@@ -23,8 +23,9 @@ return {
 		metalstorage = 200,
 		minwaterdepth = 30,
 		name = "Seaplane Platform",
-		objectname = "CORPLAT",
+		objectname = "Units/CORPLAT.s3o",
 		radardistance = 50,
+		script = "Units/CORPLAT.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 169,
@@ -42,6 +43,8 @@ return {
 		},
 		customparams = {
 			model_author = "Mr Bob",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/seafactories",
 		},
 		featuredefs = {
@@ -59,7 +62,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 1748,
-				object = "CORPLAT_DEAD",
+				object = "Units/corplat_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

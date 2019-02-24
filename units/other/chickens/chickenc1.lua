@@ -80,7 +80,7 @@ return {
 				camerashake = 0,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:blood_explode_blue",
 				impulseboost = 0.22,
 				impulsefactor = 0.22,

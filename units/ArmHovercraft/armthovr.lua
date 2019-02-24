@@ -29,8 +29,9 @@ return {
 		movementclass = "HOVER4",
 		name = "Bear",
 		nochasecategory = "ALL",
-		objectname = "ARMTHOVR",
+		objectname = "Units/ARMTHOVR.s3o",
 		releaseheld = true,
+		script = "Units/ARMTHOVR.cob",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 325,
@@ -44,6 +45,8 @@ return {
 		waterline = 4,
 		customparams = {
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armhovercraft",
 		},
 		featuredefs = {
@@ -61,7 +64,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 432,
-				object = "ARMTHOVR_DEAD",
+				object = "Units/armthovr_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

@@ -77,7 +77,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				dance = 20,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:chickenspike-large-sparks-burn",
 				firestarter = 0,
 				flighttime = 5,

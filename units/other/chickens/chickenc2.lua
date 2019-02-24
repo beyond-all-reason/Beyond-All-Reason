@@ -79,7 +79,7 @@ return {
 				cegtag = "ROCKTRAILsm",
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.3,
+				edgeeffectiveness = 0.45,
 				explosiongenerator = "custom:gundam_MISSILE_EXPLOSION",
 				impulseboost = 0.22,
 				impulsefactor = 0.22,

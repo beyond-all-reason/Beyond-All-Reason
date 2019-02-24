@@ -32,7 +32,8 @@ return {
 		maxwaterdepth = 0,
 		movementclass = "NANO",
 		name = "Nano Turret",
-		objectname = "CORNANOTC",
+		objectname = "Units/CORNANOTC.s3o",
+		script = "Units/CORNANOTC.cob",
 		seismicsignature = 0,
 		selfdestructas = "nanoselfd",
 		sightdistance = 380,
@@ -43,6 +44,8 @@ return {
 		workertime = 200,
 		customparams = {
 			model_author = "Mr Bob",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/landutil",
 		},
 		sfxtypes = {

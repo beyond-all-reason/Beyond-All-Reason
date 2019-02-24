@@ -29,7 +29,8 @@ return {
 		maxwaterdepth = 255,
 		name = "Cutlass",
 		nochasecategory = "VTOL",
-		objectname = "CORCUT",
+		objectname = "Units/CORCUT.s3o",
+		script = "Units/CORCUT.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 595,
@@ -37,6 +38,8 @@ return {
 		turnrate = 550,
 		customparams = {
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {
@@ -87,6 +90,7 @@ return {
 				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
+				edgeeffectiveness = 0.15,
 				explosiongenerator = "custom:genericshellexplosion-small",
 				impulseboost = 0.123,
 				impulsefactor = 0.123,

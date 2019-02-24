@@ -29,8 +29,9 @@ return {
 		movementclass = "HOVER4",
 		name = "Turtle",
 		nochasecategory = "ALL",
-		objectname = "CORTHOVR",
+		objectname = "Units/CORTHOVR.s3o",
 		releaseheld = true,
+		script = "Units/CORTHOVR.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 325,
@@ -44,6 +45,8 @@ return {
 		waterline = 4,
 		customparams = {
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corehovercraft",
 		},
 		featuredefs = {
@@ -61,7 +64,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 423,
-				object = "CORTHOVR_DEAD",
+				object = "Units/corthovr_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

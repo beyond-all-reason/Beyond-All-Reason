@@ -63,7 +63,7 @@ return {
 				collidefriendly = 0,
 				craterboost = 0,
 				cratermult = 0,
-				edgeeffectiveness = 0.15,
+				edgeeffectiveness = 0.3,
 				explosiongenerator = "custom:genericshellexplosion-meteor",
 				firestarter = 70,
 				flighttime = 100,

@@ -33,7 +33,8 @@ return {
 		metalmake = 0.2,
 		metalstorage = 75,
 		name = "Construction Seaplane",
-		objectname = "CORCSA",
+		objectname = "Units/CORCSA.s3o",
+		script = "Units/CORCSA.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 351,
@@ -89,6 +90,8 @@ return {
 		customparams = {
 			area_mex_def = "coruwmex",
 			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreseaplanes",
 		},
 		sfxtypes = {

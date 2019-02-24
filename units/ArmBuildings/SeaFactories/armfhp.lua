@@ -24,8 +24,9 @@ return {
 		metalstorage = 200,
 		minwaterdepth = 30,
 		name = "Floating Hovercraft Platform",
-		objectname = "ARMFHP",
+		objectname = "Units/ARMFHP.s3o",
 		radardistance = 50,
+		script = "Units/ARMFHP.cob",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 286,
@@ -43,6 +44,8 @@ return {
 		},
 		customparams = {
 			model_author = "FireStorm",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armbuildings/seafactories",
 		},
 		featuredefs = {
@@ -60,7 +63,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 670,
-				object = "ARMFHP_DEAD",
+				object = "Units/armfhp_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

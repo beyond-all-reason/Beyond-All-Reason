@@ -25,7 +25,7 @@ return {
 		maxslope = 64,
 		maxwaterdepth = 250,
 		name = "Commander Tombstone",
-		objectname = "CORSTONE.3do",
+		objectname = "Units/corstone.s3o",
 		reclaimable = false,
 		repairable = false,
 		script = "blank.cob",
@@ -37,6 +37,8 @@ return {
 		yardmap = "f",
 		customparams = {
 			nohealthbars = true,
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "other",
 		},
 	},

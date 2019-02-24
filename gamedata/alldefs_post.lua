@@ -67,91 +67,8 @@ local function Split(s, separator)
 	return results
 end
 
-local oldUnitName = {	-- mostly duplicates
-	armdecom = 'armcom',
-	cordecom = 'corcom',
-	armdf = 'armfus',
-	corgantuw = 'corgant',
-	armshltxuw = 'armshltx',
-}
-
 
 function UnitDef_Post(name, uDef)
-
-		-- BAR models
-		local barUnitName = oldUnitName[name] and oldUnitName[name] or name
-		if VFS.FileExists('objects3d/Units/'..uDef.objectname..'.s3o') or VFS.FileExists('objects3d/Units/'..barUnitName..'.s3o') then
-			local object = barUnitName
-			if VFS.FileExists('objects3d/Units/'..uDef.objectname..'.s3o') then
-				object = uDef.objectname
-			end
-			uDef.objectname = 'Units/'..object..'.s3o'
-			if uDef.featuredefs ~= nil then
-				for fDefID,featureDef in pairs(uDef.featuredefs) do
-					if featureDef.object ~= nil then
-						local object = string.gsub(featureDef.object, ".3do", "")
-						if VFS.FileExists('objects3d/Units/'..object:lower()..".s3o") then
-							uDef.featuredefs[fDefID].object = 'Units/'..object:lower()..".s3o"
-						end
-					end
-				end
-			end
-            if uDef.script ~= nil and VFS.FileExists('scripts/Units/'..uDef.script) then
-                uDef.script = 'Units/'..uDef.script
-            elseif VFS.FileExists('scripts/Units/'..object..'.lua') then
-                uDef.script = 'Units/'..object..'.lua'
-			elseif VFS.FileExists('scripts/Units/'..object..'.cob') then
-				uDef.script = 'Units/'..object..'.cob'
-			end
-
-			if string.find(name, 'arm') or string.find(name, 'cor') or string.find(name, 'chicken') then
-				uDef.customparams.normalmaps = "yes"
-				if string.find(name, 'arm') then
-					uDef.customparams.normaltex = "unittextures/Arm_normals.dds"
-				elseif string.find(name, 'cor') then
-					uDef.customparams.normaltex = "unittextures/Core_normal.dds"
-				elseif string.find(name, 'chicken') then
-					uDef.customparams.normaltex = "unittextures/chicken_normal.tga"
-				end
-			end
-
-			for paramName, paramValue in pairs(uDef.customparams) do
-				if paramName:sub(1,4) == "bar_" then
-					local param = string.sub(paramName, 5)
-					if tonumber(param) then
-						uDef[param] = tonumber(paramValue)
-					else
-						uDef[param] = paramValue
-					end
-				end
-			end
-		end
-
-		-- BAR heap models
-		if uDef.featuredefs then
-			local faction = 'cor'
-			if string.find(name, 'arm') then
-				faction = 'arm'
-			end
-			if uDef.featuredefs.heap and uDef.featuredefs.heap.object and VFS.FileExists('objects3d/Units/'..faction..uDef.featuredefs.heap.object..".s3o") then
-				uDef.featuredefs.heap.object = 'Units/'..faction..uDef.featuredefs.heap.object..".s3o"
-			end
-
-			for fname, params in pairs(uDef.featuredefs) do
-				if params.object then
-					if VFS.FileExists('objects3d/'..params.object) then
-
-					elseif VFS.FileExists('objects3d/'..params.object..".3do") then
-
-					elseif VFS.FileExists('objects3d/'..params.object..".s3o") then
-						uDef.featuredefs[fname].object = params.object..'.s3o'
-					else
-						Spring.Echo('3d object does not exist:  unit: '..name..'   featurename: '..fname..'   object: '..uDef.featuredefs[fname].object)
-						uDef.featuredefs[fname].object = ''
-					end
-				end
-			end
-		end
 
 
     -- vehicles
@@ -248,12 +165,6 @@ function WeaponDef_Post(name, wDef)
 
 	wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
 
-	-- EdgeEffectiveness global buff to counterbalance smaller hitboxes
-	wDef.edgeeffectiveness = (tonumber(wDef.edgeeffectiveness) or 0) + 0.15
-	if wDef.edgeeffectiveness >= 1 then
-	    wDef.edgeeffectiveness = 1
-	end
-
 	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
 	-- wDef.targetborder = 1.0
 
@@ -279,35 +190,6 @@ function WeaponDef_Post(name, wDef)
 			wDef.beamdecay = 0.7
 		end
 	end
-
-	--Flare texture has been scaled down to half, so correcting the result of that a bit
-	if wDef ~= nil and wDef.laserflaresize ~= nil and wDef.laserflaresize > 0 then
-		wDef.laserflaresize = wDef.laserflaresize * 1.1
-	end
-
-
-    -- load BAR weapon model
-    if wDef.customparams and wDef.customparams.bar_model then
-        wDef.model = wDef.customparams.bar_model
-    end
-
-    -- load bar alternative defs
-    if wDef.customparams then
-        for paramName, paramValue in pairs(wDef.customparams) do
-            if paramName:sub(1,4) == "bar_" then
-                local param = string.sub(paramName, 5)
-
-                --if param == 'model' and VFS.FileExists('objects3d/'..paramValue) then
-                --	wDef.model = 'objects3d/bar_'..paramValue
-                --end
-                if tonumber(param) then
-                    wDef[param] = tonumber(paramValue)
-                else
-                    wDef[param] = paramValue
-                end
-            end
-        end
-    end
 end
 
 -- process effects
