@@ -9,7 +9,7 @@ return {
 		buildpic = "CORTIDE.DDS",
 		buildtime = 2094,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-3 0 -1",
 		collisionvolumescales = "28 26 33",
 		collisionvolumetype = "Box",

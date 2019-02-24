@@ -1,13 +1,13 @@
 return {
 	corraid = {
-		acceleration = 0.021,
-		brakerate = 0.09,
+		acceleration = 0.04056,
+		brakerate = 0.08113,
 		buildcostenergy = 2400,
 		buildcostmetal = 235,
 		buildpic = "CORRAID.DDS",
 		buildtime = 3312,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "Box",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.873,
 		turnrate = 371,
 		customparams = {
@@ -48,8 +48,6 @@ return {
 			bar_trackwidth = 28,
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "45",
-			wpn1turrety = "80",
 			description_long = "The Raider a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Raiders can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Slashers or artillery for a great frontline push or use large packs for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
 			driftratio = "0.1",
 			firingceg = "barrelshot-tiny",
@@ -61,6 +59,8 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corevehicles",
 			turretname = "turret",
+			wpn1turretx = "45",
+			wpn1turrety = "80",
 		},
 		featuredefs = {
 			dead = {

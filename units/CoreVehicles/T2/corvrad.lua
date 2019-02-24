@@ -1,15 +1,15 @@
 return {
 	corvrad = {
-		acceleration = 0.03,
+		acceleration = 0.01043,
 		activatewhenbuilt = true,
-		brakerate = 0.036,
+		brakerate = 0.02086,
 		buildcostenergy = 1300,
 		buildcostmetal = 92,
 		buildpic = "CORVRAD.DDS",
 		buildtime = 4223,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "24 18 29",
 		collisionvolumetype = "box",
@@ -39,7 +39,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 23,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.825,
 		turnrate = 210,
 		customparams = {

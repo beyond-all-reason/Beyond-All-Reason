@@ -13,7 +13,7 @@ return {
 		buildpic = "CORADVSOL.DDS",
 		buildtime = 8143,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -2",
 		collisionvolumescales = "57 55 57",
 		collisionvolumetype = "CylY",

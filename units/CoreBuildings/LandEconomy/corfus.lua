@@ -13,7 +13,7 @@ return {
 		buildpic = "CORFUS.DDS",
 		buildtime = 75424,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		description = "Produces Energy / Storage",
 		energymake = 1100,

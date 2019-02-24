@@ -1,13 +1,13 @@
 return {
 	corwolv = {
-		acceleration = 0.011,
-		brakerate = 0.0297,
+		acceleration = 0.02293,
+		brakerate = 0.04585,
 		buildcostenergy = 2300,
 		buildcostmetal = 155,
 		buildpic = "CORWOLV.DDS",
 		buildtime = 3254,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 -7",
 		collisionvolumescales = "31 15 43",
 		collisionvolumetype = "Box",
@@ -40,7 +40,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.2342,
 		turnrate = 466,
 		customparams = {
@@ -53,8 +53,6 @@ return {
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",
 			cobkickbackrestorespeed = "10",
-			wpn1turretx = "200",
-			wpn1turrety = "200",
 			description_long = "Wolverine is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Levelers/Insstigators, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
 			driftratio = "1",
 			firingceg = "barrelshot-tiny",
@@ -69,6 +67,8 @@ return {
 			sleevename = "sleeves",
 			subfolder = "corevehicles",
 			turretname = "turret",
+			wpn1turretx = "200",
+			wpn1turrety = "200",
 		},
 		featuredefs = {
 			dead = {

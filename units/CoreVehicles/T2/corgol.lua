@@ -1,13 +1,13 @@
 return {
 	corgol = {
-		acceleration = 0.0242,
-		brakerate = 0.1485,
+		acceleration = 0.01018,
+		brakerate = 0.02037,
 		buildcostenergy = 22000,
 		buildcostmetal = 1650,
 		buildpic = "CORGOL.DDS",
 		buildtime = 26125,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 -1",
 		collisionvolumescales = "50 50 50",
 		collisionvolumetype = "CylZ",
@@ -39,7 +39,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 49,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.957,
 		turnrate = 176,
 		customparams = {
@@ -49,8 +49,6 @@ return {
 			bar_trackwidth = 49,
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "30",
-			wpn1turrety = "40",
 			driftratio = "0",
 			firingceg = "barrelshot-medium",
 			flare1name = "flare",
@@ -62,6 +60,8 @@ return {
 			subfolder = "corevehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "30",
+			wpn1turrety = "40",
 		},
 		featuredefs = {
 			dead = {

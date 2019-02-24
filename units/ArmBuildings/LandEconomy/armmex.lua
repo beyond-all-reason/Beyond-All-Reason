@@ -14,7 +14,7 @@ return {
 		buildpic = "ARMMEX.DDS",
 		buildtime = 1800,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "41 26 41",
 		collisionvolumetype = "CylY",

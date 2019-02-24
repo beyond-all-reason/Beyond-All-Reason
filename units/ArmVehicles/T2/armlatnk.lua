@@ -1,13 +1,13 @@
 return {
 	armlatnk = {
-		acceleration = 0.125,
-		brakerate = 0.375,
+		acceleration = 0.05833,
+		brakerate = 0.11666,
 		buildcostenergy = 6400,
 		buildcostmetal = 330,
 		buildpic = "ARMLATNK.DDS",
 		buildtime = 6027,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -0.5",
 		collisionvolumescales = "30 22 30",
 		collisionvolumetype = "Box",
@@ -37,7 +37,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.19516,
 		turnrate = 440,
 		customparams = {

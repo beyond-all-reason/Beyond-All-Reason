@@ -14,7 +14,7 @@ return {
 		buildtime = 6152,
 		canattack = false,
 		canrepeat = false,
-		category = "ALL UNDERWATER NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL UNDERWATER NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.46,
 		description = "Extended Sonar",

@@ -11,7 +11,7 @@ return {
 		buildpic = "ARMPB.DDS",
 		buildtime = 14961,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 16,
 		corpse = "DEAD",
 		damagemodifier = 0.5,

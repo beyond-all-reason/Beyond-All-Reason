@@ -1,14 +1,14 @@
 return {
 	corparrow = {
-		acceleration = 0.015,
+		acceleration = 0.0266,
 		activatewhenbuilt = true,
-		brakerate = 0.2145,
+		brakerate = 0.05321,
 		buildcostenergy = 29000,
 		buildcostmetal = 1050,
 		buildpic = "CORPARROW.DDS",
 		buildtime = 22181,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW",
+		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -10 1",
 		collisionvolumescales = "44 44 53",
 		collisionvolumetype = "CylZ",
@@ -40,7 +40,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 45,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.31,
 		turnrate = 400,
 		customparams = {
@@ -50,8 +50,6 @@ return {
 			bar_trackwidth = 46,
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "35",
-			wpn1turrety = "55",
 			driftratio = "0.25",
 			firingceg = "barrelshot-medium",
 			flare1name = "emit",
@@ -63,6 +61,8 @@ return {
 			subfolder = "corevehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "35",
+			wpn1turrety = "55",
 		},
 		featuredefs = {
 			dead = {

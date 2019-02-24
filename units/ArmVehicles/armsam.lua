@@ -1,14 +1,14 @@
 return {
 	armsam = {
-		acceleration = 0.031,
+		acceleration = 0.0236,
 		airsightdistance = 900,
-		brakerate = 0.0495,
+		brakerate = 0.0472,
 		buildcostenergy = 2100,
 		buildcostmetal = 150,
 		buildpic = "ARMSAM.DDS",
 		buildtime = 3415,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "34 25 41",
 		collisionvolumetype = "Box",
@@ -36,8 +36,8 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 32,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.056,
 		turnrate = 370,
 		customparams = {

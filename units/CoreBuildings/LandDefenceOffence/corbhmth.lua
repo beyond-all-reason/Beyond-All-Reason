@@ -13,7 +13,7 @@ return {
 		buildpic = "CORBHMTH.DDS",
 		buildtime = 59640,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB WEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "dead",
 		description = "Geothermal Plasma Battery",
 		energymake = 450,

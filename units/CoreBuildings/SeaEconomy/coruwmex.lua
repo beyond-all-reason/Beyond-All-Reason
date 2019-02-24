@@ -10,7 +10,7 @@ return {
 		buildpic = "COROMEX.DDS",
 		buildtime = 1887,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "0 -55 0",
 		collisionvolumescales = "31 128 31",
 		collisionvolumetype = "CylY",

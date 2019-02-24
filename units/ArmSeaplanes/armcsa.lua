@@ -36,7 +36,6 @@ return {
 		objectname = "ARMCSA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		shownanospray = false,
 		sightdistance = 364,
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,

@@ -13,7 +13,7 @@ return {
 		buildpic = "CORGEO.DDS",
 		buildtime = 12875,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "2 -6 0",
 		collisionvolumescales = "63 45 59",
 		collisionvolumetype = "Box",

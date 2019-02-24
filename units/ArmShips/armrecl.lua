@@ -1,8 +1,8 @@
 return {
 	armrecl = {
-		acceleration = 0.146,
+		acceleration = 0.05262,
 		autoheal = 2,
-		brakerate = 0.073,
+		brakerate = 0.05262,
 		buildcostenergy = 3000,
 		buildcostmetal = 210,
 		builddistance = 140,
@@ -32,13 +32,12 @@ return {
 		reclaimspeed = 100,
 		seismicsignature = 0,
 		selfdestructas = "smallexplosiongenericSelfd-uw",
-		shownanospray = false,
 		sightdistance = 300,
 		sonardistance = 50,
 		terraformspeed = 2250,
 		turninplace = true,
 		turninplaceanglelimit = 90,
-		turnrate = 350,
+		turnrate = 525,
 		waterline = 17,
 		workertime = 150,
 		customparams = {

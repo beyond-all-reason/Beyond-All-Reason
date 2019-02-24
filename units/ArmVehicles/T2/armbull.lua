@@ -1,13 +1,13 @@
 return {
 	armbull = {
-		acceleration = 0.0396,
-		brakerate = 0.18,
+		acceleration = 0.03542,
+		brakerate = 0.07083,
 		buildcostenergy = 13000,
 		buildcostmetal = 950,
 		buildpic = "ARMBULL.DDS",
 		buildtime = 17228,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 2",
 		collisionvolumescales = "43 23 43",
 		collisionvolumetype = "CylY",
@@ -46,8 +46,6 @@ return {
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",
-			wpn1turretx = "65",
-			wpn1turrety = "105",
 			driftratio = "0.5",
 			firingceg = "barrelshot-medium",
 			flare1name = "flare1",
@@ -60,6 +58,8 @@ return {
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "65",
+			wpn1turrety = "105",
 		},
 		featuredefs = {
 			dead = {

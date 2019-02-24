@@ -145,7 +145,7 @@ end
 
 local unitConfigs = {   -- copy from configs/icon_generator_bar.lua, included.. because else it will miss frames when animating
     [UnitDefNames.cormex.id] = {
-        wait = 600,
+        wait = 60,
     },
     [UnitDefNames.corsolar.id] = {
         wait = 80,

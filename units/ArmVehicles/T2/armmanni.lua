@@ -1,13 +1,13 @@
 return {
 	armmanni = {
-		acceleration = 0.0132,
-		brakerate = 0.4125,
+		acceleration = 0.00715,
+		brakerate = 0.01431,
 		buildcostenergy = 13500,
 		buildcostmetal = 1200,
 		buildpic = "ARMMANNI.DDS",
 		buildtime = 25706,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 -7",
 		collisionvolumescales = "39 49 39",
 		collisionvolumetype = "box",
@@ -40,15 +40,13 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 37,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.00188,
 		turnrate = 120.8,
 		customparams = {
 			arm_tank = "1",
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "50",
-			wpn1turrety = "50",
 			driftratio = "0",
 			firingceg = "barrelshot-small",
 			flare1name = "flash",
@@ -60,6 +58,8 @@ return {
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "50",
+			wpn1turrety = "50",
 		},
 		featuredefs = {
 			dead = {

@@ -12,7 +12,7 @@ return {
 		buildpic = "CORMSTOR.DDS",
 		buildtime = 2925,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 0 -6",
 		collisionvolumescales = "75 34 75",
 		collisionvolumetype = "CylY",

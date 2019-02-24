@@ -1,14 +1,14 @@
 return {
 	armyork = {
-		acceleration = 0.0396,
+		acceleration = 0.06111,
 		airsightdistance = 900,
-		brakerate = 0.3795,
+		brakerate = 0.12223,
 		buildcostenergy = 9100,
 		buildcostmetal = 450,
 		buildpic = "ARMYORK.DDS",
 		buildtime = 9964,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 -2",
 		collisionvolumescales = "31 31 38",
 		collisionvolumetype = "CylZ",
@@ -37,8 +37,8 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 27,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.63786,
 		turnrate = 618.20001,
 		customparams = {

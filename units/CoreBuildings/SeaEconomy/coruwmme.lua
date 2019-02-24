@@ -14,7 +14,7 @@ return {
 		buildpic = "CORUWMME.DDS",
 		buildtime = 24348,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.35,
 		description = "Advanced Metal Extractor / Storage",

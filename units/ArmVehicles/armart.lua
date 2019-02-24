@@ -1,13 +1,13 @@
 return {
 	armart = {
-		acceleration = 0.0154,
-		brakerate = 0.0462,
+		acceleration = 0.02727,
+		brakerate = 0.05454,
 		buildcostenergy = 2200,
 		buildcostmetal = 135,
 		buildpic = "armart.DDS",
 		buildtime = 2998,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 3",
 		collisionvolumescales = "31 20 39",
 		collisionvolumetype = "Box",
@@ -41,7 +41,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.29228,
 		turnrate = 393.79999,
 		customparams = {
@@ -53,8 +53,6 @@ return {
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "gun",
-			wpn1turretx = "40",
-			wpn1turrety = "110",
 			description_long = "Shellshocker is an artillery vehicle used to take down T1 defenses, especially High Laser Turrets. It can outrange all T1 defense towers except coastal defense plasma batteries. Shooting its plasma shells along a parabolic trajectory they are obviously helpless in close quarters combat.  Always keep them protected by Stumpies/Flashes, or your own defensive structures. Don't forget to have targets in your radar's range or scouted.",
 			driftratio = "0.2",
 			flare1name = "flare",
@@ -65,6 +63,8 @@ return {
 			sleevename = "sleeve",
 			subfolder = "armvehicles",
 			turretname = "turret",
+			wpn1turretx = "40",
+			wpn1turrety = "110",
 		},
 		featuredefs = {
 			dead = {

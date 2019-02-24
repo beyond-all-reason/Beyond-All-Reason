@@ -1,14 +1,14 @@
 return {
 	armpincer = {
-		acceleration = 0.031,
+		acceleration = 0.03572,
 		activatewhenbuilt = true,
-		brakerate = 0.063,
+		brakerate = 0.07144,
 		buildcostenergy = 2000,
 		buildcostmetal = 200,
 		buildpic = "ARMPINCER.DDS",
 		buildtime = 2613,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW",
+		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 1",
 		collisionvolumescales = "31 13 31",
 		collisionvolumetype = "Box",
@@ -40,15 +40,13 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.485,
 		turnrate = 398,
 		customparams = {
 			arm_tank = "1",
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "64",
-			wpn1turrety = "75",
 			description_long = "A pincer is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way.",
 			driftratio = "0.3",
 			firingceg = "barrelshot-small",
@@ -61,6 +59,8 @@ return {
 			sleevename = "turret",
 			subfolder = "armvehicles",
 			turretname = "turret",
+			wpn1turretx = "64",
+			wpn1turrety = "75",
 		},
 		featuredefs = {
 			dead = {

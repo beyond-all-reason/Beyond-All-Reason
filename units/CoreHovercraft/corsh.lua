@@ -1,13 +1,13 @@
 return {
 	corsh = {
-		acceleration = 0.12,
-		brakerate = 0.336,
+		acceleration = 0.10226,
+		brakerate = 0.10226,
 		buildcostenergy = 1500,
 		buildcostmetal = 75,
 		buildpic = "CORSH.DDS",
 		buildtime = 4079,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "24 16 32",
 		collisionvolumetype = "CylY",
@@ -31,8 +31,8 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 509,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.8116,
 		turnrate = 615,
 		customparams = {

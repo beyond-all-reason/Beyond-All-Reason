@@ -1,13 +1,13 @@
 return {
 	cormh = {
-		acceleration = 0.072,
-		brakerate = 0.336,
+		acceleration = 0.04415,
+		brakerate = 0.04415,
 		buildcostenergy = 3300,
 		buildcostmetal = 200,
 		buildpic = "CORMH.DDS",
 		buildtime = 3500,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 12 43",
 		collisionvolumetype = "CylY",
@@ -31,8 +31,8 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 509,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.5972,
 		turnrate = 455,
 		customparams = {

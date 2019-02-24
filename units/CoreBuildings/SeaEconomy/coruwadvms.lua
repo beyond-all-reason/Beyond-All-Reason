@@ -10,7 +10,7 @@ return {
 		buildpic = "CORUWADVMS.DDS",
 		buildtime = 20524,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",
 		collisionvolumeoffsets = "-6 0 0",
 		collisionvolumescales = "46 40 58",
 		collisionvolumetype = "Box",

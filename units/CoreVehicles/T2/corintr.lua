@@ -1,7 +1,7 @@
 return {
 	corintr = {
-		acceleration = 0.33,
-		brakerate = 0.495,
+		acceleration = 0.01621,
+		brakerate = 0.01621,
 		buildangle = 16384,
 		buildcostenergy = 16000,
 		buildcostmetal = 1350,
@@ -9,7 +9,7 @@ return {
 		buildtime = 14177,
 		canmove = true,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE CANBEUW",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "48.2 48.2 87.2",
 		collisionvolumetype = "CylZ",
@@ -43,7 +43,7 @@ return {
 		transportsize = 4,
 		transportunloadmethod = 0,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.24872,
 		turnrate = 215.60001,
 		unloadspread = 3,

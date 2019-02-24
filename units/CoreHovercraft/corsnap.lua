@@ -1,13 +1,13 @@
 return {
 	corsnap = {
-		acceleration = 0.078,
-		brakerate = 0.3,
+		acceleration = 0.04624,
+		brakerate = 0.04624,
 		buildcostenergy = 3300,
 		buildcostmetal = 320,
 		buildpic = "CORSNAP.DDS",
 		buildtime = 3791,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "32 16 32",
 		collisionvolumetype = "CylY",
@@ -31,8 +31,8 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 491,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.518,
 		turnrate = 500,
 		customparams = {

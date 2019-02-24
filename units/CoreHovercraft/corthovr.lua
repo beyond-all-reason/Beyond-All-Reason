@@ -1,7 +1,7 @@
 return {
 	corthovr = {
-		acceleration = 0.036,
-		brakerate = 0.186,
+		acceleration = 0.03101,
+		brakerate = 0.03101,
 		buildangle = 16384,
 		buildcostenergy = 8000,
 		buildcostmetal = 700,
@@ -9,7 +9,7 @@ return {
 		buildtime = 19587,
 		canmove = true,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -17 0",
 		collisionvolumescales = "60 60 84",
 		collisionvolumetype = "CylZ",

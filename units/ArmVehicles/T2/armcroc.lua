@@ -1,14 +1,14 @@
 return {
 	armcroc = {
-		acceleration = 0.0528,
+		acceleration = 0.03452,
 		activatewhenbuilt = true,
-		brakerate = 0.0627,
+		brakerate = 0.06904,
 		buildcostenergy = 12000,
 		buildcostmetal = 500,
 		buildpic = "ARMCROC.DDS",
 		buildtime = 13367,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 0 -3",
 		collisionvolumescales = "53 23 53",
 		collisionvolumetype = "CylY",
@@ -40,15 +40,13 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 42,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.35,
 		turnrate = 433,
 		customparams = {
 			arm_tank = "1",
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "45",
-			wpn1turrety = "75",
 			driftratio = "0.3",
 			firingceg = "barrelshot-medium",
 			flare1name = "flare1",
@@ -60,6 +58,8 @@ return {
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "45",
+			wpn1turrety = "75",
 		},
 		featuredefs = {
 			dead = {

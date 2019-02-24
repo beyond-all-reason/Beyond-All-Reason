@@ -1,13 +1,13 @@
 return {
 	corhal = {
-		acceleration = 0.072,
-		brakerate = 0.225,
+		acceleration = 0.02428,
+		brakerate = 0.02428,
 		buildcostenergy = 13000,
 		buildcostmetal = 640,
 		buildpic = "CORHAL.DDS",
 		buildtime = 12907,
 		canmove = true,
-		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE",
+		category = "ALL HOVER WEAPON NOTSUB NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "48 20 48",
 		collisionvolumetype = "CylY",
@@ -31,8 +31,8 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 349,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.9768,
 		turnrate = 410,
 		customparams = {

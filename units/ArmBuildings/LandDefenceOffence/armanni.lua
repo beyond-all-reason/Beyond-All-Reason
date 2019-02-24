@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMANNI.DDS",
 		buildtime = 52071,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "54 81 54",
 		collisionvolumetype = "BoxY",

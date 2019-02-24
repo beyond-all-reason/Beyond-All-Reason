@@ -1,13 +1,13 @@
 return {
 	corgator = {
-		acceleration = 0.057,
-		brakerate = 0.18,
+		acceleration = 0.04631,
+		brakerate = 0.09262,
 		buildcostenergy = 1150,
 		buildcostmetal = 125,
 		buildpic = "CORGATOR.DDS",
 		buildtime = 1761,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "30 15 32",
 		collisionvolumetype = "Box",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 21,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.96,
 		turnrate = 388,
 		customparams = {
@@ -48,8 +48,6 @@ return {
 			bar_trackwidth = 21,
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "175",
-			wpn1turrety = "175",
 			description_long = "The Instigator is a light, fast moving tank armed with a weak, but very precise laser weapon, accurate even when fired on the move. This makes it useful against fast lightly armored units, such as Peewees. A bit slower than its ARM counterpart - flash, but it has a higher range, so always try to keep distance. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks",
 			driftratio = "0.6",
 			firingceg = "barrelshot-tiny",
@@ -61,6 +59,8 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corevehicles",
 			turretname = "turret",
+			wpn1turretx = "175",
+			wpn1turrety = "175",
 		},
 		featuredefs = {
 			dead = {

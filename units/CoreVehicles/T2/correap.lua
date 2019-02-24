@@ -1,13 +1,13 @@
 return {
 	correap = {
-		acceleration = 0.044,
-		brakerate = 0.21,
+		acceleration = 0.0362,
+		brakerate = 0.0724,
 		buildcostenergy = 10000,
 		buildcostmetal = 665,
 		buildpic = "CORREAP.DDS",
 		buildtime = 11501,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "34 34 38",
 		collisionvolumetype = "CylZ",
@@ -49,8 +49,6 @@ return {
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",
-			wpn1turretx = "65",
-			wpn1turrety = "105",
 			core_tank = "1",
 			driftratio = "0.25",
 			firingceg = "barrelshot-medium",
@@ -64,6 +62,8 @@ return {
 			subfolder = "corevehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "65",
+			wpn1turrety = "105",
 		},
 		featuredefs = {
 			dead = {

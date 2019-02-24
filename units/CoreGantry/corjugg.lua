@@ -1,7 +1,7 @@
 return {
 	corjugg = {
-		acceleration = 0.048,
-		brakerate = 0.375,
+		acceleration = 0.0552,
+		brakerate = 0.43125,
 		buildcostenergy = 513000,
 		buildcostmetal = 20000,
 		buildpic = "CORJUGG.DDS",
@@ -33,9 +33,10 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "juggernautSelfd",
 		sightdistance = 720,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.363,
-		turnrate = 109,
+		turnrate = 125.35,
 		customparams = {
 			customrange = 435,
 			model_author = "FireStorm",

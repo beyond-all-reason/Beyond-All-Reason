@@ -11,7 +11,7 @@ return {
 		buildpic = "ARMCLAW.DDS",
 		buildtime = 4638,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		damagemodifier = 0.25,
 		decoyfor = "armdrag",

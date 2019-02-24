@@ -1,13 +1,13 @@
 return {
 	armmh = {
-		acceleration = 0.072,
-		brakerate = 0.336,
+		acceleration = 0.04561,
+		brakerate = 0.04561,
 		buildcostenergy = 3000,
 		buildcostmetal = 175,
 		buildpic = "ARMMH.DDS",
 		buildtime = 3298,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "33 12 43",
 		collisionvolumetype = "CylY",
@@ -31,8 +31,8 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 509,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.5972,
 		turnrate = 470,
 		customparams = {

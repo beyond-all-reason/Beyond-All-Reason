@@ -36,7 +36,6 @@ return {
 		objectname = "CORCSA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		shownanospray = false,
 		sightdistance = 351,
 		terraformspeed = 300,
 		turninplaceanglelimit = 360,

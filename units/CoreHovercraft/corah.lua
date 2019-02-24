@@ -1,14 +1,14 @@
 return {
 	corah = {
-		acceleration = 0.096,
+		acceleration = 0.06316,
 		airsightdistance = 800,
-		brakerate = 0.336,
+		brakerate = 0.06316,
 		buildcostenergy = 4700,
 		buildcostmetal = 250,
 		buildpic = "CORAH.DDS",
 		buildtime = 3650,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "28 16 28",
 		collisionvolumetype = "CylY",
@@ -33,8 +33,8 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 509,
 		sonardistance = 350,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.2044,
 		turnrate = 470,
 		customparams = {

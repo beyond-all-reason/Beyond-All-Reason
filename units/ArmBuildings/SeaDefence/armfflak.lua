@@ -9,7 +9,7 @@ return {
 		buildpic = "ARMFFLAK.DDS",
 		buildtime = 21855,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -10 0",
 		collisionvolumescales = "42 44 42",
 		collisionvolumetype = "CylY",

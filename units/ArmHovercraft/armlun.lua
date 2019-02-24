@@ -1,7 +1,7 @@
 return {
 	armlun = {
-		acceleration = 0.035,
-		brakerate = 0.15,
+		acceleration = 0.01788,
+		brakerate = 0.01788,
 		buildcostenergy = 33000,
 		buildcostmetal = 1150,
 		builder = false,
@@ -13,7 +13,7 @@ return {
 		canpatrol = true,
 		canstop = 1,
 		cantbetransported = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		corpse = "dead",
 		description = "Heavy Hovertank",
 		energymake = 2.8,
@@ -35,8 +35,8 @@ return {
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 620,
 		sonardistance = 550,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.122,
 		turnrate = 250,
 		customparams = {

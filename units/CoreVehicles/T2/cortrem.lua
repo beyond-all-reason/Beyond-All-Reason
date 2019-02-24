@@ -1,13 +1,13 @@
 return {
 	cortrem = {
-		acceleration = 0.0528,
-		brakerate = 0.33,
+		acceleration = 0.0098,
+		brakerate = 0.0196,
 		buildcostenergy = 49000,
 		buildcostmetal = 1850,
 		buildpic = "CORTREM.DDS",
 		buildtime = 31100,
 		canmove = true,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE TANK",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE TANK EMPABLE",
 		collisionvolumeoffsets = "0 -5 3",
 		collisionvolumescales = "37 61 51",
 		collisionvolumetype = "Box",
@@ -40,7 +40,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 28,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.95832,
 		turnrate = 169.39999,
 		customparams = {

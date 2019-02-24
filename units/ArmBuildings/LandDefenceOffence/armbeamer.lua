@@ -12,7 +12,7 @@ return {
 		buildpic = "armbeamer.DDS",
 		buildtime = 5324,
 		canrepeat = false,
-		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE",
+		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "33 85 33",
 		collisionvolumetype = "CylY",

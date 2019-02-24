@@ -33,30 +33,6 @@ local vehAccelerationMultiplier = 1
 local vehAdditionalVelocity = 0
 local vehVelocityMultiplier = 1
 
-local hoverAdditionalTurnrate = 0
-local hoverTurnrateMultiplier = 1.0
-
-local hoverAdditionalAcceleration = 0.00
-local hoverAccelerationMultiplier = 1
-
-local hoverAdditionalVelocity = 0
-local hoverVelocityMultiplier = 1
-
-local shipAdditionalTurnrate = 0
-local shipTurnrateMultiplier = 1.5
-
-local shipAdditionalAcceleration = 0.00
-local shipAccelerationMultiplier = 1
-
-local shipAdditionalVelocity = 0
-local shipVelocityMultiplier = 1
-
-local kbotAdditionalTurnrate = 0
-local kbotTurnrateMultiplier = 1.15
-
-local kbotAdditionalAcceleration = 0
-local kbotAccelerationMultiplier = 1.15
-local kbotBrakerateMultiplier = 1.15
 
 
 local function getFilePath(filename, path)
@@ -240,135 +216,20 @@ function UnitDef_Post(name, uDef)
 	end
 
 
-	if uDef.icontype and uDef.icontype == "sea" then
-		if uDef.featuredefs and uDef.featuredefs.dead and uDef.featuredefs.dead.metal and uDef.buildcostmetal then
-			uDef.featuredefs.dead.metal = uDef.buildcostmetal * 0.5
-		end
-		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.metal and uDef.buildcostmetal then
-			uDef.featuredefs.heap.metal = uDef.buildcostmetal * 0.25
-		end
-		if uDef.featuredefs and uDef.featuredefs.dead and uDef.featuredefs.dead.damage then
-			uDef.featuredefs.dead.damage = uDef.featuredefs.dead.damage*2
-		end
-		if uDef.featuredefs and uDef.featuredefs.heap and uDef.featuredefs.heap.damage then
-			uDef.featuredefs.heap.damage = uDef.featuredefs.heap.damage*2
-		end
-	end
-	
-	--Aircraft movements here:
-	if uDef.canfly == true and not uDef.hoverattack == true then
-		turn = (((uDef.turnrate)*0.16)/360)/30
-		wingsurffactor = tonumber(uDef.customparams and uDef.customparams.wingsurface) or 1
-		uDef.usesmoothmesh = true
-		uDef.wingdrag = 0.07/2 + uDef.brakerate * 2
-		uDef.wingangle = 0.08*3/4 + turn/4
-		uDef.speedtofront = 0.07*(5/6 + wingsurffactor/6)
-		uDef.turnradius = 64
-		uDef.maxbank = 0.8
-		uDef.maxpitch = 0.8/2 + 0.45/2
-		uDef.maxaileron =0.015*3/4 + turn/4
-		uDef.maxelevator =0.01*3/4 + turn/4
-		uDef.maxrudder = 0.004*3/4 + turn/4
-		uDef.maxacc = 0.065/2 + uDef.acceleration/2
-	end
-	-- Enable default Nanospray
-	uDef.shownanospray = true
+    -- vehicles
+    --if uDef.category and string.find(uDef.category, "TANK") then
+    --	if uDef.turnrate ~= nil then
+    --		uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
+    --	end
+    --    	if uDef.acceleration ~= nil then
+    --		uDef.acceleration = (uDef.acceleration + vehAdditionalAcceleration) * vehAccelerationMultiplier
+    --	end
+    --    	if uDef.maxvelocity ~= nil then
+    --		uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
+    --	end
+    --end
 
-	-- vehicles
-	if uDef.category and string.find(uDef.category, "TANK") then
-		if uDef.turnrate ~= nil then
-			uDef.turnrate = (uDef.turnrate + vehAdditionalTurnrate) * vehTurnrateMultiplier
-		end
 
-		if uDef.acceleration ~= nil then
-			uDef.acceleration = (uDef.acceleration + vehAdditionalAcceleration) * vehAccelerationMultiplier
-		end
-
-		if uDef.maxvelocity ~= nil then
-			uDef.maxvelocity = (uDef.maxvelocity + vehAdditionalVelocity) * vehVelocityMultiplier
-		end
-
-		if uDef.turnrate and uDef.maxvelocity and uDef.brakerate and uDef.acceleration then
-			local k = 1800/(0.164 * uDef.turnrate)
-			uDef.acceleration = uDef.maxvelocity / (2*k)
-			uDef.brakerate = uDef.maxvelocity / (k)
-			uDef.turninplaceanglelimit = 90
-			uDef.turninplace = true
-		end
-	end
-
-	-- kbots
-	if uDef.category and string.find(uDef.category, "KBOT") then
-		if uDef.turnrate ~= nil then
-			uDef.turnrate = (uDef.turnrate + kbotAdditionalTurnrate) * kbotTurnrateMultiplier
-		end
-
-		if uDef.acceleration ~= nil then
-			uDef.acceleration = (uDef.acceleration + kbotAdditionalAcceleration) * kbotAccelerationMultiplier
-		end
-
-		if uDef.brakerate ~= nil then
-			uDef.brakerate = uDef.brakerate * kbotBrakerateMultiplier
-		end
-
-		uDef.turninplace = true
-		uDef.turninplaceanglelimit = 90
-	end
-
-	-- hovers
-	if uDef.category and string.find(uDef.category, "HOVER") then
-		if uDef.turnrate ~= nil then
-			uDef.turnrate = (uDef.turnrate + hoverAdditionalTurnrate) * hoverTurnrateMultiplier
-		end
-
-		if uDef.acceleration ~= nil then
-			uDef.acceleration = (uDef.acceleration + hoverAdditionalAcceleration) * hoverAccelerationMultiplier
-		end
-
-		if uDef.maxvelocity ~= nil then
-			uDef.maxvelocity = (uDef.maxvelocity + hoverAdditionalVelocity) * hoverVelocityMultiplier
-		end
-
-		if uDef.turnrate and uDef.maxvelocity and uDef.brakerate and uDef.acceleration then
-			local k = 1800/(0.164 * uDef.turnrate)
-			uDef.acceleration = uDef.maxvelocity / (2*k)
-			uDef.brakerate = uDef.maxvelocity / (2*k)
-			uDef.turninplaceanglelimit = 90
-			uDef.turninplace = true
-		end
-	end
-	
-		if uDef.movementclass and string.find(uDef.movementclass, "BOAT") then
-			--Spring.Echo(name)
-			if uDef.turnrate ~= nil then
-				uDef.turnrate = (uDef.turnrate + shipAdditionalTurnrate) * shipTurnrateMultiplier
-			end
-
-			if uDef.acceleration ~= nil then
-				uDef.acceleration = (uDef.acceleration + shipAdditionalAcceleration) * shipAccelerationMultiplier
-			end
-
-			if uDef.maxvelocity ~= nil then
-				uDef.maxvelocity = (uDef.maxvelocity + shipAdditionalVelocity) * shipVelocityMultiplier
-			end
-
-			if uDef.turnrate and uDef.maxvelocity and uDef.brakerate and uDef.acceleration then
-				local k = 1800/(0.164 * uDef.turnrate)
-				uDef.acceleration = uDef.maxvelocity / (2*k)
-				uDef.brakerate = uDef.maxvelocity / (2*k)
-				uDef.turninplaceanglelimit = 90
-				uDef.turninplace = true
-			end
-		end
-
-	-- add unit category: EMPABLE
-	if uDef.category and string.find(uDef.category, "SURFACE") then
-		if uDef.customparams and uDef.customparams.paralyzemultiplier and uDef.customparams.paralyzemultiplier == 0 then
-
-		else
-			uDef.category = uDef.category ..' EMPABLE'
-		end
-	end
 
 	-- import csv unitdef changes
 	--local file = VFS.LoadFile("modelauthors.csv")
@@ -452,7 +313,7 @@ function WeaponDef_Post(name, wDef)
 	-- EdgeEffectiveness global buff to counterbalance smaller hitboxes
 	wDef.edgeeffectiveness = (tonumber(wDef.edgeeffectiveness) or 0) + 0.15
 	if wDef.edgeeffectiveness >= 1 then
-	wDef.edgeeffectiveness = 1
+	    wDef.edgeeffectiveness = 1
 	end
 
 	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)

@@ -1,13 +1,13 @@
 return {
 	armmerl = {
-		acceleration = 0.026,
-		brakerate = 0.1122,
+		acceleration = 0.02489,
+		brakerate = 0.04978,
 		buildcostenergy = 6500,
 		buildcostmetal = 920,
 		buildpic = "ARMMERL.DDS",
 		buildtime = 15500,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -9 0",
 		collisionvolumescales = "40 40 50",
 		collisionvolumetype = "CylZ",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 38,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.792,
 		turnrate = 520.29999,
 		customparams = {

@@ -1,14 +1,14 @@
 return {
 	cormist = {
-		acceleration = 0.027,
+		acceleration = 0.02208,
 		airsightdistance = 900,
-		brakerate = 0.0495,
+		brakerate = 0.04416,
 		buildcostenergy = 2400,
 		buildcostmetal = 155,
 		buildpic = "CORMIST.DDS",
 		buildtime = 3435,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 1",
 		collisionvolumescales = "34 18 43",
 		collisionvolumetype = "Box",
@@ -36,8 +36,8 @@ return {
 		trackstrength = 5,
 		tracktype = "StdTank",
 		trackwidth = 30,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.99,
 		turnrate = 370,
 		customparams = {

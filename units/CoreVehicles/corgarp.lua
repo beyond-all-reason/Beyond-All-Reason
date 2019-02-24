@@ -1,14 +1,14 @@
 return {
 	corgarp = {
-		acceleration = 0.0243,
+		acceleration = 0.03226,
 		activatewhenbuilt = true,
-		brakerate = 0.063,
+		brakerate = 0.06453,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,
 		buildpic = "CORGARP.DDS",
 		buildtime = 3101,
 		canmove = true,
-		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW",
+		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -3 -2",
 		collisionvolumescales = "30 21 31",
 		collisionvolumetype = "Box",
@@ -40,7 +40,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.386,
 		turnrate = 387,
 		customparams = {
@@ -50,8 +50,6 @@ return {
 			bar_trackwidth = 22,
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "90",
-			wpn1turrety = "90",
 			description_long = "Garpike  is a light amphibious tank which can travel on land and underwater equally well. It is weaker than most land based tanks, so to use it effectively avoid direct fire exchange and try to surprise your opponent by destroying undefended targets near the shoreline. Don't forget to send one or two amphibious constructors with your assault to reclaim left wrecks and claim metal spots on the way. ",
 			driftratio = "0.5",
 			firingceg = "barrelshot-tiny",
@@ -64,6 +62,8 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corevehicles",
 			turretname = "turret",
+			wpn1turretx = "90",
+			wpn1turrety = "90",
 		},
 		featuredefs = {
 			dead = {

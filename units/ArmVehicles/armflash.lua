@@ -1,13 +1,13 @@
 return {
 	armflash = {
-		acceleration = 0.058,
-		brakerate = 0.195,
+		acceleration = 0.06788,
+		brakerate = 0.13575,
 		buildcostenergy = 980,
 		buildcostmetal = 115,
 		buildpic = "ARMFLASH.DDS",
 		buildtime = 1963,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -1",
 		collisionvolumescales = "24 9 31",
 		collisionvolumetype = "Box",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 22,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 2.424,
 		turnrate = 473,
 		customparams = {
@@ -46,8 +46,6 @@ return {
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",
-			wpn1turretx = "200",
-			wpn1turrety = "200",
 			description_long = "Flash is a light, fast moving tank with close combat rapid fire weapon. It is slightly more powerful and faster than Peewee and A.K. on flat terrain. Being very cheap to build and having high top speeds can be useful for scouting and taking down unguarded metal extractors and eco. In late T1 warfare Flash can be used in large numbers for ambushing Commanders and speedy skirmishing. Light armor and short range makes it susceptible to defensive towers and riot tanks.",
 			driftratio = "0.7",
 			firingceg = "barrelshot-tiny",
@@ -60,6 +58,8 @@ return {
 			sleevename = "sleeves",
 			subfolder = "armvehicles",
 			turretname = "turret",
+			wpn1turretx = "200",
+			wpn1turrety = "200",
 		},
 		featuredefs = {
 			dead = {

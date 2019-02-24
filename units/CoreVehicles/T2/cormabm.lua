@@ -1,14 +1,14 @@
 return {
 	cormabm = {
-		acceleration = 0.0198,
-		brakerate = 0.1122,
+		acceleration = 0.03721,
+		brakerate = 0.07443,
 		buildcostenergy = 32000,
 		buildcostmetal = 1250,
 		buildpic = "CORMABM.DDS",
 		buildtime = 42000,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "40 21 30",
 		collisionvolumetype = "CylY",
@@ -41,7 +41,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 34,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.188,
 		turnrate = 520.29999,
 		customparams = {

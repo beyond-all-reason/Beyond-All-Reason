@@ -13,7 +13,7 @@ return {
 		buildpic = "CORTARG.DDS",
 		buildtime = 10898,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
 		description = "Enhanced Radar Targeting, more facilities enhance accuracy",
 		energyuse = 100,

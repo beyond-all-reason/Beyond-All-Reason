@@ -11,7 +11,7 @@ return {
 		buildinggrounddecaltype = "decals/cortron_aoplane.dds",
 		buildpic = "CORTRON.DDS",
 		buildtime = 58927,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "59 47 59",
 		collisionvolumetype = "CylY",

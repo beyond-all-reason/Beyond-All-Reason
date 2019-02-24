@@ -10,7 +10,7 @@ return {
 		builder = false,
 		buildtime = 1,
 		canrepeat = false,
-		category = "NOTAIR NOTSUB NOTSHIP NOTHOVER ALL SURFACE",
+		category = "NOTAIR NOTSUB NOTSHIP NOTHOVER ALL SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "56 11 56",
 		collisionvolumetype = "box",

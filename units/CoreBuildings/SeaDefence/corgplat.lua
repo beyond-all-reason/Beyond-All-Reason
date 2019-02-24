@@ -9,7 +9,7 @@ return {
 		buildpic = "CORGPLAT.DDS",
 		buildtime = 3003,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -6 0",
 		collisionvolumescales = "76 36 76",
 		collisionvolumetype = "CylY",

@@ -1,13 +1,13 @@
 return {
 	armanac = {
-		acceleration = 0.084,
-		brakerate = 0.336,
+		acceleration = 0.05333,
+		brakerate = 0.05333,
 		buildcostenergy = 2600,
 		buildcostmetal = 290,
 		buildpic = "ARMANAC.DDS",
 		buildtime = 3194,
 		canmove = true,
-		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE",
+		category = "ALL HOVER MOBILE WEAPON NOTSUB NOTSHIP NOTAIR SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 1 0",
 		collisionvolumescales = "40 16 40",
 		collisionvolumetype = "CylY",
@@ -31,8 +31,8 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 509,
-		turninplace = 0,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.6698,
 		turnrate = 525,
 		customparams = {

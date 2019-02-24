@@ -9,7 +9,7 @@ return {
 		buildpic = "CORFATF.DDS",
 		buildtime = 10302,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -5 -3.5",
 		collisionvolumescales = "60 30 60",
 		collisionvolumetype = "CylY",

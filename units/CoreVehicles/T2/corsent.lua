@@ -1,14 +1,14 @@
 return {
 	corsent = {
-		acceleration = 0.0528,
+		acceleration = 0.05823,
 		airsightdistance = 900,
-		brakerate = 0.4125,
+		brakerate = 0.11647,
 		buildcostenergy = 10500,
 		buildcostmetal = 470,
 		buildpic = "CORSENT.DDS",
 		buildtime = 11986,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 -4",
 		collisionvolumescales = "40.5 40.5 43.5",
 		collisionvolumetype = "CylZ",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 32,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.6335,
 		turnrate = 591.79999,
 		customparams = {

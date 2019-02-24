@@ -1,15 +1,15 @@
 return {
 	armjam = {
-		acceleration = 0.035,
+		acceleration = 0.02416,
 		activatewhenbuilt = true,
-		brakerate = 0.036,
+		brakerate = 0.04831,
 		buildcostenergy = 1700,
 		buildcostmetal = 105,
 		buildpic = "ARMJAM.DDS",
 		buildtime = 5933,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "22.6 22.6 32.6",
 		collisionvolumetype = "CylZ",
@@ -41,7 +41,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 22,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.792,
 		turnrate = 505,
 		customparams = {

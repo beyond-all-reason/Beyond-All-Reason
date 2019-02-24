@@ -1,13 +1,13 @@
 return {
 	corlevlr = {
-		acceleration = 0.0364,
-		brakerate = 1.0854,
+		acceleration = 0.01654,
+		brakerate = 0.03308,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,
 		buildpic = "CORLEVLR.DDS",
 		buildtime = 3009,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "29 20 32",
 		collisionvolumetype = "Box",
@@ -38,7 +38,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.94149,
 		turnrate = 292.80002,
 		customparams = {
@@ -48,8 +48,6 @@ return {
 			bar_trackwidth = 30,
 			basename = "base",
 			cannon1name = "barrel",
-			wpn1turretx = "20",
-			wpn1turrety = "170",
 			description_long = "The Leveler is a powerful tank armed with an impulse weapon that deals AoE damage and repels light units. It makes it highly effective against swarms of peewees, flashes etc. A drawback is their low speed and inability to shoot over each other, therefore always try to move them in a line. Rather ineffective against long range defense towers - combine them with Slashers (rocket trucks) or Storms (rocket Kbots) to push the front and constructors for repairing.",
 			driftratio = "0.4",
 			firingceg = "barrelshot-tiny",
@@ -61,6 +59,8 @@ return {
 			sleevename = "sleeve",
 			subfolder = "corevehicles",
 			turretname = "turret",
+			wpn1turretx = "20",
+			wpn1turrety = "170",
 		},
 		featuredefs = {
 			dead = {

@@ -1,7 +1,7 @@
 return {
 	corkrog = {
-		acceleration = 0.108,
-		brakerate = 0.714,
+		acceleration = 0.1242,
+		brakerate = 0.8211,
 		buildcostenergy = 615000,
 		buildcostmetal = 29000,
 		buildpic = "CORKROG.DDS",
@@ -35,9 +35,10 @@ return {
 		selfdestructas = "krogExplosionSelfd",
 		selfdestructcountdown = 10,
 		sightdistance = 845,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.7392,
-		turnrate = 380,
+		turnrate = 437,
 		upright = true,
 		customparams = {
 			customrange = 590,

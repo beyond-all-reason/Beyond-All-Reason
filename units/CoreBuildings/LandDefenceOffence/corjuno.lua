@@ -10,7 +10,7 @@ return {
 		buildinggrounddecaltype = "decals/corjuno_aoplane.dds",
 		buildpic = "CORJUNO.DDS",
 		buildtime = 27681,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",
 		collisionvolumescales = "44 88 44",
 		collisionvolumetype = "CylY",

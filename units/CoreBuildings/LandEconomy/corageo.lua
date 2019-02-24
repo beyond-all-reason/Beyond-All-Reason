@@ -13,7 +13,7 @@ return {
 		buildpic = "CORAGEO.DDS",
 		buildtime = 32078,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "3 -5 0",
 		collisionvolumescales = "92 43 71",
 		collisionvolumetype = "Box",

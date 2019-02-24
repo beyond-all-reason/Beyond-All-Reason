@@ -13,7 +13,7 @@ return {
 		buildpic = "CORFLAK.DDS",
 		buildtime = 20112,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -5",
 		collisionvolumescales = "28 34 28",
 		collisionvolumetype = "CylY",

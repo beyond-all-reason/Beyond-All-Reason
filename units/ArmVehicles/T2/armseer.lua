@@ -1,15 +1,15 @@
 return {
 	armseer = {
-		acceleration = 0.0418,
+		acceleration = 0.04878,
 		activatewhenbuilt = true,
-		brakerate = 0.0495,
+		brakerate = 0.09757,
 		buildcostenergy = 2000,
 		buildcostmetal = 125,
 		buildpic = "ARMSEER.DDS",
 		buildtime = 6186,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -4 0",
 		collisionvolumescales = "25.5 25.5 31.0",
 		collisionvolumetype = "CylZ",
@@ -40,7 +40,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 25,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.33584,
 		turnrate = 605,
 		customparams = {

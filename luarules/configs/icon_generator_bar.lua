@@ -192,7 +192,7 @@ defaults = Default[1]
     [UnitDefNames.cormex.id] = {
       clamp  = 0,
       unfold = true,
-      wait   = 600,
+      wait   = 60,
     },
     [UnitDefNames.cordoom.id] = {
       unfold = true,

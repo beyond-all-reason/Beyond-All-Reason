@@ -13,7 +13,7 @@ return {
 		buildpic = "CORMADSAM.DDS",
 		buildtime = 5237,
 		canrepeat = false,
-		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 5 -2",
 		collisionvolumescales = "45 54 45",
 		collisionvolumetype = "CylY",

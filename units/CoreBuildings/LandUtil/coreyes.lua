@@ -9,7 +9,7 @@ return {
 		buildpic = "COREYES.DDS",
 		buildtime = 750,
 		canrepeat = false,
-		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		cloakcost = 10,
 		corpse = "CDRAGONSEYES_DEAD",
 		description = "Perimeter Camera",

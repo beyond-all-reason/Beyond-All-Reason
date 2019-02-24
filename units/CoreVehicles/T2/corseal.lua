@@ -1,14 +1,14 @@
 return {
 	corseal = {
-		acceleration = 0.0462,
+		acceleration = 0.05125,
 		activatewhenbuilt = true,
-		brakerate = 0.0627,
+		brakerate = 0.1025,
 		buildcostenergy = 9100,
 		buildcostmetal = 480,
 		buildpic = "CORSEAL.DDS",
 		buildtime = 12051,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",
 		collisionvolumeoffsets = "0 -7 0",
 		collisionvolumescales = "31 31 31",
 		collisionvolumetype = "CylZ",
@@ -40,7 +40,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 30,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.7457,
 		turnrate = 487,
 		customparams = {
@@ -51,8 +51,6 @@ return {
 			basename = "base",
 			cannon1name = "barrel1",
 			cannon2name = "barrel2",
-			wpn1turretx = "45",
-			wpn1turrety = "75",
 			driftratio = "0.2",
 			firingceg = "barrelshot-medium",
 			flare1name = "flare1",
@@ -65,6 +63,8 @@ return {
 			subfolder = "corevehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "45",
+			wpn1turrety = "75",
 		},
 		featuredefs = {
 			dead = {

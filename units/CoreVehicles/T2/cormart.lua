@@ -1,13 +1,13 @@
 return {
 	cormart = {
-		acceleration = 0.0204,
-		brakerate = 0.3696,
+		acceleration = 0.02556,
+		brakerate = 0.05111,
 		buildcostenergy = 3300,
 		buildcostmetal = 280,
 		buildpic = "CORMART.DDS",
 		buildtime = 4270,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "36 22 38",
 		collisionvolumetype = "Box",
@@ -39,7 +39,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 31,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.287,
 		turnrate = 330,
 		customparams = {
@@ -50,8 +50,6 @@ return {
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "barrel",
-			wpn1turretx = "35",
-			wpn1turrety = "35",
 			driftratio = "0.4",
 			firingceg = "barrelshot-tiny",
 			flare1name = "flare",
@@ -63,6 +61,8 @@ return {
 			subfolder = "corevehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "35",
+			wpn1turrety = "35",
 		},
 		featuredefs = {
 			dead = {

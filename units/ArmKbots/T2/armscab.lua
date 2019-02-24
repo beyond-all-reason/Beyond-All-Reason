@@ -1,14 +1,14 @@
 return {
 	armscab = {
-		acceleration = 0.018,
-		brakerate = 0.102,
+		acceleration = 0.03663,
+		brakerate = 0.07326,
 		buildcostenergy = 30000,
 		buildcostmetal = 1150,
 		buildpic = "ARMSCAB.DDS",
 		buildtime = 40000,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 3 -1",
 		collisionvolumescales = "43 23 49",
 		collisionvolumetype = "box",
@@ -35,7 +35,8 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 450,
-		turninplaceanglelimit = 140,
+		turninplace = true,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.122,
 		turnrate = 473,
 		customparams = {

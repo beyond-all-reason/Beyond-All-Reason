@@ -1,9 +1,9 @@
 return {
 	critter_ant = {
-		acceleration = 0.5,
+		acceleration = 0.575,
 		blocking = false,
 		bmcode = "1",
-		brakerate = 1,
+		brakerate = 1.15,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
 		builder = false,
@@ -51,8 +51,9 @@ return {
 		trackstretch = 1,
 		tracktype = "bigfoot",
 		trackwidth = 7,
-		turninplace = 1,
-		turnrate = 2000,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turnrate = 2300,
 		unitname = "critter_ant",
 		upright = false,
 		waterline = 6,

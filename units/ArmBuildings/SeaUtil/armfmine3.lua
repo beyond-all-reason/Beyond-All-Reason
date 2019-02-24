@@ -11,7 +11,7 @@ return {
 		canguard = false,
 		canpatrol = false,
 		canrepeat = false,
-		category = "ALL WEAPON MINE NOTSUB NOTAIR HOVER SURFACE",
+		category = "ALL WEAPON MINE NOTSUB NOTAIR HOVER SURFACE EMPABLE",
 		cloakcost = 2,
 		collide = false,
 		collisionvolumeoffsets = "0 -1.5 0",

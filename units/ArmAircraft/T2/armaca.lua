@@ -36,7 +36,6 @@ return {
 		radardistance = 50,
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd-builder",
-		shownanospray = false,
 		sightdistance = 383.5,
 		terraformspeed = 650,
 		turninplaceanglelimit = 360,

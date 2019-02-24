@@ -13,7 +13,7 @@ return {
 		buildpic = "ARMAGEO.DDS",
 		buildtime = 33152,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-2 -2 6",
 		collisionvolumescales = "69 69 107",
 		collisionvolumetype = "CylZ",

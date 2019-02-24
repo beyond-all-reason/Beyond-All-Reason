@@ -12,7 +12,7 @@ return {
 		buildpic = "CORAFUS.DDS",
 		buildtime = 329243,
 		canrepeat = false,
-		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE",
+		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -1 0",
 		collisionvolumescales = "84 95 84",
 		collisionvolumetype = "CylY",

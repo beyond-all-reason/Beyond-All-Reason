@@ -1,9 +1,9 @@
 return {
 	critter_goldfish = {
-		acceleration = 0.016,
+		acceleration = 0.123,
 		activatewhenbuilt = true,
 		blocking = false,
-		brakerate = 0.2,
+		brakerate = 0.123,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
 		builder = false,
@@ -41,8 +41,9 @@ return {
 		sonardistance = 550,
 		sonarstealth = true,
 		stealth = true,
-		turninplace = 0,
-		turnrate = 3000,
+		turninplace = true,
+		turninplaceanglelimit = 90,
+		turnrate = 4500,
 		unitname = "critter_goldfish",
 		upright = true,
 		waterline = 20,

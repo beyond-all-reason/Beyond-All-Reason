@@ -1,15 +1,15 @@
 return {
 	coreter = {
-		acceleration = 0.0407,
+		acceleration = 0.03583,
 		activatewhenbuilt = true,
-		brakerate = 0.0594,
+		brakerate = 0.07166,
 		buildcostenergy = 1900,
 		buildcostmetal = 105,
 		buildpic = "CORETER.DDS",
 		buildtime = 6404,
 		canattack = false,
 		canmove = true,
-		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -3 0",
 		collisionvolumescales = "26.5 26.5 47.5",
 		collisionvolumetype = "CylZ",
@@ -40,7 +40,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 27,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 0.95832,
 		turnrate = 619.29999,
 		customparams = {

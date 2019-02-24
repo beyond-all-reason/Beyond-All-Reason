@@ -1,13 +1,13 @@
 return {
 	armmart = {
-		acceleration = 0.0184,
-		brakerate = 0.3696,
+		acceleration = 0.02159,
+		brakerate = 0.04319,
 		buildcostenergy = 4100,
 		buildcostmetal = 270,
 		buildpic = "ARMMART.DDS",
 		buildtime = 5530,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -8 -6",
 		collisionvolumescales = "36 36 42",
 		collisionvolumetype = "CylZ",
@@ -39,7 +39,7 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 35,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.1946,
 		turnrate = 300,
 		customparams = {
@@ -47,8 +47,6 @@ return {
 			basename = "base",
 			canareaattack = 1,
 			cannon1name = "barrel",
-			wpn1turretx = "35",
-			wpn1turrety = "35",
 			driftratio = "0.2",
 			firingceg = "barrelshot-medium",
 			flare1name = "flare",
@@ -60,6 +58,8 @@ return {
 			subfolder = "armvehicles/t2",
 			techlevel = 2,
 			turretname = "turret",
+			wpn1turretx = "35",
+			wpn1turrety = "35",
 		},
 		featuredefs = {
 			dead = {

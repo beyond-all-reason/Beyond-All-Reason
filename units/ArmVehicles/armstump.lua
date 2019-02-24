@@ -1,13 +1,13 @@
 return {
 	armstump = {
-		acceleration = 0.023,
-		brakerate = 0.095,
+		acceleration = 0.0438,
+		brakerate = 0.08759,
 		buildcostenergy = 2000,
 		buildcostmetal = 225,
 		buildpic = "ARMSTUMP.DDS",
 		buildtime = 2904,
 		canmove = true,
-		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 -4",
 		collisionvolumescales = "26 14 35",
 		collisionvolumetype = "Box",
@@ -39,15 +39,13 @@ return {
 		tracktype = "StdTank",
 		trackwidth = 24,
 		turninplace = true,
-		turninplaceanglelimit = 110,
+		turninplaceanglelimit = 90,
 		turninplacespeedlimit = 1.952,
 		turnrate = 380,
 		customparams = {
 			arm_tank = "1",
 			basename = "base",
 			cannon1name = "cannon1",
-			wpn1turretx = "45",
-			wpn1turrety = "80",
 			description_long = "A stumpy is a medium assault tank. It has a relatively high hp so it should always be kept in the first line to sink in all damage. Useful for taking down light defenses with its sheer force. If not microed well, Stumpies can be easily DGuned, so try to keep enemy Commanders at a distance. Combine with Samsons or artillery for a great frontline push or use large pasks for raiding enemy bases. Don't forget to bring some constructors with your assault for repairing and reclaiming wrecks.",
 			driftratio = "0.3",
 			firingceg = "barrelshot-small",
@@ -59,6 +57,8 @@ return {
 			sleevename = "sleeve",
 			subfolder = "armvehicles",
 			turretname = "turret",
+			wpn1turretx = "45",
+			wpn1turrety = "80",
 		},
 		featuredefs = {
 			dead = {

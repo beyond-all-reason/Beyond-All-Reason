@@ -1,13 +1,13 @@
 return {
 	armjanus = {
-		acceleration = 0.0196,
-		brakerate = 0.162,
+		acceleration = 0.02111,
+		brakerate = 0.04222,
 		buildcostenergy = 2600,
 		buildcostmetal = 240,
 		buildpic = "ARMJANUS.DDS",
 		buildtime = 3545,
 		canmove = true,
-		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE",
+		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "25 22 33",
 		collisionvolumetype = "Box",
