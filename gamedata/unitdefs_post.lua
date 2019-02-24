@@ -27,6 +27,18 @@ function deepcopy(orig)
     return copy
 end
 
+-- handle unba modoption
+if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
+	VFS.Include("unbaconfigs/unbacom_post.lua")
+	VFS.Include("unbaconfigs/stats.lua")
+	VFS.Include("unbaconfigs/buildoptions.lua")
+	UnbaCom_Post("armcom")
+	UnbaCom_Post("corcom")
+end
+
+
+
+
 -- create BAR alternatives
 --if not (Spring.GetModOptions and (tonumber(Spring.GetModOptions().barmodels) or 0) ~= 0) then
 --    if Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or string.find(Game.gameVersion, '$VERSION')) then

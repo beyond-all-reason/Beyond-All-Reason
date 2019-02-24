@@ -175,7 +175,7 @@ return {
 			},
 		},
 		weapondefs = {
-			armcomlaser = {
+			corcomlaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -214,7 +214,7 @@ return {
 					subs = 5,
 				},
 			},
-			armcomsealaser = {
+			corcomsealaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.3,
@@ -343,12 +343,12 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "ARMCOMLASER",
+				def = "CORCOMLASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
 				badtargetcategory = "VTOL",
-				def = "ARMCOMSEALASER",
+				def = "CORCOMSEALASER",
 			},
 			[3] = {
 				def = "DISINTEGRATOR",
