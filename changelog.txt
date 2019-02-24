@@ -1,5 +1,437 @@
-﻿10.23 -> 10.24
-XX/XX/2019
+﻿9.46 -> 10.24
+24/02/2019
+
+Balance change summary:  9.46 - 10.24  (22/09/2016 - 24/02/2019)
+
+General
+ • Costs rounded (deviation: 0 - 1.5%)
+ • Global weapon/explosion area-of-effect 'edgeeffectiveness' buff of 0.15 (as a correction for collision volume been made smaller around 2012-2013)
+ • Death/selfd unit explosion damages have changed, due to graphical effect size being linked to its damages. (mostly for non significant units)
+ • When reclaiming a feature, the income that it generates consists of two parts: a fixed part that is the minimal speed, and an additional part, proportional to the build power.
+The minimal reclaim speed when reclaiming features has been lowered from 60/s to 12.5/s. The additional speed that each point of build power provides has been increased by an 11.25x factor (0.02 => 0.225). This results in reclaimers under 225 bp being slower, and those over 225 bp being faster than what they were in 9.46
+ • Some (mostly) useless order/state buttons removed like t1 mex on/off, antinuke firestate, various buildings with repeat/stop/wait without function
+
+Behavior
+ • Cheap "Nanoframe shielding" countermeasure: a nanoframe (unfinished unit) will only get hit when its build over 5%
+ • Flamethrower weapons dont spray as wide as before (looks better)
+ • EMP units (bladewing/emp-spider/stiletto/dragonfly) wont target non-emapable or underwater units
+ • Some missile speeds adjusted to start slightly slower and accelerate a bit faster
+
+Movement
+ • Continuous aiming. Units aim before weapons have loaded. Starts when enemy at weapon range +10% (no +10% for llt's and popups)
+ • Reverse move ability for: (with limited speed) corban,armmanni,armmart,armart,corwolv,cortrem
+ • Omnidirectional 'raw' unit pathing, instead of limited to just 8 directions
+ • Unit movement stats adjusted: maxspeed/acceleration/brakerate/turnrate to cope with new engine behavior. (no more constant wiggling that slowed down units and thus never reaching maxspeed)
+ • Vehicles/hovers: reduced max speed after engine change (avg -11%) and standardized accelrate/brakerate according to maxspeed and turnrate
+ • Kbots: +15% brakerate/accel/turnrate
+ • All: movement: turninplace = true, anglelimit = 90
+ • Improved Air Units maneuverability and lowered turnradius (allowing close move commands)
+ • Transports load/drop behavior changed due to its code being stripped from the engine side
+ • Hovercraft can now be transported
+
+Commanders
+ • Buildrange +30%
+ • Comblast lethal range to other coms reduced 20%
+ • Torso turnspeed +33%, dgun reloadspeed -10%
+ • Underwater walk speed decreases to 66% of it's value at depth > 47
+ • Underwater laser dps increased to 150 (default) and 75 (subs)
+ • Decoy commanders: cost -8%, buildoptions: Radar, LLT and AA, lasers/buildpower from commander
+
+Units
+ • Fark: workerspeed +16%
+ • Stumpy/Raider/Bulldog/Reaper: metal cost +5%
+ • Bulldog: Area of Effect -7% 
+ • Reaper: health -2%
+ • Maverick: health +7%
+ • Shellshocker/Wolverine: reloadtime -5% 
+ • Luger/Pillager: damage +10%, lowered turnrate
+ • Merl: range +7%
+ • Diplomat: range +6%
+ • Morty: speed -5%, less acurate (almost unnoticeably)
+ • Tremor: metal cost -10%, accuracy +15%
+ • Pelican: damages +15%, health +15%, turretspeed +33%
+ • EMP spider: auto heals +15 hp per second (ba9.37 had 30 before it was removed)
+ • Banisher: missile blows up in the air after it is out of fuel
+ • Sniper: weapon hit explosion has a distinct red color tint
+
+T3
+ • Vanguard: damage +15%
+ • Marauder: damage +10%, health +5%
+ • Shiva: sightdistance +74%
+ • KrogStomp reintroduced vs scouts/pws/aks
+ • Underwater gantries: removed Lun/Sokolov (heavy hovercraft)
+
+Air
+ • T1 Airlabs: cost -5% (m and e equally)
+ • T1 Aircons: buildpower +10%, energy cost -10%, buildtime -10%
+ • Sea aircons: buildpower +10%, cost decreased (ARM: m:273->150, e:25677->7800, CORE: m:271-140, e:25650->8200)
+ • Fighters: wont slow down and stick behind their targets, this resulted in clumps of fighters killing each other by their missile AoE and death explosions
+ • Fighters: range +22% (due to slower missile speed and missile turnrate)
+ • Fighters: explode with less damage (half damage, 2/3 AoE)
+ • Thunder: health +7%, speed +4%
+ • Hurricane/Phoenix: between before and after the nerf of BA v7.92 (decreased buildtime and reduced energy cost)
+ • Liche: maxspeed -5% maxSpeed, energy cost +5%, buildTime +2.5%, damage to commander 3350 -> 3150
+ • Cutlass: health -20%, damages -15%
+ • T2 air transports: loads up to four 2x2 footprint or less units, or one 3x3 unit. Unloads all units at once.
+
+AA
+ • Added "Set Priority" command order menu toggle (Fighters/Bombers/No priority)
+ • Packo/Sam: single missile per shot instead of duos (same dps)
+ • Chainsaw/Eradicator: energy cost -16%, airlos 1000 -> 1060, range 1050 -> 1125, missile starts faster
+ • Archangel: missile damages +33%
+ • Manticore: flak reload time -18%
+
+Buildings
+ • Guardian/Punisher: metal cost -16%
+ • Toaster/Ambusher: range +4%
+ • T2 mexes: use 20 energy instead of 25 (exploiter 12 -> 20)
+ • Moho Exploiter: health same as regular moho (2000 -> 3500), decreased damage per shot (-22%)
+ • Viper: missile explodes at ~maxrange, preventing ridiculous overshooting (missile speed -14%)
+ • Nano: self-d does more damage than basically non-existent
+
+Long range plasma
+ • Plasma shields: 50% weaker to non LRPC shots, range +10%, cost -20%
+ • Vulcan/Buzzsaw: cost +40%
+ • Bertha/Intimidator: Area of Effect +15%
+
+
+Sea redesign
+
+9. 46 sea pros and cons:
+ • + Micromanagement orientated / limited in numbers due to overall higher metal costs
+ • + High early game stakes
+ • + Many theoretical possibilities (amphibs, hovercrafts, seaplanes, ships, submarines)
+ • - Not much substance beside the very first 5-8 minutes
+ • - Repetitive gameplay, mostly relying on 2 units (destroyers and scouts)
+ • - Lack of interactions with land due to uneffective/high costs on the alternative units (amphibs, hovers, seaplanes)
+ • - Combomb occluding many of the possibilities because of its strong place in sea gameplay (early combomb versus destroyers + reclaim)
+
+What has been attempted with BA 10:
+ • Keep the prices high enough that sea cannot truely be "spammed", and insist micro and unit combinations
+ • Increase the number of possibilities following a sea start
+ • Improve the dynamic of the game / ensure it's possible to tech/switch strategies without any downtime
+ • Give more space to non-destroyers / specialize unittypes / add more situations that don't require destroyers
+ • Add more possibilities of land/sea interactions 
+ • Lower commander Max Speed underwater, thus making underwater combomb be more of a casual/opportunistic strategy
+
+Core changes:
+ • Transport ship load/unload underwater was disabled
+ • Hovercraft transportation was enabled
+ • Overall lower costs, lower Build Times, lower Build Speeds, lighter ships
+ • Reworked movement type: Turninplace with 90 anglelimit, accel and brake rates based on turnrate
+ • More durable wrecks (+100% Health)
+ • Distinction between depthcharges (underwater only) and torpedoes (underwater and surface)
+ • 2 completely new units:
+	- Nano platform: similar to nano turret, on a floating platform
+	- Plasma ships: All purpose, surface only, plasma cannon ship
+ • Reintroduced T2 torpedo launchers, with increased firepower and costs
+ • 4 completely reviewed units:
+	- T1 Geos: can be built underwater (mostly when using map_waterlevel)
+	- T1 Offshore mexes, in place of underwater mexes: replicate an expansion / mex raiding phase similar to land
+	- Lun: 1150m/33000e, 4750hp, UW capable cannon, 370 aoe Damages per 1. 8s
+	- Sokolov: 950m/12000e, 3800hp, Surface only Heavy beam laser, 2150 Damages over 1s per 9s
+ • One deleted unit:
+	- T1 Sonar station with sonar added to T1 Floating radar tower, scouts, torpedo launchers and amphibious tanks
+ • Reviewed Amphibious complex build menus / removed submarines from it
+ • Reviewed Seaplane platform as a proper T1. 5 lab / adjusted costs aswell as the constructor's costs and menu
+ • Reviewed the T1 and T2 ships roles and stats to fit:
+	- Corvette: raider, fast, high dps/cost, low armor
+	- Patrol Boats: Support role (not a scout), anti-air, vision, sonar, light laser
+	- Plasma Frigates: All purpose, raider and skirmisher, good dps, relatively fast, medium armor
+	- Destroyer: Skirmisher role, long Max Range plasma, embarked sonar, depthcharge launcher, slow, heavy armor
+	- Submarine: Underwater skirmisher, high Damages torpedos, very light armor, good maneuvrability. 
+	- Cruiser: T2 Raider, high dps, sonar, depthcharge launcher, fast, medium armor (relative to other t2 ships)
+	- Submarine Killer: Support, very high burst Damages, weak armor, low manoeuvrability, long Max Range. 
+	- Anti Air Ship: Support, anti air, medium armor. 
+	- Carriers: Economic support (energy production 250 -> 300), air repairs, antinuke, radar
+	- Battleships: Skirmisher role, high aoe Damages, heavy armor, fast, poor manoeuvrability
+	- Missile ship: Artillery role, cluster missiles, high aoe Damages, low armor/manoeuvrability, slow, radar, light antiair
+	- Flag ship: Artillery/Skirmisher, low artillery Damages at long Max Range, high aoe Damages at medium Max Range, very heavy armor, very low manoeuvrability, slow, radar
+	
+List of changes:
+	T1 Ships: 
+ • Arm Shipyard:
+	- Energy Production removed. Build Speed -25%. Metal Storage -20%. Radar removed. Build Time +10%. Energy Cost +45%. Energy Storage -20%. Metal Cost +32%. Metal Production removed. 
+	- Ellysaw added to menu. 
+ 
+ • Core Shipyard:
+	- Energy Production removed. Build Speed -25%. Build Time +10%. Energy Cost +50%. Metal Cost +35%. Metal Production removed. 
+	- Era added to menu. 
+ 
+ • Arm Construction Corvette:
+	- Energy Production -54%. Build Speed -51%. Turn Rate -35%. Metal Storage = 50. Build Time -55%. Energy Cost -12%. Health -15%. Energy Storage +233%. Max Speed -5%. LOS +37%. Metal Cost -27%. Metal Production -14%. 
+	- Sonar Station removed from menu. Vehicle Plant added to menu. Aircraft Plant added to menu. Geothermal Powerplant added to menu. Nano Turret added to menu. Kbot Lab added to menu. 
+ 
+ • Arm Decade:
+	- LOS -13%. Turn Rate +19%. Build Time -65%. Energy Cost -47%. Health -58%. Max Speed +7%. Metal Cost -49%. 
+	- Weapon 1: Rapid-fire close-quarters plasma turret: Submarines Damages +200%. Max Range +10%. Edge Effectiveness = 0.3. Burst Rate +8%. Reload Time +8%. 
+	- Weapon 2: Rapid-fire close-quarters plasma turret: Submarines Damages +200%. Max Range +10%. Edge Effectiveness = 0.3. 
+ 
+ • Arm Skeeter:
+	- LOS +7%. Sonar = 320. Turn Rate -17%. Build Time +41%. Energy Cost +14%. Health +102%. Max Speed -47%. Metal Cost +77%. 
+	- Weapon 1: Light close-quarters laser: Damages -31%. Edge Effectiveness = 0.3. Reload Time +17%. 
+	- Weapon 3: Light g2a missile launcher: VTOL Damages -10%. Bombers Damages -10%. Fighters Damages -10%. Edge Effectiveness = 0.3. Reload Time +40%. Flight Time +43%. 
+ 
+ • Arm Crusader:
+	- LOS +2%. Sonar -7%. Turn Rate +50%. Build Time -24%. Energy Cost -28%. Health +8%. Max Speed -22%. Metal Cost -17%. 
+	- Weapon 1: Heavy long-range plasma cannon: Edge Effectiveness = 0.3. Max Speed +5%. 
+	- Weapon 2: Depthcharge launcher: Edge Effectiveness +33%. Turn Rate +50%. Max Speed +27%. AoE +51%. Weapon Acceleration +28%. Flight Time +143%. 
+ 
+ • Arm Lurker:
+	- Turn Rate -8%. Build Time -40%. Energy Cost -12%. Health -24%. Max Speed -13%. Metal Cost -28%. 
+	- Weapon 1: Light homing torpedo launcher: Submarines Damages +20%. Edge Effectiveness = 0.3. Weapon Acceleration +1%. 
+ 
+ • Core Construction Ship:
+	- Energy Production -54%. Build Speed -51%. Turn Rate -35%. Metal Storage = 50. Build Time -56%. Energy Cost -22%. Health -16%. Energy Storage +233%. Max Speed -4%. Metal Cost -28%. Metal Production -14%. 
+	- Sonar Station removed from menu. Kbot Lab added to menu. Nano Turret added to menu. Aircraft Plant added to menu. Vehicle Plant added to menu. Geothermal Powerplant added to menu. 
+ 
+ • Core Supporter:
+	- LOS -26%. Turn Rate +25%. Build Time -65%. Energy Cost -41%. Health -62%. Max Speed +14%. Metal Cost -53%. 
+	- Weapon 1: LightLaser: Commanders Damages -29%. Submarines Damages +466%. Damages -39%. Max Range +13%. Edge Effectiveness = 0.3. Reload Time +8%. 
+	- Weapon 2: LightLaser: Commanders Damages -29%. Submarines Damages +466%. Damages -39%. Max Range +13%. Edge Effectiveness = 0.3. Reload Time +11%. 
+ 
+ • Core Searcher:
+	- LOS +19%. Sonar = 320. Turn Rate -17%. Build Time +43%. Energy Cost +22%. Health +105%. Max Speed -47%. Metal Cost +93%. 
+	- Weapon 1: Laser: Damages -31%. Edge Effectiveness = 0.3. Reload Time +17%. 
+	- Weapon 3: Missiles: VTOL Damages -10%. Bombers Damages -10%. Fighters Damages -10%. Edge Effectiveness = 0.3. Reload Time +40%. Flight Time +43%. 
+ 
+ • Core Enforcer:
+	- LOS +2%. Turn Rate +50%. Build Time -21%. Energy Cost -22%. Health +5%. Max Speed -25%. Metal Cost -12%. 
+	- Weapon 1: HeavyCannon: Edge Effectiveness = 0.3. 
+	- Weapon 2: DepthCharge: Edge Effectiveness +33%. Max Speed +30%. AoE +51%. Weapon Acceleration +21%. Flight Time +143%. 
+ 
+ • Core Snake:
+	- Turn Rate -8%. Build Time -41%. Energy Cost -14%. Health -24%. Max Speed -7%. Metal Cost -27%. 
+	- Weapon 1: Torpedo: Submarines Damages +20%. Edge Effectiveness = 0.3. Weapon Acceleration +1%. 
+  
+ • Core Era/Arm Ellysaw (new units) Plasma Frigates
+ • Core Envoy/Arm Hulk: Turn Rate -36%. Build Time -35%. Energy Cost -45%. Health -74%. Max Speed -29%. Metal Cost -55%. 
+ • Core Death Cavalry: Sonar -82%. Build Speed -67%. Turn Rate -13%. Build Time -22%. Energy Cost -24%. Health -33%. Max Speed -15%. LOS -31%. Metal Cost -53%. 
+ • Arm Grim Reaper: Sonar -82%. Build Speed -67%. Turn Rate -13%. Build Time -17%. Energy Cost -33%. Health -33%. Max Speed -15%. LOS -31%. Metal Cost -50%. 
+ 
+	T2 Ships:
+ • Arm Advanced Shipyard:
+	- Energy Production removed. Build Speed -25%. Radar removed. Metal Production removed. 
+	- Serpent removed from menu. 
+ 
+ • Core Advanced Shipyard:
+	- Energy Production removed. Build Speed -25%. Radar removed. Energy Cost -4%. Metal Production removed. 
+	- Leviathan removed from menu. 
+ 
+ • Arm Advanced Construction Sub:
+	- Turn Rate +8%. Build Time -25%. Energy Cost -22%. Health +11%. Max Speed +4%. Metal Cost -18%. 
+	- Amphibious Complex removed from menu. Seaplane Platform removed from menu. Moray added to menu. 
+ 
+ • Arm Valiant:
+	- Build Speed -51%. Turn Rate +4%. Build Time -10%. Energy Cost -20%. Max Speed -9%. Metal Cost -17%. 
+	- Amphibious Complex removed from menu. Sentry removed from menu. Dragon's Eye removed from menu. Sonar Station removed from menu. Lurker removed from menu. Floating Hovercraft Platform removed from menu. Nano Turret added to menu. Flakker NS added to menu. 
+ 
+ • Arm Conqueror:
+	- Turn Rate -41%. Build Time -15%. Energy Cost -18%. Health -13%. Max Speed -17%. Metal Cost -46%. 
+	- Weapon 1: long-range g2g gauss cannon: Max Range +21%. Edge Effectiveness = 0.3. Reload Time +12%. 
+	- Weapon 2: Light close-quarters g2g laser: Damages -32%. Max Range +5%. Edge Effectiveness = 0.3. Reload Time +175%. 
+	- Weapon 3: Light close-quarters g2g laser: type changed to BeamLaser with definitions equal to weapon 2.
+	- Weapon 4: Medium depthcharge launcher added.
+ 
+ • Arm Piranha:
+	- Turn Rate +5%. Build Time +23%. Energy Cost +77%. Health -6%. Max Speed -39%. Metal Cost -20%. 
+	- Weapon 1: Rapid armor-piercing torpedoes: Damages +260%. Max Range +25%. Edge Effectiveness = 0.3. Turn Rate +76%. Reload Time +132%. 
+ 
+ • Arm Archer:
+	- Turn Rate -3%. Build Time +73%. Energy Cost +59%. Health +48%. Max Speed -28%. Metal Cost +42%. 
+	- Weapon 1: Missiles: Edge Effectiveness = 0.3. Turn Rate +50%. 
+	- Weapon 2: long-range g2a guided missile launcher: Edge Effectiveness = 0.3. Flight Time +43%. 
+	- Weapon 3: Heavy g2a flak cannon: Max Range +1%. Edge Effectiveness +17%. Max Speed +17%. 
+ 
+ • Arm Colossus:
+	- Energy Production +20%. Turn Rate -15%. Metal Storage -54%. Build Time -4%. Energy Cost -46%. Health -42%. Max Speed -24%. Metal Cost -18%. 
+	- Weapon 1: ICBM intercepting missile launcher: Edge Effectiveness = 0.3. Turn Rate +50%. 
+ 
+ • Arm Millennium:
+	- Turn Rate -42%. Build Time -41%. Health -50%. Max Speed -33%. Metal Cost -41%. 
+	- Weapon 1: Heavy long-range g2g plasma cannon: Max Range +34%. Edge Effectiveness = 0.3. AoE +45%. 
+	- Weapon 2: Heavy long-range g2g plasma cannon: Max Range +34%. Edge Effectiveness = 0.3. AoE +45%. 
+ 
+ • Arm Ranger:
+	- Turn Rate +20%. Build Time -40%. Energy Cost -45%. Health +36%. Max Speed +2%. Metal Cost -30%. 
+	- Weapon 1: Heavy long-range g2g starburst rocket launcher: type changed to Cannon. 
+	- Weapon 2: Weapon: Edge Effectiveness = 0. 15. 
+	- Weapon 3: long-range g2a missile launcher: Edge Effectiveness = 0.3. 
+ 
+ • Arm Epoch:
+	- Turn Rate -51%. Build Time -44%. Energy Cost -38%. Health -38%. Max Speed -22%. Metal Cost -51%. 
+	- Weapon 1: Primary rapid-fire heavy long-range plasma cannon: Damages -43%. Edge Effectiveness = 0.3. accuracy +128%. 
+	- Weapon 2: Secondary rapid-fire heavy plasma cannon: Damages -10%. Max Range +37%. Edge Effectiveness = 0.3. Max Speed +21%. AoE +33%. 
+	- Weapon 3: Primary rapid-fire heavy long-range plasma cannon: Damages -43%. Edge Effectiveness = 0.3. accuracy +128%. 
+	- Weapon 4: Secondary rapid-fire heavy plasma cannon: Damages -10%. Max Range +37%. Edge Effectiveness = 0.3. Max Speed +21%. AoE +33%. 
+	- Weapon 5: Secondary rapid-fire heavy plasma cannon: Damages -10%. Max Range +37%. Edge Effectiveness = 0.3. Max Speed +21%. AoE +33%. 
+	- Weapon 6: Weapon 6 (FlakCannon) removed. 
+	- Weapon 7: Weapon 7 (FlakCannon) removed. 
+ 
+ • Core Advanced Construction Sub:
+	- Turn Rate +5%. Build Time -26%. Energy Cost -23%. Health +8%. Max Speed +4%. Metal Cost -18%. 
+	- Amphibious Complex removed from menu. Seaplane Platform removed from menu. Lamprey added to menu. 
+ 
+ • Core Pathfinder:
+	- Build Speed -51%. Turn Rate +4%. Build Time -10%. Energy Cost -21%. Max Speed -9%. Metal Cost -23%. 
+	- Gimp removed from menu. Stinger removed from menu. Amphibious Complex removed from menu. Snake removed from menu. Dragon's Eye removed from menu. Floating Hovercraft Platform removed from menu. Sonar Station removed from menu. Nano Turret added to menu. Cobra	- NS added to menu. 
+ 
+ • Core Executioner:
+	- Turn Rate -41%. Build Time -15%. Energy Cost -17%. Health -14%. Max Speed -18%. Metal Cost -48%. 
+	- Weapon 1: HighEnergyLaser: Max Range +29%. Edge Effectiveness = 0.3. 
+	- Weapon 2: L2DeckLaser: Damages -32%. Max Range +5%. Edge Effectiveness = 0.3. Reload Time +37%. 
+	- Weapon 3: CruiserDepthCharge: Damages +36%. Max Range +10%. Edge Effectiveness +24%. Turn Rate +1%. Weapon Acceleration +1%. 
+ 
+ • Core Shark:
+	- Turn Rate +5%. Build Time +41%. Energy Cost +82%. Health +1%. Max Speed -38%. Metal Cost -12%. 
+	- Weapon 1: AdvancedTorpedo: Damages +260%. Max Range +25%. Edge Effectiveness = 0.3. Turn Rate +76%. Reload Time +132%. 
+ 
+ • Core Shredder:
+	- Turn Rate -15%. Build Time +53%. Energy Cost +42%. Health +42%. Max Speed -24%. Metal Cost +52%. 
+	- Weapon 1: Missiles: Edge Effectiveness = 0.3. 
+	- Weapon 2: AA2Missile: Max Range +3%. Edge Effectiveness = 0.3. Max Speed +15%. Weapon Acceleration +56%. Flight Time +43%. 
+	- Weapon 3: FlakCannon: Edge Effectiveness +17%. 
+ 
+ • Core Hive:
+	- Energy Production +20%. Turn Rate -15%. Metal Storage -47%. Build Time -4%. Energy Cost -24%. Health -44%. Max Speed -24%. Metal Cost -18%. 
+	- Weapon 1: Rocket: Edge Effectiveness = 0.3. 
+ 
+ • Core Warlord:
+	- Turn Rate -43%. Build Time -43%. Energy Cost -6%. Health -53%. Max Speed -33%. Metal Cost -43%. 
+	- Weapon 1: BattleshipCannon: Max Range +35%. Edge Effectiveness = 0.3. AoE +45%. 
+	- Weapon 2: HighEnergyLaser: Max Range +27%. Edge Effectiveness = 0.3. 
+ 
+ • Core Messenger:
+	- Turn Rate +20%. Build Time -33%. Energy Cost -41%. Health +33%. Max Speed +2%. Metal Cost -36%. 
+	- Weapon 1: Rocket: type changed to Cannon. 
+	- Weapon 2: Weapon: Edge Effectiveness = 0. 15. 
+	- Weapon 3: Missiles: Edge Effectiveness = 0.3. Flight Time +43%. 
+ 
+ • Core Black Hydra:
+	- Turn Rate -51%. Build Time -44%. Energy Cost -42%. Health -39%. Max Speed -30%. Metal Cost -49%. 
+	- Weapon 1: BattleshipCannon: Damages -43%. Edge Effectiveness = 0.3. accuracy +99%. 
+	- Weapon 2: HighEnergyLaser: VTOL Damages -51%. Bombers Damages -51%. Fighters Damages -51%. Damages -29%. Max Range +28%. Edge Effectiveness = 0.3. Max Speed +23%. Reload Time +10%. Energy Cost +150%. 
+	- Weapon 3: Weapon: Max Range +101%. Edge Effectiveness +84%. Turn Rate +101%. Max Speed +100%. AoE +88%. Reload Time +233%. 
+	- Weapon 4: HighEnergyLaser: VTOL Damages -51%. Bombers Damages -51%. Fighters Damages -51%. Damages -29%. Max Range +28%. Edge Effectiveness = 0.3. Max Speed +23%. Reload Time +10%. Energy Cost +150%. 
+	- Weapon 5: HighEnergyLaser: VTOL Damages -51%. Bombers Damages -51%. Fighters Damages -51%. Damages -29%. Max Range +28%. Edge Effectiveness = 0.3. Max Speed +23%. Reload Time +10%. Energy Cost +150%. 
+	- Weapon 6: Weapon 6 (RapidSamMissile) removed. 
+ 
+ • Core Phantom/Arm Escort: Turn Rate -25%. Build Time -10%. Energy Cost -25%. Max Speed -30%. Metal Cost -20%. 
+ 
+	Seaplanes:
+
+ • Arm Construction Seaplane:
+	- Build Speed -46%. Turn Rate +62%. Build Time -41%. Energy Cost -70%. Max Speed -29%. Metal Cost -45%. 
+	- Buildmenu changed to generic T1.5 amphib menu
+ 
+ • Arm Tsunami:
+	- Turn Rate +53%. Build Time -72%. Energy Cost -76%. Health -33%. Metal Cost -24%. 
+	- Weapon 1: Medium a2g impulse warheads: Damages -32%. Edge Effectiveness +42%. AoE +27%. 
+
+ • Arm Tornado:
+	- LOS +15%. Turn Rate -54%. Build Time -25%. Energy Cost +16%. 
+	- Weapon 1: Guided a2a/a2g missile launcher: Commanders Damages -20%. Submarines Damages +33%. Max Range +29%. Edge Effectiveness = 0.3. Turn Rate +13%. Max Speed +72%. Weapon Acceleration +191%. 
+ 
+ • Core Construction Seaplane:
+	- Build Speed -46%. Turn Rate +81%. Build Time -43%. Energy Cost -69%. Max Speed -15%. Metal Cost -49%. 
+	- Buildmenu changed to generic T1.5 amphib menu
+ 
+ • Core Dam Buster:
+	- Turn Rate +63%. Build Time -73%. Energy Cost -73%. Health -33%. Metal Cost -26%. 
+	- Weapon 1: CoreSeaAdvancedBombs: Edge Effectiveness +59%. 
+
+ • Core Voodoo:
+	- LOS +15%. Turn Rate -57%. Build Time -25%. Energy Cost +21%. Metal Cost +32%. 
+	- Weapon 1: GuidedMissiles: Commanders Damages -20%. Submarines Damages +33%. Damages +9%. Max Range +36%. Edge Effectiveness = 0.3. Turn Rate +13%. Max Speed +72%. Weapon Acceleration +191%. 
+
+ • Arm/Core Seaplane Platform: Build Time -30%. Energy Cost -73%. Metal Cost -14%. 
+ • Core Hunter: Turn Rate +51%. 
+ • Arm Seahawk: Turn Rate +86%. 
+ • Arm Albatross: Turn Rate +20%. Weapon 1: Homing torpedo launcher: Edge Effectiveness +300%. Weapon Acceleration +1%. Flight Time +15%. 
+ • Arm Sabre: Turn Rate -23%. Weapon 1: Light a2g discharge blaster: Edge Effectiveness = 0.3. accuracy +1%. 
+ • Core Cutlass: Turn Rate -34%. Health -21%. Weapon 1: RiotCannon: Commanders Damages -17%. Damages -15%. Edge Effectiveness = 0.3. 
+ • Core Typhoon: Turn Rate +6%. Weapon 1: TorpedoLauncher: Edge Effectiveness +150%. Weapon Acceleration +1%. Flight Time +15%. 
+ 
+	Amphibious:
+
+ • Arm Pincer: Sonar = 180. Energy Cost -3%. Max Speed -13%. Weapon 1: Light close-quarters plasma cannon: Edge Effectiveness = 0.3. 
+ • Arm Amphibious Complex: Lurker removed from menu. Grim Reaper removed from menu. 
+ • Core Amphibious Complex: Energy Cost -6%. Snake removed from menu. Death Cavalry removed from menu	
+ • Arm Beaver: Energy Storage = 50. Max Speed -13%. Arm Juno removed from menu. Nano Turret added to menu. 
+ • Arm Triton: Sonar = 279. Max Speed -13%. Weapon 1: Medium g2g plasma cannon: Edge Effectiveness = 0.3. 
+ • Core Muskrat: Max Speed -13%. Core Juno removed from menu. Sonar Station removed from menu. Nano Turret added to menu. Floating Hovercraft Platform added to menu. 
+ • Core Garpike: Sonar = 175. Max Speed -13%. Weapon 1: PincerCannon: Edge Effectiveness = 0.3. 
+ • Core Croc: Sonar = 299. Max Speed -13%. Weapon 1: PlasmaCannon: Edge Effectiveness = 0.3. 
+ • Core Poison Arrow: Sonar = 288. Max Speed -26%. Weapon 1: PoisonArrowCannon: Edge Effectiveness = 0.3. 
+ • Core Intruder: Max Speed -13%. 
+ 
+	Hovercrafts:
+
+ • Arm Swatter:
+	- Max Speed -12%. 
+	- Weapon 1: Missiles: Max Range +3%. Edge Effectiveness = 0.3. Max Speed +10%. Weapon Acceleration +1%. 
+	- Weapon 2: Light g2a missile launcher: Damages -99%. Edge Effectiveness = 0.3. Flight Time +43%. 
+
+ • Core Slinger:
+	- Build Time -1%. Max Speed -12%. 
+	- Weapon 1: Missiles: Edge Effectiveness = 0.3. 
+	- Weapon 2: Missiles: Damages -99%. Edge Effectiveness = 0.3. Flight Time +43%. 
+
+ • Arm Construction Hovercraft: Max Speed -12%. Energy Cost +37%. Sonar Station removed from menu. Nano Turret added to menu. Seaplane Platform added to menu.
+ • Arm Skimmer: Max Speed -16%. Weapon 1: Light close-quarters g2g laser: Edge Effectiveness = 0.3. 
+ • Arm Anaconda: Max Speed -12%. Weapon 1: Medium g2g plasma cannon: Edge Effectiveness = 0.3. 
+ • Arm Wombat: Max Speed -12%. Weapon 1: Light long-range g2g starburst rocket launcher: Edge Effectiveness = 0.3. Turn Rate +1%. 
+ • Arm Bear: Turn Rate -7%. Max Speed -15%. 
+ • Core Construction Hovercraft: Max Speed -12%. Energy Cost +15%. Sonar Station removed from menu. Nano Turret added to menu. Seaplane Platform added to menu. 
+ • Core Scrubber: Max Speed -15%. Weapon 1: Laser: Edge Effectiveness = 0.3. 
+ • Core Snapper: Max Speed -12%. Weapon 1: MediumPlasmaCannon: Edge Effectiveness = 0.3.  
+ • Core Nixer: Build Time -3%. Max Speed -12%. Weapon 1: Rocket: Edge Effectiveness = 0.3. Turn Rate +1%. Max Speed +19%. Weapon Acceleration +32%. 
+ • Core Halberd: Max Speed -13%. Weapon 1: HighEnergyLaser: Max Range +9%. Edge Effectiveness = 0.3. 
+ • Core Turtle: Max Speed -16%. 
+ 
+	Military structures:
+ • Arm Anemone:
+	- Sonar removed. Energy Cost -13%. Health +49%. Metal Cost -17%. 
+	- Weapon 1: Depthcharge launcher: Commanders Damages -20%. Damages -10%. Max Range +9%. Edge Effectiveness = 0.3. Reload Time +34%. Flight Time +14%. 
+ 
+ • Arm Harpoon:
+	- LOS +8%. Sonar = 230. Build Time -56%. Energy Cost -32%. Health -20%. Metal Cost -48%. 
+	- Weapon 1: Level1TorpedoLauncher: Commanders Damages -34%. Damages -1%. Max Range +10%. Edge Effectiveness +75%. Max Speed +13%. AoE +67%. Reload Time +12%. Weapon Acceleration +24%. Flight Time +35%. 
+
+ • Arm Moray:
+	- LOS +46%. Build Time +41%. Energy Cost +89%. Health +17%. Metal Cost +157%. 
+	- Weapon 1: Heavy long-range homing torpedo launcher: type changed to TorpedoLauncher. 
+ 
+ • Core Urchin:
+	- LOS +8%. Sonar = 230. Build Time -56%. Energy Cost -18%. Metal Cost -50%. 
+	- Weapon 1: Torpedo launcher: Commanders Damages -38%. Damages -10%. Max Range +10%. Edge Effectiveness +75%. Max Speed +13%. AoE +67%. Reload Time +12%. Weapon Acceleration +24%. Flight Time +35%. 
+  
+ • Core Jellyfish:
+	- Sonar removed. Energy Cost -12%. Health +49%. Metal Cost  -17%. 
+	- Weapon 1: Light depthcharge launcher: Commanders Damages -20%. Default Damages -10%. Max Range +9%. Edge Effectiveness = 0.3. Reload Time +34%. Flight Time +14%. 
+ 
+ • Core Lamprey:
+	- LOS +30%. Build Time +45%. Energy Cost +71%. Health +5%. Metal Cost +144%. 
+	- Weapon 1: long-range advanced torpedo launcher: type changed to TorpedoLauncher. 
+
+ • Core Cobra - NS: Weapon 1: Heavy g2a flak cannon: Edge Effectiveness +17%. 
+ • Arm/Core Shark's Teeth: Build Time -61%. Energy Cost -56%. Health -74%. Metal Cost -29%. 
+ • Core Floating Radar/Sonar Tower: Sonar = 1200. Metal Cost -12%. 
+ • Arm Floating Radar/Sonar Tower: Sonar = 1200. Build Time +9%. Energy Cost -5%. Metal Cost -4%. 
+ • Advanced Sonar Stations: Sonar -34%. 
+ • Arm Stingray: Metal Cost -16%. Weapon 1: HighEnergyLaser: Max Range +1%. Edge Effectiveness = 0.3. 
+ • Core Thunderbolt: LOS +2%. Metal Cost -20%. Weapon 1: High energy g2g laser: Max Range +1%. Edge Effectiveness = 0.3. 
+
+	Economic structures:
+ • Arm Offshore Metal Extractor: Energy Cost -31%.  Moved to surface.
+ • Core Offshore Metal Extractor: Energy Cost -10%. Moved to surface.
+ • Arm/Core Tidals: Energy Cost -17%.
+ • Arm/Core Underwater Moho Mines: Build Time -30%. 
+ • Arm/Core UW Experimental Gantries: Lun/Sokolov removed from menus. 
+
+
+10.23 -> 10.24
+24/02/2019
 
  • Reverted Packo/Sam change to be like 9.46
  • Restored small (short range) AA missile speeds/range to be that of 9.46
@@ -19,6 +451,7 @@ Sea
  • Ships accelerations/brakerates now based on maxSpeed and turnrate. Turnrates globally increased for ships (+50%)
  • Sea aircons same buildpower (+10%) as regular t1 aircons
  • Tidals energy cost -17% (300 -> 250)
+
 
 10.22 -> 10.23
 06/02/2019
