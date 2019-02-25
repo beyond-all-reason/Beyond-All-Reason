@@ -292,33 +292,32 @@ function addUnitIcon(icon, file, size)
 end
 
 local loadedIcons = {}
-function changeUnitIcons(folder)
+function loadUnitIcons()
 
     -- free up icons
     for i, icon in ipairs(loadedIcons) do
         Spring.FreeUnitIcon(icon)
     end
     iconTypes = {}
+    loadedIcons = {}
 
     -- load icons
-  if folder then
-      for i, icon in ipairs(icons) do
-        icons[i][4] = nil   -- reset
-        --Spring.FreeUnitIcon(icon[1])
-        if VFS.FileExists('icons/'..folder..'/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
-            addUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
-        else
-            addUnitIcon(icon[1], 'icons/'..folder..'/'..icon[2]..'.png', icon[3]*iconScale)
-        end
-        loadedIcons[#loadedIcons+1] = icon[1]
+    for i, icon in ipairs(icons) do
+      icons[i][4] = nil   -- reset
+      --Spring.FreeUnitIcon(icon[1])
+      if VFS.FileExists('icons/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
+          addUnitIcon(icon[1], 'icons/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
+      else
+          addUnitIcon(icon[1], 'icons/'..icon[2]..'.png', icon[3]*iconScale)
       end
-  end
+      loadedIcons[#loadedIcons+1] = icon[1]
+    end
 
     -- load custom unit icons when availible
-    local files = VFS.DirList('icons/'..folder, "*.png")
+    local files = VFS.DirList('icons', "*.png")
     for k, file in ipairs(files) do
-        local name = string.gsub(file, 'icons\\'..folder..'\\', '')   -- when located in spring folder
-        name = string.gsub(name, 'icons/'..folder..'/', '')   -- when located in game archive
+        local name = string.gsub(file, 'icons\\', '')   -- when located in spring folder
+        name = string.gsub(name, 'icons/', '')   -- when located in game archive
         local iconname = string.gsub(name, '.png', '')
         if iconname then
             local iconname = string.match(iconname, '([a-z0-9-_]*)')
@@ -337,7 +336,7 @@ function changeUnitIcons(folder)
                         scalenum = scale
                         scale = '_'..scale
                     end
-                    addUnitIcon(icon[1], 'icons/'..folder..'/'..iconname..scale..'.png', tonumber(scalenum)*iconScale)
+                    addUnitIcon(icon[1], 'icons/'..iconname..scale..'.png', tonumber(scalenum)*iconScale)
                     loadedIcons[#loadedIcons+1] = icon[1]
                 end
             end
@@ -354,13 +353,13 @@ function changeUnitIcons(folder)
 
     -- tag all icons that have a valid file
     for i, icon in ipairs(icons) do
-        if VFS.FileExists('icons/'..folder..'/'..icon[2]..'.png') then
+        if VFS.FileExists('icons/'..icon[2]..'.png') then
             icons[i][4] = true
         end
     end
 
   -- assign (standard) icons
-local weaponDef
+  local weaponDef
   for udid,ud in pairs(UnitDefs) do
     local name = ud.name
     if (ud == nil) then break end
@@ -897,10 +896,10 @@ local weaponDef
 
     -- load and assign custom unit icons when availible
     local customUnitIcons = {}
-    local files = VFS.DirList('icons/'..folder, "*.png")
+    local files = VFS.DirList('icons', "*.png")
     for k, file in ipairs(files) do
-        local name = string.gsub(file, 'icons\\'..folder..'\\', '')   -- when located in spring folder
-        name = string.gsub(name, 'icons/'..folder..'/', '')   -- when located in game archive
+        local name = string.gsub(file, 'icons\\', '')   -- when located in spring folder
+        name = string.gsub(name, 'icons/', '')   -- when located in game archive
         name = string.gsub(name, '.png', '')
         if name then
             local unitname = string.match(name, '([a-z0-9]*)')
@@ -920,33 +919,12 @@ end
 
 local myPlayerID = Spring.GetMyPlayerID()
 
-local function isFolderValid(folder)
-    local found = false
-    for k, subdir in pairs(VFS.SubDirs('icons')) do
-        if folder == string.gsub(string.sub(subdir, 1, #subdir-1), 'icons/', '')  or  folder == string.gsub(string.sub(subdir, 1, #subdir-1), 'icons\\', '') then
-            found = true
-            break
-        end
-    end
-    return found
-end
-
 function gadget:GotChatMsg(msg, playerID)
   if playerID == myPlayerID then
-      if string.sub(msg,1,12) == "uniticonset " then
-          local folder = string.sub(msg,13)
-          if not isFolderValid(folder) then
-              Spring.Echo('Icons folder \''..folder..'\' isnt valid')
-          else
-              Spring.Echo('Unit icon set loaded: '..folder)
-              changeUnitIcons(folder)
-              Spring.SetConfigString("UnitIconFolder", folder)
-          end
-      end
       if string.sub(msg,1,14) == "uniticonscale " then
           iconScale = tonumber(string.sub(msg,15))
           Spring.SetConfigFloat("UnitIconScale", iconScale)
-          changeUnitIcons(Spring.GetConfigString("UnitIconFolder", 'modern'))
+          loadUnitIcons()
           --Spring.SendCommands("minimap unitsize "..Spring.GetConfigFloat("MinimapIconScale", 3.5-(iconScale-1)))
       end
   end
@@ -959,12 +937,7 @@ end
 
 
 function gadget:Initialize()
-    gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
-    local folder = Spring.GetConfigString("UnitIconFolder", 'modern')
-    if not isFolderValid(folder) then
-        folder = 'modern'
-    end
-    changeUnitIcons(folder)
+    loadUnitIcons()
 end
 
 

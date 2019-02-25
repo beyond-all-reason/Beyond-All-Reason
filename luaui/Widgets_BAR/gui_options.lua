@@ -1440,8 +1440,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				Spring.SetConfigInt("MaxNanoParticles",maxNanoParticles)
 			end
-		elseif id == 'iconset' then
-			Spring.SendCommands("luarules uniticonset "..options[i].options[value])
 		elseif id == 'bloomdeferredquality' then
 			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setPreset', {'qualityPreset'}, value)
 		elseif id == 'bloomquality' then
@@ -2008,8 +2006,7 @@ function init()
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
 
-		{id="iconset", group="gfx", name="Icon set", type="select", options={'old','modern','modern_simplified'}, value=1, description='NOTE: when icon edges look jagged: enable more Anti-Aliasing\n...or pick the \'old\' iconset'},
-		{id="disticon", group="gfx", name=widgetOptionColor.."   render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
+		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
 		{id="minimapiconsize", group="gfx", name=widgetOptionColor.."   minimap scale", type="slider", min=1.5, max=5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",3.5) or 1), description=''},
 
@@ -2204,22 +2201,6 @@ function init()
 		end
 		Spring.SetConfigInt("MSAALevel", fsaa)
 		Spring.SetConfigInt("FSAALevel", 0)
-	end
-
-	if options[getOptionByID('iconset')] and #VFS.SubDirs('icons') > 1 then
-		local opts = {}
-		local optsValues = {}
-		for i, v in pairs(VFS.SubDirs('icons')) do
-			if optsValues[string.sub(v, 7, #v-1)] == nil then	-- to prevent duplicated when gamefolder and spring folder have the same icons subfolder
-				optsValues[string.sub(v, 7, #v-1)] = i
-				opts[i] = string.sub(v, 7, #v-1)
-			end
-		end
-		options[getOptionByID('iconset')].options = opts
-		options[getOptionByID('iconset')].value = getSelectKey(getOptionByID('iconset'), Spring.GetConfigString("UnitIconFolder",'modern'))
-	else
-		options[getOptionByID('iconset')] = nil
-		options[getOptionByID('disticon')].name = "Icon render distance"
 	end
 
 	-- remove engine particles if nano beams are enabled
