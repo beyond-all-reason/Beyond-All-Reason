@@ -32,7 +32,8 @@ return {
 		movementclass = "BOAT43X3",
 		name = "Chaser",
 		nochasecategory = "VTOL",
-		objectname = "CORDSHIP",
+		objectname = "Units/CORDSHIP.s3o",
+		script = "Units/cordship.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 600,
@@ -42,6 +43,8 @@ return {
 		turnrate = 360,
 		waterline = 0,
 		customparams = {
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships",
 		},
 		featuredefs = {
@@ -60,7 +63,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 105,
-				object = "CORDSHIP_DEAD",
+				object = "Units/CORDSHIP_DEAD.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",

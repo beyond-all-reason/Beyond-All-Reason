@@ -30,8 +30,9 @@ return {
 		movementclass = "HHOVER3",
 		name = "Lun",
 		nochasecategory = "VTOL",
-		objectname = "ARMLUN",
+		objectname = "Units/ARMLUN.s3o",
 		radardistance = 0,
+		script = "Units/armlun.cob",
 		selfdestructas = "largeExplosionGenericSelfd",
 		sightdistance = 620,
 		sonardistance = 550,
@@ -40,6 +41,8 @@ return {
 		turninplacespeedlimit = 1.122,
 		turnrate = 250,
 		customparams = {
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armhovercraft",
 		},
 		featuredefs = {
@@ -55,7 +58,7 @@ return {
 				height = 15,
 				hitdensity = 100,
 				metal = 514,
-				object = "armlun_dead",
+				object = "Units/armlun_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",

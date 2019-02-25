@@ -33,8 +33,9 @@ return {
 		movementclass = "HHOVER3",
 		name = "Sokolov",
 		nochasecategory = "VTOL",
-		objectname = "CORSOK",
+		objectname = "Units/CORSOK.s3o",
 		radardistance = 0,
+		script = "Units/corsok.cob",
 		selfdestructas = "hugeExplosionGenericSelfd",
 		side = "CORE",
 		sightdistance = 650,
@@ -45,6 +46,8 @@ return {
 		turnrate = 290,
 		waterline = 7,
 		customparams = {
+			normalmaps = "yes",
+			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corehovercraft",
 		},
 		featuredefs = {
@@ -60,7 +63,7 @@ return {
 				height = 15,
 				hitdensity = 100,
 				metal = 588,
-				object = "corsok_dead",
+				object = "Units/corsok_dead.s3o",
 				reclaimable = true,
 				seqnamereclamate = "tree1reclamate",
 				world = "All Worlds",

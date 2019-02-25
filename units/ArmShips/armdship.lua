@@ -32,7 +32,8 @@ return {
 		movementclass = "BOAT43X3",
 		name = "Hunter",
 		nochasecategory = "VTOL",
-		objectname = "ARMDSHIP",
+		objectname = "Units/ARMDSHIP.s3o",
+		script = "Units/armdship.cob",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 600,
@@ -42,7 +43,8 @@ return {
 		turnrate = 375,
 		waterline = 0,
 		customparams = {
-			model_author = "Beherith",
+			normalmaps = "yes",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",
 		},
 		featuredefs = {
@@ -61,7 +63,7 @@ return {
 				height = 4,
 				hitdensity = 100,
 				metal = 110,
-				object = "ARMDSHIP_DEAD",
+				object = "Units/ARMDSHIP_DEAD.s3o",
 				reclaimable = true,
 				seqnamereclamate = "TREE1RECLAMATE",
 				world = "All Worlds",
