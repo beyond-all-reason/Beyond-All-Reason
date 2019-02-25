@@ -88,8 +88,8 @@ local shown = false
 local mouseover = false
 local volume
 
-local dynamicMusic = Spring.GetConfigInt("ba_dynamicmusic", 1)
-local interruptMusic = Spring.GetConfigInt("ba_interruptmusic", 1)
+local dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
+local interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
 local warMeter = 0
 local fadelvl = Spring.GetConfigInt("snd_volmusic", 20) * 0.01
 local fadeOut = false
@@ -110,10 +110,10 @@ function widget:Initialize()
 	
 	volume = Spring.GetConfigInt("snd_volmaster", 100)
 	
-	musicInitialValue = Spring.GetConfigInt("ba_musicInitialValue", 0)
+	musicInitialValue = Spring.GetConfigInt("bar_musicInitialValue", 0)
 	if musicInitialValue ~= 1 then
 		Spring.SetConfigInt("snd_volmusic", 20)
-		Spring.SetConfigInt("ba_musicInitialValue", 1)
+		Spring.SetConfigInt("bar_musicInitialValue", 1)
 	end
 	
 	music_volume = Spring.GetConfigInt("snd_volmusic", 20)
@@ -452,8 +452,8 @@ function widget:GameFrame(n)
 		--This is a little messy, but we need to be able to update these values on the fly so I see no better way
 		music_volume = Spring.GetConfigInt("snd_volmusic", 20)
 		
-		dynamicMusic = Spring.GetConfigInt("ba_dynamicmusic", 1)
-		interruptMusic = Spring.GetConfigInt("ba_interruptmusic", 1)
+		dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
+		interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
 		
 		--Assume that if it isn't set, dynamic music is true
 		if dynamicMusic == nil then

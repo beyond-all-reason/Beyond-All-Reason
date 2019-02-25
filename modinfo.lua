@@ -5,7 +5,7 @@ return {
   version = '$VERSION',
   mutator = 'Official',
   game = 'Beyond All Reason',
-  shortGame = 'BA',
+  shortGame = 'BAR',
   modtype = 1,
   url = "",
 }

@@ -1,6 +1,6 @@
 function widget:GetInfo()
     return {
-        name      = "BA LOS colors",
+        name      = "LOS colors",
         desc      = "custom colors for LOS",
         author    = "[teh]decay (thx to Floris, gluon, hokomoko, [teh]Teddy)",
         date      = "23 jul 2015",
@@ -11,7 +11,7 @@ function widget:GetInfo()
     }
 end
 
--- project page: this widget is included in BA repo
+-- project page: this widget is included in BAR repo
 
 --Changelog
 -- v2 Changed colors + remember ; mode + fix keybindings for non english layouts + 2 color presets (/loswithcolors)

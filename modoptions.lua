@@ -7,13 +7,13 @@ local options={
 	   type   = "section",
 	},
     {
-       key="ba_modes",
+       key="bar_modes",
        name="Beyond All Reason - Game Modes",
        desc="Beyond All Reason - Game Modes",
        type="section",
     },
     {
-       key="ba_options",
+       key="bar_options",
        name="Beyond All Reason - Options",
        desc="Beyond All Reason - Options",
        type="section",
@@ -23,7 +23,7 @@ local options={
         name   = 'AI Income Multiplier',
         desc   = 'Multiplies AI resource income',
         type   = 'number',
-        section= 'ba_options',
+        section= 'bar_options',
         def    = 1,
         min    = 1,
         max    = 10,
@@ -35,7 +35,7 @@ local options={
 		desc="What it takes to eliminate a team",
 		type="list",
 		def="com",
-		section="ba_modes",
+		section="bar_modes",
 		items={
 			{key="neverend", name="None", desc="Teams are never eliminated"},
 			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
@@ -47,7 +47,7 @@ local options={
         name   = 'Armageddon time (minutes)',
         desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
         type   = 'number',
-        section= 'ba_modes',
+        section= 'bar_modes',
         def    = 0,
         min    = 0,
         max    = 120,
@@ -59,7 +59,7 @@ local options={
 		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
 		type   = "bool",
 		def    = false,
-		section= "ba_modes",
+		section= "bar_modes",
     },
 
 	{
@@ -68,7 +68,7 @@ local options={
 		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
 		type="list",
 		def="enabled",
-		section="ba_options",
+		section="bar_options",
 		items={
 			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
 			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
@@ -84,7 +84,7 @@ local options={
         min    = -10000,
         max    = 10000,
         step   = 1,
-		section="ba_options",
+		section="bar_options",
 	},	
 	
 	{
@@ -93,7 +93,7 @@ local options={
 		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
 		type="list",
 		def="unchanged",
-		section="ba_options",
+		section="bar_options",
 		items={
 			{key="unchanged", name="Unchanged", desc="Use map settings"},
 			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
@@ -108,7 +108,7 @@ local options={
 		desc="Defines if commanders level up with xp and gain more power or not",
 		type="list",
 		def="disabled",
-		section="ba_modes",
+		section="bar_modes",
 		items={
 			{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
 			{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
@@ -122,14 +122,14 @@ local options={
         desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
         type   = 'bool',
         def    = false,
-        section= 'ba_modes',
+        section= 'bar_modes',
     },
     {
       key    = "shareddynamicalliancevictory",
       name   = "Dynamic Ally Victory",
       desc   = "Ingame alliance should count for game over condition.",
       type   = "bool",
-	  section= 'ba_modes',
+	  section= 'bar_modes',
       def    = false,
     },
 	
@@ -139,7 +139,7 @@ local options={
 		desc="Toggle which enemy units you can kidnap with an air transport",
 		type="list",
 		def="notcoms",
-		section="ba_options",
+		section="bar_options",
 		items={
 			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
 			{key="none", name="Disallow All", desc="No enemy units can be napped"},
@@ -151,7 +151,7 @@ local options={
 		desc   = "Allow custom user widgets or disallow them",
 		type   = "bool",
 		def    = true,
-		section= 'ba_others',
+		section= 'bar_others',
 	},
 	{
 		key    = "allowmapmutators",
@@ -159,7 +159,7 @@ local options={
 		desc   = "Allows maps to overwrite files from the game",
 		type   = "bool",
 		def    = true,
-		section= 'ba_others',
+		section= 'bar_others',
 	},
     {
         key    = 'FixedAllies',
@@ -167,7 +167,7 @@ local options={
         desc   = 'Disables the possibility of players to dynamically change alliances ingame',
         type   = 'bool',
         def    = true,
-        section= "ba_others",
+        section= "bar_others",
     },
     {
 		key    = "newbie_placer",
@@ -175,14 +175,14 @@ local options={
 		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
 		type   = "bool",
 		def    = false,
-		section= "ba_options",
+		section= "bar_options",
     },
     {
         key    = 'critters',
         name   = 'How many cute amimals? (0 is disabled)',
         desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
         type   = 'number',
-        section= 'ba_others',
+        section= 'bar_others',
         def    = 0.6,
         min    = 0,
         max    = 2,
@@ -190,7 +190,7 @@ local options={
     },
 	
     {
-       key="ba_enhancements_misc",
+       key="bar_enhancements_misc",
        name="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
        desc="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
        type="section",
@@ -201,7 +201,7 @@ local options={
 		name   = 'Commander Wreck Metal',
 		desc   = 'Sets the amount of metal left by a destroyed Commander.',
 		type   = 'number',
-		section= 'ba_enhancements_misc',
+		section= 'bar_enhancements_misc',
 		def    = 2500,
 		min    = 0,
 		max    = 5000,
@@ -212,7 +212,7 @@ local options={
 		name = 'Full visibility',
 		desc = 'No fog of war, everyone can see the entire map.',
 		type = 'bool',
-		section = 'ba_enhancements_misc',
+		section = 'bar_enhancements_misc',
 		def = false,
 	},
 -- Chicken Defense Options

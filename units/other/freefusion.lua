@@ -48,7 +48,7 @@ return {
 				height = 20,
 				hitdensity = 100,
 				metal = 30,
-				object = "BAR/freefusion_dead.s3o",
+				object = "Units/freefusion_dead.s3o",
 				reclaimable = true,
 				customparams = {
 					faction = "none",
@@ -68,7 +68,7 @@ return {
 				height = 5,
 				hitdensity = 100,
 				metal = 10,
-				object = "5X5A",
+				object = "Units/arm5X5A.s3o",
 				reclaimable = true,
 				resurrectable = 0,
 				seqnamereclamate = "TREE1RECLAMATE",

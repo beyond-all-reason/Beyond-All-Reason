@@ -28,7 +28,7 @@
 local options =
 {
   {
-    key="ba_others",
+    key="bar_others",
     name="Beyond All Reason - Other Settings",
     name="Beyond All Reason - Other Settings",
     type="section",
@@ -42,7 +42,7 @@ local options =
     min    = 1,
     max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
     step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
-    section= "ba_options",
+    section= "bar_options",
 
   },
   {
@@ -51,7 +51,7 @@ local options =
     desc    = "Switch Pathfinding System",
     type    = "list",
     def     = "normal",
-    section = "ba_others",
+    section = "bar_others",
 	items={
 	  {key="normal", name="Normal", desc="Spring vanilla pathfinder"},
 	  {key="qtpfs", name="QuadTree", desc="Experimental quadtree based pathfinder"},
@@ -115,7 +115,7 @@ local options =
     desc   = 'Prevents the map shape from being changed by weapons',
     type   = 'bool',
     def    = false,
-    section= "ba_options",
+    section= "bar_options",
 
   },
 --[[

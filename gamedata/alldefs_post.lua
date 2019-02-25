@@ -2,7 +2,7 @@
 -- DOCUMENTATION
 -------------------------
 
--- BA contains weapondefs in its unitdef files
+-- BAR contains weapondefs in its unitdef files
 -- Standalone weapondefs are only loaded by Spring after unitdefs are loaded
 -- So, if we want to do post processing and include all the unit+weapon defs, and have the ability to bake these changes into files, we must do it after both have been loaded
 -- That means, ALL UNIT AND WEAPON DEF POST PROCESSING IS DONE HERE

@@ -9,8 +9,8 @@
 
 return {
   {
-	  name = 'DAI',
-	  desc = 'Shard by AF for Spring Lua, Mod for BA made by Damgam',
+	name = 'DAI',
+	desc = 'Shard by AF for Spring (Lua), tuned for BAR by Damgam/Doo',
   },
   
   {

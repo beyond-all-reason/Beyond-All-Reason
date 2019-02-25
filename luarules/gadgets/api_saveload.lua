@@ -363,7 +363,7 @@ local function LoadUnits()
 			else
 				Spring.SetUnitCloak(newID, false)	-- workaround cloak persisting even when unit's "want cloak" state is false
 			end
-			--GG.UpdateUnitAttributes(newID) -- BA doesnt have the gadget ZK has
+			--GG.UpdateUnitAttributes(newID) -- BAR doesnt have the gadget ZK has
 			
 			-- is neutral
 			spSetUnitNeutral(newID, data.neutral or false)

@@ -6,7 +6,7 @@
 --]]
 	
 --[[ 
-How BA death messages work:
+How death messages work:
 1. return an empty table from messages.lua; this leaves engine death messages untouched
 2. red_console receives the engines death messages and replaces them within the console (so the infolog contains just the engine ones)
 3. the table of death messages used by red_console is in luaui/config/death_messages.lua

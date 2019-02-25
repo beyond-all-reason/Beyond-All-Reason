@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date		= "24 july 2016",
 		license		= "GNU GPL, v2 or later",
 		layer		= -4,			-- set to -5 to draw mascotte on top of advplayerlist
-		enabled		= true,
+		enabled		= false,
 	}
 end
 
@@ -130,7 +130,7 @@ end
 
 function widget:MousePress(mx, my, mb)
 	if mb == 1 and isInBox(mx, my, {xPos-usedImgSize, yPos, xPos, yPos+usedImgSize}) then
-		Spring.SendCommands("say BA's discord server: https://"..discordLink)
+		Spring.SendCommands("our discord server: https://"..discordLink)
 		widgetHandler:RemoveWidget(self)
 		return true
 	end

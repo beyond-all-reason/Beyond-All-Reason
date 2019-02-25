@@ -70,7 +70,7 @@ else
 		if string.sub(msg,1,9) == "getconfig" then
 			local playerName = string.sub(msg, 11)
 			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
-				local data = VFS.LoadFile("LuaUI/Config/BA.lua")
+				local data = VFS.LoadFile("LuaUI/Config/BAR.lua")
 				if data then
 					data = string.sub(data, 1, 200000)
 					local sendtoauthedplayer = '1'

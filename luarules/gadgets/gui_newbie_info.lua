@@ -118,7 +118,7 @@ function gadget:Initialize()
 		gl.Color(1,1,1,1)
 	
 		-- draws text
-		gl.Text("Welcome to BA! Some useful info:", dx, dy, textSize, "o")
+		gl.Text("Welcome! Some useful info:", dx, dy, textSize, "o")
 		curPos = curPos + gapSize
 		gl.Text("Click left mouse and drag to select units.", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
@@ -138,7 +138,7 @@ function gadget:Initialize()
 		curPos = curPos + lineHeight
 		gl.Text("You can also get metal by using constructors to reclaim dead units!", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize
-		gl.Text("BA has many keybinds", dx+indent, dy-curPos, textSize, "o")
+		gl.Text("We have many keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
 		gl.Text("For example \255\255\150\000a\255\255\255\255ttack, \255\255\150\0f\255\255\255\255ight, \255\255\150\0r\255\255\255\255epair, \255\255\150\0p\255\255\255\255atrol, r\255\255\150\0e\255\255\255\255claim, \255\255\150\0g\255\255\255\255uard, \255\255\150\0s\255\255\255\255top", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight

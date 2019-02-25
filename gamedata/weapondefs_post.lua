@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 -- Default Engine Weapon Definitions Post-processing
 --------------------------------------------------------------------------------
--- BA stores weapondefs in the unitdef files 
+-- BAR stores weapondefs in the unitdef files
 -- Here we load those defs into the WeaponDefs table
 -- Then we call alldefs_post.lua, in which post processing of defs should take place
 -- basically, DONT TOUCH this! 

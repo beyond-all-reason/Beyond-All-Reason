@@ -1,7 +1,7 @@
 function widget:GetInfo()
 	return {
-		name = "BA Hotkeys",
-		desc = "Enables BA Hotkeys, including ZXCV,BN,YJ,O,Q" ,
+		name = "BAR Hotkeys",
+		desc = "Enables BAR Hotkeys, including ZXCV,BN,YJ,O,Q" ,
 		author = "Beherith",
 		date = "23 march 2012",
 		license = "GNU LGPL, v2.1 or later",
@@ -224,14 +224,14 @@ function widget:Initialize()
     MakeBindsTable(WG.swapYZbinds)    
     LoadBindings()
     
-    WG.Reload_BA_Hotkeys = ReloadBindings
+    WG.Reload_BAR_Hotkeys = ReloadBindings
 end
 
 function widget:Shutdown()
     UnloadBindings()
-    WG.Reload_BA_Hotkeys = nil
+    WG.Reload_BAR_Hotkeys = nil
 
-    if widgetHandler.orderList and (widgetHandler.orderList["BA Hotkeys -- swap YZ"] or 0) > 0 then
-        widgetHandler:DisableWidget("BA Hotkeys -- swap YZ")
+    if widgetHandler.orderList and (widgetHandler.orderList["BAR Hotkeys -- swap YZ"] or 0) > 0 then
+        widgetHandler:DisableWidget("BAR Hotkeys -- swap YZ")
     end
 end

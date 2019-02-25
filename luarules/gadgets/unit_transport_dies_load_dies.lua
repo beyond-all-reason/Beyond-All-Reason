@@ -1,4 +1,4 @@
---in BA "commando" unit always survives being shot down during transport
+--in BAR "commando" unit always survives being shot down during transport
 --when a com dies in mid air the damage done is controlled by unit_combomb_full_damage 
 
 --several other ways to code this do not work because:
