@@ -9,7 +9,7 @@ return {
 		buildinggrounddecaldecayspeed = 30,
 		buildinggrounddecalsizex = 11.25,
 		buildinggrounddecalsizey = 11.25,
-		buildinggrounddecaltype = "mission_command_tower_aoplane.dds",
+		buildinggrounddecaltype = "decals/mission_command_tower_aoplane.dds",
 		buildpic = "MISSION_COMMAND_TOWER.DDS",
 		buildtime = 100000,
 		canrepeat = false,
