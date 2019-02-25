@@ -5,11 +5,6 @@ function shard_include( file )
 		return nil
 	end
 	subdir = Game.gameShortName
-	if Game.gameShortName == "BAR" then
-		-- AI for BA / BAR is (atm) the same
-		subdir = "BA"
-	end
-
 	local gameFile = "luarules/gadgets/ai/" ..  subdir .. "/" .. file .. ".lua"
 	local baseFile = "luarules/gadgets/ai/" .. file .. ".lua"
 	local preloadFile = "luarules/gadgets/ai/preload/" .. file .. ".lua"

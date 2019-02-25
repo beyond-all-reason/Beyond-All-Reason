@@ -7,11 +7,7 @@ function shard_include( file )
 	local gameName = game_engine:GameName()
 	local ok1
 	local mod1
-	if gameName == 'BAR' then
-		ok1, mod1 = pcall( require, "BA/"..file )
-	else
-		ok1, mod1 = pcall( require, gameName.."/"..file )
-	end
+	ok1, mod1 = pcall( require, gameName.."/"..file )
 	if ok1 then
 		return mod1
 	else
