@@ -90,7 +90,7 @@ end
 -- modoptions.lua doesnt contain engine modoptions: maxunits, pathfinder, startmetal, startenergy, disablemapdamage, fixedallies
 modoptionsDefault['maxspeed'] = '3'
 modoptionsDefault['minspeed'] = '0.3'
-modoptionsDefault['pathfinder'] = 'normal'
+--modoptionsDefault['pathfinder'] = 'normal'
 modoptionsDefault['startmetal'] = '1000'
 modoptionsDefault['startenergy'] = '1000'
 modoptionsDefault['fixedallies'] = '1'

@@ -1,10 +1,106 @@
---see engineoptions.lua for explanantion
+-- $Id: ModOptions.lua 4642 2009-05-22 05:32:36Z carrepairer $
+
+
+--  Custom Options Definition Table format
+--  NOTES:
+--  - using an enumerated table lets you specify the options order
+
+--
+--  These keywords must be lowercase for LuaParser to read them.
+--
+--  key:      the string used in the script.txt
+--  name:     the displayed name
+--  desc:     the description (could be used as a tooltip)
+--  type:     the option type ('list','string','number','bool')
+--  def:      the default value
+--  min:      minimum value for number options
+--  max:      maximum value for number options
+--  step:     quantization step, aligned to the def value
+--  maxlen:   the maximum string length for string options
+--  items:    array of item strings for list options
+--  section:  so lobbies can order options in categories/panels
+--  scope:    'all', 'player', 'team', 'allyteam'      <<< not supported yet >>>
+--
+
+
 local options={
 	{
-	   key    = "StartingResources",
-	   name   = "Starting Resources",
-	   desc   = "Sets storage and amount of resources that players will start with",
-	   type   = "section",
+		key    = 'MaxUnits',
+		name   = 'Max units',
+		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
+		type   = 'number',
+		def    = 10000,
+		min    = 1,
+		max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
+		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
+		section= "bar_options",
+	},
+	{
+		key    = "StartingResources",
+		name   = "Starting Resources",
+		desc   = "Sets storage and amount of resources that players will start with",
+		type   = "section",
+	},
+	{
+		key    = "startmetal",
+		name   = "Starting metal",
+		desc   = "Determines amount of metal and metal storage that each player will start with",
+		type   = "number",
+		section= "StartingResources",
+		def    = 1000,
+		min    = 0,
+		max    = 10000,
+		step   = 1,
+	},
+	{
+		key    = "startenergy",
+		name   = "Starting energy",
+		desc   = "Determines amount of energy and energy storage that each player will start with",
+		type   = "number",
+		section= "StartingResources",
+		def    = 1000,
+		min    = 0,
+		max    = 10000,
+		step   = 1,
+	},
+	{
+		key    = 'LimitSpeed',
+		name   = 'Speed Restriction',
+		desc   = 'Limits maximum and minimum speed that the players will be allowed to change to',
+		type   = 'section',
+	},
+	{
+		key    = 'MaxSpeed',
+		name   = 'Maximum game speed',
+		desc   = 'Sets the maximum speed that the players will be allowed to change to',
+		type   = 'number',
+		section= 'LimitSpeed',
+		def    = 5,
+		min    = 0.1,
+		max    = 50,
+		step   = 0.1,
+
+	},
+
+	{
+		key    = 'MinSpeed',
+		name   = 'Minimum game speed',
+		desc   = 'Sets the minimum speed that the players will be allowed to change to',
+		type   = 'number',
+		section= 'LimitSpeed',
+		def    = 0.3,
+		min    = 0.1,
+		max    = 100,
+		step   = 0.1,
+	},
+	{
+		key    = 'DisableMapDamage',
+		name   = 'Undeformable map',
+		desc   = 'Prevents the map shape from being changed by weapons',
+		type   = 'bool',
+		def    = false,
+		section= "bar_options",
+
 	},
     {
        key="bar_modes",
