@@ -168,7 +168,7 @@ local unitConfigs = {   -- copy from configs/icon_generator.lua, included.. beca
 
 }
 function gadget:GameFrame(n)
-    if (nextFrame and n>nextFrame and index <=#unitnames) then
+    if (nextFrame and n>nextFrame and index <= #unitnames) then
         Spring.SendCommands("luarules buildicon "..unitnames[index])
         index=index+1
         counter=counter+1
