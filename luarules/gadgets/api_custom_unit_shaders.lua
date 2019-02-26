@@ -613,7 +613,7 @@ function ToggleTreeWind(_,newSetting,_, playerID)
   featureRendering.loadedTextures  = {}
 
   --// load the materials config files
-  local MATERIALS_DIR = "ModelMaterials/"
+  local MATERIALS_DIR = "materials/"
   local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
   _ProcessMaterials(featureRendering, featureMaterialDefs)
 
@@ -680,7 +680,7 @@ function ToggleNormalmapping(_,newSetting,_, playerID)
   featureRendering.loadedTextures  = {}
 
   --// load the materials config files
-  local MATERIALS_DIR = "ModelMaterials/"
+  local MATERIALS_DIR = "materials/"
   local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
   _ProcessMaterials(unitRendering,    unitMaterialDefs)
   _ProcessMaterials(featureRendering, featureMaterialDefs)
@@ -717,7 +717,7 @@ function gadget:Initialize()
   advShading = Spring.HaveAdvShading()
 
   --// load the materials config files
-  local MATERIALS_DIR = "ModelMaterials/"
+  local MATERIALS_DIR = "materials/"
   local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
 	-- Spring.Echo('unitMaterialDefs',to_string(unitMaterialDefs))
 	-- Spring.Echo('featureMaterialDefs',to_string(featureMaterialDefs))

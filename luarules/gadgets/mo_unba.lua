@@ -18,8 +18,8 @@ end
 
 if (gadgetHandler:IsSyncedCode()) then  --Sync?
 	
-	VFS.Include("unbaconfigs/categories.lua")
-	VFS.Include("unbaconfigs/taxvalues.lua")
+	VFS.Include("gamedata/unbaconfigs/categories.lua")
+	VFS.Include("gamedata/unbaconfigs/taxvalues.lua")
 	expvalues = {}
 	taxvalue = {}	
 	oldteams = {}

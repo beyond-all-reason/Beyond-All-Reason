@@ -18,8 +18,8 @@ local materials = {
 			"#define SPECULARMULT 8.0",
 		},
 
-		shader    = include("ModelMaterials/Shaders/default.lua"),
-		deferred  = include("ModelMaterials/Shaders/default.lua"),
+		shader    = include("materials/Shaders/default.lua"),
+		deferred  = include("materials/Shaders/default.lua"),
 		usecamera = false,
 		culling   = GL.BACK,
 		predl  = nil,

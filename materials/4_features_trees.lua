@@ -17,8 +17,8 @@ end
 
 local materials = {
 	feature_tree = {
-		shader    = include("ModelMaterials/Shaders/default.lua"),
-		deferred  = include("ModelMaterials/Shaders/default.lua"),
+		shader    = include("materials/Shaders/default.lua"),
+		deferred  = include("materials/Shaders/default.lua"),
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",

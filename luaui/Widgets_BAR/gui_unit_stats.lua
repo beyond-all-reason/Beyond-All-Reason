@@ -221,7 +221,7 @@ function widget:Initialize()
 		oldUnitpics = value
 	end
 	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-		VFS.Include("unbaconfigs/stats.lua")
+		VFS.Include("gamedata/unbaconfigs/stats.lua")
 		unba = true
 	end
 	init()

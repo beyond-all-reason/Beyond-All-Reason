@@ -18,7 +18,7 @@ end
 -- june 2015: guishader + rounded corners + hover effect + widget scales with resolution + remembers queue after /luaui reload (Floris)
 
 
-VFS.Include("unbaconfigs/buildoptions.lua")
+VFS.Include("gamedata/unbaconfigs/buildoptions.lua")
 
 for ct,name in pairs (armlevel1buildoptions) do
 	armlevel1buildoptions[ct] = UnitDefNames[name].id
