@@ -35,7 +35,7 @@ return {
 		name = "Basilisk",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "ChickenDefenseModels/chickenc.s3o",
+		objectname = "Chickens/chickenc.s3o",
 		script = "ChickenDefenseScripts/chickenc1.cob",
 		seismicsignature = 3,
 		selfdestructas = "BIGBUG_DEATH",

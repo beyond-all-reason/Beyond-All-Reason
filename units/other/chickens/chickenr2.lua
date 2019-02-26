@@ -32,7 +32,7 @@ return {
 		name = "Enraged Lobber",
 		noautofire = false,
 		nochasecategory = "VTOL",
-		objectname = "ChickenDefenseModels/chickenr.s3o",
+		objectname = "Chickens/chickenr.s3o",
 		script = "ChickenDefenseScripts/chickenr2.cob",
 		seismicsignature = 4,
 		selfdestructas = "flamebug_death",

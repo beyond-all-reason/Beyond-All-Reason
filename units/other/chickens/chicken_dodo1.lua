@@ -41,7 +41,7 @@ return {
 		name = "Dodo",
 		noautofire = false,
 		nochasecategory = "VTOL HOVER",
-		objectname = "ChickenDefenseModels/chicken_dodo.s3o",
+		objectname = "Chickens/chicken_dodo.s3o",
 		script = "ChickenDefenseScripts/chicken_dodo1.cob",
 		seismicsignature = 2,
 		selfdestructas = "DODO_DEATH1",

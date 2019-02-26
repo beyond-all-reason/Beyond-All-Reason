@@ -45,7 +45,7 @@ return {
 		movementclass = "CHICKENHKBOT2",
 		name = "Weaver",
 		noautofire = 0,
-		objectname = "ChickenDefenseModels/chicken_drone.s3o",
+		objectname = "Chickens/chicken_drone.s3o",
 		reclaimspeed = 400,
 		repairspeed = 200,
 		script = "ChickenDefenseScripts/chickenh1.cob",
