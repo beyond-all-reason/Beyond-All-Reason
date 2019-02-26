@@ -50,7 +50,6 @@ local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
 local globalLifeMult = 0.65
 
 local enableHeatDistortion = true
-local enableDeferred = true     -- else use groundflashes instead
 local enableNanolaser = true
 local enableThrusters = true
 local nanolaserLights = {}
@@ -498,8 +497,6 @@ end
 local function GetProjectileLights(beamLights, beamLightCount, pointLights, pointLightCount)
 	local cx, cy, cz = Spring.GetCameraPosition()
 
-    if not enableDeferred then return {}, 0, {}, 0 end
-
 	local projectiles = spGetVisibleProjectiles()
 	local projectileCount = #projectiles
 	if (not projectileFade) and projectileCount == 0 then
@@ -811,23 +808,8 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 			},
 		}
 
-		if not enableDeferred then
-            if WG['Lups'] then
-                WG['Lups'].AddParticles('GroundFlash', {
-                    worldspace = true,
-                    layer = -35,
-                    life = weaponConf[weaponID].life,
-                    pos = {px,py+10,pz},
-                    size = weaponConf[weaponID].radius/2.2,
-                    sizeGrowth = 0,
-                    colormap   = { {weaponConf[weaponID].r, weaponConf[weaponID].g, weaponConf[weaponID].b, weaponConf[weaponID].orgMult*1.33} },
-                    texture    = 'LuaUI/Images/glow2.dds',
-                })
-            end
-		else
-			explosionLightsCount = explosionLightsCount + 1
-			explosionLights[explosionLightsCount] = params
-		end
+		explosionLightsCount = explosionLightsCount + 1
+		explosionLights[explosionLightsCount] = params
 
 		if py > 0 and enableHeatDistortion and WG['Lups'] and params.param.radius > 80 and not weaponConf[weaponID].noheatdistortion and Spring.IsSphereInView(px,py,pz,100) then
 
@@ -919,7 +901,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 end
 
 function GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
-	if enableDeferred and weaponConf[weaponID] ~= nil then
+	if weaponConf[weaponID] ~= nil then
 		local params = {
 			life = (2.5+(weaponConf[weaponID].life/4))*globalLifeMult,
 			orgMult = 0.44 + (weaponConf[weaponID].orgMult*0.4),
@@ -1008,9 +990,6 @@ function widget:Initialize()
 	WG['lighteffects'].getThrusters = function()
 		return enableThrusters
 	end
-    WG['lighteffects'].getDeferred = function()
-        return enableDeferred
-    end
 	WG['lighteffects'].setGlobalBrightness = function(value)
 		globalLightMult = value
 		projectileLightTypes = GetLightsFromUnitDefs()
@@ -1053,9 +1032,6 @@ function widget:Initialize()
 			end
 		end
 	end
-    WG['lighteffects'].setDeferred = function(value)
-        enableDeferred = value
-    end
 
 end
 
@@ -1068,7 +1044,6 @@ function widget:GetConfigData(data)
 		globalRadiusMultLaser = globalRadiusMultLaser,
 		globalLifeMult = globalLifeMult,
 		enableHeatDistortion = enableHeatDistortion,
-		enableDeferred = enableDeferred,
 		enableNanolaser = enableNanolaser,
 		enableThrusters = enableThrusters,
 		resetted = 1.4,
@@ -1096,9 +1071,6 @@ function widget:SetConfigData(data)
         if data.enableHeatDistortion ~= nil then
             enableHeatDistortion = data.enableHeatDistortion
         end
-		if data.enableDeferred ~= nil then
-			enableDeferred = data.enableDeferred
-		end
 		if data.enableNanolaser ~= nil then
 			enableNanolaser = data.enableNanolaser
 		end

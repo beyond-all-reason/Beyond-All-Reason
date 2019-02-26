@@ -120,7 +120,6 @@ local presets = {
 		water = 1,
 		mapedgeextension = false,
 		lighteffects = false,
-		lighteffects_deferred = false,
 		lighteffects_heatdistortion = false,
 		lups = false,
 		lupsreflectionrefraction = false,
@@ -149,7 +148,6 @@ local presets = {
 		water = 2,
 		mapedgeextension = false,
 		lighteffects = true,
-		lighteffects_deferred = false,
 		lighteffects_heatdistortion = false,
 		lups = true,
 		lupsreflectionrefraction = false,
@@ -178,7 +176,6 @@ local presets = {
 		water = 4,
 		mapedgeextension = true,
 		lighteffects = true,
-		lighteffects_deferred = true,
 		lighteffects_heatdistortion = true,
 		lups = true,
 		lupsreflectionrefraction = false,
@@ -207,7 +204,6 @@ local presets = {
 		water = 3,
 		mapedgeextension = true,
 		lighteffects = true,
-		lighteffects_deferred = true,
 		lighteffects_heatdistortion = true,
 		lups = true,
 		lupsreflectionrefraction = true,
@@ -236,7 +232,6 @@ local presets = {
 		water = 5,
 		mapedgeextension = true,
 		lighteffects = true,
-		lighteffects_deferred = true,
 		lighteffects_heatdistortion = true,
 		lups = true,
 		lupsreflectionrefraction = true,
@@ -1150,8 +1145,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SendCommands("luarules uniticonlasers "..value)
 		elseif id == 'lighteffects_thrusters' then
 			saveOptionValue('Light Effects', 'lighteffects', 'setThrusters', {'enableThrusters'}, options[i].value)
-		elseif id == 'lighteffects_deferred' then
-			saveOptionValue('Light Effects', 'lighteffects', 'setDeferred', {'enableDeferred'}, options[i].value)
 		elseif id == 'passivebuilders_nanos' then
 			saveOptionValue('Passive builders', 'passivebuilders', 'setPassiveNanos', {'passiveNanos'}, options[i].value)
 		elseif id == 'passivebuilders_cons' then
@@ -1895,7 +1888,6 @@ function loadAllWidgetData()
 	loadWidgetData("Light Effects", "lighteffects_laserradius", {'globalRadiusMultLaser'})
 	loadWidgetData("Light Effects", "lighteffects_life", {'globalLifeMult'})
 	loadWidgetData("Light Effects", "lighteffects_heatdistortion", {'enableHeatDistortion'})
-	loadWidgetData("Light Effects", "lighteffects_deferred", {'enableDeferred'})
 	loadWidgetData("Light Effects", "lighteffects_nanolaser", {'enableNanolaser'})
 	loadWidgetData("Light Effects", "lighteffects_thrusters", {'enableThrusters'})
 
@@ -2018,7 +2010,6 @@ function init()
 		--{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 
 		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
-		{id="lighteffects_deferred", group="gfx", name=widgetOptionColor.."   real lights", type="bool", value=true, description='Otherwise simple ground flashes instead of actual map and model lighting.\n\nExpensive for the gpu when lots of (big) lights are there or when you zoom in on them.'},
 		{id="lighteffects_heatdistortion", group="gfx", name=widgetOptionColor.."   apply heat distortion", type="bool", value=true, description='Enables a distortion on top of explosions to simulate heat'},
 		{id="lighteffects_life", group="gfx", name=widgetOptionColor.."   lifetime", min=0.4, max=0.9, step=0.05, type="slider", value=0.65, description='lifetime of explosion lights'},
 		{id="lighteffects_brightness", group="gfx", name=widgetOptionColor.."   brightness", min=0.8, max=2, step=0.1, type="slider", value=1.2, description='Set the brightness of the lights'},
@@ -2424,7 +2415,6 @@ function init()
 		options[getOptionByID("lighteffects_heatdistortion")] = nil
 		options[getOptionByID("lighteffects_nanolaser")] = nil
 		options[getOptionByID("lighteffects_thrusters")] = nil
-		options[getOptionByID("lighteffects_deferred")] = nil
 	end
 
 	if widgetHandler.knownWidgets["TeamPlatter"] == nil then
