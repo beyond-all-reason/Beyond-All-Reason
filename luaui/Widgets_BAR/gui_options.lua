@@ -122,24 +122,26 @@ local presets = {
 		lups = false,
 		lupsreflectionrefraction = false,
 		snow = false,
-		particles = 10000,
+		particles = 15000,
 		nanoparticles = 1500,
 		nanobeamamount = 2,
 		treeradius = 0,
 		treewind = false,
-		advsky = false,
+		--advsky = false,
 		outline = false,
 		guishader = false,
-		shadows = false,
-		normalmapping = false,
+		--shadows = false,
+		shadows_maxquality = 4000,
+		shadows_minquality = 2000,
+		--normalmapping = false,
 		decals = 0,
-		grounddetail = 60,
+		grounddetail = 70,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
 	low = {
 		bloom = false,
-		bloomdeferred = false,
+		bloomdeferred = true,
 		water = 2,
 		mapedgeextension = false,
 		lighteffects = true,
@@ -147,23 +149,25 @@ local presets = {
 		lups = true,
 		lupsreflectionrefraction = false,
 		snow = false,
-		particles = 15000,
+		particles = 20000,
 		nanoparticles = 3000,
 		nanobeamamount = 4,
 		treeradius = 200,
 		treewind = false,
-		advsky = false,
+		--advsky = false,
 		outline = false,
 		guishader = false,
-		shadows = false,
-		normalmapping = false,
+		--shadows = true,
+		shadows_maxquality = 6000,
+		shadows_minquality = 2000,
+		--normalmapping = true,
 		decals = 0,
-		grounddetail = 90,
+		grounddetail = 100,
 		darkenmap_darkenfeatures = false,
 		enemyspotter_highlight = false,
 	},
 	medium = {
-		bloom = false,
+		bloom = true,
 		bloomdeferred = true,
 		water = 4,
 		mapedgeextension = true,
@@ -172,16 +176,18 @@ local presets = {
 		lups = true,
 		lupsreflectionrefraction = false,
 		snow = true,
-		particles = 20000,
+		particles = 25000,
 		nanoparticles = 5000,
 		nanobeamamount = 7,
 		treeradius = 400,
 		treewind = true,
-		advsky = false,
+		--advsky = false,
 		outline = false,
 		guishader = false,
-		shadows = false,
-		normalmapping = true,
+		--shadows = true,
+		shadows_maxquality = 6000,
+		shadows_minquality = 2000,
+		--normalmapping = true,
 		decals = 1,
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
@@ -202,11 +208,13 @@ local presets = {
 		nanobeamamount = 12,
 		treeradius = 800,
 		treewind = true,
-		advsky = true,
+		--advsky = true,
 		outline = true,
 		guishader = true,
-		shadows = true,
-		normalmapping = true,
+		--shadows = true,
+		shadows_maxquality = 8000,
+		shadows_minquality = 3000,
+		--normalmapping = true,
 		decals = 2,
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
@@ -227,11 +235,13 @@ local presets = {
 		nanobeamamount = 20,
 		treeradius = 800,
 		treewind = true,
-		advsky = true,
+		--advsky = true,
 		outline = true,
 		guishader = true,
-		shadows = true,
-		normalmapping = true,
+		--shadows = true,
+		shadows_maxquality = 8000,
+		shadows_minquality = 4000,
+		--normalmapping = true,
 		decals = 3,
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
@@ -1936,18 +1946,18 @@ function init()
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
-		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
+		--{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
-		{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
+		--{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
 		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=6000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
+		{id="shadows_disablefps", group="gfx", name="Shadows disable at FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disables shadows at this average FPS value'},
 		{id="shadows_maxquality", group="gfx", name=widgetOptionColor.."   max quality", min=2000, max=8000, step=500, type="slider", value=8000, description='Maximum shadow detail when having high Frames Per Second'},
 		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail when having low Frames Per Second'},
-		{id="shadows_disablefps", group="gfx", name=widgetOptionColor.."   disable at FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disables shadows at this average FPS value'},
 
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
-		{id="advsky", group="gfx", name="Clouds", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
+		--{id="advsky", group="gfx", name="Clouds", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
@@ -2103,8 +2113,8 @@ function init()
 		{id="fancyselectedunits", group="ui", widget="Fancy Selected Units", name="Fancy selected units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description='Draws a platter under selected units\n\n\NOTE: this widget can be heavy when having lots of units selected'},
 		--{id="fancyselectedunits_style", group="ui", name=widgetOptionColor.."   style", type="select", options={}, value=1},
 		{id="fancyselectedunits_opacity", group="ui", name=widgetOptionColor.."   line opacity", min=0.8, max=1, step=0.01, type="slider", value=0.9, description='Set the opacity of the highlight on selected units'},
-		{id="fancyselectedunits_baseopacity", group="ui", name=widgetOptionColor.."   base opacity", min=0, max=0.5, step=0.01, type="slider", value=0.25, description='Set the opacity of the highlight on selected units'},
-		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor opacity", min=0, max=1, step=0.01, type="slider", value=0.1, description='Set the amount of teamcolor used for the base platter'},
+		{id="fancyselectedunits_baseopacity", group="ui", name=widgetOptionColor.."   base opacity", min=0, max=0.5, step=0.01, type="slider", value=0.15, description='Set the opacity of the highlight on selected units'},
+		{id="fancyselectedunits_teamcoloropacity", group="ui", name=widgetOptionColor.."   teamcolor opacity", min=0, max=1, step=0.01, type="slider", value=0.55, description='Set the amount of teamcolor used for the base platter'},
 		--{id="fancyselectedunits_secondline", group="ui", name=widgetOptionColor.."   add second line", type="bool", value=false, description='Adds a second line'},
 
 		{id="pausescreen", group="ui", widget="Pause Screen", name="Pause screen", type="bool", value=GetWidgetToggleValue("Pause Screen"), description='Displays an overlay when the game is paused'},
@@ -2481,9 +2491,23 @@ function widget:Initialize()
 	if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
 		Spring.SetConfigInt("AdvModelShading",1)
 	end
+	-- enable normal mapping
+	if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
+		Spring.SetConfigInt("NormalMapping",1)
+		Spring.SendCommands("luarules normalmapping 1")
+	end
+	-- disable clouds
+	if Spring.GetConfigInt("AdvSky",0) ~= 0 then
+		Spring.SetConfigInt("AdvSky",0)
+	end
 	-- disable grass
-	if Spring.GetConfigInt("GrassDetail",0) > 0 then
+	if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
 		Spring.SetConfigInt("GrassDetail",0)
+	end
+	-- enable shadows at gamestart
+	if Spring.GetGameFrame() == 0 and Spring.GetConfigInt("Shadows",0) ~= 1 then
+		Spring.SetConfigInt("Shadows",1)
+		Spring.SendCommands("Shadows 1")
 	end
 
 	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
@@ -2611,10 +2635,10 @@ function widget:GetConfigData(data)
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
-		shadows = {'Shadows', tonumber(Spring.GetConfigInt("Shadows",1) or 1)},
-		advsky = {'AdvSky', tonumber(Spring.GetConfigInt("AdvSky",1) or 1)},
+		--shadows = {'Shadows', tonumber(Spring.GetConfigInt("Shadows",1) or 1)},
+		--advsky = {'AdvSky', tonumber(Spring.GetConfigInt("AdvSky",1) or 1)},
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
-		normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
+		--normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
 		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)},

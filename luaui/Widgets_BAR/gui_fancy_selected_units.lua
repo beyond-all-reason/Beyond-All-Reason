@@ -75,11 +75,11 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	showExtraComLine				= true,		-- extra circle lines for the commander unit
 	showExtraBuildingWeaponLine		= true,
 
-	teamcolorOpacity				= 0.7,		-- how much teamcolor used for the base platter
+	teamcolorOpacity				= 0.55,		-- how much teamcolor used for the base platter
 
 	-- opacity
 	spotterOpacity					= 0.95,
-	baseOpacity						= 0.25,
+	baseOpacity						= 0.15,
 	firstLineOpacity				= 1,
 	secondLineOpacity				= 0.2,
 
