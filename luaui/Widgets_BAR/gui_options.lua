@@ -110,8 +110,6 @@ local optionSelect = {}
 
 local widgetOptionColor = '\255\160\160\160'
 
-local luaShaders = tonumber(Spring.GetConfigInt("ForceShaders",1) or 0)
-
 local presetNames = {'lowest','low','medium','high','ultra'}	-- defined so these get listed in the right order
 local presets = {
 	lowest = {
@@ -127,15 +125,12 @@ local presets = {
 		particles = 10000,
 		nanoparticles = 1500,
 		nanobeamamount = 2,
-		grassdetail = 0,
 		treeradius = 0,
 		treewind = false,
 		advsky = false,
 		outline = false,
 		guishader = false,
 		shadows = false,
-		advmapshading = false,
-		advmodelshading = false,
 		normalmapping = false,
 		decals = 0,
 		grounddetail = 60,
@@ -155,15 +150,12 @@ local presets = {
 		particles = 15000,
 		nanoparticles = 3000,
 		nanobeamamount = 4,
-		grassdetail = 0,
 		treeradius = 200,
 		treewind = false,
 		advsky = false,
 		outline = false,
 		guishader = false,
 		shadows = false,
-		advmapshading = true,
-		advmodelshading = true,
 		normalmapping = false,
 		decals = 0,
 		grounddetail = 90,
@@ -183,15 +175,12 @@ local presets = {
 		particles = 20000,
 		nanoparticles = 5000,
 		nanobeamamount = 7,
-		grassdetail = 0,
 		treeradius = 400,
 		treewind = true,
 		advsky = false,
 		outline = false,
 		guishader = false,
 		shadows = false,
-		advmapshading = true,
-		advmodelshading = true,
 		normalmapping = true,
 		decals = 1,
 		grounddetail = 140,
@@ -211,15 +200,12 @@ local presets = {
 		particles = 30000,
 		nanoparticles = 9000,
 		nanobeamamount = 12,
-		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
 		advsky = true,
 		outline = true,
 		guishader = true,
 		shadows = true,
-		advmapshading = true,
-		advmodelshading = true,
 		normalmapping = true,
 		decals = 2,
 		grounddetail = 180,
@@ -239,15 +225,12 @@ local presets = {
 		particles = 40000,
 		nanoparticles = 15000,
 		nanobeamamount = 20,
-		grassdetail = 0,
 		treeradius = 800,
 		treewind = true,
 		advsky = true,
 		outline = true,
 		guishader = true,
 		shadows = true,
-		advmapshading = true,
-		advmodelshading = true,
 		normalmapping = true,
 		decals = 3,
 		grounddetail = 200,
@@ -1025,11 +1008,7 @@ function applyOptionValue(i, skipRedrawWindow)
 		if options[i].value then
 			value = 1
 		end
-		if id == 'advmapshading' then
-			Spring.SendCommands("AdvMapShading "..value)
-			Spring.SetConfigInt("AdvMapShading",value)
-
-		elseif id == 'advmodelshading' then
+		if id == 'advmodelshading' then
 			Spring.SendCommands("AdvModelShading "..value)
 			Spring.SetConfigInt("AdvModelShading",value)
 		elseif id == 'normalmapping' then
@@ -1235,14 +1214,6 @@ function applyOptionValue(i, skipRedrawWindow)
 
 		if options[i].widget ~= nil then
 			if value == 1 then
-				if id == 'bloom' or id == 'bloomdeferred' or id == 'guishader' or id == 'snow' or id == 'mapedgeextension' then
-					if luaShaders ~= 1 and not enabledLuaShaders then
-						Spring.SetConfigInt("ForceShaders", 1)
-						enabledLuaShaders = true
-					end
-				end
-			end
-			if value == 1 then
 				if widgetHandler.orderList[options[i].widget] < 0.5 then
 					widgetHandler:EnableWidget(options[i].widget)
 				end
@@ -1323,8 +1294,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			if options[getOptionByID('nanoeffect')].value == 2 then
 				Spring.SetConfigInt("MaxNanoParticles",value)
 			end
-		elseif id == 'grassdetail' then
-			Spring.SetConfigInt("GrassDetail",value)
 		elseif id == 'grounddetail' then
 			Spring.SetConfigInt("GroundDetail", value)
 			Spring.SendCommands("GroundDetail "..value)
@@ -1967,8 +1936,6 @@ function init()
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
-		{id="advmapshading", group="gfx", name="Advanced map shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1) == 1, description='When disabled: map shadows aren\'t rendered as well'},
-		{id="advmodelshading", group="gfx", name="Advanced model shading", type="bool", value=tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1) == 1},
 		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
@@ -1980,7 +1947,7 @@ function init()
 
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
-		{id="advsky", group="gfx", name="Advanced sky", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
+		{id="advsky", group="gfx", name="Clouds", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: This setting can be CPU intensive because it cycles through all visible features \nand renders then another time.'},
@@ -2007,7 +1974,6 @@ function init()
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
 		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=40000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
-		--{id="grassdetail", group="gfx", name="Grass", type="slider", min=0, max=10, step=1, value=tonumber(Spring.GetConfigInt("GrassDetail",1) or 5), description='Amount of grass rendered\n\nChanges will be applied next game'},
 
 		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		{id="lighteffects_heatdistortion", group="gfx", name=widgetOptionColor.."   apply heat distortion", type="bool", value=true, description='Enables a distortion on top of explosions to simulate heat'},
@@ -2445,11 +2411,6 @@ function init()
 		if option.widget ~= nil and widgetHandler.knownWidgets[option.widget] == nil then
 			insert = false
 		end
-		if luaShaders ~= 1 then
-			if option.id == "advmapshading" or option.id == "advmodelshading" or option.id == "bloom" or option.id == "bloomdeferred" or option.id == "guishader" or option.id == "mapedgeextension" or option.id == "snow" then
-				option.description = 'You dont have shaders enabled, we will enable it for you but...\n\nChanges will be applied next game'
-			end
-		end
 		if insert then
 			processedOptionsCount = processedOptionsCount + 1
 			processedOptions[processedOptionsCount] = option
@@ -2505,13 +2466,25 @@ end
 
 
 function widget:Initialize()
+	-- set minimum particle amount
 	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
 		Spring.SetConfigInt("MaxParticles",10000)
-    end
-    -- always disable grass
-    if Spring.GetConfigInt("GrassDetail",0) > 0 then
-        Spring.SetConfigInt("GrassDetail",0)
-    end
+	end
+	-- enable lua shaders
+	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) then
+		Spring.SetConfigInt("ForceShaders", 1)
+	end
+	-- enable map/model shading
+	if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
+		Spring.SetConfigInt("AdvMapShading",1)
+	end
+	if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
+		Spring.SetConfigInt("AdvModelShading",1)
+	end
+	-- disable grass
+	if Spring.GetConfigInt("GrassDetail",0) > 0 then
+		Spring.SetConfigInt("GrassDetail",0)
+	end
 
 	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
 		Spring.SetConfigInt("UsePBO",0)
@@ -2638,12 +2611,9 @@ function widget:GetConfigData(data)
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
-		grassdetail = {'GrassDetail', tonumber(Spring.GetConfigInt("GrassDetail",1) or 5)},
 		shadows = {'Shadows', tonumber(Spring.GetConfigInt("Shadows",1) or 1)},
 		advsky = {'AdvSky', tonumber(Spring.GetConfigInt("AdvSky",1) or 1)},
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
-		advmodelshading = {'AdvModelShading', tonumber(Spring.GetConfigInt("AdvModelShading",1) or 1)},
-		advmapshading = {'AdvMapShading', tonumber(Spring.GetConfigInt("AdvMapShading",1) or 1)},
 		normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
 		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
