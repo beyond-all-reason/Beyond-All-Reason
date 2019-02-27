@@ -937,6 +937,7 @@ end
 
 
 function gadget:Initialize()
+    gadgetHandler:RegisterGlobal('GetIconTypes', GetIconTypes)
     loadUnitIcons()
 end
 
