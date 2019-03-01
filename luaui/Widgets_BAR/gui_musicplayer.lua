@@ -91,6 +91,7 @@ local volume
 local dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
 local interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
 local warMeter = 0
+local maxWarMeter = 1500
 local fadelvl = Spring.GetConfigInt("snd_volmusic", 20) * 0.01
 local fadeOut = false
 
@@ -218,7 +219,7 @@ local function createList()
 	
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (music_volume/200)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (music_volume/100)
 	
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding, buttons['volumeicon'][3]+padding+volumeWidth, top-padding}
@@ -348,7 +349,8 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			changeMusicVolume(getSliderValue('musicvolume', x) * 200)
+			changeMusicVolume(getSliderValue('musicvolume', x) * 100)
+			fadelvl = getSliderValue('musicvolume', x)
 		end
 		if draggingSlider == 'volume' then
 			changeVolume(getSliderValue('volume', x) * 200)
@@ -366,6 +368,9 @@ end
 
 function changeMusicVolume(value)
 	music_volume = value
+	fadelvl = value
+	fadeIn = false
+	fadeOut = false
 	Spring.SetConfigInt("snd_volmusic", music_volume)
   createList()
 end
@@ -377,6 +382,7 @@ function changeVolume(value)
 end
 
 function mouseEvent(x, y, button, release)
+
 	if Spring.IsGUIHidden() then return false end
 
 	if not release then
@@ -384,7 +390,7 @@ function mouseEvent(x, y, button, release)
 		local button = 'musicvolume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 			draggingSlider = button
-			changeMusicVolume(getSliderValue(button, x) * 200)
+			changeMusicVolume(getSliderValue(button, x) * 100)
 		end
 		button = 'volume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
@@ -403,7 +409,8 @@ function mouseEvent(x, y, button, release)
 			return true
 		end
 		if button == 1 and buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
-			fadeOut = true
+			fadeIn = false
+			fadeOut = false
 			PlayNewTrack()
 			return true
 		end
@@ -413,7 +420,7 @@ function mouseEvent(x, y, button, release)
 end
 function widget:IsAbove(mx, my)
 	if isInBox(mx, my, {left, bottom, right, top}) then
-  	local curVolume = Spring.GetConfigInt("snd_volmaster", 200)
+  	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
   	if volume ~= curVolume then
   		volume = curVolume
   		createList()
@@ -445,6 +452,9 @@ end
 
 function widget:UnitDamaged(_, _, _, damage)
 	warMeter = warMeter + damage
+	if warMeter > maxWarMeter then
+		warMeter = maxWarMeter
+	end
 end
 
 function widget:GameFrame(n)    

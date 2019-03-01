@@ -6,7 +6,7 @@ function widget:GetInfo()
 		date      = "24-9-2016",
 		license   = "",
 		layer     = -5,
-		enabled   = true,
+		enabled   = false,
 	}
 end
 
@@ -14,8 +14,8 @@ end
 -- config 
 --------------------------------------------------------------------------------
 
-local basicAlpha = 0.3
-local globalBlursizeMult = 1
+local basicAlpha = 0.25
+local globalBlursizeMult = 1.1
 
 local dbgDraw = 0					-- debug: draw only the bloom-mask?
 
