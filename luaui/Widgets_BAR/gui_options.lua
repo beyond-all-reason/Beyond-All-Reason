@@ -1389,6 +1389,12 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value)
 		elseif id == 'camerasmoothness' then
 			cameraTransitionTime = value
+		elseif id == 'fov' then
+			local current_cam_state = Spring.GetCameraState()
+			if (current_cam_state.fov) then
+				current_cam_state.fov = value
+				Spring.SetCameraState(current_cam_state,0)
+			end
 		end
 
 	elseif options[i].type == 'select' then
@@ -2039,6 +2045,8 @@ function init()
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
 		{id="camerasmoothness", group="control", name="Camera smoothing", type="slider", min=0, max=1, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
+		--{id="fov", group="control", name="Camera FOV", type="slider", min=15, max=75, step=1, value=Spring.GetCameraFOV(), description="Camera field of view\n\nDefault: 45"},
+
 		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
 
 		{id="scrollspeed", group="control", name="Scroll zoom speed", type="slider", min=1, max=45, step=1, value=math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25)), description=''},

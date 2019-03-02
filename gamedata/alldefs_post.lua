@@ -162,11 +162,13 @@ function WeaponDef_Post(name, wDef)
 		wDef.targetborder = tonumber(wDef.customparams.targetborderoverride)
 	end
 
-	wDef.cratermult = (wDef.cratermult or 1) * 0.3 -- modify cratermult cause Spring v103 made too big craters
+	if wDef.craterareaofeffect then
+		wDef.cratermult = wDef.craterareaofeffect/1200
+		--Spring.Echo(name..'  '..wDef.cratermult)
+	end
 
 	-- Target borders of unit hitboxes rather than center (-1 = far border, 0 = center, 1 = near border)
 	-- wDef.targetborder = 1.0
-
 
 	if wDef.weapontype == "Cannon" then
 		if wDef.stages == nil then
