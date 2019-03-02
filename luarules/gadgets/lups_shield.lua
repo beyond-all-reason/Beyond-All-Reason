@@ -25,7 +25,8 @@ if gadgetHandler:IsSyncedCode() then
 		gameFrame = n
 	end
 	
-	function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitter, beamCarrierID)
+	function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitter, beamCarrierID, startX, startY, startZ, hitX, hitY, hitZ)
+		--Spring.Echo("ShieldPreDamaged", gameFrame, proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitter, beamCarrierID, startX, startY, startZ, hitX, hitY, hitZ)
 		spSetUnitRulesParam(shieldCarrierUnitID, "shieldHitFrame", gameFrame, INLOS_ACCESS)
 		return false
 	end
