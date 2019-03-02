@@ -409,8 +409,7 @@ function mouseEvent(x, y, button, release)
 			return true
 		end
 		if button == 1 and buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
-			fadeIn = false
-			fadeOut = false
+			fadeOut = true
 			PlayNewTrack()
 			return true
 		end
@@ -515,7 +514,7 @@ function widget:GameFrame(n)
 		else
 			fadeOut = false
 		end
-		if fadeOut == false and fadelvl <= 0.005 then
+		if not fadeIn and fadeOut == false and fadelvl <= 0.005 then
 			fadelvl = music_volume * 0.01
 			PlayNewTrack()
 			--Spring.Echo("Playing a new song now")
