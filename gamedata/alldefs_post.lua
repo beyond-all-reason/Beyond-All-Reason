@@ -163,7 +163,7 @@ function WeaponDef_Post(name, wDef)
 	end
 
 	if wDef.craterareaofeffect then
-		wDef.cratermult = wDef.craterareaofeffect/1200
+		wDef.cratermult = (wDef.cratermult or 0) + wDef.craterareaofeffect/1500
 		--Spring.Echo(name..'  '..wDef.cratermult)
 	end
 
