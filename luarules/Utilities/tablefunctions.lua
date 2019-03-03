@@ -33,7 +33,7 @@ function Spring.Utilities.MergeTable(primary, secondary, deep)
 	return new
 end
 
-local function Spring.Utilities.TableEcho(data, name, indent, tableChecked)
+function Spring.Utilities.TableEcho(data, name, indent, tableChecked)
 	name = name or "TableEcho"
 	indent = indent or ""
 	if (not tableChecked) and type(data) ~= "table" then
