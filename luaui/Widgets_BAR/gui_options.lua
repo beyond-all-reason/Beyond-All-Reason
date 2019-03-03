@@ -2165,6 +2165,9 @@ function init()
 		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units, holding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 	}
 
+	if getOptionByID('fancyselectedunits_style') then
+		options[getOptionByID('fancyselectedunits_style')].options = WG['fancyselectedunits'].getStyleList()
+	end
 
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then

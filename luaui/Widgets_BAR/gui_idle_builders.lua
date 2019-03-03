@@ -284,10 +284,10 @@ local function DrawUnitIcons(number)
 				glTranslate(0.5*(X2+X1), 0.5*(Y_MAX+Y_MIN), 0)
 				glRotate(18, 1, 0, 0)
 				glRotate(rot, 0, 1, 0)
-
 				CenterUnitDef(drawTable[ct][1])
-
+				--glUnitShapeTextures(drawTable[ct][1], true)
 				glUnitShape(drawTable[ct][1], GetMyTeamID(), false, true, true)
+				--glUnitShapeTextures(drawTable[ct][1], false)
 
 				glScissor(false)
 			glPopMatrix()

@@ -1,34 +1,36 @@
+-- See: https://springrts.com/wiki/Modrules.lua
+
 local modrules  = {
 
   construction = {
-    constructionDecay      = true,  -- defaults to true
-    constructionDecayTime  = 9,     -- defaults to 6.66
-    constructionDecaySpeed = 0.03,  -- defaults to 0.03
+    constructionDecay      = true,  -- Do uncompleted building frames begin to decay if no builder is working on them?
+    constructionDecayTime  = 9,     -- The time in seconds before abandoned building frames begin to decay.
+    constructionDecaySpeed = 0.03,  -- How fast build progress decays for abandoned building frames. Note that the rate is inversely proportional to the buildtime i.e. a building with a larger buildtime will decay more slowly for a given value of this tag than a building with a shorter buildtime.
   },
 
   reclaim = {
-    multiReclaim  = 1,
-    reclaimMethod = 0,
-    unitMethod    = 1,
+    multiReclaim  = 1,    -- Can multiple units reclaim a feature or only one? 0 implies the latter, all other values the former.
+    reclaimMethod = 0,    -- Controls how features are reclaimed. Can be 0 - gradual reclaim, 1 - all reclaimed at end, any other positive value n - reclaim in n chunks.
+    unitMethod    = 1,    -- Controls how units are reclaimed. Can be 0 - gradual reclaim, 1 - all reclaimed at end, any other positive value n - reclaim in n chunks.
 
-    unitEnergyCostFactor    = 0,  -- defaults to 0
-    unitEfficiency          = 1,  -- defaults to 1
-    featureEnergyCostFactor = 0,  -- defaults to 0
+    unitEnergyCostFactor    = 0,    -- How much energy should reclaiming a unit cost? Multiplier against the fraction of the unit's buildCostEnergy reclaimed.
+    unitEfficiency          = 1,    -- How much metal should reclaiming a unit return? Multiplier against the unit's buildCostMetal.
+    featureEnergyCostFactor = 0,    -- How much energy should reclaiming a feature cost? Multiplier against the fraction of the features' metal content reclaimed.
 	
-    allowEnemies = true,  -- defaults to true
-    allowAllies  = true,  -- defaults to true
+    allowEnemies = true,    -- Can enemy units be reclaimed?
+    allowAllies  = true,    -- Can allied units be reclaimed?
   },
 
   repair = {
-    energyCostFactor = 0,   -- default: 0
+    energyCostFactor = 0,   -- How much of the original energy cost it requires to resurrect something.
   },
 
   resurrect = {
-    energyCostFactor = 0.5,   -- default: 0.5
+    energyCostFactor = 0.5,   -- How much of the original energy cost it requires to resurrect something.
   },
 
   capture = {
-    energyCostFactor = 0,  -- default: 0.  How much of the original energy cost it requires to capture something.
+    energyCostFactor = 0,  -- How much of the original energy cost it requires to capture something.
   },
 
   flankingBonus = {
@@ -36,53 +38,54 @@ local modrules  = {
   },
 
   sensors = {
-    separateJammers = true,  -- default: true
-    requireSonarUnderWater = true,  -- default: tru.e If true then when underwater, units only get LOS if they also have sonar.
-    alwaysVisibleOverridesCloaked = false,  -- default: false.  If true then units will be visible even when cloaked (probably?).
+    separateJammers = true,  -- When true each allyTeam only jams their own units.
+    requireSonarUnderWater = true,  -- If true then when underwater, units only get LOS if they also have sonar.
+    alwaysVisibleOverridesCloaked = false,  -- If true then units will be visible even when cloaked (probably?).
 
     los = {
-      losMipLevel   = 3,  -- default: 1.  Controls the resolution of the LOS calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the LOS map in both x and y direction. Must be between 0 and 6 inclusive.
-      airMipLevel   = 3,  -- default: 1.  Controls the resolution of the LOS vs. aircraft calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the air-LOS map in both x and y direction. Must be between 0 and 30 inclusive. [1] - jK describe for you what the value means.
-      radarMipLevel = 3,  -- default: 2.  Controls the resolution of the radar. See description of airMipLevel for details.
+      losMipLevel   = 3,  -- Controls the resolution of the LOS calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the LOS map in both x and y direction. Must be between 0 and 6 inclusive.
+      airMipLevel   = 3,  -- Controls the resolution of the LOS vs. aircraft calculations. A higher value means lower resolution but increased performance. An increase by one level means half the resolution of the air-LOS map in both x and y direction. Must be between 0 and 30 inclusive. [1] - jK describe for you what the value means.
+      radarMipLevel = 3,  -- Controls the resolution of the radar. See description of airMipLevel for details.
     },
   },
 
   fireAtDead = {
-    fireAtKilled   = false,
-    fireAtCrashing = false,
+    fireAtKilled   = false,   -- Will units continue to target and fire on enemies which are running their Killed() animation?
+    fireAtCrashing = false,   -- Will units continue to target and fire on enemy aircraft which are in the 'crashing' state?
   },
 
   movement = {
 	allowUnitCollisionDamage  = false,  -- default: true if using QTPFS pathfinder.  Do unit-unit (skidding) collisions cause damage?
-	allowUnitCollisionOverlap = false,   -- can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'.
+	allowUnitCollisionOverlap = false,  -- can mobile units collision volumes overlap one another? Allows unit movement like this (video http://www.youtube.com/watch?v=mRtePUdVk2o ) at the cost of more 'clumping'.
     allowCrushingAlliedUnits  = true,   -- default: false.  Can allied ground units crush each other during collisions? Units still have to be explicitly set as crushable using the crushable parameter of Spring.SetUnitBlocking.
 	allowGroundUnitGravity    = false,
 
-    allowAirPlanesToLeaveMap  = true,   -- default: true.  Are (gunship) aircraft allowed to fly outside the bounds of the map?
-    allowAircraftToHitGround  = true,   -- default: true.  Are aircraft allowed to hit the ground whilst manoeuvring?
-    allowPushingEnemyUnits    = false,  -- default: false.  Can enemy ground units push each other during collisions?
-    allowHoverUnitStrafing    = true,   -- default: true.  Allows hovercraft units to slide in turns.
+    allowAirPlanesToLeaveMap  = true,   -- Are (gunship) aircraft allowed to fly outside the bounds of the map?
+    allowAircraftToHitGround  = true,   -- Are aircraft allowed to hit the ground whilst manoeuvring?
+    allowPushingEnemyUnits    = false,  -- Can enemy ground units push each other during collisions?
+    allowHoverUnitStrafing    = true,   -- Allows hovercraft units to slide in turns.
   },
   
   featureLOS = { 
-    featureVisibility = 3, -- Can be 0 - no default LOS for features, 1 - Gaia features always visible, 2 - allyteam & Gaia features always visible, or 3 - all features always visible.
+    featureVisibility = 3,    -- Can be 0 - no default LOS for features, 1 - Gaia features always visible, 2 - allyteam & Gaia features always visible, or 3 - all features always visible.
   },
 
   system = {
-  	pathFinderSystem = 0,   -- set to 1 for qtpfs
-    pathFinderUpdateRate = 0.007,   -- default 0.007, higher means more updates
+  	pathFinderSystem = 0,           -- Which pathfinder does the game use? Can be 0 - The legacy default pathfinder, 1 - Quad-Tree Pathfinder System (QTPFS) or -1 - disabled.
+    pathFinderUpdateRate = 0.007,   -- Controls how often the pathfinder updates; larger values means more rapid updates.
+    allowTake = true,               -- Enables and disables the /take UI command.
   },
 
   transportability = {
-    transportAir    = false,    -- default: false
-    transportShip   = false,    -- default: false
-    transportHover  = true,    -- default: false
-    transportGround = true,     -- default: true
-    targetableTransportedUnits = false, -- Can transported units be targeted by weapons? true allows both manual and automatic targeting.
+    transportAir    = false,    -- Can aircraft be transported?
+    transportShip   = false,    -- Can ships be transported?
+    transportHover  = true,     -- Can hovercraft be transported?
+    transportGround = true,     -- Can ground units be transported?
+    targetableTransportedUnits = false,   -- Can transported units be targeted by weapons? true allows both manual and automatic targeting.
   },
 
   paralyze = {
-    paralyzeOnMaxHealth = true,    -- default: true. Are units paralyzed when the level of emp is greater than their current health or their maximum health?
+    paralyzeOnMaxHealth = true,    -- Are units paralyzed when the level of emp is greater than their current health or their maximum health?
   },
 
   experience = {
