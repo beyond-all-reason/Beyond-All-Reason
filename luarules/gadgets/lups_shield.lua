@@ -49,6 +49,7 @@ if gadgetHandler:IsSyncedCode() then
 			if dmg <= 0.1 then --some stupidity here: llt has 0.0001 dmg in wd.damages[SHIELDARMORID]
 				dmg = wd.damages[SHIELDARMORIDALT]
 			end
+			Spring.Utilities.TableEcho({proID=proID, proOwnerID=proOwnerID, shieldEmitterWeaponNum=shieldEmitterWeaponNum, shieldCarrierUnitID=shieldCarrierUnitID, bounceProjectile=bounceProjectile, beamEmitterWeaponNum=beamEmitterWeaponNum, beamEmitterUnitID=beamEmitterUnitID, startX=startX, startY=startY, startZ=startZ, hitX=hitX, hitY=hitY, hitZ=hitZ}, "ShieldPreDamaged")
 			--GG.TableEcho(wd.damages)
 			--Spring.Echo("dmg=", dmg, dmg * dmgMod)
 			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
@@ -346,7 +347,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID)
 end
 
-function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	if shieldUnitDefs[unitDefID] then
 		AddUnit(unitID, unitDefID)
 	end
@@ -402,7 +403,7 @@ function gadget:Initialize(n)
 	for i = 1, #allUnits do
 		local unitID = allUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		gadget:UnitCreated(unitID, unitDefID)
+		gadget:UnitFinished(unitID, unitDefID)
 	end
 end
 

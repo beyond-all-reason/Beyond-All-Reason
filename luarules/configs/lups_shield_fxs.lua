@@ -37,7 +37,7 @@ local searchSizes = {}
 local shieldUnitDefs = {}
 for unitDefID = 1, #UnitDefs do
 	local ud = UnitDefs[unitDefID]
-	
+
 	if ud.customParams.shield_radius then
 		local radius = tonumber(ud.customParams.shield_radius)
 		Spring.Echo(ud.name, radius)
@@ -49,7 +49,7 @@ for unitDefID = 1, #UnitDefs do
 			end
 			searchSizes[radius] = search
 		end
-		
+
 		local myShield = Spring.Utilities.CopyTable(ShieldSphereBase, true)
 		if radius > 250 then
 			myShield.shieldSize = "large"
@@ -71,28 +71,30 @@ for unitDefID = 1, #UnitDefs do
 		myShield.size = radius
 		myShield.radius = radius
 		myShield.pos = {0, tonumber(ud.customParams.shield_emit_height) or 0, tonumber(ud.customParams.shield_emit_offset) or 0}
-		
+
 		local strengthMult = tonumber(ud.customParams.shield_color_mult)
 		if strengthMult then
 			myShield.colormap1[1][4] = strengthMult*myShield.colormap1[1][4]
 			myShield.colormap1[2][4] = strengthMult*myShield.colormap1[2][4]
 		end
-		
+
 		local fxTable = {
 			{class = 'ShieldSphereColor', options = myShield},
 		}
-		
+
 		if string.find(ud.name, "chicken_") then
 			myShield.colormap1 = {{0.3, 0.9, 0.2, 1.2}, {0.6, 0.4, 0.1, 1.2}} -- Note that alpha is multiplied by 0.26
 			myShield.hitResposeMult = 0
 			myShield.texture = "bitmaps/GPL/bubbleShield.png"
 			fxTable[1].class = "ShieldSphereColorFallback"
 		end
-		
-		shieldUnitDefs[unitDefID] = { 
+
+		shieldUnitDefs[unitDefID] = {
 			fx = fxTable,
 			search = searchSizes[radius],
 			shieldCapacity = tonumber(ud.customParams.shield_power),
+			shieldPos = myShield.pos,
+			shieldRadius = radius,
 		}
 	end
 end

@@ -74,6 +74,13 @@ end
 
 function ShieldSphereColorParticle:Draw()
   local col1, col2 = GetShieldColor(self.unit, self)
+
+	local hitTable
+	if (GG and GG.GetShieldHitPositions) then --means high quality shield rendering is in place
+		--hitTable = GG.GetShieldHitPositions(self.unit)
+		Spring.Utilities.TableEcho(hitTable, "hitTable")
+	end
+
   glMultiTexCoord(1, col1[1],col1[2],col1[3],col1[4] or 1)
   glMultiTexCoord(2, col2[1],col2[2],col2[3],col2[4] or 1)
   local pos = self.pos
