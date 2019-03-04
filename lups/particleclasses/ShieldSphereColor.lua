@@ -2,14 +2,32 @@
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+
+-----------------------------------------------------------------
+-- Global vars
+-----------------------------------------------------------------
+
 local ShieldSphereColorParticle = {}
 ShieldSphereColorParticle.__index = ShieldSphereColorParticle
 
-local sphereList = {}
+local geometryLists = {}
+
+local renderBuckets
+local haveTerrainEffect
+local haveUnitsEffect
+
+local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 local shieldShader
 
------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------
+-- Constants
+-----------------------------------------------------------------
+
+local MAX_POINTS = 8
+
+-----------------------------------------------------------------
+-- Auxilary functions
+-----------------------------------------------------------------
 
 function ShieldSphereColorParticle.GetInfo()
 	return {
@@ -33,130 +51,143 @@ ShieldSphereColorParticle.Default = {
 
 	life			= math.huge,
 
-	size			= 10,
 	margin			= 1,
 
-	colormap1		= { {0, 0, 0, 0} },
-	colormap2		= { {0, 0, 0, 0} },
+	colormap1		= { {0, 0, 0, 0}, {0, 0, 0, 0} },
+	colormap2		= { {0, 0, 0, 0}, {0, 0, 0, 0} },
 
 	repeatEffect	= false,
 	shieldSize		= "large",
 }
 
------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------
+-- Primary functions
+-----------------------------------------------------------------
 
 function ShieldSphereColorParticle:Visible()
 	return self.visibleToMyAllyTeam
 end
 
 function ShieldSphereColorParticle:BeginDraw()
-	gl.DepthMask(false)
-	gl.UseShader(shieldShader)
-	gl.Culling(GL.FRONT)
-end
-
-function ShieldSphereColorParticle:EndDraw()
-	gl.DepthMask(false)
-	gl.UseShader(0)
-
-	gl.Culling(GL.BACK)
-	gl.Culling(false)
-
-	gl.MultiTexCoord(1, 1,1,1,1)
-	gl.MultiTexCoord(2, 1,1,1,1)
-	gl.MultiTexCoord(3, 1,1,1,1)
-	gl.MultiTexCoord(4, 1,1,1,1)
+	renderBuckets = {}
+	haveTerrainEffect = false
+	haveUnitsEffect	= false
 end
 
 function ShieldSphereColorParticle:Draw()
-	local col1, col2 = GetShieldColor(self.unit, self)
 
-	local hitTable
-	if (GG and GG.GetShieldHitPositions) then --means high quality shield rendering is in place
-		hitTable = GG.GetShieldHitPositions(self.unit)
-		if hitTable[1] then
-			Spring.Utilities.TableEcho(hitTable, "hitTable")
-		end
+	local radius = self.radius
+	if not renderBuckets[radius] then
+		renderBuckets[radius] = {}
 	end
 
-	gl.MultiTexCoord(1, col1[1],col1[2],col1[3],col1[4] or 1)
-	gl.MultiTexCoord(2, col2[1],col2[2],col2[3],col2[4] or 1)
-	local pos = self.pos
-	gl.MultiTexCoord(3, pos[1], pos[2], pos[3], 0)
-	gl.MultiTexCoord(4, self.margin, self.size, 1, 1)
+	table.insert(renderBuckets[radius], self)
 
-	gl.CallList(sphereList[self.shieldSize])
-	if self.drawBack then
-		gl.Scale(1,1,-1)
-		if pos[3] ~= 0 then
-			gl.MultiTexCoord(3, pos[1], pos[2], -pos[3], 0)
-		end
-		gl.MultiTexCoord(1, col1[1],col1[2],col1[3],(col1[4] or 1)*self.drawBack)
-		gl.MultiTexCoord(2, col2[1],col2[2],col2[3],(col2[4] or 1)*self.drawBack)
-		if self.drawBackMargin then
-			gl.MultiTexCoord(4, self.drawBackMargin, self.size, 1, 1)
-		end
-		gl.CallList(sphereList[self.shieldSize])
-	end
+	haveTerrainEffect = haveTerrainEffect or self.terrainEffect
+	haveUnitsEffect = haveUnitsEffect or self.unitsEffect
 end
 
------------------------------------------------------------------------------------------------------------------
------------------------------------------------------------------------------------------------------------------
+function ShieldSphereColorParticle:EndDraw()
+	--ideally do sorting of renderBuckets
+	gl.Blending("alpha")
+	gl.DepthTest(true)
+	gl.DepthMask(false)
 
-function ShieldSphereColorParticle:Initialize()
-	shieldShader = gl.CreateShader({
-		vertex = [[
-			#define pos gl_MultiTexCoord3
-			#define margin gl_MultiTexCoord4.x
-			#define size vec4(gl_MultiTexCoord4.yyy,1.0)
-
-			varying float opac;
-			varying vec4 color1;
-			varying vec4 color2;
-
-			void main()
-			{
-					gl_Position = gl_ModelViewProjectionMatrix * (gl_Vertex * size + pos);
-					vec3 normal = gl_NormalMatrix * gl_Normal;
-					vec3 vertex = vec3(gl_ModelViewMatrix * gl_Vertex);
-					float angle = dot(normal,vertex)*inversesqrt( dot(normal,normal)*dot(vertex,vertex) ); //dot(norm(n),norm(v))
-					opac = pow( abs( angle ) , margin);
-
-					color1 = gl_MultiTexCoord1;
-					color2 = gl_MultiTexCoord2;
-			}
-		]],
-		fragment = [[
-			varying float opac;
-			varying vec4 color1;
-			varying vec4 color2;
-
-			void main(void)
-			{
-					gl_FragColor =	mix(color1,color2,opac);
-			}
-
-		]],
-		uniform = {
-			margin = 1,
-		}
-	})
-
-	if (shieldShader == nil) then
-		print(PRIO_MAJOR,"LUPS->Shield: critical shader error: "..gl.GetShaderLog())
-		return false
+	if haveTerrainEffect then
+		gl.Texture(0, "$map_gbuffer_zvaltex")
 	end
 
-	sphereList = {
+	if haveUnitsEffect then
+		gl.Texture(1, "$model_gbuffer_zvaltex")
+	end
+
+	shieldShader:ActivateWith(function ()
+		shieldShader:SetUniformFloat("gameFrame", select(1, Spring.GetGameFrame()))
+		shieldShader:SetUniformMatrix("viewMat", "view")
+		shieldShader:SetUniformMatrix("projMat", "projection")
+
+		for _, rb in pairs(renderBuckets) do
+			for _, info in ipairs(rb) do
+				local posx, posy, posz = Spring.GetUnitPosition(info.unit)
+				posx, posy, posz = posx + info.pos[1], posy + info.pos[2], posz + info.pos[3]
+
+				local pitch, yaw, roll = Spring.GetUnitRotation(info.unit)
+
+				shieldShader:SetUniformFloat("translationScale", posx, posy, posz, info.radius)
+				shieldShader:SetUniformFloat("rotPYR", pitch, yaw, roll)
+
+				shieldShader:SetUniformInt("unitsEffect", info.unitsEffect)
+
+				local col1, col2 = GetShieldColor(info.unit, info)
+				shieldShader:SetUniformFloat("color1", col1[1], col1[2], col1[3], col1[4])
+				shieldShader:SetUniformFloat("color2", col2[1], col2[2], col2[3], col2[4])
+
+				if (GG and GG.GetShieldHitPositions) then --means high quality shield rendering is in place
+					local hitTable = GG.GetShieldHitPositions(info.unit)
+
+					if hitTable and hitTable[1] then
+
+						Spring.Utilities.TableEcho(hitTable, "hitTable")
+
+						local hitPointCount = math.min(#hitTable, MAX_POINTS)
+						for i = 1, hitPointCount do
+							shieldShader:SetUniformInt("impactInfo.count", hitPointCount)
+
+							local hx, hy, hz, aoe = hitTable[i].x, hitTable[i].y, hitTable[i].z, hitTable[i].aoe
+							shieldShader:SetUniformFloat(string.format("impactInfo[%d].impactPoint", i), hx, hy, hz, aoe)
+						end
+
+					end
+				end
+
+				gl.CallList(geometryLists[info.shieldSize])
+			end
+		end
+	end)
+
+	if haveTerrainEffect then
+		gl.Texture(0, false)
+	end
+
+	if haveUnitsEffect then
+		gl.Texture(1, false)
+	end
+
+	gl.DepthTest(true)
+	gl.DepthMask(true)
+end
+
+-----------------------------------------------------------------
+-- Other functions
+-----------------------------------------------------------------
+
+function ShieldSphereColorParticle:Initialize()
+	local shieldShaderVert = VFS.LoadFile("lups/shaders/ShieldSphereColor.vert")
+	local shieldShaderFrag = VFS.LoadFile("lups/shaders/ShieldSphereColor.frag")
+
+	shieldShaderFrag = shieldShaderFrag:gsub("###DEPTH_CLIP01###", (Platform.glSupportClipSpaceControl and "1" or "0"))
+	shieldShaderFrag = shieldShaderFrag:gsub("###MAX_POINTS###", MAX_POINTS)
+
+	shieldShader = LuaShader({
+		vertex = shieldShaderVert,
+		fragment = shieldShaderFrag,
+		uniformInt = {
+			mapDepthTex = 0,
+			modelsDepthTex = 1,
+		},
+	}, "ShieldSphereColor")
+	shieldShader:Initialize()
+
+	geometryLists = {
 		large = gl.CreateList(DrawSphere, 0, 0, 0, 1, 38),
 		small = gl.CreateList(DrawSphere, 0, 0, 0, 1, 24),
 	}
 end
 
 function ShieldSphereColorParticle:Finalize()
-	gl.DeleteShader(shieldShader)
-	for _, list in pairs(sphereList) do
+	shieldShader:Finalize()
+
+	for _, list in pairs(geometryLists) do
 		gl.DeleteList(list)
 	end
 end
@@ -187,6 +218,7 @@ function ShieldSphereColorParticle.Create(Options)
 end
 
 function ShieldSphereColorParticle:Destroy()
+
 end
 
 -----------------------------------------------------------------------------------------------------------------

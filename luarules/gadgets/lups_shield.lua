@@ -280,7 +280,11 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 			-- Great Circle Distance in radians
 			local dist = AngleBetweenVectors(hitInfo.x, hitInfo.y, hitInfo.z, x, y, z)
 
-			if dist <= AOE_SAME_SPOT then
+			-- AoE radius in radians
+			local d1 = CalcAoE(hitInfo.dmg, unitData.capacity)
+			local d2 = CalcAoE(hitInfo.dmg, unitData.capacity)
+
+			if (dist + d1 + d2) <= AOE_SAME_SPOT then
 				found = true
 
 				if onlyMove then
