@@ -16,9 +16,87 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+-----------------------------------------------------------------
+-- Global consts
+-----------------------------------------------------------------
+
 local GAMESPEED = Game.gameSpeed
 local SHIELDARMORID = 4
 local SHIELDARMORIDALT = 0
+
+-----------------------------------------------------------------
+-- Small vector math lib
+-----------------------------------------------------------------
+
+local function Distance(x1, y1, z1, x2, y2, z2)
+	local dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
+	return math.sqrt(dx*dx + dy*dy + dz*dz)
+end
+
+local function Norm(x, y, z)
+	return math.sqrt(x*x + y*y + z*z)
+end
+
+local function Normalize(x, y, z)
+	local N = Norm(x, y, z)
+	return x/N, y/N, z/N
+end
+
+-- presumes normalized vectors
+local function DotProduct(x1, y1, z1, x2, y2, z2)
+	return x1*x2 + y1*y2 + z1*z2
+end
+
+-- presumes normalized vectors
+local function CrossProduct(x1, y1, z1, x2, y2, z2)
+	return
+		-y2*z1 + y1*z2,
+		 x2*z1 - x1*z2,
+		-x2*y1 + x1*y2
+end
+
+-- presumes normalized vectors
+local function AngleBetweenVectors(x1, y1, z1, x2, y2, z2)
+	return math.acos(DotProduct(x1, y1, z1, x2, y2, z2))
+end
+
+-- presumes normalized vectors
+local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
+	-- Below check is not really required for the sane AOE_SAME_SPOT value (less than PI)
+--[[
+	local EPS = 1E-3
+	local dotP
+	repeat
+		dotP = DotProduct(x1, y1, z1, x2, y2, z2)
+		--check if {x1, y1, z1} and {x2, y2, z2} are not collinear
+		local ok = math.abs( math.abs(dotP) - 1) >= EPS
+		if not ok then -- absolutely or almost collinear. Need to do something.
+			Spring.Echo("Error in GetSLerpedPoint. This should never happen!!!")
+			x1 = x1 + (math.random() * 2 - 1) * EPS
+			y1 = y1 + (math.random() * 2 - 1) * EPS
+			z1 = z1 + (math.random() * 2 - 1) * EPS
+			x1, y1, z1 = Normalize(x, y, z)
+		end
+	until ok
+]]--
+	local dotP = DotProduct(x1, y1, z1, x2, y2, z2)
+	-- Do spherical linear interpolation
+	local A = math.acos(dotP)
+	local sinA = math.sin(A)
+
+	local w = 1.0 - (w1 / (w1 + w2)) --the more is relative weight the less this value should be
+
+	local x = (math.sin((1.0 - w) * A) * x1 + math.sin(w * A) * x2) / sinA
+	local y = (math.sin((1.0 - w) * A) * y1 + math.sin(w * A) * y2) / sinA
+	local z = (math.sin((1.0 - w) * A) * z1 + math.sin(w * A) * z2) / sinA
+
+	-- everything was normalized, no need to normalize again
+	return x, y, z
+end
+
+-----------------------------------------------------------------
+-- Synced part of gadget
+-----------------------------------------------------------------
 
 if gadgetHandler:IsSyncedCode() then
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
@@ -49,12 +127,19 @@ if gadgetHandler:IsSyncedCode() then
 			if dmg <= 0.1 then --some stupidity here: llt has 0.0001 dmg in wd.damages[SHIELDARMORID]
 				dmg = wd.damages[SHIELDARMORIDALT]
 			end
-			Spring.Utilities.TableEcho({proID=proID, proOwnerID=proOwnerID, shieldEmitterWeaponNum=shieldEmitterWeaponNum, shieldCarrierUnitID=shieldCarrierUnitID, bounceProjectile=bounceProjectile, beamEmitterWeaponNum=beamEmitterWeaponNum, beamEmitterUnitID=beamEmitterUnitID, startX=startX, startY=startY, startZ=startZ, hitX=hitX, hitY=hitY, hitZ=hitZ}, "ShieldPreDamaged")
+			--Spring.Utilities.TableEcho({proID=proID, proOwnerID=proOwnerID, shieldEmitterWeaponNum=shieldEmitterWeaponNum, shieldCarrierUnitID=shieldCarrierUnitID, bounceProjectile=bounceProjectile, beamEmitterWeaponNum=beamEmitterWeaponNum, beamEmitterUnitID=beamEmitterUnitID, startX=startX, startY=startY, startZ=startZ, hitX=hitX, hitY=hitY, hitZ=hitZ, dist=dist}, "ShieldPreDamaged")
 			--GG.TableEcho(wd.damages)
 			--Spring.Echo("dmg=", dmg, dmg * dmgMod)
 			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
-			local dx, dy, dz = hitX - x, hitY - y, hitZ - z
-			SendToUnsynced("AddShieldHitDataHandler", gameFrame, shieldCarrierUnitID, dmg * dmgMod, dx, dy, dz)
+			local dx, dy, dz
+			local onlyMove = false
+			if bounceProjectile then
+				onlyMove = ((hitX == 0) and (hitY == 0) and (hitZ == 0)) --don't apply as additional damage
+				dx, dy, dz = startX - x, startY - y, startZ - z
+			else
+				dx, dy, dz = hitX - x, hitY - y, hitZ - z
+			end
+			SendToUnsynced("AddShieldHitDataHandler", gameFrame, shieldCarrierUnitID, dmg * dmgMod, dx, dy, dz, onlyMove)
 		end
 
 		spSetUnitRulesParam(shieldCarrierUnitID, "shieldHitFrame", gameFrame, INLOS_ACCESS)
@@ -165,65 +250,6 @@ local function RemoveUnit(unitID)
 	end
 end
 
-local function Norm(x, y, z)
-	return math.sqrt( x*x + y*y + z*z)
-end
-
-local function Normalize(x, y, z)
-	local N = Norm(x, y, z)
-	return x/N, y/N, z/N
-end
-
--- presumes normalized vectors
-local function DotProduct(x1, y1, z1, x2, y2, z2)
-	return x1*x2 + y1*y2 + z1*z2
-end
-
--- presumes normalized vectors
-local function CrossProduct(x1, y1, z1, x2, y2, z2)
-	return
-		-y2*z1 + y1*z2,
-		 x2*z1 - x1*z2,
-		-x2*y1 + x1*y2
-end
-
--- presumes normalized vectors
-local function AngleBetweenVectors(x1, y1, z1, x2, y2, z2)
-	return math.acos(DotProduct(x1, y1, z1, x2, y2, z2))
-end
-
--- presumes normalized vectors
-local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
-	-- Below check is not really required for the sane AOE_SAME_SPOT value (less than PI)
-	local EPS = 1E-3
-	local dotP
-	repeat
-		dotP = DotProduct(x1, y1, z1, x2, y2, z2)
-		--check if {x1, y1, z1} and {x2, y2, z2} are not collinear
-		local ok = math.abs( math.abs(dotP) - 1) >= EPS
-		if not ok then -- absolutely or almost collinear. Need to do something.
-			Spring.Echo("Error in GetSLerpedPoint. This should never happen!!!")
-			x1 = x1 + (math.random() * 2 - 1) * EPS
-			y1 = y1 + (math.random() * 2 - 1) * EPS
-			z1 = z1 + (math.random() * 2 - 1) * EPS
-			x1, y1, z1 = Normalize(x, y, z)
-		end
-	until ok
-
-	-- Do spherical linear interpolation
-	local A = math.acos(dotP)
-	local sinA = math.sin(A)
-
-	local w = 1.0 - (w1 / (w1 + w2)) --the more is relative weight the less this value should be
-
-	local x = (math.sin((1.0 - w) * A) * x1 + math.sin(w * A) * x2) / sinA
-	local y = (math.sin((1.0 - w) * A) * y1 + math.sin(w * A) * y2) / sinA
-	local z = (math.sin((1.0 - w) * A) * z1 + math.sin(w * A) * z2) / sinA
-
-	-- everything was normalized, no need to normalize again
-	return x, y, z
-end
-
 local AOE_MIN = 0.04
 local AOE_MAX = 0.15
 
@@ -232,20 +258,19 @@ local LOG10 = math.log(10)
 local BIASLOG = 2.5
 local LOGMUL = AOE_MAX / BIASLOG
 
-local function GetMagAoE(dmg, capacity, first)
+local function CalcAoE(dmg, capacity)
 	local ratio = dmg / capacity
 	local aoe = (BIASLOG + math.log(ratio)/LOG10) * LOGMUL
-	aoe = math.max(0, aoe)
-
-	local mag = 3.0
-
-	return mag, aoe
+	return math.max(0, aoe)
 end
 
 local AOE_SAME_SPOT = (AOE_MIN + AOE_MAX) / 2
 
-local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z)
+--x, y, z here are normalized vectors
+local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local hitData = unitData.hitData
+	local radius = unitData.radius
+
 	local found = false
 	--Spring.Echo(unitData.unitID, "#hitData", #hitData)
 	--GG.TableEcho(hitData)
@@ -258,26 +283,28 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z)
 			if dist <= AOE_SAME_SPOT then
 				found = true
 
-				--this vector is very likely normalized :)
-				hitInfo.x, hitInfo.y, hitInfo.z = GetSLerpedPoint(x, y, z, hitInfo.x, hitInfo.y, hitInfo.z, dmg, hitInfo.dmg)
+				if onlyMove then
+					hitInfo.x, hitInfo.y, hitInfo.z = x, y, z
+					hitInfo.dmg = dmg
+				else
+					--this vector is very likely normalized :)
+					hitInfo.x, hitInfo.y, hitInfo.z = GetSLerpedPoint(x, y, z, hitInfo.x, hitInfo.y, hitInfo.z, dmg, hitInfo.dmg)
+					hitInfo.dmg = dmg + hitInfo.dmg
+				end
 
-				hitInfo.dmg = dmg + hitInfo.dmg
+				hitInfo.aoe = CalcAoE(hitInfo.dmg, unitData.capacity)
 
-				--Spring.Echo("AOE_SAME_SPOT", unitData.unitID, hitInfo.dmg)
-
-				hitInfo.mag, hitInfo.aoe = GetMagAoE(hitInfo.dmg, unitData.capacity)
 				--break
 			end
 		end
 	end
 
 	if not found then
-		local mag, aoe = GetMagAoE(dmg, unitData.capacity)
+		local aoe = CalcAoE(dmg, unitData.capacity)
 		--Spring.Echo("DoAddShieldHitData", dmg, aoe, mag)
 		table.insert(hitData, {
 			hitFrame = hitFrame,
 			dmg = dmg,
-			mag = mag,
 			aoe = aoe,
 			x = x,
 			y = y,
@@ -309,10 +336,7 @@ local function ProcessHitTable(unitData, gameFrame)
 			hitInfo.dmg = hitInfo.dmg * mult
 			hitInfo.hitFrame = gameFrame
 
-			local mag, aoe = GetMagAoE(hitInfo.dmg, unitData.capacity)
-
-			hitInfo.mag = mag
-			hitInfo.aoe = aoe
+			hitInfo.aoe = CalcAoE(hitInfo.dmg, unitData.capacity)
 
 			if hitInfo.dmg <= MIN_DAMAGE then
 			--if hitInfo.aoe <= 0 then
@@ -331,12 +355,13 @@ local function ProcessHitTable(unitData, gameFrame)
 	return unitData.needsUpdate
 end
 
-local function AddShieldHitData(_, hitFrame, unitID, dmg, dx, dy, dz)
+local function AddShieldHitData(_, hitFrame, unitID, dmg, dx, dy, dz, onlyMove)
 	local unitData = shieldUnits.Get(unitID)
 	if unitData and unitData.hitData then
 		--Spring.Echo(hitFrame, unitID, dmg)
 		local rdx, rdy, rdz = dx - unitData.shieldPos[1], dy - unitData.shieldPos[2], dz - unitData.shieldPos[3]
-		DoAddShieldHitData(unitData, hitFrame, dmg, rdx, rdy, rdz)
+		rdx, rdy, rdz = Normalize(rdx, rdy, rdz)
+		DoAddShieldHitData(unitData, hitFrame, dmg, rdx, rdy, rdz, onlyMove)
 	end
 end
 
