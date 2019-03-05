@@ -223,7 +223,7 @@ local myLastCameraState
 --------------------------------------------------------------------------------
 -- 
 --------------------------------------------------------------------------------
-local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'

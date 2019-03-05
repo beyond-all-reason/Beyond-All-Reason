@@ -35,7 +35,7 @@ local CanvasX,CanvasY = 1272,734 --resolution in which the widget was made (for 
 
 --todo: build categories (eco | labs | defences | etc) basically sublists of buildcmds (maybe for regular orders too)
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local playSounds = true
 local iconScaling = true

@@ -13,7 +13,7 @@ function widget:GetInfo()
 end
 local vsx, vsy = gl.GetViewSizes()
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local rescalevalue = 1.26
 local buttonScale = 2
 local NeededFrameworkVersion = 8

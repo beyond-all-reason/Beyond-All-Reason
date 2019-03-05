@@ -29,7 +29,7 @@ end
 
 local vsx, vsy   = widgetHandler:GetViewSizes()
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local bgcorner				= ":n:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1

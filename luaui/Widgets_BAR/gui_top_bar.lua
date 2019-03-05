@@ -11,7 +11,7 @@ function widget:GetInfo()
 	}
 end
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local height = 38
 local relXpos = 0.3

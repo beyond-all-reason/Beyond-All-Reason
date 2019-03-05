@@ -19,7 +19,7 @@ local CanvasX,CanvasY = 1280,734 --resolution in which the widget was made (for 
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
-local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local Config = {
 	tooltip = {

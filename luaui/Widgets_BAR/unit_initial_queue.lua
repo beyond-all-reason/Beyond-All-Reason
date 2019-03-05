@@ -28,7 +28,7 @@ for ct,name in pairs (corlevel1buildoptions) do
 	corlevel1buildoptions[ct] = UnitDefNames[name].id
 end
 
-local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 ------------------------------------------------------------
 -- Config
