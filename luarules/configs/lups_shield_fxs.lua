@@ -9,6 +9,7 @@ local ShieldSphereBase = {
 	--
 	terrainOutline = true,
 	unitsOutline = true,
+	specularExp = 48, --integer!!!
 }
 
 local SEARCH_SMALL = {

@@ -8,7 +8,7 @@ uniform sampler2D modelsDepthTex;
 
 uniform vec2 viewPortSize;
 
-uniform ivec2 outlines;
+uniform ivec4 effects;
 
 uniform vec4 color1;
 uniform vec4 color2;
@@ -34,6 +34,10 @@ in Data {
 	vec4 modelPos;
 	vec4 worldPos;
 	vec4 viewPos;
+
+	vec3 viewNormal;
+	vec3 viewHalfVec;
+
 	float colormix;
 };
 
@@ -43,21 +47,6 @@ in Data {
 float GetViewSpaceDepth(float depthNDC) {
 	return -projMat[3][2] / (projMat[2][2] + depthNDC);
 }
-
-/*
-#define HASHSCALE1 .1031
-float hash11(float p) {
-	vec3 p3  = fract(vec3(p) * HASHSCALE1);
-	p3 += dot(p3, p3.yzx + 19.19);
-	return fract((p3.x + p3.y) * p3.z);
-}
-
-float noise11(float p){
-	float fl = floor(p);
-	float fc = fract(p);
-	return mix(hash11(fl), hash11(fl + 1.0), fc);
-}
-*/
 
 float Value3D( vec3 P ) {
     //  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
@@ -86,22 +75,25 @@ float Value3D( vec3 P ) {
     return dot( res0, blend2.zxzx * blend2.wwyy );
 }
 
-const float PI = acos(0.0) * 2.0;
-//const float PI_2 = PI / 2.0;
-
 const float outlineEffectSize = 3.0;
 const float outlineAlpha = 0.8;
+const vec4  specularColor = vec4(vec3(1.0), 0.8);
 
 void main() {
-	float d = 0.0;
-	if (outlines.x == 1 || outlines.y == 1) {
+
+	vec3 valueNoiseVec = worldPos.xyz;
+	valueNoiseVec.y += gameFrame * 0.4;
+	float valueNoise = Value3D(valueNoiseVec);
+
+	float outline = 0.0;
+	if (effects.x == 1 || effects.y == 1) {
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
-		if (outlines.x == 1) { // terrain outline
+		if (effects.x == 1) { // terrain outline
 			//minDepth = min(minDepth, texelFetch( mapDepthTex, ivec2(gl_FragCoord.xy), 0 ).r);
 			minDepth = min(minDepth, texture( mapDepthTex, viewPortUV ).r);
 		}
-		if (outlines.y == 1) { // units outline
+		if (effects.y == 1) { // units outline
 			//minDepth = min(minDepth, texelFetch( modelsDepthTex, ivec2(gl_FragCoord.xy), 0 ).r);
 			minDepth = min(minDepth, texture( modelsDepthTex, viewPortUV ).r);
 		}
@@ -111,24 +103,21 @@ void main() {
 			float minDepth = NORM2SNORM(minDepth);
 		#endif
 
-		//float polarAngle = atan(worldPos.z - translationScale.z, worldPos.x - translationScale.x);
-		//polarAngle += gameFrame * 0.01;
-		//polarAngle *= PI * 10.0;
-
-
-		vec3 outlineNoiseVec = worldPos.xyz;
-		outlineNoiseVec.y += gameFrame * 0.4;
-
 		float minDepthView = GetViewSpaceDepth( minDepth );
-		d = smoothstep( abs(viewPos.z - minDepthView), 0.0, outlineEffectSize * Value3D(outlineNoiseVec) );
+		outline = smoothstep( abs(viewPos.z - minDepthView), 0.0, outlineEffectSize * valueNoise);
+	}
+
+	float specularFactor = 0.0;
+	if (effects.z > 0) { // specular highlights
+		specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.z));
 	}
 
 	vec4 color;
-
 	color = mix(color1, color2, colormix);
 
-	color.a = mix(outlineAlpha, color.a, d * d);
+	color.a = mix(outlineAlpha, color.a, outline * outline);
 
-	gl_FragColor = vec4(1.0, 1.0, 1.0, 0.1);
+	color = mix(color, specularColor, specularFactor * pow(valueNoise, 0.05) );
+
 	gl_FragColor = color;
 }

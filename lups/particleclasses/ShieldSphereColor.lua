@@ -119,7 +119,12 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("translationScale", posx, posy, posz, info.radius)
 				shieldShader:SetUniformFloat("rotPYR", pitch, yaw, roll)
 
-				shieldShader:SetUniformInt("outlines", (info.terrainOutline and 1) or 0, (info.unitsOutline and 1) or 0)
+				shieldShader:SetUniformInt("effects",
+					(info.terrainOutline and 1) or 0,
+					(info.unitsOutline and 1) or 0,
+					(info.specularExp > 0 and math.floor(info.specularExp)) or 0,
+					0
+				)
 
 				local col1, col2 = GetShieldColor(info.unit, info)
 				shieldShader:SetUniformFloat("color1", col1[1], col1[2], col1[3], col1[4])
@@ -178,6 +183,9 @@ function ShieldSphereColorParticle:Initialize()
 			mapDepthTex = 0,
 			modelsDepthTex = 1,
 		},
+		uniformFloat = {
+			sunDir = { gl.GetSun("pos") },
+		}
 	}, "ShieldSphereColor")
 	shieldShader:Initialize()
 
