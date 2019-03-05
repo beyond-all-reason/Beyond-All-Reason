@@ -27,7 +27,7 @@ uniform vec4 translationScale;
 
 struct ImpactInfo {
 	int count;
-	vec4 impactInfoItem[MAX_POINTS];
+	vec4 impactInfoArray[MAX_POINTS];
 };
 uniform ImpactInfo impactInfo;
 
@@ -151,9 +151,13 @@ void main() {
 
 	if (BITMASK_FIELD(effects.y, 4)) { // impact animation
 		float impactFactor = 0.0;
+		vec3 worldCenteredPos = normalize(worldPos.xyz - translationScale.xyz);
 		for (int i = 0; i < impactInfo.count; ++i) {
-
+			vec3 worldCenteredImpactPos = normalize(impactInfo.impactInfoArray[i].xyz);
+			float angleDist = acos( dot(worldCenteredPos, worldCenteredImpactPos) );
+			impactFactor += smoothstep(impactInfo.impactInfoArray[i].w, 0.0, angleDist) / float(impactInfo.count);
 		}
+		color = vec4(impactFactor);
 	}
 
 	gl_FragColor = color;

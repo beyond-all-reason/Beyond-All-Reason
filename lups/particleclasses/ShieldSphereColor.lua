@@ -108,7 +108,7 @@ function ShieldSphereColorParticle:EndDraw()
 	if haveUnitsOutline then
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
-	
+
 	if haveEnvironmentReflection then
 		gl.Texture(2, "$reflection")
 	end
@@ -150,16 +150,17 @@ function ShieldSphereColorParticle:EndDraw()
 				if (GG and GG.GetShieldHitPositions and info.impactAnimation) then
 					local hitTable = GG.GetShieldHitPositions(info.unit)
 
-					if hitTable and hitTable[1] then
-
-						Spring.Utilities.TableEcho(hitTable, "hitTable")
+					if hitTable then
+						if hitTable[1] then
+							--Spring.Utilities.TableEcho(hitTable, "hitTable")
+						end
 
 						local hitPointCount = math.min(#hitTable, MAX_POINTS)
+						--Spring.Echo("hitPointCount", hitPointCount)
+						shieldShader:SetUniformInt("impactInfo.count", hitPointCount)
 						for i = 1, hitPointCount do
-							shieldShader:SetUniformInt("impactInfo.count", hitPointCount)
-
 							local hx, hy, hz, aoe = hitTable[i].x, hitTable[i].y, hitTable[i].z, hitTable[i].aoe
-							shieldShader:SetUniformFloat(string.format("impactInfo[%d].impactPoint", i), hx, hy, hz, aoe)
+							shieldShader:SetUniformFloat(string.format("impactInfo.impactInfoArray[%d]", i - 1), hx, hy, hz, aoe)
 						end
 
 					end
@@ -177,7 +178,7 @@ function ShieldSphereColorParticle:EndDraw()
 	if haveUnitsOutline then
 		gl.Texture(1, false)
 	end
-	
+
 	if haveEnvironmentReflection then
 		gl.Texture(2, false)
 	end

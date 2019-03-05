@@ -49,7 +49,7 @@ vec3 Rotate(vec3 p, vec3 axis, float angle)
 void main() {
 	modelPos = gl_Vertex;
 
-	worldPos = vec4(modelPos.xyz * translationScale.www, 1.0);				//scaling
+	worldPos = vec4(translationScale.www * modelPos.xyz, 1.0);				//scaling
 	worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 0.0, 1.0), rotPYR.y);		//rotation around Yaw axis
 	worldPos.xyz += translationScale.xyz;									//translation in world space
 
