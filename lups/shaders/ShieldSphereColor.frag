@@ -110,6 +110,7 @@ void main() {
 	float specularFactor = 0.0;
 	if (effects.z > 0) { // specular highlights
 		specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.z));
+		specularFactor *= mix(0.9, 1.0, valueNoise);
 	}
 
 	vec4 color;
@@ -117,7 +118,7 @@ void main() {
 
 	color.a = mix(outlineAlpha, color.a, outline * outline);
 
-	color = mix(color, specularColor, specularFactor * pow(valueNoise, 0.05) );
+	color = mix(color, specularColor, specularFactor);
 
 	gl_FragColor = color;
 }
