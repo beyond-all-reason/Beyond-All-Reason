@@ -15,6 +15,7 @@ local geometryLists = {}
 local renderBuckets
 local haveTerrainOutline
 local haveUnitsOutline
+local haveEnvironmentReflection
 
 local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 local shieldShader
@@ -72,6 +73,7 @@ function ShieldSphereColorParticle:BeginDraw()
 	renderBuckets = {}
 	haveTerrainOutline = false
 	haveUnitsOutline = false
+	haveEnvironmentReflection = false
 end
 
 function ShieldSphereColorParticle:Draw()
@@ -85,8 +87,10 @@ function ShieldSphereColorParticle:Draw()
 
 	haveTerrainOutline = haveTerrainOutline or self.terrainOutline
 	haveUnitsOutline = haveUnitsOutline or self.unitsOutline
+	haveEnvironmentReflection = haveEnvironmentReflection or self.environmentReflection
 end
 
+-- Lua limitations only allow to send 24 bits. Should be enough :)
 local function EncodeBitmaskField(bitmask, option, position)
 	return math.bit_or(bitmask, ((option and 1) or 0) * math.floor(2 ^ position))
 end
@@ -103,6 +107,10 @@ function ShieldSphereColorParticle:EndDraw()
 
 	if haveUnitsOutline then
 		gl.Texture(1, "$model_gbuffer_zvaltex")
+	end
+	
+	if haveEnvironmentReflection then
+		gl.Texture(2, "$reflection")
 	end
 
 	local gf = Spring.GetGameFrame()
@@ -126,10 +134,11 @@ function ShieldSphereColorParticle:EndDraw()
 				local optionY = 0
 				optionY = EncodeBitmaskField(optionY, info.terrainOutline, 1)
 				optionY = EncodeBitmaskField(optionY, info.unitsOutline, 2)
-				optionY = EncodeBitmaskField(optionY, info.impactAnimation, 3)
+				optionY = EncodeBitmaskField(optionY, info.environmentReflection, 3)
+				optionY = EncodeBitmaskField(optionY, info.impactAnimation, 4)
 
 				shieldShader:SetUniformInt("effects",
-					(info.specularExp > 0 and math.floor(info.specularExp)) or 0,
+					((info.specularExp and info.specularExp > 0) and math.floor(info.specularExp)) or 0,
 					optionY
 				)
 
@@ -137,7 +146,8 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("color1", col1[1], col1[2], col1[3], col1[4])
 				shieldShader:SetUniformFloat("color2", col2[1], col2[2], col2[3], col2[4])
 
-				if (GG and GG.GetShieldHitPositions) then --means high quality shield rendering is in place
+				--means high quality shield rendering is in place
+				if (GG and GG.GetShieldHitPositions and info.impactAnimation) then
 					local hitTable = GG.GetShieldHitPositions(info.unit)
 
 					if hitTable and hitTable[1] then
@@ -167,6 +177,10 @@ function ShieldSphereColorParticle:EndDraw()
 	if haveUnitsOutline then
 		gl.Texture(1, false)
 	end
+	
+	if haveEnvironmentReflection then
+		gl.Texture(2, false)
+	end
 
 	gl.DepthTest(true)
 	gl.DepthMask(true)
@@ -189,6 +203,7 @@ function ShieldSphereColorParticle:Initialize()
 		uniformInt = {
 			mapDepthTex = 0,
 			modelsDepthTex = 1,
+			reflectionTex = 2,
 		},
 		uniformFloat = {
 			sunDir = { gl.GetSun("pos") },

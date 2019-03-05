@@ -5,6 +5,7 @@
 
 uniform sampler2D mapDepthTex;
 uniform sampler2D modelsDepthTex;
+uniform samplerCube reflectionTex;
 
 uniform vec2 viewPortSize;
 
@@ -37,6 +38,7 @@ in Data {
 
 	vec3 viewNormal;
 	vec3 viewHalfVec;
+	vec3 reflectionVec;
 
 	float colormix;
 };
@@ -44,6 +46,8 @@ in Data {
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
+
+//Lua limitations only allow to send 24 bits. Should be enough :)
 #define BITMASK_FIELD(value, pos) ((uint(value) & (1u << uint(pos))) != 0u)
 
 float GetViewSpaceDepth(float depthNDC) {
@@ -77,24 +81,43 @@ float Value3D( vec3 P ) {
     return dot( res0, blend2.zxzx * blend2.wwyy );
 }
 
-const float outlineEffectSize = 3.0;
-const float outlineAlpha = 0.8;
-const vec4  specularColor = vec4(vec3(1.0), 0.8);
+const float PI = acos(0.0) * 2.0;
+const float PI8 = PI * 8.0;
 
 void main() {
 
-	vec3 valueNoiseVec = worldPos.xyz;
-	valueNoiseVec.y += gameFrame * 0.4;
-	float valueNoise = Value3D(valueNoiseVec);
-	
-	float specularFactor = 0.0;
-	if (effects.x > 0) { // specular highlights
-		specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.x));
-		specularFactor *= mix(0.9, 1.0, valueNoise);
-	}	
+	vec4 color;
+	color = mix(color1, color2, colormix);
 
-	float outlineFactor = 0.0;
+	const float noiseMovePace = 0.4;
+
+	vec3 valueNoiseVec = worldPos.xyz;
+	valueNoiseVec.y += gameFrame * noiseMovePace;
+	float valueNoise = Value3D(valueNoiseVec);
+
+	if (effects.x > 0) { // specular highlights
+		const float specularStrength = 1.0;
+		
+		
+		vec4 specularColor = vec4(1.0, 1.0, 1.0, 0.6);
+		if (BITMASK_FIELD(effects.y, 3)) { // environment reflection
+			specularColor.rgb = texture(reflectionTex, normalize(reflectionVec)).rgb;
+			//specularColor.rgb = vec3(0.0, 1.0, 0.0);
+		}
+
+		float specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.x));
+		specularFactor *= float(effects.x + 8) / PI8; // http://www.rorydriscoll.com/2009/01/25/energy-conservation-in-games/
+		specularFactor *= specularStrength;
+		specularFactor *= mix(0.9, 1.0, valueNoise);
+
+		color = mix(color, specularColor, specularFactor);
+		//color += specularColor * specularFactor;
+	}
+
 	if (BITMASK_FIELD(effects.y, 1) || BITMASK_FIELD(effects.y, 2)) {
+		const float outlineEffectSize = 3.0;
+		const float outlineAlpha = 0.8;
+
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
 		if (BITMASK_FIELD(effects.y, 1)) { // terrain outline
@@ -112,24 +135,19 @@ void main() {
 		#endif
 
 		float minDepthView = GetViewSpaceDepth( minDepth );
-		outlineFactor = smoothstep( abs(viewPos.z - minDepthView), 0.0, outlineEffectSize * valueNoise);
+		float outlineFactor = smoothstep( abs(viewPos.z - minDepthView), 0.0, outlineEffectSize * valueNoise);
 		outlineFactor *= outlineFactor;
 		outlineFactor = 1.0 - outlineFactor;
+
+		color.a = mix(color.a, outlineAlpha, outlineFactor);
 	}
-	
-	float impactFactor = 0.0;
-	if (BITMASK_FIELD(effects.y, 3)) { // impact animation
+
+	if (BITMASK_FIELD(effects.y, 4)) { // impact animation
+		float impactFactor = 0.0;
 		for (int i = 0; i < impactInfo.count; ++i) {
-			
+
 		}
 	}
-
-	vec4 color;
-	color = mix(color1, color2, colormix);
-
-	color.a = mix(color.a, outlineAlpha, outlineFactor);
-
-	color = mix(color, specularColor, specularFactor);
 
 	gl_FragColor = color;
 }
