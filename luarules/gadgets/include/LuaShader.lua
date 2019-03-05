@@ -218,7 +218,7 @@ local function getUniformLocation(self, name)
 		return uniform
 	elseif uniform == nil then --used for indexed elements. nil means not queried for location yet
 		local location = gl.GetUniformLocation(self.shaderObj, name)
-		Spring.Echo("Info: [New functionallity] getUniformLocation", name, location)
+		self:ShowWarning( string.format("Info: [New functionallity] %d=getUniformLocation(shaderObj, %s)", location, name))
 		if location and location > -1 then
 			self.uniforms[name] = {
 				location = location,

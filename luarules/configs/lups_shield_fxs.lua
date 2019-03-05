@@ -7,8 +7,8 @@ local ShieldSphereBase = {
 	repeatEffect = true,
 	drawBack = 0.7,
 	--
-	terrainEffect = true,
-	unitsEffect = true,
+	terrainOutline = true,
+	unitsOutline = true,
 }
 
 local SEARCH_SMALL = {

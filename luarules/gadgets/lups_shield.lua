@@ -284,7 +284,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 			local d1 = CalcAoE(hitInfo.dmg, unitData.capacity)
 			local d2 = CalcAoE(hitInfo.dmg, unitData.capacity)
 
-			if (dist + d1 + d2) <= AOE_SAME_SPOT then
+			if (dist - d1 - d2) <= AOE_SAME_SPOT then
 				found = true
 
 				if onlyMove then

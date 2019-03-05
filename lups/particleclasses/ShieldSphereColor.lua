@@ -13,8 +13,8 @@ ShieldSphereColorParticle.__index = ShieldSphereColorParticle
 local geometryLists = {}
 
 local renderBuckets
-local haveTerrainEffect
-local haveUnitsEffect
+local haveTerrainOutline
+local haveUnitsOutline
 
 local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 local shieldShader
@@ -70,8 +70,8 @@ end
 
 function ShieldSphereColorParticle:BeginDraw()
 	renderBuckets = {}
-	haveTerrainEffect = false
-	haveUnitsEffect	= false
+	haveTerrainOutline = false
+	haveUnitsOutline = false
 end
 
 function ShieldSphereColorParticle:Draw()
@@ -83,8 +83,8 @@ function ShieldSphereColorParticle:Draw()
 
 	table.insert(renderBuckets[radius], self)
 
-	haveTerrainEffect = haveTerrainEffect or self.terrainEffect
-	haveUnitsEffect = haveUnitsEffect or self.unitsEffect
+	haveTerrainOutline = haveTerrainOutline or self.terrainOutline
+	haveUnitsOutline = haveUnitsOutline or self.unitsOutline
 end
 
 function ShieldSphereColorParticle:EndDraw()
@@ -93,16 +93,19 @@ function ShieldSphereColorParticle:EndDraw()
 	gl.DepthTest(true)
 	gl.DepthMask(false)
 
-	if haveTerrainEffect then
+	if haveTerrainOutline then
 		gl.Texture(0, "$map_gbuffer_zvaltex")
 	end
 
-	if haveUnitsEffect then
+	if haveUnitsOutline then
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
 
+	local gf = Spring.GetGameFrame()
+
 	shieldShader:ActivateWith(function ()
-		shieldShader:SetUniformFloat("gameFrame", select(1, Spring.GetGameFrame()))
+		shieldShader:SetUniformFloat("gameFrame", gf)
+		shieldShader:SetUniformFloat("viewPortSize", vsx, vsy)
 		shieldShader:SetUniformMatrix("viewMat", "view")
 		shieldShader:SetUniformMatrix("projMat", "projection")
 
@@ -116,7 +119,7 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("translationScale", posx, posy, posz, info.radius)
 				shieldShader:SetUniformFloat("rotPYR", pitch, yaw, roll)
 
-				shieldShader:SetUniformInt("unitsEffect", info.unitsEffect)
+				shieldShader:SetUniformInt("outlines", (info.terrainOutline and 1) or 0, (info.unitsOutline and 1) or 0)
 
 				local col1, col2 = GetShieldColor(info.unit, info)
 				shieldShader:SetUniformFloat("color1", col1[1], col1[2], col1[3], col1[4])
@@ -145,11 +148,11 @@ function ShieldSphereColorParticle:EndDraw()
 		end
 	end)
 
-	if haveTerrainEffect then
+	if haveTerrainOutline then
 		gl.Texture(0, false)
 	end
 
-	if haveUnitsEffect then
+	if haveUnitsOutline then
 		gl.Texture(1, false)
 	end
 
