@@ -19,7 +19,10 @@ out Data {
 	vec4 viewPos;
 
 	vec3 viewNormal;
-	vec3 viewHalfVec;
+
+	vec3 viewSunDir;
+	vec3 viewCameraDir;
+	
 	vec3 reflectionVec;
 
 	float colormix;
@@ -58,11 +61,10 @@ void main() {
 	colormix = dot(viewNormal, normalize(viewPos.xyz));
 	colormix = pow(abs(colormix), 0.2);
 
-	vec3 viewCameraDir = normalize(-viewPos.xyz);
+	viewCameraDir = normalize(-viewPos.xyz);
 	vec3 worldCameraDir = mat3(invViewMat) * viewCameraDir;
 	
-	vec3 viewSunDir = normalize(mat3(viewMat) * sunDir);
-	viewHalfVec = viewSunDir + viewCameraDir; //will be normalized in frag shader
+	viewSunDir = normalize(mat3(viewMat) * sunDir);
 	
 	reflectionVec = -reflect(worldCameraDir, worldNormal); //will be normalized in frag shader
 
