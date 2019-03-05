@@ -11,7 +11,7 @@ local ShieldSphereBase = {
 	unitsOutline = true,
 	impactAnimation = true,
 	
-	environmentReflection = true,
+	environmentSpecularReflection = true,
 	specularExp = 16, --integer!!!
 }
 

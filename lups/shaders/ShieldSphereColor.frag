@@ -84,46 +84,6 @@ float Value3D( vec3 P ) {
     return dot( res0, blend2.zxzx * blend2.wwyy );
 }
 
-vec3 EnvDFGLazarov( vec3 specularColor, float gloss, float NdotV ) {
-    vec4 p0 = vec4( 0.5745, 1.548, -0.02397, 1.301 );
-    vec4 p1 = vec4( 0.5753, -0.2511, -0.02066, 0.4755 );
-
-    vec4 t = gloss * p0 + p1;
-
-    float bias = clamp( t.x * min( t.y, exp2( -7.672 * NdotV ) ) + t.z, 0.0, 1.0 );
-    float delta = clamp( t.w, 0.0, 1.0 );
-    float scale = delta - bias;
-
-    bias *= clamp( 50.0 * specularColor.y, 0.0, 1.0 );
-    return specularColor * scale + bias;
-}
-
-vec3 EnvDFGPolynomial( vec3 specularColor, float gloss, float NdotV ) {
-    float x = gloss;
-    float y = NdotV;
- 
-    float b1 = -0.1688;
-    float b2 = 1.895;
-    float b3 = 0.9903;
-    float b4 = -4.853;
-    float b5 = 8.404;
-    float b6 = -5.069;
-    float bias = clamp( min( b1 * x + b2 * x * x, b3 + b4 * y + b5 * y * y + b6 * y * y * y ), 0.0, 1.0 );
- 
-    float d0 = 0.6045;
-    float d1 = 1.699;
-    float d2 = -0.5228;
-    float d3 = -3.603;
-    float d4 = 1.404;
-    float d5 = 0.1939;
-    float d6 = 2.661;
-    float delta = clamp( d0 + d1 * x + d2 * y + d3 * x * x + d4 * x * y + d5 * y * y + d6 * x * x * x, 0.0, 1.0 );
-    float scale = delta - bias;
- 
-    bias *= clamp( 50.0 * specularColor.y, 0.0, 1.0 );
-    return specularColor * scale + bias;
-}
-
 const float PI = acos(0.0) * 2.0;
 const float PI8 = PI * 8.0;
 
@@ -139,29 +99,26 @@ void main() {
 	float valueNoise = Value3D(valueNoiseVec);
 
 	if (effects.x > 0) { // specular highlights
-		const float specularStrength = 1.0;		
-	
+		const float specularStrength = 1.0;
+
 		vec4 specularColor = vec4(0.0, 0.0, 0.0, 0.8);
 
 		if (BITMASK_FIELD(effects.y, 3)) { // environment reflection
 			vec3 reflectionColor = texture(reflectionTex, normalize(reflectionVec)).rgb;
-			float NdotV = clamp(abs(dot( normalize(viewNormal), normalize(viewCameraDir) )), 0.001, 1.0);
-			specularColor.rgb += EnvDFGPolynomial(reflectionColor, 0.0, NdotV);
-			//specularColor.rgb += reflectionColor;
+			specularColor.rgb += reflectionColor;
 		}
 
 		vec3 sunColor = vec3(1.0, 1.0, 1.0);
+		specularColor.rgb += sunColor;
+
 		vec3 viewHalfVec = normalize(viewSunDir + viewCameraDir);
 		float specularFactor = pow(max(dot( normalize(viewNormal), viewHalfVec ), 0.0), float(effects.x));
 		specularFactor *= float(effects.x + 8) / PI8; // http://www.rorydriscoll.com/2009/01/25/energy-conservation-in-games/
 		specularFactor *= mix(0.9, 1.0, valueNoise);
-		
-		specularFactor *= specularStrength;		
 
-		specularColor.rgb += sunColor * specularFactor;
+		specularFactor *= specularStrength;
 
-		color.a = mix(color.a, specularColor.a, specularFactor);
-		color.rgb += specularColor.rgb;
+		color = mix(color, specularColor, specularFactor);
 	}
 
 	if (BITMASK_FIELD(effects.y, 1) || BITMASK_FIELD(effects.y, 2)) {

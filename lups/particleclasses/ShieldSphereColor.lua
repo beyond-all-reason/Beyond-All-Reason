@@ -134,7 +134,7 @@ function ShieldSphereColorParticle:EndDraw()
 				local optionY = 0
 				optionY = EncodeBitmaskField(optionY, info.terrainOutline, 1)
 				optionY = EncodeBitmaskField(optionY, info.unitsOutline, 2)
-				optionY = EncodeBitmaskField(optionY, info.environmentReflection, 3)
+				optionY = EncodeBitmaskField(optionY, info.environmentSpecularReflection, 3)
 				optionY = EncodeBitmaskField(optionY, info.impactAnimation, 4)
 
 				shieldShader:SetUniformInt("effects",
