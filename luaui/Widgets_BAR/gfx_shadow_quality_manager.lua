@@ -40,8 +40,9 @@ local turnedShadowsOff		= false
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	if spHaveShadows() and Spring.GetGameFrame() < 1 then
+	if Spring.GetGameFrame() == 0 then
 		Spring.SendCommands({"shadows 1 "..maxQuality})
+		averageFps = 75
 	end
 
 	WG['shadowmanager'] = {}
@@ -83,8 +84,12 @@ function widget:Shutdown()
 end
 
 function updateShadows(force)
-	quality = math.floor((maxQuality+minQuality) - (maxQuality / (averageFps/20)))
-
+	local fpsScope = (averageFps - disableFps) / 60
+	quality = math.floor(minQuality + ((maxQuality-minQuality) * fpsScope))
+	--Spring.Echo(quality)
+	if averageFps < disableFps then
+		force = true
+	end
 	if averageFps > previousQualityFps + fpsDifference  or  averageFps < previousQualityFps - fpsDifference or force then  -- weight fps values with more rendered models heavier
 
 		if quality > maxQuality then
@@ -94,7 +99,6 @@ function updateShadows(force)
 			quality = minQuality
 		end
 		if previousQuality ~= quality or force then
-			previousQuality = quality
 			previousQualityFps = averageFps
 			if averageFps < disableFps  then
 				turnedShadowsOff = true
@@ -111,15 +115,15 @@ end
 function widget:GameFrame(gameFrame)
 	if spHaveShadows() or shadowsAtInit and turnedShadowsOff then
 		
-		if gameFrame%109==0 then
+		if gameFrame%99==0 then
 			local modelCount = #spGetVisibleUnits(-1,nil,false) + #spGetVisibleFeatures(-1,nil,false,false) -- expensive)
-			local modelCountWeight = modelCount/1700
+			local modelCountWeight = modelCount/1500
 			if modelCountWeight > 1 then modelCountWeight = 1 end
 			if modelCountWeight < 0.05 then modelCountWeight = 0.05 end
 			local newAvgFps = ((spGetFPS() + (averageFps*14)) / 15)
 			averageFps = averageFps + ((newAvgFps - averageFps) * modelCountWeight)	-- make it so that high model count impact avg fps changes more
 			--local dquality = math.floor((maxQuality+minQuality) - (maxQuality / (averageFps/20)))
-			--Spring.Echo(averageFps..'   '..dquality)
+			--Spring.Echo(averageFps..'   '..modelCountWeight)
 		end
 		if gameFrame%skipGameframes==0 then
 			updateShadows()
@@ -145,7 +149,7 @@ function widget:SetConfigData(data)
 		if data.previousQuality ~= nil	 	then  previousQuality		= data.previousQuality end
 		if data.previousQualityFps ~= nil	then  previousQualityFps	= data.previousQualityFps end
 	end
-	if data.maxQuality ~= nil 			then  maxQuality			= data.maxQuality end
-	if data.minQuality ~= nil 			then  minQuality			= data.minQuality end
-	if data.disableFps ~= nil			then  disableFps			= data.disableFps end
+	if data.maxQuality ~= nil 	then  maxQuality	= data.maxQuality end
+	if data.minQuality ~= nil 	then  minQuality	= data.minQuality end
+	if data.disableFps ~= nil	then  disableFps	= data.disableFps end
 end
