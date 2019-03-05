@@ -3,8 +3,6 @@
 uniform vec4 translationScale;
 uniform vec3 rotPYR;
 
-uniform ivec4 effects;
-
 uniform vec3 sunDir;
 
 uniform mat4 viewMat;

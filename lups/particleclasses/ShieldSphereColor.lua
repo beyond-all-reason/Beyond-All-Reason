@@ -87,6 +87,10 @@ function ShieldSphereColorParticle:Draw()
 	haveUnitsOutline = haveUnitsOutline or self.unitsOutline
 end
 
+local function EncodeBitmaskField(bitmask, option, position)
+	return math.bit_or(bitmask, ((option and 1) or 0) * math.floor(2 ^ position))
+end
+
 function ShieldSphereColorParticle:EndDraw()
 	--ideally do sorting of renderBuckets
 	gl.Blending("alpha")
@@ -119,11 +123,14 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("translationScale", posx, posy, posz, info.radius)
 				shieldShader:SetUniformFloat("rotPYR", pitch, yaw, roll)
 
+				local optionY = 0
+				optionY = EncodeBitmaskField(optionY, info.terrainOutline, 1)
+				optionY = EncodeBitmaskField(optionY, info.unitsOutline, 2)
+				optionY = EncodeBitmaskField(optionY, info.impactAnimation, 3)
+
 				shieldShader:SetUniformInt("effects",
-					(info.terrainOutline and 1) or 0,
-					(info.unitsOutline and 1) or 0,
 					(info.specularExp > 0 and math.floor(info.specularExp)) or 0,
-					0
+					optionY
 				)
 
 				local col1, col2 = GetShieldColor(info.unit, info)

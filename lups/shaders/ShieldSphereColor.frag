@@ -8,7 +8,7 @@ uniform sampler2D modelsDepthTex;
 
 uniform vec2 viewPortSize;
 
-uniform ivec4 effects;
+uniform ivec2 effects;
 
 uniform vec4 color1;
 uniform vec4 color2;
@@ -43,6 +43,8 @@ in Data {
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+#define BITMASK_FIELD(value, pos) ((uint(value) & (1u << uint(pos))) != 0u)
 
 float GetViewSpaceDepth(float depthNDC) {
 	return -projMat[3][2] / (projMat[2][2] + depthNDC);
@@ -84,16 +86,22 @@ void main() {
 	vec3 valueNoiseVec = worldPos.xyz;
 	valueNoiseVec.y += gameFrame * 0.4;
 	float valueNoise = Value3D(valueNoiseVec);
+	
+	float specularFactor = 0.0;
+	if (effects.x > 0) { // specular highlights
+		specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.x));
+		specularFactor *= mix(0.9, 1.0, valueNoise);
+	}	
 
-	float outline = 0.0;
-	if (effects.x == 1 || effects.y == 1) {
+	float outlineFactor = 0.0;
+	if (BITMASK_FIELD(effects.y, 1) || BITMASK_FIELD(effects.y, 2)) {
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
-		if (effects.x == 1) { // terrain outline
+		if (BITMASK_FIELD(effects.y, 1)) { // terrain outline
 			//minDepth = min(minDepth, texelFetch( mapDepthTex, ivec2(gl_FragCoord.xy), 0 ).r);
 			minDepth = min(minDepth, texture( mapDepthTex, viewPortUV ).r);
 		}
-		if (effects.y == 1) { // units outline
+		if (BITMASK_FIELD(effects.y, 2)) { // units outline
 			//minDepth = min(minDepth, texelFetch( modelsDepthTex, ivec2(gl_FragCoord.xy), 0 ).r);
 			minDepth = min(minDepth, texture( modelsDepthTex, viewPortUV ).r);
 		}
@@ -104,19 +112,22 @@ void main() {
 		#endif
 
 		float minDepthView = GetViewSpaceDepth( minDepth );
-		outline = smoothstep( abs(viewPos.z - minDepthView), 0.0, outlineEffectSize * valueNoise);
+		outlineFactor = smoothstep( abs(viewPos.z - minDepthView), 0.0, outlineEffectSize * valueNoise);
+		outlineFactor *= outlineFactor;
+		outlineFactor = 1.0 - outlineFactor;
 	}
-
-	float specularFactor = 0.0;
-	if (effects.z > 0) { // specular highlights
-		specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.z));
-		specularFactor *= mix(0.9, 1.0, valueNoise);
+	
+	float impactFactor = 0.0;
+	if (BITMASK_FIELD(effects.y, 3)) { // impact animation
+		for (int i = 0; i < impactInfo.count; ++i) {
+			
+		}
 	}
 
 	vec4 color;
 	color = mix(color1, color2, colormix);
 
-	color.a = mix(outlineAlpha, color.a, outline * outline);
+	color.a = mix(color.a, outlineAlpha, outlineFactor);
 
 	color = mix(color, specularColor, specularFactor);
 
