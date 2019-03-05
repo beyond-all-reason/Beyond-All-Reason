@@ -38,7 +38,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 fixGo()
 {
 	set ARMORED to 0;
-	move stand to y-axis [4.000000] speed [10.000000];
+	move stand to y-axis [3.000000] speed [10.000000];
 	wait-for-move stand along y-axis;
 	spin stand around y-axis speed Static_Var_1 accelerate Static_Var_2;
 }
