@@ -24,7 +24,7 @@ local shieldShader
 -- Constants
 -----------------------------------------------------------------
 
-local MAX_POINTS = 8
+local MAX_POINTS = 24
 
 -----------------------------------------------------------------
 -- Auxilary functions

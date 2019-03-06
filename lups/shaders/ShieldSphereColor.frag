@@ -191,9 +191,9 @@ void main() {
 
 			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.0);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
-			impactNoiseVec *= 96.0;
+			impactNoiseVec *= 48.0;
 
-			thisImpactFactor *= Hexagon2D(impactNoiseVec.xy, 0.2, 0.1) * mix(0.6, 1.0, valueNoise);;
+			thisImpactFactor *= Hexagon2D(impactNoiseVec.xy, 0.2, 0.2) * mix(0.6, 1.0, valueNoise);;
 			impactFactor += thisImpactFactor;
 		}
 

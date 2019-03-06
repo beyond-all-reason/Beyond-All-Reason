@@ -263,7 +263,7 @@ local function CalcAoE(dmg, capacity)
 	return math.max(0, aoe)
 end
 
-local AOE_SAME_SPOT = AOE_MAX / 2
+local AOE_SAME_SPOT = AOE_MAX / 20
 
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
