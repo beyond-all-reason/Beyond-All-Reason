@@ -188,7 +188,7 @@ void main() {
 			float angleDist = acos( dot(worldVec, worldImpactVec) );
 			float thisImpactFactor = smoothstep( impactInfo.impactInfoArray[i].w, 0.0, angleDist );
 
-			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), angleDist * 32.0 + gameFrame * 1.5);
+			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.0);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
 			impactNoiseVec *= 64.0;
 

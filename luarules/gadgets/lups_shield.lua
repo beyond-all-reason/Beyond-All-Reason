@@ -250,8 +250,7 @@ local function RemoveUnit(unitID)
 	end
 end
 
-local AOE_MIN = 0.04
-local AOE_MAX = 0.15
+local AOE_MAX = math.pi / 8.0
 
 local LOG10 = math.log(10)
 
@@ -264,7 +263,7 @@ local function CalcAoE(dmg, capacity)
 	return math.max(0, aoe)
 end
 
-local AOE_SAME_SPOT = (AOE_MIN + AOE_MAX) / 2
+local AOE_SAME_SPOT = AOE_MAX / 2
 
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
@@ -320,7 +319,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 end
 
 local DECAY_FACTOR = 0.1
-local MIN_DAMAGE = 1
+local MIN_DAMAGE = 3
 
 local function GetShieldHitPositions(unitID)
 	local unitData = shieldUnits.Get(unitID)
@@ -364,8 +363,11 @@ local function AddShieldHitData(_, hitFrame, unitID, dmg, dx, dy, dz, onlyMove)
 	if unitData and unitData.hitData then
 		--Spring.Echo(hitFrame, unitID, dmg)
 		local rdx, rdy, rdz = dx - unitData.shieldPos[1], dy - unitData.shieldPos[2], dz - unitData.shieldPos[3]
-		rdx, rdy, rdz = Normalize(rdx, rdy, rdz)
-		DoAddShieldHitData(unitData, hitFrame, dmg, rdx, rdy, rdz, onlyMove)
+		local norm = Norm(rdx, rdy, rdz)
+		if (norm >= unitData.radius) then -- hit animation for projectiles inside shield look odd, so don't do that
+			rdx, rdy, rdz = rdx / norm, rdy / norm, rdz / norm
+			DoAddShieldHitData(unitData, hitFrame, dmg, rdx, rdy, rdz, onlyMove)
+		end
 	end
 end
 
