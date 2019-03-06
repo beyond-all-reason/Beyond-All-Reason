@@ -189,7 +189,7 @@ void main() {
 			float angleDist = acos( dot(worldVec, worldImpactVec) );
 			vec3 thisImpactFactor = vec3(smoothstep( impactInfo.impactInfoArray[i].w, 0.0, angleDist ));
 
-			float centerFactor = pow(thisImpactFactor.r, 4.0);
+			float centerFactor = pow(thisImpactFactor.r, 6.0);
 
 			// 0.1 * PI * centerFactor -- swirl a bit
 			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.2 * PI * centerFactor);
