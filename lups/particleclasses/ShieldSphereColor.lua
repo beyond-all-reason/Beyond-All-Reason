@@ -131,7 +131,7 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("translationScale", posx, posy, posz, info.radius)
 				shieldShader:SetUniformFloat("rotPYR", pitch, yaw, roll)
 
-				local optionY = 0
+				local optionY = 0 -- bitmask field
 				optionY = EncodeBitmaskField(optionY, info.terrainOutline, 1)
 				optionY = EncodeBitmaskField(optionY, info.unitsOutline, 2)
 				optionY = EncodeBitmaskField(optionY, info.environmentSpecularReflection, 3)

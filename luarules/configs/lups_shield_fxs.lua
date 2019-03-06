@@ -12,7 +12,7 @@ local ShieldSphereBase = {
 	impactAnimation = true,
 	
 	environmentSpecularReflection = true,
-	specularExp = 16, --integer!!!
+	specularExp = 16, --integer!!! Set to 0 to disable
 }
 
 local SEARCH_SMALL = {
@@ -79,8 +79,8 @@ for unitDefID = 1, #UnitDefs do
 
 		local strengthMult = tonumber(ud.customParams.shield_color_mult)
 		if strengthMult then
-			myShield.colormap1[1][4] = strengthMult*myShield.colormap1[1][4]
-			myShield.colormap1[2][4] = strengthMult*myShield.colormap1[2][4]
+			myShield.colormap1[1][4] = strengthMult * myShield.colormap1[1][4]
+			myShield.colormap1[2][4] = strengthMult * myShield.colormap1[2][4]
 		end
 
 		local fxTable = {

@@ -57,6 +57,26 @@ float GetViewSpaceDepth(float depthNDC) {
 	return -projMat[3][2] / (projMat[2][2] + depthNDC);
 }
 
+mat4 CalculateLookAtMatrix(vec3 eye, vec3 center, vec3 up) {
+
+    vec3 zaxis = normalize(center - eye); //from center towards eye vector
+    vec3 xaxis = normalize(cross(zaxis, up));
+    vec3 yaxis = cross(xaxis, zaxis);
+
+    mat4 lookAtMatrix;
+
+    lookAtMatrix[0] = vec4(xaxis.x, yaxis.x, zaxis.x, 0.0);
+    lookAtMatrix[1] = vec4(xaxis.y, yaxis.y, zaxis.y, 0.0);
+    lookAtMatrix[2] = vec4(xaxis.z, yaxis.z, zaxis.z, 0.0);
+    lookAtMatrix[3] = vec4(dot(xaxis, -eye), dot(yaxis, -eye), dot(zaxis, -eye), 1.0);
+
+    return lookAtMatrix;
+}
+
+mat4 CalculateLookAtMatrix(vec3 eye, vec3 center, float roll) {
+    return CalculateLookAtMatrix(eye, center, vec3(sin(roll), cos(roll), 0.0));
+}
+
 float Value3D( vec3 P ) {
     //  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
 
@@ -82,6 +102,14 @@ float Value3D( vec3 P ) {
     vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
     vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
     return dot( res0, blend2.zxzx * blend2.wwyy );
+}
+
+float Hexagon2D(vec2 p, float width, float coreSize) {
+    p.x *= 0.57735 * 2.0;
+    p.y += mod(floor(p.x), 2.0)*0.5;
+    p = abs((mod(p, 1.0) - 0.5));
+    float val = abs(max(p.x*1.5 + p.y, p.y*2.0) - 1.0);
+    return smoothstep(coreSize, width, val);
 }
 
 const float PI = acos(0.0) * 2.0;
@@ -142,22 +170,29 @@ void main() {
 		#endif
 
 		float minDepthView = GetViewSpaceDepth( minDepth );
-		float outlineFactor = smoothstep( abs(viewPos.z - minDepthView), 0.0, outlineEffectSize * valueNoise);
-		outlineFactor *= outlineFactor;
-		outlineFactor = 1.0 - outlineFactor;
+		float outlineFactor = smoothstep( 0.0, abs(viewPos.z - minDepthView), outlineEffectSize * valueNoise );
 
 		color.a = mix(color.a, outlineAlpha, outlineFactor);
 	}
 
 	if (BITMASK_FIELD(effects.y, 4)) { // impact animation
+		const vec4 impactColor = vec4(1.5);
 		float impactFactor = 0.0;
-		vec3 worldCenteredPos = normalize(worldPos.xyz - translationScale.xyz);
+		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 		for (int i = 0; i < impactInfo.count; ++i) {
-			vec3 worldCenteredImpactPos = normalize(impactInfo.impactInfoArray[i].xyz);
-			float angleDist = acos( dot(worldCenteredPos, worldCenteredImpactPos) );
-			impactFactor += smoothstep(impactInfo.impactInfoArray[i].w, 0.0, angleDist) / float(impactInfo.count);
+			vec3 worldImpactVec = normalize(impactInfo.impactInfoArray[i].xyz);
+			float angleDist = acos( dot(worldVec, worldImpactVec) );
+			float thisImpactFactor = smoothstep( impactInfo.impactInfoArray[i].w, 0.0, angleDist );
+
+			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.0);
+			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
+			impactNoiseVec *= 64.0;
+
+			thisImpactFactor *= Hexagon2D(impactNoiseVec.xy, 0.2, 0.1) * mix(0.6, 1.0, valueNoise);;
+			impactFactor += thisImpactFactor;
 		}
-		color = vec4(impactFactor);
+
+		color += impactColor * impactFactor;
 	}
 
 	gl_FragColor = color;
