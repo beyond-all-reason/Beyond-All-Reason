@@ -119,6 +119,7 @@ function ShieldSphereColorParticle:EndDraw()
 		shieldShader:SetUniformFloat("gameFrame", gf)
 		shieldShader:SetUniformFloat("viewPortSize", vsx, vsy)
 		shieldShader:SetUniformMatrix("viewMat", "view")
+		shieldShader:SetUniformMatrix("inverseViewMat", "viewinverse")
 		shieldShader:SetUniformMatrix("projMat", "projection")
 
 		for _, rb in pairs(renderBuckets) do

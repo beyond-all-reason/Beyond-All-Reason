@@ -20,7 +20,7 @@ uniform vec4 color2;
 	#define projMat gl_ProjectionMatrix
 #endif
 
-//uniform mat4 inverseViewMat;
+uniform mat4 inverseViewMat;
 uniform float gameFrame;
 
 uniform vec4 translationScale;
@@ -58,7 +58,6 @@ float GetViewSpaceDepth(float depthNDC) {
 }
 
 mat4 CalculateLookAtMatrix(vec3 eye, vec3 center, vec3 up) {
-
     vec3 zaxis = normalize(center - eye); //from center towards eye vector
     vec3 xaxis = normalize(cross(zaxis, up));
     vec3 yaxis = cross(xaxis, zaxis);
@@ -163,6 +162,11 @@ void main() {
 			//minDepth = min(minDepth, texelFetch( modelsDepthTex, ivec2(gl_FragCoord.xy), 0 ).r);
 			minDepth = min(minDepth, texture( modelsDepthTex, viewPortUV ).r);
 		}
+
+		//float viewWorldZeroHeight =
+
+		//minDepth = max(minDepth, viewWorldZeroHeight);
+
 		#if (DEPTH_CLIP01 == 1)
 			// Nothing. NDC and window/texture space are same for depth
 		#else
@@ -176,7 +180,7 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects.y, 4)) { // impact animation
-		const vec4 impactColor = vec4(1.5);
+		const vec4 impactColor = vec4(1.0);
 		float impactFactor = 0.0;
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 		for (int i = 0; i < impactInfo.count; ++i) {
@@ -184,7 +188,7 @@ void main() {
 			float angleDist = acos( dot(worldVec, worldImpactVec) );
 			float thisImpactFactor = smoothstep( impactInfo.impactInfoArray[i].w, 0.0, angleDist );
 
-			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.0);
+			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), angleDist * 32.0 + gameFrame * 1.5);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
 			impactNoiseVec *= 64.0;
 

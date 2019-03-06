@@ -6,7 +6,7 @@ uniform vec3 rotPYR;
 uniform vec3 sunDir;
 
 uniform mat4 viewMat;
-uniform mat4 invViewMat;
+uniform mat4 inverseViewMat;
 #if 1
 	uniform mat4 projMat;
 #else
@@ -62,7 +62,7 @@ void main() {
 	colormix = pow(abs(colormix), 0.2);
 
 	viewCameraDir = normalize(-viewPos.xyz);
-	vec3 worldCameraDir = mat3(invViewMat) * viewCameraDir;
+	vec3 worldCameraDir = mat3(inverseViewMat) * viewCameraDir;
 	
 	viewSunDir = normalize(mat3(viewMat) * sunDir);
 	
