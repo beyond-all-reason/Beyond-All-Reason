@@ -315,7 +315,7 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	unitData.needsUpdate = true
 end
 
-local DECAY_FACTOR = 0.1
+local DECAY_FACTOR = 0.2
 local MIN_DAMAGE = 3
 
 local function GetShieldHitPositions(unitID)
