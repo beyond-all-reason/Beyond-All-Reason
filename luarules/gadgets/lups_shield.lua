@@ -5,10 +5,10 @@ function gadget:GetInfo()
 	return {
 		name    = "Lups Shield",
 		desc    = "Draws variable shields for shielded units",
-		author  = "GoogleFrog",
-		date    = "14 November 2017",
+		author  = "ivand, GoogleFrog",
+		date    = "2019",
 		license = "GNU GPL, v2 or later",
-		layer   = 500, -- Call ShieldPreDamaged after gadgets which change whether interception occurs
+		layer   = 1500, -- Call ShieldPreDamaged after gadgets which change whether interception occurs
 		enabled = true,
 	}
 end
@@ -16,21 +16,136 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+-----------------------------------------------------------------
+-- Global consts
+-----------------------------------------------------------------
+
+local GAMESPEED = Game.gameSpeed
+local SHIELDARMORID = 4
+local SHIELDARMORIDALT = 0
+
+-----------------------------------------------------------------
+-- Small vector math lib
+-----------------------------------------------------------------
+
+local function Distance(x1, y1, z1, x2, y2, z2)
+	local dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
+	return math.sqrt(dx*dx + dy*dy + dz*dz)
+end
+
+local function Norm(x, y, z)
+	return math.sqrt(x*x + y*y + z*z)
+end
+
+local function Normalize(x, y, z)
+	local N = Norm(x, y, z)
+	return x/N, y/N, z/N
+end
+
+-- presumes normalized vectors
+local function DotProduct(x1, y1, z1, x2, y2, z2)
+	return x1*x2 + y1*y2 + z1*z2
+end
+
+-- presumes normalized vectors
+local function CrossProduct(x1, y1, z1, x2, y2, z2)
+	return
+		-y2*z1 + y1*z2,
+		 x2*z1 - x1*z2,
+		-x2*y1 + x1*y2
+end
+
+-- presumes normalized vectors
+local function AngleBetweenVectors(x1, y1, z1, x2, y2, z2)
+	return math.acos(DotProduct(x1, y1, z1, x2, y2, z2))
+end
+
+-- presumes normalized vectors
+local function GetSLerpedPoint(x1, y1, z1, x2, y2, z2, w1, w2)
+	-- Below check is not really required for the sane AOE_SAME_SPOT value (less than PI)
+--[[
+	local EPS = 1E-3
+	local dotP
+	repeat
+		dotP = DotProduct(x1, y1, z1, x2, y2, z2)
+		--check if {x1, y1, z1} and {x2, y2, z2} are not collinear
+		local ok = math.abs( math.abs(dotP) - 1) >= EPS
+		if not ok then -- absolutely or almost collinear. Need to do something.
+			Spring.Echo("Error in GetSLerpedPoint. This should never happen!!!")
+			x1 = x1 + (math.random() * 2 - 1) * EPS
+			y1 = y1 + (math.random() * 2 - 1) * EPS
+			z1 = z1 + (math.random() * 2 - 1) * EPS
+			x1, y1, z1 = Normalize(x, y, z)
+		end
+	until ok
+]]--
+	local dotP = DotProduct(x1, y1, z1, x2, y2, z2)
+	-- Do spherical linear interpolation
+	local A = math.acos(dotP)
+	local sinA = math.sin(A)
+
+	local w = 1.0 - (w1 / (w1 + w2)) --the more is relative weight the less this value should be
+
+	local x = (math.sin((1.0 - w) * A) * x1 + math.sin(w * A) * x2) / sinA
+	local y = (math.sin((1.0 - w) * A) * y1 + math.sin(w * A) * y2) / sinA
+	local z = (math.sin((1.0 - w) * A) * z1 + math.sin(w * A) * z2) / sinA
+
+	-- everything was normalized, no need to normalize again
+	return x, y, z
+end
+
+-----------------------------------------------------------------
+-- Synced part of gadget
+-----------------------------------------------------------------
+
 if gadgetHandler:IsSyncedCode() then
 	local spSetUnitRulesParam = Spring.SetUnitRulesParam
 	local INLOS_ACCESS = {inlos = true}
 	local gameFrame = 0
-	
+
 	function gadget:GameFrame(n)
 		gameFrame = n
 	end
-	
+
 	function gadget:ShieldPreDamaged(proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitterWeaponNum, beamEmitterUnitID, startX, startY, startZ, hitX, hitY, hitZ)
-		--Spring.Echo("ShieldPreDamaged", gameFrame, proID, proOwnerID, shieldEmitterWeaponNum, shieldCarrierUnitID, bounceProjectile, beamEmitter, beamCarrierID, startX, startY, startZ, hitX, hitY, hitZ)
+		local wd = nil
+		local dmgMod = 1
+		if proID and proID ~= -1 then
+			local proDefID = Spring.GetProjectileDefID(proID)
+			wd = WeaponDefs[proDefID]
+		elseif beamEmitterUnitID then --hitscan weapons
+			local unitDefID = Spring.GetUnitDefID(beamEmitterUnitID)
+			local weaponDefID = UnitDefs[unitDefID].weapons[beamEmitterWeaponNum].weaponDef
+			wd = WeaponDefs[weaponDefID]
+			if wd.type ~= "LightningCannon" then
+				dmgMod = 1 / (wd.beamtime * GAMESPEED)
+			end
+		end
+
+		if wd then
+			local dmg = wd.damages[SHIELDARMORID]
+			if dmg <= 0.1 then --some stupidity here: llt has 0.0001 dmg in wd.damages[SHIELDARMORID]
+				dmg = wd.damages[SHIELDARMORIDALT]
+			end
+			--Spring.Utilities.TableEcho({proID=proID, proOwnerID=proOwnerID, shieldEmitterWeaponNum=shieldEmitterWeaponNum, shieldCarrierUnitID=shieldCarrierUnitID, bounceProjectile=bounceProjectile, beamEmitterWeaponNum=beamEmitterWeaponNum, beamEmitterUnitID=beamEmitterUnitID, startX=startX, startY=startY, startZ=startZ, hitX=hitX, hitY=hitY, hitZ=hitZ, dist=dist}, "ShieldPreDamaged")
+			--GG.TableEcho(wd.damages)
+			--Spring.Echo("dmg=", dmg, dmg * dmgMod)
+			local x, y, z = Spring.GetUnitPosition(shieldCarrierUnitID)
+			local dx, dy, dz
+			local onlyMove = false
+			if bounceProjectile then
+				onlyMove = ((hitX == 0) and (hitY == 0) and (hitZ == 0)) --don't apply as additional damage
+				dx, dy, dz = startX - x, startY - y, startZ - z
+			else
+				dx, dy, dz = hitX - x, hitY - y, hitZ - z
+			end
+			SendToUnsynced("AddShieldHitDataHandler", gameFrame, shieldCarrierUnitID, dmg * dmgMod, dx, dy, dz, onlyMove)
+		end
+
 		spSetUnitRulesParam(shieldCarrierUnitID, "shieldHitFrame", gameFrame, INLOS_ACCESS)
 		return false
 	end
-	
+
 	return
 end
 
@@ -41,18 +156,21 @@ local spGetMyAllyTeamID     = Spring.GetMyAllyTeamID
 local spGetSpectatingState  = Spring.GetSpectatingState
 
 local IterableMap = VFS.Include("LuaRules/Gadgets/Include/IterableMap.lua")
-local shieldUnitDefs = include("LuaRules/Configs/lups_shield_fxs.lua")
+
+local shieldUnitDefs
 
 local Lups
 local LupsAddParticles
-local UPDATE_PERIOD = 10
+local LOS_UPDATE_PERIOD = 10
+local HIT_UPDATE_PERIOD = 2
+
+local highEnoughQuality = false
+
+local hitUpdateNeeded = false
 
 local myAllyTeamID = spGetMyAllyTeamID()
 
 local shieldUnits = IterableMap.New()
-local startup = true
-
-local stunnedUnits = {}
 
 local function GetVisibleSearch(x, z, search)
 	if not x then
@@ -72,12 +190,12 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 		local ux,_,uz = Spring.GetUnitPosition(unitID)
 		unitVisible = GetVisibleSearch(ux, uz, unitData.search)
 	end
-	
+
 	if unitVisible == unitData.unitVisible and not forceUpdate then
 		return
 	end
 	unitData.unitVisible = unitVisible
-	
+
 	for i = 1, #unitData.fxTable do
 		local fxID = unitData.fxTable[i]
 		local fx = Lups.GetParticles(fxID)
@@ -86,11 +204,6 @@ local function UpdateVisibility(unitID, unitData, unitVisible, forceUpdate)
 end
 
 local function AddUnit(unitID, unitDefID)
-	if (not Lups) then
-		Lups = GG['Lups']
-		LupsAddParticles = Lups.AddParticles 
-	end
-	
 	local def = shieldUnitDefs[unitDefID]
 	local defFx = def.fx
 	local fxTable = {}
@@ -104,15 +217,24 @@ local function AddUnit(unitID, unitDefID)
 			fxTable[#fxTable + 1] = fxID
 		end
 	end
-	
+
 	local unitData = {
 		unitDefID  = unitDefID,
 		search     = def.search,
+		capacity   = def.shieldCapacity,
+		radius     = def.shieldRadius,
 		fxTable    = fxTable,
 		allyTeamID = Spring.GetUnitAllyTeam(unitID)
 	}
+
+	if highEnoughQuality then
+		unitData.shieldPos  = def.shieldPos
+		unitData.hitData = {}
+		unitData.needsUpdate = false
+	end
+
 	shieldUnits.Add(unitID, unitData)
-	
+
 	local _, fullview = spGetSpectatingState()
 	UpdateVisibility(unitID, unitData, fullview, true)
 end
@@ -128,12 +250,132 @@ local function RemoveUnit(unitID)
 	end
 end
 
+local AOE_MAX = math.pi / 8.0
+
+local LOG10 = math.log(10)
+
+local BIASLOG = 2.5
+local LOGMUL = AOE_MAX / BIASLOG
+
+local function CalcAoE(dmg, capacity)
+	local ratio = dmg / capacity
+	local aoe = (BIASLOG + math.log(ratio)/LOG10) * LOGMUL
+	return math.max(0, aoe)
+end
+
+local AOE_SAME_SPOT = AOE_MAX / 2
+
+--x, y, z here are normalized vectors
+local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
+	local hitData = unitData.hitData
+	local radius = unitData.radius
+
+	local found = false
+	--Spring.Echo(unitData.unitID, "#hitData", #hitData)
+	--GG.TableEcho(hitData)
+	for _, hitInfo in ipairs(hitData) do
+		if hitInfo then
+
+			-- Great Circle Distance in radians
+			local dist = AngleBetweenVectors(hitInfo.x, hitInfo.y, hitInfo.z, x, y, z)
+
+			-- AoE radius in radians
+			local d1 = CalcAoE(hitInfo.dmg, unitData.capacity)
+			local d2 = CalcAoE(hitInfo.dmg, unitData.capacity)
+
+			if (dist - d1 - d2) <= AOE_SAME_SPOT then
+				found = true
+
+				if onlyMove then
+					hitInfo.x, hitInfo.y, hitInfo.z = x, y, z
+					hitInfo.dmg = dmg
+				else
+					--this vector is very likely normalized :)
+					hitInfo.x, hitInfo.y, hitInfo.z = GetSLerpedPoint(x, y, z, hitInfo.x, hitInfo.y, hitInfo.z, dmg, hitInfo.dmg)
+					hitInfo.dmg = dmg + hitInfo.dmg
+				end
+
+				hitInfo.aoe = CalcAoE(hitInfo.dmg, unitData.capacity)
+
+				--break
+			end
+		end
+	end
+
+	if not found then
+		local aoe = CalcAoE(dmg, unitData.capacity)
+		--Spring.Echo("DoAddShieldHitData", dmg, aoe, mag)
+		table.insert(hitData, {
+			hitFrame = hitFrame,
+			dmg = dmg,
+			aoe = aoe,
+			x = x,
+			y = y,
+			z = z,
+		})
+	end
+	hitUpdateNeeded = true
+	unitData.needsUpdate = true
+end
+
+local DECAY_FACTOR = 0.1
+local MIN_DAMAGE = 3
+
+local function GetShieldHitPositions(unitID)
+	local unitData = shieldUnits.Get(unitID)
+	return (((unitData and unitData.hitData) and unitData.hitData) or nil)
+end
+
+local function ProcessHitTable(unitData, gameFrame)
+	unitData.needsUpdate = false
+	local hitData = unitData.hitData
+
+	--apply decay over time first
+	for i = #hitData, 1, -1 do
+		local hitInfo = hitData[i]
+		if hitInfo then
+			local mult = math.exp(-DECAY_FACTOR*(gameFrame - hitInfo.hitFrame))
+			--Spring.Echo(gameFrame, hitInfo.dmg, mult, hitInfo.dmg * mult)
+			hitInfo.dmg = hitInfo.dmg * mult
+			hitInfo.hitFrame = gameFrame
+
+			hitInfo.aoe = CalcAoE(hitInfo.dmg, unitData.capacity)
+
+			if hitInfo.dmg <= MIN_DAMAGE then
+			--if hitInfo.aoe <= 0 then
+				--Spring.Echo("MIN_DAMAGE", tostring(unitData), i, hitInfo.dmg)
+				table.remove(hitData, i)
+				hitInfo = nil
+			else
+				unitData.needsUpdate = true
+			end
+		end
+	end
+	if unitData.needsUpdate then
+		hitUpdateNeeded = true
+		table.sort(hitData, function(a, b) return (((a and b) and a.dmg > b.dmg) or false) end)
+	end
+	return unitData.needsUpdate
+end
+
+local function AddShieldHitData(_, hitFrame, unitID, dmg, dx, dy, dz, onlyMove)
+	local unitData = shieldUnits.Get(unitID)
+	if unitData and unitData.hitData then
+		--Spring.Echo(hitFrame, unitID, dmg)
+		local rdx, rdy, rdz = dx - unitData.shieldPos[1], dy - unitData.shieldPos[2], dz - unitData.shieldPos[3]
+		local norm = Norm(rdx, rdy, rdz)
+		if math.abs(norm - unitData.radius) <= unitData.radius * 0.05 then --only animate projectiles nearby the shield surface
+			rdx, rdy, rdz = rdx / norm, rdy / norm, rdz / norm
+			DoAddShieldHitData(unitData, hitFrame, dmg, rdx, rdy, rdz, onlyMove)
+		end
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	RemoveUnit(unitID)
-	stunnedUnits[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -154,32 +396,58 @@ function gadget:PlayerChanged()
 end
 
 function gadget:GameFrame(n)
-	if startup then
-		local allUnits = Spring.GetAllUnits()
-		for i = 1, #allUnits do
-			local unitID = allUnits[i]
-			local unitDefID = Spring.GetUnitDefID(unitID)
-			gadget:UnitFinished(unitID, unitDefID)
+	if highEnoughQuality and hitUpdateNeeded and (n % HIT_UPDATE_PERIOD == 0) then
+		hitUpdateNeeded = false
+		for unitID, unitData in shieldUnits.Iterator() do
+			if unitData and unitData.hitData then
+				--Spring.Echo(n, unitID, unitData.unitID)
+				local phtRes = ProcessHitTable(unitData, n)
+				hitUpdateNeeded = hitUpdateNeeded or phtRes
+			end
 		end
-		startup = false
 	end
 
-	if n%UPDATE_PERIOD == 0 then
+	if n % LOS_UPDATE_PERIOD == 0 then
 		local _, fullview = spGetSpectatingState()
 		for unitID, unitData in shieldUnits.Iterator() do
-			if Spring.GetUnitIsStunned(unitID) then
-				RemoveUnit(unitID)
-				stunnedUnits[unitID] = Spring.GetUnitDefID(unitID)
-			end
 			UpdateVisibility(unitID, unitData, fullview)
 		end
+	end
+end
 
-		for unitID, unitDefID in pairs(stunnedUnits) do
-			if not Spring.GetUnitIsStunned(unitID) then
-				AddUnit(unitID, unitDefID)
-				stunnedUnits[unitID] = nil
-			end
-		end
+function gadget:Initialize(n)
+	if (not Lups) then
+		Lups = GG.Lups
+		LupsAddParticles = Lups.AddParticles
 	end
 
+	shieldUnitDefs = include("LuaRules/Configs/lups_shield_fxs.lua")
+	highEnoughQuality = (Lups.Config.quality or 2) >= 3 --Require High(or Ultra?) quality to render hit positions
+	--highEnoughQuality = false
+
+	if highEnoughQuality then
+		gadgetHandler:AddSyncAction("AddShieldHitDataHandler", AddShieldHitData)
+		GG.GetShieldHitPositions = GetShieldHitPositions
+	end
+
+	local allUnits = Spring.GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		gadget:UnitFinished(unitID, unitDefID)
+	end
+end
+
+function gadget:Shutdown()
+	if highEnoughQuality then
+		gadgetHandler:RemoveSyncAction("AddShieldHitDataHandler", AddShieldHitData)
+		GG.GetShieldHitPositions = nil
+	end
+
+	local allUnits = Spring.GetAllUnits()
+	for i = 1, #allUnits do
+		local unitID = allUnits[i]
+		local unitDefID = Spring.GetUnitDefID(unitID)
+		gadget:UnitDestroyed(unitID, unitDefID)
+	end
 end
