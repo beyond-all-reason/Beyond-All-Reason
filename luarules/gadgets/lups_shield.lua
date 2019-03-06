@@ -422,7 +422,7 @@ function gadget:Initialize(n)
 	end
 
 	shieldUnitDefs = include("LuaRules/Configs/lups_shield_fxs.lua")
-	highEnoughQuality = (Lups.Config.quality or 2) >= 3 --Require High(or Ultra?) quality to render hit positions
+	highEnoughQuality = true--(Lups.Config.quality or 2) >= 3 --Require High(or Ultra?) quality to render hit positions
 	--highEnoughQuality = false
 
 	if highEnoughQuality then

@@ -12,7 +12,7 @@ local ShieldSphereBase = {
 	impactAnimation = true,
 	
 	environmentSpecularReflection = true,
-	specularExp = 16, --integer!!! Set to 0 to disable
+	specularExp = 0, --integer!!! Set to 0 to disable
 }
 
 local SEARCH_SMALL = {

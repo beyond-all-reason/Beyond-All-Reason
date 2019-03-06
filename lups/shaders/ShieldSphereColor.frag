@@ -149,8 +149,8 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects.y, 1) || BITMASK_FIELD(effects.y, 2)) {
-		const float outlineEffectSize = 3.0;
-		const float outlineAlpha = 0.8;
+		const float outlineEffectSize = 14.0;
+		const float outlineAlpha = 0.45;
 
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
@@ -180,7 +180,7 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects.y, 4)) { // impact animation
-		const vec4 impactColor = vec4(1.0);
+		const vec4 impactColor = vec4(0.5);
 		float impactFactor = 0.0;
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 		for (int i = 0; i < impactInfo.count; ++i) {
@@ -190,7 +190,7 @@ void main() {
 
 			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.0);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
-			impactNoiseVec *= 64.0;
+			impactNoiseVec *= 96.0;
 
 			thisImpactFactor *= Hexagon2D(impactNoiseVec.xy, 0.2, 0.1) * mix(0.6, 1.0, valueNoise);;
 			impactFactor += thisImpactFactor;
