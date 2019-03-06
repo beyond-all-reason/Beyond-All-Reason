@@ -182,19 +182,30 @@ void main() {
 
 	if (BITMASK_FIELD(effects.y, 4)) { // impact animation
 		const vec4 impactColor = vec4(0.5);
-		float impactFactor = 0.0;
+		vec4 impactFactor = vec4(0.0);
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 		for (int i = 0; i < impactInfo.count; ++i) {
 			vec3 worldImpactVec = normalize(impactInfo.impactInfoArray[i].xyz);
 			float angleDist = acos( dot(worldVec, worldImpactVec) );
-			float thisImpactFactor = smoothstep( impactInfo.impactInfoArray[i].w, 0.0, angleDist );
+			vec3 thisImpactFactor = vec3(smoothstep( impactInfo.impactInfoArray[i].w, 0.0, angleDist ));
 
-			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.0);
+			float centerFactor = pow(thisImpactFactor.r, 4.0);
+
+			// 0.1 * PI * centerFactor -- swirl a bit
+			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.2 * PI * centerFactor);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
 			impactNoiseVec *= 48.0;
 
-			thisImpactFactor *= Hexagon2D(impactNoiseVec.xy, 0.2, 0.2) * mix(0.6, 1.0, valueNoise);;
-			impactFactor += thisImpactFactor;
+			vec2 noiseVecOffset = 0.25 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
+
+			// Make chormatic aberation effect around the impact point
+			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x, noiseVecOffset.y), 0.2, 0.2);
+			thisImpactFactor.g *= Hexagon2D(impactNoiseVec.xy + vec2(-noiseVecOffset.x, -noiseVecOffset.y), 0.2, 0.2);
+			thisImpactFactor.b *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x * noiseVecOffset.y, 0.0), 0.2, 0.2);
+
+			thisImpactFactor *= mix(0.6, 1.0, valueNoise);
+			impactFactor.rgb += thisImpactFactor.rgb;
+			impactFactor.a = 0.333333 * (impactFactor.r + impactFactor.g + impactFactor.b);
 		}
 
 		color += impactColor * impactFactor;
