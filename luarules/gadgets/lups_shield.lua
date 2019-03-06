@@ -364,7 +364,7 @@ local function AddShieldHitData(_, hitFrame, unitID, dmg, dx, dy, dz, onlyMove)
 		--Spring.Echo(hitFrame, unitID, dmg)
 		local rdx, rdy, rdz = dx - unitData.shieldPos[1], dy - unitData.shieldPos[2], dz - unitData.shieldPos[3]
 		local norm = Norm(rdx, rdy, rdz)
-		if (norm >= unitData.radius) then -- hit animation for projectiles inside shield look odd, so don't do that
+		if math.abs(norm - unitData.radius) <= unitData.radius * 0.05 then --only animate projectiles nearby the shield surface
 			rdx, rdy, rdz = rdx / norm, rdy / norm, rdz / norm
 			DoAddShieldHitData(unitData, hitFrame, dmg, rdx, rdy, rdz, onlyMove)
 		end

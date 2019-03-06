@@ -130,7 +130,7 @@ function ShieldSphereColorParticle:EndDraw()
 				local pitch, yaw, roll = Spring.GetUnitRotation(info.unit)
 
 				shieldShader:SetUniformFloat("translationScale", posx, posy, posz, info.radius)
-				shieldShader:SetUniformFloat("rotPYR", pitch, yaw, roll)
+				shieldShader:SetUniformFloat("rotMargin", pitch, yaw, roll, info.margin)
 
 				local optionY = 0 -- bitmask field
 				optionY = EncodeBitmaskField(optionY, info.terrainOutline, 1)

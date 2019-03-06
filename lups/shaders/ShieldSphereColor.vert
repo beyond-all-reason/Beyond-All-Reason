@@ -1,7 +1,7 @@
 #version 150 compatibility
 
 uniform vec4 translationScale;
-uniform vec3 rotPYR;
+uniform vec4 rotMargin;
 
 uniform vec3 sunDir;
 
@@ -50,16 +50,16 @@ void main() {
 	modelPos = gl_Vertex;
 
 	worldPos = vec4(translationScale.www * modelPos.xyz, 1.0);				//scaling
-	worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 0.0, 1.0), rotPYR.y);		//rotation around Yaw axis
+	worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 0.0, 1.0), rotMargin.y);	//rotation around Yaw axis
 	worldPos.xyz += translationScale.xyz;									//translation in world space
 
 	viewPos = viewMat * worldPos;
 	
-	vec3 worldNormal = normalize(Rotate(gl_Normal, vec3(0.0, 0.0, 1.0), rotPYR.y));
+	vec3 worldNormal = normalize(Rotate(gl_Normal, vec3(0.0, 0.0, 1.0), rotMargin.y));
 	viewNormal = mat3(viewMat) * worldNormal;
 
 	colormix = dot(viewNormal, normalize(viewPos.xyz));
-	colormix = pow(abs(colormix), 0.2);
+	colormix = pow(abs(colormix), rotMargin.w);
 
 	viewCameraDir = normalize(-viewPos.xyz);
 	vec3 worldCameraDir = mat3(inverseViewMat) * viewCameraDir;
