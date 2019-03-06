@@ -152,8 +152,9 @@ function ShieldSphereColorParticle:EndDraw()
 					local hitTable = GG.GetShieldHitPositions(info.unit)
 
 					if hitTable then
-						if hitTable[1] then
+						if #hitTable > 0 then
 							--Spring.Utilities.TableEcho(hitTable, "hitTable")
+							--Spring.Echo("#hitTable", #hitTable)
 						end
 
 						local hitPointCount = math.min(#hitTable, MAX_POINTS)
