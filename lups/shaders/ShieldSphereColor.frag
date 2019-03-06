@@ -199,9 +199,9 @@ void main() {
 			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
 
 			// Make chormatic aberation effect around the impact point
-			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x, noiseVecOffset.y), 0.2, 0.25);
-			thisImpactFactor.g *= Hexagon2D(impactNoiseVec.xy + vec2(-noiseVecOffset.x, -noiseVecOffset.y), 0.2, 0.25);
-			thisImpactFactor.b *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x * noiseVecOffset.y, 0.0), 0.2, 0.25);
+			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x, noiseVecOffset.y), 0.2, 0.2);
+			thisImpactFactor.g *= Hexagon2D(impactNoiseVec.xy + vec2(-noiseVecOffset.x, -noiseVecOffset.y), 0.2, 0.2);
+			thisImpactFactor.b *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x * noiseVecOffset.y, 0.0), 0.2, 0.2);
 
 			thisImpactFactor *= mix(0.6, 1.0, valueNoise);
 			impactFactor.rgb += thisImpactFactor.rgb;
@@ -211,15 +211,15 @@ void main() {
 		color += impactColor * impactFactor;
 	}
 
-/*
+
 	//poor man's tonemapping ahead
-	const float maxLuma = 0.5;
+	const float maxLuma = 0.6;
 	vec3 yuvColor = RGB2YUV * color.rgb;
 	yuvColor.x = min(yuvColor.x, maxLuma);
 	color.rgb = YUV2RGB * yuvColor;
 
-	const float maxAlpha = 0.5;
+	const float maxAlpha = 0.6;
 	color.a = min(color.a, maxAlpha);
-*/
+
 	gl_FragColor = color;
 }
