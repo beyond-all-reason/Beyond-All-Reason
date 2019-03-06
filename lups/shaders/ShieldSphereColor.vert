@@ -3,8 +3,6 @@
 uniform vec4 translationScale;
 uniform vec4 rotMargin;
 
-uniform ivec2 effects;
-
 uniform vec3 sunDir;
 
 uniform mat4 viewMat;
@@ -57,7 +55,7 @@ void main() {
 	worldPos.xyz += translationScale.xyz;									//translation in world space
 
 	viewPos = viewMat * worldPos;
-	
+
 	vec3 worldNormal = normalize(Rotate(gl_Normal, vec3(0.0, 0.0, 1.0), rotMargin.y));
 	viewNormal = mat3(viewMat) * worldNormal;
 
@@ -66,15 +64,11 @@ void main() {
 
 	vec3 viewCameraDir = normalize(-viewPos.xyz);
 	vec3 worldCameraDir = mat3(inverseViewMat) * viewCameraDir;
-	
-	if (effects.x > 0) { // specular highlights
-		vec3 viewSunDir = normalize(mat3(viewMat) * sunDir);
-		viewHalfVec = viewSunDir + viewCameraDir; //will be normalized in frag shader
-	}
-	
-	if (BITMASK_FIELD(effects.y, 3)) { // environment reflection
-		reflectionVec = -reflect(worldCameraDir, worldNormal); //will be normalized in frag shader
-	}
+
+	vec3 viewSunDir = normalize(mat3(viewMat) * sunDir);
+	viewHalfVec = viewSunDir + viewCameraDir; //will be normalized in frag shader
+
+	reflectionVec = -reflect(worldCameraDir, worldNormal); //will be normalized in frag shader
 
 	gl_Position = projMat * viewPos;
 }
