@@ -38,8 +38,7 @@ in Data {
 
 	vec3 viewNormal;
 
-	vec3 viewSunDir;
-	vec3 viewCameraDir;
+	vec3 viewHalfVec;
 
 	vec3 reflectionVec;
 
@@ -58,58 +57,67 @@ float GetViewSpaceDepth(float depthNDC) {
 }
 
 mat4 CalculateLookAtMatrix(vec3 eye, vec3 center, vec3 up) {
-    vec3 zaxis = normalize(center - eye); //from center towards eye vector
-    vec3 xaxis = normalize(cross(zaxis, up));
-    vec3 yaxis = cross(xaxis, zaxis);
+	vec3 zaxis = normalize(center - eye); //from center towards eye vector
+	vec3 xaxis = normalize(cross(zaxis, up));
+	vec3 yaxis = cross(xaxis, zaxis);
 
-    mat4 lookAtMatrix;
+	mat4 lookAtMatrix;
 
-    lookAtMatrix[0] = vec4(xaxis.x, yaxis.x, zaxis.x, 0.0);
-    lookAtMatrix[1] = vec4(xaxis.y, yaxis.y, zaxis.y, 0.0);
-    lookAtMatrix[2] = vec4(xaxis.z, yaxis.z, zaxis.z, 0.0);
-    lookAtMatrix[3] = vec4(dot(xaxis, -eye), dot(yaxis, -eye), dot(zaxis, -eye), 1.0);
+	lookAtMatrix[0] = vec4(xaxis.x, yaxis.x, zaxis.x, 0.0);
+	lookAtMatrix[1] = vec4(xaxis.y, yaxis.y, zaxis.y, 0.0);
+	lookAtMatrix[2] = vec4(xaxis.z, yaxis.z, zaxis.z, 0.0);
+	lookAtMatrix[3] = vec4(dot(xaxis, -eye), dot(yaxis, -eye), dot(zaxis, -eye), 1.0);
 
-    return lookAtMatrix;
+	return lookAtMatrix;
 }
 
 mat4 CalculateLookAtMatrix(vec3 eye, vec3 center, float roll) {
-    return CalculateLookAtMatrix(eye, center, vec3(sin(roll), cos(roll), 0.0));
+	return CalculateLookAtMatrix(eye, center, vec3(sin(roll), cos(roll), 0.0));
 }
 
 float Value3D( vec3 P ) {
-    //  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
+	//  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
 
-    // establish our grid cell and unit position
-    vec3 Pi = floor(P);
-    vec3 Pf = P - Pi;
-    vec3 Pf_min1 = Pf - 1.0;
+	// establish our grid cell and unit position
+	vec3 Pi = floor(P);
+	vec3 Pf = P - Pi;
+	vec3 Pf_min1 = Pf - 1.0;
 
-    // clamp the domain
-    Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
-    vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+	// clamp the domain
+	Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+	vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
 
-    // calculate the hash
-    vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
-    Pt *= Pt;
-    Pt = Pt.xzxz * Pt.yyww;
-    vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
-    vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
-    vec4 hash_highz = fract( Pt * hash_mod.yyyy );
+	// calculate the hash
+	vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+	Pt *= Pt;
+	Pt = Pt.xzxz * Pt.yyww;
+	vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
+	vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
+	vec4 hash_highz = fract( Pt * hash_mod.yyyy );
 
-    //	blend the results and return
-    vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
-    vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
-    vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
-    return dot( res0, blend2.zxzx * blend2.wwyy );
+	//	blend the results and return
+	vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+	vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
+	vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
+	return dot( res0, blend2.zxzx * blend2.wwyy );
 }
 
 float Hexagon2D(vec2 p, float width, float coreSize) {
-    p.x *= 0.57735 * 2.0;
-    p.y += mod(floor(p.x), 2.0)*0.5;
-    p = abs((mod(p, 1.0) - 0.5));
-    float val = abs(max(p.x*1.5 + p.y, p.y*2.0) - 1.0);
-    return smoothstep(coreSize, width, val);
+	p.x *= 0.57735 * 2.0;
+	p.y += mod(floor(p.x), 2.0)*0.5;
+	p = abs((mod(p, 1.0) - 0.5));
+	float val = abs(max(p.x*1.5 + p.y, p.y*2.0) - 1.0);
+	return smoothstep(coreSize, width, val);
 }
+
+const mat3 RGB2YUV = mat3
+						(0.2126, 0.7152, 0.0722,
+						-0.09991, -0.33609,  0.436,
+						0.615, -0.55861, -0.05639);
+const mat3 YUV2RGB = mat3
+						(1.0, 0.0, 1.28033,
+						1.0, -0.21482, -0.38059,
+						1.0, 2.12798, 0.0);
 
 const float PI = acos(0.0) * 2.0;
 const float PI8 = PI * 8.0;
@@ -138,8 +146,7 @@ void main() {
 		vec3 sunColor = vec3(1.0, 1.0, 1.0);
 		specularColor.rgb += sunColor;
 
-		vec3 viewHalfVec = normalize(viewSunDir + viewCameraDir);
-		float specularFactor = pow(max(dot( normalize(viewNormal), viewHalfVec ), 0.0), float(effects.x));
+		float specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.x));
 		specularFactor *= float(effects.x + 8) / PI8; // http://www.rorydriscoll.com/2009/01/25/energy-conservation-in-games/
 		specularFactor *= mix(0.9, 1.0, valueNoise);
 
@@ -155,17 +162,11 @@ void main() {
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
 		if (BITMASK_FIELD(effects.y, 1)) { // terrain outline
-			//minDepth = min(minDepth, texelFetch( mapDepthTex, ivec2(gl_FragCoord.xy), 0 ).r);
 			minDepth = min(minDepth, texture( mapDepthTex, viewPortUV ).r);
 		}
 		if (BITMASK_FIELD(effects.y, 2)) { // units outline
-			//minDepth = min(minDepth, texelFetch( modelsDepthTex, ivec2(gl_FragCoord.xy), 0 ).r);
 			minDepth = min(minDepth, texture( modelsDepthTex, viewPortUV ).r);
 		}
-
-		//float viewWorldZeroHeight =
-
-		//minDepth = max(minDepth, viewWorldZeroHeight);
 
 		#if (DEPTH_CLIP01 == 1)
 			// Nothing. NDC and window/texture space are same for depth
@@ -198,6 +199,15 @@ void main() {
 
 		color += impactColor * impactFactor;
 	}
+
+	//poor man's tonemapping ahead
+	const float maxLuma = 0.5;
+	vec3 yuvColor = RGB2YUV * color.rgb;
+	yuvColor.x = min(yuvColor.x, maxLuma);
+	color.rgb = YUV2RGB * yuvColor;
+
+	const float maxAlpha = 0.5;
+	color.a = min(color.a, maxAlpha);
 
 	gl_FragColor = color;
 }

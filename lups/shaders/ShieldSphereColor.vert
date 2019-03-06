@@ -20,9 +20,8 @@ out Data {
 
 	vec3 viewNormal;
 
-	vec3 viewSunDir;
-	vec3 viewCameraDir;
-	
+	vec3 viewHalfVec;
+
 	vec3 reflectionVec;
 
 	float colormix;
@@ -46,6 +45,8 @@ vec3 Rotate(vec3 p, vec3 axis, float angle)
 	return Rotate(p, RotationQuat(axis, angle));
 }
 
+#define BITMASK_FIELD(value, pos) ((uint(value) & (1u << uint(pos))) != 0u)
+
 void main() {
 	modelPos = gl_Vertex;
 
@@ -54,18 +55,19 @@ void main() {
 	worldPos.xyz += translationScale.xyz;									//translation in world space
 
 	viewPos = viewMat * worldPos;
-	
+
 	vec3 worldNormal = normalize(Rotate(gl_Normal, vec3(0.0, 0.0, 1.0), rotMargin.y));
 	viewNormal = mat3(viewMat) * worldNormal;
 
 	colormix = dot(viewNormal, normalize(viewPos.xyz));
 	colormix = pow(abs(colormix), rotMargin.w);
 
-	viewCameraDir = normalize(-viewPos.xyz);
+	vec3 viewCameraDir = normalize(-viewPos.xyz);
 	vec3 worldCameraDir = mat3(inverseViewMat) * viewCameraDir;
-	
-	viewSunDir = normalize(mat3(viewMat) * sunDir);
-	
+
+	vec3 viewSunDir = normalize(mat3(viewMat) * sunDir);
+	viewHalfVec = viewSunDir + viewCameraDir; //will be normalized in frag shader
+
 	reflectionVec = -reflect(worldCameraDir, worldNormal); //will be normalized in frag shader
 
 	gl_Position = projMat * viewPos;
