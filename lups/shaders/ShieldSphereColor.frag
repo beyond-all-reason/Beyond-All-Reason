@@ -110,6 +110,15 @@ float Hexagon2D(vec2 p, float width, float coreSize) {
 	return smoothstep(coreSize, width, val);
 }
 
+const mat3 RGB2YUV = mat3
+						(0.2126, 0.7152, 0.0722,
+						-0.09991, -0.33609,  0.436,
+						0.615, -0.55861, -0.05639);
+const mat3 YUV2RGB = mat3
+						(1.0, 0.0, 1.28033,
+						1.0, -0.21482, -0.38059,
+						1.0, 2.12798, 0.0);
+
 const float PI = acos(0.0) * 2.0;
 const float PI8 = PI * 8.0;
 
@@ -190,6 +199,15 @@ void main() {
 
 		color += impactColor * impactFactor;
 	}
+
+	//poor man's tonemapping ahead
+	const float maxLuma = 0.5;
+	vec3 yuvColor = RGB2YUV * color.rgb;
+	yuvColor.x = min(yuvColor.x, maxLuma);
+	color.rgb = YUV2RGB * yuvColor;
+
+	const float maxAlpha = 0.5;
+	color.a = min(color.a, maxAlpha);
 
 	gl_FragColor = color;
 }
