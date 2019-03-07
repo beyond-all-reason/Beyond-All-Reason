@@ -3,10 +3,7 @@
 uniform vec4 translationScale;
 uniform vec4 rotMargin;
 
-uniform vec3 sunDir;
-
 uniform mat4 viewMat;
-uniform mat4 inverseViewMat;
 #if 1
 	uniform mat4 projMat;
 #else
@@ -17,12 +14,6 @@ out Data {
 	vec4 modelPos;
 	vec4 worldPos;
 	vec4 viewPos;
-
-	vec3 viewNormal;
-
-	vec3 viewHalfVec;
-
-	vec3 reflectionVec;
 
 	float colormix;
 };
@@ -57,18 +48,10 @@ void main() {
 	viewPos = viewMat * worldPos;
 
 	vec3 worldNormal = normalize(Rotate(gl_Normal, vec3(0.0, 0.0, 1.0), rotMargin.y));
-	viewNormal = mat3(viewMat) * worldNormal;
+	vec3 viewNormal = mat3(viewMat) * worldNormal;
 
 	colormix = dot(viewNormal, normalize(viewPos.xyz));
 	colormix = pow(abs(colormix), rotMargin.w);
-
-	vec3 viewCameraDir = normalize(-viewPos.xyz);
-	vec3 worldCameraDir = mat3(inverseViewMat) * viewCameraDir;
-
-	vec3 viewSunDir = normalize(mat3(viewMat) * sunDir);
-	viewHalfVec = viewSunDir + viewCameraDir; //will be normalized in frag shader
-
-	reflectionVec = -reflect(worldCameraDir, worldNormal); //will be normalized in frag shader
 
 	gl_Position = projMat * viewPos;
 }

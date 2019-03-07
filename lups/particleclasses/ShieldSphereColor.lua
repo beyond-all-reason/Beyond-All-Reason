@@ -15,7 +15,6 @@ local geometryLists = {}
 local renderBuckets
 local haveTerrainOutline
 local haveUnitsOutline
-local haveEnvironmentReflection
 
 local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 local shieldShader
@@ -73,7 +72,6 @@ function ShieldSphereColorParticle:BeginDraw()
 	renderBuckets = {}
 	haveTerrainOutline = false
 	haveUnitsOutline = false
-	haveEnvironmentReflection = false
 end
 
 function ShieldSphereColorParticle:Draw()
@@ -87,7 +85,6 @@ function ShieldSphereColorParticle:Draw()
 
 	haveTerrainOutline = haveTerrainOutline or self.terrainOutline
 	haveUnitsOutline = haveUnitsOutline or self.unitsOutline
-	haveEnvironmentReflection = haveEnvironmentReflection or self.environmentReflection
 end
 
 -- Lua limitations only allow to send 24 bits. Should be enough :)
@@ -109,17 +106,12 @@ function ShieldSphereColorParticle:EndDraw()
 		gl.Texture(1, "$model_gbuffer_zvaltex")
 	end
 
-	if haveEnvironmentReflection then
-		gl.Texture(2, "$reflection")
-	end
-
 	local gf = Spring.GetGameFrame()
 
 	shieldShader:ActivateWith(function ()
 		shieldShader:SetUniformFloat("gameFrame", gf)
 		shieldShader:SetUniformFloat("viewPortSize", vsx, vsy)
 		shieldShader:SetUniformMatrix("viewMat", "view")
-		shieldShader:SetUniformMatrix("inverseViewMat", "viewinverse")
 		shieldShader:SetUniformMatrix("projMat", "projection")
 
 		for _, rb in pairs(renderBuckets) do
@@ -132,17 +124,15 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("translationScale", posx, posy, posz, info.radius)
 				shieldShader:SetUniformFloat("rotMargin", pitch, yaw, roll, info.margin)
 
-				local optionY = 0 -- bitmask field
-				optionY = EncodeBitmaskField(optionY, info.terrainOutline, 1)
-				optionY = EncodeBitmaskField(optionY, info.unitsOutline, 2)
-				optionY = EncodeBitmaskField(optionY, info.environmentSpecularReflection, 3)
-				optionY = EncodeBitmaskField(optionY, info.impactAnimation, 4)
-				optionY = EncodeBitmaskField(optionY, info.bandedNoise, 5)
+				local optionX = 0 -- bitmask field
+				optionX = EncodeBitmaskField(optionX, info.terrainOutline, 1)
+				optionX = EncodeBitmaskField(optionX, info.unitsOutline, 2)
+				optionX = EncodeBitmaskField(optionX, info.impactAnimation, 3)
+				optionX = EncodeBitmaskField(optionX, info.impactChrommaticAberrations, 4)
+				optionX = EncodeBitmaskField(optionX, info.impactHexSwirl, 5)
+				optionX = EncodeBitmaskField(optionX, info.bandedNoise, 6)
 
-				shieldShader:SetUniformInt("effects",
-					((info.specularExp and info.specularExp > 0) and math.floor(info.specularExp)) or 0,
-					optionY
-				)
+				shieldShader:SetUniformInt("effects", optionX)
 
 				local col1, col2 = GetShieldColor(info.unit, info)
 				shieldShader:SetUniformFloat("color1", col1[1], col1[2], col1[3], col1[4])
@@ -182,10 +172,6 @@ function ShieldSphereColorParticle:EndDraw()
 		gl.Texture(1, false)
 	end
 
-	if haveEnvironmentReflection then
-		gl.Texture(2, false)
-	end
-
 	gl.DepthTest(true)
 	gl.DepthMask(true)
 end
@@ -210,7 +196,6 @@ function ShieldSphereColorParticle:Initialize()
 			reflectionTex = 2,
 		},
 		uniformFloat = {
-			sunDir = { gl.GetSun("pos") },
 		}
 	}, "ShieldSphereColor")
 	shieldShader:Initialize()

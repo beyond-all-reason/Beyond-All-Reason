@@ -10,10 +10,10 @@ local ShieldSphereBase = {
 	terrainOutline = true,
 	unitsOutline = true,
 	impactAnimation = true,
+	impactChrommaticAberrations = true,
+	impactHexSwirl = true,
+	--
 	bandedNoise = true,
-	
-	environmentSpecularReflection = true,
-	specularExp = 0, --integer!!! Set to 0 to disable
 }
 
 local SEARCH_SMALL = {

@@ -5,11 +5,10 @@
 
 uniform sampler2D mapDepthTex;
 uniform sampler2D modelsDepthTex;
-uniform samplerCube reflectionTex;
 
 uniform vec2 viewPortSize;
 
-uniform ivec2 effects;
+uniform int effects;
 
 uniform vec4 color1;
 uniform vec4 color2;
@@ -20,7 +19,6 @@ uniform vec4 color2;
 	#define projMat gl_ProjectionMatrix
 #endif
 
-uniform mat4 inverseViewMat;
 uniform float gameFrame;
 
 uniform vec4 translationScale;
@@ -35,12 +33,6 @@ in Data {
 	vec4 modelPos;
 	vec4 worldPos;
 	vec4 viewPos;
-
-	vec3 viewNormal;
-
-	vec3 viewHalfVec;
-
-	vec3 reflectionVec;
 
 	float colormix;
 };
@@ -198,7 +190,7 @@ void main() {
 	valueNoiseVec.y += gameFrame * valueNoiseMovePace;
 	float valueNoise = Value3D(valueNoiseVec);
 
-	if (BITMASK_FIELD(effects.y, 5)) {
+	if (BITMASK_FIELD(effects, 6)) {
 		const float perlinNoiseMovePace = 0.0005;
 		float waveFront = mod(-gameFrame * 0.005, 1.0);
 
@@ -214,38 +206,16 @@ void main() {
 		color = pow(color, vec4(1.0 - pb));
 	}
 
-	if (effects.x > 0) { // specular highlights
-		const float specularStrength = 1.0;
-
-		vec4 specularColor = vec4(0.0, 0.0, 0.0, 0.8);
-
-		if (BITMASK_FIELD(effects.y, 3)) { // environment reflection
-			vec3 reflectionColor = texture(reflectionTex, normalize(reflectionVec)).rgb;
-			specularColor.rgb += reflectionColor;
-		}
-
-		vec3 sunColor = vec3(1.0, 1.0, 1.0);
-		specularColor.rgb += sunColor;
-
-		float specularFactor = pow(max(dot( normalize(viewNormal), normalize(viewHalfVec) ), 0.0), float(effects.x));
-		specularFactor *= float(effects.x + 8) / PI8; // http://www.rorydriscoll.com/2009/01/25/energy-conservation-in-games/
-		specularFactor *= mix(0.9, 1.0, valueNoise);
-
-		specularFactor *= specularStrength;
-
-		color = mix(color, specularColor, specularFactor);
-	}
-
-	if (BITMASK_FIELD(effects.y, 1) || BITMASK_FIELD(effects.y, 2)) {
+	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
 		const float outlineEffectSize = 14.0;
 		const float outlineAlpha = 0.45;
 
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
-		if (BITMASK_FIELD(effects.y, 1)) { // terrain outline
+		if (BITMASK_FIELD(effects, 1)) { // terrain outline
 			minDepth = min(minDepth, texture( mapDepthTex, viewPortUV ).r);
 		}
-		if (BITMASK_FIELD(effects.y, 2)) { // units outline
+		if (BITMASK_FIELD(effects, 2)) { // units outline
 			minDepth = min(minDepth, texture( modelsDepthTex, viewPortUV ).r);
 		}
 
@@ -261,7 +231,7 @@ void main() {
 		color.a = mix(color.a, outlineAlpha, outlineFactor);
 	}
 
-	if (BITMASK_FIELD(effects.y, 4)) { // impact animation
+	if (BITMASK_FIELD(effects, 3)) { // impact animation
 		const vec4 impactColor = vec4(0.5);
 		vec4 impactFactor = vec4(0.0);
 		for (int i = 0; i < impactInfo.count; ++i) {
@@ -271,12 +241,16 @@ void main() {
 
 			float centerFactor = pow(thisImpactFactor.r, 6.0);
 
-			// 0.1 * PI * centerFactor -- swirl a bit
-			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), 0.2 * PI * centerFactor);
+			//-- swirl a bit
+			float impactRoll = 0.2 * PI * centerFactor;
+			impactRoll *= float(BITMASK_FIELD(effects, 5));
+
+			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), impactRoll);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
 			impactNoiseVec *= 48.0;
 
 			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
+			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));
 
 			// Make chormatic aberation effect around the impact point
 			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x, noiseVecOffset.y), 0.2, 0.2);
