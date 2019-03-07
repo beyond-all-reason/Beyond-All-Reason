@@ -52,19 +52,19 @@ local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 
 local normalUnitIconSize = {
-	isx = 41,isy = 41, --icon size
-	ix = 5,iy = 8, --icons x/y
-}
-local largeUnitIconSize = {
 	isx = 47,isy = 47, --icon size
 	ix = 5,iy = 7, --icons x/y
 }
 local normalOrderIconSize = {
-	isx = 41,isy = 33, --icon size
+	isx = 47,isy = 33, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
+local largeUnitIconSize = {
+	isx = 54.5,isy = 54.5, --icon size
+	ix = 5,iy = 6, --icons x/y
+}
 local largeOrderIconSize = {
-	isx = 47,isy = 33, --icon size
+	isx = 54.5,isy = 33, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local Config = {

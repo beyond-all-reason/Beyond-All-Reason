@@ -24,7 +24,7 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local Config = {
 	tooltip = {
 		px = -0.5,py = CanvasY-75, --default start position
-		sx = 270,sy = 75, --background size
+		sx = 283,sy = 75, --background size
 		
 		fontsize = 10.5,
 		
