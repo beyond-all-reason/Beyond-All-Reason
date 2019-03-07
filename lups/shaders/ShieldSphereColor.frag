@@ -252,7 +252,7 @@ void main() {
 		#if (DEPTH_CLIP01 == 1)
 			// Nothing. NDC and window/texture space are same for depth
 		#else
-			float minDepth = NORM2SNORM(minDepth);
+			minDepth = NORM2SNORM(minDepth);
 		#endif
 
 		float minDepthView = GetViewSpaceDepth( minDepth );
