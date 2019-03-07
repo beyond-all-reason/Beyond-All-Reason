@@ -265,6 +265,8 @@ end
 
 local AOE_SAME_SPOT = AOE_MAX / 5
 
+local HIT_POINT_FOLLOWS_PROJECTILE = false
+
 --x, y, z here are normalized vectors
 local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 	local hitData = unitData.hitData
@@ -284,7 +286,9 @@ local function DoAddShieldHitData(unitData, hitFrame, dmg, x, y, z, onlyMove)
 				found = true
 
 				if onlyMove then
-					hitInfo.x, hitInfo.y, hitInfo.z = x, y, z
+					if HIT_POINT_FOLLOWS_PROJECTILE then
+						hitInfo.x, hitInfo.y, hitInfo.z = x, y, z
+					end
 					hitInfo.dmg = dmg
 				else
 					--this vector is very likely normalized :)
