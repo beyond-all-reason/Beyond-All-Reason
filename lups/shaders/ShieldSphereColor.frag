@@ -182,11 +182,9 @@ void main() {
 	vec4 color;
 	color = mix(color1, color2, colormix);
 
-	vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
+	const float valueNoiseMovePace = 0.25;
 
-	const float valueNoiseMovePace = 1.0;
-
-	vec3 valueNoiseVec = modelPos.xyz * 512.0;
+	vec3 valueNoiseVec = modelPos.xyz * translationScale.www;
 	valueNoiseVec.y += gameFrame * valueNoiseMovePace;
 	float valueNoise = Value3D(valueNoiseVec);
 
@@ -233,6 +231,9 @@ void main() {
 
 	if (BITMASK_FIELD(effects, 3)) { // impact animation
 		const vec4 impactColor = vec4(0.5);
+
+		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
+
 		vec4 impactFactor = vec4(0.0);
 		for (int i = 0; i < impactInfo.count; ++i) {
 			vec3 worldImpactVec = normalize(impactInfo.impactInfoArray[i].xyz);

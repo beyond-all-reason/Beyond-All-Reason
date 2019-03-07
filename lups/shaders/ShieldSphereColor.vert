@@ -18,25 +18,20 @@ out Data {
 	float colormix;
 };
 
-vec4 RotationQuat(vec3 axis, float angle)
-{
+vec4 RotationQuat(vec3 axis, float angle) {
 	//axis = normalize(axis);
 	float c = cos(0.5 * angle);
 	float s = sqrt(1.0 - c * c);
 	return vec4(axis.x * s, axis.y * s, axis.z * s, c);
 }
 
-vec3 Rotate(vec3 p, vec4 q)
-{
+vec3 Rotate(vec3 p, vec4 q) {
 	return p + 2.0 * cross(q.xyz, cross(q.xyz, p) + q.w * p);
 }
 
-vec3 Rotate(vec3 p, vec3 axis, float angle)
-{
+vec3 Rotate(vec3 p, vec3 axis, float angle) {
 	return Rotate(p, RotationQuat(axis, angle));
 }
-
-#define BITMASK_FIELD(value, pos) ((uint(value) & (1u << uint(pos))) != 0u)
 
 void main() {
 	modelPos = gl_Vertex;
