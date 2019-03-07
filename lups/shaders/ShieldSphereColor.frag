@@ -207,7 +207,7 @@ void main() {
 
 		float perlin = 0.65 * abs(SimplexPerlin3D(perlinNoiseVec * 31.0)) + 0.35 * abs(SimplexPerlin3D(perlinNoiseVec * 63.0));
 
-		float band = SNORM2NORM(cos((modelPos.y - waveFront)*PI*4.0));
+		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
 		float pb = pow( clamp(perlin * band, 0.0, 0.95), 0.8 );
 

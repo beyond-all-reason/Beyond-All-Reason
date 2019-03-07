@@ -156,13 +156,17 @@ function ShieldSphereParticle:Initialize()
 				return sqrt (ddMin);
 			}
 
+			#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
 			void main(void)
 			{
-				float fibRaw = SphFib1(modelPos.xyz, 384.0 + 128.0 * sin(gameFrame * 0.03) );
-				float fib = pow(smoothstep(0.1, 0.0, fibRaw), 3.0);
+				float waveFront = mod(-gameFrame * 0.005, 1.0);
+				float band = SNORM2NORM(cos((modelPos.y - waveFront) * pi * 4.0));
+				float fibRaw = SphFib1(-modelPos.xzy, 384.0 + 128.0 * sin(gameFrame * 0.0025) );
+				float fib = pow(smoothstep(0.1, 0.0, fibRaw * band), 3.0);
 
-				gl_FragColor = mix(color1,color2,opac);
-				gl_FragColor = pow(gl_FragColor, vec4(1.1 - fib));
+				gl_FragColor = mix(color1, color2, opac);
+				gl_FragColor = pow(gl_FragColor, vec4(1.4 - fib));
 			}
 
 		]],
