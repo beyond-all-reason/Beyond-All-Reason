@@ -137,6 +137,7 @@ function ShieldSphereColorParticle:EndDraw()
 				optionY = EncodeBitmaskField(optionY, info.unitsOutline, 2)
 				optionY = EncodeBitmaskField(optionY, info.environmentSpecularReflection, 3)
 				optionY = EncodeBitmaskField(optionY, info.impactAnimation, 4)
+				optionY = EncodeBitmaskField(optionY, info.bandedNoise, 5)
 
 				shieldShader:SetUniformInt("effects",
 					((info.specularExp and info.specularExp > 0) and math.floor(info.specularExp)) or 0,
