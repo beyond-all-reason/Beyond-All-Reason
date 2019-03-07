@@ -192,9 +192,9 @@ void main() {
 
 	vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 
-	const float valueNoiseMovePace = 0.4;
+	const float valueNoiseMovePace = 1.0;
 
-	vec3 valueNoiseVec = worldPos.xyz;
+	vec3 valueNoiseVec = modelPos.xyz * 512.0;
 	valueNoiseVec.y += gameFrame * valueNoiseMovePace;
 	float valueNoise = Value3D(valueNoiseVec);
 
