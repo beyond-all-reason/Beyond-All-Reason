@@ -195,7 +195,7 @@ void main() {
 		vec3 perlinNoiseVec = modelPos.xyz;
 		perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
-		float perlin = 0.65 * abs(SimplexPerlin3D(perlinNoiseVec * 31.0)) + 0.35 * abs(SimplexPerlin3D(perlinNoiseVec * 63.0));
+		float perlin = 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 31.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 63.0));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
@@ -205,8 +205,8 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
-		const float outlineEffectSize = 14.0;
-		const float outlineAlpha = 0.45;
+		const float outlineEffectSize = 28.0;
+		const float outlineAlpha = 0.4;
 
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
@@ -248,7 +248,7 @@ void main() {
 
 			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), impactRoll);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
-			impactNoiseVec *= 48.0;
+			impactNoiseVec *= 40.0;
 
 			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
 			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));

@@ -63,13 +63,13 @@ for unitDefID = 1, #UnitDefs do
 			myShield.drawBack = 0.6
 			myShield.drawBackMargin = 3
 			myShield.margin = 0.35
-			myShield.hitResposeMult = 0.6
+			myShield.hitResposeMult = 0--0.6
 		else
 			myShield.shieldSize = "small"
 			myShield.drawBack = 0.9
 			myShield.drawBackMargin = 1.9
 			myShield.margin = 0.2
-			myShield.hitResposeMult = 1
+			myShield.hitResposeMult = 0--1
 		end
 		myShield.radius = radius
 		myShield.pos = {0, tonumber(ud.customParams.shield_emit_height) or 0, tonumber(ud.customParams.shield_emit_offset) or 0}
