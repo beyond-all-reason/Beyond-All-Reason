@@ -203,7 +203,7 @@ void main() {
 		vec3 perlinNoiseVec = modelPos.xyz;
 		perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
-		float perlin = 0.4 * abs(SimplexPerlin3D(perlinNoiseVec * 50.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 0.13));
+		float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 50.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 0.5));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
