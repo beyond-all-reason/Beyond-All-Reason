@@ -90,7 +90,7 @@ function ShieldSphereParticle:Draw()
 	glMultiTexCoord(2, color[1], color[2], color[3], color[4] or 1)
 	local pos = self.pos
 	glMultiTexCoord(3, pos[1], pos[2], pos[3], 0)
-	glMultiTexCoord(4, self.margin, self.size, gameFrame, 1)
+	glMultiTexCoord(4, self.margin, self.size, gameFrame, self.unit / 65535.0)
 
 	glCallList(sphereList)
 end
@@ -110,10 +110,12 @@ function ShieldSphereParticle:Initialize()
 			varying vec4 color1;
 			varying vec4 color2;
 			varying vec4 modelPos;
+			varying float unitID;
 
 			void main()
 			{
 				gameFrame = gl_MultiTexCoord4.z;
+				unitID = gl_MultiTexCoord4.w;
 				modelPos = gl_Vertex;
 				gl_Position = gl_ModelViewProjectionMatrix * (modelPos * size + pos);
 				vec3 normal = gl_NormalMatrix * gl_Normal;
@@ -131,11 +133,15 @@ function ShieldSphereParticle:Initialize()
 			varying vec4 color1;
 			varying vec4 color2;
 			varying vec4 modelPos;
+			varying float unitID;
 
 			const float PI = acos(0.0) * 2.0;
 
-			float rand(vec2 c){
-				return fract(sin(dot(c.xy, vec2(12.9898, 78.233))) * 43758.5453);
+			float hash13(vec3 p3) {
+				const float HASHSCALE1 = 44.38975;
+				p3  = fract(p3 * HASHSCALE1);
+				p3 += dot(p3, p3.yzx + 19.19);
+				return fract((p3.x + p3.y) * p3.z);
 			}
 
 			float noise(vec2 p){
@@ -143,10 +149,10 @@ function ShieldSphereParticle:Initialize()
 				vec2 xy = fract(p);
 				xy = 3.0 * xy * xy - 2.0 * xy * xy * xy;
 				//xy = 0.5 * (1.0 - cos(PI * xy));
-				float a = rand((ij + vec2(0.0, 0.0)));
-				float b = rand((ij + vec2(1.0, 0.0)));
-				float c = rand((ij + vec2(0.0, 1.0)));
-				float d = rand((ij + vec2(1.0, 1.0)));
+				float a = hash13(vec3(ij + vec2(0.0, 0.0), unitID));
+				float b = hash13(vec3(ij + vec2(1.0, 0.0), unitID));
+				float c = hash13(vec3(ij + vec2(0.0, 1.0), unitID));
+				float d = hash13(vec3(ij + vec2(1.0, 1.0), unitID));
 				float x1 = mix(a, b, xy.x);
 				float x2 = mix(c, d, xy.x);
 				return mix(x1, x2, xy.y);
@@ -154,8 +160,8 @@ function ShieldSphereParticle:Initialize()
 
 			float fbm(vec2 P)
 			{
-				const int octaves = 3;
-				const float lacunarity = 2.1;
+				const int octaves = 2;
+				const float lacunarity = 1.5;
 				const float gain = 0.49;
 
 				float sum = 0.0;
@@ -178,28 +184,22 @@ function ShieldSphereParticle:Initialize()
 
 			#define time (gameFrame * 0.03333333)
 
-			vec3 LightningOrb(vec2 vUv) {
+			vec3 LightningOrb(vec2 vUv, vec3 color) {
 				vec2 uv = NORM2SNORM(vUv);
 
-				vec3 finalColor = vec3( 0.0 );
-				const float inverseStrength = 65.0;
-				const float colorIntensity = 0.1;
+				const float strength = 0.01;
+				const float dx = 0.1;
 
-				for( int i=1; i < 4; ++i )
-				{
-					float hh = float(i) * colorIntensity;
+				float t = 0.0;
 
-					float t = 0.0;
-
-					t += abs(1.0 / ((uv.x + 0.3 + fbm( uv + time/float(i))) * inverseStrength));
-					t += abs(1.0 / ((uv.x - 0.1 + fbm( uv + time/float(i))) * inverseStrength));
-					t += abs(1.0 / ((uv.x - 0.4 + fbm( uv + time/float(i))) * inverseStrength));
-					t += abs(1.0 / ((uv.x - 0.8 + fbm( uv + time/float(i))) * inverseStrength));
-					t += abs(1.0 / ((uv.x - 1.2 + fbm( uv + time/float(i))) * inverseStrength));
-
-					finalColor +=  t * vec3( hh + 0.1, 0.3, 1.0 );
+				for (int k = -4; k < 14; ++k) {
+					vec2 thisUV = uv;
+					thisUV.x -= dx * float(k);
+					thisUV.y += float(k);
+					t += abs(strength / ((thisUV.x + fbm( thisUV + time))));
 				}
-				return finalColor;
+
+				return color * t;
 			}
 
 			vec2 RadialCoords(vec3 a_coords)
@@ -216,7 +216,7 @@ function ShieldSphereParticle:Initialize()
 				gl_FragColor = mix(color1, color2, opac);
 
 				vec2 vUv = (RadialCoords(modelPos.xyz));
-				vec3 orbColor = LightningOrb(vUv);
+				vec3 orbColor = LightningOrb(vUv, gl_FragColor.rgb);
 
 				gl_FragColor.rgb = max(gl_FragColor.rgb, orbColor * orbColor);
 				gl_FragColor.a = length(gl_FragColor.rgb);
