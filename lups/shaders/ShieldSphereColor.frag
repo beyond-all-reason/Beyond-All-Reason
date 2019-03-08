@@ -198,12 +198,12 @@ void main() {
 
 	if (BITMASK_FIELD(effects, 6)) {
 		const float perlinNoiseMovePace = 0.0005;
-		float waveFront = mod(-gameFrame * 0.005, 1.0);
+		float waveFront = mod(-gameFrame * 0.0025, 1.0);
 
 		vec3 perlinNoiseVec = modelPos.xyz;
 		perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
-		float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 31.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 63.0));
+		float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 50.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 0.1));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
