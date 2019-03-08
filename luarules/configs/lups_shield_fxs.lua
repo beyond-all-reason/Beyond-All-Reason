@@ -13,6 +13,7 @@ local ShieldSphereBase = {
 	impactChrommaticAberrations = true,
 	impactHexSwirl = true,
 	impactScaleWithDistance = true,
+	impactRipples = true,
 	--
 	bandedNoise = true,
 }

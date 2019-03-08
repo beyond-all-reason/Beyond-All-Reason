@@ -166,6 +166,13 @@ float Hexagon2D(vec2 p, float edge0, float edge1) {
 	return smoothstep(edge0, edge1, val);
 }
 
+vec2 GetRippleOffset(vec3 thisPoint, vec3 impactPoint, float magMult) {
+	vec2 dir = thisPoint.xy - impactPoint.xy;
+	float dist = dot(thisPoint, impactPoint);
+	vec2 offset = dir * SNORM2NORM( sin(-dist * 1024.0 + gameFrame * 8.0) ) * 1.0 * magMult;
+	return offset;
+}
+
 const mat3 RGB2YUV = mat3
 						(0.2126, 0.7152, 0.0722,
 						-0.09991, -0.33609,  0.436,
@@ -236,8 +243,8 @@ void main() {
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 
 		vec2 cameraDistanceFactors = vec2(1.0);
-		if (BITMASK_FIELD(effects, 7)) {
-			cameraDistanceFactors = vec2(1.0 + 2.0 * normalizedFragDepth, 1.0 + 4.0 * normalizedFragDepth);
+		if (BITMASK_FIELD(effects, 7)) { // impactScaleWithDistance
+			cameraDistanceFactors = vec2(1.0 + 1.0 * normalizedFragDepth, 1.0 + 6.0 * normalizedFragDepth);
 		}
 
 		vec4 impactFactor = vec4(0.0);
@@ -254,6 +261,13 @@ void main() {
 
 			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), impactRoll);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
+
+			if (BITMASK_FIELD(effects, 8)) { // impactRipples
+				vec2 rippleOffset = GetRippleOffset(impactNoiseVec, vec3(0.0, 0.0, 1.0), thisImpactFactor.r);
+				impactNoiseVec.xy += rippleOffset;
+				thisImpactFactor *= 1.0 + length(rippleOffset) * 20.0;
+			}
+
 			impactNoiseVec *= 40.0 / cameraDistanceFactors.x;
 
 			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );

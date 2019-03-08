@@ -132,6 +132,7 @@ function ShieldSphereColorParticle:EndDraw()
 				optionX = EncodeBitmaskField(optionX, info.impactHexSwirl, 5)
 				optionX = EncodeBitmaskField(optionX, info.bandedNoise, 6)
 				optionX = EncodeBitmaskField(optionX, info.impactScaleWithDistance, 7)
+				optionX = EncodeBitmaskField(optionX, info.impactRipples, 8)
 
 				shieldShader:SetUniformInt("effects", optionX)
 
