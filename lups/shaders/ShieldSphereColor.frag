@@ -176,6 +176,14 @@ const mat3 YUV2RGB = mat3
 
 const float PI = acos(0.0) * 2.0;
 const float PI8 = PI * 8.0;
+const float PI2_3 = 2.0 * PI / 3.0;
+
+const vec2 chromaticOffsets[3] = vec2[](
+	vec2( 1.0,  0.0),
+	vec2(-0.5,  0.86602540378444),
+	vec2(-0.5, -0.86602540378444)
+);
+
 
 void main() {
 
@@ -250,17 +258,18 @@ void main() {
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
 			impactNoiseVec *= 40.0;
 
-			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
-			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));
+			float chromaticOffset = 0.5 * centerFactor * ( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
+			chromaticOffset *= float(BITMASK_FIELD(effects, 4));
+
 
 			// Make chormatic aberation effect around the impact point
-			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x, noiseVecOffset.y), 0.2, 0.2);
-			thisImpactFactor.g *= Hexagon2D(impactNoiseVec.xy + vec2(-noiseVecOffset.x, -noiseVecOffset.y), 0.2, 0.2);
-			thisImpactFactor.b *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x * noiseVecOffset.y, 0.0), 0.2, 0.2);
+			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + chromaticOffsets[0] * chromaticOffset, 0.2, 0.2);
+			thisImpactFactor.g *= Hexagon2D(impactNoiseVec.xy + chromaticOffsets[1] * chromaticOffset, 0.2, 0.2);
+			thisImpactFactor.b *= Hexagon2D(impactNoiseVec.xy + chromaticOffsets[2] * chromaticOffset, 0.2, 0.2);
 
 			thisImpactFactor *= mix(0.6, 1.0, valueNoise);
 			impactFactor.rgb += thisImpactFactor.rgb;
-			impactFactor.a = 0.333333 * (impactFactor.r + impactFactor.g + impactFactor.b);
+			impactFactor.a = max(impactFactor.r, max(impactFactor.g, impactFactor.b));
 		}
 
 		color += impactColor * impactFactor;

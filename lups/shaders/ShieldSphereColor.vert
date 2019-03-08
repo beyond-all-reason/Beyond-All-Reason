@@ -37,7 +37,7 @@ void main() {
 	modelPos = gl_Vertex;
 
 	worldPos = vec4(translationScale.www * modelPos.xyz, 1.0);				//scaling
-	worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 0.0, 1.0), rotMargin.y);	//rotation around Yaw axis
+	worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y);	//rotation around Yaw axis
 	worldPos.xyz += translationScale.xyz;									//translation in world space
 
 	viewPos = viewMat * worldPos;
