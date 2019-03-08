@@ -238,7 +238,7 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects, 3)) { // impact animation
-		const vec4 impactColor = vec4(0.33);
+		const vec4 impactColor = vec4(0.35);
 
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 
@@ -268,9 +268,9 @@ void main() {
 				thisImpactFactor *= 1.0 + length(rippleOffset) * 10.0;
 			}
 
-			impactNoiseVec *= 42.0 / cameraDistanceFactors.x;
+			impactNoiseVec *= 36.0 / cameraDistanceFactors.x;
 
-			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
+			vec2 noiseVecOffset = 0.8 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
 			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));
 
 			// Make chromatic aberation effect around the impact point
