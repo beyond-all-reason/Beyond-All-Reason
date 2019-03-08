@@ -16,6 +16,7 @@ out Data {
 	vec4 viewPos;
 
 	float colormix;
+	float normalizedFragDepth;
 };
 
 vec4 RotationQuat(vec3 axis, float angle) {
@@ -47,6 +48,10 @@ void main() {
 
 	colormix = dot(viewNormal, normalize(viewPos.xyz));
 	colormix = pow(abs(colormix), rotMargin.w);
+
+	vec2 nearFar = projMat[3][2] / vec2(projMat[2][2] - 1.0, projMat[2][2] + 1.0);
+	normalizedFragDepth = (-viewPos.z - nearFar.x) / (nearFar.y - nearFar.x);
+	normalizedFragDepth = clamp(normalizedFragDepth, 0.0, 1.0);
 
 	gl_Position = projMat * viewPos;
 }

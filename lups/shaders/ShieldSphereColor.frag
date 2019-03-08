@@ -35,6 +35,7 @@ in Data {
 	vec4 viewPos;
 
 	float colormix;
+	float normalizedFragDepth;
 };
 
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
@@ -234,13 +235,18 @@ void main() {
 
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 
+		vec2 cameraDistanceFactors = vec2(1.0);
+		if (BITMASK_FIELD(effects, 7)) {
+			cameraDistanceFactors = vec2(1.0 + 2.0 * normalizedFragDepth, 1.0 + 4.0 * normalizedFragDepth);
+		}
+
 		vec4 impactFactor = vec4(0.0);
 		for (int i = 0; i < impactInfo.count; ++i) {
 			vec3 worldImpactVec = normalize(impactInfo.impactInfoArray[i].xyz);
 			float angleDist = acos( dot(worldVec, worldImpactVec) );
-			vec3 thisImpactFactor = vec3(smoothstep( impactInfo.impactInfoArray[i].w, 0.0, angleDist ));
+			vec3 thisImpactFactor = vec3(smoothstep( impactInfo.impactInfoArray[i].w * cameraDistanceFactors.x, 0.0, angleDist ));
 
-			float centerFactor = pow(thisImpactFactor.r, 6.0);
+			float centerFactor = pow(thisImpactFactor.r, 6.0 / cameraDistanceFactors.y);
 
 			//-- swirl a bit
 			float impactRoll = 0.2 * PI * centerFactor;
@@ -248,7 +254,7 @@ void main() {
 
 			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), impactRoll);
 			vec3 impactNoiseVec = mat3(worldImpactMat) * worldVec;
-			impactNoiseVec *= 40.0;
+			impactNoiseVec *= 40.0 / cameraDistanceFactors.x;
 
 			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
 			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));
