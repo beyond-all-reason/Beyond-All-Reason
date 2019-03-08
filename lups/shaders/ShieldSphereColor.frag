@@ -169,7 +169,7 @@ float Hexagon2D(vec2 p, float edge0, float edge1) {
 vec2 GetRippleOffset(vec3 thisPoint, vec3 impactPoint, float magMult) {
 	vec2 dir = thisPoint.xy - impactPoint.xy;
 	float dist = dot(thisPoint, impactPoint);
-	vec2 offset = dir * SNORM2NORM( sin(-dist * 1024.0 + gameFrame * 8.0) ) * 1.0 * magMult;
+	vec2 offset = dir * SNORM2NORM( sin(-dist * 1024.0 + gameFrame * 0.5) ) * 1.0 * magMult;
 	return offset;
 }
 
@@ -203,18 +203,18 @@ void main() {
 		vec3 perlinNoiseVec = modelPos.xyz;
 		perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
-		float perlin = 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 31.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 63.0));
+		float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 31.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 63.0));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
-		float pb = pow( clamp(perlin * band, 0.0, 0.95), 0.8 );
+		float pb = pow( clamp(perlin * band, 0.0, 0.8), 0.85 );
 
 		color = pow(color, vec4(1.0 - pb));
 	}
 
 	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
 		const float outlineEffectSize = 28.0;
-		const float outlineAlpha = 0.4;
+		const float outlineAlpha = 0.35;
 
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
@@ -238,7 +238,7 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects, 3)) { // impact animation
-		const vec4 impactColor = vec4(0.5);
+		const vec4 impactColor = vec4(0.33);
 
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 
@@ -256,7 +256,7 @@ void main() {
 			float centerFactor = pow(thisImpactFactor.r, 6.0 / cameraDistanceFactors.y);
 
 			//-- swirl a bit
-			float impactRoll = 0.2 * PI * centerFactor;
+			float impactRoll = 0.35 * PI * centerFactor;
 			impactRoll *= float(BITMASK_FIELD(effects, 5));
 
 			mat4 worldImpactMat = CalculateLookAtMatrix(worldImpactVec, vec3(0.0), impactRoll);
@@ -265,15 +265,15 @@ void main() {
 			if (BITMASK_FIELD(effects, 8)) { // impactRipples
 				vec2 rippleOffset = GetRippleOffset(impactNoiseVec, vec3(0.0, 0.0, 1.0), thisImpactFactor.r);
 				impactNoiseVec.xy += rippleOffset;
-				thisImpactFactor *= 1.0 + length(rippleOffset) * 20.0;
+				thisImpactFactor *= 1.0 + length(rippleOffset) * 10.0;
 			}
 
-			impactNoiseVec *= 40.0 / cameraDistanceFactors.x;
+			impactNoiseVec *= 42.0 / cameraDistanceFactors.x;
 
 			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
 			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));
 
-			// Make chormatic aberation effect around the impact point
+			// Make chromatic aberation effect around the impact point
 			thisImpactFactor.r *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x, noiseVecOffset.y), 0.2, 0.2);
 			thisImpactFactor.g *= Hexagon2D(impactNoiseVec.xy + vec2(-noiseVecOffset.x, -noiseVecOffset.y), 0.2, 0.2);
 			thisImpactFactor.b *= Hexagon2D(impactNoiseVec.xy + vec2(noiseVecOffset.x * noiseVecOffset.y, 0.0), 0.2, 0.2);

@@ -11,7 +11,7 @@ local ShieldSphereBase = {
 	unitsOutline = true,
 	impactAnimation = true,
 	impactChrommaticAberrations = true,
-	impactHexSwirl = true,
+	impactHexSwirl = false,
 	impactScaleWithDistance = true,
 	impactRipples = true,
 	--
