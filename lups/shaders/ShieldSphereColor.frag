@@ -159,13 +159,13 @@ float SimplexPerlin3D( vec3 P ) {
 }
 
 float StrangeSurface(vec3 snormPos, float mult, float time) {
-	const float MAX_ITER = 2.0;
+	const float MAX_ITER = 1.5;
 
 	vec2 p = snormPos.xz*(2.0 - abs(snormPos.y)) * mult;
 
 	vec2 i = p;
 	float c = 0.0;
-	float inten = 0.15;
+	float inten = 0.04;
     float r = length(p+vec2(sin(time),sin(time*0.433+2.))*3.);
 
 	for (float n = 0.0; n < MAX_ITER; n++) {
@@ -235,7 +235,7 @@ void main() {
 		//perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
 		//float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 50.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 0.5));
-		float perlin = 1.5 * abs(StrangeSurface(modelPos.xyz, 50.0, gameFrame * perlinNoiseMovePace));
+		float perlin = 1.2 * abs(StrangeSurface(modelPos.xyz, 50.0, gameFrame * perlinNoiseMovePace));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
