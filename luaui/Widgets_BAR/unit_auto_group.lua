@@ -35,6 +35,8 @@ include("keysym.h.lua")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local debug = false --of true generates debug messages
 local unit2group = {} -- list of unit types to group
 
@@ -120,6 +122,12 @@ function printDebug( value )
 	if ( debug ) then Echo( value ) end
 end
 
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+end
 
 function widget:GameStart()
     gameStarted = true
@@ -150,7 +158,9 @@ function widget:Initialize()
     dlists = {}
     for i=0, 9 do
         dlists[i] = gl.CreateList(function()
-            gl.Text("\255\200\255\200" .. i, 20.0, -10.0, textSize, "cns")
+			font:Begin()
+			font:Print()("\255\200\255\200" .. i, 20.0, -10.0, textSize, "cns")
+			font:End()
         end)
     end
 end

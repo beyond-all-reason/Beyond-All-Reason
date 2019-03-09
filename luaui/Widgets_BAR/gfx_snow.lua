@@ -19,6 +19,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at
 local particleSteps				= 14		-- max steps in diminishing number of particles	(dont use too much steps, creates extra dlist for each step)
@@ -359,8 +361,10 @@ function widget:Initialize()
 		--local textWidth = gl.GetTextWidth(text)*fontSize
 		local textHeight = gl.GetTextHeight(text)*fontSize
 		--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
-		gl.Text(text, 0, textHeight/2, fontSize, "c")
-		gl.Text(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
+		font:Begin()
+		font:Print(text, 0, textHeight/2, fontSize, "c")
+		font:Print(text2, 0, -textHeight/1.6, fontSize*0.8, "c")
+		font:End()
 	end)
 	
 	startOsClock = os.clock()
@@ -526,6 +530,8 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 	widgetScale = (0.55 + (vsx*vsy / 10000000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
 		gameFrameCountdown = 80

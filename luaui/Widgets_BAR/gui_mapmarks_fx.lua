@@ -15,6 +15,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local commands					= {}
 local mapDrawNicknameTime		= {}	-- this table is used to filter out previous map drawing nicknames if user has drawn something new
 local mapEraseNicknameTime		= {}
@@ -116,6 +118,12 @@ end
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
 
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+end
 
 function widget:Initialize()
 	
@@ -179,6 +187,7 @@ function widget:DrawWorldPreUnit()
 	gl.PushMatrix()
 	
 	local duration, durationProcess, size, a, glowColor, ringColor, aRing, ringSize, iconSize
+
 	for cmdKey, cmdValue in pairs(commands) do
 		
 		duration		= types[cmdValue.cmdType].duration * generalDuration
@@ -248,7 +257,9 @@ function widget:DrawWorldPreUnit()
 					
 					gl.PushMatrix()
 					gl.Billboard()
-					gl.Text(cmdValue.nickname, 0, -28, 20, "cn")
+					font:Begin()
+					font:Print(cmdValue.nickname, 0, -28, 20, "cn")
+					font:End()
 					gl.PopMatrix()
 				end
 			end

@@ -28,6 +28,8 @@ local pauseWhenPaused = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
 
@@ -285,8 +287,9 @@ local function createList()
 	    	text = text..c
 	    end
 		end
-		glText('\255\135\135\135'..text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
-		
+		font:Begin()
+		font:Print('\255\135\135\135'..text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
 		
@@ -612,13 +615,16 @@ function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		
+
+		if widgetScale ~= advplayerlistPos[5] then
+			local fontScale = widgetScale/2
+			font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+		end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
 		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
 		widgetScale = advplayerlistPos[5]
-		
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
 		end

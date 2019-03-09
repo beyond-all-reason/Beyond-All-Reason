@@ -44,6 +44,7 @@ end
 -- enable simple version by default though
 local drawGroundQuads = true
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -220,8 +221,10 @@ function widget:Initialize()
   end
 
   infotextList = gl.CreateList(function()
-		gl.Color(1,1,1,0.5)
-		gl.Text(infotext, 0,0, infotextFontsize, "cno")
+    font:Begin()
+    font:SetTextColor(1,1,1,0.5)
+    font:Print(infotext, 0,0, infotextFontsize, "cno")
+    font:End()
   end)
   
   -- get the gaia teamID and allyTeamID
@@ -552,6 +555,8 @@ function widget:ViewResize(x, y)
   widgetScale = (0.75 + (vsx*vsy / 7500000))
   removeTeamLists()
   usedFontSize = fontSize/1.44 + (fontSize * ((vsx*vsy / 10000000)))
+  local fontScale = widgetScale/2
+  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 end
 
 

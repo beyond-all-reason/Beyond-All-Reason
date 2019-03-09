@@ -30,6 +30,8 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 ------------------------------------------------------------
 -- Config
 ------------------------------------------------------------
@@ -668,7 +670,9 @@ function widget:DrawScreen()
 			local mCost, eCost, bCost = GetQueueCosts()
 			local buildTime = bCost / sDef.buildSpeed
 			totalTime = buildTime
-			gl.Text(string.format(queueTimeFormat, mCost, eCost, buildTime), 0, margin*widgetScale, fontSize*widgetScale, 'do')
+			font:Begin()
+			font:Print(string.format(queueTimeFormat, mCost, eCost, buildTime), 0, margin*widgetScale, fontSize*widgetScale, 'do')
+			font:End()
 		end
 		
 		-- draw hover
@@ -1107,6 +1111,8 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 	widgetScale = (0.6 + (vsx*vsy / 4000000)) * customScale
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 	processGuishader()
 	
 	local sBuilds = UnitDefs[sDefID].buildOptions

@@ -13,6 +13,8 @@ function widget:GetInfo()
   }
 end
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 ----------------------------------------------------------------
 --config
 ----------------------------------------------------------------
@@ -202,8 +204,10 @@ function widget:DrawScreen()
 					end
 				end
 				glShape(GL_TRIANGLES, vertices)
-				glColor(1, 1, 1, alpha)
-				glText(curr[5], textX, textY, fontSize, textOptions)
+				font:Begin()
+				font:SetTextColor(1, 1, 1, alpha)
+				font:Print(curr[5], textX, textY, fontSize, textOptions)
+				font:End()
 			end
 			i = i + 1
 		end
@@ -214,9 +218,11 @@ function widget:DrawScreen()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx = viewSizeX
-	vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
   sMidX = viewSizeX * 0.5
   sMidY = viewSizeY * 0.5
 end

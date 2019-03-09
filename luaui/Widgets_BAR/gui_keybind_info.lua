@@ -11,8 +11,8 @@ return {
 }
 end
 
-local loadedFontSize = 32
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local loadedFontSize = 52
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -63,6 +63,9 @@ function widget:ViewResize()
 	screenX = (vsx*0.5) - (screenWidth/2)
 	screenY = (vsy*0.5) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	loadedFontSize = 52*fontScale
 	if keybinds then gl.DeleteList(keybinds) end
 	keybinds = gl.CreateList(DrawWindow)
 end
@@ -147,6 +150,7 @@ function DrawTextTable(t,x,y)
     local j = 0
     local height = 0
     local width = 0
+	font:Begin()
     for _,t in pairs(t) do
       if t.blankLine then
         -- nothing here
@@ -154,20 +158,21 @@ function DrawTextTable(t,x,y)
         -- title line
         local title = t[1] or ""
         local line = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
-        gl.Text(line, x+4, y-((13)*j)+5, 14)
+		font:Print(line, x+4, y-((13)*j)+5, 14)
 		screenWidth = math.max(glGetTextWidth(line)*13,screenWidth)
       else
         -- keybind line
         local bind = string.upper(t[1]) or ""
         local effect = t[2] or ""
         local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. effect
-        gl.Text(line, x+14, y-(13)*j, 11)
+		font:Print(line, x+14, y-(13)*j, 11)
 		width = math.max(glGetTextWidth(line)*11,width)
       end
       height = height + 13
       
 	  j = j + 1
     end
+	font:End()
     --screenHeight = math.max(screenHeight, height)
     --screenWidth = screenWidth + width
     return x,j
@@ -217,7 +222,9 @@ function DrawWindow()
     DrawTextTable(Units_III,x,y-24)
 	
     gl.Color(1,1,1,1)
-    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
+	font:Begin()
+    font:Print("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
+	font:End()
 end
 
 

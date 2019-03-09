@@ -13,6 +13,8 @@ end
 
 local loadSettings		= true
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 ---------------------------------------------------------------------------------------------------
 --  Declarations
 ---------------------------------------------------------------------------------------------------
@@ -723,9 +725,12 @@ local function DrawOptionRibbon()
 	--glRect(x0,widgetPosY, x1, widgetPosY -h)
 	local padding = 2*sizeMultiplier
 	RectRound(x0-padding, yPos -h-padding, x1+padding, yPos+padding, 6*sizeMultiplier)
-	glColor(0.8,0.8,1,0.8)
-	glText("Show resource text:", x0+(10*sizeMultiplier), Options["resText"]["y1"]+4,textsize)
-	glText("Stick to Top Bar widget:", x0+(10*sizeMultiplier), Options["sticktotopbar"]["y1"]+4,textsize)
+
+	font:Begin()
+	font:SetTextColor(0.8,0.8,1,0.8)
+	font:Print("Show resource text:", x0+(10*sizeMultiplier), Options["resText"]["y1"]+4,textsize)
+	font:Print("Stick to Top Bar widget:", x0+(10*sizeMultiplier), Options["sticktotopbar"]["y1"]+4,textsize)
+	font:End()
 	--glText("Remove dead teams:", x0+10, Options["removeDead"]["y1"]+(textsize/2),textsize)
 	glColor(1,1,1,1)
 	if Options["resText"]["On"] then
@@ -1563,6 +1568,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 	Reinit()
 end
 

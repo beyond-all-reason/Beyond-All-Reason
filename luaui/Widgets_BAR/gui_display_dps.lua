@@ -26,6 +26,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 -- Speed Up
 
 local GetUnitDefID         = Spring.GetUnitDefID
@@ -69,6 +71,12 @@ local drawTextLists = {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+function widget:ViewResize(n_vsx,n_vsy)
+  vsx,vsy = Spring.GetViewGeometry()
+  widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local fontScale = widgetScale/2
+  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+end
 
 local function unitHeight(unitDefID)
   if not heightList[unitDefID] then 
@@ -213,7 +221,9 @@ local function drawDeathDPS(damage,ux,uy,uz,textSize,red,alpha)
 
   if drawTextLists[damage] == nil then
     drawTextLists[damage] = gl.CreateList(function()
-      glText(damage, 0, 0, textSize, 'cnO')
+      font:Begin()
+      font:Print(damage, 0, 0, textSize, 'cnO')
+      font:End()
     end)
   end
   glCallList(drawTextLists[damage])
@@ -226,13 +236,16 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
   glBillboard()
   gl.MultiTexCoord(1, 0.25 + (0.5 * alpha))
   if paralyze then
-    glColor(0, 0, 1)
-    glText(damage, 0, 0, textSize, 'cnO')
+    font:Begin()
+    font:Print('\255\0\0\255'..damage, 0, 0, textSize, 'cnO')
+    font:Begin()
   else
     glColor(1, 1, 1)
     if drawTextLists[damage] == nil then
       drawTextLists[damage] = gl.CreateList(function()
-        glText(damage, 0, 0, textSize, 'cnO')
+        font:Begin()
+        font:Print(damage, 0, 0, textSize, 'cnO')
+        font:Begin()
       end)
     end
     glCallList(drawTextLists[damage])

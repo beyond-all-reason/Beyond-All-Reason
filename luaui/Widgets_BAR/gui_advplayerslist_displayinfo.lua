@@ -27,6 +27,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local vsx, vsy   = widgetHandler:GetViewSizes()
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -158,9 +160,10 @@ local function updateValues()
 		end
 		local time = minutes..':'..seconds
 
-		glColor(0.45,0.45,0.45,1)
-		glText(titleColor..'time  '..valueColor..time..titleColor..'      speed  '..valueColor..gamespeed..titleColor..'      fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
-	end)
+        font:Begin()
+		font:Print(titleColor..'time  '..valueColor..time..titleColor..'      speed  '..valueColor..gamespeed..titleColor..'      fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
+        font:End()
+    end)
 end
 
 local function createList()
@@ -236,12 +239,15 @@ function updatePosition(force)
 		if WG['music'] and WG['music'].GetPosition and WG['music'].GetPosition() then
             advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
+        if widgetScale ~= advplayerlistPos[5] then
+            local fontScale = widgetScale/2
+            font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+        end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
 		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
 		widgetScale = advplayerlistPos[5]
-
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
 		end

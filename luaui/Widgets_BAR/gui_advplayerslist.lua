@@ -58,6 +58,8 @@ local lockcameraHideEnemies = true 			-- specfullview
 local lockcameraLos = true					-- togglelos
 local collapsable = false
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 --------------------------------------------------------------------------------
 -- SPEED UPS
 --------------------------------------------------------------------------------
@@ -803,7 +805,9 @@ function PlayerDataBroadcast(playerName, msg)
 					gl_Color(1,1,1,0.025)
 					RectRound(0,0,screenshotWidth,screenshotHeight+12+margin+margin, 4.5, true)
 
-					gl.Text(screenshotPlayer, 4, screenshotHeight+6.5, 11, "on")
+                    font:Begin()
+                    font:Print(screenshotPlayer, 4, screenshotHeight+6.5, 11, "on")
+                    font:End()
 
 					local row = 0
 					local col = 0
@@ -1957,16 +1961,17 @@ function CreateBackground()
 		local padding = 2.75
 		gl_Color(1,1,1,ui_opacity*0.04)
 		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding,true)
-
 		if collapsed then
+			font:Begin()
 			local text = 'Playerlist'
 			local yOffset = collapsedHeight*0.5
 			local xOffset = collapsedHeight/6
-			gl_Color(0,0,0,0.2)
-			gl_Text(text, widgetPosX - 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
-			gl_Text(text, widgetPosX + 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
-			gl_Color(0.9,0.9,0.9,0.75)
-			gl_Text(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
+			font:SetTextColor(0,0,0,0.2)
+			font:Print(text, widgetPosX - 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
+			font:Print(text, widgetPosX + 1 + xOffset, TRcornerY-padding -yOffset, 13, "")
+			font:SetTextColor(0.9,0.9,0.9,0.75)
+			font:Print(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
+			font:End()
 		end
 		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
 		-- draws highlight (top and left sides)
@@ -2102,12 +2107,13 @@ function DrawLabel(text, vOffset, drawSeparator)
 	if widgetWidth < 67 then
 		text = string.sub(text, 0, 1)
 	end
-	gl_Color(0,0,0,0.2)
-	gl_Text(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
-	gl_Text(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
-	gl_Color(0.9,0.9,0.9,0.75)
-	gl_Text(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
-	
+	font:Begin()
+	font:SetTextColor(0,0,0,0.2)
+	font:Print(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
+	font:Print(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
+	font:SetTextColor(0.9,0.9,0.9,0.75)
+	font:Print(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
+	font:End()
 	if drawSeparator then
 		--DrawSeparator(vOffset)
 	end
@@ -2117,11 +2123,13 @@ function DrawLabelTip(text, vOffset, xOffset)
 	if widgetWidth < 67 then
 		text = string.sub(text, 0, 1)
 	end
-	gl_Color(0,0,0,0.08)
-	gl_Text(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
-	gl_Text(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
-	gl_Color(0.9,0.9,0.9,0.35)
-	gl_Text(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "n")
+	font:Begin()
+	font:SetTextColor(0,0,0,0.08)
+	font:Print(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
+	font:Print(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
+	font:SetTextColor(0.9,0.9,0.9,0.35)
+	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "n")
+	font:End()
 end
 
 function DrawSeparator(vOffset)
@@ -2135,8 +2143,10 @@ end
 
 function DrawLabelRightside(text, vOffset)
 	local textLength = (gl_GetTextWidth(text)*12)*widgetScale
-	gl_Color(1,1,1,0.13)
-	gl_Text(text, widgetRight - textLength, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
+	font:Begin()
+	font:SetTextColor(1,1,1,0.13)
+	font:Print(text, widgetRight - textLength, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
+	font:End()
 end
 
 
@@ -2423,8 +2433,10 @@ end
 
 function DrawChips(playerID, posY)
 	local xPos = m_name.posX + widgetPosX - 6
-	gl_Color(0.75,0.75,0.75,0.8)
-	gl_Text(playerScores[playerID].score, xPos-5, posY+4, 9.5, "r")
+	font:Begin()
+	font:SetTextColor(0.75,0.75,0.75,0.8)
+	font:Print(playerScores[playerID].score, xPos-5, posY+4, 9.5, "r")
+	font:End()
 	gl_Color(1,1,1,1)
 	gl_Texture(pics["chipPic"])
 	DrawRect(xPos+4, posY+3.5, xPos-2.5, posY + 10)
@@ -2611,13 +2623,19 @@ function DrawName(name, team, posY, dark, playerID)
 		DrawState(playerID, m_name.posX + widgetPosX, posY)
 	end
 	if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-		gl_Text(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o") -- draws name
+        font:Begin()
+        font:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
+        font:End()
 	else
-		gl_Color(0,0,0,0.45)
-		gl_Text(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
-		gl_Text(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-		gl_Color(nameColourR,nameColourG,nameColourB,1)
-		gl_Text(nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n") -- draws name
+        font:Begin()
+        font:SetTextColor(0,0,0,0.4)
+        font:SetOutlineColor(0,0,0,0.4)
+        font:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
+        font:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
+        font:SetTextColor(1,1,1,1)
+        font:SetOutlineColor(0,0,0,1)
+        font:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
+        font:End()
 	end
 	if ignored then
 		gl_Color(1,1,1,0.9)	
@@ -2652,20 +2670,30 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 	if playerSpecs[playerID] ~= nil then
 		nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
 		if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-			gl_Text(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
+            font:Begin()
+            font:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
+            font:End()
 		else
-			gl_Color(0,0,0,0.3)
-			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
-			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
-			gl_Color(nameColourR,nameColourG,nameColourB,0.78)
-			gl_Text(name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
+            font:Begin()
+            font:SetTextColor(0,0,0,0.3)
+            font:SetOutlineColor(0,0,0,0.3)
+            font:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
+            font:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
+            font:SetTextColor(1,1,1,0.78)
+            font:SetOutlineColor(0,0,0,0.3)
+			--gl_Color(nameColourR,nameColourG,nameColourB,0.78)
+            font:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
+            font:End()
 		end
 	else
-		gl_Color(0,0,0,0.3)
-		gl_Text(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
-		gl_Text(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-		gl_Color(1,1,1,alpha)
-		gl_Text(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+		font:Begin()
+		font:SetTextColor(1,1,1,0.3)
+		font:SetOutlineColor(0,0,0,0.3)
+		font:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
+		font:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
+		font:SetTextColor(1,1,1,alpha)
+		font:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+		font:End()
 	end
 	if ignored then
 		gl_Color(1,1,1,0.7)	
@@ -2686,27 +2714,29 @@ function DrawID(playerID, posY, dark, dead)
 	end
 	local fontSize = 11
 	local deadspace = 0
+	font:Begin()
 	if dead then
 		fontSize = 8
 		deadspace = 1.5
-		gl_Color(0,0,0,0.4)
+		font:SetTextColor(0,0,0,0.4)
 	else
-		gl_Color(0,0,0,0.6)
+		font:SetTextColor(0,0,0,0.6)
 	end
 	--gl_Text(colourNames(playerID) .. " ".. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 5, 11, "o")
-	gl_Text(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
+	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
 	if dead then
-		gl_Color(1,1,1,0.33)
+		font:SetTextColor(1,1,1,0.33)
 	else
-		gl_Color(1,1,1,0.5)
+		font:SetTextColor(1,1,1,0.5)
 	end
-	gl_Text(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "n")
-	gl_Color(1,1,1)
+	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "n")
+	font:End()
 end
 
 function DrawSkill(skill, posY, dark)
-	gl_Text(skill, m_skill.posX + widgetPosX + m_skill.width - 2, posY + 5.3, 9.5, "or")
-	gl_Color(1,1,1)
+	font:Begin()
+	font:Print(skill, m_skill.posX + widgetPosX + m_skill.width - 2, posY + 5.3, 9.5, "or")
+	font:End()
 end
 
 function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
@@ -2721,24 +2751,24 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 	end
 	
 	grayvalue = 0.7 + (cpu/135)
-	
+
+	font:Begin()
 	if cpuText ~= nil and cpuText then
 		if type(cpu) == "number" then
 			if cpu > 99 then
 				cpu = 99
 			end
 			if spec then
-				gl_Color(0,0,0,0.1+(grayvalue*0.4))
-				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-				gl_Color(grayvalue,grayvalue,grayvalue,0.66*alpha*grayvalue)
-				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
+				font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.66*alpha*grayvalue)
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
 			else
-				gl_Color(0,0,0,0.12+(grayvalue*0.44))
-				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
-				gl_Color(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
-				gl_Text(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+				font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
 			end
-			gl_Color(1,1,1)
 		end
 	else
 	
@@ -2752,17 +2782,16 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 				greyvalue = 1
 			end
 			if spec then
-				gl_Color(0,0,0,0.1+(grayvalue*0.4))
-				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
-				gl_Color(grayvalue,grayvalue,grayvalue,0.77*alpha*grayvalue)
-				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
+				font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.77*alpha*grayvalue)
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
 			else
-				gl_Color(0,0,0,0.12+(grayvalue*0.44))
-				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
-				gl_Color(grayvalue,grayvalue,grayvalue,alpha*grayvalue)
-				gl_Text(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+				font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+				font:SetTextColor(grayvalue,grayvalue,grayvalue,alpha*grayvalue)
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
 			end
-			gl_Color(1,1,1)
 		else
 			gl_Texture(pics["cpuPic"])
 			if spec then
@@ -2772,8 +2801,10 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 				gl_Color(pingCpuColors[cpuLvl].r,pingCpuColors[cpuLvl].g,pingCpuColors[cpuLvl].b)
 				DrawRect(m_cpuping.posX + widgetPosX  + 1, posY+1, m_cpuping.posX + widgetPosX  + 14, posY + 15)
 			end
+			gl_Color(1,1,1,1)
 		end
 	end
+	font:End()
 end
 
 function DrawPoint(posY,pointtime)
@@ -2971,17 +3002,16 @@ function DrawTip(mouseX, mouseY)
 		-- draw text
 		local textLines = stringToLines(text)
 		th = 0
-		gl.BeginText()
+		font:Begin()
 		for i, line in ipairs(textLines) do
-
 			if right then
-				gl_Text('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+				font:Print('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale)-tw, mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
 			else
-				gl_Text('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale), mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
+				font:Print('\255\244\244\244'..line, mouseX+xoffset+(8*widgetScale), mouseY+(8*widgetScale)+ycorrection+th, fontSize, "o")
 			end
 			th = th - lineHeight
 		end
-		gl.EndText()
+		font:End()
 	end
 	tipText = nil
 
@@ -3002,40 +3032,42 @@ function CreateShareSlider()
 	
 	ShareSlider = gl_CreateList(function()
 
-	local posY
-	if energyPlayer ~= nil then
-		posY = widgetPosY + widgetHeight - energyPlayer.posY
-		gl_Texture(pics["barPic"])
-		DrawRect(m_share.posX + widgetPosX  + 16,posY-3,m_share.posX + widgetPosX  + 34,posY+58)
-		gl_Texture(pics["energyPic"])
-		DrawRect(m_share.posX + widgetPosX  + 17,posY+sliderPosition,m_share.posX + widgetPosX  + 33,posY+16+sliderPosition)
-		gl_Texture(pics["amountPic"])
-		if right == true then
-			DrawRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
-			gl_Texture(false)
-			gl_Text(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition)
-		else
-			DrawRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
-			gl_Texture(false)
-			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition)				
+		font:Begin()
+		local posY
+		if energyPlayer ~= nil then
+			posY = widgetPosY + widgetHeight - energyPlayer.posY
+			gl_Texture(pics["barPic"])
+			DrawRect(m_share.posX + widgetPosX  + 16,posY-3,m_share.posX + widgetPosX  + 34,posY+58)
+			gl_Texture(pics["energyPic"])
+			DrawRect(m_share.posX + widgetPosX  + 17,posY+sliderPosition,m_share.posX + widgetPosX  + 33,posY+16+sliderPosition)
+			gl_Texture(pics["amountPic"])
+			if right == true then
+				DrawRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
+				gl_Texture(false)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition)
+			else
+				DrawRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
+				gl_Texture(false)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition)
+			end
+		elseif metalPlayer ~= nil then
+			posY = widgetPosY + widgetHeight - metalPlayer.posY
+			gl_Texture(pics["barPic"])
+			DrawRect(m_share.posX + widgetPosX  + 32,posY-3,m_share.posX + widgetPosX  + 50,posY+58)
+			gl_Texture(pics["metalPic"])
+			DrawRect(m_share.posX + widgetPosX  + 33, posY+sliderPosition,m_share.posX + widgetPosX  + 49,posY+16+sliderPosition)
+			gl_Texture(pics["amountPic"])
+			if right == true then
+				DrawRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
+				gl_Texture(false)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition)
+			else
+				DrawRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
+				gl_Texture(false)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition)
+			end
 		end
-	elseif metalPlayer ~= nil then
-		posY = widgetPosY + widgetHeight - metalPlayer.posY
-		gl_Texture(pics["barPic"])
-		DrawRect(m_share.posX + widgetPosX  + 32,posY-3,m_share.posX + widgetPosX  + 50,posY+58)
-		gl_Texture(pics["metalPic"])
-		DrawRect(m_share.posX + widgetPosX  + 33, posY+sliderPosition,m_share.posX + widgetPosX  + 49,posY+16+sliderPosition)
-		gl_Texture(pics["amountPic"])
-		if right == true then
-			DrawRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
-			gl_Texture(false)
-			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition)
-		else
-			DrawRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
-			gl_Texture(false)
-			gl_Text(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition)
-		end
-	end
+		font:End()
 	
 	end)
 end
@@ -4053,6 +4085,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		widgetRight = widgetRight - dx
 	    widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
 	end
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)

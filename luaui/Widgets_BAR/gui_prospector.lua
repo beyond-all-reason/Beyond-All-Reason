@@ -14,6 +14,8 @@ end
 
 local textSize = 16
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 ------------------------------------------------
 --speedups
 ------------------------------------------------
@@ -94,11 +96,11 @@ local function DrawTextWithBackground(text, x, y, size, opt)
 	else
 		glRect(x, y, x + width, y + size * TEXT_CORRECT_Y)
 	end
-	
-	glColor(1, 1, 1, 0.85)
-	
-	glText(text, x+4, y, size, opt)
-	
+
+	font:Begin()
+	font:SetTextColor(1, 1, 1, 0.85)
+	font:Print(text, x+4, y, size, opt)
+	font:End()
 end
 
 local function SetupMexDefInfos() 
@@ -259,7 +261,9 @@ function widget:DrawScreen()
 	glColor(1, 1, 1, 1)
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx = viewSizeX
-	vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 end

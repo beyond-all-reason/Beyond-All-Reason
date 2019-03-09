@@ -26,7 +26,7 @@ local Config = {
 		px = -0.5,py = CanvasY-90, --default start position
 		sx = 290,sy = 90, --background size
 		
-		fontsize = 10.5,
+		fontsize = 11.5,
 		
 		padding = 3*widgetScale,
 		color2 = {1,1,1,ui_opacity*0.04},
@@ -141,7 +141,7 @@ local function createtooltip(r)
 	local text = {"text",
 		px=r.px+r.margin,py=r.py+(r.margin/1.5),
 		fontsize=r.fontsize,
-		color={1,1,1,0.3},
+		color={1,1,1,1},
 		caption="",
 		options="o",
 		

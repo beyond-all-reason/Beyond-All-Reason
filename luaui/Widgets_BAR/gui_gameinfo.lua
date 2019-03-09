@@ -11,8 +11,8 @@ function widget:GetInfo()
 	}
 end
 
-local loadedFontSize = 32
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local loadedFontSize = 52
+font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 50, 11, 1.9)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -197,6 +197,9 @@ function widget:ViewResize()
 	screenX = (vsx*0.5) - (screenWidth/2)
 	screenY = (vsy*0.5) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	loadedFontSize = 52*fontScale
 	if changelogList then gl.DeleteList(changelogList) end
 	changelogList = gl.CreateList(DrawWindow)
 end

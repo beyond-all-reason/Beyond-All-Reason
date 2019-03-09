@@ -33,9 +33,11 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 ------------------------------------------------------------------------------------
 
 local defaultDelay = 0.4
-local usedFontSize = 13
+local usedFontSize = 14.5
 local xOffset = 32
 local yOffset = -32-usedFontSize
+
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -92,6 +94,9 @@ end
 function init()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (0.60 + (vsx*vsy / 5000000))
+
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 
     if WG['tooltip'] == nil then
         WG['tooltip'] = {}
@@ -189,12 +194,12 @@ function drawTooltip(name, x, y)
 	-- draw text
 	maxHeight = -fontSize*0.93
 	glTranslate(posX, posY, 0)
-	gl.BeginText()
+	font:Begin()
 	for i, line in ipairs(lines) do
-		glText('\255\244\244\244'..line, 0, maxHeight, fontSize, "o")
+		font:Print('\255\244\244\244'..line, 0, maxHeight, fontSize, "o")
 		maxHeight = maxHeight - lineHeight
 	end
-	gl.EndText()
+	font:End()
 	glTranslate(-posX, -posY, 0)
 end
 

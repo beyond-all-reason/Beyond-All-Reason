@@ -12,16 +12,18 @@
 --------------------------------------------------------------------------------
 
 function widget:GetInfo()
-return {
-name      = "ReclaimInfo",
-desc      = "Shows the amount of metal/energy when using area reclaim.",
-author    = "Pendrokar",
-date      = "Nov 17, 2007",
-license   = "GNU GPL, v2 or later",
-layer     = 0,
-enabled   = true -- loaded by default?
+    return {
+    name      = "ReclaimInfo",
+    desc      = "Shows the amount of metal/energy when using area reclaim.",
+    author    = "Pendrokar",
+    date      = "Nov 17, 2007",
+    license   = "GNU GPL, v2 or later",
+    layer     = 0,
+    enabled   = true -- loaded by default?
 }
 end
+
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -38,19 +40,22 @@ local form = 12 --text format depends on screen size
 local xstart,ystart = 0
 local cmd,xend,yend,x,y,b1,b2
 local inMinimap = false --mouse cursor in minimap
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
+
+function widget:ViewResize(n_vsx,n_vsy)
+    vsx,vsy = Spring.GetViewGeometry()
+    widgetScale = (0.5 + (vsx*vsy / 5700000))
+    local fontScale = widgetScale/2
+    font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+
   form = math.floor(vsx/87)
 end
 
 local function InMinimap(x,y)
   local posx,posy,sizex,sizey,minimized,maximized = Spring.GetMiniMapGeometry()
   rx,ry = (x-posx)/sizex,(y-posy)/sizey
-  return (not (minimized or maximized)) and
-         (rx>=0)and(rx<=1)and
-         (ry>=0)and(ry<=1),rx,ry
+  return (not (minimized or maximized)) and  (rx>=0)and(rx<=1)and  (ry>=0)and(ry<=1),rx,ry
 end
+
 local function MinimapToWorld(rx,ry)
   if (rx>=0)and(rx<=1)and
      (ry>=0)and(ry<=1)
@@ -63,8 +68,6 @@ local function MinimapToWorld(rx,ry)
   end
 end
 
-function widget:Initialize()
-end
 
 function widget:DrawScreen()
   _,cmd,_ = Spring.GetActiveCommand()
@@ -139,7 +142,9 @@ function widget:DrawScreen()
       if(12+y>vsy) then
        y = y - form
       end
-     gl.Text("   M:"..metal.."\255\255\255\128".." E:"..energy,x,y,form)
+      font:Begin()
+      font:Print("   M:"..metal.."\255\255\255\128".." E:"..energy,x,y,form)
+      font:End()
     end
     --Unit resource info when mouse on one
     if (nonground=="Reclaim") and (rangestart ~= nil) and ((energy==0) or (metal==0)) and (b1==false) then
@@ -159,7 +164,9 @@ function widget:DrawScreen()
         if not UnitDefs[Spring.GetUnitDefID(unitID)].reclaimable then
          color = "\255\220\10\10"
         end
-        gl.Text(color.."   M:"..metal,x,y,form)
+        font:Begin()
+        font:Print(color.."   M:"..metal,x,y,form)
+        font:End()
       end
     end
     --

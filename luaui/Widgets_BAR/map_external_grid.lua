@@ -16,6 +16,8 @@ if VFS.FileExists("nomapedgewidget.txt") then
 	return
 end
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local DspLst = nil
 --local updateFrequency = 120	-- unused
 local gridTex = "LuaUI/Images/vr_grid.png"
@@ -258,17 +260,19 @@ local function TextOutside()
 		local average = (GetGroundHeight(mapSizeX/2,0) + GetGroundHeight(0,mapSizeZ/2) + GetGroundHeight(mapSizeX/2,mapSizeZ) +GetGroundHeight(mapSizeX,mapSizeZ/2))/4
 
 		gl.Rotate(-90,1,0,0)
-		gl.Translate (0,0,average)		
-		gl.Text("North", mapSizeX/2, 200, 200, "co")
+		gl.Translate (0,0,average)
+		font:Begin()
+		font:Print("North", mapSizeX/2, 200, 200, "co")
 		
 		gl.Rotate(-90,0,0,1)
-		gl.Text("East", mapSizeZ/2, mapSizeX+200, 200, "co")
-		
-		gl.Rotate(-90,0,0,1)	
-		gl.Text("South", -mapSizeX/2, mapSizeZ +200, 200, "co")
+		font:Print("East", mapSizeZ/2, mapSizeX+200, 200, "co")
 		
 		gl.Rotate(-90,0,0,1)
-		gl.Text("West", -mapSizeZ/2,200, 200, "co")
+		font:Print("South", -mapSizeX/2, mapSizeZ +200, 200, "co")
+		
+		gl.Rotate(-90,0,0,1)
+		font:Print("West", -mapSizeZ/2,200, 200, "co")
+		font:End()
 		
 		-- gl.Text("North", mapSizeX/2, 100, 200, "on")
 		-- gl.Text("South", mapSizeX/2,-mapSizeZ, 200, "on")
@@ -311,6 +315,13 @@ local function DrawTiles()
 	TextOutside()
 	glColor(1,1,1,1)
 	gl.PopAttrib()
+end
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.80 + (vsx*vsy / 6000000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 end
 
 function widget:DrawWorldPreUnit()

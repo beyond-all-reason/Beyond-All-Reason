@@ -14,6 +14,8 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local enabledAsSpec = false
 
 local MAX_ICONS = 10
@@ -140,7 +142,11 @@ local function init()
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 	init()
 end
 
@@ -308,7 +314,9 @@ local function DrawUnitIcons(number)
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
 				if NumberCondensed > 1 then
-					glText(NumberCondensed, X1, Y_MIN, 8*sizeMultiplier, "o")
+					font:Begin()
+					font:Print(NumberCondensed, X1, Y_MIN, 8*sizeMultiplier, "o")
+					font:End()
 				end
 			end
 			
@@ -316,7 +324,9 @@ local function DrawUnitIcons(number)
 				unitID = unitID[1]
 			end
 			if ValidUnitID(unitID) and QCount[unitID] then
-				glText(QCount[unitID], X1+(0.5*ICON_SIZE_X),Y_MIN,10*sizeMultiplier,"ocn")
+				font:Begin()
+				font:Print(QCount[unitID], X1+(0.5*ICON_SIZE_X),Y_MIN,10*sizeMultiplier,"ocn")
+				font:End()
 			end
 		end	
 	end
@@ -555,8 +565,10 @@ function widget:DrawScreen()
 		calcSizes(noOfIcons)
 		local line1 = "Idle cons tweak mode"
 		local line2 = "Click and drag here to move icons around, hover over icons and move mouse wheel to change max number of icons"
-		glText(line1, POSITION_X*vsx, POSITION_Y*vsy, 15, "c")
-		glText(line2, POSITION_X*vsx, (POSITION_Y*vsy)-10, 10, "c")
+		font:Begin()
+		font:Print(line1, POSITION_X*vsx, POSITION_Y*vsy, 15, "c")
+		font:Print(line2, POSITION_X*vsx, (POSITION_Y*vsy)-10, 10, "c")
+		font:End()
 		return
 	end
 	

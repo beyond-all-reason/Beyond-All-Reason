@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 ----------------------------------------------------------------
 -- Load?
 ----------------------------------------------------------------
@@ -23,6 +25,13 @@ end
 -- Callins
 ----------------------------------------------------------------
 
+function widget:ViewResize(n_vsx,n_vsy)
+    vsx,vsy = Spring.GetViewGeometry()
+    widgetScale = (0.5 + (vsx*vsy / 5700000))
+    local fontScale = widgetScale/2
+    font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+end
+
 local gameStarterd = false
 function widget:GameFrame(n)
     if n == 1 then
@@ -34,13 +43,15 @@ function widget:DrawScreen()
     local timeLeft = math.max(0, armageddonTime - Spring.GetGameSeconds())
     if timeLeft <= 300 and gameStarted then
         local vsx, vsy = gl.GetViewSizes()
+        font:Begin()
         if timeLeft <= 0 then
-            gl.Text('\255\255\1\1ARMAGEDDON', 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print('\255\255\1\1ARMAGEDDON', 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         elseif timeLeft <= 60 then
-            gl.Text(string.format('\255\255\1\1Armageddon imminent... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print(string.format('\255\255\1\1Armageddon imminent... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         else
-            gl.Text(string.format('\255\255\255\1Armageddon approaches... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
+            font:Print(string.format('\255\255\255\1Armageddon approaches... %i:%02i', timeLeft / 60, timeLeft % 60), 0.5 * vsx, 0.25 * vsy, 20, 'cvo')
         end
+        font:End()
     end
 end
 

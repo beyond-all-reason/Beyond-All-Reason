@@ -23,6 +23,7 @@ end
 --
 ]]--
 
+
 local maxNanoParticles = 4000
 
 local cameraTransitionTime = 0.2
@@ -38,8 +39,8 @@ local selecthoverclick = 'LuaUI/Sounds/hover.wav'
 local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
-local loadedFontSize = 32
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local loadedFontSize = 52
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 local bgcorner1 = ":n:".."LuaUI/Images/bgcorner1.png" -- only used to draw dropdown arrow
@@ -261,6 +262,9 @@ function widget:ViewResize()
   screenX = (vsx*0.5) - (screenWidth/2)
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+  local fontScale = widgetScale/2
+  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+  loadedFontSize = 52*fontScale
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
 end
@@ -546,7 +550,6 @@ function DrawWindow()
 	font:SetTextColor(1,1,1,1)
 	font:SetOutlineColor(0,0,0,0.4)
 	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
-	font:End()
 
 	local width = screenWidth/3
 	--gl.Color(0.66,0.66,0.66,0.08)
@@ -608,9 +611,8 @@ function DrawWindow()
 			optionButtonForward = nil
 		end
 
-		glColor(1,1,1,0.4)
-		glText(math.ceil(startColumn/maxShownColumns)..' / '..math.ceil(totalColumns/maxShownColumns), startX-(buttonSize*2.6)-buttonMargin, startY+buttonSize/2.6, buttonSize/2.9, "rn")
-
+		font:SetTextColor(1,1,1,0.4)
+		font:Print(math.ceil(startColumn/maxShownColumns)..' / '..math.ceil(totalColumns/maxShownColumns), startX-(buttonSize*2.6)-buttonMargin, startY+buttonSize/2.6, buttonSize/2.9, "rn")
 		if startColumn > 1 then
 			if optionButtonForward == nil then
 				optionButtonBackward = {startX-buttonSize-buttonMargin, startY, startX-buttonMargin, startY+buttonSize }
@@ -652,7 +654,8 @@ function DrawWindow()
 				if option.type == 'label' then
 					color = '\255\235\200\125'
 				end
-				glText(color..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
+				font:SetTextColor(1,1,1,1)
+				font:Print(color..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
 
 				-- define hover area
 				optionHover[oid] = {xPos, yPos-oHeight-oPadding, xPosMax, yPos+oPadding}
@@ -697,7 +700,8 @@ function DrawWindow()
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
 					if option.options[tonumber(option.value)] ~= nil then
-					glText(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
+					font:SetTextColor(1,1,1,1)
+					font:Print(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
 				end
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
@@ -713,6 +717,7 @@ function DrawWindow()
 			i = i + 1
 		end
 	end
+	font:End()
 end
 
 
@@ -901,12 +906,14 @@ function widget:DrawScreen()
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
 						glColor(1,1,1,0.055)
 						RectRound(o[1]-4, o[2], o[3]+4, o[4], 4)
+						font:Begin()
 						if options[i].description ~= nil then
 							description = options[i].description
-							glText('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
+							font:Print('\255\235\200\125'..options[i].description, screenX+15, screenY-screenHeight+64.5, 16, "no")
 						end
-						glColor(0.46,0.4,0.3,0.45)
-						glText('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
+						font:SetTextColor(0.46,0.4,0.3,0.45)
+						font:Print('/option '..options[i].id, screenX+screenWidth*0.659, screenY-screenHeight+8, 14, "nr")
+						font:End()
 					end
 				end
 				for i, o in pairs(optionButtons) do
@@ -962,8 +969,10 @@ function widget:DrawScreen()
 						end
 						prevSelectHover = i
 					end
-					optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i}
-					glText('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+					optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
+					font:Begin()
+					font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+					font:End()
 				end
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil

@@ -30,6 +30,15 @@ local fadeStartHeight		= 800
 local fadeEndHeight			= 4800
 local dlistAmount			= 20		-- amount of dlists created, one for each opacity value
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+end
+
 --------------------------------------------------------------------------------
 -- speed-ups
 --------------------------------------------------------------------------------
@@ -137,24 +146,25 @@ local function createMapinfoList(opacityMultiplier)
 		glRotate(180,1,0,0)
 		
 		-- map name
+		font:Begin()
 		local text = Game.mapName
-		glColor(1,1,1,(textOpacity*1.12)*opacityMultiplier)
-		glText(text, textOffsetX,-usedTextOffsetY,14,"n")
-		glColor(0,0,0,textOpacity*0.12*opacityMultiplier)
-		glText(text, textOffsetX+0.5,-usedTextOffsetY-0.9,14,"n")
+		font:SetTextColor(1,1,1,(textOpacity*1.12)*opacityMultiplier)
+		font:Print(text, textOffsetX,-usedTextOffsetY,14,"n")
+		font:SetTextColor(0,0,0,textOpacity*0.12*opacityMultiplier)
+		font:Print(text, textOffsetX+0.5,-usedTextOffsetY-0.9,14,"n")
 		
 		--map description
 		usedTextOffsetY = usedTextOffsetY+textOffsetY
 		text = Game.mapDescription
-		glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-		glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
+		font:SetTextColor(1,1,1,textOpacity*0.6*opacityMultiplier)
+		font:Print(text, textOffsetX,-usedTextOffsetY,textSize,"n")
 		
 		--map size
 		usedTextOffsetY = usedTextOffsetY+textOffsetY
 		text = Game.mapDescription
-		glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-		glText("Size: "..Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
-		
+		font:SetTextColor(1,1,1,textOpacity*0.6*opacityMultiplier)
+		font:Print("Size: "..Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
+		font:End()
 		
 		--[[
 			usedTextOffsetY = usedTextOffsetY+textOffsetY

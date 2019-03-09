@@ -28,6 +28,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local gl     = gl  --  use a local copy for faster access
 local Spring = Spring
 local table  = table
@@ -40,9 +42,11 @@ local etaMaxDist= 750000 -- max dist at which to draw ETA
 
 local vsx, vsy = widgetHandler:GetViewSizes()
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+  vsx,vsy = Spring.GetViewGeometry()
+  widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local fontScale = widgetScale/2
+  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 end
 
 
@@ -201,7 +205,9 @@ local function DrawEtaText(timeLeft,yoffset)
   gl.Billboard()
   gl.Translate(0, 5 ,0)
   --fontHandler.DrawCentered(etaStr)
-  gl.Text(etaStr, 0, 0, 5.75, "co")
+  font:Begin()
+  font:Print(etaStr, 0, 0, 5.75, "co")
+  font:End()
 end
 
 function widget:DrawWorld()

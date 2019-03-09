@@ -13,6 +13,8 @@ function widget:GetInfo()
 	}
 end
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 --callin driven
 --"hot" units
 
@@ -387,9 +389,13 @@ function widget:Update(dt)
 		end
 	end
 end
-  
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx, vsy = viewSizeX, viewSizeY
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+
 	xPos, yPos            = xRelPos*vsx, yRelPos*vsy
 	sizeMultiplier = 0.55 + (vsx*vsy / 8000000)
 end
@@ -415,8 +421,9 @@ local function createGuiList()
 	guiList = gl.CreateList(function()
 		glColor(0, 0, 0, 0.6)
 		RectRound(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 8*sizeMultiplier)
-		glColor(1, 1, 1, 1)
-		glText("Ally Selected Units", xPos + (10*sizeMultiplier), yPos + ((panelHeight - 19)*sizeMultiplier), 13*sizeMultiplier, "n")
+		font:Begin()
+		font:Print("Ally Selected Units", xPos + (10*sizeMultiplier), yPos + ((panelHeight - 19)*sizeMultiplier), 13*sizeMultiplier, "n")
+		font:End()
 		glColor(1, 1, 1, 0.2)
 		drawCheckbox(xPos + (12*sizeMultiplier), yPos + (10*sizeMultiplier), selectPlayerUnits,  "Select tracked player units")
 		if (WG['guishader_api'] ~= nil) then
@@ -656,7 +663,9 @@ if showGui then
             glTexRect(0, 0, 16*sizeMultiplier, 16*sizeMultiplier)
             glTexture(false)
         end
-        glText(text, 23*sizeMultiplier, 4*sizeMultiplier, 12*sizeMultiplier, "n")
+		font:Begin()
+		font:Print(text, 23*sizeMultiplier, 4*sizeMultiplier, 12*sizeMultiplier, "n")
+		font:End()
         glPopMatrix()
     end
 

@@ -24,6 +24,8 @@ end
 
 -- configs
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local cursorSize					= 11
 local drawNamesCursorSize			= 8.5
 
@@ -60,6 +62,13 @@ local allyCursor      			    = ":n:LuaUI/Images/allycursor.dds"
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+
+function widget:ViewResize(n_vsx,n_vsy)
+    vsx,vsy = Spring.GetViewGeometry()
+    widgetScale = (0.5 + (vsx*vsy / 5700000))
+    local fontScale = widgetScale/2
+    font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+end
 
 function widget:TextCommand(command)
     local mycommand = false
@@ -328,21 +337,23 @@ function createCursorDrawList(playerID, opacityMultiplier)
         gl.PushMatrix()
         gl.Translate(wx, gy, wz)
         gl.Rotate(-90,1,0,0)
-        
+
+        font:Begin()
         if spec then
-            gl.Color(1,1,1,fontOpacitySpec*opacityMultiplier)
-            gl.Text(name, 0, 0, fontSizeSpec, "cn")
+            font:SetTextColor(1,1,1,fontOpacitySpec*opacityMultiplier)
+            font:Print(name, 0, 0, fontSizeSpec, "cn")
         else
             local verticalOffset = usedCursorSize + 8
             local horizontalOffset = usedCursorSize + 1
             -- text shadow
-            gl.Color(0,0,0,fontOpacityPlayer*0.62*opacityMultiplier)
-            gl.Text(name, horizontalOffset-(fontSizePlayer/50), verticalOffset-(fontSizePlayer/42), fontSizePlayer, "n")
-            gl.Text(name, horizontalOffset+(fontSizePlayer/50), verticalOffset-(fontSizePlayer/42), fontSizePlayer, "n")
+            font:SetTextColor(0,0,0,fontOpacityPlayer*0.62*opacityMultiplier)
+            font:Print(name, horizontalOffset-(fontSizePlayer/50), verticalOffset-(fontSizePlayer/42), fontSizePlayer, "n")
+            font:Print(name, horizontalOffset+(fontSizePlayer/50), verticalOffset-(fontSizePlayer/42), fontSizePlayer, "n")
             -- text
-            gl.Color(r,g,b,fontOpacityPlayer*opacityMultiplier)
-            gl.Text(name, horizontalOffset, verticalOffset, fontSizePlayer, "n")
+            font:SetTextColor(r,g,b,fontOpacityPlayer*opacityMultiplier)
+            font:Print(name, horizontalOffset, verticalOffset, fontSizePlayer, "n")
         end
+        font:End()
         gl.PopMatrix()
     end   
 end

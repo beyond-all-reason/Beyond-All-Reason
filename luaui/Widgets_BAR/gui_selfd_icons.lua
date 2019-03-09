@@ -19,6 +19,8 @@ local unitConf				= {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 90, 9, 9)
+
 local selfdUnits = {}
 local drawLists = {}
 local glDrawListAtUnit			= gl.DrawListAtUnit
@@ -37,6 +39,12 @@ local spec = Spring.GetSpectatingState()
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 90*fontScale, 9*fontScale, 9)
+end
 
 function DrawIcon(text)
 	local iconSize = 0.9
@@ -45,7 +53,9 @@ function DrawIcon(text)
 	gl.Translate(0.32,1,1.4)
 	gl.Billboard()
 	gl.TexRect(-(iconSize+0.085), 0, -0.08, iconSize)
-	gl.Text(text,0,(iconSize/4),0.66,"oc")
+	font:Begin()
+	font:Print(text,0,(iconSize/4),0.66,"oc")
+	font:End()
 	gl.PopMatrix()
 end
 

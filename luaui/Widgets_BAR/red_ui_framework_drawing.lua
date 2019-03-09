@@ -11,6 +11,8 @@ function widget:GetInfo()
 	}
 end
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 64, 15, 1.9)
+
 local bgcornerSize = 8
 local bgcorner = "LuaUI/Images/bgcorner.png"
 	
@@ -71,10 +73,15 @@ end
 
 local function Text(px,py,fontsize,text,options,c)
 	glPushMatrix()
+	font:Begin()
 	if (c) then
-		glColor(c[1],c[2],c[3],c[4])
+		font:SetTextColor(c[1],c[2],c[3],c[4])
+		font:SetOutlineColor(0,0,0,1)
+		--glColor(c[1],c[2],c[3],c[4])
 	else
-		glColor(1,1,1,1)
+		font:SetTextColor(1,1,1,1)
+		font:SetOutlineColor(0,0,0,1)
+		--glColor(1,1,1,1)
 	end
 	glTranslate(px,py+fontsize,0)
 	if (options) then
@@ -83,7 +90,10 @@ local function Text(px,py,fontsize,text,options,c)
 		options = "d"
 	end
 	glScale(1,-1,1) --flip
-	glText(text,0,0,fontsize,options)
+
+	--glText(text,0,0,fontsize,options)
+	font:Print(text,0,0,fontsize,options)
+	font:End()
 	glPopMatrix()
 end
 
@@ -277,6 +287,10 @@ local function CreateStartList()
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 64*fontScale, 15*fontScale, 1.9)
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
 end
@@ -324,7 +338,7 @@ end
 
 local dlistCount = 0
 function widget:DrawScreen()
-	
+
 	newBlurRect = {}
 	
 	glResetState()

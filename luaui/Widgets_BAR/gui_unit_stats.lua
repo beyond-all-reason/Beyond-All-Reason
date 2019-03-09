@@ -51,6 +51,8 @@ include("keysym.h.lua")
 local fontSize = 13
 local useSelection = true
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local customFontSize = 13
 
 local cX, cY
@@ -159,10 +161,12 @@ end
 
 local function DrawTextBuffer()
 	local num = #textBuffer
+	font:Begin()
 	for i=1, num do
-		glText(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
-		glText(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
+		font:Print(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
+		font:Print(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
 	end
+	font:End()
 end
 
 local function GetTeamColorCode(teamID)
@@ -248,7 +252,11 @@ function init()
 	yOffset = -((32 + bgpadding)*widgetScale)
 end
 
-function widget:ViewResize(x,y)
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 	init()
 end
 
@@ -668,7 +676,9 @@ function widget:DrawScreen()
 
 	-- title text
 	glColor(1,1,1,1)
-	glText(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+	font:Begin()
+	font:Print(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+	font:End()
 
 	-- stats
 	cornersize = 0

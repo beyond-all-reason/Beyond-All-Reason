@@ -13,6 +13,8 @@ end
 
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
 local update = 30 -- in frames
@@ -339,6 +341,8 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+	local fontScale = widgetScale/2
+	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
 	calcAbsSizes()
 	updateFontSize()
 end
@@ -768,14 +772,14 @@ function ReGenerateTextDisplayList()
 	local baseXSize = boxSizes.x.min + columnSize
 	local baseYSize = boxSizes.y.max - (0.002*vsy) -- small align adjustment so text is in the middle of a row
 
-	glBeginText()
+	font:Begin()
 		--print the header
 		local colCount = 0
 		local heightCorrection = fontSize*((1-fontSizePercentage)/2)
 
 		for _, headerName in ipairs(header) do
-			glText(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
-			glText(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*fontSize, (fontSize*fontSizePercentage), "dc")
+			font:Print(headerRemap[headerName][1], baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+			font:Print(headerRemap[headerName][2], baseXSize + columnSize*colCount, baseYSize+heightCorrection-(lineCount+1)*fontSize, (fontSize*fontSizePercentage), "dc")
 			colCount = colCount + 1
 		end
 		lineCount = lineCount + 3
@@ -802,12 +806,12 @@ function ReGenerateTextDisplayList()
 					elseif lineCount % 2 == 1 then
 						color = '\255\200\200\200'
 					end
-					glText(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
+					font:Print(color..value, baseXSize + columnSize*colCount, baseYSize+heightCorrection-lineCount*fontSize, (fontSize*fontSizePercentage), "dco")
 					colCount = colCount + 1
 				end
 				lineCount = lineCount + 1
 			end
 			lineCount = lineCount + 1 -- add line break after end of allyteam
 		end
-	glEndText()
+	font:End()
 end

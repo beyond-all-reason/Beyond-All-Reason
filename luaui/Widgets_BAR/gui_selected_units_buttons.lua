@@ -29,6 +29,8 @@ end
 
 -- Automatically generated local definitions
 
+local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+
 local GL_ONE                   = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA             = GL.SRC_ALPHA
@@ -137,9 +139,11 @@ local function updateGuishader()
 end
 
 local vsx, vsy = widgetHandler:GetViewSizes()
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+  vsx,vsy = Spring.GetViewGeometry()
+  widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local fontScale = widgetScale/2
+  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
   
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
   usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
@@ -395,7 +399,9 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   if count > 1 then
     -- draw the count text
     local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
-    glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16)-(yPad/2) , fontSize, "or")
+    font:Begin()
+    font:Print(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16)-(yPad/2) , fontSize, "or")
+    font:End()
   end
 end
 
