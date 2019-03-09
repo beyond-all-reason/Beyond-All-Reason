@@ -11,8 +11,6 @@ function widget:GetInfo()
 	}
 end
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 64, 15, 1.9)
-
 local bgcornerSize = 8
 local bgcorner = "LuaUI/Images/bgcorner.png"
 	
@@ -287,22 +285,18 @@ local function CreateStartList()
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
-	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 64*fontScale, 15*fontScale, 1.9)
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
 end
 
 function widget:Initialize()
+	font = WG['Red'].font
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
 	
 	local T = {}
 	WG[TN] = T
 	T.version = version
-	
 	T.Color = function(a,b,c,d) --using (...) seems slower
 		Todo[#Todo+1] = {1,a,b,c,d}
 	end

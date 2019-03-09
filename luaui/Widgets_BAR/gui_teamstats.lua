@@ -13,7 +13,8 @@ end
 
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local fontSize = 22		-- is caclulated somewhere else anyway
 local fontSizePercentage = 0.6 -- fontSize * X = actual fontsize
@@ -117,7 +118,6 @@ local guiData = {
 local glRect	= gl.Rect
 local glColor	= gl.Color
 local glText	= gl.Text
-local glGetTextWidth = gl.GetTextWidth
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
 local glDeleteList = gl.DeleteList
@@ -293,8 +293,8 @@ local teamControllers = {}
 local mousex,mousey = 0,0
 
 for _, data in pairs(headerRemap) do
-	maxColumnTextSize = max(glGetTextWidth(data[1]),maxColumnTextSize)
-	maxColumnTextSize = max(glGetTextWidth(data[2]),maxColumnTextSize)
+	maxColumnTextSize = max(font:GetTextWidth(data[1]),maxColumnTextSize)
+	maxColumnTextSize = max(font:GetTextWidth(data[2]),maxColumnTextSize)
 end
 
 local sortVar = "damageDealt"
@@ -342,7 +342,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = viewSizeX, viewSizeY
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 	calcAbsSizes()
 	updateFontSize()
 end

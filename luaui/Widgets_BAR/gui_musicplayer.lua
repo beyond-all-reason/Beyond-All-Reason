@@ -28,7 +28,8 @@ local pauseWhenPaused = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
@@ -66,7 +67,6 @@ local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local widgetScale = 1
 local glText         = gl.Text
-local glGetTextWidth = gl.GetTextWidth
 local glBlending     = gl.Blending
 local glScale        = gl.Scale
 local glRotate       = gl.Rotate
@@ -280,7 +280,7 @@ local function createList()
 		local text = ''
 		for i=charactersInPath, #trackname do
 	    local c = string.sub(trackname, i,i)
-			local width = glGetTextWidth(text..c)*textsize
+			local width = font:GetTextWidth(text..c)*textsize
 	    if width > maxTextWidth then
 	    	break
 	    else
@@ -618,7 +618,7 @@ function updatePosition(force)
 
 		if widgetScale ~= advplayerlistPos[5] then
 			local fontScale = widgetScale/2
-			font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+			font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 		end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]

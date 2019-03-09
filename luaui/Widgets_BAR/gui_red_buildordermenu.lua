@@ -1046,6 +1046,10 @@ function widget:Initialize()
 		iconTypesMap = Script.LuaRules.GetIconTypes()
 	end
 
+	if WG['Red'].font then
+		font = WG['Red'].font
+	end
+
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
 

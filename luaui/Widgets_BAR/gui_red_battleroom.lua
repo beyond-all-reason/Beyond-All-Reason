@@ -39,7 +39,6 @@ local mfloor = math.floor
 local sbyte = string.byte
 local sreverse = string.reverse
 local mmax = math.max
-local glGetTextWidth = gl.GetTextWidth
 local sGetPlayerRoster = Spring.GetPlayerRoster
 local sGetTeamColor = Spring.GetTeamColor
 local sGetMyAllyTeamID = Spring.GetMyAllyTeamID
@@ -335,7 +334,7 @@ local function clipLine(line,fontsize,maxwidth)
 		local linelen = slen(line)
 		local i=1
 		while (1) do -- loop through potential positions where we might need to clip
-			if (glGetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
+			if (font:GetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
 				local test = line
 				local newlinecolour = ""
 				
@@ -363,7 +362,7 @@ local function clipLine(line,fontsize,maxwidth)
 		end
 
 		-- check if we need to clip again
-		local width = glGetTextWidth(line)*fontsize
+		local width = font:GetTextWidth(line)*fontsize
 		if (width <= maxwidth) then
 			break
 		end
@@ -885,6 +884,9 @@ local function updateconsole(g,cfg)
 end
 
 function widget:Initialize()
+	if WG['Red'].font then
+		font = WG['Red'].font
+	end
 regID = tostring(Spring.GetMyPlayerID())
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end

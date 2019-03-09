@@ -40,7 +40,8 @@ local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
 local loadedFontSize = 52
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 local bgcorner1 = ":n:".."LuaUI/Images/bgcorner1.png" -- only used to draw dropdown arrow
@@ -78,8 +79,6 @@ local glRotate = gl.Rotate
 local glTexture = gl.Texture
 local glText = gl.Text
 local glShape = gl.Shape
-local glGetTextWidth = gl.GetTextWidth
-local glGetTextHeight = gl.GetTextHeight
 
 local bgColorMultiplier = 0
 
@@ -263,7 +262,7 @@ function widget:ViewResize()
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
   local fontScale = widgetScale/2
-  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
   loadedFontSize = 52*fontScale
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
@@ -509,7 +508,7 @@ function DrawWindow()
 	-- title
 	local title = "Options"
 	local titleFontSize = 18
-	titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37 }
+	titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37 }
 
 	-- group tabs
 	local tabFontSize = 16
@@ -517,7 +516,7 @@ function DrawWindow()
 	local groupMargin = bgMargin/1.7
 	groupRect = {}
 	for id,group in pairs(optionGroups) do
-		groupRect[id] = {xpos, y+(bgMargin/2), xpos+(glGetTextWidth(group.name)*tabFontSize)+27, y+37}
+		groupRect[id] = {xpos, y+(bgMargin/2), xpos+(font:GetTextWidth(group.name)*tabFontSize)+27, y+37}
 		xpos = groupRect[id][3]
 		if currentGroupTab == nil or currentGroupTab ~= group.id then
 			gl.Color(0,0,0,0.8)

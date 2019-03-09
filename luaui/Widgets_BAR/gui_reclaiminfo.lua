@@ -23,7 +23,8 @@ function widget:GetInfo()
 }
 end
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -45,7 +46,7 @@ function widget:ViewResize(n_vsx,n_vsy)
     vsx,vsy = Spring.GetViewGeometry()
     widgetScale = (0.5 + (vsx*vsy / 5700000))
     local fontScale = widgetScale/2
-    font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+    font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 
   form = math.floor(vsx/87)
 end
@@ -135,7 +136,7 @@ function widget:DrawScreen()
      end
      metal=math.floor(metal)
      energy=math.floor(energy)
-    local textwidth = 12*gl.GetTextWidth("   M:"..metal.."\255\255\255\128".." E:"..energy)
+    local textwidth = 12*font:GetTextWidth("   M:"..metal.."\255\255\255\128".." E:"..energy)
      if(textwidth+x>vsx) then
       x = x - textwidth - 10
      end
@@ -153,7 +154,7 @@ function widget:DrawScreen()
        local unitDefID = Spring.GetUnitDefID(unitID)
        local _,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
        metal=math.floor(UnitDefs[unitDefID].metalCost*buildprogress)
-       local textwidth = 12*gl.GetTextWidth("   M:"..metal.."\255\255\255\128")
+       local textwidth = 12*font:GetTextWidth("   M:"..metal.."\255\255\255\128")
         if(textwidth+x>vsx) then
         x = x - textwidth - 10
         end

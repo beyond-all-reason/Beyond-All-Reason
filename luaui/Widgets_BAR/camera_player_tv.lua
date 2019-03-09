@@ -10,7 +10,8 @@ function widget:GetInfo()
 	}
 end
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 64, 15,1.18)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 64, 15,1.18)
 
 local displayPlayername = true
 
@@ -243,7 +244,7 @@ local function createList()
 		else
 			gl.Color(0.66, 0, 0, 0.66)
 		end
-		local textWidth = gl.GetTextWidth(text) * fontSize
+		local textWidth = font:GetTextWidth(text) * fontSize
 		RectRound(right-textWidth, bottom, right, top, 5.5*widgetScale)
 		toggleButton = {right-textWidth, bottom, right, top }
 
@@ -287,7 +288,7 @@ local function createList()
 			color = '\255\222\255\222'
 		end
 		local fontSize = (widgetHeight*widgetScale) * 0.5
-		local textWidth = gl.GetTextWidth(text) * fontSize
+		local textWidth = font:GetTextWidth(text) * fontSize
 		font:Begin()
 		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(8*widgetScale), fontSize, 'oc')
 		font:End()

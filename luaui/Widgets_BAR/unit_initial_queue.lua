@@ -30,7 +30,8 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 ------------------------------------------------------------
 -- Config
@@ -1112,7 +1113,7 @@ function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 	widgetScale = (0.6 + (vsx*vsy / 4000000)) * customScale
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 	processGuishader()
 	
 	local sBuilds = UnitDefs[sDefID].buildOptions

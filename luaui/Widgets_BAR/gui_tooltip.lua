@@ -37,7 +37,8 @@ local usedFontSize = 14.5
 local xOffset = 32
 local yOffset = -32-usedFontSize
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 14, 0)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -96,7 +97,7 @@ function init()
 	widgetScale = (0.60 + (vsx*vsy / 5000000))
 
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 
     if WG['tooltip'] == nil then
         WG['tooltip'] = {}
@@ -163,7 +164,7 @@ function drawTooltip(name, x, y)
 	
 	-- get text dimentions
 	for i, line in ipairs(lines) do
-		maxWidth = math.max(maxWidth, (gl.GetTextWidth(line)*fontSize), maxWidth)
+		maxWidth = math.max(maxWidth, (font:GetTextWidth(line)*fontSize), maxWidth)
 		maxHeight = maxHeight + lineHeight
 	end
 	-- adjust position when needed
@@ -195,6 +196,8 @@ function drawTooltip(name, x, y)
 	maxHeight = -fontSize*0.93
 	glTranslate(posX, posY, 0)
 	font:Begin()
+	--font:SetTextColor(0.95,0.95,0.95,1)
+	--font:SetOutlineColor(0.3,0.3,0.3,0.3)
 	for i, line in ipairs(lines) do
 		font:Print('\255\244\244\244'..line, 0, maxHeight, fontSize, "o")
 		maxHeight = maxHeight - lineHeight

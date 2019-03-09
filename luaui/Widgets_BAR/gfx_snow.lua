@@ -19,7 +19,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local minFps					= 22		-- stops snowing at
 local maxFps					= 55		-- max particles at
@@ -358,8 +359,8 @@ function widget:Initialize()
 		local text = "Snowing less when FPS gets lower \n"
 		local text2 = "/snow to toggle snow... for this map \n".."disable 'Snow' widget... for all maps "
 		local fontSize = 30
-		--local textWidth = gl.GetTextWidth(text)*fontSize
-		local textHeight = gl.GetTextHeight(text)*fontSize
+		--local textWidth = font:GetTextWidth(text)*fontSize
+		local textHeight = font:GetTextHeight(text)*fontSize
 		--gl.Text(text, -textWidth/2, -textHeight/2, fontSize, "")
 		font:Begin()
 		font:Print(text, 0, textHeight/2, fontSize, "c")
@@ -531,7 +532,7 @@ function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
 	widgetScale = (0.55 + (vsx*vsy / 10000000))
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 	if particleLists[#particleTypes] ~= nil then
 		CreateParticleLists()
 		gameFrameCountdown = 80

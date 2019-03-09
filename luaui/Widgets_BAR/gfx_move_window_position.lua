@@ -13,7 +13,8 @@ function widget:GetInfo()
 	}
 end
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local vsx, vsy = gl.GetViewSizes()
 local customScale = 1.2
@@ -127,7 +128,7 @@ function DrawWindow()
 	local buttonX = vsx/2
 	local buttonY = (vsy/2)-(36*widgetScale)
 	local buttonFontsize = 15*widgetScale
-	local buttonWidth = gl.GetTextWidth(buttonText)*buttonFontsize
+	local buttonWidth = font:GetTextWidth(buttonText)*buttonFontsize
 	local buttonHeight = buttonFontsize*2.2
 	font:Print("\255\200\200\200ESCAPE key will cancel changes", vsx/2, (vsy/2)-(50*widgetScale)-buttonHeight, 12*widgetScale, "ocn")
 	if initialWindowPosX ~= dlistPosX or initialWindowPosY ~= dlistPosY then
@@ -148,7 +149,7 @@ function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (1 + (vsx*vsy / 4000000)) * customScale
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 	if windowList then gl.DeleteList(windowList) end
 	windowList = gl.CreateList(DrawWindow)
 end

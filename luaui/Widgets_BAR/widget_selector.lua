@@ -66,7 +66,8 @@ local fontSize = 12
 local fontSpace = 7
 local yStep = fontSize + fontSpace
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local entryFont  = "LuaUI/Fonts/FreeMonoBold_12"
 local headerFont  = "LuaUI/Fonts/FreeMonoBold_12"
@@ -305,7 +306,7 @@ local function UpdateList()
     if (name ~= myName) then
       fullWidgetsList[#fullWidgetsList+1] = { name, data }
       -- look for the maxWidth
-      local width = fontSize * gl.GetTextWidth(name)
+      local width = fontSize * font:GetTextWidth(name)
       if (width > maxWidth) then
         maxWidth = width
       end
@@ -330,7 +331,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.5 + (vsx*vsy / 5700000))
   local fontScale = widgetScale/2
-  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 
   if customScale == nil then
 	customScale = 1

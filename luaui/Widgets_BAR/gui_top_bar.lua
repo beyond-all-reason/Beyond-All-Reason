@@ -13,7 +13,8 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local height = 38
 local relXpos = 0.3
@@ -56,7 +57,6 @@ local glTexture = gl.Texture
 local glRect = gl.Rect
 local glTexRect = gl.TexRect
 local glText = gl.Text
-local glGetTextWidth = gl.GetTextWidth
 local glRotate = gl.Rotate
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -142,7 +142,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	xPos = vsx*relXpos
 
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 
     for n,_ in pairs(dlistWindText) do
         glDeleteList(dlistWindText[n])
@@ -329,7 +329,7 @@ local function updateButtons()
     if (WG['options'] ~= nil) then text = text..'Options    ' end
     text = text..'Quit    '
 
-	local fontsize = totalWidth / glGetTextWidth(text)
+	local fontsize = totalWidth / font:GetTextWidth(text)
 	if fontsize > (height*widgetScale)/3 then
 		fontsize = (height*widgetScale)/3
 	end
@@ -361,35 +361,35 @@ local function updateButtons()
             if (WG['teamstats'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('   Stats  ') * fontsize
+                width = font:GetTextWidth('   Stats  ') * fontsize
                 buttonsArea['buttons']['stats'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4] }
             end
             if (WG['commands'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Cmd  ') * fontsize
+                width = font:GetTextWidth('  Cmd  ') * fontsize
                 buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			end
             if (WG['keybinds'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Keys  ') * fontsize
+                width = font:GetTextWidth('  Keys  ') * fontsize
                 buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['changelog'] ~= nil) then
                 button = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Changes  ') * fontsize
+                width = font:GetTextWidth('  Changes  ') * fontsize
                 buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['options'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Options  ') * fontsize
+                width = font:GetTextWidth('  Options  ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             offset = offset+width
-            width = glGetTextWidth('  Quit    ') * fontsize
+            width = font:GetTextWidth('  Quit    ') * fontsize
             buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
 		end
 	end)
@@ -570,7 +570,7 @@ local function updateResbarText(res)
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding = 2*widgetScale
 					local text = 'Overflowing'
-					local textWidth = (bgpadding*2) + 15 + (glGetTextWidth(text) * 10) * widgetScale
+					local textWidth = (bgpadding*2) + 15 + (font:GetTextWidth(text) * 10) * widgetScale
 
 					-- background
 					glColor(0.3,0,0,0.55)
@@ -1137,7 +1137,7 @@ function widget:DrawScreen()
 
 		if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
 
-			local width = vsx/6.2
+			local width = vsx/5.8
 			local height = width/3.5
 			local padding = width/70
 			local buttonPadding = width/100
@@ -1154,12 +1154,14 @@ function widget:DrawScreen()
 			glColor(0,0,0,0.035+(0.035*fadeProgress))
 			RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, 5*widgetScale)
 
-			local fontSize = height/5.5
-            font:Begin()
+			local fontSize = height/6
+			font:Begin()
+			font:SetTextColor(0,0,0,1)
+			font:SetOutlineColor(1,1,1,0.12)
 			if not spec then
-                font:Print("\255\000\000\000Want to resign or quit to desktop?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-fontSize, fontSize, "con")
+                font:Print("Want to resign or quit to desktop?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-fontSize, fontSize, "con")
 			else
-                font:Print("\255\000\000\000Really want to quit?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-padding-fontSize, fontSize, "con")
+                font:Print("Really want to quit?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-padding-fontSize, fontSize, "con")
 			end
 
 			-- quit button
@@ -1173,7 +1175,9 @@ function widget:DrawScreen()
 			RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 4*widgetScale)
 
 			local fontSize = fontSize*0.85
-            font:Print("\255\255\255\255Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
+			font:SetTextColor(1,1,1,1)
+			font:SetOutlineColor(0,0,0,0.23)
+            font:Print("Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
 
 			-- resign button
 			if not spec then
@@ -1186,7 +1190,7 @@ function widget:DrawScreen()
 				glColor(0,0,0,0.07+(0.05*fadeProgress))
 				RectRound(quitscreenResignArea[1]+buttonPadding, quitscreenResignArea[2]+buttonPadding, quitscreenResignArea[3]-buttonPadding, quitscreenResignArea[4]-buttonPadding, 4*widgetScale)
 
-                font:Print("\255\255\255\255Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
+                font:Print("Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
             end
             font:End()
 		end

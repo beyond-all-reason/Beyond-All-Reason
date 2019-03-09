@@ -17,7 +17,8 @@ end
 local wWidth, wHeight = Spring.GetWindowGeometry()
 local px, py = 50, 0.55*wHeight
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -209,7 +210,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (0.50 + (vsx*vsy / 5000000))
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
 function GenerateFactionChangeList()

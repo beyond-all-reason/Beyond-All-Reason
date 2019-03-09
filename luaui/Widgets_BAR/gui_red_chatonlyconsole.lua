@@ -39,7 +39,6 @@ local mfloor = math.floor
 local sbyte = string.byte
 local sreverse = string.reverse
 local mmax = math.max
-local glGetTextWidth = gl.GetTextWidth
 local sGetPlayerRoster = Spring.GetPlayerRoster
 local sGetTeamColor = Spring.GetTeamColor
 local sGetMyAllyTeamID = Spring.GetMyAllyTeamID
@@ -104,6 +103,7 @@ local function IncludeRedUIFrameworkFunctions()
 	Screen = WG.Red.Screen
 	GetWidgetObjects = WG.Red.GetWidgetObjects
 end
+
 
 local function RedUIchecks()
 	local color = "\255\255\255\1"
@@ -341,7 +341,7 @@ local function clipLine(line,fontsize,maxwidth)
 		local linelen = slen(line)
 		local i=1
 		while (1) do -- loop through potential positions where we might need to clip
-			if (glGetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
+			if (font:GetTextWidth(ssub(line,1,i+1))*fontsize > maxwidth) then
 				local test = line
 				local newlinecolour = ""
 				
@@ -369,7 +369,7 @@ local function clipLine(line,fontsize,maxwidth)
 		end
 		
 		-- check if we need to clip again
-		local width = glGetTextWidth(line)*fontsize
+		local width = font:GetTextWidth(line)*fontsize
 		if (width <= maxwidth) then
 			break
 		end
@@ -830,6 +830,10 @@ function widget:Initialize()
 	Spring.SendCommands("console 0")
 	Spring.SendCommands('inputtextgeo 0.26 0.73 0.02 0.028')
 	AutoResizeObjects()
+
+	if WG['Red'].font then
+		font = WG['Red'].font
+	end
 
 	WG['red_chatonlyconsole'] = {}
 	WG['red_chatonlyconsole'].getMaxLines = function()

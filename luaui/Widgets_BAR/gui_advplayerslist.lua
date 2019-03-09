@@ -58,7 +58,8 @@ local lockcameraHideEnemies = true 			-- specfullview
 local lockcameraLos = true					-- togglelos
 local collapsable = false
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -102,8 +103,6 @@ local gl_BeginEnd		= gl.BeginEnd
 local gl_DeleteList		= gl.DeleteList
 local gl_CallList		= gl.CallList
 local gl_Text			= gl.Text
-local gl_GetTextWidth	= gl.GetTextWidth
-local gl_GetTextHeight	= gl.GetTextHeight
 
 --------------------------------------------------------------------------------
 -- IMAGES
@@ -618,7 +617,7 @@ end
 function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 14*gl_GetTextWidth(absentName) + 8 -- 8 is minimal width
+	local maxWidth = 14*font:GetTextWidth(absentName) + 8 -- 8 is minimal width
 	local name = ''
 	local spec = false
 	local version = ''
@@ -639,7 +638,7 @@ function SetMaxPlayerNameWidth()
 		end
 		local charSize
 		if spec then charSize = 11 else charSize = 14 end
-		nextWidth = charSize*gl_GetTextWidth(name)+8
+		nextWidth = charSize*font:GetTextWidth(name)+8
 		if nextWidth > maxWidth then
 			maxWidth = nextWidth
 		end
@@ -2142,7 +2141,7 @@ function DrawSeparator(vOffset)
 end
 
 function DrawLabelRightside(text, vOffset)
-	local textLength = (gl_GetTextWidth(text)*12)*widgetScale
+	local textLength = (font:GetTextWidth(text)*12)*widgetScale
 	font:Begin()
 	font:SetTextColor(1,1,1,0.13)
 	font:Print(text, widgetRight - textLength, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
@@ -2641,7 +2640,7 @@ function DrawName(name, team, posY, dark, playerID)
 		gl_Color(1,1,1,0.9)	
 		local x = m_name.posX + widgetPosX + 2 + xPadding
 		local y = posY + 7
-		local w = gl_GetTextWidth(nameText) * 14 + 2
+		local w = font:GetTextWidth(nameText) * 14 + 2
 		local h = 2
 		gl_Texture(false)
 		DrawRect(x,y,x+w,y+h)
@@ -2699,7 +2698,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 		gl_Color(1,1,1,0.7)	
 		local x = m_name.posX + textindent + widgetPosX + 2.2
 		local y = posY + 6
-		local w = gl_GetTextWidth(name) * 10 + 2
+		local w = font:GetTextWidth(name) * 10 + 2
 		local h = 2
 		gl_Texture(false)
 		DrawRect(x,y,x+w,y+h)
@@ -2964,7 +2963,7 @@ function DrawTip(mouseX, mouseY)
 	text = tipText --this is needed because we're inside a gllist
 	if text ~= nil then
 		local fontSize = 14*widgetScale
-		local tw = fontSize*gl_GetTextWidth(text) + (20*widgetScale)
+		local tw = fontSize*font:GetTextWidth(text) + (20*widgetScale)
 		local _, lines = string.gsub(text, "\n", "")
 		lines = lines + 1
 		
@@ -4086,7 +4085,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	    widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
 	end
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)

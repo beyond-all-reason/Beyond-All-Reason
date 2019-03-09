@@ -27,7 +27,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 90, 20, 3)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 90, 16, 1.8)
 
 -- Automatically generated local definitions
 
@@ -57,7 +58,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.80 + (vsx*vsy / 6000000))
   local fontScale = widgetScale/2
-  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 90*fontScale, 20*fontScale, 3)
+  font = gl.LoadFont(fontfile, 90*fontScale, 16*fontScale, 1.8)
 end
 
 function widget:Initialize()

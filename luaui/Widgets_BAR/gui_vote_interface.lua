@@ -16,12 +16,13 @@ local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 -- being set at gamestart again:
 local myPlayerID = Spring.GetMyPlayerID()
 local myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
-local startedAsPlayer = not mySpec
+local startedAsPlayer = not mycSpec
 
 local function DrawRectRound(px,py,sx,sy,cs)
 
@@ -114,7 +115,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
 function widget:PlayerChanged(playerID)
@@ -208,7 +209,7 @@ function StartVote(name, owner)
 		local height = vsy/13
 
 		local fontSize = height/5	-- title only
-		local minWidth = gl.GetTextWidth('  '..voteName..'  ')*fontSize
+		local minWidth = font:GetTextWidth('  '..voteName..'  ')*fontSize
 		if width < minWidth then
 			width = minWidth
 		end
@@ -280,7 +281,8 @@ function StartVote(name, owner)
 		if voteOwner then
 			noText = 'End Vote'
 		end
-		font:Print("\255\255\255\255"..noText, noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+		font:SetOutlineColor(0,0,0,0.4)
+		font:Print(noText, noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 
 		-- YES
 		if not voteOwner then
@@ -294,7 +296,7 @@ function StartVote(name, owner)
 			gl.Color(0,0,0,0.075)
 			RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 4*widgetScale)
 
-			font:Print("\255\255\255\255YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+			font:Print("YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 		end
 		font:End()
 	end)

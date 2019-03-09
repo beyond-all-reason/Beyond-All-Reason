@@ -44,7 +44,8 @@ end
 -- enable simple version by default though
 local drawGroundQuads = true
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -54,12 +55,13 @@ local heightOffset			= 50
 local fontSize				= 18
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 10, 10)
-local shadowFont = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 38, 1.6)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 55, 10, 10)
+local shadowfont = gl.LoadFont(fontfile, 55, 38, 1.6)
 
 local infotext = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
 local infotextFontsize = 20
-local infotextWidth = gl.GetTextWidth(infotext) * infotextFontsize
+local infotextWidth = font:GetTextWidth(infotext) * infotextFontsize
 
 local comnameList = {}
 local drawShadow = fontShadow
@@ -556,7 +558,7 @@ function widget:ViewResize(x, y)
   removeTeamLists()
   usedFontSize = fontSize/1.44 + (fontSize * ((vsx*vsy / 10000000)))
   local fontScale = widgetScale/2
-  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
 

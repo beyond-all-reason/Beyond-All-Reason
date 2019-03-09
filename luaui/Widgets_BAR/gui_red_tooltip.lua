@@ -271,7 +271,11 @@ end
 function widget:Initialize()
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
-	
+
+	if WG['Red'].font then
+		font = WG['Red'].font
+	end
+
 	tooltip = createtooltip(Config.tooltip)
 		
 	Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count

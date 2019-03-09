@@ -30,13 +30,14 @@ local fadeStartHeight		= 800
 local fadeEndHeight			= 4800
 local dlistAmount			= 20		-- amount of dlists created, one for each opacity value
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
 --------------------------------------------------------------------------------
@@ -81,7 +82,7 @@ local function createMapinfoList(opacityMultiplier)
 		local textOffsetX = 11
 		local textOffsetY = 16
 		local usedTextOffsetY = textOffsetY + (offset/2)
-		local length = math.max(mapInfoWidth, (glGetTextWidth(Game.mapDescription)*textSize) + 45)
+		local length = math.max(mapInfoWidth, (font:GetTextWidth(Game.mapDescription)*textSize) + 45)
 		
 		glDepthTest(true)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -98,7 +99,7 @@ local function createMapinfoList(opacityMultiplier)
 		glRotate(90,0,-1,0)
 		glRotate(180,1,0,0)
 	
-		--Spring.Echo(glGetTextWidth(Game.mapDescription))
+		--Spring.Echo(font:GetTextWidth(Game.mapDescription))
 		
 		local height = 90
 		local thickness = -(thickness*scale)
@@ -215,8 +216,8 @@ end
 
 function Init()
 	
-	if (glGetTextWidth(Game.mapDescription) * 12) > mapInfoWidth then
-		--mapInfoWidth = (glGetTextWidth(Game.mapDescription) * 12) + 33
+	if (font:GetTextWidth(Game.mapDescription) * 12) > mapInfoWidth then
+		--mapInfoWidth = (font:GetTextWidth(Game.mapDescription) * 12) + 33
 	end
 	if stickToFloor then
 		mapInfoBoxHeight = 0

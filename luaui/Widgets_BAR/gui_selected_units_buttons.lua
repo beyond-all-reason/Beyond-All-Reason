@@ -29,7 +29,8 @@ end
 
 -- Automatically generated local definitions
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local GL_ONE                   = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
@@ -44,8 +45,6 @@ local glRect                   = gl.Rect
 local glRotate                 = gl.Rotate
 local glScale                  = gl.Scale
 local glTexRect                = gl.TexRect
-local glGetTextWidth           = gl.GetTextWidth
-local glGetTextHeight          = gl.GetTextHeight
 local glText                   = gl.Text
 local glTexture                = gl.Texture
 local glTranslate              = gl.Translate
@@ -143,7 +142,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.5 + (vsx*vsy / 5700000))
   local fontScale = widgetScale/2
-  font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
   
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
   usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))

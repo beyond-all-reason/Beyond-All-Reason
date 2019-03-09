@@ -15,7 +15,8 @@ local discordLink = 'balancedannihilation.com/discord'
 local iconTexture = ":n:LuaUI/Images/discord.png"
 local iconSize = 32
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local spGetGameFrame		= Spring.GetGameFrame
 
@@ -40,7 +41,7 @@ function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -125,7 +126,7 @@ function widget:DrawScreen()
 			glCallList(drawlist[1])
 			local mx,my = Spring.GetMouseState()
 			if widget:IsAbove(mx,my) then
-				local textWidth = glGetTextWidth(discordLink) * 13
+				local textWidth = font:GetTextWidth(discordLink) * 13
 				font:Begin()
 				font:Print(discordLink, -(textWidth+6+iconSize)*parentPos[5], 12*parentPos[5], 13*parentPos[5], "no")
 				font:End()

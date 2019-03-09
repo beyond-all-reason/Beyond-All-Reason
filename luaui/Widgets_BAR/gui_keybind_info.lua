@@ -12,7 +12,8 @@ return {
 end
 
 local loadedFontSize = 52
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52, 14, 1.9)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local font = gl.LoadFont(fontfile, 52, 17, 1.5)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -33,8 +34,6 @@ local glPolygonMode = gl.PolygonMode
 local glRect = gl.Rect
 local glText = gl.Text
 local glShape = gl.Shape
-local glGetTextWidth = gl.GetTextWidth
-local glGetTextHeight = gl.GetTextHeight
 
 local bgColorMultiplier = 0
 
@@ -64,7 +63,7 @@ function widget:ViewResize()
 	screenY = (vsy*0.5) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 	local fontScale = widgetScale/2
-	font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 52*fontScale, 14*fontScale, 1.9)
+	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 	loadedFontSize = 52*fontScale
 	if keybinds then gl.DeleteList(keybinds) end
 	keybinds = gl.CreateList(DrawWindow)
@@ -159,14 +158,14 @@ function DrawTextTable(t,x,y)
         local title = t[1] or ""
         local line = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
 		font:Print(line, x+4, y-((13)*j)+5, 14)
-		screenWidth = math.max(glGetTextWidth(line)*13,screenWidth)
+		screenWidth = math.max(font:GetTextWidth(line)*13,screenWidth)
       else
         -- keybind line
         local bind = string.upper(t[1]) or ""
         local effect = t[2] or ""
         local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. effect
 		font:Print(line, x+14, y-(13)*j, 11)
-		width = math.max(glGetTextWidth(line)*11,width)
+		width = math.max(font:GetTextWidth(line)*11,width)
       end
       height = height + 13
       
@@ -206,7 +205,7 @@ function DrawWindow()
     local title = "Keybinds"
     local titleFontSize = 18
     gl.Color(0,0,0,0.8)
-    titleRect = {x-bgMargin, y+bgMargin, x-bgMargin+(glGetTextWidth(title)*titleFontSize)+27, y+37}
+    titleRect = {x-bgMargin, y+bgMargin, x-bgMargin+(font:GetTextWidth(title)*titleFontSize)+27, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	-- title
 	font:Begin()
