@@ -88,6 +88,7 @@ local glBeginEnd = gl.BeginEnd
 local glTexCoord = gl.TexCoord
 local glVertex = gl.Vertex
 local glLoadIdentity = gl.LoadIdentity
+local glGetScreenViewTrans = gl.GetScreenViewTrans
 
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_LINE_LOOP = GL.LINE_LOOP
@@ -116,6 +117,9 @@ local GetViewGeometry = Spring.GetViewGeometry
 local ValidUnitID = Spring.ValidUnitID
 local GetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local GetGameFrame = Spring.GetGameFrame
+local GetCameraPosition = Spring.GetCameraPosition
+local GetCameraDirection = Spring.GetCameraDirection
+local SetCameraTarget = Spring.SetCameraTarget
 
 local fmod = math.fmod
 local math_sin = math.sin
@@ -263,12 +267,17 @@ local function DrawUnitIcons(number)
 	end
 	local ct = 0
 	local X1, X2
+
+	local cpx, cpy, cpz = GetCameraPosition()
+	local ctx, cty, ctz = glGetScreenViewTrans()
+
+	-- magic to keep UnitShape fog under control
+	SetCameraTarget(ctx, cty, ctz, -1.0)
+
 	glTexture(false)
 	glScissor(true)
-	--
 
 	while (ct < number) do
-
 		ct = ct + 1
 		local unitID = drawTable[ct][2]
 		
@@ -278,13 +287,17 @@ local function DrawUnitIcons(number)
 			X2 = X1+ICON_SIZE_X
 
 			glPushMatrix()
-				--glLoadIdentity()
+				glLoadIdentity()
+				glTranslate(ctx, cty, ctz)
+
 				glScissor(X1, Y_MIN, X2 - X1, Y_MAX - Y_MIN)
 
 				glTranslate(0.5*(X2+X1), 0.5*(Y_MAX+Y_MIN), 0)
 				glRotate(18, 1, 0, 0)
 				glRotate(rot, 0, 1, 0)
+
 				CenterUnitDef(drawTable[ct][1])
+
 				--glUnitShapeTextures(drawTable[ct][1], true)
 				glUnitShape(drawTable[ct][1], GetMyTeamID(), false, true, true)
 				--glUnitShapeTextures(drawTable[ct][1], false)
@@ -307,6 +320,8 @@ local function DrawUnitIcons(number)
 			end
 		end	
 	end
+
+	SetCameraTarget(cpx, cpy, cpz, -1.0)
 end
 
 
