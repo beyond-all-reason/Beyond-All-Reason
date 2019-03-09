@@ -166,34 +166,33 @@ float StrangeSurface(vec3 snormPos, float mult, float time) {
 	vec2 i = p;
 	float c = 0.0;
 	float inten = 0.04;
-    float r = length(p+vec2(sin(time),sin(time*0.433+2.))*3.);
+	float r = length(p + vec2(sin(time), sin(time * 0.433 + 2.0)) * 3.0);
 
 	for (float n = 0.0; n < MAX_ITER; n++) {
-		float t = r-time * (1.0 - (1.9 / (n+1.)));
-		      t = r-time/(n+0.6);//r-time * (1.0 + (0.5 / float(n+1.)));
+		float t = r - time * (1.0 - (1.9 / (n + 1.0)));
+		      t = r - time / (n + 0.6);
 		i -= p + vec2(
-			cos(t - i.x-r) + sin(t + i.y),
-			sin(t - i.y) + cos(t + i.x)+r
+			cos(t - i.x - r) + sin(t + i.y),
+			sin(t - i.y) + cos(t + i.x) + r
 		);
 		c += 1.0/length(vec2(
-			(sin(i.x+t)/inten),
-			(cos(i.y+t)/inten)
+			(sin(i.x + t) / inten),
+			(cos(i.y + t) / inten)
 			)
 		);
 
 	}
 
 	c /= MAX_ITER;
-	c = clamp(c,-1.0,1.0);
+	c = clamp(c, -1.0, 1.0);
 	return c;
-
 }
 
 float Hexagon2D(vec2 p, float edge0, float edge1) {
 	p.x *= 0.57735 * 2.0;
-	p.y += mod(floor(p.x), 2.0)*0.5;
+	p.y += mod(floor(p.x), 2.0) * 0.5;
 	p = abs((mod(p, 1.0) - 0.5));
-	float val = abs(max(p.x*1.5 + p.y, p.y*2.0) - 1.0);
+	float val = abs(max(p.x * 1.5 + p.y, p.y * 2.0) - 1.0);
 	return smoothstep(edge0, edge1, val);
 }
 
