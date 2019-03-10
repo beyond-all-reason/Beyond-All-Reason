@@ -42,7 +42,7 @@ local turnedShadowsOff		= false
 function widget:Initialize()
 	if Spring.GetGameFrame() == 0 then
 		Spring.SendCommands({"shadows 1 "..maxQuality})
-		averageFps = 75
+		averageFps = 70
 	end
 
 	WG['shadowmanager'] = {}
@@ -84,12 +84,13 @@ function widget:Shutdown()
 end
 
 function updateShadows(force)
-	local fpsScope = (averageFps - disableFps) / 60
+	local fpsScope = (averageFps - disableFps) / 90
 	quality = math.floor(minQuality + ((maxQuality-minQuality) * fpsScope))
 	--Spring.Echo(quality)
 	if averageFps < disableFps then
 		force = true
 	end
+	--Spring.Echo(averageFps..'   '..quality)
 	if averageFps > previousQualityFps + fpsDifference  or  averageFps < previousQualityFps - fpsDifference or force then  -- weight fps values with more rendered models heavier
 
 		if quality > maxQuality then

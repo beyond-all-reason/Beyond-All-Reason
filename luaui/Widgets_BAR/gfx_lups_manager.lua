@@ -75,11 +75,11 @@ local UnitEffects = {
 
     [UnitDefNames["armjuno"].id] = {
         {class='ShieldSphere',options=armjunoShieldSphere},
-        {class='ShieldJitter',options={life=math.huge, pos={0,72,0}, size=13, precision=22, repeatEffect=true}},
+        {class='ShieldJitter',options={life=math.huge, pos={0,72,0}, size=14, precision=22, repeatEffect=true}},
     },
     [UnitDefNames["corjuno"].id] = {
         {class='ShieldSphere',options=corjunoShieldSphere},
-        {class='ShieldJitter',options={life=math.huge, pos={0,72,0}, size=13, precision=22, repeatEffect=true}},
+        {class='ShieldJitter',options={life=math.huge, pos={0,72,0}, size=14, precision=22, repeatEffect=true}},
     },
 
     [UnitDefNames["cormakr"].id] = {
@@ -92,41 +92,41 @@ local UnitEffects = {
     --// FUSIONS //--------------------------
     [UnitDefNames["corafus"].id] = {
         {class='ShieldSphere',options=corafusShieldSphere},
-        {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,60,0}, size=32, precision=22, repeatEffect=true}},
+        {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,60,0}, size=32.5, precision=22, repeatEffect=true}},
     },
     [UnitDefNames["corfus"].id] = {
         {class='ShieldSphere',options=corfusShieldSphere},
-        {class='ShieldJitter',options={life=math.huge, pos={0,50,0}, size=23, precision=22, repeatEffect=true}},
+        {class='ShieldJitter',options={life=math.huge, pos={0,50,0}, size=23.5, precision=22, repeatEffect=true}},
     },
     [UnitDefNames["armafus"].id] = {
         {class='ShieldSphere',options=armafusShieldSphere},
-        {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,60,0}, size=28, precision=22, repeatEffect=true}},
+        {class='ShieldJitter',options={layer=-16, life=math.huge, pos={0,60,0}, size=28.5, precision=22, repeatEffect=true}},
     },
     [UnitDefNames["corgate"].id] = {
         {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts550)},
-        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
+        {class='ShieldJitter',options={delay=0,life=math.huge, pos={0,42,0}, size=12, precision=22, repeatEffect=true}},
+        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
         {class='ShieldSphere',options=corgateShieldSphere},
-        {class='SimpleParticles2', options=MergeTable({pos={0,42,0}, lifeSpread=300},shield_corgate)},
         --{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
     },
     [UnitDefNames["corfgate"].id] = {
         {class='Bursts',options=MergeTable({pos={0,40,0}},shieldBursts600)},
-        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
+        {class='ShieldJitter',options={delay=0,life=math.huge, pos={0,42,0}, size=12, precision=22, repeatEffect=true}},
+        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,42,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
         {class='ShieldSphere',options=corgateShieldSphere},
-        {class='SimpleParticles2', options=MergeTable({pos={0,42,0}, lifeSpread=300},shield_corgate)},
         --{class='ShieldJitter',options={life=math.huge, pos={0,42,0}, size=20, precision=2, repeatEffect=true}},
     },
     [UnitDefNames["armgate"].id] = {
         {class='Bursts',options=MergeTable({pos={0,25,5}},shieldBursts550)},
-        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
+        {class='ShieldJitter',options={delay=0,life=math.huge, pos={0,23.5,-5}, size=15, precision=22, repeatEffect=true}},
+        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,23.5,-5}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
         {class='ShieldSphere',options=armgateShieldSphere},
-        {class='SimpleParticles2', options=MergeTable({pos={0,25,-5}, lifeSpread=300},shield_armgate)},
     },
     [UnitDefNames["armfgate"].id] = {
         {class='Bursts',options=MergeTable({pos={0,25,0}},shieldBursts600)},
-        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,20,0.0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
+        {class='ShieldJitter',options={delay=0,life=math.huge, pos={0,25,0}, size=15, precision=22, repeatEffect=true}},
+        {class='ShieldJitter', options={delay=0,life=math.huge, pos={0,25,0}, size=555, precision=0, strength   = 0.001, repeatEffect=true}},
         {class='ShieldSphere',options=MergeTable(armgateShieldSphere, {pos={0,25,0}})},
-        {class='SimpleParticles2', options=MergeTable({pos={0,25,0}, lifeSpread=300},shield_armgate)},
     },
 
     --T1 ARM
