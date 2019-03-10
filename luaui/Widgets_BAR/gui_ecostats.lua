@@ -135,11 +135,6 @@ Options["removeDead"] = {}
 Options["removeDead"]["On"] = false
 	
 ---------------------------------------------------------------------------------------------------
-
-local fontPath  		= "LuaUI/Fonts/ebrima.ttf" 
-local font2Path  		= "LuaUI/Fonts/ebrima.ttf"
-local myFont	 		= gl.LoadFont("FreeSansBold.otf",textsize, 1.9, 40) --gl.LoadFont(fontPath,textsize,2,20)
-
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
 local images			= {
@@ -478,20 +473,20 @@ end
 local function DrawEText(numberE, vOffset)
 	if Options["resText"]["On"] then
 		local label = tconcat({"",formatRes(numberE)})
-		myFont:Begin()
-		myFont:SetTextColor({1, 1, 0, 1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.22),tH/2.66,'rs')
-		myFont:End()
+		font:Begin()
+		font:SetTextColor({1, 1, 0, 1})
+		font:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.22),tH/2.66,'rs')
+		font:End()
 	end
 end
 
 local function DrawMText(numberM, vOffset)
 	if Options["resText"]["On"] then
 		local label = tconcat({"",formatRes(numberM)})
-		myFont:Begin()
-		myFont:SetTextColor({0.8,0.8,0.8,1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.58),tH/2.66,'rs')
-		myFont:End()
+		font:Begin()
+		font:SetTextColor({0.8,0.8,0.8,1})
+		font:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.58),tH/2.66,'rs')
+		font:End()
 	end
 end
 
