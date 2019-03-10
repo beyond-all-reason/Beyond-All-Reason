@@ -770,7 +770,16 @@ local function UpdateGrid(g,cmds,ordertype)
 				icon.texture = buttonTexture
 			end
 			if (cmd.type == 5) then --state cmds (fire at will, etc)
-				icon.caption = " "..(cmd.params[cmd.params[1]+2] or cmd.name).." "
+				icon.caption = (cmd.params[cmd.params[1]+2] or cmd.name)
+				if string.len(icon.caption) < 4 then
+					icon.caption = "     "..icon.caption.."     "
+				elseif string.len(icon.caption) < 5 then
+					icon.caption = "  "..icon.caption.."  "
+				elseif string.len(icon.caption) < 7 then
+					icon.caption = "  "..icon.caption.."  "
+				else
+					icon.caption = " "..icon.caption.." "
+				end
 				local statecount = #cmd.params-1 --number of states for the cmd
 				local curstate = cmd.params[1]+1
 				
@@ -895,7 +904,13 @@ local function UpdateGrid(g,cmds,ordertype)
 					
 				end
 			else
-				icon.caption = " "..cmd.name.." "
+				if string.len(cmd.name) < 4 then
+					icon.caption = "   "..cmd.name.."   "
+				elseif string.len(cmd.name) < 7 then
+					icon.caption = "  "..cmd.name.."  "
+				else
+					icon.caption = " "..cmd.name.." "
+				end
 			end
 		end
 	end
@@ -1045,7 +1060,6 @@ function widget:Initialize()
 	if Script.LuaRules('GetIconTypes') then
 		iconTypesMap = Script.LuaRules.GetIconTypes()
 	end
-
 	if WG['Red'].font then
 		font = WG['Red'].font
 	end
