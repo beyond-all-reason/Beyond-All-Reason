@@ -13,6 +13,14 @@ end
 
 local loadSettings		= true
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 ---------------------------------------------------------------------------------------------------
 --  Declarations
 ---------------------------------------------------------------------------------------------------
@@ -127,11 +135,6 @@ Options["removeDead"] = {}
 Options["removeDead"]["On"] = false
 	
 ---------------------------------------------------------------------------------------------------
-
-local fontPath  		= "LuaUI/Fonts/ebrima.ttf" 
-local font2Path  		= "LuaUI/Fonts/ebrima.ttf"
-local myFont	 		= gl.LoadFont("FreeSansBold.otf",textsize, 1.9, 40) --gl.LoadFont(fontPath,textsize,2,20)
-
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
 local images			= {
@@ -470,20 +473,20 @@ end
 local function DrawEText(numberE, vOffset)
 	if Options["resText"]["On"] then
 		local label = tconcat({"",formatRes(numberE)})
-		myFont:Begin()
-		myFont:SetTextColor({1, 1, 0, 1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.22),tH/2.66,'rs')
-		myFont:End()
+		font:Begin()
+		font:SetTextColor({1, 1, 0, 1})
+		font:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.22),tH/2.66,'rs')
+		font:End()
 	end
 end
 
 local function DrawMText(numberM, vOffset)
 	if Options["resText"]["On"] then
 		local label = tconcat({"",formatRes(numberM)})
-		myFont:Begin()
-		myFont:SetTextColor({0.8,0.8,0.8,1})
-		myFont:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.58),tH/2.66,'rs')
-		myFont:End()
+		font:Begin()
+		font:SetTextColor({0.8,0.8,0.8,1})
+		font:Print(label, widgetPosX + widgetWidth - (10*sizeMultiplier), widgetPosY + widgetHeight -vOffset+(tH*0.58),tH/2.66,'rs')
+		font:End()
 	end
 end
 
@@ -723,9 +726,12 @@ local function DrawOptionRibbon()
 	--glRect(x0,widgetPosY, x1, widgetPosY -h)
 	local padding = 2*sizeMultiplier
 	RectRound(x0-padding, yPos -h-padding, x1+padding, yPos+padding, 6*sizeMultiplier)
-	glColor(0.8,0.8,1,0.8)
-	glText("Show resource text:", x0+(10*sizeMultiplier), Options["resText"]["y1"]+4,textsize)
-	glText("Stick to Top Bar widget:", x0+(10*sizeMultiplier), Options["sticktotopbar"]["y1"]+4,textsize)
+
+	font:Begin()
+	font:SetTextColor(0.8,0.8,1,0.8)
+	font:Print("Show resource text:", x0+(10*sizeMultiplier), Options["resText"]["y1"]+4,textsize)
+	font:Print("Stick to Top Bar widget:", x0+(10*sizeMultiplier), Options["sticktotopbar"]["y1"]+4,textsize)
+	font:End()
 	--glText("Remove dead teams:", x0+10, Options["removeDead"]["y1"]+(textsize/2),textsize)
 	glColor(1,1,1,1)
 	if Options["resText"]["On"] then
@@ -1563,6 +1569,11 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 	Reinit()
 end
 

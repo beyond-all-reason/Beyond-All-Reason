@@ -51,6 +51,14 @@ include("keysym.h.lua")
 local fontSize = 13
 local useSelection = true
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local customFontSize = 13
 
 local cX, cY
@@ -154,15 +162,17 @@ local function DrawText(t1, t2)
 	textBufferCount = textBufferCount + 1
 	textBuffer[textBufferCount] = {t1,t2,cX,cY}
 	cY = cY - fontSize
-	maxWidth = max(maxWidth, (gl.GetTextWidth(t1)*fontSize), (gl.GetTextWidth(t2)*fontSize)+(fontSize*6.5))
+	maxWidth = max(maxWidth, (font:GetTextWidth(t1)*fontSize), (font:GetTextWidth(t2)*fontSize)+(fontSize*6.5))
 end
 
 local function DrawTextBuffer()
 	local num = #textBuffer
+	font:Begin()
 	for i=1, num do
-		glText(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
-		glText(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
+		font:Print(textBuffer[i][1], textBuffer[i][3], textBuffer[i][4], fontSize, "o")
+		font:Print(textBuffer[i][2], textBuffer[i][3] + (fontSize*6.5), textBuffer[i][4], fontSize, "o")
 	end
+	font:End()
 end
 
 local function GetTeamColorCode(teamID)
@@ -248,7 +258,14 @@ function init()
 	yOffset = -((32 + bgpadding)*widgetScale)
 end
 
-function widget:ViewResize(x,y)
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 	init()
 end
 
@@ -648,14 +665,14 @@ function widget:DrawScreen()
 	else
 		glColor(0,0,0,0.75)
 	end
-	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
-	cornersize = ceil(bgpadding*0.21)
-	glColor(1,1,1,0.025)
-	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(gl.GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+	cornersize = ceil(bgpadding*0.25)
+	glColor(1,1,1,0.023)
+	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize*0.88)
 
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding+1, cYstart-bgpadding+1, cX+(gl.GetTextWidth(text)*titleFontSize)+bgpadding-1, cYstart+(titleFontSize/2)+bgpadding-1, 'unit_stats_title')
+		WG['guishader_api'].InsertRect(cX-bgpadding+1, cYstart-bgpadding+1, cX+(font:GetTextWidth(text)*titleFontSize)+bgpadding-1, cYstart+(titleFontSize/2)+bgpadding-1, 'unit_stats_title')
 	end
 
 	-- icon
@@ -668,7 +685,9 @@ function widget:DrawScreen()
 
 	-- title text
 	glColor(1,1,1,1)
-	glText(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+	font:Begin()
+	font:Print(text, cX+iconHalfSize+iconHalfSize+(bgpadding/1.5), cYstart, titleFontSize, "o")
+	font:End()
 
 	-- stats
 	cornersize = 0
@@ -678,9 +697,9 @@ function widget:DrawScreen()
 		glColor(0,0,0,0.75)
 	end
 	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
-	cornersize = ceil(bgpadding*0.16)
+	cornersize = ceil(bgpadding*0.23)
 	glColor(1,1,1,0.025)
-	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.88)
 
 	DrawTextBuffer()
 

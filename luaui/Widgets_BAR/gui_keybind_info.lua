@@ -11,8 +11,13 @@ return {
 }
 end
 
-local loadedFontSize = 32
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -33,8 +38,6 @@ local glPolygonMode = gl.PolygonMode
 local glRect = gl.Rect
 local glText = gl.Text
 local glShape = gl.Shape
-local glGetTextWidth = gl.GetTextWidth
-local glGetTextHeight = gl.GetTextHeight
 
 local bgColorMultiplier = 0
 
@@ -63,6 +66,11 @@ function widget:ViewResize()
 	screenX = (vsx*0.5) - (screenWidth/2)
 	screenY = (vsy*0.5) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 	if keybinds then gl.DeleteList(keybinds) end
 	keybinds = gl.CreateList(DrawWindow)
 end
@@ -147,6 +155,7 @@ function DrawTextTable(t,x,y)
     local j = 0
     local height = 0
     local width = 0
+	font:Begin()
     for _,t in pairs(t) do
       if t.blankLine then
         -- nothing here
@@ -154,20 +163,21 @@ function DrawTextTable(t,x,y)
         -- title line
         local title = t[1] or ""
         local line = " " .. titleColor .. title -- a WTF whitespace is needed here, the colour doesn't show without it...
-        gl.Text(line, x+4, y-((13)*j)+5, 14)
-		screenWidth = math.max(glGetTextWidth(line)*13,screenWidth)
+		font:Print(line, x+4, y-((13)*j)+5, 14)
+		screenWidth = math.max(font:GetTextWidth(line)*13,screenWidth)
       else
         -- keybind line
         local bind = string.upper(t[1]) or ""
         local effect = t[2] or ""
         local line = " " .. bindColor .. bind .. "   " .. descriptionColor .. effect
-        gl.Text(line, x+14, y-(13)*j, 11)
-		width = math.max(glGetTextWidth(line)*11,width)
+		font:Print(line, x+14, y-(13)*j, 11)
+		width = math.max(font:GetTextWidth(line)*11,width)
       end
       height = height + 13
       
 	  j = j + 1
     end
+	font:End()
     --screenHeight = math.max(screenHeight, height)
     --screenWidth = screenWidth + width
     return x,j
@@ -201,7 +211,7 @@ function DrawWindow()
     local title = "Keybinds"
     local titleFontSize = 18
     gl.Color(0,0,0,0.8)
-    titleRect = {x-bgMargin, y+bgMargin, x-bgMargin+(glGetTextWidth(title)*titleFontSize)+27, y+37}
+    titleRect = {x-bgMargin, y+bgMargin, x-bgMargin+(font:GetTextWidth(title)*titleFontSize)+27, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	-- title
 	font:Begin()
@@ -217,7 +227,9 @@ function DrawWindow()
     DrawTextTable(Units_III,x,y-24)
 	
     gl.Color(1,1,1,1)
-    gl.Text("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
+	font:Begin()
+    font:Print("These keybinds are set by default. If you remove/replace hotkey widgets, or use your own uikeys, they might stop working!", screenX+12, y-screenHeight + 14, 12.5)
+	font:End()
 end
 
 

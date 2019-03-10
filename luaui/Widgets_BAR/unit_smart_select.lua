@@ -273,19 +273,21 @@ function widget:Update()
 			end
 			originalMouseSelection = mouseSelection
 
-			
+
 			-- filter gaia units
 			local filteredselection = {}
 			local filteredselectionCount = 0
-			for i=1, #mouseSelection do
-				if GetUnitTeam(mouseSelection[i]) ~= GaiaTeamID then
-					filteredselectionCount = filteredselectionCount + 1
-					filteredselection[filteredselectionCount] = mouseSelection[i]
+			if not Spring.IsGodModeEnabled() then
+				for i=1, #mouseSelection do
+					if GetUnitTeam(mouseSelection[i]) ~= GaiaTeamID then
+						filteredselectionCount = filteredselectionCount + 1
+						filteredselection[filteredselectionCount] = mouseSelection[i]
+					end
 				end
+				mouseSelection = filteredselection
 			end
-			mouseSelection = filteredselection
 			filteredselection = nil
-			
+
 			local newSelection = {}
 			local uid, udid, udef, tmp
 

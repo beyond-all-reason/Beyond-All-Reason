@@ -17,6 +17,13 @@ end
 local wWidth, wHeight = Spring.GetWindowGeometry()
 local px, py = 50, 0.55*wHeight
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
 -- Speedups
@@ -207,6 +214,11 @@ end
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (0.50 + (vsx*vsy / 5000000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 end
 
 function GenerateFactionChangeList()
@@ -237,11 +249,11 @@ function GenerateFactionChangeList()
 	glTexture(false)
 	
 		-- Text
-	glBeginText()
-		glText('Choose Your Faction', 64*widgetScale, 64*widgetScale, 11.5*widgetScale, 'ocd')
-		glText('ARM', 32*widgetScale, 4*widgetScale, 12*widgetScale, 'ocd')
-		glText('CORE', 96*widgetScale, 4*widgetScale, 12*widgetScale, 'ocd')
-	glEndText()
+	font:Begin()
+	font:Print('Choose Your Faction', 64*widgetScale, 64*widgetScale, 11.5*widgetScale, 'ocd')
+	font:Print('ARM', 32*widgetScale, 4*widgetScale, 12*widgetScale, 'ocd')
+	font:Print('CORE', 96*widgetScale, 4*widgetScale, 12*widgetScale, 'ocd')
+	font:End()
 end
 
 

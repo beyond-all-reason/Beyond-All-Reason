@@ -27,6 +27,14 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 45
+local fontfileOutlineSize = 8
+local fontfileOutlineStrength = 1.8
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 -- Automatically generated local definitions
 
 local vsx, vsy = gl.GetViewSizes()
@@ -50,15 +58,16 @@ local message4 = ""
 
 local floor = math.floor
 
-
-local font = "LuaUI/Fonts/FreeSansBold.otf"
-local fh = fontHandler.UseFont(font)
-
 local vsx, vsy = widgetHandler:GetViewSizes()
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+  vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.80 + (vsx*vsy / 6000000))
+
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 end
 
 function widget:Initialize()
@@ -122,10 +131,12 @@ function widget:DrawScreen()
   glPushMatrix()
   glTranslate((vsx * 0.5), (vsy * 0.18), 0) --has to be below where newbie info appears!
   glScale(1.5, 1.5, 1)
-  glText(msg, 0, 15*widgetScale, 18*widgetScale, "oc")
-  glText(msg2, 0, -35*widgetScale, 12.5*widgetScale, "oc")
-  glText(msg3, 0, -55*widgetScale, 11*widgetScale, "oc")
-  glText(msg4, 0, 60*widgetScale, 18*widgetScale, "oc")
+  font:Begin()
+  font:Print(msg, 0, 15*widgetScale, 18*widgetScale, "oc")
+  font:Print(msg2, 0, -35*widgetScale, 12.5*widgetScale, "oc")
+  font:Print(msg3, 0, -55*widgetScale, 11*widgetScale, "oc")
+  font:Print(msg4, 0, 60*widgetScale, 18*widgetScale, "oc")
+  font:End()
   glPopMatrix()
 end
 

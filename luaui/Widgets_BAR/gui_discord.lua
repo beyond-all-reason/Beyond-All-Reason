@@ -15,6 +15,14 @@ local discordLink = 'balancedannihilation.com/discord'
 local iconTexture = ":n:LuaUI/Images/discord.png"
 local iconSize = 32
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local spGetGameFrame		= Spring.GetGameFrame
 
 local glText	          = gl.Text
@@ -33,6 +41,16 @@ local yPos = 0
 
 local mouseover = false
 local usedImgSize = iconSize
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+end
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -116,8 +134,10 @@ function widget:DrawScreen()
 			glCallList(drawlist[1])
 			local mx,my = Spring.GetMouseState()
 			if widget:IsAbove(mx,my) then
-				local textWidth = glGetTextWidth(discordLink) * 13
-				glText(discordLink, -(textWidth+6+iconSize)*parentPos[5], 12*parentPos[5], 13*parentPos[5], "no")
+				local textWidth = font:GetTextWidth(discordLink) * 13
+				font:Begin()
+				font:Print(discordLink, -(textWidth+6+iconSize)*parentPos[5], 12*parentPos[5], 13*parentPos[5], "no")
+				font:End()
 			end
 		glPopMatrix()
 		mouseover = false

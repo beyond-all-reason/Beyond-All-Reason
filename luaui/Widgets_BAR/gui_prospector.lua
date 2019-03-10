@@ -14,6 +14,14 @@ end
 
 local textSize = 16
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 ------------------------------------------------
 --speedups
 ------------------------------------------------
@@ -28,7 +36,6 @@ local glLineWidth = gl.LineWidth
 local glColor = gl.Color
 local glRect = gl.Rect
 local glText = gl.Text
-local glGetTextWidth = gl.GetTextWidth
 local glPolygonMode = gl.PolygonMode
 local glDrawGroundCircle = gl.DrawGroundCircle
 local glUnitShape = gl.UnitShape
@@ -79,7 +86,7 @@ local vsx, vsy
 ------------------------------------------------
 
 local function DrawTextWithBackground(text, x, y, size, opt)
-	local width = (glGetTextWidth(text) * size) + 8
+	local width = (font:GetTextWidth(text) * size) + 8
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 	
 	glColor(0.25, 0.25, 0.25, 0.75)
@@ -94,11 +101,11 @@ local function DrawTextWithBackground(text, x, y, size, opt)
 	else
 		glRect(x, y, x + width, y + size * TEXT_CORRECT_Y)
 	end
-	
-	glColor(1, 1, 1, 0.85)
-	
-	glText(text, x+4, y, size, opt)
-	
+
+	font:Begin()
+	font:SetTextColor(1, 1, 1, 0.85)
+	font:Print(text, x+4, y, size, opt)
+	font:End()
 end
 
 local function SetupMexDefInfos() 
@@ -259,7 +266,12 @@ function widget:DrawScreen()
 	glColor(1, 1, 1, 1)
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx = viewSizeX
-	vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 end

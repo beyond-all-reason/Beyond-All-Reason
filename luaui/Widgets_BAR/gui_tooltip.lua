@@ -33,9 +33,17 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 ------------------------------------------------------------------------------------
 
 local defaultDelay = 0.4
-local usedFontSize = 13
+local usedFontSize = 14.5
 local xOffset = 32
 local yOffset = -32-usedFontSize
+
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 5.5
+local fontfileOutlineStrength = 1.9
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -126,6 +134,14 @@ end
 
 
 function widget:ViewResize(x,y)
+	vsx,vsy = Spring.GetViewGeometry()
+
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
+
 	init()
 end
 
@@ -158,7 +174,7 @@ function drawTooltip(name, x, y)
 	
 	-- get text dimentions
 	for i, line in ipairs(lines) do
-		maxWidth = math.max(maxWidth, (gl.GetTextWidth(line)*fontSize), maxWidth)
+		maxWidth = math.max(maxWidth, (font:GetTextWidth(line)*fontSize), maxWidth)
 		maxHeight = maxHeight + lineHeight
 	end
 	-- adjust position when needed
@@ -179,9 +195,9 @@ function drawTooltip(name, x, y)
 	local cornersize = 0
 	glColor(0.8,0.8,0.8,0.8)
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
-	cornersize = 1.75*widgetScale
+	cornersize = 2.25*widgetScale
 	glColor(0,0,0,0.3)
-	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize-0.06, 4*widgetScale)
+	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize-0.06, 4.3*widgetScale)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(posX-paddingW-cornersize, posY-maxHeight-paddingH-cornersize, posX+maxWidth+paddingW+cornersize, posY+paddingH+cornersize, 'tooltip_'..name)
 	end
@@ -189,12 +205,14 @@ function drawTooltip(name, x, y)
 	-- draw text
 	maxHeight = -fontSize*0.93
 	glTranslate(posX, posY, 0)
-	gl.BeginText()
+	font:Begin()
+	--font:SetTextColor(0.95,0.95,0.95,1)
+	--font:SetOutlineColor(0.3,0.3,0.3,0.3)
 	for i, line in ipairs(lines) do
-		glText('\255\244\244\244'..line, 0, maxHeight, fontSize, "o")
+		font:Print('\255\244\244\244'..line, 0, maxHeight, fontSize, "o")
 		maxHeight = maxHeight - lineHeight
 	end
-	gl.EndText()
+	font:End()
 	glTranslate(-posX, -posY, 0)
 end
 

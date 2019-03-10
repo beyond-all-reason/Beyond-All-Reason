@@ -12,6 +12,14 @@ function widget:GetInfo()
   }
 end
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 ----------------------------------------------------------------
 --config
 ----------------------------------------------------------------
@@ -194,8 +202,11 @@ function widget:DrawScreen()
 						end
 					end
 					glShape(GL_TRIANGLES, vertices)
-					glColor(1, 1, 1, alpha)
-					glText(defs.unitName, textX, textY, fontSize, textOptions)
+
+					font:Begin()
+					font:SetTextColor(1, 1, 1, alpha)
+					font:Print(defs.unitName, textX, textY, fontSize, textOptions)
+					font:End()
 				end
 			end
 		end
@@ -205,11 +216,17 @@ function widget:DrawScreen()
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx = viewSizeX
-	vsy = viewSizeY
-  sMidX = viewSizeX * 0.5
-  sMidY = viewSizeY * 0.5
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+
+  sMidX = vsx * 0.5
+  sMidY = vsy * 0.5
 end
 
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)

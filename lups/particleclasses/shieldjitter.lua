@@ -40,7 +40,7 @@ ShieldJitter.Default = {
   size       = 600,
   --precision  = 26, --// bias the used polies for a sphere
 
-  strength   = 0.015,
+  strength   = 0.005,
   texture    = 'bitmaps/GPL/Lups/grass5.png',
   --texture    = 'bitmaps/GPL/Lups/perlin_noise.jpg',
 

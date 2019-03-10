@@ -29,6 +29,15 @@ end
 
 -- Automatically generated local definitions
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
+
 local GL_ONE                   = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
 local GL_SRC_ALPHA             = GL.SRC_ALPHA
@@ -42,8 +51,6 @@ local glRect                   = gl.Rect
 local glRotate                 = gl.Rotate
 local glScale                  = gl.Scale
 local glTexRect                = gl.TexRect
-local glGetTextWidth           = gl.GetTextWidth
-local glGetTextHeight          = gl.GetTextHeight
 local glText                   = gl.Text
 local glTexture                = gl.Texture
 local glTranslate              = gl.Translate
@@ -66,8 +73,8 @@ local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_opacityMultiplier = 0.6
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66) * ui_opacityMultiplier
 
 local bgcorner = ":n:LuaUI/Images/bgcorner.png"
 local highlightImg = ":n:LuaUI/Images/button-highlight.dds"
@@ -87,8 +94,8 @@ local currentDef = nil
 local prevUnitCount = spGetSelectedUnitsCounts()
 local oldUnitpics = false
 
-local iconSizeX = 64
-local iconSizeY = 64
+local iconSizeX = 76
+local iconSizeY = 76
 local iconImgMult = 0.85
 
 local usedIconSizeX = iconSizeX
@@ -137,10 +144,15 @@ local function updateGuishader()
 end
 
 local vsx, vsy = widgetHandler:GetViewSizes()
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
-  
+function widget:ViewResize(n_vsx,n_vsy)
+  vsx,vsy = Spring.GetViewGeometry()
+
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
   usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
   fontSize = usedIconSizeY * 0.28
@@ -157,11 +169,7 @@ function cacheUnitIcons()
     if cached == nil then
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
-            if oldUnitpics and UnitDefs[id] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[id].name..'.dds') then
-                gl.Texture('unitpics/'..UnitDefs[id].name..'.dds')
-            else
-                gl.Texture('#' .. id)
-            end
+            gl.Texture('#' .. id)
             gl.TexRect(-1,-1,0,0)
             gl.Texture(false)
         end
@@ -242,8 +250,8 @@ function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec>0.5 then
     uiOpacitySec = 0
-    if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
-      ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+    if ui_opacity ~= (Spring.GetConfigFloat("ui_opacity",0.66) * ui_opacityMultiplier) then
+      ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66) * ui_opacityMultiplier
       gl.DeleteList(picList)
       picList = gl.CreateList(DrawPicList)
     end
@@ -370,8 +378,8 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   	color = {1, 1, 1, 1}
   	ypad2 = 0
   end
-  local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 2
-  local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 2
+  local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 3
+  local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 3
   
   local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos)) + xPad
   local xmax = xmin + usedIconSizeX - xPad - xPad
@@ -384,18 +392,16 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   local ud = UnitDefs[unitDefID]
   glColor(color)
-  if oldUnitpics and UnitDefs[unitDefID] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[unitDefID].name..'.dds') then
-    glTexture('unitpics/'..UnitDefs[unitDefID].name..'.dds')
-  else
-    glTexture('#' .. unitDefID)
-  end
+  glTexture('#' .. unitDefID)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
   
   if count > 1 then
     -- draw the count text
     local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
-    glText(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16)-(yPad/2) , fontSize, "or")
+    font:Begin()
+    font:Print(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16)-(yPad/2) , fontSize, "or")
+    font:End()
   end
 end
 

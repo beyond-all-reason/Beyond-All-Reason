@@ -263,7 +263,7 @@ local function CalcAoE(dmg, capacity)
 	return math.max(0, aoe)
 end
 
-local AOE_SAME_SPOT = AOE_MAX / 5
+local AOE_SAME_SPOT = AOE_MAX / 3
 
 local HIT_POINT_FOLLOWS_PROJECTILE = false
 

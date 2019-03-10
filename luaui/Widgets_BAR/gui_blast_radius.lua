@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 --These can be modified if needed
 local blastCircleDivs = 64
 local blastLineWidth = 1.0
@@ -74,6 +82,17 @@ local floor                 = math.floor
 
 
 -----------------------------------------------------------------------------------
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+end
+
 function widget:DrawWorld()
 	DrawBuildMenuBlastRange()
 	
@@ -218,7 +237,8 @@ function DrawUnitBlastRadius( unitID )
 			text = blastDamage .. " / " .. deathblastDamage --text = "SELF-D / EXPLODE"
 		end
 
-		glText( text, 0.0, 0.0, sqrt(blastRadius) , "")
+		font:Begin()
+		font:Print( text, 0.0, 0.0, sqrt(blastRadius) , "")
 		glPopMatrix()  
 
 		if ( deathblastRadius ~= blastRadius ) then
@@ -228,9 +248,10 @@ function DrawUnitBlastRadius( unitID )
 			glPushMatrix()
 			glTranslate(x - ( deathblastRadius / 1.6 ), height , z  + ( deathblastRadius / 1.6) )
 			glBillboard()
-			glText("EXPLODE" , 0.0, 0.0, sqrt(deathblastRadius), "cn")
+			font:Print("EXPLODE" , 0.0, 0.0, sqrt(deathblastRadius), "cn")
 			glPopMatrix()  
 		end
+		font:End()
 	end
 end
 

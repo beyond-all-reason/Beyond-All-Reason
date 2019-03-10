@@ -30,6 +30,24 @@ local fadeStartHeight		= 800
 local fadeEndHeight			= 4800
 local dlistAmount			= 20		-- amount of dlists created, one for each opacity value
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+end
+
 --------------------------------------------------------------------------------
 -- speed-ups
 --------------------------------------------------------------------------------
@@ -72,7 +90,7 @@ local function createMapinfoList(opacityMultiplier)
 		local textOffsetX = 11
 		local textOffsetY = 16
 		local usedTextOffsetY = textOffsetY + (offset/2)
-		local length = math.max(mapInfoWidth, (glGetTextWidth(Game.mapDescription)*textSize) + 45)
+		local length = math.max(mapInfoWidth, (font:GetTextWidth(Game.mapDescription)*textSize) + 45)
 		
 		glDepthTest(true)
 		glBlending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
@@ -89,7 +107,7 @@ local function createMapinfoList(opacityMultiplier)
 		glRotate(90,0,-1,0)
 		glRotate(180,1,0,0)
 	
-		--Spring.Echo(glGetTextWidth(Game.mapDescription))
+		--Spring.Echo(font:GetTextWidth(Game.mapDescription))
 		
 		local height = 90
 		local thickness = -(thickness*scale)
@@ -137,24 +155,25 @@ local function createMapinfoList(opacityMultiplier)
 		glRotate(180,1,0,0)
 		
 		-- map name
+		font:Begin()
 		local text = Game.mapName
-		glColor(1,1,1,(textOpacity*1.12)*opacityMultiplier)
-		glText(text, textOffsetX,-usedTextOffsetY,14,"n")
-		glColor(0,0,0,textOpacity*0.12*opacityMultiplier)
-		glText(text, textOffsetX+0.5,-usedTextOffsetY-0.9,14,"n")
+		font:SetTextColor(1,1,1,(textOpacity*1.12)*opacityMultiplier)
+		font:Print(text, textOffsetX,-usedTextOffsetY,14,"n")
+		font:SetTextColor(0,0,0,textOpacity*0.12*opacityMultiplier)
+		font:Print(text, textOffsetX+0.5,-usedTextOffsetY-0.9,14,"n")
 		
 		--map description
 		usedTextOffsetY = usedTextOffsetY+textOffsetY
 		text = Game.mapDescription
-		glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-		glText(text, textOffsetX,-usedTextOffsetY,textSize,"n")
+		font:SetTextColor(1,1,1,textOpacity*0.6*opacityMultiplier)
+		font:Print(text, textOffsetX,-usedTextOffsetY,textSize,"n")
 		
 		--map size
 		usedTextOffsetY = usedTextOffsetY+textOffsetY
 		text = Game.mapDescription
-		glColor(1,1,1,textOpacity*0.6*opacityMultiplier)
-		glText("Size: "..Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
-		
+		font:SetTextColor(1,1,1,textOpacity*0.6*opacityMultiplier)
+		font:Print("Size: "..Game.mapX.. " x "..Game.mapY, textOffsetX,-usedTextOffsetY+0.8,textSize,"n")
+		font:End()
 		
 		--[[
 			usedTextOffsetY = usedTextOffsetY+textOffsetY
@@ -205,8 +224,8 @@ end
 
 function Init()
 	
-	if (glGetTextWidth(Game.mapDescription) * 12) > mapInfoWidth then
-		--mapInfoWidth = (glGetTextWidth(Game.mapDescription) * 12) + 33
+	if (font:GetTextWidth(Game.mapDescription) * 12) > mapInfoWidth then
+		--mapInfoWidth = (font:GetTextWidth(Game.mapDescription) * 12) + 33
 	end
 	if stickToFloor then
 		mapInfoBoxHeight = 0

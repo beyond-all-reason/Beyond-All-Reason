@@ -44,15 +44,15 @@ local toRemove = {} -- planes waiting to be removed (but which have to wait beca
 local previousHealFrame = 0
 
 local tractorSpeed = 2
-local rotTractorSpeed = 0.05 
-    
+local rotTractorSpeed = 0.05
+
 
 ---------------------------
 -- custom commands
 
 local landAtAnyAirbaseCmd = {
    id      = CMD_LAND_AT_AIRBASE,
-   name    = "Land At Any Airbase",
+   name    = " Land At \n  Airbase ",
    action  = "landatairbase",
    cursor  = 'landatairbase',
    type    = CMDTYPE.ICON,
@@ -61,7 +61,7 @@ local landAtAnyAirbaseCmd = {
 
 local landAtSpecificAirbaseCmd = {
    id      = CMD_LAND_AT_SPECIFIC_AIRBASE,
-   name    = "Land At Specific Airbase",
+   name    = "     Land At    \nSpecific Airbase", -- dirty method of spacing for redui
    action  = "landatspecificairbase",
    cursor  = 'landatspecificairbase',
    type    = CMDTYPE.ICON_UNIT,

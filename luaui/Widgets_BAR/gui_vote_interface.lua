@@ -16,10 +16,18 @@ local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 -- being set at gamestart again:
 local myPlayerID = Spring.GetMyPlayerID()
 local myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
-local startedAsPlayer = not mySpec
+local startedAsPlayer = not mycSpec
 
 local function DrawRectRound(px,py,sx,sy,cs)
 
@@ -108,9 +116,14 @@ function IsOnRect(x, y, BLcornerX, BLcornerY,TRcornerX,TRcornerY)
 	return x >= BLcornerX and x <= TRcornerX and y >= BLcornerY and y <= TRcornerY
 end
 
-function widget:ViewResize()
+function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 end
 
 function widget:PlayerChanged(playerID)
@@ -193,6 +206,7 @@ function StartVote(name, owner)
 		voteOwner = owner
 	end
 	voteDlist = gl.CreateList(function()
+		font:Begin()
 		if name then
 			voteName = name
 		end
@@ -203,7 +217,7 @@ function StartVote(name, owner)
 		local height = vsy/13
 
 		local fontSize = height/5	-- title only
-		local minWidth = gl.GetTextWidth('  '..voteName..'  ')*fontSize
+		local minWidth = font:GetTextWidth('  '..voteName..'  ')*fontSize
 		if width < minWidth then
 			width = minWidth
 		end
@@ -254,10 +268,10 @@ function StartVote(name, owner)
 
 		fontSize = fontSize*0.85
 		gl.Color(0,0,0,1)
-		gl.Text("ESC", closeButtonArea[1]+((closeButtonArea[3]-closeButtonArea[1])/2), closeButtonArea[2]+((closeButtonArea[4]-closeButtonArea[2])/2)-(fontSize/3), fontSize, "cn")
+		font:Print("\255\0\0\0ESC", closeButtonArea[1]+((closeButtonArea[3]-closeButtonArea[1])/2), closeButtonArea[2]+((closeButtonArea[4]-closeButtonArea[2])/2)-(fontSize/3), fontSize, "cn")
 
 		-- vote name
-		gl.Text("\255\190\190\190"..voteName, windowArea[1]+((windowArea[3]-windowArea[1])/2), windowArea[4]-padding-padding-padding-fontSize, fontSize, "con")
+		font:Print("\255\190\190\190"..voteName, windowArea[1]+((windowArea[3]-windowArea[1])/2), windowArea[4]-padding-padding-padding-fontSize, fontSize, "con")
 
 		-- NO
 		if IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) then
@@ -275,7 +289,8 @@ function StartVote(name, owner)
 		if voteOwner then
 			noText = 'End Vote'
 		end
-		gl.Text("\255\255\255\255"..noText, noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+		font:SetOutlineColor(0,0,0,0.4)
+		font:Print(noText, noButtonArea[1]+((noButtonArea[3]-noButtonArea[1])/2), noButtonArea[2]+((noButtonArea[4]-noButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 
 		-- YES
 		if not voteOwner then
@@ -289,8 +304,9 @@ function StartVote(name, owner)
 			gl.Color(0,0,0,0.075)
 			RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 4*widgetScale)
 
-			gl.Text("\255\255\255\255YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
+			font:Print("YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 		end
+		font:End()
 	end)
 end
 

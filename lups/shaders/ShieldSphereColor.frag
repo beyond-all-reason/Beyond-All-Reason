@@ -158,11 +158,41 @@ float SimplexPerlin3D( vec3 P ) {
     return dot( kernel_weights, grad_results ) * FINAL_NORMALIZATION;
 }
 
+float StrangeSurface(vec3 snormPos, float mult, float time) {
+	const float MAX_ITER = 1.5;
+
+	vec2 p = snormPos.xz*(2.0 - abs(snormPos.y)) * mult;
+
+	vec2 i = p;
+	float c = 0.0;
+	float inten = 0.04;
+	float r = length(p + vec2(sin(time), sin(time * 0.433 + 2.0)) * 3.0);
+
+	for (float n = 0.0; n < MAX_ITER; n++) {
+		float t = r - time * (1.0 - (1.9 / (n + 1.0)));
+		      t = r - time / (n + 0.6);
+		i -= p + vec2(
+			cos(t - i.x - r) + sin(t + i.y),
+			sin(t - i.y) + cos(t + i.x) + r
+		);
+		c += 1.0/length(vec2(
+			(sin(i.x + t) / inten),
+			(cos(i.y + t) / inten)
+			)
+		);
+
+	}
+
+	c /= MAX_ITER;
+	c = clamp(c, -1.0, 1.0);
+	return c;
+}
+
 float Hexagon2D(vec2 p, float edge0, float edge1) {
 	p.x *= 0.57735 * 2.0;
-	p.y += mod(floor(p.x), 2.0)*0.5;
+	p.y += mod(floor(p.x), 2.0) * 0.5;
 	p = abs((mod(p, 1.0) - 0.5));
-	float val = abs(max(p.x*1.5 + p.y, p.y*2.0) - 1.0);
+	float val = abs(max(p.x * 1.5 + p.y, p.y * 2.0) - 1.0);
 	return smoothstep(edge0, edge1, val);
 }
 
@@ -197,19 +227,20 @@ void main() {
 	float valueNoise = Value3D(valueNoiseVec);
 
 	if (BITMASK_FIELD(effects, 6)) {
-		const float perlinNoiseMovePace = 0.0005;
-		float waveFront = mod(-gameFrame * 0.005, 1.0);
+		const float perlinNoiseMovePace = 0.005;
+		float waveFront = mod(-gameFrame * 0.0025, 1.0);
 
 		vec3 perlinNoiseVec = modelPos.xyz;
-		perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
+		//perlinNoiseVec.y += gameFrame * perlinNoiseMovePace;
 
-		float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 31.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 63.0));
+		//float perlin = 0.33 * abs(SimplexPerlin3D(perlinNoiseVec * 50.0)) + 0.5 * abs(SimplexPerlin3D(perlinNoiseVec * 0.5));
+		float perlin = 1.3 * abs(StrangeSurface(modelPos.xyz, 50.0, gameFrame * perlinNoiseMovePace));
 
 		float band = SNORM2NORM(cos((modelPos.y - waveFront) * PI * 4.0));
 
-		float pb = pow( clamp(perlin * band, 0.0, 0.8), 0.85 );
+		float pb = pow( clamp(perlin * band, 0.0, 0.95), 0.2 );
 
-		color = pow(color, vec4(1.0 - pb));
+		color = pow(color, vec4(1.1 - pb));
 	}
 
 	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
@@ -238,7 +269,7 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects, 3)) { // impact animation
-		const vec4 impactColor = vec4(0.33);
+		const vec4 impactColor = vec4(0.35);
 
 		vec3 worldVec = normalize(worldPos.xyz - translationScale.xyz);
 
@@ -268,9 +299,9 @@ void main() {
 				thisImpactFactor *= 1.0 + length(rippleOffset) * 10.0;
 			}
 
-			impactNoiseVec *= 42.0 / cameraDistanceFactors.x;
+			impactNoiseVec *= 36.0 / cameraDistanceFactors.x;
 
-			vec2 noiseVecOffset = 0.5 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
+			vec2 noiseVecOffset = 0.8 * centerFactor * vec2( sin(gameFrame * PI * 0.15), cos(gameFrame * PI * 0.15) );
 			noiseVecOffset *= vec2(BITMASK_FIELD(effects, 4));
 
 			// Make chromatic aberation effect around the impact point

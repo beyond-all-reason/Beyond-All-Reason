@@ -44,6 +44,13 @@ end
 -- enable simple version by default though
 local drawGroundQuads = true
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 50
+local fontfileOutlineSize = 10
+local fontfileOutlineStrength = 10
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -53,12 +60,11 @@ local heightOffset			= 50
 local fontSize				= 18
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 10, 10)
-local shadowFont = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 55, 38, 1.6)
+local shadowfont = gl.LoadFont(fontfile, 55, 38, 1.6)
 
 local infotext = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
 local infotextFontsize = 20
-local infotextWidth = gl.GetTextWidth(infotext) * infotextFontsize
+local infotextWidth = font:GetTextWidth(infotext) * infotextFontsize
 
 local comnameList = {}
 local drawShadow = fontShadow
@@ -220,8 +226,10 @@ function widget:Initialize()
   end
 
   infotextList = gl.CreateList(function()
-		gl.Color(1,1,1,0.5)
-		gl.Text(infotext, 0,0, infotextFontsize, "cno")
+    font:Begin()
+    font:SetTextColor(1,1,1,0.5)
+    font:Print(infotext, 0,0, infotextFontsize, "cno")
+    font:End()
   end)
   
   -- get the gaia teamID and allyTeamID
@@ -551,7 +559,12 @@ function widget:ViewResize(x, y)
   vsx,vsy = x,y
   widgetScale = (0.75 + (vsx*vsy / 7500000))
   removeTeamLists()
-  usedFontSize = fontSize/1.44 + (fontSize * ((vsx*vsy / 10000000)))
+
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 end
 
 

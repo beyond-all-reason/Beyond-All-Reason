@@ -26,7 +26,7 @@ local Config = {
 		px = -0.5,py = CanvasY-90, --default start position
 		sx = 290,sy = 90, --background size
 		
-		fontsize = 10.5,
+		fontsize = 11.5,
 		
 		padding = 3*widgetScale,
 		color2 = {1,1,1,ui_opacity*0.04},
@@ -141,7 +141,7 @@ local function createtooltip(r)
 	local text = {"text",
 		px=r.px+r.margin,py=r.py+(r.margin/1.5),
 		fontsize=r.fontsize,
-		color={1,1,1,0.3},
+		color={1,1,1,1},
 		caption="",
 		options="o",
 		
@@ -203,6 +203,7 @@ local function createtooltip(r)
 		px=r.px+r.padding,py=r.py+r.padding,
 		sx=r.sx-r.padding-r.padding,sy=r.sy-r.padding-r.padding,
 		color=r.color2,
+		roundedsize=r.padding*1.45,
 	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
@@ -271,7 +272,11 @@ end
 function widget:Initialize()
 	PassedStartupCheck = RedUIchecks()
 	if (not PassedStartupCheck) then return end
-	
+
+	if WG['Red'].font then
+		font = WG['Red'].font
+	end
+
 	tooltip = createtooltip(Config.tooltip)
 		
 	Spring.SetDrawSelectionInfo(false) --disables springs default display of selected units count

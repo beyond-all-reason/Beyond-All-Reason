@@ -11,8 +11,14 @@ function widget:GetInfo()
 	}
 end
 
-local loadedFontSize = 32
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", loadedFontSize, 16,2)
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local loadedFontSize = fontfileSize*fontfileScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -168,8 +174,6 @@ local glPolygonMode = gl.PolygonMode
 local glRect = gl.Rect
 local glText = gl.Text
 local glShape = gl.Shape
-local glGetTextWidth = gl.GetTextWidth
-local glGetTextHeight = gl.GetTextHeight
 
 local bgColorMultiplier = 0
 
@@ -197,6 +201,12 @@ function widget:ViewResize()
 	screenX = (vsx*0.5) - (screenWidth/2)
 	screenY = (vsy*0.5) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	loadedFontSize = fontfileSize*fontfileScale
+  end
 	if changelogList then gl.DeleteList(changelogList) end
 	changelogList = gl.CreateList(DrawWindow)
 end
@@ -402,7 +412,7 @@ function DrawWindow()
 	local title = "Game info"
 	local titleFontSize = 18
 	gl.Color(0,0,0,0.8)
-	titleRect = {x-bgMargin, y+bgMargin, x+(glGetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+	titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	font:Begin()
 	font:SetTextColor(1,1,1,1)

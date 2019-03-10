@@ -66,6 +66,13 @@ local fontSize = 12
 local fontSpace = 7
 local yStep = fontSize + fontSpace
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local entryFont  = "LuaUI/Fonts/FreeMonoBold_12"
 local headerFont  = "LuaUI/Fonts/FreeMonoBold_12"
@@ -304,7 +311,7 @@ local function UpdateList()
     if (name ~= myName) then
       fullWidgetsList[#fullWidgetsList+1] = { name, data }
       -- look for the maxWidth
-      local width = fontSize * gl.GetTextWidth(name)
+      local width = fontSize * font:GetTextWidth(name)
       if (width > maxWidth) then
         maxWidth = width
       end
@@ -325,9 +332,11 @@ local function UpdateList()
 end
 
 
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+  vsx,vsy = Spring.GetViewGeometry()
+  widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local fontScale = widgetScale/2
+  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 
   if customScale == nil then
 	customScale = 1
@@ -368,7 +377,7 @@ function widget:DrawScreen()
     return
   end
   UpdateList()
-  gl.BeginText()
+  font:Begin()
   if (WG['guishader_api'] == nil) then
     activeGuishader = false 
   end
@@ -380,7 +389,7 @@ function widget:DrawScreen()
   bordery = (yStep*sizeMultiplier) * 0.75
 
   -- draw the header
-  gl.Text("Widget Selector", midx, maxy + ((8 + bgPadding)*sizeMultiplier), titleFontSize*sizeMultiplier, "oc")
+  font:Print("Widget Selector", midx, maxy + ((8 + bgPadding)*sizeMultiplier), titleFontSize*sizeMultiplier, "oc")
   
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
   local tcol = WhiteStr
@@ -389,12 +398,12 @@ function widget:DrawScreen()
   if maxx-10 < mx and mx < maxx and maxy < my and my < maxy + ((buttonFontSize + 7)*sizeMultiplier) then
     tcol = '\255\031\031\031'
   end
-  gl.Text(tcol.."+", maxx, maxy + ((7 + bgPadding)*sizeMultiplier), buttonFontSize*sizeMultiplier, "or")
+  font:Print(tcol.."+", maxx, maxy + ((7 + bgPadding)*sizeMultiplier), buttonFontSize*sizeMultiplier, "or")
   tcol = WhiteStr
   if minx < mx and mx < minx+10 and maxy < my and my < maxy + ((buttonFontSize + 7)*sizeMultiplier) then
     tcol = '\255\031\031\031'
   end
-  gl.Text(tcol.."-", minx, maxy + ((7 + bgPadding)*sizeMultiplier), buttonFontSize*sizeMultiplier, "ol")
+  font:Print(tcol.."-", minx, maxy + ((7 + bgPadding)*sizeMultiplier), buttonFontSize*sizeMultiplier, "ol")
   tcol = WhiteStr
 
   -- draw the box
@@ -410,7 +419,7 @@ function widget:DrawScreen()
     if minx < mx and mx < maxx and miny - (buttonTop*sizeMultiplier) - i*(buttonHeight*sizeMultiplier) < my and my < miny - (buttonTop*sizeMultiplier) - (i-1)*(buttonHeight*sizeMultiplier) then
       tcol = '\255\031\031\031'
     end
-    gl.Text(tcol .. buttons[i], (minx+maxx)/2, miny - (buttonTop*sizeMultiplier) - (i*(buttonHeight*sizeMultiplier)), buttonFontSize*sizeMultiplier, "oc")
+    font:Print(tcol .. buttons[i], (minx+maxx)/2, miny - (buttonTop*sizeMultiplier) - (i*(buttonHeight*sizeMultiplier)), buttonFontSize*sizeMultiplier, "oc")
   end
   
   
@@ -451,7 +460,7 @@ function widget:DrawScreen()
       tmpName = color .. name
     end
 
-    gl.Text(color..tmpName, midx, posy + (fontSize*sizeMultiplier) * 0.5, fontSize*sizeMultiplier, "vc")
+    font:Print(color..tmpName, midx, posy + (fontSize*sizeMultiplier) * 0.5, fontSize*sizeMultiplier, "vc")
     posy = posy - (yStep*sizeMultiplier)
   end
   
@@ -536,8 +545,8 @@ function widget:DrawScreen()
     gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
 end
   end
-  
-  gl.EndText()
+
+  font:End()
 end
 
 

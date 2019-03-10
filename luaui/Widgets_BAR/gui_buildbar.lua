@@ -28,6 +28,13 @@ local OrangeStr  = "\255\255\190\128"
 --
 --  vars
 --
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -- saved values
 local bar_side         = 1     --left:0,top:2,right:1,bottom:3
@@ -145,10 +152,11 @@ local function UpdateIconSizes()
   repIcoSize = math.floor(iconSizeY*0.4)
 end
 
-
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx = viewSizeX
-  vsy = viewSizeY
+function widget:ViewResize(n_vsx,n_vsy)
+  vsx,vsy = Spring.GetViewGeometry()
+  widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local fontScale = widgetScale/2
+  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 
   UpdateIconSizes()
   SetupNewScreenAlignment()
@@ -451,7 +459,9 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 
   -- amount
   if ((options.amount or 0)>0) then
-      glText( options.amount ,rect[1]+((rect[3]-rect[1])*0.22),rect[4]-((rect[4]-rect[2])*0.22),fontSize,"o")
+    font:Begin()
+    font:Print( options.amount ,rect[1]+((rect[3]-rect[1])*0.22),rect[4]-((rect[4]-rect[2])*0.22),fontSize,"o")
+    font:End()
   end
 
   -- draw border
@@ -648,8 +658,10 @@ function widget:DrawScreen()
                 local xPad = (iconSizeX*(1-iconImgMult)) / 2
             DrawTexRect({bopt_rec[1]+xPad,bopt_rec[2]-yPad,bopt_rec[3]-xPad,bopt_rec[4]+yPad},"#"..unitBuildDefID,{1,1,1,0.5})
             if (count>1) then
-              glColor(1,1,1,0.66)
-              glText( count ,bopt_rec[1]+((bopt_rec[3]-bopt_rec[1])*0.22),bopt_rec[4]-((bopt_rec[4]-bopt_rec[2])*0.22),fontSize,"")
+              font:Begin()
+              font:SetTextColor(1,1,1,0.66)
+              font:Print( count ,bopt_rec[1]+((bopt_rec[3]-bopt_rec[1])*0.22),bopt_rec[4]-((bopt_rec[4]-bopt_rec[2])*0.22),fontSize,"")
+              font:End()
             end
 
             OffsetRect(bopt_rec, bopt_inext[1],bopt_inext[2])

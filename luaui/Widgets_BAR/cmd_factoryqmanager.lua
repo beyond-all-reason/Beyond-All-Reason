@@ -26,6 +26,13 @@ end
 --added: Queues get saved for each mod seperately
 
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local iboxOuterMargin = 3
 local iboxWidth = 298
@@ -157,7 +164,14 @@ function calcScreenCoords()
 	drawX = vsx - boxWidth
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
   calcScreenCoords()
 end
 
@@ -444,9 +458,10 @@ function DrawBoxTitle(x,y,alpha, unitDef, selUnit)
 	DrawTexRect( x + boxIconBorder,y - boxIconBorder,x + boxHeightTitle + boxIconBorder,y - boxHeightTitle + boxIconBorder, "#".. unitDef.id, alpha )
 	
 	local text = unitDef.humanName
-	gl.Color(0,1,0,alpha or 1)
-	gl.Text( text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle/2.0 - titleTextYOff, fontSizeTitle, "nd")
-	gl.Color(1,1,1,1)
+	font:Begin()
+	font:SetTextColor(0,1,0,alpha or 1)
+	font:Print( text, x + boxHeightTitle + titleTextXOff, y - boxHeightTitle/2.0 - titleTextYOff, fontSizeTitle, "nd")
+	font:End()
 end
 
 
@@ -494,22 +509,23 @@ function DrawBoxGroup( x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue )
 		gl.Color( 0.7,  0.7, 0.7, math.min( alpha or 1, 0.5 ) )
 	end
 	gl.Rect( x + boxIconBorder ,y - 3, x + groupLabelMargin,y - boxHeight + 3  )
-	
+
+	font:Begin()
 	--Draw group Label
 	text = groupNo
-	gl.Color( 1.0, 0.5, 0,alpha or 1)
-	gl.Text( text, x + groupLabelXOff, y - boxHeight/2.0 - groupLabelYOff, fontSizeGroup, "cdn")
+	font:SetTextColor( 1.0, 0.5, 0,alpha or 1)
+	font:Print( text, x + groupLabelXOff, y - boxHeight/2.0 - groupLabelYOff, fontSizeGroup, "cdn")
 	xOff = xOff + groupLabelMargin
 	
 	for k,unitCount in pairs( units ) do
 		if ( ( x + boxHeight + boxIconBorder + xOff + boxHeight + unitIconSpacing) >  x + boxWidth ) then
-			gl.Color(1,1,1,alpha)
-			gl.Text( "...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
+			font:SetTextColor(1,1,1,alpha)
+			font:Print( "...", x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "nd")
 			break
 		else
 			DrawTexRect( x + boxIconBorder + xOff,y - boxIconBorder,x + boxHeight + boxIconBorder + xOff,y - boxHeight +  boxIconBorder,"#" .. k, alpha )
-			gl.Color(1,1,1,alpha)
-			gl.Text( unitCount, x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cnd")
+			font:SetTextColor(1,1,1,alpha)
+			font:Print( unitCount, x + xOff + unitCountXOff, y - boxHeight + unitCountYOff, fontSizeUnitCount, "cnd")
 		end
 		xOff = xOff + boxHeight + unitIconSpacing
 	end
@@ -520,10 +536,10 @@ function DrawBoxGroup( x, y, yOffset, unitDef, selUnit, alpha, groupNo, queue )
 		if ( modifiedSaved == true ) then
 			lText = "Saved"
 		end
-		gl.Color(0.9,0.9,0.9, alpha )
- 		gl.Text( lText, x + (boxWidth + 0.5)/2, y - (boxHeight + 0.5)/2 - fontModifiedYOff, fontSizeModifed, "cnd")
+		font:SetTextColor(0.9,0.9,0.9, alpha )
+		font:Print( lText, x + (boxWidth + 0.5)/2, y - (boxHeight + 0.5)/2 - fontModifiedYOff, fontSizeModifed, "cnd")
 	end
-
+	font:End()
 	gl.Color(1,1,1,1)
 end
 

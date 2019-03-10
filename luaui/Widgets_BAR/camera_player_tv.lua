@@ -10,6 +10,14 @@ function widget:GetInfo()
 	}
 end
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 32
+local fontfileOutlineSize = 7
+local fontfileOutlineStrength = 1.18
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local displayPlayername = true
 
 local playerChangeDelay = 40
@@ -137,11 +145,13 @@ function createCountdownLists()
 		local leftPadding = 7.5*widgetScale
 		while i < playerChangeDelay do
 			drawlistsCountdown[i] = gl.CreateList(function()
-				gl.Color(0,0,0,0.6)
-				gl.Text(i, leftPadding+left-(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
-				gl.Text(i, leftPadding+left+(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
-				gl.Color(0.8,0.8,0.8,1)
-				gl.Text(i, leftPadding+left, bottom+(8*widgetScale), fontSize*widgetScale, 'n')
+				font:Begin()
+				font:SetTextColor(0,0,0,0.6)
+				font:Print(i, leftPadding+left-(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
+				font:Print(i, leftPadding+left+(0.7*widgetScale), bottom+(7*widgetScale), fontSize*widgetScale, 'n')
+				font:SetTextColor(0.8,0.8,0.8,1)
+				font:Print(i, leftPadding+left, bottom+(8*widgetScale), fontSize*widgetScale, 'n')
+				font:End()
 			end)
 			i = i + 1
 		end
@@ -239,7 +249,7 @@ local function createList()
 		else
 			gl.Color(0.66, 0, 0, 0.66)
 		end
-		local textWidth = gl.GetTextWidth(text) * fontSize
+		local textWidth = font:GetTextWidth(text) * fontSize
 		RectRound(right-textWidth, bottom, right, top, 5.5*widgetScale)
 		toggleButton = {right-textWidth, bottom, right, top }
 
@@ -247,8 +257,7 @@ local function createList()
 		gl.Color(0,0,0,0.18)
 		RectRound(right-textWidth+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
 
-		gl.Text(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
-
+		font:Begin()
 		if (WG['guishader_api'] ~= nil and isSpec) then
 			WG['guishader_api'].InsertRect(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 'playertv')
 		end
@@ -257,12 +266,13 @@ local function createList()
 			local name = 'Player TV  '
 			local fontSize = (widgetHeight*widgetScale) * 0.6
 			local vpos = bottom+(5.5*widgetScale)
-			gl.Color(0,0,0,0.6)
-			gl.Text(name, right-textWidth-(0.7*widgetScale), vpos, fontSize, 'rn')
-			gl.Text(name, right-textWidth+(0.7*widgetScale), vpos, fontSize, 'rn')
-			gl.Color(1,1,1,1)
-			gl.Text(name, right-textWidth, vpos+(1*widgetScale), fontSize, 'rn')
+			font:SetTextColor(0,0,0,0.6)
+			font:Print(name, right-textWidth-(0.7*widgetScale), vpos, fontSize, 'rn')
+			font:Print(name, right-textWidth+(0.7*widgetScale), vpos, fontSize, 'rn')
+			font:SetTextColor(1,1,1,1)
+			font:Print(name, right-textWidth, vpos+(1*widgetScale), fontSize, 'rn')
 		end
+		font:End()
 	end)
 	drawlist[2] = gl.CreateList( function()
 		if toggled or lockPlayerID  then
@@ -283,8 +293,10 @@ local function createList()
 			color = '\255\222\255\222'
 		end
 		local fontSize = (widgetHeight*widgetScale) * 0.5
-		local textWidth = gl.GetTextWidth(text) * fontSize
-		gl.Text(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(8*widgetScale), fontSize, 'oc')
+		local textWidth = font:GetTextWidth(text) * fontSize
+		font:Begin()
+		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(8*widgetScale), fontSize, 'oc')
+		font:End()
 	end)
 end
 
@@ -463,11 +475,16 @@ end
 function widget:ViewResize(newX,newY)
 	vsx, vsy = Spring.GetViewGeometry()
 	widgetScale = (0.7 + (vsx*vsy / 5000000))
+
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
 	createCountdownLists()
 end
 
 
-local font = gl.LoadFont("LuaUI/Fonts/FreeSansBold.otf", 64, 15,1.18)
 
 function widget:DrawScreen()
 	if not isSpec then return end

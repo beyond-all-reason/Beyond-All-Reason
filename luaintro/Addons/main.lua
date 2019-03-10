@@ -199,8 +199,16 @@ if k%2 == 1 then
 --	random_tip_or_desc = quotes[((math.ceil(k/3)) % #quotes) + 1]
 end
 
-local loadedFontSize = 70
-local font = gl.LoadFont("FreeSansBold.otf", 70, 22, 1.15)
+local fontfile = 'luaui/fonts/'..Spring.GetConfigString("ui_font", "")
+if not VFS.FileExists(fontfile) then
+	Spring.SetConfigString('ui_font', 'Xolonium-Regular.otf')
+	fontfile = 'luaui/fonts/Xolonium-Regular.otf'
+end
+
+local vsx,vsy = Spring.GetViewGeometry()
+local fontScale = (0.5 + (vsx*vsy / 5700000))/2
+local font = gl.LoadFont(fontfile, 128*fontScale, 32*fontScale, 1.4)
+local loadedFontSize = 128*fontScale
 
 function DrawRectRound(px,py,sx,sy,cs)
 

@@ -133,6 +133,7 @@ function ShieldSphereColorParticle:EndDraw()
 				optionX = EncodeBitmaskField(optionX, info.bandedNoise, 6)
 				optionX = EncodeBitmaskField(optionX, info.impactScaleWithDistance, 7)
 				optionX = EncodeBitmaskField(optionX, info.impactRipples, 8)
+				optionX = EncodeBitmaskField(optionX, info.vertexWobble, 9)
 
 				shieldShader:SetUniformInt("effects", optionX)
 
@@ -203,8 +204,8 @@ function ShieldSphereColorParticle:Initialize()
 	shieldShader:Initialize()
 
 	geometryLists = {
-		large = gl.CreateList(DrawSphere, 0, 0, 0, 1, 38),
-		small = gl.CreateList(DrawSphere, 0, 0, 0, 1, 24),
+		large = gl.CreateList(DrawSphere, 0, 0, 0, 1, 48),
+		small = gl.CreateList(DrawSphere, 0, 0, 0, 1, 28),
 	}
 end
 

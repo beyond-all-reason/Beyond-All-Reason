@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 32
+local fontfileOutlineSize = 10
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local useRoundedRectangles = true
 local roundedSizeMultiplier = 1
 local usedRoundedSize = roundedSize
@@ -21,7 +29,6 @@ local DrawingTN = "Red_Drawing" --WG name for drawing function list
 local version = 9
 
 local clock = os.clock
-local glGetTextWidth = gl.GetTextWidth
 local sgsub = string.gsub
 local function getLineCount(text)
 	_,linecount = sgsub(text,"\n","\n")
@@ -38,8 +45,18 @@ local vsx,vsy = widgetHandler:GetViewSizes()
 if (vsx == 1) then --hax for windowed mode
 	vsx,vsy = Spring.GetWindowGeometry()
 end
+
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx,vsy = widgetHandler:GetViewSizes()
+	vsx,vsy = Spring.GetViewGeometry()
+
+
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		WG[TN].font = font
+	end
+
 	Main.vsx,Main.vsy = vsx,vsy
 	Main.Screen.vsx,Main.Screen.vsy = vsx,vsy
 	usedRoundedSize = 4 + math.floor((((vsx*vsy) / 900000))) * roundedSizeMultiplier
@@ -50,7 +67,7 @@ end
 local type = type
 
 local function getTextWidth(o)
-	return glGetTextWidth(o.caption)*o.fontsize
+	return font:GetTextWidth(o.caption)*o.fontsize
 end
 
 local function getTextHeight(o)
@@ -137,7 +154,7 @@ local F = {
 		if (o.caption) then
 			local px2,py2 = px,py
 			local text = o.caption
-			local width = glGetTextWidth(text)
+			local width = font:GetTextWidth(text)
 			local linecount = getLineCount(text)
 			local fontsize = sx/width
 			local height = linecount*fontsize
@@ -241,7 +258,7 @@ local F = {
 		if (o.caption) then
 			local px2,py2 = px,py
 			local text = o.caption
-			local width = glGetTextWidth(text)
+			local width = font:GetTextWidth(text)
 			local linecount = getLineCount(text)
 			local fontsize = sx/width
 			local height = linecount*fontsize
@@ -580,9 +597,11 @@ end
 
 local ssub = string.sub
 function widget:Initialize()
-	WG[TN] = {{}}
+
+	WG[TN] = {{} }
 	Main = WG[TN]
 	Main.Version = version
+	Main.font = font
 	Main.vsx,Main.vsy = vsx,vsy
 	Main.Screen = {vsx=vsx,vsy=vsy}
 	Main.Copytable = copytable

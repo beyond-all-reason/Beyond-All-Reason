@@ -15,6 +15,14 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local commands					= {}
 local mapDrawNicknameTime		= {}	-- this table is used to filter out previous map drawing nicknames if user has drawn something new
 local mapEraseNicknameTime		= {}
@@ -116,6 +124,15 @@ end
 ------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------
 
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+end
 
 function widget:Initialize()
 	
@@ -179,6 +196,7 @@ function widget:DrawWorldPreUnit()
 	gl.PushMatrix()
 	
 	local duration, durationProcess, size, a, glowColor, ringColor, aRing, ringSize, iconSize
+
 	for cmdKey, cmdValue in pairs(commands) do
 		
 		duration		= types[cmdValue.cmdType].duration * generalDuration
@@ -248,7 +266,9 @@ function widget:DrawWorldPreUnit()
 					
 					gl.PushMatrix()
 					gl.Billboard()
-					gl.Text(cmdValue.nickname, 0, -28, 20, "cn")
+					font:Begin()
+					font:Print(cmdValue.nickname, 0, -28, 20, "cn")
+					font:End()
 					gl.PopMatrix()
 				end
 			end

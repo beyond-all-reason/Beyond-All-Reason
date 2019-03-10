@@ -71,10 +71,15 @@ end
 
 local function Text(px,py,fontsize,text,options,c)
 	glPushMatrix()
+	font:Begin()
 	if (c) then
-		glColor(c[1],c[2],c[3],c[4])
+		font:SetTextColor(c[1],c[2],c[3],c[4])
+		font:SetOutlineColor(0,0,0,1)
+		--glColor(c[1],c[2],c[3],c[4])
 	else
-		glColor(1,1,1,1)
+		font:SetTextColor(1,1,1,1)
+		font:SetOutlineColor(0,0,0,1)
+		--glColor(1,1,1,1)
 	end
 	glTranslate(px,py+fontsize,0)
 	if (options) then
@@ -83,7 +88,10 @@ local function Text(px,py,fontsize,text,options,c)
 		options = "d"
 	end
 	glScale(1,-1,1) --flip
-	glText(text,0,0,fontsize,options)
+
+	--glText(text,0,0,fontsize,options)
+	font:Print(text,0,0,fontsize,options)
+	font:End()
 	glPopMatrix()
 end
 
@@ -278,17 +286,18 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = widgetHandler:GetViewSizes()
+	font = WG['Red'].font
 	CreateStartList()
 end
 
 function widget:Initialize()
+	font = WG['Red'].font
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
 	
 	local T = {}
 	WG[TN] = T
 	T.version = version
-	
 	T.Color = function(a,b,c,d) --using (...) seems slower
 		Todo[#Todo+1] = {1,a,b,c,d}
 	end
@@ -324,7 +333,7 @@ end
 
 local dlistCount = 0
 function widget:DrawScreen()
-	
+
 	newBlurRect = {}
 	
 	glResetState()

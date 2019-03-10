@@ -28,6 +28,14 @@ local pauseWhenPaused = false
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
 -- This widget desperately needs to be reorganized
 
@@ -64,7 +72,6 @@ local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local widgetScale = 1
 local glText         = gl.Text
-local glGetTextWidth = gl.GetTextWidth
 local glBlending     = gl.Blending
 local glScale        = gl.Scale
 local glRotate       = gl.Rotate
@@ -244,7 +251,7 @@ local function createList()
 		
 		local borderPadding = 2.75*widgetScale
 		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
+		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, borderPadding*1.66)
 		
 	end)
 	drawlist[2] = glCreateList( function()
@@ -278,15 +285,16 @@ local function createList()
 		local text = ''
 		for i=charactersInPath, #trackname do
 	    local c = string.sub(trackname, i,i)
-			local width = glGetTextWidth(text..c)*textsize
+			local width = font:GetTextWidth(text..c)*textsize
 	    if width > maxTextWidth then
 	    	break
 	    else
 	    	text = text..c
 	    end
 		end
-		glText('\255\135\135\135'..text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
-		
+		font:Begin()
+		font:Print('\255\135\135\135'..text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
 		
@@ -612,13 +620,16 @@ function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		
+
+		if widgetScale ~= advplayerlistPos[5] then
+			local fontScale = widgetScale/2
+			font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+		end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
 		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
 		widgetScale = advplayerlistPos[5]
-		
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
 		end

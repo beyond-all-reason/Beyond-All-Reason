@@ -14,15 +14,23 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local enabledAsSpec = false
 
 local MAX_ICONS = 10
-local iconsize = 34
+local iconsize = 38
 local ICON_SIZE_X = iconsize
 local ICON_SIZE_Y = iconsize
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
-local POSITION_Y = 0.088 -- near bottom
+local POSITION_Y = 0.086 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
 
 -------------------------------------------------------------------------------
@@ -88,6 +96,7 @@ local glBeginEnd = gl.BeginEnd
 local glTexCoord = gl.TexCoord
 local glVertex = gl.Vertex
 local glLoadIdentity = gl.LoadIdentity
+local glGetScreenViewTrans = gl.GetScreenViewTrans
 
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_LINE_LOOP = GL.LINE_LOOP
@@ -116,6 +125,9 @@ local GetViewGeometry = Spring.GetViewGeometry
 local ValidUnitID = Spring.ValidUnitID
 local GetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local GetGameFrame = Spring.GetGameFrame
+local GetCameraPosition = Spring.GetCameraPosition
+local GetCameraDirection = Spring.GetCameraDirection
+local SetCameraTarget = Spring.SetCameraTarget
 
 local fmod = math.fmod
 local math_sin = math.sin
@@ -136,7 +148,14 @@ local function init()
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 end
 
-function widget:ViewResize(viewSizeX, viewSizeY)
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 	init()
 end
 
@@ -263,12 +282,17 @@ local function DrawUnitIcons(number)
 	end
 	local ct = 0
 	local X1, X2
+
+	local cpx, cpy, cpz = GetCameraPosition()
+	local ctx, cty, ctz = glGetScreenViewTrans()
+
+	-- magic to keep UnitShape fog under control
+	SetCameraTarget(ctx, cty, ctz, -1.0)
+
 	glTexture(false)
 	glScissor(true)
-	--
 
 	while (ct < number) do
-
 		ct = ct + 1
 		local unitID = drawTable[ct][2]
 		
@@ -278,13 +302,17 @@ local function DrawUnitIcons(number)
 			X2 = X1+ICON_SIZE_X
 
 			glPushMatrix()
-				--glLoadIdentity()
+				glLoadIdentity()
+				glTranslate(ctx, cty, ctz)
+
 				glScissor(X1, Y_MIN, X2 - X1, Y_MAX - Y_MIN)
 
 				glTranslate(0.5*(X2+X1), 0.5*(Y_MAX+Y_MIN), 0)
 				glRotate(18, 1, 0, 0)
 				glRotate(rot, 0, 1, 0)
+
 				CenterUnitDef(drawTable[ct][1])
+
 				--glUnitShapeTextures(drawTable[ct][1], true)
 				glUnitShape(drawTable[ct][1], GetMyTeamID(), false, true, true)
 				--glUnitShapeTextures(drawTable[ct][1], false)
@@ -295,7 +323,9 @@ local function DrawUnitIcons(number)
 			if CONDENSE then
 				local NumberCondensed = table.getn(drawTable[ct][2])
 				if NumberCondensed > 1 then
-					glText(NumberCondensed, X1, Y_MIN, 8*sizeMultiplier, "o")
+					font:Begin()
+					font:Print(NumberCondensed, X1, Y_MIN, 8*sizeMultiplier, "o")
+					font:End()
 				end
 			end
 			
@@ -303,10 +333,14 @@ local function DrawUnitIcons(number)
 				unitID = unitID[1]
 			end
 			if ValidUnitID(unitID) and QCount[unitID] then
-				glText(QCount[unitID], X1+(0.5*ICON_SIZE_X),Y_MIN,10*sizeMultiplier,"ocn")
+				font:Begin()
+				font:Print(QCount[unitID], X1+(0.5*ICON_SIZE_X),Y_MIN,10*sizeMultiplier,"ocn")
+				font:End()
 			end
 		end	
 	end
+
+	SetCameraTarget(cpx, cpy, cpz, -1.0)
 end
 
 
@@ -540,8 +574,10 @@ function widget:DrawScreen()
 		calcSizes(noOfIcons)
 		local line1 = "Idle cons tweak mode"
 		local line2 = "Click and drag here to move icons around, hover over icons and move mouse wheel to change max number of icons"
-		glText(line1, POSITION_X*vsx, POSITION_Y*vsy, 15, "c")
-		glText(line2, POSITION_X*vsx, (POSITION_Y*vsy)-10, 10, "c")
+		font:Begin()
+		font:Print(line1, POSITION_X*vsx, POSITION_Y*vsy, 15, "c")
+		font:Print(line2, POSITION_X*vsx, (POSITION_Y*vsy)-10, 10, "c")
+		font:End()
 		return
 	end
 	

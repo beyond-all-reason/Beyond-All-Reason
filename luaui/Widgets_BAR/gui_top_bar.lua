@@ -13,12 +13,19 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local height = 38
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
 local bladeSpeedMultiplier = 0.22
-local resourcebarBgTint = true		-- will background of resourcebar get colored when overflowing or low on energy?
 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
@@ -54,7 +61,6 @@ local glTexture = gl.Texture
 local glRect = gl.Rect
 local glTexRect = gl.TexRect
 local glText = gl.Text
-local glGetTextWidth = gl.GetTextWidth
 local glRotate = gl.Rotate
 local glCreateList = gl.CreateList
 local glCallList = gl.CallList
@@ -139,6 +145,12 @@ function widget:ViewResize(n_vsx,n_vsy)
 	widgetScale = (vsy / height) * 0.043	-- using 734 because redui-console uses this value too
 	xPos = vsx*relXpos
 
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+
     for n,_ in pairs(dlistWindText) do
         glDeleteList(dlistWindText[n])
     end
@@ -154,87 +166,71 @@ function widget:ViewResize(n_vsx,n_vsy)
 	init()
 end
 
-local function DrawRectRound(px,py,sx,sy,cs)
 
-	local csx = cs
-	local csy = cs
-	if sx-px < (cs*2) then
-		csx = (sx-px)/2
-		if csx < 0 then csx = 0 end
-	end
-	if sy-py < (cs*2) then
-		csy = (sy-py)/2
-		if csy < 0 then csy = 0 end
-	end
-	cs = math.min(csx, csy)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
+    gl.TexCoord(0.8,0.8)
+    gl.Vertex(px+cs, py, 0)
+    gl.Vertex(sx-cs, py, 0)
+    gl.Vertex(sx-cs, sy, 0)
+    gl.Vertex(px+cs, sy, 0)
 
-	gl.TexCoord(0.8,0.8)
-	gl.Vertex(px+cs, py, 0)
-	gl.Vertex(sx-cs, py, 0)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.Vertex(px+cs, sy, 0)
-	
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
-	
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
+    gl.Vertex(px, py+cs, 0)
+    gl.Vertex(px+cs, py+cs, 0)
+    gl.Vertex(px+cs, sy-cs, 0)
+    gl.Vertex(px, sy-cs, 0)
 
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, sy-cs, 0)
+    gl.Vertex(sx, py+cs, 0)
+    gl.Vertex(sx-cs, py+cs, 0)
+    gl.Vertex(sx-cs, sy-cs, 0)
+    gl.Vertex(sx, sy-cs, 0)
+
+    local offset = 0.07		-- texture offset, because else gaps could show
+
+    -- bottom left
+    if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+    gl.TexCoord(o,o)
+    gl.Vertex(px, py, 0)
+    gl.TexCoord(o,1-offset)
+    gl.Vertex(px+cs, py, 0)
+    gl.TexCoord(1-offset,1-offset)
+    gl.Vertex(px+cs, py+cs, 0)
+    gl.TexCoord(1-offset,o)
+    gl.Vertex(px, py+cs, 0)
+    -- bottom right
+    if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+    gl.TexCoord(o,o)
+    gl.Vertex(sx, py, 0)
+    gl.TexCoord(o,1-offset)
+    gl.Vertex(sx-cs, py, 0)
+    gl.TexCoord(1-offset,1-offset)
+    gl.Vertex(sx-cs, py+cs, 0)
+    gl.TexCoord(1-offset,o)
+    gl.Vertex(sx, py+cs, 0)
+    -- top left
+    if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
+    gl.TexCoord(o,o)
+    gl.Vertex(px, sy, 0)
+    gl.TexCoord(o,1-offset)
+    gl.Vertex(px+cs, sy, 0)
+    gl.TexCoord(1-offset,1-offset)
+    gl.Vertex(px+cs, sy-cs, 0)
+    gl.TexCoord(1-offset,o)
+    gl.Vertex(px, sy-cs, 0)
+    -- top right
+    if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
+    gl.TexCoord(o,o)
+    gl.Vertex(sx, sy, 0)
+    gl.TexCoord(o,1-offset)
+    gl.Vertex(sx-cs, sy, 0)
+    gl.TexCoord(1-offset,1-offset)
+    gl.Vertex(sx-cs, sy-cs, 0)
+    gl.TexCoord(1-offset,o)
+    gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
-	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
-	gl.Texture(false)
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
+    gl.Texture(bgcorner)
+    gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
+    gl.Texture(false)
 end
 
 
@@ -267,7 +263,7 @@ local function updateRejoin()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
 		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_rejoin')
@@ -300,7 +296,9 @@ local function updateRejoin()
 		
 		-- Text
 		local fontsize = 12*widgetScale
-		glText('\255\225\255\225Catching up', area[1]+((area[3]-area[1])/2), area[2]+barHeight*2+fontsize, fontsize, 'cor')
+        font:Begin()
+        font:Print('\255\225\255\225Catching up', area[1]+((area[3]-area[1])/2), area[2]+barHeight*2+fontsize, fontsize, 'cor')
+        font:End()
 		
 	end)
 	if WG['tooltip'] ~= nil then
@@ -322,7 +320,7 @@ local function updateButtons()
     if (WG['options'] ~= nil) then text = text..'Options    ' end
     text = text..'Quit    '
 
-	local fontsize = totalWidth / glGetTextWidth(text)
+	local fontsize = totalWidth / font:GetTextWidth(text)
 	if fontsize > (height*widgetScale)/3 then
 		fontsize = (height*widgetScale)/3
 	end
@@ -337,7 +335,7 @@ local function updateButtons()
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
 		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_buttons')
@@ -354,35 +352,35 @@ local function updateButtons()
             if (WG['teamstats'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('   Stats  ') * fontsize
+                width = font:GetTextWidth('   Stats  ') * fontsize
                 buttonsArea['buttons']['stats'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4] }
             end
             if (WG['commands'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Cmd  ') * fontsize
+                width = font:GetTextWidth('  Cmd  ') * fontsize
                 buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			end
             if (WG['keybinds'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Keys  ') * fontsize
+                width = font:GetTextWidth('  Keys  ') * fontsize
                 buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['changelog'] ~= nil) then
                 button = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Changes  ') * fontsize
+                width = font:GetTextWidth('  Changes  ') * fontsize
                 buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['options'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = glGetTextWidth('  Options  ') * fontsize
+                width = font:GetTextWidth('  Options  ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             offset = offset+width
-            width = glGetTextWidth('  Quit    ') * fontsize
+            width = font:GetTextWidth('  Quit    ') * fontsize
             buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
 		end
 	end)
@@ -391,7 +389,9 @@ local function updateButtons()
 		glDeleteList(dlistButtons2)
 	end
 	dlistButtons2 = glCreateList( function()
-		glText('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
+        font:Begin()
+        font:Print('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
+        font:End()
 	end)
 end
 
@@ -409,7 +409,7 @@ local function updateComs(forceText)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
 		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
@@ -429,11 +429,13 @@ local function updateComs(forceText)
 
 		-- Text
 		if gameFrame > 0 or forceText then
+            font:Begin()
 			local fontsize = (height/2.85)*widgetScale
-			glText('\255\255\000\000'..enemyComCount, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+            font:Print('\255\255\000\000'..enemyComCount, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
 			
 			fontSize = (height/2.15)*widgetScale
-			glText("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
+            font:Print("\255\000\255\000"..allyComs, area[1]+((area[3]-area[1])/2), area[2]+((area[4]-area[2])/2.05)-(fontSize/5), fontSize, 'oc')
+            font:End()
 		end
 	end)
 	comcountChanged = nil
@@ -499,9 +501,11 @@ local function updateWind()
 
 		-- min and max wind
 		local fontsize = (height/3.7)*widgetScale
-		glText("\255\130\130\130"..minWind, area[3]-(2.8*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
-		glText("\255\130\130\130"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
-		glText("\255\130\130\130"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+        font:Begin()
+        font:Print("\255\130\130\130"..minWind, area[3]-(2.8*widgetScale), area[4]-(4.5*widgetScale)-(fontsize/2), fontsize, 'or')
+        font:Print("\255\130\130\130"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+        font:Print("\255\130\130\130"..maxWind, area[3]-(2.8*widgetScale), area[2]+(4.5*widgetScale), fontsize, 'or')
+        font:End()
 
 	end)
 
@@ -518,7 +522,7 @@ local function updateResbarText(res)
 	end
 	dlistResbar[res][4] = glCreateList( function()
 		local bgpadding = 3*widgetScale
-		RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 5*widgetScale)
+		RectRound(resbarArea[res][1]+bgpadding, resbarArea[res][2]+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25)
 		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
 	end)
 	if dlistResbar[res][5] ~= nil then
@@ -532,18 +536,20 @@ local function updateResbarText(res)
 		glDeleteList(dlistResbar[res][3])
 	end
     dlistResbar[res][3] = glCreateList( function()
+        font:Begin()
         -- Text: storage
-        glText("\255\150\150\150"..short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+        font:Print("\255\150\150\150"..short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
         -- Text: pull
-        glText("\255\210\100\100"..short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
+        font:Print("\255\210\100\100"..short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 		-- Text: expense
 		local textcolor = "\255\150\135\110"
 		if r[res][3] == r[res][5] then
 			textcolor = "\255\166\115\110"
 		end
-		glText(textcolor..short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
+        font:Print(textcolor..short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
 		-- Text: income
-		glText("\255\100\210\100"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+        font:Print("\255\100\210\100"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+        font:End()
 
 		if not spec and gameFrame > 90 then
 
@@ -553,17 +559,21 @@ local function updateResbarText(res)
 					showOverflowTooltip[res] = os.clock() + 1.1
 				end
 				if showOverflowTooltip[res] < os.clock() then
-					local bgpadding = 2*widgetScale
+					local bgpadding = 2.5*widgetScale
 					local text = 'Overflowing'
-					local textWidth = (bgpadding*2) + 15 + (glGetTextWidth(text) * 10) * widgetScale
+					local textWidth = (bgpadding*2) + 15 + (font:GetTextWidth(text) * 10) * widgetScale
 
 					-- background
-					glColor(0.3,0,0,0.55)
+					glColor(0.3,0,0,0.6)
 					RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
 					glColor(1,0.3,0.3,0.2)
-					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4]-bgpadding, 3*widgetScale)
+					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25)
 
-					glText("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-10.5*widgetScale, 10*widgetScale, 'or')
+                    font:Begin()
+                    font:SetTextColor(1,0.88,0.88,1)
+                    font:SetOutlineColor(0.2,0,0,0.6)
+                    font:Print(text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 10*widgetScale, 'or')
+                    font:End()
 				end
 			else
 				showOverflowTooltip[res] = nil
@@ -583,8 +593,8 @@ local function updateResbar(res)
 	local barHeight = (height*widgetScale/10)
 	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = 33 * widgetScale
-	local barRightPadding = 7 * widgetScale
+	local barLeftPadding = 39 * widgetScale
+	local barRightPadding = 8 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 3.5
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
@@ -610,9 +620,9 @@ local function updateResbar(res)
 	
 	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
 	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(7*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(7*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'old'}
-	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(7*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(8*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'old'}
+	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(8*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
 
 	dlistResbar[res][1] = glCreateList( function()
 
@@ -621,7 +631,7 @@ local function updateResbar(res)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
 		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
+		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
 		if (WG['guishader_api'] ~= nil) then
 			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_'..res)
@@ -958,9 +968,10 @@ function drawResbarValues(res)
 	if not dlistResValues[res][currentResValue[res]] then
 		dlistResValues[res][currentResValue[res]] = glCreateList( function()
 			-- Text: current
-			glColor(1, 1, 1, 1)
-			glText(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
-		end)
+            font:Begin()
+            font:Print(currentResValue[res], resbarDrawinfo[res].textCurrent[2], resbarDrawinfo[res].textCurrent[3], resbarDrawinfo[res].textCurrent[4], resbarDrawinfo[res].textCurrent[5])
+            font:End()
+        end)
 	end
 	glCallList(dlistResValues[res][currentResValue[res]])
 end
@@ -979,7 +990,7 @@ function widget:DrawScreen()
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if resourcebarBgTint and not spec and gameFrame > 90 then
+		if not spec and gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
@@ -997,7 +1008,7 @@ function widget:DrawScreen()
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
 		glCallList(dlistResbar[res][1])
 
-		if resourcebarBgTint and not spec and gameFrame > 90 then
+		if not spec and gameFrame > 90 then
 			-- overflowing background
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
@@ -1032,8 +1043,10 @@ function widget:DrawScreen()
 			local fontSize = (height/2.66)*widgetScale
 			if not dlistWindText[currentWind] then
 				dlistWindText[currentWind] = glCreateList( function()
-					glText("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.05)-(fontSize/5), fontSize, 'oc') -- Wind speed text
-				end)
+                    font:Begin()
+                    font:Print("\255\255\255\255"..currentWind, windArea[1]+((windArea[3]-windArea[1])/2), windArea[2]+((windArea[4]-windArea[2])/2.05)-(fontSize/5), fontSize, 'oc') -- Wind speed text
+                    font:End()
+                end)
 			end
 			glCallList(dlistWindText[currentWind])
 		else
@@ -1117,7 +1130,7 @@ function widget:DrawScreen()
 
 		if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
 
-			local width = vsx/6.2
+			local width = vsx/5.8
 			local height = width/3.5
 			local padding = width/70
 			local buttonPadding = width/100
@@ -1134,11 +1147,14 @@ function widget:DrawScreen()
 			glColor(0,0,0,0.035+(0.035*fadeProgress))
 			RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, 5*widgetScale)
 
-			local fontSize = height/5.5
+			local fontSize = height/6
+			font:Begin()
+			font:SetTextColor(0,0,0,1)
+			font:SetOutlineColor(1,1,1,0.12)
 			if not spec then
-				glText("\255\000\000\000Want to resign or quit to desktop?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-fontSize, fontSize, "con")
+                font:Print("Want to resign or quit to desktop?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-fontSize, fontSize, "con")
 			else
-				glText("\255\000\000\000Really want to quit?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-padding-fontSize, fontSize, "con")
+                font:Print("Really want to quit?", quitscreenArea[1]+((quitscreenArea[3]-quitscreenArea[1])/2), quitscreenArea[4]-padding-padding-padding-padding-fontSize, fontSize, "con")
 			end
 
 			-- quit button
@@ -1152,7 +1168,9 @@ function widget:DrawScreen()
 			RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 4*widgetScale)
 
 			local fontSize = fontSize*0.85
-			glText("\255\255\255\255Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
+			font:SetTextColor(1,1,1,1)
+			font:SetOutlineColor(0,0,0,0.23)
+            font:Print("Quit", quitscreenQuitArea[1]+((quitscreenQuitArea[3]-quitscreenQuitArea[1])/2), quitscreenQuitArea[2]+((quitscreenQuitArea[4]-quitscreenQuitArea[2])/2)-(fontSize/3), fontSize, "con")
 
 			-- resign button
 			if not spec then
@@ -1165,8 +1183,9 @@ function widget:DrawScreen()
 				glColor(0,0,0,0.07+(0.05*fadeProgress))
 				RectRound(quitscreenResignArea[1]+buttonPadding, quitscreenResignArea[2]+buttonPadding, quitscreenResignArea[3]-buttonPadding, quitscreenResignArea[4]-buttonPadding, 4*widgetScale)
 
-				glText("\255\255\255\255Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
-			end
+                font:Print("Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
+            end
+            font:End()
 		end
 	end
 	glColor(1,1,1,1)
@@ -1510,26 +1529,9 @@ function widget:Initialize()
 	WG['topbar'].showingRejoining = function()
 		return showRejoinUI
 	end
-	WG['topbar'].getResourceBgTint = function()
-		return resourcebarBgTint
-	end
-	WG['topbar'].setResourceBgTint = function(value)
-		resourcebarBgTint = value
-	end
 
 
 	init()
-end
-
-function widget:TextCommand(command)
-	if (string.find(command, "resbartint") == 1  and  string.len(command) == 10) then
-		resourcebarBgTint = not resourcebarBgTint
-		if resourcebarBgTint then
-			Spring.Echo('enabled resource bar background tinting')
-		else
-			Spring.Echo('disabled resource bar background tinting')
-		end
-	end
 end
 
 
@@ -1595,18 +1597,4 @@ function widget:Shutdown()
 		WG['tooltip'].RemoveTooltip(res..'_curent')
 	end
 	WG['topbar'] = nil
-end
-
-
-function widget:GetConfigData(data)      -- save
-	return {
-		resourcebarBgTint = resourcebarBgTint
-	}
-end
-
-
-function widget:SetConfigData(data)      -- load
-	if data.resourcebarBgTint ~= nil then
-		resourcebarBgTint = data.resourcebarBgTint
-	end
 end

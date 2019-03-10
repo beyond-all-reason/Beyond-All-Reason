@@ -12,6 +12,14 @@ function widget:GetInfo()
 	}
 end
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 -----------------------------------------------------
 -- Config
 -----------------------------------------------------
@@ -55,6 +63,17 @@ local glRect			= gl.Rect
 -----------------------------------------------------
 -- Code
 -----------------------------------------------------
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+end
+
 local function GetAlliedTeams()
 	
 	local _, fullView, _ = spGetSpecState()
@@ -168,8 +187,10 @@ function widget:DrawScreen()
 							glTexture(false)
 							
 							if (cell.text) then
-								
-								glText(cell.text, cx + borderWidth + 2, cy - iconSize, fontSize, 'ob')
+
+								font:Begin()
+								font:Print(cell.text, cx + borderWidth + 2, cy - iconSize, fontSize, 'ob')
+								font:End()
 							end
 						end -- columns
 					end -- rows
