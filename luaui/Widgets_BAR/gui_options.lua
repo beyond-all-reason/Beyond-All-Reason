@@ -511,7 +511,7 @@ function DrawWindow()
 	gl.PopMatrix()]]--
 
 	-- title
-	local title = "Options"
+	local title = "Settings"
 	local titleFontSize = 18
 	titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37 }
 

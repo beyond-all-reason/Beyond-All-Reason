@@ -17,7 +17,7 @@ function widget:GetInfo()
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = -1000,
+    layer     = -9999999,
     enabled   = false  --  loaded by default?
   }
 end
@@ -41,7 +41,7 @@ local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
+local renderDlists = {}
 local blurShader
 local screencopy
 local blurtex
@@ -232,6 +232,14 @@ function widget:Initialize()
   end
   WG['guishader_api'].getAllowScreenBlur = function(value)
   	return screenBlur
+  end
+  WG['guishader_api'].addDlist = function(value)    -- will let it draw a given dlist to be rendered on top of screenblur
+      renderDlists[value] = true
+  end
+  WG['guishader_api'].removeDlist = function(value)
+      if renderDlists[value] then
+          renderDlists[value] = nil
+      end
   end
 
     widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader_api'].InsertRect)
@@ -445,7 +453,11 @@ function widget:DrawScreen()
 	  gl.Texture(false)
 
 	  gl.Blending(true)
-	 end
+    end
+
+    for k,v in pairs(renderDlists) do
+        gl.CallList(k)
+    end
 end
 
 function widget:GetConfigData(data)
