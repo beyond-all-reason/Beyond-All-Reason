@@ -570,7 +570,9 @@ local function updateResbarText(res)
 					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25)
 
                     font:Begin()
-                    font:Print("\255\255\222\222"..text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 10*widgetScale, 'or')
+                    font:SetTextColor(1,0.88,0.88,1)
+                    font:SetOutlineColor(0.2,0,0,0.6)
+                    font:Print(text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 10*widgetScale, 'or')
                     font:End()
 				end
 			else
