@@ -5,7 +5,7 @@
 -------------------------------------------------------
 
 -- Piece names
-	head		= piece 'torso'
+	head		= piece 'head'
 	base		= piece 'torso'
 	l_arm		= piece 'luparm'
 	l_forearm	= piece 'biggun'
@@ -32,7 +32,7 @@
 	firedWeapon		= false
 
 -- Unit Speed
-	speedMult		=	1.7
+	speedMult		=	1.25
 
 -- Unit animation preferences
 	leftArm		=	true;

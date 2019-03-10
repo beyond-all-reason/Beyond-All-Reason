@@ -4,6 +4,7 @@
 -- Date:	3/18/2011
 -------------------------------------------------------
 local	inStance	= false
+local gravFactor = Game.gravity / 120
 
 function walk()
 	Signal(SIG_WALK)
@@ -26,59 +27,86 @@ function walk()
 	while true do
 		if (isAiming == false) then
 			if (leftArm == true ) then
-				Turn(l_arm, x_axis, math.rad(-25), math.rad(35 * speedMult))
+				Turn(l_arm, x_axis, math.rad(-20), math.rad(21 * speedMult))
 			end
 			if (rightArm == true ) then
-				Turn(r_arm, x_axis, math.rad(25), math.rad(45 * speedMult)) 
+				Turn(r_arm, x_axis, math.rad(20*gravFactor), math.rad(21 * speedMult)) 
 			end
 		end
-			Turn(base, y_axis, math.rad(-5), math.rad(25 * speedMult))
-			Turn(base, z_axis, math.rad(2), math.rad(2 * speedMult))
-		Turn(shin_r, x_axis, math.rad(85), math.rad(137.5 * speedMult))	
-		Turn(right_l, x_axis, math.rad(-60), math.rad(70 * speedMult))
+		Turn(cod, y_axis, math.rad(-5), math.rad(6 * speedMult))
+		Turn(base, x_axis, math.rad(20), math.rad(10 * speedMult))
+		Turn(base, y_axis, math.rad(3), math.rad(6 * speedMult))
+		Turn(head, y_axis, math.rad(2), math.rad(6 * speedMult))
+		Turn(right_l, y_axis, math.rad(5), math.rad(6 * speedMult))
+		Turn(left_l, y_axis, math.rad(5), math.rad(6 * speedMult))
+		
+		Turn(base, z_axis, math.rad(2), math.rad(2 * speedMult))
+		Turn(shin_r, x_axis, math.rad(65), math.rad(137.5 * speedMult))	
+		Turn(right_l, x_axis, math.rad(-50), math.rad(70 * speedMult))
 		Turn(left_l, x_axis, math.rad(30), math.rad(70 * speedMult))
-		Sleep(600/speedMult)
-
-		Move(cod, y_axis, 0.4, 20)
+		Sleep(400/speedMult)
+		
+		Turn(base, x_axis, math.rad(1*gravFactor), math.rad(6 * speedMult))
+		
+		Move(cod, z_axis, 0.4, 20)
+		Move(cod, y_axis, 0.2/gravFactor, 5)
 		if (firststep) then
 			firststep=false
 		else
-			Sleep(500/speedMult)	
+			Sleep(700/speedMult)	
 		end
-		Turn(shin_r, x_axis, math.rad(10), math.rad(185 * speedMult))
-		
-		Move(cod, y_axis, -1.5, 10)
+		Turn(shin_r, x_axis, math.rad(15), math.rad(185 * speedMult))
+		Move(cod, z_axis, -1.5, 10)
+		Move(cod, y_axis, -0.75, 8.75)
 		
 		--Spring.Echo("walk",isAiming) 
 		if (isAiming == false) then
 			if (rightArm == true ) then
-				Turn(r_arm, x_axis, math.rad(-25), math.rad(35 * speedMult))
+				Turn(r_arm, x_axis, math.rad(-20), math.rad(21 * speedMult))
 			end
 			if (leftArm == true ) then
-				Turn(l_arm, x_axis, math.rad(25), math.rad(45 * speedMult)) 
+				Turn(l_arm, x_axis, math.rad(20), math.rad(21 * speedMult)) 
 			end
 		end
-			Turn(base, y_axis, math.rad(5), math.rad(25 * speedMult))
-			Turn(base, z_axis, math.rad(-2), math.rad(2 * speedMult))
-		Turn(shin_l, x_axis, math.rad(85), math.rad(137.5 * speedMult))
-		Turn(left_l, x_axis, math.rad(-60), math.rad(70 * speedMult))
+		Turn(cod, y_axis, math.rad(5), math.rad(6 * speedMult))
+		Turn(base, x_axis, math.rad(20*gravFactor), math.rad(10 * speedMult))
+		Turn(base, y_axis, math.rad(-3), math.rad(6 * speedMult))
+		Turn(head, y_axis, math.rad(-2), math.rad(6 * speedMult))
+		Turn(right_l, y_axis, math.rad(-5), math.rad(6 * speedMult))
+		Turn(left_l, y_axis, math.rad(-5), math.rad(6 * speedMult))
+		
+		Turn(base, z_axis, math.rad(-2), math.rad(2 * speedMult))
+		Turn(shin_l, x_axis, math.rad(65), math.rad(137.5 * speedMult))
+		Turn(left_l, x_axis, math.rad(-50), math.rad(70 * speedMult))
 		Turn(right_l, x_axis, math.rad(30), math.rad(70 * speedMult))
-
-		Sleep(658/speedMult)
-
-		Move(cod, y_axis, 0.4, 20)
 		
-		Sleep(500/speedMult)
-
-		Turn(shin_l, x_axis, math.rad(10), math.rad(185 * speedMult))
+		Sleep(400/speedMult)
 		
-		Move(cod, y_axis, -1.5, 10)
+		Turn(base, x_axis, math.rad(1*gravFactor), math.rad(6 * speedMult))
+
+		Move(cod, z_axis, 0.4, 20)
+		Move(cod, y_axis, 0.2/gravFactor, 5)
+		Sleep(700/speedMult)
+
+		Turn(shin_l, x_axis, math.rad(15), math.rad(185 * speedMult))
+		
+		Move(cod, z_axis, -1.5, 10)
+		Move(cod, y_axis, -0.75, 8.75)
 	end
 end
 
 function poser()
 	Signal(SIG_WALK)
 	SetSignalMask(SIG_WALK)	
+	Turn(cod, y_axis, math.rad(0), math.rad(20))
+	Turn(base, x_axis, math.rad(0), math.rad(20))
+	Turn(base, y_axis, math.rad(0), math.rad(20))
+	Turn(head, y_axis, math.rad(0), math.rad(20))
+	Move(cod, z_axis, 0, 20)
+	Move(cod, y_axis, 0, 8.75)
+	Turn(right_l, y_axis, math.rad(0), math.rad(20))
+	Turn(left_l, y_axis, math.rad(0), math.rad(20))
+	
 	if(heavy == true ) then
 		SquatStance()
 	else
