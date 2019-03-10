@@ -575,7 +575,7 @@ function DrawWindow()
 	local boolPadding = 3.5
 	local boolWidth = 40
 	local sliderWidth = 110
-	local selectWidth = 140
+	local selectWidth = 150
 	local i = 0
 	local rows = 0
 	local column = 1
@@ -2085,7 +2085,7 @@ function init()
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
-		{id="font", group="ui", name="Font", type="select", options={'Xolonium-Regular.otf', 'Xolonium-Bold.otf'}, value=1},
+		{id="font", group="ui", name="Font", type="select", options={'Xolonium-Regular.otf', 'Xolonium-Bold.otf', 'ReFormation Sans Regular.ttf'}, value=1},
 		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
