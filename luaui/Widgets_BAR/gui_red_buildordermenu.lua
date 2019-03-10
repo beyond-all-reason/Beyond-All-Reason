@@ -55,30 +55,30 @@ local normalUnitIconSize = {
 	isx = 44.5,isy = 44.5, --icon size
 	ix = 5,iy = 7, --icons x/y
 }
-local normalOrderIconSize = {
-	isx = 44.5,isy = 33, --icon size
-	ix = 5,iy = 4, --icons x/y
-}
 local largeUnitIconSize = {
 	isx = 52,isy = 52, --icon size
 	ix = 5,iy = 6, --icons x/y
 }
+local normalOrderIconSize = {
+	isx = 44.5,isy = 32, --icon size
+	ix = 5,iy = 4, --icons x/y
+}
 local largeOrderIconSize = {
-	isx = 52,isy = 33, --icon size
+	isx = 52,isy = 32, --icon size
 	ix = 5,iy = 4, --icons x/y
 }
 local Config = {
 	buildmenu = {
 		menuname = "buildmenu",
-		px = 0,py = CanvasY - 415, --default start position
+		px = 0,py = CanvasY - 419, --default start position
 		
 		isx = 45,isy = 40, --icon size
 		ix = 5,iy = 8, --icons x/y
 		
 		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.91,
-		iconhoverscale = 0.91,
+		iconscale = 0.9,
+		iconhoverscale = 0.9,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
@@ -106,10 +106,10 @@ local Config = {
 		isx = 45,isy = 33,
 		ix = 5,iy = 4,
 		
-		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
+		roundedPercentage = 0.28,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.93,
-		iconhoverscale = 0.93,
+		iconscale = 0.94,
+		iconhoverscale = 0.94,
 		ispreadx=0,ispready=0,
 		
 		margin = 5,
@@ -303,7 +303,7 @@ local function CreateGrid(r)
 		glone=0.12,
 		texture = "LuaUI/Images/button-pushed.dds",
 		texturecolor={1,0,0,0.15},
-		
+
 		active=false,
 		onupdate=function(self)
 			self.active = false
@@ -484,7 +484,7 @@ local function CreateGrid(r)
 	}
 	New(background)
 	New(background2)
-	
+
 	local backward = New(Copy(icon,true))
 	backward.texture = "LuaUI/Images/backward.dds"
 
