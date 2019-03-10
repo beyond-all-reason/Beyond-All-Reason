@@ -52,7 +52,7 @@ local rotTractorSpeed = 0.05
 
 local landAtAnyAirbaseCmd = {
    id      = CMD_LAND_AT_AIRBASE,
-   name    = "Land At\nAirbase",
+   name    = " Land At \n  Airbase ",
    action  = "landatairbase",
    cursor  = 'landatairbase',
    type    = CMDTYPE.ICON,

@@ -73,8 +73,8 @@ local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-
-local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
+local ui_opacityMultiplier = 0.6
+local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66) * ui_opacityMultiplier
 
 local bgcorner = ":n:LuaUI/Images/bgcorner.png"
 local highlightImg = ":n:LuaUI/Images/button-highlight.dds"
@@ -94,8 +94,8 @@ local currentDef = nil
 local prevUnitCount = spGetSelectedUnitsCounts()
 local oldUnitpics = false
 
-local iconSizeX = 78
-local iconSizeY = 78
+local iconSizeX = 76
+local iconSizeY = 76
 local iconImgMult = 0.85
 
 local usedIconSizeX = iconSizeX
@@ -250,8 +250,8 @@ function widget:Update(dt)
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec>0.5 then
     uiOpacitySec = 0
-    if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
-      ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+    if ui_opacity ~= (Spring.GetConfigFloat("ui_opacity",0.66) * ui_opacityMultiplier) then
+      ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66) * ui_opacityMultiplier
       gl.DeleteList(picList)
       picList = gl.CreateList(DrawPicList)
     end

@@ -148,7 +148,7 @@ local function init()
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 end
 
-function widget:ViewResize(n_vsx,n_vsy)cc
+function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
