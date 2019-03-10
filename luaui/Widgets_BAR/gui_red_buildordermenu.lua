@@ -739,14 +739,14 @@ local function UpdateGrid(g,cmds,ordertype)
 				else
 					-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 					local str = tostring(math.max(metalCost, energyCost))
-					local addedSpaces = "                 "			-- too bad 1 space isnt as wide as 1 number in the used font
+					local addedSpaces = "                "			-- too bad 1 space isnt as wide as 1 number in the used font
 					local infoNewline = '\n'
 					if largePrice then
-						addedSpaces =   "                "			-- too bad 1 space isnt as wide as 1 number in the used font
-						infoNewline = ''
-						metalCost = '  '..metalCost
-						energyCost = '  '..energyCost
+						addedSpaces =   "             "			-- too bad 1 space isnt as wide as 1 number in the used font
+						infoNewline = '\n'
 					end
+					metalCost = ' '..metalCost
+					energyCost = ' '..energyCost
 					if tonumber(energyCost) < 10 then
 						energyCost = energyCost .. '       '
 					elseif tonumber(energyCost) < 100 then

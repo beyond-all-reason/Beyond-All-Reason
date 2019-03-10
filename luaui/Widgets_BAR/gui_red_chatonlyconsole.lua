@@ -46,7 +46,7 @@ local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
-local fontsize = 11.5
+local fontsize = 11
 local fontsizeMultiplier = 1
 
 local showBackground = true
