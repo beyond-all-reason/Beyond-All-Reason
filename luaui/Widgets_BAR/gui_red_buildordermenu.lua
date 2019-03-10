@@ -267,6 +267,7 @@ local function CreateGrid(r)
 		sx=(r.isx*r.ix+r.ispreadx*(r.ix-1) +r.margin*2) -r.padding -r.padding,
 		sy=(r.isy*(r.iy)+r.ispready*(r.iy) +r.margin*2) -r.padding -r.padding,
 		color=r.color2,
+		roundedsize=r.padding*1.45,
 	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,

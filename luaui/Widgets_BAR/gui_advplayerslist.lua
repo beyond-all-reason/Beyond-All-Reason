@@ -1964,7 +1964,7 @@ function CreateBackground()
 		
 		local padding = 2.75
 		gl_Color(1,1,1,ui_opacity*0.04)
-		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding,true)
+		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding*1.66,true)
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'

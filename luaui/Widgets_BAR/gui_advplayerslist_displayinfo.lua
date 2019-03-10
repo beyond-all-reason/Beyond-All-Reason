@@ -185,7 +185,7 @@ local function createList()
 		
 		local borderPadding = 2.75*widgetScale
 		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
+		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, borderPadding*1.66)
 		
 	end)
 	updateValues()

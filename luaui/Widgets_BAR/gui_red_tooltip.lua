@@ -203,6 +203,7 @@ local function createtooltip(r)
 		px=r.px+r.padding,py=r.py+r.padding,
 		sx=r.sx-r.padding-r.padding,sy=r.sy-r.padding-r.padding,
 		color=r.color2,
+		roundedsize=r.padding*1.45,
 	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
