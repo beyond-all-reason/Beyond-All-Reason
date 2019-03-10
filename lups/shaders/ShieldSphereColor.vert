@@ -61,7 +61,7 @@ void main() {
 
 	viewPos = viewMat * worldPos;
 
-	vec3 worldNormal = normalize(Rotate(modelPos.xyz, vec3(0.0, 0.0, 1.0), rotMargin.y));
+	vec3 worldNormal = normalize(Rotate(modelPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y));
 	vec3 viewNormal = mat3(viewMat) * worldNormal;
 
 	colormix = dot(viewNormal, normalize(viewPos.xyz));
