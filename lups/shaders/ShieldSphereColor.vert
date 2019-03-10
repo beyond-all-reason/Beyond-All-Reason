@@ -3,6 +3,10 @@
 uniform vec4 translationScale;
 uniform vec4 rotMargin;
 
+uniform int effects;
+
+uniform float gameFrame;
+
 uniform mat4 viewMat;
 #if 1
 	uniform mat4 projMat;
@@ -34,8 +38,22 @@ vec3 Rotate(vec3 p, vec3 axis, float angle) {
 	return Rotate(p, RotationQuat(axis, angle));
 }
 
+#define NORM2SNORM(value) (value * 2.0 - 1.0)
+#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+#define BITMASK_FIELD(value, pos) ((uint(value) & (1u << uint(pos))) != 0u)
+
 void main() {
+
 	modelPos = gl_Vertex;
+
+	if (BITMASK_FIELD(effects, 6)) {
+		float r = length(modelPos.xyz);
+		float theta = acos(modelPos.z / r);
+		float phi = atan(modelPos.y, modelPos.x);
+		r += 0.010 * r * SNORM2NORM(sin( (theta + phi) * 100.0 + gameFrame * 0.05));
+		modelPos.xyz = vec3(r * sin(theta) * cos(phi), r * sin(theta) * sin(phi), r * cos(theta));
+	}
 
 	worldPos = vec4(translationScale.www * modelPos.xyz, 1.0);				//scaling
 	worldPos.xyz = Rotate(worldPos.xyz, vec3(0.0, 1.0, 0.0), rotMargin.y);	//rotation around Yaw axis
@@ -43,7 +61,7 @@ void main() {
 
 	viewPos = viewMat * worldPos;
 
-	vec3 worldNormal = normalize(Rotate(gl_Normal, vec3(0.0, 0.0, 1.0), rotMargin.y));
+	vec3 worldNormal = normalize(Rotate(modelPos.xyz, vec3(0.0, 0.0, 1.0), rotMargin.y));
 	vec3 viewNormal = mat3(viewMat) * worldNormal;
 
 	colormix = dot(viewNormal, normalize(viewPos.xyz));

@@ -15,6 +15,8 @@ local ShieldSphereBase = {
 	impactScaleWithDistance = true,
 	impactRipples = true,
 	--
+	vertexWobble = true,
+	--
 	bandedNoise = true,
 }
 
