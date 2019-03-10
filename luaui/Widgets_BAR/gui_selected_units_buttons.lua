@@ -30,7 +30,13 @@ end
 -- Automatically generated local definitions
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
-local font = gl.LoadFont(fontfile, 52, 17, 1.5)
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 
 local GL_ONE                   = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA
@@ -88,8 +94,8 @@ local currentDef = nil
 local prevUnitCount = spGetSelectedUnitsCounts()
 local oldUnitpics = false
 
-local iconSizeX = 64
-local iconSizeY = 64
+local iconSizeX = 78
+local iconSizeY = 78
 local iconImgMult = 0.85
 
 local usedIconSizeX = iconSizeX
@@ -140,10 +146,13 @@ end
 local vsx, vsy = widgetHandler:GetViewSizes()
 function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local fontScale = widgetScale/2
-  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
-  
+
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
+
   usedIconSizeX = math.floor((iconSizeX/2) + ((vsx*vsy) / 115000))
   usedIconSizeY =  math.floor((iconSizeY/2) + ((vsx*vsy) / 115000))
   fontSize = usedIconSizeY * 0.28
@@ -160,11 +169,7 @@ function cacheUnitIcons()
     if cached == nil then
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
-            if oldUnitpics and UnitDefs[id] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[id].name..'.dds') then
-                gl.Texture('unitpics/'..UnitDefs[id].name..'.dds')
-            else
-                gl.Texture('#' .. id)
-            end
+            gl.Texture('#' .. id)
             gl.TexRect(-1,-1,0,0)
             gl.Texture(false)
         end
@@ -373,8 +378,8 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   	color = {1, 1, 1, 1}
   	ypad2 = 0
   end
-  local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 2
-  local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 2
+  local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 3
+  local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 3
   
   local xmin = math.floor(rectMinX + (usedIconSizeX * iconPos)) + xPad
   local xmax = xmin + usedIconSizeX - xPad - xPad
@@ -387,11 +392,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   local ud = UnitDefs[unitDefID]
   glColor(color)
-  if oldUnitpics and UnitDefs[unitDefID] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[unitDefID].name..'.dds') then
-    glTexture('unitpics/'..UnitDefs[unitDefID].name..'.dds')
-  else
-    glTexture('#' .. unitDefID)
-  end
+  glTexture('#' .. unitDefID)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
   

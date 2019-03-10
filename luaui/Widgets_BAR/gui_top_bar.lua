@@ -14,7 +14,12 @@ end
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
-local font = gl.LoadFont(fontfile, 52, 17, 1.5)
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local height = 38
 local relXpos = 0.3
@@ -141,8 +146,11 @@ function widget:ViewResize(n_vsx,n_vsy)
 	widgetScale = (vsy / height) * 0.043	-- using 734 because redui-console uses this value too
 	xPos = vsx*relXpos
 
-	local fontScale = widgetScale/2
-	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 
     for n,_ in pairs(dlistWindText) do
         glDeleteList(dlistWindText[n])
@@ -600,8 +608,8 @@ local function updateResbar(res)
 	local barHeight = (height*widgetScale/10)
 	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = 33 * widgetScale
-	local barRightPadding = 7 * widgetScale
+	local barLeftPadding = 39 * widgetScale
+	local barRightPadding = 8 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 3.5
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
@@ -627,9 +635,9 @@ local function updateResbar(res)
 	
 	resbarDrawinfo[res].textCurrent	= {short(r[res][1]), barArea[1]+barWidth/2, barArea[2]+barHeight*2, (height/2.75)*widgetScale, 'ocd'}
 	resbarDrawinfo[res].textStorage	= {"\255\150\150\150"..short(r[res][2]), barArea[3], barArea[2]+barHeight*2, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(7*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'ord'}
-	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(7*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'old'}
-	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(7*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textPull	= {"\255\210\100\100"..short(r[res][3]), barArea[1]-(8*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'ord'}
+	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'old'}
+	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(8*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
 
 	dlistResbar[res][1] = glCreateList( function()
 

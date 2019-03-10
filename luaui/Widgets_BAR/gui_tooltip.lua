@@ -38,7 +38,12 @@ local xOffset = 32
 local yOffset = -32-usedFontSize
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
-local font = gl.LoadFont(fontfile, 52, 14, 0)
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 0
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ------------------------------------------------------------------------------------
 -- Speedups
@@ -96,9 +101,6 @@ function init()
 	vsx, vsy = gl.GetViewSizes()
 	widgetScale = (0.60 + (vsx*vsy / 5000000))
 
-	local fontScale = widgetScale/2
-	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
-
     if WG['tooltip'] == nil then
         WG['tooltip'] = {}
         WG['tooltip'].AddTooltip = function(name, area, value, delay)
@@ -132,6 +134,14 @@ end
 
 
 function widget:ViewResize(x,y)
+	vsx,vsy = Spring.GetViewGeometry()
+
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
+
 	init()
 end
 

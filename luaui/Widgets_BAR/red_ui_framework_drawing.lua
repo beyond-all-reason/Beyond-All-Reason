@@ -286,6 +286,7 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = widgetHandler:GetViewSizes()
+	font = WG['Red'].font
 	CreateStartList()
 end
 

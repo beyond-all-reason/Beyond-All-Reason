@@ -11,9 +11,13 @@ return {
 }
 end
 
-local loadedFontSize = 52
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
-local font = gl.LoadFont(fontfile, 52, 17, 1.5)
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
@@ -62,9 +66,11 @@ function widget:ViewResize()
 	screenX = (vsx*0.5) - (screenWidth/2)
 	screenY = (vsy*0.5) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
-	local fontScale = widgetScale/2
-	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
-	loadedFontSize = 52*fontScale
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 	if keybinds then gl.DeleteList(keybinds) end
 	keybinds = gl.CreateList(DrawWindow)
 end

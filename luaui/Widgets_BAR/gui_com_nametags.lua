@@ -23,7 +23,12 @@ local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
-local font = gl.LoadFont(fontfile, 55, 10, 10)
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 50
+local fontfileOutlineSize = 10
+local fontfileOutlineStrength = 10
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local shadowfont = gl.LoadFont(fontfile, 55, 38, 1.6)
 
 local vsx, vsy = Spring.GetViewGeometry()
@@ -201,6 +206,12 @@ end
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
+
+    local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+    if (fontfileScale ~= newFontfileScale) then
+        fontfileScale = newFontfileScale
+        font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    end
 end
 
 function widget:DrawWorld()

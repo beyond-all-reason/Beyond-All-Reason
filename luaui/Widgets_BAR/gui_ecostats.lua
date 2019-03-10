@@ -14,7 +14,12 @@ end
 local loadSettings		= true
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
-local font = gl.LoadFont(fontfile, 52, 17, 1.5)
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ---------------------------------------------------------------------------------------------------
 --  Declarations
@@ -1569,8 +1574,11 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = gl.GetViewSizes()
 	widgetPosX, widgetPosY = xRelPos * vsx, yRelPos * vsy
 	widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners atm
-	local fontScale = widgetScale/2
-	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 	Reinit()
 end
 

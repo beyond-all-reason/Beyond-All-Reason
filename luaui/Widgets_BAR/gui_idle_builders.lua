@@ -15,17 +15,22 @@ end
 -------------------------------------------------------------------------------
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
-local font = gl.LoadFont(fontfile, 52, 17, 1.5)
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local enabledAsSpec = false
 
 local MAX_ICONS = 10
-local iconsize = 34
+local iconsize = 38
 local ICON_SIZE_X = iconsize
 local ICON_SIZE_Y = iconsize
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
-local POSITION_Y = 0.088 -- near bottom
+local POSITION_Y = 0.086 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
 
 -------------------------------------------------------------------------------
@@ -143,11 +148,14 @@ local function init()
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
 end
 
-function widget:ViewResize(n_vsx,n_vsy)
+function widget:ViewResize(n_vsx,n_vsy)cc
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
-	local fontScale = widgetScale/2
-	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  end
 	init()
 end
 
