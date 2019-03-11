@@ -17,7 +17,7 @@ function widget:GetInfo()
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = -9999999,
+    layer     = -9999999999,
     enabled   = false  --  loaded by default?
   }
 end

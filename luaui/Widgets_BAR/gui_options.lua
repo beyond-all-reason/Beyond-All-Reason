@@ -39,7 +39,6 @@ local selecthoverclick = 'LuaUI/Sounds/hover.wav'
 local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
-local loadedFontSize = 52
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -66,7 +65,6 @@ local customScale = 1
 
 local startLine = 1
 
-local vsx,vsy = Spring.GetViewGeometry()
 local screenX = (vsx*0.5) - (screenWidth/2)
 local screenY = (vsy*0.5) + (screenHeight/2)
 
@@ -266,9 +264,11 @@ function widget:ViewResize()
   screenX = (vsx*0.5) - (screenWidth/2)
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
-  local fontScale = widgetScale/2
-  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
-  loadedFontSize = 52*fontScale
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
 end

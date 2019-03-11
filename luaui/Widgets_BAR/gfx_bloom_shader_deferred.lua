@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author    = "Kloot, Beherith",
 		date      = "2018-05-13",
 		license   = "GPL V2",
-		layer     = 100000000000,
+		layer     = 99999,
 		enabled   = true,
 	}
 end
@@ -443,10 +443,7 @@ function widget:DrawWorld()
 	gl.Billboard()
 	gl.Rect(-500, -500, 500, 500)
 	gl.PopMatrix()
-end
 
-
-function widget:DrawScreenEffects()
 	Bloom()
 end
 

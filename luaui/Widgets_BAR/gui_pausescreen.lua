@@ -8,7 +8,7 @@ function widget:GetInfo()
         author    = "Floris",
         date      = "sept 2016",
         license   = "GNU GPL v2",
-        layer     = -1001,
+        layer     = 99999999,
         enabled   = true
     }
 end
@@ -42,6 +42,14 @@ local osClock               = os.clock
 
 -- CONFIGURATION
 
+local fontfile = LUAUI_DIRNAME .. "fonts/unlisted/MicrogrammaDBold.ttf"
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local sizeMultiplier        = 1
 local maxAlpha              = 0.6
 local maxShaderAlpha        = 0.2
@@ -51,13 +59,11 @@ local boxHeight             = 35
 local slideTime             = 0.4
 local fadeToTextAlpha       = 0.4
 local fontSizeHeadline      = 24
-local fontPath              = "LuaUI/Fonts/unlisted/MicrogrammaDBold.ttf"
 local autoFadeTime          = 1
 
 local blurScreen            = false 	-- makes use of guishader api widget
 
 local vsx, vsy
-local myFont
 local pauseTimestamp = -10 --start or end of pause
 local lastPause = false
 local wndX1 = nil
@@ -158,8 +164,6 @@ end
 function widget:Initialize()
   vsx, vsy = widgetHandler:GetViewSizes()
   widget:ViewResize(vsx, vsy)
-  
-  myFont = glLoadFont( fontPath, fontSizeHeadline )
    
 
   local _, gameSpeed, isPaused = spGetGameSpeed()
@@ -258,11 +262,11 @@ function drawPause()
     end
     
     --draw text
-    myFont:Begin()
-    myFont:SetOutlineColor( outline )
-    myFont:SetTextColor( text )
-    myFont:Print( "GAME  PAUSED", textX, textY, fontSizeHeadline, "O" )
-    myFont:End()
+    font:Begin()
+    font:SetOutlineColor( outline )
+    font:SetTextColor( text )
+    font:Print( "GAME  PAUSED", textX, textY, fontSizeHeadline, "O" )
+    font:End()
     
     glPopMatrix()
 end
@@ -280,7 +284,13 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
   vsx, vsy = viewSizeX, viewSizeY
   usedSizeMultiplier = (0.5 + ((vsx*vsy)/5500000)) * sizeMultiplier
-  
+
+    local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+    if (fontfileScale ~= newFontfileScale) then
+        fontfileScale = newFontfileScale
+        font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    end
+
   updateWindowCoords()
   
   screencopy = gl.CreateTexture(vsx, vsy, {

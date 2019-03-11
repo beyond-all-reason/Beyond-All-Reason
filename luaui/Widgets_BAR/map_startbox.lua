@@ -51,6 +51,7 @@ local fontfileSize = 50
 local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -60,7 +61,6 @@ local heightOffset			= 50
 local fontSize				= 18
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
-local shadowfont = gl.LoadFont(fontfile, 55, 38, 1.6)
 
 local infotext = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
 local infotextFontsize = 20
@@ -564,6 +564,7 @@ function widget:ViewResize(x, y)
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
   end
 end
 
