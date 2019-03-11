@@ -575,7 +575,7 @@ function DrawWindow()
 	local boolPadding = 3.5
 	local boolWidth = 40
 	local sliderWidth = 110
-	local selectWidth = 150
+	local selectWidth = 140
 	local i = 0
 	local rows = 0
 	local column = 1

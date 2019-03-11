@@ -127,6 +127,7 @@ function widget:Initialize()
 	if #tracks == 0 then 
 		Spring.Echo("[Music Player] No music was found, Shutting Down")
 		widgetHandler:RemoveWidget()
+		return
 	end
 	
 	updatePosition()
@@ -536,14 +537,15 @@ function widget:GameFrame(n)
    end
 end
 
-local averageSkipTime = 12
+local averageSkipTime = 16
 function PlayNewTrack()
 	if prevStreamStartTime then
 		local timeDiff = os.clock()-prevStreamStartTime
-		averageSkipTime = (timeDiff + (averageSkipTime*5)) / 6
-		if averageSkipTime < 2 then
+		averageSkipTime = (timeDiff + (averageSkipTime*7)) / 8
+		if averageSkipTime < 1 then
 			Spring.Echo("[Music Player] detetected fast track skipping, sound device is probably not working properly")
 			widgetHandler:RemoveWidget()
+			return
 		end
 	end
 	prevStreamStartTime = os.clock()
