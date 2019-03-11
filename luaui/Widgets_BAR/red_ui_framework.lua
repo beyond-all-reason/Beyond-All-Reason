@@ -6,7 +6,7 @@ function widget:GetInfo()
 	author    = "Regret (enhanced by Floris)",
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
-	layer     = -99999, --lowest go first
+	layer     = -9999999, --lowest go first
 	enabled   = true, --loaded by default
 	handler   = true, --access to handler
 	}

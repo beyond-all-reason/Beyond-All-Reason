@@ -535,7 +535,18 @@ function widget:GameFrame(n)
    end
 end
 
+local averageSkipTime = 12
 function PlayNewTrack()
+	if prevStreamStartTime then
+		local timeDiff = os.clock()-prevStreamStartTime
+		averageSkipTime = (timeDiff + (averageSkipTime*5)) / 6
+		if averageSkipTime < 2 then
+			Spring.Echo("[Music Player] detetected fast track skipping, sound device isnt working properly")
+			widgetHandler:RemoveWidget()
+		end
+	end
+	prevStreamStartTime = os.clock()
+
 	Spring.StopSoundStream()
 	fadelvl = 0
 	fadeIn = true
@@ -568,7 +579,7 @@ function PlayNewTrack()
 	firstFade = false
 	previousTrack = newTrack
 	curTrack = newTrack
-	local musicVolScaled = music_volume * 0.01	
+	local musicVolScaled = music_volume * 0.01
 	Spring.PlaySoundStream(newTrack)
 	Spring.SetSoundStreamVolume(musicVolScaled or 0.33)
 	if playing == false then
