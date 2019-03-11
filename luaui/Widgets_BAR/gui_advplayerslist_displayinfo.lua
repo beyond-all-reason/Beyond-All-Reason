@@ -35,13 +35,10 @@ local fontfileOutlineSize = 8.5
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local vsx, vsy   = widgetHandler:GetViewSizes()
-
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local bgcorner				= ":n:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1
-local glText         = gl.Text
 local glPushMatrix   = gl.PushMatrix
 local glPopMatrix	   = gl.PopMatrix
 local glColor        = gl.Color
@@ -262,6 +259,11 @@ end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
 end
 
 function widget:DrawScreen()

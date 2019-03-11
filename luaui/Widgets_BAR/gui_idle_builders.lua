@@ -59,9 +59,6 @@ local QCount = {}
 local noOfIcons = 0
 local displayList = {}
 
-local vsx, vsy = widgetHandler:GetViewSizes()
-
-
 local spGetSpectatingState = Spring.GetSpectatingState
 local enabled = true
 
@@ -140,22 +137,22 @@ local getn = table.getn
 
 local sizeMultiplier = 1
 local function init()
-	vsx,vsy = GetViewGeometry()
+    vsx,vsy = GetViewGeometry()
 	sizeMultiplier = 1 + (vsx*vsy / 4500000)
 
 	ICON_SIZE_X = iconsize * sizeMultiplier
 	ICON_SIZE_Y = ICON_SIZE_X
 	bgcornerSize = cornerSize * (sizeMultiplier - 1)
+    noOfIcons = 0   -- this fixes positioning when resolution change
 end
 
 function widget:ViewResize(n_vsx,n_vsy)
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+    local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+    if (fontfileScale ~= newFontfileScale) then
+        fontfileScale = newFontfileScale
+        font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    end
 	init()
 end
 

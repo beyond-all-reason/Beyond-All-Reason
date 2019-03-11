@@ -59,8 +59,6 @@ local firstFade = true
 local gameOver = false
 local playing = true
 
-local vsx, vsy   = widgetHandler:GetViewSizes()
-
 local playTex				= ":n:"..LUAUI_DIRNAME.."Images/music/play.png"
 local pauseTex				= ":n:"..LUAUI_DIRNAME.."Images/music/pause.png"
 local nextTex				= ":n:"..LUAUI_DIRNAME.."Images/music/next.png"
@@ -638,6 +636,11 @@ end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = newX, newY
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
 end
 
 function widget:DrawScreen()
