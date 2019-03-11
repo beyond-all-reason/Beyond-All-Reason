@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author		= "Floris",
 		date		= "Feb, 2017",
 		license		= "GNU GPL, v2 or later",
-        layer		= -99,
+        layer		= -99999,
 		enabled		= true, --enabled by default
 		handler		= true, --can use widgetHandler:x()
 	}
@@ -1147,7 +1147,7 @@ function widget:DrawScreen()
                 glColor(1,1,1,0.5+(0.36*fadeProgress))
                 RectRound(quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4], 5.5*widgetScale)
                 glColor(0,0,0,0.035+(0.035*fadeProgress))
-                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, 5*widgetScale)
+                RectRound(quitscreenArea[1]+padding, quitscreenArea[2]+padding, quitscreenArea[3]-padding, quitscreenArea[4]-padding, padding)
 
                 local fontSize = height/6
                 font:Begin()
@@ -1166,7 +1166,7 @@ function widget:DrawScreen()
                 end
                 RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 5*widgetScale)
                 glColor(0,0,0,0.07+(0.05*fadeProgress))
-                RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 4*widgetScale)
+                RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, buttonPadding*1.25)
 
                 local fontSize = fontSize*0.9
                 font:SetTextColor(1,1,1,1)
