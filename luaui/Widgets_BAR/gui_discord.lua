@@ -110,6 +110,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
 	end

@@ -1119,6 +1119,7 @@ end
 
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('advplayerlist')
 		WG['guishader_api'].RemoveRect('advplayerlist_screenshot')

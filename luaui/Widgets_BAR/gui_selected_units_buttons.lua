@@ -306,6 +306,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+  gl.DeleteFont(font)
   if picList then
     gl.DeleteList(picList)
   end

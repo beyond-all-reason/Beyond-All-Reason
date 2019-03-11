@@ -190,7 +190,9 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
   etaTable[unitID] = nil
 end
 
-
+function widget:Shutdown()
+  gl.DeleteFont(font)
+end
 --------------------------------------------------------------------------------
 
 local function DrawEtaText(timeLeft,yoffset)

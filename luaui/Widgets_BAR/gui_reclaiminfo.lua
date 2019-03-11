@@ -179,3 +179,7 @@ function widget:DrawScreen()
     metal = 0
     energy = 0
 end
+
+function widget:Shutdown()
+    gl.DeleteFont(font)
+end

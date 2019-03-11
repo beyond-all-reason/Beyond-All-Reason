@@ -359,6 +359,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	gl.DeleteList(DspLst)
 end
 

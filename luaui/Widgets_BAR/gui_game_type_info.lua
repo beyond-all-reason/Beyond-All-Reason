@@ -114,6 +114,7 @@ end
 function widget:DrawScreen()
   if (spGetGameSeconds() > 0) then
     widgetHandler:RemoveWidget(self)
+    return
   end
   
   local timer = widgetHandler:GetHourTimer()
@@ -144,3 +145,7 @@ function widget:GameOver()
   widgetHandler:RemoveWidget(self)
 end
 
+
+function widget:Shutdown()
+  gl.DeleteFont(font)
+end

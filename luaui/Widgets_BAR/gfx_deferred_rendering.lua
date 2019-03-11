@@ -300,6 +300,7 @@ function widget:Initialize()
 			spEcho("gfx_deferred_rendering.lua: Shaders not found, removing self.")
 			GLSLRenderer = false
 			widgetHandler:RemoveWidget(self)
+			return
 		else
 			depthPointShader = depthPointShader or glCreateShader({
 				defines = {
@@ -323,6 +324,7 @@ function widget:Initialize()
 				spEcho("gfx_deferred_rendering.lua: Bad depth point shader, removing self.")
 				GLSLRenderer = false
 				widgetHandler:RemoveWidget(self)
+				return
 			else
 				lightposlocPoint       = glGetUniformLocation(depthPointShader, "lightpos")
 				lightcolorlocPoint     = glGetUniformLocation(depthPointShader, "lightcolor")
@@ -352,6 +354,7 @@ function widget:Initialize()
 				spEcho("gfx_deferred_rendering.lua: Bad depth beam shader, removing self.")
 				GLSLRenderer = false
 				widgetHandler:RemoveWidget(self)
+				return
 			else
 				lightposlocBeam       = glGetUniformLocation(depthBeamShader, 'lightpos')
 				lightpos2locBeam      = glGetUniformLocation(depthBeamShader, 'lightpos2')

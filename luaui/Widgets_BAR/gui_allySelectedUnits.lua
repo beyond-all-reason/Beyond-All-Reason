@@ -179,6 +179,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	widgetHandler:DeregisterGlobal('selectedUnitsRemove')
 	widgetHandler:DeregisterGlobal('selectedUnitsClear')
 	widgetHandler:DeregisterGlobal('selectedUnitsAdd')

@@ -737,3 +737,7 @@ function widget:DrawWorld()
 		glUnit(mouseOnUnitID, true)
 	end
 end
+
+function widget:Shutdown()
+	gl.DeleteFont(font)
+end

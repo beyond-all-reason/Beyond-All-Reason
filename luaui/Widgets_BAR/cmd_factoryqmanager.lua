@@ -641,6 +641,9 @@ function widget:DrawScreen()
 	end
 end
 
+function widget:Shutdown()
+	gl.DeleteFont(font)
+end
 
 --save / load to config file
 function widget:GetConfigData() 

@@ -627,6 +627,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	Spring.SendCommands("unbind i customgameinfo")
 	Spring.SendCommands("bind any+i gameinfo")
 	Spring.SendCommands("bind i gameinfo")

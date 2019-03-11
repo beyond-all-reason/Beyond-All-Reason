@@ -686,6 +686,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
     if buttonGL then
         glDeleteList(buttonGL)
         buttonGL = nil

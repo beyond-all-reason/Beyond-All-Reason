@@ -146,6 +146,7 @@ end
 function widget:PlayerChanged(playerID)
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget(self)
+		return
     end
     myTeam = Spring.GetMyTeamID()
 end
@@ -175,6 +176,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	WG['autogroup'] = nil
 
     dlists = {}

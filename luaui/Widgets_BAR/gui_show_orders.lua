@@ -199,3 +199,7 @@ function widget:DrawScreen()
 		end
 	end -- alliedTeams
 end -- DrawScreen
+
+function widget:Shutdown()
+	gl.DeleteFont(font)
+end

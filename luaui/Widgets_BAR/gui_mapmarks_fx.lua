@@ -160,6 +160,7 @@ end
 
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	glDeleteList(glowDlist)
 	glDeleteList(pencilDlist)
 	glDeleteList(eraserDlist)

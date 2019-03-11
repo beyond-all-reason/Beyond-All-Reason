@@ -452,6 +452,7 @@ function widget:GameFrame(gameFrame)
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	enabled = false
 	if drawinfolist ~= nil then
 		gl.DeleteList(drawinfolist)

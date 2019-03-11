@@ -338,6 +338,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
     if keybinds then
         glDeleteList(keybinds)
         keybinds = nil

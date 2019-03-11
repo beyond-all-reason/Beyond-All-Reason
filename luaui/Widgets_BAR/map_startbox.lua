@@ -314,6 +314,7 @@ end
 
 
 function widget:Shutdown()
+  gl.DeleteFont(font)
   gl.DeleteList(infotextList)
   gl.DeleteList(xformList)
   gl.DeleteList(coneList)

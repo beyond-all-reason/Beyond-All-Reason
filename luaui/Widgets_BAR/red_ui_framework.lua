@@ -679,6 +679,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	WG[TN] = nil
 	if (LastProcessedWidget ~= "") then
 		Spring.Echo(widget:GetInfo().name..">> last processed widget was \""..LastProcessedWidget.."\"") --for debugging

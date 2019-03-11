@@ -199,6 +199,7 @@ function removeGuiShaderRects()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	removeGuiShaderRects()
 	if (drawList) then 			gl.DeleteList(drawList) end
 	if (sideImageList) then		gl.DeleteList(sideImageList) end

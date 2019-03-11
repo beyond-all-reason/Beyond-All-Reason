@@ -560,6 +560,7 @@ end
 
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	for i=1,#drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
 	end

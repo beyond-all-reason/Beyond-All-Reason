@@ -249,7 +249,9 @@ end
 function widget:Initialize()
 	Init()
 end
+
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	for opacity, list in pairs(mapinfoList) do
 		glDeleteList(mapinfoList[opacity])
 		mapinfoList[opacity] = nil

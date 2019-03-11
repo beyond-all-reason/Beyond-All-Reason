@@ -275,3 +275,7 @@ function widget:ViewResize(n_vsx,n_vsy)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end
+
+function widget:Shutdown()
+	gl.DeleteFont(font)
+end

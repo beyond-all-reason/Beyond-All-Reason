@@ -272,6 +272,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+    gl.DeleteFont(font)
     RemoveLists()
 end
 

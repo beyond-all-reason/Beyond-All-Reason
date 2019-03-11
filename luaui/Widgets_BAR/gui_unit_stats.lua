@@ -238,6 +238,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	WG['unitstats'] = nil
 	RemoveGuishader()
 end

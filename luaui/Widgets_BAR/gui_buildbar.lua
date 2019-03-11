@@ -214,6 +214,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+  gl.DeleteFont(font)
   for i=1, #dlists do
     gl.DeleteList(dlists[i])
   end

@@ -386,6 +386,7 @@ function widget:Initialize()
 	if not WG.metalSpots then
 		Spring.Echo("<Area Mex> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget(self)
+		return
 	end
 	mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
 	mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 

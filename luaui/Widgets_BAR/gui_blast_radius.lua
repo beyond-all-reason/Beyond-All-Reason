@@ -255,6 +255,10 @@ function DrawUnitBlastRadius( unitID )
 	end
 end
 
+function widget:Shutdown()
+	gl.DeleteFont(font)
+end
+
 function DrawBlastRadiusSelectedUnits()
 	glLineWidth(blastLineWidth)
   	  

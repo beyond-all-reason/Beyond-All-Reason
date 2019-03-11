@@ -388,6 +388,7 @@ function widget:KeyPress(key)
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
 	if (WG['guishader_api'] ~= nil) then

@@ -115,6 +115,7 @@ end
 
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	for k,_ in pairs(drawLists) do
 		gl.DeleteList(drawLists[k])
 	end

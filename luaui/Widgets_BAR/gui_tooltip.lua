@@ -89,6 +89,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
+    gl.DeleteFont(font)
 	if (WG['guishader_api'] ~= nil) then
         for name, tooltip in pairs(tooltips) do
 		    WG['guishader_api'].RemoveRect('tooltip_'..name)

@@ -167,6 +167,7 @@ end
 
 
 function widget:Shutdown()
+    gl.DeleteFont(font)
     widgetHandler:DeregisterGlobal('MouseCursorEvent')
     for playerID, dlists in pairs(allycursorDrawList) do
         for opacityMultiplier, dlist in pairs(dlists) do

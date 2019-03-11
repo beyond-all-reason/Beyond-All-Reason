@@ -342,6 +342,7 @@ function widget:MousePress(x, y, button)
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	EndVote()
 end
 

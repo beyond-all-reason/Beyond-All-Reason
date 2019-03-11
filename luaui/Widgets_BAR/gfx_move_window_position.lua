@@ -267,6 +267,7 @@ function widget:DrawScreen()
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('movewindowpos')
 		WG['guishader_api'].setScreenBlur(false)

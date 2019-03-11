@@ -31,6 +31,10 @@ end
 -- Callins
 ----------------------------------------------------------------
 
+function widget:Shutdown()
+    gl.DeleteFont(font)
+end
+
 function widget:ViewResize(n_vsx,n_vsy)
     vsx,vsy = Spring.GetViewGeometry()
     widgetScale = (0.5 + (vsx*vsy / 5700000))

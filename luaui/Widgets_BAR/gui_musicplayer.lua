@@ -442,6 +442,7 @@ function widget:GetTooltip(mx, my)
 end
 
 function widget:Shutdown()
+	gl.DeleteFont(font)
 	shutdown = true
 	Spring.StopSoundStream()
 	
