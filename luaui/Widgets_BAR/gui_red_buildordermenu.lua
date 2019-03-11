@@ -6,7 +6,7 @@ function widget:GetInfo()
 	author    = "Regret, modified by CommonPlayer",
 	date      = "29 may 2015", --modified by CommonPlayer, Oct 2016
 	license   = "GNU GPL, v2 or later",
-	layer     = 0,
+	layer     = -10,
 	enabled   = true, --enabled by default
 	handler   = true, --can use widgetHandler:x()
 	}
