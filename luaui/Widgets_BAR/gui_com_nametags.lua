@@ -29,9 +29,7 @@ local fontfileSize = 50
 local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local shadowfont = gl.LoadFont(fontfile, 55, 38, 1.6)
-
-local vsx, vsy = Spring.GetViewGeometry()
+local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
 
 local singleTeams = false
 if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
@@ -209,8 +207,11 @@ function widget:ViewResize()
 
     local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
     if (fontfileScale ~= newFontfileScale) then
+        RemoveLists()
+        CheckAllComs()
         fontfileScale = newFontfileScale
         font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+        shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
     end
 end
 
