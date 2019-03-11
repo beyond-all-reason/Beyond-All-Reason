@@ -51,7 +51,7 @@ local boxHeight             = 35
 local slideTime             = 0.4
 local fadeToTextAlpha       = 0.4
 local fontSizeHeadline      = 24
-local fontPath              = "LuaUI/Fonts/MicrogrammaDBold.ttf"
+local fontPath              = "LuaUI/Fonts/unlisted/MicrogrammaDBold.ttf"
 local autoFadeTime          = 1
 
 local blurScreen            = false 	-- makes use of guishader api widget

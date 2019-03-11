@@ -42,7 +42,6 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 -- SETTINGS, configurable
 --------------------------------------------------------------------------------
 local TEST_SOUND 							= 'LuaUI/sounds/volume_osd/pop.wav'
-local font         							= "luaui/fonts/freesansbold_14"
 local step 									= 8 -- how many steps to change sound volume on one key press
 local dtime									= 3 --How long time the volume display is drawn, in seconds
 local ftime 								= 2.5 --How long time before the volume display starts fading, in seconds
@@ -57,7 +56,6 @@ local blue									= 0 -- volume bar colour, 0 to 1.
 
 function widget:Initialize()
   volume = Spring.GetConfigInt("snd_volmaster", 60)
-  fontHandler.UseFont(font)
 end
 
 function widget:KeyPress(key, mods, isRepeat)
@@ -116,9 +114,7 @@ function widget:DrawScreen()
 	local ostime = os.clock()
 	local t = ostime - dt
 	local boxwidth = widgetWidth/rectangles
-	
-	fontHandler.UseFont(font)
-	
+
 	if t < dtime and dt >= 0 then --dtime = 3
 		local alpha
 		if t < ftime then --ftime = 2

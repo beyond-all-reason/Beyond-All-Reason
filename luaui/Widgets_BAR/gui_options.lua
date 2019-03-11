@@ -1425,7 +1425,7 @@ function applyOptionValue(i, skipRedrawWindow)
 				--Spring.Echo("option for lups",value,WG.LupsPriority)
 			end
 		elseif id == 'font' then
-			if VFS.FileExists(fontfile) then
+			if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].options[value]) then
 				Spring.SetConfigString("ui_font", options[i].options[value])
 				Spring.SendCommands("luarules reloadluaui")
 			end
@@ -2085,7 +2085,7 @@ function init()
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
-		{id="font", group="ui", name="Font", type="select", options={'Xolonium-Regular.otf', 'Xolonium-Bold.otf', 'ReFormation Sans Regular.ttf'}, value=1},
+		{id="font", group="ui", name="Font", type="select", options={}, value=1},
 		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
 		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
@@ -2188,8 +2188,23 @@ function init()
 		options[getOptionByID('fancyselectedunits_style')].options = WG['fancyselectedunits'].getStyleList()
 	end
 
+	-- add fonts
 	if getOptionByID('font') then
-		--options[getOptionByID('font')].options = ..
+		local fonts = {}
+		local fontsn = {}
+		local files = VFS.DirList(LUAUI_DIRNAME..'fonts', '*')
+		for k, file in ipairs(files) do
+			local name = string.sub(file, 13)
+			local ext = string.sub(name, string.len(name) - 2)
+			if ext == 'otf' or ext == 'ttf' then
+				--name = string.sub(name, 1, string.len(name) - 4)
+				if not fontsn[name:lower()] then
+					fonts[#fonts+1] = name
+					fontsn[name:lower()] = true
+				end
+			end
+		end
+		options[getOptionByID('font')].options = fonts
 		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), Spring.GetConfigString("ui_font", "FreeSansBold.otf"))
 	end
 

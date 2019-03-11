@@ -74,11 +74,6 @@ local fontfileOutlineSize = 8.5
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local entryFont  = "LuaUI/Fonts/FreeMonoBold_12"
-local headerFont  = "LuaUI/Fonts/FreeMonoBold_12"
-entryFont  = ":n:" .. entryFont
-headerFont = ":n:" .. headerFont
-
 local bgPadding = 6
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
