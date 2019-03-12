@@ -1372,10 +1372,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunZ = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
-		elseif id == 'shadows_map' then
-			Spring.SetSunLighting({groundShadowDensity = value})
-		elseif id == 'shadows_unit' then
-			Spring.SetSunLighting({unitShadowDensity = value})
+		elseif id == 'shadows_opacity' then
+			Spring.SetSunLighting({groundShadowDensity = value, modelShadowDensity = value})
 		elseif id == 'fog_start' then
 			Spring.SetAtmosphere({fogStart = value})
 			if value >= gl.GetAtmosphere("fogEnd") then
@@ -2009,8 +2007,7 @@ function init()
 		{id="shadows_maxquality", group="gfx", name="Shadows max quality", min=2000, max=8000, step=500, type="slider", value=6000, description='Maximum shadow detail\n\n(when having high Frames Per Second)'},
 		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail\n\n(when having low Frames Per Second)'},
 
-		--{id="shadows_map", group="gfx", name=widgetOptionColor.."   map shadow", type="slider", min=0, max=1, step=0.001, value=gl.GetSun("groundShadowDensity"), description=''},
-		--{id="shadows_unit", group="gfx", name=widgetOptionColor.."   unit shadow", type="slider", min=0, max=1, step=0.001, value=gl.GetSun("shadowDensity"), description=''},
+		{id="shadows_opacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.01, value=gl.GetSun("shadowDensity"), description=''},
 
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
@@ -2077,7 +2074,7 @@ function init()
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
 
-		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.4, max=2, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
+		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.3, max=1, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
 		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-1, max=1, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
 		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-1, max=1, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
 
@@ -2255,6 +2252,12 @@ function init()
 		end
 	end
 
+	-- set minimal shadow opacity
+	if getOptionByID('shadows_opacity') then
+		if gl.GetSun("shadowDensity") < options[getOptionByID('shadows_opacity')].min then
+			Spring.SetSunLighting({groundShadowDensity = options[getOptionByID('shadows_opacity')].min, modelShadowDensity = options[getOptionByID('shadows_opacity')].min})
+		end
+	end
 
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
@@ -2574,47 +2577,49 @@ end
 
 
 function widget:Initialize()
-	-- set minimum particle amount
-	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
-		Spring.SetConfigInt("MaxParticles",10000)
-	end
-	-- enable lua shaders
-	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) then
-		Spring.SetConfigInt("ForceShaders", 1)
-	end
-	-- enable map/model shading
-	if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
-		Spring.SetConfigInt("AdvMapShading",1)
-	end
-	if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
-		Spring.SetConfigInt("AdvModelShading",1)
-	end
-	-- enable normal mapping
-	if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
-		Spring.SetConfigInt("NormalMapping",1)
-		Spring.SendCommands("luarules normalmapping 1")
-	end
-	-- disable clouds
-	if Spring.GetConfigInt("AdvSky",0) ~= 0 then
-		Spring.SetConfigInt("AdvSky",0)
-	end
-	-- disable grass
-	if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
-		Spring.SetConfigInt("GrassDetail",0)
-	end
-	-- enable shadows at gamestart
-	if Spring.GetGameFrame() == 0 and Spring.GetConfigInt("Shadows",0) ~= 1 then
-		Spring.SetConfigInt("Shadows",1)
-		Spring.SendCommands("Shadows 1")
-	end
-	-- disable fog
+
 	if Spring.GetGameFrame() == 0 then
+		-- set minimum particle amount
+		if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
+			Spring.SetConfigInt("MaxParticles",10000)
+		end
+		-- enable lua shaders
+		if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) then
+			Spring.SetConfigInt("ForceShaders", 1)
+		end
+		-- enable map/model shading
+		if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
+			Spring.SetConfigInt("AdvMapShading",1)
+		end
+		if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
+			Spring.SetConfigInt("AdvModelShading",1)
+		end
+		-- enable normal mapping
+		if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
+			Spring.SetConfigInt("NormalMapping",1)
+			Spring.SendCommands("luarules normalmapping 1")
+		end
+		-- disable clouds
+		if Spring.GetConfigInt("AdvSky",0) ~= 0 then
+			Spring.SetConfigInt("AdvSky",0)
+		end
+		-- disable grass
+		if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
+			Spring.SetConfigInt("GrassDetail",0)
+		end
+
+		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
+		Spring.SetConfigInt("UsePBO",0)
+		--end
+
+		-- enable shadows at gamestart
+		if Spring.GetConfigInt("Shadows",0) ~= 1 then
+			Spring.SetConfigInt("Shadows",1)
+			Spring.SendCommands("Shadows 1")
+		end
+		-- disable fog
 		Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
 	end
-
-	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
-		Spring.SetConfigInt("UsePBO",0)
-	--end
 
 	Spring.SendCommands("minimap unitsize "..(Spring.GetConfigFloat("MinimapIconScale", 3.5)))		-- spring wont remember what you set with '/minimap iconssize #'
 
