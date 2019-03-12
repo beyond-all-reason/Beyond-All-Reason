@@ -334,6 +334,9 @@ end
 
 
 function widget:DrawWorld()
+  if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+    return
+  end
   if Spring.IsGUIHidden() then return end
   if drawFeatureHighlight and (type == 'feature') then
     HilightFeature(data)

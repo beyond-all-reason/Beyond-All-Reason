@@ -1153,6 +1153,12 @@ end
 
 
 function widget:IsAbove(x,y)
+  if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+    menuHovered = false
+    openedMenu = -1
+    return false
+  end
+
   if (not inTweak) then
     local _,_,lb,mb,rb = GetMouseState()
     if ((lb or mb or rb)and(openedMenu==-1))or(waypointMode==2) then

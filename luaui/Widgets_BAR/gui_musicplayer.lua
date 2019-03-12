@@ -425,6 +425,10 @@ function mouseEvent(x, y, button, release)
 	
 end
 function widget:IsAbove(mx, my)
+	if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+		mouseover = false
+		return false
+	end
 	if isInBox(mx, my, {left, bottom, right, top}) then
   	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
   	if volume ~= curVolume then

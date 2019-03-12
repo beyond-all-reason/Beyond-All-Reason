@@ -6,7 +6,7 @@ function widget:GetInfo()
 	author    = "Regret (enhanced by Floris)",
 	date      = "29 may 2015",
 	license   = "GNU GPL, v2 or later",
-	layer     = -9999999, --lowest go first
+	layer     = -9999998, --lowest go first
 	enabled   = true, --loaded by default
 	handler   = true, --access to handler
 	}
@@ -377,7 +377,7 @@ function widget:MousePress(mx,my,mb)
 			dropClick = false
 		end
 	end
-	
+
 	return dropClick
 end
 
@@ -792,7 +792,9 @@ function widget:Update()
 						if (ro.onupdate) then
 							ro.onupdate(ro)
 						end
-						processMouseEvents(ro)
+						if not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur() then
+							processMouseEvents(ro)
+						end
 					end
 				end
 			end

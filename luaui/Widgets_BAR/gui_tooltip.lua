@@ -219,6 +219,9 @@ end
 
 local cleanupGuishaderAreas = {} 
 function widget:DrawScreen()
+	if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+		return
+	end
 	local x, y = spGetMouseState()
 	local now = os.clock()
 

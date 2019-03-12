@@ -370,14 +370,16 @@ end
 function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local usedIconImgMult = iconImgMult
   local ypad2 = -usedIconSizeY/50
-  local color = {1, 1, 1, 0.9}
-  if mouseIcon ~= -1 then
-  	color = {1, 1, 1, 0.75}
-  end
-  if iconPos == mouseIcon then
-  	usedIconImgMult = iconImgMult*1.08
-  	color = {1, 1, 1, 1}
-  	ypad2 = 0
+  local color = {1, 1, 1, 0.9 }
+  if (not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur()) then
+    if mouseIcon ~= -1 then
+      color = {1, 1, 1, 0.75}
+    end
+    if iconPos == mouseIcon then
+      usedIconImgMult = iconImgMult*1.08
+      color = {1, 1, 1, 1}
+      ypad2 = 0
+    end
   end
   local yPad = (usedIconSizeY*(1-usedIconImgMult)) / 3
   local xPad = (usedIconSizeX*(1-usedIconImgMult)) / 3

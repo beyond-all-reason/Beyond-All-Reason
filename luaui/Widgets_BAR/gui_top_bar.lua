@@ -5,7 +5,7 @@ function widget:GetInfo()
 		author		= "Floris",
 		date		= "Feb, 2017",
 		license		= "GNU GPL, v2 or later",
-        layer		= -99999,
+        layer		= -9999999,
 		enabled		= true, --enabled by default
 		handler		= true, --can use widgetHandler:x()
 	}
@@ -25,7 +25,7 @@ local height = 38
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
-local bladeSpeedMultiplier = 0.22
+local bladeSpeedMultiplier = 0.2
 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
@@ -596,13 +596,13 @@ local function updateResbar(res)
 	local barLeftPadding = 39 * widgetScale
 	local barRightPadding = 8 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
-	local sliderHeightAdd = barHeight / 3.5
+	local sliderHeightAdd = barHeight / 2.2
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	local barWidth = barArea[3] - barArea[1]
 	local glowSize = barHeight * 6
 
-	if resbarHover ~= nil and resbarHover == res then
-		sliderHeightAdd = barHeight/1.15
+	if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
+		sliderHeightAdd = barHeight/0.77
 		shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
 	end
 
@@ -670,7 +670,7 @@ local function updateResbar(res)
 			end
 			conversionIndicatorArea = {barArea[1]+(convValue * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(convValue * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 			glTexture(barbg)
-			if resbarHover ~= nil and resbarHover == res then
+			if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
 				local padding = shareSliderWidth/8
 				glColor(0.8, 0.8, 0.5, 1)
 				RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],2.5*widgetScale)
@@ -688,7 +688,7 @@ local function updateResbar(res)
         end
 		shareIndicatorArea[res] = {barArea[1]+(value * barWidth)-(shareSliderWidth/2), barArea[2]-sliderHeightAdd, barArea[1]+(value * barWidth)+(shareSliderWidth/2), barArea[4]+sliderHeightAdd}
 		glTexture(barbg)
-		if resbarHover ~= nil and resbarHover == res then
+		if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
 			local padding = shareSliderWidth/8
 			glColor(0.66, 0, 0, 1)
 			RectRound(shareIndicatorArea[res][1], shareIndicatorArea[res][2], shareIndicatorArea[res][3], shareIndicatorArea[res][4],2.5*widgetScale)
@@ -860,7 +860,7 @@ function widget:Update(dt)
 		end
 	end
 
-	if not spec then
+	if not spec and not showQuitscreen then
 		if isInBox(mx, my, resbarArea['energy']) then
 			if resbarHover == nil then
 				resbarHover = 'energy'
@@ -1096,7 +1096,7 @@ function widget:DrawScreen()
 	if dlistButtons1 then
 		glCallList(dlistButtons1)
 		-- hovered?
-		if buttonsArea['buttons'] ~= nil and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
+		if not showQuitscreen and buttonsArea['buttons'] ~= nil and IsOnRect(x, y, buttonsArea[1], buttonsArea[2], buttonsArea[3], buttonsArea[4]) then
 			buttonsAreaHovered = nil
 			for button, pos in pairs(buttonsArea['buttons']) do
 				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
@@ -1126,8 +1126,14 @@ function widget:DrawScreen()
 		local fadeProgress = (now - showQuitscreen) / fadeTime
 		if fadeProgress > 1 then fadeProgress = 1 end
 
+		Spring.SetMouseCursor('cursornormal')
+
         dlistQuit = glCreateList( function()
-            glColor(0,0,0,(0.15*fadeProgress))
+			if WG['guishader_api'] then
+            	glColor(0,0,0,(0.18*fadeProgress))
+			else
+				glColor(0,0,0,(0.35*fadeProgress))
+			end
             glRect( 0, 0, vsx, vsy)
 
             if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
@@ -1334,42 +1340,8 @@ function widget:KeyPress(key)
 end
 
 function widget:MousePress(x, y, button)
+
 	if button == 1 then
-		if not spec then
-			if IsOnRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
-				draggingShareIndicator = 'metal'
-			end
-			if IsOnRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
-				draggingShareIndicator = 'metal'
-				adjustSliders(x, y)
-			end
-			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
-				draggingShareIndicator = 'energy'
-			end
-			if draggingShareIndicator == nil and showConversionSlider and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
-				draggingConversionIndicator = true
-			end
-			if draggingConversionIndicator == nil and IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
-				draggingShareIndicator = 'energy'
-				adjustSliders(x, y)
-			end
-			if draggingShareIndicator or draggingConversionIndicator then
-				if playSounds then
-					Spring.PlaySoundFile(resourceclick, 0.7, 'ui')
-				end
-				return true
-			end
-		end
-
-		if buttonsArea['buttons'] ~= nil then
-			for button, pos in pairs(buttonsArea['buttons']) do
-				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
-					applyButtonAction(button)
-					return true
-				end
-			end
-		end
-
 		if showQuitscreen ~= nil and quitscreenArea ~= nil then
 
 			if IsOnRect(x, y, quitscreenArea[1], quitscreenArea[2], quitscreenArea[3], quitscreenArea[4]) then
@@ -1404,13 +1376,56 @@ function widget:MousePress(x, y, button)
 				end
 				return true
 			end
+
+			return true
 		end
 
 
+		if not spec then
+			if IsOnRect(x, y, shareIndicatorArea['metal'][1], shareIndicatorArea['metal'][2], shareIndicatorArea['metal'][3], shareIndicatorArea['metal'][4]) then
+				draggingShareIndicator = 'metal'
+			end
+			if IsOnRect(x, y, resbarDrawinfo['metal'].barArea[1], shareIndicatorArea['metal'][2], resbarDrawinfo['metal'].barArea[3], shareIndicatorArea['metal'][4]) then
+				draggingShareIndicator = 'metal'
+				adjustSliders(x, y)
+			end
+			if IsOnRect(x, y, shareIndicatorArea['energy'][1], shareIndicatorArea['energy'][2], shareIndicatorArea['energy'][3], shareIndicatorArea['energy'][4]) then
+				draggingShareIndicator = 'energy'
+			end
+			if draggingShareIndicator == nil and showConversionSlider and IsOnRect(x, y, conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4]) then
+				draggingConversionIndicator = true
+			end
+			if draggingConversionIndicator == nil and IsOnRect(x, y, resbarDrawinfo['energy'].barArea[1], shareIndicatorArea['energy'][2], resbarDrawinfo['energy'].barArea[3], shareIndicatorArea['energy'][4]) then
+				draggingShareIndicator = 'energy'
+				adjustSliders(x, y)
+			end
+			if draggingShareIndicator or draggingConversionIndicator then
+				if playSounds then
+					Spring.PlaySoundFile(resourceclick, 0.7, 'ui')
+				end
+				return true
+			end
+		end
+
+		if buttonsArea['buttons'] ~= nil then
+			for button, pos in pairs(buttonsArea['buttons']) do
+				if IsOnRect(x, y, pos[1], pos[2], pos[3], pos[4]) then
+					applyButtonAction(button)
+					return true
+				end
+			end
+		end
+	else
+		if showQuitscreen ~= nil and quitscreenArea ~= nil then
+			return true
+		end
 	end
 end
 
 function widget:MouseRelease(x, y, button)
+	if showQuitscreen ~= nil and quitscreenArea ~= nil then
+		return true
+	end
 	if draggingShareIndicator ~= nil then
 		adjustSliders(x, y)
         draggingShareIndicator = nil

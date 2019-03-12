@@ -586,13 +586,16 @@ function widget:DrawScreen()
 	
 	if enabled and noOfIcons > 0 then
 		local x, y, lb, mb, rb = GetMouseState()
-		local icon = MouseOverIcon(x, y)
-		if (icon >= 0) then
-	  	
-			if (lb or mb or rb) then
-				DrawIconQuad(icon, { 0.5, 0.2, 0, 0.5 }, 1.1)
-			else
-				DrawIconQuad(icon, { 0, 0, 0.1, 0.4 }, 1.1)
+
+		if not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur() then
+			local icon = MouseOverIcon(x, y)
+			if (icon >= 0) then
+
+				if (lb or mb or rb) then
+					DrawIconQuad(icon, { 0.5, 0.2, 0, 0.5 }, 1.1)
+				else
+					DrawIconQuad(icon, { 0, 0, 0.1, 0.4 }, 1.1)
+				end
 			end
 		end
 		glClear(GL_DEPTH_BUFFER_BIT)
@@ -731,7 +734,7 @@ end
 
 
 function widget:DrawWorld()
-	if mouseOnUnitID then
+	if mouseOnUnitID and (not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur()) then
 		if widgetHandler:InTweakMode() then return -1 end
 		glColor(1,1,1,0.22)
 		glUnit(mouseOnUnitID, true)
