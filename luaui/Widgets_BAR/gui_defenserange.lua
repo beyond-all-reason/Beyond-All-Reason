@@ -844,7 +844,7 @@ function UpdateCircleList()
 end
 
 function widget:DrawWorld()
-	if not spIsGUIHidden() then
+	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		if rangeCircleList then
 			glCallList(rangeCircleList)
 		else

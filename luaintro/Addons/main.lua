@@ -199,10 +199,11 @@ if k%2 == 1 then
 --	random_tip_or_desc = quotes[((math.ceil(k/3)) % #quotes) + 1]
 end
 
+local defaultFont = 'Poppins-Medium.otf'
 local fontfile = 'luaui/fonts/'..Spring.GetConfigString("ui_font", "")
 if not VFS.FileExists(fontfile) then
-	Spring.SetConfigString('ui_font', 'Xolonium-Regular.otf')
-	fontfile = 'luaui/fonts/Xolonium-Regular.otf'
+	Spring.SetConfigString('ui_font', defaultFont)
+	fontfile = 'luaui/fonts/'..defaultFont
 end
 
 local vsx,vsy = Spring.GetViewGeometry()

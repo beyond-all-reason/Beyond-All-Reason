@@ -685,8 +685,8 @@ function widget:DrawScreen()
 		local CurMouseState = {Spring.GetMouseState()} --{mx,my,m1,m2,m3}
 		local row = 1 + math.floor((wt - CurMouseState[2]) / ((iconHeight + borderSize)*widgetScale))
 		local col = 1 + math.floor((wl - CurMouseState[1]) / ((iconWidth + borderSize)*widgetScale))
-		
-		if TraceDefID(CurMouseState[1], CurMouseState[2]) then
+
+		if TraceDefID(CurMouseState[1], CurMouseState[2]) and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 			gl.Translate(-((iconWidth*widgetScale)*col), -((iconHeight*widgetScale)*row), 0)
 			gl.Texture(buttonhighlight)
 			gl.Color(hoverColor)
@@ -901,6 +901,7 @@ end
 -- Mouse
 ------------------------------------------------------------
 function widget:IsAbove(mx, my)
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	return TraceDefID(mx, my)
 end
 local tooltipFormat = 'Build %s\n%s\n' .. metalColor .. '%d m ' .. whiteColor .. '/ ' .. energyColor .. '%d e ' .. whiteColor .. '/ ' .. buildColor .. '%.1f sec'
@@ -937,6 +938,7 @@ end
 needBuildFacing = true
 
 function widget:MousePress(mx, my, mButton)
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	local tracedDefID = TraceDefID(mx, my)
 	if tracedDefID then
 		if mButton == 1 then
@@ -1032,6 +1034,7 @@ end
 
 
 function widget:MouseRelease(mx, my, mButton)
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then return end
 	areDragging = false
 	local tracedDefID = TraceDefID(mx, my)
 	if tracedDefID then
