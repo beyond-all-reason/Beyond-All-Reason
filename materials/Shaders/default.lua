@@ -12,6 +12,7 @@ vertex = [[
 	uniform vec3 sunAmbient;
 	uniform vec3 etcLoc;
 	uniform int simFrame;
+
 	#ifdef flashlights
 		out float selfIllumMod;
 	#endif
@@ -30,6 +31,7 @@ vertex = [[
 	#ifdef use_vertex_ao
 		out float aoTerm;
 	#endif
+
 	out vec3 cameraDir;
 
 	#ifdef use_normalmapping
@@ -58,20 +60,30 @@ vertex = [[
 
 		vec4 worldPos = gl_ModelViewMatrix * vertex;
 		gl_Position   = gl_ProjectionMatrix * (camera * worldPos);
-		cameraDir     = worldPos.xyz - cameraPos;
+		cameraDir     = cameraPos - worldPos.xyz;
 
 		#ifdef use_shadows
-			tex_coord1 = shadowMatrix *gl_ModelViewMatrix*gl_Vertex;
-			tex_coord1.st = tex_coord1.st * (inversesqrt( abs(tex_coord1.st) + shadowParams.z) + shadowParams.w) + shadowParams.xy;
+			tex_coord1 = shadowMatrix * worldPos;
+			#if 1
+				tex_coord1.xy = tex_coord1.xy + 0.5;
+			#else
+				tex_coord1.xy *= (inversesqrt(abs(tex_coord1.xy) + shadowParams.zz) + shadowParams.ww);
+				tex_coord1.xy += shadowParams.xy;
+			#endif
 		#endif
+
 		#ifdef use_treadoffset
 			tex_coord0.st = gl_MultiTexCoord0.st;
-			if (gl_MultiTexCoord0.s < 0.74951171875 && gl_MultiTexCoord0.s > 0.6279296875 && gl_MultiTexCoord0.t > 0.5702890625 && gl_MultiTexCoord0.t <0.6220703125){
+			const vec4 treadBoundaries = vec4(0.6279296875, 0.74951171875, 0.5702890625, 0.6220703125);
+			if (all(bvec4(
+					tex_coord0.s >= treadBoundaries.x, tex_coord0.s <= treadBoundaries.y,
+					tex_coord0.t >= treadBoundaries.z, tex_coord0.t <= treadBoundaries.w))) {
 				tex_coord0.s = gl_MultiTexCoord0.s + etcLoc.z;
 			}
 		#endif
+
 		#ifdef use_vertex_ao
-			aoTerm= max(0.4,fract(gl_MultiTexCoord0.s*16384.0)*1.3); // great
+			aoTerm = max(0.4, fract(gl_MultiTexCoord0.s * 16384.0) * 1.3); // great
 		#endif
 
 		#ifndef use_treadoffset
@@ -79,9 +91,10 @@ vertex = [[
 		#endif
 
 		#ifdef flashlights
-			//float unique_value = sin((gl_ModelViewMatrix[3][0]+gl_ModelViewMatrix[3][2])));
-			selfIllumMod = max(-0.2,sin(simFrame *0.063 + (gl_ModelViewMatrix[3][0]+gl_ModelViewMatrix[3][2])*0.1))+0.2;
+			// gl_ModelViewMatrix[3][0] + gl_ModelViewMatrix[3][2] are Tx, Tz elements of translation of matrix
+			selfIllumMod = max(-0.2, sin(simFrame * 0.063 + (gl_ModelViewMatrix[3][0] + gl_ModelViewMatrix[3][2]) * 0.1)) + 0.2;
 		#endif
+
 		//float fogCoord = length(gl_Position.xyz); // maybe fog should be readded?
 		//fogFactor = (gl_Fog.end - fogCoord) * gl_Fog.scale; //gl_Fog.scale := 1.0 / (gl_Fog.end - gl_Fog.start)
 		//fogFactor = clamp(fogFactor, 0.0, 1.0);
@@ -98,11 +111,17 @@ vertex = [[
 	precision mediump float;
 	#endif
 
-	//#define use_normalmapping
-	//#define flip_normalmap
-	//#define use_shadows
-
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
+
+	#if (deferred_mode == 1)
+		#define GBUFFER_NORMTEX_IDX 0
+		#define GBUFFER_DIFFTEX_IDX 1
+		#define GBUFFER_SPECTEX_IDX 2
+		#define GBUFFER_EMITTEX_IDX 3
+		#define GBUFFER_MISCTEX_IDX 4
+
+		#define GBUFFER_COUNT 5
+	#endif
 
 	uniform sampler2D textureS3o1;
 	uniform sampler2D textureS3o2;
@@ -113,17 +132,24 @@ vertex = [[
 	uniform vec3 sunDiffuse;
 	uniform vec3 sunAmbient;
 	uniform vec3 etcLoc;
+
 	#ifndef SPECULARMULT
 		#define SPECULARMULT 2.0
+	#endif
+
+	#ifndef SHADOW_SAMPLES
+		#define SHADOW_SAMPLES 2
 	#endif
 
 	#ifdef use_shadows
 		uniform sampler2DShadow shadowTex;
 		uniform float shadowDensity;
 	#endif
+
 	#ifdef use_vertex_ao
 		in float aoTerm;
 	#endif
+
 	uniform vec4 teamColor;
 	in vec3 cameraDir;
 	//varying float fogFactor;
@@ -142,50 +168,90 @@ vertex = [[
 	in vec2 tex_coord0;
 	in vec4 tex_coord1;
 
-	out vec4 fragData[4];
+	#if (deferred_mode == 1)
+		out vec4 fragData[GBUFFER_COUNT];
+	#else
+		out vec4 fragData[1];
+	#endif
 
-	float GetShadowCoeff(vec4 shadowCoors){
-		#ifdef use_shadows
-			float coeff = textureProj(shadowTex, shadowCoors+vec4(0.0, 0.0, -0.00005, 0.0));
-			coeff  = (1.0 - coeff);
-			coeff *= shadowDensity;
-			return (1.0 - coeff);
+	float GetShadowPCFGrid(float NdotL) {
+		float shadow = 0.0;
+
+		const float cb = 0.00005;
+		float bias = cb * tan(acos(NdotL));
+		bias = clamp(bias, 0.0, 5.0 * cb);
+
+		vec4 shTexCoord = tex_coord1;
+		shTexCoord.z -= bias;
+
+		#if defined(SHADOW_SAMPLES) && (SHADOW_SAMPLES > 1)
+			const int ssHalf = int(floor(float(SHADOW_SAMPLES) / 2.0));
+			const float ssSum = float((ssHalf + 1) * (ssHalf + 1));
+
+			for( int x = -ssHalf; x <= ssHalf; x++ ) {
+				float wx = float(ssHalf - abs(x) + 1) / ssSum;
+				for( int y = -ssHalf; y <= ssHalf; y++ ) {
+					float wy = float(ssHalf - abs(y) + 1) / ssSum;
+					shadow += wx * wy * textureProjOffset ( shadowTex, shTexCoord, ivec2(x, y) );
+				}
+			}
 		#else
-			return 1.0;
+			shadow = textureProj( shadowTex, shTexCoord );
 		#endif
+
+		return mix(1.0, shadow, shadowDensity);
 	}
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
+
+		#define NORM2SNORM(value) (value * 2.0 - 1.0)
+		#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 		#ifdef use_normalmapping
 			vec2 tc = tex_coord0.st;
 			#ifdef flip_normalmap
 				tc.t = 1.0 - tc.t;
 			#endif
-			vec4 normaltex=texture(normalMap, tc);
-			vec3 nvTS   = normalize((normaltex.xyz - 0.5) * 2.0);
+			vec4 normaltex = texture(normalMap, tc);
+			vec3 nvTS = normalize(NORM2SNORM(normaltex.xyz));
 			vec3 normal = tbnMatrix * nvTS;
 		#else
 			vec3 normal = normalize(normalv);
 		#endif
-		vec3 light = max(dot(normal, sunPos), 0.0) * sunDiffuse + sunAmbient;
+
+		float NdotLu = dot(normal, sunPos);
+		float NdotL = clamp(NdotLu, 0.001, 1.0);
+		vec3 light = NdotL * sunDiffuse + sunAmbient;
 
 		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
 		vec4 outColor   = diffuseIn;
 		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
-		vec3 reflectDir = reflect(cameraDir, normal);
+		vec3 reflectDir = -reflect(cameraDir, normal);
 
-			vec3 specular   = texture(specularTex, reflectDir).rgb * extraColor.g * SPECULARMULT;
-			vec3 reflection = texture(reflectTex,  reflectDir).rgb;
-		float shadow = GetShadowCoeff(tex_coord1 + vec4(0.0, 0.0, -0.00005, 0.0));
+		vec3 specular   = texture(specularTex, reflectDir).rgb * extraColor.g * SPECULARMULT;
+		vec3 reflection = texture(reflectTex,  reflectDir).rgb;
+
+		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
+		float nShadow = mix(1.0, nShadowMix, shadowDensity);
+
+		#ifdef use_shadows
+			float gShadow = GetShadowPCFGrid(NdotL);
+		#else
+			float gShadow = 1.0;
+		#endif
+
+		float shadow = min(nShadow, gShadow);
+
 		light     = mix(sunAmbient, light, shadow);
 		specular *= shadow;
 
-		reflection  = mix(light, reflection, extraColor.g); // reflection
+		reflection = mix(light, reflection, extraColor.g); // reflection
+
 		#ifdef flashlights
-			extraColor.r =extraColor.r * selfIllumMod;
+			extraColor.r = extraColor.r * selfIllumMod;
 		#endif
+
 		reflection += (extraColor.rrr); // self-illum
 
 		outColor.rgb = mix(outColor.rgb, teamColor.rgb, outColor.a);
@@ -200,16 +266,17 @@ vertex = [[
 		//outColor.rgb = outColor.rgb + outColor.rgb * (normaltex.a - 0.5) * etcLoc.g; // no more wreck color blending
 
 		#ifdef use_vertex_ao
-			outColor.rgb=outColor.rgb*aoTerm;
+			outColor.rgb = outColor.rgb * aoTerm;
 		#endif
 
 		#if (deferred_mode == 0)
 			fragData[0] = outColor;
 		#else
-			fragData[0] = vec4((normal + 1.0) * 0.5, 1.0);
-			fragData[1] = outColor;
-			fragData[2] = vec4(specular, extraColor.a);
-			fragData[3] = vec4(extraColor.rrr, 1.0);
+			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(normal), 1.0);
+			fragData[GBUFFER_DIFFTEX_IDX] = outColor;
+			fragData[GBUFFER_SPECTEX_IDX] = vec4(specular, extraColor.a);
+			fragData[GBUFFER_EMITTEX_IDX] = vec4(extraColor.rrr, 1.0);
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(0.0);
 		#endif
 
 		%%FRAGMENT_POST_SHADING%%
