@@ -1360,6 +1360,36 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigFloat("ui_opacity", value)
 		elseif id == 'snowamount' then
 			saveOptionValue('Snow', 'snow', 'setMultiplier', {'customParticleMultiplier'}, value)
+		elseif id == 'sun_x' then
+			local sunX,sunY,sunZ = gl.GetSun("pos")
+			sunX = value
+			Spring.SetSunDirection(sunX,sunY,sunZ)
+		elseif id == 'sun_y' then
+			local sunX,sunY,sunZ = gl.GetSun("pos")
+			sunY = value
+			Spring.SetSunDirection(sunX,sunY,sunZ)
+		elseif id == 'sun_z' then
+			local sunX,sunY,sunZ = gl.GetSun("pos")
+			sunZ = value
+			Spring.SetSunDirection(sunX,sunY,sunZ)
+		elseif id == 'shadows_map' then
+			Spring.SetSunLighting({groundShadowDensity = value})
+		elseif id == 'shadows_unit' then
+			Spring.SetSunLighting({unitShadowDensity = value})
+		elseif id == 'fog_start' then
+			Spring.SetAtmosphere({fogStart = value})
+			if value >= gl.GetAtmosphere("fogEnd") then
+				value = value + 0.0001
+				options[getOptionByID('fog_end')].value = value
+				Spring.SetAtmosphere({fogEnd = value})
+			end
+		elseif id == 'fog_end' then
+			Spring.SetAtmosphere({fogEnd = value})
+			if value <= gl.GetAtmosphere("fogStart") then
+				value = value - 0.0001
+				options[getOptionByID('fog_start')].value = value
+				Spring.SetAtmosphere({fogStart = value})
+			end
 		elseif id == 'commandsfxopacity' then
 			saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', {'opacity'}, value)
 		elseif id == 'dofintensity' then
@@ -1979,6 +2009,9 @@ function init()
 		{id="shadows_maxquality", group="gfx", name="Shadows max quality", min=2000, max=8000, step=500, type="slider", value=6000, description='Maximum shadow detail\n\n(when having high Frames Per Second)'},
 		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail\n\n(when having low Frames Per Second)'},
 
+		--{id="shadows_map", group="gfx", name=widgetOptionColor.."   map shadow", type="slider", min=0, max=1, step=0.001, value=gl.GetSun("groundShadowDensity"), description=''},
+		--{id="shadows_unit", group="gfx", name=widgetOptionColor.."   unit shadow", type="slider", min=0, max=1, step=0.001, value=gl.GetSun("shadowDensity"), description=''},
+
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
 		--{id="advsky", group="gfx", name="Clouds", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
@@ -2043,6 +2076,13 @@ function init()
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
+
+		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.4, max=2, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
+		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-1, max=1, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
+		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-1, max=1, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
+
+		--{id="fog_start", group="gfx", name="Fog Start", type="slider", min=0, max=1, step=0.0001, value=gl.GetAtmosphere("fogStart"), description=''},
+		--{id="fog_end", group="gfx", name=widgetOptionColor.."   end", type="slider", min=0, max=1, step=0.0001, value=gl.GetAtmosphere("fogEnd"), description=''},
 
 		-- SND
 		{id="sndvolmaster", group="snd", name="Master volume", type="slider", min=0, max=200, step=2, value=tonumber(Spring.GetConfigInt("snd_volmaster",1) or 100)},
@@ -2207,6 +2247,14 @@ function init()
 		options[getOptionByID('font')].options = fonts
 		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), Spring.GetConfigString("ui_font", "Poppins-Medium.otf"):lower())
 	end
+
+	-- set sun minimal height
+	if getOptionByID('sun_y') then
+		if select(2,gl.GetSun("pos")) < options[getOptionByID('sun_y')].min then
+			Spring.SetSunDirection(select(1,gl.GetSun("pos")), options[getOptionByID('sun_y')].min, select(3,gl.GetSun("pos")))
+		end
+	end
+
 
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
@@ -2558,6 +2606,10 @@ function widget:Initialize()
 	if Spring.GetGameFrame() == 0 and Spring.GetConfigInt("Shadows",0) ~= 1 then
 		Spring.SetConfigInt("Shadows",1)
 		Spring.SendCommands("Shadows 1")
+	end
+	-- disable fog
+	if Spring.GetGameFrame() == 0 then
+		Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
 	end
 
 	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
