@@ -2205,7 +2205,7 @@ function init()
 			end
 		end
 		options[getOptionByID('font')].options = fonts
-		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), Spring.GetConfigString("ui_font", "FreeSansBold.otf"))
+		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), Spring.GetConfigString("ui_font", "Poppins-Medium.otf"):lower())
 	end
 
 	-- fsaa is deprecated in 104.x
