@@ -425,7 +425,7 @@ function mouseEvent(x, y, button, release)
 	
 end
 function widget:IsAbove(mx, my)
-	if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then
 		mouseover = false
 		return false
 	end

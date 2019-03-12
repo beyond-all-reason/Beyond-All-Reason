@@ -334,7 +334,7 @@ end
 
 
 function widget:DrawWorld()
-  if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+  if (WG['topbar'] and WG['topbar'].showingQuit()) then
     return
   end
   if Spring.IsGUIHidden() then return end

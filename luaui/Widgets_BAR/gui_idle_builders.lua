@@ -587,7 +587,7 @@ function widget:DrawScreen()
 	if enabled and noOfIcons > 0 then
 		local x, y, lb, mb, rb = GetMouseState()
 
-		if not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur() then
+		if not WG['topbar'] or not WG['topbar'].showingQuit() then
 			local icon = MouseOverIcon(x, y)
 			if (icon >= 0) then
 
@@ -734,7 +734,7 @@ end
 
 
 function widget:DrawWorld()
-	if mouseOnUnitID and (not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur()) then
+	if mouseOnUnitID and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		if widgetHandler:InTweakMode() then return -1 end
 		glColor(1,1,1,0.22)
 		glUnit(mouseOnUnitID, true)

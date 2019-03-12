@@ -1555,7 +1555,9 @@ function widget:Initialize()
 	WG['topbar'].showingRejoining = function()
 		return showRejoinUI
 	end
-
+	WG['topbar'].showingQuit = function()
+		return showQuitscreen
+	end
 
 	init()
 end

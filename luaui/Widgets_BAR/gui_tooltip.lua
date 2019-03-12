@@ -219,7 +219,7 @@ end
 
 local cleanupGuishaderAreas = {} 
 function widget:DrawScreen()
-	if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
 	end
 	local x, y = spGetMouseState()

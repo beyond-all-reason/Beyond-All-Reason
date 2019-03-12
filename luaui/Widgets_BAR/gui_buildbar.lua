@@ -1153,7 +1153,7 @@ end
 
 
 function widget:IsAbove(x,y)
-  if (WG['guishader_api'] and WG['guishader_api'].getScreenBlur()) then
+  if (WG['topbar'] and WG['topbar'].showingQuit()) then
     menuHovered = false
     openedMenu = -1
     return false

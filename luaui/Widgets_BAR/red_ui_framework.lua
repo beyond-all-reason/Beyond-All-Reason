@@ -792,7 +792,7 @@ function widget:Update()
 						if (ro.onupdate) then
 							ro.onupdate(ro)
 						end
-						if not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur() then
+						if not WG['topbar'] or not WG['topbar'].showingQuit() then
 							processMouseEvents(ro)
 						end
 					end

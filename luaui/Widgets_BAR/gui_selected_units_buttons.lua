@@ -371,7 +371,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local usedIconImgMult = iconImgMult
   local ypad2 = -usedIconSizeY/50
   local color = {1, 1, 1, 0.9 }
-  if (not WG['guishader_api'] or not WG['guishader_api'].getScreenBlur()) then
+  if (not WG['topbar'] or not WG['topbar'].showingQuit()) then
     if mouseIcon ~= -1 then
       color = {1, 1, 1, 0.75}
     end

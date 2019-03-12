@@ -146,6 +146,9 @@ local function createtooltip(r)
 		options="o",
 		
 		onupdate=function(self)
+			if (WG['topbar'] and WG['topbar'].showingQuit()) then
+				return
+			end
 			local unitcount = sGetSelectedUnitsCount()
 			if (unitcount ~= 0) then
 				self.caption = "Selected units: "..unitcount.."\n"
