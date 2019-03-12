@@ -1333,9 +1333,18 @@ local function applyButtonAction(button)
 	end
 end
 
+function widget:MouseWheel(up,value) --up = true/false , value = -1/1
+	if showQuitscreen ~= nil and quitscreenArea ~= nil then
+		return true
+	end
+end
+
 function widget:KeyPress(key)
 	if key == 27 then	-- ESC
 		hideWindows()
+	end
+	if showQuitscreen ~= nil and quitscreenArea ~= nil then
+		return true
 	end
 end
 

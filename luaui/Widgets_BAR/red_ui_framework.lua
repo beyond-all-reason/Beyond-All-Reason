@@ -786,13 +786,13 @@ function widget:Update()
 				end
 				
 				--process mouseevents backwards, so topmost drawn objects get to mouseevents first
-				local ro = objlst[#objlst-i+1]
-				if (not ro.scheduledfordeletion) then
-					if (ro.active ~= false) then
-						if (ro.onupdate) then
-							ro.onupdate(ro)
-						end
-						if not WG['topbar'] or not WG['topbar'].showingQuit() then
+				if not WG['topbar'] or not WG['topbar'].showingQuit() then
+					local ro = objlst[#objlst-i+1]
+					if (not ro.scheduledfordeletion) then
+						if (ro.active ~= false) then
+							if (ro.onupdate) then
+								ro.onupdate(ro)
+							end
 							processMouseEvents(ro)
 						end
 					end
