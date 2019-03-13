@@ -1364,14 +1364,20 @@ function applyOptionValue(i, skipRedrawWindow)
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunX = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
+			-- just so that map/model lighting gets updated
+			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
 		elseif id == 'sun_y' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunY = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
+			-- just so that map/model lighting gets updated
+			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
 		elseif id == 'sun_z' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunZ = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
+			-- just so that map/model lighting gets updated
+			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
 		elseif id == 'shadows_opacity' then
 			Spring.SetSunLighting({groundShadowDensity = value, modelShadowDensity = value})
 		elseif id == 'fog_start' then
