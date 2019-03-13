@@ -103,7 +103,8 @@ vertex = [[
 	}
 ]],
 
-  fragment = [[
+
+fragment = [[
 	#if (GL_FRAGMENT_PRECISION_HIGH == 1)
 	// ancient GL3 ATI drivers confuse GLSL for GLSL-ES and require this
 	precision highp float;
@@ -283,23 +284,23 @@ vertex = [[
 	}
 ]],
 
-  uniformInt = {
-    textureS3o1 = 0,
-    textureS3o2 = 1,
-    shadowTex   = 2,
-    specularTex = 3,
-    reflectTex  = 4,
-    normalMap   = 5,
-    --detailMap   = 6,
-  },
-  uniform = {
-    -- sunPos = {gl.GetSun("pos")}, -- material has sunPosLoc
-    sunAmbient = {gl.GetSun("ambient" ,"unit")},
-    sunDiffuse = {gl.GetSun("diffuse" ,"unit")},
-    shadowDensity = {gl.GetSun("shadowDensity" ,"unit")},
-    -- shadowParams  = {gl.GetShadowMapParams()}, -- material has shadowParamsLoc
-  },
-  uniformMatrix = {
-    -- shadowMatrix = {gl.GetMatrixData("shadow")}, -- material has shadow{Matrix}Loc
-  },
+	uniformInt = {
+		textureS3o1 = 0,
+		textureS3o2 = 1,
+		shadowTex   = 2,
+		specularTex = 3,
+		reflectTex  = 4,
+		normalMap   = 5,
+		--detailMap   = 6,
+	},
+	uniformFloat = {
+		-- sunPos = {gl.GetSun("pos")}, -- material has sunPosLoc
+		sunAmbient = {gl.GetSun("ambient" ,"unit")},
+		sunDiffuse = {gl.GetSun("diffuse" ,"unit")},
+		shadowDensity = gl.GetSun("shadowDensity" ,"unit"),
+		-- shadowParams  = {gl.GetShadowMapParams()}, -- material has shadowParamsLoc
+	},
+	uniformMatrix = {
+		-- shadowMatrix = {gl.GetMatrixData("shadow")}, -- material has shadow{Matrix}Loc
+	},
 }

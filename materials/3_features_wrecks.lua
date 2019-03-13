@@ -2,11 +2,18 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local function SunChanged(material)
+	local curShader = (drawMode == 5) and material.deferredShader or material.standardShader
+	local shadowDensityLoc = gl.GetUniformLocation(curShader, "shadowDensity")
+	gl.Uniform(shadowDensityLoc, gl.GetSun("shadowDensity" ,"unit"))
+end
+
+local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local materials = {
 	feature_wreck = {
-		shader    = include("materials/Shaders/default.lua"),
-		deferred  = include("materials/Shaders/default.lua"),
+		shader    = default_lua,
+		deferred  = default_lua,
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
@@ -31,6 +38,7 @@ local materials = {
 			[5] = '%NORMALTEX',
 		},
 		--DrawFeature = DrawFeature,
+		SunChanged = SunChanged,
 		feature = true, --// This is used to define that this is a feature shader
 	},
 }
@@ -55,7 +63,7 @@ local function FindNormalmap(tex1, tex2)
 		if (VFS.FileExists(normaltex)) then
 			return normaltex
 		end
-	end 
+	end
 	return nil
 end
 
@@ -66,7 +74,7 @@ local featureMaterials = {}
 for id, featureDef in pairs(FeatureDefs) do
 	local isTree=false
 	for _,stub in ipairs({"ad0_", "btree", "art"}) do
-		if featureDef.name:find(stub) == 1 then 
+		if featureDef.name:find(stub) == 1 then
 			isTree=true
 			-- Spring.Echo(featureDef.name, 'is a tree')
 		end
@@ -75,8 +83,8 @@ for id, featureDef in pairs(FeatureDefs) do
 	-- how to check if its a wreck or a heap?
 
 	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and ((featureDef.modelpath and featureDef.modelpath:find("%.3ds")) or (featureDef.model ~= nil and featureDef.model.path ~= nil and featureDef.model.path:find("%.3ds") == nil)) then --its likely a proper feature
-		if  featureDef.name:find("_dead") then 
-			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then 
+		if  featureDef.name:find("_dead") then
+			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then
 				--ignore these two edge cases.
 			elseif featureDef.name == "freefusion_free_fusion_dead" then
 				featureMaterials[featureDef.name] = {"feature_wreck", NORMALTEX = "unittextures/mission_command_tower_wreck_1_normal.dds"}

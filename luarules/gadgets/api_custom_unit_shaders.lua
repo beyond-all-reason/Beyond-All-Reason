@@ -55,6 +55,7 @@ local shadows = false
 local advShading = false
 local normalmapping = (tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1)
 local treewind = tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1
+local sunChanged = false
 
 local unitRendering = {
   drawList        = {},
@@ -352,15 +353,20 @@ end
 
 local n = -1
 function gadget:Update()
-  if (n<Spring.GetDrawFrame()) then
-    n = Spring.GetDrawFrame() + Spring.GetFPS()
+	if (n < Spring.GetDrawFrame()) then
+		n = Spring.GetDrawFrame() + Spring.GetFPS()
 
-    if (advShading ~= Spring.HaveAdvShading()) then
-      ToggleAdvShading()
-    elseif (advShading)and(normalmapping)and(shadows ~= Spring.HaveShadows()) then
-      ToggleShadows()
-    end
-  end
+		if (advShading ~= Spring.HaveAdvShading()) then
+			ToggleAdvShading()
+		elseif advShading and  normalmapping  and shadows ~= Spring.HaveShadows() then
+			ToggleShadows()
+		end
+	end
+end
+
+
+function gadget:SunChanged()
+	sunChanged = true
 end
 
 --------------------------------------------------------------------------------
@@ -423,21 +429,63 @@ function ObjectDestroyed(rendering, objectID, objectDefID)
 end
 
 function gadget:RenderUnitDestroyed(unitID, unitDefID)
-  ObjectDestroyed(unitRendering, unitID, unitDefID)
+	ObjectDestroyed(unitRendering, unitID, unitDefID)
 end
+
 function gadget:FeatureDestroyed(featureID)
-  ObjectDestroyed(featureRendering, featureID, Spring.GetFeatureDefID(featureID))
+	ObjectDestroyed(featureRendering, featureID, Spring.GetFeatureDefID(featureID))
+end
+
+function gadget:DrawGenesis()
+	if sunChanged then
+		for _, mat in pairs(unitRendering.materialDefs) do
+			local SunChangedFunc = mat.SunChanged
+
+			if mat.standardShader and SunChangedFunc then
+				gl.ActiveShader(mat.standardShader, function()
+					SunChangedFunc(mat)
+				end)
+			end
+
+			if mat.deferredShader and SunChangedFunc then
+				gl.ActiveShader(mat.deferredShader, function()
+					SunChangedFunc(mat)
+				end)
+			end
+
+		end
+
+		for _, mat in pairs(featureRendering.materialDefs) do
+			local SunChangedFunc = mat.SunChanged
+
+			if mat.standardShader and SunChangedFunc then
+				gl.ActiveShader(mat.standardShader, function()
+					SunChangedFunc(mat)
+				end)
+			end
+
+			if mat.deferredShader and SunChangedFunc then
+				gl.ActiveShader(mat.deferredShader, function()
+					SunChangedFunc(mat)
+				end)
+			end
+
+		end
+
+		sunChanged = false
+	end
 end
 
 local function DrawObject(rendering, objectID, drawMode)
-  local mat = rendering.drawList[objectID]
-  if not mat then
-    return
-  end
-  local _DrawObject = mat[rendering.DrawObject]
-  if _DrawObject then
-    return _DrawObject(objectID, mat, drawMode)
-  end
+	local mat = rendering.drawList[objectID]
+	if not mat then
+		return
+	end
+
+	local _DrawObject = mat[rendering.DrawObject]
+	if _DrawObject then
+		return _DrawObject(objectID, mat, drawMode)
+	end
 end
 
 ---------------------------

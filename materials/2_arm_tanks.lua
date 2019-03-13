@@ -20,7 +20,7 @@ local function DrawUnit(unitID, material,drawMode)
 	if etcLocIDs[etcLocIdx] == -2 then
 		etcLocIDs[etcLocIdx] = gl.GetUniformLocation(curShader, "etcLoc")
 	end
-	-- Spring.Echo('Arm Tanks drawmode',drawMode) 
+	-- Spring.Echo('Arm Tanks drawmode',drawMode)
 	--if (drawMode ==1)then -- we can skip setting the uniforms as they only affect fragment color, not fragment alpha or vertex positions, so they dont have an effect on shadows, and drawmode 2 is shadows, 1 is normal mode.
 	--Spring.Echo('drawing',UnitDefs[Spring.GetUnitDefID(unitID)].name,GetGameFrame())
 	--local  health,maxhealth=GetUnitHealth(unitID)
@@ -39,6 +39,14 @@ local function DrawUnit(unitID, material,drawMode)
   --// engine should still draw it (we just set the uniforms for the shader)
   return false
 end
+
+local function SunChanged(material)
+	local curShader = (drawMode == 5) and material.deferredShader or material.standardShader
+	local shadowDensityLoc = gl.GetUniformLocation(curShader, "shadowDensity")
+	gl.Uniform(shadowDensityLoc, gl.GetSun("shadowDensity" ,"unit"))
+end
+
+local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local materials = {
 	normalMappedS3O_arm_tank = {
@@ -59,8 +67,8 @@ local materials = {
 			"#define SPECULARMULT 8.0",
 		},
 
-		shader    = include("materials/Shaders/default.lua"),
-		deferred  = include("materials/Shaders/default.lua"),
+		shader    = default_lua,
+		deferred  = default_lua,
 		usecamera = false,
 		culling   = GL.BACK,
 		predl  = nil,
@@ -74,6 +82,7 @@ local materials = {
 			[5] = '%NORMALTEX',
 		},
 		DrawUnit = DrawUnit,
+		SunChanged = SunChanged,
    },
 }
 

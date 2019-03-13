@@ -15,10 +15,18 @@ local function DrawFeature(featureID, material, drawMode) -- UNUSED!
   return false
 end
 
+local function SunChanged(material)
+	local curShader = (drawMode == 5) and material.deferredShader or material.standardShader
+	local shadowDensityLoc = gl.GetUniformLocation(curShader, "shadowDensity")
+	gl.Uniform(shadowDensityLoc, gl.GetSun("shadowDensity" ,"unit"))
+end
+
+local default_lua = VFS.Include("materials/Shaders/default.lua")
+
 local materials = {
 	feature_tree = {
-		shader    = include("materials/Shaders/default.lua"),
-		deferred  = include("materials/Shaders/default.lua"),
+		shader    = default_lua,
+		deferred  = default_lua,
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
@@ -93,6 +101,7 @@ local materials = {
 			[5] = '%NORMALTEX',
 		},
 		--DrawFeature = DrawFeature,
+		SunChanged = SunChanged,
 	},
 }
 

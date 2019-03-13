@@ -1,6 +1,14 @@
 -- $Id$
 --------------------------------------------------------------------------------
 
+local function SunChanged(material)
+	local curShader = (drawMode == 5) and material.deferredShader or material.standardShader
+	local shadowDensityLoc = gl.GetUniformLocation(curShader, "shadowDensity")
+	gl.Uniform(shadowDensityLoc, gl.GetSun("shadowDensity" ,"unit"))
+end
+
+local default_lua = VFS.Include("materials/Shaders/default.lua")
+
 local materials = {
 	normalMappedS3O = {
 		shaderDefinitions = {
@@ -18,8 +26,8 @@ local materials = {
 			"#define SPECULARMULT 8.0",
 		},
 
-		shader    = include("materials/Shaders/default.lua"),
-		deferred  = include("materials/Shaders/default.lua"),
+		shader    = default_lua,
+		deferred  = default_lua,
 		usecamera = false,
 		culling   = GL.BACK,
 		predl  = nil,
@@ -35,6 +43,7 @@ local materials = {
 		-- uniforms = {
 		-- }
 		--DrawUnit = DrawUnit,
+		SunChanged = SunChanged,
 	},
 }
 

@@ -54,7 +54,7 @@ CallInsList = {
   "UnitUnloaded",
   "UnitCloaked",
   "UnitDecloaked",
-  
+
   "ShieldPreDamaged",
 
   "FeatureCreated",
@@ -73,6 +73,8 @@ CallInsList = {
   "DrawScreen",
   "DrawInMiniMap",
   "DrawUnit",
+
+  "SunChanged",
 
   "Explosion",
   "ShockFront",
