@@ -125,7 +125,7 @@ local function RemoveMe(msg)
 	widgetHandler:RemoveWidget()
 end
 
-local function MakeBloomShaders() 
+local function MakeBloomShaders()
 
 	if (glDeleteShader) then
 		if brightShader ~= nil then glDeleteShader(brightShader or 0) end
@@ -133,7 +133,7 @@ local function MakeBloomShaders()
 		if blurShaderV71 ~= nil then glDeleteShader(blurShaderV71 or 0) end
 		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
 	end
-	
+
 	combineShader = glCreateShader({
 		fragment = [[
 			uniform sampler2D texture0;
@@ -156,7 +156,10 @@ local function MakeBloomShaders()
 				gl_Position    = gl_Vertex;
 			}
 		]],
-		uniformInt = { texture0 = 0, debugDraw = 0}
+		uniformInt = {
+			texture0 = 0,
+			debugDraw = 0,
+		}
 	})
 
 	if (combineShader == nil) then
@@ -164,7 +167,7 @@ local function MakeBloomShaders()
 	end
 
 	-- How about we do linear sampling instead, using the GPU's built in texture fetching linear blur hardware :)
-	-- http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/ 
+	-- http://rastergrid.com/blog/2010/09/efficient-gaussian-blur-with-linear-sampling/
 	-- this allows us to get away with 5 texture fetches instead of 9 for our 9 sized kernel!
 	 -- TODO:  all this simplification may result in the accumulation of quantizing errors due to the small numbers that get pushed into the BrightTexture
 
@@ -179,16 +182,18 @@ local function MakeBloomShaders()
 				vec2 texCoors = vec2(gl_TexCoord[0]);
 				vec3 newblur;
 
-				newblur  = 10*  texture2D(texture0, texCoors + vec2(-blursize * inverseRX, 0)).rgb;
-				newblur += 37*  texture2D(texture0, texCoors + vec2(-(blursize/3.5) * inverseRX, 0)).rgb;
-				newblur += 25*  texture2D(texture0, texCoors + vec2(0               , 0)).rgb;
-				newblur += 37*  texture2D(texture0, texCoors + vec2( (blursize/3.5) * inverseRX, 0)).rgb;
-				newblur += 10*  texture2D(texture0, texCoors + vec2( blursize * inverseRX, 0)).rgb;
+				newblur  = 10 * texture2D(texture0, texCoors + vec2(-blursize * inverseRX, 0)).rgb;
+				newblur += 37 * texture2D(texture0, texCoors + vec2(-(blursize/3.5) * inverseRX, 0)).rgb;
+				newblur += 25 * texture2D(texture0, texCoors + vec2(0               , 0)).rgb;
+				newblur += 37 * texture2D(texture0, texCoors + vec2( (blursize/3.5) * inverseRX, 0)).rgb;
+				newblur += 10 * texture2D(texture0, texCoors + vec2( blursize * inverseRX, 0)).rgb;
 				gl_FragColor = vec4(newblur * invKernelSum * fragBlurAmplifier, 1.0);
 			}
 		]],
-		uniformInt = {texture0 = 0, blursize = math.floor(blursize*globalBlursizeMult)},
-		uniformFloat = {inverseRX, fragBlurAmplifier}
+		uniformInt = {
+			texture0 = 0,
+			blursize = math.floor(blursize * globalBlursizeMult),
+		},
 	})
 
 	if (blurShaderH71 == nil) then
@@ -206,17 +211,19 @@ local function MakeBloomShaders()
 				vec2 texCoors = vec2(gl_TexCoord[0]);
 				vec3 newblur;
 
-				newblur  = 10*  texture2D(texture0, texCoors + vec2(0, -blursize * inverseRY)).rgb;
-				newblur += 37*  texture2D(texture0, texCoors + vec2(0, -(blursize/3.5) * inverseRY)).rgb;
-				newblur += 25*  texture2D(texture0, texCoors + vec2(0,                         0)).rgb;
-				newblur += 37*  texture2D(texture0, texCoors + vec2(0,  (blursize/3.5) * inverseRY)).rgb;
-				newblur += 10*  texture2D(texture0, texCoors + vec2(0,  blursize * inverseRY)).rgb;
+				newblur  = 10 * texture2D(texture0, texCoors + vec2(0, -blursize * inverseRY)).rgb;
+				newblur += 37 * texture2D(texture0, texCoors + vec2(0, -(blursize/3.5) * inverseRY)).rgb;
+				newblur += 25 * texture2D(texture0, texCoors + vec2(0,                         0)).rgb;
+				newblur += 37 * texture2D(texture0, texCoors + vec2(0,  (blursize/3.5) * inverseRY)).rgb;
+				newblur += 10 * texture2D(texture0, texCoors + vec2(0,  blursize * inverseRY)).rgb;
 				gl_FragColor = vec4(newblur * invKernelSum * fragBlurAmplifier, 1.0);
 			}
 		]],
 
-		uniformInt = {texture0 = 0, blursize = math.floor(blursize*globalBlursizeMult)},
-		uniformFloat = {inverseRY, fragBlurAmplifier}
+		uniformInt = {
+			texture0 = 0,
+			blursize = math.floor(blursize*globalBlursizeMult),
+		}
 	})
 
 	if (blurShaderV71 == nil) then
@@ -225,31 +232,42 @@ local function MakeBloomShaders()
 
 	brightShader = glCreateShader({
 		fragment =   [[
-			uniform sampler2D modeldiffusetex;
-			uniform sampler2D modelspectex;
+			uniform sampler2D modelDiffuseTex;
+			uniform sampler2D modelEmitTex;
+
+			uniform sampler2D modelDepthTex;
+			uniform sampler2D mapDepthTex;
+
 			uniform float illuminationThreshold;
 			uniform float fragGlowAmplifier;
 
 			void main(void) {
 				vec2 texCoors = vec2(gl_TexCoord[0]);
-				vec3 color = vec3(texture2D(modeldiffusetex, texCoors));
-				vec4 model_gbuffer_emittex = texture2D(modelspectex,texCoors);
-				//float detectchangedbuffer = clamp(model_gbuffer_emittex.g,0.0,1.0); //this is required because some things overwrite all the buffers, and deferred rendering forces this to 0.0
+				vec3 color = vec3(texture2D(modelDiffuseTex, texCoors));
+				vec4 colorEmit = texture2D(modelEmitTex, texCoors);
+
+				float modelDepth = texture2D(modelDepthTex, texCoors).r;
+				float mapDepth = texture2D(mapDepthTex, texCoors).r;
+
+				float unoccludedModel = float(modelDepth < mapDepth);
+
+				//float detectchangedbuffer = clamp(colorEmit.g,0.0,1.0); //this is required because some things overwrite all the buffers, and deferred rendering forces this to 0.0
 				//color = color *(1.0 - detectchangedbuffer);
-				color += color*model_gbuffer_emittex.r;
+
+				color += color * colorEmit.r;
 
 				float illum = dot(color, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
 
-				if (illum > illuminationThreshold) {
-					gl_FragColor = vec4(color*(illum-illuminationThreshold), 1.0) * fragGlowAmplifier;
-				} else {
-					gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-				}
+				gl_FragColor = vec4(color * max(0.0, illum-illuminationThreshold) * fragGlowAmplifier * unoccludedModel, 1.0);
 			}
-		]], 
+		]],
 
-		uniformInt = {modeldiffusetex = 0, modelspectex = 1},
-		uniformFloat = {illuminationThreshold, fragGlowAmplifier} --, inverseRX, inverseRY}
+		uniformInt = {
+			modelDiffuseTex = 0,
+			modelEmitTex = 1,
+			modelDepthTex = 2,
+			mapDepthTex = 3,
+		}
 	})
 
 	if (brightShader == nil) then
@@ -258,20 +276,20 @@ local function MakeBloomShaders()
 
 
 
-	brightShaderText0Loc = glGetUniformLocation(brightShader, "modeldiffusetex")
-	brightShaderText1Loc = glGetUniformLocation(brightShader, "modelspectex")
+	--brightShaderText0Loc = glGetUniformLocation(brightShader, "modelDiffuseTex")
+	--brightShaderText1Loc = glGetUniformLocation(brightShader, "modelEmitTex")
 
 	brightShaderIllumLoc = glGetUniformLocation(brightShader, "illuminationThreshold")
 	brightShaderFragLoc = glGetUniformLocation(brightShader, "fragGlowAmplifier")
 
-	blurShaderH71Text0Loc = glGetUniformLocation(blurShaderH71, "texture0")
+	--blurShaderH71Text0Loc = glGetUniformLocation(blurShaderH71, "texture0")
 	blurShaderH71FragLoc = glGetUniformLocation(blurShaderH71, "fragBlurAmplifier")
-	blurShaderV71Text0Loc = glGetUniformLocation(blurShaderV71, "texture0")
+	--blurShaderV71Text0Loc = glGetUniformLocation(blurShaderV71, "texture0")
 	blurShaderV71FragLoc = glGetUniformLocation(blurShaderV71, "fragBlurAmplifier")
 
 	combineShaderDebgDrawLoc = glGetUniformLocation(combineShader, "debugDraw")
-	combineShaderTexture0Loc = glGetUniformLocation(combineShader, "texture0")
-	-- combineShaderTexture1Loc = glGetUniformLocation(combineShader, "texture1")
+	--combineShaderTexture0Loc = glGetUniformLocation(combineShader, "texture0")
+	--combineShaderTexture1Loc = glGetUniformLocation(combineShader, "texture1")
 
 end
 
@@ -375,34 +393,40 @@ end
 local function Bloom()
 	gl.DepthMask(false)
 	gl.Color(1, 1, 1, 1)
- 
+
 	glUseShader(brightShader)
-		glUniformInt(brightShaderText0Loc, 0)
-		glUniformInt(brightShaderText1Loc, 1)
+		--glUniformInt(brightShaderText0Loc, 0)
+		--glUniformInt(brightShaderText1Loc, 1)
 		glUniform(   brightShaderIllumLoc, illumThreshold)
 		glUniform(   brightShaderFragLoc, glowAmplifier)
 		glTexture(0, "$model_gbuffer_difftex")
-		glTexture(1,"$model_gbuffer_emittex")
-		glRenderToTexture(brightTexture1, gl.TexRect, -1,1,1,-1)
+		glTexture(1, "$model_gbuffer_emittex")
+		glTexture(2, "$model_gbuffer_zvaltex")
+		glTexture(3, "$map_gbuffer_zvaltex")
+
+		glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
+
 		glTexture(0, false)
 		glTexture(1, false)
+		glTexture(2, false)
+		glTexture(3, false)
 	glUseShader(0)
 
 	if not debugBrightShader then
 		for i = 1, blurPasses do
 			glUseShader(blurShaderH71)
-				glUniformInt(blurShaderH71Text0Loc, 0)
+				--glUniformInt(blurShaderH71Text0Loc, 0)
 				glUniform(blurShaderH71FragLoc, blurAmplifier)
 				glTexture(brightTexture1)
-				glRenderToTexture(brightTexture2, gl.TexRect, -1,1,1,-1)
+				glRenderToTexture(brightTexture2, gl.TexRect, -1, 1, 1, -1)
 				glTexture(false)
 			glUseShader(0)
 
 			glUseShader(blurShaderV71)
-				glUniformInt(blurShaderV71Text0Loc, 0)
+				--glUniformInt(blurShaderV71Text0Loc, 0)
 				glUniform(blurShaderV71FragLoc, blurAmplifier)
 				glTexture(brightTexture2)
-				glRenderToTexture(brightTexture1, gl.TexRect, -1,1,1,-1)
+				glRenderToTexture(brightTexture1, gl.TexRect, -1, 1, 1, -1)
 				glTexture(false)
 			glUseShader(0)
 		end
@@ -415,12 +439,13 @@ local function Bloom()
 	end
 
 	glUseShader(combineShader)
-	glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
-	glUniformInt(combineShaderTexture0Loc, 0)
-	glTexture(0, brightTexture1)
-	gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
-	glTexture(0, false)
+		glUniformInt(combineShaderDebgDrawLoc, dbgDraw)
+		--glUniformInt(combineShaderTexture0Loc, 0)
+		glTexture(0, brightTexture1)
+		gl.TexRect(-1, -1, 1, 1, 0, 0, 1, 1)
+		glTexture(0, false)
 	glUseShader(0)
+
 	gl.Blending("reset")
 	gl.DepthMask(true)
 end
