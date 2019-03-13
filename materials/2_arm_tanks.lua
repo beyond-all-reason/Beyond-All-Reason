@@ -40,8 +40,7 @@ local function DrawUnit(unitID, material,drawMode)
   return false
 end
 
-local function SunChanged(material)
-	local curShader = (drawMode == 5) and material.deferredShader or material.standardShader
+local function SunChanged(curShader)
 	local shadowDensityLoc = gl.GetUniformLocation(curShader, "shadowDensity")
 	gl.Uniform(shadowDensityLoc, gl.GetSun("shadowDensity" ,"unit"))
 end

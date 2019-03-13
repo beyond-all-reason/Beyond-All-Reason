@@ -443,13 +443,13 @@ function gadget:DrawGenesis()
 
 			if mat.standardShader and SunChangedFunc then
 				gl.ActiveShader(mat.standardShader, function()
-					SunChangedFunc(mat)
+					SunChangedFunc(mat.standardShader)
 				end)
 			end
 
 			if mat.deferredShader and SunChangedFunc then
 				gl.ActiveShader(mat.deferredShader, function()
-					SunChangedFunc(mat)
+					SunChangedFunc(mat.deferredShader)
 				end)
 			end
 
@@ -460,13 +460,13 @@ function gadget:DrawGenesis()
 
 			if mat.standardShader and SunChangedFunc then
 				gl.ActiveShader(mat.standardShader, function()
-					SunChangedFunc(mat)
+					SunChangedFunc(mat.standardShader)
 				end)
 			end
 
 			if mat.deferredShader and SunChangedFunc then
 				gl.ActiveShader(mat.deferredShader, function()
-					SunChangedFunc(mat)
+					SunChangedFunc(mat.deferredShader)
 				end)
 			end
 
