@@ -258,7 +258,12 @@ local function MakeBloomShaders()
 
 				float illum = dot(color, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
 
-				gl_FragColor = vec4(color * max(0.0, illum-illuminationThreshold) * fragGlowAmplifier * unoccludedModel, 1.0);
+				vec4 illumCond = vec4(illum > illuminationThreshold) ;
+
+				gl_FragColor = mix(
+					vec4(0.0, 0.0, 0.0, 1.0),
+					vec4(color * (illum-illuminationThreshold), 1.0) * fragGlowAmplifier * unoccludedModel,
+					illumCond);
 			}
 		]],
 
