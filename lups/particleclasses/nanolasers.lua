@@ -98,26 +98,30 @@ local IsSphereInView      = Spring.IsSphereInView
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:BeginDraw()
-  glUseShader(laserShader)
-  glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
-  glAlphaTest(false)
+	--gl.DepthTest(true)
+	gl.DepthMask(false)
+	glUseShader(laserShader)
+	glBlending(GL_ONE, GL_ONE_MINUS_SRC_ALPHA)
+	glAlphaTest(false)
 end
 
 
 function NanoLasers:EndDraw()
-  glUseShader(0)
-  glColor(1,1,1,1)
-  glTexture(false)
-  glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-  glAlphaTest(true)
+	--gl.DepthTest(true)
+	gl.DepthMask(true)
+	glUseShader(0)
+	glColor(1,1,1,1)
+	glTexture(false)
+	glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+	glAlphaTest(true)
 
-  -- i hate that nv bug!
-  glMultiTexCoord(0,0,0,0)
-  glMultiTexCoord(1,0,0,0)
-  glMultiTexCoord(2,0,0,0)
-  glMultiTexCoord(3,0,0,0)
+	-- i hate that nv bug!
+	glMultiTexCoord(0,0,0,0)
+	glMultiTexCoord(1,0,0,0)
+	glMultiTexCoord(2,0,0,0)
+	glMultiTexCoord(3,0,0,0)
 
-  lastTexture=""
+	lastTexture=""
 end
 
 
