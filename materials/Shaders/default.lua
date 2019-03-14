@@ -7,7 +7,7 @@ vertex = [[
 
 	uniform mat4 camera;   //ViewMatrix (gl_ModelViewMatrix is ModelMatrix!)
 	uniform vec3 cameraPos;
-	uniform vec3 sunPos;
+
 	uniform vec3 sunDiffuse;
 	uniform vec3 sunAmbient;
 	uniform vec3 etcLoc;
@@ -32,7 +32,7 @@ vertex = [[
 		out float aoTerm;
 	#endif
 
-	out vec3 cameraDir;
+	out vec3 viewDir;
 
 	#ifdef use_normalmapping
 		out mat3 tbnMatrix;
@@ -60,7 +60,7 @@ vertex = [[
 
 		vec4 worldPos = gl_ModelViewMatrix * vertex;
 		gl_Position   = gl_ProjectionMatrix * (camera * worldPos);
-		cameraDir     = cameraPos - worldPos.xyz;
+		viewDir     = cameraPos - worldPos.xyz;
 
 		#ifdef use_shadows
 			tex_coord1 = shadowMatrix * worldPos;
@@ -113,6 +113,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
+	#line 10116
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -129,9 +130,16 @@ fragment = [[
 	uniform samplerCube specularTex;
 	uniform samplerCube reflectTex;
 
-	uniform vec3 sunPos; // is sunDir!
+	uniform vec3 sunPos; //light direction in fact
+	#define lightDir sunPos
+
 	uniform vec3 sunDiffuse;
 	uniform vec3 sunAmbient;
+	uniform vec3 sunSpecular;
+
+	uniform int lightingModel;
+	const float sunSpecularExp = 16.0;
+
 	uniform vec3 etcLoc;
 
 	#ifndef SPECULARMULT
@@ -152,7 +160,7 @@ fragment = [[
 	#endif
 
 	uniform vec4 teamColor;
-	in vec3 cameraDir;
+	in vec3 viewDir;
 	//varying float fogFactor;
 
 	#ifdef flashlights
@@ -205,6 +213,9 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
+		#line 20212
+
+		const float PI = acos(0.0) * 2.0;
 
 		#define NORM2SNORM(value) (value * 2.0 - 1.0)
 		#define SNORM2NORM(value) (value * 0.5 + 0.5)
@@ -216,22 +227,43 @@ fragment = [[
 			#endif
 			vec4 normaltex = texture(normalMap, tc);
 			vec3 nvTS = normalize(NORM2SNORM(normaltex.xyz));
-			vec3 normal = tbnMatrix * nvTS;
+			vec3 N = tbnMatrix * nvTS;
 		#else
-			vec3 normal = normalize(normalv);
+			vec3 N = normalize(normalv);
 		#endif
 
-		float NdotLu = dot(normal, sunPos);
-		float NdotL = clamp(NdotLu, 0.001, 1.0);
+		vec3 L = normalize(lightDir); //just in case
+
+		float NdotLu = dot(N, L);
+		float NdotL = max(NdotLu, 0.0);
 		vec3 light = NdotL * sunDiffuse + sunAmbient;
 
 		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
 		vec4 outColor   = diffuseIn;
 		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
-		vec3 reflectDir = -reflect(cameraDir, normal);
 
-		vec3 specular   = texture(specularTex, reflectDir).rgb * extraColor.g * SPECULARMULT;
-		vec3 reflection = texture(reflectTex,  reflectDir).rgb;
+		vec3 V = normalize(viewDir);
+		vec3 Rv = -reflect(V, N);
+
+		vec3 specularColor;
+
+		if (lightingModel == 1) { //blinn-phong
+			vec3 H = normalize(L + V);
+			float HdotN = max(dot(H, N), 0.0);
+			specularColor = sunSpecular * pow(HdotN, sunSpecularExp);
+		}
+		else if (lightingModel == 2) { //phong
+			vec3 Rl = -reflect(L, N);
+			float VdotRl = max(dot(Rl, V), 0.0);
+			specularColor = sunSpecular * min(1.0, (pow(VdotRl, sunSpecularExp) + pow(VdotRl, 3.0) * 0.15));
+		}
+		else {
+			specularColor = texture(specularTex, Rv).rgb;
+		}
+
+		specularColor *= extraColor.g * SPECULARMULT;
+
+		vec3 reflection = texture(reflectTex,  Rv).rgb;
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);
@@ -245,7 +277,7 @@ fragment = [[
 		float shadow = min(nShadow, gShadow);
 
 		light     = mix(sunAmbient, light, shadow);
-		specular *= shadow;
+		specularColor *= shadow;
 
 		reflection = mix(light, reflection, extraColor.g); // reflection
 
@@ -258,9 +290,9 @@ fragment = [[
 		outColor.rgb = mix(outColor.rgb, teamColor.rgb, outColor.a);
 
 		//#if (deferred_mode == 0)
-			// diffuse + specular + envcube lighting
+			// diffuse + specularColor + envcube lighting
 			// (reflection contains the NdotL term!)
-			outColor.rgb = outColor.rgb * reflection + specular;
+			outColor.rgb = outColor.rgb * reflection + specularColor;
 		//#endif
 
 		outColor.a   = extraColor.a;
@@ -273,9 +305,9 @@ fragment = [[
 		#if (deferred_mode == 0)
 			fragData[0] = outColor;
 		#else
-			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(normal), 1.0);
+			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), 1.0);
 			fragData[GBUFFER_DIFFTEX_IDX] = outColor;
-			fragData[GBUFFER_SPECTEX_IDX] = vec4(specular, extraColor.a);
+			fragData[GBUFFER_SPECTEX_IDX] = vec4(specularColor, extraColor.a);
 			fragData[GBUFFER_EMITTEX_IDX] = vec4(extraColor.rrr, 1.0);
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(0.0);
 		#endif
@@ -292,11 +324,15 @@ fragment = [[
 		reflectTex  = 4,
 		normalMap   = 5,
 		--detailMap   = 6,
+
+		lightingModel = 1,
 	},
 	uniformFloat = {
 		-- sunPos = {gl.GetSun("pos")}, -- material has sunPosLoc
 		sunAmbient = {gl.GetSun("ambient" ,"unit")},
 		sunDiffuse = {gl.GetSun("diffuse" ,"unit")},
+		sunSpecular = {gl.GetSun("specular" ,"unit")},
+		--sunSpecularExp = gl.GetSun("specularExponent"), -- this might return crazy values like 100.0, which are unapplicable for Phong/Blinn-Phong
 		shadowDensity = gl.GetSun("shadowDensity" ,"unit"),
 		-- shadowParams  = {gl.GetShadowMapParams()}, -- material has shadowParamsLoc
 	},

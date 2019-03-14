@@ -16,9 +16,14 @@ local function DrawFeature(featureID, material, drawMode) -- UNUSED!
 end
 
 local function SunChanged(curShader)
-	local shadowDensityLoc = gl.GetUniformLocation(curShader, "shadowDensity")
-	gl.Uniform(shadowDensityLoc, gl.GetSun("shadowDensity" ,"unit"))
+	gl.Uniform(gl.GetUniformLocation(curShader, "shadowDensity"), gl.GetSun("shadowDensity" ,"unit"))
+
+	gl.Uniform(gl.GetUniformLocation(curShader, "sunAmbient"), gl.GetSun("ambient" ,"unit"))
+	gl.Uniform(gl.GetUniformLocation(curShader, "sunDiffuse"), gl.GetSun("diffuse" ,"unit"))
+	gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecular"), gl.GetSun("specular" ,"unit"))
+	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 end
+
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
