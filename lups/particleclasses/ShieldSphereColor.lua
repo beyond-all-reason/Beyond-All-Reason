@@ -196,7 +196,6 @@ function ShieldSphereColorParticle:Initialize()
 		uniformInt = {
 			mapDepthTex = 0,
 			modelsDepthTex = 1,
-			reflectionTex = 2,
 		},
 		uniformFloat = {
 		}

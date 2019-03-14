@@ -245,8 +245,8 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
-		const float outlineEffectSize = 28.0;
-		const float outlineAlpha = 0.35;
+		const float outlineEffectSize = 10.0;
+		const float outlineAlpha = 0.6;
 
 		float minDepth = 1.0;
 		vec2 viewPortUV = gl_FragCoord.xy/viewPortSize;
@@ -319,7 +319,7 @@ void main() {
 	}
 
 	//poor man's tonemapping ahead
-	const float maxLuma = 0.85;
+	const float maxLuma = 0.8;
 	vec3 ycbcrColor = RGB2YCBCR * color.rgb;
 	ycbcrColor.x = min(ycbcrColor.x, maxLuma);
 	color.rgb = YCBCR2RGB * ycbcrColor;
