@@ -203,14 +203,15 @@ vec2 GetRippleOffset(vec3 thisPoint, vec3 impactPoint, float magMult) {
 	return offset;
 }
 
-const mat3 RGB2YUV = mat3
-						(0.2126, 0.7152, 0.0722,
-						-0.09991, -0.33609,  0.436,
-						0.615, -0.55861, -0.05639);
-const mat3 YUV2RGB = mat3
-						(1.0, 0.0, 1.28033,
-						1.0, -0.21482, -0.38059,
-						1.0, 2.12798, 0.0);
+const mat3 RGB2YCBCR = mat3(
+	0.2126, -0.114572, 0.5,
+	0.7152, -0.385428, -0.454153,
+	0.0722, 0.5, -0.0458471);
+
+const mat3 YCBCR2RGB = mat3(
+	1.0, 1.0, 1.0,
+	0.0, -0.187324, 1.8556,
+	1.5748, -0.468124, -5.55112e-17);
 
 const float PI = acos(0.0) * 2.0;
 const float PI8 = PI * 8.0;
@@ -318,10 +319,10 @@ void main() {
 	}
 
 	//poor man's tonemapping ahead
-	const float maxLuma = 0.6;
-	vec3 yuvColor = RGB2YUV * color.rgb;
-	yuvColor.x = min(yuvColor.x, maxLuma);
-	color.rgb = YUV2RGB * yuvColor;
+	const float maxLuma = 0.85;
+	vec3 ycbcrColor = RGB2YCBCR * color.rgb;
+	ycbcrColor.x = min(ycbcrColor.x, maxLuma);
+	color.rgb = YCBCR2RGB * ycbcrColor;
 
 	const float maxAlpha = 0.6;
 	color.a = min(color.a, maxAlpha);
