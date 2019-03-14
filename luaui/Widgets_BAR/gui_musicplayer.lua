@@ -59,13 +59,18 @@ local firstFade = true
 local gameOver = false
 local playing = true
 
+local playedTime, totalTime = Spring.GetSoundStreamTime()
+if totalTime > 0 then
+	firstTime = true
+end
+
 local playTex				= ":n:"..LUAUI_DIRNAME.."Images/music/play.png"
 local pauseTex				= ":n:"..LUAUI_DIRNAME.."Images/music/pause.png"
 local nextTex				= ":n:"..LUAUI_DIRNAME.."Images/music/next.png"
 local musicTex				= ":n:"..LUAUI_DIRNAME.."Images/music/music.png"
 local volumeTex				= ":n:"..LUAUI_DIRNAME.."Images/music/volume.png"
 local buttonTex				= ":n:"..LUAUI_DIRNAME.."Images/button.dds"
-local buttonHighlightTex				= ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
+local buttonHighlightTex	= ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local widgetScale = 1
@@ -73,9 +78,9 @@ local glText         = gl.Text
 local glBlending     = gl.Blending
 local glScale        = gl.Scale
 local glRotate       = gl.Rotate
-local glTranslate	   = gl.Translate
+local glTranslate	 = gl.Translate
 local glPushMatrix   = gl.PushMatrix
-local glPopMatrix	   = gl.PopMatrix
+local glPopMatrix	 = gl.PopMatrix
 local glColor        = gl.Color
 local glRect         = gl.Rect
 local glTexRect	     = gl.TexRect
@@ -113,7 +118,7 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	
+	local playedTime, totalTime = Spring.GetSoundStreamTime()
 	volume = Spring.GetConfigInt("snd_volmaster", 100)
 	
 	musicInitialValue = Spring.GetConfigInt("bar_musicInitialValue", 0)
@@ -449,8 +454,9 @@ end
 function widget:Shutdown()
 	gl.DeleteFont(font)
 	shutdown = true
-	Spring.StopSoundStream()
-	
+
+	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
+
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('music')
 	end
@@ -703,10 +709,8 @@ function widget:DrawScreen()
 end
 
 function widget:GetConfigData(data)
-	--local playedTime, totalTime = Spring.GetSoundStreamTime()
   local savedTable = {}
-  --savedTable.curTrack	= curTrack
-  --savedTable.playedTime = playedTime
+  savedTable.curTrack = curTrack
   savedTable.playing = playing
   return savedTable
 end
@@ -715,6 +719,14 @@ end
 function widget:SetConfigData(data)
 	if data.playing ~= nil then
 		playing = data.playing
+	end
+	if Spring.GetGameFrame() > 0 then
+		if data.curTrack ~= nil then
+			curTrack = data.curTrack
+		end
+		if data.warMeter ~= nil then
+			warMeter = data.warMeter
+		end
 	end
 end
 

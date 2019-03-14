@@ -1233,6 +1233,10 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif string.sub(id, 1, 19) == 'voicenotifs_' then
 			local sound = string.sub(id, 20)
 			saveOptionValue('Voice Notifs', 'voicenotifs', 'setSound'..sound, {'soundList'}, options[i].value)
+		elseif id == 'musicplayer' then
+			if value then
+				Spring.StopSoundStream()
+			end
 		end
 
 		if options[i].widget ~= nil then
@@ -2019,8 +2023,6 @@ function init()
 
 		--{id="advsky", group="gfx", name="Clouds", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
-		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
-		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.'},
 
 		{id="bloomdeferred", group="gfx", widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)'},
 		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description=''},
@@ -2031,6 +2033,13 @@ function init()
 		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.15, max=0.5, step=0.05, value=0.25, description=''},
 		--{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.9, max=1.5, step=0.05, value=1.1, description=''},
 		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
+
+		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.3, max=1, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
+		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-1, max=1, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
+		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-1, max=1, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
+
+		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
+		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.'},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
@@ -2079,10 +2088,6 @@ function init()
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
-
-		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.3, max=1, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
-		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-1, max=1, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
-		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-1, max=1, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
 
 		--{id="fog_start", group="gfx", name="Fog Start", type="slider", min=0, max=1, step=0.0001, value=gl.GetAtmosphere("fogStart"), description=''},
 		--{id="fog_end", group="gfx", name=widgetOptionColor.."   end", type="slider", min=0, max=1, step=0.0001, value=gl.GetAtmosphere("fogEnd"), description=''},
