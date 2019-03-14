@@ -451,23 +451,24 @@ local function Bloom()
 end
 
 local camX, camY, camZ = Spring.GetCameraPosition()
-local camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+local camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
 function widget:Update(dt)
 	if drawWorldAlpha <= 0 then return end
 	camX, camY, camZ = Spring.GetCameraPosition()
-	camDirX,camDirY,camDirZ = Spring.GetCameraDirection()
+	camDirX, camDirY, camDirZ = Spring.GetCameraDirection()
 end
 
 function widget:DrawWorld()
 	if drawWorldAlpha <= 0 then return end
 	-- darken world so bloom doesnt blown-white out the brightest areas too much
+
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-	gl.PushMatrix()
-	gl.Color(0,0,0,drawWorldAlpha*glowAmplifier)
-	gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
-	gl.Billboard()
-	gl.Rect(-500, -500, 500, 500)
-	gl.PopMatrix()
+	gl.PushPopMatrix(function()
+		gl.Color(0, 0, 0, drawWorldAlpha * glowAmplifier)
+		gl.Translate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
+		gl.Billboard()
+		gl.Rect(-vsx / 2, -vsy / 2, vsx / 2, vsy / 2)
+	end)
 
 	Bloom()
 end

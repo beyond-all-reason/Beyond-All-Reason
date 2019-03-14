@@ -101,13 +101,17 @@ end
 local lasttexture = nil
 
 function Bursts:BeginDraw()
-  lasttexture = nil
+	lasttexture = nil
+	gl.DepthMask(false)
+	gl.DepthTest(true)
 end
 
 function Bursts:EndDraw()
-  gl.Texture(false)
-  gl.Color(1,1,1,1)
-  gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.Texture(false)
+	gl.Color(1,1,1,1)
+	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+	gl.DepthMask(true)
+	gl.DepthTest(true)
 end
 
 function Bursts:Draw()
