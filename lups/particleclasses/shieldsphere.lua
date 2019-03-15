@@ -310,6 +310,11 @@ function ShieldSphereParticle:ReInitialize()
 end
 
 function ShieldSphereParticle.Create(Options)
+	-- apply teamcoloring for default
+	local r,g,b = Spring.GetTeamColor(Spring.GetUnitTeam(Options.unit))
+	ShieldSphereParticle.Default.colormap1 = {{(r*0.35)+0.1, (g*0.35)+0.1, (b*0.35)+0.1, 0.6}}
+	ShieldSphereParticle.Default.colormap2 = {{r*0.55, g*0.55, b*0.55, 0.6} }
+
 	local newObject = MergeTable(Options, ShieldSphereParticle.Default)
 	setmetatable(newObject,ShieldSphereParticle)	-- make handle lookup
 	newObject:CreateParticle()

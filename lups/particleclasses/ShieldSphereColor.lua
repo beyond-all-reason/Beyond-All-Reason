@@ -236,6 +236,12 @@ end
 
 function ShieldSphereColorParticle.Create(Options)
 	local newObject = MergeTable(Options, ShieldSphereColorParticle.Default)
+
+	-- overwriting for teamcolored shields
+	--local r,g,b = Spring.GetTeamColor(Spring.GetUnitTeam(Options.unit))
+	--newObject.colormap1 = {{(r*0.7)+0.4, (g*0.7)+0.4, (b*0.7)+0.4, Options.colormap1[1][4]},   {(r*0.7)+0.4, (g*0.7)+0.4, (b*0.7)+0.4, Options.colormap1[2][4]}}
+	--newObject.colormap2 = {{(r*0.35)+0.2, (g*0.35)+0.2, (b*0.35)+0.2, Options.colormap2[1][4]},   {(r*0.35)+0.15, (g*0.35)+0.2, (b*0.35)+0.2, Options.colormap2[2][4]} }
+
 	setmetatable(newObject,ShieldSphereColorParticle)	-- make handle lookup
 	newObject:CreateParticle()
 	return newObject
