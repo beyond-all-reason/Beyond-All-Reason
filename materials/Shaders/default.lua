@@ -1,5 +1,7 @@
 return {
 vertex = [[
+	//shader version is added via gadget
+
 	//#define use_normalmapping
 	//#define flip_normalmap
 	//#define use_shadows
@@ -105,6 +107,8 @@ vertex = [[
 
 
 fragment = [[
+	//shader version is added via gadget
+
 	#if (GL_FRAGMENT_PRECISION_HIGH == 1)
 	// ancient GL3 ATI drivers confuse GLSL for GLSL-ES and require this
 	precision highp float;

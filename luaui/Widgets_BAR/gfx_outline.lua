@@ -106,7 +106,7 @@ function widget:Initialize()
 
   depthShader = gl.CreateShader({
     fragment = [[
-	#version 120
+	  #version 150 compatibility
       uniform sampler2D tex0;
       uniform vec2 screenXY;
 
@@ -131,7 +131,7 @@ function widget:Initialize()
 
   blurShader_h = gl.CreateShader({
     fragment = [[
-	#version 120
+	  #version 150 compatibility
       uniform sampler2D tex0;
       uniform int screenX;
       uniform float size;
@@ -165,7 +165,7 @@ function widget:Initialize()
 
   blurShader_v = gl.CreateShader({
     fragment = [[
-	#version 120
+	  #version 150 compatibility
       uniform sampler2D tex0;
       uniform int screenY;
       uniform float size;

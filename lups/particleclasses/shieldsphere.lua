@@ -101,6 +101,7 @@ end
 function ShieldSphereParticle:Initialize()
 	shieldShader = gl.CreateShader({
 		vertex = [[
+			#version 150 compatibility
 			#define pos gl_MultiTexCoord3
 			#define margin gl_MultiTexCoord4.x
 			#define size vec4(gl_MultiTexCoord4.yyy,1.0)
@@ -128,6 +129,7 @@ function ShieldSphereParticle:Initialize()
 			}
 		]],
 		fragment = [[
+			#version 150 compatibility
 			varying float opac;
 			varying float gameFrame;
 			varying vec4 color1;

@@ -79,6 +79,7 @@ end
 function ShockWave.Initialize()
   warpShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float radius;
 
       varying vec2  center;
@@ -97,6 +98,7 @@ function ShockWave.Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform vec2  screenInverse;
 
       varying vec2  center;

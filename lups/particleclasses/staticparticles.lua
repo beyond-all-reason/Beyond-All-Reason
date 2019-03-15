@@ -158,6 +158,7 @@ end
 function StaticParticles:Initialize()
   billShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float size;
       uniform float frame;
 
@@ -205,6 +206,7 @@ function StaticParticles:Initialize()
        }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D tex0;
 
       varying vec2 texCoord;

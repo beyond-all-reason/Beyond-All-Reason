@@ -219,6 +219,7 @@ end
 function NanoParticles:Initialize()
   billShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       //gl.Vertex(s,t,ox,oy)
 
       #define delay      gl_MultiTexCoord4.x
@@ -283,6 +284,7 @@ function NanoParticles:Initialize()
        }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D tex0;
 
       varying vec2 texcoord;

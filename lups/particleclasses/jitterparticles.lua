@@ -174,6 +174,7 @@ end
 function JitterParticles:Initialize()
   billShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float size;
       uniform float frame;
       uniform float time;
@@ -208,6 +209,7 @@ function JitterParticles:Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
 
       varying float distStrength;

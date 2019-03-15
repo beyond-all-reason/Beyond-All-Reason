@@ -90,6 +90,7 @@ end
 function ShieldJitter.Initialize()
   warpShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float timer;
       uniform float strength;
 
@@ -107,6 +108,7 @@ function ShieldJitter.Initialize()
 	}
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
 
       varying float scale;

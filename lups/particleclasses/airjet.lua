@@ -202,6 +202,7 @@ function AirJet.Initialize()
 
   jetShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float timer;
 
       varying float distortion;
@@ -239,6 +240,7 @@ function AirJet.Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
       uniform sampler2D mask;
 
@@ -276,6 +278,7 @@ function AirJet.Initialize()
 
   jitShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float timer;
 
       varying float distortion;
@@ -314,6 +317,7 @@ function AirJet.Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
       uniform sampler2D mask;
 
