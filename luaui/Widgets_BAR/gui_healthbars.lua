@@ -633,7 +633,7 @@ function init()
     barShader = gl.CreateShader({
     
       vertex = [[
-	#version 150
+	#version 120
         #define barColor gl_MultiTexCoord1
         #define progress gl_MultiTexCoord2.x
         #define offset   gl_MultiTexCoord2.y

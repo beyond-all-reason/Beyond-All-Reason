@@ -154,7 +154,7 @@ local function SetupShaderTable()
 	  vertex = (options.curvature.value and "#define curvature \n" or '')
 		.. (options.fogEffect.value and "#define edgeFog \n" or '')
 		.. [[
-		#version 150
+		#version 120
 		// Application to vertex shader
 		uniform float mirrorX;
 		uniform float mirrorZ;

@@ -106,7 +106,7 @@ function widget:Initialize()
 
   depthShader = gl.CreateShader({
     fragment = [[
-	#version 150
+	#version 120
       uniform sampler2D tex0;
       uniform vec2 screenXY;
 

@@ -304,7 +304,7 @@ function widget:Initialize()
 		else
 			depthPointShader = depthPointShader or glCreateShader({
 				defines = {
-					"#version 150\n",
+					"#version 120\n",
 					"#define BEAM_LIGHT 0\n",
 					"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
 				},
@@ -334,7 +334,7 @@ function widget:Initialize()
 			--fragSrc = "#define BEAM_LIGHT \n" .. fragSrc
 			depthBeamShader = depthBeamShader or glCreateShader({
 				defines = {
-					"#version 150\n",
+					"#version 120\n",
 					"#define BEAM_LIGHT 1\n",
 					"#define CLIP_CONTROL " .. (Platform ~= nil and Platform.glSupportClipSpaceControl and 1 or 0) .. "\n"
 				},
