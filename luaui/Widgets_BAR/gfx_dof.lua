@@ -244,6 +244,8 @@ function widget:Initialize()
   
   dofShader = gl.CreateShader({
     fragment = [[
+      #version 150 compatibility
+
       uniform sampler2D tex0;
       uniform sampler2D tex1;
       uniform sampler2D tex2;
@@ -266,7 +268,7 @@ function widget:Initialize()
 		
 		float focus = texture2D(tex2, vec2(focusPtX,focusPtY)).z;
 		
-		int k,l;
+		float k,l;
 		float zValue = texture2D(tex2, texCoord).z;
 		float dmix = clamp(abs(focus-zValue)*focusRange*focusRangeMultiplier ,0.0,1.0);
 		

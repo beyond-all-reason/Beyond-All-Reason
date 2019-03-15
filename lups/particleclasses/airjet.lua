@@ -398,6 +398,10 @@ local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function AirJet.Create(Options)
+  -- apply teamcoloring for default
+  local r,g,b = Spring.GetTeamColor(Spring.GetUnitTeam(Options.unit))
+  AirJet.Default.color = {(r*0.9)+0.25, (g*0.9)+0.25, (b*0.9)+0.25}
+
   local newObject = MergeTable(Options, AirJet.Default)
   setmetatable(newObject,AirJet)  -- make handle lookup
   newObject:CreateParticle()
