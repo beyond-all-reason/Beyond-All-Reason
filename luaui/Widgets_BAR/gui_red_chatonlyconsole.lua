@@ -52,6 +52,8 @@ local fontsizeMultiplier = 1
 local showBackground = true
 local showBackgroundOpacity = 0.19
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
 local Config = {
 	console = {
 		px = vsx*0.3,py = vsy*0.105, --default start position
@@ -861,7 +863,7 @@ function widget:Initialize()
 	WG['red_chatonlyconsole'].setShowBackground = function(value)
 		showBackground = value
 		if showBackground then
-			Config.console.cbackground = {0,0,0,showBackgroundOpacity}
+			Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity)}
 		else
 			Config.console.cbackground = {0,0,0,0}
 		end
@@ -896,7 +898,17 @@ function widget:AddConsoleLine(lines,priority)
 	clipHistory(console,true)
 end
 
-function widget:Update()
+
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity)}
+		end
+	end
 	updateconsole(console,Config.console)
 	AutoResizeObjects()
 	if not Initialized == true then
@@ -941,7 +953,7 @@ function widget:SetConfigData(data) --load config
 		if data.showBackground2 ~= nil then
 			showBackground = data.showBackground2
 			if showBackground then
-				Config.console.cbackground = {0,0,0,showBackgroundOpacity}
+				Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity)}
 			else
 				Config.console.cbackground = {0,0,0,0}
 			end
