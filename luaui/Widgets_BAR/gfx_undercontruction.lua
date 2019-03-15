@@ -77,6 +77,7 @@ function CreateHighlightShader()
       ]],
 
       fragment = [[
+      #version 150
         varying vec3 normal;
         varying vec3 eyeVec;
         varying vec3 color;

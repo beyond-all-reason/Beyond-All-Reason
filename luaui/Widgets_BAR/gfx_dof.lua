@@ -244,7 +244,7 @@ function widget:Initialize()
   
   dofShader = gl.CreateShader({
     fragment = [[
-      #version 150 compatibility
+      #version 150
 
       uniform sampler2D tex0;
       uniform sampler2D tex1;

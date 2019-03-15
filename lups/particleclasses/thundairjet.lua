@@ -150,7 +150,7 @@ function AirJet.Initialize()
       }
     ]],
     fragment = [[
-      #version 120
+      #version 150
       uniform sampler2D tex0;
       uniform sampler2D noiseMap;
       uniform sampler2D mask;
