@@ -56,14 +56,14 @@ local fullWidgetsList = {}
 
 local vsx, vsy = widgetHandler:GetViewSizes()
 
-local minMaxEntries = 15 
+local minMaxEntries = 15
 local curMaxEntries = 25
 
 local startEntry = 1
 local pageStep  = math.floor(curMaxEntries / 2) - 1
 
-local fontSize = 12
-local fontSpace = 7
+local fontSize = 13.5
+local fontSpace = 8.5
 local yStep = fontSize + fontSpace
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
@@ -74,7 +74,7 @@ local fontfileOutlineSize = 8.5
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local bgPadding = 6
+local bgPadding = 5.5
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
 local maxWidth = 0.01
@@ -117,10 +117,10 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().allowuserwidgets) o
   buttons[3] = ''
 end
 
-local titleFontSize = 16
-local buttonFontSize = 14
-local buttonHeight = 20
-local buttonTop = 20 -- offset between top of buttons and bottom of widget
+local titleFontSize = 18
+local buttonFontSize = 15
+local buttonHeight = 24
+local buttonTop = 28 -- offset between top of buttons and bottom of widget
 
 -------------------------------------------------------------------------------
 
@@ -402,7 +402,7 @@ function widget:DrawScreen()
   tcol = WhiteStr
 
   -- draw the box
-  gl.Color(0,0,0,0.8)
+  gl.Color(0,0,0,0.82)
   RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
   
   gl.Color(0.33,0.33,0.33,0.2)

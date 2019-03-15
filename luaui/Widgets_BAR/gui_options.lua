@@ -2658,7 +2658,6 @@ function widget:Shutdown()
     if windowList then
         glDeleteList(windowList)
 	end
-	gl.DeleteFont(font)
 	WG['options'] = nil
 end
 

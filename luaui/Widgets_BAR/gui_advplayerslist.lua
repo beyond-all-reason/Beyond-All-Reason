@@ -1867,27 +1867,47 @@ end
 --  Background gllist
 ---------------------------------------------------------------------------------------------------
 
-local function DrawRectRound(px,py,sx,sy,cs,ignoreBorder)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	
+
+	local offset = 0.07		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(sx, py+cs, 0)
 	-- top left
-	if (py+((sy-py)*widgetScale) >= vsy-backgroundMargin or px <= backgroundMargin) and ignoreBorder == nil then o = 0.5 else o = offset end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -1897,27 +1917,7 @@ local function DrawRectRound(px,py,sx,sy,cs,ignoreBorder)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
-	if (py+((sy-py)*widgetScale) >= vsy-backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom left
-	if (py <= backgroundMargin or px <= backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, py+cs, 0)
-	-- bottom right
-	if (py <= backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -1927,9 +1927,9 @@ local function DrawRectRound(px,py,sx,sy,cs,ignoreBorder)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-function RectRound(px,py,sx,sy,cs,ignoreBorder)		-- (coordinates work differently than the RectRound func in other widgets)
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs,ignoreBorder)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -1960,12 +1960,21 @@ function CreateBackground()
 		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
+		local padding = 3
+		local paddingBottom = padding
+		local paddingRight = padding
+		local paddingTop = padding
+		local paddingLeft = padding
+		if absBottom <= 0.2 then paddingBottom = 0 end
+		if absRight >= vsx-0.2 then paddingRight = 0 end
+		if absTop <= 0.2 then paddingTop = 0 end
+		if absLeft <= 0.2 then paddingLeft = 0 end
+
 		gl_Color(0,0,0,ui_opacity)
-		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
-		
-		local padding = 2.75
+		--RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6, 0,paddingRight,1,0)
+		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		gl_Color(1,1,1,ui_opacity*0.04)
-		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding*1.66,true)
+		RectRound(BLcornerX+paddingLeft,BLcornerY+paddingBottom,TRcornerX-paddingRight,TRcornerY-paddingTop,padding*1.66, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'
@@ -2692,7 +2701,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 		end
 	else
 		font:Begin()
-		font:SetTextColor(1,1,1,0.3)
+		font:SetTextColor(0,0,0,0.3)
 		font:SetOutlineColor(0,0,0,0.3)
 		font:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
 		font:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
