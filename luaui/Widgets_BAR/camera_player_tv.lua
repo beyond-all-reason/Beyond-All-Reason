@@ -258,6 +258,7 @@ local function createList()
 		RectRound(right-textWidth+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
 
 		font:Begin()
+        font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
 		if (WG['guishader_api'] ~= nil and isSpec) then
 			WG['guishader_api'].InsertRect(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 'playertv')
 		end
@@ -334,14 +335,23 @@ function widget:Initialize()
 	if WG['advplayerlist_api'] == nil then
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
 		widgetHandler:RemoveWidget(self)
-	end
+    end
+
+    local humanPlayers = 0
 	local playersList = Spring.GetPlayerList()
 	for _,playerID in ipairs(playersList) do
-		local _,active,spec = Spring.GetPlayerInfo(playerID)
+		local _,active,spec,team = Spring.GetPlayerInfo(playerID)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
+            if not select(3,Spring.GetTeamInfo(team)) and not select(4,Spring.GetTeamInfo(team)) then
+                humanPlayers = humanPlayers + 1
+            end
 		end
-	end
+    end
+    if humanPlayers == 0 then
+        widgetHandler:RemoveWidget(self)
+    end
+
 	tsOrderPlayers()
 
 	updatePosition()
@@ -449,7 +459,11 @@ function widget:GameFrame(n)
 end
 
 function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+    if (WG['topbar'] and WG['topbar'].showingQuit()) then
+        return false
+    else
+	    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+    end
 end
 
 function widget:MousePress(mx, my, mb)

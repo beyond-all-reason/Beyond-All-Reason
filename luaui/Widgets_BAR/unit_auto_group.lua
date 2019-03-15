@@ -176,13 +176,12 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	WG['autogroup'] = nil
-
     dlists = {}
     for i,_ in ipairs(dlists) do
         gl.DeleteList(dlists[i])
     end
+	gl.DeleteFont(font)
 end
 
 function widget:DrawWorld()
