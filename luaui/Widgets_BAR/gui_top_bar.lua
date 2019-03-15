@@ -148,6 +148,8 @@ function widget:ViewResize(n_vsx,n_vsy)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+	gl.DeleteFont(font)
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 
@@ -1552,14 +1554,6 @@ function widget:Initialize()
 		displayComCounter = true
 	end
 
-	if displayComCounter and gameFrame > 0 then
-		countComs()
-	end
-
-	if gameFrame > 0 then
-		widget:GameStart()
-	end
-
 	WG['topbar'] = {}
 	WG['topbar'].showingRejoining = function()
 		return showRejoinUI
@@ -1569,6 +1563,10 @@ function widget:Initialize()
 	end
 
 	init()
+
+	if gameFrame > 0 then
+		widget:GameStart()
+	end
 end
 
 

@@ -190,13 +190,13 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('displayinfo')
 	end
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
+	gl.DeleteFont(font)
 	Spring.SendCommands("fps 1")
 	Spring.SendCommands("clock 1")
 	Spring.SendCommands("speed 1")

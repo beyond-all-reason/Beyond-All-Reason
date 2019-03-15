@@ -1119,7 +1119,6 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].RemoveRect('advplayerlist')
 		WG['guishader_api'].RemoveRect('advplayerlist_screenshot')
@@ -1142,6 +1141,7 @@ function widget:Shutdown()
 	if screenshotDlist then
 		gl_DeleteList(screenshotDlist)
 	end
+	gl.DeleteFont(font)
 	if lockPlayerID then
 		LockCamera()
 	end
@@ -4093,6 +4093,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end

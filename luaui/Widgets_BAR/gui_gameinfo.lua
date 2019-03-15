@@ -204,6 +204,7 @@ function widget:ViewResize()
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	loadedFontSize = fontfileSize*fontfileScale
   end
@@ -627,7 +628,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	Spring.SendCommands("unbind i customgameinfo")
 	Spring.SendCommands("bind any+i gameinfo")
 	Spring.SendCommands("bind i gameinfo")
@@ -641,4 +641,5 @@ function widget:Shutdown()
 		glDeleteList(changelogList)
 		changelogList = nil
 	end
+	gl.DeleteFont(font)
 end

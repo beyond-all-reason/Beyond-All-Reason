@@ -335,6 +335,7 @@ function widget:Initialize()
 	if WG['advplayerlist_api'] == nil then
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
 		widgetHandler:RemoveWidget(self)
+		return
     end
 
     local humanPlayers = 0
@@ -350,6 +351,7 @@ function widget:Initialize()
     end
     if humanPlayers == 0 then
         widgetHandler:RemoveWidget(self)
+		return
     end
 
 	tsOrderPlayers()
@@ -574,7 +576,6 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	for i=1,#drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
 	end
@@ -587,6 +588,7 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		gl.DeleteList(drawlist[i])
 	end
+    gl.DeleteFont(font)
 	if toggled then
 		WG['advplayerlist_api'].SetLockPlayerID()
 	end

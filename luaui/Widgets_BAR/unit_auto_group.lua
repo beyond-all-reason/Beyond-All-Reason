@@ -129,11 +129,11 @@ function printDebug( value )
 end
 
 function widget:ViewResize(n_vsx,n_vsy)
-	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
+  vsx,vsy = Spring.GetViewGeometry()
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end
@@ -152,9 +152,6 @@ function widget:PlayerChanged(playerID)
 end
 
 function widget:Initialize()
-    if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
-        widget:PlayerChanged()
-    end
 	myTeam = Spring.GetMyTeamID()
 
 	WG['autogroup'] = {}
@@ -172,15 +169,21 @@ function widget:Initialize()
 			font:Print("\255\200\255\200" .. i, 20.0, -10.0, textSize, "cns")
 			font:End()
         end)
-    end
+	end
+
+	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
+		widget:PlayerChanged()
+	end
 end
 
 function widget:Shutdown()
 	WG['autogroup'] = nil
-    dlists = {}
-    for i,_ in ipairs(dlists) do
-        gl.DeleteList(dlists[i])
-    end
+	if dlists then
+		for i,_ in ipairs(dlists) do
+			gl.DeleteList(dlists[i])
+		end
+		dlists = {}
+	end
 	gl.DeleteFont(font)
 end
 

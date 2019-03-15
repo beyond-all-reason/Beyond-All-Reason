@@ -453,11 +453,11 @@ function widget:GameFrame(gameFrame)
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	enabled = false
 	if drawinfolist ~= nil then
 		gl.DeleteList(drawinfolist)
 	end
+	gl.DeleteFont(font)
 end
 
 function widget:DrawScreen()
@@ -541,6 +541,7 @@ function widget:ViewResize(newX,newY)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 	if particleLists[#particleTypes] ~= nil then

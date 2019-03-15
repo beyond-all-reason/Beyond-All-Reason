@@ -452,7 +452,6 @@ function widget:GetTooltip(mx, my)
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	shutdown = true
 
 	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
@@ -464,6 +463,7 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
+	gl.DeleteFont(font)
 	WG['music'] = nil
 end
 

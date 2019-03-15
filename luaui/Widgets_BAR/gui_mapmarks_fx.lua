@@ -130,6 +130,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end
@@ -160,11 +161,11 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	glDeleteList(glowDlist)
 	glDeleteList(pencilDlist)
 	glDeleteList(eraserDlist)
 	glDeleteList(ringDlist)
+	gl.DeleteFont(font)
 end
 
 

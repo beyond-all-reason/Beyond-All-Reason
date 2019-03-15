@@ -272,8 +272,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    gl.DeleteFont(font)
     RemoveLists()
+    gl.DeleteFont(font)
 end
 
 function widget:PlayerChanged(playerID)

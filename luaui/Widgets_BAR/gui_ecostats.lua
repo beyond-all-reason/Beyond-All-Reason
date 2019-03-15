@@ -199,10 +199,10 @@ function removeGuiShaderRects()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	removeGuiShaderRects()
 	if (drawList) then 			gl.DeleteList(drawList) end
 	if (sideImageList) then		gl.DeleteList(sideImageList) end
+	gl.DeleteFont(font)
 end
 
 function Init()
@@ -1573,6 +1573,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 	Reinit()
