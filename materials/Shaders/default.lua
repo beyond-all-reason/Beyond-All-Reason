@@ -205,7 +205,7 @@ fragment = [[
 				float wx = float(ssHalf - abs(x) + 1) / ssSum;
 				for( int y = -ssHalf; y <= ssHalf; y++ ) {
 					float wy = float(ssHalf - abs(y) + 1) / ssSum;
-					shadow += wx * wy * textureProjOffset ( shadowTex, shTexCoord, ivec2(x, y) );
+					shadow += wx * wy * textureProjOffset ( shadowTex, shTexCoord, ivec2(0, 0) );	// using ivec2(x, y): errors on AMD cards: "offset must be a constant/literal in texture functions" (googled: cant use a loop variable)
 				}
 			}
 		#else
