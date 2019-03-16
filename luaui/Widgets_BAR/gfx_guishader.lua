@@ -1,31 +1,28 @@
--- $Id: api_gfx_blur.lua 3171 2008-11-06 09:06:29Z det $
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
----------------------------------------------------------------
--- TEH INTERFACE ----------------------------------------------
---
---  WG['guishader'].InsertRect(left,top,right,bottom) -> idx
---  WG['guishader'].RemoveRect(idx)
+local enabled = true
+
+-- default disable for intel cards
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+    enabled = false
+end
 
 
-local widgetName = "GUI Shader"
 function widget:GetInfo()
   return {
-    name      = widgetName,
+    name      = "GUI Shader",
     desc      = "Blurs the 3D-world under several other widgets UI elements.",
     author    = "Floris (original blurapi widget by: jK)",
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
     layer     = -99999999,
-    enabled   = true  --  loaded by default?
+    enabled   = enabled  --  loaded by default?
   }
 end
 
 --------------------------------------------------------------------------------
 -------------------------------------------------------------------
 
-local defaultBlurIntensity = 0.0014
+local defaultBlurIntensity = 0.002
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -106,7 +103,7 @@ end
 --------------------------------------------------------------------------------
 
 local function DrawStencilTexture(world,fullscreen)
-  if (next(guishaderRects)) then 
+  if (next(guishaderRects) or next(guishaderScreenRects)) then
     if (stenciltex == nil)or(vsx+vsy~=oldvs) then
       gl.DeleteTextureFBO(stenciltex)
 
@@ -125,7 +122,7 @@ local function DrawStencilTexture(world,fullscreen)
         widgetHandler:RemoveWidget(self)
         return false
       end
-    end 
+    end
   else
     gl.RenderToTexture(stenciltex, gl.Clear, GL.COLOR_BUFFER_BIT ,0,0,0,0)
     return
@@ -188,7 +185,7 @@ local function CheckHardware()
   --if Platform ~= nil then
   --   if Platform.gpuVendor == 'Intel' then
   --       widgetHandler:RemoveWidget(self)
-  --       Spring.SendCommands("luaui disablewidget "..widgetName)
+  --       Spring.SendCommands("luaui disablewidget GUI Shader")
   --       return false
   --   end
   --end
@@ -433,8 +430,8 @@ function widget:DrawScreen()
 	  gl.Blending(false)
 
 	  if updateStencilTexture then
-	    DrawStencilTexture(false, screenBlur);
-	    updateStencilTexture = false;
+	    DrawStencilTexture(false, screenBlur)
+	    updateStencilTexture = false
 	  end
 
 	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)

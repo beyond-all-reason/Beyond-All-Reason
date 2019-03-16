@@ -46,9 +46,12 @@ local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
+local posX = 0.3
+local posY = 0.05
+
 local Config = {
 	console = {
-		px = vsx*0.3,py = vsy*0.05, --default start position
+		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
 		
 		fontsize = 9.5*widgetScale,
@@ -917,13 +920,28 @@ end
 function widget:Update()
 	updateconsole(console,Config.console)
 	AutoResizeObjects()
-if not Initialized then
-	if onelinedone == true then
-Initialized = true
-regID = tostring(Spring.GetMyPlayerID())
-Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
+	if not Initialized then
+		if onelinedone == true then
+			Initialized = true
+			regID = tostring(Spring.GetMyPlayerID())
+			Spring.SendCommands("wByNum "..regID.." My player ID is "..regID)
+		end
+	end
 end
-end
+
+function widget:ViewResize()
+	vsx,vsy = Spring.GetViewGeometry()
+	Config.console.px = posX*vsx
+	Config.console.py = posY*vsy
+	if console ~= nil and console.vars then
+		console.background.px = Config.console.px
+		console.background.py = Config.console.py
+		console.lines.px = Config.console.px+Config.console.margin
+		console.lines.py = Config.console.py+Config.console.margin
+		console.counters.px = Config.console.px
+		console.counters.py = Config.console.py
+		--console.vars._forceupdate = true
+	end
 end
 
 --save/load stuff

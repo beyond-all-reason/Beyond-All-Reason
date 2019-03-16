@@ -54,9 +54,12 @@ local showBackgroundOpacity = 0.19
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
+local posX = 0.3
+local posY = 0.105
+
 local Config = {
 	console = {
-		px = vsx*0.3,py = vsy*0.105, --default start position
+		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
 		
 		fontsize = fontsize*widgetScale,
@@ -927,7 +930,15 @@ function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (1 + (vsx*vsy / 4000000))
 	Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
+	Config.console.px = posX*vsx
+	Config.console.py = posY*vsy
 	if console ~= nil and console.vars ~= nil then
+		console.background.px = Config.console.px
+		console.background.py = Config.console.py
+		console.lines.px = Config.console.px+Config.console.margin
+		console.lines.py = Config.console.py+Config.console.margin
+		console.counters.px = Config.console.px
+		console.counters.py = Config.console.py
 		console.vars._forceupdate = true
 	end
 end

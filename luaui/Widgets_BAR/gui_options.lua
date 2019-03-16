@@ -817,6 +817,15 @@ function widget:DrawScreen()
   	sliderValueChanged = nil
   end
 
+  if selectOptionsList then
+  	if WG['guishader'] then
+  		WG['guishader'].RemoveScreenRect('options_select')
+  		WG['guishader'].removeDlist(selectOptionsList)
+  	end
+  	glDeleteList(selectOptionsList)
+  	selectOptionsList = nil
+  end
+
   if show or showOnceMore then
 
 	  --on window
@@ -937,6 +946,7 @@ function widget:DrawScreen()
 
 			-- draw select options
 			if showSelectOptions ~= nil then
+				useGuishaderForSelect = false
 
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
@@ -958,29 +968,48 @@ function widget:DrawScreen()
 				for i, option in pairs(options[showSelectOptions].options) do
 					yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 				end
-				glColor(0.22,0.22,0.22,0.85)
-				RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
-				glColor(1,1,1,0.07)
-				RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
-				for i, option in pairs(options[showSelectOptions].options) do
-					yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
-					if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
-						glColor(1,1,1,0.1)
-						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
-						if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-							Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
-						end
-						prevSelectHover = i
+
+				selectOptionsList = glCreateList(function()
+					if WG['guishader'] and useGuishaderForSelect then
+						glPushMatrix()
+						glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
+						glScale(widgetScale, widgetScale, 1)
 					end
-					optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
-					font:Begin()
-					font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
-					font:End()
+					glColor(0.22,0.22,0.22,0.85)
+					RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
+					glColor(1,1,1,0.07)
+					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
+					for i, option in pairs(options[showSelectOptions].options) do
+						yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
+						if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
+							glColor(1,1,1,0.1)
+							RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
+							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
+								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
+							end
+							prevSelectHover = i
+						end
+						optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
+						font:Begin()
+						font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+						font:End()
+					end
+					if WG['guishader'] and useGuishaderForSelect then
+						glPopMatrix()
+					end
+				end)
+				if WG['guishader'] and useGuishaderForSelect then
+					--Spring.Echo(optionButtons[showSelectOptions][1]..'  '..optionButtons[showSelectOptions][2]..'  '..optionButtons[showSelectOptions][3]..'  '..optionButtons[showSelectOptions][4])
+					WG['guishader'].InsertScreenRect(0,0,vsx,vsy, 'options_select')
+					--WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 'options_select')
+					WG['guishader'].addDlist(selectOptionsList)
+				else
+					glCallList(selectOptionsList)
 				end
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-	 	glPopMatrix()
+	  glPopMatrix()
 	else
 		if (WG['guishader']) then
 			local removed = WG['guishader'].RemoveRect('options')
@@ -1537,7 +1566,11 @@ end
 
 function widget:KeyPress(key)
 	if key == 27 then	-- ESC
-		show = false
+		if showSelectOptions then
+			showSelectOptions = nil
+		else
+			show = false
+		end
 	end
 end
 

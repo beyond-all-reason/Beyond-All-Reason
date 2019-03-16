@@ -1200,7 +1200,6 @@ function widget:DrawScreen()
 
         -- background
         if (WG['guishader']) then
-            WG['guishader'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
             WG['guishader'].setScreenBlur(true)
             WG['guishader'].addDlist(dlistQuit)
         else
@@ -1262,7 +1261,6 @@ local function hideWindows()
 	end
 	showQuitscreen = nil
 	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('topbar_screenblur')
 		WG['guishader'].setScreenBlur(false)
 	end
 end
@@ -1285,7 +1283,6 @@ local function applyButtonAction(button)
 			if isvisible ~= true then
 				showQuitscreen = oldShowQuitscreen
 				if (WG['guishader']) then
-					WG['guishader'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
 					WG['guishader'].setScreenBlur(true)
 				end
 			end
@@ -1373,7 +1370,6 @@ function widget:MousePress(x, y, button)
 					Spring.SendCommands("spectator")
 					showQuitscreen = nil
 					if (WG['guishader']) then
-						WG['guishader'].RemoveRect('topbar_screenblur')
 						WG['guishader'].setScreenBlur(false)
 					end
 					return true
@@ -1382,7 +1378,6 @@ function widget:MousePress(x, y, button)
 			else
 				showQuitscreen = nil
 				if (WG['guishader']) then
-					WG['guishader'].RemoveRect('topbar_screenblur')
 					WG['guishader'].setScreenBlur(false)
 				end
 				return true

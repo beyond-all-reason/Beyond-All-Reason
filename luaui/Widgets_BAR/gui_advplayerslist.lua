@@ -298,15 +298,13 @@ local desiredLosmodeChanged = 0
 -- GEOMETRY VARIABLES
 --------------------------------------------------------------------------------
 
-local vsx,vsy  			= gl.GetViewSizes()
-
 local widgetTop     	= 0
 local widgetRight   	= 1
 local widgetHeight  	= 0
 local widgetWidth   	= 0
 local widgetPosX    	= vsx-200
 local widgetPosY    	= 0
-local widgetScale		= 1
+local widgetScale		= 0
 
 local expandDown    	= false
 local expandLeft    	= true
@@ -4086,10 +4084,16 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	local dx, dy = vsx - viewSizeX, vsy - viewSizeY
+
+	--local vsxDiff = 1 / (vsx/viewSizeX)
+	--local vsyDiff = 1 / (vsy/viewSizeY)
+
 	vsx, vsy = viewSizeX, viewSizeY
-	
+
+	--local oldWidgetScale = widgetScale
 	updateWidgetScale()
-	
+	--local scaleDiff = 1 / (vsx/widgetScale)
+
 	if expandDown == true then
 		widgetTop  = widgetTop - dy
 		widgetPosY = widgetTop - widgetHeight

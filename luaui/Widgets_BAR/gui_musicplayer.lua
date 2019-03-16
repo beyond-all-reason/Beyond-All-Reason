@@ -33,8 +33,8 @@ local fadeOutTime = 7
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 7
+local fontfileSize = 36
+local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -235,8 +235,8 @@ local function createList()
 	local padding = 3*widgetScale -- button background margin
 	local padding2 = 2.5*widgetScale -- inner icon padding
 	local volumeWidth = 50*widgetScale
-	
-	buttons['playpause'] = {left+padding, bottom+padding, left+(widgetHeight*widgetScale)-padding, top-padding}
+
+	buttons['playpause'] = {left+padding+padding, bottom+padding, left+(widgetHeight*widgetScale), top-padding}
 	
 	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding}
 	
@@ -305,19 +305,20 @@ local function createList()
 		
 		-- track name
 		glColor(0.45,0.45,0.45,1)
-		local trackname = string.gsub(curTrack, ".ogg", "")
+		trackname = string.gsub(curTrack, ".ogg", "")
 		local text = ''
 		for i=charactersInPath, #trackname do
-	    local c = string.sub(trackname, i,i)
-			local width = font:GetTextWidth(text..c)*textsize
-	    if width > maxTextWidth then
-	    	break
-	    else
-	    	text = text..c
-	    end
+			local c = string.sub(trackname, i,i)
+				local width = font:GetTextWidth(text..c)*textsize
+			if width > maxTextWidth then
+				break
+			else
+				text = text..c
+			end
 		end
+		trackname = text
 		font:Begin()
-		font:Print('\255\155\155\155'..text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print('\255\155\155\155'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
@@ -363,6 +364,13 @@ local function createList()
 		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/4)*widgetScale)
 		
 	end)
+	if WG['tooltip'] ~= nil and trackname then
+		if trackname then
+			WG['tooltip'].AddTooltip('music', {left, bottom, right, top}, trackname, 0.8)
+		else
+			WG['tooltip'].RemoveTooltip('music')
+		end
+	end
 end
 
 function getSliderValue(draggingSlider, x)
@@ -469,6 +477,9 @@ function widget:Shutdown()
 
 	if (WG['guishader']) then
 		WG['guishader'].RemoveRect('music')
+	end
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].RemoveTooltip('music')
 	end
 	
 	for i=1,#drawlist do
