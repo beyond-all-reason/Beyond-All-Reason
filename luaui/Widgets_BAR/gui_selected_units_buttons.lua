@@ -124,13 +124,13 @@ end
 
 
 local function updateGuishader()
-	if (WG['guishader_api'] ~= nil) then
+	if (WG['guishader']) then
 		if not picList then
-			WG['guishader_api'].RemoveRect('selectionbuttons')
+			WG['guishader'].RemoveRect('selectionbuttons')
             guishaderDisabled = true
 		else
 			if backgroundDimentions[1] ~= nil then
-				WG['guishader_api'].InsertRect(
+				WG['guishader'].InsertRect(
 					backgroundDimentions[1],
 					backgroundDimentions[2],
 					backgroundDimentions[3],

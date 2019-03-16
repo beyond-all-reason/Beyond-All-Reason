@@ -436,18 +436,18 @@ function DrawIconQuad(iconPos, color, size)
   glColor(color)
   RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize)
   
-  if (WG['guishader_api'] ~= nil) then
+  if (WG['guishader']) then
   
 	local roundoff = bgcornerSize/1.3
-	WG['guishader_api'].InsertRect(
+	WG['guishader'].InsertRect(
 		X1-corneradjust+roundoff, Y_MIN-corneradjust, 
 		X2+corneradjust-roundoff, Y_MAX+corneradjust, 
 	'idlebuilders1')
-	WG['guishader_api'].InsertRect(
+	WG['guishader'].InsertRect(
 		X1-corneradjust+roundoff, Y_MIN-corneradjust, 
 		X1-corneradjust, Y_MAX+corneradjust, 
 	'idlebuilders2')
-	WG['guishader_api'].InsertRect(
+	WG['guishader'].InsertRect(
 		X2+corneradjust-roundoff, Y_MIN-corneradjust, 
 		X2+corneradjust, Y_MAX+corneradjust, 
 	'idlebuilders3')
@@ -578,10 +578,10 @@ function widget:DrawScreen()
 		return
 	end
 	
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('idlebuilders1')
-		WG['guishader_api'].RemoveRect('idlebuilders2')
-		WG['guishader_api'].RemoveRect('idlebuilders3')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('idlebuilders1')
+		WG['guishader'].RemoveRect('idlebuilders2')
+		WG['guishader'].RemoveRect('idlebuilders3')
 	end
 	
 	if enabled and noOfIcons > 0 then

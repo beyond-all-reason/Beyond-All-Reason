@@ -396,14 +396,14 @@ function widget:DrawScreen()
 			glScale(widgetScale, widgetScale, 1)
 			glCallList(changelogList)
 		glPopMatrix()
-		if (WG['guishader_api'] ~= nil) then
+		if (WG['guishader']) then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
-			--WG['guishader_api'].setBlurIntensity(0.0017)
-			--WG['guishader_api'].setScreenBlur(true)
+			WG['guishader'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
+			--WG['guishader'].setBlurIntensity(0.0017)
+			--WG['guishader'].setScreenBlur(true)
 		end
 		showOnceMore = false
 		
@@ -453,11 +453,11 @@ function widget:DrawScreen()
 			end
 		end
   else
-	if (WG['guishader_api'] ~= nil) then
-		local removed = WG['guishader_api'].RemoveRect('changelog')
+	if (WG['guishader']) then
+		local removed = WG['guishader'].RemoveRect('changelog')
 		if removed then
-			--WG['guishader_api'].setBlurIntensity()
-			WG['guishader_api'].setScreenBlur(false)
+			--WG['guishader'].setBlurIntensity()
+			WG['guishader'].setScreenBlur(false)
 		end
 	end
   end

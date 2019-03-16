@@ -192,8 +192,8 @@ function widget:Shutdown()
 		gl.DeleteList(circleLinesAlly)
 	end
 	gl.DeleteFont(font)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('allyselectedunits')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('allyselectedunits')
 	end
 end
 
@@ -437,8 +437,8 @@ local function createGuiList()
 		font:End()
 		glColor(1, 1, 1, 0.2)
 		drawCheckbox(xPos + (12*sizeMultiplier), yPos + (10*sizeMultiplier), selectPlayerUnits,  "Select tracked player units")
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'allyselectedunits')
+		if (WG['guishader']) then
+			WG['guishader'].InsertRect(xPos, yPos, xPos + (panelWidth*sizeMultiplier), yPos + (panelHeight*sizeMultiplier), 'allyselectedunits')
 		end
 	end)
 end
@@ -588,8 +588,8 @@ if showGui then
             end
             glCallList(guiList)
         else
-            if (WG['guishader_api'] ~= nil) then
-                WG['guishader_api'].RemoveRect('allyselectedunits')
+            if (WG['guishader']) then
+                WG['guishader'].RemoveRect('allyselectedunits')
             end
         end
     end

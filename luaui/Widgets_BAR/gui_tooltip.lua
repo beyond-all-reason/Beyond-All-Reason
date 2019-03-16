@@ -90,9 +90,9 @@ end
 
 function widget:Shutdown()
     gl.DeleteFont(font)
-	if (WG['guishader_api'] ~= nil) then
+	if (WG['guishader']) then
         for name, tooltip in pairs(tooltips) do
-		    WG['guishader_api'].RemoveScreenRect('tooltip_'..name)
+		    WG['guishader'].RemoveScreenRect('tooltip_'..name)
         end
 	end
 	WG['tooltip'] = nil
@@ -194,7 +194,7 @@ function drawTooltip(name, x, y)
 	
 	-- draw background
 	local cornersize = 0
-	glColor(0.8,0.8,0.8,(WG['guishader_api'] and 0.73 or 0.83))
+	glColor(0.8,0.8,0.8,(WG['guishader'] and 0.73 or 0.83))
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
 	cornersize = 2.25*widgetScale
 	glColor(0,0,0,0.3)
@@ -202,8 +202,8 @@ function drawTooltip(name, x, y)
 		posY-maxHeight-paddingH+cornersize,
 		posX+maxWidth+paddingW-cornersize,
 		posY+paddingH-cornersize-0.06, 4.3*widgetScale)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertScreenRect(
+	if (WG['guishader']) then
+		WG['guishader'].InsertScreenRect(
 			posX-paddingW+cornersize,
 			posY-maxHeight-paddingH+cornersize,
 			posX+maxWidth+paddingW-cornersize,
@@ -232,9 +232,9 @@ function widget:DrawScreen()
 	local x, y = spGetMouseState()
 	local now = os.clock()
 
-	if (WG['guishader_api'] ~= nil) then
+	if (WG['guishader']) then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG['guishader_api'].RemoveScreenRect(name)
+			WG['guishader'].RemoveScreenRect(name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
@@ -262,8 +262,8 @@ function widget:DrawScreen()
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
-				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].RemoveScreenRect('tooltip_'..name)
+				if (WG['guishader']) then
+					WG['guishader'].RemoveScreenRect('tooltip_'..name)
 				end
 			end
 		end

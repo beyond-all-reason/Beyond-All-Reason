@@ -259,8 +259,8 @@ local function createList()
 
 		font:Begin()
         font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
-		if (WG['guishader_api'] ~= nil and isSpec) then
-			WG['guishader_api'].InsertRect(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 'playertv')
+		if (WG['guishader'] and isSpec) then
+			WG['guishader'].InsertRect(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 'playertv')
 		end
 
 		if toggled then
@@ -508,8 +508,8 @@ function widget:DrawScreen()
 	local gameFrame = Spring.GetGameFrame()
 
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('playertv')
+		if (WG['guishader']) then
+			WG['guishader'].RemoveRect('playertv')
 		end
 		--return
 	end
@@ -582,8 +582,8 @@ function widget:Shutdown()
 	for i,v in pairs(drawlistsPlayername) do
 		gl.DeleteList(drawlistsPlayername[i])
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('playertv')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('playertv')
 	end
 	for i=1,#drawlist do
 		gl.DeleteList(drawlist[i])

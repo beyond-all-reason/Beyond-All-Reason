@@ -120,9 +120,9 @@ end
 function DrawWindow()
 	dlistPosX = windowPosX
 	dlistPosY = windowPosY
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'movewindowpos')
-		WG['guishader_api'].setScreenBlur(true)
+	if (WG['guishader']) then
+		WG['guishader'].InsertRect(0,0,vsx,vsy, 'movewindowpos')
+		WG['guishader'].setScreenBlur(true)
 	end
 	font:Begin()
 	gl.Color(0,0,0,0.6)
@@ -268,9 +268,9 @@ function widget:DrawScreen()
 end
 
 function widget:Shutdown()
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('movewindowpos')
-		WG['guishader_api'].setScreenBlur(false)
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('movewindowpos')
+		WG['guishader'].setScreenBlur(false)
 	end
 	if windowList then gl.DeleteList(windowList) end
 	widgetHandler:DisableWidget(widgetName)

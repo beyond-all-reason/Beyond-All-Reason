@@ -1119,9 +1119,9 @@ end
 
 
 function widget:Shutdown()
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('advplayerlist')
-		WG['guishader_api'].RemoveRect('advplayerlist_screenshot')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('advplayerlist')
+		WG['guishader'].RemoveRect('advplayerlist_screenshot')
 	end
 	WG['advplayerlist_api'] = nil
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
@@ -1797,8 +1797,8 @@ function widget:DrawScreen()
 		local width = (screenshotWidth*widgetScale)+margin+margin+margin
 		local height = (screenshotHeight*widgetScale)+margin+margin+margin+(15*widgetScale)
 		if screenshotSaveQueued then
-			if (WG['guishader_api'] ~= nil) then
-				WG['guishader_api'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
+			if (WG['guishader']) then
+				WG['guishader'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
 				screenshotGuishader = true
 			end
 			if not screenshotSaved then
@@ -1814,8 +1814,8 @@ function widget:DrawScreen()
 		if screenshotWidth and IsOnRectPlain(mouseX,mouseY, screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale)) then
 			if mouseButtonL then
 				gl_DeleteList(screenshotDlist)
-				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].RemoveRect('advplayerlist_screenshot')
+				if (WG['guishader']) then
+					WG['guishader'].RemoveRect('advplayerlist_screenshot')
 				end
 				screenshotDlist = nil
 			else
@@ -1949,8 +1949,8 @@ function CreateBackground()
 	local absTop		= math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1)))
 	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
 
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
+	if (WG['guishader']) then
+		WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
 		local padding = 3*widgetScale

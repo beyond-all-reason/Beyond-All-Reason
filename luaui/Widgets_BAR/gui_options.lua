@@ -837,16 +837,16 @@ function widget:DrawScreen()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 			glScale(widgetScale, widgetScale, 1)
 			glCallList(windowList)
-			if (WG['guishader_api'] ~= nil) then
+			if (WG['guishader']) then
 				local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 				local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 				local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 				local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-				WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options')
-				--WG['guishader_api'].setBlurIntensity(0.0017)
-				--WG['guishader_api'].setScreenBlur(true)
+				WG['guishader'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options')
+				--WG['guishader'].setBlurIntensity(0.0017)
+				--WG['guishader'].setScreenBlur(true)
 
-				if (WG['guishader_api'] ~= nil and titleRect ~= nil) then
+				if (WG['guishader'] and titleRect ~= nil) then
 					rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
 					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
 					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
@@ -861,7 +861,7 @@ function widget:DrawScreen()
 							rectY2 = (groupRect[lastID][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
 						end
 					end
-					WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options_top')
+					WG['guishader'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options_top')
 				end
 			end
 			showOnceMore = false
@@ -978,12 +978,12 @@ function widget:DrawScreen()
 			end
 	 	glPopMatrix()
 	else
-		if (WG['guishader_api'] ~= nil) then
-			local removed = WG['guishader_api'].RemoveRect('options')
-			local removed = WG['guishader_api'].RemoveRect('options_top')
+		if (WG['guishader']) then
+			local removed = WG['guishader'].RemoveRect('options')
+			local removed = WG['guishader'].RemoveRect('options_top')
 			if removed then
-				--WG['guishader_api'].setBlurIntensity()
-			  WG['guishader_api'].setScreenBlur(false)
+				--WG['guishader'].setBlurIntensity()
+			  WG['guishader'].setScreenBlur(false)
 			end
 		end
   end
@@ -1354,7 +1354,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', {'fontsizeMultiplier'}, value)
 			saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		elseif id == 'guishaderintensity' then
-			saveOptionValue('GUI-Shader', 'guishader_api', 'setBlurIntensity', {'blurIntensity'}, value)
+			saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', {'blurIntensity'}, value)
 		elseif id == 'guiopacity' then
 			Spring.SetConfigFloat("ui_opacity", value)
 		elseif id == 'snowamount' then
@@ -1872,7 +1872,7 @@ function loadAllWidgetData()
 
 	loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'})
 
-	loadWidgetData("GUI-Shader", "guishaderintensity", {'blurIntensity'})
+	loadWidgetData("GUI Shader", "guishaderintensity", {'blurIntensity'})
 
 	loadWidgetData("Snow", "snowamount", {'customParticleMultiplier'})
 	loadWidgetData("Snow", "snowmap", {'snowMaps',Game.mapName:lower()})
@@ -2131,7 +2131,7 @@ function init()
 		{id="font", group="ui", name="Font", type="select", options={}, value=1},
 		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
-		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element'},
+		{id="guishader", group="ui", widget="GUI Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.001, max=0.003, step=0.0001, value=0.002, description=''},
 
 		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},

@@ -5,11 +5,11 @@
 ---------------------------------------------------------------
 -- TEH INTERFACE ----------------------------------------------
 --
---  WG['guishader_api'].InsertRect(left,top,right,bottom) -> idx
---  WG['guishader_api'].RemoveRect(idx)
+--  WG['guishader'].InsertRect(left,top,right,bottom) -> idx
+--  WG['guishader'].RemoveRect(idx)
 
 
-local widgetName = "GUI-Shader"
+local widgetName = "GUI Shader"
 function widget:GetInfo()
   return {
     name      = widgetName,
@@ -18,7 +18,7 @@ function widget:GetInfo()
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
     layer     = -99999999,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
@@ -202,12 +202,12 @@ function widget:Initialize()
 
   self:UpdateCallIns()
   
-  WG['guishader_api'] = {}
-  WG['guishader_api'].InsertRect = function(left,top,right,bottom,name)
+  WG['guishader'] = {}
+  WG['guishader'].InsertRect = function(left,top,right,bottom,name)
       guishaderRects[name] = {left,top,right,bottom}
       updateStencilTexture = true
   end
-  WG['guishader_api'].RemoveRect = function(name)
+  WG['guishader'].RemoveRect = function(name)
       local found = false
       if guishaderRects[name] ~= nil then
           found = true
@@ -216,11 +216,11 @@ function widget:Initialize()
       updateStencilTexture = true
       return found
   end
-  WG['guishader_api'].InsertScreenRect = function(left,top,right,bottom,name)
+  WG['guishader'].InsertScreenRect = function(left,top,right,bottom,name)
       guishaderScreenRects[name] = {left,top,right,bottom}
       updateStencilTexture = true
   end
-  WG['guishader_api'].RemoveScreenRect = function(name)
+  WG['guishader'].RemoveScreenRect = function(name)
       local found = false
       if guishaderScreenRects[name] ~= nil then
           found = true
@@ -229,39 +229,39 @@ function widget:Initialize()
       updateStencilTexture = true
       return found
   end
-  WG['guishader_api'].getBlurDefault = function()
+  WG['guishader'].getBlurDefault = function()
   	return defaultBlurIntensity
   end
-  WG['guishader_api'].getBlurIntensity = function()
+  WG['guishader'].getBlurIntensity = function()
   	return blurIntensity
   end
-  WG['guishader_api'].setBlurIntensity = function(value)
+  WG['guishader'].setBlurIntensity = function(value)
   	if value == nil then value = defaultBlurIntensity end
   	blurIntensity = value
   end
-  WG['guishader_api'].setScreenBlur = function(value)
+  WG['guishader'].setScreenBlur = function(value)
   	screenBlur = value
   end
-  WG['guishader_api'].getScreenBlur = function(value)
+  WG['guishader'].getScreenBlur = function(value)
   	return screenBlur
   end
-  WG['guishader_api'].setAllowScreenBlur = function(value)
+  WG['guishader'].setAllowScreenBlur = function(value)
   	allowScreenBlur = value
   end
-  WG['guishader_api'].getAllowScreenBlur = function(value)
+  WG['guishader'].getAllowScreenBlur = function(value)
   	return screenBlur
   end
-  WG['guishader_api'].addDlist = function(value)    -- will let it draw a given dlist to be rendered on top of screenblur
+  WG['guishader'].addDlist = function(value)    -- will let it draw a given dlist to be rendered on top of screenblur
       renderDlists[value] = true
   end
-  WG['guishader_api'].removeDlist = function(value)
+  WG['guishader'].removeDlist = function(value)
       if renderDlists[value] then
           renderDlists[value] = nil
       end
   end
 
-    widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader_api'].InsertRect)
-    widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader_api'].RemoveRect)
+    widgetHandler:RegisterGlobal('GuishaderInsertRect', WG['guishader'].InsertRect)
+    widgetHandler:RegisterGlobal('GuishaderRemoveRect', WG['guishader'].RemoveRect)
 end
 
 
@@ -365,7 +365,7 @@ end
 
 function widget:Shutdown()
   DeleteShaders()
-  WG['guishader_api'] = nil
+  WG['guishader'] = nil
 end
 
 

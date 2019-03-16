@@ -205,13 +205,13 @@ function widget:DrawScreen()
     if ( paused or ( ( now - pauseTimestamp) <= slideTime ) ) then
         showPauseScreen = true
         drawPause()
-        if blurScreen and WG['guishader_api'] ~= nil then
-            WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'pausescreen')
+        if blurScreen and WG['guishader'] then
+            WG['guishader'].InsertRect(0,0,vsx,vsy, 'pausescreen')
         end
     else
         showPauseScreen = false
-        if blurScreen and WG['guishader_api'] ~= nil then
-            WG['guishader_api'].RemoveRect('pausescreen')
+        if blurScreen and WG['guishader'] then
+            WG['guishader'].RemoveRect('pausescreen')
         end
     end
 end

@@ -169,8 +169,8 @@ local function createList()
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(left, bottom, right, top, 'displayinfo')
+	if (WG['guishader']) then
+		WG['guishader'].InsertRect(left, bottom, right, top, 'displayinfo')
 	end
 	drawlist[1] = glCreateList( function()
 		glColor(0, 0, 0, ui_opacity)
@@ -194,8 +194,8 @@ end
 
 
 function widget:Shutdown()
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('displayinfo')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('displayinfo')
 	end
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
@@ -207,7 +207,7 @@ function widget:Shutdown()
 	WG['displayinfo'] = nil
 end
 
-local guishaderEnabled = (WG['guishader_api'] ~= nil)
+local guishaderEnabled = (WG['guishader'])
 
 local passedTime = 0
 local passedTime2 = 0
@@ -232,8 +232,8 @@ function widget:Update(dt)
 		updateValues()
 		passedTime2 = passedTime2 - 1
 	end
-	if guishaderEnabled ~= (WG['guishader_api'] ~= nil) then
-		guishaderEnabled = (WG['guishader_api'] ~= nil)
+	if guishaderEnabled ~= (WG['guishader']) then
+		guishaderEnabled = (WG['guishader'])
 		createList()
 	end
 end

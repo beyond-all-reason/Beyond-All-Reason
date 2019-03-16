@@ -1,3 +1,4 @@
+
 function widget:GetInfo()
 	return {
 	version   = "9.1",
@@ -140,7 +141,7 @@ function widget:ViewResize(newX,newY)
 	Config.ordermenu.padding = 3*widgetScale
 end
 
-local guishaderEnabled = WG['guishader_api'] or false
+local guishaderEnabled = WG['guishader'] or false
 
 local sGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 local sGetActiveCommand = Spring.GetActiveCommand
@@ -1325,8 +1326,8 @@ function widget:Update(dt)
 	sec=sec+dt
 	if (sec>1/guishaderCheckInterval) then
 		sec = 0
-		if (WG['guishader_api'] ~= guishaderEnabled) then
-			guishaderEnabled = WG['guishader_api']
+		if (WG['guishader'] ~= guishaderEnabled) then
+			guishaderEnabled = WG['guishader']
 			if (guishaderEnabled) then
 				Config.buildmenu.fadetimeOut = 0.02
 				Config.ordermenu.fadetimeOut = 0.02

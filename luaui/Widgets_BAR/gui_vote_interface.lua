@@ -193,8 +193,8 @@ function EndVote()
 		voteDlist = nil
 		voteName = nil
 		voteOwner = nil
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('voteinterface')
+		if (WG['guishader']) then
+			WG['guishader'].RemoveRect('voteinterface')
 		end
 	end
 end
@@ -246,8 +246,8 @@ function StartVote(name, owner)
 		noButtonArea = {xpos+(buttonMargin/2), ypos-(height/2)+buttonMargin, xpos+(width/2)-buttonMargin, ypos-(height/2)+buttonHeight-buttonMargin}
 
 		-- background blur
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 'voteinterface')
+		if (WG['guishader']) then
+			WG['guishader'].InsertRect(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 'voteinterface')
 		end
 
 		-- window

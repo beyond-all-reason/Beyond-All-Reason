@@ -365,20 +365,20 @@ local activeGuishader = false
 local scrollbarOffset = -15
 function widget:DrawScreen()
   if not show then 
-    if activeGuishader and (WG['guishader_api'] ~= nil) then
+    if activeGuishader and (WG['guishader']) then
       activeGuishader = false
-      WG['guishader_api'].RemoveRect('widgetselector')
+      WG['guishader'].RemoveRect('widgetselector')
     end
     return
   end
   UpdateList()
   font:Begin()
-  if (WG['guishader_api'] == nil) then
+  if (WG['guishader'] == nil) then
     activeGuishader = false 
   end
-  if (WG['guishader_api'] ~= nil) and not activeGuishader then
+  if (WG['guishader']) and not activeGuishader then
     activeGuishader = true
-    WG['guishader_api'].InsertRect(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier),'widgetselector')
+    WG['guishader'].InsertRect(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier),'widgetselector')
   end
   borderx = (yStep*sizeMultiplier) * 0.75
   bordery = (yStep*sizeMultiplier) * 0.75
@@ -822,8 +822,8 @@ end
 function widget:Shutdown()
   Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
   
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('widgetselector')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('widgetselector')
 	end
 end
 

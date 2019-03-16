@@ -242,8 +242,8 @@ local function createList()
 		glDeleteList(drawlist[2])
 		glDeleteList(drawlist[3])
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(left, bottom, right, top,'music')
+	if (WG['guishader']) then
+		WG['guishader'].InsertRect(left, bottom, right, top,'music')
 	end
 	drawlist[1] = glCreateList( function()
 		glColor(0, 0, 0, ui_opacity)
@@ -460,8 +460,8 @@ function widget:Shutdown()
 
 	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
 
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('music')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('music')
 	end
 	
 	for i=1,#drawlist do

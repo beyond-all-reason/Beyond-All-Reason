@@ -171,11 +171,11 @@ function widget:Initialize()
 end
 
 function removeGuiShaderRects()
-	if WG['guishader_api'] ~= nil then
+	if WG['guishader'] then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
-				WG['guishader_api'].RemoveRect('ecostats_'..aID)
+				WG['guishader'].RemoveRect('ecostats_'..aID)
 			end
 		end
 	end
@@ -681,8 +681,8 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	glColor(1,1,1,ui_opacity*0.055)
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2-borderPadding, borderPadding*1.5)
 
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
+	if (WG['guishader']) then
+		WG['guishader'].InsertRect(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
 	end
 	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then

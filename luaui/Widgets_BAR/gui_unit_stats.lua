@@ -211,9 +211,9 @@ end
 
 local guishaderEnabled = false	-- not a config var
 function RemoveGuishader()
-	if guishaderEnabled and WG['guishader_api'] ~= nil then
-		WG['guishader_api'].RemoveScreenRect('unit_stats_title')
-		WG['guishader_api'].RemoveScreenRect('unit_stats_data')
+	if guishaderEnabled and WG['guishader'] then
+		WG['guishader'].RemoveScreenRect('unit_stats_title')
+		WG['guishader'].RemoveScreenRect('unit_stats_data')
 		guishaderEnabled = false
 	end
 end
@@ -672,9 +672,9 @@ function widget:DrawScreen()
 	glColor(1,1,1,0.023)
 	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize*0.88)
 
-	if (WG['guishader_api'] ~= nil) then
+	if (WG['guishader']) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertScreenRect(cX-bgpadding+1, cYstart-bgpadding+1, cX+(font:GetTextWidth(text)*titleFontSize)+bgpadding-1, cYstart+(titleFontSize/2)+bgpadding-1, 'unit_stats_title')
+		WG['guishader'].InsertScreenRect(cX-bgpadding+1, cYstart-bgpadding+1, cX+(font:GetTextWidth(text)*titleFontSize)+bgpadding-1, cYstart+(titleFontSize/2)+bgpadding-1, 'unit_stats_title')
 	end
 
 	-- icon
@@ -705,9 +705,9 @@ function widget:DrawScreen()
 
 	DrawTextBuffer()
 
-	if (WG['guishader_api'] ~= nil) then
+	if (WG['guishader']) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertScreenRect(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, 'unit_stats_data')
+		WG['guishader'].InsertScreenRect(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, 'unit_stats_data')
 	end
 ------------------------------------------------------------------------------------
 end

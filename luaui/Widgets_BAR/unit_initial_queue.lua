@@ -444,7 +444,7 @@ function widget:Initialize()
 end
 
 function processGuishader()
-	if (WG['guishader_api'] ~= nil) then
+	if (WG['guishader']) then
 		local sBuilds = UnitDefs[sDefID].buildOptions
 		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 			if sDef.name == "armcom" then
@@ -457,7 +457,7 @@ function processGuishader()
 		local numRows = math.ceil(#sBuilds / numCols)
 		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
 		local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
-		WG['guishader_api'].InsertRect(wl-(margin*widgetScale), wt-bgheight, wl+bgwidth, wt+margin*widgetScale, 'initialqueue')
+		WG['guishader'].InsertRect(wl-(margin*widgetScale), wt-bgheight, wl+bgwidth, wt+margin*widgetScale, 'initialqueue')
 	end
 end
 
@@ -579,8 +579,8 @@ function widget:Shutdown()
 	if panelList then
 		gl.DeleteList(panelList)
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('initialqueue')
+	if (WG['guishader']) then
+		WG['guishader'].RemoveRect('initialqueue')
 	end
 	WG["faction_change"] = nil
 end
