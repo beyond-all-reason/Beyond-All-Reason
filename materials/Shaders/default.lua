@@ -154,9 +154,10 @@ fragment = [[
 	#endif
 
 	#ifndef SHADOW_SAMPLES
-		#define SHADOW_SAMPLES 9 // number of shadowmap samples per fragment
-		#define SHADOW_RANDOMNESS 0.5 // 0.0 - blocky look, 1.0 - random points look
-		#define SHADOW_SAMPLING_DISTANCE 3.0 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
+		#define SHADOW_SAMPLES 6 // number of shadowmap samples per fragment
+		#define SHADOW_RANDOMNESS 0.3 // 0.0 - blocky look, 1.0 - random points look
+		#define SHADOW_SAMPLING_DISTANCE 5.0 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
+		#define SAMPLING_METHOD 2 // 1 - Hammersley Box, 2 - Spiral
 	#endif
 
 	#ifdef use_shadows
@@ -210,6 +211,14 @@ fragment = [[
 		return vec2( i, b ) / vec2( N, 0xffffffffU );
 	}
 
+	// http://blog.marmakoide.org/?p=1
+	const float goldenAngle = PI * (3.0 - sqrt(5.0));
+	vec2 SpiralSNorm(int i, int N) {
+		float theta = float(i) * goldenAngle;
+		float r = sqrt(float(i)) / sqrt(float(N));
+		return vec2 (r * cos(theta), r * sin(theta));
+	}
+
 	float hash12(vec2 p) {
 		const float HASHSCALE1 = 0.1031;
 		vec3 p3  = fract(vec3(p.xyx) * HASHSCALE1);
@@ -225,9 +234,9 @@ fragment = [[
 		bias = clamp(bias, 0.0, 5.0 * cb);
 
 		#if defined(SHADOW_SAMPLES) && (SHADOW_SAMPLES > 1)
-			shadow = textureProj( shadowTex, tex_coord1 + vec4(0.0, 0.0, -bias, 0.0)); //make sure central point is sampled
 
-			float rndRotAngle = hash12(gl_FragCoord.xy) * PI * SHADOW_RANDOMNESS;
+
+			float rndRotAngle = NORM2SNORM(hash12(gl_FragCoord.xy)) * PI / 2.0 * SHADOW_RANDOMNESS;
 
 			vec2 vSinCos = vec2(sin(rndRotAngle), cos(rndRotAngle));
 			mat2 rotMat = mat2(vSinCos.y, -vSinCos.x, vSinCos.x, vSinCos.y);
@@ -235,13 +244,25 @@ fragment = [[
 			vec2 shadowTexSize = textureSize(shadowTex, 0);
 			vec2 filterSize = SHADOW_SAMPLING_DISTANCE / shadowTexSize * (shadowTexSize / 8192.0);
 
-			for (int i = 0; i < SHADOW_SAMPLES - 1; ++i) {
-				// HammersleyNorm return low discrepancy sampling vec2
-				vec2 offset = (rotMat * NORM2SNORM(HammersleyNorm( i, SHADOW_SAMPLES ))) * filterSize;
+			#if (SAMPLING_METHOD == 1)
+				shadow = textureProj( shadowTex, tex_coord1 + vec4(0.0, 0.0, -bias, 0.0)); //make sure central point is sampled
+				for (int i = 0; i < SHADOW_SAMPLES - 1; ++i) {
+					// HammersleyNorm return low discrepancy sampling vec2
+					vec2 offset = (rotMat * NORM2SNORM(HammersleyNorm( i, SHADOW_SAMPLES ))) * filterSize;
 
-				vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
-				shadow += textureProj( shadowTex, shTexCoord );
-			}
+
+					vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
+					shadow += textureProj( shadowTex, shTexCoord );
+				}
+			#elif (SAMPLING_METHOD == 2)
+				for (int i = 0; i < SHADOW_SAMPLES; ++i) {
+					// SpiralSNorm return low discrepancy sampling vec2
+					vec2 offset = (rotMat * SpiralSNorm( i, SHADOW_SAMPLES )) * filterSize;
+
+					vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
+					shadow += textureProj( shadowTex, shTexCoord );
+				}
+			#endif
 
 			shadow /= float(SHADOW_SAMPLES);
 		#else
@@ -337,6 +358,11 @@ fragment = [[
 
 		#ifdef use_vertex_ao
 			outColor.rgb = outColor.rgb * aoTerm;
+		#endif
+
+		// debug hook
+		#if 1
+			outColor.rgb = vec3(shadow);
 		#endif
 
 		#if (deferred_mode == 0)
