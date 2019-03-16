@@ -361,7 +361,7 @@ fragment = [[
 		#endif
 
 		// debug hook
-		#if 1
+		#if 0
 			outColor.rgb = vec3(shadow);
 		#endif
 
