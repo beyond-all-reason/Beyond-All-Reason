@@ -571,9 +571,9 @@ function PlayNewTrack()
 	previousTrack = newTrack
 	curTrack = newTrack
 	Spring.PlaySoundStream(newTrack)
+	Spring.SetConfigInt("snd_volmusic", 0)
 	playedTime, totalTime = Spring.GetSoundStreamTime()
 	targetTime = totalTime
-	updateMusicVolume()
 	if playing == false then
 		Spring.PauseSoundStream()
 	end	
