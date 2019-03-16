@@ -52,6 +52,7 @@ local allowScreenBlur = true
 
 local blurIntensity = defaultBlurIntensity
 local guishaderRects = {}
+local guishaderScreenRects = {}
 local updateStencilTexture = false
 
 local oldvs = 0
@@ -104,7 +105,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function DrawStencilTexture(fullscreen)
+local function DrawStencilTexture(world,fullscreen)
   if (next(guishaderRects)) then 
     if (stenciltex == nil)or(vsx+vsy~=oldvs) then
       gl.DeleteTextureFBO(stenciltex)
@@ -135,13 +136,17 @@ local function DrawStencilTexture(fullscreen)
     gl.PushMatrix()
       gl.Translate(-1,-1,0)
       gl.Scale(2/vsx,2/vsy,0)
-      if not fullscreen then
-	      for _,rect in pairs(guishaderRects) do
-	        gl.Rect(rect[1],rect[2],rect[3],rect[4])
-	      end
-	    else
-	    	gl.Rect(0,0,vsx,vsy)
+      if world then
+	    for _,rect in pairs(guishaderRects) do
+	      gl.Rect(rect[1],rect[2],rect[3],rect[4])
 	    end
+	  elseif fullscreen then
+        gl.Rect(0,0,vsx,vsy)
+      else
+        for _,rect in pairs(guishaderScreenRects) do
+          gl.Rect(rect[1],rect[2],rect[3],rect[4])
+        end
+      end
     gl.PopMatrix()
   end)
 end
@@ -203,11 +208,24 @@ function widget:Initialize()
       updateStencilTexture = true
   end
   WG['guishader_api'].RemoveRect = function(name)
-  		local found = false
-  		if guishaderRects[name] ~= nil then
-  			found = true
-  		end
+      local found = false
+      if guishaderRects[name] ~= nil then
+          found = true
+      end
       guishaderRects[name] = nil
+      updateStencilTexture = true
+      return found
+  end
+  WG['guishader_api'].InsertScreenRect = function(left,top,right,bottom,name)
+      guishaderScreenRects[name] = {left,top,right,bottom}
+      updateStencilTexture = true
+  end
+  WG['guishader_api'].RemoveScreenRect = function(name)
+      local found = false
+      if guishaderScreenRects[name] ~= nil then
+          found = true
+      end
+      guishaderScreenRects[name] = nil
       updateStencilTexture = true
       return found
   end
@@ -365,7 +383,7 @@ function widget:DrawScreenEffectsBlur()
 	  gl.Blending(false)
 
 	  if updateStencilTexture then
-	    DrawStencilTexture(false);
+	    DrawStencilTexture(true);
 	    updateStencilTexture = false;
 	  end
 
@@ -375,7 +393,6 @@ function widget:DrawScreenEffectsBlur()
 
       gl.UseShader(blurShader)
       gl.Uniform(intensityLoc, blurIntensity)
-
       gl.Texture(2,stenciltex)
       gl.Texture(2,false)
 
@@ -410,13 +427,13 @@ end
 function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
 
-	if screenBlur and allowScreenBlur then
+	if (screenBlur or next(guishaderScreenRects)) and allowScreenBlur then
 	  gl.Texture(false)
 	  gl.Color(1,1,1,1)
 	  gl.Blending(false)
 
 	  if updateStencilTexture then
-	    DrawStencilTexture(true);
+	    DrawStencilTexture(false, screenBlur);
 	    updateStencilTexture = false;
 	  end
 
@@ -425,28 +442,32 @@ function widget:DrawScreen()
 	  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 
 	  gl.UseShader(blurShader)
-			gl.Uniform(intensityLoc, blurIntensity)
+        if screenBlur then
+            gl.Uniform(intensityLoc, math.max(blurIntensity, 0.0015))
+        else
+            gl.Uniform(intensityLoc, blurIntensity)
+        end
 
-		  gl.Texture(2,stenciltex)
-		  gl.Texture(2,false)
+		gl.Texture(2,stenciltex)
+		gl.Texture(2,false)
 
-		  gl.Texture(blurtex)
-		  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
-		  gl.Texture(blurtex2)
-		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+		gl.Texture(blurtex)
+		gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+		gl.Texture(blurtex2)
+		gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 	  gl.UseShader(0)
 
 	  --2nd pass
 	  gl.UseShader(blurShader)
-			gl.Uniform(intensityLoc, blurIntensity*0.4)
+	    gl.Uniform(intensityLoc, blurIntensity*0.4)
 
-		  gl.Texture(2,stenciltex)
-		  gl.Texture(2,false)
+	    gl.Texture(2,stenciltex)
+	    gl.Texture(2,false)
 
-		  gl.Texture(blurtex)
-		  gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
-		  gl.Texture(blurtex2)
-		  gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+	    gl.Texture(blurtex)
+	    gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+	    gl.Texture(blurtex2)
+	    gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
 	  gl.UseShader(0)
 
 	  gl.Texture(blurtex)

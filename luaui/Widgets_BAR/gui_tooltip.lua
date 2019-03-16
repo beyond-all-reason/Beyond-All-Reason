@@ -33,9 +33,9 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 ------------------------------------------------------------------------------------
 
 local defaultDelay = 0.4
-local usedFontSize = 14.5
-local xOffset = 32
-local yOffset = -32-usedFontSize
+local usedFontSize = 15
+local xOffset = 35
+local yOffset = -35-usedFontSize
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -92,7 +92,7 @@ function widget:Shutdown()
     gl.DeleteFont(font)
 	if (WG['guishader_api'] ~= nil) then
         for name, tooltip in pairs(tooltips) do
-		    WG['guishader_api'].RemoveRect('tooltip_'..name)
+		    WG['guishader_api'].RemoveScreenRect('tooltip_'..name)
         end
 	end
 	WG['tooltip'] = nil
@@ -180,7 +180,7 @@ function drawTooltip(name, x, y)
 	end
 	-- adjust position when needed
 	if posX+maxWidth+paddingW+paddingW > vsx then
-		posX = posX - maxWidth - paddingW - paddingW - (xOffset*widgetScale)
+		posX = posX - maxWidth - paddingW - paddingW - (xOffset*widgetScale*2)
 	end
 	if posX - paddingW < 0 then
 		posX = 0 + paddingW
@@ -194,13 +194,20 @@ function drawTooltip(name, x, y)
 	
 	-- draw background
 	local cornersize = 0
-	glColor(0.8,0.8,0.8,0.8)
+	glColor(0.8,0.8,0.8,(WG['guishader_api'] and 0.73 or 0.83))
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
 	cornersize = 2.25*widgetScale
 	glColor(0,0,0,0.3)
-	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize-0.06, 4.3*widgetScale)
+	RectRound(posX-paddingW+cornersize,
+		posY-maxHeight-paddingH+cornersize,
+		posX+maxWidth+paddingW-cornersize,
+		posY+paddingH-cornersize-0.06, 4.3*widgetScale)
 	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(posX-paddingW-cornersize, posY-maxHeight-paddingH-cornersize, posX+maxWidth+paddingW+cornersize, posY+paddingH+cornersize, 'tooltip_'..name)
+		WG['guishader_api'].InsertScreenRect(
+			posX-paddingW+cornersize,
+			posY-maxHeight-paddingH+cornersize,
+			posX+maxWidth+paddingW-cornersize,
+			posY+paddingH-cornersize, 'tooltip_'..name)
 	end
 	
 	-- draw text
@@ -227,7 +234,7 @@ function widget:DrawScreen()
 
 	if (WG['guishader_api'] ~= nil) then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG['guishader_api'].RemoveRect(name)
+			WG['guishader_api'].RemoveScreenRect(name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
@@ -256,7 +263,7 @@ function widget:DrawScreen()
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
 				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].RemoveRect('tooltip_'..name)
+					WG['guishader_api'].RemoveScreenRect('tooltip_'..name)
 				end
 			end
 		end

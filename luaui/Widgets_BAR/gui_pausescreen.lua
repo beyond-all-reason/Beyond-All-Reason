@@ -46,7 +46,7 @@ local fontfile = LUAUI_DIRNAME .. "fonts/unlisted/MicrogrammaDBold.ttf"
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 

@@ -62,7 +62,7 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -2055,6 +2055,7 @@ function CreateMainList(tip)
 	if MainList then
 		gl_DeleteList(MainList)
 	end
+	tipText = nil
 	MainList = gl_CreateList(function()
 		drawTipText = nil
 		for i, drawObject in ipairs(drawList) do
@@ -2097,7 +2098,9 @@ function CreateMainList(tip)
 		end
 		if drawTipText ~= nil then 
 			tipText = drawTipText
-			DrawTip(drawTipMouseX, drawTipMouseY)
+			if not WG['tooltip'] then	-- else use tooltip widget (in widget:update)
+				DrawTip(drawTipMouseX, drawTipMouseY)
+			end
 		end
 	end)
 	
@@ -3932,7 +3935,18 @@ local updateRate = 0.75
 local updateRatePreStart = 0.25
 local lastTakeMsg = -120
 local uiOpacitySec = 0.5
+local hoverPlayerlist = false
 function widget:Update(delta) --handles takes & related messages
+
+	local mx,my = Spring.GetMouseState()
+	hoverPlayerlist = false
+	if isInBox(mx, my, {apiAbsPosition[2]-1,apiAbsPosition[3]-1,apiAbsPosition[4]+1,apiAbsPosition[1]+1}) then
+		hoverPlayerlist = true
+		if tipText and WG['tooltip'] then
+			WG['tooltip'].ShowTooltip('advplayerlist', tipText)
+		end
+	end
+
 
 	uiOpacitySec = uiOpacitySec + delta
 	if uiOpacitySec>0.5 then
@@ -3944,8 +3958,7 @@ function widget:Update(delta) --handles takes & related messages
 	end
 
 	if collapsable then
-		local mx,my = Spring.GetMouseState()
-		if collapsed and isInBox(mx, my, {apiAbsPosition[2]-1,apiAbsPosition[3]-1,apiAbsPosition[4]+1,apiAbsPosition[1]+1}) then
+		if collapsed and hoverPlayerlist then
 			collapsed = false
 			CreateBackground()
 		elseif not collapsed and not energyPlayer and not metalPlayer then

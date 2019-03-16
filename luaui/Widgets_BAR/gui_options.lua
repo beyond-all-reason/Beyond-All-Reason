@@ -43,7 +43,7 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -2123,7 +2123,7 @@ function init()
 		{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too"},
 		{id="playertv_countdown", group="control", name="Player TV countdown", type="slider", min=8, max=60, step=1, value=(WG['playertv']~=nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description="Countdown time before it switches player"},
 
-		-- UI
+		-- UIc
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
@@ -2131,8 +2131,8 @@ function init()
 		{id="font", group="ui", name="Font", type="select", options={}, value=1},
 		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
-		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
-		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
+		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element'},
+		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.001, max=0.003, step=0.0001, value=0.002, description=''},
 
 		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 

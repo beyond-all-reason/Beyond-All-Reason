@@ -55,7 +55,7 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -212,8 +212,8 @@ end
 local guishaderEnabled = false	-- not a config var
 function RemoveGuishader()
 	if guishaderEnabled and WG['guishader_api'] ~= nil then
-		WG['guishader_api'].RemoveRect('unit_stats_title')
-		WG['guishader_api'].RemoveRect('unit_stats_data')
+		WG['guishader_api'].RemoveScreenRect('unit_stats_title')
+		WG['guishader_api'].RemoveScreenRect('unit_stats_data')
 		guishaderEnabled = false
 	end
 end
@@ -674,7 +674,7 @@ function widget:DrawScreen()
 
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding+1, cYstart-bgpadding+1, cX+(font:GetTextWidth(text)*titleFontSize)+bgpadding-1, cYstart+(titleFontSize/2)+bgpadding-1, 'unit_stats_title')
+		WG['guishader_api'].InsertScreenRect(cX-bgpadding+1, cYstart-bgpadding+1, cX+(font:GetTextWidth(text)*titleFontSize)+bgpadding-1, cYstart+(titleFontSize/2)+bgpadding-1, 'unit_stats_title')
 	end
 
 	-- icon
@@ -707,7 +707,7 @@ function widget:DrawScreen()
 
 	if (WG['guishader_api'] ~= nil) then
 		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, 'unit_stats_data')
+		WG['guishader_api'].InsertScreenRect(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, 'unit_stats_data')
 	end
 ------------------------------------------------------------------------------------
 end
