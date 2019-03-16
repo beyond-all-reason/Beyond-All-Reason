@@ -213,6 +213,12 @@ function widget:Initialize()
   end
 end
 
+function widget:GameStart()
+  if Spring.GetSpectatingState() then
+    widgetHandler:RemoveWidget(self)
+  end
+end
+
 function widget:Shutdown()
   for i=1, #dlists do
     gl.DeleteList(dlists[i])
