@@ -349,10 +349,10 @@ function DrawPicList()
   
   backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
   gl.Color(0,0,0,ui_opacity)
-  RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 7)
-	local borderPadding = iconMargin
-	glColor(1,1,1,ui_opacity*0.04)
-  RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 9)
+  RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 8)
+  local borderPadding = iconMargin*1.4
+  glColor(1,1,1,ui_opacity*0.04)
+  RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 14)
 
   -- draw the buildpics
   unitCounts.n = nil 
@@ -374,10 +374,10 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local color = {1, 1, 1, 0.9 }
   if (not WG['topbar'] or not WG['topbar'].showingQuit()) then
     if mouseIcon ~= -1 then
-      color = {1, 1, 1, 0.75}
+      color = {1, 1, 1, 0.7}
     end
     if iconPos == mouseIcon then
-      usedIconImgMult = iconImgMult*1.08
+      usedIconImgMult = iconImgMult*1.1
       color = {1, 1, 1, 1}
       ypad2 = 0
     end
@@ -404,7 +404,8 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
     -- draw the count text
     local offset = math.ceil((ymax - (ymin+iconMargin+iconMargin)) / 20)
     font:Begin()
-    font:Print(count, xmax-iconMargin-offset, ymin+iconMargin+iconMargin+offset+(fontSize/16)-(yPad/2) , fontSize, "or")
+    font:SetTextColor(0.85,0.85,0.85,1)
+    font:Print(count, xmax-(iconMargin*1.3)-offset, ymin+(iconMargin*2.2)+offset+(fontSize/16)-(yPad/2) , fontSize, "or")
     font:End()
   end
 end

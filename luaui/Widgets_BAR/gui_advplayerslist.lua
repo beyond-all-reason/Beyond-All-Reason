@@ -1736,21 +1736,8 @@ function widget:DrawScreen()
 
 	if Spring_IsGUIHidden() then return end
 
-
-	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
-	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
-	gl.Scale(widgetScale,widgetScale,0)
-	gl.Translate(scaleDiffX,scaleDiffY,0)
-
 	local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
-	if collapsed then
-		-- draws the background
-		if Background then
-			gl_CallList(Background)
-		else
-			CreateBackground()
-		end
-	else
+	if not collapsed then
 		-- update lists frequently if there is mouse interaction
 		local NeedUpdate = false
 		if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
@@ -1768,14 +1755,20 @@ function widget:DrawScreen()
 			CreateLists()
 			PrevGameFrame = CurGameFrame
 		end
+	end
+	-- draws the background
+	if Background then
+		gl_CallList(Background)
+	else
+		CreateBackground()
+	end
 
-		-- draws the background
-		if Background then
-			gl_CallList(Background)
-		else
-			CreateBackground()
-		end
+	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
+	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
+	gl.Scale(widgetScale,widgetScale,0)
+	gl.Translate(scaleDiffX,scaleDiffY,0)
 
+	if not collapsed then
 		-- draws the main list
 		if MainList then
 			gl_CallList(MainList)
@@ -1950,17 +1943,17 @@ function CreateBackground()
 		TRcornerY = widgetPosY - margin + collapsedHeight
 	end
 
-	local absLeft		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
-	local absBottom		= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
-	local absRight		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
-	local absTop		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
+	local absLeft		= math.floor(BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1)))
+	local absBottom		= math.floor(BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1)))
+	local absRight		= math.ceil(TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1)))
+	local absTop		= math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1)))
 	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
 
 	if (WG['guishader_api'] ~= nil) then
 		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
-		local padding = 3
+		local padding = 3.5*widgetScale
 		local paddingBottom = padding
 		local paddingRight = padding
 		local paddingTop = padding
@@ -1971,10 +1964,9 @@ function CreateBackground()
 		if absLeft <= 0.2 then paddingLeft = 0 end
 
 		gl_Color(0,0,0,ui_opacity)
-		--RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6, 0,paddingRight,1,0)
-		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		RectRound(absLeft,absBottom,absRight,absTop,6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		gl_Color(1,1,1,ui_opacity*0.04)
-		RectRound(BLcornerX+paddingLeft,BLcornerY+paddingBottom,TRcornerX-paddingRight,TRcornerY-paddingTop,padding*1.66, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*0.8, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'
@@ -1987,12 +1979,6 @@ function CreateBackground()
 			font:Print(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
 			font:End()
 		end
-		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
-		-- draws highlight (top and left sides)
-		--gl_Color(0.44,0.44,0.44,0.38)	
-		--gl_Rect(widgetPosX-margin-1,					widgetPosY + widgetHeight +margin, 	widgetPosX + widgetWidth+margin, 			widgetPosY + widgetHeight-1+margin)
-		--gl_Rect(widgetPosX-margin-1 , 					widgetPosY-margin, 					widgetPosX-margin, 							widgetPosY-margin + widgetHeight + 1  - 1+margin+margin)
-		
 		gl_Color(1,1,1,1)
 	end)
 

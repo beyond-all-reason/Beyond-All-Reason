@@ -727,8 +727,8 @@ function init()
     r['metal'] = {spGetTeamResources(myTeamID,'metal') }
     r['energy'] = {spGetTeamResources(myTeamID,'energy') }
 
-	topbarArea = {xPos, vsy-(borderPadding*widgetScale)-(height*widgetScale), vsx, vsy}
-	barContentArea = {xPos+(borderPadding*widgetScale), vsy-(height*widgetScale), vsx, vsy}
+	topbarArea = {xPos, math.floor(vsy-(borderPadding*widgetScale)-(height*widgetScale)), vsx, vsy}
+	barContentArea = {xPos+(borderPadding*widgetScale), math.floor(vsy-(height*widgetScale)), vsx, vsy}
 	
 	local filledWidth = 0
 	local totalWidth = barContentArea[3] - barContentArea[1]

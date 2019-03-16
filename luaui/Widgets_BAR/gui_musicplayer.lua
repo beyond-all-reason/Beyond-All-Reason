@@ -650,7 +650,7 @@ function updatePosition(force)
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
-		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
 		widgetScale = advplayerlistPos[5]
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()

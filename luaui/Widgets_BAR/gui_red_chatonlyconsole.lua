@@ -906,7 +906,10 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
-			Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity)}
+			Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity) }
+			if console ~= nil and console.background ~= nil then
+				console.background.color = Config.console.cbackground
+			end
 		end
 	end
 	updateconsole(console,Config.console)
