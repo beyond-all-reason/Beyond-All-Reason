@@ -1953,7 +1953,7 @@ function CreateBackground()
 		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
-		local padding = 3.5*widgetScale
+		local padding = 3*widgetScale
 		local paddingBottom = padding
 		local paddingRight = padding
 		local paddingTop = padding
@@ -1964,9 +1964,9 @@ function CreateBackground()
 		if absLeft <= 0.2 then paddingLeft = 0 end
 
 		gl_Color(0,0,0,ui_opacity)
-		RectRound(absLeft,absBottom,absRight,absTop,6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
-		gl_Color(1,1,1,ui_opacity*0.04)
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*0.8, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		gl_Color(1,1,1,ui_opacity*0.055)
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.66, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'

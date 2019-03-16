@@ -264,7 +264,7 @@ local function updateRejoin()
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 
 		if (WG['guishader_api'] ~= nil) then
@@ -336,7 +336,7 @@ local function updateButtons()
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -410,7 +410,7 @@ local function updateComs(forceText)
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
 		if (WG['guishader_api'] ~= nil) then
@@ -469,7 +469,7 @@ local function updateWind()
 		-- background
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
 		if (WG['guishader_api'] ~= nil) then
@@ -632,7 +632,7 @@ local function updateResbar(res)
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
 		if (WG['guishader_api'] ~= nil) then

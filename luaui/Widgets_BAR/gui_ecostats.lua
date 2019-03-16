@@ -111,7 +111,7 @@ local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
-local borderPadding					= 4
+local borderPadding					= 4.7
 
 local avgFrames 					= 8
 
@@ -335,7 +335,7 @@ function setDefaults()
 	tH						= 32
 	vsx,vsy 				= gl.GetViewSizes()
 	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
-	borderPadding			= 4.5
+	borderPadding			= 4.7
 	WBadge					= tH*0.5
 	cW						= 88
 	textsize				= 14
@@ -678,7 +678,7 @@ local function DrawBackground(posY, allyID, sideimagesWidth)
 	end
 	glColor(0,0,0,ui_opacity)
 	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
-	glColor(1,1,1,ui_opacity*0.04)
+	glColor(1,1,1,ui_opacity*0.055)
 	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2-borderPadding, borderPadding*1.5)
 
 	if (WG['guishader_api'] ~= nil) then

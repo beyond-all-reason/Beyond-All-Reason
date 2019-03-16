@@ -29,7 +29,7 @@ local Config = {
 		fontsize = 11,
 		
 		padding = 3*widgetScale,
-		color2 = {1,1,1,ui_opacity*0.04},
+		color2 = {1,1,1,ui_opacity*0.055},
 		
 		margin = 11, --distance from background border
 		
@@ -299,7 +299,7 @@ function widget:Update(dt)
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 			tooltip.background.color = {0,0,0,ui_opacity}
-			tooltip.background2.color = {1,1,1,ui_opacity*0.04}
+			tooltip.background2.color = {1,1,1,ui_opacity*0.055}
 		end
 	end
 	AutoResizeObjects()

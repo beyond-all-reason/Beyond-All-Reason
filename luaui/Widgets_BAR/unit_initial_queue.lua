@@ -523,7 +523,7 @@ function InitializeFaction(sDefID)
 			local bgwidth = ((maxCols*iconWidth)+margin)
 			gl.Color(0,0,0,ui_opacity)
 			RectRound(-(margin), -bgheight, bgwidth, margin, ((iconWidth+iconPadding+iconPadding)/7))
-			gl.Color(1,1,1,ui_opacity*0.04)
+			gl.Color(1,1,1,ui_opacity*0.055)
 			RectRound(-(margin)+borderPadding, -bgheight+borderPadding, bgwidth-borderPadding, margin-borderPadding, ((iconWidth+iconPadding+iconPadding)/9))
 
 			for r = 1, #cellRows do

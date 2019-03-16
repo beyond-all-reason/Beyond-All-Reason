@@ -68,28 +68,27 @@ function widget:Initialize()
 end
 
 
-local function DrawRectRound(px,py,sx,sy,cs)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
-	
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+
+	local offset = 0.07		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -98,8 +97,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -108,8 +107,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -118,8 +117,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -129,12 +128,9 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -180,9 +176,17 @@ local function createList()
 		glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		
-		local borderPadding = 2.75*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, borderPadding*1.66)
+		local borderPadding = 3*widgetScale
+		local borderPaddingRight = borderPadding
+		if right >= vsx-0.2 then
+			borderPaddingRight = 0
+		end
+		local borderPaddingLeft = borderPadding
+		if left <= 0.2 then
+			borderPaddingLeft = 0
+		end
+		glColor(1,1,1,ui_opacity*0.055)
+		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.66)
 		
 	end)
 	updateValues()

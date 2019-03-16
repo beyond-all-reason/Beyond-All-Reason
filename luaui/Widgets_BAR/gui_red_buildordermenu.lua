@@ -84,7 +84,7 @@ local Config = {
 		margin = 5, --distance from background border
 		
 		padding = 3*widgetScale, -- for border effect
-		color2 = {1,1,1,ui_opacity*0.04}, -- for border effect
+		color2 = {1,1,1,ui_opacity*0.055}, -- for border effect
 		
 		fadetime = 0.14, --fade effect time, in seconds
 		fadetimeOut = 0.022, --fade effect time, in seconds
@@ -1318,8 +1318,8 @@ function widget:Update(dt)
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 			ordermenu.background.color = {0,0,0,ui_opacity}
 			buildmenu.background.color = {0,0,0,ui_opacity}
-			ordermenu.background2.color = {1,1,1,ui_opacity*0.04}
-			buildmenu.background2.color = {1,1,1,ui_opacity*0.04}
+			ordermenu.background2.color = {1,1,1,ui_opacity*0.055}
+			buildmenu.background2.color = {1,1,1,ui_opacity*0.055}
 		end
 	end
 	sec=sec+dt
