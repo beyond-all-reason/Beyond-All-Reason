@@ -244,6 +244,14 @@ end
 else -- begin unsynced section
 -----------------------------
 
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
 local customScale = 1.15
@@ -257,9 +265,14 @@ local isReplay = Spring.IsReplay()
 
 local eligible
 
-local vsx, vsy = Spring.GetViewGeometry()
-function gadget:ViewResize()
-  vsx,vsy = Spring.GetViewGeometry()
+function gadget:ViewResize(viewSizeX, viewSizeY)
+    vsx,vsy = Spring.GetViewGeometry()
+    local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+    if (fontfileScale ~= newFontfileScale) then
+        fontfileScale = newFontfileScale
+        gl.DeleteFont(font)
+        font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    end
 end
 
 local subsButton, subsButtonHover
@@ -415,7 +428,9 @@ function gadget:DrawScreen()
         else
             textString = "Withdraw offer"
         end
-        gl.Text(colorString .. textString, -((bW/2)-12.5), -((bH/2)-9.5), 19, "o")
+        font:Begin()
+        font:Print(colorString .. textString, -((bW/2)-12.5), -((bH/2)-9.5), 19, "o")
+        font:End()
         gl.Color(1,1,1,1)
         gl.PopMatrix()
     else
@@ -505,6 +520,7 @@ end]]
 function gadget:Shutdown()
     gl.DeleteList(subsButton)
     gl.DeleteList(subsButtonHover)
+    gl.DeleteFont(font)
     gadgetHandler:RemoveSyncAction("MarkStartPoint")
     gadgetHandler:RemoveSyncAction("ForceSpec")
 end

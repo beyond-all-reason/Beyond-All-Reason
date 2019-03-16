@@ -488,6 +488,14 @@ end
 else
 ----------------------------------------------------------------
 
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
 local customScale = 1.23
 local uiScale = customScale
@@ -506,9 +514,14 @@ local gameStarting
 local timer = 0
 local timer2 = 0
 
-local vsx, vsy = Spring.GetViewGeometry()
-function gadget:ViewResize()
-  vsx,vsy = Spring.GetViewGeometry()
+function gadget:ViewResize(viewSizeX, viewSizeY)
+	vsx,vsy = Spring.GetViewGeometry()
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
 end
 
 local readyX = vsx * 0.8
@@ -760,7 +773,9 @@ function gadget:DrawScreen()
 						colorString = "\255\255\255\255"
 					end
 				end
-				gl.Text(colorString .. "Ready", -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
+				font:Begin()
+				font:Print(colorString .. "Ready", -((readyW/2)-12.5), -((readyH/2)-9.5), 25, "o")
+				font:End()
 				gl.Color(1,1,1,1)
 			end
 
@@ -772,7 +787,9 @@ function gadget:DrawScreen()
 					colorString = "\255\255\255\255"
 				end
 				local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
-				gl.Text(text, vsx*0.5 - gl.GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
+				font:Begin()
+				font:Print(text, vsx*0.5 - gl.GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
+				font:End()
 			end
 		gl.PopMatrix()
 
@@ -788,11 +805,13 @@ function gadget:DrawScreen()
 
 		gl.Color(0,0,0,0.7)
 		gl.Rect(0,0,vsx,vsy)
+		font:Begin()
 		if unsupportedAI then
-			gl.Text("\255\200\200\200Unsupported AI  ("..unsupportedAI..")\n\nYou need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200Unsupported AI  ("..unsupportedAI..")\n\nYou need \255\255\255\255DAI\255\200\200\200, \255\255\255\255KAIK \255\200\200\200or \255\255\255\255Chickens  \255\200\200\200(or NullAI)\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		else
-			gl.Text("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
+			font:Print("\255\200\200\200Unsupported engine\n\nYou need at least version  \255\255\255\255"..minEngineVersionTitle.."\n\n\255\130\130\130closing in... "..math.floor(timer3), vsx/2, vsy/2, vsx/95, "con")
 		end
+		font:End()
 		if Script.LuaUI("GuishaderInsertRect") then
 			Script.LuaUI.GuishaderInsertRect(0,0,vsx,vsy,'unsupportedquit')
 		end
@@ -805,6 +824,7 @@ end
 function gadget:Shutdown()
 	gl.DeleteList(readyButton)
 	gl.DeleteList(readyButtonHover)
+	gl.DeleteFont(font)
 
 	if Script.LuaUI("GuishaderRemoveRect") then
 		Script.LuaUI.GuishaderRemoveRect('ready')

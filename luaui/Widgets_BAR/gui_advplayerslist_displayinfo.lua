@@ -254,7 +254,7 @@ function updatePosition(force)
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
-		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
 		widgetScale = advplayerlistPos[5]
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
@@ -267,6 +267,7 @@ function widget:ViewResize(newX,newY)
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 end

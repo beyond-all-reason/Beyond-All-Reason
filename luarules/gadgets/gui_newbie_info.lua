@@ -32,7 +32,14 @@ end
 else
 --
 
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local keyInfo --glList for keybind info
 local amNewbie 		
 local myPlayerID = Spring.GetMyPlayerID()
@@ -50,6 +57,16 @@ function CloseHelp(_,playerID)
     if playerID==myPlayerID and not (amNewbie and not gameStarted) then
         show = false
     end
+end
+
+function gadget:ViewResize(viewSizeX, viewSizeY)
+	vsx,vsy = Spring.GetViewGeometry()
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
 end
 
 function gadget:DrawScreen()
@@ -103,6 +120,7 @@ function gadget:Initialize()
 	local curPos = 0
 	
 	keyInfo = gl.CreateList(function()
+		font:Begin()
 		-- draws background rectangle
 		gl.Color(0.1,0.1,.45,0.2)                              
 		gl.Rect(dx-5,dy+textSize, dx+width, dy-height)
@@ -118,39 +136,40 @@ function gadget:Initialize()
 		gl.Color(1,1,1,1)
 	
 		-- draws text
-		gl.Text("Welcome! Some useful info:", dx, dy, textSize, "o")
+		font:Print("Welcome! Some useful info:", dx, dy, textSize, "o")
 		curPos = curPos + gapSize
-		gl.Text("Click left mouse and drag to select units.", dx+indent, dy-curPos, textSize, "o")
+		font:Print("Click left mouse and drag to select units.", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("Click the right mouse to move units", dx+indent, dy-curPos, textSize, "o")
+		font:Print("Click the right mouse to move units", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("To select orders or build commands, use the unit menu or keybinds", dx+indent, dy-curPos, textSize, "o")
+		font:Print("To select orders or build commands, use the unit menu or keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("To give an order to selected unit(s), use the left/right mouse", dx+indent, dy-curPos, textSize, "o")	
+		font:Print("To give an order to selected unit(s), use the left/right mouse", dx+indent, dy-curPos, textSize, "o")	
 		curPos = curPos + gapSize
-		gl.Text("Select multiple units, right click and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")	
+		font:Print("Select multiple units, right click and drag to give a formation command", dx+indent, dy-curPos, textSize, "o")	
 		curPos = curPos + lineHeight
-		gl.Text("Hold shift to queue multiple orders", dx+indent, dy-curPos, textSize, "o")	
+		font:Print("Hold shift to queue multiple orders", dx+indent, dy-curPos, textSize, "o")	
 		curPos = curPos + gapSize
-		gl.Text("\255\250\250\0Energy\255\255\255\255 comes from solar collectors, wind/tidal generators and fusions", dx+indent, dy-curPos, textSize, "o")
+		font:Print("\255\250\250\0Energy\255\255\255\255 comes from solar collectors, wind/tidal generators and fusions", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("\255\20\20\20Metal\255\255\255\255 comes from metal extractors, which should be placed onto metal spots", dx+indent, dy-curPos, textSize, "o")
+		font:Print("\255\20\20\20Metal\255\255\255\255 comes from metal extractors, which should be placed onto metal spots", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("You can also get metal by using constructors to reclaim dead units!", dx+indent, dy-curPos, textSize, "o")
+		font:Print("You can also get metal by using constructors to reclaim dead units!", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize
-		gl.Text("We have many keybinds", dx+indent, dy-curPos, textSize, "o")
+		font:Print("We have many keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("For example \255\255\150\000a\255\255\255\255ttack, \255\255\150\0f\255\255\255\255ight, \255\255\150\0r\255\255\255\255epair, \255\255\150\0p\255\255\255\255atrol, r\255\255\150\0e\255\255\255\255claim, \255\255\150\0g\255\255\255\255uard, \255\255\150\0s\255\255\255\255top", dx+indent, dy-curPos, textSize, "o")
+		font:Print("For example \255\255\150\000a\255\255\255\255ttack, \255\255\150\0f\255\255\255\255ight, \255\255\150\0r\255\255\255\255epair, \255\255\150\0p\255\255\255\255atrol, r\255\255\150\0e\255\255\255\255claim, \255\255\150\0g\255\255\255\255uard, \255\255\150\0s\255\255\255\255top", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("With a constructor selected, use \255\255\150\000z\255\255\255\255,\255\255\150\000x\255\255\255\255,\255\255\150\000c\255\255\255\255,\255\255\150\000v\255\255\255\255 to cycle through some useful buildings", dx+indent, dy-curPos, textSize, "o")
+		font:Print("With a constructor selected, use \255\255\150\000z\255\255\255\255,\255\255\150\000x\255\255\255\255,\255\255\150\000c\255\255\255\255,\255\255\150\000v\255\255\255\255 to cycle through some useful buildings", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("Check out the forum on \255\200\200\255springrts.com\255\255\255\255 for a list of all keybinds", dx+indent, dy-curPos, textSize, "o")
+		font:Print("Check out the forum on \255\200\200\255springrts.com\255\255\255\255 for a list of all keybinds", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize	
-		gl.Text("For your first few (multiplayer) games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
+		font:Print("For your first few (multiplayer) games, a faction and start position will be chosen for you", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + lineHeight
-		gl.Text("After that, you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
+		font:Print("After that, you will be able to choose your own", dx+indent, dy-curPos, textSize, "o")
 		curPos = curPos + gapSize
-		gl.Text("\255\200\255\210Good luck!", dx+indent, dy-curPos, textSize, "o")
+		font:Print("\255\200\255\210Good luck!", dx+indent, dy-curPos, textSize, "o")
+		font:End()
 
 	end)
 end
@@ -159,6 +178,7 @@ function gadget:Shutdown()
     if keyInfo then
         gl.DeleteList(keyInfo)
 	end
+	gl.DeleteFont(font)
     gadgetHandler:RemoveSyncAction("ToggleHelp")	
     gadgetHandler:RemoveSyncAction("CloseHelp")	
 end
