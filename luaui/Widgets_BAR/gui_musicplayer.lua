@@ -24,6 +24,8 @@ function widget:GetInfo()
 end
 
 local pauseWhenPaused = false
+local fadeInTime = 2
+local fadeOutTime = 7
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -55,11 +57,12 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local firstTime = false
 local wasPaused = false
-local firstFade = true
 local gameOver = false
 local playing = true
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
+local targetTime = totalTime
+
 if totalTime > 0 then
 	firstTime = true
 end
@@ -96,14 +99,18 @@ local top, left, bottom, right = 0,0,0,0
 
 local shown = false
 local mouseover = false
-local volume
 
 local dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
 local interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
 local warMeter = 0
 local maxWarMeter = 1500
-local fadelvl = Spring.GetConfigInt("snd_volmusic", 20) * 0.01
+
+
 local fadeOut = false
+local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
+local volume = Spring.GetConfigInt("snd_volmaster", 100)
+
+local fadeMult = 1
 
 --Assume that if it isn't set, dynamic music is true
 if dynamicMusic == nil then
@@ -117,17 +124,20 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:Initialize()
-	local playedTime, totalTime = Spring.GetSoundStreamTime()
-	volume = Spring.GetConfigInt("snd_volmaster", 100)
-	
-	musicInitialValue = Spring.GetConfigInt("bar_musicInitialValue", 0)
-	if musicInitialValue ~= 1 then
-		Spring.SetConfigInt("snd_volmusic", 20)
-		Spring.SetConfigInt("bar_musicInitialValue", 1)
+function updateMusicVolume()	-- handles fadings
+	playedTime, totalTime = Spring.GetSoundStreamTime()
+	if playedTime < fadeInTime then
+		fadeMult = playedTime / fadeInTime
+	else
+		fadeMult = (targetTime-playedTime) / fadeOutTime
 	end
-	
-	music_volume = Spring.GetConfigInt("snd_volmusic", 20)
+	if fadeMult > 1 then fadeMult = 1 end
+	if fadeMult < 0 then fadeMult = 0 end
+	Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+end
+
+function widget:Initialize()
+	updateMusicVolume()
 	
 	if #tracks == 0 then 
 		Spring.Echo("[Music Player] No music was found, Shutting Down")
@@ -144,6 +154,12 @@ function widget:Initialize()
 		end
 		updatePosition(force)
 		return {top,left,bottom,right,widgetScale}
+	end
+	WG['music'].GetMusicVolume = function()
+		return maxMusicVolume
+	end
+	WG['music'].SetMusicVolume = function(value)
+		maxMusicVolume = value
 	end
 end
 
@@ -226,7 +242,7 @@ local function createList()
 	
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (music_volume/100)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/100)
 	
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding, buttons['volumeicon'][3]+padding+volumeWidth, top-padding}
@@ -365,11 +381,14 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			changeMusicVolume(getSliderValue('musicvolume', x) * 100)
-			fadelvl = getSliderValue('musicvolume', x)
+			maxMusicVolume = getSliderValue('musicvolume', x) * 100
+			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+			createList()
 		end
 		if draggingSlider == 'volume' then
-			changeVolume(getSliderValue('volume', x) * 200)
+			volume = getSliderValue('volume', x) * 200
+			Spring.SetConfigInt("snd_volmaster", volume)
+			createList()
 		end
 	end
 end
@@ -382,21 +401,6 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
-function changeMusicVolume(value)
-	music_volume = value
-	fadelvl = value
-	fadeIn = false
-	fadeOut = false
-	Spring.SetConfigInt("snd_volmusic", music_volume)
-  createList()
-end
-
-function changeVolume(value)
-	volume = value
-	Spring.SetConfigInt("snd_volmaster", volume)
-  createList()
-end
-
 function mouseEvent(x, y, button, release)
 
 	if Spring.IsGUIHidden() then return false end
@@ -406,12 +410,16 @@ function mouseEvent(x, y, button, release)
 		local button = 'musicvolume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 			draggingSlider = button
-			changeMusicVolume(getSliderValue(button, x) * 100)
+			maxMusicVolume = getSliderValue(button, x) * 100
+			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+			createList()
 		end
 		button = 'volume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 			draggingSlider = button
-			changeVolume(getSliderValue(button, x) * 200)
+			volume = getSliderValue(button, x) * 200
+			Spring.SetConfigInt("snd_volmaster", volume)
+			createList()
 		end
 	end
 	if release and draggingSlider ~= nil then
@@ -425,14 +433,13 @@ function mouseEvent(x, y, button, release)
 			return true
 		end
 		if button == 1 and buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
-			fadeOut = true
 			PlayNewTrack()
 			return true
 		end
 		return true
 	end
-	
 end
+
 function widget:IsAbove(mx, my)
 	if (WG['topbar'] and WG['topbar'].showingQuit()) then
 		mouseover = false
@@ -478,10 +485,9 @@ function widget:UnitDamaged(_, _, _, damage)
 	end
 end
 
-function widget:GameFrame(n)    
+function widget:GameFrame(n)
     if n%5 == 4 then
-		--This is a little messy, but we need to be able to update these values on the fly so I see no better way
-		music_volume = Spring.GetConfigInt("snd_volmusic", 20)
+		updateMusicVolume()
 		
 		dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
 		interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
@@ -507,52 +513,24 @@ function widget:GameFrame(n)
 			elseif warMeter >= 0 then
 				warMeter = warMeter - 3
 			end
-			if interruptMusic == 1 then
+			if interruptMusic == 1 and not fadeOut then
 				if tracks == peaceTracks and warMeter >= 200 then
 					fadeOut = true
+					targetTime = playedTime + fadeOutTime
+					if targetTime > totalTime then targetTime = totalTime end
 				elseif tracks == warTracks and warMeter <= 0 then
 					fadeOut = true
+					targetTime = playedTime + fadeOutTime
+					if targetTime > totalTime then targetTime = totalTime end
 				end
 			end
-		end
-		
-		--80's fadeout when a track is almost finished
-		
-		local playedTime, totalTime = Spring.GetSoundStreamTime()
-		playedTime = math.floor(playedTime)
-		totalTime = math.floor(totalTime)
-			
-		if totalTime ~= nil then
-			--Spring.Echo("Total time is :" .. totalTime)
-			if playedTime > totalTime - music_volume * 0.10 then
-				--Spring.Echo("Fading out now!")
-				fadeOut = true
-			end
-		end
-
-		if fadeOut == true and fadelvl >= 0.01 then
-			fadelvl = fadelvl - 0.02
-			Spring.SetSoundStreamVolume(fadelvl)
-		else
-			fadeOut = false
-		end
-		if not fadeIn and fadeOut == false and fadelvl <= 0.005 then
-			fadelvl = music_volume * 0.01
-			PlayNewTrack()
-			--Spring.Echo("Playing a new song now")
-		end
-		
-		if fadeIn == true and fadelvl <= music_volume and Spring.GetGameFrame() >= 1 then
-			fadelvl = fadelvl + 0.02
-			Spring.SetSoundStreamVolume(fadelvl)
-		else
-			fadeIn = false
 		end
    end
 end
 
 local averageSkipTime = 16
 function PlayNewTrack()
+	fadeOut = false
 	if prevStreamStartTime then
 		local timeDiff = os.clock()-prevStreamStartTime
 		averageSkipTime = (timeDiff + (averageSkipTime*7)) / 8
@@ -565,9 +543,6 @@ function PlayNewTrack()
 	prevStreamStartTime = os.clock()
 
 	Spring.StopSoundStream()
-	fadelvl = 0
-	fadeIn = true
-	--Spring.Echo(dynamicMusic)
 	
 	if dynamicMusic == 0 then
 		--Spring.Echo("Choosing a random track")
@@ -593,12 +568,12 @@ function PlayNewTrack()
 	repeat
 		newTrack = tracks[math.random(1, #tracks)]
 	until newTrack ~= previousTrack
-	firstFade = false
 	previousTrack = newTrack
 	curTrack = newTrack
-	local musicVolScaled = music_volume * 0.01
 	Spring.PlaySoundStream(newTrack)
-	Spring.SetSoundStreamVolume(musicVolScaled or 0.33)
+	playedTime, totalTime = Spring.GetSoundStreamTime()
+	targetTime = totalTime
+	updateMusicVolume()
 	if playing == false then
 		Spring.PauseSoundStream()
 	end	
@@ -607,6 +582,9 @@ end
 
 local uiOpacitySec = 0
 function widget:Update(dt)
+
+	updateMusicVolume()
+
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec>0.5 then
 		uiOpacitySec = 0
@@ -619,20 +597,16 @@ function widget:Update(dt)
 	if gameOver then
 		return
 	end
-	
+
 	if (not firstTime) then
 		PlayNewTrack()
 		firstTime = true -- pop this cherry
 	end
-	
-	local playedTime, totalTime = Spring.GetSoundStreamTime()
-	playedTime = math.floor(playedTime)
-	totalTime = math.floor(totalTime)
-	
-	if playedTime >= totalTime then	-- both zero means track stopped in 8
+
+	if playedTime >= targetTime then	-- both zero means track stopped in 8
 		PlayNewTrack()
 	end
-	
+
 	if (pauseWhenPaused and Spring.GetGameSeconds()>=0) then
     local _, _, paused = Spring.GetGameSpeed()
 		if (paused ~= wasPaused) then
@@ -717,6 +691,7 @@ function widget:GetConfigData(data)
   local savedTable = {}
   savedTable.curTrack = curTrack
   savedTable.playing = playing
+  savedTable.maxMusicVolume = maxMusicVolume
   return savedTable
 end
 
@@ -724,6 +699,9 @@ end
 function widget:SetConfigData(data)
 	if data.playing ~= nil then
 		playing = data.playing
+	end
+	if data.maxMusicVolume ~= nil then
+		maxMusicVolume = data.maxMusicVolume
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.curTrack ~= nil then
