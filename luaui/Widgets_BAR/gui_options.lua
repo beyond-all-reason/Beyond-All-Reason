@@ -807,10 +807,10 @@ function widget:DrawScreen()
   end
 
   -- update new slider value
-	if sliderValueChanged then
-		gl.DeleteList(windowList)
-		windowList = gl.CreateList(DrawWindow)
-		sliderValueChanged = nil
+  if sliderValueChanged then
+  	gl.DeleteList(windowList)
+  	windowList = gl.CreateList(DrawWindow)
+  	sliderValueChanged = nil
   end
 
   if show or showOnceMore then
@@ -2739,7 +2739,8 @@ function widget:GetConfigData(data)
 	savedTable.customPresets = customPresets
 	savedTable.cameraTransitionTime = cameraTransitionTime
 	savedTable.maxNanoParticles = maxNanoParticles
-	savedTable.currentGroupTab = currentGroupTab
+    savedTable.currentGroupTab = currentGroupTab
+    savedTable.show = show
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -2773,9 +2774,12 @@ function widget:SetConfigData(data)
 	if data.maxNanoParticles ~= nil then
 		maxNanoParticles = data.maxNanoParticles
 	end
-	if data.currentGroupTab ~= nil then
-		currentGroupTab = data.currentGroupTab
-	end
+    if data.currentGroupTab ~= nil then
+        currentGroupTab = data.currentGroupTab
+    end
+    if data.show ~= nil and Spring.GetGameFrame() > 0 then
+        show = data.show
+    end
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig
 		for k, v in pairs(savedConfig) do

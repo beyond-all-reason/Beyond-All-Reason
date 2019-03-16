@@ -664,7 +664,7 @@ function CreateBackground()
 		glTexRect(bx + w/2 - 220, by + h - 75, bx + w/2 + 120, by + h - 5)
 
 		font:Begin()
-		font:print('Score', bx + w/2 + 275, by + h - 65, 15, "o")
+		font:Print('Score', bx + w/2 + 275, by + h - 65, 15, "o")
 		font:End()
 	end)	
 end

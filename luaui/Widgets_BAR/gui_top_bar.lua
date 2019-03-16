@@ -512,7 +512,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (arm) or 6 (core)")
+		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind..")\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (arm) or 6 (core)")
 	end
 end
 
@@ -852,12 +852,12 @@ function widget:Update(dt)
     end
 
     now = os.clock()
-	if now > nextGuishaderCheck and widgetHandler.orderList["GUI-Shader"] ~= nil then
+	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] ~= nil then
         nextGuishaderCheck = now+guishaderCheckUpdateRate
-		if guishaderEnabled == false and widgetHandler.orderList["GUI-Shader"] ~= 0 then
+		if guishaderEnabled == false and widgetHandler.orderList["GUI Shader"] ~= 0 then
 			guishaderEnabled = true
 			init()
-		elseif guishaderEnabled and (widgetHandler.orderList["GUI-Shader"] == 0) then
+		elseif guishaderEnabled and (widgetHandler.orderList["GUI Shader"] == 0) then
 			guishaderEnabled = false
 		end
 	end
