@@ -733,23 +733,13 @@ function gadget:DrawScreen()
 		end
 	end
 
+	if Script.LuaUI("GuishaderInsertRect") then
+		Script.LuaUI.GuishaderRemoveRect('ready')
+	end
+
 	if enabled then
 
 	 	uiScale = (0.75 + (vsx*vsy / 7500000)) * customScale
-
-		if Script.LuaUI("GuishaderInsertRect") then
-			if not readied and not spec then
-				Script.LuaUI.GuishaderInsertRect(
-					readyX+(readyW/2)-(((readyW/2)+bgMargin)*uiScale),
-					readyY+(readyH/2)-(((readyH/2)+bgMargin)*uiScale),
-					readyX+(readyW/2)+(((readyW/2)+bgMargin)*uiScale),
-					readyY+(readyH/2)+(((readyH/2)+bgMargin)*uiScale),
-					'ready'
-				)
-			else
-				Script.LuaUI.GuishaderRemoveRect('ready')
-			end
-		end
 
 		gl.PushMatrix()
 			gl.Translate(readyX+(readyW/2),readyY+(readyH/2),0)
@@ -757,6 +747,16 @@ function gadget:DrawScreen()
 
 			if not readied and readyButton and Game.startPosType == 2 and gameStarting==nil and not spec and not isReplay then
 			--if not readied and readyButton and not spec and not isReplay then
+
+				if Script.LuaUI("GuishaderInsertRect") then
+					Script.LuaUI.GuishaderInsertRect(
+						readyX+(readyW/2)-(((readyW/2)+bgMargin)*uiScale),
+						readyY+(readyH/2)-(((readyH/2)+bgMargin)*uiScale),
+						readyX+(readyW/2)+(((readyW/2)+bgMargin)*uiScale),
+						readyY+(readyH/2)+(((readyH/2)+bgMargin)*uiScale),
+						'ready'
+					)
+				end
 
 				-- draw ready button and text
 				local x,y = Spring.GetMouseState()
@@ -788,7 +788,7 @@ function gadget:DrawScreen()
 				end
 				local text = colorString .. "Game starting in " .. math.max(1,3-math.floor(timer)) .. " seconds..."
 				font:Begin()
-				font:Print(text, vsx*0.5 - gl.GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
+				font:Print(text, vsx*0.5 - font:GetTextWidth(text)/2*17, vsy*0.75, 17, "o")
 				font:End()
 			end
 		gl.PopMatrix()
