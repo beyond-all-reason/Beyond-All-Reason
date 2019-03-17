@@ -194,10 +194,10 @@ function drawTooltip(name, x, y)
 	
 	-- draw background
 	local cornersize = 0
-	glColor(0.8,0.8,0.8,(WG['guishader'] and 0.73 or 0.83))
+	glColor(0.85,0.85,0.85,(WG['guishader'] and 0.7 or 0.8))
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
 	cornersize = 2.25*widgetScale
-	glColor(0,0,0,0.3)
+	glColor(0,0,0,(WG['guishader'] and 0.24 or 0.3))
 	RectRound(posX-paddingW+cornersize,
 		posY-maxHeight-paddingH+cornersize,
 		posX+maxWidth+paddingW-cornersize,

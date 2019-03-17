@@ -990,9 +990,16 @@ function widget:DrawScreen()
 							prevSelectHover = i
 						end
 						optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
-						font:Begin()
-						font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
-						font:End()
+
+						if options[showSelectOptions].optionsFont and fontOption then
+							fontOption[i]:Begin()
+							fontOption[i]:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+							fontOption[i]:End()
+						else
+							font:Begin()
+							font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+							font:End()
+						end
 					end
 					if WG['guishader'] and useGuishaderForSelect then
 						glPopMatrix()
@@ -1495,8 +1502,8 @@ function applyOptionValue(i, skipRedrawWindow)
 				--Spring.Echo("option for lups",value,WG.LupsPriority)
 			end
 		elseif id == 'font' then
-			if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].options[value]) then
-				Spring.SetConfigString("ui_font", options[i].options[value])
+			if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].optionsFont[value]) then
+				Spring.SetConfigString("ui_font", options[i].optionsFont[value])
 				Spring.SendCommands("luarules reloadluaui")
 			end
 		elseif id == 'nanoeffect' then
@@ -2275,21 +2282,29 @@ function init()
 	-- add fonts
 	if getOptionByID('font') then
 		local fonts = {}
+		local fontsFull = {}
 		local fontsn = {}
 		local files = VFS.DirList(LUAUI_DIRNAME..'fonts', '*')
+		fontOption = {}
 		for k, file in ipairs(files) do
 			local name = string.sub(file, 13)
 			local ext = string.sub(name, string.len(name) - 2)
 			if ext == 'otf' or ext == 'ttf' then
-				--name = string.sub(name, 1, string.len(name) - 4)
+				name = string.sub(name, 1, string.len(name) - 4)
 				if not fontsn[name:lower()] then
 					fonts[#fonts+1] = name
+					fontsFull[#fontsFull+1] = string.sub(file, 13)
 					fontsn[name:lower()] = true
+					local fontScale = (0.5 + (vsx*vsy / 5700000))
+					fontOption[#fonts] = gl.LoadFont(LUAUI_DIRNAME .. "fonts/"..fontsFull[#fontsFull], 20*fontScale, 5*fontScale, 1.5)
 				end
 			end
 		end
+
 		options[getOptionByID('font')].options = fonts
-		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), Spring.GetConfigString("ui_font", "Poppins-Medium.otf"):lower())
+		options[getOptionByID('font')].optionsFont = fontsFull
+		local fname = Spring.GetConfigString("ui_font", "Poppins-Medium.otf"):lower()
+		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
 	-- set sun minimal height
@@ -2699,6 +2714,12 @@ function widget:Shutdown()
     if windowList then
         glDeleteList(windowList)
 	end
+	if fontOption then
+		for i, font in pairs(fontOption) do
+			gl.DeleteFont(fontOption[i])
+		end
+	end
+	gl.DeleteFont(font)
 	WG['options'] = nil
 end
 

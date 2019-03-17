@@ -310,7 +310,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 						firstLetterPos = 3
 					end
 					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
-					line, numLines = font:WrapText(line, (width - 40 - textRightOffset)*(loadedFontSize/fontSizeLine))
+					line, numLines = font:WrapText(line, (width - 90 - textRightOffset)*(loadedFontSize/fontSizeLine))
 					if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 						break;
 					end
@@ -319,7 +319,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				else
 					-- line
 					line = "  " .. line
-					line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
+					line, numLines = font:WrapText(line, (width-50)*(loadedFontSize/fontSizeLine))
 					if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 						break;
 					end

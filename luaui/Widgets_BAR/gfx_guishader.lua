@@ -456,7 +456,7 @@ function widget:DrawScreen()
 
 	  --2nd pass
 	  gl.UseShader(blurShader)
-	    gl.Uniform(intensityLoc, blurIntensity*0.4)
+	    gl.Uniform(intensityLoc, blurIntensity*0.5)
 
 	    gl.Texture(2,stenciltex)
 	    gl.Texture(2,false)
