@@ -244,7 +244,7 @@ end
 else -- begin unsynced section
 -----------------------------
 
-local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Medium.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
