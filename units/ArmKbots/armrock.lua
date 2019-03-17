@@ -28,7 +28,7 @@ return {
 		name = "Rocko",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROCK.s3o",
-		script = "Units/ARMROCK.cob",
+		script = "Units/BOTS_LUS.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 338,
@@ -43,6 +43,8 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armkbots",
+			wpn1turretx = 200,
+			wpn1turrety = 200,
 		},
 		featuredefs = {
 			dead = {

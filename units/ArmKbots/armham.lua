@@ -29,7 +29,7 @@ return {
 		name = "Hammer",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMHAM.s3o",
-		script = "Units/ARMHAM.cob",
+		script = "BOTS_LUS.LUA",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 380,
@@ -44,6 +44,8 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normals.dds",
 			subfolder = "armkbots",
+			wpn1turretx = 200,
+			wpn1turrety = 200,
 		},
 		featuredefs = {
 			dead = {

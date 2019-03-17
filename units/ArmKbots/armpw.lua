@@ -28,7 +28,7 @@ return {
 		name = "Peewee",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMPW.s3o",
-		script = "Units/ARMPW.cob",
+		script = "Units/bots_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "smallExplosionGenericSelfd",
 		sightdistance = 429,
