@@ -836,7 +836,7 @@ function widget:DrawScreen()
 	  local x,y,ml = Spring.GetMouseState()
 	  local cx, cy = correctMouseForScaling(x,y)
 	  if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-	  	Spring.SetMouseCursor('cursornormal')
+		  Spring.SetMouseCursor('cursornormal')
 	  elseif groupRect ~= nil then
 		  for id,group in pairs(optionGroups) do
 			  if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
@@ -844,7 +844,10 @@ function widget:DrawScreen()
 				  break
 			  end
 		  end
+	  elseif titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		  Spring.SetMouseCursor('cursornormal')
 	  end
+
 		-- draw the options panel
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
@@ -864,6 +867,7 @@ function widget:DrawScreen()
 					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
 					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
 					rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+
 					if groupRect ~= nil then
 						local lastID = false
 						for id,rect in pairs(groupRect) do
@@ -1644,10 +1648,14 @@ end
 function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
 
+	local cx, cy = correctMouseForScaling(x,y)
 	if show then
 		local cx, cy = correctMouseForScaling(x,y)
-
 		if button == 3 then
+			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then	-- showhow rightmouse doesnt get triggered :S
+				--Spring.Echo(button..'  '..math.random())
+				return true
+			end
 			if showSelectOptions ~= nil and options[showSelectOptions].id == 'preset' then
 				for i, o in pairs(optionSelect) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then

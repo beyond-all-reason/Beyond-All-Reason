@@ -208,6 +208,7 @@ function widget:DrawScreen()
         --DrawIconQuad(mouseIcon, hoverColor)  --  hover highlight
       end
       if hoverClock == nil then hoverClock = os.clock() end
+      Spring.SetMouseCursor('cursornormal')
       if WG['tooltip'] ~= nil and os.clock() - hoverClock > 0.6 then
         WG['tooltip'].ShowTooltip('selectedunitbuttons', "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Remove all other unit types\n \255\255\255\255Left click + CTRL\255\210\210\210: Select all units of this type on map\n \255\255\255\255Left click + ALT\255\210\210\210: Remove all by 1 unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove that unit type from the selection\n \255\255\255\255Right click + CTRL\255\210\210\210: Only remove 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to the center location of the selected unit(s)\n \255\255\255\255Middle click + CTRL\255\210\210\210: Move to the center off whole selection")
       end

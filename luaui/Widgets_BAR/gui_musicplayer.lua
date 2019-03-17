@@ -412,6 +412,7 @@ end
 function mouseEvent(x, y, button, release)
 
 	if Spring.IsGUIHidden() then return false end
+	if button ~= 1 then return end
 
 	if not release then
 		local sliderWidth = (3.3*widgetScale) -- should be same as in createlist()
@@ -448,27 +449,27 @@ function mouseEvent(x, y, button, release)
 	end
 end
 
-function widget:IsAbove(mx, my)
-	if (WG['topbar'] and WG['topbar'].showingQuit()) then
-		mouseover = false
-		return false
-	end
-	if isInBox(mx, my, {left, bottom, right, top}) then
-  	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
-  	if volume ~= curVolume then
-  		volume = curVolume
-  		createList()
-  	end
-		mouseover = true
-	end
-	return mouseover
-end
-
-function widget:GetTooltip(mx, my)
-	if widget:IsAbove(mx,my) then
-		return string.format("Music info and controls")
-	end
-end
+--function widget:IsAbove(mx, my)
+--	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+--		mouseover = false
+--		return false
+--	end
+--	if isInBox(mx, my, {left, bottom, right, top}) then
+--  	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+--  	if volume ~= curVolume then
+--  		volume = curVolume
+--  		createList()
+--  	end
+--		mouseover = true
+--	end
+--	return mouseover
+--end
+--
+--function widget:GetTooltip(mx, my)
+--	if widget:IsAbove(mx,my) then
+--		return string.format("Music info and controls")
+--	end
+--end
 
 function widget:Shutdown()
 	shutdown = true
@@ -596,13 +597,26 @@ function widget:Update(dt)
 
 	updateMusicVolume()
 
+	local mx, my, mlb = Spring.GetMouseState()
+	if isInBox(mx, my, {left, bottom, right, top}) then
+		mouseover = true
+	end
+	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+	if volume ~= curVolume then
+		volume = curVolume
+		doCreateList = true
+	end
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec>0.5 then
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 		end
+		doCreateList = true
+	end
+	if doCreateList then
 		createList()
+		doCreateList = nil
 	end
 
 	if gameOver then
