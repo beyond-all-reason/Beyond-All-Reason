@@ -1,9 +1,7 @@
 
-local enabled = true
-
--- default disable for intel cards
+-- disable for intel cards (else it will render solid dark screen)
 if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-    enabled = false
+    return
 end
 
 
@@ -15,7 +13,7 @@ function widget:GetInfo()
     date      = "17 february 2015",
     license   = "GNU GPL, v2 or later",
     layer     = -99999999,
-    enabled   = enabled  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
