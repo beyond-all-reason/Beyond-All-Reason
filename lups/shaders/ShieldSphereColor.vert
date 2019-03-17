@@ -51,7 +51,7 @@ void main() {
 		float r = length(modelPos.xyz);
 		float theta = acos(modelPos.z / r);
 		float phi = atan(modelPos.y, modelPos.x);
-		r += 0.010 * r * SNORM2NORM(sin( (theta + phi) * 8.0 + gameFrame * 0.05));
+		r += 0.010 * r * SNORM2NORM(sin( (2.0 * theta + 1.3 * cos(phi)) * 8.0 + gameFrame * 0.05));
 		modelPos.xyz = vec3(r * sin(theta) * cos(phi), r * sin(theta) * sin(phi), r * cos(theta));
 	}
 
