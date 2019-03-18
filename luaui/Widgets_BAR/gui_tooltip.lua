@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "April 2017",
 		license   = "GNU GPL, v2 or later",
-		layer     = -99999999,
+		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
 	}
 end
@@ -159,6 +159,7 @@ function lines(str)
   return t
 end
 
+
 function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
 
@@ -166,7 +167,7 @@ function drawTooltip(name, x, y)
 	local paddingW = paddingH * 1.33
 	local posX = x + paddingW
 	local posY = y + paddingH
-	
+
 	local fontSize = usedFontSize*widgetScale
 	local maxWidth = 0
 	local maxHeight = 0

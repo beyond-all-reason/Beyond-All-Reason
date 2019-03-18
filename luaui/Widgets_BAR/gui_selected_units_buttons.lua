@@ -209,8 +209,22 @@ function widget:DrawScreen()
       end
       if hoverClock == nil then hoverClock = os.clock() end
       Spring.SetMouseCursor('cursornormal')
+      if WG['tooltip'] ~= nil and mouseIcon then
+        local unitName = ' --- '
+        local i = 0
+        for udid,count in pairs(unitCounts) do
+          if i == mouseIcon then
+            unitName = UnitDefs[udid].humanName
+            break
+          end
+          i = i + 1
+        end
+        WG['tooltip'].ShowTooltip('selectedunitbuttons_unit', "\255\215\255\215"..unitName, x, backgroundDimentions[4]+(usedIconSizeY*0.37))
+      end
       if WG['tooltip'] ~= nil and os.clock() - hoverClock > 0.6 then
-        WG['tooltip'].ShowTooltip('selectedunitbuttons', "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Remove all other unit types\n \255\255\255\255Left click + CTRL\255\210\210\210: Select all units of this type on map\n \255\255\255\255Left click + ALT\255\210\210\210: Remove all by 1 unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove that unit type from the selection\n \255\255\255\255Right click + CTRL\255\210\210\210: Only remove 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to the center location of the selected unit(s)\n \255\255\255\255Middle click + CTRL\255\210\210\210: Move to the center off whole selection")
+        local text = "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Select\n \255\255\255\255   + CTRL\255\210\210\210: Select units of this type on map\n \255\255\255\255   + ALT\255\210\210\210: Remove all by 1 unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove\n \255\255\255\255    + CTRL\255\210\210\210: Remove only 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to center location\n \255\255\255\255    + CTRL\255\210\210\210: Move to center off whole selection"
+        local textHeight, desc, numLines = font:GetTextHeight(text)
+        WG['tooltip'].ShowTooltip('selectedunitbuttons', text, vsx, backgroundDimentions[4]+(usedIconSizeY*1.3) + (textHeight*numLines*15*fontfileScale))
       end
     else
       hoverClock = nil
@@ -317,13 +331,18 @@ function widget:Shutdown()
   updateGuishader()
 end
 
-
+local startFromIcon = 0
 function DrawPicList()
   --Spring.Echo(Spring.GetGameFrame()..'  '..math.random())
   prevUnitCount = unitCounts
   unitCounts = spGetSelectedUnitsCounts()
 
   unitTypes = unitCounts.n;
+  displayedUnitTypes = unitTypes
+  if displayedUnitTypes > iconsPerRow then
+    displayedUnitTypes = iconsPerRow
+  end
+
   if (unitTypes <= 0) then
     countsTable = {}
     activePress = false
@@ -332,7 +351,7 @@ function DrawPicList()
   end
   
   local xmid = vsx * 0.5
-  local width = math.floor(usedIconSizeX * unitTypes)
+  local width = math.floor(usedIconSizeX * displayedUnitTypes)
   rectMinX = math.floor(xmid - (0.5 * width))
   rectMaxX = math.floor(xmid + (0.5 * width))
   rectMinY = 0
@@ -340,14 +359,26 @@ function DrawPicList()
   
   -- draw background bar
   local xmin = math.floor(rectMinX)
-  local xmax = math.floor(rectMinX + (usedIconSizeX * unitTypes))
+  local xmax = math.floor(rectMinX + (usedIconSizeX * displayedUnitTypes))
+
+
+  if unitTypes > 16 then
+    -- back button
+    if startFromIcon > 0 then
+      xmin = xmin - usedIconSizeX
+    end
+    -- forward button
+    if startFromIcon + iconsPerRow < unitTypes then
+      xmax = xmax + usedIconSizeX
+    end
+  end
+
   if ((xmax < 0) or (xmin > vsx)) then return end  -- bail
-  
   local ymin = rectMinY
   local ymax = rectMaxY
   local xmid = (xmin + xmax) * 0.5
   local ymid = (ymin + ymax) * 0.5
-  
+
   backgroundDimentions = {xmin-iconMargin-0.5, ymin, xmax+iconMargin+0.5, ymax+iconMargin-1}
   gl.Color(0,0,0,ui_opacity)
   RectRound(backgroundDimentions[1],backgroundDimentions[2],backgroundDimentions[3],backgroundDimentions[4],usedIconSizeX / 8)
@@ -355,16 +386,30 @@ function DrawPicList()
   glColor(1,1,1,ui_opacity*0.055)
   RectRound(backgroundDimentions[1]+borderPadding, backgroundDimentions[2]+borderPadding, backgroundDimentions[3]-borderPadding, backgroundDimentions[4]-borderPadding, usedIconSizeX / 14)
 
+  -- back button
+  if startFromIcon > 0 then
+
+  end
+  -- forward button
+  if startFromIcon + iconsPerRow < unitTypes then
+
+  end
+
   -- draw the buildpics
   unitCounts.n = nil 
-  local row = 0 
+  local row = 0
   local icon = 0
+  local displayedIcon = 0
   for udid,count in pairs(unitCounts) do
-    if icon % iconsPerRow == 0 then 
-		row = row + 1
-	end
-    DrawUnitDefTexture(udid, icon, count, row)
-	icon = icon + 1
+    if icon >= startFromIcon then
+      --if icon % iconsPerRow == 0 then
+      --	row = row + 1
+      --end
+      DrawUnitDefTexture(udid, icon, count, row)
+      displayedIcon = displayedIcon + 1
+      if displayedIcon >= iconsPerRow then break end
+    end
+    icon = icon + 1
   end
 end
 
