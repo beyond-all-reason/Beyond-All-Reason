@@ -449,27 +449,6 @@ function mouseEvent(x, y, button, release)
 	end
 end
 
---function widget:IsAbove(mx, my)
---	if (WG['topbar'] and WG['topbar'].showingQuit()) then
---		mouseover = false
---		return false
---	end
---	if isInBox(mx, my, {left, bottom, right, top}) then
---  	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
---  	if volume ~= curVolume then
---  		volume = curVolume
---  		createList()
---  	end
---		mouseover = true
---	end
---	return mouseover
---end
---
---function widget:GetTooltip(mx, my)
---	if widget:IsAbove(mx,my) then
---		return string.format("Music info and controls")
---	end
---end
 
 function widget:Shutdown()
 	shutdown = true
@@ -673,11 +652,23 @@ end
 
 function widget:DrawScreen()
 	updatePosition()
+	local mx, my, mlb = Spring.GetMouseState()
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+		mouseover = false
+	else
+		if isInBox(mx, my, {left, bottom, right, top}) then
+			local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+			if volume ~= curVolume then
+				volume = curVolume
+				createList()
+			end
+			mouseover = true
+		end
+	end
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 			glCallList(drawlist[1])
 			glCallList(drawlist[2])
-		  local mx, my, mlb = Spring.GetMouseState()
 			if not mouseover and not draggingSlider or isInBox(mx, my, {buttons['playpause'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
 				glCallList(drawlist[3])
 			else
