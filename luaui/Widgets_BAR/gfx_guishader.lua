@@ -42,7 +42,7 @@ local screencopy
 local blurtex
 local blurtex2
 local stenciltex
-local stenciltex2
+local stenciltexScreen
 local screenBlur = false
 local allowScreenBlur = true
 
@@ -50,7 +50,7 @@ local blurIntensity = defaultBlurIntensity
 local guishaderRects = {}
 local guishaderScreenRects = {}
 local updateStencilTexture = false
-local updateStencilTexture2 = false
+local updateStencilTextureScreen = false
 
 local oldvs = 0
 local vsx, vsy   = widgetHandler:GetViewSizes()
@@ -90,7 +90,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   end
 
   updateStencilTexture = true
-  updateStencilTexture2 = true
+  updateStencilTextureScreen = true
 end
 
 
@@ -105,7 +105,7 @@ end
 
 local function DrawStencilTexture(world,fullscreen)
     local usedStencilTex
-    if world then usedStencilTex = stenciltex else usedStencilTex = stenciltex2 end
+    if world then usedStencilTex = stenciltex else usedStencilTex = stenciltexScreen end
 
   if (next(guishaderRects) or next(guishaderScreenRects)) then
 
@@ -152,7 +152,7 @@ local function DrawStencilTexture(world,fullscreen)
     gl.PopMatrix()
   end)
 
-    if world then stenciltex = usedStencilTex else stenciltex2 = usedStencilTex end
+    if world then stenciltex = usedStencilTex else stenciltexScreen = usedStencilTex end
 end
 
 --------------------------------------------------------------------------------
@@ -222,7 +222,7 @@ function widget:Initialize()
   end
   WG['guishader'].InsertScreenRect = function(left,top,right,bottom,name)
       guishaderScreenRects[name] = {left,top,right,bottom}
-      updateStencilTexture2 = true
+      updateStencilTextureScreen = true
   end
   WG['guishader'].RemoveScreenRect = function(name)
       local found = false
@@ -230,7 +230,7 @@ function widget:Initialize()
           found = true
       end
       guishaderScreenRects[name] = nil
-      updateStencilTexture2 = true
+      updateStencilTextureScreen = true
       return found
   end
   WG['guishader'].getBlurDefault = function()
@@ -356,7 +356,7 @@ function DeleteShaders()
     gl.DeleteTextureFBO(blurtex)
     gl.DeleteTextureFBO(blurtex2)
     gl.DeleteTextureFBO(stenciltex)
-    gl.DeleteTextureFBO(stenciltex2)
+    gl.DeleteTextureFBO(stenciltexScreen)
   end
   gl.DeleteTexture(screencopy or 0)
 
@@ -409,9 +409,6 @@ function widget:DrawScreenEffectsBlur()
           gl.UseShader(blurShader)
           gl.Uniform(intensityLoc, blurIntensity*0.5)
 
-          gl.Texture(2,stenciltex)
-          gl.Texture(2,false)
-
           gl.Texture(blurtex)
           gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
           gl.Texture(blurtex2)
@@ -435,9 +432,9 @@ function widget:DrawScreen()
 	  gl.Color(1,1,1,1)
 	  gl.Blending(false)
 
-	  if updateStencilTexture2 then
+	  if updateStencilTextureScreen then
 	    DrawStencilTexture(false, screenBlur)
-	    updateStencilTexture2 = false
+	    updateStencilTextureScreen = false
 	  end
 
 	  gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
@@ -451,7 +448,7 @@ function widget:DrawScreen()
             gl.Uniform(intensityLoc, blurIntensity)
         end
 
-		gl.Texture(2,stenciltex2)
+		gl.Texture(2,stenciltexScreen)
 		gl.Texture(2,false)
 
 		gl.Texture(blurtex)
@@ -463,9 +460,6 @@ function widget:DrawScreen()
 	  --2nd pass
 	  gl.UseShader(blurShader)
 	    gl.Uniform(intensityLoc, blurIntensity*0.5)
-
-	    gl.Texture(2,stenciltex2)
-	    gl.Texture(2,false)
 
 	    gl.Texture(blurtex)
 	    gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
