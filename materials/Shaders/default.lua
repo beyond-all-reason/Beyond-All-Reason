@@ -180,6 +180,7 @@ fragment = [[
 	#ifdef use_normalmapping
 		in mat3 tbnMatrix;
 		uniform sampler2D normalMap;
+		#define normalv tbnMatrix[2]
 	#else
 		in vec3 normalv;
 	#endif
@@ -362,7 +363,8 @@ fragment = [[
 
 		// debug hook
 		#if 0
-			outColor.rgb = vec3(shadow);
+			//outColor.rgb = vec3(normalv);
+			outColor.rgb = vec3(N);
 		#endif
 
 		#if (deferred_mode == 0)
