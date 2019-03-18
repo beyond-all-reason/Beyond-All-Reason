@@ -12,6 +12,43 @@ if addon.InGetInfo then
 	}
 end
 
+-- for guishader
+local function CheckHardware()
+	if (not (gl.CopyToTexture ~= nil)) then
+		return false
+	end
+	if (not (gl.RenderToTexture ~= nil)) then
+		return false
+	end
+	if (not (gl.CreateShader ~= nil)) then
+		return false
+	end
+	if (not (gl.DeleteTextureFBO ~= nil)) then
+		return false
+	end
+	if (not gl.HasExtension("GL_ARB_texture_non_power_of_two")) then
+		return false
+	end
+	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	    return false
+	end
+	return true
+end
+local guishader = CheckHardware()
+
+local blurIntensity = 0.004
+local blurShader
+local screencopy
+local blurtex
+local blurtex2
+local stenciltex
+local screenBlur = false
+local guishaderRects = {}
+local oldvs = 0
+local vsx, vsy   = Spring.GetViewGeometry()
+local ivsx, ivsy = vsx, vsy
+
+------------------------------------------
 ------------------------------------------
 
 local showTips = true
@@ -211,19 +248,113 @@ local fontScale = (0.5 + (vsx*vsy / 5700000))/2
 local font = gl.LoadFont(fontfile, 128*fontScale, 32*fontScale, 1.4)
 local loadedFontSize = 128*fontScale
 
-function DrawRectRound(px,py,sx,sy,cs)
 
-	--local csx = cs
-	--local csy = cs
-	--if sx-px < (cs*2) then
-	--	csx = (sx-px)/2
-	--	if csx < 0 then csx = 0 end
-	--end
-	--if sy-py < (cs*2) then
-	--	csy = (sy-py)/2
-	--	if csy < 0 then csy = 0 end
-	--end
-	--cs = math.min(cs, csy)
+function DrawStencilTexture()
+    if next(guishaderRects) then
+		if stenciltex then
+			gl.DeleteTextureFBO(stenciltex)
+		end
+		stenciltex = gl.CreateTexture(vsx, vsy, {
+			border = false,
+			min_filter = GL.NEAREST,
+			mag_filter = GL.NEAREST,
+			wrap_s = GL.CLAMP,
+			wrap_t = GL.CLAMP,
+			fbo = true,
+		})
+    else
+        gl.RenderToTexture(stenciltex, gl.Clear, GL.COLOR_BUFFER_BIT ,0,0,0,0)
+        return
+    end
+
+    gl.RenderToTexture(stenciltex, function()
+        gl.Clear(GL.COLOR_BUFFER_BIT,0,0,0,0)
+        gl.PushMatrix()
+        gl.Translate(-1,-1,0)
+        gl.Scale(2/vsx,2/vsy,0)
+        for _,rect in pairs(guishaderRects) do
+            gl.Rect(rect[1],rect[2],rect[3],rect[4])
+        end
+        gl.PopMatrix()
+    end)
+end
+
+function CreateShaders()
+
+    if (blurShader) then
+        gl.DeleteShader(blurShader or 0)
+    end
+
+    -- create blur shaders
+    blurShader = gl.CreateShader({
+        fragment = [[
+		#version 150 compatibility
+        uniform sampler2D tex2;
+        uniform sampler2D tex0;
+        uniform float intensity;
+
+        void main(void)
+        {
+            vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
+            float stencil = texture2D(tex2, texCoord).a;
+            if (stencil<0.01)
+            {
+                gl_FragColor = texture2D(tex0, texCoord);
+                return;
+            }
+            gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+
+            float sum = 0.0;
+            for (int i = -1; i <= 1; ++i)
+                for (int j = -1; j <= 1; ++j) {
+                    vec2 samplingCoords = texCoord + vec2(i, j) * intensity;
+                    float samplingCoordsOk = float( all( greaterThanEqual(samplingCoords, vec2(0.0)) && lessThanEqual(samplingCoords, vec2(1.0)) ) );
+                    gl_FragColor.rgb += texture2D(tex0, samplingCoords).rgb * samplingCoordsOk;
+                    sum += samplingCoordsOk;
+            }
+            gl_FragColor.rgb /= sum;
+        }
+    ]],
+
+        uniformInt = {
+            tex0 = 0,
+            tex2 = 2,
+        },
+        uniformFloat = {
+            intensity = blurIntensity,
+        }
+    })
+
+    if (blurShader == nil) then
+        --Spring.Log(widget:GetInfo().name, LOG.ERROR, "guishader blurShader: shader error: "..gl.GetShaderLog())
+        --widgetHandler:RemoveWidget(self)
+        return false
+    end
+
+    -- create blurtextures
+    screencopy = gl.CreateTexture(vsx, vsy, {
+        border = false,
+        min_filter = GL.NEAREST,
+        mag_filter = GL.NEAREST,
+    })
+    blurtex = gl.CreateTexture(ivsx, ivsy, {
+        border = false,
+        wrap_s = GL.CLAMP,
+        wrap_t = GL.CLAMP,
+        fbo = true,
+    })
+    blurtex2 = gl.CreateTexture(ivsx, ivsy, {
+        border = false,
+        wrap_s = GL.CLAMP,
+        wrap_t = GL.CLAMP,
+        fbo = true,
+    })
+
+    intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
+end
+
+
+function DrawRectRound(px,py,sx,sy,cs)
 
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
@@ -349,15 +480,84 @@ function addon.DrawLoadScreen()
 	if not showTips then
 		yPos = 0.165
 		yPosTips = yPos
+    end
+
+
+    --bar bg
+    local paddingH = 0.004
+    local paddingW = paddingH * (vsy/vsx)
+
+	if guishader then
+		if not blurShader then
+			CreateShaders()
+			guishaderRects['loadprocess'] = {(0.2-paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips+paddingH)*vsy}
+			DrawStencilTexture()
+		end
+
+		if next(guishaderRects) then
+
+			gl.Texture(false)
+			gl.Color(1,1,1,1)
+			gl.Blending(false)
+
+			gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
+			gl.Texture(screencopy)
+			gl.TexRect(0,1,1,0)
+			gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+
+			gl.UseShader(blurShader)
+			gl.Uniform(intensityLoc, blurIntensity)
+			gl.Texture(2,stenciltex)
+			gl.Texture(2,false)
+
+			gl.Texture(blurtex)
+			gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+			gl.Texture(blurtex2)
+			gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+			gl.UseShader(0)
+
+			if blurIntensity >= 0.0016 then
+				gl.UseShader(blurShader)
+				gl.Uniform(intensityLoc, blurIntensity*0.5)
+
+				gl.Texture(blurtex)
+				gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+				gl.Texture(blurtex2)
+				gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+				gl.UseShader(0)
+			end
+
+			if blurIntensity >= 0.003 then
+				gl.UseShader(blurShader)
+				gl.Uniform(intensityLoc, blurIntensity*0.5)
+
+				gl.Texture(blurtex)
+				gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
+				gl.Texture(blurtex2)
+				gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+				gl.UseShader(0)
+			end
+
+			gl.Texture(blurtex)
+			gl.TexRect(0,1,1,0)
+			gl.Texture(false)
+
+			gl.Blending(true)
+		end
 	end
 
-	--bar bg
-	local paddingH = 0.004
-	local paddingW = paddingH * (vsy/vsx)
-	gl.Color(0.085,0.085,0.085,0.925)
+	if blurShader then
+		gl.Color(0.1,0.1,0.1,0.75)
+	else
+		gl.Color(0.085,0.085,0.085,0.925)
+	end
 	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.007)
 
-	gl.Color(0,0,0,0.75)
+	if blurShader then
+		gl.Color(0,0,0,0.45)
+	else
+		gl.Color(0,0,0,0.75)
+	end
 	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.007)
 
     if loadvalue > 0.215 then
@@ -389,7 +589,6 @@ function addon.DrawLoadScreen()
 	gl.PushMatrix()
 		gl.Scale(1/vsx,1/vsy,1)
 		local barTextSize = vsy * 0.026
-
 		--font:Print(lastLoadMessage, vsx * 0.5, vsy * 0.3, 50, "sc")
 		--font:Print(Game.gameName, vsx * 0.5, vsy * 0.95, vsy * 0.07, "sca")
 		font:Print(lastLoadMessage, vsx * 0.21, vsy * (yPos-0.017), barTextSize * 0.67, "oa")
@@ -459,5 +658,17 @@ end
 
 
 function addon.Shutdown()
+	if guishader then
+		if blurtex then
+			gl.DeleteTextureFBO(blurtex)
+			gl.DeleteTextureFBO(blurtex2)
+			gl.DeleteTextureFBO(stenciltex)
+		end
+		gl.DeleteTexture(screencopy or 0)
+		if (gl.DeleteShader) then
+			gl.DeleteShader(blurShader or 0)
+		end
+		blurShader = nil
+	end
 	gl.DeleteFont(font)
 end
