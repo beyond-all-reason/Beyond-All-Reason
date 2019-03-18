@@ -54,8 +54,8 @@ local showBackgroundOpacity = 0.19
 
 local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 
-local posX = 0.3
-local posY = 0.105
+local posX = 0.304
+local posY = 0.104
 
 local Config = {
 	console = {
@@ -932,6 +932,7 @@ function widget:ViewResize()
 	Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
 	Config.console.px = posX*vsx
 	Config.console.py = posY*vsy
+	Config.console.margin = 7*widgetScale
 	if console ~= nil and console.vars ~= nil then
 		console.background.px = Config.console.px
 		console.background.py = Config.console.py

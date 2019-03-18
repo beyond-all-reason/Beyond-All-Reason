@@ -46,8 +46,8 @@ local sGetModKeyState = Spring.GetModKeyState
 local spPlaySoundFile = Spring.PlaySoundFile
 local sGetMyPlayerID = Spring.GetMyPlayerID
 
-local posX = 0.3
-local posY = 0.05
+local posX = 0.304
+local posY = 0.048
 
 local Config = {
 	console = {
