@@ -949,7 +949,7 @@ function widget:DrawScreen()
 
 			-- draw select options
 			if showSelectOptions ~= nil then
-				useGuishaderForSelect = true
+				useGuishaderForSelect = false
 
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
