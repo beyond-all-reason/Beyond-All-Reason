@@ -486,6 +486,10 @@ end
 local sec = 0
 function widget:Update(dt)
 
+  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+      widgetHandler:RemoveWidget(self)
+  end
+
   if myTeamID~=Spring.GetMyTeamID() then
     myTeamID = Spring.GetMyTeamID()
     UpdateFactoryList()

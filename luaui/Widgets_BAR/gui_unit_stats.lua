@@ -272,6 +272,9 @@ function widget:ViewResize(n_vsx,n_vsy)
 end
 
 function widget:DrawScreen()
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+		return
+	end
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if not meta or spIsUserWriting() then
 		WG.hoverID = nil 
@@ -663,9 +666,9 @@ function widget:DrawScreen()
 	end
 	cornersize = 0
 	if not uID then
-		glColor(0.11,0.11,0.11,0.9)
+		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.75 or 0.87))
 	else
-		glColor(0,0,0,0.75)
+		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
 	end
 	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
 	cornersize = ceil(bgpadding*0.25)
@@ -694,9 +697,9 @@ function widget:DrawScreen()
 	-- stats
 	cornersize = 0
 	if not uID then
-		glColor(0.11,0.11,0.11,0.9)
+		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.75 or 0.87))
 	else
-		glColor(0,0,0,0.75)
+		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
 	end
 	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
 	cornersize = ceil(bgpadding*0.23)
