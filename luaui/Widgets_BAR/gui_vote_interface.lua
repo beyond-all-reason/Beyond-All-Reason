@@ -350,17 +350,19 @@ end
 function widget:DrawScreen()
 	if voteDlist then
 		local x,y,b = Spring.GetMouseState()
-		if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-			if (not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4])) or
-					IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
-					IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
-			then
-				StartVote()
+		if (not WG['topbar'] or not WG['topbar'].showingQuit()) then
+			if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
+				if (not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4])) or
+						IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
+						IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
+				then
+					StartVote()
+				elseif hovered then
+					StartVote()
+				end
 			elseif hovered then
 				StartVote()
 			end
-		elseif hovered then
-			StartVote()
 		end
 		gl.CallList(voteDlist)
 	end

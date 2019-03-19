@@ -666,7 +666,7 @@ function widget:DrawScreen()
 	end
 	cornersize = 0
 	if not uID then
-		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.75 or 0.87))
+		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.8 or 0.88))
 	else
 		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
 	end
@@ -697,7 +697,7 @@ function widget:DrawScreen()
 	-- stats
 	cornersize = 0
 	if not uID then
-		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.75 or 0.87))
+		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.8 or 0.88))
 	else
 		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
 	end

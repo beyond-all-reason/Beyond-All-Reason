@@ -949,7 +949,7 @@ function widget:DrawScreen()
 
 			-- draw select options
 			if showSelectOptions ~= nil then
-				useGuishaderForSelect = false
+				useGuishaderForSelect = true
 
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
@@ -1009,9 +1009,15 @@ function widget:DrawScreen()
 					end
 				end)
 				if WG['guishader'] and useGuishaderForSelect then
-					--Spring.Echo(optionButtons[showSelectOptions][1]..'  '..optionButtons[showSelectOptions][2]..'  '..optionButtons[showSelectOptions][3]..'  '..optionButtons[showSelectOptions][4])
-					WG['guishader'].InsertScreenRect(0,0,vsx,vsy, 'options_select')
-					--WG['guishader'].InsertScreenRect(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 'options_select')
+					local interfaceScreenCenterPosX = (screenX+(screenWidth/2))/vsx
+					local interfaceScreenCenterPosY = (screenY-(screenHeight/2))/vsy
+
+					-- translate coordinates to actual screen coords (because we applied glscale/gltranlate above)
+					local x1 = (vsx*interfaceScreenCenterPosX) - (((vsx/2) - optionButtons[showSelectOptions][1]) * widgetScale)
+					local x2 = (vsx*interfaceScreenCenterPosX) - (((vsx/2) - optionButtons[showSelectOptions][3]) * widgetScale)
+					local y1 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - (yPos-oHeight-oPadding)) * widgetScale)
+					local y2 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - optionButtons[showSelectOptions][4]) * widgetScale)
+					WG['guishader'].InsertScreenRect(x1, y1, x2, y2, 'options_select')
 					WG['guishader'].addDlist(selectOptionsList)
 				else
 					glCallList(selectOptionsList)
