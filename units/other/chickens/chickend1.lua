@@ -40,7 +40,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Chickens/tube.s3o",
 		reclaimspeed = 200,
-		repairspeed = 125,
+		repairspeed = 0.25,
 		script = "ChickenDefenseScripts/chickend1.cob",
 		seismicsignature = 0,
 		selfdestructas = "custom:blood_explode",

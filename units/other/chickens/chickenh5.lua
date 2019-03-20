@@ -42,7 +42,7 @@ return {
 		noautofire = false,
 		nochasecategory = "VTOL",
 		objectname = "Chickens/brain_bug.s3o",
-		repairspeed = 450,
+		repairspeed = 0.25,
 		script = "ChickenDefenseScripts/chickenh5.cob",
 		selfdestructas = "BUG_DEATH",
 		side = "THUNDERBIRDS",
