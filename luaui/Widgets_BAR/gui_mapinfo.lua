@@ -46,6 +46,12 @@ function widget:ViewResize(n_vsx,n_vsy)
     gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
+  if mapinfoList then
+    for opacity, list in pairs(mapinfoList) do
+    	glDeleteList(mapinfoList[opacity])
+    	mapinfoList[opacity] = nil
+    end
+  end
 end
 
 --------------------------------------------------------------------------------
