@@ -38,21 +38,6 @@ local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-function widget:ViewResize(n_vsx,n_vsy)
-	vsx,vsy = Spring.GetViewGeometry()
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
-  if mapinfoList then
-    for opacity, list in pairs(mapinfoList) do
-    	glDeleteList(mapinfoList[opacity])
-    	mapinfoList[opacity] = nil
-    end
-  end
-end
 
 --------------------------------------------------------------------------------
 -- speed-ups
@@ -88,6 +73,20 @@ local mapinfoList = {}
 --------------------------------------------------------------------------------
 -- Functions
 --------------------------------------------------------------------------------
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
+	for opacity, list in pairs(mapinfoList) do
+		glDeleteList(list)
+		mapinfoList[opacity] = nil
+	end
+end
 
 local function createMapinfoList(opacityMultiplier)
 	mapinfoList[opacityMultiplier] = gl.CreateList( function()
