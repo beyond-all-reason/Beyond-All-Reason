@@ -976,9 +976,9 @@ function widget:DrawScreen()
 						glPushMatrix()
 						glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 						glScale(widgetScale, widgetScale, 1)
-                        glColor(0.22,0.22,0.22,0.7)
+                        glColor(0.25,0.25,0.25,0.7)
                     else
-                        glColor(0.22,0.22,0.22,0.85)
+                        glColor(0.25,0.25,0.25,0.85)
                     end
 					RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
 					glColor(1,1,1,0.07)
