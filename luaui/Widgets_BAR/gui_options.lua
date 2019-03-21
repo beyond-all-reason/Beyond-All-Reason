@@ -64,6 +64,8 @@ local customScale = 1
 
 local startLine = 1
 
+local customMapSunPos = {}
+
 local screenX = (vsx*0.5) - (screenWidth/2)
 local screenY = (vsy*0.5) + (screenHeight/2)
 
@@ -103,6 +105,8 @@ local resolutionX, resolutionY = Spring.GetScreenGeometry()
 
 local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
+
+local defaultMapSunPos = {gl.GetSun("pos")}
 
 local options = {}
 local optionGroups = {}
@@ -1170,7 +1174,17 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Snow', 'snow', 'setSnowMap', {'snowMaps',Game.mapName:lower()}, options[i].value)
 		elseif id == 'snowautoreduce' then
 			saveOptionValue('Snow', 'snow', 'setAutoReduce', {'autoReduce'}, options[i].value)
-		elseif id == 'darkenmap_darkenfeatures' then
+		elseif id == 'sun_reset' then
+            options[getOptionByID('sun_x')].value = defaultMapSunPos[1]
+            options[getOptionByID('sun_y')].value = defaultMapSunPos[2]
+            options[getOptionByID('sun_z')].value = defaultMapSunPos[3]
+            options[getOptionByID('sun_reset')].value = false
+            Spring.SetSunDirection(defaultMapSunPos[1],defaultMapSunPos[2],defaultMapSunPos[3])
+            -- just so that map/model lighting gets updated
+            Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            Spring.Echo('resetted map sun defaults')
+            customMapSunPos[Game.mapName] = nil
+        elseif id == 'darkenmap_darkenfeatures' then
 			saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, options[i].value)
 		elseif id == 'teamplatter_skipownteam' then
 			saveOptionValue('TeamPlatter', 'teamplatter', 'setSkipOwnTeam', {'skipOwnTeam'}, options[i].value)
@@ -1419,18 +1433,21 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            customMapSunPos[Game.mapName] = {gl.GetSun("pos")}
 		elseif id == 'sun_y' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunY = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            customMapSunPos[Game.mapName] = {gl.GetSun("pos")}
 		elseif id == 'sun_z' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunZ = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            customMapSunPos[Game.mapName] = {gl.GetSun("pos")}
 		elseif id == 'shadows_opacity' then
 			Spring.SetSunLighting({groundShadowDensity = value, modelShadowDensity = value})
 		elseif id == 'fog_start' then
@@ -2094,6 +2111,7 @@ function init()
 		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.05, max=1, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
 		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-1, max=1, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
 		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-1, max=1, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
+        {id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.'},
@@ -2704,7 +2722,13 @@ function widget:Initialize()
 		-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
 		if Platform ~= nil and Platform.gpuVendor == 'Intel' then
 			Spring.SendCommands("Shadows 1 1000")
-		end
+        end
+
+        -- set custom user map sun position
+        if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
+            Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
+            Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+        end
 
 		-- disable fog
 		Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
@@ -2830,6 +2854,9 @@ function widget:GetConfigData(data)
 	savedTable.maxNanoParticles = maxNanoParticles
     savedTable.currentGroupTab = currentGroupTab
     savedTable.show = show
+    savedTable.defaultMapSunPos = defaultMapSunPos
+    savedTable.gameID = Game.gameID
+    savedTable.customMapSunPos = customMapSunPos
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -2874,5 +2901,11 @@ function widget:SetConfigData(data)
 		for k, v in pairs(savedConfig) do
 			Spring.SetConfigFloat(v[1],v[2])
 		end
-	end
+    end
+    if data.defaultMapSunPos ~= nil and Game.gameID == data.gameID then
+        defaultMapSunPos = data.defaultMapSunPos
+    end
+    if data.customMapSunPos then
+        customMapSunPos = data.customMapSunPos
+    end
 end

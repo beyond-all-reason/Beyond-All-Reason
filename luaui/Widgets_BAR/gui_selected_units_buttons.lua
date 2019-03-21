@@ -146,7 +146,7 @@ end
 local vsx, vsy = widgetHandler:GetViewSizes()
 function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
-
+  iconsPerRow = math.floor(8 * (vsx / vsy))
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
