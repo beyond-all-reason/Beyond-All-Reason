@@ -353,24 +353,24 @@ function CreateShaders()
     intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
 end
 
-
 function DrawRectRound(px,py,sx,sy,cs)
 
+	local csY = cs * (vsx / vsy)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
 
-	gl.Vertex(px, py+cs, 0)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.Vertex(px+cs, sy-cs, 0)
-	gl.Vertex(px, sy-cs, 0)
+	gl.Vertex(px, py+csY, 0)
+	gl.Vertex(px+cs, py+csY, 0)
+	gl.Vertex(px+cs, sy-csY, 0)
+	gl.Vertex(px, sy-csY, 0)
 	
-	gl.Vertex(sx, py+cs, 0)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.Vertex(sx, sy-cs, 0)
+	gl.Vertex(sx, py+csY, 0)
+	gl.Vertex(sx-cs, py+csY, 0)
+	gl.Vertex(sx-cs, sy-csY, 0)
+	gl.Vertex(sx, sy-csY, 0)
 	
 	local offset = 0.05		-- texture offset, because else gaps could show
 	local o = offset
@@ -382,9 +382,9 @@ function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(o,1-o)
 	gl.Vertex(px+cs, py, 0)
 	gl.TexCoord(1-o,1-o)
-	gl.Vertex(px+cs, py+cs, 0)
+	gl.Vertex(px+cs, py+csY, 0)
 	gl.TexCoord(1-o,o)
-	gl.Vertex(px, py+cs, 0)
+	gl.Vertex(px, py+csY, 0)
 	-- top right
 	--if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -392,9 +392,9 @@ function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(o,1-o)
 	gl.Vertex(sx-cs, py, 0)
 	gl.TexCoord(1-o,1-o)
-	gl.Vertex(sx-cs, py+cs, 0)
+	gl.Vertex(sx-cs, py+csY, 0)
 	gl.TexCoord(1-o,o)
-	gl.Vertex(sx, py+cs, 0)
+	gl.Vertex(sx, py+csY, 0)
 	-- bottom left
 	--if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -402,9 +402,9 @@ function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(o,1-o)
 	gl.Vertex(px+cs, sy, 0)
 	gl.TexCoord(1-o,1-o)
-	gl.Vertex(px+cs, sy-cs, 0)
+	gl.Vertex(px+cs, sy-csY, 0)
 	gl.TexCoord(1-o,o)
-	gl.Vertex(px, sy-cs, 0)
+	gl.Vertex(px, sy-csY, 0)
 	-- bottom right
 	--if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -412,9 +412,9 @@ function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(o,1-o)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.TexCoord(1-o,1-o)
-	gl.Vertex(sx-cs, sy-cs, 0)
+	gl.Vertex(sx-cs, sy-csY, 0)
 	gl.TexCoord(1-o,o)
-	gl.Vertex(sx, sy-cs, 0)
+	gl.Vertex(sx, sy-csY, 0)
 end
 
 function RectRound(px,py,sx,sy,cs)
@@ -490,7 +490,10 @@ function addon.DrawLoadScreen()
 	if guishader then
 		if not blurShader then
 			CreateShaders()
-			guishaderRects['loadprocess'] = {(0.2-paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips+paddingH)*vsy}
+			--guishaderRects['loadprocess'] = {(0.2-paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips+paddingH)*vsy}
+			guishaderRects['loadprocess1'] = {(0.2+paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8-paddingW)*vsx,(yPosTips+paddingH)*vsy}
+			guishaderRects['loadprocess2'] = {(0.2)*vsx,(yPos-0.05)*vsy,(0.8)*vsx,yPosTips*vsy}
+			guishaderRects['loadprocess3'] = {(0.2-paddingW)*vsx,(yPos-0.05+paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips-paddingH)*vsy}
 			DrawStencilTexture()
 		end
 
