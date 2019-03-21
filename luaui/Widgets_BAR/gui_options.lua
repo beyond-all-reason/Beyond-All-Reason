@@ -949,11 +949,10 @@ function widget:DrawScreen()
 
 			-- draw select options
 			if showSelectOptions ~= nil then
-				useGuishaderForSelect = true
 
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
-					glColor(1,1,1,0.08)
+					glColor(1,1,1,0.07)
 					for optionID, _ in pairs(presets['lowest']) do
 						optionKey = getOptionByID(optionID)
 						if optionHover[optionKey] ~= nil then
@@ -973,19 +972,21 @@ function widget:DrawScreen()
 				end
 
 				selectOptionsList = glCreateList(function()
-					if WG['guishader'] and useGuishaderForSelect then
+					if WG['guishader'] then
 						glPushMatrix()
 						glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 						glScale(widgetScale, widgetScale, 1)
-					end
-					glColor(0.22,0.22,0.22,0.85)
+                        glColor(0.22,0.22,0.22,0.7)
+                    else
+                        glColor(0.22,0.22,0.22,0.85)
+                    end
 					RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
 					glColor(1,1,1,0.07)
 					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
 					for i, option in pairs(options[showSelectOptions].options) do
 						yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 						if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
-							glColor(1,1,1,0.1)
+							glColor(1,1,1,0.18)
 							RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
@@ -1004,11 +1005,11 @@ function widget:DrawScreen()
 							font:End()
 						end
 					end
-					if WG['guishader'] and useGuishaderForSelect then
+					if WG['guishader'] then
 						glPopMatrix()
 					end
 				end)
-				if WG['guishader'] and useGuishaderForSelect then
+				if WG['guishader'] then
 					local interfaceScreenCenterPosX = (screenX+(screenWidth/2))/vsx
 					local interfaceScreenCenterPosY = (screenY-(screenHeight/2))/vsy
 
