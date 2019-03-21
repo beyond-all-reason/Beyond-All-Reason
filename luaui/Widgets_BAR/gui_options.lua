@@ -2855,7 +2855,7 @@ function widget:GetConfigData(data)
     savedTable.currentGroupTab = currentGroupTab
     savedTable.show = show
     savedTable.defaultMapSunPos = defaultMapSunPos
-    savedTable.gameID = Game.gameID
+    savedTable.mapName = Game.mapName
     savedTable.customMapSunPos = customMapSunPos
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
@@ -2902,7 +2902,7 @@ function widget:SetConfigData(data)
 			Spring.SetConfigFloat(v[1],v[2])
 		end
     end
-    if data.defaultMapSunPos ~= nil and Game.gameID == data.gameID then
+    if data.defaultMapSunPos ~= nil and data.mapName == Game.mapName then
         defaultMapSunPos = data.defaultMapSunPos
     end
     if data.customMapSunPos then
