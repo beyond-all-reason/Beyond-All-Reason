@@ -365,28 +365,32 @@ function widget:Shutdown()
 end
 
 -- reset needed when waterlevel has changed by gadget (modoption)
+local resetsec = 0
+local resetted = false
+local doWaterLevelCheck = false
 if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
-	local resetsec = 0
-	local resetted = false
-	function widget:Update(dt)
-		if not resetted then
-			resetsec = resetsec + dt
-			if resetsec > 1 then
-				resetted = true
-				widget:Initialize()
-			end
-		end
+	doWaterLevelCheck = true
+end
 
-		if checkInView then
-			if	spIsAABBInView(-9999,-400,-9999, mapSizeX+9999,50,22) or
+local groundHeightPoint = Spring.GetGroundHeight(0,0)
+function widget:Update(dt)
+	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0,0) ~= groundHeightPoint)then
+		resetsec = resetsec + dt
+		if resetsec > 1 then
+			groundHeightPoint = Spring.GetGroundHeight(0,0)
+			resetted = true
+			ResetWidget()
+		end
+	end
+	if checkInView then
+		if	spIsAABBInView(-9999,-400,-9999, mapSizeX+9999,50,22) or
 				spIsAABBInView(-9999,-400,-22, 0,50,mapSizeZ) or
 				spIsAABBInView(mapSizeX-22,-400,-22, mapSizeX+9999,50,mapSizeZ) or
 				spIsAABBInView(-9999,-400,mapSizeZ+9999, mapSizeX+9999,50,mapSizeZ-22)
-			then
-				isInView = true
-			else
-				isInView = false
-			end
+		then
+			isInView = true
+		else
+			isInView = false
 		end
 	end
 end
