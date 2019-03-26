@@ -1366,13 +1366,13 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 			Spring.SendCommands("disticon "..value)
 		elseif id == 'featuredrawdist' then
-			if value < options[getOptionByID('featurefadedist')].value then
+			if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
 				options[getOptionByID('featurefadedist')].value = value
 				Spring.SetConfigInt("FeatureFadeDistance",value)
 			end
 			Spring.SetConfigInt("FeatureDrawDistance",value)
 		elseif id == 'featurefadedist' then
-			if value > options[getOptionByID('featuredrawdist')].value then
+			if getOptionByID('featuredrawdist') and value > options[getOptionByID('featuredrawdist')].value then
 				options[getOptionByID('featuredrawdist')].value = value
 				Spring.SetConfigInt("FeatureDrawDistance",value)
 			end
@@ -2135,8 +2135,8 @@ function init()
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
 		{id="minimapiconsize", group="gfx", name=widgetOptionColor.."   minimap scale", type="slider", min=1.5, max=5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",3.5) or 1), description=''},
 
-		{id="featuredrawdist", group="gfx", name="Feature draw distance", type="slider", min=5000, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureDrawDistance",6000) or 400), description='Features (trees, stones, wreckage) stop being displayed at this distance'},
-		{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=3500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance'},
+		{id="featuredrawdist", group="gfx", name="Feature draw distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureDrawDistance",6000) or 400), description='Features (trees, stones, wreckage) stop being displayed at this distance'},
+		--{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance'},
 
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
