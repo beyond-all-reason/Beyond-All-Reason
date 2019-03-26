@@ -133,7 +133,7 @@ function updateMusicVolume()	-- handles fadings
 	end
 	if fadeMult > 1 then fadeMult = 1 end
 	if fadeMult < 0 then fadeMult = 0 end
-	Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+	Spring.SetConfigInt("snd_volmusic", (math.random()*0.1)+maxMusicVolume * fadeMult)	-- added random value so its unique and forces engine to update (else it wont actually do)
 end
 
 function widget:Initialize()
