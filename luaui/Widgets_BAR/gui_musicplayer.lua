@@ -25,7 +25,7 @@ end
 
 local pauseWhenPaused = false
 local fadeInTime = 2
-local fadeOutTime = 7
+local fadeOutTime = 6.5
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -265,12 +265,12 @@ local function createList()
 		glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		
-		local borderPadding = 3*widgetScale
-		local borderPaddingRight = borderPadding
+		borderPadding = 3*widgetScale
+		borderPaddingRight = borderPadding
 		if right >= vsx-0.2 then
 			borderPaddingRight = 0
 		end
-		local borderPaddingLeft = borderPadding
+		borderPaddingLeft = borderPadding
 		if left <= 0.2 then
 			borderPaddingLeft = 0
 		end
@@ -675,6 +675,15 @@ function widget:DrawScreen()
 				glCallList(drawlist[4])
 			end
 			if mouseover then
+
+			  -- display play progress
+			  local progressPx = ((right-left)*(playedTime/totalTime))
+			  if progressPx < borderPadding*5 then
+			  	progressPx = borderPadding*5
+			  end
+			  glColor(1,1,1,ui_opacity*0.09)
+			  RectRound(left+borderPaddingLeft, bottom+borderPadding, left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.66)
+
 			  local color = {1,1,1,0.25}
 			  local colorHighlight = {1,1,1,0.33}
 			  local button = 'playpause'
