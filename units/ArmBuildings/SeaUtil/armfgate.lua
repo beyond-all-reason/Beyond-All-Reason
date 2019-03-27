@@ -48,7 +48,7 @@ return {
 		workertime = 0,
 		customparams = {
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
 			shield_color_mult = 0.8,

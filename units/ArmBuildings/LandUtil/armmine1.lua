@@ -45,7 +45,7 @@ return {
 			detonaterange = "64",
 			model_author = "Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landutil",

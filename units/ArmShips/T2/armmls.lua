@@ -60,7 +60,7 @@ return {
 			area_mex_def = "armuwmex",
 			model_author = "FireStorm",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
 			techlevel = 2,
 		},

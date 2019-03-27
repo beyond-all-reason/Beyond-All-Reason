@@ -40,7 +40,7 @@ return {
 		customparams = {
 			model_author = "Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			removestop = true,
 			removewait = true,

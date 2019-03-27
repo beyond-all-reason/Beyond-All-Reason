@@ -42,7 +42,7 @@ return {
 		waterline = 0,
 		customparams = {
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",
 		},
 		featuredefs = {
