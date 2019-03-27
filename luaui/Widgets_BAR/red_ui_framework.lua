@@ -245,9 +245,9 @@ local F = {
 			if o.roundedsize ~= nil then
 				roundedSize = o.roundedsize
 			end
-			RectRound(px,py,sx,sy,color,roundedSize,iconscale,false,(o.noblur ~= nil and o.noblur))
+			RectRound(px,py,sx,sy,color,roundedSize,iconscale,false,(o.guishader ~= nil and o.guishader))
 			if o.glone ~= nil and o.glone > 0 then
-				RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true,(o.noblur ~= nil and o.noblur))
+				RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true,(o.guishader ~= nil and o.guishader))
 			end
 		end
 		

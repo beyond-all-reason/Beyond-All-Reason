@@ -43,7 +43,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
 			subfolder = "armships/t2",
 			techlevel = 2,

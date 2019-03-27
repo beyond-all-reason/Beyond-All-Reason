@@ -367,7 +367,7 @@ function widget:DrawScreen()
   if not show then 
     if activeGuishader and (WG['guishader']) then
       activeGuishader = false
-      WG['guishader'].RemoveRect('widgetselector')
+      WG['guishader'].DeleteDlist('widgetselector')
     end
     return
   end
@@ -378,7 +378,10 @@ function widget:DrawScreen()
   end
   if (WG['guishader']) and not activeGuishader then
     activeGuishader = true
-    WG['guishader'].InsertRect(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier),'widgetselector')
+    dlistGuishader = gl.CreateList( function()
+      RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
+    end)
+    WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
   end
   borderx = (yStep*sizeMultiplier) * 0.75
   bordery = (yStep*sizeMultiplier) * 0.75
@@ -402,7 +405,11 @@ function widget:DrawScreen()
   tcol = WhiteStr
 
   -- draw the box
-  gl.Color(0,0,0,0.82)
+  if WG['guishader'] then
+    gl.Color(0,0,0,0.8)
+  else
+    gl.Color(0,0,0,0.85)
+  end
   RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
   
   gl.Color(0.33,0.33,0.33,0.2)
@@ -823,7 +830,7 @@ function widget:Shutdown()
   Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
   
 	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('widgetselector')
+      WG['guishader'].DeleteDlist('widgetselector')
 	end
 end
 

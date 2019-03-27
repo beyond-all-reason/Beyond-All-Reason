@@ -437,20 +437,7 @@ function DrawIconQuad(iconPos, color, size)
   RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize)
   
   if (WG['guishader']) then
-  
-	local roundoff = bgcornerSize/1.3
-	WG['guishader'].InsertRect(
-		X1-corneradjust+roundoff, Y_MIN-corneradjust, 
-		X2+corneradjust-roundoff, Y_MAX+corneradjust, 
-	'idlebuilders1')
-	WG['guishader'].InsertRect(
-		X1-corneradjust+roundoff, Y_MIN-corneradjust, 
-		X1-corneradjust, Y_MAX+corneradjust, 
-	'idlebuilders2')
-	WG['guishader'].InsertRect(
-		X2+corneradjust-roundoff, Y_MIN-corneradjust, 
-		X2+corneradjust, Y_MAX+corneradjust, 
-	'idlebuilders3')
+	  WG['guishader'].InsertDlist(glCreateList( function() RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize) end), 'idlebuilders')
   end
   
 end--]]
@@ -579,9 +566,7 @@ function widget:DrawScreen()
 	end
 	
 	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('idlebuilders1')
-		WG['guishader'].RemoveRect('idlebuilders2')
-		WG['guishader'].RemoveRect('idlebuilders3')
+		WG['guishader'].DeleteDlist('idlebuilders')
 	end
 	
 	if enabled and noOfIcons > 0 then
@@ -743,4 +728,7 @@ end
 
 function widget:Shutdown()
 	gl.DeleteFont(font)
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('idlebuilders')
+	end
 end

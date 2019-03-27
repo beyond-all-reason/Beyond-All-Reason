@@ -213,7 +213,7 @@ local function createtooltip(r)
 		sx=r.sx,sy=r.sy,
 		color=r.cbackground,
 		border=r.cborder,
-		
+		guishader=true,
 		padding=r.padding,
 		
 		movable=r.dragbutton,

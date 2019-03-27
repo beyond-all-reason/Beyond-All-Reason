@@ -25,7 +25,7 @@ end
 
 local pauseWhenPaused = false
 local fadeInTime = 2
-local fadeOutTime = 7
+local fadeOutTime = 6.5
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -252,25 +252,30 @@ local function createList()
 	local textYPadding = 8*widgetScale
 	local textXPadding = 7*widgetScale
 	local maxTextWidth = right-buttons['next'][3]-textXPadding-textXPadding
-		
+
 	if drawlist[1] ~= nil then
+		glDeleteList(drawlist[5])
 		glDeleteList(drawlist[1])
 		glDeleteList(drawlist[2])
 		glDeleteList(drawlist[3])
+		glDeleteList(drawlist[4])
 	end
-	if (WG['guishader']) then
-		WG['guishader'].InsertRect(left, bottom, right, top,'music')
+	if WG['guishader'] then
+		drawlist[5] = glCreateList( function()
+			RectRound(left, bottom, right, top, 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
 	drawlist[1] = glCreateList( function()
 		glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		
-		local borderPadding = 3*widgetScale
-		local borderPaddingRight = borderPadding
+		borderPadding = 3*widgetScale
+		borderPaddingRight = borderPadding
 		if right >= vsx-0.2 then
 			borderPaddingRight = 0
 		end
-		local borderPaddingLeft = borderPadding
+		borderPaddingLeft = borderPadding
 		if left <= 0.2 then
 			borderPaddingLeft = 0
 		end
@@ -455,8 +460,8 @@ function widget:Shutdown()
 
 	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
 
-	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('music')
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('music')
 	end
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].RemoveTooltip('music')
@@ -675,6 +680,17 @@ function widget:DrawScreen()
 				glCallList(drawlist[4])
 			end
 			if mouseover then
+
+			  -- display play progress
+			  local progressPx = ((right-left)*(playedTime/totalTime))
+			  if progressPx > 1 then
+			    if progressPx < borderPadding*5 then
+			    	progressPx = borderPadding*5
+			    end
+			    glColor(1,1,1,ui_opacity*0.09)
+			    RectRound(left+borderPaddingLeft, bottom+borderPadding, left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.66)
+			  end
+
 			  local color = {1,1,1,0.25}
 			  local colorHighlight = {1,1,1,0.33}
 			  local button = 'playpause'

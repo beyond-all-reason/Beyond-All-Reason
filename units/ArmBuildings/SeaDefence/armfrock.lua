@@ -36,7 +36,7 @@ return {
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",
 		},
