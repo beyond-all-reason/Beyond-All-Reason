@@ -444,7 +444,7 @@ function widget:Initialize()
 end
 
 function processGuishader()
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		local sBuilds = UnitDefs[sDefID].buildOptions
 		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 			if sDef.name == "armcom" then
@@ -579,7 +579,7 @@ function widget:Shutdown()
 	if panelList then
 		gl.DeleteList(panelList)
 	end
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		WG['guishader'].RemoveRect('initialqueue')
 	end
 	WG["faction_change"] = nil

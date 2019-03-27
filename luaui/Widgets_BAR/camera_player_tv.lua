@@ -259,9 +259,6 @@ local function createList()
 
 		font:Begin()
         font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
-		if (WG['guishader'] and isSpec) then
-			WG['guishader'].InsertRect(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 'playertv')
-		end
 
 		if toggled then
 			local name = 'Player TV  '
@@ -299,6 +296,16 @@ local function createList()
 		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(8*widgetScale), fontSize, 'oc')
 		font:End()
 	end)
+
+	if WG['guishader'] and isSpec then
+		if backgroundGuishader then
+			gl.DeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = gl.CreateList( function()
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
+	end
 end
 
 
@@ -508,8 +515,8 @@ function widget:DrawScreen()
 	local gameFrame = Spring.GetGameFrame()
 
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
-		if (WG['guishader']) then
-			WG['guishader'].RemoveRect('playertv')
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('playertv')
 		end
 		--return
 	end
@@ -582,8 +589,8 @@ function widget:Shutdown()
 	for i,v in pairs(drawlistsPlayername) do
 		gl.DeleteList(drawlistsPlayername[i])
 	end
-	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('playertv')
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('playertv')
 	end
 	for i=1,#drawlist do
 		gl.DeleteList(drawlist[i])

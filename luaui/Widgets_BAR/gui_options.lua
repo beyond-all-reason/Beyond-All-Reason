@@ -872,33 +872,35 @@ function widget:DrawScreen()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 			glScale(widgetScale, widgetScale, 1)
 			glCallList(windowList)
-			if (WG['guishader']) then
+			if WG['guishader'] then
 				local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 				local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 				local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 				local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-				WG['guishader'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options')
-				--WG['guishader'].setBlurIntensity(0.0017)
-				--WG['guishader'].setScreenBlur(true)
-
-				if (WG['guishader'] and titleRect ~= nil) then
+				if backgroundGuishader ~= nil then
+					glDeleteList(backgroundGuishader)
+				end
+				backgroundGuishader = glCreateList( function()
+					-- background
+					RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+					-- title
 					rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
 					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
 					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
 					rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
-
-					if groupRect ~= nil then
-						local lastID = false
-						for id,rect in pairs(groupRect) do
-							lastID = id
-						end
-						if lastID then
-							rectX2 = (groupRect[lastID][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
-							rectY2 = (groupRect[lastID][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+					RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+					-- tabs
+					for id,group in pairs(optionGroups) do
+						if groupRect[id] then
+							rectX1 = (groupRect[id][1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+							rectY1 = (groupRect[id][2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+							rectX2 = (groupRect[id][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+							rectY2 = (groupRect[id][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+							RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
 						end
 					end
-					WG['guishader'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options_top')
-				end
+				end)
+				WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 			end
 			showOnceMore = false
 
@@ -953,7 +955,7 @@ function widget:DrawScreen()
 				end
 				for i, o in pairs(optionButtons) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						glColor(1,1,1,0.08)
+						gl.Color(0,0,0,0.08)
 						RectRound(o[1], o[2], o[3], o[4], 2.5)
 						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 							local value = options[i].value
@@ -1048,13 +1050,8 @@ function widget:DrawScreen()
 			end
 	  glPopMatrix()
 	else
-		if (WG['guishader']) then
-			local removed = WG['guishader'].RemoveRect('options')
-			local removed = WG['guishader'].RemoveRect('options_top')
-			if removed then
-				--WG['guishader'].setBlurIntensity()
-			  WG['guishader'].setScreenBlur(false)
-			end
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('options')
 		end
   end
 	if checkedWidgetDataChanges == nil then
@@ -2136,9 +2133,9 @@ function init()
 		--{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.9, max=1.5, step=0.05, value=1.1, description=''},
 		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
 
-		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.05, max=1, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
-		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-1, max=1, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
-		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-1, max=1, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
+		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.05, max=0.9999, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
+		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
+		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
         {id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
@@ -2800,6 +2797,9 @@ function widget:Shutdown()
 		for i, font in pairs(fontOption) do
 			gl.DeleteFont(fontOption[i])
 		end
+	end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('options')
 	end
 	gl.DeleteFont(font)
 	WG['options'] = nil

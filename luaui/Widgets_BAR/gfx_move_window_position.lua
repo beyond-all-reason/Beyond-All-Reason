@@ -120,7 +120,7 @@ end
 function DrawWindow()
 	dlistPosX = windowPosX
 	dlistPosY = windowPosY
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		WG['guishader'].InsertRect(0,0,vsx,vsy, 'movewindowpos')
 		WG['guishader'].setScreenBlur(true)
 	end
@@ -268,7 +268,7 @@ function widget:DrawScreen()
 end
 
 function widget:Shutdown()
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		WG['guishader'].RemoveRect('movewindowpos')
 		WG['guishader'].setScreenBlur(false)
 	end

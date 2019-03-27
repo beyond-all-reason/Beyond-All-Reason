@@ -392,8 +392,8 @@ function widget:Shutdown()
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
 	gl.DeleteFont(font)
-	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('teamstats_window')
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('teamstats_window')
 	end
 end
 
@@ -628,8 +628,8 @@ function widget:DrawScreen()
 	if IsGUIHidden() then
 		return
 	end
-	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('teamstats_window')
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('teamstats_window')
 	end
 	DrawBackground()
 	DrawAllStats()
@@ -725,8 +725,14 @@ function DrawBackground()
 	end
 	local padding = 5*widgetScale
 	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale)
-	if (WG['guishader']) then
-		WG['guishader'].InsertRect(x1-padding,y1-padding,x2+padding,y2+padding,'teamstats_window')
+	if WG['guishader'] then
+		if backgroundGuishader ~= nil then
+			glDeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = glCreateList( function()
+			RectRound(x1-padding,y1-padding,x2+padding,y2+padding, 9*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
 	end
 end
 

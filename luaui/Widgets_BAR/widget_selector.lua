@@ -829,7 +829,7 @@ end
 function widget:Shutdown()
   Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
   
-	if (WG['guishader']) then
+	if WG['guishader'] then
       WG['guishader'].DeleteDlist('widgetselector')
 	end
 end

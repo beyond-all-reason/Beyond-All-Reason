@@ -231,7 +231,7 @@ function widget:DrawScreen()
 	local x, y = spGetMouseState()
 	local now = os.clock()
 
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		for name, _ in pairs(cleanupGuishaderAreas) do
 			WG['guishader'].DeleteScreenDlist(name)
 			cleanupGuishaderAreas[name] = nil

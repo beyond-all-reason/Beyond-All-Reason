@@ -124,9 +124,8 @@ end
 
 
 local function updateGuishader()
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		if not picList then
-            --WG['guishader'].RemoveRect('selectionbuttons')
             WG['guishader'].RemoveDlist('selectionbuttons')
             guishaderDisabled = true
         else
@@ -139,7 +138,6 @@ local function updateGuishader()
                   RectRound(backgroundDimentions[1], backgroundDimentions[2], backgroundDimentions[3], backgroundDimentions[4], usedIconSizeX / 8)
                   WG['guishader'].InsertDlist(dlistGuishader, 'selectionbuttons')
                 end)
-				--WG['guishader'].InsertRect(backgroundDimentions[1], backgroundDimentions[2], backgroundDimentions[3], backgroundDimentions[4], 'selectionbuttons')
                 guishaderDisabled = false
 			end
 		end

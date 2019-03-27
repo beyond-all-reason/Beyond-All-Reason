@@ -443,24 +443,31 @@ function widget:DrawScreen()
 		glScale(widgetScale, widgetScale, 1)
 		glCallList(changelogList)
 		glPopMatrix()
-		if (WG['guishader']) then
+		if WG['guishader'] then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'gameinfo')
-			--WG['guishader'].setBlurIntensity(0.0017)
-			--WG['guishader'].setScreenBlur(true)
+			if backgroundGuishader ~= nil then
+				glDeleteList(backgroundGuishader)
+			end
+			backgroundGuishader = glCreateList( function()
+				-- background
+				RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+				-- title
+				rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+				rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+				rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+				RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+			end)
+			WG['guishader'].InsertDlist(backgroundGuishader, 'gameinfo')
 		end
 		showOnceMore = false
 
 	else
-		if (WG['guishader']) then
-			local removed = WG['guishader'].RemoveRect('gameinfo')
-			if removed then
-				--WG['guishader'].setBlurIntensity()
-				WG['guishader'].setScreenBlur(false)
-			end
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('gameinfo')
 		end
 	end
 end
@@ -640,6 +647,9 @@ function widget:Shutdown()
 	if changelogList then
 		glDeleteList(changelogList)
 		changelogList = nil
+	end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('gameinfo')
 	end
 	gl.DeleteFont(font)
 end

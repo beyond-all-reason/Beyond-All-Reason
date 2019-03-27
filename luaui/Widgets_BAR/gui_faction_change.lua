@@ -150,9 +150,22 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Texture(false)
 end
 
+function updateGuishader()
+	if WG['guishader'] then
+		if backgroundGuishader then
+			glDeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = glCreateList( function()
+			RectRound(px+(2*widgetScale), py+(2*widgetScale), px+(126*widgetScale), py+(78*widgetScale), 6*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(backgroundGuishader, 'factionchange')
+	end
+end
+
 --------------------------------------------------------------------------------
 -- Callins
 --------------------------------------------------------------------------------
+
 function widget:Initialize()
 	if spGetSpectatingState() or
 	   Spring.GetGameFrame() > 0 or
@@ -162,8 +175,8 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('factionchange')
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('factionchange')
 	end
 	if factionChangeList then
 		glDeleteList(factionChangeList)
@@ -206,6 +219,7 @@ function widget:DrawScreen()
 		glCallList(factionChangeList)
 	else 
 		factionChangeList = glCreateList(GenerateFactionChangeList)
+		updateGuishader()
 	end
 	glPopMatrix()
 
@@ -229,11 +243,7 @@ function GenerateFactionChangeList()
 	RectRound(0, 0, 128*widgetScale, 80*widgetScale,6*widgetScale)
 	glColor(1, 1, 1, 0.025)
 	RectRound(2*widgetScale, 2*widgetScale, 126*widgetScale, 78*widgetScale, 5*widgetScale)
-	
-	
-	if (WG['guishader']) then
-		WG['guishader'].InsertRect(px+(2*widgetScale), py+(2*widgetScale), px+(126*widgetScale), py+(78*widgetScale), 'factionchange')
-	end
+
 	
 		-- Highlight
 	glColor(0.8, 0.8, 0.8, 0.3)
@@ -295,7 +305,8 @@ function widget:MousePress(mx, my, mButton)
 					glDeleteList(factionChangeList)
 				end
 				factionChangeList = glCreateList(GenerateFactionChangeList)
-			
+				updateGuishader()
+
 				return true
 			end
 			

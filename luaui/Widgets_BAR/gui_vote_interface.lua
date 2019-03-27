@@ -193,8 +193,7 @@ function EndVote()
 		voteDlist = nil
 		voteName = nil
 		voteOwner = nil
-		if (WG['guishader']) then
-			--WG['guishader'].RemoveRect('voteinterface')
+		if WG['guishader'] then
 			WG['guishader'].DeleteDlist('voteinterface')
 		end
 	end
@@ -245,11 +244,6 @@ function StartVote(name, owner)
 		closeButtonArea = {(xpos+(width/2))-(height/1.9), ypos+(height/5.5), xpos+(width/2), ypos+(height/2) }
 		yesButtonArea = {xpos-(width/2)+buttonMargin, ypos-(height/2)+buttonMargin, xpos-(buttonMargin/2), ypos-(height/2)+buttonHeight-buttonMargin }
 		noButtonArea = {xpos+(buttonMargin/2), ypos-(height/2)+buttonMargin, xpos+(width/2)-buttonMargin, ypos-(height/2)+buttonHeight-buttonMargin}
-
-		-- background blur
-		--if (WG['guishader']) then
-		--	WG['guishader'].InsertRect(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 'voteinterface')
-		--end
 
 		-- window
 		gl.Color(0,0,0,0.82)
@@ -311,7 +305,7 @@ function StartVote(name, owner)
 		font:End()
 	end)
 	-- background blur
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		dlistGuishader = gl.CreateList( function()
 			RectRound(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 5.5*widgetScale)
 		end)

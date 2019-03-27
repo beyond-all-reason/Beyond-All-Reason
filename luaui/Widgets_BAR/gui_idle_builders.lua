@@ -436,7 +436,7 @@ function DrawIconQuad(iconPos, color, size)
   glColor(color)
   RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize)
   
-  if (WG['guishader']) then
+  if WG['guishader'] then
 	  WG['guishader'].InsertDlist(glCreateList( function() RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize) end), 'idlebuilders')
   end
   
@@ -565,7 +565,7 @@ function widget:DrawScreen()
 		return
 	end
 	
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('idlebuilders')
 	end
 	

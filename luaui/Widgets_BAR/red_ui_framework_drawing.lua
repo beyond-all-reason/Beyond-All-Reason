@@ -414,12 +414,11 @@ function widget:DrawScreen()
 	
 	CleanedTodo = true
 	
-	if (WG['guishader']) then
+	if WG['guishader'] then
 
 		-- remove changed blur areas
 		for id, rect in pairs(blurRect) do
 			if newBlurRect[id] == nil and rect.id ~= nil then
-				--WG['guishader'].RemoveRect('red_ui_'..rect.id)
 				WG['guishader'].DeleteDlist('red_ui_'..rect.id)
 				blurRect[id] = nil
 			else
@@ -438,7 +437,6 @@ function widget:DrawScreen()
 				local rectid = rect.px..' '..rect.py..' '..rect.sx..' '..rect.sy
 
 				WG['guishader'].InsertDlist(glCreateList( function() RectRoundOrg(x,y2,x2,y,rect.cs) end), 'red_ui_'..rectid)
-				--WG['guishader'].InsertRect(x,y,x2,y2,'red_ui_'..rectid)
 				newBlurRect[rectid].id = rectid
 			end
 			count = count + 1
@@ -480,12 +478,11 @@ function widget:Shutdown()
 	glDeleteList(StartList)
 	removeDLists()
 	
-	if (WG['guishader']) then
+	if WG['guishader'] then
 	
 		-- remove blur areas
 		for id, rect in pairs(blurRect) do
 			if rect.id ~= nil then
-				--WG['guishader'].RemoveRect('red_ui_'..rect.id)
 				WG['guishader'].DeleteDlist('red_ui_'..rect.id)
 				blurRect[id] = nil
 			end

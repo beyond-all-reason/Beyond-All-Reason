@@ -1117,7 +1117,7 @@ end
 
 
 function widget:Shutdown()
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('advplayerlist')
 		--WG['guishader'].RemoveRect('advplayerlist')
 		WG['guishader'].RemoveRect('advplayerlist_screenshot')
@@ -1796,7 +1796,7 @@ function widget:DrawScreen()
 		local width = (screenshotWidth*widgetScale)+margin+margin+margin
 		local height = (screenshotHeight*widgetScale)+margin+margin+margin+(15*widgetScale)
 		if screenshotSaveQueued then
-			if (WG['guishader']) then
+			if WG['guishader'] then
 				WG['guishader'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
 				screenshotGuishader = true
 			end
@@ -1813,7 +1813,7 @@ function widget:DrawScreen()
 		if screenshotWidth and IsOnRectPlain(mouseX,mouseY, screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale)) then
 			if mouseButtonL then
 				gl_DeleteList(screenshotDlist)
-				if (WG['guishader']) then
+				if WG['guishader'] then
 					WG['guishader'].RemoveRect('advplayerlist_screenshot')
 				end
 				screenshotDlist = nil
@@ -1958,7 +1958,7 @@ function CreateBackground()
 	if absTop <= 0.2 then paddingTop = 0 end
 	if absLeft <= 0.2 then paddingLeft = 0 end
 
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		BackgroundGuishader = gl_CreateList( function()
 			RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		end)

@@ -277,8 +277,7 @@ local function updateRejoin()
 		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 
-		if (WG['guishader']) then
-			--WG['guishader'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_rejoin')
+		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
 		
@@ -361,8 +360,7 @@ local function updateButtons()
 		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25)
 		
-		if (WG['guishader']) then
-			--WG['guishader'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_buttons')
+		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
 		end
 		
@@ -447,8 +445,7 @@ local function updateComs(forceText)
 		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
-		if (WG['guishader']) then
-			--WG['guishader'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
+		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistComsGuishader, 'topbar_coms')
 		end
 	end)
@@ -516,8 +513,7 @@ local function updateWind()
 		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
-		if (WG['guishader']) then
-			--WG['guishader'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_wind')
+		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistWindGuishader, 'topbar_wind')
 		end
 
@@ -689,8 +685,7 @@ local function updateResbar(res)
 		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
-		if (WG['guishader']) then
-			--WG['guishader'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_'..res)
+		if WG['guishader'] then
 			WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_'..res)
 		end
 		
@@ -799,10 +794,7 @@ function init()
 		--
 		--glColor(1,1,1,0.025)
 		--RectRound(barContentArea[1], barContentArea[2], barContentArea[3], barContentArea[4]+(10*widgetScale), 5*widgetScale)
-		
-		--if (WG['guishader']) then
-		--	WG['guishader'].InsertRect(topbarArea[1]+((borderPadding*widgetScale)/2), topbarArea[2], topbarArea[3], topbarArea[4], 'topbar')
-		--end
+
 	end)
 	
 	-- metal
@@ -1171,7 +1163,7 @@ function widget:DrawScreen()
 	end
 
     if dlistQuit ~= nil then
-        if (WG['guishader']) then
+        if WG['guishader'] then
             WG['guishader'].removeRenderDlist(dlistQuit)
         end
         glDeleteList(dlistQuit)
@@ -1254,7 +1246,7 @@ function widget:DrawScreen()
         end)
 
         -- background
-        if (WG['guishader']) then
+        if WG['guishader'] then
             WG['guishader'].setScreenBlur(true)
             WG['guishader'].insertRenderDlist(dlistQuit)
         else
@@ -1315,7 +1307,7 @@ local function hideWindows()
         WG['teamstats'].toggle(false)
 	end
 	showQuitscreen = nil
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		WG['guishader'].setScreenBlur(false)
 	end
 end
@@ -1337,7 +1329,7 @@ local function applyButtonAction(button)
 		if oldShowQuitscreen ~= nil then
 			if isvisible ~= true then
 				showQuitscreen = oldShowQuitscreen
-				if (WG['guishader']) then
+				if WG['guishader'] then
 					WG['guishader'].setScreenBlur(true)
 				end
 			end
@@ -1424,7 +1416,7 @@ function widget:MousePress(x, y, button)
 					end
 					Spring.SendCommands("spectator")
 					showQuitscreen = nil
-					if (WG['guishader']) then
+					if WG['guishader'] then
 						WG['guishader'].setScreenBlur(false)
 					end
 					return true
@@ -1432,7 +1424,7 @@ function widget:MousePress(x, y, button)
 				return true
 			else
 				showQuitscreen = nil
-				if (WG['guishader']) then
+				if WG['guishader'] then
 					WG['guishader'].setScreenBlur(false)
 				end
 				return true
@@ -1659,14 +1651,6 @@ function widget:Shutdown()
 		end
 	end
 	if WG['guishader'] then
-		--WG['guishader'].RemoveRect('topbar')
-		--WG['guishader'].RemoveRect('topbar_energy')
-		--WG['guishader'].RemoveRect('topbar_metal')
-		--WG['guishader'].RemoveRect('topbar_wind')
-		--WG['guishader'].RemoveRect('topbar_coms')
-		--WG['guishader'].RemoveRect('topbar_buttons')
-		--WG['guishader'].RemoveRect('topbar_rejoin')
-		--WG['guishader'].RemoveRect('topbar')
 		WG['guishader'].RemoveDlist('topbar_energy')
 		WG['guishader'].RemoveDlist('topbar_metal')
 		WG['guishader'].RemoveDlist('topbar_wind')
