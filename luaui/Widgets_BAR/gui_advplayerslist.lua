@@ -1118,7 +1118,8 @@ end
 
 function widget:Shutdown()
 	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('advplayerlist')
+		WG['guishader'].RemoveDlist('advplayerlist')
+		--WG['guishader'].RemoveRect('advplayerlist')
 		WG['guishader'].RemoveRect('advplayerlist_screenshot')
 	end
 	WG['advplayerlist_api'] = nil
@@ -1947,19 +1948,24 @@ function CreateBackground()
 	local absTop		= math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1)))
 	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
 
+	local padding = 3*widgetScale
+	local paddingBottom = padding
+	local paddingRight = padding
+	local paddingTop = padding
+	local paddingLeft = padding
+	if absBottom <= 0.2 then paddingBottom = 0 end
+	if absRight >= vsx-0.2 then paddingRight = 0 end
+	if absTop <= 0.2 then paddingTop = 0 end
+	if absLeft <= 0.2 then paddingLeft = 0 end
+
 	if (WG['guishader']) then
-		WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
+		BackgroundGuishader = gl_CreateList( function()
+			RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		end)
+		WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
+		--WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
-		local padding = 3*widgetScale
-		local paddingBottom = padding
-		local paddingRight = padding
-		local paddingTop = padding
-		local paddingLeft = padding
-		if absBottom <= 0.2 then paddingBottom = 0 end
-		if absRight >= vsx-0.2 then paddingRight = 0 end
-		if absTop <= 0.2 then paddingTop = 0 end
-		if absLeft <= 0.2 then paddingLeft = 0 end
 
 		gl_Color(0,0,0,ui_opacity)
 		RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))

@@ -279,9 +279,9 @@ local function CreateGrid(r)
 		movable=r.dragbutton,
 		obeyscreenedge = true,
 		overrideclick = {1},
-		
 		padding=r.padding,
-		
+
+		guishader=true,
 		effects = {
 			fadein_at_activation = r.fadetime,
 			fadeout_at_deactivation = r.fadetimeOut,

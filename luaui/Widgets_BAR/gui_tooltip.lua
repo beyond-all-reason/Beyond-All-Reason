@@ -90,9 +90,9 @@ end
 
 function widget:Shutdown()
     gl.DeleteFont(font)
-	if (WG['guishader']) then
+	if WG['guishader'] then
         for name, tooltip in pairs(tooltips) do
-		    WG['guishader'].RemoveScreenRect('tooltip_'..name)
+		    WG['guishader'].DeleteScreenDlist('tooltip_'..name)
         end
 	end
 	WG['tooltip'] = nil
@@ -195,21 +195,19 @@ function drawTooltip(name, x, y)
 	
 	-- draw background
 	local cornersize = 0
-	glColor(0.85,0.85,0.85,(WG['guishader'] and 0.7 or 0.8))
+	glColor(0.85,0.85,0.85,(WG['guishader'] and 0.66 or 0.8))
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
+	if WG['guishader'] then
+		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
+			RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
+		end), 'tooltip_'..name)
+	end
 	cornersize = 2.25*widgetScale
-	glColor(0,0,0,(WG['guishader'] and 0.24 or 0.3))
+	glColor(0,0,0,(WG['guishader'] and 0.22 or 0.3))
 	RectRound(posX-paddingW+cornersize,
 		posY-maxHeight-paddingH+cornersize,
 		posX+maxWidth+paddingW-cornersize,
 		posY+paddingH-cornersize-0.06, 4.3*widgetScale)
-	if (WG['guishader']) then
-		WG['guishader'].InsertScreenRect(
-			posX-paddingW+cornersize,
-			posY-maxHeight-paddingH+cornersize,
-			posX+maxWidth+paddingW-cornersize,
-			posY+paddingH-cornersize, 'tooltip_'..name)
-	end
 	
 	-- draw text
 	maxHeight = -fontSize*0.93
@@ -235,7 +233,7 @@ function widget:DrawScreen()
 
 	if (WG['guishader']) then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG['guishader'].RemoveScreenRect(name)
+			WG['guishader'].DeleteScreenDlist(name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
@@ -263,8 +261,8 @@ function widget:DrawScreen()
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
-				if (WG['guishader']) then
-					WG['guishader'].RemoveScreenRect('tooltip_'..name)
+				if WG['guishader'] then
+					WG['guishader'].DeleteScreenDlist('tooltip_'..name)
 				end
 			end
 		end

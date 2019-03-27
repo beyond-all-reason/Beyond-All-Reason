@@ -194,40 +194,48 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx, sy-cs, 0)
 end
 
-local function RectRound(px,py,sx,sy,c,cs,scale,glone,noblur)
+function RectRoundOrg(px,py,sx,sy,cs)
+	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
+
+	gl.Texture(bgcorner)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.Texture(false)
+end
+
+local function RectRound(px,py,sx,sy,c,cs,scale,glone,guishader)
 
 	if (c) then
 		glColor(c[1],c[2],c[3],c[4])
 	else
 		glColor(1,1,1,1)
 	end
-	
+
 	if cs == nil then
 		cs = 4
 	end
-	
+
 	if glone then
 		glBlending(GL_SRC_ALPHA, GL_ONE)
 	end
 	-- add blur shader
-	if c and not noblur then
-		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy}
+	if c and guishader then
+		newBlurRect[px..' '..py..' '..sx..' '..sy] = {px=px,py=py,sx=sx,sy=sy,cs=cs}
 	end
-	
+
 	if scale ~= nil and scale ~= 1 then
 		px = px + ((sx * (1-scale))/2)
 		py = py + ((sy * (1-scale))/2)
 		sx = sx * scale
 		sy = sy * scale
 	end
-	
+
 	sx = px+sx
 	sy = py+sy
-	
+
 	gl.Texture(bgcorner)
 	glBeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
 	gl.Texture(false)
-	
+
 	if glone then
 		glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 	end
@@ -380,7 +388,7 @@ function widget:DrawScreen()
 			end
 			id = id .. '_' ..(t[7] or '')..id .. '_' ..(t[8] or '')..id .. '_' ..(t[9] and '1' or '')	
 		end]]--
-		
+
 		if t[1] == 5 then	-- text
 			id = t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]..'_'..t[6]
 			if type(t[7]) == 'table' then
@@ -407,11 +415,12 @@ function widget:DrawScreen()
 	CleanedTodo = true
 	
 	if (WG['guishader']) then
-	
+
 		-- remove changed blur areas
 		for id, rect in pairs(blurRect) do
 			if newBlurRect[id] == nil and rect.id ~= nil then
-				WG['guishader'].RemoveRect('red_ui_'..rect.id)
+				--WG['guishader'].RemoveRect('red_ui_'..rect.id)
+				WG['guishader'].DeleteDlist('red_ui_'..rect.id)
 				blurRect[id] = nil
 			else
 				newBlurRect[id] = rect
@@ -425,9 +434,11 @@ function widget:DrawScreen()
 				local y = vsy-rect.py
 				local x2 = (rect.px+rect.sx)
 				local y2 = vsy-(rect.py+rect.sy)
-				
+
 				local rectid = rect.px..' '..rect.py..' '..rect.sx..' '..rect.sy
-				WG['guishader'].InsertRect(x,y,x2,y2,'red_ui_'..rectid)
+
+				WG['guishader'].InsertDlist(glCreateList( function() RectRoundOrg(x,y2,x2,y,rect.cs) end), 'red_ui_'..rectid)
+				--WG['guishader'].InsertRect(x,y,x2,y2,'red_ui_'..rectid)
 				newBlurRect[rectid].id = rectid
 			end
 			count = count + 1
@@ -474,7 +485,8 @@ function widget:Shutdown()
 		-- remove blur areas
 		for id, rect in pairs(blurRect) do
 			if rect.id ~= nil then
-				WG['guishader'].RemoveRect('red_ui_'..rect.id)
+				--WG['guishader'].RemoveRect('red_ui_'..rect.id)
+				WG['guishader'].DeleteDlist('red_ui_'..rect.id)
 				blurRect[id] = nil
 			end
 		end

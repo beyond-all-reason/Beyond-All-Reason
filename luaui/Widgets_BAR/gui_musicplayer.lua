@@ -252,14 +252,22 @@ local function createList()
 	local textYPadding = 8*widgetScale
 	local textXPadding = 7*widgetScale
 	local maxTextWidth = right-buttons['next'][3]-textXPadding-textXPadding
-		
+
+	if drawlist[0] ~= nil then
+		glDeleteList(drawlist[0])
+	end
+	if (WG['guishader']) then
+		drawlist[0] = glCreateList( function()
+			RectRound(left, bottom, right, top, 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(drawlist[0], 'music')
+		--WG['guishader'].InsertRect(left, bottom, right, top,'music')
+	end
+
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
 		glDeleteList(drawlist[2])
 		glDeleteList(drawlist[3])
-	end
-	if (WG['guishader']) then
-		WG['guishader'].InsertRect(left, bottom, right, top,'music')
 	end
 	drawlist[1] = glCreateList( function()
 		glColor(0, 0, 0, ui_opacity)
@@ -456,7 +464,8 @@ function widget:Shutdown()
 	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
 
 	if (WG['guishader']) then
-		WG['guishader'].RemoveRect('music')
+		WG['guishader'].RemoveDlist('music')
+		--WG['guishader'].RemoveRect('music')
 	end
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].RemoveTooltip('music')
@@ -678,11 +687,13 @@ function widget:DrawScreen()
 
 			  -- display play progress
 			  local progressPx = ((right-left)*(playedTime/totalTime))
-			  if progressPx < borderPadding*5 then
-			  	progressPx = borderPadding*5
+			  if progressPx > 1 then
+			    if progressPx < borderPadding*5 then
+			    	progressPx = borderPadding*5
+			    end
+			    glColor(1,1,1,ui_opacity*0.09)
+			    RectRound(left+borderPaddingLeft, bottom+borderPadding, left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.66)
 			  end
-			  glColor(1,1,1,ui_opacity*0.09)
-			  RectRound(left+borderPaddingLeft, bottom+borderPadding, left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.66)
 
 			  local color = {1,1,1,0.25}
 			  local colorHighlight = {1,1,1,0.33}

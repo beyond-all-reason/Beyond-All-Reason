@@ -88,7 +88,6 @@ local Config = {
 		
 		cbackground = {0,0,0,0.0},
 		cborder = {0,0,0,0},
-		noblur = true,
 		
 		dragbutton = {2,3}, --middle mouse button
 		tooltip = {
@@ -185,13 +184,11 @@ local function createconsole(r)
 		fontsize=r.fontsize,
 		caption="",
 		options="o", --black outline
-		noblur = true,
 	}
 	
 	local activationarea = {"area",
 		px=r.px-r.fadedistance,py=r.py-r.fadedistance,
 		sx=r.sx+r.fadedistance*2,sy=0,
-		noblur = true,
 		
 		mousewheel=function(up,mx,my,self)
 			if (vars.browsinghistory) then
@@ -226,7 +223,6 @@ local function createconsole(r)
 		border=r.cborder,
 		movable=r.dragbutton,
 
-		noblur = true,
 		obeyscreenedge = true,
 		--overrideclick = {2},
 		

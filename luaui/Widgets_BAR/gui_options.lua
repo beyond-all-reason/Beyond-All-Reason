@@ -486,7 +486,11 @@ function DrawWindow()
 	local x = screenX --rightwards
 	local y = screenY --upwards
 	-- background
-	gl.Color(0,0,0,0.8)
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.77)
+	else
+		gl.Color(0,0,0,0.82)
+	end
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	if currentGroupTab then
@@ -522,7 +526,11 @@ function DrawWindow()
 		groupRect[id] = {xpos, y+(bgMargin/2), xpos+(font:GetTextWidth(group.name)*tabFontSize)+27, y+37}
 		xpos = groupRect[id][3]
 		if currentGroupTab == nil or currentGroupTab ~= group.id then
-			gl.Color(0,0,0,0.8)
+			if WG['guishader'] then
+				gl.Color(0,0,0,0.77)
+			else
+				gl.Color(0,0,0,0.82)
+			end
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.62,0.5,0.22,0.18)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
@@ -532,7 +540,11 @@ function DrawWindow()
 			font:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
 			font:End()
 		else
-			gl.Color(0,0,0,0.8)
+			if WG['guishader'] then
+				gl.Color(0,0,0,0.77)
+			else
+				gl.Color(0,0,0,0.82)
+			end
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.4,0.4,0.4,0.15)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
@@ -545,7 +557,11 @@ function DrawWindow()
 	end
 
 	-- title drawing
-	gl.Color(0,0,0,0.8)
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.77)
+	else
+		gl.Color(0,0,0,0.82)
+	end
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 
 	font:Begin()
@@ -823,7 +839,7 @@ function widget:DrawScreen()
   if selectOptionsList then
   	if WG['guishader'] then
   		WG['guishader'].RemoveScreenRect('options_select')
-  		WG['guishader'].removeDlist(selectOptionsList)
+  		WG['guishader'].removeRenderDlist(selectOptionsList)
   	end
   	glDeleteList(selectOptionsList)
   	selectOptionsList = nil
@@ -1023,7 +1039,7 @@ function widget:DrawScreen()
 					local y1 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - (yPos-oHeight-oPadding)) * widgetScale)
 					local y2 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - optionButtons[showSelectOptions][4]) * widgetScale)
 					WG['guishader'].InsertScreenRect(x1, y1, x2, y2, 'options_select')
-					WG['guishader'].addDlist(selectOptionsList)
+					WG['guishader'].insertRenderDlist(selectOptionsList)
 				else
 					glCallList(selectOptionsList)
 				end

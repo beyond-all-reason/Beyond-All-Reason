@@ -126,17 +126,20 @@ end
 local function updateGuishader()
 	if (WG['guishader']) then
 		if not picList then
-			WG['guishader'].RemoveRect('selectionbuttons')
+            --WG['guishader'].RemoveRect('selectionbuttons')
+            WG['guishader'].RemoveDlist('selectionbuttons')
             guishaderDisabled = true
-		else
+        else
 			if backgroundDimentions[1] ~= nil then
-				WG['guishader'].InsertRect(
-					backgroundDimentions[1],
-					backgroundDimentions[2],
-					backgroundDimentions[3],
-					backgroundDimentions[4],
-					'selectionbuttons'
-				)
+                if dlistGuishader ~= nil then
+                  WG['guishader'].RemoveDlist('selectionbuttons')
+                  gl.DeleteList(dlistGuishader)
+                end
+                dlistGuishader = gl.CreateList( function()
+                  RectRound(backgroundDimentions[1], backgroundDimentions[2], backgroundDimentions[3], backgroundDimentions[4], usedIconSizeX / 8)
+                  WG['guishader'].InsertDlist(dlistGuishader, 'selectionbuttons')
+                end)
+				--WG['guishader'].InsertRect(backgroundDimentions[1], backgroundDimentions[2], backgroundDimentions[3], backgroundDimentions[4], 'selectionbuttons')
                 guishaderDisabled = false
 			end
 		end

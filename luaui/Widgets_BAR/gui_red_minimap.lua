@@ -154,7 +154,8 @@ local function createminimap(r)
 		sx=r.sx,sy=r.sy,
 		color=r.cbackground,
 		obeyscreenedge = true,
-		bordersize=r.cbordersize
+		bordersize=r.cbordersize,
+		guishader=true,
 	}
 	
 	local resizebutton = {"rectangle",
