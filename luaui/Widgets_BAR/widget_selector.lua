@@ -406,9 +406,9 @@ function widget:DrawScreen()
 
   -- draw the box
   if WG['guishader'] then
-    gl.Color(0,0,0,0.77)
+    gl.Color(0,0,0,0.8)
   else
-    gl.Color(0,0,0,0.82)
+    gl.Color(0,0,0,0.85)
   end
   RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
   

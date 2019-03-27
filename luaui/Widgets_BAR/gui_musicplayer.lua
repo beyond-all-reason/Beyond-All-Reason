@@ -253,21 +253,18 @@ local function createList()
 	local textXPadding = 7*widgetScale
 	local maxTextWidth = right-buttons['next'][3]-textXPadding-textXPadding
 
-	if drawlist[0] ~= nil then
-		glDeleteList(drawlist[0])
-	end
-	if (WG['guishader']) then
-		drawlist[0] = glCreateList( function()
-			RectRound(left, bottom, right, top, 5.5*widgetScale)
-		end)
-		WG['guishader'].InsertDlist(drawlist[0], 'music')
-		--WG['guishader'].InsertRect(left, bottom, right, top,'music')
-	end
-
 	if drawlist[1] ~= nil then
+		glDeleteList(drawlist[5])
 		glDeleteList(drawlist[1])
 		glDeleteList(drawlist[2])
 		glDeleteList(drawlist[3])
+		glDeleteList(drawlist[4])
+	end
+	if WG['guishader'] then
+		drawlist[5] = glCreateList( function()
+			RectRound(left, bottom, right, top, 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
 	drawlist[1] = glCreateList( function()
 		glColor(0, 0, 0, ui_opacity)
@@ -463,9 +460,8 @@ function widget:Shutdown()
 
 	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
 
-	if (WG['guishader']) then
+	if WG['guishader'] then
 		WG['guishader'].RemoveDlist('music')
-		--WG['guishader'].RemoveRect('music')
 	end
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].RemoveTooltip('music')

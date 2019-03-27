@@ -191,9 +191,9 @@ function DrawWindow()
     
 	-- background
 	if WG['guishader'] then
-		gl.Color(0,0,0,0.77)
+		gl.Color(0,0,0,0.8)
 	else
-		gl.Color(0,0,0,0.82)
+		gl.Color(0,0,0,0.85)
 	end
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
@@ -216,9 +216,9 @@ function DrawWindow()
     local title = "Keybinds"
     local titleFontSize = 18
 	if WG['guishader'] then
-		gl.Color(0,0,0,0.77)
+		gl.Color(0,0,0,0.8)
 	else
-		gl.Color(0,0,0,0.82)
+		gl.Color(0,0,0,0.85)
 	end
     titleRect = {x-bgMargin, y+bgMargin, x-bgMargin+(font:GetTextWidth(title)*titleFontSize)+27, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)

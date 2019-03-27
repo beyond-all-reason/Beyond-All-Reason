@@ -342,11 +342,11 @@ function DrawWindow()
     local y = screenY --upwards
 	
 	-- background
-    if WG['guishader'] then
-        gl.Color(0,0,0,0.77)
-    else
-        gl.Color(0,0,0,0.82)
-    end
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.8)
+	else
+		gl.Color(0,0,0,0.85)
+	end
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
@@ -367,11 +367,11 @@ function DrawWindow()
 	-- title
     local title = "Changelog"
 	local titleFontSize = 18
-    if WG['guishader'] then
-        gl.Color(0,0,0,0.77)
-    else
-        gl.Color(0,0,0,0.82)
-    end
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.8)
+	else
+		gl.Color(0,0,0,0.85)
+	end
     titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	font:Begin()

@@ -166,15 +166,14 @@ local function updateValues()
 end
 
 local function createList()
-	if drawlist[0] ~= nil then
-		glDeleteList(drawlist[0])
+	if drawlist[3] ~= nil then
+		glDeleteList(drawlist[3])
 	end
 	if (WG['guishader']) then
-		drawlist[0] = glCreateList( function()
+		drawlist[3] = glCreateList( function()
 			RectRound(left, bottom, right, top, 5.5*widgetScale)
 		end)
-		WG['guishader'].InsertDlist(drawlist[0], 'displayinfo')
-		--WG['guishader'].InsertRect(left, bottom, right, top, 'displayinfo')
+		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo')
 	end
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
@@ -202,7 +201,6 @@ end
 
 function widget:Shutdown()
 	if (WG['guishader']) then
-		--WG['guishader'].RemoveRect('displayinfo')
 		WG['guishader'].RemoveDlist('displayinfo')
 	end
 	for i=1,#drawlist do

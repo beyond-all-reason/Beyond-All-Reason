@@ -719,9 +719,9 @@ function DrawBackground()
 	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
 
 	if WG['guishader'] then
-		gl.Color(0,0,0,0.77)
+		gl.Color(0,0,0,0.8)
 	else
-		gl.Color(0,0,0,0.82)
+		gl.Color(0,0,0,0.85)
 	end
 	local padding = 5*widgetScale
 	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale)

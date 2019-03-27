@@ -426,7 +426,9 @@ local function updateComs(forceText)
 
 	-- add background blur
 	if dlistComsGuishader ~= nil then
-		WG['guishader'].RemoveDlist('topbar_coms')
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_coms')
+		end
 		glDeleteList(dlistComsGuishader)
 	end
 	dlistComsGuishader = glCreateList( function()

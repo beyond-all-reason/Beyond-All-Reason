@@ -487,9 +487,9 @@ function DrawWindow()
 	local y = screenY --upwards
 	-- background
 	if WG['guishader'] then
-		gl.Color(0,0,0,0.77)
+		gl.Color(0,0,0,0.8)
 	else
-		gl.Color(0,0,0,0.82)
+		gl.Color(0,0,0,0.85)
 	end
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
@@ -527,9 +527,9 @@ function DrawWindow()
 		xpos = groupRect[id][3]
 		if currentGroupTab == nil or currentGroupTab ~= group.id then
 			if WG['guishader'] then
-				gl.Color(0,0,0,0.77)
+				gl.Color(0,0,0,0.8)
 			else
-				gl.Color(0,0,0,0.82)
+				gl.Color(0,0,0,0.85)
 			end
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.62,0.5,0.22,0.18)
@@ -541,9 +541,9 @@ function DrawWindow()
 			font:End()
 		else
 			if WG['guishader'] then
-				gl.Color(0,0,0,0.77)
+				gl.Color(0,0,0,0.8)
 			else
-				gl.Color(0,0,0,0.82)
+				gl.Color(0,0,0,0.85)
 			end
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.4,0.4,0.4,0.15)
@@ -558,9 +558,9 @@ function DrawWindow()
 
 	-- title drawing
 	if WG['guishader'] then
-		gl.Color(0,0,0,0.77)
+		gl.Color(0,0,0,0.8)
 	else
-		gl.Color(0,0,0,0.82)
+		gl.Color(0,0,0,0.85)
 	end
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 
