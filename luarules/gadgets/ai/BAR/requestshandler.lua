@@ -18,9 +18,9 @@ local UDN = UnitDefNames
 function RequestsHandler:Update()
 	local ec, es, ep, ei, ee = Spring.GetTeamResources(self.ai.id, "energy")
 	local mc, ms, mp, mi, me = Spring.GetTeamResources(self.ai.id, "metal")
-	if ei > 2000 and (not self.t1ecoreclaimrequested) then
+	if self.ai.buildersquadshandler.currentTechLevel >= 2 and (not self.t1ecoreclaimrequested) then
 		for ct, unitID in pairs(Spring.GetTeamUnitsByDefs(self.ai.id, {UDN.armwin.id, UDN.armmakr.id, UDN.armsolar.id, UDN.armadvsol.id, UDN.corwin.id, UDN.cormakr.id, UDN.corsolar.id, UDN.coradvsol.id})) do
-			self:AddRequest(false, {action = "command", params = { cmdID = CMD.RECLAIM, cmdParams = {unitID}, cmdOptions = {}}})
+			self:AddRequest(false, {action = "command", params = { cmdID = CMD.RECLAIM, cmdParams = {unitID}, cmdOptions = {"shift"}}}) --recmaoù old eco, only once
 		end
 		self.t1ecoreclaimrequested = true
 	end
