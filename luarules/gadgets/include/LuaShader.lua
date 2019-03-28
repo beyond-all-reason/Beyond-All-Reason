@@ -274,6 +274,10 @@ end
 -----------------============ LuaShader uniform manipulation functions ============-----------------
 -- TODO: do it safely with types, len, size check
 
+function LuaShader:GetUniformLocation(name)
+	return getUniformLocation(self, name) or -1
+end
+
 --FLOAT UNIFORMS
 local function setUniformAlwaysImpl(uniform, ...)
 	glUniform(uniform.location, ...)

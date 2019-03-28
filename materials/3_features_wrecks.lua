@@ -2,12 +2,12 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function SunChanged(curShader)
-	gl.Uniform(gl.GetUniformLocation(curShader, "shadowDensity"), gl.GetSun("shadowDensity" ,"unit"))
+local function SunChanged(curShaderObj)
+	curShaderObj:SetUniform("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunAmbient"), gl.GetSun("ambient" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunDiffuse"), gl.GetSun("diffuse" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecular"), gl.GetSun("specular" ,"unit"))
+	curShaderObj:SetUniform("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	curShaderObj:SetUniform("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	curShaderObj:SetUniform("sunSpecular", gl.GetSun("specular" ,"unit"))
 	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 end
 

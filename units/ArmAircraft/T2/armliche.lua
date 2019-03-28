@@ -48,6 +48,7 @@ return {
 		customparams = {
 			model_author = "FireStorm",
 			normalmaps = "yes",
+			lumamult = "10.0",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
