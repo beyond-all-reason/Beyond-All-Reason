@@ -219,7 +219,7 @@ local drawFrame = 0
 local gameframeDrawFrame = 0
 
 local spGetUnitPosition	= Spring.GetUnitPosition
-local spGetUnitCommands	= Spring.GetUnitCommands
+local spGetCommandQueue	= Spring.GetCommandQueue
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spIsUnitIcon = Spring.IsUnitIcon
@@ -528,7 +528,7 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
 end
 
 function getCommandsQueue(unitID)
-	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
+	local q = spGetCommandQueue(unitID, 35) or {} --limit to prevent mem leak, hax etc
 	local our_q = {}
 	local cmd
 	for i=1, #q do
@@ -617,7 +617,7 @@ function widget:Update(dt)
 						if commands[i].draw == false then
 							monitorCommands[i] = nil
 						else
-							local q = spGetUnitCommands(commands[i].unitID,35) or {}
+							local q = spGetCommandQueue(commands[i].unitID,35) or {}
 							if qsize ~= #q then
 								local our_q = getCommandsQueue(commands[i].unitID)
 								commands[i].queue = our_q

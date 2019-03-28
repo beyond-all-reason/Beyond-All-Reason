@@ -224,8 +224,8 @@ function FlyAway(unitID, airbaseID)
    --
    
    -- if the unit has no orders, tell it to move a little away from the airbase
-   local q = Spring.GetUnitCommands(unitID, 0)
-   if q==0 then
+    local q = Spring.GetUnitCurrentCommand(unitID)
+   if not q then
       local px,_,pz = Spring.GetUnitPosition(airbaseID)
       local theta = math.random()*2*math.pi
       local r = 2.5 * Spring.GetUnitRadius(airbaseID) 

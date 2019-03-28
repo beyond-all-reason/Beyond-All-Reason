@@ -34,7 +34,7 @@ end
 --Spring.Echo("max buildpower is ", max) --5000
 
 local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetCommandQueue    = Spring.GetCommandQueue
+local spGetUnitCurrentCommand    = Spring.GetUnitCurrentCommand
 
 local function GetCmdTag(unitID) 
     local cmdTag = 0
@@ -45,13 +45,10 @@ local function GetCmdTag(unitID)
 			cmdTag = cmd.tag
 		end
 	end
-	if cmdTag == 0 then 
-		local cmds = spGetCommandQueue(unitID,1)
-		if (cmds) then
-			local cmd = cmds[1]
-			if cmd then
-				cmdTag = cmd.tag
-			end
+	if cmdTag == 0 then
+        local tag = select(3, spGetUnitCurrentCommand(unitID))
+        if tag then
+            cmdTag = tag
         end
 	end 
 	return cmdTag

@@ -224,7 +224,7 @@ function widget:CommandNotify(id, params, options)
 					if not shift then 
 					spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
 					end
-				local cmdQueue = Spring.GetUnitCommands(id, 1)
+				local cmdQueue = Spring.GetCommandQueue(id, 1)
 				spGiveOrderToUnit(id, CMD.GUARD, {lastprocessedbestbuilder} , {"shift"})
 				end
 			end

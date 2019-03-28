@@ -36,7 +36,7 @@ local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
 local spGetAllUnits				= Spring.GetAllUnits
-local spGetUnitCommands			= Spring.GetUnitCommands
+local spGetCommandQueue			= Spring.GetCommandQueue
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetCameraDirection		= Spring.GetCameraDirection
 
@@ -92,7 +92,7 @@ function init()
 				selfdUnits[unitID] = true
 			end
 			-- check for queued selfd
-			local unitQueue = spGetUnitCommands(unitID,20) or {}
+			local unitQueue = spGetCommandQueue(unitID,20) or {}
 			if (#unitQueue > 0) then
 				for _,cmd in ipairs(unitQueue) do
 					if cmd.id == CMD.SELFD then
@@ -173,7 +173,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	-- check for queued selfd (to check if queue gets cancelled)
 	if selfdUnits[unitID] then
 		local foundSelfdCmd = false
-		local unitQueue = spGetUnitCommands(unitID,20) or {}
+		local unitQueue = spGetCommandQueue(unitID,20) or {}
 		if (#unitQueue > 0) then
 			for _,cmd in ipairs(unitQueue) do
 				if cmd.id == CMD.SELFD then

@@ -55,7 +55,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	
 	function gadget:GameFrame(f)
 			for unitID, unitDefID in pairs(refreshList) do
-				local cmd = Spring.GetUnitCommands(unitID, 1)
+				local cmd = Spring.GetCommandQueue(unitID, 1)
 				if cmd and cmd[1] and cmd[1]["options"] and cmd[1]["options"].ctrl then
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].rSpeed)
 					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", UnitDefs[unitDefID].rSpeed)

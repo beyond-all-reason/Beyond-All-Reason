@@ -23,7 +23,7 @@ local function GetFeatureMidPos(featureID)
     return x, y, z
 end
 
-local function GetCmdTag(unitID) 
+local function GetCmdTag(unitID)
     local cmdTag = 0
     local cmds = Spring.GetFactoryCommands(unitID,1)
 	if (cmds) then
@@ -32,17 +32,14 @@ local function GetCmdTag(unitID)
            cmdTag = cmd.tag
         end
     end
-	if cmdTag == 0 then 
-		local cmds = Spring.GetUnitCommands(unitID,1)
-		if (cmds) then
-			local cmd = cmds[1]
-			if cmd then
-				cmdTag = cmd.tag
-			end
+	if cmdTag == 0 then
+		local tag = select(3, Spring.GetUnitCurrentCommand(unitID))
+        if tag then
+            cmdTag = tag
         end
-	end 
+	end
 	return cmdTag
-end 
+end
 
 
 function UpdateNanoParticles(self)

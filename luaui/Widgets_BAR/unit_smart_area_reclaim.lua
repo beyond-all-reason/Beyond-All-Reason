@@ -29,7 +29,7 @@ end
 local maxUnits = Game.maxUnits
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitDefID = Spring.GetUnitDefID
-local GetUnitCommands = Spring.GetUnitCommands
+local GetCommandQueue = Spring.GetCommandQueue
 local GetUnitPosition = Spring.GetUnitPosition
 local GetFeaturesInRectangle = Spring.GetFeaturesInRectangle
 local GetFeaturePosition = Spring.GetFeaturePosition
@@ -179,7 +179,7 @@ function widget:CommandNotify(id, params, options)
 				
 				local ux, uy, uz = GetUnitPosition(uid)
 				if (options.shift) then
-					local cmds = GetUnitCommands(uid,100)
+					local cmds = GetCommandQueue(uid,100)
 					for ci=#cmds, 1, -1 do
 						local cmd = cmds[ci]
 						if (cmd.id == MOVE) then

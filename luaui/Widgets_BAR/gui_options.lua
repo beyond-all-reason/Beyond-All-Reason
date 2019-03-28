@@ -1455,6 +1455,13 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'sun_x' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunX = value
+			if sunX < options[getOptionByID('sun_x')].min then
+				sunX = options[getOptionByID('sun_x')].min
+			end
+			if sunX > options[getOptionByID('sun_x')].max then
+				sunX = options[getOptionByID('sun_x')].max
+			end
+			options[getOptionByID('sun_x')].value = sunX
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
@@ -1462,6 +1469,13 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'sun_y' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunY = value
+			if sunY < options[getOptionByID('sun_y')].min then
+				sunY = options[getOptionByID('sun_y')].min
+			end
+			if sunY > options[getOptionByID('sun_y')].max then
+				sunY = options[getOptionByID('sun_y')].max
+			end
+			options[getOptionByID('sun_y')].value = sunY
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
@@ -1469,6 +1483,13 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'sun_z' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunZ = value
+			if sunZ < options[getOptionByID('sun_z')].min then
+				sunZ = options[getOptionByID('sun_z')].min
+			end
+			if sunZ > options[getOptionByID('sun_z')].max then
+				sunZ = options[getOptionByID('sun_z')].max
+			end
+			options[getOptionByID('sun_z')].value = sunZ
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})

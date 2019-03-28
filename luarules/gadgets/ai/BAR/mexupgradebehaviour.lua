@@ -26,7 +26,7 @@ end
 function MexUpgradeBehavior:Update()
 	local unit = self.unit:Internal()
 	local countT1mex = UDC(self.ai.id, UDN.cormex.id) + UDC(self.ai.id, UDN.corexp.id) + UDC(self.ai.id, UDN.armmex.id)
-	local curQueue = Spring.GetUnitCommands(unit.id, 1)
+	local curQueue = Spring.GetCommandQueue(unit.id, 1)
 	if countT1mex < 2 and not (#curQueue > 0) then
 		self.unit:Internal():ExecuteCustomCommand(CMD_AUTOMEX, {0}, {})
 		self.unit:ElectBehaviour()

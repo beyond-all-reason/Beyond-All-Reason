@@ -194,7 +194,7 @@ end
 local function setTarget(unitID, targetData)
 	local unitData = unitTargets[unitID]
 	if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
-		local commands = Spring.GetUnitCommands(unitID, 1)
+		local commands = Spring.GetCommandQueue(unitID, 1)
 		if commands and commands[1] and commands[1].id == CMD.ATTACK then
 			return false
 		else

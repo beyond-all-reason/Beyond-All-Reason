@@ -68,7 +68,7 @@ local IsAboveMiniMap = Spring.IsAboveMiniMap
 
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitCommands = Spring.GetUnitCommands
+local GetCommandQueue = Spring.GetCommandQueue
 
 local UnitDefs = UnitDefs
 local min = math.min
@@ -296,7 +296,7 @@ function widget:Update()
 				for i=1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
-					if (mobileFilter[udid] or builderFilter[udid]) and (#GetUnitCommands(uid, 1) == 0) then
+					if (mobileFilter[udid] or builderFilter[udid]) and (#GetCommandQueue(uid, 1) == 0) then
 						tmp[#tmp+1] = uid
 					end
 				end
