@@ -78,7 +78,7 @@ function TaskQueueBehaviour:CanQueueNextTask()
 	local unitID = self.unit:Internal().id
 	local notfactory = self.unit:Internal():Type():IsFactory() ~= true
 	local notprogressing = self.progress ~= true	-- Not already progressing in queue
-	local curqueuelength = #(Spring.GetCommandQueue(unitID,2))
+	local curqueuelength = Spring.GetCommandQueue(unitID,0)
 	local building = Spring.GetUnitIsBuilding(unitID)	-- we check cur buildspeed/power ~= 0
 	if curqueuelength <= 1 and building and notprogressing and notfactory then
 		return true

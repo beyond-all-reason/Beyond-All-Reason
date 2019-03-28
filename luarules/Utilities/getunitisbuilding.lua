@@ -34,16 +34,13 @@ function Spring.Utilities.GetUnitNanoTarget(unitID)
   else
     local unitDef = UnitDefs[Spring.GetUnitDefID(unitID)] or {}
     local buildRange = unitDef.buildDistance or 0
-    local cmds = Spring.GetCommandQueue(unitID,1)
-    if (cmds)and(cmds[1]) then
-      local cmd   = cmds[1]
-      local cmdID = cmd.id
-      local cmdParams = cmd.params
+    local cmdID, _, _, cmdParam1, cmdParam2, cmdParam3, cmdParam4, cmdParam5 = Spring.GetUnitCurrentCommand(unitID, 1)
+    if cmdID then
 
       if cmdID == CMD.RECLAIM then
         --// anything except "#cmdParams = 1 or 5" is either invalid or discribes an area reclaim
-        if (not cmdParams[2])or(cmdParams[5]) then
-          local id = cmdParams[1]
+        if not cmdParam2 or cmdParam5 then
+          local id = cmdParam1
           local unitID_ = id
           local featureID = id - Game.maxUnits
 
@@ -64,7 +61,7 @@ function Spring.Utilities.GetUnitNanoTarget(unitID)
         end
 
       elseif cmdID == CMD.REPAIR  then
-        local repairID = cmdParams[1]
+        local repairID = cmdParam1
         if Spring.ValidUnitID(repairID) then
           target = repairID
           type   = "repair"
@@ -72,15 +69,15 @@ function Spring.Utilities.GetUnitNanoTarget(unitID)
         end
 
       elseif cmdID == CMD.RESTORE then
-        local x = cmd.params[1]
-        local z = cmd.params[3]
+        local x = cmdParam1
+        local z = cmdParam3
         type   = "restore"
         target = {x, Spring.GetGroundHeight(x,z)+5, z, cmd.params[4]}
 	    inRange = IsGroundPosInRange(unitID, x, z, buildRange)
 
       elseif cmdID == CMD.CAPTURE then
-        if (not cmdParams[2])or(cmdParams[5]) then
-          local captureID = cmdParams[1]
+        if (not cmdParam2)or(cmdParam5) then
+          local captureID = cmdParam1
           if Spring.ValidUnitID(captureID) then
             target = captureID
             type   = "capture"
@@ -89,7 +86,7 @@ function Spring.Utilities.GetUnitNanoTarget(unitID)
         end
 
       elseif cmdID == CMD.RESURRECT then
-        local rezzID = cmdParams[1] - Game.maxUnits
+        local rezzID = cmdParam1 - Game.maxUnits
         if Spring.ValidFeatureID(rezzID) then
           target    = rezzID
           isFeature = true

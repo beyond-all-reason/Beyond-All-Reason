@@ -69,6 +69,7 @@ local spGetUnitsInRectangle		= Spring.GetUnitsInRectangle
 local spGetUnitsInCylinder		= Spring.GetUnitsInCylinder
 local spSetUnitRulesParam		= Spring.SetUnitRulesParam
 local spGetCommandQueue     	= Spring.GetCommandQueue
+local spGetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 local spGetUnitWeaponTryTarget	= Spring.GetUnitWeaponTryTarget
 local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
@@ -194,8 +195,8 @@ end
 local function setTarget(unitID, targetData)
 	local unitData = unitTargets[unitID]
 	if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
-		local commands = Spring.GetCommandQueue(unitID, 1)
-		if commands and commands[1] and commands[1].id == CMD.ATTACK then
+		local currentCmdID = spGetUnitCurrentCommand(unitID)
+		if currentCmdID and currentCmdID == CMD.ATTACK then
 			return false
 		else
 			Spring.SetUnitTarget(unitID, nil)
@@ -543,7 +544,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams,
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if spGetCommandQueue(unitID, -1, false) == 0 or not cmdOptions.meta then
+	if spGetCommandQueue(unitID, 0) == 0 or not cmdOptions.meta then
 		if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 			return false --command was used & fully processed, so block command
 		elseif cmdID == CMD_STOP then
@@ -576,15 +577,15 @@ function gadget:GameFrame(n)
 	-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 	-- sim here 
 	for unitID, pauseend in pairs(pauseEnd) do
-			if pauseEnd[unitID] and pauseEnd[unitID] == n then
+		if pauseEnd[unitID] and pauseEnd[unitID] == n then
 			addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
 			pausedTargets[unitID] = nil
-			pauseEnd[unitID] = nil	
-			else 
-			if spGetCommandQueue(unitID, -1, false) == 2 then
-			pauseEnd[unitID] = Spring.GetGameFrame() + 15
+			pauseEnd[unitID] = nil
+		else
+			if spGetCommandQueue(unitID, 0) == 2 then
+				pauseEnd[unitID] = Spring.GetGameFrame() + 15
 			end
-			end
+		end
 	end
 	for unitID, unitData in pairs(unitTargets) do
 		local targetIndex

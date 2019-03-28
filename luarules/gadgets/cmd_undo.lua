@@ -223,7 +223,7 @@ if gadgetHandler:IsSyncedCode() then
 		-- check for queued selfd (to check if queue gets cancelled)
 		if selfdCmdUnits[unitID] then
 			local foundSelfdCmd = false
-			local unitQueue = Spring.GetCommandQueue(unitID,15) or {}
+			local unitQueue = Spring.GetCommandQueue(unitID,20) or {}
 			if (#unitQueue > 0) then
 				for _,cmd in ipairs(unitQueue) do
 					if cmd.id == CMD.SELFD then

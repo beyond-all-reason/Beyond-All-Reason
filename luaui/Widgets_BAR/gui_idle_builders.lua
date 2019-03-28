@@ -186,9 +186,9 @@ local function IsIdleBuilder(unitID)
         if ud.isFactory then
           return true 
         else
-          if GetCommandQueue(unitID,_,false) == 0 then
-						return true
-					end
+          if GetCommandQueue(unitID,0) == 0 then
+			return true
+		  end
         end
       end
 		elseif ud.isFactory then

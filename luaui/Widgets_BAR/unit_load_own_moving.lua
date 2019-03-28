@@ -29,7 +29,7 @@ end
 -------------------------------------------------------------------
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetUnitTeam = Spring.GetUnitTeam
-local spGetCommandQueue = Spring.GetCommandQueue
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitSeparation = Spring.GetUnitSeparation
 local spGetUnitVelocity = Spring.GetUnitVelocity
@@ -43,14 +43,11 @@ local CMD_OPT_ALT = CMD.OPT_ALT
 -------------------------------------------------------------------
 local function GetTransportTarget(uID)
 	
-	local uCmds = spGetCommandQueue(uID, 1)
-	if not uCmds then return end
-	
-	local uCmd = uCmds[1]
-	if uCmd and uCmd.id == CMD_LOAD_UNITS and #uCmd.params == 1 then
-		local tID = uCmd.params[1]
-		if spGetUnitTeam(tID) == spGetMyTeamID() then
-			return tID
+	local uCmd, _, _, cmdParam1, cmdParam2 = spGetUnitCurrentCommand(uID)
+	if not uCmd then return end
+	if uCmd.id == CMD_LOAD_UNITS and cmdParam2 == nil then
+		if spGetUnitTeam(cmdParam1) == spGetMyTeamID() then
+			return cmdParam1
 		end
 	end
 end

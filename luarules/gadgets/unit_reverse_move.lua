@@ -12,8 +12,11 @@ end
 
 
 if (gadgetHandler:IsSyncedCode()) then
-	reverseUnit = {}
-	refreshList = {}
+	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+	local cmdCtrl = CMD.OPT_CTRL
+	local reverseUnit = {}
+	local refreshList = {}
+
 	function gadget:UnitCreated(unitID)
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		if not (UnitDefs[unitDefID].rSpeed == nil or UnitDefs[unitDefID].rSpeed == 0) then
@@ -52,18 +55,18 @@ if (gadgetHandler:IsSyncedCode()) then
 			refreshList[unitID] = unitDefID
 		end
 	end
-	
+
 	function gadget:GameFrame(f)
-			for unitID, unitDefID in pairs(refreshList) do
-				local cmd = Spring.GetCommandQueue(unitID, 1)
-				if cmd and cmd[1] and cmd[1]["options"] and cmd[1]["options"].ctrl then
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].rSpeed)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", UnitDefs[unitDefID].rSpeed)
-				else
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].speed)
-					Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)
-				end
-				refreshList[unitID] = nil
+		for unitID, unitDefID in pairs(refreshList) do
+			local cmdID, cmdOptions = spGetUnitCurrentCommand(unitID, 1)
+			if cmdID and (cmdOptions / cmdCtrl) % 2 == 1 then
+				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].rSpeed)
+				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", UnitDefs[unitDefID].rSpeed)
+			else
+				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].speed)
+				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)
 			end
+			refreshList[unitID] = nil
+		end
 	end
 end

@@ -213,19 +213,18 @@ function widget:CommandNotify(id, params, options)
 		for i, id in pairs(units) do -- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
 			if mexBuilder[id] then
 				if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal == maxbatchextracts then
-				local x,_,z = spGetUnitPosition(id)
-				ux = ux+x
-				uz = uz+z
-				us = us+1
-				lastprocessedbestbuilder = id
-				batchSize = batchSize + 1
-				batchMexBuilder[batchSize] = id
+					local x,_,z = spGetUnitPosition(id)
+					ux = ux+x
+					uz = uz+z
+					us = us+1
+					lastprocessedbestbuilder = id
+					batchSize = batchSize + 1
+					batchMexBuilder[batchSize] = id
 				else
 					if not shift then 
-					spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
+						spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
 					end
-				local cmdQueue = Spring.GetCommandQueue(id, 1)
-				spGiveOrderToUnit(id, CMD.GUARD, {lastprocessedbestbuilder} , {"shift"})
+					spGiveOrderToUnit(id, CMD.GUARD, {lastprocessedbestbuilder} , {"shift"})
 				end
 			end
 		end

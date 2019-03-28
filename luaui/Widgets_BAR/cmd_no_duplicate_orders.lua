@@ -26,11 +26,12 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local GetSelectedUnits = Spring.GetSelectedUnits
-local GetCommandQueue  = Spring.GetCommandQueue
-local GetUnitPosition  = Spring.GetUnitPosition
-local GiveOrderToUnit  = Spring.GiveOrderToUnit
-local GetUnitHealth    = Spring.GetUnitHealth
+local GetSelectedUnits        = Spring.GetSelectedUnits
+local GetCommandQueue         = Spring.GetCommandQueue
+local GetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
+local GetUnitPosition         = Spring.GetUnitPosition
+local GiveOrderToUnit         = Spring.GiveOrderToUnit
+local GetUnitHealth           = Spring.GetUnitHealth
 
 local buildList = {}
 
@@ -79,11 +80,11 @@ function widget:CommandNotify(id, params, options)
       local selUnits = GetSelectedUnits()
       local blockUnits = {}
       for _,unitID in ipairs(selUnits) do
-        local cQueue = GetCommandQueue(unitID, 1) or {}
-        if (#cQueue > 0) then
-          if (cQueue[1].id < 0) and (params[1] == buildList[toLocString(cQueue[1].params[1], 0, cQueue[1].params[3])]) then
+        local cmdID, _, _, cmdParam1, _, cmdParam3 = GetUnitCurrentCommand(unitID)
+        if cmdID then
+          if cmdID < 0 and (params[1] == buildList[toLocString(cmdParam1, 0, cmdParam3)]) then
             blockUnits[unitID] = true
-          elseif (cQueue[1].id == CMD.REPAIR) and (params[1] == cQueue[1].params[1]) then
+          elseif (cQueue[1].id == CMD.REPAIR) and (params[1] == cmdParam1) then
             blockUnits[unitID] = true
           end
         end
