@@ -3,6 +3,12 @@ local UNIFORM_TYPE_INT          = 1 -- includes arrays
 local UNIFORM_TYPE_FLOAT        = 2 -- includes arrays
 local UNIFORM_TYPE_FLOAT_MATRIX = 3
 
+local glGetUniformLocation = gl.GetUniformLocation
+local glUseShader = gl.UseShader
+local glActiveShader = gl.ActiveShader
+local glUniform = gl.Uniform
+local glUniformMatrix = gl.UniformMatrix
+local glUniformArray = gl.UniformArray
 
 local function new(class, shaderParams, shaderName, logEntries)
 	local logEntriesSanitized
@@ -148,7 +154,7 @@ function LuaShader:Compile()
 	for idx, info in ipairs(gl.GetActiveUniforms(shaderObj)) do
 		local uniName = string.gsub(info.name, "%[0%]", "") -- change array[0] to array
 		uniforms[uniName] = {
-			location = gl.GetUniformLocation(shaderObj, uniName),
+			location = glGetUniformLocation(shaderObj, uniName),
 			--type = info.type,
 			--size = info.size,
 			values = {},
@@ -184,7 +190,7 @@ LuaShader.Finalize = LuaShader.Delete
 function LuaShader:Activate()
 	if self.shaderObj ~= nil then
 		self.active = true
-		return gl.UseShader(self.shaderObj)
+		return glUseShader(self.shaderObj)
 	else
 		local funcName = (debug and debug.getinfo(1).name) or "UnknownFunction"
 		self:ShowError(string.format("Attempt to use invalid shader object in [%s](). Did you call :Compile() or :Initialize()", funcName))
@@ -195,7 +201,7 @@ end
 function LuaShader:ActivateWith(func, ...)
 	if self.shaderObj ~= nil then
 		self.active = true
-		gl.ActiveShader(self.shaderObj, func, ...)
+		glActiveShader(self.shaderObj, func, ...)
 		self.active = false
 	else
 		local funcName = (debug and debug.getinfo(1).name) or "UnknownFunction"
@@ -205,7 +211,7 @@ end
 
 function LuaShader:Deactivate()
 	self.active = false
-	gl.UseShader(0)
+	glUseShader(0)
 end
 -----------------============ End of general LuaShader methods ============-----------------
 
@@ -217,7 +223,7 @@ local function getUniformLocation(self, name)
 	if uniform and type(uniform) == "table" then
 		return uniform
 	elseif uniform == nil then --used for indexed elements. nil means not queried for location yet
-		local location = gl.GetUniformLocation(self.shaderObj, name)
+		local location = glGetUniformLocation(self.shaderObj, name)
 		if location and location > -1 then
 			self.uniforms[name] = {
 				location = location,
@@ -270,7 +276,7 @@ end
 
 --FLOAT UNIFORMS
 local function setUniformAlwaysImpl(uniform, ...)
-	gl.Uniform(uniform.location, ...)
+	glUniform(uniform.location, ...)
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
@@ -303,7 +309,7 @@ LuaShader.SetUniformFloatAlways = LuaShader.SetUniformAlways
 
 --INTEGER UNIFORMS
 local function setUniformIntAlwaysImpl(uniform, ...)
-	gl.UniformInt(uniform.location, ...)
+	glUniformInt(uniform.location, ...)
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
@@ -333,7 +339,7 @@ end
 
 --FLOAT ARRAY UNIFORMS
 local function setUniformFloatArrayAlwaysImpl(uniform, tbl)
-	gl.UniformArray(uniform.location, UNIFORM_TYPE_FLOAT, tbl)
+	glUniformArray(uniform.location, UNIFORM_TYPE_FLOAT, tbl)
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
@@ -363,7 +369,7 @@ end
 
 --INT ARRAY UNIFORMS
 local function setUniformIntArrayAlwaysImpl(uniform, tbl)
-	gl.UniformArray(uniform.location, UNIFORM_TYPE_INT, tbl)
+	glUniformArray(uniform.location, UNIFORM_TYPE_INT, tbl)
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
@@ -393,7 +399,7 @@ end
 
 --MATRIX UNIFORMS
 local function setUniformMatrixAlwaysImpl(uniform, tbl)
-	gl.UniformMatrix(uniform.location, unpack(tbl))
+	glUniformMatrix(uniform.location, unpack(tbl))
 	return true --currently there is no way to check if uniform is set or not :(
 end
 
