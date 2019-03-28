@@ -58,11 +58,11 @@ local lockcameraHideEnemies = true 			-- specfullview
 local lockcameraLos = true					-- togglelos
 local collapsable = false
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -298,15 +298,13 @@ local desiredLosmodeChanged = 0
 -- GEOMETRY VARIABLES
 --------------------------------------------------------------------------------
 
-local vsx,vsy  			= gl.GetViewSizes()
-
 local widgetTop     	= 0
 local widgetRight   	= 1
 local widgetHeight  	= 0
 local widgetWidth   	= 0
 local widgetPosX    	= vsx-200
 local widgetPosY    	= 0
-local widgetScale		= 1
+local widgetScale		= 0
 
 local expandDown    	= false
 local expandLeft    	= true
@@ -1119,10 +1117,10 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('advplayerlist')
-		WG['guishader_api'].RemoveRect('advplayerlist_screenshot')
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('advplayerlist')
+		--WG['guishader'].RemoveRect('advplayerlist')
+		WG['guishader'].RemoveRect('advplayerlist_screenshot')
 	end
 	WG['advplayerlist_api'] = nil
 	widgetHandler:DeregisterGlobal('CameraBroadcastEvent')
@@ -1142,6 +1140,7 @@ function widget:Shutdown()
 	if screenshotDlist then
 		gl_DeleteList(screenshotDlist)
 	end
+	gl.DeleteFont(font)
 	if lockPlayerID then
 		LockCamera()
 	end
@@ -1736,21 +1735,8 @@ function widget:DrawScreen()
 
 	if Spring_IsGUIHidden() then return end
 
-
-	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
-	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
-	gl.Scale(widgetScale,widgetScale,0)
-	gl.Translate(scaleDiffX,scaleDiffY,0)
-
 	local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
-	if collapsed then
-		-- draws the background
-		if Background then
-			gl_CallList(Background)
-		else
-			CreateBackground()
-		end
-	else
+	if not collapsed then
 		-- update lists frequently if there is mouse interaction
 		local NeedUpdate = false
 		if (mouseX > widgetPosX + m_name.posX + m_name.width - 5) and (mouseX < widgetPosX + widgetWidth) and (mouseY > widgetPosY - 16) and (mouseY < widgetPosY + widgetHeight) then
@@ -1768,14 +1754,20 @@ function widget:DrawScreen()
 			CreateLists()
 			PrevGameFrame = CurGameFrame
 		end
+	end
+	-- draws the background
+	if Background then
+		gl_CallList(Background)
+	else
+		CreateBackground()
+	end
 
-		-- draws the background
-		if Background then
-			gl_CallList(Background)
-		else
-			CreateBackground()
-		end
+	local scaleDiffX = -((widgetPosX*widgetScale)-widgetPosX)/widgetScale
+	local scaleDiffY = -((widgetPosY*widgetScale)-widgetPosY)/widgetScale
+	gl.Scale(widgetScale,widgetScale,0)
+	gl.Translate(scaleDiffX,scaleDiffY,0)
 
+	if not collapsed then
 		-- draws the main list
 		if MainList then
 			gl_CallList(MainList)
@@ -1804,8 +1796,8 @@ function widget:DrawScreen()
 		local width = (screenshotWidth*widgetScale)+margin+margin+margin
 		local height = (screenshotHeight*widgetScale)+margin+margin+margin+(15*widgetScale)
 		if screenshotSaveQueued then
-			if (WG['guishader_api'] ~= nil) then
-				WG['guishader_api'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
+			if WG['guishader'] then
+				WG['guishader'].InsertRect(left,bottom,left+width,bottom+height,'advplayerlist_screenshot')
 				screenshotGuishader = true
 			end
 			if not screenshotSaved then
@@ -1821,8 +1813,8 @@ function widget:DrawScreen()
 		if screenshotWidth and IsOnRectPlain(mouseX,mouseY, screenshotPosX,screenshotPosY,screenshotPosX+(screenshotWidth*widgetScale),screenshotPosY+(screenshotHeight*widgetScale)) then
 			if mouseButtonL then
 				gl_DeleteList(screenshotDlist)
-				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].RemoveRect('advplayerlist_screenshot')
+				if WG['guishader'] then
+					WG['guishader'].RemoveRect('advplayerlist_screenshot')
 				end
 				screenshotDlist = nil
 			else
@@ -1867,27 +1859,47 @@ end
 --  Background gllist
 ---------------------------------------------------------------------------------------------------
 
-local function DrawRectRound(px,py,sx,sy,cs,ignoreBorder)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	
+
+	local offset = 0.07		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(px, py, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(px+cs, py, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(px+cs, py+cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(px, py+cs, 0)
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
+	gl.TexCoord(o,o)
+	gl.Vertex(sx, py, 0)
+	gl.TexCoord(o,1-offset)
+	gl.Vertex(sx-cs, py, 0)
+	gl.TexCoord(1-offset,1-offset)
+	gl.Vertex(sx-cs, py+cs, 0)
+	gl.TexCoord(1-offset,o)
+	gl.Vertex(sx, py+cs, 0)
 	-- top left
-	if (py+((sy-py)*widgetScale) >= vsy-backgroundMargin or px <= backgroundMargin) and ignoreBorder == nil then o = 0.5 else o = offset end
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -1897,27 +1909,7 @@ local function DrawRectRound(px,py,sx,sy,cs,ignoreBorder)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
 	-- top right
-	if (py+((sy-py)*widgetScale) >= vsy-backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(px, py+cs, 0)
-	-- bottom left
-	if (py <= backgroundMargin or px <= backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
-	gl.TexCoord(o,o)
-	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-offset)
-	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-offset,1-offset)
-	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-offset,o)
-	gl.Vertex(sx, py+cs, 0)
-	-- bottom right
-	if (py <= backgroundMargin or (px+((sx-px)*widgetScale)) >= vsx-backgroundMargin) and ignoreBorder == nil  then o = 0.5 else o = offset end
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -1927,9 +1919,9 @@ local function DrawRectRound(px,py,sx,sy,cs,ignoreBorder)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-function RectRound(px,py,sx,sy,cs,ignoreBorder)		-- (coordinates work differently than the RectRound func in other widgets)
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs,ignoreBorder)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -1950,22 +1942,35 @@ function CreateBackground()
 		TRcornerY = widgetPosY - margin + collapsedHeight
 	end
 
-	local absLeft		= BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1))
-	local absBottom		= BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1))
-	local absRight		= TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1))
-	local absTop		= TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1))
+	local absLeft		= math.floor(BLcornerX - ((widgetPosX - BLcornerX) * (widgetScale-1)))
+	local absBottom		= math.floor(BLcornerY - ((widgetPosY - BLcornerY) * (widgetScale-1)))
+	local absRight		= math.ceil(TRcornerX - ((widgetPosX - TRcornerX) * (widgetScale-1)))
+	local absTop		= math.ceil(TRcornerY - ((widgetPosY - TRcornerY) * (widgetScale-1)))
 	apiAbsPosition = {absTop,absLeft,absBottom,absRight,widgetScale,right,collapsed}
 
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
+	local padding = 3*widgetScale
+	local paddingBottom = padding
+	local paddingRight = padding
+	local paddingTop = padding
+	local paddingLeft = padding
+	if absBottom <= 0.2 then paddingBottom = 0 end
+	if absRight >= vsx-0.2 then paddingRight = 0 end
+	if absTop <= 0.2 then paddingTop = 0 end
+	if absLeft <= 0.2 then paddingLeft = 0 end
+
+	if WG['guishader'] then
+		BackgroundGuishader = gl_CreateList( function()
+			RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		end)
+		WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
+		--WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
 	end
 	Background = gl_CreateList(function()
+
 		gl_Color(0,0,0,ui_opacity)
-		RectRound(BLcornerX,BLcornerY,TRcornerX,TRcornerY,6)
-		
-		local padding = 2.75
-		gl_Color(1,1,1,ui_opacity*0.04)
-		RectRound(BLcornerX+padding,BLcornerY+padding,TRcornerX-padding,TRcornerY-padding,padding*1.66,true)
+		RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		gl_Color(1,1,1,ui_opacity*0.055)
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.66, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'
@@ -1978,12 +1983,6 @@ function CreateBackground()
 			font:Print(text, widgetPosX + xOffset, TRcornerY-padding -yOffset+0.8, 13, "n")
 			font:End()
 		end
-		--DrawRect(BLcornerX,BLcornerY,TRcornerX,TRcornerY)
-		-- draws highlight (top and left sides)
-		--gl_Color(0.44,0.44,0.44,0.38)	
-		--gl_Rect(widgetPosX-margin-1,					widgetPosY + widgetHeight +margin, 	widgetPosX + widgetWidth+margin, 			widgetPosY + widgetHeight-1+margin)
-		--gl_Rect(widgetPosX-margin-1 , 					widgetPosY-margin, 					widgetPosX-margin, 							widgetPosY-margin + widgetHeight + 1  - 1+margin+margin)
-		
 		gl_Color(1,1,1,1)
 	end)
 
@@ -2060,6 +2059,7 @@ function CreateMainList(tip)
 	if MainList then
 		gl_DeleteList(MainList)
 	end
+	tipText = nil
 	MainList = gl_CreateList(function()
 		drawTipText = nil
 		for i, drawObject in ipairs(drawList) do
@@ -2102,7 +2102,9 @@ function CreateMainList(tip)
 		end
 		if drawTipText ~= nil then 
 			tipText = drawTipText
-			DrawTip(drawTipMouseX, drawTipMouseY)
+			if not WG['tooltip'] then	-- else use tooltip widget (in widget:update)
+				DrawTip(drawTipMouseX, drawTipMouseY)
+			end
 		end
 	end)
 	
@@ -2692,7 +2694,7 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 		end
 	else
 		font:Begin()
-		font:SetTextColor(1,1,1,0.3)
+		font:SetTextColor(0,0,0,0.3)
 		font:SetOutlineColor(0,0,0,0.3)
 		font:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
 		font:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
@@ -3937,7 +3939,18 @@ local updateRate = 0.75
 local updateRatePreStart = 0.25
 local lastTakeMsg = -120
 local uiOpacitySec = 0.5
+local hoverPlayerlist = false
 function widget:Update(delta) --handles takes & related messages
+
+	local mx,my = Spring.GetMouseState()
+	hoverPlayerlist = false
+	if isInBox(mx, my, {apiAbsPosition[2]-1,apiAbsPosition[3]-1,apiAbsPosition[4]+1,apiAbsPosition[1]+1}) then
+		hoverPlayerlist = true
+		if tipText and WG['tooltip'] then
+			WG['tooltip'].ShowTooltip('advplayerlist', tipText)
+		end
+	end
+
 
 	uiOpacitySec = uiOpacitySec + delta
 	if uiOpacitySec>0.5 then
@@ -3949,8 +3962,7 @@ function widget:Update(delta) --handles takes & related messages
 	end
 
 	if collapsable then
-		local mx,my = Spring.GetMouseState()
-		if collapsed and isInBox(mx, my, {apiAbsPosition[2]-1,apiAbsPosition[3]-1,apiAbsPosition[4]+1,apiAbsPosition[1]+1}) then
+		if collapsed and hoverPlayerlist then
 			collapsed = false
 			CreateBackground()
 		elseif not collapsed and not energyPlayer and not metalPlayer then
@@ -4078,10 +4090,16 @@ end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
 	local dx, dy = vsx - viewSizeX, vsy - viewSizeY
+
+	--local vsxDiff = 1 / (vsx/viewSizeX)
+	--local vsyDiff = 1 / (vsy/viewSizeY)
+
 	vsx, vsy = viewSizeX, viewSizeY
-	
+
+	--local oldWidgetScale = widgetScale
 	updateWidgetScale()
-	
+	--local scaleDiff = 1 / (vsx/widgetScale)
+
 	if expandDown == true then
 		widgetTop  = widgetTop - dy
 		widgetPosY = widgetTop - widgetHeight
@@ -4093,6 +4111,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end

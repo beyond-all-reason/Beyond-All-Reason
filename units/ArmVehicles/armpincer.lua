@@ -54,7 +54,7 @@ return {
 			kickback = "-2.7",
 			model_author = "Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
 			restoretime = "3000",
 			rockstrength = "3",

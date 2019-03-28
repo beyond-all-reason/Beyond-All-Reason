@@ -52,9 +52,14 @@ local fontsizeMultiplier = 1
 local showBackground = true
 local showBackgroundOpacity = 0.19
 
+local ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+
+local posX = 0.304
+local posY = 0.104
+
 local Config = {
 	console = {
-		px = vsx*0.3,py = vsy*0.105, --default start position
+		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
 		
 		fontsize = fontsize*widgetScale,
@@ -83,7 +88,6 @@ local Config = {
 		
 		cbackground = {0,0,0,0.0},
 		cborder = {0,0,0,0},
-		noblur = true,
 		
 		dragbutton = {2,3}, --middle mouse button
 		tooltip = {
@@ -180,13 +184,11 @@ local function createconsole(r)
 		fontsize=r.fontsize,
 		caption="",
 		options="o", --black outline
-		noblur = true,
 	}
 	
 	local activationarea = {"area",
 		px=r.px-r.fadedistance,py=r.py-r.fadedistance,
 		sx=r.sx+r.fadedistance*2,sy=0,
-		noblur = true,
 		
 		mousewheel=function(up,mx,my,self)
 			if (vars.browsinghistory) then
@@ -221,7 +223,6 @@ local function createconsole(r)
 		border=r.cborder,
 		movable=r.dragbutton,
 
-		noblur = true,
 		obeyscreenedge = true,
 		--overrideclick = {2},
 		
@@ -861,7 +862,7 @@ function widget:Initialize()
 	WG['red_chatonlyconsole'].setShowBackground = function(value)
 		showBackground = value
 		if showBackground then
-			Config.console.cbackground = {0,0,0,showBackgroundOpacity}
+			Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity)}
 		else
 			Config.console.cbackground = {0,0,0,0}
 		end
@@ -896,7 +897,20 @@ function widget:AddConsoleLine(lines,priority)
 	clipHistory(console,true)
 end
 
-function widget:Update()
+
+local uiOpacitySec = 0
+function widget:Update(dt)
+	uiOpacitySec = uiOpacitySec + dt
+	if uiOpacitySec>0.5 then
+		uiOpacitySec = 0
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity) }
+			if console ~= nil and console.background ~= nil then
+				console.background.color = Config.console.cbackground
+			end
+		end
+	end
 	updateconsole(console,Config.console)
 	AutoResizeObjects()
 	if not Initialized == true then
@@ -912,7 +926,16 @@ function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (1 + (vsx*vsy / 4000000))
 	Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
+	Config.console.px = posX*vsx
+	Config.console.py = posY*vsy
+	Config.console.margin = 7*widgetScale
 	if console ~= nil and console.vars ~= nil then
+		console.background.px = Config.console.px
+		console.background.py = Config.console.py
+		console.lines.px = Config.console.px+Config.console.margin
+		console.lines.py = Config.console.py+Config.console.margin
+		console.counters.px = Config.console.px
+		console.counters.py = Config.console.py
 		console.vars._forceupdate = true
 	end
 end
@@ -941,7 +964,7 @@ function widget:SetConfigData(data) --load config
 		if data.showBackground2 ~= nil then
 			showBackground = data.showBackground2
 			if showBackground then
-				Config.console.cbackground = {0,0,0,showBackgroundOpacity}
+				Config.console.cbackground = {0,0,0,math.min(showBackgroundOpacity,ui_opacity)}
 			else
 				Config.console.cbackground = {0,0,0,0}
 			end

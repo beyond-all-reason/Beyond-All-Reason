@@ -166,7 +166,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasers:Update(n)
-  if not self._lastupdate or thisGameFrame - self._lastupdate > 2 or (self.quickupdates and thisGameFrame - self._lastupdate > 1) then  -- save some performance/memory
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 1 or (self.quickupdates and thisGameFrame - self._lastupdate >= 1) then  -- save some performance/memory
     UpdateNanoParticles(self)
     --Spring.Echo(self.pos[1]..'  '..self.targetpos[1]..'  '..self.streamThickness)
     if enableLights and Script.LuaUI("GadgetCreateBeamLight") then
@@ -216,6 +216,7 @@ end
 function NanoLasers:Initialize()
   laserShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       //gl.vertex.xy := length,width
       //gl.vertex.zw := texcoord
 
@@ -257,6 +258,7 @@ function NanoLasers:Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D tex0;
 
       varying vec3 texCoord;

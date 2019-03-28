@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author    = "Floris",
 		date      = "April 2017",
 		license   = "GNU GPL, v2 or later",
-		layer     = -99999999,
+		layer     = -9999999999,
 		enabled   = true,  --  loaded by default?
 	}
 end
@@ -33,11 +33,11 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 ------------------------------------------------------------------------------------
 
 local defaultDelay = 0.4
-local usedFontSize = 14.5
-local xOffset = 32
-local yOffset = -32-usedFontSize
+local usedFontSize = 15
+local xOffset = 35
+local yOffset = -35-usedFontSize
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
@@ -90,9 +90,9 @@ end
 
 function widget:Shutdown()
     gl.DeleteFont(font)
-	if (WG['guishader_api'] ~= nil) then
+	if WG['guishader'] then
         for name, tooltip in pairs(tooltips) do
-		    WG['guishader_api'].RemoveRect('tooltip_'..name)
+		    WG['guishader'].DeleteScreenDlist('tooltip_'..name)
         end
 	end
 	WG['tooltip'] = nil
@@ -159,6 +159,7 @@ function lines(str)
   return t
 end
 
+
 function drawTooltip(name, x, y)
 	--Spring.Echo('Showing tooltip:  '..name)
 
@@ -166,7 +167,7 @@ function drawTooltip(name, x, y)
 	local paddingW = paddingH * 1.33
 	local posX = x + paddingW
 	local posY = y + paddingH
-	
+
 	local fontSize = usedFontSize*widgetScale
 	local maxWidth = 0
 	local maxHeight = 0
@@ -180,7 +181,7 @@ function drawTooltip(name, x, y)
 	end
 	-- adjust position when needed
 	if posX+maxWidth+paddingW+paddingW > vsx then
-		posX = posX - maxWidth - paddingW - paddingW - (xOffset*widgetScale)
+		posX = posX - maxWidth - paddingW - paddingW - (xOffset*widgetScale*2)
 	end
 	if posX - paddingW < 0 then
 		posX = 0 + paddingW
@@ -194,14 +195,19 @@ function drawTooltip(name, x, y)
 	
 	-- draw background
 	local cornersize = 0
-	glColor(0.8,0.8,0.8,0.8)
+	glColor(0.85,0.85,0.85,(WG['guishader'] and 0.66 or 0.8))
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
-	cornersize = 2.25*widgetScale
-	glColor(0,0,0,0.3)
-	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize-0.06, 4.3*widgetScale)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(posX-paddingW-cornersize, posY-maxHeight-paddingH-cornersize, posX+maxWidth+paddingW+cornersize, posY+paddingH+cornersize, 'tooltip_'..name)
+	if WG['guishader'] then
+		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
+			RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
+		end), 'tooltip_'..name)
 	end
+	cornersize = 2.25*widgetScale
+	glColor(0,0,0,(WG['guishader'] and 0.22 or 0.3))
+	RectRound(posX-paddingW+cornersize,
+		posY-maxHeight-paddingH+cornersize,
+		posX+maxWidth+paddingW-cornersize,
+		posY+paddingH-cornersize-0.06, 4.3*widgetScale)
 	
 	-- draw text
 	maxHeight = -fontSize*0.93
@@ -225,9 +231,9 @@ function widget:DrawScreen()
 	local x, y = spGetMouseState()
 	local now = os.clock()
 
-	if (WG['guishader_api'] ~= nil) then
+	if WG['guishader'] then
 		for name, _ in pairs(cleanupGuishaderAreas) do
-			WG['guishader_api'].RemoveRect(name)
+			WG['guishader'].DeleteScreenDlist(name)
 			cleanupGuishaderAreas[name] = nil
 		end
 	end
@@ -255,8 +261,8 @@ function widget:DrawScreen()
 		else
 			if tooltip.displayTime ~= nil then
 				tooltip.displayTime = nil
-				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].RemoveRect('tooltip_'..name)
+				if WG['guishader'] then
+					WG['guishader'].DeleteScreenDlist('tooltip_'..name)
 				end
 			end
 		end

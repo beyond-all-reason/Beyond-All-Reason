@@ -1,4 +1,9 @@
 
+-- disable for Intel GPU (they eat fps but dont really show)
+if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	return
+end
+
 function widget:GetInfo()
 return {
     name      = "Shadow Quality Manager",

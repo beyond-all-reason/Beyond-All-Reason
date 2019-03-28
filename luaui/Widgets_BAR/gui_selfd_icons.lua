@@ -19,7 +19,7 @@ local unitConf				= {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 45
@@ -115,10 +115,10 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	for k,_ in pairs(drawLists) do
 		gl.DeleteList(drawLists[k])
 	end
+	gl.DeleteFont(font)
 end
 
 

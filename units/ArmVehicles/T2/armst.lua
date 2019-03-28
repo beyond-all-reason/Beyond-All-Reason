@@ -53,7 +53,7 @@ return {
 			kickback = "-0.65",
 			model_author = "FireStorm",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.2,
 			restoretime = "3000",
 			rockstrength = "3",

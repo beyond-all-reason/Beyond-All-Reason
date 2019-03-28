@@ -15,11 +15,11 @@ local discordLink = 'balancedannihilation.com/discord'
 local iconTexture = ":n:LuaUI/Images/discord.png"
 local iconSize = 32
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -48,6 +48,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end
@@ -110,10 +111,10 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
 	end
+	gl.DeleteFont(font)
 end
 
 function widget:GameFrame(n)

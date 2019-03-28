@@ -37,7 +37,7 @@ return {
 		upright = true,
 		customparams = {
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,
 		},

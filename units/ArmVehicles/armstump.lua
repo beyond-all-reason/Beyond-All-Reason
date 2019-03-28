@@ -53,7 +53,7 @@ return {
 			kickback = "-2.4",
 			model_author = "Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
 			rockstrength = "4",
 			sleevename = "sleeve",

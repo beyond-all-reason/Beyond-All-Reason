@@ -12,11 +12,11 @@ end
 
 --local show = true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local loadedFontSize = fontfileSize*fontfileScale
@@ -84,6 +84,7 @@ function widget:ViewResize()
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	loadedFontSize = fontfileSize*fontfileScale
   end
@@ -309,7 +310,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 						firstLetterPos = 3
 					end
 					line = string.upper(string.sub(line, firstLetterPos, firstLetterPos))..string.sub(line, firstLetterPos+1)
-					line, numLines = font:WrapText(line, (width - 40 - textRightOffset)*(loadedFontSize/fontSizeLine))
+					line, numLines = font:WrapText(line, (width - 90 - textRightOffset)*(loadedFontSize/fontSizeLine))
 					if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 						break;
 					end
@@ -318,7 +319,7 @@ function DrawTextarea(x,y,width,height,scrollbar)
 				else
 					-- line
 					line = "  " .. line
-					line, numLines = font:WrapText(line, (width)*(loadedFontSize/fontSizeLine))
+					line, numLines = font:WrapText(line, (width-50)*(loadedFontSize/fontSizeLine))
 					if (lineSeparator+fontSizeTitle)*(j+numLines-1) > height then
 						break;
 					end
@@ -341,7 +342,11 @@ function DrawWindow()
     local y = screenY --upwards
 	
 	-- background
-    gl.Color(0,0,0,0.8)
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.8)
+	else
+		gl.Color(0,0,0,0.85)
+	end
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
@@ -362,7 +367,11 @@ function DrawWindow()
 	-- title
     local title = "Changelog"
 	local titleFontSize = 18
-    gl.Color(0,0,0,0.8)
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.8)
+	else
+		gl.Color(0,0,0,0.85)
+	end
     titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 	font:Begin()
@@ -395,14 +404,25 @@ function widget:DrawScreen()
 			glScale(widgetScale, widgetScale, 1)
 			glCallList(changelogList)
 		glPopMatrix()
-		if (WG['guishader_api'] ~= nil) then
+		if WG['guishader'] then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'changelog')
-			--WG['guishader_api'].setBlurIntensity(0.0017)
-			--WG['guishader_api'].setScreenBlur(true)
+			if backgroundGuishader ~= nil then
+				glDeleteList(backgroundGuishader)
+			end
+			backgroundGuishader = glCreateList( function()
+				-- background
+				RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+				-- title
+				rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+				rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+				rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+				RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+			end)
+			WG['guishader'].InsertDlist(backgroundGuishader, 'changelog')
 		end
 		showOnceMore = false
 		
@@ -452,12 +472,8 @@ function widget:DrawScreen()
 			end
 		end
   else
-	if (WG['guishader_api'] ~= nil) then
-		local removed = WG['guishader_api'].RemoveRect('changelog')
-		if removed then
-			--WG['guishader_api'].setBlurIntensity()
-			WG['guishader_api'].setScreenBlur(false)
-		end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('changelog')
 	end
   end
 end
@@ -686,7 +702,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
     if buttonGL then
         glDeleteList(buttonGL)
         buttonGL = nil
@@ -695,4 +710,8 @@ function widget:Shutdown()
         glDeleteList(changelogList)
         changelogList = nil
     end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('changelog')
+	end
+	gl.DeleteFont(font)
 end

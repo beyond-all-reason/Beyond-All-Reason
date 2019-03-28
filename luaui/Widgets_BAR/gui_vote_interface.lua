@@ -16,11 +16,11 @@ local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -122,6 +122,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end
@@ -192,8 +193,8 @@ function EndVote()
 		voteDlist = nil
 		voteName = nil
 		voteOwner = nil
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('voteinterface')
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('voteinterface')
 		end
 	end
 end
@@ -243,11 +244,6 @@ function StartVote(name, owner)
 		closeButtonArea = {(xpos+(width/2))-(height/1.9), ypos+(height/5.5), xpos+(width/2), ypos+(height/2) }
 		yesButtonArea = {xpos-(width/2)+buttonMargin, ypos-(height/2)+buttonMargin, xpos-(buttonMargin/2), ypos-(height/2)+buttonHeight-buttonMargin }
 		noButtonArea = {xpos+(buttonMargin/2), ypos-(height/2)+buttonMargin, xpos+(width/2)-buttonMargin, ypos-(height/2)+buttonHeight-buttonMargin}
-
-		-- background blur
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 'voteinterface')
-		end
 
 		-- window
 		gl.Color(0,0,0,0.82)
@@ -308,6 +304,13 @@ function StartVote(name, owner)
 		end
 		font:End()
 	end)
+	-- background blur
+	if WG['guishader'] then
+		dlistGuishader = gl.CreateList( function()
+			RectRound(windowArea[1],windowArea[2],windowArea[3],windowArea[4], 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(dlistGuishader, 'voteinterface')
+	end
 end
 
 function widget:KeyPress(key)
@@ -349,17 +352,19 @@ end
 function widget:DrawScreen()
 	if voteDlist then
 		local x,y,b = Spring.GetMouseState()
-		if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
-			if (not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4])) or
-					IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
-					IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
-			then
-				StartVote()
+		if (not WG['topbar'] or not WG['topbar'].showingQuit()) then
+			if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
+				if (not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4])) or
+						IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or
+						IsOnRect(x, y, closeButtonArea[1], closeButtonArea[2], closeButtonArea[3], closeButtonArea[4])
+				then
+					StartVote()
+				elseif hovered then
+					StartVote()
+				end
 			elseif hovered then
 				StartVote()
 			end
-		elseif hovered then
-			StartVote()
 		end
 		gl.CallList(voteDlist)
 	end

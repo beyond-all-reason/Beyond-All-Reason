@@ -154,7 +154,7 @@ local function SetupShaderTable()
 	  vertex = (options.curvature.value and "#define curvature \n" or '')
 		.. (options.fogEffect.value and "#define edgeFog \n" or '')
 		.. [[
-		#version 120
+		#version 150 compatibility
 		// Application to vertex shader
 		uniform float mirrorX;
 		uniform float mirrorZ;
@@ -206,6 +206,7 @@ local function SetupShaderTable()
 		}
 	  ]],
 	 --  fragment = [[
+	 --  #version 150 compatibility
 	 --  uniform float mirrorX;
 	 --  uniform float mirrorZ;
 	 --  uniform float lengthX;
@@ -351,7 +352,7 @@ local function DrawOMap(useMirrorShader)
 end
 
 function widget:Initialize()
-	
+
 	if not drawingEnabled then
 		return
 	end
@@ -412,15 +413,16 @@ if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0
 	doWaterLevelCheck = true
 end
 
+local groundHeightPoint = Spring.GetGroundHeight(0,0)
 function widget:Update(dt)
-	if doWaterLevelCheck and not resetted then
+	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0,0) ~= groundHeightPoint)then
 		resetsec = resetsec + dt
 		if resetsec > 1 then
+			groundHeightPoint = Spring.GetGroundHeight(0,0)
 			resetted = true
 			ResetWidget()
 		end
 	end
-
 	if checkInView then
 		if	spIsAABBInView(-9999,-400,-9999, mapSizeX+9999,50,22) or
 			spIsAABBInView(-9999,-400,-22, 0,50,mapSizeZ) or

@@ -194,21 +194,23 @@ end
 function RingParticles:Initialize()
   billShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float size;
 
       varying vec2 texCoord;
 
-	void main()
-	{
-            gl_Position     = gl_ModelViewMatrix * gl_Vertex;
-            gl_Position.xy += gl_MultiTexCoord1.zw * size;
-            gl_Position     = gl_ProjectionMatrix  * gl_Position;
+	  void main()
+	  {
+        gl_Position     = gl_ModelViewMatrix * gl_Vertex;
+        gl_Position.xy += gl_MultiTexCoord1.zw * size;
+        gl_Position     = gl_ProjectionMatrix  * gl_Position;
 
-            texCoord  = gl_MultiTexCoord0.st;
-            gl_FrontColor   = gl_Color;
-	}
+        texCoord  = gl_MultiTexCoord0.st;
+        gl_FrontColor   = gl_Color;
+	  }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D tex0;
 
       varying vec2 texCoord;

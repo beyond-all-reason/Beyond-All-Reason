@@ -46,7 +46,7 @@ return {
 			description_long = "Samsons are long range light missile trucks. They can outrange most T1 defensive units and deal constant damage to it. They can also serve as basic anti-air defense. Very ineffective in close combat, so always try to keep them at full distance by using FIGHT command. In larger packs Samsons can even take down Heavy Laser Turrets. Combine with janus/stumpies and repairing units for a devastating frontline push! Move them in line, because they can't shoot over each other.",
 			model_author = "Beherith",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
 		},
 		featuredefs = {

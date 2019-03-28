@@ -51,17 +51,20 @@ include("keysym.h.lua")
 local fontSize = 13
 local useSelection = true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local customFontSize = 13
 
-local cX, cY
+local bgcornerSize = fontSize*0.45
+local bgpadding = fontSize*0.9
+
+local cX, cY, cYstart
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.60 + (vsx*vsy / 5000000))
@@ -211,9 +214,9 @@ end
 
 local guishaderEnabled = false	-- not a config var
 function RemoveGuishader()
-	if guishaderEnabled and WG['guishader_api'] ~= nil then
-		WG['guishader_api'].RemoveRect('unit_stats_title')
-		WG['guishader_api'].RemoveRect('unit_stats_data')
+	if guishaderEnabled and WG['guishader'] then
+		WG['guishader'].DeleteScreenDlist('unit_stats_title')
+		WG['guishader'].DeleteScreenDlist('unit_stats_data')
 		guishaderEnabled = false
 	end
 end
@@ -265,12 +268,16 @@ function widget:ViewResize(n_vsx,n_vsy)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 	init()
 end
 
 function widget:DrawScreen()
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+		return
+	end
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if not meta or spIsUserWriting() then
 		WG.hoverID = nil 
@@ -662,19 +669,23 @@ function widget:DrawScreen()
 	end
 	cornersize = 0
 	if not uID then
-		glColor(0.11,0.11,0.11,0.9)
+		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.8 or 0.88))
 	else
-		glColor(0,0,0,0.75)
+		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
 	end
 	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+
+	if WG['guishader'] then
+		guishaderEnabled = true
+		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
+			RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize)
+		end), 'unit_stats_title')
+	end
+
 	cornersize = ceil(bgpadding*0.25)
 	glColor(1,1,1,0.023)
 	RectRound(cX-bgpadding+cornersize, cYstart-bgpadding+cornersize, cX+(font:GetTextWidth(text)*titleFontSize)+iconHalfSize+iconHalfSize+bgpadding+(bgpadding/1.5)-cornersize, cYstart+(titleFontSize/2)+bgpadding-cornersize, bgcornerSize*0.88)
 
-	if (WG['guishader_api'] ~= nil) then
-		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding+1, cYstart-bgpadding+1, cX+(font:GetTextWidth(text)*titleFontSize)+bgpadding-1, cYstart+(titleFontSize/2)+bgpadding-1, 'unit_stats_title')
-	end
 
 	-- icon
 	if uID then
@@ -693,20 +704,24 @@ function widget:DrawScreen()
 	-- stats
 	cornersize = 0
 	if not uID then
-		glColor(0.11,0.11,0.11,0.9)
+		glColor(0.1,0.1,0.1,(WG['guishader'] and 0.8 or 0.88))
 	else
-		glColor(0,0,0,0.75)
+		glColor(0,0,0,(WG['guishader'] and 0.7 or 0.75))
 	end
 	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+
+	if WG['guishader'] then
+		guishaderEnabled = true
+		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
+			RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize)
+		end), 'unit_stats_data')
+	end
+
 	cornersize = ceil(bgpadding*0.23)
 	glColor(1,1,1,0.025)
 	RectRound(floor(cX-bgpadding)+cornersize, ceil(cY+(fontSize/3)+bgpadding)+cornersize, ceil(cX+maxWidth+bgpadding)-cornersize, floor(cYstart-bgpadding)-cornersize, bgcornerSize*0.88)
 
 	DrawTextBuffer()
 
-	if (WG['guishader_api'] ~= nil) then
-		guishaderEnabled = true
-		WG['guishader_api'].InsertRect(cX-bgpadding, cY+(fontSize/3)+bgpadding, cX+maxWidth+bgpadding, cYstart-bgpadding, 'unit_stats_data')
-	end
 ------------------------------------------------------------------------------------
 end

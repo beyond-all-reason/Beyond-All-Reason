@@ -14,11 +14,11 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -436,21 +436,8 @@ function DrawIconQuad(iconPos, color, size)
   glColor(color)
   RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize)
   
-  if (WG['guishader_api'] ~= nil) then
-  
-	local roundoff = bgcornerSize/1.3
-	WG['guishader_api'].InsertRect(
-		X1-corneradjust+roundoff, Y_MIN-corneradjust, 
-		X2+corneradjust-roundoff, Y_MAX+corneradjust, 
-	'idlebuilders1')
-	WG['guishader_api'].InsertRect(
-		X1-corneradjust+roundoff, Y_MIN-corneradjust, 
-		X1-corneradjust, Y_MAX+corneradjust, 
-	'idlebuilders2')
-	WG['guishader_api'].InsertRect(
-		X2+corneradjust-roundoff, Y_MIN-corneradjust, 
-		X2+corneradjust, Y_MAX+corneradjust, 
-	'idlebuilders3')
+  if WG['guishader'] then
+	  WG['guishader'].InsertDlist(glCreateList( function() RectRound(X1-corneradjust, Y_MIN-corneradjust, X2+corneradjust, Y_MAX+corneradjust, bgcornerSize) end), 'idlebuilders')
   end
   
 end--]]
@@ -578,10 +565,8 @@ function widget:DrawScreen()
 		return
 	end
 	
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('idlebuilders1')
-		WG['guishader_api'].RemoveRect('idlebuilders2')
-		WG['guishader_api'].RemoveRect('idlebuilders3')
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('idlebuilders')
 	end
 	
 	if enabled and noOfIcons > 0 then
@@ -743,4 +728,7 @@ end
 
 function widget:Shutdown()
 	gl.DeleteFont(font)
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('idlebuilders')
+	end
 end

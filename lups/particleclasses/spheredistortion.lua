@@ -86,6 +86,7 @@ end
 function SphereDistortion.Initialize()
   warpShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform vec2  center;
       uniform float radius;
       uniform vec2  screenInverse;
@@ -101,6 +102,7 @@ function SphereDistortion.Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform vec2  center;
       uniform float strength;
       uniform vec2  screenInverse;

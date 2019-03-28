@@ -28,11 +28,11 @@ local OrangeStr  = "\255\255\190\128"
 --
 --  vars
 --
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -213,12 +213,18 @@ function widget:Initialize()
   end
 end
 
+function widget:GameStart()
+  if Spring.GetSpectatingState() then
+    widgetHandler:RemoveWidget(self)
+  end
+end
+
 function widget:Shutdown()
-  gl.DeleteFont(font)
   for i=1, #dlists do
     gl.DeleteList(dlists[i])
   end
   dlists = {}
+  gl.DeleteFont(font)
 end
 
 function widget:GetConfigData()
@@ -479,6 +485,10 @@ end
 
 local sec = 0
 function widget:Update(dt)
+
+  if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+      widgetHandler:RemoveWidget(self)
+  end
 
   if myTeamID~=Spring.GetMyTeamID() then
     myTeamID = Spring.GetMyTeamID()

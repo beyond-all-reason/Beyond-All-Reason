@@ -42,7 +42,7 @@ return {
 			description_long = "The Hammer is a plasma Kbot that can deal a sizeable damage with relatively low cost of building. It has a shorter range than rocket Kbots, but if you manage to reach them, it can easily eliminate them. It has slightly higher HP than rocket Kbots, hence it can be used in big numbers to destroy T1 defensive structures. Combine with resurrection Kbots (Rectors), for healing and resurrecting fallen units, to quickly push the frontline. Effective for defending mountain tops, as their range is longer when shooting downhill. Watch out for Heavy Laser Turrets",
 			model_author = "Kaiser",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armkbots",
 			wpn1turretx = 200,
 			wpn1turrety = 200,

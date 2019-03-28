@@ -1,5 +1,5 @@
 TaskQueueBehaviour = class(Behaviour)
-
+shard_include("nanolayers")
 function TaskQueueBehaviour:Init()
 	self.active = false
 	u = self.unit
@@ -35,6 +35,7 @@ function TaskQueueBehaviour:HasQueues()
 end
 
 function TaskQueueBehaviour:OwnerBuilt(unit)
+	self.ai.buildersquadshandler:AddRecruit(self)
 	if not self:IsActive() then
 		return
 	end
@@ -57,13 +58,13 @@ function TaskQueueBehaviour:OwnerMoveFailed(unit)
 end
 
 function TaskQueueBehaviour:OwnerDead()
+	self.ai.buildersquadshandler:RemoveRecruit(self)
 	if self.waiting ~= nil then
 		for k,v in pairs(self.waiting) do
 			self.ai.modules.sleep.Kill(self.waiting[k])
 		end
 	end
 	self.waiting = nil
-	self.unit = nil
 end
 
 function TaskQueueBehaviour:GetQueue()
@@ -75,11 +76,6 @@ function TaskQueueBehaviour:GetQueue()
 end
 function TaskQueueBehaviour:CanQueueNextTask()
 	local unitID = self.unit:Internal().id
-	-- must: already have 1 queue (not override default behaviour)
-	-- Have less than 2 queues (not cancel the next buildings
-	-- Have "secured" the cur spot it has to build on (not cancel 1st in queue to start 2nd in queue == is currently building
-	-- We check curqueuelength == 1
-	-- Unit is not a factory
 	local notfactory = self.unit:Internal():Type():IsFactory() ~= true
 	local notprogressing = self.progress ~= true	-- Not already progressing in queue
 	local curqueuelength = #(Spring.GetCommandQueue(unitID,2))
@@ -132,6 +128,11 @@ function TaskQueueBehaviour:Update()
 			else
 				self:CompareWithOldPos() -- still register current position
 			end		
+		end
+		if self.unit:Internal():Type():IsFactory() then
+			if not(self:IsBusy() and self:IsRunningAQueue()) then
+				self:OwnerIdle()
+			end
 		end
 	end
 	if not self:IsActive() then
@@ -246,10 +247,42 @@ function TaskQueueBehaviour:TryToBuild( unit_name, pos )
 	return success
 end
 
+function TaskQueueBehaviour:BuildNanoSupport(unitName, target)
+	local targetType = Spring.GetUnitDefID(target)
+	local targetPos = {}
+	targetPos.x, targetPos.y, targetPos.z = Spring.GetUnitPosition(target)
+	local targetDefs = UnitDefs[targetType]
+	local nanoDefs = UnitDefs[UnitDefNames[unitName].id]
+	local facing = "s"
+	local positions = nanoLayers[targetDefs.name]
+	local utype = self.game:GetTypeByName(nanoDefs.name)
+	for k,v in pairs(positions) do
+		local p = {}
+		if facing == "s" then
+			p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z + v.z}
+		elseif facing == "n" then
+			p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z - v.z}
+		elseif facing == "e" then
+			p = {x = targetPos.x + v.z, y = targetPos.y, z = targetPos.z + v.x}
+		else
+			p = {x = targetPos.x - v.z, y = targetPos.y, z = targetPos.z + v.x}
+		end
+		if self.game.map:CanBuildHere(utype,p) == true then
+			self.ai.newplacementhandler:CreateNewPlanNoSearch(self.unit:Internal(),utype,p)
+			self.unit:Internal():ExecuteCustomCommand(-nanoDefs.id, {p.x, Spring.GetGroundHeight(p.x, p.z), p.z}, {"shift"})
+			return true
+		end
+	end
+	return false
+end
+	
+
 function TaskQueueBehaviour:HandleActionTask( task )
 	local action = task.action
 	if action == "nexttask" then
 		self:OnToNextTask()
+	elseif action == "nanosupport" then
+		self:BuildNanoSupport(task.name, task.target)
 	elseif action == "wait" then
 		if task.frames == "infinite" then
 			return

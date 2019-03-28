@@ -46,7 +46,7 @@ local fontfile = LUAUI_DIRNAME .. "fonts/unlisted/MicrogrammaDBold.ttf"
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -205,13 +205,13 @@ function widget:DrawScreen()
     if ( paused or ( ( now - pauseTimestamp) <= slideTime ) ) then
         showPauseScreen = true
         drawPause()
-        if blurScreen and WG['guishader_api'] ~= nil then
-            WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'pausescreen')
+        if blurScreen and WG['guishader'] then
+            WG['guishader'].InsertRect(0,0,vsx,vsy, 'pausescreen')
         end
     else
         showPauseScreen = false
-        if blurScreen and WG['guishader_api'] ~= nil then
-            WG['guishader_api'].RemoveRect('pausescreen')
+        if blurScreen and WG['guishader'] then
+            WG['guishader'].RemoveRect('pausescreen')
         end
     end
 end

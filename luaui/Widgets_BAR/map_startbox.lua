@@ -44,7 +44,7 @@ end
 -- enable simple version by default though
 local drawGroundQuads = true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
@@ -314,12 +314,12 @@ end
 
 
 function widget:Shutdown()
-  gl.DeleteFont(font)
   gl.DeleteList(infotextList)
   gl.DeleteList(xformList)
   gl.DeleteList(coneList)
   gl.DeleteList(startboxDListStencil)
   gl.DeleteList(startboxDListColor)
+  gl.DeleteFont(font)
   removeTeamLists()
 end
 
@@ -564,6 +564,7 @@ function widget:ViewResize(x, y)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
     shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
   end
@@ -571,20 +572,24 @@ end
 
 
 -- reset needed when waterlevel has changed by gadget (modoption)
+local resetsec = 0
+local resetted = false
+local doWaterLevelCheck = false
 if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0) then
-  local resetsec = 0
-  local resetted = false
-  function widget:Update(dt)
-    if not resetted then
-      resetsec = resetsec + dt
-      if resetsec > 1 then
-        resetted = true
-        widget:Shutdown()
-        widget:Initialize()
-      end
+  doWaterLevelCheck = true
+end
+
+local groundHeightPoint = Spring.GetGroundHeight(0,0)
+function widget:Update(dt)
+  if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0,0) ~= groundHeightPoint)then
+    resetsec = resetsec + dt
+    if resetsec > 1 then
+      groundHeightPoint = Spring.GetGroundHeight(0,0)
+      resetted = true
+      widget:Shutdown()
+      widget:Initialize()
     end
   end
 end
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

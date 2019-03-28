@@ -24,15 +24,17 @@ function widget:GetInfo()
 end
 
 local pauseWhenPaused = false
+local fadeInTime = 2
+local fadeOutTime = 6.5
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileSize = 36
+local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -55,11 +57,12 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
 local firstTime = false
 local wasPaused = false
-local firstFade = true
 local gameOver = false
 local playing = true
 
 local playedTime, totalTime = Spring.GetSoundStreamTime()
+local targetTime = totalTime
+
 if totalTime > 0 then
 	firstTime = true
 end
@@ -96,14 +99,18 @@ local top, left, bottom, right = 0,0,0,0
 
 local shown = false
 local mouseover = false
-local volume
 
 local dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
 local interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
 local warMeter = 0
 local maxWarMeter = 1500
-local fadelvl = Spring.GetConfigInt("snd_volmusic", 20) * 0.01
+
+
 local fadeOut = false
+local maxMusicVolume = Spring.GetConfigInt("snd_volmusic", 20)	-- user value, cause actual volume will change during fadein/outc
+local volume = Spring.GetConfigInt("snd_volmaster", 100)
+
+local fadeMult = 1
 
 --Assume that if it isn't set, dynamic music is true
 if dynamicMusic == nil then
@@ -117,17 +124,20 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:Initialize()
-	local playedTime, totalTime = Spring.GetSoundStreamTime()
-	volume = Spring.GetConfigInt("snd_volmaster", 100)
-	
-	musicInitialValue = Spring.GetConfigInt("bar_musicInitialValue", 0)
-	if musicInitialValue ~= 1 then
-		Spring.SetConfigInt("snd_volmusic", 20)
-		Spring.SetConfigInt("bar_musicInitialValue", 1)
+function updateMusicVolume()	-- handles fadings
+	playedTime, totalTime = Spring.GetSoundStreamTime()
+	if playedTime < fadeInTime then
+		fadeMult = playedTime / fadeInTime
+	else
+		fadeMult = (targetTime-playedTime) / fadeOutTime
 	end
-	
-	music_volume = Spring.GetConfigInt("snd_volmusic", 20)
+	if fadeMult > 1 then fadeMult = 1 end
+	if fadeMult < 0 then fadeMult = 0 end
+	Spring.SetConfigInt("snd_volmusic", (math.random()*0.1)+maxMusicVolume * fadeMult)	-- added random value so its unique and forces engine to update (else it wont actually do)
+end
+
+function widget:Initialize()
+	updateMusicVolume()
 	
 	if #tracks == 0 then 
 		Spring.Echo("[Music Player] No music was found, Shutting Down")
@@ -145,76 +155,78 @@ function widget:Initialize()
 		updatePosition(force)
 		return {top,left,bottom,right,widgetScale}
 	end
+	WG['music'].GetMusicVolume = function()
+		return maxMusicVolume
+	end
+	WG['music'].SetMusicVolume = function(value)
+		maxMusicVolume = value
+	end
 end
 
 
-local function DrawRectRound(px,py,sx,sy,cs)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
-	
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+
+	local offset = 0.07		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-cs, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -223,14 +235,14 @@ local function createList()
 	local padding = 3*widgetScale -- button background margin
 	local padding2 = 2.5*widgetScale -- inner icon padding
 	local volumeWidth = 50*widgetScale
-	
-	buttons['playpause'] = {left+padding, bottom+padding, left+(widgetHeight*widgetScale)-padding, top-padding}
+
+	buttons['playpause'] = {left+padding+padding, bottom+padding, left+(widgetHeight*widgetScale), top-padding}
 	
 	buttons['next'] = {buttons['playpause'][3]+padding, bottom+padding, buttons['playpause'][3]+((widgetHeight*widgetScale)-padding), top-padding}
 	
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (music_volume/100)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/100)
 	
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding, buttons['volumeicon'][3]+padding+volumeWidth, top-padding}
@@ -240,22 +252,35 @@ local function createList()
 	local textYPadding = 8*widgetScale
 	local textXPadding = 7*widgetScale
 	local maxTextWidth = right-buttons['next'][3]-textXPadding-textXPadding
-		
+
 	if drawlist[1] ~= nil then
+		glDeleteList(drawlist[5])
 		glDeleteList(drawlist[1])
 		glDeleteList(drawlist[2])
 		glDeleteList(drawlist[3])
+		glDeleteList(drawlist[4])
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(left, bottom, right, top,'music')
+	if WG['guishader'] then
+		drawlist[5] = glCreateList( function()
+			RectRound(left, bottom, right, top, 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(drawlist[5], 'music')
 	end
 	drawlist[1] = glCreateList( function()
 		glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		
-		local borderPadding = 2.75*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, borderPadding*1.66)
+		borderPadding = 3*widgetScale
+		borderPaddingRight = borderPadding
+		if right >= vsx-0.2 then
+			borderPaddingRight = 0
+		end
+		borderPaddingLeft = borderPadding
+		if left <= 0.2 then
+			borderPaddingLeft = 0
+		end
+		glColor(1,1,1,ui_opacity*0.055)
+		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.66)
 		
 	end)
 	drawlist[2] = glCreateList( function()
@@ -285,19 +310,20 @@ local function createList()
 		
 		-- track name
 		glColor(0.45,0.45,0.45,1)
-		local trackname = string.gsub(curTrack, ".ogg", "")
+		trackname = string.gsub(curTrack, ".ogg", "")
 		local text = ''
 		for i=charactersInPath, #trackname do
-	    local c = string.sub(trackname, i,i)
-			local width = font:GetTextWidth(text..c)*textsize
-	    if width > maxTextWidth then
-	    	break
-	    else
-	    	text = text..c
-	    end
+			local c = string.sub(trackname, i,i)
+				local width = font:GetTextWidth(text..c)*textsize
+			if width > maxTextWidth then
+				break
+			else
+				text = text..c
+			end
 		end
+		trackname = text
 		font:Begin()
-		font:Print('\255\155\155\155'..text, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print('\255\155\155\155'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
@@ -343,6 +369,13 @@ local function createList()
 		RectRound(buttons[button][5]-sliderWidth, sliderY-sliderHeight, buttons[button][5]+sliderWidth, sliderY+sliderHeight, (sliderWidth/4)*widgetScale)
 		
 	end)
+	if WG['tooltip'] ~= nil and trackname then
+		if trackname then
+			WG['tooltip'].AddTooltip('music', {left, bottom, right, top}, trackname, 0.8)
+		else
+			WG['tooltip'].RemoveTooltip('music')
+		end
+	end
 end
 
 function getSliderValue(draggingSlider, x)
@@ -361,11 +394,14 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			changeMusicVolume(getSliderValue('musicvolume', x) * 100)
-			fadelvl = getSliderValue('musicvolume', x)
+			maxMusicVolume = getSliderValue('musicvolume', x) * 100
+			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+			createList()
 		end
 		if draggingSlider == 'volume' then
-			changeVolume(getSliderValue('volume', x) * 200)
+			volume = getSliderValue('volume', x) * 200
+			Spring.SetConfigInt("snd_volmaster", volume)
+			createList()
 		end
 	end
 end
@@ -378,36 +414,26 @@ function widget:MouseRelease(x, y, button)
 	return mouseEvent(x, y, button, true)
 end
 
-function changeMusicVolume(value)
-	music_volume = value
-	fadelvl = value
-	fadeIn = false
-	fadeOut = false
-	Spring.SetConfigInt("snd_volmusic", music_volume)
-  createList()
-end
-
-function changeVolume(value)
-	volume = value
-	Spring.SetConfigInt("snd_volmaster", volume)
-  createList()
-end
-
 function mouseEvent(x, y, button, release)
 
 	if Spring.IsGUIHidden() then return false end
+	if button ~= 1 then return end
 
 	if not release then
 		local sliderWidth = (3.3*widgetScale) -- should be same as in createlist()
 		local button = 'musicvolume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 			draggingSlider = button
-			changeMusicVolume(getSliderValue(button, x) * 100)
+			maxMusicVolume = getSliderValue(button, x) * 100
+			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
+			createList()
 		end
 		button = 'volume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 			draggingSlider = button
-			changeVolume(getSliderValue(button, x) * 200)
+			volume = getSliderValue(button, x) * 200
+			Spring.SetConfigInt("snd_volmaster", volume)
+			createList()
 		end
 	end
 	if release and draggingSlider ~= nil then
@@ -421,49 +447,30 @@ function mouseEvent(x, y, button, release)
 			return true
 		end
 		if button == 1 and buttons['next'] ~= nil and isInBox(x, y, {buttons['next'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
-			fadeOut = true
 			PlayNewTrack()
 			return true
 		end
 		return true
 	end
-	
-end
-function widget:IsAbove(mx, my)
-	if (WG['topbar'] and WG['topbar'].showingQuit()) then
-		mouseover = false
-		return false
-	end
-	if isInBox(mx, my, {left, bottom, right, top}) then
-  	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
-  	if volume ~= curVolume then
-  		volume = curVolume
-  		createList()
-  	end
-		mouseover = true
-	end
-	return mouseover
 end
 
-function widget:GetTooltip(mx, my)
-	if widget:IsAbove(mx,my) then
-		return string.format("Music info and controls")
-	end
-end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	shutdown = true
 
 	--Spring.StopSoundStream()	-- disable music outside of this widget, cause else it restarts on every luaui reload
 
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('music')
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('music')
+	end
+	if WG['tooltip'] ~= nil then
+		WG['tooltip'].RemoveTooltip('music')
 	end
 	
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
+	gl.DeleteFont(font)
 	WG['music'] = nil
 end
 
@@ -474,10 +481,9 @@ function widget:UnitDamaged(_, _, _, damage)
 	end
 end
 
-function widget:GameFrame(n)    
+function widget:GameFrame(n)
     if n%5 == 4 then
-		--This is a little messy, but we need to be able to update these values on the fly so I see no better way
-		music_volume = Spring.GetConfigInt("snd_volmusic", 20)
+		updateMusicVolume()
 		
 		dynamicMusic = Spring.GetConfigInt("bar_dynamicmusic", 1)
 		interruptMusic = Spring.GetConfigInt("bar_interruptmusic", 1)
@@ -503,52 +509,24 @@ function widget:GameFrame(n)
 			elseif warMeter >= 0 then
 				warMeter = warMeter - 3
 			end
-			if interruptMusic == 1 then
+			if interruptMusic == 1 and not fadeOut then
 				if tracks == peaceTracks and warMeter >= 200 then
 					fadeOut = true
+					targetTime = playedTime + fadeOutTime
+					if targetTime > totalTime then targetTime = totalTime end
 				elseif tracks == warTracks and warMeter <= 0 then
 					fadeOut = true
+					targetTime = playedTime + fadeOutTime
+					if targetTime > totalTime then targetTime = totalTime end
 				end
 			end
-		end
-		
-		--80's fadeout when a track is almost finished
-		
-		local playedTime, totalTime = Spring.GetSoundStreamTime()
-		playedTime = math.floor(playedTime)
-		totalTime = math.floor(totalTime)
-			
-		if totalTime ~= nil then
-			--Spring.Echo("Total time is :" .. totalTime)
-			if playedTime > totalTime - music_volume * 0.10 then
-				--Spring.Echo("Fading out now!")
-				fadeOut = true
-			end
-		end
-
-		if fadeOut == true and fadelvl >= 0.01 then
-			fadelvl = fadelvl - 0.02
-			Spring.SetSoundStreamVolume(fadelvl)
-		else
-			fadeOut = false
-		end
-		if not fadeIn and fadeOut == false and fadelvl <= 0.005 then
-			fadelvl = music_volume * 0.01
-			PlayNewTrack()
-			--Spring.Echo("Playing a new song now")
-		end
-		
-		if fadeIn == true and fadelvl <= music_volume and Spring.GetGameFrame() >= 1 then
-			fadelvl = fadelvl + 0.02
-			Spring.SetSoundStreamVolume(fadelvl)
-		else
-			fadeIn = false
 		end
    end
 end
 
 local averageSkipTime = 16
 function PlayNewTrack()
+	fadeOut = false
 	if prevStreamStartTime then
 		local timeDiff = os.clock()-prevStreamStartTime
 		averageSkipTime = (timeDiff + (averageSkipTime*7)) / 8
@@ -561,9 +539,6 @@ function PlayNewTrack()
 	prevStreamStartTime = os.clock()
 
 	Spring.StopSoundStream()
-	fadelvl = 0
-	fadeIn = true
-	--Spring.Echo(dynamicMusic)
 	
 	if dynamicMusic == 0 then
 		--Spring.Echo("Choosing a random track")
@@ -589,12 +564,12 @@ function PlayNewTrack()
 	repeat
 		newTrack = tracks[math.random(1, #tracks)]
 	until newTrack ~= previousTrack
-	firstFade = false
 	previousTrack = newTrack
 	curTrack = newTrack
-	local musicVolScaled = music_volume * 0.01
 	Spring.PlaySoundStream(newTrack)
-	Spring.SetSoundStreamVolume(musicVolScaled or 0.33)
+	Spring.SetConfigInt("snd_volmusic", 0)
+	playedTime, totalTime = Spring.GetSoundStreamTime()
+	targetTime = totalTime
 	if playing == false then
 		Spring.PauseSoundStream()
 	end	
@@ -603,32 +578,44 @@ end
 
 local uiOpacitySec = 0
 function widget:Update(dt)
+
+	updateMusicVolume()
+
+	local mx, my, mlb = Spring.GetMouseState()
+	if isInBox(mx, my, {left, bottom, right, top}) then
+		mouseover = true
+	end
+	local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+	if volume ~= curVolume then
+		volume = curVolume
+		doCreateList = true
+	end
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec>0.5 then
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 		end
+		doCreateList = true
+	end
+	if doCreateList then
 		createList()
+		doCreateList = nil
 	end
 
 	if gameOver then
 		return
 	end
-	
+
 	if (not firstTime) then
 		PlayNewTrack()
 		firstTime = true -- pop this cherry
 	end
-	
-	local playedTime, totalTime = Spring.GetSoundStreamTime()
-	playedTime = math.floor(playedTime)
-	totalTime = math.floor(totalTime)
-	
-	if playedTime >= totalTime then	-- both zero means track stopped in 8
+
+	if playedTime >= targetTime then	-- both zero means track stopped in 8
 		PlayNewTrack()
 	end
-	
+
 	if (pauseWhenPaused and Spring.GetGameSeconds()>=0) then
     local _, _, paused = Spring.GetGameSpeed()
 		if (paused ~= wasPaused) then
@@ -650,7 +637,7 @@ function updatePosition(force)
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
-		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
 		widgetScale = advplayerlistPos[5]
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
@@ -663,23 +650,47 @@ function widget:ViewResize(newX,newY)
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 end
 
 function widget:DrawScreen()
 	updatePosition()
+	local mx, my, mlb = Spring.GetMouseState()
+	if (WG['topbar'] and WG['topbar'].showingQuit()) then
+		mouseover = false
+	else
+		if isInBox(mx, my, {left, bottom, right, top}) then
+			local curVolume = Spring.GetConfigInt("snd_volmaster", 100)
+			if volume ~= curVolume then
+				volume = curVolume
+				createList()
+			end
+			mouseover = true
+		end
+	end
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 			glCallList(drawlist[1])
 			glCallList(drawlist[2])
-		  local mx, my, mlb = Spring.GetMouseState()
 			if not mouseover and not draggingSlider or isInBox(mx, my, {buttons['playpause'][1], buttons['next'][2], buttons['next'][3], buttons['next'][4]}) then
 				glCallList(drawlist[3])
 			else
 				glCallList(drawlist[4])
 			end
 			if mouseover then
+
+			  -- display play progress
+			  local progressPx = ((right-left)*(playedTime/totalTime))
+			  if progressPx > 1 then
+			    if progressPx < borderPadding*5 then
+			    	progressPx = borderPadding*5
+			    end
+			    glColor(1,1,1,ui_opacity*0.09)
+			    RectRound(left+borderPaddingLeft, bottom+borderPadding, left-borderPaddingRight+progressPx , top-borderPadding, borderPadding*1.66)
+			  end
+
 			  local color = {1,1,1,0.25}
 			  local colorHighlight = {1,1,1,0.33}
 			  local button = 'playpause'
@@ -712,6 +723,7 @@ function widget:GetConfigData(data)
   local savedTable = {}
   savedTable.curTrack = curTrack
   savedTable.playing = playing
+  savedTable.maxMusicVolume = maxMusicVolume
   return savedTable
 end
 
@@ -719,6 +731,9 @@ end
 function widget:SetConfigData(data)
 	if data.playing ~= nil then
 		playing = data.playing
+	end
+	if data.maxMusicVolume ~= nil then
+		maxMusicVolume = data.maxMusicVolume
 	end
 	if Spring.GetGameFrame() > 0 then
 		if data.curTrack ~= nil then

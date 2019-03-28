@@ -13,11 +13,11 @@ end
 
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -349,6 +349,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 	calcAbsSizes()
@@ -388,11 +389,11 @@ function widget:KeyPress(key)
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	glDeleteList(textDisplayList)
 	glDeleteList(backgroundDisplayList)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('teamstats_window')
+	gl.DeleteFont(font)
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('teamstats_window')
 	end
 end
 
@@ -627,8 +628,8 @@ function widget:DrawScreen()
 	if IsGUIHidden() then
 		return
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('teamstats_window')
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('teamstats_window')
 	end
 	DrawBackground()
 	DrawAllStats()
@@ -717,11 +718,21 @@ function DrawBackground()
 
 	local x1,y1,x2,y2 = guiData.mainPanel.absSizes.x.min, guiData.mainPanel.absSizes.y.min, guiData.mainPanel.absSizes.x.max, guiData.mainPanel.absSizes.y.max
 
-	gl.Color(0,0,0,0.75)
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.8)
+	else
+		gl.Color(0,0,0,0.85)
+	end
 	local padding = 5*widgetScale
 	RectRound(x1-padding,y1-padding,x2+padding,y2+padding,8*widgetScale)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(x1-padding,y1-padding,x2+padding,y2+padding,'teamstats_window')
+	if WG['guishader'] then
+		if backgroundGuishader ~= nil then
+			glDeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = glCreateList( function()
+			RectRound(x1-padding,y1-padding,x2+padding,y2+padding, 9*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(backgroundGuishader,'teamstats_window')
 	end
 end
 

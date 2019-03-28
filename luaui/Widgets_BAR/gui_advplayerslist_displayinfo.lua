@@ -27,11 +27,11 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -68,28 +68,27 @@ function widget:Initialize()
 end
 
 
-local function DrawRectRound(px,py,sx,sy,cs)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
-	
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+
+	local offset = 0.07		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -98,8 +97,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -108,8 +107,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -118,8 +117,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -129,12 +128,9 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -170,19 +166,33 @@ local function updateValues()
 end
 
 local function createList()
+	if drawlist[3] ~= nil then
+		glDeleteList(drawlist[3])
+	end
+	if WG['guishader'] then
+		drawlist[3] = glCreateList( function()
+			RectRound(left, bottom, right, top, 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo')
+	end
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
-	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(left, bottom, right, top, 'displayinfo')
 	end
 	drawlist[1] = glCreateList( function()
 		glColor(0, 0, 0, ui_opacity)
 		RectRound(left, bottom, right, top, 5.5*widgetScale)
 		
-		local borderPadding = 2.75*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
-		RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, borderPadding*1.66)
+		local borderPadding = 3*widgetScale
+		local borderPaddingRight = borderPadding
+		if right >= vsx-0.2 then
+			borderPaddingRight = 0
+		end
+		local borderPaddingLeft = borderPadding
+		if left <= 0.2 then
+			borderPaddingLeft = 0
+		end
+		glColor(1,1,1,ui_opacity*0.055)
+		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.66)
 		
 	end)
 	updateValues()
@@ -190,20 +200,20 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('displayinfo')
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('displayinfo')
 	end
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
+	gl.DeleteFont(font)
 	Spring.SendCommands("fps 1")
 	Spring.SendCommands("clock 1")
 	Spring.SendCommands("speed 1")
 	WG['displayinfo'] = nil
 end
 
-local guishaderEnabled = (WG['guishader_api'] ~= nil)
+local guishaderEnabled = (WG['guishader'])
 
 local passedTime = 0
 local passedTime2 = 0
@@ -228,8 +238,8 @@ function widget:Update(dt)
 		updateValues()
 		passedTime2 = passedTime2 - 1
 	end
-	if guishaderEnabled ~= (WG['guishader_api'] ~= nil) then
-		guishaderEnabled = (WG['guishader_api'] ~= nil)
+	if guishaderEnabled ~= (WG['guishader']) then
+		guishaderEnabled = (WG['guishader'])
 		createList()
 	end
 end
@@ -250,7 +260,7 @@ function updatePosition(force)
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
-		top = advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5])
+		top = math.ceil(advplayerlistPos[1]+(widgetHeight*advplayerlistPos[5]))
 		widgetScale = advplayerlistPos[5]
 		if (prevPos[1] == nil or prevPos[1] ~= advplayerlistPos[1] or prevPos[2] ~= advplayerlistPos[2] or prevPos[5] ~= advplayerlistPos[5]) or force then
 			createList()
@@ -263,6 +273,7 @@ function widget:ViewResize(newX,newY)
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 end

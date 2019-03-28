@@ -13,11 +13,11 @@ end
 
 local loadSettings		= true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -111,7 +111,7 @@ local widgetScale = (1 + (vsx*vsy / 7500000))		-- only used for rounded corners 
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
 
-local borderPadding					= 4
+local borderPadding					= 4.7
 
 local avgFrames 					= 8
 
@@ -125,6 +125,8 @@ local singleTeams = false
 if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
 	singleTeams = true
 end
+local guishaderRects = {}
+local guishaderRectsDlists = {}
 
 Options = {}
 Options["resText"] = {}
@@ -171,11 +173,12 @@ function widget:Initialize()
 end
 
 function removeGuiShaderRects()
-	if WG['guishader_api'] ~= nil then
+	if WG['guishader'] then
 		for _, data in pairs(allyData) do
 			local aID = data.aID
 			if isTeamReal(aID) and (aID == GetMyAllyTeamID() or inSpecMode) and (aID ~= gaiaAllyID or haveZombies) then
-				WG['guishader_api'].RemoveRect('ecostats_'..aID)
+				WG['guishader'].DeleteDlist('ecostats_'..aID)
+				guishaderRectsDlists['ecostats_'..aID] = nil
 			end
 		end
 	end
@@ -199,10 +202,10 @@ function removeGuiShaderRects()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	removeGuiShaderRects()
 	if (drawList) then 			gl.DeleteList(drawList) end
 	if (sideImageList) then		gl.DeleteList(sideImageList) end
+	gl.DeleteFont(font)
 end
 
 function Init()
@@ -335,7 +338,7 @@ function setDefaults()
 	tH						= 32
 	vsx,vsy 				= gl.GetViewSizes()
 	widgetPosX, widgetPosY	= xRelPos*vsx, yRelPos*vsy
-	borderPadding			= 4.5
+	borderPadding			= 4.7
 	WBadge					= tH*0.5
 	cW						= 88
 	textsize				= 14
@@ -400,28 +403,27 @@ end
 
 
 -- Draw
-local function DrawRectRound(px,py,sx,sy,cs)
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
 	gl.Vertex(sx-cs, sy, 0)
 	gl.Vertex(px+cs, sy, 0)
-	
+
 	gl.Vertex(px, py+cs, 0)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.Vertex(px, sy-cs, 0)
-	
+
 	gl.Vertex(sx, py+cs, 0)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.Vertex(sx-cs, sy-cs, 0)
 	gl.Vertex(sx, sy-cs, 0)
-	
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
-	
-	-- top left
-	if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+
+	local offset = 0.07		-- texture offset, because else gaps could show
+
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -430,8 +432,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+cs, 0)
-	-- top right
-	if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
 	gl.TexCoord(o,1-offset)
@@ -440,8 +442,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, py+cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+cs, 0)
-	-- bottom left
-	if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -450,8 +452,8 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, sy-cs, 0)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-cs, 0)
-	-- bottom right
-	if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
 	gl.TexCoord(o,1-offset)
@@ -461,12 +463,9 @@ local function DrawRectRound(px,py,sx,sy,cs)
 	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-cs, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(bgcorner)
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -672,18 +671,21 @@ local function DrawMBar(tM,tMp,vOffset) -- where tM = team Metal = [0,1]
 end
 
 local function DrawBackground(posY, allyID, sideimagesWidth)
-	local y1 = widgetPosY - posY + widgetHeight
-	local y2 = widgetPosY - posY + tH + widgetHeight
+	local y1 = math.ceil(widgetPosY - posY + widgetHeight)
+	local y2 = math.ceil(widgetPosY - posY + tH + widgetHeight)
 	local area = {widgetPosX, y1, widgetPosX+widgetWidth, y2 }
 
+	local borderPaddingRight = borderPadding
+	if (widgetPosX + widgetWidth) >= vsx-0.2 then
+		borderPaddingRight = 0
+	end
 	glColor(0,0,0,ui_opacity)
 	RectRound(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 5*widgetScale)
-	glColor(1,1,1,ui_opacity*0.04)
-	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPadding, y2-borderPadding, borderPadding*1.5)
+	glColor(1,1,1,ui_opacity*0.055)
+	RectRound(widgetPosX+sideimagesWidth+borderPadding,y1+borderPadding, widgetPosX + widgetWidth-borderPaddingRight, y2-borderPadding, borderPadding*1.5)
 
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(widgetPosX+sideimagesWidth,y1, widgetPosX + widgetWidth, y2, 'ecostats_'..allyID)
-	end
+	guishaderRects['ecostats_'..allyID] = {widgetPosX+sideimagesWidth, y1, widgetPosX + widgetWidth, y2, 5*widgetScale}
+
 	area[1] = area[1]+(widgetWidth/12)
 	if WG['tooltip'] ~= nil and (tooltipAreas['ecostats_'..allyID] == nil or tooltipAreas['ecostats_'..allyID] ~= area[1]..'_'..area[2]..'_'..area[3]..'_'..area[4]) then
 		WG['tooltip'].AddTooltip('ecostats_'..allyID, area, "Team metal/energy income\n(Lighter part of the bar is reclaim income)")
@@ -1573,6 +1575,7 @@ function widget:ViewResize(viewSizeX, viewSizeY)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 	Reinit()
@@ -1613,11 +1616,21 @@ function makeStandardList()
 	if (drawList) then gl.DeleteList(drawList) end
 	drawList = gl.CreateList(drawListStandard)
 end
+
 function makeSideImageList()
 	if not inSpecMode then return end
 	
 	if (sideImageList) then gl.DeleteList(sideImageList) end
 	sideImageList = gl.CreateList(DrawSideImages)
+	if WG['guishader'] then
+		for id, rect in pairs(guishaderRects) do
+			if guishaderRectsDlists[id] then
+				gl.DeleteList(guishaderRectsDlists[id])
+			end
+			guishaderRectsDlists[id] = gl.CreateList( function() RectRound(rect[1],rect[2],rect[3],rect[4],rect[5]) end)
+			WG['guishader'].InsertDlist(guishaderRectsDlists[id], id)
+		end
+	end
 end
 
 function widget:TweakDrawScreen()

@@ -440,7 +440,6 @@ local glText = gl.Text
 
 
 local widgetScale = 1
-local vsx, vsy = Spring.GetViewGeometry()
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
 
 local drawAwards = false 
@@ -473,12 +472,23 @@ local graphColour
 local playerListByTeam = {} --does not contain specs
 local myPlayerID = Spring.GetMyPlayerID()
 
-
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 7
+local fontfileOutlineStrength = 1.5
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
-
-	--fix geometry
 	vsx,vsy = Spring.GetViewGeometry()
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
+	--fix geometry
 	widgetScale = (0.75 + (vsx*vsy / 7500000))
 	cx = vsx/2
 	cy = vsy/2
@@ -652,9 +662,10 @@ function CreateBackground()
 		glColor(1,1,1,1)
 		glTexture(':l:LuaRules/Images/awards.png')
 		glTexRect(bx + w/2 - 220, by + h - 75, bx + w/2 + 120, by + h - 5)
-		
-		glText('Score', bx + w/2 + 275, by + h - 65, 15, "o") 
-	
+
+		font:Begin()
+		font:Print('Score', bx + w/2 + 275, by + h - 65, 15, "o")
+		font:End()
 	end)	
 end
 
@@ -721,6 +732,7 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 		
 	thisAward = glCreateList(function()
 
+		font:Begin()
 		--names
 		if award ~= 2 then	--if its a normal award or a cow award
 			glColor(1,1,1,1)
@@ -728,20 +740,20 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 			glTexture(pic)
 			glTexRect(bx + 12, by + h - offset - 70, bx + 108, by + h - offset + 25)
 
-			glText(colourNames(winnerID) .. winnerName, bx + 120, by + h - offset - 10, 20, "o")
-			glText(noteColour .. note, bx + 120, by + h - offset - 50, 16, "o") 
+			font:Print(colourNames(winnerID) .. winnerName, bx + 120, by + h - offset - 10, 20, "o")
+			font:Print(noteColour .. note, bx + 120, by + h - offset - 50, 16, "o") 
 		else --if the cow is not awarded, we replace it with minor awards (just text)
 			local heightoffset = 0
 			if winnerID >=0 then
-				glText(colourNames(winnerID) .. winnerName .. white .. ' produced the most resources (' .. math.floor(winnerScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+				font:Print(colourNames(winnerID) .. winnerName .. white .. ' produced the most resources (' .. math.floor(winnerScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 				heightoffset = heightoffset + 17
 			end
 			if secondID >= 0 then
-				glText(colourNames(secondID) .. secondName .. white .. ' took the most damage (' .. math.floor(secondScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+				font:Print(colourNames(secondID) .. secondName .. white .. ' took the most damage (' .. math.floor(secondScore) .. ').', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 				heightoffset = heightoffset + 17
 			end
 			if thirdID >= 0 then
-				glText(colourNames(thirdID) .. thirdName .. white .. ' slept longest, for ' .. math.floor(thirdScore/60) .. ' minutes.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
+				font:Print(colourNames(thirdID) .. thirdName .. white .. ' slept longest, for ' .. math.floor(thirdScore/60) .. ' minutes.', bx + 70, by + h - offset - 10 - heightoffset, 14, "o")
 			end
 		end
 		
@@ -749,24 +761,25 @@ function CreateAward(pic, award, note, noteColour, winnerID, secondID, thirdID, 
 		if award == 0 then --normal awards			
 			if winnerID >= 0 then
 				if pic == 'comwreath' then winnerScore = round(winnerScore, 2) else winnerScore = math.floor(winnerScore) end 
-				glText(colourNames(winnerID) .. winnerScore, bx + w/2 + 275, by + h - offset - 5, 14, "o")
+				font:Print(colourNames(winnerID) .. winnerScore, bx + w/2 + 275, by + h - offset - 5, 14, "o")
 			else
-				glText('-', bx + w/2 + 275, by + h - offset - 5, 17, "o")			
+				font:Print('-', bx + w/2 + 275, by + h - offset - 5, 17, "o")			
 			end
-			glText('Runners up:', bx + 500, by + h - offset - 5, 14, "o")
+			font:Print('Runners up:', bx + 500, by + h - offset - 5, 14, "o")
 
 			if secondScore > 0 then
 				if pic == 'comwreath' then secondScore = round(secondScore, 2) else secondScore = math.floor(secondScore) end 
-				glText(colourNames(secondID) .. secondName, bx + 520, by + h - offset - 25, 14, "o")
-				glText(colourNames(secondID) .. secondScore, bx + w/2 + 275, by + h - offset - 25, 14, "o")
+				font:Print(colourNames(secondID) .. secondName, bx + 520, by + h - offset - 25, 14, "o")
+				font:Print(colourNames(secondID) .. secondScore, bx + w/2 + 275, by + h - offset - 25, 14, "o")
 			end
 			
 			if thirdScore > 0 then
 				if pic == 'comwreath' then thirdScore = round(thirdScore, 2) else thirdscore = math.floor (thirdScore) end
-				glText(colourNames(thirdID) .. thirdName, bx + 520, by + h - offset - 45, 14, "o")
-				glText(colourNames(thirdID) .. thirdScore, bx + w/2 + 275, by + h - offset - 45, 14, "o")
+				font:Print(colourNames(thirdID) .. thirdName, bx + 520, by + h - offset - 45, 14, "o")
+				font:Print(colourNames(thirdID) .. thirdScore, bx + w/2 + 275, by + h - offset - 45, 14, "o")
 			end
 		end
+		font:End()
 		
 	end)
 	
@@ -782,10 +795,10 @@ function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
 	if drawAwards then
 		x,y = correctMouseForScaling(x,y)
-		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
+		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
 			Spring.SendCommands("quitforce")
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
 			if Script.LuaUI("GuishaderRemoveRect") then
 				Script.LuaUI.GuishaderRemoveRect('awards')
@@ -838,18 +851,19 @@ function gadget:DrawScreen()
 		local x1,y1 = Spring.GetMouseState()
 		local x,y = correctMouseForScaling(x1,y1)
 		
-		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*gl.GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*gl.GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		glText(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
-		glText(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")
+		font:Begin()
+		font:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
+		font:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")
 
 		if bettingScores ~= nil and bettingScores[1] ~= '' then
 			local winners = bettingScores[1]
@@ -871,8 +885,9 @@ function gadget:DrawScreen()
 				glTexRect(bx+10+xOffset, by+10+heightOffset+chipSize, bx+10+chipSize+xOffset, by+10+heightOffset)
 				heightOffset = heightOffset + chipHeight
 			end
-			glText('\255\225\225\225'..winners..'\255\150\150\150 became the betting winner(s)     \255\130\130\130...among '..participants..' participants', bx+18+chipSize, by+6+(chipSize/2), 14, "o")
+			font:Print('\255\225\225\225'..winners..'\255\150\150\150 became the betting winner(s)     \255\130\130\130...among '..participants..' participants', bx+18+chipSize, by+6+(chipSize/2), 14, "o")
 		end
+		font:End()
 	glPopMatrix()
 end
 
@@ -883,6 +898,7 @@ function gadget:Shutdown()
 	if Script.LuaUI("GuishaderRemoveRect") then
 		Script.LuaUI.GuishaderRemoveRect('awards')
 	end
+	gl.DeleteFont(font)
 end
 
 end

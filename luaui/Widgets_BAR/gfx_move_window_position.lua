@@ -13,7 +13,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
@@ -120,9 +120,9 @@ end
 function DrawWindow()
 	dlistPosX = windowPosX
 	dlistPosY = windowPosY
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'movewindowpos')
-		WG['guishader_api'].setScreenBlur(true)
+	if WG['guishader'] then
+		WG['guishader'].InsertRect(0,0,vsx,vsy, 'movewindowpos')
+		WG['guishader'].setScreenBlur(true)
 	end
 	font:Begin()
 	gl.Color(0,0,0,0.6)
@@ -156,6 +156,7 @@ function widget:ViewResize()
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 	if windowList then gl.DeleteList(windowList) end
@@ -267,11 +268,11 @@ function widget:DrawScreen()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('movewindowpos')
-		WG['guishader_api'].setScreenBlur(false)
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('movewindowpos')
+		WG['guishader'].setScreenBlur(false)
 	end
 	if windowList then gl.DeleteList(windowList) end
 	widgetHandler:DisableWidget(widgetName)
+	gl.DeleteFont(font)
 end

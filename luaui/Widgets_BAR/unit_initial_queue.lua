@@ -30,11 +30,11 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -444,7 +444,7 @@ function widget:Initialize()
 end
 
 function processGuishader()
-	if (WG['guishader_api'] ~= nil) then
+	if WG['guishader'] then
 		local sBuilds = UnitDefs[sDefID].buildOptions
 		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 			if sDef.name == "armcom" then
@@ -457,7 +457,7 @@ function processGuishader()
 		local numRows = math.ceil(#sBuilds / numCols)
 		local bgheight = ((numRows*iconHeight)+margin)*widgetScale
 		local bgwidth = ((numCols*iconWidth)+margin)*widgetScale
-		WG['guishader_api'].InsertRect(wl-(margin*widgetScale), wt-bgheight, wl+bgwidth, wt+margin*widgetScale, 'initialqueue')
+		WG['guishader'].InsertRect(wl-(margin*widgetScale), wt-bgheight, wl+bgwidth, wt+margin*widgetScale, 'initialqueue')
 	end
 end
 
@@ -523,7 +523,7 @@ function InitializeFaction(sDefID)
 			local bgwidth = ((maxCols*iconWidth)+margin)
 			gl.Color(0,0,0,ui_opacity)
 			RectRound(-(margin), -bgheight, bgwidth, margin, ((iconWidth+iconPadding+iconPadding)/7))
-			gl.Color(1,1,1,ui_opacity*0.04)
+			gl.Color(1,1,1,ui_opacity*0.055)
 			RectRound(-(margin)+borderPadding, -bgheight+borderPadding, bgwidth-borderPadding, margin-borderPadding, ((iconWidth+iconPadding+iconPadding)/9))
 
 			for r = 1, #cellRows do
@@ -579,8 +579,8 @@ function widget:Shutdown()
 	if panelList then
 		gl.DeleteList(panelList)
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('initialqueue')
+	if WG['guishader'] then
+		WG['guishader'].RemoveRect('initialqueue')
 	end
 	WG["faction_change"] = nil
 end
@@ -1123,6 +1123,7 @@ function widget:ViewResize(newX,newY)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 	processGuishader()

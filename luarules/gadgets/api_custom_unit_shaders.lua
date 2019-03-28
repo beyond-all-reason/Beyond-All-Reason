@@ -147,7 +147,7 @@ local function CompileShader(shader, definitions, plugins)
       hasVersion = hasVersion or string.sub(def,1,string.len("#version")) == "#version"
     end
     if not hasVersion then
-      table.insert(definitions, 1, "#version 130")
+      table.insert(definitions, 1, "#version 150 compatibility")
     end
     if (shadows) then
       table.insert(definitions, "#define use_shadows")

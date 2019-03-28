@@ -288,6 +288,16 @@ local UnitEffects = {
 }
 
 
+-- remove airjet coloring (will use default team color isntead)
+--for udid, effects in pairs(UnitEffects) do
+--    for e,effect in pairs(effects) do
+--        if effect.class == 'AirJet' and effect.options and effect.options.color then
+--           UnitEffects[udid][e].options.color = nil
+--        end
+--    end
+--end
+
+
 local t = os.date('*t')
 if (t.yday>343) then --(t.month==12)
 

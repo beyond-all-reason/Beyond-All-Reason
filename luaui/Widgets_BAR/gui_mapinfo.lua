@@ -30,23 +30,14 @@ local fadeStartHeight		= 800
 local fadeEndHeight			= 4800
 local dlistAmount			= 20		-- amount of dlists created, one for each opacity value
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-function widget:ViewResize(n_vsx,n_vsy)
-	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
-end
 
 --------------------------------------------------------------------------------
 -- speed-ups
@@ -82,6 +73,20 @@ local mapinfoList = {}
 --------------------------------------------------------------------------------
 -- Functions
 --------------------------------------------------------------------------------
+
+function widget:ViewResize(n_vsx,n_vsy)
+	vsx,vsy = Spring.GetViewGeometry()
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
+	for opacity, list in pairs(mapinfoList) do
+		glDeleteList(list)
+		mapinfoList[opacity] = nil
+	end
+end
 
 local function createMapinfoList(opacityMultiplier)
 	mapinfoList[opacityMultiplier] = gl.CreateList( function()
@@ -251,11 +256,11 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	for opacity, list in pairs(mapinfoList) do
 		glDeleteList(mapinfoList[opacity])
 		mapinfoList[opacity] = nil
 	end
+	gl.DeleteFont(font)
 end
 
 function widget:DrawWorld()

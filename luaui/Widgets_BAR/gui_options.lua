@@ -39,16 +39,15 @@ local selecthoverclick = 'LuaUI/Sounds/hover.wav'
 local toggleonclick = 'LuaUI/Sounds/switchon.wav'
 local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
-local bgcorner1 = ":n:".."LuaUI/Images/bgcorner1.png" -- only used to draw dropdown arrow
 local backwardTex = "LuaUI/Images/backward.dds"
 local forwardTex = "LuaUI/Images/forward.dds"
 local glowTex = "LuaUI/Images/glow2.dds"
@@ -64,6 +63,8 @@ local textareaMinLines = 10		-- wont scroll down more, will show at least this a
 local customScale = 1
 
 local startLine = 1
+
+local customMapSunPos = {}
 
 local screenX = (vsx*0.5) - (screenWidth/2)
 local screenY = (vsy*0.5) + (screenHeight/2)
@@ -105,6 +106,8 @@ local resolutionX, resolutionY = Spring.GetScreenGeometry()
 local myTeamID = Spring.GetMyTeamID()
 local amNewbie = (Spring.GetTeamRulesParam(myTeamID, 'isNewbie') == 1)
 
+local defaultMapSunPos = {gl.GetSun("pos")}
+
 local options = {}
 local optionGroups = {}
 local optionButtons = {}
@@ -136,7 +139,6 @@ local presets = {
 		--shadows = false,
 		shadows_maxquality = 4000,
 		shadows_minquality = 2000,
-		--normalmapping = false,
 		decals = 0,
 		grounddetail = 70,
 		darkenmap_darkenfeatures = false,
@@ -163,7 +165,6 @@ local presets = {
 		--shadows = true,
 		shadows_maxquality = 6000,
 		shadows_minquality = 2000,
-		--normalmapping = true,
 		decals = 0,
 		grounddetail = 100,
 		darkenmap_darkenfeatures = false,
@@ -190,7 +191,6 @@ local presets = {
 		--shadows = true,
 		shadows_maxquality = 6000,
 		shadows_minquality = 2000,
-		--normalmapping = true,
 		decals = 1,
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
@@ -217,7 +217,6 @@ local presets = {
 		--shadows = true,
 		shadows_maxquality = 8000,
 		shadows_minquality = 3000,
-		--normalmapping = true,
 		decals = 2,
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
@@ -244,7 +243,6 @@ local presets = {
 		--shadows = true,
 		shadows_maxquality = 8000,
 		shadows_minquality = 4000,
-		--normalmapping = true,
 		decals = 3,
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
@@ -488,7 +486,11 @@ function DrawWindow()
 	local x = screenX --rightwards
 	local y = screenY --upwards
 	-- background
-	gl.Color(0,0,0,0.8)
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.8)
+	else
+		gl.Color(0,0,0,0.85)
+	end
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	if currentGroupTab then
@@ -524,7 +526,11 @@ function DrawWindow()
 		groupRect[id] = {xpos, y+(bgMargin/2), xpos+(font:GetTextWidth(group.name)*tabFontSize)+27, y+37}
 		xpos = groupRect[id][3]
 		if currentGroupTab == nil or currentGroupTab ~= group.id then
-			gl.Color(0,0,0,0.8)
+			if WG['guishader'] then
+				gl.Color(0,0,0,0.8)
+			else
+				gl.Color(0,0,0,0.85)
+			end
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.62,0.5,0.22,0.18)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
@@ -534,7 +540,11 @@ function DrawWindow()
 			font:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
 			font:End()
 		else
-			gl.Color(0,0,0,0.8)
+			if WG['guishader'] then
+				gl.Color(0,0,0,0.8)
+			else
+				gl.Color(0,0,0,0.85)
+			end
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.4,0.4,0.4,0.15)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
@@ -547,7 +557,11 @@ function DrawWindow()
 	end
 
 	-- title drawing
-	gl.Color(0,0,0,0.8)
+	if WG['guishader'] then
+		gl.Color(0,0,0,0.8)
+	else
+		gl.Color(0,0,0,0.85)
+	end
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 
 	font:Begin()
@@ -710,7 +724,7 @@ function DrawWindow()
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
 					glColor(1,1,1,0.16)
-					glTexture(bgcorner1)
+					glTexture(bgcorner)
 					glPushMatrix()
 					glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
 						glRotate(-45,0,0,1)
@@ -762,7 +776,11 @@ function widget:Update(dt)
 		end
 		options[getOptionByID('sndvolmaster')].value = tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)	-- update value because other widgets can adjust this too
 		if getOptionByID('sndvolmusic') then
-			options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",40) or 40)
+			if WG['music'] and WG['music'].GetMusicVolume then
+				options[getOptionByID('sndvolmusic')].value = WG['music'].GetMusicVolume()
+			else
+				options[getOptionByID('sndvolmusic')].value = tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)
+			end
 		end
 	end
 end
@@ -812,10 +830,19 @@ function widget:DrawScreen()
   end
 
   -- update new slider value
-	if sliderValueChanged then
-		gl.DeleteList(windowList)
-		windowList = gl.CreateList(DrawWindow)
-		sliderValueChanged = nil
+  if sliderValueChanged then
+  	gl.DeleteList(windowList)
+  	windowList = gl.CreateList(DrawWindow)
+  	sliderValueChanged = nil
+  end
+
+  if selectOptionsList then
+  	if WG['guishader'] then
+  		WG['guishader'].RemoveScreenRect('options_select')
+  		WG['guishader'].removeRenderDlist(selectOptionsList)
+  	end
+  	glDeleteList(selectOptionsList)
+  	selectOptionsList = nil
   end
 
   if show or showOnceMore then
@@ -828,7 +855,7 @@ function widget:DrawScreen()
 	  local x,y,ml = Spring.GetMouseState()
 	  local cx, cy = correctMouseForScaling(x,y)
 	  if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-	  	Spring.SetMouseCursor('cursornormal')
+		  Spring.SetMouseCursor('cursornormal')
 	  elseif groupRect ~= nil then
 		  for id,group in pairs(optionGroups) do
 			  if IsOnRect(cx, cy, groupRect[id][1], groupRect[id][2], groupRect[id][3], groupRect[id][4]) then
@@ -836,38 +863,44 @@ function widget:DrawScreen()
 				  break
 			  end
 		  end
+	  elseif titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then
+		  Spring.SetMouseCursor('cursornormal')
 	  end
+
 		-- draw the options panel
 		glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 			glScale(widgetScale, widgetScale, 1)
 			glCallList(windowList)
-			if (WG['guishader_api'] ~= nil) then
+			if WG['guishader'] then
 				local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 				local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 				local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 				local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-				WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options')
-				--WG['guishader_api'].setBlurIntensity(0.0017)
-				--WG['guishader_api'].setScreenBlur(true)
-
-				if (WG['guishader_api'] ~= nil and titleRect ~= nil) then
+				if backgroundGuishader ~= nil then
+					glDeleteList(backgroundGuishader)
+				end
+				backgroundGuishader = glCreateList( function()
+					-- background
+					RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+					-- title
 					rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
 					rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
 					rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
 					rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
-					if groupRect ~= nil then
-						local lastID = false
-						for id,rect in pairs(groupRect) do
-							lastID = id
-						end
-						if lastID then
-							rectX2 = (groupRect[lastID][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
-							rectY2 = (groupRect[lastID][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+					RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+					-- tabs
+					for id,group in pairs(optionGroups) do
+						if groupRect[id] then
+							rectX1 = (groupRect[id][1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+							rectY1 = (groupRect[id][2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+							rectX2 = (groupRect[id][3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+							rectY2 = (groupRect[id][4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+							RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
 						end
 					end
-					WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'options_top')
-				end
+				end)
+				WG['guishader'].InsertDlist(backgroundGuishader, 'options')
 			end
 			showOnceMore = false
 
@@ -922,7 +955,7 @@ function widget:DrawScreen()
 				end
 				for i, o in pairs(optionButtons) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
-						glColor(1,1,1,0.08)
+						gl.Color(0,0,0,0.08)
 						RectRound(o[1], o[2], o[3], o[4], 2.5)
 						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 							local value = options[i].value
@@ -941,7 +974,7 @@ function widget:DrawScreen()
 
 				-- highlight all that are affected by presets
 				if options[showSelectOptions].id == 'preset' then
-					glColor(1,1,1,0.08)
+					glColor(1,1,1,0.07)
 					for optionID, _ in pairs(presets['lowest']) do
 						optionKey = getOptionByID(optionID)
 						if optionHover[optionKey] ~= nil then
@@ -959,37 +992,66 @@ function widget:DrawScreen()
 				for i, option in pairs(options[showSelectOptions].options) do
 					yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 				end
-				glColor(0.22,0.22,0.22,0.85)
-				RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
-				glColor(1,1,1,0.07)
-				RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
-				for i, option in pairs(options[showSelectOptions].options) do
-					yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
-					if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
-						glColor(1,1,1,0.1)
-						RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
-						if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
-							Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
+
+				selectOptionsList = glCreateList(function()
+					if WG['guishader'] then
+						glPushMatrix()
+						glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
+						glScale(widgetScale, widgetScale, 1)
+                        glColor(0.25,0.25,0.25,0.7)
+                    else
+                        glColor(0.25,0.25,0.25,0.85)
+                    end
+					RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
+					glColor(1,1,1,0.07)
+					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
+					for i, option in pairs(options[showSelectOptions].options) do
+						yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
+						if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
+							glColor(1,1,1,0.18)
+							RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
+							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
+								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
+							end
+							prevSelectHover = i
 						end
-						prevSelectHover = i
+						optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
+
+						if options[showSelectOptions].optionsFont and fontOption then
+							fontOption[i]:Begin()
+							fontOption[i]:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+							fontOption[i]:End()
+						else
+							font:Begin()
+							font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
+							font:End()
+						end
 					end
-					optionSelect[#optionSelect+1] = {optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, i }
-					font:Begin()
-					font:Print('\255\255\255\255'..option, optionButtons[showSelectOptions][1]+7, yPos-(oHeight/2.25)-oPadding, oHeight*0.85, "no")
-					font:End()
+					if WG['guishader'] then
+						glPopMatrix()
+					end
+				end)
+				if WG['guishader'] then
+					local interfaceScreenCenterPosX = (screenX+(screenWidth/2))/vsx
+					local interfaceScreenCenterPosY = (screenY-(screenHeight/2))/vsy
+
+					-- translate coordinates to actual screen coords (because we applied glscale/gltranlate above)
+					local x1 = (vsx*interfaceScreenCenterPosX) - (((vsx/2) - optionButtons[showSelectOptions][1]) * widgetScale)
+					local x2 = (vsx*interfaceScreenCenterPosX) - (((vsx/2) - optionButtons[showSelectOptions][3]) * widgetScale)
+					local y1 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - (yPos-oHeight-oPadding)) * widgetScale)
+					local y2 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - optionButtons[showSelectOptions][4]) * widgetScale)
+					WG['guishader'].InsertScreenRect(x1, y1, x2, y2, 'options_select')
+					WG['guishader'].insertRenderDlist(selectOptionsList)
+				else
+					glCallList(selectOptionsList)
 				end
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-	 	glPopMatrix()
+	  glPopMatrix()
 	else
-		if (WG['guishader_api'] ~= nil) then
-			local removed = WG['guishader_api'].RemoveRect('options')
-			local removed = WG['guishader_api'].RemoveRect('options_top')
-			if removed then
-				--WG['guishader_api'].setBlurIntensity()
-			  WG['guishader_api'].setScreenBlur(false)
-			end
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('options')
 		end
   end
 	if checkedWidgetDataChanges == nil then
@@ -1125,7 +1187,17 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Snow', 'snow', 'setSnowMap', {'snowMaps',Game.mapName:lower()}, options[i].value)
 		elseif id == 'snowautoreduce' then
 			saveOptionValue('Snow', 'snow', 'setAutoReduce', {'autoReduce'}, options[i].value)
-		elseif id == 'darkenmap_darkenfeatures' then
+		elseif id == 'sun_reset' then
+            options[getOptionByID('sun_x')].value = defaultMapSunPos[1]
+            options[getOptionByID('sun_y')].value = defaultMapSunPos[2]
+            options[getOptionByID('sun_z')].value = defaultMapSunPos[3]
+            options[getOptionByID('sun_reset')].value = false
+            Spring.SetSunDirection(defaultMapSunPos[1],defaultMapSunPos[2],defaultMapSunPos[3])
+            -- just so that map/model lighting gets updated
+            Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            Spring.Echo('resetted map sun defaults')
+            customMapSunPos[Game.mapName] = nil
+        elseif id == 'darkenmap_darkenfeatures' then
 			saveOptionValue('Darken map', 'darkenmap', 'setDarkenFeatures', {'darkenFeatures'}, options[i].value)
 		elseif id == 'teamplatter_skipownteam' then
 			saveOptionValue('TeamPlatter', 'teamplatter', 'setSkipOwnTeam', {'skipOwnTeam'}, options[i].value)
@@ -1306,6 +1378,18 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SendCommands("distdraw 10000")
 			end
 			Spring.SendCommands("disticon "..value)
+		elseif id == 'featuredrawdist' then
+			if getOptionByID('featurefadedist') and value < options[getOptionByID('featurefadedist')].value then
+				options[getOptionByID('featurefadedist')].value = value
+				Spring.SetConfigInt("FeatureFadeDistance",value)
+			end
+			Spring.SetConfigInt("FeatureDrawDistance",value)
+		elseif id == 'featurefadedist' then
+			if getOptionByID('featuredrawdist') and value > options[getOptionByID('featuredrawdist')].value then
+				options[getOptionByID('featuredrawdist')].value = value
+				Spring.SetConfigInt("FeatureDrawDistance",value)
+			end
+			Spring.SetConfigInt("FeatureFadeDistance",value)
 		elseif id == 'iconscale' then
 			Spring.SendCommands("luarules uniticonscale "..value)
 		elseif id == 'treeradius' then
@@ -1337,7 +1421,11 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'sndairabsorption' then
 			Spring.SetConfigInt("snd_airAbsorption", value)
 		elseif id == 'sndvolmusic' then
-			Spring.SetConfigInt("snd_volmusic", value)
+			if WG['music'] and WG['music'].SetMusicVolume then
+				WG['music'].SetMusicVolume(value)
+			else
+				Spring.SetConfigInt("snd_volmusic", value)
+			end
 		elseif id == 'crossalpha' then
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
@@ -1359,7 +1447,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setFontsize', {'fontsizeMultiplier'}, value)
 			saveOptionValue('Red Console (old)', 'red_console', 'setFontsize', {'fontsizeMultiplier'}, value)
 		elseif id == 'guishaderintensity' then
-			saveOptionValue('GUI-Shader', 'guishader_api', 'setBlurIntensity', {'blurIntensity'}, value)
+			saveOptionValue('GUI Shader', 'guishader', 'setBlurIntensity', {'blurIntensity'}, value)
 		elseif id == 'guiopacity' then
 			Spring.SetConfigFloat("ui_opacity", value)
 		elseif id == 'snowamount' then
@@ -1370,18 +1458,21 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            customMapSunPos[Game.mapName] = {gl.GetSun("pos")}
 		elseif id == 'sun_y' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunY = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            customMapSunPos[Game.mapName] = {gl.GetSun("pos")}
 		elseif id == 'sun_z' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunZ = value
 			Spring.SetSunDirection(sunX,sunY,sunZ)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+            customMapSunPos[Game.mapName] = {gl.GetSun("pos")}
 		elseif id == 'shadows_opacity' then
 			Spring.SetSunLighting({groundShadowDensity = value, modelShadowDensity = value})
 		elseif id == 'fog_start' then
@@ -1463,8 +1554,8 @@ function applyOptionValue(i, skipRedrawWindow)
 				--Spring.Echo("option for lups",value,WG.LupsPriority)
 			end
 		elseif id == 'font' then
-			if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].options[value]) then
-				Spring.SetConfigString("ui_font", options[i].options[value])
+			if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].optionsFont[value]) then
+				Spring.SetConfigString("ui_font", options[i].optionsFont[value])
 				Spring.SendCommands("luarules reloadluaui")
 			end
 		elseif id == 'nanoeffect' then
@@ -1534,7 +1625,11 @@ end
 
 function widget:KeyPress(key)
 	if key == 27 then	-- ESC
-		show = false
+		if showSelectOptions then
+			showSelectOptions = nil
+		else
+			show = false
+		end
 	end
 end
 
@@ -1601,10 +1696,14 @@ end
 function mouseEvent(x, y, button, release)
 	if spIsGUIHidden() then return false end
 
+	local cx, cy = correctMouseForScaling(x,y)
 	if show then
 		local cx, cy = correctMouseForScaling(x,y)
-
 		if button == 3 then
+			if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then	-- showhow rightmouse doesnt get triggered :S
+				--Spring.Echo(button..'  '..math.random())
+				return true
+			end
 			if showSelectOptions ~= nil and options[showSelectOptions].id == 'preset' then
 				for i, o in pairs(optionSelect) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
@@ -1877,7 +1976,7 @@ function loadAllWidgetData()
 
 	loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'})
 
-	loadWidgetData("GUI-Shader", "guishaderintensity", {'blurIntensity'})
+	loadWidgetData("GUI Shader", "guishaderintensity", {'blurIntensity'})
 
 	loadWidgetData("Snow", "snowamount", {'customParticleMultiplier'})
 	loadWidgetData("Snow", "snowmap", {'snowMaps',Game.mapName:lower()})
@@ -2034,9 +2133,10 @@ function init()
 		--{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.9, max=1.5, step=0.05, value=1.1, description=''},
 		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
 
-		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.3, max=1, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
-		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-1, max=1, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
-		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-1, max=1, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
+		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.05, max=0.9999, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
+		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
+		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
+        {id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
 
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.'},
@@ -2044,15 +2144,18 @@ function init()
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
 
-		{id="disticon", group="gfx", name="Icon render distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
+		{id="disticon", group="gfx", name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
 		{id="minimapiconsize", group="gfx", name=widgetOptionColor.."   minimap scale", type="slider", min=1.5, max=5, step=0.25, value=tonumber(Spring.GetConfigFloat("MinimapIconScale",3.5) or 1), description=''},
+
+		{id="featuredrawdist", group="gfx", name="Feature draw distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureDrawDistance",6000) or 400), description='Features (trees, stones, wreckage) stop being displayed at this distance'},
+		--{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance'},
 
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
-		{id="particles", group="gfx", name="Max particles", type="slider", min=10000, max=40000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particles used for explosions, smoke, fire and missiletrails\n\nSetting a low value will mean that various effects wont show properly'},
+		{id="particles", group="gfx", name="Particle limit", type="slider", min=10000, max=40000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particle limit used for explosions, smoke, fire and missiletrails\n\nBeware, a too low value can result in the particle bugdget being reached,\nand effects no longer show up'},
 
 		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.'},
 		--{id="lighteffects_heatdistortion", group="gfx", name=widgetOptionColor.."   apply heat distortion", type="bool", value=true, description='Enables a distortion on top of explosions to simulate heat'},
@@ -2084,7 +2187,7 @@ function init()
 		{id="snowautoreduce", group="gfx", name=widgetOptionColor.."   auto reduce", type="bool", value=true, description='Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again'},
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='disable "auto reduce" option to see the max snow amount you have set'},
 
-		{id="dofintensity", group="gfx", name="DoF intensity", type="slider", min=0.05, max=5, step=0.01, value=1.5, description='Enable Depth of Field with F8 first'},
+		{id="dofintensity", group="gfx", name="DoF intensity", type="slider", min=0.05, max=5, step=0.01, value=1.5, description='Enable with F8 first\nctrl+] or [ to change intensity\n/dofQuality # (default:4)'},
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
@@ -2098,7 +2201,7 @@ function init()
 		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
 		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
 		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
-		--{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",1) or 100)},
+		{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
         {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Enable music player (on top of advplayerlist)'},
 		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
@@ -2128,7 +2231,7 @@ function init()
 		{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too"},
 		{id="playertv_countdown", group="control", name="Player TV countdown", type="slider", min=8, max=60, step=1, value=(WG['playertv']~=nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description="Countdown time before it switches player"},
 
-		-- UI
+		-- UIc
 		{id="teamcolors", group="ui", widget="Player Color Palette", name="Team colors based on a palette", type="bool", value=GetWidgetToggleValue("Player Color Palette"), description='Replaces lobby team colors for a color palette based one\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
@@ -2136,8 +2239,8 @@ function init()
 		{id="font", group="ui", name="Font", type="select", options={}, value=1},
 		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
-		{id="guishader", group="ui", widget="GUI-Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI-Shader"), description='Blurs the world under every user interface element\n\nIntel Graphics have trouble with this'},
-		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.0007, max=0.003, step=0.0001, value=0.0014, description='NOTE: does 2nd blur when value is above 0.0015'},
+		{id="guishader", group="ui", widget="GUI Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
+		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.001, max=0.003, step=0.0001, value=0.002, description=''},
 
 		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
@@ -2232,6 +2335,14 @@ function init()
 		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 	}
 
+	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
+	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+		options[getOptionByID('shadows_maxquality')] = nil
+		options[getOptionByID('shadows_minquality')] = nil
+		options[getOptionByID('shadowslider')] = nil
+		options[getOptionByID('shadows_opacity')] = nil
+	end
+
 	if getOptionByID('fancyselectedunits_style') then
 		options[getOptionByID('fancyselectedunits_style')].options = WG['fancyselectedunits'].getStyleList()
 	end
@@ -2239,21 +2350,29 @@ function init()
 	-- add fonts
 	if getOptionByID('font') then
 		local fonts = {}
+		local fontsFull = {}
 		local fontsn = {}
 		local files = VFS.DirList(LUAUI_DIRNAME..'fonts', '*')
+		fontOption = {}
 		for k, file in ipairs(files) do
 			local name = string.sub(file, 13)
 			local ext = string.sub(name, string.len(name) - 2)
 			if ext == 'otf' or ext == 'ttf' then
-				--name = string.sub(name, 1, string.len(name) - 4)
+				name = string.sub(name, 1, string.len(name) - 4)
 				if not fontsn[name:lower()] then
 					fonts[#fonts+1] = name
+					fontsFull[#fontsFull+1] = string.sub(file, 13)
 					fontsn[name:lower()] = true
+					local fontScale = (0.5 + (vsx*vsy / 5700000))
+					fontOption[#fonts] = gl.LoadFont(LUAUI_DIRNAME .. "fonts/"..fontsFull[#fontsFull], 20*fontScale, 5*fontScale, 1.5)
 				end
 			end
 		end
+
 		options[getOptionByID('font')].options = fonts
-		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), Spring.GetConfigString("ui_font", "Poppins-Medium.otf"):lower())
+		options[getOptionByID('font')].optionsFont = fontsFull
+		local fname = Spring.GetConfigString("ui_font", "Poppins-Regular.otf"):lower()
+		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
 	-- set sun minimal height
@@ -2628,6 +2747,17 @@ function widget:Initialize()
 			Spring.SetConfigInt("Shadows",1)
 			Spring.SendCommands("Shadows 1")
 		end
+		-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
+		if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+			Spring.SendCommands("Shadows 1 1000")
+        end
+
+        -- set custom user map sun position
+        if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
+            Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
+            Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+        end
+
 		-- disable fog
 		Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
 	end
@@ -2663,6 +2793,15 @@ function widget:Shutdown()
     if windowList then
         glDeleteList(windowList)
 	end
+	if fontOption then
+		for i, font in pairs(fontOption) do
+			gl.DeleteFont(fontOption[i])
+		end
+	end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('options')
+	end
+	gl.DeleteFont(font)
 	WG['options'] = nil
 end
 
@@ -2744,7 +2883,11 @@ function widget:GetConfigData(data)
 	savedTable.customPresets = customPresets
 	savedTable.cameraTransitionTime = cameraTransitionTime
 	savedTable.maxNanoParticles = maxNanoParticles
-	savedTable.currentGroupTab = currentGroupTab
+    savedTable.currentGroupTab = currentGroupTab
+    savedTable.show = show
+    savedTable.defaultMapSunPos = defaultMapSunPos
+    savedTable.mapName = Game.mapName
+    savedTable.customMapSunPos = customMapSunPos
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -2762,7 +2905,7 @@ function widget:GetConfigData(data)
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)},
 		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",40) or 40)},
 		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",40) or 40)},
-		sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",40) or 40)},
+		--sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
 		guiopacity = {'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)},
 	}
 	return savedTable
@@ -2778,13 +2921,22 @@ function widget:SetConfigData(data)
 	if data.maxNanoParticles ~= nil then
 		maxNanoParticles = data.maxNanoParticles
 	end
-	if data.currentGroupTab ~= nil then
-		currentGroupTab = data.currentGroupTab
-	end
+    if data.currentGroupTab ~= nil then
+        currentGroupTab = data.currentGroupTab
+    end
+    if data.show ~= nil and Spring.GetGameFrame() > 0 then
+        show = data.show
+    end
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig
 		for k, v in pairs(savedConfig) do
 			Spring.SetConfigFloat(v[1],v[2])
 		end
-	end
+    end
+    if data.defaultMapSunPos ~= nil and data.mapName == Game.mapName then
+        defaultMapSunPos = data.defaultMapSunPos
+    end
+    if data.customMapSunPos then
+        customMapSunPos = data.customMapSunPos
+    end
 end

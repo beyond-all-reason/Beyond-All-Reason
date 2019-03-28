@@ -202,6 +202,7 @@ function AirJet.Initialize()
 
   jetShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float timer;
 
       varying float distortion;
@@ -239,6 +240,7 @@ function AirJet.Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
       uniform sampler2D mask;
 
@@ -276,6 +278,7 @@ function AirJet.Initialize()
 
   jitShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float timer;
 
       varying float distortion;
@@ -314,6 +317,7 @@ function AirJet.Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
       uniform sampler2D mask;
 
@@ -398,6 +402,10 @@ local MergeTable   = MergeTable
 local setmetatable = setmetatable
 
 function AirJet.Create(Options)
+  -- apply teamcoloring for default
+  local r,g,b = Spring.GetTeamColor(Spring.GetUnitTeam(Options.unit))
+  AirJet.Default.color = {(r*0.9)+0.25, (g*0.9)+0.25, (b*0.9)+0.25}
+
   local newObject = MergeTable(Options, AirJet.Default)
   setmetatable(newObject,AirJet)  -- make handle lookup
   newObject:CreateParticle()

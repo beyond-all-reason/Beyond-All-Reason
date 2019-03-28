@@ -1,5 +1,8 @@
 return {
 vertex = [[
+	//shader version is added via gadget
+	%%GLOBAL_NAMESPACE%%
+
 	//#define use_normalmapping
 	//#define flip_normalmap
 	//#define use_shadows
@@ -42,6 +45,7 @@ vertex = [[
 
 	out vec2 tex_coord0;
 	out vec4 tex_coord1;
+	out vec4 worldPos;
 
 	void main(void)
 	{
@@ -58,7 +62,7 @@ vertex = [[
 			normalv = gl_NormalMatrix * normal;
 		#endif
 
-		vec4 worldPos = gl_ModelViewMatrix * vertex;
+		worldPos = gl_ModelViewMatrix * vertex;
 		gl_Position   = gl_ProjectionMatrix * (camera * worldPos);
 		viewDir     = cameraPos - worldPos.xyz;
 
@@ -105,6 +109,9 @@ vertex = [[
 
 
 fragment = [[
+	//shader version is added via gadget
+	%%GLOBAL_NAMESPACE%%
+
 	#if (GL_FRAGMENT_PRECISION_HIGH == 1)
 	// ancient GL3 ATI drivers confuse GLSL for GLSL-ES and require this
 	precision highp float;
@@ -113,7 +120,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
-	#line 10116
+	#line 10120
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -147,7 +154,10 @@ fragment = [[
 	#endif
 
 	#ifndef SHADOW_SAMPLES
-		#define SHADOW_SAMPLES 2
+		#define SHADOW_SAMPLES 6 // number of shadowmap samples per fragment
+		#define SHADOW_RANDOMNESS 0.3 // 0.0 - blocky look, 1.0 - random points look
+		#define SHADOW_SAMPLING_DISTANCE 5.0 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
+		#define SAMPLING_METHOD 2 // 1 - Hammersley Box, 2 - Spiral
 	#endif
 
 	#ifdef use_shadows
@@ -170,12 +180,14 @@ fragment = [[
 	#ifdef use_normalmapping
 		in mat3 tbnMatrix;
 		uniform sampler2D normalMap;
+		#define normalv tbnMatrix[2]
 	#else
 		in vec3 normalv;
 	#endif
 
 	in vec2 tex_coord0;
 	in vec4 tex_coord1;
+	in vec4 worldPos;
 
 	#if (deferred_mode == 1)
 		out vec4 fragData[GBUFFER_COUNT];
@@ -183,28 +195,80 @@ fragment = [[
 		out vec4 fragData[1];
 	#endif
 
-	float GetShadowPCFGrid(float NdotL) {
+	const float PI = acos(0.0) * 2.0;
+
+	#define NORM2SNORM(value) (value * 2.0 - 1.0)
+	#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+	vec2 HammersleyNorm(int i, int N) {
+		// principle: reverse bit sequence of i
+
+		uint b =  ( uint(i) << 16u) | (uint(i) >> 16u );
+		b = (b & 0x55555555u) << 1u | (b & 0xAAAAAAAAu) >> 1u;
+		b = (b & 0x33333333u) << 2u | (b & 0xCCCCCCCCu) >> 2u;
+		b = (b & 0x0F0F0F0Fu) << 4u | (b & 0xF0F0F0F0u) >> 4u;
+		b = (b & 0x00FF00FFu) << 8u | (b & 0xFF00FF00u) >> 8u;
+
+		return vec2( i, b ) / vec2( N, 0xffffffffU );
+	}
+
+	// http://blog.marmakoide.org/?p=1
+	const float goldenAngle = PI * (3.0 - sqrt(5.0));
+	vec2 SpiralSNorm(int i, int N) {
+		float theta = float(i) * goldenAngle;
+		float r = sqrt(float(i)) / sqrt(float(N));
+		return vec2 (r * cos(theta), r * sin(theta));
+	}
+
+	float hash12(vec2 p) {
+		const float HASHSCALE1 = 0.1031;
+		vec3 p3  = fract(vec3(p.xyx) * HASHSCALE1);
+		p3 += dot(p3, p3.yzx + 19.19);
+		return fract((p3.x + p3.y) * p3.z);
+	}
+
+	float GetShadowPCFRandom(float NdotL) {
 		float shadow = 0.0;
 
 		const float cb = 0.00005;
 		float bias = cb * tan(acos(NdotL));
 		bias = clamp(bias, 0.0, 5.0 * cb);
 
-		vec4 shTexCoord = tex_coord1;
-		shTexCoord.z -= bias;
-
 		#if defined(SHADOW_SAMPLES) && (SHADOW_SAMPLES > 1)
-			const int ssHalf = int(floor(float(SHADOW_SAMPLES) / 2.0));
-			const float ssSum = float((ssHalf + 1) * (ssHalf + 1));
 
-			for( int x = -ssHalf; x <= ssHalf; x++ ) {
-				float wx = float(ssHalf - abs(x) + 1) / ssSum;
-				for( int y = -ssHalf; y <= ssHalf; y++ ) {
-					float wy = float(ssHalf - abs(y) + 1) / ssSum;
-					shadow += wx * wy * textureProjOffset ( shadowTex, shTexCoord, ivec2(x, y) );
+
+			float rndRotAngle = NORM2SNORM(hash12(gl_FragCoord.xy)) * PI / 2.0 * SHADOW_RANDOMNESS;
+
+			vec2 vSinCos = vec2(sin(rndRotAngle), cos(rndRotAngle));
+			mat2 rotMat = mat2(vSinCos.y, -vSinCos.x, vSinCos.x, vSinCos.y);
+
+			vec2 shadowTexSize = textureSize(shadowTex, 0);
+			vec2 filterSize = SHADOW_SAMPLING_DISTANCE / shadowTexSize * (shadowTexSize / 8192.0);
+
+			#if (SAMPLING_METHOD == 1)
+				shadow = textureProj( shadowTex, tex_coord1 + vec4(0.0, 0.0, -bias, 0.0)); //make sure central point is sampled
+				for (int i = 0; i < SHADOW_SAMPLES - 1; ++i) {
+					// HammersleyNorm return low discrepancy sampling vec2
+					vec2 offset = (rotMat * NORM2SNORM(HammersleyNorm( i, SHADOW_SAMPLES ))) * filterSize;
+
+
+					vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
+					shadow += textureProj( shadowTex, shTexCoord );
 				}
-			}
+			#elif (SAMPLING_METHOD == 2)
+				for (int i = 0; i < SHADOW_SAMPLES; ++i) {
+					// SpiralSNorm return low discrepancy sampling vec2
+					vec2 offset = (rotMat * SpiralSNorm( i, SHADOW_SAMPLES )) * filterSize;
+
+					vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
+					shadow += textureProj( shadowTex, shTexCoord );
+				}
+			#endif
+
+			shadow /= float(SHADOW_SAMPLES);
 		#else
+			vec4 shTexCoord = tex_coord1;
+			shTexCoord.z -= bias;
 			shadow = textureProj( shadowTex, shTexCoord );
 		#endif
 
@@ -214,11 +278,6 @@ fragment = [[
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
 		#line 20212
-
-		const float PI = acos(0.0) * 2.0;
-
-		#define NORM2SNORM(value) (value * 2.0 - 1.0)
-		#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 		#ifdef use_normalmapping
 			vec2 tc = tex_coord0.st;
@@ -269,7 +328,7 @@ fragment = [[
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);
 
 		#ifdef use_shadows
-			float gShadow = GetShadowPCFGrid(NdotL);
+			float gShadow = GetShadowPCFRandom(NdotL);
 		#else
 			float gShadow = 1.0;
 		#endif
@@ -300,6 +359,12 @@ fragment = [[
 
 		#ifdef use_vertex_ao
 			outColor.rgb = outColor.rgb * aoTerm;
+		#endif
+
+		// debug hook
+		#if 0
+			//outColor.rgb = vec3(normalv);
+			outColor.rgb = vec3(N);
 		#endif
 
 		#if (deferred_mode == 0)

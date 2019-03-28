@@ -6,6 +6,131 @@ math.randomseed( os.time() )
 math.random(); math.random(); math.random()
 
 
+local TechLevel = {
+	armcv = 1,
+	armca = 1,
+	armck = 1,
+	armacv = 3,
+	armack = 2,
+	armaca = 2,
+	armch = 1,
+	armbeaver = 1,
+	corcv = 1,
+	corca = 1,
+	corck = 1,
+	coracv = 3,
+	coraca = 2,
+	corack = 2,
+	corch = 1,
+	cormuskrat = 1,
+}
+
+local EcoBuilders = {
+	{
+	armcv = true,
+	armca = true,
+	armck = true,
+	armacv = true,
+	armack = true,
+	armaca = true,
+	armch = true,
+	armbeaver = true,
+	corcv = true,
+	corca = true,
+	corck = true,
+	coracv = true,
+	coraca = true,
+	corack = true,
+	corch = true,
+	cormuskrat = true,
+	},
+	{
+	armacv = true,
+	armack = true,
+	armaca = true,
+	coracv = true,
+	coraca = true,
+	corack = true,
+	},
+	{
+	armacv = true,
+	coracv = true,
+	},
+}
+
+local ExpBuilders = {
+	{
+	armcv = true,
+	armca = true,
+	armck = true,
+	armacv = true,
+	armack = true,
+	armaca = true,
+	armch = true,
+	armbeaver = true,
+	corcv = true,
+	corca = true,
+	corck = true,
+	coracv = true,
+	coraca = true,
+	corack = true,
+	corch = true,
+	cormuskrat = true,
+	},
+	{
+	armacv = true,
+	armack = true,
+	armaca = true,
+	coracv = true,
+	coraca = true,
+	corack = true,
+	},
+	{
+	armacv = true,
+	coracv = true,
+	},
+}
+
+local UtilBuilders = {
+	armcv = true,
+	armca = true,
+	armck = true,
+	armacv = true,
+	armack = true,
+	armaca = true,
+	armch = true,
+	corcv = true,
+	corca = true,
+	corck = true,
+	coracv = true,
+	coraca = true,
+	corack = true,
+	corch = true,
+	armfark = true,
+	corfast = true,
+	armconsul = true,
+}
+
+local MilLeaders = {
+	armlab = true,
+	armalab = true,
+	armvp = true,
+	armavp = true,
+	armap = true,
+	armaap = true,
+	armshltx = true,
+	corlab = true,
+	coralab = true,
+	corvp = true,
+	coravp = true,
+	corap = true,
+	coraap = true,
+	corgant = true,
+}
+local Commander = {
+	armcom = true,
+	corcom = true,
+}
 
 
 -- Locals
@@ -81,23 +206,7 @@ function CanBuild(tqb, ai, unit, name)
 end
 
 function GetTechLevelRate(ai, unit, name)
-	local rate
-	if unit:Name() == "armalab" or unit:Name() == "armavp" or unit:Name() == "armaap" or unit:Name() == "coralab" or unit:Name() == "coravp" or unit:Name() == "coraap" then
-		rate = math.max(0.2,math.min(1, 3 - income(ai, "energy")/1500))
-		if name == "armaca" or name == "armack" or name == "armacv" or name == "coraca" or name == "coracv" or name == "corack" then
-			rate = 1	
-		end
-	elseif unit:Name() == "armlab" or unit:Name() == "armvp" or unit:Name() == "armap" or unit:Name() == "corlab" or unit:Name() == "corvp" or unit:Name() == "corap" then
-		rate = math.max(0.001,math.min(1, 1 - income(ai, "energy")/1500))
-		if name == "armca" or name == "armck" or name == "armcv" or name == "corca" or name == "corcv" or name == "corck" then
-			rate = 1	
-		end
-	elseif unit:Name() == "corgant" or unit:Name() == "armshltx" then
-		rate = 1
-	else
-		rate = 1
-	end
-	-- Spring.Echo(name, rate)
+	local rate = 1
 	return rate
 end
 
@@ -489,9 +598,8 @@ end
 
 function Epic(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
-	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, epicIDlist)
-	if ct > 0 or Spring.GetGameSeconds() < math.random(1200,2700) then
+	if ct > 0 then
 		return skip
 	end
 	if not possibilities[unit:Name()]["epicdef"] then
@@ -532,9 +640,8 @@ end
 
 function LolCannon(tqb, ai, unit)
 	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
-	--Spring.Echo("My AI Faction: ".. ai.aimodehandler.faction)
 	local ct = GetPlannedAndUnfinishedType(tqb, ai, unit, lolCannonIDlist)
-	if ct > 0 or Spring.GetGameSeconds() < 3600 then
+	if ct > 0 or Spring.GetGameSeconds() < 1800 then
 		return skip
 	end
 	if not possibilities[unit:Name()]["lolcannondef"] then
@@ -609,6 +716,36 @@ function AADefense(tqb, ai, unit)
 	end
 end
 
+function UnitArrayToChoice(tqb, ai, unit, inputTable)
+	possibilities[unit:Name()] = possibilities[unit:Name()] or {}
+	local list1 = {}
+	local ct = 0
+	for i, unitName in pairs (inputTable) do
+		if CanBuild(tqb, ai, unit, unitName) then
+			list1[ct + 1] = unitName
+			ct = ct + 1
+		end
+	end
+	if list1[1] then
+		local list = {}
+		local count = 0
+		for ct, unitName in pairs(list1) do
+			local defs = UnitDefs[UnitDefNames[unitName].id]
+			if ResourceCheck(tqb, ai, unit, unitName) then
+				count = count + 1
+				list[count] = unitName
+			end
+		end
+		if list[1] then
+			return FindBest(list, ai)
+		else
+			return skip
+		end
+	else
+		return skip
+	end
+end
+
 --------------------------------------------------------------------------------------------
 --------------------------------------- Main Functions -------------------------------------
 --------------------------------------------------------------------------------------------
@@ -655,7 +792,7 @@ end
 ---- TECHTREE RELATED ----
 function KbotOrVeh()
 	local veh = 0
-	local kbot = 1
+	local kbot = 0
 	-- mapsize
 	mapsize = Game.mapX * Game.mapY
 	local randomnumber = math.random(1,mapsize+1)
@@ -795,15 +932,16 @@ function AllowEngineer(tqb,ai,unit,name)
 end
 
 function AllowCon(tqb,ai,unit,name)
-	if string.find(name, "ac") then
-		return AllowConT2(tqb, ai, unit, name)
-	elseif name == "armconsul" or name == "armfark" or name == "corfast" then
-		return AllowEngineer(tqb, ai, unit, name)
-	elseif name ~= 'armrectr' or name ~= "cornecro" then
-		return AllowConT1(tqb, ai, unit, name)
-	else
-		return name
-	end
+	return name
+	-- if string.find(name, "ac") then
+		-- return AllowConT2(tqb, ai, unit, name)
+	-- elseif name == "armconsul" or name == "armfark" or name == "corfast" then
+		-- return AllowEngineer(tqb, ai, unit, name)
+	-- elseif name ~= 'armrectr' or name ~= "cornecro" then
+		-- return AllowConT1(tqb, ai, unit, name)
+	-- else
+		-- return name
+	-- end
 end
 	
 function GetFinishedAdvancedLabs(tqb,ai,unit)
@@ -994,69 +1132,190 @@ function FindBest(unitoptions,ai)
 		return unitoptions[math.random(1,#unitoptions)]
 	end
 end
+function ProcessUnitName(unitName,tqb,ai,unit)
+	local defs = UnitDefs[UnitDefNames[unitName].id]
+	local canBuild = defs.buildSpeed > 0
+	local canAssist = defs.canAssist and defs.canMove and (defs.speed > 0)
+	local canBuildEco = EcoBuilders[ai.buildersquadshandler.currentTechLevel][defs.name] == true
+	local canBuildMil = MilLeaders[defs.name] == true
+	local canBuildUtil = UtilBuilders[defs.name] == true
+	local canBuildExp = ExpBuilders[ai.buildersquadshandler.currentTechLevel][defs.name] == true
+	local militaryhelper = defs.name == "armnanotc" or defs.name == "cornanotc"
+	local militaryleader = canBuildMil
+	local utilhelper = canBuildUtil
+	local utilleader = canBuildUtil
+	local economyhelper = canAssist
+	local economyleader = canBuildEco
+	local expandhelper = canAssist
+	local expandleader = canBuildExp
+	local commanderhelper = false
+	local commanderleader = defs.name == "armcom" or defs.name == "corcom"	
+	local canBe = {
+		military = {helper = militaryhelper, leader = militaryleader},
+		commander = {helper = commanderhelper, leader = commanderleader},
+		util = {helper = utilhelper, leader = utilleader},
+		economy = {helper = economyhelper, leader = economyleader},
+		expand = {helper = expandhelper, leader = expandleader},
+	}
+	return canBe
+end
 
+function FindPossibilitiesFromRequest(tqb, ai, unit, domain, role, name)
+	local defs = UnitDefs[UnitDefNames[unit:Name()].id]
+	local buildOptions = defs.buildOptions
+	local list = {}
+	for i = 1 , #buildOptions do
+		local optionName = UnitDefs[buildOptions[i]].name
+		local canBe = ProcessUnitName(optionName, tqb,ai,unit)
+		if name and optionName == name then
+			list[#list + 1] = optionName
+		elseif (not name) and canBe[domain][role] then
+			list[#list + 1] = optionName
+		end
+	end
+	return list
+end
+
+function TryRequest(tqb,ai,unit)
+	local requestList = ai.buildersquadshandler.requests
+	for i, req in pairs (requestList) do
+		if req.sentToTaskQueues == true and ((req.queued == nil) or (req.queued + 3600 < Spring.GetGameFrame())) then
+			if req.domain == "military" and req.role == "leader" then
+				local choice = nil
+				if string.find(unit:Name(), "arm") then
+					if tqb.ai.buildersquadshandler.currentTechLevel >= 2 then
+						choice = ArmExpandRandomLab(tqb,ai,unit)
+					else
+						choice = ArmTech(tqb,ai,unit)
+					end
+				elseif string.find(unit:Name(), "cor") then
+					if tqb.ai.buildersquadshandler.currentTechLevel >= 2 then
+						choice = CorExpandRandomLab(tqb,ai,unit)
+					else
+						choice = CorTech(tqb,ai,unit)
+					end
+				end
+				if choice then
+					ai.buildersquadshandler.requests[i].queued = Spring.GetGameFrame()
+					return choice
+				end
+			else
+				local list1 = FindPossibilitiesFromRequest(tqb,ai,unit, req.domain, req.role, req.name)
+				if list1[1] then
+					local list = {}
+					local count = 0
+					for ct, unitName in pairs(list1) do
+						local defs = UnitDefs[UnitDefNames[unitName].id]
+						if ResourceCheck(tqb, ai, unit, unitName) then
+							count = count + 1
+							list[count] = unitName
+						end
+					end
+					if list[1] then
+						if req.domain == "military" and req.role == "helper" then
+							if ai.buildersquadshandler.squads[req.domain][req.squadn]["leader"][1] then
+								ai.buildersquadshandler.requests[i].queued = Spring.GetGameFrame()
+								return {action = "nanosupport", name = FindBest(list, ai), target = ai.buildersquadshandler.squads[req.domain][req.squadn]["leader"][1].unit.id}
+							end
+						end
+						ai.buildersquadshandler.requests[i].queued = Spring.GetGameFrame()
+						return FindBest(list, ai)
+					end
+				end
+			end
+		end
+	end
+	return skip
+end
+			
+function TechCon(tqb,ai,unit)
+	local curTech = tqb.ai.buildersquadshandler.currentTechLevel
+	if curTech == 1 then
+		local typeName = unit:Name()
+		local prefix = (string.find(typeName, "arm") and "arm") or "cor"
+		local suffix = ""
+		if string.find(typeName, "avp") then -- advanced vehicle plant)
+			suffix = "acv"
+		elseif string.find(typeName, "alab") then -- advanced lab
+			suffix = "ack"
+		elseif string.find(typeName, "aap") then -- advanced aircraft plant
+			suffix = "aca"
+		end
+		if UnitDefNames[prefix..suffix] then
+			return prefix..suffix
+		else
+			return skip
+		end
+	end
+	return skip
+end
+			
 
 -- COMMON QUEUES --
 
 lab = {
-	Builder,
+	TechCon,
+	TryRequest,
 	Scout,
-	Builder,
-	Scout,
 	OffensiveUnit,
 	OffensiveUnit,
 	OffensiveUnit,
 	OffensiveUnit,
-	OffensiveUnit,
-	Builder,
+	TryRequest,
 	Helper,
-	Scout,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	Builder,
 	Helper,
-	Scout,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	OffensiveUnit,
-	Builder,
-	Helper,
-	Scout,
-	"armrectr",
-	"cornecro",
-	"cordecom",
-	"armdecom",
-	"armrectr",
-	"cornecro",
-	"armrectr",
-	"cornecro",
-	"armrectr",
-	"cornecro",
-	Scout,
 }
 
 airlab = {
-	Builder,
-	Scout,
-	Builder,
+	TryRequest,
 	Scout,
 	Fighter,
 	Fighter,
 	Bomber,
-	Helper,
-	Bomber,
 	Bomber,
 	Fighter,
-	Helper,
-	Fighter,
-	Fighter,
-	Builder,
+	TryRequest,
 }
+
+economy = {
+	Economy,
+}
+
+util = {
+	TryRequest,
+	RequestedAction,
+	RequestedAction,
+	TryRequest,
+	RequestedAction,
+	RequestedAction,
+	Protection,
+	Epic,
+	LolCannon,
+}
+
+function Protection(tqb,ai,unit)
+	local defs = UnitDefs[UnitDefNames[unit:Name()].id]
+	if string.find(defs.name, "cor") then
+		return CorProtection(tqb,ai,unit)
+	else
+		return ArmProtection(tqb,ai,unit)
+	end
+	return skip
+end
+
+function Economy(tqb,ai,unit)
+	local defs = UnitDefs[UnitDefNames[unit:Name()].id]
+	if string.find(defs.name, "cora") then
+		return CorEnT2(tqb,ai,unit)
+	elseif string.find(defs.name, "arma") then
+		return ArmEnT2(tqb,ai,unit)
+	elseif string.find(defs.name, "cor") then
+		return CorEnT1(tqb,ai,unit)
+	elseif string.find(defs.name, "arm") then
+		return ArmEnT1(tqb,ai,unit)
+	end
+end
+
 
 --------------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------------
@@ -1096,10 +1355,8 @@ end
 
 function CorEnT1( tqb, ai, unit )	
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 then
+	if realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 then
         return (CorWindOrSolar(tqb, ai, unit))
-	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
-		return (CorWindOrSolar(tqb, ai, unit))
     elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and curstorperc(ai, "energy") > 30 then
         return "cormakr"
 	elseif storabletime(ai, "energy") < 8 and curstorperc(ai, "energy") > 80 then
@@ -1112,45 +1369,16 @@ function CorEnT1( tqb, ai, unit )
 end
 
 function CorEnT2( tqb, ai, unit )
-	--if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0) then
-		--return "coruwadves"
-	--elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
-		--return "coruwadvms"
 	if income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "coracv" then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "corafus", pos = {x = x, y = y, z = z}}
-		else
-			return "corafus"
-		end
-	elseif income(ai, "energy") > ai.aimodehandler.mintecheincome and income(ai, "metal") > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "corfus", pos = {x = x, y = y, z = z}}
-		else
-			return "corfus"
-		end
+		return "corafus"
+	elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+		return "corfus"
 	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corafus"].id].metalCost) < 240 and unit:Name() == "coracv" then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "corafus", pos = {x = x, y = y, z = z}}
-		else
-			return "corafus"
-		end
-	elseif income(ai, "energy") > ai.aimodehandler.mintecheincome and income(ai, "metal") > ai.aimodehandler.mintechmincome and (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "corfus", pos = {x = x, y = y, z = z}}
-		else
-			return "corfus"
-		end
+		return "corafus"
+	elseif (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["corfus"].id].metalCost) < 120 then
+		return "corfus"
     elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "cormmkr", pos = {x = x, y = y, z = z}}
-		else
-			return "cormmkr"
-		end
+		return "cormmkr"
 	else
 		return skip
 	end
@@ -1193,13 +1421,13 @@ function CorTech(tqb, ai, unit)
 				ai.firstT2 = true
 				return "coravp"
 			else 
-				return skip
+				return nil
 			end
 		else
-			return skip
+			return nil
 		end
 	else
-		return skip
+		return nil
 	end
 end
 
@@ -1207,15 +1435,11 @@ function CorExpandRandomLab(tqb, ai, unit)
 	local labtype = ai.aimodehandler:CorExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and AllAdvancedLabs(tqb,ai,unit) > 0 and GetPlannedAndUnfinishedLabs(tqb,ai,unit) <1 then
-			labtype = labtype
-		else
-			labtype = skip
-		end
+		labtype = labtype
 	else
-		labtype = skip
+		labtype = nil
 	end
-	if labtype == skip then
+	if labtype == nil then
 		return labtype
 	elseif GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 		local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
@@ -1332,64 +1556,57 @@ local corcommanderfirst = {
 
 local cort1eco = {
 	CorEnT1,
-	CorNanoT,
+	-- CorNanoT,
 	CorTech,
 	CorEnT1,
-	CorNanoT,
+	-- CorNanoT,
 	CorTech,
 	CorEnT1,
-	CorNanoT,
+	-- CorNanoT,
 	CorTech,
-	CorNanoT,
+	-- CorNanoT,
 	CorTech,
 }
 
 local cort1expand = {
-	CorNanoT,
-	CorExpandRandomLab,
+	-- CorNanoT,
+	-- CorExpandRandomLab,
+	CorMexT1,
+	-- ShortDefense,
 	CorMexT1,
 	ShortDefense,
 	CorMexT1,
+	-- CorExpandRandomLab,
 	ShortDefense,
 	CorMexT1,
-	CorExpandRandomLab,
-	ShortDefense,
-	AADefense,
-	CorMexT1,
-	CorExpandRandomLab,
+	-- CorExpandRandomLab,
 	assistaround,
 	MediumDefense,
 	CorMexT1,
 	CorRad,
-	CorExpandRandomLab,
+	-- CorExpandRandomLab,
 	CorGeo,
 	ShortDefense,
 	AADefense,
 	CorMexT1,
 	assistaround,
-	CorNanoT,
-	CorExpandRandomLab,
+	-- CorNanoT,
+	-- CorExpandRandomLab,
 	assistaround,
 	CorMexT1,
-	CorNanoT,
-}
-
-local cormexspam = {
-	CorMexT1,
-	assistaround,
+	-- CorNanoT,
 }
 
 local cort2eco = {
 	CorEnT2,
 	CorEnT2,
-	CorEnT2,
-	CorExpandRandomLab,
 	CorProtection,
-	AADefense,
+	CorEnT2,
+	-- CorExpandRandomLab,
 	CorEnT2,
 	CorEnT2,
 	CorEnT2,
-	CorExpandRandomLab,
+	-- CorExpandRandomLab,
 	Epic,
 	LolCannon,
 }
@@ -1399,18 +1616,10 @@ local cort2expand = {
 	ShortDefense,
 	"cormoho",
 	MediumDefense,
-	CorExpandRandomLab,
 	"cormoho",
 	CorARad,
-	CorExpandRandomLab,
 	AADefense,
-	assistaround,
 	LongDefense,
-}
-
-local cort2mexspam = {
-	"cormoho",
-	assistaround,
 }
 
 local cordecomqueue = {
@@ -1419,17 +1628,17 @@ local cordecomqueue = {
 }
 
 assistqueuepostt2arm = {
-	ArmNanoT,
-	ArmExpandRandomLab,
-	ArmNanoT,
+	-- ArmNanoT,
+	-- ArmExpandRandomLab,
+	-- ArmNanoT,
 	RequestedAction,
 	assistaround,
 }
 
 assistqueuepostt2core = {
-	CorNanoT,
-	CorExpandRandomLab,
-	CorNanoT,
+	-- CorNanoT,
+	-- CorExpandRandomLab,
+	-- CorNanoT,
 	RequestedAction,
 	assistaround,
 }
@@ -1442,13 +1651,13 @@ assistqueue = {
 corassistqueue = {
 	assistaround,
 	RequestedAction,
-	CorExpandRandomLab,
+	-- CorExpandRandomLab,
 }
 
 armassistqueue = {
 	assistaround,
 	RequestedAction,
-	ArmExpandRandomLab,
+	-- ArmExpandRandomLab,
 }
 
 assistqueuepatrol = {
@@ -1459,13 +1668,13 @@ assistqueuepatrol = {
 }
 
 assistqueuefreaker = {
-	CorNanoT,
+	-- CorNanoT,
 	assistaround,	
 	RequestedAction,
 }
 
 assistqueueconsul = {
-	ArmNanoT,
+	-- ArmNanoT,
 	assistaround,	
 	RequestedAction,
 }
@@ -1508,9 +1717,7 @@ end
 
 function ArmEnT1( tqb, ai, unit)
 	local countEstore = UDC(ai.id, UDN.corestor.id) + UDC(ai.id, UDN.armestor.id)
-	if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 then
-		return (ArmWindOrSolar(tqb, ai, unit))
-	elseif (income(ai, "energy") < ai.aimodehandler.eincomelimiterposttech2) and realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 and GetFinishedAdvancedLabs(tqb, ai, unit) >= 1 then
+	if realincome(ai, "energy") < 0 and curstorperc(ai, "energy") < 80 then
 		return (ArmWindOrSolar(tqb, ai, unit))
 	elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") and curstorperc(ai, "energy") > 30 then
 		return "armmakr"
@@ -1524,38 +1731,16 @@ function ArmEnT1( tqb, ai, unit)
 end
 
 function ArmEnT2( tqb, ai, unit )
-	--if storabletime(ai, "energy") < 10 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadves.id, UDN.armuwadves.id }) > 0)then
-		--return "armuwadves"
-	--elseif storabletime(ai, "metal") < 5 and not (GetPlannedAndUnfinishedType(tqb,ai,unit, {UDN.coruwadvms.id, UDN.armuwadvms.id }) > 0)then
-		--return "armuwadvms"
 	if income(ai, "energy") > 6000 and income(ai, "metal") > 100 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 and unit:Name() == "armacv" then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "armafus", pos = {x = x, y = y, z = z}}
-		else
-			return "armafus"
-		end
-	elseif income(ai, "energy") > ai.aimodehandler.mintecheincome and income(ai, "metal") > ai.aimodehandler.mintechmincome and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "armfus", pos = {x = x, y = y, z = z}}
-		else
-			return "armfus"
-		end
+		return "armafus"
+	elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and income(ai, "energy") < ((math.max((Spring.GetGameSeconds() / 60) - 5, 1)/6) ^ 2) * 1000 then
+		return "armfus"
 	elseif income(ai, "energy") > 6000 and income(ai, "metal") > 100 and (UUDC("armafus",ai.id) + UUDC("corafus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-3000 and timetostore(ai, "metal", UnitDefs[UnitDefNames["armafus"].id].metalCost) < 240 and unit:Name() == "armacv" then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "armafus", pos = {x = x, y = y, z = z}}
-		else
-			return "armafus"
-		end
+		return "armafus"
+	elseif (UUDC("armfus",ai.id) + UUDC("corfus",ai.id)) < 2 and Spring.GetTeamRulesParam(ai.id, "mmCapacity") > income(ai, "energy")-1200 and timetostore(ai, "metal", UnitDefs[UnitDefNames["armfus"].id].metalCost) < 120 then
+		return "armfus"
     elseif Spring.GetTeamRulesParam(ai.id, "mmCapacity") < income(ai, "energy") then
-       	if GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
-			local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
-			return {action = "armmmkr", pos = {x = x, y = y, z = z}}
-		else
-			return "armmmkr"
-		end
+		return "armmmkr"
 	else
 		return skip
 	end
@@ -1598,13 +1783,13 @@ function ArmTech(tqb, ai, unit)
 				ai.firstT2 = true
 				return "armavp"
 			else 
-				return skip
+				return nil
 			end
 		else
-			return skip
+			return nil
 		end
 	else
-		return skip	
+		return nil	
 	end
 end
 
@@ -1612,15 +1797,11 @@ function ArmExpandRandomLab(tqb, ai, unit)
 	local labtype = ai.aimodehandler:ArmExpandRandomLab(tqb,ai,unit)
 	if UnitDefNames[labtype] then
 		local defs = UnitDefs[UnitDefNames[labtype].id]
-		if timetostore(ai, "metal", defs.metalCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and timetostore(ai, "energy", defs.energyCost) < defs.buildTime/UnitDefs[UnitDefNames[unit:Name()].id].buildSpeed and AllAdvancedLabs(tqb,ai,unit) > 0  and GetPlannedAndUnfinishedLabs(tqb,ai,unit) <1 then
-			labtype = labtype
-		else
-			labtype = skip
-		end
+		labtype = labtype
 	else
-		labtype = skip
+		labtype = nil
 	end
-	if labtype == skip then
+	if labtype == nil then
 		return labtype
 	elseif GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id) then
 		local x, y, z = GG.AiHelpers.NanoTC.GetClosestNanoTC(unit.id)
@@ -1738,65 +1919,47 @@ local armcommanderfirst = {
 
 local armt1eco = {
 	ArmEnT1,
-	ArmNanoT,
 	ArmTech,
 	ArmEnT1,
-	ArmNanoT,
 	ArmTech,
 	ArmEnT1,
-	ArmNanoT,
 	ArmTech,
-	ArmNanoT,
 	ArmTech,
 }
 
 local armt1expand = {
-	ArmNanoT,
-	ArmNanoT,
-	ArmExpandRandomLab,
+	-- ArmExpandRandomLab,
+	ArmMexT1,
+	-- ShortDefense,
 	ArmMexT1,
 	ShortDefense,
 	ArmMexT1,
+	-- ArmExpandRandomLab,
 	ShortDefense,
 	ArmMexT1,
-	ArmExpandRandomLab,
-	ShortDefense,
-	AADefense,
-	ArmMexT1,
-	ArmExpandRandomLab,
-	assistaround,
+	-- ArmExpandRandomLab,
 	MediumDefense,
 	ArmMexT1,
 	ArmRad,
-	ArmExpandRandomLab,
+	-- ArmExpandRandomLab,
 	ArmGeo,
-	assistaround,
 	ArmMexT1,
-	ArmNanoT,
-	ArmExpandRandomLab,
+	-- ArmExpandRandomLab,
 	ShortDefense,
 	AADefense,
 	ArmMexT1,
-	assistaround,
-	ArmNanoT,
-}
-
-local armmexspam = {
-	ArmMexT1,
-	assistaround,
 }
 
 local armt2eco = {
 	ArmEnT2,
 	ArmEnT2,
-	ArmEnT2,
-	ArmExpandRandomLab,
 	ArmProtection,
-	AADefense,
+	ArmEnT2,
+	-- ArmExpandRandomLab,
 	ArmEnT2,
 	ArmEnT2,
 	ArmEnT2,
-	ArmExpandRandomLab,
+	-- ArmExpandRandomLab,
 	Epic,
 	LolCannon,
 }
@@ -1805,19 +1968,11 @@ local armt2expand = {
 	"armmoho",
 	ShortDefense,
 	"armmoho",
-	ArmExpandRandomLab,
 	MediumDefense,
 	"armmoho",
 	ArmARad,
-	ArmExpandRandomLab,
 	AADefense,
-	assistaround,
 	LongDefense,
-}
-
-local armt2mexspam = {
-	"armmoho",
-	assistaround,
 }
 
 local armdecomqueue = {
@@ -1828,6 +1983,10 @@ local armdecomqueue = {
 ------------------
 -- QueuePickers --
 ------------------
+
+local function guard(unitID)
+	return {{action = "command", params = {cmdID = CMD.GUARD, cmdParams = {unitID}, cmdOptions = {""}}}}
+end
 
 local function corcommander(tqb, ai, unit)
 	ai.t1priorityrate = ai.t1priorityrate or ai.aimodehandler.t1ratepret2
@@ -1856,121 +2015,183 @@ local function armcommander(tqb, ai, unit)
 end
 
 local function armt1con(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if not unit.mode then
-		ai.t1concounter = (ai.t1concounter or 0) + 1
-		if ai.t1concounter < 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
-			unit.mode = "mexspam"
-		elseif ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
-			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 then
-			unit.mode = "expand"
-		else
-			unit.mode = "eco"
-		end
+	local state = tqb.ai.buildersquadshandler:GetState(tqb,unit)
+	if (not state) or (not state.state) then
+		return {skip, skip}
 	end
-	if unit.mode == "mexspam" then
-		return armmexspam
-	elseif unit.mode == "eco" then
-		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
-			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
-			return armt1eco
-		else
-		ai.t1priorityrate = ai.aimodehandler.t1ratepostt2
-			return armt1expand
+	if state.state == "squad" then
+		if state.params.domain == "economy" then	
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return economy
+			end
+		elseif state.params.domain == "expand" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return armt1expand
+			end
+		elseif state.params.domain == "util" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return util
+			end
+		elseif state.params.domain == "military" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return {skip, skip}
+			end
 		end
-	elseif unit.mode == "expand" and (not hasTech2) then
-		return armt1expand
-	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
-		return assistqueuepostt2arm	
 	else
-		return armassistqueue
+		return {skip, skip}
 	end
-	return armassistqueue
 end
 
 local function cort1con(tqb, ai, unit)
-	local hasTech2 = (UDC(ai.id, UDN.armack.id) + UDC(ai.id, UDN.armacv.id) +UDC(ai.id, UDN.armaca.id) +UDC(ai.id, UDN.corack.id) +UDC(ai.id, UDN.coracv.id) +UDC(ai.id, UDN.coraca.id)) >= ai.aimodehandler.mint2countpauset1
-	if not unit.mode then
-		ai.t1concounter = (ai.t1concounter or 0) + 1
-		if ai.t1concounter < 3 or ai.t1concounter%10 == 5 or ai.t1concounter%10 == 7 or ai.t1concounter%10 == 0 then
-			unit.mode = "mexspam"
-		elseif ai.t1concounter%10 == 8 or ai.t1concounter%10 == 9 then
-			unit.mode = "assist"
-		elseif ai.t1concounter%10 == 1 or ai.t1concounter%10 == 3 or ai.t1concounter%10 == 4 then
-			unit.mode = "expand"
-		else
-			unit.mode = "eco"
-		end
+	local state = tqb.ai.buildersquadshandler:GetState(tqb,unit)
+	if (not state) or (not state.state) then
+		return {skip, skip}
 	end
-	if unit.mode == "mexspam" then
-		return cormexspam
-	elseif unit.mode == "eco" then
-		if (income(ai, "energy") < ai.aimodehandler.eincomelimiterpretech2 or AllAdvancedLabs(tqb, ai, unit) < 1) then
-			ai.t1priorityrate = ai.aimodehandler.t1ratepret2
-			return cort1eco
-		else
-			ai.t1priorityrate = ai.aimodehandler.t1ratepostt2
-			return cort1expand
+	if state.state == "squad" then
+		if state.params.domain == "economy" then	
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return economy
+			end
+		elseif state.params.domain == "expand" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return cort1expand
+			end
+		elseif state.params.domain == "util" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return util
+			end
+		elseif state.params.domain == "military" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return {skip, skip}
+			end
 		end
-	elseif unit.mode == "expand" and (not hasTech2) then
-		return cort1expand
-	elseif GetFinishedAdvancedLabs(tqb,ai,unit) >= 1 then
-		return assistqueuepostt2core
 	else
-		return corassistqueue
+		return {skip, skip}
 	end
-	return corassistqueue
 end
 
 local function armt2con(tqb, ai, unit)
-	if not unit.mode then
-		ai.t2concounter = (ai.t2concounter or 0) + 1
-		if ai.t2concounter < 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
-			unit.mode = "mexspam"
-		elseif ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
-			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 then
-			unit.mode = "expand"
-		else
-			unit.mode = "eco"
+	local state = tqb.ai.buildersquadshandler:GetState(tqb,unit)
+	if (not state) or (not state.state) then
+		return {skip, skip}
+	end
+	if state.state == "squad" then
+		if state.params.domain == "economy" then	
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return economy
+			end
+		elseif state.params.domain == "expand" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return armt2expand
+			end
+		elseif state.params.domain == "util" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return util
+			end
+		elseif state.params.domain == "military" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return {skip, skip}
+			end
 		end
-	end
-	if unit.mode == "mexspam" then
-		return armt2mexspam
-	elseif unit.mode == "eco" then
-		return armt2eco
-	elseif unit.mode == "expand" then
-		return armt2expand
 	else
-		return armassistqueue
+		return {skip, skip}
 	end
-	return armassistqueue
 end
 
 local function cort2con(tqb, ai, unit)
-	if not unit.mode then
-		ai.t2concounter = (ai.t2concounter or 0) + 1
-		if ai.t2concounter < 3 or ai.t2concounter%10 == 5 or ai.t2concounter%10 == 7 or ai.t2concounter%10 == 0 then
-			unit.mode = "mexspam"
-		elseif ai.t2concounter%10 == 8 or ai.t2concounter%10 == 9 then
-			unit.mode = "assist"
-		elseif ai.t2concounter%10 == 2 or ai.t2concounter%10 == 3 or ai.t2concounter%10 == 4 then
-			unit.mode = "expand"
-		else
-			unit.mode = "eco"
+	local state = tqb.ai.buildersquadshandler:GetState(tqb,unit)
+	if (not state) or (not state.state) then
+		return {skip, skip}
+	end
+	if state.state == "squad" then
+		if state.params.domain == "economy" then	
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return economy
+			end
+		elseif state.params.domain == "expand" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return cort2expand
+			end
+		elseif state.params.domain == "util" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return util
+			end
+		elseif state.params.domain == "military" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return {skip, skip}
+			end
 		end
-	end
-	if unit.mode == "mexspam" then
-		return cort2mexspam
-	elseif unit.mode == "eco" then
-		return cort2eco
-	elseif unit.mode == "expand" then
-		return cort2expand
 	else
-		return corassistqueue
+		return {skip, skip}
 	end
-	return corassistqueue
+end
+
+local function engineers(tqb, ai, unit)
+	local state = tqb.ai.buildersquadshandler:GetState(tqb,unit)
+	if not (state and state.state) then
+		return {skip, skip}
+	end
+	if state.state == "squad" then
+		if state.params.domain == "economy" then	
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return {skip,skip}
+			end
+		elseif state.params.domain == "expand" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else
+				return {skip,skip}
+			end
+		elseif state.params.domain == "util" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return util
+			end
+		elseif state.params.domain == "military" then
+			if state.params.role == "helper" and tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1] then
+				return guard(tqb.ai.buildersquadshandler.squads[state.params.domain][state.params.squadn]["leader"][1].unit.id)
+			else		
+				return {skip, skip}
+			end
+		end
+	else
+		return {skip, skip}
+	end
 end
 
 --------------------------------------------------------------------------------------------
@@ -1990,8 +2211,9 @@ taskqueues = {
 	corack = cort2con,
 	coracv = cort2con,
 	coraca = cort2con,
-	-- ASSIST
-	corfast = assistqueuefreaker,
+	cormuskrat = cort1con,
+		-- ASSIST
+	corfast = engineers,
 	--factories
 	corlab = lab,
 	corvp = lab,
@@ -2014,9 +2236,10 @@ taskqueues = {
 	armack = armt2con,
 	armacv = armt2con,
 	armaca = armt2con,
+	armbeaver = armt1con,
 	--ASSIST
-	armconsul = assistqueueconsul,
-	armfark = assistqueuepatrol,
+	armconsul = engineers,
+	armfark = engineers,
 	--factories
 	armlab = lab,
 	armvp = lab,

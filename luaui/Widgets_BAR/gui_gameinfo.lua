@@ -11,11 +11,11 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local loadedFontSize = fontfileSize*fontfileScale
@@ -204,6 +204,7 @@ function widget:ViewResize()
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	loadedFontSize = fontfileSize*fontfileScale
   end
@@ -442,24 +443,31 @@ function widget:DrawScreen()
 		glScale(widgetScale, widgetScale, 1)
 		glCallList(changelogList)
 		glPopMatrix()
-		if (WG['guishader_api'] ~= nil) then
+		if WG['guishader'] then
 			local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY1 = ((screenY+bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 			local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 			local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
-			WG['guishader_api'].InsertRect(rectX1, rectY2, rectX2, rectY1, 'gameinfo')
-			--WG['guishader_api'].setBlurIntensity(0.0017)
-			--WG['guishader_api'].setScreenBlur(true)
+			if backgroundGuishader ~= nil then
+				glDeleteList(backgroundGuishader)
+			end
+			backgroundGuishader = glCreateList( function()
+				-- background
+				RectRound(rectX1, rectY2, rectX2, rectY1, 9*widgetScale, 0,1,1,1)
+				-- title
+				rectX1 = (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2)
+				rectY1 = (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2)
+				rectX2 = (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2)
+				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
+				RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
+			end)
+			WG['guishader'].InsertDlist(backgroundGuishader, 'gameinfo')
 		end
 		showOnceMore = false
 
 	else
-		if (WG['guishader_api'] ~= nil) then
-			local removed = WG['guishader_api'].RemoveRect('gameinfo')
-			if removed then
-				--WG['guishader_api'].setBlurIntensity()
-				WG['guishader_api'].setScreenBlur(false)
-			end
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('gameinfo')
 		end
 	end
 end
@@ -627,7 +635,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	Spring.SendCommands("unbind i customgameinfo")
 	Spring.SendCommands("bind any+i gameinfo")
 	Spring.SendCommands("bind i gameinfo")
@@ -641,4 +648,8 @@ function widget:Shutdown()
 		glDeleteList(changelogList)
 		changelogList = nil
 	end
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('gameinfo')
+	end
+	gl.DeleteFont(font)
 end

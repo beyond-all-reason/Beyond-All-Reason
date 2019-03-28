@@ -42,7 +42,7 @@ return {
 			cvbuildable = true,
 			model_author = "Cremuss",
 			normalmaps = "yes",
-			normaltex = "unittextures/Arm_normals.dds",
+			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

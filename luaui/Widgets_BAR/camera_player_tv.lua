@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 32
@@ -258,9 +258,7 @@ local function createList()
 		RectRound(right-textWidth+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
 
 		font:Begin()
-		if (WG['guishader_api'] ~= nil and isSpec) then
-			WG['guishader_api'].InsertRect(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 'playertv')
-		end
+        font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
 
 		if toggled then
 			local name = 'Player TV  '
@@ -298,6 +296,16 @@ local function createList()
 		font:Print(color..text, toggleButton[3]-(textWidth/2), toggleButton[2]+(8*widgetScale), fontSize, 'oc')
 		font:End()
 	end)
+
+	if WG['guishader'] and isSpec then
+		if backgroundGuishader then
+			gl.DeleteList(backgroundGuishader)
+		end
+		backgroundGuishader = gl.CreateList( function()
+			RectRound(toggleButton[1], toggleButton[2], toggleButton[3], toggleButton[4], 5.5*widgetScale)
+		end)
+		WG['guishader'].InsertDlist(backgroundGuishader, 'playertv')
+	end
 end
 
 
@@ -334,14 +342,25 @@ function widget:Initialize()
 	if WG['advplayerlist_api'] == nil then
 		Spring.Echo("Top TS camera tracker: AdvPlayerlist not found! ...exiting")
 		widgetHandler:RemoveWidget(self)
-	end
+		return
+    end
+
+    local humanPlayers = 0
 	local playersList = Spring.GetPlayerList()
 	for _,playerID in ipairs(playersList) do
-		local _,active,spec = Spring.GetPlayerInfo(playerID)
+		local _,active,spec,team = Spring.GetPlayerInfo(playerID)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
+            if not select(3,Spring.GetTeamInfo(team)) and not select(4,Spring.GetTeamInfo(team)) then
+                humanPlayers = humanPlayers + 1
+            end
 		end
-	end
+    end
+    if humanPlayers == 0 then
+        widgetHandler:RemoveWidget(self)
+		return
+    end
+
 	tsOrderPlayers()
 
 	updatePosition()
@@ -449,7 +468,11 @@ function widget:GameFrame(n)
 end
 
 function isInBox(mx, my, box)
-	return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+    if (WG['topbar'] and WG['topbar'].showingQuit()) then
+        return false
+    else
+	    return mx > box[1] and my > box[2] and mx < box[3] and my < box[4]
+    end
 end
 
 function widget:MousePress(mx, my, mb)
@@ -492,8 +515,8 @@ function widget:DrawScreen()
 	local gameFrame = Spring.GetGameFrame()
 
 	if (rejoining or gameFrame == 0) and not lockPlayerID then
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].RemoveRect('playertv')
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('playertv')
 		end
 		--return
 	end
@@ -560,19 +583,19 @@ end
 
 
 function widget:Shutdown()
-	gl.DeleteFont(font)
 	for i=1,#drawlistsCountdown do
 		gl.DeleteList(drawlistsCountdown[i])
 	end
 	for i,v in pairs(drawlistsPlayername) do
 		gl.DeleteList(drawlistsPlayername[i])
 	end
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('playertv')
+	if WG['guishader'] then
+		WG['guishader'].DeleteDlist('playertv')
 	end
 	for i=1,#drawlist do
 		gl.DeleteList(drawlist[i])
 	end
+    gl.DeleteFont(font)
 	if toggled then
 		WG['advplayerlist_api'].SetLockPlayerID()
 	end

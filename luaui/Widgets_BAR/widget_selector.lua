@@ -56,25 +56,25 @@ local fullWidgetsList = {}
 
 local vsx, vsy = widgetHandler:GetViewSizes()
 
-local minMaxEntries = 15 
+local minMaxEntries = 15
 local curMaxEntries = 25
 
 local startEntry = 1
 local pageStep  = math.floor(curMaxEntries / 2) - 1
 
-local fontSize = 12
-local fontSpace = 7
+local fontSize = 13.5
+local fontSpace = 8.5
 local yStep = fontSize + fontSpace
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local bgPadding = 6
+local bgPadding = 5.5
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
 local maxWidth = 0.01
@@ -117,10 +117,10 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().allowuserwidgets) o
   buttons[3] = ''
 end
 
-local titleFontSize = 16
-local buttonFontSize = 14
-local buttonHeight = 20
-local buttonTop = 20 -- offset between top of buttons and bottom of widget
+local titleFontSize = 18
+local buttonFontSize = 15
+local buttonHeight = 24
+local buttonTop = 28 -- offset between top of buttons and bottom of widget
 
 -------------------------------------------------------------------------------
 
@@ -365,20 +365,23 @@ local activeGuishader = false
 local scrollbarOffset = -15
 function widget:DrawScreen()
   if not show then 
-    if activeGuishader and (WG['guishader_api'] ~= nil) then
+    if activeGuishader and (WG['guishader']) then
       activeGuishader = false
-      WG['guishader_api'].RemoveRect('widgetselector')
+      WG['guishader'].DeleteDlist('widgetselector')
     end
     return
   end
   UpdateList()
   font:Begin()
-  if (WG['guishader_api'] == nil) then
+  if (WG['guishader'] == nil) then
     activeGuishader = false 
   end
-  if (WG['guishader_api'] ~= nil) and not activeGuishader then
+  if (WG['guishader']) and not activeGuishader then
     activeGuishader = true
-    WG['guishader_api'].InsertRect(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier),'widgetselector')
+    dlistGuishader = gl.CreateList( function()
+      RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
+    end)
+    WG['guishader'].InsertDlist(dlistGuishader, 'widgetselector')
   end
   borderx = (yStep*sizeMultiplier) * 0.75
   bordery = (yStep*sizeMultiplier) * 0.75
@@ -402,7 +405,11 @@ function widget:DrawScreen()
   tcol = WhiteStr
 
   -- draw the box
-  gl.Color(0,0,0,0.8)
+  if WG['guishader'] then
+    gl.Color(0,0,0,0.8)
+  else
+    gl.Color(0,0,0,0.85)
+  end
   RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
   
   gl.Color(0.33,0.33,0.33,0.2)
@@ -822,8 +829,8 @@ end
 function widget:Shutdown()
   Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
   
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('widgetselector')
+	if WG['guishader'] then
+      WG['guishader'].DeleteDlist('widgetselector')
 	end
 end
 

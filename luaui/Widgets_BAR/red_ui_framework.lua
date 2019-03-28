@@ -12,7 +12,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 32
@@ -245,9 +245,9 @@ local F = {
 			if o.roundedsize ~= nil then
 				roundedSize = o.roundedsize
 			end
-			RectRound(px,py,sx,sy,color,roundedSize,iconscale,false,(o.noblur ~= nil and o.noblur))
+			RectRound(px,py,sx,sy,color,roundedSize,iconscale,false,(o.guishader ~= nil and o.guishader))
 			if o.glone ~= nil and o.glone > 0 then
-				RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true,(o.noblur ~= nil and o.noblur))
+				RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true,(o.guishader ~= nil and o.guishader))
 			end
 		end
 		

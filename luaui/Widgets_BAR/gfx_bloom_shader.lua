@@ -280,6 +280,7 @@ function widget:Initialize()
 
 	combineShader = gl.CreateShader({
 		fragment = [[
+			#version 150 compatibility
 			uniform sampler2D texture0;
 			uniform sampler2D texture1;
 			uniform float illuminationThreshold;
@@ -308,6 +309,7 @@ function widget:Initialize()
 
 	blurShaderH71 = gl.CreateShader({
 		fragment = [[
+			#version 150 compatibility
 			uniform sampler2D texture0;
 			uniform float inverseRX;
 			uniform float fragKernelRadius;
@@ -343,6 +345,7 @@ function widget:Initialize()
 
 	blurShaderV71 = gl.CreateShader({
 		fragment = [[
+			#version 150 compatibility
 			uniform sampler2D texture0;
 			uniform float inverseRY;
 			uniform float fragKernelRadius;
@@ -378,6 +381,7 @@ function widget:Initialize()
 
 	brightShader = gl.CreateShader({
 		fragment = [[
+			#version 150 compatibility
 			uniform sampler2D texture0;
 			uniform float illuminationThreshold;
 			uniform float inverseRX;

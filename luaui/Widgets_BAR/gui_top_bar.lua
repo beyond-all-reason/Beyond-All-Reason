@@ -13,11 +13,11 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "FreeSansBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 8.5
+local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
@@ -148,6 +148,8 @@ function widget:ViewResize(n_vsx,n_vsy)
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
+	gl.DeleteFont(font)
+    gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 
@@ -252,7 +254,17 @@ local function updateRejoin()
 	local area = rejoinArea
 
 	local catchup = gameFrame / serverFrame
-	
+
+	-- add background blur
+	if dlistRejoinGuishader ~= nil then
+		WG['guishader'].RemoveDlist('topbar_rejoin')
+		glDeleteList(dlistRejoinGuishader)
+	end
+	dlistRejoinGuishader = glCreateList( function()
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
+	end)
+
+
 	if dlistRejoin ~= nil then
 		glDeleteList(dlistRejoin)
 	end
@@ -262,11 +274,11 @@ local function updateRejoin()
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_rejoin')
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistRejoinGuishader, 'topbar_rejoin')
 		end
 		
 		local barHeight = (height*widgetScale/10)
@@ -324,7 +336,18 @@ local function updateButtons()
 	if fontsize > (height*widgetScale)/3 then
 		fontsize = (height*widgetScale)/3
 	end
-	
+
+
+	-- add background blur
+	if dlistButtonsGuishader ~= nil then
+		WG['guishader'].RemoveDlist('topbar_buttons')
+		glDeleteList(dlistButtonsGuishader)
+	end
+	dlistButtonsGuishader = glCreateList( function()
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
+	end)
+
+
 	if dlistButtons1 ~= nil then
 		glDeleteList(dlistButtons1)
 	end
@@ -334,11 +357,11 @@ local function updateButtons()
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3], area[4], bgpadding*1.25)
 		
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_buttons')
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistButtonsGuishader, 'topbar_buttons')
 		end
 		
 		if buttonsArea['buttons'] == nil then
@@ -398,7 +421,18 @@ end
 
 local function updateComs(forceText)
 	local area = comsArea
-	
+
+	-- add background blur
+	if dlistComsGuishader ~= nil then
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_coms')
+		end
+		glDeleteList(dlistComsGuishader)
+	end
+	dlistComsGuishader = glCreateList( function()
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
+	end)
+
 	if dlistComs1 ~= nil then
 		glDeleteList(dlistComs1)
 	end
@@ -408,11 +442,11 @@ local function updateComs(forceText)
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_coms')
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistComsGuishader, 'topbar_coms')
 		end
 	end)
 
@@ -459,6 +493,15 @@ local function updateWind()
 	local poleWidth = 6 * widgetScale
 	local poleHeight = 14 * widgetScale
 
+	-- add background blur
+	if dlistWindGuishader ~= nil then
+		WG['guishader'].RemoveDlist('topbar_wind')
+		glDeleteList(dlistWindGuishader)
+	end
+	dlistWindGuishader = glCreateList( function()
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
+	end)
+
 	if dlistWind1 ~= nil then
 		glDeleteList(dlistWind1)
 	end
@@ -467,11 +510,11 @@ local function updateWind()
 		-- background
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], 5*widgetScale)
 
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_wind')
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistWindGuishader, 'topbar_wind')
 		end
 
 		glPushMatrix()
@@ -510,7 +553,7 @@ local function updateWind()
 	end)
 
 	if WG['tooltip'] ~= nil then
-		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind.."\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (arm) or 6 (core)")
+		WG['tooltip'].AddTooltip('wind', area, "\255\215\255\215Wind Display\n\255\240\240\240Displays current wind strength\n\255\240\240\240also minimum ("..minWind..") and maximum ("..maxWind..")\n\255\255\215\215Rather build solars when average\n\255\255\215\215wind is below 5 (arm) or 6 (core)")
 	end
 end
 
@@ -624,17 +667,26 @@ local function updateResbar(res)
 	resbarDrawinfo[res].textExpense	= {"\255\210\100\100"..short(r[res][5]), barArea[1]+(10*widgetScale), barArea[2]+barHeight*2.7, (height/3.2)*widgetScale, 'old'}
 	resbarDrawinfo[res].textIncome	= {"\255\100\210\100"..short(r[res][4]), barArea[1]-(8*widgetScale), barArea[2]-barHeight/1.2, (height/3.2)*widgetScale, 'ord'}
 
+	-- add background blur
+	if dlistResbar[res][0] ~= nil then
+		WG['guishader'].RemoveDlist('topbar_'..res)
+		glDeleteList(dlistResbar[res][0])
+	end
+	dlistResbar[res][0] = glCreateList( function()
+		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
+	end)
+
 	dlistResbar[res][1] = glCreateList( function()
 
 		-- background
 		glColor(0,0,0,ui_opacity)
 		RectRound(area[1], area[2], area[3], area[4], 5.5*widgetScale)
 		local bgpadding = 3*widgetScale
-		glColor(1,1,1,ui_opacity*0.04)
+		glColor(1,1,1,ui_opacity*0.055)
 		RectRound(area[1]+bgpadding, area[2]+bgpadding, area[3]-bgpadding, area[4], bgpadding*1.25)
 		
-		if (WG['guishader_api'] ~= nil) then
-			WG['guishader_api'].InsertRect(area[1], area[2], area[3], area[4], 'topbar_'..res)
+		if WG['guishader'] then
+			WG['guishader'].InsertDlist(dlistResbar[res][0], 'topbar_'..res)
 		end
 		
 		-- Icon
@@ -725,8 +777,8 @@ function init()
     r['metal'] = {spGetTeamResources(myTeamID,'metal') }
     r['energy'] = {spGetTeamResources(myTeamID,'energy') }
 
-	topbarArea = {xPos, vsy-(borderPadding*widgetScale)-(height*widgetScale), vsx, vsy}
-	barContentArea = {xPos+(borderPadding*widgetScale), vsy-(height*widgetScale), vsx, vsy}
+	topbarArea = {xPos, math.floor(vsy-(borderPadding*widgetScale)-(height*widgetScale)), vsx, vsy}
+	barContentArea = {xPos+(borderPadding*widgetScale), math.floor(vsy-(height*widgetScale)), vsx, vsy}
 	
 	local filledWidth = 0
 	local totalWidth = barContentArea[3] - barContentArea[1]
@@ -742,10 +794,7 @@ function init()
 		--
 		--glColor(1,1,1,0.025)
 		--RectRound(barContentArea[1], barContentArea[2], barContentArea[3], barContentArea[4]+(10*widgetScale), 5*widgetScale)
-		
-		--if (WG['guishader_api'] ~= nil) then
-		--	WG['guishader_api'].InsertRect(topbarArea[1]+((borderPadding*widgetScale)/2), topbarArea[2], topbarArea[3], topbarArea[4], 'topbar')
-		--end
+
 	end)
 	
 	-- metal
@@ -850,12 +899,12 @@ function widget:Update(dt)
     end
 
     now = os.clock()
-	if now > nextGuishaderCheck and widgetHandler.orderList["GUI-Shader"] ~= nil then
+	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] ~= nil then
         nextGuishaderCheck = now+guishaderCheckUpdateRate
-		if guishaderEnabled == false and widgetHandler.orderList["GUI-Shader"] ~= 0 then
+		if guishaderEnabled == false and widgetHandler.orderList["GUI Shader"] ~= 0 then
 			guishaderEnabled = true
 			init()
-		elseif guishaderEnabled and (widgetHandler.orderList["GUI-Shader"] == 0) then
+		elseif guishaderEnabled and (widgetHandler.orderList["GUI Shader"] == 0) then
 			guishaderEnabled = false
 		end
 	end
@@ -1085,8 +1134,8 @@ function widget:DrawScreen()
 			glDeleteList(dlistRejoin)
 			dlistRejoin = nil
 		end
-		if WG['guishader_api'] ~= nil then
-			WG['guishader_api'].RemoveRect('topbar_rejoin')
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_rejoin')
 		end
 		if WG['tooltip'] ~= nil then
 			WG['tooltip'].RemoveTooltip('rejoin')
@@ -1114,8 +1163,8 @@ function widget:DrawScreen()
 	end
 
     if dlistQuit ~= nil then
-        if (WG['guishader_api'] ~= nil) then
-            WG['guishader_api'].removeDlist(dlistQuit)
+        if WG['guishader'] then
+            WG['guishader'].removeRenderDlist(dlistQuit)
         end
         glDeleteList(dlistQuit)
         dlistQuit = nil
@@ -1129,7 +1178,7 @@ function widget:DrawScreen()
 		Spring.SetMouseCursor('cursornormal')
 
         dlistQuit = glCreateList( function()
-			if WG['guishader_api'] then
+			if WG['guishader'] then
             	glColor(0,0,0,(0.18*fadeProgress))
 			else
 				glColor(0,0,0,(0.35*fadeProgress))
@@ -1197,10 +1246,9 @@ function widget:DrawScreen()
         end)
 
         -- background
-        if (WG['guishader_api'] ~= nil) then
-            WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
-            WG['guishader_api'].setScreenBlur(true)
-            WG['guishader_api'].addDlist(dlistQuit)
+        if WG['guishader'] then
+            WG['guishader'].setScreenBlur(true)
+            WG['guishader'].insertRenderDlist(dlistQuit)
         else
             glCallList(dlistQuit)
         end
@@ -1259,9 +1307,8 @@ local function hideWindows()
         WG['teamstats'].toggle(false)
 	end
 	showQuitscreen = nil
-	if (WG['guishader_api'] ~= nil) then
-		WG['guishader_api'].RemoveRect('topbar_screenblur')
-		WG['guishader_api'].setScreenBlur(false)
+	if WG['guishader'] then
+		WG['guishader'].setScreenBlur(false)
 	end
 end
 
@@ -1282,9 +1329,8 @@ local function applyButtonAction(button)
 		if oldShowQuitscreen ~= nil then
 			if isvisible ~= true then
 				showQuitscreen = oldShowQuitscreen
-				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].InsertRect(0,0,vsx,vsy, 'topbar_screenblur')
-					WG['guishader_api'].setScreenBlur(true)
+				if WG['guishader'] then
+					WG['guishader'].setScreenBlur(true)
 				end
 			end
 		else
@@ -1370,18 +1416,16 @@ function widget:MousePress(x, y, button)
 					end
 					Spring.SendCommands("spectator")
 					showQuitscreen = nil
-					if (WG['guishader_api'] ~= nil) then
-						WG['guishader_api'].RemoveRect('topbar_screenblur')
-						WG['guishader_api'].setScreenBlur(false)
+					if WG['guishader'] then
+						WG['guishader'].setScreenBlur(false)
 					end
 					return true
 				end
 				return true
 			else
 				showQuitscreen = nil
-				if (WG['guishader_api'] ~= nil) then
-					WG['guishader_api'].RemoveRect('topbar_screenblur')
-					WG['guishader_api'].setScreenBlur(false)
+				if WG['guishader'] then
+					WG['guishader'].setScreenBlur(false)
 				end
 				return true
 			end
@@ -1552,14 +1596,6 @@ function widget:Initialize()
 		displayComCounter = true
 	end
 
-	if displayComCounter and gameFrame > 0 then
-		countComs()
-	end
-
-	if gameFrame > 0 then
-		widget:GameStart()
-	end
-
 	WG['topbar'] = {}
 	WG['topbar'].showingRejoining = function()
 		return showRejoinUI
@@ -1569,30 +1605,39 @@ function widget:Initialize()
 	end
 
 	init()
+
+	if gameFrame > 0 then
+		widget:GameStart()
+	end
 end
 
 
 function widget:Shutdown()
 	Spring.SendCommands("resbar 1")
 	if dlistBackground ~= nil then
-		glDeleteList(dlistBackground)
-        glDeleteList(dlistResbar['metal'][1])
+		glDeleteList(dlistResbar['metal'][0])
+		glDeleteList(dlistResbar['metal'][1])
         glDeleteList(dlistResbar['metal'][2])
 		glDeleteList(dlistResbar['metal'][3])
 		glDeleteList(dlistResbar['metal'][4])
 		glDeleteList(dlistResbar['metal'][5])
-        glDeleteList(dlistResbar['energy'][1])
+		glDeleteList(dlistResbar['energy'][0])
+		glDeleteList(dlistResbar['energy'][1])
         glDeleteList(dlistResbar['energy'][2])
 		glDeleteList(dlistResbar['energy'][3])
 		glDeleteList(dlistResbar['energy'][4])
 		glDeleteList(dlistResbar['energy'][5])
+		glDeleteList(dlistWindGuishader)
 		glDeleteList(dlistWind1)
 		glDeleteList(dlistWind2)
+		glDeleteList(dlistComsGuishader)
 		glDeleteList(dlistComs1)
 		glDeleteList(dlistComs2)
+		glDeleteList(dlistButtonsGuishader)
 		glDeleteList(dlistButtons1)
 		glDeleteList(dlistButtons2)
-        glDeleteList(dlistRejoin)
+		glDeleteList(dlistRejoinGuishader)
+		glDeleteList(dlistRejoin)
         glDeleteList(dlistQuit)
 
 		for n,_ in pairs(dlistWindText) do
@@ -1605,14 +1650,13 @@ function widget:Shutdown()
 			glDeleteList(dlistResValues['energy'][n])
 		end
 	end
-	if WG['guishader_api'] ~= nil then
-		WG['guishader_api'].RemoveRect('topbar')
-		WG['guishader_api'].RemoveRect('topbar_energy')
-		WG['guishader_api'].RemoveRect('topbar_metal')
-		WG['guishader_api'].RemoveRect('topbar_wind')
-		WG['guishader_api'].RemoveRect('topbar_coms')
-		WG['guishader_api'].RemoveRect('topbar_buttons')
-		WG['guishader_api'].RemoveRect('topbar_rejoin')
+	if WG['guishader'] then
+		WG['guishader'].RemoveDlist('topbar_energy')
+		WG['guishader'].RemoveDlist('topbar_metal')
+		WG['guishader'].RemoveDlist('topbar_wind')
+		WG['guishader'].RemoveDlist('topbar_coms')
+		WG['guishader'].RemoveDlist('topbar_buttons')
+		WG['guishader'].RemoveDlist('topbar_rejoin')
 	end
 	if WG['tooltip'] ~= nil then
 		WG['tooltip'].RemoveTooltip('coms')

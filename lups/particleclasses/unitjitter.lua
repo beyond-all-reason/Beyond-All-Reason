@@ -158,6 +158,7 @@ end
 function UnitJitter.Initialize()
   warpShader = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       uniform float timer;
 
       varying vec3 texCoord;
@@ -176,6 +177,7 @@ function UnitJitter.Initialize()
 	}
     ]],
     fragment = [[
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
 
       varying vec3 texCoord;
@@ -208,6 +210,7 @@ function UnitJitter.Initialize()
 
   warpShader2 = gl.CreateShader({
     vertex = [[
+	  #version 150 compatibility
       void main()
       {
           gl_Position = ftransform();
@@ -220,6 +223,7 @@ function UnitJitter.Initialize()
       }
     ]],
     fragment = [[
+	  #version 150 compatibility
       void main(void)
       {
           gl_FragColor  = gl_Color;
