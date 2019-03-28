@@ -1,4 +1,4 @@
-﻿return {
+return {
 	armflea = {
 		acceleration = 0.575,
 		brakerate = 1.725,

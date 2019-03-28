@@ -44,6 +44,7 @@ local blurtex2
 local stenciltex
 local screenBlur = false
 local guishaderRects = {}
+local guishaderDlists = {}
 local oldvs = 0
 local vsx, vsy   = Spring.GetViewGeometry()
 local ivsx, ivsy = vsx, vsy
@@ -250,7 +251,7 @@ local loadedFontSize = 128*fontScale
 
 
 function DrawStencilTexture()
-    if next(guishaderRects) then
+    if next(guishaderRects) or next(guishaderDlists) then
 		if stenciltex then
 			gl.DeleteTextureFBO(stenciltex)
 		end
@@ -272,9 +273,12 @@ function DrawStencilTexture()
         gl.PushMatrix()
         gl.Translate(-1,-1,0)
         gl.Scale(2/vsx,2/vsy,0)
-        for _,rect in pairs(guishaderRects) do
-            gl.Rect(rect[1],rect[2],rect[3],rect[4])
-        end
+		for _,rect in pairs(guishaderRects) do
+			gl.Rect(rect[1],rect[2],rect[3],rect[4])
+		end
+		for _,dlist in pairs(guishaderDlists) do
+			gl.CallList(dlist)
+		end
         gl.PopMatrix()
     end)
 end
@@ -366,15 +370,15 @@ function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(px+cs, py+csY, 0)
 	gl.Vertex(px+cs, sy-csY, 0)
 	gl.Vertex(px, sy-csY, 0)
-	
+
 	gl.Vertex(sx, py+csY, 0)
 	gl.Vertex(sx-cs, py+csY, 0)
 	gl.Vertex(sx-cs, sy-csY, 0)
 	gl.Vertex(sx, sy-csY, 0)
-	
+
 	local offset = 0.05		-- texture offset, because else gaps could show
 	local o = offset
-	
+
 	-- top left
 	--if py <= 0 or px <= 0 then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
@@ -419,7 +423,7 @@ end
 
 function RectRound(px,py,sx,sy,cs)
 	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-	
+
 	gl.Texture(":n:luaui/Images/bgcorner.png")
 	--gl.Texture(":n:luaui/Images/bgcorner.png")
 	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
@@ -490,14 +494,22 @@ function addon.DrawLoadScreen()
 	if guishader then
 		if not blurShader then
 			CreateShaders()
-			--guishaderRects['loadprocess'] = {(0.2-paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips+paddingH)*vsy}
+
+			-- somehow using this method makes all rectround not have corners anymore :/
+			--if guishaderDlists['loadprocess'] then
+			--	gl.DeleteList(guishaderDlists['loadprocess'])
+			--end
+			--guishaderDlists['loadprocess'] = gl.CreateList(function()
+			--	RectRound((0.2-paddingW)*vsx, (yPos-0.05-paddingH)*vsy, (0.8+paddingW)*vsx, (yPosTips+paddingH)*vsy, 0.007*vsx)
+			--end)
+
 			guishaderRects['loadprocess1'] = {(0.2+paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8-paddingW)*vsx,(yPosTips+paddingH)*vsy}
 			guishaderRects['loadprocess2'] = {(0.2)*vsx,(yPos-0.05)*vsy,(0.8)*vsx,yPosTips*vsy}
 			guishaderRects['loadprocess3'] = {(0.2-paddingW)*vsx,(yPos-0.05+paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips-paddingH)*vsy}
 			DrawStencilTexture()
 		end
 
-		if next(guishaderRects) then
+		if next(guishaderRects) or next(guishaderDlists) then
 
 			gl.Texture(false)
 			gl.Color(1,1,1,1)
@@ -662,6 +674,9 @@ end
 
 function addon.Shutdown()
 	if guishader then
+		for id, dlist in pairs(guishaderDlists) do
+			gl.DeleteList(dlist)
+		end
 		if blurtex then
 			gl.DeleteTextureFBO(blurtex)
 			gl.DeleteTextureFBO(blurtex2)
