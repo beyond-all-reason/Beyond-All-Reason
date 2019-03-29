@@ -147,6 +147,8 @@ fragment = [[
 	uniform int lightingModel;
 	const float sunSpecularExp = 16.0;
 
+	uniform float lumaMult = 1.0;
+
 	uniform vec3 etcLoc;
 
 	#ifndef SPECULARMULT
@@ -196,6 +198,16 @@ fragment = [[
 	#endif
 
 	const float PI = acos(0.0) * 2.0;
+
+	const mat3 RGB2YCBCR = mat3(
+		0.2126, -0.114572, 0.5,
+		0.7152, -0.385428, -0.454153,
+		0.0722, 0.5, -0.0458471);
+
+	const mat3 YCBCR2RGB = mat3(
+		1.0, 1.0, 1.0,
+		0.0, -0.187324, 1.8556,
+		1.5748, -0.468124, -5.55112e-17);
 
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
@@ -298,6 +310,13 @@ fragment = [[
 		vec3 light = NdotL * sunDiffuse + sunAmbient;
 
 		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
+
+		if (lumaMult != 1.0) {
+			vec3 yCbCr = RGB2YCBCR * diffuseIn.rgb;
+			yCbCr.x *= lumaMult;
+			diffuseIn.rgb = YCBCR2RGB * yCbCr;
+		}
+
 		vec4 outColor   = diffuseIn;
 		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
 

@@ -11,41 +11,40 @@ local GetUnitTeam = Spring.GetUnitTeam
 local trackpos=0
 
 local GADGET_DIR = "LuaRules/Configs/"
-local etcLocIDs = {[0] = -2, [1] = -2}
 
-local function DrawUnit(unitID, material,drawMode)
-	local etcLocIdx = (drawMode == 5) and 1 or 0
-	local curShader = (drawMode == 5) and material.deferredShader or material.standardShader
+local customLumaMult = {}
 
-	if etcLocIDs[etcLocIdx] == -2 then
-		etcLocIDs[etcLocIdx] = gl.GetUniformLocation(curShader, "etcLoc")
-	end
+local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 	-- Spring.Echo('Arm Tanks drawmode',drawMode)
 	--if (drawMode ==1)then -- we can skip setting the uniforms as they only affect fragment color, not fragment alpha or vertex positions, so they dont have an effect on shadows, and drawmode 2 is shadows, 1 is normal mode.
 	--Spring.Echo('drawing',UnitDefs[Spring.GetUnitDefID(unitID)].name,GetGameFrame())
 	--local  health,maxhealth=GetUnitHealth(unitID)
 	--health= 2*maximum(0, (-2*health)/(maxhealth)+1) --inverse of health, 0 if health is 100%-50%, goes to 1 by 0 health
-	local usx,usy,usz,speed = Spring.GetUnitVelocity(unitID)
+
+	local usx, usy, usz, speed = Spring.GetUnitVelocity(unitID)
 	if speed > 0.01 then speed = 1 end
-	local offset = (((GetGameFrame())%9) * (2.0/4096.0))*speed
+	local offset = (((GetGameFrame()) % 9) * (2.0 / 4096.0)) * speed
 	-- check if moving backwards
-	local udx,udy,udz = Spring.GetUnitDirection(unitID)
+	local udx, udy, udz = Spring.GetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
 		offset = 0 - offset
 	end
-	glUniform(etcLocIDs[etcLocIdx], 0.0,0.0,offset) --etcloc.z is the track offset pos.
+
+	luaShaderObj:SetUniform("etcLoc", 0.0, 0.0, offset)
+
+	luaShaderObj:SetUniform("lumaMult", customLumaMult[unitDefID])
 
 	--end
-  --// engine should still draw it (we just set the uniforms for the shader)
-  return false
+	--// engine should still draw it (we just set the uniforms for the shader)
+	return false
 end
 
-local function SunChanged(curShader)
-	gl.Uniform(gl.GetUniformLocation(curShader, "shadowDensity"), gl.GetSun("shadowDensity" ,"unit"))
+local function SunChanged(curShaderObj)
+	curShaderObj:SetUniform("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunAmbient"), gl.GetSun("ambient" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunDiffuse"), gl.GetSun("diffuse" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecular"), gl.GetSun("specular" ,"unit"))
+	curShaderObj:SetUniform("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	curShaderObj:SetUniform("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	curShaderObj:SetUniform("sunSpecular", gl.GetSun("specular" ,"unit"))
 	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 end
 
@@ -97,12 +96,13 @@ local materials = {
 local unitMaterials = {}
 
 
-for i=1,#UnitDefs do
+for i=1, #UnitDefs do
 	local udef = UnitDefs[i]
 
 	if (udef.customParams.arm_tank and udef.customParams.normaltex and VFS.FileExists(udef.customParams.normaltex)) then
 		unitMaterials[udef.name] = {"normalMappedS3O_arm_tank", NORMALTEX = udef.customParams.normaltex}
 		--Spring.Echo('armtank',udef.name)
+		customLumaMult[i] = tonumber(udef.customParams.lumamult) or 1.0
 	end
 end
 

@@ -1,14 +1,24 @@
 -- $Id$
 --------------------------------------------------------------------------------
 
-local function SunChanged(curShader)
-	gl.Uniform(gl.GetUniformLocation(curShader, "shadowDensity"), gl.GetSun("shadowDensity" ,"unit"))
+local customLumaMult = {}
 
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunAmbient"), gl.GetSun("ambient" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunDiffuse"), gl.GetSun("diffuse" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecular"), gl.GetSun("specular" ,"unit"))
+local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
+	luaShaderObj:SetUniform("lumaMult", customLumaMult[unitDefID])
+
+	--// engine should still draw it (we just set the uniforms for the shader)
+	return false
+end
+
+local function SunChanged(curShaderObj)
+	curShaderObj:SetUniform("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
+
+	curShaderObj:SetUniform("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	curShaderObj:SetUniform("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	curShaderObj:SetUniform("sunSpecular", gl.GetSun("specular" ,"unit"))
 	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 end
+
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
@@ -45,7 +55,7 @@ local materials = {
 		},
 		-- uniforms = {
 		-- }
-		--DrawUnit = DrawUnit,
+		DrawUnit = DrawUnit,
 		SunChanged = SunChanged,
 	},
 }
@@ -55,12 +65,13 @@ local materials = {
 
 local unitMaterials = {}
 
-for i=1,#UnitDefs do
+for i=1, #UnitDefs do
 	local udef = UnitDefs[i]
 
 	if ((udef.customParams.arm_tank == nil ) and udef.customParams.normaltex and VFS.FileExists(udef.customParams.normaltex)) then
 		unitMaterials[udef.name] = {"normalMappedS3O", NORMALTEX = udef.customParams.normaltex}
 		--Spring.Echo('normalmapped',udef.name)
+		customLumaMult[i] = tonumber(udef.customParams.lumamult) or 1.0
 	end
 end
 
