@@ -15,7 +15,7 @@ local function new(class, shaderParams, shaderName, logEntries)
 	if type(logEntries) == "number" then
 		logEntriesSanitized = logEntries
 	else
-		logEntriesSanitized = 3
+		logEntriesSanitized = 1
 	end
 
 	return setmetatable(
@@ -91,6 +91,7 @@ local includeRegexps = {
 
 function LuaShader:HandleIncludes(shaderCode, shaderName)
 	local incFiles = {}
+	local t1 = Spring.GetTimer()
 	repeat
 		local incFile
 		local regEx
@@ -102,11 +103,15 @@ function LuaShader:HandleIncludes(shaderCode, shaderName)
 			end
 		end
 
+		Spring.Echo(shaderName, incFile)
+
 		if incFile then
-			shaderCode = string.gsub(shaderCode, regEx,'', 1)
+			shaderCode = string.gsub(shaderCode, regEx, '', 1)
 			table.insert(incFiles, incFile)
 		end
 	until (incFile == nil)
+	local t2 = Spring.GetTimer()
+	Spring.Echo(Spring.DiffTimers(t2, t1, true))
 
 	local includeText = ""
 	for _, incFile in ipairs(incFiles) do
@@ -117,7 +122,12 @@ function LuaShader:HandleIncludes(shaderCode, shaderName)
 			return false
 		end
 	end
-	return includeText .. shaderCode
+
+	if includeText ~= "" then
+		return includeText .. shaderCode
+	else
+		return shaderCode
+	end
 end
 
 -----------------========= End of Handle Ghetto Include<> ==========-----------------
@@ -129,6 +139,8 @@ function LuaShader:Compile()
 		return false
 	end
 
+-- LuaShader:HandleIncludes is too slow. Figure out faster way.
+--[[
 	for _, shaderType in ipairs({"vertex", "tcs", "tes", "geometry", "fragment"}) do
 		if self.shaderParams[shaderType] then
 			local newShaderCode = LuaShader:HandleIncludes(self.shaderParams[shaderType], self.shaderName)
@@ -137,6 +149,7 @@ function LuaShader:Compile()
 			end
 		end
 	end
+]]--
 
 	self.shaderObj = gl.CreateShader(self.shaderParams)
 	local shaderObj = self.shaderObj

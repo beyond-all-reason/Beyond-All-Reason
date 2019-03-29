@@ -191,15 +191,17 @@ local function _CompileMaterialShaders(rendering)
 				end
 				mat_src.standardShaderObj = luaShader
 				mat_src.standardShader = luaShader:GetHandle()
-				mat_src.standardUniforms = {
-					cameraloc       = luaShader:GetUniformLocation("camera"),
-					camerainvloc    = luaShader:GetUniformLocation("cameraInv"),
-					cameraposloc    = luaShader:GetUniformLocation("cameraPos"),
-					shadowmatrixloc = luaShader:GetUniformLocation("shadowMatrix"),
-					shadowparamsloc = luaShader:GetUniformLocation("shadowParams"),
-					sunposloc       = luaShader:GetUniformLocation("sunPos"),
-					simframeloc     = luaShader:GetUniformLocation("simFrame"),
-				}
+				luaShader:ActivateWith( function()
+					mat_src.standardUniforms = {
+						cameraloc       = luaShader:GetUniformLocation("camera"),
+						camerainvloc    = luaShader:GetUniformLocation("cameraInv"),
+						cameraposloc    = luaShader:GetUniformLocation("cameraPos"),
+						shadowmatrixloc = luaShader:GetUniformLocation("shadowMatrix"),
+						shadowparamsloc = luaShader:GetUniformLocation("shadowParams"),
+						sunposloc       = luaShader:GetUniformLocation("sunPos"),
+						simframeloc     = luaShader:GetUniformLocation("simFrame"),
+					}
+				end)
 			end
 		end
 
@@ -216,15 +218,17 @@ local function _CompileMaterialShaders(rendering)
 				end
 				mat_src.deferredShaderObj = luaShader
 				mat_src.deferredShader = luaShader:GetHandle()
-				mat_src.deferredUniforms = {
-					cameraloc       = luaShader:GetUniformLocation("camera"),
-					camerainvloc    = luaShader:GetUniformLocation("cameraInv"),
-					cameraposloc    = luaShader:GetUniformLocation("cameraPos"),
-					shadowmatrixloc = luaShader:GetUniformLocation("shadowMatrix"),
-					shadowparamsloc = luaShader:GetUniformLocation("shadowParams"),
-					sunposloc       = luaShader:GetUniformLocation("sunPos"),
-					simframeloc     = luaShader:GetUniformLocation("simFrame"),
-				}
+				luaShader:ActivateWith( function()
+					mat_src.deferredUniforms = {
+						cameraloc       = luaShader:GetUniformLocation("camera"),
+						camerainvloc    = luaShader:GetUniformLocation("cameraInv"),
+						cameraposloc    = luaShader:GetUniformLocation("cameraPos"),
+						shadowmatrixloc = luaShader:GetUniformLocation("shadowMatrix"),
+						shadowparamsloc = luaShader:GetUniformLocation("shadowParams"),
+						sunposloc       = luaShader:GetUniformLocation("sunPos"),
+						simframeloc     = luaShader:GetUniformLocation("simFrame"),
+					}
+				end)
 			end
 		end
 	end
