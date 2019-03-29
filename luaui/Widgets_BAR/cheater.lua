@@ -27,12 +27,12 @@ function widget:GameFrame(f)
 		Spring.SendCommands("say !cheats")
 		Spring.SendCommands("say !hostsay /globallos")
 		Spring.SendCommands("say !hostsay /godmode")
-		Spring.SendCommands("say !hostsay /nocost")
+		--Spring.SendCommands("say !hostsay /nocost")
 
 		Spring.SendCommands("cheat")
 		Spring.SendCommands("globallos")
 		Spring.SendCommands("godmode")
-		Spring.SendCommands("nocost")
+		--Spring.SendCommands("nocost")
 
 		widgetHandler:RemoveCallIn('GameFrame');
 	end
