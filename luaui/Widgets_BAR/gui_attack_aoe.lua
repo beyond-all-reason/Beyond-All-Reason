@@ -674,9 +674,8 @@ function widget:DrawWorld()
   local weaponType = info.type
 
   if (weaponType == "ballistic") then
-    local states = GetUnitStates(aoeUnitID)
-    local trajectory
-    if (states and states.trajectory) then
+    local trajectory = select(7,Spring.GetUnitStates(aoeUnitID,false,true))
+    if trajectory then
       trajectory = 1
     else
       trajectory = -1

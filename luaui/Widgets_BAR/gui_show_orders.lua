@@ -128,7 +128,6 @@ function widget:DrawScreen()
 					local sx, sy = spWorldToScreenCoords(ux, uy, uz)
 					local _, _, _, _, buildProg = spGetUnitHealth(uID)
 					local uCmds = spGetFactoryCommands(uID)
-					local uStates = spGetUnitStates(uID)
 					
 					local cells = {}
 					
@@ -175,7 +174,7 @@ function widget:DrawScreen()
 							local cx = sx + (c - 1) * (iconSize + borderWidth)
 							local cy = sy - r * (iconSize + borderWidth)
 							
-							if (uStates and uStates["repeat"]) then
+							if select(4,spGetUnitStates(uID,false,true)) then	-- 4=repeat
 								glColor(0.0, 0.0, 0.5, 1.0)
 							else
 								glColor(0.0, 0.0, 0.0, 1.0)

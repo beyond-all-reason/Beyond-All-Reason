@@ -66,9 +66,8 @@ if cmdID == 37382 and cmdParams[1] == 1 then
 	if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] then 
 		return
 	end
-	local states = GetUnitStates(unitID)
-	cloakUnit[unitID] = states.firestate --store last state
-	if states.firestate ~= 0 then
+	cloakUnit[unitID] = select(1,GetUnitStates(unitID,false)) --store last state
+	if cloakUnit[unitID] ~= 0 then
 		STATIC_STATE_TABLE[1] = 0
 		GiveOrderToUnit(unitID, CMD.FIRE_STATE, STATIC_STATE_TABLE, 0)
 	end
@@ -77,8 +76,7 @@ elseif cmdID == 37382 and cmdParams[1] == 0 then
 	if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] or (not cloakUnit[unitID]) then 
 		return
 	end
-	local states = GetUnitStates(unitID)
-	if states.firestate == 0 then
+	if select(1,GetUnitStates(unitID,false)) == 0 then
 		local targetState = cloakUnit[unitID]
 		STATIC_STATE_TABLE[1] = targetState
 		GiveOrderToUnit(unitID, CMD.FIRE_STATE, STATIC_STATE_TABLE, 0) --revert to last state
@@ -103,8 +101,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	if unitTeam == myTeam then
-		local states = GetUnitStates(unitID)
-		cloakUnit[unitID] = states.firestate
+		cloakUnit[unitID] = select(1,GetUnitStates(unitID,false))	-- 1=firestate
 	else
 		cloakUnit[unitID] = nil
 	end

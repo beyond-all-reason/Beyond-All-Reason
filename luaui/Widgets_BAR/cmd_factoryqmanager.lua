@@ -314,20 +314,17 @@ function saveQueue( unitId, unitDef, groupNo )
 		savedQueues[curModId][unitDef.id][groupNo] = nil
 		return
 	end
-  			
+
 	if ( savedQueues[curModId] == nil ) then
 		savedQueues[curModId] = {}
 	end
 	if ( savedQueues[curModId][unitDef.id] == nil ) then
 		savedQueues[curModId][unitDef.id] = {}
 	end
-	
-	local ustate = Spring.GetUnitStates( unitId )
+
 	savedQueues[curModId][unitDef.id][groupNo] = unitQ
-	savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = ustate["repeat"]
-				
-				--printDebug(ustate["repeat"] )
- 				
+	savedQueues[curModId][unitDef.id][groupNo][facRepeatIdx] = select(4,Spring.GetUnitStates(unitId,false,true))	-- 4=repeat
+
  	modifiedGroup = groupNo
 	modifiedGroupTime = Spring.GetGameSeconds()
 	modifiedSaved = true

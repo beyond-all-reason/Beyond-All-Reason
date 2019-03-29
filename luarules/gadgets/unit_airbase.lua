@@ -199,7 +199,7 @@ end
 function NeedsRepair(unitID)
    -- check if this unitID (which is assumed to be a plane) would want to land
    local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-   local landAtState = Spring.GetUnitStates(unitID).autorepairlevel
+   local landAtState = select(3,Spring.GetUnitStates(unitID,false,true,true)) -- autorepairlevel
    if buildProgress<1 then return false end
    return health < maxHealth * landAtState;
 end

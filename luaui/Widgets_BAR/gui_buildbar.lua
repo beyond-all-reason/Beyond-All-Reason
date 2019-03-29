@@ -553,9 +553,8 @@ function widget:Update(dt)
         end
       end
       -- repeat mode?
-      local ustate   = GetUnitStates(facInfo.unitID)
-      if ustate ~= nil then
-        options['repeat'] = ustate["repeat"]
+      if select(4,GetUnitStates(facInfo.unitID,false,true)) then
+        options['repeat'] = true
       else
         options['repeat'] = false
       end
@@ -998,9 +997,8 @@ function MenuHandler(x,y,button)
     if IsInRect(x,y, icoRect) then
       --repeat icon clicked
       local unitID = facs[pressedFac+1].unitID
-      local ustate = GetUnitStates(unitID)
       local onoff  = {1}
-      if ustate ~= nil and ustate["repeat"] then onoff = {0} end
+      if select(4,GetUnitStates(unitID,false,true)) then onoff = {0} end
       Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, { })
       Spring.PlaySoundFile(sound_click, 0.8, 'ui')
     else--if (bar_openByClick) then

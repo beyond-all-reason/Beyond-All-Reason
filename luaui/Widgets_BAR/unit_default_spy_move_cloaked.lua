@@ -58,7 +58,7 @@ function widget:Update(dt)
 			for spyDefID in pairs(spies) do
 				if selectedUnittypes[spyDefID] then
 					for _,unitID in pairs(selectedUnittypes[spyDefID]) do
-						if GetUnitStates(unitID).cloak then
+						if select(5,GetUnitStates(unitID,false,true)) then	-- 5=cloak
 							spySelected = true
 						end
 					end
