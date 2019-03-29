@@ -595,6 +595,9 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
+	if moveData.maxslope and (moveData.maxslope <= 36) then
+		moveData.maxslope = 24
+	end
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true
