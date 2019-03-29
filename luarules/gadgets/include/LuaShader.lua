@@ -217,7 +217,7 @@ end
 
 
 -----------------============ Friend LuaShader functions ============-----------------
-local function getUniformLocation(self, name)
+local function getUniformImpl(self, name)
 	local uniform = self.uniforms[name]
 
 	if uniform and type(uniform) == "table" then
@@ -244,7 +244,7 @@ local function getUniform(self, name)
 		self:ShowError(string.format("Trying to set uniform [%s] on inactive shader object. Did you use :Activate() or :ActivateWith()?", name))
 		return nil
 	end
-	local uniform = getUniformLocation(self, name)
+	local uniform = getUniformImpl(self, name)
 	if not uniform then
 		self:ShowWarning(string.format("Attempt to set uniform [%s], which does not exist in the compiled shader", name))
 		return nil
@@ -275,7 +275,7 @@ end
 -- TODO: do it safely with types, len, size check
 
 function LuaShader:GetUniformLocation(name)
-	return getUniformLocation(self, name) or -1
+	return (getUniform(self, name) or {}).location or -1
 end
 
 --FLOAT UNIFORMS
