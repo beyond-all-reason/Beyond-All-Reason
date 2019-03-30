@@ -25,7 +25,7 @@ function widget:GetInfo()
     date      = "Dec 06, 2007",
     license   = "GNU GPL, v2 or later",
     layer     = -10,
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 
@@ -62,7 +62,6 @@ local outlineSize = 1
 local GL_DEPTH_COMPONENT24 = 0x81A6
 
 --// speed ups
-local ALL_UNITS       = Spring.ALL_UNITS
 local GetVisibleUnits = Spring.GetVisibleUnits
 
 local GL_MODELVIEW  = GL.MODELVIEW
@@ -313,7 +312,7 @@ end
 --------------------------------------------------------------------------------
 
 local function DrawVisibleUnits()
-  local visibleUnits = GetVisibleUnits(ALL_UNITS,nil,false)
+  local visibleUnits = GetVisibleUnits(-1,nil,false)
   local count = 0
   for i=1,#visibleUnits do  
     glUnit(visibleUnits[i],true)

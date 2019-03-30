@@ -162,9 +162,16 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 	return result
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+--local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+	--selectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
+
 function widget:MousePress(x, y, button)
 	if (button == 1) then
-		referenceSelection = GetSelectedUnits()
+		referenceSelection = selectedUnits
 		referenceSelectionTypes = {}
 		for i=1, #referenceSelection do
 			udid = GetUnitDefID(referenceSelection[i])
@@ -412,7 +419,7 @@ function widget:Update()
 				lastSelection = nil
 				return
 			end
-			lastSelection = GetSelectedUnits()
+			lastSelection = selectedUnits
 		elseif (lastSelection ~= nil) then
 			SelectUnitArray(lastSelection)
 			lastSelection = nil

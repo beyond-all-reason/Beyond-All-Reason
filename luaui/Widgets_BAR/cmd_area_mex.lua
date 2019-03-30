@@ -167,7 +167,7 @@ local function GetClosestMexPosition(spot, x, z, uDefID, facing)
 	return bestPos
 end
 
-function widget:CommandNotify(id, params, options)	
+function widget:CommandNotify(id, params, options)
 	if (id == CMD_AREA_MEX) then
 	mexes = WG.metalSpots
 
@@ -192,13 +192,13 @@ function widget:CommandNotify(id, params, options)
 		
 		local aveX = 0
 		local aveZ = 0
-		
+
 		local units=spGetSelectedUnits()
 		local maxbatchextracts = 0
 		local batchMexBuilder = {}
 		local lastprocessedbestbuilder = nil
 		
-		for i, id in pairs(units) do 
+		for i, id in pairs(units) do
 		if mexBuilder[id] then -- Get best extract rates, save best builderID
 			if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal > maxbatchextracts then
 				maxbatchextracts = UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal
@@ -364,11 +364,11 @@ end
 
 function widget:CommandsChanged()
 	local units=spGetSelectedUnits()
-	for i, id in pairs(units) do 
+	for i, id in pairs(units) do
 		if mexBuilder[id] then
 			local customCommands = widgetHandler.customCommands
-			
-			table.insert(customCommands, {			
+
+			table.insert(customCommands, {
 				id      = CMD_AREA_MEX,
 				type    = CMDTYPE.ICON_AREA,
 				tooltip = 'Define an area to make mexes in',

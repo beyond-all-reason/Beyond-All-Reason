@@ -157,15 +157,22 @@ end
 
 --------------------------------------------------------------------------------
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+function widget:SelectionChanged(sel)
+  selectedUnits = sel
+  selectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
+
 function widget:DrawWorld()
-  if Spring.IsGUIHidden() then return end
+  if not selectedUnits or Spring.IsGUIHidden() then return end
 
   gl.DepthTest(true)
   gl.PolygonOffset(-0.5, -0.5)
   gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
-  local selectedUnits = Spring.GetSelectedUnits()
-  if useHighlightShader and shader and #selectedUnits < maxShaderUnits then
+  --local selectedUnits = Spring.GetSelectedUnits()
+  if useHighlightShader and shader and selectedUnitsCount < maxShaderUnits then
     gl.UseShader(shader)
   end
   local teamID, prevTeamID, r,g,b

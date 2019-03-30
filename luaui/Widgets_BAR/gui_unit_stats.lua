@@ -111,8 +111,6 @@ local spIsUserWriting = Spring.IsUserWriting
 local spGetModKeyState = Spring.GetModKeyState
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount	= Spring.GetSelectedUnitsCount
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitExp = Spring.GetUnitExperience
@@ -274,6 +272,15 @@ function widget:ViewResize(n_vsx,n_vsy)
 	init()
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+if useSelection then
+	function widget:SelectionChanged(sel)
+		selectedUnits = sel
+		selectedUnitsCount = Spring.GetSelectedUnitsCount()
+	end
+end
+
 function widget:DrawScreen()
 	if (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
@@ -291,9 +298,8 @@ function widget:DrawScreen()
 		uID = unitID
 	end
 	if useSelection then
-		local selUnits = spGetSelectedUnits()
-		if #selUnits >= 1 then
-			uID = selUnits[1]
+		if selectedUnitsCount >= 1 then
+			uID = selectedUnits[1]
 		end
 	end
 	local useHoverID = false

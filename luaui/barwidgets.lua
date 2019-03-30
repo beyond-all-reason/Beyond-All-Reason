@@ -106,7 +106,6 @@ widgetHandler = {
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local flexCallIns = {
-  'GameID',
   'GamePreload',
   'GameStart',
   'GameOver',
@@ -168,7 +167,6 @@ for _,ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
-  'GameID',
   'GamePreload',
   'GameStart',
   'Shutdown',
@@ -1208,6 +1206,9 @@ end
 
 
 function widgetHandler:CommandsChanged()
+  if widgetHandler:UpdateSelection() then -- for selectionchanged
+    return -- selection updated, don't call commands changed.
+  end
   self.inCommandsChanged = true
   self.customCommands = {}
   for _,w in ipairs(self.CommandsChangedList) do
@@ -1570,13 +1571,6 @@ end
 --  Game call-ins
 --
 
-function widgetHandler:GameID(gameID)
-  for _,w in ipairs(self.GameIDList) do
-    w:GameID(gameID)
-  end
-  return
-end
-
 function widgetHandler:GamePreload()
   for _,w in ipairs(self.GamePreloadList) do
     w:GamePreload()
@@ -1648,6 +1642,58 @@ function widgetHandler:GameFrame(frameNum)
     w:GameFrame(frameNum)
   end
   return
+end
+
+-- local helper (not a real call-in)
+local oldSelection = {}
+function widgetHandler:UpdateSelection()
+  local changed
+  local newSelection = Spring.GetSelectedUnits()
+  if (#newSelection == #oldSelection) then
+    for i = 1, #oldSelection do
+      if (newSelection[i] ~= oldSelection[i]) then -- it seems the order stays
+        changed = true
+        break
+      end
+    end
+  else
+    changed = true
+  end
+  if (changed) then
+    local subselection = true
+    if #newSelection > #oldSelection then
+      subselection = false
+    else
+      local newSeen = 0
+      local oldSelectionMap = {}
+      for i = 1, #oldSelection do
+        oldSelectionMap[oldSelection[i]] = true
+      end
+      for i = 1, #newSelection do
+        if not oldSelectionMap[newSelection[i]] then
+          subselection = false
+          break
+        end
+      end
+    end
+    if widgetHandler:SelectionChanged(newSelection, subselection) then
+      -- selection changed, don't set old selection to new selection as it is soon to change.
+      return true
+    end
+  end
+  oldSelection = newSelection
+  return false
+end
+
+function widgetHandler:SelectionChanged(selectedUnits, subselection)
+  for _,w in ipairs(self.SelectionChangedList) do
+    local unitArray = w:SelectionChanged(selectedUnits, subselection)
+    if (unitArray) then
+      Spring.SelectUnitArray(unitArray)
+      return true
+    end
+  end
+  return false
 end
 
 function widgetHandler:GameProgress(serverFrameNum)

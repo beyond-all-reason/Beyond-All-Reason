@@ -285,7 +285,8 @@ function widget:KeyPress(key, modifier, isRepeat)
 				selUnitDefIDs = {}
 				local unit2groupDeleted = {}
 				local exec = false --set to true when there is at least one unit to process
-				for _, unitID in ipairs(GetSelectedUnits()) do
+				local units = GetSelectedUnits()
+				for _, unitID in ipairs(units) do
 					local udid = GetUnitDefID(unitID)
 					if ( not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"] )) then
 						--if unit2group[udid] ~= nil then
@@ -345,12 +346,13 @@ function widget:KeyPress(key, modifier, isRepeat)
 			local mindist = math.huge
 			local muid = nil
 			if (pos == nil) then return end
-				for _, uid in ipairs(GetSelectedUnits()) do  
-					local x,_,z = GetUnitPosition(uid)
+				local units = GetSelectedUnits()
+				for _, unitID in ipairs(units) do
+					local x,_,z = GetUnitPosition(unitID)
 					dist = (pos[1]-x)*(pos[1]-x) + (pos[3]-z)*(pos[3]-z)
 					if (dist < mindist) then
 						mindist = dist
-						muid = uid
+						muid = unitID
 					end
 				end
 			if (muid ~= nil) then
@@ -360,8 +362,9 @@ function widget:KeyPress(key, modifier, isRepeat)
 		end
 		 --[[
 		if (key == KEYSYMS.Q) then
-		  for _, uid in ipairs(GetSelectedUnits()) do  
-			SetUnitGroup(uid,-1)
+			local units = GetSelectedUnits()
+			for _, unitID in ipairs(units) do
+			SetUnitGroup(unitID,-1)
 		  end
 		end
 		--]]

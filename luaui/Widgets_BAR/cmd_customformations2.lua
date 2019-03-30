@@ -146,8 +146,6 @@ local spFindUnitCmdDesc = Spring.FindUnitCmdDesc
 local spGetModKeyState = Spring.GetModKeyState
 local spGetInvertQueueKey = Spring.GetInvertQueueKey
 local spIsAboveMiniMap = Spring.IsAboveMiniMap
-local spGetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGiveOrder = Spring.GiveOrder
 local spGetUnitIsTransporting = Spring.GetUnitIsTransporting
@@ -257,9 +255,8 @@ local function CanUnitExecute(uID, cmdID)
 end
 local function GetExecutingUnits(cmdID)
     local units = {}
-    local selUnits = spGetSelectedUnits()
-    for i = 1, #selUnits do
-        local uID = selUnits[i]
+    for i = 1, selectedUnitsCount do
+        local uID = selectedUnits[i]
         if CanUnitExecute(uID, cmdID) then
             units[#units + 1] = uID
         end
@@ -459,7 +456,7 @@ function widget:MousePress(mx, my, mButton)
     if not AddFNode(pos) then return false end
 
     -- Is this line a path candidate (We don't do a path off an overriden command)
-    pathCandidate = (not overriddenCmd) and (spGetSelectedUnitsCount()==1 or (alt and not requiresAlt[usingCmd]))
+    pathCandidate = (not overriddenCmd) and (selectedUnitsCount==1 or (alt and not requiresAlt[usingCmd]))
 
     -- We handled the mouse press
     return true
@@ -584,8 +581,7 @@ function widget:MouseRelease(mx, my, mButton)
 
         -- Single click ? (no line drawn)
         --if (#fNodes == 1) then
-		local unitCount = spGetSelectedUnitsCount()		
-        if fDists[#fNodes] < minFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(unitCount - 1)) then
+        if fDists[#fNodes] < minFormationLength or (usingCmd == CMD.UNLOAD_UNIT and fDists[#fNodes] < 64*(selectedUnitsCount - 1)) then
             -- We should check if any units are able to execute it,
             -- but the order is small enough network-wise that the tiny bug potential isn't worth it.
 
@@ -743,8 +739,7 @@ end
 
 local function DrawFilledCircleOutFading(pos, size, cornerCount)
     SetColor(usingCmd, 1)
-	local unitCount = spGetSelectedUnitsCount()
-	local lengthPerUnit = lineLength / (unitCount-1)
+	local lengthPerUnit = lineLength / (selectedUnitsCount-1)
     local lengthUnitNext = lengthPerUnit
 	if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
 		glColor(1.0,0.3,0.0,1.0)
@@ -755,12 +750,12 @@ local function DrawFilledCircleOutFading(pos, size, cornerCount)
 end
 
 
-local function DrawFormationDots(vertFunction, zoomY, unitCount)
+local function DrawFormationDots(vertFunction, zoomY)
     local currentLength = 0
-    local lengthPerUnit = lineLength / (unitCount-1)
+    local lengthPerUnit = lineLength / (selectedUnitsCount-1)
     local lengthUnitNext = lengthPerUnit
     local dotSize = sqrt(zoomY*0.24)
-    if (#fNodes > 1) and (unitCount > 1) then
+    if (#fNodes > 1) and (selectedUnitsCount > 1) then
         SetColor(usingCmd, 0.6)
 		if (lengthPerUnit < 64) and (usingCmd == CMD.UNLOAD_UNIT) then
 			glColor(1.0,0.3,0.0,0.6)
@@ -813,6 +808,13 @@ function widget:ViewResize(viewSizeX, viewSizeY)
     Xs, Ys = Xs*0.5, Ys*0.5
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+function widget:SelectionChanged(sel)
+    selectedUnits = sel
+    selectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
+
 function widget:DrawWorld()
     if #fNodes > 1 or #dimmNodes > 1 then
         local camX, camY, camZ = spGetCameraPosition()
@@ -827,8 +829,7 @@ function widget:DrawWorld()
         end
         if zoomY < 6 then zoomY = 6 end
         if lineLength > 0 then  --don't try and draw if the command was cancelled by having two mouse buttons pressed at once
-            local unitCount = spGetSelectedUnitsCount()
-            DrawFormationDots(tVerts, zoomY, unitCount)
+            DrawFormationDots(tVerts, zoomY)
         end
     end
 end

@@ -82,28 +82,33 @@ function widget:Shutdown()
 	gl.DeleteList(circleList)
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+	selectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
+
 function widget:GameFrame(n)
     local unitcount = 0
 	if (n % 2 == 1) then
     unitstodraw = {}
 	local _,cmdID,_ = Spring.GetActiveCommand()
-	local selectedUnitCount = Spring.GetSelectedUnitsCount()
-	if selectedUnitCount < 1 or selectedUnitCount > 20 then
+	if selectedUnitsCount < 1 or selectedUnitsCount > 20 then
 		return
 	end
-	local selectedUnits = Spring.GetSelectedUnits()
-	if selectedUnitCount == 1 then
+	if selectedUnitsCount == 1 then
 		if validTrans[Spring.GetUnitDefID(selectedUnits[1])] then
         	transID = selectedUnits[1]
 		end
-        elseif selectedUnitCount > 1 then
+        elseif selectedUnitsCount > 1 then
 			for _,unitID in pairs(selectedUnits) do
-				
+
 				local unitdefID = Spring.GetUnitDefID(unitID)
 				if validTrans[unitdefID] then
 				   transID = unitID
 				   unitcount = unitcount + 1
-				   if unitcount > 1 then 
+				   if unitcount > 1 then
 					   transID = nil
 					   return end
 				end

@@ -44,25 +44,34 @@ function widget:Initialize()
 end
 
 local spySelected = false
-local sec = 0
-local lastUpdate = 0
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+function widget:SelectionChanged(sel)
+	selectionChanged = true
+end
+
+local selChangedSec = 0
 function widget:Update(dt)
-	sec = sec + dt
-	if sec > lastUpdate + 0.2 then
-		lastUpdate = sec
-		
+
+	selChangedSec = selChangedSec + dt
+	if selectionChanged and selChangedSec>0.1 then
+		selChangedSec = 0
+		selectionChanged = nil
+
+		selectedUnitsCount = Spring.GetSelectedUnitsCount()
+
 		spySelected = false
-		local count = GetSelectedUnitsCount()
-		if count > 0 and count <= 12 then  -- above a little amount we aren't micro-ing spies anymore...
+		if selectedUnitsCount > 0 and selectedUnitsCount <= 12 then  -- above a little amount we aren't micro-ing spies anymore...
 			local selectedUnittypes = GetSelectedUnitsSorted()
 			for spyDefID in pairs(spies) do
 				if selectedUnittypes[spyDefID] then
 					for _,unitID in pairs(selectedUnittypes[spyDefID]) do
 						if select(5,GetUnitStates(unitID,false,true)) then	-- 5=cloak
 							spySelected = true
+							break
 						end
 					end
 				end
+				if spySelected then break end
 			end
 		end
 	end

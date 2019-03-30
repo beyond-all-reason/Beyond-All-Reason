@@ -370,7 +370,7 @@ local function createList()
 		
 	end)
 	if WG['tooltip'] ~= nil and trackname then
-		if trackname then
+		if trackname and trackname ~= '' then
 			WG['tooltip'].AddTooltip('music', {left, bottom, right, top}, trackname, 0.8)
 		else
 			WG['tooltip'].RemoveTooltip('music')

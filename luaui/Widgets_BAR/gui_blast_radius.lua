@@ -94,6 +94,11 @@ function widget:ViewResize(n_vsx,n_vsy)
   end
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+end
+
 function widget:DrawWorld()
 	DrawBuildMenuBlastRange()
 	
@@ -259,8 +264,6 @@ end
 
 function DrawBlastRadiusSelectedUnits()
 	glLineWidth(blastLineWidth)
-  	  
-	local units = spGetSelectedUnits()
         
 	local deathBlasId
 	local blastId
@@ -269,7 +272,7 @@ function DrawBlastRadiusSelectedUnits()
 	local deathblastRadius
 	local deathblastDamage
 	local text
-	for i,unitID in ipairs(units) do
+	for i,unitID in ipairs(selectedUnits) do
 		DrawUnitBlastRadius( unitID )
 	end
 	  

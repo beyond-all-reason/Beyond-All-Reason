@@ -47,7 +47,6 @@ local glLineWidth            = gl.LineWidth
 local glPolygonOffset        = gl.PolygonOffset
 local glVertex               = gl.Vertex
 local spGetVisibleUnits      = Spring.GetVisibleUnits
-local spGetSelectedUnits     = Spring.GetSelectedUnits
 local spGetTeamColor         = Spring.GetTeamColor
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitTeam          = Spring.GetUnitTeam
@@ -377,6 +376,12 @@ function widget:Update(dt)
 end
 
 
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+  selectedUnits = sel
+end
+
+
 function widget:DrawWorldPreUnit()
   if spIsGUIHidden() then return end
 
@@ -409,9 +414,9 @@ function widget:DrawWorldPreUnit()
   end
 
   -- mark selected units
-  if useSelections then
+  if useSelections and selectedUnits then
     glColor(1, 1, 1, highlightOpacity)
-    for _,unitID in ipairs(spGetSelectedUnits()) do
+    for _,unitID in ipairs(selectedUnits) do
       local udefid = spGetUnitDefID(unitID)
       if udefid then
         local unitScale = unitConf[udefid].scale
