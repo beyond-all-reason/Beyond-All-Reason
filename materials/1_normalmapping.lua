@@ -1,15 +1,6 @@
 -- $Id$
 --------------------------------------------------------------------------------
 
-local customLumaMult = {}
-
-local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
-	luaShaderObj:SetUniformAlways("lumaMult", customLumaMult[unitDefID])
-
-	--// engine should still draw it (we just set the uniforms for the shader)
-	return false
-end
-
 local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
@@ -22,8 +13,7 @@ end
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
-local materials = {
-	normalMappedS3O = {
+local matTemplate = {
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
@@ -55,23 +45,33 @@ local materials = {
 		},
 		-- uniforms = {
 		-- }
-		DrawUnit = DrawUnit,
+		--DrawUnit = DrawUnit,
 		SunChanged = SunChanged,
-	},
 }
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local materials = {}
 local unitMaterials = {}
 
-for i=1, #UnitDefs do
+for i = 1, #UnitDefs do
 	local udef = UnitDefs[i]
+	local udefCM = udef.customParams
 
-	if ((udef.customParams.arm_tank == nil ) and udef.customParams.normaltex and VFS.FileExists(udef.customParams.normaltex)) then
-		unitMaterials[udef.name] = {"normalMappedS3O", NORMALTEX = udef.customParams.normaltex}
-		--Spring.Echo('normalmapped',udef.name)
-		customLumaMult[i] = tonumber(udef.customParams.lumamult) or 1.0
+	if (udefCM.arm_tank == nil) and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
+		local lm = tonumber(udefCM.lumamult) or 1
+		local matName = string.format("%s(lumamult=%d)", "normalMappedS3O", lm)
+		if not materials[matName] then
+			materials[matName] = Spring.Utilities.CopyTable(matTemplate, true)
+			if lm ~= 1 then
+				local lmLM = string.format("LUMAMULT %d", lm)
+				table.insert(materials[matName].shaderDefinitions, lmLM)
+				table.insert(materials[matName].deferredDefinitions, lmLM)
+			end
+		end
+
+		unitMaterials[udef.name] = {matName, NORMALTEX = udefCM.normaltex}
 	end
 end
 

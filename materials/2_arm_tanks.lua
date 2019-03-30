@@ -6,8 +6,6 @@ local GetUnitHealth=Spring.GetUnitHealth
 
 local GADGET_DIR = "LuaRules/Configs/"
 
-local customLumaMult = {}
-
 local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 	-- Spring.Echo('Arm Tanks drawmode',drawMode)
 	--if (drawMode ==1)then -- we can skip setting the uniforms as they only affect fragment color, not fragment alpha or vertex positions, so they dont have an effect on shadows, and drawmode 2 is shadows, 1 is normal mode.
@@ -25,7 +23,6 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 	end
 
 	luaShaderObj:SetUniformAlways("etcLoc", 0.0, 0.0, offset)
-	luaShaderObj:SetUniformAlways("lumaMult", customLumaMult[unitDefID])
 
 	--end
 	--// engine should still draw it (we just set the uniforms for the shader)
@@ -43,57 +40,66 @@ end
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
-local materials = {
-	normalMappedS3O_arm_tank = {
-		shaderDefinitions = {
-			"#define use_normalmapping",
-			"#define deferred_mode 0",
-			"#define use_treadoffset",
-			"#define flashlights",
-			"#define use_vertex_ao",
-			"#define SPECULARMULT 8.0",
-		},
-		deferredDefinitions = {
-			"#define use_normalmapping",
-			"#define deferred_mode 1",
-			"#define use_treadoffset",
-			"#define flashlights",
-			--"#define use_vertex_ao",
-			"#define SPECULARMULT 8.0",
-		},
+local matTemplate = {
+	shaderDefinitions = {
+		"#define use_normalmapping",
+		"#define deferred_mode 0",
+		"#define use_treadoffset",
+		"#define flashlights",
+		"#define use_vertex_ao",
+		"#define SPECULARMULT 8.0",
+	},
+	deferredDefinitions = {
+		"#define use_normalmapping",
+		"#define deferred_mode 1",
+		"#define use_treadoffset",
+		"#define flashlights",
+		--"#define use_vertex_ao",
+		"#define SPECULARMULT 8.0",
+	},
 
-		shader    = default_lua,
-		deferred  = default_lua,
-		usecamera = false,
-		culling   = GL.BACK,
-		predl  = nil,
-		postdl = nil,
-	    texunits  = {
-			[0] = '%%UNITDEFID:0',
-			[1] = '%%UNITDEFID:1',
-			[2] = '$shadow',
-			[3] = '$specular',
-			[4] = '$reflection',
-			[5] = '%NORMALTEX',
-		},
-		DrawUnit = DrawUnit,
-		SunChanged = SunChanged,
-   },
+	shader    = default_lua,
+	deferred  = default_lua,
+	usecamera = false,
+	culling   = GL.BACK,
+	predl  = nil,
+	postdl = nil,
+	texunits  = {
+		[0] = '%%UNITDEFID:0',
+		[1] = '%%UNITDEFID:1',
+		[2] = '$shadow',
+		[3] = '$specular',
+		[4] = '$reflection',
+		[5] = '%NORMALTEX',
+	},
+	DrawUnit = DrawUnit,
+	SunChanged = SunChanged,
 }
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Automated normalmap detection
 
+local materials = {}
 local unitMaterials = {}
 
-for i=1, #UnitDefs do
+for i = 1, #UnitDefs do
 	local udef = UnitDefs[i]
+	local udefCM = udef.customParams
 
-	if (udef.customParams.arm_tank and udef.customParams.normaltex and VFS.FileExists(udef.customParams.normaltex)) then
-		unitMaterials[udef.name] = {"normalMappedS3O_arm_tank", NORMALTEX = udef.customParams.normaltex}
-		--Spring.Echo('armtank',udef.name)
-		customLumaMult[i] = tonumber(udef.customParams.lumamult) or 1.0
+	if (udefCM.arm_tank == nil) and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
+		local lm = tonumber(udefCM.lumamult) or 1
+		local matName = string.format("%s(lumamult=%d)", "normalMappedS3O_arm_tank", lm)
+		if not materials[matName] then
+			materials[matName] = Spring.Utilities.CopyTable(matTemplate, true)
+			if lm ~= 1 then
+				local lmLM = string.format("LUMAMULT %d", lm)
+				table.insert(materials[matName].shaderDefinitions, lmLM)
+				table.insert(materials[matName].deferredDefinitions, lmLM)
+			end
+		end
+
+		unitMaterials[udef.name] = {matName, NORMALTEX = udefCM.normaltex}
 	end
 end
 
