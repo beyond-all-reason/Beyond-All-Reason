@@ -187,6 +187,8 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local CMD_OPT_RIGHT = CMD.OPT_RIGHT
 
 local keyShift = 304
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 
 --------------------------------------------------------------------------------
 -- Helper Functions
@@ -384,9 +386,18 @@ local function GiveNotifyingOrderToUnit(uArr, oArr, uID, cmdID, cmdParams, cmdOp
     return
 end
 
+
+function widget:SelectionChanged(sel)
+    selectedUnits = sel
+    selectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
+
+
 --------------------------------------------------------------------------------
 -- Mouse/keyboard Callins
 --------------------------------------------------------------------------------
+
+
 function widget:MousePress(mx, my, mButton)
     lineLength=0 --for linestipple
     -- Where did we click
@@ -806,13 +817,6 @@ Xs, Ys = Xs*0.5, Ys*0.5
 function widget:ViewResize(viewSizeX, viewSizeY)
     Xs, Ys = spGetViewGeometry()
     Xs, Ys = Xs*0.5, Ys*0.5
-end
-
-local selectedUnits = Spring.GetSelectedUnits()
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
-function widget:SelectionChanged(sel)
-    selectedUnits = sel
-    selectedUnitsCount = Spring.GetSelectedUnitsCount()
 end
 
 function widget:DrawWorld()
