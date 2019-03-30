@@ -87,12 +87,16 @@ function widget:GameFrame(n)
 	if (n % 2 == 1) then
     unitstodraw = {}
 	local _,cmdID,_ = Spring.GetActiveCommand()
+	local selectedUnitCount = Spring.GetSelectedUnitsCount()
+	if selectedUnitCount < 1 or selectedUnitCount > 20 then
+		return
+	end
 	local selectedUnits = Spring.GetSelectedUnits()
-	if #selectedUnits == 1 then
+	if selectedUnitCount == 1 then
 		if validTrans[Spring.GetUnitDefID(selectedUnits[1])] then
         	transID = selectedUnits[1]
 		end
-        elseif #selectedUnits > 1 then
+        elseif selectedUnitCount > 1 then
 			for _,unitID in pairs(selectedUnits) do
 				
 				local unitdefID = Spring.GetUnitDefID(unitID)
