@@ -578,8 +578,9 @@ end
 
 local uiOpacitySec = 0
 function widget:Update(dt)
-
-	updateMusicVolume()
+	if playing then
+		updateMusicVolume()
+	end
 
 	local mx, my, mlb = Spring.GetMouseState()
 	if isInBox(mx, my, {left, bottom, right, top}) then
@@ -595,8 +596,8 @@ function widget:Update(dt)
 		uiOpacitySec = 0
 		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			doCreateList = true
 		end
-		doCreateList = true
 	end
 	if doCreateList then
 		createList()
