@@ -26,6 +26,8 @@ local function new(class, shaderParams, shaderName, logEntries)
 		logHash = {},
 		shaderObj = nil,
 		active = false,
+		ignoreActive = false,
+		ignoreUnkUniform = false,
 		uniforms = {},
 	}, class)
 end
@@ -211,6 +213,15 @@ function LuaShader:Activate()
 	end
 end
 
+function LuaShader:SetActiveStateIgnore(flag)
+	self.ignoreActive = flag
+end
+
+function LuaShader:SetUnknownUniformIgnore(flag)
+	self.ignoreUnkUniform = flag
+end
+
+
 function LuaShader:ActivateWith(func, ...)
 	if self.shaderObj ~= nil then
 		self.active = true
@@ -253,12 +264,12 @@ local function getUniformImpl(self, name)
 end
 
 local function getUniform(self, name)
-	if not self.active then
+	if not (self.active or self.ignoreActive) then
 		self:ShowError(string.format("Trying to set uniform [%s] on inactive shader object. Did you use :Activate() or :ActivateWith()?", name))
 		return nil
 	end
 	local uniform = getUniformImpl(self, name)
-	if not uniform then
+	if not (uniform ~= nil or self.ignoreUnkUniform) then
 		self:ShowWarning(string.format("Attempt to set uniform [%s], which does not exist in the compiled shader", name))
 		return nil
 	end

@@ -3,12 +3,6 @@
 --------------------------------------------------------------------------------
 local GetGameFrame=Spring.GetGameFrame
 local GetUnitHealth=Spring.GetUnitHealth
-local modulo=math.fmod
-local glUniform=gl.Uniform
-local sine =math.sin
-local maximum=math.max
-local GetUnitTeam = Spring.GetUnitTeam
-local trackpos=0
 
 local GADGET_DIR = "LuaRules/Configs/"
 
@@ -27,12 +21,11 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 	-- check if moving backwards
 	local udx, udy, udz = Spring.GetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
-		offset = 0 - offset
+		offset = -offset
 	end
 
-	luaShaderObj:SetUniform("etcLoc", 0.0, 0.0, offset)
-
-	luaShaderObj:SetUniform("lumaMult", customLumaMult[unitDefID])
+	luaShaderObj:SetUniformAlways("etcLoc", 0.0, 0.0, offset)
+	luaShaderObj:SetUniformAlways("lumaMult", customLumaMult[unitDefID])
 
 	--end
 	--// engine should still draw it (we just set the uniforms for the shader)
@@ -40,14 +33,13 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 end
 
 local function SunChanged(curShaderObj)
-	curShaderObj:SetUniform("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
+	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	curShaderObj:SetUniform("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	curShaderObj:SetUniform("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	curShaderObj:SetUniform("sunSpecular", gl.GetSun("specular" ,"unit"))
+	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 end
-
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
@@ -94,7 +86,6 @@ local materials = {
 -- Automated normalmap detection
 
 local unitMaterials = {}
-
 
 for i=1, #UnitDefs do
 	local udef = UnitDefs[i]

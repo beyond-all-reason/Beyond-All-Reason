@@ -4,18 +4,18 @@
 local customLumaMult = {}
 
 local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
-	luaShaderObj:SetUniform("lumaMult", customLumaMult[unitDefID])
+	luaShaderObj:SetUniformAlways("lumaMult", customLumaMult[unitDefID])
 
 	--// engine should still draw it (we just set the uniforms for the shader)
 	return false
 end
 
 local function SunChanged(curShaderObj)
-	curShaderObj:SetUniform("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
+	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	curShaderObj:SetUniform("sunAmbient", gl.GetSun("ambient" ,"unit"))
-	curShaderObj:SetUniform("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
-	curShaderObj:SetUniform("sunSpecular", gl.GetSun("specular" ,"unit"))
+	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 end
 

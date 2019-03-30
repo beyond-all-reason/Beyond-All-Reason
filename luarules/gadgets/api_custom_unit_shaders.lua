@@ -120,7 +120,7 @@ local function InsertPlugin(str)
   return (_plugins and _plugins[str]) or ""
 end
 
-local function CompileShader(shader, definitions, plugins)
+local function CompileShader(shader, definitions, plugins, addName)
   shader.vertexOrig   = shader.vertex
   shader.fragmentOrig = shader.fragment
   shader.geometryOrig = shader.geometry
@@ -165,7 +165,7 @@ local function CompileShader(shader, definitions, plugins)
       then shader.geometry = definitions .. shader.geometry; end
   end
 
-  local luaShader = LuaShader(shader, "Custom Unit Shaders")
+  local luaShader = LuaShader(shader, "Custom Unit Shaders. " .. addName)
   luaShader:Initialize()
 
   shader.vertex   = shader.vertexOrig
@@ -177,9 +177,9 @@ end
 
 
 local function _CompileMaterialShaders(rendering)
-	for _,mat_src in pairs(rendering.materialDefs) do
+	for matName, mat_src in pairs(rendering.materialDefs) do
 		if mat_src.shaderSource then
-			local luaShader = CompileShader(mat_src.shaderSource, mat_src.shaderDefinitions, mat_src.shaderPlugins)
+			local luaShader = CompileShader(mat_src.shaderSource, mat_src.shaderDefinitions, mat_src.shaderPlugins, string.format("MatName: \"%s\"(%s)", matName, "Standard"))
 
 			if luaShader then
 				if mat_src.standardShader then
@@ -191,6 +191,7 @@ local function _CompileMaterialShaders(rendering)
 				end
 				mat_src.standardShaderObj = luaShader
 				mat_src.standardShader = luaShader:GetHandle()
+				luaShader:SetUnknownUniformIgnore(true)
 				luaShader:ActivateWith( function()
 					mat_src.standardUniforms = {
 						cameraloc       = luaShader:GetUniformLocation("camera"),
@@ -202,11 +203,12 @@ local function _CompileMaterialShaders(rendering)
 						simframeloc     = luaShader:GetUniformLocation("simFrame"),
 					}
 				end)
+				luaShader:SetActiveStateIgnore(true)
 			end
 		end
 
 		if (mat_src.deferredSource) then
-			local luaShader = CompileShader(mat_src.deferredSource, mat_src.deferredDefinitions, mat_src.deferredPlugins)
+			local luaShader = CompileShader(mat_src.deferredSource, mat_src.deferredDefinitions, mat_src.deferredPlugins, string.format("MatName: \"%s\"(%s)", matName, "Deferred"))
 
 			if luaShader then
 				if mat_src.deferredShader then
@@ -218,6 +220,7 @@ local function _CompileMaterialShaders(rendering)
 				end
 				mat_src.deferredShaderObj = luaShader
 				mat_src.deferredShader = luaShader:GetHandle()
+				luaShader:SetUnknownUniformIgnore(true)
 				luaShader:ActivateWith( function()
 					mat_src.deferredUniforms = {
 						cameraloc       = luaShader:GetUniformLocation("camera"),
@@ -229,6 +232,7 @@ local function _CompileMaterialShaders(rendering)
 						simframeloc     = luaShader:GetUniformLocation("simFrame"),
 					}
 				end)
+				luaShader:SetActiveStateIgnore(true)
 			end
 		end
 	end
@@ -504,11 +508,7 @@ local function DrawObject(rendering, objectID, objectDefID, drawMode)
 	local luaShaderObj = (drawMode == 5) and mat.deferredShaderObj or mat.standardShaderObj
 	local _DrawObject = mat[rendering.DrawObject]
 	if _DrawObject then
-		local res
-		luaShaderObj:ActivateWith( function()
-			res = _DrawObject(objectID, objectDefID, mat, drawMode, luaShaderObj)
-		end)
-		return res
+		return _DrawObject(objectID, objectDefID, mat, drawMode, luaShaderObj)
 	end
 end
 
