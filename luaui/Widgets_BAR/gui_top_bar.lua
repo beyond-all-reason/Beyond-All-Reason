@@ -1531,7 +1531,6 @@ function countComs()
 	for _,teamID in ipairs(myAllyTeamList) do
 		allyComs = allyComs + Spring.GetTeamUnitDefCount(teamID, armcomDefID) + Spring.GetTeamUnitDefCount(teamID, corcomDefID)
 	end
-	comcountChanged = true
 
     local newEnemyComCount = Spring.GetTeamRulesParam(myTeamID, "enemyComCount")
     if type(newEnemyComCount) == 'number' then
