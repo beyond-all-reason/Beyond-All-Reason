@@ -61,11 +61,11 @@ for i = 1, #UnitDefs do
 
 	if (udefCM.arm_tank == nil) and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
 		local lm = tonumber(udefCM.lumamult) or 1
-		local matName = string.format("%s(lumamult=%d)", "normalMappedS3O", lm)
+		local matName = string.format("%s(lumamult=%f)", "normalMappedS3O", lm)
 		if not materials[matName] then
 			materials[matName] = Spring.Utilities.CopyTable(matTemplate, true)
 			if lm ~= 1 then
-				local lmLM = string.format("LUMAMULT %d", lm)
+				local lmLM = string.format("#define LUMAMULT %f", lm)
 				table.insert(materials[matName].shaderDefinitions, lmLM)
 				table.insert(materials[matName].deferredDefinitions, lmLM)
 			end
