@@ -83,10 +83,8 @@ function UpdateCount()
 	-- for each teamID, set a TeamRulesParam containing the # of coms in enemy allyteams
 	for teamID,_ in pairs(teamComs) do
 		local enemyComCount = 0
-		local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
 		for otherTeamID,val in pairs(teamComs) do -- count all coms in enemy teams, to get enemy allyteam com count
-			local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
-			if otherAllyTeamID ~= allyTeamID then
+			if select(6,Spring.GetTeamInfo(otherTeamID,false)) ~= select(6,Spring.GetTeamInfo(teamID,false)) then
 				enemyComCount = enemyComCount + teamComs[otherTeamID]
 			end
 		end

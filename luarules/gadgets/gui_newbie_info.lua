@@ -43,7 +43,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local keyInfo --glList for keybind info
 local amNewbie 		
 local myPlayerID = Spring.GetMyPlayerID()
-local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID)
+local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local show = false
 local gameStarted = false
 

@@ -128,7 +128,7 @@ GG.AiHelpers.VisibilityCheck = {}
 local SeenBuildings = {}
 
 GG.AiHelpers.VisibilityCheck.IsUnitVisible = function(unitID, teamID)
-	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
 	if SeenBuildings[teamID] and SeenBuildings[teamID][unitID] then
 		return true
 	elseif Spring.IsUnitInLos(unitID, allyTeamID) or Spring.IsUnitInRadar(unitID, allyTeamID) then

@@ -468,7 +468,7 @@ function addCompanionCritters()
 	    	local team = GetUnitTeam(unitID)
 			if team == nil then break end
 			local players = Spring.GetPlayerList(team)
-			local name = (#players>0) and Spring.GetPlayerInfo(players[1]) or ''
+			local name = (#players>0) and Spring.GetPlayerInfo(players[1],false) or ''
 			local found = false
 			for _, cname in pairs(companionPlayers) do
 				if cname == name then found = true end

@@ -58,7 +58,7 @@ function gadget:Initialize()
 		local playerList = Spring.GetPlayerList(teamID)
 		local list = {} --without specs
 		for _,playerID in pairs(playerList) do
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID,false)
 			if not isSpec then
 				table.insert(list, name)
 			end
@@ -79,15 +79,13 @@ function gadget:GameStart()
 	for i=1,#allyTeamIDs do
 		local teamIDs = Spring.GetTeamList(allyTeamIDs[i])
 		for j=1,#teamIDs do
-			local _,_,_,isAiTeam = Spring.GetTeamInfo(teamIDs[j])
 			local isLuaAI = (Spring.GetTeamLuaAI(teamIDs[j]) ~= "")
 			local isGaiaTeam = (teamIDs[j] == gaiaTeamID)
-			if ((not isAiTeam) and (not isLuaAi) and (not isGaiaTeam)) then
+			if ((not select(4,Spring.GetTeamInfo(teamIDs[j],false))) and (not isLuaAi) and (not isGaiaTeam)) then
 				local playerIDs = Spring.GetPlayerList(teamIDs[j])
 				local numPlayers = 0
 				for _,playerID in pairs(playerIDs) do
-					local _,_,isSpec = Spring.GetPlayerInfo(playerID) 
-					if not isSpec then 
+					if not select(3,Spring.GetPlayerInfo(playerID,false)) then
 						numPlayers = numPlayers + 1
 					end
 				end
@@ -371,7 +369,7 @@ function gadget:GameOver(winningAllyTeams)
 	if ecoKillAward ~= -1 and (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 and nTeams > 3 then --check if some team got all the awards + if more than 3 teams in the game
 		if winningAllyTeams and winningAllyTeams[1] then
 			local won = false
-			local _,_,_,_,_,cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward)
+			local _,_,_,_,_,cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward,false)
 			for _,allyTeamID in pairs(winningAllyTeams) do
 				if cowAllyTeamID == allyTeamID then --check if this team won the game
 					cowAward = ecoKillAward 
@@ -388,7 +386,7 @@ function gadget:GameOver(winningAllyTeams)
 		for playerID, info in pairs(GG['betengine'].playerScores) do
 			bettingParticipants = bettingParticipants + 1
 			if info.won > 0 then
-				local playerName, _, isSpec = Spring.GetPlayerInfo(playerID)
+				local playerName, _, isSpec = Spring.GetPlayerInfo(playerID,false)
 				if info.score > bettingScore then
 					bettingScore = info.score
 					bettingWinners = playerName
@@ -518,7 +516,7 @@ function gadget:Initialize()
 		local playerList = Spring.GetPlayerList(teamID)
 		local list = {} --without specs
 		for _,playerID in pairs(playerList) do
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID,false)
 			if not isSpec then
 				table.insert(list, name)
 			end

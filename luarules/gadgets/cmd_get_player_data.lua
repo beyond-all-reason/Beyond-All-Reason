@@ -38,7 +38,7 @@ if (gadgetHandler:IsSyncedCode()) then
 
 	function gadget:RecvLuaMsg(msg, player)
 		if msg:sub(1,2)=="pd" and msg:sub(3,4)==validation then
-			local name = Spring.GetPlayerInfo(player)
+			local name = Spring.GetPlayerInfo(player,false)
 			local data = string.sub(msg, 6)
 			local playerallowed = string.sub(msg, 5, 5)
 
@@ -63,13 +63,13 @@ else
 	end
 
 	function gadget:GotChatMsg(msg, player)
-		local myPlayerName,_,mySpec = Spring.GetPlayerInfo(player)
+		local myPlayerName,_,mySpec = Spring.GetPlayerInfo(player,false)
 		if not authorized[myPlayerName] then
 			return
 		end
 		if string.sub(msg,1,9) == "getconfig" then
 			local playerName = string.sub(msg, 11)
-			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
+			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)) then
 				local data = VFS.LoadFile("LuaUI/Config/BAR.lua")
 				if data then
 					data = string.sub(data, 1, 200000)
@@ -79,7 +79,7 @@ else
 			end
 		elseif string.sub(msg,1,10) == "getinfolog" then
 			local playerName = string.sub(msg, 12)
-			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
+			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)) then
 				local userconfig
 				local data = ''
 				local skipline = false
@@ -141,7 +141,7 @@ else
 				queueScreenShotHeightBatch = 5
 				playerName = string.sub(msg, 17)
 			end
-			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID())) then
+			if playerName == select(1, Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)) then
 				local vsx, vsy = Spring.GetViewGeometry()
 				queueScreenshot = true
 				queueScreenshotGameframe = Spring.GetGameFrame()
@@ -213,7 +213,7 @@ else
 	end
 
 	function SendToWG(_,msg)
-		local myPlayerName,_,mySpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+		local myPlayerName,_,mySpec = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 		if Script.LuaUI("PlayerDataBroadcast") and (mySpec or myPlayerName == 'Player' or string.sub(msg,1,1) == '1') and authorized[myPlayerName] then
 			Script.LuaUI.PlayerDataBroadcast(myPlayerName, string.sub(msg, 2))
 		end

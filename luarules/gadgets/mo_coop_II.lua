@@ -86,7 +86,7 @@ if gadgetHandler:IsSyncedCode() then
 		local playerList = Spring.GetPlayerList()
 		for i = 1, #playerList do
 			local playerID = playerList[i]
-			local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID)
+			local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID,false)
 			if not isSpec then
 				if teamHasPlayers[teamID] then
 					SetCoopStartPoint(playerID, -1, -1, -1)
@@ -125,7 +125,7 @@ if gadgetHandler:IsSyncedCode() then
 			-- his coop buddy readies up after, then the first will have his start point overwritten by the second.
 			-- This can be prevented by not allowing the first to place on second, either.
 
-			local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
+			local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID,false)
 			local osx, _, osz = Spring.GetTeamStartPosition(teamID)
 			if x ~= osx or z ~= osz then
 				local xmin, zmin, xmax, zmax = Spring.GetAllyTeamStartBox(allyID)
@@ -133,7 +133,7 @@ if gadgetHandler:IsSyncedCode() then
 				z = math.min(math.max(z, zmin), zmax)
 
 				--NewbiePlacer
-				local _,_,_,teamID = Spring.GetPlayerInfo(playerID)
+				local _,_,_,teamID = Spring.GetPlayerInfo(playerID,false)
 				if (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) then
 					Spring.SendMessageToPlayer(playerID,"In this match, teams containing newbies (rank 0) will have factions and startpoints chosen for them!")
 					coopStartPoints[playerID] = {-1,-1,-1} --record an invalid coop startpoint, to be picked up and assigned properly later; don't display anything
@@ -224,7 +224,7 @@ if gadgetHandler:IsSyncedCode() then
 		if n==0 and GG.coopMode then
 			--Spring.Echo('coop dbg7',to_string(coopStartPoints))
 			for playerID, startPos in pairs(coopStartPoints) do
-				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID)
+				local _, _, _, teamID, allyID = Spring.GetPlayerInfo(playerID,false)
 				SpawnTeamStartUnit(playerID,teamID, allyID, startPos[1], startPos[3])
 			end
 		end
@@ -317,7 +317,7 @@ else
 		local playerList = Spring.GetPlayerList()
 		for i = 1, #playerList do
 			local playerID = playerList[i]
-			local playerName, _, _, teamID = Spring.GetPlayerInfo(playerID)
+			local playerName, _, _, teamID = Spring.GetPlayerInfo(playerID,false)
 			playerNames[playerID] = playerName
 			playerTeams[playerID] = teamID
 			--Spring.Echo('coop dbg2',i,playerName,playerID,teamID,#playerList)

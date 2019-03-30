@@ -140,8 +140,7 @@ function updateSpecList()
     specList = {}
     local t = Spring.GetPlayerList()
     for _,playerID in ipairs(t) do
-        local _,_,spec = spGetPlayerInfo(playerID)
-        specList[playerID] = spec
+        specList[playerID] = select(3,spGetPlayerInfo(playerID,false))
     end
 end
 
@@ -229,7 +228,7 @@ function MouseCursorEvent(playerID,x,z,click)
 
         acp[(numMousePos+1)*2+1] = clock()
         acp[(numMousePos+1)*2+2] = playerPosList[#playerPosList].click
-        _,_,_,acp[(numMousePos+1)*2+3] = spGetPlayerInfo(playerID)
+        acp[(numMousePos+1)*2+3] = select(4,spGetPlayerInfo(playerID,false))
     end
     
     
@@ -296,7 +295,7 @@ end
 
 
 function widget:PlayerChanged(playerID)
-    local _, _, isSpec, teamID = spGetPlayerInfo(playerID)
+    local _, _, isSpec, teamID = spGetPlayerInfo(playerID,false)
     specList[playerID] = isSpec
     local r, g, b = spGetTeamColor(teamID)
     local color
@@ -317,7 +316,7 @@ end
 
 
 function createCursorDrawList(playerID, opacityMultiplier)
-    local name,_,spec,teamID = spGetPlayerInfo(playerID)
+    local name,_,spec,teamID = spGetPlayerInfo(playerID,false)
     local r, g, b = spGetTeamColor(teamID)
     local wx,gy,wz = 0,0,0
     local quadSize = usedCursorSize

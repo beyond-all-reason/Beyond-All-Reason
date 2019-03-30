@@ -295,7 +295,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:Initialize()
 		local t = Spring.GetTeamList()
 		for _,teamID in ipairs(t) do
-			if select(4,Spring.GetTeamInfo(teamID)) then	-- is AI?
+			if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
 				if select(4,Spring.GetAIInfo(teamID)) == 'NullAI' then	-- doesnt seem to work
 					Spring.SetGameRulesParam('ainame_'..teamID, 'NullAI (idle)')
 				else

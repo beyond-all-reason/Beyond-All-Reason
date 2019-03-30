@@ -121,11 +121,7 @@ function widget:Update()
 	-- update timers once every <updateInt> seconds
 	if (time % updateInt == 0 and time ~= lastTime) then	
 		lastTime = time
-		--do update stuff:
-		local playerID = spGetMyPlayerID()
-		local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
-		
-		if ( spec == true ) then
+		if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) then
 			widgetHandler:RemoveWidget(self)
 			return false
 		end

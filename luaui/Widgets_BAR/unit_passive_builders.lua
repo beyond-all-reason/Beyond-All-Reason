@@ -134,8 +134,7 @@ function widget:SetConfigData(data)
 end
 
 function refreshUnits()
-    local _, _, spec, _ = spGetPlayerInfo(spGetMyPlayerID())
-    if spec then
+    if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) then
         return
     end
 

@@ -419,7 +419,7 @@ function widget:Initialize()
 	end
 	WG['initialqueue'].setOldUnitIcons = function(value)
 		oldUnitpics = value
-		local _, _, _, _, mySide = Spring.GetTeamInfo(myTeamID)
+		local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
 		InitializeFaction(UnitDefNames[Spring.GetSideData(mySide)].id)
 	end
 	if (Game.startPosType == 1) or			-- Don't run if start positions are random
@@ -430,7 +430,7 @@ function widget:Initialize()
 		return
 	end
 	-- Get our starting unit
-	local _, _, _, _, mySide = Spring.GetTeamInfo(myTeamID)
+	local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
 	if mySide == "" then -- Don't run unless we know what faction the player is
 		widgetHandler:RemoveWidget(self)
 		return
@@ -596,7 +596,7 @@ function widget:GetConfigData()
 	if (Spring.GetSpectatingState()) then return end
 	--local wWidth, wHeight = Spring.GetWindowGeometry()
 	--return {wl / wWidth, wt / wHeight}
-	local _, _, _, _, mySide = Spring.GetTeamInfo(Spring.GetMyTeamID())
+	local mySide = select(5,Spring.GetTeamInfo(Spring.GetMyTeamID(),false))
 	if Spring.GetGameSeconds() <= 0 and  mySide ~= "" then
 		local startUnitName = Spring.GetSideData(mySide)
 		local sDefID = UnitDefNames[startUnitName].id

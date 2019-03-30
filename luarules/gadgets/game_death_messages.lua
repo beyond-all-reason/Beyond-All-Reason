@@ -118,7 +118,7 @@ function gadget:Initialize()
 		local playerList = Spring.GetPlayerList(teamID)
 		local list = {} --without specs
 		for _,playerID in pairs(playerList) do
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID,false)
 			if not isSpec then
 				table.insert(list, name)
 			end

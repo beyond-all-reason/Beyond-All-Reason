@@ -268,7 +268,7 @@ function widget:Update()
 
 			local mouseSelection, originalMouseSelection
 			local r = referenceScreenCoords
-			local playing = GetPlayerInfo(myPlayerID).spectating == false
+			local playing = GetPlayerInfo(myPlayerID,false).spectating == false
 			local team = (playing and GetMyTeamID())
 			if (r ~= nil and IsAboveMiniMap(r[1], r[2])) then
 				local mx, my = max(px, min(px+sx, x)), max(py, min(py+sy, y))

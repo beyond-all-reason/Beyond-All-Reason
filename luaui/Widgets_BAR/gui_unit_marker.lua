@@ -99,12 +99,12 @@ local function GetTeamName(teamID) --need to rewrite this sloppy functionality
     return name
   end
 
-  local teamNum, teamLeader = Spring.GetTeamInfo(teamID)
+  local teamNum, teamLeader = Spring.GetTeamInfo(teamID,false)
   if (teamLeader == nil) then
     return "Not sure what purpose this originally served" -- nor I -LEDZ -- I do but its effect is lost in time -Bluestone
   end
 
-  name = Spring.GetPlayerInfo(teamLeader)
+  name = Spring.GetPlayerInfo(teamLeader,false)
   teamNames[teamID] = name
   return name or "Gaia"
 end
@@ -139,7 +139,7 @@ function widget:Initialize()
 	else	
 		curUnitList = unitList[curModID] or {}
 	end
-	myLang = myLang or string.lower(select(8,Spring.GetPlayerInfo(Spring.GetMyPlayerID())))
+	myLang = myLang or string.lower(select(8,Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)))
 end
 
 function colourNames(teamID) 

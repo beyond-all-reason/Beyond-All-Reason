@@ -272,9 +272,7 @@ function widget:Initialize()
 end
 
 function detectSpectatorView()
-    local _, _, spec, teamId = spGetPlayerInfo(spGetMyPlayerID())
-
-    if spec then
+    if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) then
         spectatorMode = true
     end
 

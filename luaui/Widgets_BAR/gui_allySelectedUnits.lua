@@ -198,7 +198,7 @@ function widget:Shutdown()
 end
 
 function widget:PlayerAdded(playerID)
-	local playerTeam = select(4,spGetPlayerInfo(playerID))
+	local playerTeam = select(4,spGetPlayerInfo(playerID,false))
 	if not playerSelectedUnits[ playerID ] then
 		playerSelectedUnits[ playerID ] = {
 			["units"]={},
@@ -241,7 +241,7 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	myTeamID = spGetLocalTeamID()
-	local playerTeam = select(4,spGetPlayerInfo(playerID))
+	local playerTeam = select(4,spGetPlayerInfo(playerID,false))
 	local oldCoopStatus = playerSelectedUnits[ playerID ]["coop"]
 	playerSelectedUnits[ playerID ]["coop"] = (teamID == myTeamID)
 	playerSelectedUnits[ playerID ]["todraw"] = DoDrawPlayer(playerID)
@@ -298,7 +298,7 @@ end
 
 
 function selectedUnitsClear(playerID)
-	isSpec = select(3,spGetPlayerInfo(playerID))
+	isSpec = select(3,spGetPlayerInfo(playerID),false)
 	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
@@ -316,7 +316,7 @@ function selectedUnitsClear(playerID)
 end
 
 function selectedUnitsAdd(playerID,unitID)
-	isSpec = select(3,spGetPlayerInfo(playerID))
+	isSpec = select(3,spGetPlayerInfo(playerID),false)
 	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
@@ -338,7 +338,7 @@ function selectedUnitsAdd(playerID,unitID)
 end
 
 function selectedUnitsRemove(playerID,unitID)
-	isSpec = select(3,spGetPlayerInfo(playerID))
+	isSpec = select(3,spGetPlayerInfo(playerID),false)
 	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)

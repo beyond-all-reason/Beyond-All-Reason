@@ -57,11 +57,7 @@ local glColor					= gl.Color
 local glDepthTest				= gl.DepthTest
 local glLineWidth				= gl.LineWidth
 local glDrawGroundCircle		= gl.DrawGroundCircle
-local glDrawListAtUnit          = gl.DrawListAtUnit
 
-
-local spGetMyPlayerID			= Spring.GetMyPlayerID
-local spGetPlayerInfo			= Spring.GetPlayerInfo
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetUnitPosition			= Spring.GetUnitPosition
 local spGetPositionLosState 	= Spring.GetPositionLosState
@@ -72,7 +68,6 @@ local GetUnitIsStunned     		= Spring.GetUnitIsStunned
 
 local antiInLos					= {}
 local antiOutLos				= {}
-
 
 local coverageRangeArmStatic	= WeaponDefs[UnitDefNames.armamd.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreStatic	= WeaponDefs[UnitDefNames.corfmd.weapons[1].weaponDef].coverageRange
@@ -254,8 +249,6 @@ end
 
 
 function checkAllUnits()
-    local _, _, spec, teamId = spGetPlayerInfo(spGetMyPlayerID())
-
 	antiInLos				= {}
 	antiOutLos				= {}
 	

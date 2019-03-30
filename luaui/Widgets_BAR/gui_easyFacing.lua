@@ -377,10 +377,7 @@ function ResetGl()
 end
 
 function CheckSpecState()
-	local playerID = spGetMyPlayerID()
-	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
-		
-	if ( spec == true ) then
+	if (select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) == true ) then
 		widgetHandler:RemoveWidget(self)
 		return false
 	end

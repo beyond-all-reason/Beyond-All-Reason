@@ -447,8 +447,8 @@ function widget:GameFrame(n,forceupdate)
 					end
 					history.time = nil
 					local teamColor = {GetTeamColor(teamID)}
-					local _,leader,isDead = GetTeamInfo(teamID)
-					local playerName,isActive = GetPlayerInfo(leader)
+					local _,leader,isDead = GetTeamInfo(teamID,false)
+					local playerName,isActive = GetPlayerInfo(leader,false)
 					if Spring.GetGameRulesParam('ainame_'..teamID) then
 						playerName = Spring.GetGameRulesParam('ainame_'..teamID)
 					end

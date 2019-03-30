@@ -97,7 +97,7 @@ local function AddEffect(cmdType, x, y, z, osClock, unitID, playerID)
 	if not playerID then
 		playerID = false
 	end
-	local nickname,_,spec,teamID = spGetPlayerInfo(playerID)
+	local nickname,_,spec,teamID = spGetPlayerInfo(playerID,false)
 	local teamcolor = {}
 	teamcolor[1],teamcolor[2],teamcolor[3] = spGetTeamColor(teamID)
 	

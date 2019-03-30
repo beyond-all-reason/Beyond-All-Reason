@@ -411,7 +411,7 @@ end
 function gadget:RecvLuaMsg(msg, playerID)
     local newLevel = tonumber(msg:match(alterLevelRegex))
     if newLevel and newLevel >= 0 and newLevel <= 100 then
-        local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
+        local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID,false)
         if not playerIsSpec then
             spSetTeamRulesParam(playerTeam, mmLevelParamName, newLevel / 100)
             return true

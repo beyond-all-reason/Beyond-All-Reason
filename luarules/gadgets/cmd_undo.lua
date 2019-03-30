@@ -47,7 +47,7 @@ if gadgetHandler:IsSyncedCode() then
 	local startPlayers = {}
 	function checkStartPlayers()
 		for _,playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
-			local playername,_,spec,teamID = Spring.GetPlayerInfo(playerID)
+			local playername,_,spec,teamID = Spring.GetPlayerInfo(playerID,false)
 			if not spec then
 				startPlayers[playername] = true
 			end
@@ -107,7 +107,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function restoreUnits(teamID, seconds, toTeamID, playerID)
-		if not Spring.GetTeamInfo(toTeamID) then
+		if not Spring.GetTeamInfo(toTeamID,false) then
 			return
 		end
 		if teamSelfdUnits[teamID] == nil then
@@ -167,7 +167,7 @@ if gadgetHandler:IsSyncedCode() then
 	function gadget:RecvLuaMsg(msg, playerID)
 		if msg:sub(1,2)=="un" and msg:sub(3,4)==validation then
 
-			local playername, _, spec = Spring.GetPlayerInfo(playerID)
+			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
 			for _,name in ipairs(authorizedPlayers) do
 				if playername == name then

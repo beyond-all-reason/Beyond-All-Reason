@@ -180,7 +180,7 @@ function widget:Initialize()
     widget:PlayerChanged()
   end
 
-  local _, _, _, teamID = GetPlayerInfo(Spring.GetMyPlayerID())
+  local _, _, _, teamID = GetPlayerInfo(Spring.GetMyPlayerID(),false)
   myTeamID = teamID
   widgetHandler:RegisterGlobal('taiEmbark', taiEmbark)
 

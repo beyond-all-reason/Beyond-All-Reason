@@ -93,9 +93,9 @@ local function GetCommAttributes(unitID, unitDefID)
       name = Spring.GetGameRulesParam('ainame_'..team)..' (AI)'
   else
     local players = GetPlayerList(team)
-    name = (#players>0) and GetPlayerInfo(players[1]) or '------'
+    name = (#players>0) and GetPlayerInfo(players[1],false) or '------'
     for _,pID in ipairs(players) do
-      local pname,active,spec = GetPlayerInfo(pID)
+      local pname,active,spec = GetPlayerInfo(pID,false)
       if active and not spec then
         name = pname
         break
@@ -168,7 +168,7 @@ function widget:Update(dt)
     if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
         if myTeamID ~= Spring.GetMyTeamID() then
             -- old
-            local name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
+            local name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID,false)),false)
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
                 comnameList[name] = nil
@@ -176,7 +176,7 @@ function widget:Update(dt)
             -- new
             myTeamID = Spring.GetMyTeamID()
             myPlayerID = Spring.GetMyPlayerID()
-            name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
+            name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID,false)),false)
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
                 comnameList[name] = nil
@@ -277,7 +277,7 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
-  local name,_ = GetPlayerInfo(playerID)
+  local name,_ = GetPlayerInfo(playerID,false)
   comnameList[name] = nil
   CheckAllComs() -- handle substitutions, etc
 end

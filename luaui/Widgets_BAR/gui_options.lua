@@ -2441,7 +2441,7 @@ function init()
     local aiDetected = false
     local t = Spring.GetTeamList()
     for _,teamID in ipairs(t) do
-        if select(4,Spring.GetTeamInfo(teamID)) then
+        if select(4,Spring.GetTeamInfo(teamID,false)) then
             aiDetected = true
         end
     end

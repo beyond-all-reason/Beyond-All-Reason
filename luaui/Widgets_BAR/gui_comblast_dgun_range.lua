@@ -187,8 +187,7 @@ end
 
 function checkSpecView()
 	--check if we became a spec
-    local _,_,spec,_ = spGetPlayerInfo(spGetMyPlayerID())
-    if spec ~= amSpec then
+    if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) ~= amSpec then
         amSpec = spec
 		checkComs()
     end

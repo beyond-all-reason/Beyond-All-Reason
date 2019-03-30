@@ -121,8 +121,8 @@ function gadget:Initialize()
 			local teamInfo = {}
 			teamInfo.players = {}
 			--is it engine ai?
-			teamInfo.isAI = select(4,GetTeamInfo(teamID))
-			teamInfo.hasLeader = select(2,GetTeamInfo(teamID)) >= 0
+			teamInfo.isAI = select(4,GetTeamInfo(teamID,false))
+			teamInfo.hasLeader = select(2,GetTeamInfo(teamID,false)) >= 0
 			if teamInfo.isAI then
 				--store who hosts that engine ai
 				local AIHostPlayerID = select(3,GetAIInfo(teamID))
@@ -247,10 +247,10 @@ end
 
 
 function CheckPlayer(playerID)
-	local _,active,spectator,teamID,allyTeamID = GetPlayerInfo(playerID)
+	local _,active,spectator,teamID,allyTeamID = GetPlayerInfo(playerID,false)
 	local teamInfo = allyTeamInfos[allyTeamID].teams[teamID]
 	teamInfo.players[playerID] = active and not spectator
-	teamInfo.hasLeader = select(2,GetTeamInfo(teamID)) >= 0
+	teamInfo.hasLeader = select(2,GetTeamInfo(teamID,false)) >= 0
 	if not teamInfo.hasLeader and not teamInfo.dead then
 		KillTeam(teamID)
 		Script.LuaRules.TeamDeathMessage(teamID)

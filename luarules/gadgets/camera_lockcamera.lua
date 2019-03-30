@@ -298,7 +298,7 @@ else
 		--end
 		local spec, fullView = GetSpectatingState()
 		if not spec or not fullView then
-			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID)
+			local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
 			if targetSpec or allyTeamID ~= GetMyAllyTeamID() then
 				return
 			end

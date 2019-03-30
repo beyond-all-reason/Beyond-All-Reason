@@ -628,7 +628,7 @@ function SetMaxPlayerNameWidth()
 	local nextWidth = 0
 	for _,wplayer in ipairs(t) do
 		name,_,spec,teamID = Spring_GetPlayerInfo(wplayer)
-		if select(4,Spring_GetTeamInfo(teamID)) then -- is AI?
+		if select(4,Spring_GetTeamInfo(teamID,false)) then -- is AI?
 			_,_,_,_,name, version = Spring_GetAIInfo(teamID)
 			if type(version) == "string" then
 				name = "AI:" .. name .. "-" .. version
@@ -1173,7 +1173,7 @@ function SetSidePics()
 				teamSide = teamSideTwo
 			end
 		else
-			_,_,_,_,teamSide = Spring_GetTeamInfo(team)
+			_,_,_,_,teamSide = Spring_GetTeamInfo(team,false)
 		end
 	
 		if teamSide then
@@ -1210,7 +1210,7 @@ function GetAllPlayers()
 			tplayerCount = tplayerCount + 1
 		end
 
-		local _,_,_,isAiTeam = Spring.GetTeamInfo(teamN)
+		local _,_,_,isAiTeam = Spring.GetTeamInfo(teamN,false)
 		local isLuaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
 		if not (isAiTeam or isLuaAI) then
 			if tplayerCount > 0 then
@@ -1221,7 +1221,7 @@ function GetAllPlayers()
 	end
 	specPlayers = Spring_GetTeamList()
 	for _,playerID in ipairs(specPlayers) do
-		local active,_,spec = Spring_GetPlayerInfo(playerID)
+		local active,_,spec = Spring_GetPlayerInfo(playerID,false)
 		if spec == true then
 			if active == true then
 				player[playerID] = CreatePlayer(playerID)
@@ -1236,7 +1236,7 @@ function GetAliveAllyTeams()
 	local allteams   = Spring_GetTeamList()
 	teamN = table.maxn(allteams) - 1               --remove gaia
 	for i = 0,teamN-1 do
-		local _,_, isDead, _, _, tallyteam = Spring_GetTeamInfo(i)
+		local _,_, isDead, _, _, tallyteam = Spring_GetTeamInfo(i,false)
 		if not isDead then
 			aliveAllyTeams[tallyteam] = true
 		end
@@ -1296,8 +1296,8 @@ end
 function CreatePlayer(playerID)
 	
 	--generic player data
-	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID)
-	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam)
+	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID,false)
+	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam,false)
 	local tred, tgreen, tblue  										     = Spring_GetTeamColor(tteam)
 	
 	--skill
@@ -1357,7 +1357,7 @@ end
 
 function CreatePlayerFromTeam(teamID) -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
 	
-	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
+	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID,false)
 	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
 	local tname, ttotake, tskill
 	local tdead = true
@@ -1493,15 +1493,14 @@ function SortList()
 	local teamList
 	local myOldSpecStatus = mySpecStatus
 	
-	_,_, mySpecStatus,_,_,_,_,_,_ = Spring_GetPlayerInfo(myPlayerID)
+	mySpecStatus = select(3,Spring_GetPlayerInfo(myPlayerID,false))
 	
 	-- checks if a team has died
 	if mySpecStatus ~= myOldSpecStatus then
-		if mySpecStatus == true then
+		if mySpecStatus then
 			teamList = Spring_GetTeamList()
-			for _, team in ipairs(teamList) do               --
-				_,_, isDead = Spring_GetTeamInfo(team)
-				if isDead == false then
+			for _, team in ipairs(teamList) do
+				if not select(3,Spring_GetTeamInfo(team,false)) then -- not dead
 					Spec(team)
 					break
 				end
@@ -1608,8 +1607,7 @@ function SortTeams(allyTeamID, vOffset)
 		drawListOffset[#drawListOffset+1] = vOffset
 		drawList[#drawList+1] = -1
 		vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team
-		local _,_, isDead, _, _, _ = Spring_GetTeamInfo(teamID)
-		if isDead then
+		if select(3,Spring_GetTeamInfo(teamID,false)) then
 			vOffset = vOffset - (deadPlayerHeightReduction/2)
 		end
 	end
@@ -1622,7 +1620,6 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	
 	local playersList       = Spring_GetPlayerList(teamID,true)
 	local noPlayer          = true
-	local _,_,_, isAi = Spring_GetTeamInfo(teamID)
 	
 	-- add own player (if not spec)
 	if myTeamID == teamID then
@@ -1653,7 +1650,7 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	end
 	
 	-- add AI teams
-	if isAi == true then
+	if select(4,Spring_GetTeamInfo(teamID,false)) then -- is AI
 		vOffset = vOffset + playerOffset
 		drawListOffset[#drawListOffset+1] = vOffset
 		drawList[#drawList+1] = 64 + teamID -- new AI team (instead of players)
@@ -1680,7 +1677,7 @@ function SortSpecs(vOffset)
 	local playersList = Spring_GetPlayerList(-1,true)
 	local noSpec = true
 	for _,playerID in ipairs(playersList) do
-		_,active,spec = Spring_GetPlayerInfo(playerID)
+		_,active,spec = Spring_GetPlayerInfo(playerID,false)
 		if spec and active then
 			if player[playerID].name ~= nil then
 				
@@ -3705,7 +3702,7 @@ function widget:SetConfigData(data)      -- load
 	end
 	if data.lockPlayerID ~= nil and Spring.GetGameFrame()>0 then
 		lockPlayerID = data.lockPlayerID
-		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID),false) then
 			if not lockcameraHideEnemies then
 				if not fullView then
 					Spring.SendCommands("specfullview")
@@ -3789,7 +3786,7 @@ end
 function CheckPlayersChange()
 	local sorting = false
 	for i = 0,63 do
-		local name,active,spec,teamID,allyTeamID,pingTime,cpuUsage, country, rank = Spring_GetPlayerInfo(i)
+		local name,active,spec,teamID,allyTeamID,pingTime,cpuUsage, country, rank = Spring_GetPlayerInfo(i,false)
 		if active == false then
 			if player[i].name ~= nil then                                             -- NON SPEC PLAYER LEAVING
 				if player[i].spec==false then

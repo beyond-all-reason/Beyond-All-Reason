@@ -235,8 +235,7 @@ function widget:Initialize()
   -- get the gaia teamID and allyTeamID
   gaiaTeamID = Spring.GetGaiaTeamID()
   if (gaiaTeamID) then
-    local _,_,_,_,_,atid = Spring.GetTeamInfo(gaiaTeamID)
-    gaiaAllyTeamID = atid
+    gaiaAllyTeamID = select(6,Spring.GetTeamInfo(gaiaTeamID,false))
   end
 
   -- flip and scale  (using x & y for gl.Rect())
@@ -424,8 +423,7 @@ function widget:DrawWorld()
 
   -- show the team start positions
   for _, teamID in ipairs(Spring.GetTeamList()) do
-    local _,leader = Spring.GetTeamInfo(teamID)
-    local _,_,spec = Spring.GetPlayerInfo(leader)
+    local _,_,spec = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(teamID,false)),false)
     if ((not spec) and (teamID ~= gaiaTeamID)) then
       local x, y, z = Spring.GetTeamStartPosition(teamID)
 	  local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
@@ -451,8 +449,7 @@ function widget:DrawScreenEffects()
   -- show the names over the team start positions
   --gl.Fog(false)
   for _, teamID in ipairs(Spring.GetTeamList()) do
-    local _,leader = Spring.GetTeamInfo(teamID)
-    local name,_,spec = Spring.GetPlayerInfo(leader)
+    local name,_,spec = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(teamID,false)),false)
 	local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
     if (name ~= nil) and ((not spec) and (teamID ~= gaiaTeamID)) and not isNewbie then
       local colorStr, outlineStr = GetTeamColorStr(teamID)
@@ -498,8 +495,7 @@ function widget:DrawInMiniMap(sx, sz)
   local gaiaAllyTeamID
   local gaiaTeamID = Spring.GetGaiaTeamID()
   if (gaiaTeamID) then
-    local _,_,_,_,_,atid = Spring.GetTeamInfo(gaiaTeamID)
-    gaiaAllyTeamID = atid
+    gaiaAllyTeamID = select(6,Spring.GetTeamInfo(gaiaTeamID,false))
   end
 
   -- show all start boxes
@@ -529,8 +525,7 @@ function widget:DrawInMiniMap(sx, sz)
 
   -- show the team start positions
   for _, teamID in ipairs(Spring.GetTeamList()) do
-    local _,leader = Spring.GetTeamInfo(teamID)
-    local _,_,spec = Spring.GetPlayerInfo(leader)
+    local _,_,spec = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(teamID,false)),false)
     if ((not spec) and (teamID ~= gaiaTeamID)) then
       local x, y, z = Spring.GetTeamStartPosition(teamID)
 	  local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn

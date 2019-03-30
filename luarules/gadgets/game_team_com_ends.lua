@@ -37,6 +37,7 @@ local GetUnitAllyTeam = Spring.GetUnitAllyTeam
 local DestroyUnit=Spring.DestroyUnit
 local GetUnitPosition = Spring.GetUnitPosition
 local SpawnCEG = Spring.SpawnCEG
+local GetTeamInfo = Spring.GetTeamInfo
 
 local DISTANCE_LIMIT = (math.max(Game.mapSizeX,Game.mapSizeZ) * math.max(Game.mapSizeX,Game.mapSizeZ))
 local min = math.min
@@ -94,13 +95,12 @@ function gadget:GameFrame(t)
 					local deadAllyTeam = true
 					local teamsList = GetTeamList(allyTeamID)
 					for _,teamID in ipairs(teamsList) do
-						local _,_,_,isAi, _, _ = Spring.GetTeamInfo(teamID)
-						if isAi or teamID == gaiaTeamID then
+						if select(4,GetTeamInfo(teamID,false)) or teamID == gaiaTeamID then
 							deadAllyTeam = false
 						else
 							local playersList = Spring.GetPlayerList(teamID,true)
 							for _,playerID in ipairs(playersList) do
-								local name,_,isSpec = Spring.GetPlayerInfo(playerID)
+								local name,_,isSpec = Spring.GetPlayerInfo(playerID,false)
 								if name ~= nil and not isSpec then
 									deadAllyTeam = false
 								end

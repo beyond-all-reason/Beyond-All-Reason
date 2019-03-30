@@ -62,7 +62,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 end
 
 function getTeamLeaderName(teamID)
-	return GetPlayerInfo(select(2,GetTeamInfo(teamID)))
+	return GetPlayerInfo(select(2,GetTeamInfo(teamID,false)),false)
 end
 
 function gadget:GameFrame(n)

@@ -1555,8 +1555,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 		return
 	end
 	--record com created
-	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(unitTeam)
-	if allyTeamID == myAllyTeamID then
+	if select(6,Spring.GetTeamInfo(unitTeam,false)) == myAllyTeamID then
 		allyComs = allyComs + 1
 	elseif spec then
 		enemyComs = enemyComs + 1
@@ -1569,8 +1568,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		return
 	end
 	--record com died
-	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(unitTeam)
-	if allyTeamID == myAllyTeamID then
+	if select(6,Spring.GetTeamInfo(unitTeam,false)) == myAllyTeamID then
 		allyComs = allyComs - 1
 	elseif spec then
 		enemyComs = enemyComs - 1

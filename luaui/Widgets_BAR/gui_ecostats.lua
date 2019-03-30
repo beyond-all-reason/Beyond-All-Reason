@@ -87,7 +87,7 @@ local ctrlDown 						= false
 local textsize						= 14
 local textlarge						= 18
 local gaiaID						= Spring.GetGaiaTeamID()
-local gaiaAllyID					= select(6,GetTeamInfo(gaiaID))
+local gaiaAllyID					= select(6,GetTeamInfo(gaiaID,false))
 local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic graphics
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
@@ -241,7 +241,7 @@ function Init()
 			allyData[allyDataIndex].exists				= #teamList > 0
 
 			for _,teamID in pairs(teamList) do
-				local myAllyID = select(6,GetTeamInfo(teamID))
+				local myAllyID = select(6,GetTeamInfo(teamID,false))
 
 				setTeamTable(teamID)
 				Button["player"][teamID] = {}
@@ -1085,8 +1085,8 @@ function setTeamTable(teamID)
 	
 	local side, aID, isDead, commanderAlive, minc, mrecl, einc, erecl, x, y, leaderName, leaderID, active, spectator
 	
-	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID)
-	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID)
+	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID,false)
+	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID,false)
 		
 	if teamID == gaiaID then
 		if haveZombies then 
@@ -1124,7 +1124,7 @@ function setTeamTable(teamID)
 			teamside = "core"
 		end
 	else
-		_,_,_,_,teamside = Spring.GetTeamInfo(teamID)
+		teamside = select(5,Spring.GetTeamInfo(teamID,false))
 	end
 	side = teamside
 	
@@ -1211,9 +1211,9 @@ function isTeamReal(allyID)
 	local leaderID, spectator, isDead, unitCount
 
 	for _,tID in ipairs (GetTeamList(allyID)) do
-		_,leaderID,isDead			= GetTeamInfo(tID)
+		_,leaderID,isDead			= GetTeamInfo(tID,false)
 		unitCount					= GetTeamUnitCount(tID)
-		leaderName,active,spectator	= GetPlayerInfo(leaderID)
+		leaderName,active,spectator	= GetPlayerInfo(leaderID,false)
 		if leaderName ~= nil or isDead or unitCount > 0 then return true end
 	end
 	return false
@@ -1265,7 +1265,7 @@ function getNbPlacedPositions(teamID)
 		startx = teamData[pID].startx or -1
 		starty = teamData[pID].starty or -1
 		active = teamData[pID].active
-		leaderName,active,spectator	= GetPlayerInfo(leaderID)				
+		leaderName,active,spectator	= GetPlayerInfo(leaderID,false)
 		
 		isDead = teamData[pID].isDead
 		if (active and startx >= 0 and starty >= 0 and leaderName ~= nil)  or isDead then
@@ -1292,7 +1292,7 @@ end
 
 function checkDeadTeams()
 	for teamID in pairs(teamData) do
-		isDead = select(3,GetTeamInfo(teamID))
+		isDead = select(3,GetTeamInfo(teamID,false))
 		teamData[teamID]["isDead"] = isDead
 	end
 end

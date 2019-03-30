@@ -26,7 +26,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 
 -- being set at gamestart again:
 local myPlayerID = Spring.GetMyPlayerID()
-local myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
+local myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local startedAsPlayer = not mycSpec
 
 local function DrawRectRound(px,py,sx,sy,cs)
@@ -133,7 +133,7 @@ end
 
 --local sec = 0
 --function widget:Update(dt)
---	myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1)
+--	myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(1,false)
 --	sec = sec + dt
 --	if sec > 2 and not voteDlist then
 --		StartVote('testvote yeah!', 'somebody')
@@ -150,7 +150,7 @@ function widget:GameFrame(n)
 	if n > 0 and not gameStarted then
 		gameStarted = true
 		myPlayerID = Spring.GetMyPlayerID()
-		myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID)
+		myName,_,mySpec,myTeamID,myAllyTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 		startedAsPlayer = not mySpec
 	end
 end
@@ -158,7 +158,7 @@ end
 function isTeamPlayer(playerName)
 	local players = Spring.GetPlayerList()
 	for _,pID in ipairs(players) do
-		local name,_,spec,teamID,allyTeamID = Spring.GetPlayerInfo(pID)
+		local name,_,spec,teamID,allyTeamID = Spring.GetPlayerInfo(pID,false)
 		if name == playerName then
 			if allyTeamID == myAllyTeamID then
 				return true

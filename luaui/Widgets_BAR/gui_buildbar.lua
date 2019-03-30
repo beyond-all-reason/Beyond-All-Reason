@@ -109,7 +109,7 @@ local teamColors = {}
 local GetTeamColor = Spring.GetTeamColor or function (teamID)
   local color = teamColors[teamID]
   if (color) then return unpack(color) end
-  local _,_,_,_,_,_,r,g,b = Spring.GetTeamInfo(teamID)
+  local _,_,_,_,_,_,r,g,b = Spring.GetTeamInfo(teamID)  ---?
   teamColors[teamID] = {r,g,b}
   return r,g,b
 end

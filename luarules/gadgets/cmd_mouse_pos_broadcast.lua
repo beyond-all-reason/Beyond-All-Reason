@@ -112,9 +112,8 @@ function handleMousePosEvent(_,playerID,x,z,click)
 	--here we receive mouse pos from other players and dispatch to luaui
 	local spec, fullView = GetSpectatingState()
 	if not spec or not fullView then
-		local _,_,_,_,myAllyTeamID = GetPlayerInfo(myPlayerID)
-		local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID)
-		if targetSpec or allyTeamID ~= myAllyTeamID then
+		local _,_,targetSpec,_,allyTeamID = GetPlayerInfo(playerID,false)
+		if targetSpec or allyTeamID ~= select(5,GetPlayerInfo(myPlayerID,false)) then
 			return
 		end
 	end

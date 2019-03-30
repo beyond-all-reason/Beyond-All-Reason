@@ -34,7 +34,7 @@ if ( not gadgetHandler:IsSyncedCode()) then
     local max = math.max
 
     local nameEnclosingPatterns = {{""," added point"},{"<","> "},{"> <","> "},{"[","] "}}
-    local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+    local myPlayerName = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
     local lastActionTime = 0
     local timer = 0
     local updateTimer = 0
@@ -250,8 +250,7 @@ else
         local TeamToRemainingPlayers = {}
         local aiOwners = {}
         for _,teamID in ipairs(GetTeamList()) do --initialize team count
-            local _, _, _, isAI = GetTeamInfo(teamID)
-            if isAI then
+            if select(4,GetTeamInfo(teamID,false)) then
                 --store who hosts that engine ai, team will be controlled if player is present
                 local aiHost = select(3,GetAIInfo(teamID))
                 local hostedAis = aiOwners[aiHost] or {}
@@ -267,7 +266,7 @@ else
             end
         end
         for _,playerID in ipairs(GetPlayerList()) do -- update player infos
-            local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
+            local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID,false)
             local playerInfoTableEntry = playerInfoTable[playerID] or {}
             playerInfoTableEntry.connected = active
             playerInfoTableEntry.player = not spectator
@@ -341,7 +340,7 @@ else
         local previousPresent = playerInfoTableEntry.present
         playerInfoTableEntry.present = afk == 0
         playerInfoTable[playerID] = playerInfoTableEntry
-        local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID)
+        local name,active,spectator,teamID,allyTeamID,ping = GetPlayerInfo(playerID,false)
         if not spectator and name ~= nil then
             if currentGameFrame > minTimeToTake*gameSpeed then
                 if previousPresent and not playerInfoTableEntry.present then
@@ -370,11 +369,10 @@ else
             return -- exclude taking rights from lagged players, etc
         end
         local targetTeam = tonumber(words[1])
-        local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID)
+        local _,_,_,takerID,allyTeamID = GetPlayerInfo(playerID,false)
         local teamList = GetTeamList(allyTeamID)
         if targetTeam then
-            local _,_,_,_,_,targetAllyTeamID = GetTeamInfo(targetTeam)
-            if targetAllyTeamID ~= allyTeamID then
+            if select(6,GetTeamInfo(targetTeam,false)) ~= allyTeamID then
                 --don't let enemies take
                 SendMessageToPlayer(playerID,"Cannot take enemy players")
                 return

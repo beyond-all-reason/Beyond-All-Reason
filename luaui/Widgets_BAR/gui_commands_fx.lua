@@ -295,7 +295,7 @@ function resetEnabledTeams()
 	enabledTeams = {}
 	local t = Spring.GetTeamList()
 	for _,teamID in ipairs(t) do
-		if not filterAIteams  or  not select(4,Spring.GetTeamInfo(teamID)) then
+		if not filterAIteams  or  not select(4,Spring.GetTeamInfo(teamID,false)) then
 			enabledTeams[teamID] = true
 		end
 	end

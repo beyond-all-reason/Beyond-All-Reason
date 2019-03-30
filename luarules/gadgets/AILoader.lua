@@ -80,7 +80,7 @@ function gadget:Initialize()
 
 	for i=1,#teamList do
 		local id = teamList[i]
-		local _,_,_,isAI,side,allyId = spGetTeamInfo(id)
+		local _,_,_,isAI,side,allyId = spGetTeamInfo(id,false)
 
 		--spEcho("Player " .. teamList[i] .. " is " .. side .. " AI=" .. tostring(isAI))
 
@@ -141,7 +141,7 @@ end
 function gadget:GameStart()
     -- Initialise AIs
     for _,thisAI in ipairs(AIs) do
-        local _,_,_,isAI,side = spGetTeamInfo(thisAI.id)
+        local _,_,_,isAI,side = spGetTeamInfo(thisAI.id,false)
 		thisAI.side = side
 		local x,y,z = spGetTeamStartPosition(thisAI.id)
 		thisAI.startPos = {x,y,z}
