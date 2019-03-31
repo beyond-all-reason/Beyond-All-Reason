@@ -99,12 +99,11 @@ local rejoinArea = {}
 local buttonsArea = {}
 local dlistWindText = {}
 local dlistResValues = {metal={},energy={}}
-local currentResCap = {metal=1000,energy=1000}
-local currentResValue = {metal=1000,energy=1000 }
+local currentResValue = {metal=1000,energy=1000}
+local currentStorageValue = {metal=-1,energy=-1}
 
-local r = {}
-r['metal'] = {spGetTeamResources(myTeamID,'metal') }
-r['energy'] = {spGetTeamResources(myTeamID,'energy') }
+local r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
+
 
 local showOverflowTooltip = {}
 
@@ -157,14 +156,15 @@ function widget:ViewResize(n_vsx,n_vsy)
         glDeleteList(dlistWindText[n])
     end
     dlistWindText = {}
-    for n,_ in pairs(dlistResValues['metal']) do
-        glDeleteList(dlistResValues['metal'][n])
-    end
-    dlistResValues['metal'] = {}
-    for n,_ in pairs(dlistResValues['energy']) do
-        glDeleteList(dlistResValues['energy'][n])
-    end
-    dlistResValues['energy'] = {}
+	for n,_ in pairs(dlistResValues['metal']) do
+		glDeleteList(dlistResValues['metal'][n])
+	end
+	dlistResValues['metal'] = {}
+	for n,_ in pairs(dlistResValues['energy']) do
+		glDeleteList(dlistResValues['energy'][n])
+	end
+	dlistResValues['energy'] = {}
+
 	init()
 end
 
@@ -575,13 +575,30 @@ local function updateResbarText(res)
 		RectRound(resbarArea[res][1], resbarArea[res][2], resbarArea[res][3], resbarArea[res][4], 5.5*widgetScale)
 	end)
 
+	-- storage changed!
+	if currentStorageValue[res] ~= r[res][2] then
+		-- flush old dlist caches
+		for n,_ in pairs(dlistResValues[res]) do
+			glDeleteList(dlistResValues[res][n])
+		end
+		dlistResValues[res] = {}
+
+		-- storage
+		if dlistResbar[res][6] ~= nil then
+			glDeleteList(dlistResbar[res][6])
+		end
+		dlistResbar[res][6] = glCreateList( function()
+			font:Begin()
+			font:Print("\255\150\150\150"..short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
+			font:End()
+		end)
+	end
+
 	if dlistResbar[res][3] ~= nil then
 		glDeleteList(dlistResbar[res][3])
 	end
     dlistResbar[res][3] = glCreateList( function()
         font:Begin()
-        -- Text: storage
-        font:Print("\255\150\150\150"..short(r[res][2]), resbarDrawinfo[res].textStorage[2], resbarDrawinfo[res].textStorage[3], resbarDrawinfo[res].textStorage[4], resbarDrawinfo[res].textStorage[5])
         -- Text: pull
         font:Print("\255\210\100\100"..short(r[res][3]), resbarDrawinfo[res].textPull[2], resbarDrawinfo[res].textPull[3], resbarDrawinfo[res].textPull[4], resbarDrawinfo[res].textPull[5])
 		-- Text: expense
@@ -590,9 +607,9 @@ local function updateResbarText(res)
 			textcolor = "\255\166\115\110"
 		end
         font:Print(textcolor..short(r[res][5]), resbarDrawinfo[res].textExpense[2], resbarDrawinfo[res].textExpense[3], resbarDrawinfo[res].textExpense[4], resbarDrawinfo[res].textExpense[5])
-		-- Text: income
-        font:Print("\255\100\210\100"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
-        font:End()
+		-- income
+		font:Print("\255\100\210\100"..short(r[res][4]), resbarDrawinfo[res].textIncome[2], resbarDrawinfo[res].textIncome[3], resbarDrawinfo[res].textIncome[4], resbarDrawinfo[res].textIncome[5])
+		font:End()
 
 		if not spec and gameFrame > 90 then
 
@@ -772,10 +789,11 @@ local function updateResbar(res)
 end
 
 
+
+
 function init()
 
-    r['metal'] = {spGetTeamResources(myTeamID,'metal') }
-    r['energy'] = {spGetTeamResources(myTeamID,'energy') }
+	r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
 
 	topbarArea = {xPos, math.floor(vsy-(borderPadding*widgetScale)-(height*widgetScale)), vsx, vsy}
 	barContentArea = {xPos+(borderPadding*widgetScale), math.floor(vsy-(height*widgetScale)), vsx, vsy}
@@ -894,8 +912,7 @@ function widget:Update(dt)
     sec = sec + dt
     if sec>0.066 then
         sec = 0
-        r['metal'] = {spGetTeamResources(myTeamID,'metal') }
-        r['energy'] = {spGetTeamResources(myTeamID,'energy') }
+		r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
     end
 
     now = os.clock()
@@ -932,8 +949,7 @@ function widget:Update(dt)
 		draggingShareIndicatorValue = {}
 		draggingConversionIndicatorValue = nil
 		if sec ~= 0 then
-			r['metal'] = {spGetTeamResources(myTeamID,'metal') }
-			r['energy'] = {spGetTeamResources(myTeamID,'energy') }
+			r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
 		end
 		updateResbar('metal')
 		updateResbar('energy')
@@ -1007,13 +1023,6 @@ function drawResbarValues(res)
 	glTexRect((resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[res][2]) * barWidth))+(glowSize*2), resbarDrawinfo[res].barGlowRightTexRect[2], resbarDrawinfo[res].barGlowMiddleTexRect[1]+((cappedCurRes/r[res][2]) * barWidth), resbarDrawinfo[res].barGlowRightTexRect[4])
 
 	currentResValue[res] = short(cappedCurRes)
-	if currentResCap[res] ~= r[res][2] then
-		currentResCap[res] = r[res][2]
-		for n,_ in pairs(dlistResValues[res]) do
-			glDeleteList(dlistResValues[res][n])
-		end
-		dlistResValues[res] = {}
-	end
 	if not dlistResValues[res][currentResValue[res]] then
 		dlistResValues[res][currentResValue[res]] = glCreateList( function()
 			-- Text: current
@@ -1052,6 +1061,7 @@ function widget:DrawScreen()
 		drawResbarValues(res)
      	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
+		glCallList(dlistResbar[res][6])
 	end
 	res = 'energy'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
@@ -1079,6 +1089,7 @@ function widget:DrawScreen()
 		drawResbarValues(res)
       	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
+		glCallList(dlistResbar[res][6])
 	end
 
 	if dlistWind1 then
@@ -1612,18 +1623,6 @@ end
 function widget:Shutdown()
 	Spring.SendCommands("resbar 1")
 	if dlistBackground ~= nil then
-		glDeleteList(dlistResbar['metal'][0])
-		glDeleteList(dlistResbar['metal'][1])
-        glDeleteList(dlistResbar['metal'][2])
-		glDeleteList(dlistResbar['metal'][3])
-		glDeleteList(dlistResbar['metal'][4])
-		glDeleteList(dlistResbar['metal'][5])
-		glDeleteList(dlistResbar['energy'][0])
-		glDeleteList(dlistResbar['energy'][1])
-        glDeleteList(dlistResbar['energy'][2])
-		glDeleteList(dlistResbar['energy'][3])
-		glDeleteList(dlistResbar['energy'][4])
-		glDeleteList(dlistResbar['energy'][5])
 		glDeleteList(dlistWindGuishader)
 		glDeleteList(dlistWind1)
 		glDeleteList(dlistWind2)
@@ -1639,6 +1638,12 @@ function widget:Shutdown()
 
 		for n,_ in pairs(dlistWindText) do
 			glDeleteList(dlistWindText[n])
+		end
+		for n,_ in pairs(dlistResbar['metal']) do
+			glDeleteList(dlistResbar['metal'][n])
+		end
+		for n,_ in pairs(dlistResbar['energy']) do
+			glDeleteList(dlistResbar['energy'][n])
 		end
 		for n,_ in pairs(dlistResValues['metal']) do
 			glDeleteList(dlistResValues['metal'][n])
