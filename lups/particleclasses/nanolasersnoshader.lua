@@ -54,7 +54,6 @@ NanoLasersNoShader.Default = {
   allyID    = -1,
 
   --// custom (user) options
-  flare           = false,
   streamSpeed     = 10,
   streamThickness = -1,  --//streamThickness =  4+self.count*0.34,
   corethickness   = 1,
@@ -250,11 +249,6 @@ function NanoLasersNoShader:Destroy()
   knownNanoLasersNoShader[unit][nanopiece] = nil
   if (not next(knownNanoLasersNoShader[unit])) then
     knownNanoLasersNoShader[unit] = nil
-  end
-
-  if (self.flare) then
-    RemoveParticles(self.flare1id)
-    RemoveParticles(self.flare2id)
   end
 end
 

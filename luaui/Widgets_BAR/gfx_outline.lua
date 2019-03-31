@@ -15,7 +15,7 @@
 local minFps = 16	-- disables below this average fps
 local fpsDiff = 4	-- enabled aain above minFps + fpsDiff
 
-local maxOutlineUnits = 750		-- ignores other units above this amount
+local maxOutlineUnits = 700		-- ignores other units above this amount
 
 function widget:GetInfo()
   return {
@@ -313,11 +313,9 @@ end
 
 local function DrawVisibleUnits()
   local visibleUnits = GetVisibleUnits(-1,nil,false)
-  local count = 0
-  for i=1,#visibleUnits do  
+  local imax = math.min(#visibleUnits,maxOutlineUnits)
+  for i=1, imax do
     glUnit(visibleUnits[i],true)
-    count = count + 1
-    if count >= maxOutlineUnits then break end
   end
 end
 

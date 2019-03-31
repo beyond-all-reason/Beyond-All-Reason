@@ -38,7 +38,6 @@ local mRandom = math.random
 function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
     if sparkWeapons[weaponID] then
       local x,y,z = Spring.GetUnitPosition(unitID)
-      local angle = math.rad(mRandom(1,360))
       local nearUnits = Spring.GetUnitsInSphere(x,y,z,60)
       local count = 0
       for _,nearUnit in ipairs(nearUnits) do

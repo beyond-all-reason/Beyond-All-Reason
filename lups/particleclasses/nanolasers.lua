@@ -31,37 +31,6 @@ function NanoLasers.GetInfo()
   }
 end
 
-NanoLasers.Default = {
-  layer        = 0,
-  worldspace   = true,
-  repeatEffect = false,
-
-  --// shared options with all nanofx
-  pos          = {0,0,0}, --// start pos
-  targetpos    = {0,0,0},
-  targetradius = 0,       --// terraform/unit radius
-  color        = {0, 0, 0, 0},
-  count        = 1,
-  unit         = -1,
-  nanopiece    = -1,
-
-  --// some unit informations
-  targetID  = -1,
-  unitID    = -1,
-  unitpiece = -1,
-  unitDefID = -1,
-  teamID    = -1,
-  allyID    = -1,
-
-  --// custom (user) options
-  life            = 30,
-  flare           = false,
-  streamSpeed     = 10,
-  streamThickness = -1,  --//streamThickness =  4+self.count*0.34,
-  corethickness   = 1,
-  corealpha       = 1,
-  texture         = "bitmaps/largelaserfalloff.tga",
-}
 
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
@@ -126,36 +95,46 @@ end
 
 
 function NanoLasers:Draw()
-  if (lastTexture~=self.texture) then
-    glTexture(self.texture)
-    lastTexture=self.texture
-  end
 
-  local color = self.color
-  local startPos = self.pos
-  local endPos   = self.targetpos
-
-  glColor(color[1],color[2],color[3],0.0003)
-  glMultiTexCoord(0,endPos[1] - self.normdir[3] * self.scane_mult ,endPos[2],endPos[3] + self.normdir[1] * self.scane_mult,1)
-  glMultiTexCoord(1,startPos[1],startPos[2],startPos[3],1)
+  glColor(self.color[1],self.color[2],self.color[3],0.0003)
+  glMultiTexCoord(0,self.targetpos[1] - self.normdir[3] * self.scane_mult ,self.targetpos[2],self.targetpos[3] + self.normdir[1] * self.scane_mult,1)
+  glMultiTexCoord(1,self.pos[1],self.pos[2],self.pos[3],1)
 
   if (self.type == 'building' or self.type == 'repair') then
-    glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
+    if lastTexture ~= 1 then
+      glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
+      lastTexture = 1
+    end
     glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   elseif (self.type == 'reclaim') then
-    glTexture('bitmaps/projectiletextures/nanobeam-reclaim.png')
+    if lastTexture ~= 2 then
+      glTexture('bitmaps/projectiletextures/nanobeam-reclaim.png')
+      lastTexture = 2
+    end
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   elseif (self.type == 'restore') then
-    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+    if lastTexture ~= 3 then
+      glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+      lastTexture = 3
+    end
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   elseif (self.type == 'resurrect') then
-    glTexture('bitmaps/projectiletextures/nanobeam-resurrect.png')
+    if lastTexture ~= 4 then
+      glTexture('bitmaps/projectiletextures/nanobeam-resurrect.png')
+      lastTexture = 4
+    end
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2.5, self.corealpha, self.corethickness/2.5)
   elseif (self.type == 'capture') then
-    glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+    if lastTexture ~= 5 then
+      glTexture('bitmaps/projectiletextures/nanobeam-capture.png')
+      lastTexture = 5
+    end
     glMultiTexCoord(2,  (thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness/2, self.corealpha, self.corethickness/2)
   else
-    glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
+    if lastTexture ~= 1 then
+      glTexture('bitmaps/projectiletextures/nanobeam-build.tga')
+      lastTexture = 1
+    end
     glMultiTexCoord(2, -(thisGameFrame+Spring.GetFrameTimeOffset())*self.streamSpeed, self.streamThickness, self.corealpha, self.corethickness)
   end
 
@@ -301,6 +280,10 @@ function NanoLasers:Finalize()
     gl.DeleteShader(laserShader)
   end
   gl.DeleteList(dlist)
+
+  if self.lightID and Script.LuaUI("GadgetRemoveBeamLight") then
+    Script.LuaUI.GadgetRemoveBeamLight(-1)
+  end
 end
 
 -----------------------------------------------------------------------------------------------------------------
@@ -311,41 +294,6 @@ function NanoLasers:CreateParticle()
   self.firstGameFrame = thisGameFrame
   self.dieGameFrame   = self.firstGameFrame + self.life
   self.nowater        = true
-
-  if (self.flare) then  -- too expensive!
-    --[[if you add those flares, then the laser is slower as the engine, so it needs some tweaking]]--
-    if (self.flare1id and particles[self.flare1id] and particles[self.flare2id]) then
-      local flare1 = particles[self.flare1id]
-      flare1.size  = self.count*0.1
-      flare1:ReInitialize()
-      local flare2 = particles[self.flare2id]
-      flare2.size  = self.count*0.75
-      flare2:ReInitialize()
-      return
-    else
-      local r,g,b = max(self.color[1],0.13),max(self.color[2],0.13),max(self.color[3],0.13)
-      local flare = {
-        unit         = self.unitID,
-        piecenum     = self.unitpiece,
-        layer        = self.layer,
-        life         = 31,
-        size         = self.count*0.1,
-        sizeSpread   = 1,
-        sizeGrowth   = 0.1,
-        colormap     = { {r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01},{r*2,g*2,b*2,0.01} },
-        texture      = 'bitmaps/GPL/groundflash.tga',
-        count        = 2,
-        repeatEffect = false,
-        nowater      = true
-      }
-      self.flare1id  = AddParticles("StaticParticles",flare)
-      flare.size     = self.count*0.75
-      flare.texture  = 'bitmaps/flare.tga'
-      flare.colormap = { {r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009},{r*2,g*2,b*2,0.009} }
-      flare.count    = 2
-      self.flare2id  = AddParticles("StaticParticles",flare)
-    end
-  end
 
   self.visibility = 0
   self:Update(0) --//update los
@@ -358,6 +306,14 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+-- update (position) more frequently for air builders
+local airBuilders = {}
+for udid, unitDef in pairs(UnitDefs) do
+  if unitDef.canFly then
+    airBuilders[udid] = true
+  end
+end
+
 function NanoLasers.Create(Options)
   local unit,nanopiece=Options.unitID,Options.nanopiece
   if (unit and nanopiece)and(knownNanoLasers[unit])and(knownNanoLasers[unit][nanopiece]) then
@@ -366,7 +322,16 @@ function NanoLasers.Create(Options)
     reuseFx:CreateParticle()
     return false,reuseFx.id
   else
-    local newObject = MergeTable(Options, NanoLasers.Default)
+    local newObject = {}
+    for key, value in pairs(Options) do
+      newObject[key] = value
+    end
+    newObject.teamID = Spring.GetUnitTeam(unit)
+    newObject.color = { Spring.GetTeamColor(newObject.teamID) }
+    newObject.allyID = Spring.GetUnitAllyTeam(unit)
+    newObject.unitDefID = Spring.GetUnitDefID(unit)
+    newObject.quickupdates = airBuilders[newObject.unitDefID] and true or false
+
     setmetatable(newObject,NanoLasers)  -- make handle lookup
     newObject:CreateParticle()
 
@@ -390,11 +355,6 @@ function NanoLasers:Destroy()
 
   if self.lightID and Script.LuaUI("GadgetRemoveBeamLight") then
     Script.LuaUI.GadgetRemoveBeamLight(self.lightID)
-  end
-
-  if (self.flare) then
-    RemoveParticles(self.flare1id)
-    RemoveParticles(self.flare2id)
   end
 end
 

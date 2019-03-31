@@ -735,6 +735,8 @@ function RemoveBeamLight(lightID, life)
 			customBeamLights[lightID].life = life
 			customBeamLights[lightID].frame = Spring.GetGameFrame()
 		end
+	elseif lightID == -1 then	-- gadget does this when doing /luarules reload
+		customBeamLights = {}
 	end
 end
 

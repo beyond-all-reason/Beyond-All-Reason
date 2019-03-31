@@ -189,21 +189,57 @@ else
         end
     end
 
-
+    local lupsParticleType = 'nanolasers'
     local nanoParams = {
-        fxtype          = 'nanolasers',
+        layer           = 0,
         corealpha       = 0.33,
-        priority        = 1,
-
         alpha           = 0.002,
         corethickness   = 0.003,
         streamSpeed     = 0.1,
+        life            = 30
     }
+    local knownNanoParams = {}
+    for key, value in pairs(nanoParams) do
+        knownNanoParams[key] = value
+    end
 
-    function gadget:GameFrame(frame)
+    local knownNanoLasers = {}
+    local updateFrameCount = 0
+    local prevUpdateGameFrame = 0
+    function gadget:Update()
+
+        if (spGetGameFrame()<1) then
+            return
+        end
+
+        if initialized then
+            --// enable particle effect?
+            maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
+            if currentNanoEffect ~= (Spring.GetConfigInt("NanoEffect",1) or 1) then
+                currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
+                init()
+            end
+            --return
+        end
+        --gadgetHandler:RemoveCallIn("Update")
+        if not initialized then
+            Lups = GG['Lups']
+            if (Lups) then
+                maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
+                currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
+                init()
+                initialized=true
+            end
+        end
+
+        local frame = Spring.GetGameFrame()
+        if frame == prevUpdateGameFrame then return end
+        prevUpdateGameFrame = frame
+        updateFrameCount = updateFrameCount + 1
+
         if currentNanoEffect == NanoFxNone then return end
 
-        local updateFramerate = math.min(30, 2 + math.floor(#builders/35)) -- update fast at gamestart and gradually slower
+        local updateFramerate = math.min(15, 2 + math.floor(#builders/50)) -- update fast at gamestart and gradually slower
         local totalNanoEmitters = 0
         local myTeamID = Spring.GetMyTeamID()
         local _, myFullview = Spring.GetSpectatingState()
@@ -215,7 +251,7 @@ else
             if ((not hideIfIcon and (myFullview or Spring.GetMyAllyTeamID() == Spring.GetUnitAllyTeam(unitID))) or (not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID))  then
                 local UnitDefID = Spring.GetUnitDefID(unitID)
                 local buildpower = builderWorkTime[UnitDefID] or 1
-                if ((unitID + frame) % updateFramerate < 1) then
+                if ((unitID + updateFrameCount) % updateFramerate < 1) then
                     local strength = ((Spring.GetUnitCurrentBuildPower(unitID)or 1)*buildpower) or 1	-- * 16
                     --Spring.Echo(strength,Spring.GetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID])
                     if (strength > 0) then
@@ -223,24 +259,15 @@ else
 
                         if (target) then
                             local endpos
-                            local radius = 30
                             if (type=="restore") then
                                 endpos = target
-                                radius = target[4]
                                 target = -1
-                            elseif (not isFeature) then
-                                radius = (GetUnitRadius(target) or 1) * 0.80
-                            else
-                                radius = (GetFeatureRadius(target) or 1) * 0.80
                             end
 
                             --local terraform = false
-                            local inversed  = false
-                            if (type=="restore") then
-                                terraform = true
-                            elseif (type=="reclaim") then
-                                inversed  = true
-                            end
+                            --if (type=="restore") then
+                            --    terraform = true
+                            --end
 
                             --[[
                             if (type=="reclaim") and (strength > 0) then
@@ -250,10 +277,6 @@ else
                             ]]--
 
                             local cmdTag = GetCmdTag(unitID)
-                            local teamID = Spring.GetUnitTeam(unitID)
-                            local allyID = Spring.GetUnitAllyTeam(unitID)
-                            local unitDefID = Spring.GetUnitDefID(unitID)
-                            local teamColor = {Spring.GetTeamColor(teamID)}
                             local nanoPieces = Spring.GetUnitNanoPieces(unitID) or {}
                             totalNanoEmitters = totalNanoEmitters + #nanoPieces
                             if totalNanoEmitters > maxNewNanoEmitters then
@@ -262,31 +285,21 @@ else
                             local nanoPieceID
                             for j=1,#nanoPieces do
                                 nanoPieceID = nanoPieces[j]
-                                --local nanoPieceIDAlt = Spring.GetUnitScriptPiece(unitID, nanoPieceID)
-                                --if (unitID+frame)%60 == 0 then
-                                --	Spring.Echo("Nanopiece nums (output)", j, UnitDefs[unitDefID].name, nanoPieceID, nanoPieceIDAlt)
-                                --end
+                                nanoParams.unitID       = unitID
+                                nanoParams.nanopiece    = nanoPieceID
+                                nanoParams.unitpiece    = nanoPieceID
+                                nanoParams.cmdTag       = cmdTag --//used to end the fx when the command is finished
+
                                 nanoParams.targetID     = target
                                 nanoParams.isFeature    = isFeature
-                                nanoParams.unitpiece    = nanoPieceID
-                                nanoParams.unitID       = unitID
-                                nanoParams.unitDefID    = unitDefID
-                                nanoParams.teamID       = teamID
-                                nanoParams.allyID       = allyID
-                                nanoParams.nanopiece    = nanoPieceID
                                 nanoParams.targetpos    = endpos
                                 nanoParams.count        = strength*30
                                 nanoParams.streamThickness = 2.9 + strength * 0.25
-                                nanoParams.color        = teamColor
                                 nanoParams.type         = type
-                                nanoParams.targetradius = radius
-                                nanoParams.cmdTag       = cmdTag --//used to end the fx when the command is finished
-                                nanoParams.quickupdates = airBuilders[UnitDefID] and true or false
-                                nanoParams.inversed     = inversed
-
+                                nanoParams.inversed     = (type == "reclaim" and true or false)
                                 if (not nanoParticles[unitID]) then nanoParticles[unitID] = {} end
                                 if Lups then
-                                    nanoParticles[#nanoParticles[unitID]+1] = Lups.AddParticles(nanoParams.fxtype,nanoParams)
+                                    nanoParticles[#nanoParticles[unitID]+1] = Lups.AddParticles(lupsParticleType,nanoParams)
                                 end
                             end
                         end
@@ -311,32 +324,6 @@ else
             local unitDefID = Spring.GetUnitDefID(unitID)
             gadget:UnitFinished(unitID, unitDefID)
         end
-    end
-
-    function gadget:Update()
-      if (spGetGameFrame()<1) then
-        return
-      end
-
-        if initialized then
-            --// enable particle effect?
-            maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
-            if currentNanoEffect ~= (Spring.GetConfigInt("NanoEffect",1) or 1) then
-                currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
-                init()
-            end
-            return
-        end
-      --gadgetHandler:RemoveCallIn("Update")
-
-      Lups = GG['Lups']
-      if (Lups) then
-          maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
-          currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
-          init()
-        initialized=true
-      end
-
     end
 
     -------------------------------------------------------------------------------------
