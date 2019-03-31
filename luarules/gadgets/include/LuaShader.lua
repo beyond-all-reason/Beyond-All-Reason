@@ -7,6 +7,7 @@ local glGetUniformLocation = gl.GetUniformLocation
 local glUseShader = gl.UseShader
 local glActiveShader = gl.ActiveShader
 local glUniform = gl.Uniform
+local glUniformInt = gl.UniformInt
 local glUniformMatrix = gl.UniformMatrix
 local glUniformArray = gl.UniformArray
 
