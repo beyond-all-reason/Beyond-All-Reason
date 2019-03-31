@@ -257,7 +257,9 @@ local function updateRejoin()
 
 	-- add background blur
 	if dlistRejoinGuishader ~= nil then
-		WG['guishader'].RemoveDlist('topbar_rejoin')
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_rejoin')
+		end
 		glDeleteList(dlistRejoinGuishader)
 	end
 	dlistRejoinGuishader = glCreateList( function()
@@ -340,7 +342,9 @@ local function updateButtons()
 
 	-- add background blur
 	if dlistButtonsGuishader ~= nil then
-		WG['guishader'].RemoveDlist('topbar_buttons')
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_buttons')
+		end
 		glDeleteList(dlistButtonsGuishader)
 	end
 	dlistButtonsGuishader = glCreateList( function()
@@ -495,7 +499,9 @@ local function updateWind()
 
 	-- add background blur
 	if dlistWindGuishader ~= nil then
-		WG['guishader'].RemoveDlist('topbar_wind')
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_wind')
+		end
 		glDeleteList(dlistWindGuishader)
 	end
 	dlistWindGuishader = glCreateList( function()
@@ -686,7 +692,9 @@ local function updateResbar(res)
 
 	-- add background blur
 	if dlistResbar[res][0] ~= nil then
-		WG['guishader'].RemoveDlist('topbar_'..res)
+		if WG['guishader'] then
+			WG['guishader'].RemoveDlist('topbar_'..res)
+		end
 		glDeleteList(dlistResbar[res][0])
 	end
 	dlistResbar[res][0] = glCreateList( function()
