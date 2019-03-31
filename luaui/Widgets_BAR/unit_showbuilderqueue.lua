@@ -117,14 +117,14 @@ function widget:Update(dt)
 		end
 	end
 
-	camX, camY, camZ = Spring.GetCameraPosition()
-	if camX ~= prevCam[1]  or  camY ~= prevCam[2]  or  camZ ~= prevCam[3] then
-		for _,dlist in pairs(dlists) do
-			gl.DeleteList(dlist)
-		end
-		dlists = {}
-	end
-	prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
+	--camX, camY, camZ = Spring.GetCameraPosition()
+	--if camX ~= prevCam[1]  or  camY ~= prevCam[2]  or  camZ ~= prevCam[3] then
+	--	for _,dlist in pairs(dlists) do
+	--		gl.DeleteList(dlist)
+	--	end
+	--	dlists = {}
+	--end
+	--prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
 end
 
 function checkBuilder(unitID)
@@ -206,29 +206,30 @@ function widget:DrawWorld()
 		local myCmd = units.id
 		local params = myCmd.params
 		local x, y, z = params[1], params[2], params[3]
-		if not dlists[x..'_'..y..'_'..z] then
+		-- using dlist will result in glitches, making features invisible(briefly)
+		--if not dlists[x..'_'..y..'_'..z] then
 			if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
 				local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
-				dlists[x..'_'..y..'_'..z] = gl.CreateList(function()
+				--dlists[x..'_'..y..'_'..z] = gl.CreateList(function()
 					gl.PushMatrix()
 					gl.LoadIdentity()
 					gl.Translate( x, y, z )
 					gl.Rotate( degrees, 0, 1.0, 0 )
 					gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
 					gl.PopMatrix()
-				end)
+				--end)
 				commandVisible = commandVisible + 1
 				if commandVisible > maxDisplayed then
 					break
 				end
 			end
-		end
+		--end
 	end
 
 	gl.DepthTest(true)
-	for _,dlist in pairs(dlists) do
-		gl.CallList(dlist)
-	end
+	--for _,dlist in pairs(dlists) do
+	--	gl.CallList(dlist)
+	--end
 	gl.DepthTest(false)
 	gl.Color(1, 1, 1, 1)
 end
