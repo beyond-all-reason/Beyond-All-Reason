@@ -127,7 +127,7 @@ function widget:DrawScreen()
 					local ux, uy, uz = spGetUnitPosition(uID)
 					local sx, sy = spWorldToScreenCoords(ux, uy, uz)
 					local _, _, _, _, buildProg = spGetUnitHealth(uID)
-					local uCmds = spGetFactoryCommands(uID)
+					local uCmds = spGetFactoryCommands(uID,-1)
 					
 					local cells = {}
 					

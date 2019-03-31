@@ -27,6 +27,9 @@ local commandCreatedUnitsIDs = {}
 local builders = {}
 local myPlayerID = Spring.GetMyPlayerID()
 local maxDisplayed = 150
+local GetCommandQueue = Spring.GetCommandQueue
+local dlists = {}
+local prevCam = {Spring.GetCameraPosition()}
 
 local builderUnitDefs = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -113,11 +116,20 @@ function widget:Update(dt)
 			end
 		end
 	end
+
+	camX, camY, camZ = Spring.GetCameraPosition()
+	if camX ~= prevCam[1]  or  camY ~= prevCam[2]  or  camZ ~= prevCam[3] then
+		for _,dlist in pairs(dlists) do
+			gl.DeleteList(dlist)
+		end
+		dlists = {}
+	end
+	prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
 end
 
 function checkBuilder(unitID)
 	clearBuilderCommands(unitID)
-	local queue = Spring.GetCommandQueue(unitID, 200)
+	local queue = GetCommandQueue(unitID, 200)
 	if(queue and #queue > 0) then
 		for _, cmd in ipairs(queue) do
 			if ( cmd.id < 0 ) then
@@ -185,32 +197,44 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
-
 function widget:DrawWorld()
+
 	if Spring.IsGUIHidden() then return end
 
-	gl.DepthTest(true)
 	local commandVisible = 0
 	for _, units in pairs(command) do
 		local myCmd = units.id
 		local params = myCmd.params
-
 		local x, y, z = params[1], params[2], params[3]
-		local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
-		if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
-			gl.PushMatrix()
-				gl.LoadIdentity()
-				gl.Translate( x, y, z )
-				gl.Rotate( degrees, 0, 1.0, 0 )
-				gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
-			gl.PopMatrix()
-			commandVisible = commandVisible + 1
-			if commandVisible > maxDisplayed then
-				break
+		if not dlists[x..'_'..y..'_'..z] then
+			if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
+				local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
+				dlists[x..'_'..y..'_'..z] = gl.CreateList(function()
+					gl.PushMatrix()
+					gl.LoadIdentity()
+					gl.Translate( x, y, z )
+					gl.Rotate( degrees, 0, 1.0, 0 )
+					gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
+					gl.PopMatrix()
+				end)
+				commandVisible = commandVisible + 1
+				if commandVisible > maxDisplayed then
+					break
+				end
 			end
 		end
+	end
+
+	gl.DepthTest(true)
+	for _,dlist in pairs(dlists) do
+		gl.CallList(dlist)
 	end
 	gl.DepthTest(false)
 	gl.Color(1, 1, 1, 1)
 end
 
+function widget:Shutdown()
+	for k,dlist in pairs(dlists) do
+		gl.DeleteList(dlist)
+	end
+end

@@ -181,14 +181,6 @@ else
         builders[#builders] = nil
     end
 
-    -- update (position) more frequently for air builders
-    local airBuilders = {}
-    for udid, unitDef in pairs(UnitDefs) do
-        if unitDef.canFly then
-            airBuilders[udid] = true
-        end
-    end
-
     local lupsParticleType = 'nanolasers'
     local nanoParams = {
         layer           = 0,

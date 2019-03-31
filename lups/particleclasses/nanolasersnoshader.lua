@@ -222,6 +222,14 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+-- update (position) more frequently for air builders
+local airBuilders = {}
+for udid, unitDef in pairs(UnitDefs) do
+  if unitDef.canFly then
+    airBuilders[udid] = true
+  end
+end
+
 function NanoLasersNoShader.Create(Options)
   local unit,nanopiece=Options.unitID,Options.nanopiece
   if (unit and nanopiece)and(knownNanoLasersNoShader[unit])and(knownNanoLasersNoShader[unit][nanopiece]) then
@@ -230,8 +238,17 @@ function NanoLasersNoShader.Create(Options)
     reuseFx:CreateParticle()
     return false,reuseFx.id
   else
-    local newObject = MergeTable(Options, NanoLasersNoShader.Default)
-    setmetatable(newObject,NanoLasersNoShader)  -- make handle lookup
+    local newObject = {}
+    for key, value in pairs(Options) do
+      newObject[key] = value
+    end
+    newObject.teamID = Spring.GetUnitTeam(unit)
+    newObject.color = { Spring.GetTeamColor(newObject.teamID) }
+    newObject.allyID = Spring.GetUnitAllyTeam(unit)
+    newObject.unitDefID = Spring.GetUnitDefID(unit)
+    newObject.quickupdates = airBuilders[newObject.unitDefID] and true or false
+
+    setmetatable(newObject,NanoLasers)  -- make handle lookup
     newObject:CreateParticle()
 
     if (unit and nanopiece) then
