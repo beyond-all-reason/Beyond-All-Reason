@@ -851,7 +851,7 @@ function widget:GameStart()
 	gameStarted = true
 	checkStatus()
 	if displayComCounter then
-		countComs()
+		countComs(true)
 	end
 end
 
@@ -1503,7 +1503,7 @@ function widget:PlayerChanged()
 	spec = spGetSpectatingState()
 	checkStatus()
 	if displayComCounter then
-		countComs()
+		countComs(true)
 	end
 	if spec then
 		resbarHover = nil
@@ -1522,7 +1522,7 @@ function isCom(unitID,unitDefID)
 end
 
 
-function countComs()
+function countComs(forceUpdate)
 	-- recount my own ally team coms
 	local prevAllyComs = allyComs
 	local prevEnemyComs = enemyComs
@@ -1541,7 +1541,7 @@ function countComs()
         end
     end
 
-	if allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
+	if forceUpdate or allyComs ~= prevAllyComs or enemyComs ~= prevEnemyComs then
 		comcountChanged = true
 	end
 
