@@ -124,11 +124,6 @@ function widget:PlayerChanged(playerID)
 	end
 end
 
-local gameFrame = Spring.GetGameFrame()
-function widget:GameFrame(gf)
-	gameFrame = gf
-end
-
 local newUnitCommands = {}
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
 	if builderUnitDefs[unitDefID] then
@@ -234,6 +229,14 @@ function widget:DrawWorld()
 	--end
 	--gl.DepthTest(false)
 	--gl.Color(1, 1, 1, 1)
+
+	-- the method below unfortunately adds lines and ranges as well
+	--local allUnits = Spring.GetAllUnits()
+	--for _, unitID in ipairs(allUnits) do
+	--	if builderUnitDefs[Spring.GetUnitDefID(unitID)] then
+	--		Spring.DrawUnitCommands(unitID)
+	--	end
+	--end
 end
 
 function widget:Shutdown()

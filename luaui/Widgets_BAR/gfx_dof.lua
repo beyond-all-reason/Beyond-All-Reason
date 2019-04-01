@@ -27,7 +27,7 @@ options = {
 		min = 1,
 		max = 30,
 		step = 1,
-		value = 4,
+		value = 12,
 	},
 	intensity = {
 		name = 'Intensity',

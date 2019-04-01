@@ -243,6 +243,19 @@ local moveDatas = {
 			maxValue = 0.7,
 		}
 	},
+	-- only used by some chickens
+	KBOT4 = {
+		crushstrength = 25,
+		footprintx = 3,
+		footprintz = 3,
+		maxslope = 36,
+		maxwaterdepth = 22,
+		depthModParams = {
+			minHeight = 4,
+			linearCoeff = 0.03,
+			maxValue = 0.7,
+		}
+	},
 	-- fatboy/sumo
 	HKBOT3 = {
 		crushstrength = 1400,

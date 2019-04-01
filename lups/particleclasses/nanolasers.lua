@@ -281,7 +281,7 @@ function NanoLasers:Finalize()
   end
   gl.DeleteList(dlist)
 
-  if self.lightID and Script.LuaUI("GadgetRemoveBeamLight") then
+  if Script.LuaUI("GadgetRemoveBeamLight") then
     Script.LuaUI.GadgetRemoveBeamLight(-1)
   end
 end
