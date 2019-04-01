@@ -30,7 +30,7 @@ return {
 		maxvelocity = 1.795,
 		metalstorage = 100,
 		minwaterdepth = 15,
-		movementclass = "DBOAT68X8",
+		movementclass = "BOAT8",
 		name = "Epoch",
 		objectname = "Units/ARMEPOCH.s3o",
 		pushresistant = true,

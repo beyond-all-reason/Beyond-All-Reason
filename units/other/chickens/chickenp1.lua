@@ -28,7 +28,7 @@ return {
 		mass = 1800,
 		maxdamage = 2700,
 		maxvelocity = 3,
-		movementclass = "CHICKENHKBOT3",
+		movementclass = "KBOT3",
 		name = "Bombardier",
 		noautofire = false,
 		nochasecategory = "VTOL",

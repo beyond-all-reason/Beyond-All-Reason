@@ -29,7 +29,7 @@ return {
 		metalmake = 0.1,
 		metalstorage = 50,
 		minwaterdepth = 15,
-		movementclass = "BOAT43X3",
+		movementclass = "BOAT3",
 		name = "Construction Corvette",
 		objectname = "Units/ARMCS.s3o",
 		script = "Units/ARMCS.cob",

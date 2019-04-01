@@ -27,7 +27,7 @@ return {
 		maxdamage = 4000,
 		maxvelocity = 2.19,
 		minwaterdepth = 30,
-		movementclass = "BOAT55X5",
+		movementclass = "BOAT5",
 		name = "Executioner",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORCRUS.s3o",

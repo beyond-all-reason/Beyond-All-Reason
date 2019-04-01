@@ -28,7 +28,7 @@ return {
 		maxdamage = 1940,
 		maxvelocity = 2.45,
 		minwaterdepth = 6,
-		movementclass = "BOAT44X4",
+		movementclass = "BOAT4",
 		name = "Ellysaw",
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/ARMPSHIP.s3o",

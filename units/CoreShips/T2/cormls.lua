@@ -27,7 +27,7 @@ return {
 		maxdamage = 1438,
 		maxvelocity = 1.925,
 		minwaterdepth = 15,
-		movementclass = "BOAT43X3",
+		movementclass = "BOAT3",
 		name = "Pathfinder",
 		objectname = "Units/CORMLS.s3o",
 		script = "Units/CORMLS.cob",

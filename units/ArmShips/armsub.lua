@@ -24,7 +24,7 @@ return {
 		maxdamage = 635,
 		maxvelocity = 2.1,
 		minwaterdepth = 15,
-		movementclass = "UBOAT33X3",
+		movementclass = "UBOAT3",
 		name = "Lurker",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSUB.s3o",

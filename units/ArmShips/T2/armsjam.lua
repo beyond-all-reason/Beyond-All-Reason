@@ -26,7 +26,7 @@ return {
 		maxdamage = 510,
 		maxvelocity = 2.2,
 		minwaterdepth = 6,
-		movementclass = "BOAT43X3",
+		movementclass = "BOAT3",
 		name = "Escort",
 		nochasecategory = "MOBILE",
 		objectname = "Units/ARMSJAM.s3o",

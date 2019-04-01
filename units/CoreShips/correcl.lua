@@ -26,7 +26,7 @@ return {
 		maxdamage = 420,
 		maxvelocity = 2.23,
 		minwaterdepth = 15,
-		movementclass = "UBOAT33X3",
+		movementclass = "UBOAT3",
 		name = "Death Cavalry",
 		objectname = "Units/CORRECL.s3o",
 		reclaimspeed = 100,

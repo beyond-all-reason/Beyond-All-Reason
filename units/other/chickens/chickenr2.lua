@@ -28,7 +28,7 @@ return {
 		mass = 600,
 		maxdamage = 4500,
 		maxvelocity = 4.5,
-		movementclass = "CHICKENHKBOT3",
+		movementclass = "KBOT3",
 		name = "Enraged Lobber",
 		noautofire = false,
 		nochasecategory = "VTOL",

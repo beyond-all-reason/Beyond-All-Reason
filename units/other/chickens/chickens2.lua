@@ -38,7 +38,7 @@ return {
 		maxvelocity = 9,
 		maxwaterdepth = 15,
 		mincloakdistance = 200,
-		movementclass = "CHICKENHKBOT2",
+		movementclass = "KBOT2",
 		name = "Advanced Spiker",
 		noautofire = false,
 		nochasecategory = "VTOL",

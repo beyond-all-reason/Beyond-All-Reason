@@ -37,7 +37,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 8,
 		maxwaterdepth = 0,
-		movementclass = "CHICKENHOVERDODO",
+		movementclass = "AKBOTBOMB2",
 		name = "Alpha Dodo",
 		noautofire = false,
 		nochasecategory = "VTOL HOVER",

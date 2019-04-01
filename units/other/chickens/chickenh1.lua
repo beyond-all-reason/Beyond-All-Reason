@@ -42,7 +42,7 @@ return {
 		maxwaterdepth = 5000,
 		metalstorage = 1000,
 		mobilestandorders = 1,
-		movementclass = "CHICKENHKBOT2",
+		movementclass = "KBOT2",
 		name = "Weaver",
 		noautofire = 0,
 		objectname = "Chickens/chicken_drone.s3o",

@@ -26,7 +26,7 @@ return {
 		maxdamage = 8000,
 		maxvelocity = 1.77,
 		minwaterdepth = 15,
-		movementclass = "DBOAT67X7",
+		movementclass = "BOAT7",
 		name = "Warlord",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORBATS.s3o",

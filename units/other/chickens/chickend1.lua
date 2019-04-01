@@ -34,7 +34,7 @@ return {
 		maxslope = 255,
 		maxvelocity = 0,
 		maxwaterdepth = 0,
-		movementclass = "CHICKENNANO",
+		movementclass = "NANO",
 		name = "Chicken Tube",
 		noautofire = false,
 		nochasecategory = "MOBILE",

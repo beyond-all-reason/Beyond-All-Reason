@@ -29,7 +29,7 @@ return {
 		metalmake = 0.3,
 		metalstorage = 150,
 		minwaterdepth = 20,
-		movementclass = "UBOAT34X4",
+		movementclass = "UBOAT4",
 		name = "Advanced Construction Sub",
 		objectname = "Units/ARMACSUB.s3o",
 		radardistance = 50,

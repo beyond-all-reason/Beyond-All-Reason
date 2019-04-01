@@ -28,7 +28,7 @@ return {
 		maxdamage = 2100,
 		maxvelocity = 2.52,
 		minwaterdepth = 6,
-		movementclass = "BOAT44X4",
+		movementclass = "BOAT4",
 		name = "Era",
 		nochasecategory = "VTOL UNDERWATER",
 		objectname = "Units/CORPSHIP.s3o",

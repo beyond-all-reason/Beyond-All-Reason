@@ -32,7 +32,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 4.5,
 		maxwaterdepth = 15,
-		movementclass = "CHICKENHKBOT2",
+		movementclass = "KBOT2",
 		name = "Chicken",
 		noautofire = false,
 		nochasecategory = "VTOL",

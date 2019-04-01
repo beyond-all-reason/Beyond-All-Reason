@@ -27,7 +27,7 @@ return {
 		maxdamage = 3340,
 		maxvelocity = 2.24,
 		minwaterdepth = 12,
-		movementclass = "BOAT44X4",
+		movementclass = "BOAT4",
 		name = "Crusader",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMROY.s3o",

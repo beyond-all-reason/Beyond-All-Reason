@@ -25,7 +25,7 @@ return {
 		maxdamage = 850,
 		maxvelocity = 1.9,
 		minwaterdepth = 20,
-		movementclass = "UBOAT34X4",
+		movementclass = "UBOAT4",
 		name = "Piranha",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMSUBK.s3o",

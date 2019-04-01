@@ -37,7 +37,7 @@ return {
 		maxvelocity = 2.008,
 		metalstorage = 800,
 		minwaterdepth = 15,
-		movementclass = "DBOAT67X7",
+		movementclass = "BOAT7",
 		name = "Hive",
 		nochasecategory = "ALL",
 		objectname = "Units/CORCARRY.s3o",

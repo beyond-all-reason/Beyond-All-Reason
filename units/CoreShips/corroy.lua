@@ -27,7 +27,7 @@ return {
 		maxdamage = 3555,
 		maxvelocity = 2.08,
 		minwaterdepth = 12,
-		movementclass = "BOAT44X4",
+		movementclass = "BOAT4",
 		name = "Enforcer",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORROY.s3o",

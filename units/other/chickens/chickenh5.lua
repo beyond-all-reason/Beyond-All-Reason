@@ -36,7 +36,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.7,
 		maxwaterdepth = 15,
-		movementclass = "CHICKENHKBOT2",
+		movementclass = "KBOT2",
 		name = "Patriarch",
 		nanocolor = "0.7 0.15 0.15",
 		noautofire = false,
