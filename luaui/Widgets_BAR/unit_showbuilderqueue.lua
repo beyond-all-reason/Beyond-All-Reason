@@ -32,13 +32,55 @@ local dlists = {}
 local prevCam = {Spring.GetCameraPosition()}
 
 local builderUnitDefs = {}
-for udefID,def in ipairs(UnitDefs) do
-	if def.isBuilder and not def.isFactory and def.buildOptions[1] then
-		local buildOptions = {}
-		for _,unit in ipairs(def.buildOptions) do
-			buildOptions[unit] = true
+
+local function clearBuilderCommands(unitID)
+	if commandOrdered[unitID] then
+		for id, _ in pairs(commandOrdered[unitID]) do
+			if command[id] and command[id][unitID] then
+				command[id][unitID] = nil
+				command[id].builders = command[id].builders - 1
+				if command[id].builders == 0 then
+					command[id] = nil
+				end
+			end
 		end
-		builderUnitDefs[udefID] = buildOptions
+		commandOrdered[unitID] = nil
+	end
+end
+
+local function checkBuilder(unitID)
+	clearBuilderCommands(unitID)
+	local queueDepth = GetCommandQueue(unitID, 0)
+	if queueDepth and queueDepth > 0 then
+		local queue = GetCommandQueue(unitID, math.min(queueDepth, 200))
+		for _, cmd in ipairs(queue) do
+			if ( cmd.id < 0 ) then
+				local myCmd = {
+					id = -cmd.id,
+					teamid = Spring.GetUnitTeam(unitID),
+					params = cmd.params
+				}
+				local y = cmd.params[2]
+				if UnitDefs[math.abs(cmd.id)].minWaterDepth < 0 then	-- AI bots queue very high y pos so this corrects that
+					y = Spring.GetGroundHeight(cmd.params[1],cmd.params[3])
+				else
+					y = - UnitDefs[math.abs(cmd.id)].waterline
+				end
+				myCmd.params[2] = y
+				local id = Spring.GetUnitTeam(unitID)..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..myCmd.params[2]..'_'..cmd.params[3]
+				if showForCreatedUnits or commandCreatedUnits[id] == nil then
+					if command[id] == nil then
+						command[id] = {id = myCmd, builders = 0}
+					end
+					command[id][unitID] = true
+					command[id].builders = command[id].builders + 1
+					if commandOrdered[unitID] == nil then
+						commandOrdered[unitID] = {}
+					end
+					commandOrdered[unitID][id] = true
+				end
+			end
+		end
 	end
 end
 
@@ -61,6 +103,15 @@ function addBuilders()
 end
 
 function widget:Initialize()
+	for udefID,def in ipairs(UnitDefs) do
+		if def.isBuilder and not def.isFactory and def.buildOptions[1] then
+			local buildOptions = {}
+			for _,unit in ipairs(def.buildOptions) do
+				buildOptions[unit] = true
+			end
+			builderUnitDefs[udefID] = buildOptions
+		end
+	end
 	if Spring.GetGameFrame() > 0 then
 		addBuilders()
 	end
@@ -70,21 +121,6 @@ function widget:PlayerChanged(playerID)
 	if playerID == myPlayerID and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
 		addBuilders()
 		updateBuilders()
-	end
-end
-
-function clearBuilderCommands(unitID)
-	if commandOrdered[unitID] then
-		for id, _ in pairs(commandOrdered[unitID]) do
-			if command[id] and command[id][unitID] then
-				command[id][unitID] = nil
-				command[id].builders = command[id].builders - 1
-				if command[id].builders == 0 then
-					command[id] = nil
-				end
-			end
-		end
-		commandOrdered[unitID] = nil
 	end
 end
 
@@ -99,6 +135,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
 		newUnitCommands[unitID] = os.clock() + 0.05
 	end
 end
+
 
 local sec = 0
 local lastUpdate = 0
@@ -125,41 +162,6 @@ function widget:Update(dt)
 	--	dlists = {}
 	--end
 	--prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
-end
-
-function checkBuilder(unitID)
-	clearBuilderCommands(unitID)
-	local queue = GetCommandQueue(unitID, 200)
-	if(queue and #queue > 0) then
-		for _, cmd in ipairs(queue) do
-			if ( cmd.id < 0 ) then
-				local myCmd = {
-					id = math.abs(cmd.id),
-					teamid = Spring.GetUnitTeam(unitID),
-					params = cmd.params
-				}
-				local y = cmd.params[2]
-				if UnitDefs[math.abs(cmd.id)].minWaterDepth < 0 then	-- AI bots queue very high y pos so this corrects that
-					y = Spring.GetGroundHeight(cmd.params[1],cmd.params[3])
-				else
-					y = - UnitDefs[math.abs(cmd.id)].waterline
-				end
-				myCmd.params[2] = y
-				local id = Spring.GetUnitTeam(unitID)..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..myCmd.params[2]..'_'..cmd.params[3]
-				if showForCreatedUnits or commandCreatedUnits[id] == nil then
-					if command[id] == nil then
-						command[id] = {id = myCmd, builders = 0}
-					end
-					command[id][unitID] = true
-					command[id].builders = command[id].builders + 1
-					if commandOrdered[unitID] == nil then
-						commandOrdered[unitID] = {}
-					end
-					commandOrdered[unitID][id] = true
-				end
-			end
-		end
-	end
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -226,12 +228,12 @@ function widget:DrawWorld()
 		--end
 	end
 
-	gl.DepthTest(true)
+	--gl.DepthTest(true)
 	--for _,dlist in pairs(dlists) do
 	--	gl.CallList(dlist)
 	--end
-	gl.DepthTest(false)
-	gl.Color(1, 1, 1, 1)
+	--gl.DepthTest(false)
+	--gl.Color(1, 1, 1, 1)
 end
 
 function widget:Shutdown()
