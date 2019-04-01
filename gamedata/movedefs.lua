@@ -596,7 +596,7 @@ local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
 	if moveData.maxslope and (moveData.maxslope < 60) then
-		moveData.maxslope = 60
+		moveData.maxslope = 34
 	else
 		moveData.IsAllTerrain = true
 		moveData.maxslope = 60
