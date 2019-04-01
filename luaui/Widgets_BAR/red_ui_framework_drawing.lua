@@ -336,10 +336,10 @@ end
 function widget:DrawScreen()
 
 	newBlurRect = {}
-	
+
 	glResetState()
 	glResetMatrices()
-	
+
 	glCallList(StartList)
 
 	local id = ''
@@ -349,20 +349,20 @@ function widget:DrawScreen()
 		id = ''
 		if t[1] == 3 then	-- texrect
 			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]..'_'..t[6]
-			--if type(t[7]) == 'table' then
-			--	id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
-			--end
-			--id = id .. '_' ..(t[8] or '')
+			if type(t[7]) == 'table' then
+				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
+			end
+			id = id .. '_' ..(t[8] or '')
 
 		elseif t[1] == 5 then	-- text
 			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]
-			--if type(t[7]) == 'table' then
-			--	id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
-			--end
+			if type(t[7]) == 'table' then
+				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
+			end
 		end
 
 		if id ~= '' then
-			if not dList[id] then
+			if dList[id] == nil then
 				dList[id] = glCreateList(function()
 					F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
 				end)
@@ -374,11 +374,11 @@ function widget:DrawScreen()
 
 		Todo[i] = nil
 	end
-	
-	
+
+
 	glResetState()
 	glResetMatrices()
-	
+
 	if WG['guishader'] then
 
 		-- remove changed blur areas
@@ -414,14 +414,14 @@ function widget:DrawScreen()
 end
 
 local sec = 0
-local flushDistsTime = 30
+local flushDistsTime = 20
 function widget:Update(dt)
 	if (sIsGUIHidden()) then
 		for i=1,#Todo do
 			Todo[i] = nil
 		end
 	end
-	
+
 	sec=sec+dt
 	if (sec>flushDistsTime) then
 		sec = 0
