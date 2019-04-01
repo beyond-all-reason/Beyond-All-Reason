@@ -395,15 +395,27 @@ local moveDatas = {
 local defs = {}
 
 for moveName, moveData in pairs(moveDatas) do
-	if moveData.maxslope and (moveData.maxslope <= 36) then
-		moveData.maxslope = 24
+	if moveData.maxslope and (moveData.maxslope < 60) then
+		moveData.maxslope = 34
+	else
+		moveData.IsAllTerrain = true
+		moveData.maxslope = 60
 	end
+	
 	moveData.heatmapping = true
 	moveData.name = moveName
 	moveData.allowRawMovement = true
 	if moveName and string.find(moveName, "KBOT") and moveData.maxslope then
 		moveData.slopemod = 4
+		if moveData.IsAllTerrain then
+			moveData.slopemod = 2
+		else
+			moveData.speedModClass = 0
+		end
+	else
+		moveData.slopemod = 40
 	end
+	moveData.IsAllTerrain = nil
 	defs[#defs + 1] = moveData
 end
 
