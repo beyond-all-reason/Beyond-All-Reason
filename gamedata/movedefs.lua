@@ -426,7 +426,7 @@ for moveName, moveData in pairs(moveDatas) do
 			moveData.speedModClass = 0
 		end
 	else
-		moveData.slopemod = 40
+		moveData.slopemod = 60
 	end
 	moveData.IsAllTerrain = nil
 	defs[#defs + 1] = moveData
