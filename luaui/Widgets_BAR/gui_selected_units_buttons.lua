@@ -60,6 +60,7 @@ local spGetModKeyState         = Spring.GetModKeyState
 local spGetMouseState          = Spring.GetMouseState
 local spGetMyTeamID            = Spring.GetMyTeamID
 local spGetSelectedUnits       = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetTeamUnitsSorted     = Spring.GetTeamUnitsSorted
@@ -67,7 +68,6 @@ local spSelectUnitArray        = Spring.SelectUnitArray
 local spSelectUnitMap          = Spring.SelectUnitMap
 local spSendCommands           = Spring.SendCommands
 local spIsGUIHidden            = Spring.IsGUIHidden
-local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 
 
 -------------------------------------------------------------------------------

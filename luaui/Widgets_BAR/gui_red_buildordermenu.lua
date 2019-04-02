@@ -48,6 +48,7 @@ local drawRadaricon = true
 local largePrice = true
 local shortcutsInfo = false
 local largeUnitIcons = true
+local mouseClicked = 0
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
@@ -262,7 +263,6 @@ function wrap(str, limit)
 end
 	WG.hoverID = nil
 local function CreateGrid(r)
-
 	local background2 = {"rectanglerounded",
 		px=r.px+r.padding,py=r.py+r.padding,
 		sx=(r.isx*r.ix+r.ispreadx*(r.ix-1) +r.margin*2) -r.padding -r.padding,
@@ -388,7 +388,7 @@ local function CreateGrid(r)
 				heldhighlight.active = nil
 			end},
 		},
-		
+
 			--[[mouserelease={
 			{1,function(mx,my,self)
 				if r.menuname == "buildmenu" then
@@ -456,7 +456,7 @@ local function CreateGrid(r)
 				end
 			end]]--
 		end,
-		
+
 		onupdate=function(self)
 			local _,_,_,curcmdname = sGetActiveCommand()
 			self.iconscale= (iconScaling and self.iconnormalscale or 1)
@@ -582,6 +582,7 @@ end
 
 
 local function UpdateGrid(g,cmds,ordertype)
+
 	if (#cmds==0) then
 		g.background.active = false
 		g.background2.active = false
@@ -661,12 +662,14 @@ local function UpdateGrid(g,cmds,ordertype)
 		
 		icon.mouseclick = {
 			{1,function(mx,my,self)
+				mouseClicked = 2
 				if playSounds then
 					Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
 				end
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
 			end},
 			{3,function(mx,my,self)
+				mouseClicked = 2
 				if playSounds then
 					Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
 				end
@@ -1138,19 +1141,9 @@ function widget:Initialize()
   end
 end
 
-local function onNewCommands(buildcmds,othercmds)
-	if (SelectedUnitsCount==0) then
-		buildmenu.page = 1
-		ordermenu.page = 1
-	end
-
-	UpdateGrid(ordermenu,othercmds,2)
-	UpdateGrid(buildmenu,buildcmds,1)
-end
 
 local function onWidgetUpdate() --function widget:Update()
 	AutoResizeObjects()
-	SelectedUnitsCount = sGetSelectedUnitsCount()
 end
 
 --save/load stuff
@@ -1201,9 +1194,6 @@ function widget:SetConfigData(data) --load config
 		end
 	end
 end
-
-
-
 
 
 
@@ -1271,6 +1261,36 @@ local function GetCommands()
 	othercmds = tempcmds
 	
 	return buildcmds,othercmds
+end
+
+
+
+local selectionChanged = true
+local function onNewCommands(force)
+	local buildcmds,othercmds = {},{}
+	if selectionChanged or force then
+		if (SelectedUnitsCount==0) then
+			buildmenu.page = 1
+			ordermenu.page = 1
+		else
+			buildcmds,othercmds = GetCommands()
+		end
+		UpdateGrid(ordermenu,othercmds,2)
+		UpdateGrid(buildmenu,buildcmds,1)
+		selectionChanged = false
+	end
+end
+
+local function updateGrids()
+	local buildcmds,othercmds = {},{}
+	if (SelectedUnitsCount == 0) then
+		buildmenu.page = 1
+		ordermenu.page = 1
+	else
+		buildcmds,othercmds = GetCommands()
+	end
+	UpdateGrid(ordermenu,othercmds,2)
+	UpdateGrid(buildmenu,buildcmds,1)
 end
 
 local hijackattempts = 0
@@ -1343,18 +1363,23 @@ function widget:Update(dt)
 			haxlayout()
 			firstupdate = nil
 		end
-		onNewCommands(GetCommands())
+		onNewCommands(mouseClicked>0)
+		mouseClicked = mouseClicked-1
 		updatehax = false
 		updatehax2 = true
 	end
 	if (updatehax2) then
 		if (SelectedUnitsCount == 0) then
-			onNewCommands({},{}) --flush
+			onNewCommands() --flush
 			updatehax2 = false
 		end
 	end
 end
 
+function widget:SelectionChanged(sel)
+	selectionChanged = true
+	SelectedUnitsCount = sGetSelectedUnitsCount()
+end
 
 
 function widget:KeyPress(key, mods, isRepeat)
@@ -1362,7 +1387,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		if building ~= -1 then
  			if building == 1 and key == buildNextKey then
  				building = 2
- 				onNewCommands(GetCommands())
+ 				onNewCommands()
  				return true
 			end
 			local buildcmds, othercmds = GetCommands()
@@ -1380,7 +1405,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(buildcmds[found].id),1,true,false,Spring.GetModKeyState())
 			end
 			building = -1
-			onNewCommands(GetCommands())
+			onNewCommands()
 			return true
 		else
 			-- this prevents keys to be captured when you cannot build anything
@@ -1389,16 +1414,16 @@ function widget:KeyPress(key, mods, isRepeat)
 			
 			if key == buildStartKey then
 				building = 0
-				onNewCommands(GetCommands())
+				onNewCommands()
 				return true
 			elseif key == buildNextKey then
 				building = 1
-				onNewCommands(GetCommands())
+				onNewCommands()
 				return true
 			end
 		end
 		-- updates UI because hotkeys text changed color
-		onNewCommands(GetCommands())
+		onNewCommands()
 		return false
 	end
 end

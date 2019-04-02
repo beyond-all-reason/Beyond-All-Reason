@@ -1067,9 +1067,9 @@ function widget:DrawScreen()
 			end
 		end
 		drawResbarValues(res)
+		glCallList(dlistResbar[res][6])
      	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
-		glCallList(dlistResbar[res][6])
 	end
 	res = 'energy'
 	if dlistResbar[res][1] and dlistResbar[res][2] and dlistResbar[res][3] then
@@ -1095,9 +1095,9 @@ function widget:DrawScreen()
 			end
 		end
 		drawResbarValues(res)
+		glCallList(dlistResbar[res][6])
       	glCallList(dlistResbar[res][3])
 		glCallList(dlistResbar[res][2])
-		glCallList(dlistResbar[res][6])
 	end
 
 	if dlistWind1 then
