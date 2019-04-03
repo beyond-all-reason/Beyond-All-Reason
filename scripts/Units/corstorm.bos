@@ -240,6 +240,8 @@ Create()
 	currentSpeed = 100;
 	moveSpeed = get MAX_SPEED;
 	animSpeed = 75;
+	hide lfirept;
+	hide rfirept;
 	start-script StopMoving();
 	start-script SmokeUnit();
 }

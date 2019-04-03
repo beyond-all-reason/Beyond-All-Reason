@@ -229,8 +229,8 @@ end
 
 local function removeUnseenTarget(targetData,attackerAllyTeam)
 	if tonumber(targetData.target) and not targetData.alwaysSeen and spValidUnitID(targetData.target) then
-		local los = spGetUnitLosState(targetData.target, attackerAllyTeam, false)
-		if not (los and (los.los or los.radar)) then
+		local los = spGetUnitLosState(targetData.target, attackerAllyTeam, true)
+		if not los or (los % 4 == 0) then
 			if targetData.unseenTargetTimer == UNSEEN_TIMEOUT then
 				return true
 			elseif not targetData.unseenTargetTimer then
@@ -749,14 +749,14 @@ local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
 			local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
 			glVertex(x2,y2,z2)
 		else
-			local los = spGetUnitLosState(targetData.target, myAllyTeam, false)
+			local los = spGetUnitLosState(targetData.target, myAllyTeam, true)
 			if not los then
 				return
 			end
 			local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
-			if los.los == true then
+			if los % 2 == 1 then -- in los
 				glVertex( x2, y2, z2)
-			elseif los.radar == true then
+			elseif los % 4 == 0 then -- in radar
 				local dx, dy, dz = Spring.GetUnitPosErrorParams(targetData.target)
 				local size = Spring.GetRadarErrorParams(myAllyTeam)
 				glVertex( x2+dx*size,y2+dy*size,z2+dz*size)
