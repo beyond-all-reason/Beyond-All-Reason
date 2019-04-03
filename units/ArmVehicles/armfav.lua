@@ -42,6 +42,12 @@ return {
 		turninplacespeedlimit = 4.224,
 		turnrate = 653,
 		customparams = {
+			expl_light_color = "1 0.9 0.7",
+			expl_light_life_mult = 1.7,
+			expl_light_mult = 1.3,
+			expl_light_radius_mult = 1.3,
+			light_mult = "0.6",
+			light_radius_mult = "0.4",
 			basename = "base",
 			cannon1name = "flare1",
 			cannon2name = "flare2",
