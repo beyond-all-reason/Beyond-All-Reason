@@ -104,6 +104,10 @@ end
 
 --Objects
 local F = {
+	[0] = function(id) --dlist
+		Dlist(id)
+	end,
+
 	[1] = function(o) --rectangle
 		if (o.draw == false) then
 			return
@@ -117,10 +121,12 @@ local F = {
 		if o.iconscale ~= nil then
 			iconscale = o.iconscale
 		end
-		
+
+		local dlists = {}
 		local texture = o.texture
-		local px,py,sx,sy = o.px,o.py,o.sx,o.sy	
-		
+		local px,py,sx,sy = o.px,o.py,o.sx,o.sy
+		local dlists = {}
+
 		local alphamult = o.alphamult
 		if (alphamult~=nil) then
 			if (color) then
@@ -144,11 +150,11 @@ local F = {
 		end
 		
 		if (color) then
-			Rect(px,py,sx,sy,color,iconscale)
+			dlists[#dlists+1] = Rect(px,py,sx,sy,color,iconscale)
 		end
 		
 		if (texture) then
-			TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
+			dlists[#dlists+1] = TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
 		end
 		
 		if (o.caption) then
@@ -164,12 +170,15 @@ local F = {
 			else
 				py2 = py2 + (sy - height) /2 --center
 			end
-			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
+			dlists[#dlists+1] = Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
 			o.autofontsize = fontsize
 		end
 		
 		if (border) then --todo: border styles
-			Border(px,py,sx,sy,o.borderwidth,border)
+			dlists[#dlists+1] = Border(px,py,sx,sy,o.borderwidth,border)
+		end
+		if dlists[1] then
+			return dlists
 		end
 	end,
 
@@ -194,8 +203,8 @@ local F = {
 		
 		local px,py = o.px,o.py	
 		local fontsize = o.fontsize
-		
-		Text(px,py,fontsize,o.caption,o.options,color or captioncolor)
+
+		return {Text(px,py,fontsize,o.caption,o.options,color or captioncolor)}
 	end,
 
 	[3] = function(o) --area
@@ -215,7 +224,7 @@ local F = {
 		if o.iconscale ~= nil then
 			iconscale = o.iconscale
 		end
-		
+		local dlists = {}
 		local texture = o.texture
 		local px,py,sx,sy = o.px,o.py,o.sx,o.sy	
 		
@@ -245,14 +254,14 @@ local F = {
 			if o.roundedsize ~= nil then
 				roundedSize = o.roundedsize
 			end
-			RectRound(px,py,sx,sy,color,roundedSize,iconscale,false,(o.guishader ~= nil and o.guishader))
+			dlists[#dlists+1] = RectRound(px,py,sx,sy,color,roundedSize,iconscale,false,(o.guishader ~= nil and o.guishader))
 			if o.glone ~= nil and o.glone > 0 then
-				RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true,(o.guishader ~= nil and o.guishader))
+				dlists[#dlists+1] = RectRound(px,py,sx,sy,{color[1],color[2],color[3],o.glone},roundedSize,iconscale,true,(o.guishader ~= nil and o.guishader))
 			end
 		end
 		
 		if (texture) then
-			TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
+			dlists[#dlists+1] = TexRect(px,py,sx,sy,texture,texturecolor,iconscale)
 		end
 		
 		if (o.caption) then
@@ -268,12 +277,15 @@ local F = {
 			else
 				py2 = py2 + (sy - height) /2 --center
 			end
-			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
+			dlists[#dlists+1] = Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
 			o.autofontsize = fontsize
 		end
 		
 		if (border) then --todo: border styles
 			--Border(px,py,sx,sy,o.borderwidth,border)
+		end
+		if dlists[1] then
+			return dlists
 		end
 	end,
 }
@@ -695,10 +707,23 @@ end
 
 local hookedtodrawing = false
 local fc = 0 --framecount
-function widget:Update()
-	
+local sec = 0
+local flushDistsInterval = 20
+function widget:Update(dt)
 	Main.tooltip = nil
 	handleMouse()
+
+	-- flush dlists
+	sec=sec+dt
+	local flushDlists = false
+	if (sec>flushDistsInterval) then
+		sec = 0
+		if WG[DrawingTN] then
+			WG[DrawingTN].flushDlists()
+		end
+		flushDlists = true
+	end
+
 	--flush deactivated widgets
 	fc=fc+1
 	if (fc > 200) then
@@ -726,6 +751,7 @@ function widget:Update()
 				widgetHandler:ToggleWidget(widget:GetInfo().name)
 				return
 			end
+			Dlist = X.Dlist
 			Color = X.Color
 			Rect = X.Rect
 			RectRound = X.RectRound
@@ -735,11 +761,12 @@ function widget:Update()
 			hookedtodrawing = true
 		end
 	else --process widgets
+		local flushedDlists = WG[DrawingTN].flushedDlists
 		local wl = Main[1]
 		for j=#wl,1,-1 do --iterate backwards
 			if (j==0) then break end
 			local CurClock = clock()
-			
+
 			--for debugging
 			WG[DrawingTN].LastWidget = "<failed to get widget name>"
 			local w = WidgetList[j]
@@ -751,10 +778,10 @@ function widget:Update()
 				end
 			end
 			--
-			
+
 			local dellst = {}
 			local objlst = wl[j]
-			
+
 			for i=1,#objlst do
 				local o = objlst[i]
 				o.tempactive = nil
@@ -776,15 +803,23 @@ function widget:Update()
 						end
 					end
 					o.lastactivestate = o.active
-					
+
 					if (o.effects) then
 						processEffects(o,CurClock)
 					end
 					if ((o.active ~= false) or o.tempactive) then
-						F[o[2]](o) --object draw function
+						if o.dlist and not flushDlists then
+							for i,v in pairs(o.dlist) do
+								F[0](v)
+							end
+						elseif o.usedlist then
+							o.dlist = F[o[2]](o) --object draw function
+						else
+							F[o[2]](o)
+						end
 					end
 				end
-				
+
 				--process mouseevents backwards, so topmost drawn objects get to mouseevents first
 				if not WG['topbar'] or not WG['topbar'].showingQuit() then
 					local ro = objlst[#objlst-i+1]

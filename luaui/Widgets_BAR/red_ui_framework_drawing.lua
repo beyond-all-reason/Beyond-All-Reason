@@ -28,6 +28,7 @@ local sIsGUIHidden = Spring.IsGUIHidden
 local F = {} --function table
 local Todo = {} --function queue
 local dList = {}
+local dListBlur = {}
 local StartList
 
 local glText = gl.Text
@@ -306,6 +307,16 @@ function widget:Initialize()
 	local T = {}
 	WG[TN] = T
 	T.version = version
+	T.flushDlists = function()
+		removeDLists()
+	end
+	T.Dlist = function(a)
+		Todo[#Todo+1] = {0,a}
+		--if dListBlur[a] then
+		--	Spring.Echo(math.random())
+		--	newBlurRect[a] = dListBlur[a]
+		--end
+	end
 	T.Color = function(a,b,c,d) --using (...) seems slower
 		Todo[#Todo+1] = {1,a,b,c,d}
 	end
@@ -313,18 +324,65 @@ function widget:Initialize()
 		Todo[#Todo+1] = {2,a,b,c,d,e,f}
 	end
 	T.TexRect = function(a,b,c,d,e,f,g)
-		Todo[#Todo+1] = {3,a,b,c,d,e,f,g}
+		--Todo[#Todo+1] = {3,a,b,c,d,e,f,g}
+		local id = '3_' ..a..'_'..b..'_'..c..'_'..d..'_'..e.. '_' ..(g or '')
+		if type(f) == 'table' then
+			id = id .. '_'..f[1]..'_'..f[2]..'_'..f[3]..'_'..f[4]
+		end
+		if dList[id] == nil then
+			dList[id] = glCreateList(function()
+				F[3](a,b,c,d,e,f,g)
+			end)
+		end
+		Todo[#Todo+1] = {0,id}
+		return id
 	end
 	T.Border = function(a,b,c,d,e,f)
-		Todo[#Todo+1] = {4,a,b,c,d,e,f}
+		--Todo[#Todo+1] = {4,a,b,c,d,e,f}
+		local id = '4_' .. a..'_'..b..'_'..c..'_'..d
+		if type(e) == 'table' then
+			id = id .. '_'..e[1]..'_'..e[2]..'_'..e[3]..'_'..e[4]
+		end
+		if dList[id] == nil then
+			dList[id] = glCreateList(function()
+				F[4](a,b,c,d,e,f)
+			end)
+		end
+		Todo[#Todo+1] = {0,id}
+		return id
 	end
 	T.Text = function(a,b,c,d,e,f)
-		Todo[#Todo+1] = {5,a,b,c,d,e,f}
+		--Todo[#Todo+1] = {5,a,b,c,d,e,f }
+		local id = '5_'..a..'_'..b..'_'..c..'_'..d
+		if type(f) == 'table' then
+			id = id .. '_'..f[1]..'_'..f[2]..'_'..f[3]..'_'..f[4]
+		end
+		if dList[id] == nil then
+			dList[id] = glCreateList(function()
+				F[5](a,b,c,d,e,f)
+			end)
+		end
+		Todo[#Todo+1] = {0,id}
+		return id
 	end
 	T.RectRound = function(a,b,c,d,e,f,g,h,i)
-		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h,i}
+		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h,i}	-- dont make dlist because guishader needs to be re-added every frame
+		--local id = '6_'..a..'_'..b..'_'..c..'_'..d..'_'..f
+		--if type(e) == 'table' then
+		--	id = id .. e[1]..'_'..e[2]..'_'..e[3]..'_'..e[4]
+		--end
+		--if dList[id] == nil then
+		--	dList[id] = glCreateList(function()
+		--		F[6](a,b,c,d,e,f,g,h,i)
+		--	end)
+		--end
+		--Todo[#Todo+1] = {0,id}
+		--if e and g then
+		--	dListBlur[id] = {px=a,py=b,sx=c,sy=d,cs=f}
+		--end
+		--return id
 	end
-	
+
 	F[1] = Color
 	F[2] = Rect
 	F[3] = TexRect
@@ -347,34 +405,15 @@ function widget:DrawScreen()
 	for i=1,#Todo do
 		t = Todo[i]
 		id = ''
-		if t[1] == 3 then	-- texrect
-			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]..'_'..t[6]
-			if type(t[7]) == 'table' then
-				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
+		if t[1] == 0 then	-- dlist
+			if dList[t[2]] then
+				glCallList(dList[t[2]])
 			end
-			id = id .. '_' ..(t[8] or '')
-
-		elseif t[1] == 5 then	-- text
-			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]
-			if type(t[7]) == 'table' then
-				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
-			end
-		end
-
-		if id ~= '' then
-			if dList[id] == nil then
-				dList[id] = glCreateList(function()
-					F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
-				end)
-			end
-			glCallList(dList[id])
 		else
 			F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
 		end
-
 		Todo[i] = nil
 	end
-
 
 	glResetState()
 	glResetMatrices()
@@ -413,19 +452,11 @@ function widget:DrawScreen()
 	end
 end
 
-local sec = 0
-local flushDistsTime = 20
 function widget:Update(dt)
 	if (sIsGUIHidden()) then
 		for i=1,#Todo do
 			Todo[i] = nil
 		end
-	end
-
-	sec=sec+dt
-	if (sec>flushDistsTime) then
-		sec = 0
-		removeDLists()
 	end
 end
 

@@ -41,6 +41,7 @@ local Config = {
 			background = "In CTRL+F11 mode: Hold \255\255\255\1middle mouse button\255\255\255\255 to drag this element.",
 		},
 		unitCounterEnabled = false,
+		usedlist=true,
 	},
 }
 
@@ -144,11 +145,12 @@ local function createtooltip(r)
 		color={1,1,1,1},
 		caption="",
 		options="o",
-		
+		usedlist = true,
 		onupdate=function(self)
 			if (WG['topbar'] and WG['topbar'].showingQuit()) then
 				return
 			end
+			local prevCaption = self.caption
 			local unitcount = sGetSelectedUnitsCount()
 			if (unitcount ~= 0) then
 				self.caption = "Selected units: "..unitcount.."\n"
@@ -161,6 +163,9 @@ local function createtooltip(r)
 			else
 				self.caption = self.caption..(getEditedCurrentTooltip() or sGetCurrentTooltip()) 
 			end
+			if self.caption ~= prevCaption then
+				self.dlist = nil
+			end
 		end
 	}
 	
@@ -170,8 +175,9 @@ local function createtooltip(r)
 		color={1,1,1,0.2},
 		caption="",
 		options="r",
-		
+		usedlist = true,
 		onupdate=function(self)
+			local prevCaption = self.caption
 			if Config.tooltip.unitCounterEnabled then
 				-- get total unit count
 				if Spring.GetGameFrame() % 60 == 0 then
@@ -200,6 +206,9 @@ local function createtooltip(r)
 			else
 				self.caption = ""
 			end
+			if self.caption ~= prevCaption then
+				self.dlist = nil
+			end
 		end
 	}
 	local background2 = {"rectanglerounded",
@@ -207,6 +216,7 @@ local function createtooltip(r)
 		sx=r.sx-r.padding-r.padding,sy=r.sy-r.padding-r.padding,
 		color=r.color2,
 		roundedsize=r.padding*1.45,
+		usedlist=true,
 	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
@@ -215,6 +225,7 @@ local function createtooltip(r)
 		border=r.cborder,
 		guishader=true,
 		padding=r.padding,
+		usedlist=true,
 		
 		movable=r.dragbutton,
 		movableslaves={text,unitcounter,background2},
@@ -246,6 +257,8 @@ local function createtooltip(r)
 			background2.py = self.py + self.padding
 			background2.sx = self.sx - self.padding - self.padding
 			background2.sy = self.sy - self.padding - self.padding
+			self.dlist = nil
+			background2.dlist = nil
 		end,
 		
 		mouseover=function(mx,my,self)
