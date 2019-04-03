@@ -184,7 +184,6 @@ local function createconsole(r)
 		fontsize=r.fontsize,
 		caption="",
 		options="o", --black outline
-		usedlist=true,
 	}
 	
 	local activationarea = {"area",
@@ -818,10 +817,7 @@ local function updateconsole(g,cfg)
 		g.vars._empty = nil
 		g.background.sy = (count*g.lines.fontsize + (g.lines.px-g.background.px)*2 ) -(cfg.margin/3.5)
 	end
-
-	if g.lines.caption ~= display then
-		g.lines.dlist = nil
-	end
+	
 	g.lines.caption = display
 	g.lines.sx = 100
 end

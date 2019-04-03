@@ -148,7 +148,6 @@ local function createminimap(r)
 		sx=r.sx,sy=r.sy,
 		border=r.cborder,
 		obeyscreenedge = true,
-		usedlist=true,
 	}
 	local minimapbg = {"rectanglerounded",
 		px=r.px-r.cbordersize,py=r.py,
@@ -157,7 +156,6 @@ local function createminimap(r)
 		obeyscreenedge = true,
 		bordersize=r.cbordersize,
 		guishader=true,
-		usedlist=true,
 	}
 	
 	local resizebutton = {"rectangle",
@@ -260,8 +258,6 @@ local function createminimap(r)
 		minimapbg.py = self.py - minimapbg.bordersize
 		minimapbg.sx = self.sx + minimapbg.bordersize + minimapbg.bordersize
 		minimapbg.sy = self.sy + minimapbg.bordersize + minimapbg.bordersize
-		self.dlist = nil
-		minimapbg.dlist = nil
 	end
 	resizebutton.onupdate=function(self)
 		if (self._mouseover) then

@@ -87,9 +87,9 @@ local Config = {
 		
 		padding = 3*widgetScale, -- for border effect
 		color2 = {1,1,1,ui_opacity*0.055}, -- for border effect
-
-		fadetime = 0.11, --fade effect time, in seconds
-		fadetimeOut = 0.016, --fade effect time, in seconds
+		
+		fadetime = 0.1, --fade effect time, in seconds
+		fadetimeOut = 0.015, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
 		cbackground = {0,0,0,ui_opacity},
@@ -118,9 +118,9 @@ local Config = {
 		
 		padding = 3*widgetScale, -- for border effect
 		color2 = {1,1,1,0.025}, -- for border effect
-
-		fadetime = 0.11,
-		fadetimeOut = 1.016, --fade effect time, in seconds
+		
+		fadetime = 0.1,
+		fadetimeOut = 0.015, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1},
 		cbackground = {0,0,0,ui_opacity},
@@ -269,7 +269,6 @@ local function CreateGrid(r)
 		sy=(r.isy*(r.iy)+r.ispready*(r.iy) +r.margin*2) -r.padding -r.padding,
 		color=r.color2,
 		roundedsize=r.padding*1.45,
-		usedlist=true,
 	}
 	local background = {"rectanglerounded",
 		px=r.px,py=r.py,
@@ -281,13 +280,12 @@ local function CreateGrid(r)
 		obeyscreenedge = true,
 		overrideclick = {1},
 		padding=r.padding,
-		usedlist=true,
 
 		guishader=true,
-		--effects = {	-- disabled due to new dlist draw methods for perf, this will result in glitches
-		--	fadein_at_activation = r.fadetime,
-		--	fadeout_at_deactivation = r.fadetimeOut,
-		--},
+		effects = {
+			fadein_at_activation = r.fadetime,
+			fadeout_at_deactivation = r.fadetimeOut,
+		},
 		onupdate=function(self)
 			background2.px = self.px + self.padding
 			background2.py = self.py + self.padding
@@ -335,7 +333,6 @@ local function CreateGrid(r)
 		border={0,0,0,0},
 		options="onr",
 		captioncolor={1,0.7,0.3,1},
-		usedlist=true,
 	}
 	local radaricon = {"rectangle",
 		px=0,py=0,
@@ -347,7 +344,6 @@ local function CreateGrid(r)
 		border={0,0,0,0},
 		options="n",
 		texturecolor={0.77,0.77,0.77,1},
-		usedlist=true,
 	}
 	local icon = {"rectangle",
 		px=0,py=0,
@@ -360,7 +356,6 @@ local function CreateGrid(r)
 		border={0,0,0,0},
 		options="n", --disable colorcodes
 		captioncolor=r.ctext,
-		usedlist=true,
 		
 		overridecursor = true,
 		overrideclick = {3},
@@ -482,12 +477,11 @@ local function CreateGrid(r)
 	}
 
 	local text = {"rectangle",
-		px=0,py=0,
+		px,py = 0, 0,
 		sx=r.isx,sy=r.isy,
 		captioncolor={0.8,0.8,0.8,1},
 		caption = nil,
 		options = "on",
-		usedlist=true,
 	}
 	New(background)
 	New(background2)
@@ -558,7 +552,6 @@ local function CreateGrid(r)
 		texture = stateTexture,
 		texturecolor = r.cborder,
 		effects = background.effects,
-		usedlist=true,
 	}
 	local staterectangles = {}
 	local staterectanglesglow = {}
@@ -599,56 +592,45 @@ local function UpdateGrid(g,cmds,ordertype)
 		g.indicator.active = false
 		for i=1,#g.icons do
 			g.icons[i].active = false
-			g.icons[i].dlist = nil
 		end
 		for i=1,#g.texts do
 			g.texts[i].active = false
-			g.texts[i].dlist = nil
 		end
 		for i=1,#g.radaricons do
 			g.radaricons[i].active = false
-			g.radaricons[i].dlist = nil
 		end
 		for i=1,#g.queuetexts do
 			g.queuetexts[i].active = false
-			g.queuetexts[i].dlist = nil
 		end
 		for i=1,#g.staterectangles do
 			g.staterectangles[i].active = false
-			g.staterectangles[i].dlist = nil
 		end
 		for i=1,#g.staterectanglesglow do
 			g.staterectanglesglow[i].active = false
-			g.staterectanglesglow[i].dlist = nil
 		end
+
 	else
 		-- activate
 		g.background.active = nil
 		g.background2.active = nil
 		for i=1,#g.icons do
 			g.icons[i].active = nil
-			g.icons[i].dlist = nil
 		end
 		for i=1,#g.texts do
 			g.texts[i].active = nil
-			g.texts[i].dlist = nil
 		end
 		for i=1,#g.radaricons do
 			g.radaricons[i].active = nil
-			g.radaricons[i].dlist = nil
 		end
 		for i=1,#g.queuetexts do
 			g.queuetexts[i].active = nil
-			g.queuetexts[i].dlist = nil
 		end
-		for i=1,#g.staterectangles do
-			--g.staterectangles[i].active = nil
-			g.staterectangles[i].dlist = nil
-		end
-		for i=1,#g.staterectanglesglow do
-			--g.staterectanglesglow[i].active = nil
-			g.staterectanglesglow[i].dlist = nil
-		end
+		--for i=1,#g.staterectangles do
+		--	g.staterectangles[i].active = nil
+		--end
+		--for i=1,#g.staterectanglesglow do
+		--	g.staterectanglesglow[i].active = nil
+		--end
 
 		local curpage = g.page
 		local icons = g.icons
