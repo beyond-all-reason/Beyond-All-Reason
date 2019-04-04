@@ -163,10 +163,13 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 end
 
 local selectedUnits = Spring.GetSelectedUnits()
---local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
-	--selectedUnitsCount = Spring.GetSelectedUnitsCount()
+	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
+		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil then
+			WG['smartselect'].updateSelection = false
+		end
+	end
 end
 
 function widget:MousePress(x, y, button)
@@ -422,13 +425,12 @@ function widget:Update()
 			end
 			lastSelection = selectedUnits
 		elseif (lastSelection ~= nil) then
-			SelectUnitArray(lastSelection)
+			SelectUnitArray(lastSelection)		-- because spring applies its selection without filtered untis we have to reselect
 			lastSelection = nil
 			referenceSelection = nil
 			referenceSelectionTypes = nil
 			referenceCoords = nil
 			minimapRect = nil
-			WG['smartselect'].updateSelection = false
 		else
 			referenceSelection = nil
 			referenceSelectionTypes = nil
@@ -493,11 +495,13 @@ local function DrawRectangle(r)
 	glVertex(r[1], 0, r[2])
 end
 
-function widget:DrawWorld()
-	if (minimapRect ~= nil) then
-		glColor(1, 1, 1, 1)
-		glLineWidth(1.0)
-		glDepthTest(false)
-		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)
-	end
-end
+
+
+--function widget:DrawWorld()
+--	if (minimapRect ~= nil) then
+--		glColor(1, 1, 1, 1)
+--		glLineWidth(1.0)
+--		glDepthTest(false)
+--		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)	-- drawing coordinates display incorrect
+--	end
+--end
