@@ -14,6 +14,7 @@ end
 --------------------------------------------------------------------------------
 
 local currentOption					= 2
+local limitDetailUnits				= 100
 
 local currentRotationAngle			= 0
 local currentRotationAngleOpposite	= 0
@@ -33,13 +34,13 @@ local math_acos						= math.acos
 local UNITCONF						= {}
 
 local selectedUnits					= {}
-local perfSelectedUnits				= {}
 local selectedUnitsInvisible		= {}
 
 local maxSelectTime					= 0				--time at which units "new selection" animation will end
 local maxDeselectedTime				= -1			--time at which units deselection animation will end
 
 local checkSelectionChanges			= true
+local limitDetails					= false
 
 local glCallList					= gl.CallList
 local glDrawListAtUnit				= gl.DrawListAtUnit
@@ -64,14 +65,13 @@ local spIsUnitVisible				= Spring.IsUnitVisible
 --------------------------------------------------------------------------------
 
 local OPTIONS = {}
-OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values 
+OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values
 	name							= "Defaults",
 	-- Quality settings
 	showNoOverlap					= false,	-- set true for no line overlapping
 	showBase						= true,
 	showFirstLine					= true,
 	showFirstLineDetails			= true,
-	showSecondLine					= false,
 	showExtraComLine				= true,		-- extra circle lines for the commander unit
 	showExtraBuildingWeaponLine		= true,
 
@@ -81,7 +81,6 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 	spotterOpacity					= 0.95,
 	baseOpacity						= 0.15,
 	firstLineOpacity				= 1,
-	secondLineOpacity				= 0.2,
 
 	-- animation
 	selectionStartAnimation			= true,
@@ -478,13 +477,6 @@ function widget:Initialize()
 		OPTIONS.defaults.teamcolorOpacity = value
 		OPTIONS[currentOption].teamcolorOpacity = value
 	end
-	WG['fancyselectedunits'].getSecondLine = function()
-		return OPTIONS.defaults.showSecondLine
-	end
-	WG['fancyselectedunits'].setSecondLine = function(value)
-		OPTIONS.defaults.showSecondLine = value
-		OPTIONS[currentOption].showSecondLine = value
-	end
 	WG['fancyselectedunits'].getStyle = function()
 		return currentOption
 	end
@@ -617,6 +609,7 @@ local function updateSelectedUnitsData()
 	-- remove deselected and out-of-view units
 	-- adjust unit direction
 	local clockDifference
+	local visibleUnitCount = 0
 	for teamID,_ in pairs(selectedUnits) do
 		for unitID,_ in pairs(selectedUnits[teamID]) do
 
@@ -638,7 +631,8 @@ local function updateSelectedUnitsData()
 				selectedUnitsInvisible[unitID].teamID = teamID
 				selectedUnits[teamID][unitID] = nil
 			else
-				-- logs current unit direction	(needs regular updates for air units, and for buildings only once)	for teamID,_ in pairs(perfSelectedUnits) do
+				visibleUnitCount = visibleUnitCount + 1
+				-- logs current unit direction	(needs regular updates for air units, and for buildings only once)
 				local dirx, _, dirz = spGetUnitDirection(unitID)
 				if (dirz ~= nil) then
 					degrot[unitID] = 180 - math_acos(dirz) * rad_con
@@ -651,6 +645,8 @@ local function updateSelectedUnitsData()
 			end
 		end
 	end
+
+	limitDetails = (visibleUnitCount > limitDetailUnits)
 
 	-- add selected units
 	if checkSelectionChanges and selectedUnitsCount > 0 then
@@ -689,18 +685,6 @@ local function updateSelectedUnitsData()
 			end
 		end
 	end
-
-	-- creates has blinking problem
-	--[[ create new table that has iterative keys instead of unitID (to speedup after about 300 different units have ever been selected)
-	perfSelectedUnits = {}
-	for teamID,_ in pairs(selectedUnits) do
-		perfSelectedUnits[teamID] = {}
-		for unitID,_ in pairs(selectedUnits[teamID]) do
-			table.insert(perfSelectedUnits[teamID], unitID)
-		end
-		perfSelectedUnits[teamID]['totalUnits'] = table.getn(perfSelectedUnits[teamID])
-	end
-	]]--
 end
 
 local selChangedSec = 0
@@ -725,8 +709,6 @@ do
 
 		local OPTIONScurrentOption = OPTIONS[currentOption]
 
-		--for unitKey=1, perfSelectedUnits[teamID]['totalUnits'] do
-		--	unitID = perfSelectedUnits[teamID][unitKey]
 		for unitID,unitParams in pairs(selectedUnits[teamID]) do
 
 			unit = UNITCONF[unitParams.udid]
@@ -866,10 +848,6 @@ function widget:DrawWorldPreUnit()
 	local baseR, baseG, baseB, a, scale, scaleBase, scaleOuter
 	scale = 1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplierInner
 	scaleBase = scale * 1.133
-	if OPTIONS[currentOption].showSecondLine then
-		scaleOuter = (1 * OPTIONS[currentOption].scaleMultiplier * animationMultiplier) * 1.16
-		scaleBase = scaleOuter * 1.08
-	end
 
 	gl.PushAttrib(GL.COLOR_BUFFER_BIT)
 	gl.DepthTest(false)
@@ -908,8 +886,7 @@ function widget:DrawWorldPreUnit()
 			glCallList(clearquad)
 		end
 
-
-		-- draw 1st line layer
+		-- draw line layer
 		if OPTIONS[currentOption].showFirstLine then
 			a = 1 - (OPTIONS[currentOption].firstLineOpacity * OPTIONS[currentOption].spotterOpacity)
 
@@ -942,27 +919,6 @@ function widget:DrawWorldPreUnit()
 			glCallList(clearquad)
 		end
 
-
-		-- draw 2nd line layer
---		if OPTIONS[currentOption].showSecondLine then
---			--a = 1 - (OPTIONS[currentOption].secondLineOpacity * OPTIONS[currentOption].spotterOpacity)
---
---			gl.ColorMask(false, false, false, true)
---			--gl.BlendFunc(GL.ONE_MINUS_SRC_ALPHA, GL.SRC_ALPHA)
---
---			--  Here the inner of the selected spotters are removed
---			gl.BlendFunc(GL.ONE, GL.ZERO)
---			gl.Color(1,1,1,1)
---			DrawSelectionSpottersPart(teamID, 'solid overlap', 1,1,1,a,scaleOuter, false, true, false, true)
---
---			--  Really draw the spotters now  (This could be optimised if we could say Draw as much as DST_ALPHA * SRC_ALPHA is)
---			-- (without protecting form drawing them twice)
---			gl.ColorMask(true, true, true, true)
---			gl.BlendFunc(GL.ONE_MINUS_DST_ALPHA, GL.DST_ALPHA)
---
---			-- Does not need to be drawn per Unit anymore
---			glCallList(clearquad)
---		end
 	end
 
 	gl.ColorMask(false,false,false,false)
@@ -982,7 +938,6 @@ function widget:GetConfigData(data)
 	savedTable.spotterOpacity					= OPTIONS.defaults.spotterOpacity
 	savedTable.baseOpacity						= OPTIONS.defaults.baseOpacity
 	savedTable.teamcolorOpacity					= OPTIONS.defaults.teamcolorOpacity
-	savedTable.showSecondLine					= OPTIONS.defaults.showSecondLine
 
     return savedTable
 end
@@ -992,6 +947,5 @@ function widget:SetConfigData(data)
 	OPTIONS.defaults.spotterOpacity				= data.spotterOpacity			or OPTIONS.defaults.spotterOpacity
 	OPTIONS.defaults.baseOpacity				= data.baseOpacity				or OPTIONS.defaults.baseOpacity
 	OPTIONS.defaults.teamcolorOpacity			= data.teamcolorOpacity			or OPTIONS.defaults.teamcolorOpacity
-	OPTIONS.defaults.showSecondLine				= data.showSecondLine			or OPTIONS.defaults.showSecondLine
 end
 
