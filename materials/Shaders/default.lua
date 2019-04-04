@@ -21,10 +21,6 @@ vertex = [[
 	#endif
 	//uniform float frameLoc;
 
-	#ifdef use_treadoffset
-		uniform float treadOffset;
-	#endif
-
 	//The api_custom_unit_shaders supplies this definition:
 	#ifdef use_shadows
 		uniform mat4 shadowMatrix;
