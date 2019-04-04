@@ -19,7 +19,7 @@ function widget:GetInfo()
 		author    = "aegis",
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
-		layer     = -60,
+		layer     = -99999999999,
 		enabled   = true
 	}
 end
@@ -239,7 +239,7 @@ function widget:Update()
 	end
 	lastUpdate = newUpdate
 	--]]
-
+	--selectedUnits = Spring.GetSelectedUnits()
 	WG['smartselect'].updateSelection = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
 		x, y, pressed = GetMouseState()

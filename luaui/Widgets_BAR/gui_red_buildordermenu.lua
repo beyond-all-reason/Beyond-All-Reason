@@ -1420,7 +1420,6 @@ function widget:Update(dt)
 end
 
 function widget:SelectionChanged(sel)
-	if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
 	selectionChanged = true
 	SelectedUnitsCount = sGetSelectedUnitsCount()
 end

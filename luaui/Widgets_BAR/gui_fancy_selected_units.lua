@@ -598,7 +598,6 @@ end
 --local selectedUnits = Spring.GetSelectedUnits()
 --local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
-	if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
 	checkSelectionChanges = true
 	--selectedUnits = sel
 	--selectedUnitsCount = Spring.GetSelectedUnitsCount()

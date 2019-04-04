@@ -144,12 +144,11 @@ local function updateGuishader()
 	end
 end
 
-
 local selectedUnits = Spring.GetSelectedUnits()
 local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 local selectedUnitsCounts = Spring.GetSelectedUnitsCounts()
+local selectionChanged = true
 function widget:SelectionChanged(sel)
-	if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
   selectedUnits = sel
   selectedUnitsCount = Spring.GetSelectedUnitsCount()
   selectedUnitsCounts = Spring.GetSelectedUnitsCounts()
@@ -263,7 +262,6 @@ end
 local uiOpacitySec = 0
 local selChangedSec = 0
 function widget:Update(dt)
-
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec>0.5 then
     uiOpacitySec = 0
@@ -568,6 +566,7 @@ end
 
 
 function widget:MouseRelease(x, y, button)
+    if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
   if (not activePress) then
     return -1
   end
@@ -594,9 +593,9 @@ function widget:MouseRelease(x, y, button)
   if (unitTable == nil) then
     return -1
   end
-  
+
   local alt, ctrl, meta, shift = spGetModKeyState()
-  
+
   if (button == 1) then
     LeftMouseButton(unitDefID, unitTable)
   elseif (button == 2) then

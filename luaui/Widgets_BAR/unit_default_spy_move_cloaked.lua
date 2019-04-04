@@ -46,7 +46,6 @@ end
 local spySelected = false
 local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
-	if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
 	selectionChanged = true
 end
 
