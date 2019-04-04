@@ -19,7 +19,7 @@ function widget:GetInfo()
 		author    = "aegis",
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
-		layer     = 0,
+		layer     = -60,
 		enabled   = true
 	}
 end
@@ -240,6 +240,7 @@ function widget:Update()
 	lastUpdate = newUpdate
 	--]]
 
+	WG['smartselect'].updateSelection = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
 		x, y, pressed = GetMouseState()
 		local px, py, sx, sy = GetMiniMapGeometry()
@@ -427,6 +428,7 @@ function widget:Update()
 			referenceSelectionTypes = nil
 			referenceCoords = nil
 			minimapRect = nil
+			WG['smartselect'].updateSelection = false
 		else
 			referenceSelection = nil
 			referenceSelectionTypes = nil
@@ -478,6 +480,7 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
+	WG['smartselect'].updateSelection = false
 	init()
 end
 

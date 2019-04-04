@@ -18,6 +18,7 @@ local spGetMyTeamID = Spring.GetMyTeamID
 local spSendCommands = Spring.SendCommands
 
 function widget:SelectionChanged(sel)
+	if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
 	if spGetSpectatingState() then
         if #sel > 0 then
             local selTeam = spGetUnitTeam(sel[1])
