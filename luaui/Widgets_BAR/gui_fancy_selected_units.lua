@@ -595,12 +595,12 @@ function GetUsedRotationAngle(unitID, shapeName, opposite)
 end
 
 
---local selectedUnits = Spring.GetSelectedUnits()
---local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnitsSorted = Spring.GetSelectedUnitsSorted()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	checkSelectionChanges = true
-	--selectedUnits = sel
-	--selectedUnitsCount = Spring.GetSelectedUnitsCount()
+	selectedUnitsSorted = Spring.GetSelectedUnitsSorted()
+	selectedUnitsCount = Spring.GetSelectedUnitsCount()
 end
 
 
@@ -653,9 +653,9 @@ local function updateSelectedUnitsData()
 	end
 
 	-- add selected units
-	if checkSelectionChanges and spGetSelectedUnitsCount() > 0 then
+	if checkSelectionChanges and selectedUnitsCount > 0 then
 		checkSelectionChanges = false
-		local units = spGetSelectedUnitsSorted()
+		local units = selectedUnitsSorted
 		local clockDifference, unitID, teamID
 		for uDID,_ in pairs(units) do
 			if uDID ~= 'n' then --'n' returns table size
@@ -710,9 +710,8 @@ function widget:Update(dt)
 	maxDeselectedTime = currentClock - OPTIONS[currentOption].selectionEndAnimationTime
 
 	selChangedSec = selChangedSec + dt
-	if checkSelectionChanges and selChangedSec>0.07 then
+	if selChangedSec>0.07 then
 		selChangedSec = 0
-		--checkSelectionChanges = nil
 		updateSelectedUnitsData()
 	end
 end
