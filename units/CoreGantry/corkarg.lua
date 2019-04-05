@@ -289,10 +289,10 @@ return {
 				def = "KARG_HEAD",
 				onlytargetcategory = "VTOL",
 			},
-			[4] = {
-				def = "KARGKICK",
-				onlytargetcategory = "VTOL",
-			},
+			--[4] = {
+			--	def = "KARGKICK",
+			--	onlytargetcategory = "VTOL",
+			--},
 		},
 	},
 }
