@@ -18,6 +18,7 @@ local haveUnitsOutline
 
 local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 local shieldShader
+local checkStunned = true
 
 -----------------------------------------------------------------
 -- Constants
@@ -75,7 +76,12 @@ function ShieldSphereColorParticle:BeginDraw()
 end
 
 function ShieldSphereColorParticle:Draw()
-
+    if checkStunned then
+        self.stunned = Spring.GetUnitIsStunned(self.unit)
+    end
+    if self.stunned or Spring.IsUnitIcon(self.unit) then
+        return
+    end
 	local radius = self.radius
 	if not renderBuckets[radius] then
 		renderBuckets[radius] = {}
@@ -226,7 +232,15 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-function ShieldSphereColorParticle:Update()
+local time = 0
+function ShieldSphereColorParticle:Update(n)
+    time = time + n
+    if time > 40 then
+        checkStunned = true
+        time = 0
+    else
+        checkStunned = false
+    end
 end
 
 -- used if repeatEffect=true;
