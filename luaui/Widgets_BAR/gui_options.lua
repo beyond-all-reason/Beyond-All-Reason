@@ -2760,7 +2760,7 @@ function widget:Initialize()
 		end
 
 		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
-		Spring.SetConfigInt("UsePBO",0)
+		--Spring.SetConfigInt("UsePBO",0)
 		--end
 
 		-- enable shadows at gamestart
