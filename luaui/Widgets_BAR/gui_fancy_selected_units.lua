@@ -84,7 +84,7 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 
 	-- animation
 	selectionStartAnimation			= true,
-	selectionStartAnimationTime		= 0.045,
+	selectionStartAnimationTime		= 0.05,
 	selectionStartAnimationScale	= 0.82,
 	-- selectionStartAnimationScale	= 1.17,
 	selectionEndAnimation			= true,
@@ -591,8 +591,6 @@ local selectedUnitsSorted = Spring.GetSelectedUnitsSorted()
 local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	checkSelectionChanges = true
-	selectedUnitsSorted = Spring.GetSelectedUnitsSorted()
-	selectedUnitsCount = Spring.GetSelectedUnitsCount()
 end
 
 
@@ -649,8 +647,7 @@ local function updateSelectedUnitsData()
 	limitDetails = (visibleUnitCount > limitDetailUnits)
 
 	-- add selected units
-	if checkSelectionChanges and selectedUnitsCount > 0 then
-		checkSelectionChanges = false
+	if selectedUnitsCount > 0 then
 		local units = selectedUnitsSorted
 		local clockDifference, unitID, teamID
 		for uDID,_ in pairs(units) do
@@ -694,9 +691,12 @@ function widget:Update(dt)
 	maxDeselectedTime = currentClock - OPTIONS[currentOption].selectionEndAnimationTime
 
 	selChangedSec = selChangedSec + dt
-	if selChangedSec>0.07 then
+	if checkSelectionChanges and selChangedSec>0.07 then
 		selChangedSec = 0
+		selectedUnitsSorted = Spring.GetSelectedUnitsSorted()
+		selectedUnitsCount = Spring.GetSelectedUnitsCount()
 		updateSelectedUnitsData()
+		checkSelectionChanges = false
 	end
 end
 
@@ -739,6 +739,17 @@ do
 					if (changeOpacity) then
 						usedAlpha = 1 - (((currentClock - unitParams.new) / OPTIONScurrentOption.selectionStartAnimationTime) * (1-a))
 						gl.Color(r,g,b,usedAlpha)
+					end
+					if not degrot[unitID] then
+						local dirx, _, dirz = spGetUnitDirection(unitID)
+						if (dirz ~= nil) then
+							degrot[unitID] = 180 - math_acos(dirz) * rad_con
+							if dirx < 0 then
+								degrot[unitID] = 180 - math_acos(dirz) * rad_con
+							else
+								degrot[unitID] = 180 + math_acos(dirz) * rad_con
+							end
+						end
 					end
 				end
 			end
