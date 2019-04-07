@@ -464,7 +464,7 @@ function gadget:GameFrame(n)
       local ppitch,pyaw,proll = Spring.GetUnitRotation(airbaseID)
       local sqrDist = (ux and px) and (ux-px)^2 + (uy-py)^2 + (uz-pz)^2
       local rotSqrDist = (upitch and ppitch) and (upitch-ppitch)^2 + (uyaw-pyaw)^2 + (uroll-proll)^2
-      if sqrDist < 2 and rotSqrDist < 0.025 then
+      if sqrDist and sqrDist < 2 and rotSqrDist and rotSqrDist < 0.025 then
          -- snap into place
          tractorPlanes[unitID] = nil
          landedPlanes[unitID] = airbaseID
