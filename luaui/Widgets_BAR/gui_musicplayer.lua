@@ -242,7 +242,7 @@ local function createList()
 	
 	buttons['musicvolumeicon'] = {buttons['next'][3]+padding+padding, bottom+padding, buttons['next'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['musicvolume'] = {buttons['musicvolumeicon'][3]+padding, bottom+padding, buttons['musicvolumeicon'][3]+padding+volumeWidth, top-padding}
-	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/100)
+	buttons['musicvolume'][5] = buttons['musicvolume'][1] + (buttons['musicvolume'][3] - buttons['musicvolume'][1]) * (maxMusicVolume/50)
 	
 	buttons['volumeicon'] = {buttons['musicvolume'][3]+padding+padding+padding, bottom+padding, buttons['musicvolume'][3]+((widgetHeight*widgetScale)), top-padding}
 	buttons['volume'] = {buttons['volumeicon'][3]+padding, bottom+padding, buttons['volumeicon'][3]+padding+volumeWidth, top-padding}
@@ -394,12 +394,12 @@ end
 function widget:MouseMove(x, y)
 	if draggingSlider ~= nil then
 		if draggingSlider == 'musicvolume' then
-			maxMusicVolume = getSliderValue('musicvolume', x) * 100
+			maxMusicVolume = math.floor(getSliderValue('musicvolume', x) * 50)
 			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
 			createList()
 		end
 		if draggingSlider == 'volume' then
-			volume = getSliderValue('volume', x) * 200
+			volume = math.floor(getSliderValue('volume', x) * 200)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			createList()
 		end
@@ -424,14 +424,14 @@ function mouseEvent(x, y, button, release)
 		local button = 'musicvolume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 			draggingSlider = button
-			maxMusicVolume = getSliderValue(button, x) * 100
+			maxMusicVolume = math.floor(getSliderValue(button, x) * 50)
 			Spring.SetConfigInt("snd_volmusic", maxMusicVolume * fadeMult)
 			createList()
 		end
 		button = 'volume'
 		if isInBox(x, y, {buttons[button][1]-sliderWidth, buttons[button][2], buttons[button][3]+sliderWidth, buttons[button][4]}) then
 			draggingSlider = button
-			volume = getSliderValue(button, x) * 200
+			volume = math.floor(getSliderValue(button, x) * 200)
 			Spring.SetConfigInt("snd_volmaster", volume)
 			createList()
 		end
