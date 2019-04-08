@@ -32,10 +32,13 @@ elseif Game and Game.version then
 end
 
 -- set minimun engine version
-local minEngineVersionTitle = '104.0.1.969'
+local minEngineVersionTitle = '104.0.1.1179'
+local unsupportedEngine = false
 local enabled = false
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401969 then
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011179 then
+	unsupportedEngine = true
 	enabled = true
+
 end
 
 local unsupportedAI = false
@@ -730,7 +733,6 @@ function gadget:DrawScreen()
 			end
 		end
 	end
-
 	if Script.LuaUI("GuishaderInsertRect") then
 		Script.LuaUI.GuishaderRemoveRect('ready')
 	end
