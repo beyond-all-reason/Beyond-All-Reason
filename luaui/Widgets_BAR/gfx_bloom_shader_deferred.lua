@@ -476,7 +476,7 @@ function widget:DrawWorld()
 		gl.Color(0, 0, 0, drawWorldAlpha * glowAmplifier)
 		gl.Translate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
 		gl.Billboard()
-		gl.Rect(-vsx / 2, -vsy / 2, vsx / 2, vsy / 2)
+		gl.Rect(-vsx, -vsy, vsx, vsy)
 	end)
 
 	Bloom()

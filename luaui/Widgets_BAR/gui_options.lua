@@ -754,7 +754,7 @@ function widget:Update(dt)
 		if select(7, Spring.GetMouseState()) then	-- when camera panning
 			Spring.SetCameraState(Spring.GetCameraState(), math.min(cameraPanTransitionTime, cameraTransitionTime))
 		else
-			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
+			--Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
 		end
 	end
 	sec = sec + dt

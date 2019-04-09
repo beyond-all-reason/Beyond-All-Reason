@@ -426,7 +426,7 @@ end
 function widget:DrawScreenEffectsBlur()
   if Spring.IsGUIHidden() then return end
 
-  if not screenBlur then
+  if not screenBlur and blurShader then
 	  if not next(guishaderRects) and not next(guishaderDlists) then return end
 
 	  gl.Texture(false)
@@ -475,7 +475,7 @@ end
 function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
 
-	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) then
+	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader  then
 	  gl.Texture(false)
 	  gl.Color(1,1,1,1)
 	  gl.Blending(false)
