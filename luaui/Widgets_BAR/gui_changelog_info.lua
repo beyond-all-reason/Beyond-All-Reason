@@ -422,6 +422,7 @@ function widget:DrawScreen()
 				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
 				RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
 			end)
+			dlistcreated = true
 			WG['guishader'].InsertDlist(backgroundGuishader, 'changelog')
 		end
 		showOnceMore = false
@@ -471,10 +472,9 @@ function widget:DrawScreen()
 				lineKey = lineKey + 1
 			end
 		end
-  else
-	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('changelog')
-	end
+  elseif dlistcreated and WG['guishader'] then
+	WG['guishader'].DeleteDlist('changelog')
+	dlistcreated = nil
   end
 end
 

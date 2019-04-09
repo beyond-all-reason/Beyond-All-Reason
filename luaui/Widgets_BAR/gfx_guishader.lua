@@ -37,6 +37,7 @@ local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local renderDlists = {}
+local deleteDlistQueue = {}
 local blurShader
 local screencopy
 local blurtex
@@ -206,6 +207,7 @@ local function CheckHardware()
   return true
 end
 
+
 function widget:Initialize()
   if (not CheckHardware()) then return false end
   
@@ -231,10 +233,8 @@ function widget:Initialize()
       local found = false
       if guishaderDlists[name] ~= nil then
           found = true
+          deleteDlistQueue[name] = guishaderDlists[name]
       end
-      gl.DeleteList(guishaderDlists[name])
-      guishaderDlists[name] = nil
-      updateStencilTexture = true
       return found
   end
   WG['guishader'].InsertRect = function(left,top,right,bottom,name)
@@ -267,10 +267,8 @@ function widget:Initialize()
       local found = false
       if guishaderScreenDlists[name] ~= nil then
           found = true
+          deleteDlistQueue[name] = guishaderScreenDlists[name]
       end
-      gl.DeleteList(guishaderScreenDlists[name])
-      guishaderScreenDlists[name] = nil
-      updateStencilTextureScreen = true
       return found
   end
   WG['guishader'].InsertScreenRect = function(left,top,right,bottom,name)
@@ -471,7 +469,7 @@ function widget:DrawScreenEffectsBlur()
 	  gl.Texture(false)
 
 	  gl.Blending(true)
-	 end
+  end
 end
 
 function widget:DrawScreen()
@@ -527,6 +525,17 @@ function widget:DrawScreen()
     for k,v in pairs(renderDlists) do
         gl.CallList(k)
     end
+
+    for k,v in pairs(deleteDlistQueue) do
+        gl.DeleteList(deleteDlistQueue[v])
+        if guishaderDlists[k] then
+            guishaderDlists[k] = nil
+        elseif guishaderScreenDlists[k] then
+            guishaderScreenDlists[k] = nil
+        end
+        updateStencilTexture = true
+    end
+    deleteDlistQueue = {}
 end
 
 function widget:GetConfigData(data)
