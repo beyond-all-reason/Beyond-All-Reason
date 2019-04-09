@@ -751,11 +751,11 @@ local sec = 0
 local lastUpdate = 0
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-		if select(7, Spring.GetMouseState()) then	-- when camera panning
-			Spring.SetCameraState(Spring.GetCameraState(), math.min(cameraPanTransitionTime, cameraTransitionTime))
-		else
+		--if select(7, Spring.GetMouseState()) then	-- when camera panning
+		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		--else
 			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
-		end
+		--end
 	end
 	sec = sec + dt
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
@@ -1552,6 +1552,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value)
 		elseif id == 'camerasmoothness' then
 			cameraTransitionTime = value
+		elseif id == 'camerapansmoothness' then
+			cameraPanTransitionTime = value
 		elseif id == 'fov' then
 			local current_cam_state = Spring.GetCameraState()
 			if (current_cam_state.fov) then
@@ -2234,7 +2236,8 @@ function init()
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
-		{id="camerasmoothness", group="control", name="Camera smoothing", type="slider", min=0, max=1, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
+		{id="camerasmoothness", group="control", name="Camera smoothing", type="slider", min=0, max=3, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
+		--{id="camerapansmoothness", group="control", name=widgetOptionColor.."   pan mode smoothing", type="slider", min=0, max=2, step=0.01, value=cameraPanTransitionTime, description="Smoothness of camera panning mode"},
 		--{id="fov", group="control", name="Camera FOV", type="slider", min=15, max=75, step=1, value=Spring.GetCameraFOV(), description="Camera field of view\n\nDefault: 45"},
 
 		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
@@ -2798,6 +2801,9 @@ function widget:Initialize()
 	WG['options'].isvisible = function()
 		return show
 	end
+	WG['options'].getCameraSmoothness = function()
+		return cameraTransitionTime
+	end
 
 	presets = tableMerge(presets, customPresets)
 	for preset,_ in pairs(customPresets) do
@@ -2903,6 +2909,7 @@ function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.customPresets = customPresets
 	savedTable.cameraTransitionTime = cameraTransitionTime
+	savedTable.cameraPanTransitionTime = cameraPanTransitionTime
 	savedTable.maxNanoParticles = maxNanoParticles
     savedTable.currentGroupTab = currentGroupTab
     savedTable.show = show
@@ -2938,6 +2945,9 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraTransitionTime ~= nil then
 		cameraTransitionTime = data.cameraTransitionTime
+	end
+	if data.cameraPanTransitionTime ~= nil then
+		cameraPanTransitionTime = data.cameraPanTransitionTime
 	end
 	if data.maxNanoParticles ~= nil then
 		maxNanoParticles = data.maxNanoParticles

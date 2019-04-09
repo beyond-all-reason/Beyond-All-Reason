@@ -11,7 +11,6 @@ function widget:GetInfo()
 end
 
 local fovStep = 5
-local fovTransitionTime = 5
 local FOVminus = 111 -- CTRL+O
 local FOVplus = 112 -- CTRL+P
 local FOVminus2 = 257 --KP1
@@ -32,17 +31,7 @@ function widget:KeyRelease(key)
 				current_cam_state.fov = 0
 			end
 		end
-		targetTime = os.clock() + fovTransitionTime
 		Spring.Echo('target FOV: '..current_cam_state.fov)
-		Spring.SetCameraState(current_cam_state, fovTransitionTime)
-	end
-end
-
-function widget:Update(dt)
-	if targetTime then
-		Spring.SetCameraState(Spring.GetCameraState(), fovTransitionTime)
-		if os.clock() > targetTime then
-			targetTime = nil
-		end
+		Spring.SetCameraState(current_cam_state, WG['options'] and WG['options'].getCameraSmoothness() or 2)
 	end
 end
