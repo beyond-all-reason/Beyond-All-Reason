@@ -5,7 +5,7 @@ function widget:GetInfo()
 	author    = "",
 	date      = "",
 	license   = "GNU GPL, v2 or later",
-	layer     = 0,
+	layer     = 99999999,
 	enabled   = false  --  loaded by a horse?
 	}
 end
@@ -22,17 +22,27 @@ function widget:KeyRelease(key)
 	if (key == FOVplus or key == FOVplus2 or key == FOVminus or key == FOVminus2) then
 		local current_cam_state = Spring.GetCameraState()
 		if key == FOVplus or key == FOVplus2 then
-			current_cam_state.fov = current_cam_state.fov + fovStep
+			current_cam_state.fov = math.floor(current_cam_state.fov + fovStep)
 			if current_cam_state.fov > 100 then	-- glitches beyond 100
 				current_cam_state.fov = 100
 			end
 		else
-			current_cam_state.fov = current_cam_state.fov - fovStep
+			current_cam_state.fov = math.floor(current_cam_state.fov - fovStep)
 			if current_cam_state.fov < 0 then
 				current_cam_state.fov = 0
 			end
 		end
+		targetTime = os.clock() + fovTransitionTime
 		Spring.Echo('target FOV: '..current_cam_state.fov)
 		Spring.SetCameraState(current_cam_state, fovTransitionTime)
+	end
+end
+
+function widget:Update(dt)
+	if targetTime then
+		Spring.SetCameraState(Spring.GetCameraState(), fovTransitionTime)
+		if os.clock() > targetTime then
+			targetTime = nil
+		end
 	end
 end
