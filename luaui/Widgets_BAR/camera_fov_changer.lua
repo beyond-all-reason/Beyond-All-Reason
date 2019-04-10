@@ -16,9 +16,9 @@ local FOVplus = 112 -- CTRL+P
 local FOVminus2 = 257 --KP1
 local FOVplus2 = 263 --KP7
 
-function widget:KeyRelease(key)
+function widget:KeyRelease(key, modifier)
 	--Spring.Echo(key)
-	if (key == FOVplus or key == FOVplus2 or key == FOVminus or key == FOVminus2) then
+	if ((key == FOVplus and modifier.ctrl) or key == FOVplus2 or (key == FOVminus and modifier.ctrl) or key == FOVminus2) then
 		local current_cam_state = Spring.GetCameraState()
 		if key == FOVplus or key == FOVplus2 then
 			current_cam_state.fov = math.floor(current_cam_state.fov + fovStep)
