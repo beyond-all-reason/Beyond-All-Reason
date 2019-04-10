@@ -347,7 +347,7 @@ function CreateShaders()
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j) {
                     vec2 samplingCoords = texCoord + vec2(i, j) * intensity;
-                    float samplingCoordsOk = float( all( greaterThanEqual(samplingCoords, vec2(0.0)) && lessThanEqual(samplingCoords, vec2(1.0)) ) );
+                    float samplingCoordsOk = float( all( greaterThanEqual(samplingCoords, vec2(0.0)) ) && all( lessThanEqual(samplingCoords, vec2(1.0)) ) );
                     gl_FragColor.rgb += texture2D(tex0, samplingCoords).rgb * samplingCoordsOk;
                     sum += samplingCoordsOk;
             }
