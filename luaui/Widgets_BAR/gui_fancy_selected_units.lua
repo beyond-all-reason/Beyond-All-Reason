@@ -13,8 +13,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local limitDetailUnits				= 100
-
 local currentRotationAngle			= 0
 local currentRotationAngleOpposite	= 0
 local previousOsClock				= os.clock()
@@ -547,8 +545,6 @@ local function updateSelectedUnitsData()
 		end
 	end
 
-	limitDetails = (visibleUnitCount > limitDetailUnits)
-
 	-- add selected units
 	if selectedUnitsCount > 0 then
 		local units = selectedUnitsSorted
@@ -658,7 +654,7 @@ do
 			if selectedUnits[teamID][unitID] and unitParams.visible then
 				usedRotationAngle = GetUsedRotationAngle(unitID, unit.shapeName, opposite)
 
-				if type == 'normal solid'  or  type == 'normal alpha' then
+				if type == 'normal solid' then
 
 					-- special style for coms
 					if drawUnitStyles and OPTIONS.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom') then
@@ -694,7 +690,7 @@ do
 						glDrawListAtUnit(unitID, unit.shape.large, false, (unit.xscale*scale*changedScale)+((unit.xscale-15)/15), 1.0, (unit.zscale*scale*changedScale)+((unit.zscale-15)/15), usedRotationAngle, 0, degrot[unitID], 0)
 					end
 
-				elseif type == 'base solid'  or  type == 'base alpha' then
+				elseif type == 'base' then
 					usedXScale = unit.xscale
 					usedZScale = unit.zscale
 					if OPTIONS.showExtraComLine and (unit.name == 'corcom'  or  unit.name == 'armcom') then
@@ -784,12 +780,12 @@ function widget:DrawWorldPreUnit()
 			end
 
 			gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-			DrawSelectionSpottersPart(teamID, 'base solid', baseR,baseG,baseB,0,scaleBase, false, false, false, false)
+			DrawSelectionSpottersPart(teamID, 'base', baseR,baseG,baseB,0,scaleBase, false, false, false, false)
 
 			--  Here the inner of the selected spotters are removed
 			gl.BlendFunc(GL.ONE, GL.ZERO)
 			a = 1 - (OPTIONS.baseOpacity)
-			DrawSelectionSpottersPart(teamID, 'base alpha', baseR,baseG,baseB,a,scaleBase, false, false, true, false)
+			DrawSelectionSpottersPart(teamID, 'base', baseR,baseG,baseB,a,scaleBase, false, false, true, false)
 
 			--  Really draw the spotters now  (This could be optimised if we could say Draw as much as DST_ALPHA * SRC_ALPHA is)
 			-- (without protecting form drawing them twice)
@@ -805,7 +801,7 @@ function widget:DrawWorldPreUnit()
 		gl.BlendFunc(GL.ONE_MINUS_SRC_ALPHA, GL.SRC_ALPHA)
 
 		gl.Color(1,1,1,a)
-		DrawSelectionSpottersPart(teamID, 'normal alpha', 1,1,1,a,scale, false, false, true, false)
+		DrawSelectionSpottersPart(teamID, 'normal solid', 1,1,1,a,scale, false, false, true, false)
 
 		--  Here the inner of the selected spotters are removed
 		gl.BlendFunc(GL.ONE, GL.ZERO)

@@ -79,9 +79,9 @@ function ShieldSphereColorParticle:Draw()
     if checkStunned then
         self.stunned = Spring.GetUnitIsStunned(self.unit)
     end
-    if self.stunned or Spring.IsUnitIcon(self.unit) then
-        return
-    end
+    --if self.stunned or Spring.IsUnitIcon(self.unit) then
+    --    return
+    --end
 	local radius = self.radius
 	if not renderBuckets[radius] then
 		renderBuckets[radius] = {}
