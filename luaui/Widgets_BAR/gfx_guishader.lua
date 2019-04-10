@@ -296,6 +296,7 @@ function widget:Initialize()
   end
 
   WG['guishader'].setScreenBlur = function(value)
+    updateStencilTextureScreen = true
   	screenBlur = value
   end
   WG['guishader'].getScreenBlur = function(value)
@@ -475,7 +476,7 @@ end
 function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
 
-	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) and blurShader  then
+	if ((screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists))) and blurShader  then
 	  gl.Texture(false)
 	  gl.Color(1,1,1,1)
 	  gl.Blending(false)
