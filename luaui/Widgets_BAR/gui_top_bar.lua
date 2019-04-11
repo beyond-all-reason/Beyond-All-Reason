@@ -917,11 +917,6 @@ function widget:Update(dt)
 		end
 	end
 
-    sec = sec + dt
-    if sec>0.066 then
-        sec = 0
-		r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
-    end
 
     now = os.clock()
 	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] ~= nil then
@@ -934,33 +929,38 @@ function widget:Update(dt)
 		end
 	end
 
-	if not spec and not showQuitscreen then
-		if isInBox(mx, my, resbarArea['energy']) then
-			if resbarHover == nil then
-				resbarHover = 'energy'
+	sec = sec + dt
+	if sec>0.066 then
+		sec = 0
+		r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
+		if not spec and not showQuitscreen then
+			if isInBox(mx, my, resbarArea['energy']) then
+				if resbarHover == nil then
+					resbarHover = 'energy'
+					updateResbar('energy')
+				end
+			elseif resbarHover ~= nil and resbarHover == 'energy' then
+				resbarHover = nil
 				updateResbar('energy')
 			end
-		elseif resbarHover ~= nil and resbarHover == 'energy' then
-			resbarHover = nil
-			updateResbar('energy')
-		end
-		if isInBox(mx, my, resbarArea['metal']) then
-			if resbarHover == nil then
-				resbarHover = 'metal'
+			if isInBox(mx, my, resbarArea['metal']) then
+				if resbarHover == nil then
+					resbarHover = 'metal'
+					updateResbar('metal')
+				end
+			elseif resbarHover ~= nil and resbarHover == 'metal' then
+				resbarHover = nil
 				updateResbar('metal')
 			end
-		elseif resbarHover ~= nil and resbarHover == 'metal' then
-			resbarHover = nil
+		elseif spec and myTeamID ~= prevMyTeamID then  -- check if the team that we are spectating changed
+			draggingShareIndicatorValue = {}
+			draggingConversionIndicatorValue = nil
+			if sec ~= 0 then
+				r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
+			end
 			updateResbar('metal')
+			updateResbar('energy')
 		end
-	elseif spec and myTeamID ~= prevMyTeamID then  -- check if the team that we are spectating changed
-		draggingShareIndicatorValue = {}
-		draggingConversionIndicatorValue = nil
-		if sec ~= 0 then
-			r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
-		end
-		updateResbar('metal')
-		updateResbar('energy')
 	end
 
 	-- wind
