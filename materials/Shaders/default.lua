@@ -7,7 +7,7 @@ vertex = [[
 	//#define flip_normalmap
 	//#define use_shadows
 	%%VERTEX_GLOBAL_NAMESPACE%%
-	#line 10010	
+	#line 10010
 
 	uniform mat4 camera;   //ViewMatrix (gl_ModelViewMatrix is ModelMatrix!)
 	uniform vec3 cameraPos;
@@ -159,8 +159,8 @@ fragment = [[
 
 	#ifdef use_shadows
 		uniform sampler2DShadow shadowTex;
-		uniform float shadowDensity;
 	#endif
+	uniform float shadowDensity;
 
 	#ifdef use_vertex_ao
 		in float aoTerm;
