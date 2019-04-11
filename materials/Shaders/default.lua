@@ -7,6 +7,7 @@ vertex = [[
 	//#define flip_normalmap
 	//#define use_shadows
 	%%VERTEX_GLOBAL_NAMESPACE%%
+	#line 10010	
 
 	uniform mat4 camera;   //ViewMatrix (gl_ModelViewMatrix is ModelMatrix!)
 	uniform vec3 cameraPos;
@@ -116,7 +117,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
-	#line 10120
+	#line 20120
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -233,6 +234,7 @@ fragment = [[
 		return fract((p3.x + p3.y) * p3.z);
 	}
 
+#ifdef use_shadows
 	float GetShadowPCFRandom(float NdotL) {
 		float shadow = 0.0;
 
@@ -280,6 +282,7 @@ fragment = [[
 
 		return mix(1.0, shadow, shadowDensity);
 	}
+#endif
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
