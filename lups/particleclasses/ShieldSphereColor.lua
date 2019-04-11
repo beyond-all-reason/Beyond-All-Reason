@@ -13,6 +13,7 @@ ShieldSphereColorParticle.__index = ShieldSphereColorParticle
 local geometryLists = {}
 
 local renderBuckets
+local canOutline
 local haveTerrainOutline
 local haveUnitsOutline
 
@@ -73,6 +74,7 @@ function ShieldSphereColorParticle:BeginDraw()
 	renderBuckets = {}
 	haveTerrainOutline = false
 	haveUnitsOutline = false
+	canOutline = LuaShader.isDeferredShadingEnabled and LuaShader.GetAdvShadingActive()
 end
 
 function ShieldSphereColorParticle:Draw()
@@ -89,8 +91,8 @@ function ShieldSphereColorParticle:Draw()
 
 	table.insert(renderBuckets[radius], self)
 
-	haveTerrainOutline = haveTerrainOutline or self.terrainOutline
-	haveUnitsOutline = haveUnitsOutline or self.unitsOutline
+	haveTerrainOutline = haveTerrainOutline or (self.terrainOutline and canOutline)
+	haveUnitsOutline = haveUnitsOutline or (self.unitsOutline and canOutline)
 end
 
 -- Lua limitations only allow to send 24 bits. Should be enough :)
@@ -131,8 +133,8 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("rotMargin", pitch, yaw, roll, info.margin)
 
 				local optionX = 0 -- bitmask field
-				optionX = EncodeBitmaskField(optionX, info.terrainOutline, 1)
-				optionX = EncodeBitmaskField(optionX, info.unitsOutline, 2)
+				optionX = EncodeBitmaskField(optionX, info.terrainOutline and canOutline, 1)
+				optionX = EncodeBitmaskField(optionX, info.unitsOutline and canOutline, 2)
 				optionX = EncodeBitmaskField(optionX, info.impactAnimation, 3)
 				optionX = EncodeBitmaskField(optionX, info.impactChrommaticAberrations, 4)
 				optionX = EncodeBitmaskField(optionX, info.impactHexSwirl, 5)
