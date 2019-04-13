@@ -7,6 +7,7 @@ vertex = [[
 	//#define flip_normalmap
 	//#define use_shadows
 	%%VERTEX_GLOBAL_NAMESPACE%%
+	#line 10010
 
 	uniform mat4 camera;   //ViewMatrix (gl_ModelViewMatrix is ModelMatrix!)
 	uniform vec3 cameraPos;
@@ -20,10 +21,6 @@ vertex = [[
 		out float selfIllumMod;
 	#endif
 	//uniform float frameLoc;
-
-	#ifdef use_treadoffset
-		uniform float treadOffset;
-	#endif
 
 	//The api_custom_unit_shaders supplies this definition:
 	#ifdef use_shadows
@@ -120,7 +117,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
-	#line 10120
+	#line 20120
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -162,8 +159,8 @@ fragment = [[
 
 	#ifdef use_shadows
 		uniform sampler2DShadow shadowTex;
-		uniform float shadowDensity;
 	#endif
+	uniform float shadowDensity;
 
 	#ifdef use_vertex_ao
 		in float aoTerm;
@@ -237,6 +234,7 @@ fragment = [[
 		return fract((p3.x + p3.y) * p3.z);
 	}
 
+#ifdef use_shadows
 	float GetShadowPCFRandom(float NdotL) {
 		float shadow = 0.0;
 
@@ -284,6 +282,7 @@ fragment = [[
 
 		return mix(1.0, shadow, shadowDensity);
 	}
+#endif
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%

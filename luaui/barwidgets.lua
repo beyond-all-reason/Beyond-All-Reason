@@ -1687,11 +1687,12 @@ end
 
 function widgetHandler:SelectionChanged(selectedUnits, subselection)
   for _,w in ipairs(self.SelectionChangedList) do
-    local unitArray = w:SelectionChanged(selectedUnits, subselection)
-    if (unitArray) then
-      Spring.SelectUnitArray(unitArray)
-      return true
-    end
+    if widgetHandler.WG['smartselect'] and not widgetHandler.WG['smartselect'].updateSelection then return end
+      local unitArray = w:SelectionChanged(selectedUnits, subselection)
+      if (unitArray) then
+        Spring.SelectUnitArray(unitArray)
+        return true
+      end
   end
   return false
 end

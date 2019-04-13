@@ -87,7 +87,7 @@ for i = 1, #UnitDefs do
 	local udef = UnitDefs[i]
 	local udefCM = udef.customParams
 
-	if (udefCM.arm_tank == nil) and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
+	if (udefCM.arm_tank and udefCM.normaltex and VFS.FileExists(udefCM.normaltex)) then
 		local lm = tonumber(udefCM.lumamult) or 1
 		local matName = string.format("%s(lumamult=%f)", "normalMappedS3O_arm_tank", lm)
 		if not materials[matName] then

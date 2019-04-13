@@ -130,7 +130,7 @@ local presets = {
 		snow = false,
 		particles = 15000,
 		nanoparticles = 1500,
-		nanobeamamount = 2,
+		nanobeamamount = 5,
 		treeradius = 0,
 		treewind = false,
 		--advsky = false,
@@ -156,7 +156,7 @@ local presets = {
 		snow = false,
 		particles = 20000,
 		nanoparticles = 3000,
-		nanobeamamount = 4,
+		nanobeamamount = 7,
 		treeradius = 200,
 		treewind = false,
 		--advsky = false,
@@ -182,7 +182,7 @@ local presets = {
 		snow = true,
 		particles = 25000,
 		nanoparticles = 5000,
-		nanobeamamount = 7,
+		nanobeamamount = 10,
 		treeradius = 400,
 		treewind = false,
 		--advsky = false,
@@ -208,7 +208,7 @@ local presets = {
 		snow = true,
 		particles = 30000,
 		nanoparticles = 9000,
-		nanobeamamount = 12,
+		nanobeamamount = 14,
 		treeradius = 800,
 		treewind = true,
 		--advsky = true,
@@ -751,11 +751,11 @@ local sec = 0
 local lastUpdate = 0
 function widget:Update(dt)
 	if WG['advplayerlist_api'] and not WG['advplayerlist_api'].GetLockPlayerID() then
-		if select(7, Spring.GetMouseState()) then	-- when camera panning
-			Spring.SetCameraState(Spring.GetCameraState(), math.min(cameraPanTransitionTime, cameraTransitionTime))
-		else
+		--if select(7, Spring.GetMouseState()) then	-- when camera panning
+		--	Spring.SetCameraState(Spring.GetCameraState(), cameraPanTransitionTime)
+		--else
 			Spring.SetCameraState(Spring.GetCameraState(), cameraTransitionTime)
-		end
+		--end
 	end
 	sec = sec + dt
 	if show and (sec > lastUpdate + 0.5 or forceUpdate) then
@@ -1552,6 +1552,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value)
 		elseif id == 'camerasmoothness' then
 			cameraTransitionTime = value
+		elseif id == 'camerapansmoothness' then
+			cameraPanTransitionTime = value
 		elseif id == 'fov' then
 			local current_cam_state = Spring.GetCameraState()
 			if (current_cam_state.fov) then
@@ -2189,7 +2191,7 @@ function init()
 		{id="nanoeffect", group="gfx", name="Nano effect", type="select", options={'beam','particles'}, value=tonumber(Spring.GetConfigInt("NanoEffect",1) or 1), description='Sets nano effect\n\nBeams more expensive than particles'},
 		--{id="lighteffects_nanolaser", group="gfx", name=widgetOptionColor.."   beam light  (needs 'Lights')", type="bool", value=true, description='Shows a light for every build/reclaim nanolaser'},
 		--{id="nanobeamicon", group="gfx", name=widgetOptionColor.."   beam when uniticon", type="bool", value=tonumber(Spring.GetConfigInt("NanoLaserIcon",0) or 0) == 1, description='Shows nano beams when unit is displayed as icon'},
-		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=2, max=20, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",6) or 6), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
+		{id="nanobeamamount", group="gfx", name=widgetOptionColor.."   beam amount", type="slider", min=5, max=20, step=1, value=tonumber(Spring.GetConfigInt("NanoBeamAmount",10) or 10), description='Not number of total beams (but total of new beams per gameframe)\n\nBeams aren\'t cheap so lower this setting for better performance'},
 		{id="nanoparticles", group="gfx", name=widgetOptionColor.."   max nano particles", type="slider", min=1000, max=15000, step=100, value=maxNanoParticles, description=''},
 
 		{id="lups", group="gfx", widget="LupsManager", name="Particle / shader FX", type="bool", value=GetWidgetToggleValue("LupsManager"), description='Jet engine thrusters, fusion energy balls, additional lighting.'},
@@ -2222,7 +2224,7 @@ function init()
 		{id="sndvolbattle", group="snd", name="Battle volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volbattle",1) or 100)},
 		{id="sndvolui", group="snd", name="Interface volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volui",1) or 100)},
 		{id="sndvolunitreply", group="snd", name="Unit reply volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
-		{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
+		{id="sndvolmusic", group="snd", name="Music volume", type="slider", min=0, max=50, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=0.5, step=0.01, value=tonumber(Spring.GetConfigInt("snd_airAbsorption",1) or.1)},
         {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Enable music player (on top of advplayerlist)'},
 		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
@@ -2234,7 +2236,8 @@ function init()
 		-- CONTROL
 		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
-		{id="camerasmoothness", group="control", name="Camera smoothing", type="slider", min=0, max=1, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
+		{id="camerasmoothness", group="control", name="Camera smoothing", type="slider", min=0, max=3, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
+		--{id="camerapansmoothness", group="control", name=widgetOptionColor.."   pan mode smoothing", type="slider", min=0, max=2, step=0.01, value=cameraPanTransitionTime, description="Smoothness of camera panning mode"},
 		--{id="fov", group="control", name="Camera FOV", type="slider", min=15, max=75, step=1, value=Spring.GetCameraFOV(), description="Camera field of view\n\nDefault: 45"},
 
 		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
@@ -2760,7 +2763,7 @@ function widget:Initialize()
 		end
 
 		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
-		Spring.SetConfigInt("UsePBO",0)
+		--Spring.SetConfigInt("UsePBO",0)
 		--end
 
 		-- enable shadows at gamestart
@@ -2797,6 +2800,9 @@ function widget:Initialize()
 	end
 	WG['options'].isvisible = function()
 		return show
+	end
+	WG['options'].getCameraSmoothness = function()
+		return cameraTransitionTime
 	end
 
 	presets = tableMerge(presets, customPresets)
@@ -2903,6 +2909,7 @@ function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.customPresets = customPresets
 	savedTable.cameraTransitionTime = cameraTransitionTime
+	savedTable.cameraPanTransitionTime = cameraPanTransitionTime
 	savedTable.maxNanoParticles = maxNanoParticles
     savedTable.currentGroupTab = currentGroupTab
     savedTable.show = show
@@ -2938,6 +2945,9 @@ function widget:SetConfigData(data)
 	end
 	if data.cameraTransitionTime ~= nil then
 		cameraTransitionTime = data.cameraTransitionTime
+	end
+	if data.cameraPanTransitionTime ~= nil then
+		cameraPanTransitionTime = data.cameraPanTransitionTime
 	end
 	if data.maxNanoParticles ~= nil then
 		maxNanoParticles = data.maxNanoParticles

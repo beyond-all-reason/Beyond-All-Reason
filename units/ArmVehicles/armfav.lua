@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 4.224,
 		turnrate = 653,
 		customparams = {
+			lumamult = "1.3",
 			basename = "base",
 			cannon1name = "flare1",
 			cannon2name = "flare2",

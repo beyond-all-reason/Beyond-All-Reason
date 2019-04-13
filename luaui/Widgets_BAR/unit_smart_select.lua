@@ -19,7 +19,7 @@ function widget:GetInfo()
 		author    = "aegis",
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
-		layer     = 0,
+		layer     = -99999999999,
 		enabled   = true
 	}
 end
@@ -163,10 +163,13 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 end
 
 local selectedUnits = Spring.GetSelectedUnits()
---local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
-	--selectedUnitsCount = Spring.GetSelectedUnitsCount()
+	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
+		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil then
+			WG['smartselect'].updateSelection = false
+		end
+	end
 end
 
 function widget:MousePress(x, y, button)
@@ -239,7 +242,8 @@ function widget:Update()
 	end
 	lastUpdate = newUpdate
 	--]]
-
+	--selectedUnits = Spring.GetSelectedUnits()
+	WG['smartselect'].updateSelection = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
 		x, y, pressed = GetMouseState()
 		local px, py, sx, sy = GetMiniMapGeometry()
@@ -421,7 +425,7 @@ function widget:Update()
 			end
 			lastSelection = selectedUnits
 		elseif (lastSelection ~= nil) then
-			SelectUnitArray(lastSelection)
+			SelectUnitArray(lastSelection)		-- because spring applies its selection without filtered untis we have to reselect
 			lastSelection = nil
 			referenceSelection = nil
 			referenceSelectionTypes = nil
@@ -478,6 +482,7 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
+	WG['smartselect'].updateSelection = false
 	init()
 end
 
@@ -490,11 +495,13 @@ local function DrawRectangle(r)
 	glVertex(r[1], 0, r[2])
 end
 
-function widget:DrawWorld()
-	if (minimapRect ~= nil) then
-		glColor(1, 1, 1, 1)
-		glLineWidth(1.0)
-		glDepthTest(false)
-		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)
-	end
-end
+
+
+--function widget:DrawWorld()
+--	if (minimapRect ~= nil) then
+--		glColor(1, 1, 1, 1)
+--		glLineWidth(1.0)
+--		glDepthTest(false)
+--		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)	-- drawing coordinates display incorrect
+--	end
+--end

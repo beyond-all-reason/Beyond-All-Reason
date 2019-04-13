@@ -60,6 +60,7 @@ local spGetModKeyState         = Spring.GetModKeyState
 local spGetMouseState          = Spring.GetMouseState
 local spGetMyTeamID            = Spring.GetMyTeamID
 local spGetSelectedUnits       = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetTeamUnitsSorted     = Spring.GetTeamUnitsSorted
@@ -67,7 +68,6 @@ local spSelectUnitArray        = Spring.SelectUnitArray
 local spSelectUnitMap          = Spring.SelectUnitMap
 local spSendCommands           = Spring.SendCommands
 local spIsGUIHidden            = Spring.IsGUIHidden
-local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 
 
 -------------------------------------------------------------------------------
@@ -144,10 +144,10 @@ local function updateGuishader()
 	end
 end
 
-
 local selectedUnits = Spring.GetSelectedUnits()
 local selectedUnitsCount = Spring.GetSelectedUnitsCount()
 local selectedUnitsCounts = Spring.GetSelectedUnitsCounts()
+local selectionChanged = true
 function widget:SelectionChanged(sel)
   selectedUnits = sel
   selectedUnitsCount = Spring.GetSelectedUnitsCount()
@@ -262,7 +262,6 @@ end
 local uiOpacitySec = 0
 local selChangedSec = 0
 function widget:Update(dt)
-
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec>0.5 then
     uiOpacitySec = 0
@@ -567,6 +566,7 @@ end
 
 
 function widget:MouseRelease(x, y, button)
+    if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
   if (not activePress) then
     return -1
   end
@@ -593,9 +593,9 @@ function widget:MouseRelease(x, y, button)
   if (unitTable == nil) then
     return -1
   end
-  
+
   local alt, ctrl, meta, shift = spGetModKeyState()
-  
+
   if (button == 1) then
     LeftMouseButton(unitDefID, unitTable)
   elseif (button == 2) then

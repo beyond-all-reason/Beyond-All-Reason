@@ -33,16 +33,24 @@ local function new(class, shaderParams, shaderName, logEntries)
 	}, class)
 end
 
-local function isGeometryShaderSupported()
+local function IsGeometryShaderSupported()
 	return gl.HasExtension("GL_ARB_geometry_shader4") and (gl.SetShaderParameter ~= nil or gl.SetGeometryShaderParameter ~= nil)
 end
 
-local function isTesselationShaderSupported()
+local function IsTesselationShaderSupported()
 	return gl.HasExtension("GL_ARB_tessellation_shader") and (gl.SetTesselationShaderParameter ~= nil)
 end
 
-local function isDeferredShadingEnabled()
-	return (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) and (Spring.GetConfigInt("AllowDeferredModelRendering") == 1)
+local function IsDeferredShadingEnabled()
+	return (Spring.GetConfigInt("AllowDeferredMapRendering") == 1) and (Spring.GetConfigInt("AllowDeferredModelRendering") == 1) and (Spring.GetConfigInt("AdvMapShading") == 1)
+end
+
+local function GetAdvShadingActive()
+	local advUnitShading, advMapShading = Spring.HaveAdvShading()
+	if advMapShading == nil then
+		advMapShading = true
+	end --old engine
+	return advUnitShading and advMapShading
 end
 
 
@@ -50,9 +58,10 @@ local LuaShader = setmetatable({}, {
 	__call = function(self, ...) return new(self, ...) end,
 	})
 LuaShader.__index = LuaShader
-LuaShader.isGeometryShaderSupported = isGeometryShaderSupported()
-LuaShader.isTesselationShaderSupported = isTesselationShaderSupported()
-LuaShader.isDeferredShadingEnabled = isDeferredShadingEnabled()
+LuaShader.isGeometryShaderSupported = IsGeometryShaderSupported()
+LuaShader.isTesselationShaderSupported = IsTesselationShaderSupported()
+LuaShader.isDeferredShadingEnabled = IsDeferredShadingEnabled()
+LuaShader.GetAdvShadingActive = GetAdvShadingActive
 
 -----------------============ Warnings & Error Gandling ============-----------------
 function LuaShader:OutputLogEntry(text, isError)

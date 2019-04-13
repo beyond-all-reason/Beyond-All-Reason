@@ -321,6 +321,7 @@ end
 
 
 local uiOpacitySec = 0
+local checkupSec = 0
 function widget:Update(dt)
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec>0.5 then
@@ -331,33 +332,38 @@ function widget:Update(dt)
 		end
 	end
 
-	local _,_,_,_,minimized,maximized = sGetMiniMapGeometry()
-	if (maximized) then
-		--hack to reset state minimap
-		gl.SlaveMiniMap(false) 
-		gl.SlaveMiniMap(true)
-		----
-	end
-	
-	if (minimized) then
-		rMinimap.minimap.active = false
-		rMinimap.minimapbg.active = false
-		--hack to reset state minimap
-		gl.SlaveMiniMap(false) 
-		gl.SlaveMiniMap(true)
-		----
-	else
-		rMinimap.minimap.active = nil
-		rMinimap.minimapbg.active = nil
-	end
-	
-	local st = sGetCameraState()
-	if (st.name == "ov") then --overview camera
-		rMinimap.minimap.active = false
-		rMinimap.minimapbg.active = false
-	else
-		rMinimap.minimap.active = nil
-		rMinimap.minimapbg.active = nil
+	-- disabled cause of irrelevance
+	--local _,_,_,_,minimized,maximized = sGetMiniMapGeometry()
+	--if (maximized) then
+	--	--hack to reset state minimap
+	--	gl.SlaveMiniMap(false)
+	--	gl.SlaveMiniMap(true)
+	--	----
+	--end
+	--if (minimized) then
+	--	rMinimap.minimap.active = false
+	--	rMinimap.minimapbg.active = false
+	--	--hack to reset state minimap
+	--	gl.SlaveMiniMap(false)
+	--	gl.SlaveMiniMap(true)
+	--	----
+	--else
+	--	rMinimap.minimap.active = nil
+	--	rMinimap.minimapbg.active = nil
+	--end
+
+	checkupSec = checkupSec + dt
+	if checkupSec>0.15 then
+		checkupSec = 0
+
+		local st = sGetCameraState()
+		if (st.name == "ov") then --overview camera
+			rMinimap.minimap.active = false
+			rMinimap.minimapbg.active = false
+		else
+			rMinimap.minimap.active = nil
+			rMinimap.minimapbg.active = nil
+		end
 	end
 
 	AutoResizeObjects()

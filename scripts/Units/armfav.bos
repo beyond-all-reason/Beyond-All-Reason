@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  flare, base, gun, lbwheel, rbwheel, rfwheel, lfwheel;
+piece  base, chassis,  gunbase, gun, flare, lbwheel, rbwheel, fwheel, steerbasel, steerbarl, steerbaser, steerbarr;
 
 static-var  restore_delay, currentSpeed, moveSpeed, wheelSpeed;
 
@@ -15,13 +15,12 @@ WheelControl()
 	while(TRUE)
 	{
 		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		wheelSpeed = currentSpeed * 7;
+		wheelSpeed = currentSpeed * 10; //original speed 7
 		if (currentSpeed<2) currentSpeed=2;	// prevent infinite timing
-		spin rfwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-		spin lfwheel around x-axis speed (<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-		spin lbwheel around x-axis speed (<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-		spin rbwheel around x-axis speed (<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
-		sleep 200;
+		spin fwheel around x-axis speed  (<1>*wheelSpeed) * currentSpeed;         //(<1.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
+		spin lbwheel around x-axis speed  (<0.5>*wheelSpeed) * currentSpeed;				//(<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
+		spin rbwheel around x-axis speed  (<0.5>*wheelSpeed) * currentSpeed;		 //(<0.5.000000> * wheelSpeed ) * 2 accelerate <5.000000> * currentSpeed;
+		sleep 10; //200
 	}
 }
 
@@ -131,8 +130,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type BITMAPONLY | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode rfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfwheel type BITMAPONLY | NOHEATCLOUD;
+		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lbwheel type BITMAPONLY | NOHEATCLOUD;
 		explode rbwheel type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
@@ -143,8 +141,7 @@ Killed(severity, corpsetype)
 		explode base type BITMAPONLY | NOHEATCLOUD;
 		explode gun type FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lfwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lbwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbwheel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -155,8 +152,7 @@ Killed(severity, corpsetype)
 		explode base type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfwheel type SMOKE | FALL | NOHEATCLOUD;
-		explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lbwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rbwheel type SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
@@ -165,8 +161,7 @@ Killed(severity, corpsetype)
 		explode base type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gun type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rfwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lfwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode fwheel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lbwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode rbwheel type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 	return corpsetype;

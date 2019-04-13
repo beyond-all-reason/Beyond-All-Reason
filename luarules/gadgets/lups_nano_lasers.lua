@@ -156,7 +156,7 @@ else
     --
 
     local currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
-    local maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)    -- limit for performance reasons
+    local maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 10) or 10)    -- limit for performance reasons
 
     local nanoParticles = {}
     --local maxEngineParticles = Spring.GetConfigInt("MaxNanoParticles", 10000)
@@ -206,7 +206,7 @@ else
 
         if initialized then
             --// enable particle effect?
-            maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
+            maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 10) or 10)
             if currentNanoEffect ~= (Spring.GetConfigInt("NanoEffect",1) or 1) then
                 currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
                 init()
@@ -217,7 +217,7 @@ else
         if not initialized then
             Lups = GG['Lups']
             if (Lups) then
-                maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 6) or 6)
+                maxNewNanoEmitters = (Spring.GetConfigInt("NanoBeamAmount", 10) or 10)
                 currentNanoEffect = (Spring.GetConfigInt("NanoEffect",1) or 1)
                 init()
                 initialized=true
