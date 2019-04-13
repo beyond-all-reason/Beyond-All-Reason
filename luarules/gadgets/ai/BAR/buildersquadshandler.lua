@@ -224,27 +224,38 @@ function BuilderSquadsHandler:AddRecruit(tqb)
 				if req.name and unitName == req.name then
 					req.squadn = self:CreateSquad(req.domain)
 					local success = self:AssignToSquad(tqb, unit, req.domain, req.role, req.squadn)
-					self:RemoveRequest(i)
 					if success then
+						self:RemoveRequest(i)
 						return true
 					end
 					self:RemoveSquad(req.domain, req.squadn)					
 				elseif (not req.name) and canBe[req.domain][req.role] == true then
 					req.squadn = self:CreateSquad(req.domain)
 					local success = self:AssignToSquad(tqb, unit, req.domain, req.role, req.squadn)
-					self:RemoveRequest(i)
 					if success then
+						self:RemoveRequest(i)
 						return true
 					end
 					self:RemoveSquad(req.domain, req.squadn)
 				end
 			elseif canBe[req.domain][req.role] == true then
-				local success = self:AssignToSquad(tqb, unit, req.domain, req.role, req.squadn)
-				self:RemoveRequest(i)
-				if success then
-					return true
+				if req.role == "helper" and req.domain == "military" then
+					local success = self:AssignToMilSquad(tqb, unit, req.domain, req.role, req.squadn)
+					if success == true then -- = dist ok
+						self:RemoveRequest(i)
+						return true
+					elseif success == false then -- = squad err
+						self:RemoveSquad(req.domain, req.squadn)
+					end
+					-- no squad err but dist not ok, don't get stucked
+				else
+					local success = self:AssignToSquad(tqb, unit, req.domain, req.role, req.squadn)
+					if success then
+						self:RemoveRequest(i)
+						return true
+					end
+					self:RemoveSquad(req.domain, req.squadn)
 				end
-				self:RemoveSquad(req.domain, req.squadn)
 			end
 		end
 	end
@@ -290,6 +301,25 @@ function BuilderSquadsHandler:AssignToSquad(tqb, unit, domain, role, squadn)
 		self.squads[domain][squadn][role][#self.squads[domain][squadn][role] + 1] = {tqb = tqb, unit = unit}
 		self:SetState(tqb, unit, "squad", {domain = domain, role = role, squadn = squadn})
 		return true
+	else
+		return false
+	end
+end
+
+function BuilderSquadsHandler:AssignToMilSquad(tqb, unit, domain, role, squadn)
+	if self.squads[domain] and self.squads[domain][squadn] and self.squads[domain][squadn][role] then
+		if self.squads[domain][squadn]["leader"] and self.squads[domain][squadn]["leader"][1] and self.squads[domain][squadn]["leader"][1].unit then
+			local leader = self.squads[domain][squadn]["leader"][1].unit
+			local unitID, leaderID = unit.id, leader.id
+			local dist = Spring.GetUnitSeparation(unitID, leaderID, true)
+			if dist < 380 then
+				self.squads[domain][squadn][role][#self.squads[domain][squadn][role] + 1] = {tqb = tqb, unit = unit}
+				self:SetState(tqb, unit, "squad", {domain = domain, role = role, squadn = squadn})
+				return true
+			else
+				return
+			end
+		end
 	else
 		return false
 	end
