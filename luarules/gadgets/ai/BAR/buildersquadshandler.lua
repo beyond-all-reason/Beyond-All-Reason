@@ -126,7 +126,7 @@ end
 
 function BuilderSquadsHandler:CheckIfExistingNewSquadRequest(techlevel, domain, role)
 	for k = 1, #self.requests do
-		if self.requests[k] and self.requests[k].domain == domain and self.requests[k].role == role then
+		if self.requests[k] and self.requests[k].domain == domain and self.requests[k].role == role and (not self.requests[k].name) then
 			return true
 		end
 	end
