@@ -889,15 +889,11 @@ function widget:GameFrame(n)
     gameFrame = n
 
     --functionContainer(n) --function that are able to remove itself. Reference: gui_take_reminder.lua (widget by EvilZerggin, modified by jK)
-
-	if n % 30 == 1 then
-		updateResbarText('metal')
-		updateResbarText('energy')
-    end
 end
 
 local uiOpacitySec = 0
 local sec = 0
+local sec2 = 0
 local secComCount = 0
 local t = UPDATE_RATE_S
 function widget:Update(dt)
@@ -930,7 +926,7 @@ function widget:Update(dt)
 	end
 
 	sec = sec + dt
-	if sec>0.066 then
+	if sec > 0.033 then
 		sec = 0
 		r = {metal={spGetTeamResources(myTeamID,'metal')}, energy={spGetTeamResources(myTeamID,'energy')}}
 		if not spec and not showQuitscreen then
@@ -961,6 +957,13 @@ function widget:Update(dt)
 			updateResbar('metal')
 			updateResbar('energy')
 		end
+	end
+
+	sec2 = sec2 + dt
+	if sec2 >= 1 then
+		sec2 = 0
+		updateResbarText('metal')
+		updateResbarText('energy')
 	end
 
 	-- wind

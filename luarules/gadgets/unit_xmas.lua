@@ -312,6 +312,12 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveGadget(self)
 	end
 
+	function gadget:GameStart()
+		if not _G.itsXmas then
+			gadgetHandler:RemoveGadget(self)
+		end
+	end
+
 else
 	--SYNCED.itsXmas
 	local xmasballs = {}
@@ -341,12 +347,14 @@ else
 			local team = Spring.GetUnitTeam(unitID)
 			gadget:UnitCreated(unitID, udID, team)
 		end
+		if Spring.GetGameFrame() > 1 then
+			gadgetHandler:RemoveGadget(self)
+		end
 	end
 
 	function gadget:DrawUnit(unitID, drawMode)
-		local unitScale = xmasballs[unitID]
-		if unitScale then
-			gl.Scale( unitScale, unitScale, unitScale )
+		if xmasballs[unitID] then
+			gl.Scale( xmasballs[unitID], xmasballs[unitID], xmasballs[unitID] )
 			return false
 		end
 	end
