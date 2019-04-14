@@ -218,6 +218,19 @@ local function DrawName(x, y, name, teamID, color)
 	glCallList(comnameList[teamID]['list'])
 end
 
+
+function createInfotextList()
+  if infotextList then
+    gl.DeleteList(infotextList)
+  end
+  infotextList = gl.CreateList(function()
+    font:Begin()
+    font:SetTextColor(1,1,1,0.5)
+    font:Print(infotext, 0,0, infotextFontsize, "cno")
+    font:End()
+  end)
+end
+
 function widget:Initialize()
   -- only show at the beginning
   if (Spring.GetGameFrame() > 1) then
@@ -225,12 +238,7 @@ function widget:Initialize()
     return
   end
 
-  infotextList = gl.CreateList(function()
-    font:Begin()
-    font:SetTextColor(1,1,1,0.5)
-    font:Print(infotext, 0,0, infotextFontsize, "cno")
-    font:End()
-  end)
+  createInfotextList()
   
   -- get the gaia teamID and allyTeamID
   gaiaTeamID = Spring.GetGaiaTeamID()
@@ -326,10 +334,10 @@ end
 function removeTeamLists()
   for _, teamID in ipairs(Spring.GetTeamList()) do
     if comnameList[teamID] ~= nil then
-      gl.DeleteList(comnameList[teamID]['list'])
-      comnameList[teamID] = nil
+      gl.DeleteList(comnameList[teamID].list)
     end
   end
+  comnameList = {}
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -560,8 +568,10 @@ function widget:ViewResize(x, y)
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
     gl.DeleteFont(font)
+    gl.DeleteFont(shadowFont)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
     shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+    createInfotextList()
   end
 end
 

@@ -84,7 +84,7 @@ function widget:CommandNotify(id, params, options)
         if cmdID then
           if cmdID < 0 and (params[1] == buildList[toLocString(cmdParam1, 0, cmdParam3)]) then
             blockUnits[unitID] = true
-          elseif (cQueue[1].id == CMD.REPAIR) and (params[1] == cmdParam1) then
+          elseif (cmdID == CMD.REPAIR) and (params[1] == cmdParam1) then
             blockUnits[unitID] = true
           end
         end
