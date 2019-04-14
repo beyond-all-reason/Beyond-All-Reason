@@ -193,11 +193,13 @@ local function createComnameList(x, y, name, teamID, color)
 			  shadowFont:End()
 			  glTranslate(0, (usedFontSize/44), 0)
 			end
+            font:Begin()
 			font:SetTextColor(outlineColor)
 			font:SetOutlineColor(outlineColor)
 			
 			font:Print(name, x-(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
 			font:Print(name, x+(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+            font:End()
 		end
 		font:Begin()
 		font:SetTextColor(color)
@@ -319,15 +321,19 @@ function widget:Initialize()
 end
 
 
-
-function widget:Shutdown()
+function removeLists()
   gl.DeleteList(infotextList)
   gl.DeleteList(xformList)
   gl.DeleteList(coneList)
   gl.DeleteList(startboxDListStencil)
   gl.DeleteList(startboxDListColor)
-  gl.DeleteFont(font)
   removeTeamLists()
+end
+
+function widget:Shutdown()
+  removeLists()
+  gl.DeleteFont(font)
+  gl.DeleteFont(shadowFont)
 end
 
 
@@ -591,7 +597,7 @@ function widget:Update(dt)
     if resetsec > 1 then
       groundHeightPoint = Spring.GetGroundHeight(0,0)
       resetted = true
-      widget:Shutdown()
+      removeLists()
       widget:Initialize()
     end
   end
