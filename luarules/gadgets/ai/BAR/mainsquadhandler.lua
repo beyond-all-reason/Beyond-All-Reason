@@ -79,7 +79,7 @@ function MainSquadHandler:Update()
 			end
 			if squad.target and squad.target.x and squad.role then -- Queue commands midway so it tries to group up the units first
 				local movetargetpos = squad.target
-				Spring.GiveOrderToUnitMap(squad.units, CMD.FIGHT, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{"ctrl", "alt"})
+				Spring.GiveOrderToUnitMap(squad.units, CMD.MOVE, {movetargetpos.x, movetargetpos.y, movetargetpos.z},{"ctrl", "alt"}) -- use move instead of FIGHT: units that can engage will switch to behaviour and it avoids rezzers to repair base
 			end
 		end
 	end
