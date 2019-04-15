@@ -39,6 +39,8 @@ function BomberBehaviour:DoPatrol(positions)
 end
 
 function BomberBehaviour:OwnerBuilt()
+	self.unit:Internal():ExecuteCustomCommand(CMD.IDLEMODE, {0}, {})
+	self.unit:Internal():ExecuteCustomCommand(CMD.FIRE_STATE, {2}, {})
 	self.ai.bomberhandler:AddRecruit(self)
 end
 

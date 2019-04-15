@@ -26,6 +26,8 @@ function FighterBehaviour:DoPatrol(positions)
 end
 
 function FighterBehaviour:OwnerBuilt()
+	self.unit:Internal():ExecuteCustomCommand(CMD.IDLEMODE, {1}, {})
+	self.unit:Internal():ExecuteCustomCommand(CMD.FIRE_STATE, {2}, {})
 	self.ai.fighterhandler:AddRecruit(self)
 end
 
