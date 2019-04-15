@@ -65,7 +65,7 @@ function SkirmisherBehaviour:Update()
 	local unit = self.unit:Internal()
 	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or skirRangeUpdateRate == nil or skirMapUpdateRate == nil  then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
-		self.myRange = (self.isHelper and 700) or math.min(SpGetUnitMaxRange(self.unitID),500)
+		self.myRange = (self.isHelper and 1200) or math.min(SpGetUnitMaxRange(self.unitID),250)
 		skirRangeUpdateRate = self.myUnitCount
 		skirMapUpdateRate = skirRangeUpdateRate*3
 	end
