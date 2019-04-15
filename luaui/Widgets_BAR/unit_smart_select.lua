@@ -165,9 +165,10 @@ end
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
+	selectionChanged = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
 		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil then
-			WG['smartselect'].updateSelection = false
+			WG['smartselect'].updateSelection = false	-- widgethandler uses this to ignore the engine mouserelease selection
 		end
 	end
 end
@@ -245,10 +246,12 @@ function widget:Update()
 	--selectedUnits = Spring.GetSelectedUnits()
 	WG['smartselect'].updateSelection = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
-		x, y, pressed = GetMouseState()
+		local x, y, pressed = GetMouseState()
+
 		local px, py, sx, sy = GetMiniMapGeometry()
 		
-		if (pressed) and (referenceSelection ~= nil) then
+		if pressed and (referenceSelection ~= nil) then
+
 			local alt, ctrl, meta, shift = GetModKeyState()
 			if (#referenceSelection == 0) then
 				-- no point in inverting an empty selection
@@ -437,7 +440,9 @@ function widget:Update()
 			referenceCoords = nil
 			minimapRect = nil
 		end
+
 	end
+	selectionChanged = nil
 end
 
 function init()

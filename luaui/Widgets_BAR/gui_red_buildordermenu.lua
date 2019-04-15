@@ -1371,7 +1371,9 @@ end
 function widget:CommandsChanged()
 	haxlayout()
 end
+
 local sec = 0
+local queueUpdateSec = 0
 local guishaderCheckInterval = 1
 local uiOpacitySec = 0
 function widget:Update(dt)
@@ -1411,6 +1413,15 @@ function widget:Update(dt)
 		updatehax = false
 		updatehax2 = true
 	end
+
+	-- refresh cause queue text could have changed
+	queueUpdateSec = queueUpdateSec + dt
+	if buildmenu.background.active == nil and queueUpdateSec > 0.5 then
+		queueUpdateSec = 0
+		local buildcmds = GetCommands()
+		UpdateGrid(buildmenu,buildcmds,1)
+	end
+
 	if (updatehax2) then
 		if (SelectedUnitsCount == 0) then
 			onNewCommands() --flush
