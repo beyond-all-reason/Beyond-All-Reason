@@ -77,28 +77,6 @@ function BuilderSquadsHandler:Init()
 	self.states = {} -- [unitID] = {state = state, [params = params]}
 	-- Initial setup, later this should become mapdependant and difficulty level dependant
 	self.coeff = self.coeff or {economy = 0.2, military = 0.2, expand = 0.2, util = 0.2, commander = 0.2}
-	self:AddRequest(nil, "commander", "leader")
-	self:AddRequest(nil, "military", "leader")
-	self:AddRequest(nil, "expand", "leader")
-	self:AddRequest(nil, "expand", "leader")
-	self:AddRequest(nil, "economy", "leader")
-	self:AddRequest(nil, "expand", "leader")
-	self:AddRequest(nil, "economy", "leader")
-	self:AddRequest(nil, "expand", "leader")
-	self:AddRequest(nil, "expand", "leader")
-	-- Initial requests for all builderstypes, to ensure that DAI will always have an available con for all the different labs (provided that they don't die and get replaced by the wrong con...
-	self:AddRequest('armck', "util", "leader")
-	self:AddRequest('armack', "util", "leader")
-	self:AddRequest('armcv', "util", "leader")
-	self:AddRequest('armacv', "util", "leader")
-	self:AddRequest('armaca', "util", "leader")
-	self:AddRequest('armca', "util", "leader")
-	self:AddRequest('corck', "util", "leader")
-	self:AddRequest('corack', "util", "leader")
-	self:AddRequest('coracv', "util", "leader")
-	self:AddRequest('corcv', "util", "leader")
-	self:AddRequest('coraca', "util", "leader")
-	self:AddRequest('corca', "util", "leader")
 	--
 	self.currentTechLevel = 1
 end

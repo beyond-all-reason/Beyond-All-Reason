@@ -24,12 +24,35 @@ function AiModeHandler:Init()
 	math.random(); math.random(); math.random()
 	self:PickASide(math.random(1,2))
 	self:CreateWantedTechTree(math.random(1,12),math.random(1,12))
-	--local count = #Spring.GetTeamList(self.ai.allyId)
+	local nbAllies = #Spring.GetTeamList(self.ai.allyId)
 	--if count and count > 1 then
 		--self:Mode(math.random(1,count)%3 + 1)
 	--else
 		self:Mode(1)
 	--end
+	self.ai.buildersquadshandler:AddRequest(nil, "commander", "leader")
+	self.ai.buildersquadshandler:AddRequest(nil, "military", "leader")
+	local spotCount = self.game.map:SpotCount()
+	local nbStartingExpandSquads = ((spotCount == 0) and 0) or (math.floor(spotCount/(nbAllies * 12) + 0.5))
+	if nbStartingExpandSquads > 0 then
+		for i = 1,nbStartingExpandSquads do
+			self.ai.buildersquadshandler:AddRequest(nil, "expand", "leader")
+		end
+	end
+	self.ai.buildersquadshandler:AddRequest(nil, "economy", "leader")
+	-- Initial requests for all builderstypes, to ensure that DAI will always have an available con for all the different labs (provided that they don't die and get replaced by the wrong con...
+	self.ai.buildersquadshandler:AddRequest('armck', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('armack', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('armcv', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('armacv', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('armaca', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('armca', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('corck', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('corack', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('coracv', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('corcv', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('coraca', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('corca', "util", "leader")
 end
 
 function AiModeHandler:Update()
