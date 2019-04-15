@@ -1262,8 +1262,8 @@ lab = {
 	OffensiveUnit,
 	OffensiveUnit,
 	TryRequest,
-	-- Helper,
-	-- Helper,
+	Helper,
+	Helper,
 }
 
 airlab = {
@@ -1416,12 +1416,10 @@ function CorTech(tqb, ai, unit)
 		if (income(ai, "metal") > ai.aimodehandler.mintechmincome and (income(ai, "energy") > ai.aimodehandler.mintecheincome)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
 			if unit:Name() == "corck" then
 				local pos = unit:GetPosition()
-				ai.requestshandler:AddRequest(false, {action = "command", params = {cmdID = CMD.FIGHT, cmdParams = {pos.x, pos.y, pos.z}, cmdOptions = {"shift"}}}, true)
 				ai.firstT2 = true
 				return "coralab"
 			elseif unit:Name() == "corcv" then
 				local pos = unit:GetPosition()
-				ai.requestshandler:AddRequest(false, {action = "command", params = {cmdID = CMD.FIGHT, cmdParams = {pos.x, pos.y, pos.z}, cmdOptions = {"shift"}}}, true)
 				ai.firstT2 = true
 				return "coravp"
 			else 
@@ -1778,12 +1776,10 @@ function ArmTech(tqb, ai, unit)
 		if (income(ai, "metal") > ai.aimodehandler.mintechmincome and (income(ai, "energy") > ai.aimodehandler.mintecheincome)) or (timetostore(ai, "metal", 2500) < 75 and timetostore(ai, "energy", 8000) < 25) then
 			if unit:Name() == "armck" then
 				local pos = unit:GetPosition()
-				ai.requestshandler:AddRequest(false, {action = "command", params = {cmdID = CMD.FIGHT, cmdParams = {pos.x, pos.y, pos.z}, cmdOptions = {"shift"}}}, true)
 				ai.firstT2 = true
 				return "armalab"
 			elseif unit:Name() == "armcv" then
 				local pos = unit:GetPosition()
-				ai.requestshandler:AddRequest(false, {action = "command", params = {cmdID = CMD.FIGHT, cmdParams = {pos.x, pos.y, pos.z}, cmdOptions = {"shift"}}}, true)
 				ai.firstT2 = true
 				return "armavp"
 			else 
