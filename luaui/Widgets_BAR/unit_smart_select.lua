@@ -250,7 +250,7 @@ function widget:Update()
 
 		local px, py, sx, sy = GetMiniMapGeometry()
 		
-		if pressed and (referenceSelection ~= nil) then
+		if (pressed or lastSelection) and (referenceSelection ~= nil) then
 
 			local alt, ctrl, meta, shift = GetModKeyState()
 			if (#referenceSelection == 0) then
@@ -426,14 +426,16 @@ function widget:Update()
 				lastSelection = nil
 				return
 			end
-			lastSelection = selectedUnits
-		elseif (lastSelection ~= nil) then
-			SelectUnitArray(lastSelection)		-- because spring applies its selection without filtered untis we have to reselect
-			lastSelection = nil
-			referenceSelection = nil
-			referenceSelectionTypes = nil
-			referenceCoords = nil
-			minimapRect = nil
+
+			if pressed then
+				lastSelection = selectedUnits
+			else
+				lastSelection = nil
+				referenceSelection = nil
+				referenceSelectionTypes = nil
+				referenceCoords = nil
+				minimapRect = nil
+			end
 		else
 			referenceSelection = nil
 			referenceSelectionTypes = nil
