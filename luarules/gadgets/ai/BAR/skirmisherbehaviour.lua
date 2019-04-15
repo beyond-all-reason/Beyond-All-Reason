@@ -146,16 +146,15 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 		if nanotcx and nanotcy and nanotcz then
 			p = api.Position()
 			p.x, p.y, p.z = nanotcx, nanotcy, nanotcz
-		else
-			p = self.ai.triggerhandler.commpos
+
+			self.target = p
+			self.attacking = false
+			if self.active then
+				self.active = false -- until it is idle (= getting repaired)
+				self.unit:Internal():Move(self.target)
+			end
+			return
 		end
-		self.target = p
-		self.attacking = false
-		if self.active then
-			self.active = false -- until it is idle (= getting repaired)
-			self.unit:Internal():Move(self.target)
-		end
-		return
 	end
 	
 	local utype = self.game:GetTypeByName(unit:Name())
