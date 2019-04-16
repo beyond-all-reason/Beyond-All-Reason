@@ -165,7 +165,6 @@ end
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	selectedUnits = sel
-	selectionChanged = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
 		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil then
 			WG['smartselect'].updateSelection = false	-- widgethandler uses this to ignore the engine mouserelease selection
@@ -428,7 +427,7 @@ function widget:Update()
 			end
 
 			if pressed then
-				lastSelection = selectedUnits
+				lastSelection = true --selectedUnits
 			else
 				lastSelection = nil
 				referenceSelection = nil
@@ -444,7 +443,6 @@ function widget:Update()
 		end
 
 	end
-	selectionChanged = nil
 end
 
 function init()
