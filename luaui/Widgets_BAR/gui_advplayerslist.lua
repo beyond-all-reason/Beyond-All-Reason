@@ -3048,11 +3048,11 @@ function CreateShareSlider()
 			if right == true then
 				DrawRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition, 14, "on")
 			else
 				DrawRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition, 14, "on")
 			end
 		elseif metalPlayer ~= nil then
 			posY = widgetPosY + widgetHeight - metalPlayer.posY
@@ -3064,11 +3064,11 @@ function CreateShareSlider()
 			if right == true then
 				DrawRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition, 14, "on")
 			else
 				DrawRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition, 14, "on")
 			end
 		end
 		font:End()
