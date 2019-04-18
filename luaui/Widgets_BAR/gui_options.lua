@@ -1409,7 +1409,7 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("GroundDetail", value)
 			Spring.SendCommands("GroundDetail "..value)
 		elseif id == 'sndvolmaster' then
-			Spring.SetConfigInt("snd_volgeneral", value)
+			Spring.SetConfigInt("snd_volmaster", value)
 		elseif id == 'sndvolbattle' then
 			Spring.SetConfigInt("snd_volbattle", value)
 		elseif id == 'sndvolgeneral' then

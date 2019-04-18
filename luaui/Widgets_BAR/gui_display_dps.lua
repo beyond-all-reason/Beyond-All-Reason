@@ -80,6 +80,7 @@ function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.5 + (vsx*vsy / 5700000))
   local fontScale = widgetScale/2
+  gl.DeleteFont(font)
   font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
@@ -97,9 +98,8 @@ function widget:UnitFinished(unitID, unitDefID, unitTeam)
 end
 
 local function getTextSize(damage, paralyze)
-  local sizeMod = 3
-  if paralyze then sizeMod = 2.25 end
-  return math.floor(8 * (1 + sizeMod * (1 - (200 / (200 + damage)))))
+  --if paralyze then sizeMod = 2.25 end
+  return 15 + math.floor(3 * (2 * (1 - (100 / (100 + damage/10)))))
 end
 
 local function displayDamage(unitID, unitDefID, damage, paralyze)
@@ -174,17 +174,15 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
   
   if (UnitDefs[unitDefID] == nil) then return end
 
-  if paralyzer then
-    if unitParalyze[unitID] then
-      unitParalyze[unitID].damage = (unitParalyze[unitID].damage + damage)
-    end
+  if paralyzer and unitParalyze[unitID] then
+    unitParalyze[unitID].damage = (unitParalyze[unitID].damage + damage)
     return
   elseif unitDamage[unitID] then
     unitDamage[unitID].damage = (unitDamage[unitID].damage + damage)
     return
   end
     
-  if paralyze then 
+  if paralyzer then
     unitParalyze[unitID] = {}
     unitParalyze[unitID].damage = damage
     unitParalyze[unitID].time = (lastTime + 0.1)
@@ -218,15 +216,14 @@ local function drawDeathDPS(damage,ux,uy,uz,textSize,red,alpha)
   glBillboard()
   gl.MultiTexCoord(1, 0.25 + (0.5 * alpha))
 
-  if red then
-    glColor(1, 0, 0)
-  else
-    glColor(1, 1, 1)
-  end
-
   if drawTextLists[damage] == nil then
     drawTextLists[damage] = gl.CreateList(function()
       font:Begin()
+      if red then
+        font:SetTextColor(1, 0.5, 0.5)
+      else
+        font:SetTextColor(1, 1, 1)
+      end
       font:Print(damage, 0, 0, textSize, 'cnO')
       font:End()
     end)
@@ -242,13 +239,14 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
   gl.MultiTexCoord(1, 0.25 + (0.5 * alpha))
   if paralyze then
     font:Begin()
-    font:Print('\255\0\0\255'..damage, 0, 0, textSize, 'cnO')
+    font:SetTextColor(0.5, 0.5, 1)
+    font:Print(damage, 0, 0, textSize, 'cnO')
     font:End()
   else
-    glColor(1, 1, 1)
     if drawTextLists[damage] == nil then
       drawTextLists[damage] = gl.CreateList(function()
         font:Begin()
+        font:SetTextColor(1, 1, 1)
         font:Print(damage, 0, 0, textSize, 'cnO')
         font:End()
       end)
@@ -292,15 +290,15 @@ function widget:DrawWorld()
       glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset), 
                        damage.offset, damage.damage, damage.textSize, damage.lifeSpan, damage.paralyze)
       if not paused then
-        if damage.paralyze then 
-          damage.lifeSpan = (damage.lifeSpan - 0.05)
-          damage.textSize = (damage.textSize + 0.2)
-        else
+        --if damage.paralyze then
+        --  damage.lifeSpan = (damage.lifeSpan - 0.05)
+        --  damage.textSize = (damage.textSize + 0.2)
+        --else
           damage.heightOffset = (damage.heightOffset + damage.riseTime)
           if (damage.heightOffset > 25) then 
             damage.lifeSpan = (damage.lifeSpan - damage.fadeTime)
           end
-        end
+        --end
       end
     end
   end
