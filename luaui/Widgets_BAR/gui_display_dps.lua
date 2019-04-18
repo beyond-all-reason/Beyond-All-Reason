@@ -130,7 +130,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
         z = uz,
         lifeSpan = 1,
         fadeTime = math.max((0.03 - (damage / 333333)), 0.015) * 0.66,
-        riseTime = (math.min((damage / 2500), 2) + 1)* 1.33,
+        riseTime = (math.min((damage / 2500), 2) + 1)/2,
         damage = damage,
         textSize = getTextSize(damage, false),
         red = true,
@@ -173,7 +173,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
   if (damage < 1.5) then return end
   
   if (UnitDefs[unitDefID] == nil) then return end
-    
+
   if paralyzer then
     if unitParalyze[unitID] then
       unitParalyze[unitID].damage = (unitParalyze[unitID].damage + damage)
