@@ -628,7 +628,7 @@ function widget:DrawScreen()
 	if IsGUIHidden() then
 		return
 	end
-	if WG['guishader'] then
+	if not guiData.mainPanel.visible and WG['guishader'] then
 		WG['guishader'].DeleteDlist('teamstats_window')
 	end
 	DrawBackground()
