@@ -25,19 +25,19 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local enabledAsSpec = false
 
 local MAX_ICONS = 10
-local iconsize = 38
+local iconsize = 37
 local ICON_SIZE_X = iconsize
 local ICON_SIZE_Y = iconsize
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
-local POSITION_Y = 0.086 -- near bottom
+local POSITION_Y = 0.095 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
 local bgcorner			= "LuaUI/Images/bgcorner.png"
-local cornerSize		= 12
+local cornerSize		= 7
 local bgcornerSize		= cornerSize
 
 local playSounds = true
