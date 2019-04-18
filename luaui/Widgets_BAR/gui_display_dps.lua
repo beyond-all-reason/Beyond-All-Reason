@@ -46,7 +46,6 @@ local GetUnitViewPosition  = Spring.GetUnitViewPosition
 local glTranslate      = gl.Translate
 local glColor          = gl.Color
 local glBillboard      = gl.Billboard
-local glText           = gl.Text
 local glDepthMask      = gl.DepthMask
 local glDepthTest      = gl.DepthTest
 local glAlphaTest      = gl.AlphaTest
@@ -109,13 +108,13 @@ local function displayDamage(unitID, unitDefID, damage, paralyze)
     unitID = unitID,
     damage = math.ceil(damage - 0.5),
     height = unitHeight(unitDefID),
-    offset = (6 - math.random(0,12)),
+    offset = (10 - math.random(0,12)),
     textSize = getTextSize(damage, paralyze),
     heightOffset = 0,
     lifeSpan = 1,
     paralyze = paralyze,
     fadeTime = math.max((0.03 - (damage / 333333)), 0.015),
-    riseTime = (math.min((damage / 2500), 2) + 1),
+    riseTime = (math.min((damage / 2500), 2) + 1)/2,
   }
 end
 
@@ -244,14 +243,14 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
   if paralyze then
     font:Begin()
     font:Print('\255\0\0\255'..damage, 0, 0, textSize, 'cnO')
-    font:Begin()
+    font:End()
   else
     glColor(1, 1, 1)
     if drawTextLists[damage] == nil then
       drawTextLists[damage] = gl.CreateList(function()
         font:Begin()
         font:Print(damage, 0, 0, textSize, 'cnO')
-        font:Begin()
+        font:End()
       end)
     end
     glCallList(drawTextLists[damage])
