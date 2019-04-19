@@ -114,7 +114,7 @@ local function displayDamage(unitID, unitDefID, damage, paralyze)
     lifeSpan = 1,
     paralyze = paralyze,
     fadeTime = math.max((0.03 - (damage / 333333)), 0.015),
-    riseTime = (math.min((damage / 2500), 2) + 1)/2,
+    riseTime = (math.min((damage / 2500), 2) + 1)/4,
   }
 end
 
@@ -129,8 +129,8 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
         y = (uy + unitHeight(unitDefID)),
         z = uz,
         lifeSpan = 1,
-        fadeTime = math.max((0.03 - (damage / 333333)), 0.015) * 0.66,
-        riseTime = (math.min((damage / 2500), 2) + 1)/2,
+        fadeTime = math.max((0.03 - (damage / 333333)), 0.015) * 0.9,
+        riseTime = (math.min((damage / 2500), 2) + 1)/4,
         damage = damage,
         textSize = getTextSize(damage, false),
         red = true,
@@ -151,7 +151,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
             z = uz,
             lifeSpan = v.lifeSpan,
             fadeTime = v.fadeTime * 2.5,
-            riseTime = v.riseTime * 0.66,
+            riseTime = v.riseTime * 0.9,
             damage = v.damage,
             textSize = v.textSize,
             red = false,
