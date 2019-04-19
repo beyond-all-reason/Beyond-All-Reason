@@ -72,6 +72,8 @@ local paused = false
 local changed = false
 local heightList = {}
 local drawTextLists = {}
+local drawTextListsDeath = {}
+local drawTextListsEmp = {}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -216,19 +218,27 @@ local function drawDeathDPS(damage,ux,uy,uz,textSize,red,alpha)
   glBillboard()
   gl.MultiTexCoord(1, 0.25 + (0.5 * alpha))
 
-  if drawTextLists[damage] == nil then
-    drawTextLists[damage] = gl.CreateList(function()
-      font:Begin()
-      if red then
-        font:SetTextColor(1, 0.5, 0.5)
-      else
-        font:SetTextColor(1, 1, 1)
+  if red then
+      if drawTextListsDeath[damage] == nil then
+          drawTextListsDeath[damage] = gl.CreateList(function()
+              font:Begin()
+              font:SetTextColor(1, 0.5, 0.5)
+              font:Print(damage, 0, 0, textSize, 'cnO')
+              font:End()
+          end)
       end
-      font:Print(damage, 0, 0, textSize, 'cnO')
-      font:End()
-    end)
+      glCallList(drawTextListsDeath[damage])
+  else
+      if drawTextLists[damage] == nil then
+          drawTextLists[damage] = gl.CreateList(function()
+              font:Begin()
+              font:SetTextColor(1, 1, 1)
+              font:Print(damage, 0, 0, textSize, 'cnO')
+              font:End()
+          end)
+      end
+      glCallList(drawTextLists[damage])
   end
-  glCallList(drawTextLists[damage])
   
   glPopMatrix()
 end
@@ -238,10 +248,15 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
   glBillboard()
   gl.MultiTexCoord(1, 0.25 + (0.5 * alpha))
   if paralyze then
-    font:Begin()
-    font:SetTextColor(0.5, 0.5, 1)
-    font:Print(damage, 0, 0, textSize, 'cnO')
-    font:End()
+    if drawTextListsEmp[damage] == nil then
+      drawTextListsEmp[damage] = gl.CreateList(function()
+        font:Begin()
+        font:SetTextColor(0.5, 0.5, 1)
+        font:Print(damage, 0, 0, textSize, 'cnO')
+        font:End()
+      end)
+    end
+    glCallList(drawTextListsEmp[damage])
   else
     if drawTextLists[damage] == nil then
       drawTextLists[damage] = gl.CreateList(function()
@@ -332,9 +347,15 @@ end
 --end
 
 function widget:Shutdown()
-  for k,_ in pairs(drawTextLists) do
-    gl.DeleteList(drawTextLists[k])
-  end
+    for k,_ in pairs(drawTextLists) do
+        gl.DeleteList(drawTextLists[k])
+    end
+    for k,_ in pairs(drawTextListsDeath) do
+        gl.DeleteList(drawTextListsDeath[k])
+    end
+    for k,_ in pairs(drawTextListsEmp) do
+        gl.DeleteList(drawTextListsEmp[k])
+    end
   gl.DeleteFont(font)
 end
 
