@@ -133,7 +133,7 @@ function updateMusicVolume()	-- handles fadings
 	end
 	if fadeMult > 1 then fadeMult = 1 end
 	if fadeMult < 0 then fadeMult = 0 end
-	Spring.SetConfigInt("snd_volmusic", (math.random()*0.1)+maxMusicVolume * fadeMult)	-- added random value so its unique and forces engine to update (else it wont actually do)
+	Spring.SetConfigInt("snd_volmusic", (math.random()*0.1) + (maxMusicVolume * fadeMult))	-- added random value so its unique and forces engine to update (else it wont actually do)
 end
 
 function widget:Initialize()
@@ -567,7 +567,7 @@ function PlayNewTrack()
 	previousTrack = newTrack
 	curTrack = newTrack
 	Spring.PlaySoundStream(newTrack)
-	Spring.SetConfigInt("snd_volmusic", 0)
+	Spring.SetConfigInt("snd_volmusic", 1)
 	playedTime, totalTime = Spring.GetSoundStreamTime()
 	targetTime = totalTime
 	if playing == false then
@@ -728,7 +728,6 @@ function widget:GetConfigData(data)
   return savedTable
 end
 
--- would be great if there is be a way to continue track where we left off after a /luaui reload
 function widget:SetConfigData(data)
 	if data.playing ~= nil then
 		playing = data.playing

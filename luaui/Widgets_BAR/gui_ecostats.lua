@@ -72,8 +72,7 @@ local tooltipAreas					= {}
 
 local lastPlayerChange				= 0
 local aliveAllyTeams				= 0
-local lastDrawUpdate				
-local drawList
+local lastDrawUpdate
 
 local vsx,vsy                    	= gl.GetViewSizes()
 local right							= true
@@ -203,7 +202,6 @@ end
 
 function widget:Shutdown()
 	removeGuiShaderRects()
-	if (drawList) then 			gl.DeleteList(drawList) end
 	if (sideImageList) then		gl.DeleteList(sideImageList) end
 	gl.DeleteFont(font)
 end
@@ -1373,7 +1371,6 @@ function widget:PlayerChanged(playerID)
 		setReclaimerUnits()
 		Reinit()
 	end
-	makeStandardList()
 end
 
 function widget:GameOver()
@@ -1409,8 +1406,7 @@ end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, labeltext)
 	if not gamestarted then 
-		UpdateAllies() 
-		makeStandardList()
+		UpdateAllies()
 	end
 end
 
@@ -1437,7 +1433,6 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 		if widgetPosY > vsy-widgetHeight then widgetPosY = vsy-widgetHeight end
 	
 		updateButtons()
-		makeStandardList()
 		makeSideImageList()
 	end
 end
@@ -1599,7 +1594,6 @@ function widget:GameFrame(frameNum)
 		updateButtons()
 		setPlayerResources()
 		UpdateAllies()
-		makeStandardList()
 	end
 	
 	if not gamestarted and frameNum > 0 then gamestarted = true end
@@ -1609,13 +1603,6 @@ end
 ---------------------------------------------------------------------------------------------------
 --  Draw
 ---------------------------------------------------------------------------------------------------
-
-function makeStandardList()
-	if not inSpecMode then return end
-	
-	if (drawList) then gl.DeleteList(drawList) end
-	drawList = gl.CreateList(drawListStandard)
-end
 
 function makeSideImageList()
 	if not inSpecMode then return end
@@ -1638,7 +1625,6 @@ function widget:TweakDrawScreen()
 	
 	DrawOptionRibbon()
 	updateButtons()
-	makeStandardList()
 end
 
 local uiOpacitySec = 0.5
@@ -1672,13 +1658,12 @@ function widget:DrawScreen()
 	if not inSpecMode or not myFullview then return end
 	
 	if Spring.IsGUIHidden() or (not inSpecMode) then return end
-	
-	if not drawList then makeStandardList() end
+
 	if not sideImageList then makeSideImageList() end
 	
 	gl.PushMatrix()
 	gl.CallList(sideImageList)
-	gl.CallList(drawList)
+	drawListStandard()
 	gl.PopMatrix()
 end
 
