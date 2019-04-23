@@ -223,7 +223,8 @@ function widget:Update(dt)
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec>0.5 then
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
+			guishaderEnabled = (WG['guishader'])
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
 			createList()
 		end
@@ -237,10 +238,6 @@ function widget:Update(dt)
 	if passedTime2 > 1 then
 		updateValues()
 		passedTime2 = passedTime2 - 1
-	end
-	if guishaderEnabled ~= (WG['guishader']) then
-		guishaderEnabled = (WG['guishader'])
-		createList()
 	end
 end
 

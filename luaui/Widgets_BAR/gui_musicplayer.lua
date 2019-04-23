@@ -92,6 +92,8 @@ local glCreateList   = gl.CreateList
 local glDeleteList   = gl.DeleteList
 local glCallList     = gl.CallList
 
+local guishaderEnabled = (WG['guishader'])
+
 local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 23
@@ -594,8 +596,9 @@ function widget:Update(dt)
 	uiOpacitySec = uiOpacitySec + dt
 	if uiOpacitySec>0.5 then
 		uiOpacitySec = 0
-		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) then
+		if ui_opacity ~= Spring.GetConfigFloat("ui_opacity",0.66) or guishaderEnabled ~= (WG['guishader']) then
 			ui_opacity = Spring.GetConfigFloat("ui_opacity",0.66)
+			guishaderEnabled = (WG['guishader'])
 			doCreateList = true
 		end
 	end
