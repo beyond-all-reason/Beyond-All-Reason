@@ -5,7 +5,7 @@ function gadget:GetInfo()
 		author	= "Floris",
 		date	= "May 2018",
 		layer	= 0,
-		enabled = true,
+		enabled = (Spring.GetVidMemUsage),
 	}
 end
 

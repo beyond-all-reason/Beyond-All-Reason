@@ -40,7 +40,10 @@ end
 
 --------------------------------------------------------------------------------
 
-local iconScale = Spring.GetConfigFloat("UnitIconScale", 1.05)
+local iconScale = 1.05
+if Spring.GetConfigFloat then
+    iconScale = Spring.GetConfigFloat("UnitIconScale", 1.05)
+end
 
 local icons = {
     -- ID,   icon png file,   scale
