@@ -83,7 +83,6 @@ unusedlist = {
 	"corseah",	--	Seahook			/	Assault Transport
 	"cormabm",	--	Hedgehog		/	Mobile Anti Nuke
 	"armscab",  --  Scarab          /   Mobile Anti Nuke
-	"armdship",	--	Hunter			/	Light Torpedo Boat
 	"armrecl",	--	Grim Reaper		/	Ressurection Sub
 	"armroy",	--	Crusader		/	Destroyer
 	"armsub",	--	Lurker			/	Submarine
@@ -96,7 +95,6 @@ unusedlist = {
 	"armserp",	--	Serpent			/	Battle Submarine
 	"armsjam",	--	Escort			/	Radar Jammer Ship
 	"armsubk",	--	Piranha			/	Submarine Killer
-	"cordship",	--	Chaser			/	Light Torpedo Boat
 	"correcl",	--	Death Cavalry	/	Ressurection Sub
 	"corroy",	--	Enforcer		/	Destroyer
 	"corsub",	--	Snake			/	Submarine
