@@ -395,6 +395,10 @@ local function UnitDestroyed(_,unitID,unitDefID)
   ClearFxs(unitID)
 end
 
+local LocalAllyTeamID = Spring.GetLocalAllyTeamID()
+function widget:PlayerChanged(playerID)
+    LocalAllyTeamID = Spring.GetLocalAllyTeamID()
+end
 
 local function UnitEnteredLos(_,unitID)
   local spec, fullSpec = spGetSpectatingState()
@@ -404,7 +408,7 @@ local function UnitEnteredLos(_,unitID)
   local effects   = UnitEffects[unitDefID]
   if (effects) then
 	for _,fx in ipairs(effects) do
-	  if (fx.options.onActive == true) and (spGetUnitIsActive(unitID) == nil) then
+	  if Spring.GetUnitAllyTeam(unitID) == LocalAllyTeamID and (fx.options.onActive == true) and (spGetUnitIsActive(unitID) == nil) then -- cant know if enemy unit is active
 		break
 	  else
 		if (fx.class=="GroundFlash") then

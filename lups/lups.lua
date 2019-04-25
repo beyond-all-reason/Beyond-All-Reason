@@ -86,6 +86,7 @@ local spGetUnitPieceMap      = Spring.GetUnitPieceMap
 local spValidUnitID          = Spring.ValidUnitID
 local spGetUnitIsStunned     = Spring.GetUnitIsStunned
 local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetUnitHealth		 = Spring.GetUnitHealth
 
 local glUnitPieceMatrix = gl.UnitPieceMatrix
 local glPushMatrix      = gl.PushMatrix
@@ -709,11 +710,15 @@ local function GetUnitIsActive(unitID)
 	end
 	
 	activeUnitCheckTime[unitID] = thisGameFrame + ACTIVE_CHECK_PERIOD
-	activeUnit[unitID] = (spGetUnitIsActive(unitID) or spGetUnitRulesParam(unitID, "unitActiveOverride") == 1)
-		and	(spGetUnitRulesParam(unitID, "disarmed") ~= 1)
-		and (spGetUnitRulesParam(unitID, "morphDisable") ~= 1)
-		and not spGetUnitIsStunned(unitID)
-	
+	if LocalAllyTeamID ~= -2 and Spring.GetUnitAllyTeam(unitID) ~= LocalAllyTeamID then -- cant know if enemy unit is active
+		activeUnit[unitID] = true
+	else
+		activeUnit[unitID] = (spGetUnitIsActive(unitID) or spGetUnitRulesParam(unitID, "unitActiveOverride") == 1)
+			and	(spGetUnitRulesParam(unitID, "disarmed") ~= 1)
+			and (spGetUnitRulesParam(unitID, "morphDisable") ~= 1)
+			and not spGetUnitIsStunned(unitID)
+
+	end
 	return activeUnit[unitID]
 end
 
@@ -768,6 +773,9 @@ end
 local function IsUnitFXVisible(fx)
 	local unitActive = true
 	local unitID = fx.unit
+	if spGetUnitHealth(unitID) <= 0 then
+		return false
+	end
 	if fx.onActive then
 		unitActive = GetUnitIsActive(unitID)
 	end
