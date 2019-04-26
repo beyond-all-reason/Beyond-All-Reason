@@ -1239,11 +1239,11 @@ function widget:DrawScreen()
                 if IsOnRect(x, y, quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4]) then
                     glColor(0.66,0.05,0.05,0.4+(0.5*fadeProgress))
                 else
-                    glColor(0.5,0,0,0.35+(0.4*fadeProgress))
+                    glColor(0.45,0,0,0.35+(0.4*fadeProgress))
                 end
-                RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 5*widgetScale)
+                RectRound(quitscreenQuitArea[1], quitscreenQuitArea[2], quitscreenQuitArea[3], quitscreenQuitArea[4], 3.5*widgetScale)
                 glColor(0,0,0,0.07+(0.05*fadeProgress))
-                RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, buttonPadding*1.25)
+                RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 2.8*widgetScale)
 
                 local fontSize = fontSize*0.9
                 font:SetTextColor(1,1,1,1)
@@ -1253,13 +1253,13 @@ function widget:DrawScreen()
                 -- resign button
                 if not spec then
                     if IsOnRect(x, y, quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4]) then
-                        glColor(0.6,0.6,0.6,0.4+(0.5*fadeProgress))
+                        glColor(0.55,0.55,0.55,0.4+(0.5*fadeProgress))
                     else
                         glColor(0.3,0.3,0.3,0.4+(0.4*fadeProgress))
                     end
-                    RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 5*widgetScale)
+                    RectRound(quitscreenResignArea[1], quitscreenResignArea[2], quitscreenResignArea[3], quitscreenResignArea[4], 3.5*widgetScale)
                     glColor(0,0,0,0.07+(0.05*fadeProgress))
-                    RectRound(quitscreenResignArea[1]+buttonPadding, quitscreenResignArea[2]+buttonPadding, quitscreenResignArea[3]-buttonPadding, quitscreenResignArea[4]-buttonPadding, 4*widgetScale)
+                    RectRound(quitscreenResignArea[1]+buttonPadding, quitscreenResignArea[2]+buttonPadding, quitscreenResignArea[3]-buttonPadding, quitscreenResignArea[4]-buttonPadding, 2.8*widgetScale)
 
                     font:Print("Resign", quitscreenResignArea[1]+((quitscreenResignArea[3]-quitscreenResignArea[1])/2), quitscreenResignArea[2]+((quitscreenResignArea[4]-quitscreenResignArea[2])/2)-(fontSize/3), fontSize, "con")
                 end

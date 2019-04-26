@@ -1,0 +1,16 @@
+hotspot center
+frame  anims/cursorreclamate_0.png  0.4
+frame  anims/cursorreclamate_1.png  0.1
+frame  anims/cursorreclamate_2.png  0.1
+frame  anims/cursorreclamate_3.png  0.1
+frame  anims/cursorreclamate_4.png  0.1
+frame  anims/cursorreclamate_5.png  0.4
+frame  anims/cursorreclamate_6.png  0.1
+frame  anims/cursorreclamate_7.png  0.1
+frame  anims/cursorreclamate_8.png  0.1
+frame  anims/cursorreclamate_9.png  0.1
+frame  anims/cursorreclamate_10.png  0.4
+frame  anims/cursorreclamate_11.png  0.1
+frame  anims/cursorreclamate_12.png  0.1
+frame  anims/cursorreclamate_13.png  0.1
+frame  anims/cursorreclamate_14.png  0.1

@@ -1324,6 +1324,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 			Spring.SetConfigInt("FSAALevel",0)		-- engine deprecated it in 104.x
 			Spring.SetConfigInt("MSAALevel",value)
+		elseif id == 'vsync2' then
+			Spring.SetConfigInt("VSync",value)
 		elseif id == 'shadowslider' then
 			local enabled = 1
 			if value == options.min then 
@@ -2111,12 +2113,13 @@ function init()
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
+		--{id="vsync2", group="gfx", name="V-sync", type="slider", min=-2, max=2, step=1, value=tonumber(Spring.GetConfigInt("VSync",0) or 0), description='Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).'},
 		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
 		--{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		--{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
-		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=8000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
+		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=8000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4000), description='Set shadow detail'},
 		--{id="shadows_disablefps", group="gfx", name="Shadows disable at FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disables shadows at this average FPS value\n\n(but first... shadow quality reduces when average FPS gets lower)'},
 		{id="shadows_maxquality", group="gfx", name="Shadows max quality", min=2000, max=8000, step=500, type="slider", value=6000, description='Maximum shadow detail\n\n(when having high Frames Per Second)'},
 		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail\n\n(when having low Frames Per Second)'},
