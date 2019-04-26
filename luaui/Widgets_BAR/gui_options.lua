@@ -370,19 +370,6 @@ function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differentl
 	gl.Texture(false)
 end
 
-function DrawButton()
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-	gl.Color(0,0,0,0.8) 
-	RectRound(-1,-0.5,5.5,1.5,0.25, 2,2,2,2)
-	local vertices = {
-		{v = {0, 1, 0}},
-		{v = {0, 0, 0}},
-		{v = {1, 0, 0}},
-	}
-	glShape(GL_LINE_STRIP, vertices)
-  glText("Settings", textMargin, textMargin, textSize, "nos")
-end
-
 function lines(str)
   local t = {}
   local function helper(line) t[#t+1]=line return "" end
@@ -684,10 +671,10 @@ function DrawWindow()
 					optionButtons[oid] = {}
 					optionButtons[oid] = {xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
 					glColor(1,1,1,0.11)
-					RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
+					RectRound(xPosMax-boolWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2)
 					if option.value == true then
 						glColor(0.66,0.92,0.66,1)
-						RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+						RectRound(xPosMax-oHeight+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolPadding-rightPadding, yPos-boolPadding, 1)
 						local boolGlow = boolPadding*3.5
 						glColor(0.66,1,0.66,0.5)
 						glTexture(glowTex)
@@ -697,10 +684,10 @@ function DrawWindow()
 						glTexRect(xPosMax-oHeight+boolPadding-rightPadding-(boolGlow*3), yPos-oHeight+boolPadding-(boolGlow*3), xPosMax-boolPadding-rightPadding+(boolGlow*3), yPos-boolPadding+(boolGlow*3))
 					elseif option.value == 0.5 then
 						glColor(0.91,0.82,0.66,1)
-						RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+						RectRound(xPosMax-(boolWidth/1.9)+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-(boolWidth/1.9)+oHeight-boolPadding-rightPadding, yPos-boolPadding, 1)
 					else
 						glColor(0.9,0.66,0.66,1)
-						RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 2.5)
+						RectRound(xPosMax-boolWidth+boolPadding-rightPadding, yPos-oHeight+boolPadding, xPosMax-boolWidth+oHeight-boolPadding-rightPadding, yPos-boolPadding, 1)
 				   end
 
 				elseif option.type == 'slider' then
@@ -709,20 +696,20 @@ function DrawWindow()
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
 					glColor(0.8,0.8,0.8,1)
-					RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 3)
+					RectRound(xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2), 1)
 					optionButtons[oid] = {xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)-(sliderSize/2)-rightPadding, yPos-oHeight+((oHeight-sliderSize)/2), xPosMax-(sliderSize/2)-sliderWidth+(sliderWidth*sliderPos)+(sliderSize/2)-rightPadding, yPos-((oHeight-sliderSize)/2)}
 					optionButtons[oid].sliderXpos = {xPosMax-(sliderSize/2)-sliderWidth-rightPadding, xPosMax-(sliderSize/2)-rightPadding}
 
 				elseif option.type == 'select' then
 					optionButtons[oid] = {xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos}
 					glColor(1,1,1,0.11)
-					RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 3)
+					RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2)
 					if option.options[tonumber(option.value)] ~= nil then
 					font:SetTextColor(1,1,1,1)
 					font:Print(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
 				end
 					glColor(1,1,1,0.11)
-					RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2.5)
+					RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 1)
 					glColor(1,1,1,0.16)
 					glTexture(bgcorner)
 					glPushMatrix()
@@ -809,11 +796,6 @@ end
 function widget:DrawScreen()
 
   if spIsGUIHidden() then return end
-
-  -- draw the button
-  if not buttonGL then
-    buttonGL = gl.CreateList(DrawButton)
-  end
 
   if showOptionsToggleButton then
 	  glPushMatrix()
@@ -927,7 +909,7 @@ function widget:DrawScreen()
 				else
 					glColor(1,1,1,0.14)
 				end
-				RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/8)
+				RectRound(optionButtonForward[1], optionButtonForward[2], optionButtonForward[3], optionButtonForward[4], (optionButtonForward[4]-optionButtonForward[2])/12)
 			end
 			if optionButtonBackward ~= nil and IsOnRect(cx, cy, optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4]) then
 				if ml then
@@ -935,14 +917,14 @@ function widget:DrawScreen()
 				else
 					glColor(1,1,1,0.14)
 				end
-				RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/8)
+				RectRound(optionButtonBackward[1], optionButtonBackward[2], optionButtonBackward[3], optionButtonBackward[4], (optionButtonBackward[4]-optionButtonBackward[2])/12)
 			end
 
 			if not showSelectOptions then
 				for i, o in pairs(optionHover) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) and options[i].type ~= 'label' then
 						glColor(1,1,1,0.055)
-						RectRound(o[1]-4, o[2], o[3]+4, o[4], 4)
+						RectRound(o[1]-4, o[2], o[3]+4, o[4], 2)
 						font:Begin()
 						if options[i].description ~= nil then
 							description = options[i].description
@@ -956,7 +938,7 @@ function widget:DrawScreen()
 				for i, o in pairs(optionButtons) do
 					if IsOnRect(cx, cy, o[1], o[2], o[3], o[4]) then
 						gl.Color(0,0,0,0.08)
-						RectRound(o[1], o[2], o[3], o[4], 2.5)
+						RectRound(o[1], o[2], o[3], o[4], 1)
 						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 							local value = options[i].value
 							local decimalValue, floatValue = math.modf(options[i].step)
@@ -978,7 +960,7 @@ function widget:DrawScreen()
 					for optionID, _ in pairs(presets['lowest']) do
 						optionKey = getOptionByID(optionID)
 						if optionHover[optionKey] ~= nil then
-							RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 2.5)
+							RectRound(optionHover[optionKey][1], optionHover[optionKey][2]+1.33, optionHover[optionKey][3], optionHover[optionKey][4]-1.33, 1)
 						end
 					end
 				end
@@ -1002,14 +984,14 @@ function widget:DrawScreen()
                     else
                         glColor(0.25,0.25,0.25,0.85)
                     end
-					RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
+					RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
 					glColor(1,1,1,0.07)
-					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 4)
+					RectRound(optionButtons[showSelectOptions][1], optionButtons[showSelectOptions][2], optionButtons[showSelectOptions][3], optionButtons[showSelectOptions][4], 2)
 					for i, option in pairs(options[showSelectOptions].options) do
 						yPos = y-(((oHeight+oPadding+oPadding)*i)-oPadding)
 						if IsOnRect(cx, cy, optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding) then
 							glColor(1,1,1,0.18)
-							RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 4)
+							RectRound(optionButtons[showSelectOptions][1], yPos-oHeight-oPadding, optionButtons[showSelectOptions][3], yPos+oPadding, 2)
 							if playSounds and (prevSelectHover == nil or prevSelectHover ~= i) then
 								Spring.PlaySoundFile(selecthoverclick, 0.04, 'ui')
 							end
@@ -2134,7 +2116,7 @@ function init()
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		--{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
-		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=6000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 2000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
+		{id="shadowslider", group="gfx", name="Shadows", type="slider", min=1500, max=8000, step=500, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4000), description='Set shadow detail\nSlider positioned the very left means shadows will be disabled\n\nShadows requires "Advanced map shading" option to be enabled'},
 		--{id="shadows_disablefps", group="gfx", name="Shadows disable at FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disables shadows at this average FPS value\n\n(but first... shadow quality reduces when average FPS gets lower)'},
 		{id="shadows_maxquality", group="gfx", name="Shadows max quality", min=2000, max=8000, step=500, type="slider", value=6000, description='Maximum shadow detail\n\n(when having high Frames Per Second)'},
 		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail\n\n(when having low Frames Per Second)'},

@@ -569,7 +569,7 @@ function PlayNewTrack()
 	previousTrack = newTrack
 	curTrack = newTrack
 	Spring.PlaySoundStream(newTrack)
-	Spring.SetConfigInt("snd_volmusic", 1)
+    Spring.SetSoundStreamVolume(0)
 	playedTime, totalTime = Spring.GetSoundStreamTime()
 	targetTime = totalTime
 	if playing == false then

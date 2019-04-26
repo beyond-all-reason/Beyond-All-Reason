@@ -195,7 +195,6 @@ else
         knownNanoParams[key] = value
     end
 
-    local knownNanoLasers = {}
     local updateFrameCount = 0
     local prevUpdateGameFrame = 0
     function gadget:Update()

@@ -41,26 +41,17 @@ local GL_ONE       = GL.ONE
 local GL_SRC_ALPHA = GL.SRC_ALPHA
 local GL_ONE_MINUS_SRC_ALPHA = GL.ONE_MINUS_SRC_ALPHA
 local GL_QUADS     = GL.QUADS
-local GL_TEXTURE   = GL.TEXTURE
-local GL_MODELVIEW = GL.MODELVIEW
 
 local glColor      = gl.Color
 local glTexture    = gl.Texture
 local glBlending   = gl.Blending
 local glMultiTexCoord   = gl.MultiTexCoord
 local glVertex     = gl.Vertex
-local glTranslate  = gl.Translate
-local glMatrixMode = gl.MatrixMode
-local glPushMatrix = gl.PushMatrix
-local glPopMatrix  = gl.PopMatrix
 local glBeginEnd   = gl.BeginEnd
 local glUseShader  = gl.UseShader
 local glAlphaTest  = gl.AlphaTest
 local glCallList   = gl.CallList
 
-local max  = math.max
-
-local GetCameraVectors    = Spring.GetCameraVectors
 local IsSphereInView      = Spring.IsSphereInView
 
 -----------------------------------------------------------------------------------------------------------------
