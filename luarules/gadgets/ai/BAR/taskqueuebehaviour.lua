@@ -253,19 +253,23 @@ function TaskQueueBehaviour:BuildNanoSupport(unitName, target)
 	targetPos.x, targetPos.y, targetPos.z = Spring.GetUnitPosition(target)
 	local targetDefs = UnitDefs[targetType]
 	local nanoDefs = UnitDefs[UnitDefNames[unitName].id]
-	local facing = "s"
+	local facing = Spring.GetUnitBuildFacing(target)
 	local positions = nanoLayers[targetDefs.name]
 	local utype = self.game:GetTypeByName(nanoDefs.name)
 	for k,v in pairs(positions) do
 		local p = {}
-		if facing == "s" then
+		if facing == 0 then
 			p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z + v.z}
-		elseif facing == "n" then
-			p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z - v.z}
-		elseif facing == "e" then
+			Spring.Echo("north")
+		elseif facing == 1 then
 			p = {x = targetPos.x + v.z, y = targetPos.y, z = targetPos.z + v.x}
-		else
+			Spring.Echo("west")
+		elseif facing == 2 then
+			p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z - v.z}
+			Spring.Echo("south")
+		elseif facing == 3 then
 			p = {x = targetPos.x - v.z, y = targetPos.y, z = targetPos.z + v.x}
+			Spring.Echo("east")
 		end
 		if self.game.map:CanBuildHere(utype,p) == true then
 			self.ai.newplacementhandler:CreateNewPlanNoSearch(self.unit:Internal(),utype,p)
