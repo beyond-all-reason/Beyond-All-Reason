@@ -22,6 +22,8 @@ wPos = {x=0.00, y=0.15}
 local isPaused = false
 local isActive = true --is the widget shown and reacts to clicks?
 local sceduleUpdate = true
+local vsx,vsy = Spring.GetViewGeometry()
+widgetScale = (0.5 + (vsx*vsy / 5700000))
 
 function widget:Initialize()	
 	if (not Spring.IsReplay()) then
@@ -179,7 +181,7 @@ end
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
 local glText           = gl.Text
-local vsx, vsy = widgetHandler:GetViewSizes()
+
 --UI coordinaten zu scalierten screen koordinaten
 function sX (uix)
 	return uix*vsx
@@ -196,8 +198,8 @@ function uiY (sY)
 end
 
 function widget:ViewResize(viewSizeX, viewSizeY)
-	vsx = viewSizeX
-	vsy = viewSizeY
+	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (0.5 + (vsx*vsy / 5700000))
     sceduleUpdate = true
 end
 ----zeichen funktionen---------
