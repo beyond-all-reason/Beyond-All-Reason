@@ -270,35 +270,27 @@ function NewPlacementHandler:GetExistingPlansByUnit(unit)
 end
 
 function NewPlacementHandler:GetMinimalSpacing(utype)
-	local r = math.random(0,5)
+	local r = math.random(0,2)
 	if string.find(UnitDefs[utype.id].name, "nanotc") then
-		if r <= 1 then
-			return 0
-		elseif r == 2 then
+		if r == 0 then
 			return 60
 		else
 			return 20
 		end
 	elseif string.find(UnitDefs[utype.id].name, "solar") then
-		if r <= 1 then
-			return 0
-		elseif r == 2 then
+		if r == 0 then
 			return 60
 		else
 			return 20
 		end
 	elseif string.find(UnitDefs[utype.id].name, "win") then
-		if r <= 1 then
-			return 0
-		elseif r == 2 then
+		if r == 0 then
 			return 60
 		else
 			return 20
 		end
 	elseif string.find(UnitDefs[utype.id].name, "makr") then
-		if r <= 1 then
-			return 0
-		elseif r == 2 then
+		if r == 0 then
 			return 60
 		else
 			return 20
