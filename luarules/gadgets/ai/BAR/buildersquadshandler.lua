@@ -21,16 +21,16 @@ local function squadtable(domain)
 		maxallowedbp = 2000
 		maxpendingrequests = 3
 	elseif domain == "economy" then
-		maxallowedbp = 1500
+		maxallowedbp = 500
 		maxpendingrequests = 2
 	elseif domain == "expand" then
-		maxallowedbp = 400
+		maxallowedbp = 300
 		maxpendingrequests = 1
 	elseif domain == "util" then
-		maxallowedbp = 150
+		maxallowedbp = 200
 		maxpendingrequests = 1
 	else
-		maxallowedbp = 300
+		maxallowedbp = 200
 		maxpendingrequests = 1
 	end
 	local stable = {
@@ -76,7 +76,7 @@ function BuilderSquadsHandler:Init()
 	self.idle = {} -- [i] = tqb
 	self.states = {} -- [unitID] = {state = state, [params = params]}
 	-- Initial setup, later this should become mapdependant and difficulty level dependant
-	self.coeff = self.coeff or {economy = 0.2, military = 0.2, expand = 0.2, util = 0.2, commander = 0.2}
+	self.coeff = self.coeff or {economy = 1.0, military = 1.0, expand = 1.0, util = 1.0, commander = 1.0}
 	--
 	self.currentTechLevel = 1
 end

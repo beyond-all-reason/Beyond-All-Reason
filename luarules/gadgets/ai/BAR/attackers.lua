@@ -59,6 +59,7 @@ attackerlist = {
 	"corcat",	--	Catapult		/	Heavy Rocket Kbot
 }
 
+--[[
 gunshiplist = {
 	"armbrawl",	--	Brawler			/	Gunship	
 	"armblade",	--	Blade			/	Rapid Assault Gunship	
@@ -72,6 +73,7 @@ gunshiplist = {
 	"armsaber",	--	Sabre			/	Seaplane Gunship
 	-- "armdfly",	--	Dragonfly		/	Sealthy Armed Transport
 }
+]]
 
 unusedlist = {
 	"armvader", --  Invader         /   Amphibious Crawling Bomb
@@ -124,6 +126,18 @@ bomberlist = {
 	"armpnix",	--	Phoenix			/	Strategic Bomber	
 	"armsb",	--	Tsunami			/	Seaplane Bomber
 	"armstil",	--	Stiletto		/	EMP Bomber
+	---------------GUNSHIPS
+	"armbrawl",	--	Brawler			/	Gunship	
+	"armblade",	--	Blade			/	Rapid Assault Gunship	
+	"armkam",	--	Banshee			/	Light Gunship	
+	"corbw",	--	Bladewing		/	Paralyzer Drone	
+	"corcrw",	--	Krow			/	Flying Fortress	
+	"corape",	--	Rapier			/	Gunship	
+	"corcut",	--	Cutlass			/	Seaplane Gunship	
+	-- "corseap",	--	Typhoon			/	Torpedo Gunship
+	-- "armseap",	--	Albatross		/	Torpedo Gunship
+	"armsaber",	--	Sabre			/	Seaplane Gunship
+	-- "armdfly",	--	Dragonfly		/	Sealthy Armed Transport
 
 }
 
