@@ -16,8 +16,8 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 32
-local fontfileOutlineSize = 10
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 9
+local fontfileOutlineStrength = 1.45
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local useRoundedRectangles = true
