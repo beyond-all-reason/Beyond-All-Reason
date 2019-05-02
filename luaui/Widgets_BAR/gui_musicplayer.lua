@@ -34,8 +34,8 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 36
-local fontfileOutlineSize = 10
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 8.5
+local fontfileOutlineStrength = 1.33
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -- Unfucked volumes finally. Instead of setting the volume in Spring.PlaySoundStream. you need to call Spring.PlaySoundStream and then immediately call Spring.SetSoundStreamVolume
@@ -325,7 +325,7 @@ local function createList()
 		end
 		trackname = text
 		font:Begin()
-		font:Print('\255\155\155\155'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print('\255\185\185\185'..trackname, buttons['next'][3]+textXPadding, bottom+textYPadding, textsize, 'no')
 		font:End()
 	end)
 	drawlist[4] = glCreateList( function()
@@ -634,10 +634,10 @@ function updatePosition(force)
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 
-		if widgetScale ~= advplayerlistPos[5] then
-			local fontScale = widgetScale/2
-			font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
-		end
+		--if widgetScale ~= advplayerlistPos[5] then
+		--	local fontScale = widgetScale/2
+		--	font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+		--end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]
