@@ -31,8 +31,8 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 5.75
+local fontfileOutlineStrength = 1.33
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
@@ -147,8 +147,8 @@ local function updateValues()
 		local _,gamespeed,_ = Spring.GetGameSpeed()
 		gamespeed = string.format("%.2f", gamespeed)
 		local fps = Spring.GetFPS()
-		local titleColor = '\255\155\155\155'
-		local valueColor = '\255\200\200\200'
+		local titleColor = '\255\185\185\185'
+		local valueColor = '\255\230\230\230'
 		local gameframe = Spring.GetGameFrame()
 		local minutes = math.floor((gameframe / 30 / 60))
 		local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
@@ -250,10 +250,10 @@ function updatePosition(force)
 		if WG['music'] and WG['music'].GetPosition and WG['music'].GetPosition() then
             advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
-        if widgetScale ~= advplayerlistPos[5] then
-            local fontScale = widgetScale/2
-            font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
-        end
+        --if widgetScale ~= advplayerlistPos[5] then
+        --    local fontScale = widgetScale/2
+        --    font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.25)
+        --end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]

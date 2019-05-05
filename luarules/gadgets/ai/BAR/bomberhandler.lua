@@ -37,7 +37,8 @@ function BomberHandler:DoBombingRun()
 	if targetID and Spring.ValidUnitID(targetID) then
 		local x,y,z = Spring.GetUnitPosition(targetID)
 		for k, v in pairs(self.standbypatrol) do
-			v:AttackTarget(targetID)
+			v:FightCell({x = x, y = y, z = z})
+			--v:AttackTarget(targetID)
 		end
 		self.ai.fighterhandler:RequestFighterSupport({x = x, y = y, z = z})
 	end

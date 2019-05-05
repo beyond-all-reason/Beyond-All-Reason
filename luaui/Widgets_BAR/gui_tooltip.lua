@@ -41,8 +41,8 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 5.5
-local fontfileOutlineStrength = 1.9
+local fontfileOutlineSize = 4.5
+local fontfileOutlineStrength = 1.8
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ------------------------------------------------------------------------------------

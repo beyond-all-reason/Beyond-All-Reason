@@ -47,6 +47,7 @@ function AiModeHandler:Init()
 	self.ai.buildersquadshandler:AddRequest('armacv', "util", "leader")
 	self.ai.buildersquadshandler:AddRequest('armaca', "util", "leader")
 	self.ai.buildersquadshandler:AddRequest('armca', "util", "leader")
+	self.ai.buildersquadshandler:AddRequest('armbeaver', "util", "leader")
 	self.ai.buildersquadshandler:AddRequest('corck', "util", "leader")
 	self.ai.buildersquadshandler:AddRequest('corack', "util", "leader")
 	self.ai.buildersquadshandler:AddRequest('coracv', "util", "leader")
@@ -70,14 +71,15 @@ end
 
 
 function AiModeHandler:Mode(i)
-		self.perraider = 50
-		self.perskirmer = 40
+		self.perraider = math.random(1,200)
+		self.perskirmer = math.random(1,150) + self.perraider
+		self.perarty = math.random(1,50) + self.perskirmer
 		self.t1ratepret2 = math.random(3,20)*0.1							
 		self.t1ratepostt2 = math.random(5,100)*0.01
 		self.eincomelimiterpretech2 = math.random(950,2550)
 		self.eincomelimiterposttech2 = math.random(950,2550)
-		if self.eincomelimiterposttech2 < self.eincomelimiterpretech2 then
-			local r = math.random(1,100)
+		if self.eincomelimiterposttech2 < self.eincomelimiterpretech2 + 150 then
+			local r = math.random(150,300)
 			self.eincomelimiterposttech2 = self.eincomelimiterpretech2 + r
 		end
 		self.mintecheincome = self.eincomelimiterpretech2 - 200
@@ -93,7 +95,7 @@ function AiModeHandler:Mode(i)
 		self.eincomelimiterpretech2 = math.max(self.mintecheincome, self.eincomelimiterpretech2)
 		self.mintechmincome = math.min(self.mintechmincome, self.eincomelimiterpretech2/70)
 		self.nodefenderscounter = math.random(1200,2400)
-		self.noregroupcounter = self.nodefenderscounter + math.random(600,1200)
+		self.noregroupcounter = self.nodefenderscounter + math.random(200,400)
 	-- if i == 1 then -- Balanced mode
 		-- -- Spring.Echo(self.ai.id, "Balanced mode")
 		-- self.t1ratepret2 = 1

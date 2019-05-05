@@ -248,33 +248,35 @@ function TaskQueueBehaviour:TryToBuild( unit_name, pos )
 end
 
 function TaskQueueBehaviour:BuildNanoSupport(unitName, target)
-	local targetType = Spring.GetUnitDefID(target)
-	local targetPos = {}
-	targetPos.x, targetPos.y, targetPos.z = Spring.GetUnitPosition(target)
-	local targetDefs = UnitDefs[targetType]
-	local nanoDefs = UnitDefs[UnitDefNames[unitName].id]
-	local facing = Spring.GetUnitBuildFacing(target)
-	local positions = nanoLayers[targetDefs.name]
-	local utype = self.game:GetTypeByName(nanoDefs.name)
-	for k,v in pairs(positions) do
-		local p = {}
-		if facing == 0 then
-			p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z + v.z}
-			--Spring.Echo("north")
-		elseif facing == 1 then
-			p = {x = targetPos.x + v.z, y = targetPos.y, z = targetPos.z + v.x}
-			--Spring.Echo("west")
-		elseif facing == 2 then
-			p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z - v.z}
-			--Spring.Echo("south")
-		elseif facing == 3 then
-			p = {x = targetPos.x - v.z, y = targetPos.y, z = targetPos.z + v.x}
-			--Spring.Echo("east")
-		end
-		if self.game.map:CanBuildHere(utype,p) == true then
-			self.ai.newplacementhandler:CreateNewPlanNoSearch(self.unit:Internal(),utype,p)
-			self.unit:Internal():ExecuteCustomCommand(-nanoDefs.id, {p.x, Spring.GetGroundHeight(p.x, p.z), p.z}, {"shift"})
-			return true
+	if target then
+		local targetType = Spring.GetUnitDefID(target)
+		local targetPos = {}
+		targetPos.x, targetPos.y, targetPos.z = Spring.GetUnitPosition(target)
+		local targetDefs = UnitDefs[targetType]
+		local nanoDefs = UnitDefs[UnitDefNames[unitName].id]
+		local facing = Spring.GetUnitBuildFacing(target)
+		local positions = nanoLayers[targetDefs.name]
+		local utype = self.game:GetTypeByName(nanoDefs.name)
+		for k,v in pairs(positions) do
+			local p = {}
+			if facing == 0 then
+				p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z + v.z}
+				--Spring.Echo("north")
+			elseif facing == 1 then
+				p = {x = targetPos.x + v.z, y = targetPos.y, z = targetPos.z + v.x}
+				--Spring.Echo("west")
+			elseif facing == 2 then
+				p = {x = targetPos.x + v.x, y = targetPos.y, z = targetPos.z - v.z}
+				--Spring.Echo("south")
+			elseif facing == 3 then
+				p = {x = targetPos.x - v.z, y = targetPos.y, z = targetPos.z + v.x}
+				--Spring.Echo("east")
+			end
+			if self.game.map:CanBuildHere(utype,p) == true then
+				self.ai.newplacementhandler:CreateNewPlanNoSearch(self.unit:Internal(),utype,p)
+				self.unit:Internal():ExecuteCustomCommand(-nanoDefs.id, {p.x, Spring.GetGroundHeight(p.x, p.z), p.z}, {"shift"})
+				return true
+			end
 		end
 	end
 	return false
