@@ -1145,11 +1145,11 @@ FirePrimary()
 {
 	if( gun_1 )
 	{
-	    emit-sfx 1024 + 0 from lflare;
+	    emit-sfx 1024 + 0 from rflare;
 	}
 	else
 	{
-	    emit-sfx 1024 + 0 from rflare;
+	    emit-sfx 1024 + 0 from lflare;
 	}
 	gun_1 = !gun_1;
 }
