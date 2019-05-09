@@ -1416,6 +1416,10 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', {'maps',Game.mapName:lower()}, value)
 		elseif id == 'healthbarsscale' then
 			saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value)
+		elseif id == 'ssao_strength' then
+			saveOptionValue('SSAO', 'ssao', 'setStrength', {'strength'}, value)
+		elseif id == 'ssao_radius' then
+			saveOptionValue('SSAO', 'ssao', 'setRadius', {'radius'}, value)
 		elseif id == 'bloomdeferredbrightness' then
 			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', {'glowAmplifier'}, value)
 		elseif id == 'bloomdeferredsize' then
@@ -1961,6 +1965,9 @@ function loadAllWidgetData()
 	loadWidgetData("Shadow Quality Manager", "shadows_minquality", {'minQuality'})
 	loadWidgetData("Shadow Quality Manager", "shadows_disablefps", {'disableFps'})
 
+	loadWidgetData("SSAO", "ssao_strength", {'strength'})
+	loadWidgetData("SSAO", "ssao_radius", {'radius'})
+
 	loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", {'glowAmplifier'})
 	loadWidgetData("Bloom Shader Deferred", "bloomdeferredsize", {'qualityBlursizeMult'})
 	loadWidgetData("Bloom Shader Deferred", "bloomdeferredquality", {'qualityPreset'})
@@ -2141,13 +2148,20 @@ function init()
 		--{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.9, max=1.5, step=0.05, value=1.1, description=''},
 		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
 
+		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
+		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.'},
+
 		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.05, max=0.9999, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
 		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
 		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
         {id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
 
-		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
-		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.'},
+		{id="ssao", group="gfx", widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
+		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=0.5, max=1.5, step=0.05, value=0.75, description=''},
+		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=5, max=12, step=1, value=7, description=''},
+
+		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
+		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
@@ -2158,9 +2172,6 @@ function init()
 
 		{id="featuredrawdist", group="gfx", name="Feature draw distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureDrawDistance",6000) or 400), description='Features (trees, stones, wreckage) stop being displayed at this distance'},
 		--{id="featurefadedist", group="gfx", name=widgetOptionColor.."   fade distance", type="slider", min=2500, max=15000, step=500, value=tonumber(Spring.GetConfigInt("FeatureFadeDistance",4500) or 400), description='Features (trees, stones, wreckage) start fading away from this distance'},
-
-		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
-		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
 
 		{id="particles", group="gfx", name="Particle limit", type="slider", min=10000, max=40000, step=1000, value=tonumber(Spring.GetConfigInt("MaxParticles",1) or 15000), description='Particle limit used for explosions, smoke, fire and missiletrails\n\nBeware, a too low value can result in the particle bugdget being reached,\nand effects no longer show up'},
 
@@ -2498,7 +2509,11 @@ function init()
 		options[getOptionByID('cursor')].options = cursorsets
 		options[getOptionByID('cursor')].value = cursor
 	end
-
+	if widgetHandler.knownWidgets["SSAO"] == nil then
+		options[getOptionByID('ssao')] = nil
+		options[getOptionByID('ssao_strength')] = nil
+		options[getOptionByID('ssao_radius')] = nil
+	end
 	if widgetHandler.knownWidgets["Bloom Shader"] == nil then
 		options[getOptionByID('bloombrightness')] = nil
 		options[getOptionByID('bloomsize')] = nil
