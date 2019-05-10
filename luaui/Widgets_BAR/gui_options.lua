@@ -2014,6 +2014,8 @@ function loadAllWidgetData()
 
 	loadWidgetData("Top Bar", "resourcebarcoloring", {'resourcebarBgTint'})
 
+	loadWidgetData("Commander Name Tags", "nametags_icon", {'drawForIcon'})
+
 	loadWidgetData("Ally Selected Units", "allyselunits_select", {'selectPlayerUnits'})
 
 	loadWidgetData("Voice Notifs", "voicenotifs_playtrackedplayernotifs", {'playTrackedPlayerNotifs'})
@@ -2314,7 +2316,7 @@ function init()
 
 		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=GetWidgetToggleValue("Display DPS"), description='Display the \'Damage Per Second\' done where target are hit'},
 
-		{id="nametags_icon", group="ui", name="Com name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon'},
+		{id="nametags_icon", group="ui", name="Commander name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon'},
 
 		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
@@ -2596,7 +2598,7 @@ function init()
 		options[getOptionByID('vsync')] = nil
 	end
 
-	if WG['nametags'] == nil  then
+	if not widgetHandler.knownWidgets["Commander Name Tags"] then
 		options[getOptionByID('nametags_icon')] = nil
 	end
 

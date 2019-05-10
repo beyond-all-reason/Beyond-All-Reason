@@ -71,6 +71,7 @@ local diag						= math.diag
 
 local comms = {}
 local comnameList = {}
+local comnameIconList = {}
 local drawScreenUnits = {}
 local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
@@ -118,6 +119,9 @@ end
 local function RemoveLists()
     for name, list in pairs(comnameList) do
         gl.DeleteList(comnameList[name])
+    end
+    for name, list in pairs(comnameIconList) do
+        gl.DeleteList(comnameIconList[name])
     end
     comnameList = {}
 end
@@ -217,10 +221,11 @@ function widget:ViewResize()
     end
 end
 
-function widget:DrawScreen()
-    if Spring.IsGUIHidden() then return end
-
-    for unitID, attributes in pairs(drawScreenUnits) do
+local function createComnameIconList(unitID, attributes)
+    if comnameIconList[unitID] ~= nil then
+        gl.DeleteList(comnameIconList[attributes[1]])
+    end
+    comnameIconList[unitID] = gl.CreateList( function()
         local x,y,z = GetUnitPosition(unitID)
         x,z = Spring.WorldToScreenCoords(x, y, z)
 
@@ -231,8 +236,26 @@ function widget:DrawScreen()
         font:Begin()
         font:SetTextColor(attributes[2])
         font:SetOutlineColor(outlineColor)
-        font:Print(attributes[1], x, z, attributes[5], "con")
+        font:Print(attributes[1], 0, 0, fontSize*1.9, "con")
         font:End()
+    end)
+end
+function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guishader will blur it when needed
+    if Spring.IsGUIHidden() then return end
+
+    for unitID, attributes in pairs(drawScreenUnits) do
+        if not comnameIconList[unitID] then
+            createComnameIconList(unitID, attributes)
+        end
+        local x,y,z = GetUnitPosition(unitID)
+        x,z = Spring.WorldToScreenCoords(x, y, z)
+        local scale = 1-(attributes[5]/25000)
+        if scale < 0.5 then scale = 0.5 end
+        gl.PushMatrix()
+        gl.Translate(x,z,0)
+        gl.Scale(scale,scale,scale)
+        gl.CallList(comnameIconList[unitID])
+        gl.PopMatrix()
     end
     drawScreenUnits = {}
 end
@@ -261,12 +284,8 @@ function widget:DrawWorld()
 		camDistance = diag(camX-x, camY-y, camZ-z) 
 
 	    if drawForIcon and Spring.IsUnitIcon(unitID) then
-            attributes[5] = fontSize + (fontSize/(camDistance/2500))
+            attributes[5] = camDistance
             drawScreenUnits[unitID] = attributes
-            --gl.PushMatrix()
-            --glTranslate(x, y, z)
-            --DrawName(attributes)
-            --gl.PopMatrix()
         else
             usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
 		    glDrawFuncAtUnit(unitID, false, DrawName, attributes)
@@ -326,14 +345,27 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   comms[unitID] = nil
+
+    if comnameIconList[unitID] then
+        gl.DeleteList(comnameIconList[unitID])
+        comnameIconList[unitID] = nil
+    end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
   CheckCom(unitID, unitDefID, unitTeam)
+    if comnameIconList[unitID] then
+        gl.DeleteList(comnameIconList[unitID])
+        comnameIconList[unitID] = nil
+    end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
   CheckCom(unitID, unitDefID, unitTeam)
+    if comnameIconList[unitID] then
+        gl.DeleteList(comnameIconList[unitID])
+        comnameIconList[unitID] = nil
+    end
 end
 
 function widget:UnitEnteredLos(unitID, unitDefID, unitTeam)
