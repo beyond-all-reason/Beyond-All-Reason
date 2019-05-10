@@ -14,6 +14,7 @@ end
 -- config
 --------------------------------------------------------------------------------
 
+local drawForIcon           = true      -- note that commander icon still gets drawn on top of the name
 local nameScaling			= true
 local useThickLeterring		= true
 local heightOffset			= 50
@@ -239,8 +240,14 @@ function widget:DrawWorld()
 		camDistance = diag(camX-x, camY-y, camZ-z) 
 		
 	    usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
-	    
-		glDrawFuncAtUnit(unitID, false, DrawName, attributes)
+	    if drawForIcon and Spring.IsUnitIcon(unitID) then
+            gl.PushMatrix()
+            glTranslate(x, y, z)
+            DrawName(attributes)
+            gl.PopMatrix()
+        else
+		    glDrawFuncAtUnit(unitID, false, DrawName, attributes)
+        end
 	end
   end
   
