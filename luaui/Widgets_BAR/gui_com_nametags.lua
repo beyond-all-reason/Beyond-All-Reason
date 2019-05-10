@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Bluestone, Floris",
     date      = "20 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = 2,
+    layer     = 2000000,
     enabled   = true,  --  loaded by default?
   }
 end
@@ -71,6 +71,7 @@ local diag						= math.diag
 
 local comms = {}
 local comnameList = {}
+local drawScreenUnits = {}
 local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
@@ -216,6 +217,26 @@ function widget:ViewResize()
     end
 end
 
+function widget:DrawScreen()
+    if Spring.IsGUIHidden() then return end
+
+    for unitID, attributes in pairs(drawScreenUnits) do
+        local x,y,z = GetUnitPosition(unitID)
+        x,z = Spring.WorldToScreenCoords(x, y, z)
+
+        local outlineColor = {0,0,0,1}
+        if (attributes[2][1] + attributes[2][2]*1.2 + attributes[2][3]*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
+            outlineColor = {1,1,1,1}
+        end
+        font:Begin()
+        font:SetTextColor(attributes[2])
+        font:SetOutlineColor(outlineColor)
+        font:Print(attributes[1], x, z, attributes[5], "con")
+        font:End()
+    end
+    drawScreenUnits = {}
+end
+
 function widget:DrawWorld()
   if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
@@ -231,21 +252,23 @@ function widget:DrawWorld()
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
    
   local camX, camY, camZ = GetCameraPosition()
-  
+
   for unitID, attributes in pairs(comms) do
     
     -- calc opacity
 	if IsUnitInView(unitID) then
 		local x,y,z = GetUnitPosition(unitID)
 		camDistance = diag(camX-x, camY-y, camZ-z) 
-		
-	    usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
+
 	    if drawForIcon and Spring.IsUnitIcon(unitID) then
-            gl.PushMatrix()
-            glTranslate(x, y, z)
-            DrawName(attributes)
-            gl.PopMatrix()
+            attributes[5] = fontSize + (fontSize/(camDistance/2500))
+            drawScreenUnits[unitID] = attributes
+            --gl.PushMatrix()
+            --glTranslate(x, y, z)
+            --DrawName(attributes)
+            --gl.PopMatrix()
         else
+            usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
 		    glDrawFuncAtUnit(unitID, false, DrawName, attributes)
         end
 	end
@@ -275,6 +298,14 @@ function CheckAllComs()
 end
 
 function widget:Initialize()
+
+    WG['nametags'] = {}
+    WG['nametags'].getDrawForIcon = function()
+        return drawForIcon
+    end
+    WG['nametags'].setDrawForIcon = function(value)
+        drawForIcon = value
+    end
     CheckAllComs()
 end
 
@@ -316,13 +347,17 @@ end
 
 function widget:GetConfigData()
     return {
-        nameScaling = nameScaling
+        nameScaling = nameScaling,
+        drawForIcon = drawForIcon
     }
 end
 
 function widget:SetConfigData(data) --load config
 	widgetHandler:AddAction("comnamescale", toggleNameScaling)
-	if data.nameScaling ~= nil then
-		nameScaling = data.nameScaling
-	end
+    if data.nameScaling ~= nil then
+        nameScaling = data.nameScaling
+    end
+    if data.drawForIcon ~= nil then
+        drawForIcon = data.drawForIcon
+    end
 end

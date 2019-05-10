@@ -1182,6 +1182,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigUnitBigTooltip', {'drawBigTooltip'}, options[i].value)
 		elseif id == 'buildmenulargeicons' then
 			saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, options[i].value)
+		elseif id == 'nametags_icon' then
+			saveOptionValue('Commander Name Tags', 'nametags', 'setDrawForIcon', {'drawForIcon'}, options[i].value)
 		elseif id == 'sameteamcolors' then
 			saveOptionValue('Player Color Palette', 'playercolorpalette', 'setSameTeamColors', {'useSameTeamColors'}, options[i].value)
 		elseif id == 'commandsfxfilterai' then
@@ -2281,8 +2283,8 @@ function init()
 		{id="sameteamcolors", group="ui", name=widgetOptionColor.."   same team colors", type="bool", value=(WG['playercolorpalette']~=nil and WG['playercolorpalette'].getSameTeamColors~=nil and WG['playercolorpalette'].getSameTeamColors()), description='Use the same teamcolor for all the players in a team\n\nNOTE: reloads all widgets because these need to update their teamcolors'},
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
-		{id="font", group="ui", name="Font", type="select", options={}, value=1, description='Font used for longer text and as default'},
-		{id="font2", group="ui", name="Font 2", type="select", options={}, value=1, description='Stylisic font mainly used for titles and names'},
+		{id="font", group="ui", name="Font", type="select", options={}, value=1, description='Regular read friendly font used for text'},
+		{id="font2", group="ui", name="Font 2", type="select", options={}, value=1, description='Stylistic font mainly used for names/buttons/titles'},
 		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
 		{id="guishader", group="ui", widget="GUI Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
@@ -2311,6 +2313,9 @@ function init()
 		{id="mascotte", group="ui", widget=widgetOptionColor.."Playerlist mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList mascotte"), description='Shows a mascotte on top of the (adv)playerslist'},
 
 		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=GetWidgetToggleValue("Display DPS"), description='Display the \'Damage Per Second\' done where target are hit'},
+
+		{id="nametags_icon", group="ui", name="Com name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon'},
+
 		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
 		{id="idlebuilders", group="ui", widget="Idle Builders", name="List idle builders", type="bool", value=GetWidgetToggleValue("Idle Builders"), description='Displays a row of idle builder units at the bottom of the screen'},
@@ -2589,6 +2594,10 @@ function init()
 	-- not sure if needed: remove vsync option when its done by monitor (freesync/gsync) -> config value is set as 'x'
 	if Spring.GetConfigInt("VSync",1) == 'x' then
 		options[getOptionByID('vsync')] = nil
+	end
+
+	if WG['nametags'] == nil  then
+		options[getOptionByID('nametags_icon')] = nil
 	end
 
 	if WG['red_buildmenu'] == nil or WG['red_buildmenu'].getConfigShortcutsInfo == nil then
