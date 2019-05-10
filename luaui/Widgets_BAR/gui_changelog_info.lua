@@ -19,6 +19,8 @@ local fontfileSize = 25
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local loadedFontSize = fontfileSize*fontfileScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
@@ -86,6 +88,8 @@ function widget:ViewResize()
     fontfileScale = newFontfileScale
     gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	gl.DeleteFont(font2)
+	font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	loadedFontSize = fontfileSize*fontfileScale
   end
 	if changelogList then gl.DeleteList(changelogList) end
@@ -372,13 +376,13 @@ function DrawWindow()
 	else
 		gl.Color(0,0,0,0.85)
 	end
-    titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+    titleRect = {x-bgMargin, y+bgMargin, x+(font2:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
-	font:Begin()
-	font:SetTextColor(1,1,1,1)
-	font:SetOutlineColor(0,0,0,0.4)
-	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
-	font:End()
+	font2:Begin()
+	font2:SetTextColor(1,1,1,1)
+	font2:SetOutlineColor(0,0,0,0.4)
+	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+	font2:End()
 	
 	-- version links
 	DrawSidebar(x, y, 70, screenHeight)
@@ -714,4 +718,5 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('changelog')
 	end
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 end

@@ -33,7 +33,7 @@ local GL_FUNC_REVERSE_SUBTRACT = 0x800B
 -----------------------------------------------------------------
 
 local SSAO_KERNEL_SIZE = 24 -- how many samples are used for SSAO spatial sampling, don't go over 24
-local SSAO_RADIUS = 7 -- world space maximum sampling radius
+local SSAO_RADIUS = 8 -- world space maximum sampling radius
 
 local BLUR_HALF_KERNEL_SIZE = 5 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
 local BLUR_PASSES = 2 -- number of blur passes

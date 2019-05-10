@@ -47,6 +47,9 @@ local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local bgcorner = "LuaUI/Images/bgcorner.png"
 local backwardTex = "LuaUI/Images/backward.dds"
 local forwardTex = "LuaUI/Images/forward.dds"
@@ -271,6 +274,7 @@ function widget:ViewResize()
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
   if windowList then gl.DeleteList(windowList) end
   windowList = gl.CreateList(DrawWindow)
@@ -460,11 +464,11 @@ function mouseoverGroupTab(id)
 	local groupMargin = bgMargin/1.7
 	gl.Color(0.4,0.4,0.4,0.3)
 	RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
-	font:Begin()
-	font:SetTextColor(1,0.85,0.55,1)
-	font:SetOutlineColor(0.4,0.3,0.15,0.4)
-	font:Print(optionGroups[id].name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), screenY+bgMargin+8, tabFontSize, "con")
-	font:End()
+	font2:Begin()
+	font2:SetTextColor(1,0.85,0.55,1)
+	font2:SetOutlineColor(0.4,0.3,0.15,0.4)
+	font2:Print(optionGroups[id].name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), screenY+bgMargin+8, tabFontSize, "con")
+	font2:End()
 end
 
 local startColumn = 1		-- used for navigation
@@ -507,7 +511,7 @@ function DrawWindow()
 	-- title
 	local title = "Settings"
 	local titleFontSize = 18
-	titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37 }
+	titleRect = {x-bgMargin, y+bgMargin, x+(font2:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37 }
 
 	-- group tabs
 	local tabFontSize = 16
@@ -515,7 +519,7 @@ function DrawWindow()
 	local groupMargin = bgMargin/1.7
 	groupRect = {}
 	for id,group in pairs(optionGroups) do
-		groupRect[id] = {xpos, y+(bgMargin/2), xpos+(font:GetTextWidth(group.name)*tabFontSize)+27, y+37}
+		groupRect[id] = {xpos, y+(bgMargin/2), xpos+(font2:GetTextWidth(group.name)*tabFontSize)+27, y+37}
 		xpos = groupRect[id][3]
 		if currentGroupTab == nil or currentGroupTab ~= group.id then
 			if WG['guishader'] then
@@ -526,11 +530,11 @@ function DrawWindow()
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.62,0.5,0.22,0.18)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2], groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
-			font:Begin()
-			font:SetTextColor(0.6,0.51,0.38,1)
-			font:SetOutlineColor(0,0,0,0.4)
-			font:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
-			font:End()
+			font2:Begin()
+			font2:SetTextColor(0.6,0.51,0.38,1)
+			font2:SetOutlineColor(0,0,0,0.4)
+			font2:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
+			font2:End()
 		else
 			if WG['guishader'] then
 				gl.Color(0,0,0,0.8)
@@ -540,11 +544,11 @@ function DrawWindow()
 			RectRound(groupRect[id][1], groupRect[id][2]+(bgMargin/2), groupRect[id][3], groupRect[id][4], 8, 1,1,0,0)
 			gl.Color(0.4,0.4,0.4,0.15)
 			RectRound(groupRect[id][1]+groupMargin, groupRect[id][2]+(bgMargin/2)-bgMargin, groupRect[id][3]-groupMargin, groupRect[id][4]-groupMargin, groupMargin*1.8, 1,1,0,0)
-			font:Begin()
-			font:SetTextColor(1,0.75,0.4,1)
-			font:SetOutlineColor(0,0,0,0.4)
-			font:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
-			font:End()
+			font2:Begin()
+			font2:SetTextColor(1,0.75,0.4,1)
+			font2:SetOutlineColor(0,0,0,0.4)
+			font2:Print(group.name, groupRect[id][1]+((groupRect[id][3]-groupRect[id][1])/2), y+bgMargin+8, tabFontSize, "con")
+			font2:End()
 		end
 	end
 
@@ -556,11 +560,13 @@ function DrawWindow()
 	end
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
 
-	font:Begin()
-	font:SetTextColor(1,1,1,1)
-	font:SetOutlineColor(0,0,0,0.4)
-	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+	font2:Begin()
+	font2:SetTextColor(1,1,1,1)
+	font2:SetOutlineColor(0,0,0,0.4)
+	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+	font2:End()
 
+	font:Begin()
 	local width = screenWidth/3
 	--gl.Color(0.66,0.66,0.66,0.08)
 	--RectRound(x+width+width+6,y-screenHeight,x+width+width+width,y,6)
@@ -664,6 +670,7 @@ function DrawWindow()
 				if option.type == 'label' then
 					color = '\255\235\200\125'
 				end
+
 				font:SetTextColor(1,1,1,1)
 				font:Print(color..option.name, xPos+(oPadding/2), yPos-(oHeight/3)-oPadding, oHeight, "no")
 
@@ -710,9 +717,18 @@ function DrawWindow()
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-selectWidth-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 2)
 					if option.options[tonumber(option.value)] ~= nil then
-					font:SetTextColor(1,1,1,1)
-					font:Print(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
-				end
+						if option.id == 'font2' then
+							font:End()
+							font2:Begin()
+							font2:SetTextColor(1,1,1,1)
+							font2:Print(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
+							font2:End()
+							font:Begin()
+						else
+							font:SetTextColor(1,1,1,1)
+							font:Print(option.options[tonumber(option.value)], xPosMax-selectWidth+5-rightPadding, yPos-(oHeight/3)-oPadding, oHeight*0.85, "no")
+						end
+					end
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-oHeight-rightPadding, yPos-oHeight, xPosMax-rightPadding, yPos, 1)
 					glColor(1,1,1,0.16)
@@ -1574,6 +1590,11 @@ function applyOptionValue(i, skipRedrawWindow)
 				Spring.SetConfigString("ui_font", options[i].optionsFont[value])
 				Spring.SendCommands("luarules reloadluaui")
 			end
+		elseif id == 'font2' then
+			if VFS.FileExists(LUAUI_DIRNAME..'fonts/'..options[i].optionsFont[value]) then
+				Spring.SetConfigString("ui_font2", options[i].optionsFont[value])
+				Spring.SendCommands("luarules reloadluaui")
+			end
 		elseif id == 'nanoeffect' then
 			Spring.SetConfigInt("NanoEffect",value)
 			if value == 1 then
@@ -2162,8 +2183,8 @@ function init()
         {id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
 
 		{id="ssao", group="gfx", widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
-		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=0.5, max=1.5, step=0.05, value=0.75, description=''},
-		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=5, max=12, step=1, value=7, description=''},
+		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=0.5, max=1.4, step=0.05, value=0.75, description=''},
+		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=7, max=12, step=1, value=8, description=''},
 
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
@@ -2261,6 +2282,7 @@ function init()
 		{id="simpleminimapcolors", group="ui", name="Simple minimap colors", type="bool", value=tonumber(Spring.GetConfigInt("SimpleMiniMapColors",0) or 0) == 1, description="Enable simple minimap teamcolors\nRed is enemy,blue is ally and you are green!"},
 
 		{id="font", group="ui", name="Font", type="select", options={}, value=1},
+		{id="font2", group="ui", name="Font 2", type="select", options={}, value=1},
 		{id="guiopacity", group="ui", name="GUI opacity", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("ui_opacity",0.66), description=''},
 
 		{id="guishader", group="ui", widget="GUI Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
@@ -2397,6 +2419,11 @@ function init()
 		options[getOptionByID('font')].optionsFont = fontsFull
 		local fname = Spring.GetConfigString("ui_font", "Poppins-Regular.otf"):lower()
 		options[getOptionByID('font')].value = getSelectKey(getOptionByID('font'), string.sub(fname, 1, string.len(fname) - 4))
+
+		options[getOptionByID('font2')].options = fonts
+		options[getOptionByID('font2')].optionsFont = fontsFull
+		local fname = Spring.GetConfigString("ui_font2", "Xolonium.otf"):lower()
+		options[getOptionByID('font2')].value = getSelectKey(getOptionByID('font2'), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
 	-- set sun minimal height
@@ -2833,6 +2860,7 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('options')
 	end
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 	WG['options'] = nil
 end
 

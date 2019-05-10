@@ -65,6 +65,8 @@ local fontfileSize = 25
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -620,7 +622,7 @@ end
 function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 14*font:GetTextWidth(absentName) + 8 -- 8 is minimal width
+	local maxWidth = 14*font2:GetTextWidth(absentName) + 8 -- 8 is minimal width
 	local name = ''
 	local spec = false
 	local version = ''
@@ -641,7 +643,7 @@ function SetMaxPlayerNameWidth()
 		end
 		local charSize
 		if spec then charSize = 11 else charSize = 14 end
-		nextWidth = charSize*font:GetTextWidth(name)+8
+		nextWidth = charSize*font2:GetTextWidth(name)+8
 		if nextWidth > maxWidth then
 			maxWidth = nextWidth
 		end
@@ -2627,19 +2629,19 @@ function DrawName(name, team, posY, dark, playerID)
 		DrawState(playerID, m_name.posX + widgetPosX, posY)
 	end
 	if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-        font:Begin()
-        font:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
-        font:End()
+        font2:Begin()
+        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
+        font2:End()
 	else
-        font:Begin()
-        font:SetTextColor(0,0,0,0.4)
-        font:SetOutlineColor(0,0,0,0.4)
-        font:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
-        font:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font:SetTextColor(1,1,1,1)
-        font:SetOutlineColor(0,0,0,1)
-        font:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
-        font:End()
+        font2:Begin()
+        font2:SetTextColor(0,0,0,0.4)
+        font2:SetOutlineColor(0,0,0,0.4)
+        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
+        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
+        font2:SetTextColor(1,1,1,1)
+        font2:SetOutlineColor(0,0,0,1)
+        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
+        font2:End()
 	end
 	if ignored then
 		gl_Color(1,1,1,0.9)	
@@ -2674,30 +2676,30 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 	if playerSpecs[playerID] ~= nil then
 		nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
 		if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-            font:Begin()
-            font:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
-            font:End()
+            font2:Begin()
+            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
+            font2:End()
 		else
-            font:Begin()
-            font:SetTextColor(0,0,0,0.3)
-            font:SetOutlineColor(0,0,0,0.3)
-            font:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
-            font:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
-            font:SetTextColor(1,1,1,0.78)
-            font:SetOutlineColor(0,0,0,0.3)
+            font2:Begin()
+            font2:SetTextColor(0,0,0,0.3)
+            font2:SetOutlineColor(0,0,0,0.3)
+            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
+            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
+            font2:SetTextColor(1,1,1,0.78)
+            font2:SetOutlineColor(0,0,0,0.3)
 			--gl_Color(nameColourR,nameColourG,nameColourB,0.78)
-            font:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
-            font:End()
+            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
+            font2:End()
 		end
 	else
-		font:Begin()
-		font:SetTextColor(0,0,0,0.3)
-		font:SetOutlineColor(0,0,0,0.3)
-		font:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
-		font:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-		font:SetTextColor(1,1,1,alpha)
-		font:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
-		font:End()
+		font2:Begin()
+		font2:SetTextColor(0,0,0,0.3)
+		font2:SetOutlineColor(0,0,0,0.3)
+		font2:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
+		font2:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
+		font2:SetTextColor(1,1,1,alpha)
+		font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+		font2:End()
 	end
 	if ignored then
 		gl_Color(1,1,1,0.7)	
@@ -4110,6 +4112,8 @@ function widget:ViewResize(viewSizeX, viewSizeY)
     fontfileScale = newFontfileScale
     gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    gl.DeleteFont(font2)
+    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   end
 end
 
