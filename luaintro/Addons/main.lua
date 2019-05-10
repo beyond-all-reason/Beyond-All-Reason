@@ -52,7 +52,7 @@ local ivsx, ivsy = vsx, vsy
 ------------------------------------------
 ------------------------------------------
 
-local showTips = true
+local showTips = false
 if (Spring.GetConfigInt("LoadscreenTips",1) or 1) == 0 then
 	showTips = false
 end
@@ -238,15 +238,17 @@ if k%2 == 1 then
 end
 
 local defaultFont = 'Poppins-Regular.otf'
-local fontfile = 'luaui/fonts/'..Spring.GetConfigString("ui_font", "")
+local fontfile = 'luaui/fonts/'..Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 if not VFS.FileExists(fontfile) then
 	Spring.SetConfigString('ui_font', defaultFont)
 	fontfile = 'luaui/fonts/'..defaultFont
 end
+local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("ui_font2", "Xolonium.otf")
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontScale = (0.5 + (vsx*vsy / 5700000))/2
 local font = gl.LoadFont(fontfile, 128*fontScale, 32*fontScale, 1.4)
+local font2 = gl.LoadFont(fontfile2, 128*fontScale, 32*fontScale, 1.4)
 local loadedFontSize = 128*fontScale
 
 
@@ -357,9 +359,9 @@ function CreateShaders()
     intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
 end
 
-function DrawRectRound(px,py,sx,sy,cs)
-
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	local csY = cs * (vsx / vsy)
+
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
@@ -376,57 +378,52 @@ function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, sy-csY, 0)
 	gl.Vertex(sx, sy-csY, 0)
 
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
+	local offset = 0.07		-- texture offset, because else gaps could show
 
-	-- top left
-	--if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+csY, 0)
-	-- top right
-	--if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+csY, 0)
-	-- bottom left
-	--if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-csY, 0)
-	-- bottom right
-	--if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-csY, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(":n:luaui/Images/bgcorner.png")
-	--gl.Texture(":n:luaui/Images/bgcorner.png")
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -566,23 +563,26 @@ function addon.DrawLoadScreen()
 	else
 		gl.Color(0.085,0.085,0.085,0.925)
 	end
-	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.007)
+	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.006)
 
 	if blurShader then
 		gl.Color(0,0,0,0.45)
 	else
 		gl.Color(0,0,0,0.75)
 	end
-	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.007)
+	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.006)
+
 
     if loadvalue > 0.215 then
 	    -- loadvalue
         gl.Color(0.4-(loadProgress/7),loadProgress*0.4,0,0.4)
-        RectRound(0.2,yPos-0.05,loadvalue,yPos,0.0055)
+        RectRound(0.2,yPos-0.05,loadvalue,yPos,0.0045)
 
         -- loadvalue gradient
         gl.Texture(false)
-        gl.BeginEnd(GL.QUADS, gradienth, 0.2,yPos-0.05,loadvalue,yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
+        gl.BeginEnd(GL.QUADS, gradienth, 0.2, yPos-0.05, loadvalue-0.012, yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
+		gl.Color(1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14)
+		RectRound(loadvalue-0.012,yPos-0.05,loadvalue,yPos,0.0045, 0,1,1,0)
 
         -- loadvalue inner glow
         gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.04)
@@ -608,7 +608,7 @@ function addon.DrawLoadScreen()
 		--font:Print(Game.gameName, vsx * 0.5, vsy * 0.95, vsy * 0.07, "sca")
 		font:Print(lastLoadMessage, vsx * 0.21, vsy * (yPos-0.017), barTextSize * 0.67, "oa")
 		if loadProgress>0 then
-			font:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.0325), barTextSize, "oc")
+			font2:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.0325), barTextSize, "oc")
 		else
 			font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.031), barTextSize, "oc")
 		end
