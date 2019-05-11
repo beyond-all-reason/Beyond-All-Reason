@@ -69,16 +69,17 @@ local function Color(c)
 	glColor(c[1],c[2],c[3],c[4])
 end
 
-local function Text(px,py,fontsize,text,options,c)
+local function Text(px,py,fontsize,text,options,c,usefont2)
 	glPushMatrix()
-	font:Begin()
+	local f = usefont2 and font2 or font
+	f:Begin()
 	if (c) then
-		font:SetTextColor(c[1],c[2],c[3],c[4])
-		font:SetOutlineColor(0,0,0,1)
+		f:SetTextColor(c[1],c[2],c[3],c[4])
+		f:SetOutlineColor(0,0,0,1)
 		--glColor(c[1],c[2],c[3],c[4])
 	else
-		font:SetTextColor(1,1,1,1)
-		font:SetOutlineColor(0,0,0,1)
+		f:SetTextColor(1,1,1,1)
+		f:SetOutlineColor(0,0,0,1)
 		--glColor(1,1,1,1)
 	end
 	glTranslate(px,py+fontsize,0)
@@ -90,8 +91,8 @@ local function Text(px,py,fontsize,text,options,c)
 	glScale(1,-1,1) --flip
 
 	--glText(text,0,0,fontsize,options)
-	font:Print(text,0,0,fontsize,options)
-	font:End()
+	f:Print(text,0,0,fontsize,options)
+	f:End()
 	glPopMatrix()
 end
 
@@ -295,11 +296,13 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = widgetHandler:GetViewSizes()
 	font = WG['Red'].font
+	font2 = WG['Red'].font2
 	CreateStartList()
 end
 
 function widget:Initialize()
 	font = WG['Red'].font
+	font2 = WG['Red'].font2
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
 	
@@ -318,8 +321,8 @@ function widget:Initialize()
 	T.Border = function(a,b,c,d,e,f)
 		Todo[#Todo+1] = {4,a,b,c,d,e,f}
 	end
-	T.Text = function(a,b,c,d,e,f)
-		Todo[#Todo+1] = {5,a,b,c,d,e,f}
+	T.Text = function(a,b,c,d,e,f,g)
+		Todo[#Todo+1] = {5,a,b,c,d,e,f,g}
 	end
 	T.RectRound = function(a,b,c,d,e,f,g,h,i)
 		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h,i}
@@ -347,14 +350,7 @@ function widget:DrawScreen()
 	for i=1,#Todo do
 		t = Todo[i]
 		id = ''
-		if t[1] == 3 then	-- texrect
-			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]..'_'..t[6]
-			if type(t[7]) == 'table' then
-				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
-			end
-			id = id .. '_' ..(t[8] or '')
-
-		elseif t[1] == 5 then	-- text
+		if t[1] == 5 then	-- text
 			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]
 			if type(t[7]) == 'table' then
 				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]

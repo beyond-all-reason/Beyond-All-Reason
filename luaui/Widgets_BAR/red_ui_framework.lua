@@ -19,6 +19,8 @@ local fontfileSize = 32
 local fontfileOutlineSize = 9
 local fontfileOutlineStrength = 1.45
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local useRoundedRectangles = true
 local roundedSizeMultiplier = 1
@@ -54,7 +56,9 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 		WG[TN].font = font
+		WG[TN].font2 = font2
 	end
 
 	Main.vsx,Main.vsy = vsx,vsy
@@ -67,7 +71,11 @@ end
 local type = type
 
 local function getTextWidth(o)
-	return font:GetTextWidth(o.caption)*o.fontsize
+	if o.font2 then
+		return font2:GetTextWidth(o.caption)*o.fontsize
+	else
+		return font:GetTextWidth(o.caption)*o.fontsize
+	end
 end
 
 local function getTextHeight(o)
@@ -154,7 +162,12 @@ local F = {
 		if (o.caption) then
 			local px2,py2 = px,py
 			local text = o.caption
-			local width = font:GetTextWidth(text)
+			local width
+			if o.font2 then
+				width = font2:GetTextWidth(text)
+			else
+				width = font:GetTextWidth(text)
+			end
 			local linecount = getLineCount(text)
 			local fontsize = sx/width
 			local height = linecount*fontsize
@@ -164,7 +177,7 @@ local F = {
 			else
 				py2 = py2 + (sy - height) /2 --center
 			end
-			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
+			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor,o.font2)
 			o.autofontsize = fontsize
 		end
 		
@@ -195,7 +208,7 @@ local F = {
 		local px,py = o.px,o.py	
 		local fontsize = o.fontsize
 		
-		Text(px,py,fontsize,o.caption,o.options,color or captioncolor)
+		Text(px,py,fontsize,o.caption,o.options,color or captioncolor,o.font2)
 	end,
 
 	[3] = function(o) --area
@@ -258,7 +271,12 @@ local F = {
 		if (o.caption) then
 			local px2,py2 = px,py
 			local text = o.caption
-			local width = font:GetTextWidth(text)
+			local width
+			if o.font2 then
+				width = font2:GetTextWidth(text)
+			else
+				width = font:GetTextWidth(text)
+			end
 			local linecount = getLineCount(text)
 			local fontsize = sx/width
 			local height = linecount*fontsize
@@ -268,7 +286,7 @@ local F = {
 			else
 				py2 = py2 + (sy - height) /2 --center
 			end
-			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor)
+			Text(px2+((sx*(1-iconscale))/2),py2+((sy*(1-iconscale))/2),fontsize*iconscale,text,o.options,captioncolor,o.font2)
 			o.autofontsize = fontsize
 		end
 		
@@ -602,6 +620,7 @@ function widget:Initialize()
 	Main = WG[TN]
 	Main.Version = version
 	Main.font = font
+	Main.font2 = font2
 	Main.vsx,Main.vsy = vsx,vsy
 	Main.Screen = {vsx=vsx,vsy=vsy}
 	Main.Copytable = copytable
@@ -680,6 +699,7 @@ end
 
 function widget:Shutdown()
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 	WG[TN] = nil
 	if (LastProcessedWidget ~= "") then
 		Spring.Echo(widget:GetInfo().name..">> last processed widget was \""..LastProcessedWidget.."\"") --for debugging

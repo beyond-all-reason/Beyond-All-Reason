@@ -90,7 +90,7 @@ local Config = {
 		
 		fadetime = 0.1, --fade effect time, in seconds
 		fadetimeOut = 0.015, --fade effect time, in seconds
-		
+
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
 		cbackground = {0,0,0,ui_opacity},
 		cborder = {0,0,0,1},
@@ -104,7 +104,6 @@ local Config = {
 	ordermenu = {
 		menuname = "ordermenu",
 		px = 0,py = CanvasY - 415 - 145,
-		
 		isx = 45,isy = 33,
 		ix = 5,iy = 4,
 		
@@ -333,6 +332,7 @@ local function CreateGrid(r)
 		border={0,0,0,0},
 		options="onr",
 		captioncolor={1,0.7,0.3,1},
+		--font2 = true,
 	}
 	local radaricon = {"rectangle",
 		px=0,py=0,
@@ -356,6 +356,7 @@ local function CreateGrid(r)
 		border={0,0,0,0},
 		options="n", --disable colorcodes
 		captioncolor=r.ctext,
+		font2 = true,
 		
 		overridecursor = true,
 		overrideclick = {3},
@@ -482,6 +483,7 @@ local function CreateGrid(r)
 		captioncolor={0.8,0.8,0.8,1},
 		caption = nil,
 		options = "on",
+		--font2 = true,
 	}
 	New(background)
 	New(background2)
