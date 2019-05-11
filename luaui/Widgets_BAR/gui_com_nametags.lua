@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Bluestone, Floris",
     date      = "20 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = 2000000,
+    layer     = 2,
     enabled   = true,  --  loaded by default?
   }
 end
@@ -37,6 +37,8 @@ if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
     singleTeams = true
 end
 
+local spec = Spring.GetSpectatingState()
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -49,7 +51,6 @@ local GetAllUnits        		= Spring.GetAllUnits
 local IsUnitInView	 	 		= Spring.IsUnitInView
 local GetCameraPosition  		= Spring.GetCameraPosition
 local GetUnitPosition    		= Spring.GetUnitPosition
-local GetSpectatingState		= Spring.GetSpectatingState
 
 local glDepthTest        		= gl.DepthTest
 local glAlphaTest        		= gl.AlphaTest
@@ -77,6 +78,13 @@ local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
+local comDefs = {}
+for unitDefID, defs in pairs(UnitDefs) do
+    if defs.customParams.iscommander then
+        comDefs[unitDefID] = true
+    end
+end
+
 local sameTeamColors = false
 if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil then
     sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
@@ -98,8 +106,8 @@ local function GetCommAttributes(unitID, unitDefID)
     local players = GetPlayerList(team)
     name = (#players>0) and GetPlayerInfo(players[1],false) or '------'
     for _,pID in ipairs(players) do
-      local pname,active,spec = GetPlayerInfo(pID,false)
-      if active and not spec then
+      local pname,active,isspec = GetPlayerInfo(pID,false)
+      if active and not isspec then
         name = pname
         break
       end
@@ -159,17 +167,21 @@ local function createComnameList(attributes)
 	end)
 end
 
+local sec = 0
 function widget:Update(dt)
+    sec = sec + dt
     if WG['playercolorpalette'] ~= nil then
         if WG['playercolorpalette'].getSameTeamColors and sameTeamColors ~= WG['playercolorpalette'].getSameTeamColors() then
             sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
             RemoveLists()
             CheckAllComs()
+            sec = 0
         end
     elseif sameTeamColors == true then
         sameTeamColors = false
         RemoveLists()
         CheckAllComs()
+        sec = 0
     end
     if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
         if myTeamID ~= Spring.GetMyTeamID() then
@@ -188,7 +200,12 @@ function widget:Update(dt)
                 comnameList[name] = nil
             end
             CheckAllComs()
+            sec = 0
         end
+    end
+    if not spec and sec > 1.5 then
+        sec = 0
+        CheckAllComs()
     end
 end
 
@@ -240,6 +257,7 @@ local function createComnameIconList(unitID, attributes)
         font:End()
     end)
 end
+
 function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guishader will blur it when needed
     if Spring.IsGUIHidden() then return end
 
@@ -264,7 +282,7 @@ function widget:DrawWorld()
   if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
   if not CheckedForSpec and Spring.GetGameFrame() > 1 then
-	  if GetSpectatingState() then
+	  if spec then
 		CheckedForSpec = true
 		CheckAllComs()
 	  end
@@ -300,8 +318,10 @@ end
 
 --------------------------------------------------------------------------------
 
+
+
 function CheckCom(unitID, unitDefID, unitTeam)
-  if (unitDefID and UnitDefs[unitDefID] and UnitDefs[unitDefID].customParams.iscommander) then
+    if comDefs[unitDefID] then
       comms[unitID] = GetCommAttributes(unitID, unitDefID)
   end
 end
@@ -310,14 +330,13 @@ function CheckAllComs()
   local allUnits = GetAllUnits()
   for _, unitID in pairs(allUnits) do
     local unitDefID = GetUnitDefID(unitID)
-    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+    if comDefs[unitDefID] then
       comms[unitID] = GetCommAttributes(unitID, unitDefID)
     end
   end
 end
 
 function widget:Initialize()
-
     WG['nametags'] = {}
     WG['nametags'].getDrawForIcon = function()
         return drawForIcon
@@ -334,6 +353,7 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
+  spec = Spring.GetSpectatingState()
   local name,_ = GetPlayerInfo(playerID,false)
   comnameList[name] = nil
   CheckAllComs() -- handle substitutions, etc
