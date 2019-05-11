@@ -71,9 +71,9 @@ end
 
 
 function AiModeHandler:Mode(i)
-		self.perraider = math.random(1,200)
-		self.perskirmer = math.random(1,150) + self.perraider
-		self.perarty = math.random(1,50) + self.perskirmer
+		self.perraider = math.random(100,200)
+		self.perskirmer = math.random(50,150) + self.perraider
+		self.perarty = math.random(1,30) + self.perskirmer
 		self.t1ratepret2 = math.random(3,20)*0.1							
 		self.t1ratepostt2 = math.random(5,100)*0.01
 		self.eincomelimiterpretech2 = math.random(950,2550)
