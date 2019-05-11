@@ -382,35 +382,35 @@ local function updateButtons()
             if (WG['teamstats'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font:GetTextWidth('   Stats  ') * fontsize
+                width = font2:GetTextWidth('   Stats  ') * fontsize
                 buttonsArea['buttons']['stats'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4] }
             end
             if (WG['commands'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font:GetTextWidth('  Cmd  ') * fontsize
+                width = font2:GetTextWidth('  Cmd  ') * fontsize
                 buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			end
             if (WG['keybinds'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font:GetTextWidth('  Keys  ') * fontsize
+                width = font2:GetTextWidth('  Keys  ') * fontsize
                 buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['changelog'] ~= nil) then
                 button = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font:GetTextWidth('  Changes  ') * fontsize
+                width = font2:GetTextWidth('  Changes  ') * fontsize
                 buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['options'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font:GetTextWidth('  Options  ') * fontsize
+                width = font2:GetTextWidth('  Options  ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             offset = offset+width
-            width = font:GetTextWidth('  Quit    ') * fontsize
+            width = font2:GetTextWidth('  Quit    ') * fontsize
             buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
 		end
 	end)
@@ -419,9 +419,9 @@ local function updateButtons()
 		glDeleteList(dlistButtons2)
 	end
 	dlistButtons2 = glCreateList( function()
-        font:Begin()
-        font:Print('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
-        font:End()
+        font2:Begin()
+        font2:Print('\255\210\210\210'..text, area[1], area[2]+((area[4]-area[2])/2)-(fontsize/5), fontsize, 'o')
+        font2:End()
 	end)
 end
 
