@@ -2765,15 +2765,15 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 				cpu = 99
 			end
 			if spec then
-				font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
+				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.66*alpha*grayvalue)
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
 			else
-				font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
+				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "ro")
 			end
 		end
 	else
@@ -2788,15 +2788,15 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 				greyvalue = 1
 			end
 			if spec then
-				font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
+				--font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.77*alpha*grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
 			else
-				font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
+				--font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,alpha*grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "ro")
 			end
 		else
 			gl_Texture(pics["cpuPic"])
