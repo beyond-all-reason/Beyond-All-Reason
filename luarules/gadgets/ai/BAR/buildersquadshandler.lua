@@ -21,10 +21,10 @@ local function squadtable(domain)
 		maxallowedbp = 2000
 		maxpendingrequests = 3
 	elseif domain == "economy" then
-		maxallowedbp = 500
+		maxallowedbp = 1500
 		maxpendingrequests = 2
 	elseif domain == "expand" then
-		maxallowedbp = 300
+		maxallowedbp = 400
 		maxpendingrequests = 1
 	elseif domain == "util" then
 		maxallowedbp = 200
