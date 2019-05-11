@@ -62,8 +62,8 @@ local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.35
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
@@ -2114,11 +2114,11 @@ function DrawLabel(text, vOffset, drawSeparator)
 		text = string.sub(text, 0, 1)
 	end
 	font:Begin()
-	font:SetTextColor(0,0,0,0.2)
-	font:Print(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
-	font:Print(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
+	--font:SetTextColor(0,0,0,0.2)
+	--font:Print(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
+	--font:Print(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
 	font:SetTextColor(0.9,0.9,0.9,0.75)
-	font:Print(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
+	font:Print(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "on")
 	font:End()
 	if drawSeparator then
 		--DrawSeparator(vOffset)
@@ -2130,11 +2130,11 @@ function DrawLabelTip(text, vOffset, xOffset)
 		text = string.sub(text, 0, 1)
 	end
 	font:Begin()
-	font:SetTextColor(0,0,0,0.08)
-	font:Print(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
-	font:Print(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
+	--font:SetTextColor(0,0,0,0.08)
+	--font:Print(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
+	--font:Print(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
 	font:SetTextColor(0.9,0.9,0.9,0.35)
-	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "n")
+	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "on")
 	font:End()
 end
 
@@ -2721,21 +2721,21 @@ function DrawID(playerID, posY, dark, dead)
 	local fontSize = 11
 	local deadspace = 0
 	font:Begin()
-	if dead then
-		fontSize = 8
-		deadspace = 1.5
-		font:SetTextColor(0,0,0,0.4)
-	else
-		font:SetTextColor(0,0,0,0.6)
-	end
+	--if dead then
+	--	fontSize = 8
+	--	deadspace = 1.5
+	--	font:SetTextColor(0,0,0,0.4)
+	--else
+	--	font:SetTextColor(0,0,0,0.6)
+	--end
 	--gl_Text(colourNames(playerID) .. " ".. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 5, 11, "o")
-	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
+	--font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
 	if dead then
-		font:SetTextColor(1,1,1,0.33)
+		font:SetTextColor(1,1,1,0.4)
 	else
-		font:SetTextColor(1,1,1,0.5)
+		font:SetTextColor(1,1,1,0.66)
 	end
-	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "n")
+	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "on")
 	font:End()
 end
 
