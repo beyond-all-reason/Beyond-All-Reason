@@ -47,7 +47,7 @@ local globalLightMult = 1.3
 local globalRadiusMult = 1.3
 local globalLightMultLaser = 1.4	-- gets applied on top op globalRadiusMult
 local globalRadiusMultLaser = 0.9	-- gets applied on top op globalRadiusMult
-local globalLifeMult = 0.65
+local globalLifeMult = 0.75
 
 local enableHeatDistortion = true
 local enableNanolaser = true
