@@ -710,15 +710,10 @@ local function GetUnitIsActive(unitID)
 	end
 	
 	activeUnitCheckTime[unitID] = thisGameFrame + ACTIVE_CHECK_PERIOD
-	if LocalAllyTeamID ~= -2 and Spring.GetUnitAllyTeam(unitID) ~= LocalAllyTeamID then -- cant know if enemy unit is active
-		activeUnit[unitID] = true
-	else
-		activeUnit[unitID] = (spGetUnitIsActive(unitID) or spGetUnitRulesParam(unitID, "unitActiveOverride") == 1)
-			and	(spGetUnitRulesParam(unitID, "disarmed") ~= 1)
-			and (spGetUnitRulesParam(unitID, "morphDisable") ~= 1)
-			and not spGetUnitIsStunned(unitID)
-
-	end
+	activeUnit[unitID] = (spGetUnitIsActive(unitID) or spGetUnitRulesParam(unitID, "unitActiveOverride") == 1)
+		and	(spGetUnitRulesParam(unitID, "disarmed") ~= 1)
+		and (spGetUnitRulesParam(unitID, "morphDisable") ~= 1)
+		and not spGetUnitIsStunned(unitID)
 	return activeUnit[unitID]
 end
 
