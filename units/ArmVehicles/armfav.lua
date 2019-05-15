@@ -52,7 +52,7 @@ return {
 			flare1name = "flare1",
 			flare2name = "flare2",
 			kickback = "0",
-			model_author = "Beherith",
+			model_author = "Flaka",
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
