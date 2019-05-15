@@ -162,11 +162,19 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 	return result
 end
 
+
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
+	local equalSelection = true
+	for k,v in pairs(sel) do
+		if selectedUnits[k] ~= v then
+			equalSelection = false
+			break
+		end
+	end
 	selectedUnits = sel
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
-		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil then
+		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
 			WG['smartselect'].updateSelection = false	-- widgethandler uses this to ignore the engine mouserelease selection
 		end
 	end
@@ -233,22 +241,14 @@ function widget:SetConfigData(data)
 	if data.includeBuilders ~= nil 	then  includeBuilders	= data.includeBuilders end
 end
 
-
 function widget:Update()
-	--[[
-	local newUpdate = GetTimer()
-	if (DiffTimers(newUpdate, lastUpdate) < 0.1) then
-		return
-	end
-	lastUpdate = newUpdate
-	--]]
-	--selectedUnits = Spring.GetSelectedUnits()
+
 	WG['smartselect'].updateSelection = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
 		local x, y, pressed = GetMouseState()
 
 		local px, py, sx, sy = GetMiniMapGeometry()
-		
+
 		if (pressed or lastSelection) and (referenceSelection ~= nil) then
 
 			local alt, ctrl, meta, shift = GetModKeyState()
@@ -259,7 +259,7 @@ function widget:Update()
 
 			local sameSelect = GetKeyState(sameSelectKey)
 			local idleSelect = GetKeyState(idleSelectKey)
-			
+
 			local sameLast = (referenceScreenCoords ~= nil) and (x == referenceScreenCoords[1] and y == referenceScreenCoords[2])
 			if (sameLast and lastCoords == referenceCoords) then
 				return
