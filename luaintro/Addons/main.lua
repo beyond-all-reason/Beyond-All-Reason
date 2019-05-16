@@ -497,12 +497,12 @@ function addon.DrawLoadScreen()
 			--	gl.DeleteList(guishaderDlists['loadprocess'])
 			--end
 			--guishaderDlists['loadprocess'] = gl.CreateList(function()
-			--	RectRound((0.2-paddingW)*vsx, (yPos-0.05-paddingH)*vsy, (0.8+paddingW)*vsx, (yPosTips+paddingH)*vsy, 0.007*vsx)
+			--	RectRound((0.2-paddingW)*vsx, (yPos-0.045-paddingH)*vsy, (0.8+paddingW)*vsx, (yPosTips+paddingH)*vsy, 0.007*vsx)
 			--end)
 
-			guishaderRects['loadprocess1'] = {(0.2+paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8-paddingW)*vsx,(yPosTips+paddingH)*vsy}
-			guishaderRects['loadprocess2'] = {(0.2)*vsx,(yPos-0.05)*vsy,(0.8)*vsx,yPosTips*vsy}
-			guishaderRects['loadprocess3'] = {(0.2-paddingW)*vsx,(yPos-0.05+paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips-paddingH)*vsy}
+			guishaderRects['loadprocess1'] = {(0.2+paddingW)*vsx,(yPos-0.045-paddingH)*vsy,(0.8-paddingW)*vsx,(yPosTips+paddingH)*vsy}
+			guishaderRects['loadprocess2'] = {(0.2)*vsx,(yPos-0.045)*vsy,(0.8)*vsx,yPosTips*vsy}
+			guishaderRects['loadprocess3'] = {(0.2-paddingW)*vsx,(yPos-0.045+paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips-paddingH)*vsy}
 			DrawStencilTexture()
 		end
 
@@ -563,41 +563,43 @@ function addon.DrawLoadScreen()
 	else
 		gl.Color(0.085,0.085,0.085,0.925)
 	end
-	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.006)
+	RectRound(0.2-paddingW,yPos-0.045-paddingH,0.8+paddingW,yPosTips+paddingH,0.006)
 
 	if blurShader then
 		gl.Color(0,0,0,0.45)
 	else
 		gl.Color(0,0,0,0.75)
 	end
-	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.006)
+	RectRound(0.2-paddingW,yPos-0.045-paddingH,0.8+paddingW,yPos+paddingH,0.006)
 
 
     if loadvalue > 0.215 then
 	    -- loadvalue
         gl.Color(0.4-(loadProgress/7),loadProgress*0.4,0,0.4)
-        RectRound(0.2,yPos-0.05,loadvalue,yPos,0.0045)
+        RectRound(0.2,yPos-0.045,loadvalue,yPos,0.0045)
 
         -- loadvalue gradient
         gl.Texture(false)
-        gl.BeginEnd(GL.QUADS, gradienth, 0.2, yPos-0.05, loadvalue-0.012, yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
-		gl.Color(1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14)
-		RectRound(loadvalue-0.012,yPos-0.05,loadvalue,yPos,0.0045, 0,1,1,0)
+        gl.BeginEnd(GL.QUADS, gradienth, 0.2+0.012, yPos-0.045, loadvalue-0.012, yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.13}, {0,0,0,0.13})
+		gl.Color(1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.13)
+		RectRound(loadvalue-0.012,yPos-0.045,loadvalue,yPos,0.004, 0,1,1,0)
+		gl.Color(0,0,0,0.13)
+		RectRound(0.2,yPos-0.045,0.212,yPos,0.004, 1,0,0,1)
 
         -- loadvalue inner glow
-        gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.04)
+        gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.045,0.03)
         gl.Texture(":n:luaui/Images/barglow-center.png")
-        gl.TexRect(0.2,yPos-0.05,loadvalue,yPos)
+        gl.TexRect(0.2,yPos-0.045,loadvalue,yPos)
 
         -- loadvalue glow
-        local glowSize = 0.06
-        gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.1)
+        local glowSize = 0.0455
+        gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.045,0.07)
         gl.Texture(":n:luaui/Images/barglow-center.png")
-        gl.TexRect(0.2,	yPos-0.05-glowSize,	loadvalue,	yPos+glowSize)
+        gl.TexRect(0.2,	yPos-0.045-glowSize,	loadvalue,	yPos+glowSize)
 
         gl.Texture(":n:luaui/Images/barglow-edge.png")
-        gl.TexRect(0.2-(glowSize*1.3), yPos-0.05-glowSize, 0.2, yPos+glowSize)
-        gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.05-glowSize, loadvalue, yPos+glowSize)
+        gl.TexRect(0.2-(glowSize*1.3), yPos-0.045-glowSize, 0.2, yPos+glowSize)
+        gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.045-glowSize, loadvalue, yPos+glowSize)
     end
 
 	-- progressbar text
@@ -606,11 +608,11 @@ function addon.DrawLoadScreen()
 		local barTextSize = vsy * 0.026
 		--font:Print(lastLoadMessage, vsx * 0.5, vsy * 0.3, 50, "sc")
 		--font:Print(Game.gameName, vsx * 0.5, vsy * 0.95, vsy * 0.07, "sca")
-		font:Print(lastLoadMessage, vsx * 0.21, vsy * (yPos-0.017), barTextSize * 0.67, "oa")
+		font:Print(lastLoadMessage, vsx * 0.21, vsy * (yPos-0.015), barTextSize * 0.67, "oa")
 		if loadProgress>0 then
-			font2:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.0325), barTextSize, "oc")
+			font2:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.03), barTextSize, "oc")
 		else
-			font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.031), barTextSize, "oc")
+			font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.0285), barTextSize, "oc")
 		end
 	gl.PopMatrix()
 
