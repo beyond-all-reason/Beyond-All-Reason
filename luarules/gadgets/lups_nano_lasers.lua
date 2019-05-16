@@ -288,9 +288,14 @@ else
                                 nanoParams.streamThickness = 2.9 + strength * 0.25
                                 nanoParams.type         = type
                                 nanoParams.inversed     = (type == "reclaim" and true or false)
-                                if (not nanoParticles[unitID]) then nanoParticles[unitID] = {} end
                                 if Lups then
-                                    nanoParticles[#nanoParticles[unitID]+1] = Lups.AddParticles(lupsParticleType,nanoParams)
+                                    Lups.AddParticles(lupsParticleType,nanoParams)
+                                    --if (not nanoParticles[unitID]) then nanoParticles[unitID] = {} end
+                                    --if not nanoParticles[unitID][j] then
+                                    --    nanoParticles[unitID][j] = Lups.AddParticles(lupsParticleType,nanoParams)
+                                    --else
+                                    --    nanoParticles[unitID][j] = Lups.AddParticles(lupsParticleType,nanoParams,nanoParticles[unitID][j])
+                                    --end
                                 end
                             end
                         end

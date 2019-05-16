@@ -132,6 +132,7 @@ local function RemoveLists()
         gl.DeleteList(comnameIconList[name])
     end
     comnameList = {}
+    comnameIconList = {}
 end
 
 local function createComnameList(attributes)
@@ -239,10 +240,10 @@ function widget:ViewResize()
 end
 
 local function createComnameIconList(unitID, attributes)
-    if comnameIconList[unitID] ~= nil then
+    if comnameIconList[attributes[1]] ~= nil then
         gl.DeleteList(comnameIconList[attributes[1]])
     end
-    comnameIconList[unitID] = gl.CreateList( function()
+    comnameIconList[attributes[1]] = gl.CreateList( function()
         local x,y,z = GetUnitPosition(unitID)
         x,z = Spring.WorldToScreenCoords(x, y, z)
 
@@ -262,7 +263,7 @@ function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guish
     if Spring.IsGUIHidden() then return end
 
     for unitID, attributes in pairs(drawScreenUnits) do
-        if not comnameIconList[unitID] then
+        if not comnameIconList[attributes[1]] then
             createComnameIconList(unitID, attributes)
         end
         local x,y,z = GetUnitPosition(unitID)
@@ -272,7 +273,7 @@ function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guish
         gl.PushMatrix()
         gl.Translate(x,z,0)
         gl.Scale(scale,scale,scale)
-        gl.CallList(comnameIconList[unitID])
+        gl.CallList(comnameIconList[attributes[1]])
         gl.PopMatrix()
     end
     drawScreenUnits = {}
