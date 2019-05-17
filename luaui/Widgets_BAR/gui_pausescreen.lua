@@ -16,9 +16,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-local initialized = os.clock()
-
 local spGetGameSpeed        = Spring.GetGameSpeed
 
 local glColor               = gl.Color
@@ -124,11 +121,6 @@ function widget:GameOver()
     gameover = true
 end
 
-local prevGameFrameTime = osClock()
-function widget:GameFrame(dt)
-    prevGameFrameTime = osClock()
-end
-
 function widget:Update(dt)
     local now = osClock()
     previousDrawScreenClock = now
@@ -153,7 +145,7 @@ function widget:Update(dt)
     lastPause = paused
 
     local _, _, isPaused = spGetGameSpeed()
-    if os.clock()-initialized > 3 and not gameover and (isPaused or (now - prevGameFrameTime > 1.2 and Spring.GetGameFrame() > 0)) then    -- when host (admin) paused its just gamespeed 0
+    if not gameover and isPaused  then    -- when host (admin) paused its just gamespeed 0
         paused = true
     else
         paused = false
