@@ -244,11 +244,13 @@ if not VFS.FileExists(fontfile) then
 	fontfile = 'luaui/fonts/'..defaultFont
 end
 local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local fontfile3 = 'luaui/fonts/Xolonium.otf'
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontScale = (0.5 + (vsx*vsy / 5700000))/2
 local font = gl.LoadFont(fontfile, 128*fontScale, 32*fontScale, 1.4)
 local font2 = gl.LoadFont(fontfile2, 128*fontScale, 32*fontScale, 1.4)
+local font3 = gl.LoadFont(fontfile3, 128*fontScale, 32*fontScale, 1.25)
 local loadedFontSize = 128*fontScale
 
 
@@ -614,6 +616,10 @@ function addon.DrawLoadScreen()
 		else
 			font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.0285), barTextSize, "oc")
 		end
+
+		-- game name
+		--font3:Print("Beyond all Reason", vsy * 0.03, (vsy * 0.97)-(barTextSize*0.77), barTextSize*1.44, "o")
+		font3:Print(Game.gameName, vsx * 0.5, vsy * (yPos-0.113), barTextSize*1.44, "co")
 	gl.PopMatrix()
 
 
