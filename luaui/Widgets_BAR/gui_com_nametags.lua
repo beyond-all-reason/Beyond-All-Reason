@@ -31,8 +31,8 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
-local fontfileScale2 = fontfileScale * 0.4
-local fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+local fontfileScale2 = fontfileScale * 0.66
+local fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength*0.33)
 
 local singleTeams = false
 if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
@@ -236,10 +236,10 @@ function widget:ViewResize()
         RemoveLists()
         CheckAllComs()
         fontfileScale = newFontfileScale
-        fontfileScale2 = fontfileScale * 0.4
+        fontfileScale2 = fontfileScale * 0.66
         font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
         shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
-        fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+        fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength*0.33)
     end
 end
 
