@@ -14,6 +14,14 @@ end
 
 local bgcorner				= "LuaUI/Images/bgcorner.png"
 
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 25
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+
 local speedbuttons={} --the 1x 2x 3x etc buttons
 local buttons={}	--other buttons (atm only pause/play)
 local wantedSpeed = nil
@@ -54,6 +62,7 @@ function widget:Shutdown()
 	end
 	gl.DeleteList(speedButtonsList)
 	gl.DeleteList(buttonsList)
+	gl.DeleteFont(font)
 end
 
 function speedButtonColor (i)
@@ -180,7 +189,6 @@ end
 --Feb 2011 by knorke
 local glPopMatrix      = gl.PopMatrix
 local glPushMatrix     = gl.PushMatrix
-local glText           = gl.Text
 
 --UI coordinaten zu scalierten screen koordinaten
 function sX (uix)
@@ -200,8 +208,15 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
 	widgetScale = (0.5 + (vsx*vsy / 5700000))
-    sceduleUpdate = true
+	sceduleUpdate = true
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
 end
+
 ----zeichen funktionen---------
 function uiRect (x,y,x2,y2)
 	RectRound(sX(x), sY(y), sX(x2), sY(y2), 6)
@@ -210,7 +225,9 @@ end
 
 function uiText (text, x,y,s,options)
 	if (text==" " or text=="  ") then return end --archivement: unlock +20 fps
-	glText (text, sX(x), sY(y), sX(s), options)
+	font:Begin()
+	font:Print(text, sX(x), sY(y), sX(s), options)
+	font:End()
 end
 --------------------------------
 -----message boxxy-----
@@ -230,11 +247,13 @@ end
 
 function drawmessage_simple (message, x, y, s)
 	offx=0
-	if (message.frame) then		
-		glText (frame2time (message.frame), sX(x+offx), sY(y), sX(s/2), 'vo')
+	font:Begin()
+	if (message.frame) then
+		font:Print(frame2time (message.frame), sX(x+offx), sY(y), sX(s/2), 'vo')
 		offx=offx+(2*s)
-	end	
-	glText (message.text, sX(x+offx), sY(y), sX(s), 'vo')	
+	end
+	font:Print(message.text, sX(x+offx), sY(y), sX(s), 'vo')
+	font:End()
 end
 
 --X, Y and size in UI scale
@@ -244,8 +263,9 @@ function drawmessage (message, x, y, s)
 		uiRect (x,y+s/2, x+1, y-s/2)
 	end	
 	offx=0
-	if (message.frame) then		
-		glText (frame2time (message.frame), sX(x+offx), sY(y), sX(s/2), 'vo')
+	font:Begin()
+	if (message.frame) then
+		font:Print(frame2time (message.frame), sX(x+offx), sY(y), sX(s/2), 'vo')
 		offx=offx+(2*s)
 	end
 	if (message.icon) then		
@@ -257,8 +277,9 @@ function drawmessage (message, x, y, s)
 		gl.Texture(false)
 		--gl.PopMatrix()
 		offx=offx+(s)
-	end	
-	glText (message.text, sX(x+offx), sY(y), sX(s), 'vo')	
+	end
+	font:Print(message.text, sX(x+offx), sY(y), sX(s), 'vo')
+	font:End()
 end
 
 
