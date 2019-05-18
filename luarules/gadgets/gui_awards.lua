@@ -477,6 +477,8 @@ local fontfileSize = 25
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = "luaui/fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
@@ -485,6 +487,8 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		gl.DeleteFont(font2)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 	--fix geometry
 	widgetScale = (0.75 + (vsx*vsy / 7500000))
@@ -849,19 +853,20 @@ function gadget:DrawScreen()
 		local x1,y1 = Spring.GetMouseState()
 		local x,y = correctMouseForScaling(x1,y1)
 		
-		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-quitX-5) and (x < bx+w-quitX+17*font2:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+17+5) then
 			quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+17+5) then
 			graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		font:Begin()
-		font:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
-		font:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")
+		font2:Begin()
+		font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 17, "o")
+		font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 17, "o")
+		font2:End()
 
 		if bettingScores ~= nil and bettingScores[1] ~= '' then
 			local winners = bettingScores[1]
@@ -883,9 +888,10 @@ function gadget:DrawScreen()
 				glTexRect(bx+10+xOffset, by+10+heightOffset+chipSize, bx+10+chipSize+xOffset, by+10+heightOffset)
 				heightOffset = heightOffset + chipHeight
 			end
+			font:Begin()
 			font:Print('\255\225\225\225'..winners..'\255\150\150\150 became the betting winner(s)     \255\130\130\130...among '..participants..' participants', bx+18+chipSize, by+6+(chipSize/2), 14, "o")
+			font:End()
 		end
-		font:End()
 	glPopMatrix()
 end
 
