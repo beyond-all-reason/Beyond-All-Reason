@@ -51,14 +51,14 @@ local fontfileSize = 50
 local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.5)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 local useThickLeterring		= true
 local heightOffset			= 50
-local fontSize				= 19
+local fontSize				= 18
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
@@ -227,7 +227,7 @@ function createInfotextList()
   end
   infotextList = gl.CreateList(function()
     font:Begin()
-    font:SetTextColor(1,1,1,0.5)
+    font:SetTextColor(0.66,0.66,0.66,1)
     font:Print(infotext, 0,0, infotextFontsize, "cno")
     font:End()
   end)

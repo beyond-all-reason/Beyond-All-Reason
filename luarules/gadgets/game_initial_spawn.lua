@@ -491,9 +491,9 @@ else
 local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileSize = 32
+local fontfileOutlineSize = 8
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
