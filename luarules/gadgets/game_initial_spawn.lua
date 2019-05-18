@@ -514,8 +514,16 @@ local gameStarting
 local timer = 0
 local timer2 = 0
 
+local readyX = vsx * 0.8
+local readyY = vsy * 0.8
+local readyH = 35
+local readyW = 100
+local bgMargin = 2.5
+
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
+	readyX = vsx * 0.8
+	readyY = vsy * 0.8
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
@@ -523,12 +531,6 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 end
-
-local readyX = vsx * 0.8
-local readyY = vsy * 0.8 
-local readyH = 35
-local readyW = 100
-local bgMargin = 2.5
 
 local pStates = {} --local copy of playerStates table
 

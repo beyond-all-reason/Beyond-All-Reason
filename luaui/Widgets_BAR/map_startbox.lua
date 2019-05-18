@@ -66,14 +66,13 @@ local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
 local infotext = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
-local infotextFontsize = 20
-local infotextWidth = font:GetTextWidth(infotext) * infotextFontsize
+local infotextFontsize = 13
 
 local comnameList = {}
 local drawShadow = fontShadow
 local usedFontSize = fontSize
 
-local vsx,vsy = Spring.GetViewGeometry()
+local widgetScale = (1 + (vsx*vsy / 5500000))
 
 local gl = gl  --  use a local copy for faster access
 
@@ -231,7 +230,7 @@ function createInfotextList()
   infotextList = gl.CreateList(function()
     font:Begin()
     font:SetTextColor(0.75,0.75,0.75,1)
-    font:Print(infotext, 0,0, infotextFontsize, "cno")
+    font:Print(infotext, 0,0, infotextFontsize*widgetScale, "cno")
     font:End()
   end)
 end
