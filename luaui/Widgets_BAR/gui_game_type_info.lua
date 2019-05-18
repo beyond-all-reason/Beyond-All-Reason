@@ -32,7 +32,7 @@ local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 45
 local fontfileOutlineSize = 8
-local fontfileOutlineStrength = 1.8
+local fontfileOutlineStrength = 1.7
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -- Automatically generated local definitions

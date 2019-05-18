@@ -44,14 +44,17 @@ end
 -- enable simple version by default though
 local drawGroundQuads = true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
 local fontfileOutlineSize = 10
-local fontfileOutlineStrength = 10
+local fontfileOutlineStrength = 1.7
+local fontfileOutlineStrength2 = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.5)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength2)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -193,19 +196,19 @@ local function createComnameList(x, y, name, teamID, color)
 			  shadowFont:End()
 			  glTranslate(0, (usedFontSize/44), 0)
 			end
-            font:Begin()
-			font:SetTextColor(outlineColor)
-			font:SetOutlineColor(outlineColor)
+            font2:Begin()
+			font2:SetTextColor(outlineColor)
+			font2:SetOutlineColor(outlineColor)
 			
-			font:Print(name, x-(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
-			font:Print(name, x+(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
-            font:End()
+			font2:Print(name, x-(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+			font2:Print(name, x+(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+            font2:End()
 		end
-		font:Begin()
-		font:SetTextColor(color)
-		font:SetOutlineColor(outlineColor)
-		font:Print(name, x, y, usedFontSize, "con")
-		font:End()
+		font2:Begin()
+		font2:SetTextColor(color)
+		font2:SetOutlineColor(outlineColor)
+		font2:Print(name, x, y, usedFontSize, "con")
+		font2:End()
 	end)
 end
 
@@ -227,7 +230,7 @@ function createInfotextList()
   end
   infotextList = gl.CreateList(function()
     font:Begin()
-    font:SetTextColor(0.66,0.66,0.66,1)
+    font:SetTextColor(0.75,0.75,0.75,1)
     font:Print(infotext, 0,0, infotextFontsize, "cno")
     font:End()
   end)
@@ -576,6 +579,7 @@ function widget:ViewResize(x, y)
     gl.DeleteFont(font)
     gl.DeleteFont(shadowFont)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength2)
     shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
     createInfotextList()
   end
