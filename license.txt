@@ -1,11 +1,3 @@
 All contents are under the CC-BY-NC-SA 4.0 license, unless otherwise marked in the content file.  (Most LUA falls under GPL, for example).
 
-Icons license is included in their respective folder
-
-BAR Models and Art:
- Beherith
- Mr.Bob
- Cremuss
- FireStorm
- KaiserJ
- Smoth
+Custom file (artwork) licenses are included in their respective folder

@@ -23,7 +23,7 @@ local scaleFontAmount		= 120
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
@@ -31,6 +31,8 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+local fontfileScale2 = fontfileScale * 0.4
+local fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 local singleTeams = false
 if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
@@ -234,8 +236,10 @@ function widget:ViewResize()
         RemoveLists()
         CheckAllComs()
         fontfileScale = newFontfileScale
+        fontfileScale2 = fontfileScale * 0.4
         font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
         shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+        fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
     end
 end
 
@@ -251,11 +255,11 @@ local function createComnameIconList(unitID, attributes)
         if (attributes[2][1] + attributes[2][2]*1.2 + attributes[2][3]*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
             outlineColor = {1,1,1,1}
         end
-        font:Begin()
-        font:SetTextColor(attributes[2])
-        font:SetOutlineColor(outlineColor)
-        font:Print(attributes[1], 0, 0, fontSize*1.9, "con")
-        font:End()
+        fonticon:Begin()
+        fonticon:SetTextColor(attributes[2])
+        fonticon:SetOutlineColor(outlineColor)
+        fonticon:Print(attributes[1], 0, 0, fontSize*1.9, "con")
+        fonticon:End()
     end)
 end
 

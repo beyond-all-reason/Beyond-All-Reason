@@ -65,8 +65,9 @@ local fontfileSize = 25
 local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.35
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+local fontfileScale2 = fontfileScale * 1.25
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -4107,14 +4108,15 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		widgetRight = widgetRight - dx
 	    widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
 	end
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-    gl.DeleteFont(font2)
-    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		fontfileScale2 = newFontfileScale * 1.25
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		gl.DeleteFont(font2)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+	end
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)

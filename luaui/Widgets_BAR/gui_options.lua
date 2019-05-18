@@ -47,7 +47,7 @@ local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
@@ -2429,7 +2429,7 @@ function init()
 
 		options[getOptionByID('font2')].options = fonts
 		options[getOptionByID('font2')].optionsFont = fontsFull
-		local fname = Spring.GetConfigString("ui_font2", "Xolonium.otf"):lower()
+		local fname = Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf"):lower()
 		options[getOptionByID('font2')].value = getSelectKey(getOptionByID('font2'), string.sub(fname, 1, string.len(fname) - 4))
 	end
 
