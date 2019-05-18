@@ -58,7 +58,7 @@ local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfile
 
 local useThickLeterring		= true
 local heightOffset			= 50
-local fontSize				= 18
+local fontSize				= 19
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
@@ -569,7 +569,7 @@ function widget:ViewResize(x, y)
   vsx,vsy = x,y
   widgetScale = (0.75 + (vsx*vsy / 7500000))
   removeTeamLists()
-
+  usedFontSize = fontSize * widgetScale
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
