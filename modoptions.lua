@@ -291,26 +291,6 @@ local options={
        desc="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
        type="section",
     },
-
-	{
-		key    = 'comm_wreck_metal',
-		name   = 'Commander Wreck Metal',
-		desc   = 'Sets the amount of metal left by a destroyed Commander.',
-		type   = 'number',
-		section= 'bar_enhancements_misc',
-		def    = 2500,
-		min    = 0,
-		max    = 5000,
-		step   = 1,
-	},
-	{
-		key = 'globallos',
-		name = 'Full visibility',
-		desc = 'No fog of war, everyone can see the entire map.',
-		type = 'bool',
-		section = 'bar_enhancements_misc',
-		def = false,
-	},
 -- Chicken Defense Options
 	{
 		key    = 'chicken_defense_options',
