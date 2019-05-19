@@ -152,9 +152,8 @@ fragment = [[
 
 	#ifndef SHADOW_SAMPLES
 		#define SHADOW_SAMPLES 6 // number of shadowmap samples per fragment
-		#define SHADOW_RANDOMNESS 0.3 // 0.0 - blocky look, 1.0 - random points look
-		#define SHADOW_SAMPLING_DISTANCE 5.0 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
-		#define SAMPLING_METHOD 2 // 1 - Hammersley Box, 2 - Spiral
+		#define SHADOW_RANDOMNESS 0.4 // 0.0 - blocky look, 1.0 - random points look
+		#define SHADOW_SAMPLING_DISTANCE 2.0 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
 	#endif
 
 	#ifdef use_shadows
@@ -207,18 +206,6 @@ fragment = [[
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
-	vec2 HammersleyNorm(int i, int N) {
-		// principle: reverse bit sequence of i
-
-		uint b =  ( uint(i) << 16u) | (uint(i) >> 16u );
-		b = (b & 0x55555555u) << 1u | (b & 0xAAAAAAAAu) >> 1u;
-		b = (b & 0x33333333u) << 2u | (b & 0xCCCCCCCCu) >> 2u;
-		b = (b & 0x0F0F0F0Fu) << 4u | (b & 0xF0F0F0F0u) >> 4u;
-		b = (b & 0x00FF00FFu) << 8u | (b & 0xFF00FF00u) >> 8u;
-
-		return vec2( i, b ) / vec2( N, 0xffffffffU );
-	}
-
 	// http://blog.marmakoide.org/?p=1
 	const float goldenAngle = PI * (3.0 - sqrt(5.0));
 	vec2 SpiralSNorm(int i, int N) {
@@ -250,30 +237,18 @@ fragment = [[
 			vec2 vSinCos = vec2(sin(rndRotAngle), cos(rndRotAngle));
 			mat2 rotMat = mat2(vSinCos.y, -vSinCos.x, vSinCos.x, vSinCos.y);
 
-			vec2 shadowTexSize = textureSize(shadowTex, 0);
-			vec2 filterSize = SHADOW_SAMPLING_DISTANCE / shadowTexSize * (shadowTexSize / 8192.0);
+			vec2 filterSize = vec2(SHADOW_SAMPLING_DISTANCE / 8192.0);
 
-			#if (SAMPLING_METHOD == 1)
-				shadow = textureProj( shadowTex, tex_coord1 + vec4(0.0, 0.0, -bias, 0.0)); //make sure central point is sampled
-				for (int i = 0; i < SHADOW_SAMPLES - 1; ++i) {
-					// HammersleyNorm return low discrepancy sampling vec2
-					vec2 offset = (rotMat * NORM2SNORM(HammersleyNorm( i, SHADOW_SAMPLES ))) * filterSize;
+			for (int i = 0; i < SHADOW_SAMPLES; ++i) {
+				// SpiralSNorm return low discrepancy sampling vec2
+				vec2 offset = (rotMat * SpiralSNorm( i, SHADOW_SAMPLES )) * filterSize;
 
-
-					vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
-					shadow += textureProj( shadowTex, shTexCoord );
-				}
-			#elif (SAMPLING_METHOD == 2)
-				for (int i = 0; i < SHADOW_SAMPLES; ++i) {
-					// SpiralSNorm return low discrepancy sampling vec2
-					vec2 offset = (rotMat * SpiralSNorm( i, SHADOW_SAMPLES )) * filterSize;
-
-					vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
-					shadow += textureProj( shadowTex, shTexCoord );
-				}
-			#endif
+				vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
+				shadow += textureProj( shadowTex, shTexCoord );
+			}
 
 			shadow /= float(SHADOW_SAMPLES);
+			shadow *= 1.0 - smoothstep(shadow, 1.0,  0.2);
 		#else
 			vec4 shTexCoord = tex_coord1;
 			shTexCoord.z -= bias;
