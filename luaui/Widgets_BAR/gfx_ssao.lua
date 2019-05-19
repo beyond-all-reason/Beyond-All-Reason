@@ -32,18 +32,19 @@ local GL_FUNC_REVERSE_SUBTRACT = 0x800B
 -- Configuration Constants
 -----------------------------------------------------------------
 
-local SSAO_KERNEL_SIZE = 24 -- how many samples are used for SSAO spatial sampling, don't go over 24
+local SSAO_KERNEL_SIZE = 24 -- how many samples are used for SSAO spatial sampling
 local SSAO_RADIUS = 8 -- world space maximum sampling radius
+local SSAO_MIN = 0.1 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
+local SSAO_MAX = 1.0 -- maximum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
+local SSAO_ALPHA_POW = 1.5 -- consider this as SSAO effect strength
 
 local BLUR_HALF_KERNEL_SIZE = 5 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
 local BLUR_PASSES = 2 -- number of blur passes
-local BLUR_SIGMA = 2.0 -- Gaussian sigma
-local BLUR_SAMPLING_DIST = 1.0 -- sampling step in pixels
-local BLUR_VALMULT = 0.75 -- Linear multiplier to the SSAO final strength
+local BLUR_SIGMA = 1.5 -- Gaussian sigma
 
 local DOWNSAMPLE = 2 -- increasing downsapling will reduce GPU RAM occupation (a little bit), increase performace (a little bit), introduce shadow blockiness
 
-local DEBUG_SSAO = false -- likely doesn't work anymore, don't bother
+local DEBUG_SSAO = false -- use for debug
 
 -----------------------------------------------------------------
 -- File path Constants
@@ -119,6 +120,42 @@ local function GetGaussLinearWeightsOffsets(sigma, kernelHalfSize, valMult)
 	return weights, offsets
 end
 
+
+-- quick port of GLSL.
+--[[
+	for (int i = 0; i < SSAO_KERNEL_SIZE; i++) {
+		vec3 tmp = hash31( float(i) );
+		tmp.xy = NORM2SNORM(tmp.xy);
+		tmp = normalize(tmp);
+		float scale = float(i)/float(SSAO_KERNEL_SIZE);
+		scale = clamp(scale * scale, 0.1, 1.0);
+		tmp *= scale;
+		samplingKernel[i] = tmp;
+	}
+]]--
+-- I do so because of according GLSL spec gl_MaxVertexOutputComponents = 64; and gl_MaxFragmentUniformComponents = 1024;
+-- so bigger SSAO kernel size can be supported if they are conveyed via uniforms vs varyings
+local function GetSamplingVectorArray(kernelSize)
+	local result = {}
+	math.randomseed(kernelSize) -- for repeatability
+	for i = 0, kernelSize - 1 do
+		local x, y, z = math.random(), math.random(), math.random() -- [0, 1]^3
+
+		x, y = 2.0 * x - 1.0, 2.0 * y - 1.0 -- xy:[-1, 1]^2, z:[0, 1]
+
+		local l = math.sqrt(x * x + y * y + z * z) --norm
+		x, y, z = x / l, y / l, z / l --normalize
+
+		local scale = i / (kernelSize - 1)
+		scale = scale * scale -- shift most samples closer to the origin
+		scale = math.min(math.max(scale, 0.1), 1.0) --clamp
+
+		x, y, z = x * scale, y * scale, z * scale -- scale
+		result[i] = {x = x, y = y, z = z}
+	end
+	return result
+end
+
 -----------------------------------------------------------------
 -- Widget Functions
 -----------------------------------------------------------------
@@ -131,10 +168,10 @@ end
 function widget:Initialize()
 	WG['ssao'] = {}
 	WG['ssao'].getStrength = function()
-		return BLUR_VALMULT
+		return SSAO_ALPHA_POW
 	end
 	WG['ssao'].setStrength = function(value)
-		BLUR_VALMULT = value
+		SSAO_ALPHA_POW = value
 		widget:Shutdown()
 		widget:Initialize()
 	end
@@ -164,14 +201,16 @@ function widget:Initialize()
 		wrap_t = GL.CLAMP_TO_EDGE,
 	}
 
-	commonTexOpts.format = GL_RGBA8
-	ssaoTex = gl.CreateTexture(vsx / DOWNSAMPLE, vsy / DOWNSAMPLE, commonTexOpts)
-
 	commonTexOpts.format = GL_RGB16F
 	gbuffFuseViewPosTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
 
 	commonTexOpts.format = GL_RGB8_SNORM
 	gbuffFuseViewNormalTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
+
+	commonTexOpts.mag_filter = GL.LINEAR
+
+	commonTexOpts.format = GL_RGBA8
+	ssaoTex = gl.CreateTexture(vsx / DOWNSAMPLE, vsy / DOWNSAMPLE, commonTexOpts)
 
 	commonTexOpts.format = GL_RGBA8
 	for i = 1, 2 do
@@ -232,10 +271,13 @@ function widget:Initialize()
 	local ssaoShaderVert = VFS.LoadFile(shadersDir.."ssao.vert.glsl")
 	local ssaoShaderFrag = VFS.LoadFile(shadersDir.."ssao.frag.glsl")
 
-	ssaoShaderVert = ssaoShaderVert:gsub("###SSAO_KERNEL_SIZE###", tostring(SSAO_KERNEL_SIZE))
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_KERNEL_SIZE###", tostring(SSAO_KERNEL_SIZE))
-	
+
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_RADIUS###", tostring(SSAO_RADIUS))
+	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_MIN###", tostring(SSAO_MIN))
+	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_MAX###", tostring(SSAO_MAX))
+
+	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_ALPHA_POW###", tostring(SSAO_ALPHA_POW))
 
 	ssaoShader = LuaShader({
 		vertex = ssaoShaderVert,
@@ -249,6 +291,14 @@ function widget:Initialize()
 		},
 	}, "SSAO: Processing")
 	ssaoShader:Initialize()
+
+	ssaoShader:ActivateWith( function()
+		local samplingKernel = GetSamplingVectorArray(SSAO_KERNEL_SIZE)
+		for i = 0, SSAO_KERNEL_SIZE - 1 do
+			local sv = samplingKernel[i]
+			ssaoShader:SetUniformFloatAlways(string.format("samplingKernel[%d]", i), sv.x, sv.y, sv.z)
+		end
+	end)
 
 
 	local gaussianBlurVert = VFS.LoadFile(shadersDir.."gaussianBlur.vert.glsl")
@@ -268,12 +318,20 @@ function widget:Initialize()
 	}, "SSAO: Gaussian Blur")
 	gaussianBlurShader:Initialize()
 
-	local realValMult = math.pow(BLUR_VALMULT, 1/(2 * BLUR_PASSES))
-	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(BLUR_SIGMA, BLUR_HALF_KERNEL_SIZE, realValMult)
+	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(BLUR_SIGMA, BLUR_HALF_KERNEL_SIZE, 1.0)
 
 	gaussianBlurShader:ActivateWith( function()
 		gaussianBlurShader:SetUniformFloatArrayAlways("weights", gaussWeights)
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
+	end)
+
+	widget:SunChanged()
+end
+
+function widget:SunChanged()
+	ssaoShader:ActivateWith( function()
+		local shadowDensity = gl.GetSun("shadowDensity", "unit")
+		ssaoShader:SetUniformFloatAlways("shadowDensity", 0.5)
 	end)
 end
 
@@ -357,13 +415,13 @@ function widget:DrawScreenEffects()
 	for i = 1, BLUR_PASSES do
 		gaussianBlurShader:ActivateWith( function ()
 
-			gaussianBlurShader:SetUniform("dir", BLUR_SAMPLING_DIST, 0.0) --horizontal blur
+			gaussianBlurShader:SetUniform("dir", 1.0, 0.0) --horizontal blur
 			gl.ActiveFBO(ssaoBlurFBOs[1], function()
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 			end)
 			gl.Texture(0, ssaoBlurTexes[1])
 
-			gaussianBlurShader:SetUniform("dir", 0.0, BLUR_SAMPLING_DIST) --vertical blur
+			gaussianBlurShader:SetUniform("dir", 0.0, 1.0) --vertical blur
 			gl.ActiveFBO(ssaoBlurFBOs[2], function()
 				gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 			end)
@@ -403,14 +461,14 @@ end
 
 function widget:GetConfigData(data)
 	savedTable = {}
-	savedTable.strength = BLUR_VALMULT
+	savedTable.strength = SSAO_ALPHA_POW
 	savedTable.radius = SSAO_RADIUS
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.strength ~= nil then
-		BLUR_VALMULT = data.strength
+		SSAO_ALPHA_POW = data.strength
 	end
 	if data.strength ~= nil then
 		SSAO_RADIUS = data.radius

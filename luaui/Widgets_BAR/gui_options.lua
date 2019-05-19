@@ -2190,8 +2190,8 @@ function init()
         {id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
 
 		{id="ssao", group="gfx", widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
-		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=0.5, max=1, step=0.05, value=0.75, description=''},
-		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=7, max=10, step=1, value=8, description=''},
+		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=0.5, max=1.5, step=0.05, value=0.75, description=''},
+		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=5, max=12, step=1, value=8, description=''},
 
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
