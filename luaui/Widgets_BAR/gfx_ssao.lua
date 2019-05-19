@@ -331,7 +331,7 @@ end
 function widget:SunChanged()
 	ssaoShader:ActivateWith( function()
 		local shadowDensity = gl.GetSun("shadowDensity", "unit")
-		ssaoShader:SetUniformFloatAlways("shadowDensity", 0.5)
+		ssaoShader:SetUniformFloatAlways("shadowDensity", shadowDensity)
 	end)
 end
 
