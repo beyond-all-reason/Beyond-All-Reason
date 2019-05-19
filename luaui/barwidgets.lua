@@ -158,6 +158,7 @@ local flexCallIns = {
   'DrawWorldRefraction',
   'DrawScreenEffects',
   'DrawInMiniMap',
+  'SunChanged',
   'FeatureCreated',
   'FeatureDestroyed',
 }
@@ -346,15 +347,15 @@ function widgetHandler:Initialize()
   -- do we allow userland widgets?
   --local autoUserWidgets = Spring.GetConfigInt('LuaAutoEnableUserWidgets', 1)
   --self.autoUserWidgets = (autoUserWidgets ~= 0)
-  if self.allowUserWidgets==nil then 
-    self.allowUserWidgets = true 
+  if self.allowUserWidgets==nil then
+    self.allowUserWidgets = true
   end
   if self.allowUserWidgets and allowuserwidgets then
     Spring.Echo("LuaUI: Allowing User Widgets")
   else
     Spring.Echo("LuaUI: Disallowing User Widgets")
   end
-  
+
   -- create the "LuaUI/Config" directory
   Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
@@ -371,7 +372,7 @@ function widgetHandler:Initialize()
       end
     end
   end
-  
+
   -- stuff the zip widgets into unsortedWidgets
   local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
   for k,wf in ipairs(widgetFiles) do
@@ -381,7 +382,7 @@ function widgetHandler:Initialize()
       table.insert(unsortedWidgets, widget)
     end
   end
-  
+
   -- stuff the map widgets into unsortedWidgets
   local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
   for k,wf in ipairs(widgetFiles) do
@@ -416,7 +417,7 @@ function widgetHandler:Initialize()
     local basename = w.whInfo.basename
     local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
     Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
-    
+
     widgetHandler:InsertWidget(w)
   end
 
@@ -1103,17 +1104,17 @@ end
 
 function widgetHandler:Shutdown()
   -- record if we will allow user widgets on next load
-  if self.__allowUserWidgets~=nil then 
+  if self.__allowUserWidgets~=nil then
       self.allowUserWidgets = self.__allowUserWidgets
   end
 
   -- save config
   if self.__blankOutConfig then
-    table.save({["allowUserWidgets"]=self.allowUserWidgets}, CONFIG_FILENAME, '-- Widget Custom data and order')  
+    table.save({["allowUserWidgets"]=self.allowUserWidgets}, CONFIG_FILENAME, '-- Widget Custom data and order')
   else
     self:SaveConfigData()
   end
-  
+
   for _,w in ipairs(self.ShutdownList) do
     w:Shutdown()
   end
@@ -1330,6 +1331,13 @@ end
 function widgetHandler:DrawInMiniMap(xSize, ySize)
   for _,w in ripairs(self.DrawInMiniMapList) do
     w:DrawInMiniMap(xSize, ySize)
+  end
+  return
+end
+
+function widgetHandler:SunChanged()
+  for _,w in ripairs(self.SunChangedList) do
+    w:SunChanged()
   end
   return
 end
@@ -2012,6 +2020,7 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
   end
   return
 end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
