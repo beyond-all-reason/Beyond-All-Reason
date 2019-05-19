@@ -284,13 +284,6 @@ local options={
         max    = 2,
         step   = 0.2,
     },
-	
-    {
-       key="bar_enhancements_misc",
-       name="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
-       desc="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
-       type="section",
-    },
 -- Chicken Defense Options
 	{
 		key    = 'chicken_defense_options',
@@ -414,7 +407,7 @@ local options={
 	{
 		key    = "chicken_custom_spawnchance",
 		name   = "Spawn Chance (Percent)",
-		desc   = "Percent chance of each chicken spawn once greater thwn the min chickens per player limit",
+		desc   = "Percent chance of each chicken spawn once greater than the min chickens per player limit",
 		type   = "number",
 		def    = 33,
 		min    = 0,
