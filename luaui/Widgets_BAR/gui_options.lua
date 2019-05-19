@@ -2792,10 +2792,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvModelShading",1)
 		end
 		-- enable normal mapping
-		if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
-			Spring.SetConfigInt("NormalMapping",1)
-			Spring.SendCommands("luarules normalmapping 1")
-		end
+		--if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
+		--	Spring.SetConfigInt("NormalMapping",1)
+		--	Spring.SendCommands("luarules normalmapping 1")
+		--end
 		-- disable clouds
 		if Spring.GetConfigInt("AdvSky",0) ~= 0 then
 			Spring.SetConfigInt("AdvSky",0)
