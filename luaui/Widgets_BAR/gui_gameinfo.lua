@@ -656,4 +656,5 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('gameinfo')
 	end
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 end
