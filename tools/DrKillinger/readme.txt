@@ -4,4 +4,4 @@ Sometimes a correction of the generated wreck model placement and rotation (bots
 
 requirement: Python 2.7
 
-drkillinger has setup some model/script paths inside so if these change, adjustem em!
+drkillinger has setup some model/script paths inside so if these change, adjust em!
