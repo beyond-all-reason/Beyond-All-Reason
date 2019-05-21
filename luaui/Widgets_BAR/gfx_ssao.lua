@@ -34,13 +34,13 @@ local GL_FUNC_REVERSE_SUBTRACT = 0x800B
 -----------------------------------------------------------------
 
 local SSAO_KERNEL_SIZE = 24 -- how many samples are used for SSAO spatial sampling
-local SSAO_RADIUS = 4 -- world space maximum sampling radius
+local SSAO_RADIUS = 5 -- world space maximum sampling radius
 local SSAO_MIN = 1.0 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.
 local SSAO_MAX = 1.0 -- maximum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
-local SSAO_ALPHA_POW = 2.0 -- consider this as SSAO effect strength
+local SSAO_ALPHA_POW = 3.0 -- consider this as SSAO effect strength
 
 local BLUR_HALF_KERNEL_SIZE = 4 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
-local BLUR_PASSES = 2 -- number of blur passes
+local BLUR_PASSES = 3 -- number of blur passes
 local BLUR_SIGMA = 1.8 -- Gaussian sigma of a single blur pass, other factors like BLUR_HALF_KERNEL_SIZE, BLUR_PASSES and DOWNSAMPLE affect the end result gaussian shape too
 
 local DOWNSAMPLE = 2 -- increasing downsapling will reduce GPU RAM occupation (a little bit), increase performace (a little bit), introduce occlusion blockiness
