@@ -405,6 +405,7 @@ local function DoEverything(isScreenSpace)
 	gl.DepthMask(false)
 	gl.Blending(false)
 
+
 	if firstTime then
 		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
 		if isScreenSpace then
@@ -483,13 +484,14 @@ local function DoEverything(isScreenSpace)
 		end)
 	end
 
+
 	if DEBUG_SSAO then
 		gl.Blending(false)
 	else
 		gl.BlendEquation(GL_FUNC_REVERSE_SUBTRACT)
-		gl.Blending("alpha")
-		--gl.Blending(true)
-		--gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ZERO, GL.ONE)
+		--gl.Blending("alpha")
+		gl.Blending(true)
+		gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ZERO, GL.ONE)
 		--gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
 		--gl.BlendFunc(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) --alpha pre-multiply
 		--gl.BlendFunc(GL.ZERO, GL.ONE)
@@ -507,31 +509,35 @@ local function DoEverything(isScreenSpace)
 		gl.BlendEquation(GL_FUNC_ADD)
 	end
 
+
+
+
 	gl.Texture(0, false)
 	gl.Texture(1, false)
 	gl.Texture(2, false)
 	gl.Texture(3, false)
 
-	gl.Blending(true)
-	gl.DepthMask(true)
-	gl.DepthTest(true)
+
+	gl.Blending("alpha")
+	--gl.DepthMask(true)
+	--gl.DepthTest(true)
 end
 
 function widget:DrawWorld()
-	gl.MatrixMode(GL.PROJECTION)
-	gl.PushMatrix()
-	gl.LoadIdentity();
-
 	gl.MatrixMode(GL.MODELVIEW)
 	gl.PushMatrix()
 	gl.LoadIdentity()
 
-		DoEverything(false)
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PushMatrix()
+		gl.LoadIdentity();
 
-	--gl.MatrixMode(GL.MODELVIEW)
-	gl.PopMatrix()
+			DoEverything(false)
 
-	gl.MatrixMode(GL.PROJECTION)
+		gl.MatrixMode(GL.PROJECTION)
+		gl.PopMatrix()
+
+	gl.MatrixMode(GL.MODELVIEW)
 	gl.PopMatrix()
 end
 
