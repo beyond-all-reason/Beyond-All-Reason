@@ -7,7 +7,7 @@ function widget:GetInfo()
         author    = "ivand",
         date      = "2019",
         license   = "GPL",
-        layer     = -10000,
+        layer     = math.huge,
         enabled   = false, --true
     }
 end
@@ -402,6 +402,7 @@ end
 
 local function DoEverything(isScreenSpace)
 	gl.DepthTest(false)
+	gl.DepthMask(false)
 	gl.Blending(false)
 
 	if firstTime then
@@ -461,7 +462,7 @@ local function DoEverything(isScreenSpace)
 
 	gl.Texture(0, ssaoTex)
 	if BLUR_BILATERRAL then
-		--gl.Texture(1, gbuffFuseViewPosTex)
+		gl.Texture(1, gbuffFuseViewPosTex)
 	end
 
 	for i = 1, BLUR_PASSES do
@@ -512,15 +513,26 @@ local function DoEverything(isScreenSpace)
 	gl.Texture(3, false)
 
 	gl.Blending(true)
+	gl.DepthMask(true)
 	gl.DepthTest(true)
 end
 
 function widget:DrawWorld()
-	gl.PushPopMatrix(function()
-		gl.MatrixMode(GL.PROJECTION); gl.LoadIdentity();
-		gl.MatrixMode(GL.MODELVIEW); gl.LoadIdentity();
+	gl.MatrixMode(GL.PROJECTION)
+	gl.PushMatrix()
+	gl.LoadIdentity();
+
+	gl.MatrixMode(GL.MODELVIEW)
+	gl.PushMatrix()
+	gl.LoadIdentity()
+
 		DoEverything(false)
-	end)
+
+	--gl.MatrixMode(GL.MODELVIEW)
+	gl.PopMatrix()
+
+	gl.MatrixMode(GL.PROJECTION)
+	gl.PopMatrix()
 end
 
 function widget:GetConfigData(data)
