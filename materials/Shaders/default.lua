@@ -150,6 +150,10 @@ fragment = [[
 		#define SPECULARMULT 2.0
 	#endif
 
+	#ifndef MAT_IDX
+		#define MAT_IDX 0
+	#endif
+
 	#ifndef SHADOW_SAMPLES
 		#define SHADOW_SAMPLES 6 // number of shadowmap samples per fragment
 		#define SHADOW_RANDOMNESS 0.4 // 0.0 - blocky look, 1.0 - random points look
@@ -356,7 +360,7 @@ fragment = [[
 			fragData[GBUFFER_DIFFTEX_IDX] = outColor;
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(specularColor, extraColor.a);
 			fragData[GBUFFER_EMITTEX_IDX] = vec4(extraColor.rrr, 1.0);
-			fragData[GBUFFER_MISCTEX_IDX] = vec4(0.0);
+			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(MAT_IDX) / 255.0, 0.0, 0.0, 0.0);
 		#endif
 
 		%%FRAGMENT_POST_SHADING%%
