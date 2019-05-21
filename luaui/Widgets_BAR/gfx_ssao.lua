@@ -7,7 +7,7 @@ function widget:GetInfo()
         author    = "ivand",
         date      = "2019",
         license   = "GPL",
-        layer     = -math.huge,
+        layer     = -10000,
         enabled   = false, --true
     }
 end
@@ -35,7 +35,7 @@ local GL_FUNC_REVERSE_SUBTRACT = 0x800B
 
 local SSAO_KERNEL_SIZE = 24 -- how many samples are used for SSAO spatial sampling
 local SSAO_RADIUS = 8 -- world space maximum sampling radius
-local SSAO_MIN = 0.1 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
+local SSAO_MIN = 1.0 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.
 local SSAO_MAX = 1.0 -- maximum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
 local SSAO_ALPHA_POW = 1.0 -- consider this as SSAO effect strength
 
@@ -486,9 +486,10 @@ local function DoEverything(isScreenSpace)
 		gl.Blending(false)
 	else
 		gl.BlendEquation(GL_FUNC_REVERSE_SUBTRACT)
-		--gl.Blending("alpha")
-		gl.Blending(true)
-		gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
+		gl.Blending("alpha")
+		--gl.Blending(true)
+		--gl.BlendFuncSeparate(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA, GL.ZERO, GL.ONE)
+		--gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
 		--gl.BlendFunc(GL.ONE, GL.ONE_MINUS_SRC_ALPHA) --alpha pre-multiply
 		--gl.BlendFunc(GL.ZERO, GL.ONE)
 	end

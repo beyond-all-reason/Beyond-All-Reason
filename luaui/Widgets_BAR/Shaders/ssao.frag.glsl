@@ -25,7 +25,7 @@ vec3 hash32(vec2 p) {
 #define SSAO_KERNEL_SIZE ###SSAO_KERNEL_SIZE###
 
 #define SSAO_RADIUS ###SSAO_RADIUS###
-#define SSAO_MIN ###SSAO_MIN### * SSAO_RADIUS
+#define SSAO_MIN ###SSAO_MIN###
 #define SSAO_MAX ###SSAO_MAX### * SSAO_RADIUS
 
 #define SSAO_FADE_DIST_1 800.0
