@@ -94,7 +94,6 @@ local materials = {
 			[0] = '%%FEATUREDEFID:0',
 			[1] = '%%FEATUREDEFID:1',
 			[2] = '$shadow',
-			[3] = '$specular',
 			[4] = '$reflection',
 			[5] = '%NORMALTEX',
 		},

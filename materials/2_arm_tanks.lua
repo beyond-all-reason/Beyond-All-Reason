@@ -68,7 +68,6 @@ local matTemplate = {
 		[0] = '%%UNITDEFID:0',
 		[1] = '%%UNITDEFID:1',
 		[2] = '$shadow',
-		[3] = '$specular',
 		[4] = '$reflection',
 		[5] = '%NORMALTEX',
 	},

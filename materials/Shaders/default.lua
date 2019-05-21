@@ -297,19 +297,10 @@ fragment = [[
 
 		vec3 specularColor;
 
-		if (lightingModel == 1) { //blinn-phong
-			vec3 H = normalize(L + V);
-			float HdotN = max(dot(H, N), 0.0);
-			specularColor = sunSpecular * pow(HdotN, sunSpecularExp);
-		}
-		else if (lightingModel == 2) { //phong
-			vec3 Rl = -reflect(L, N);
-			float VdotRl = max(dot(Rl, V), 0.0);
-			specularColor = sunSpecular * min(1.0, (pow(VdotRl, sunSpecularExp) + pow(VdotRl, 3.0) * 0.15));
-		}
-		else {
-			specularColor = texture(specularTex, Rv).rgb;
-		}
+		// blinn-phong
+		vec3 H = normalize(L + V);
+		float HdotN = max(dot(H, N), 0.0);
+		specularColor = sunSpecular * pow(HdotN, sunSpecularExp);
 
 		specularColor *= extraColor.g * SPECULARMULT;
 
@@ -376,12 +367,8 @@ fragment = [[
 		textureS3o1 = 0,
 		textureS3o2 = 1,
 		shadowTex   = 2,
-		specularTex = 3,
 		reflectTex  = 4,
 		normalMap   = 5,
-		--detailMap   = 6,
-
-		lightingModel = 1,
 	},
 	uniformFloat = {
 		-- sunPos = {gl.GetSun("pos")}, -- material has sunPosLoc
