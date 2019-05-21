@@ -1,12 +1,16 @@
 #version 150 compatibility
 
 #define DEPTH_CLIP01 ###DEPTH_CLIP01###
+#define MERGE_MISC ###MERGE_MISC###
 
 uniform sampler2D modelDepthTex;
 uniform sampler2D mapDepthTex;
 
 uniform sampler2D modelNormalTex;
 uniform sampler2D mapNormalTex;
+
+uniform sampler2D modelMiscTex;
+uniform sampler2D mapMiscTex;
 
 uniform vec2 viewPortSize;
 
@@ -21,7 +25,7 @@ vec4 GetViewPos(vec2 texCoord, float sampledDepth) {
 	vec4 projPosition = vec4(0.0, 0.0, 0.0, 1.0);
 
 	//texture space [0;1] to NDC space [-1;1]
-	#if DEPTH_CLIP01
+	#if (DEPTH_CLIP01 == 1)
 		//don't transform depth as it's in the same [0;1] space
 		projPosition.xyz = vec3(NORM2SNORM(texCoord), sampledDepth);
 	#else
@@ -50,14 +54,24 @@ void main() {
 
 	vec3 viewNormal = mix(mapNormal, modelNormal, modelOccludesMap);
 	float validNormal = float(length(viewNormal) > 0.2); //empty spaces in g-buffer will have vec3(0.0) normals
-	
+
 	viewNormal = NORM2SNORM(viewNormal);
 	viewNormal = normalize(viewNormal);
 	viewNormal = vec3(viewMatrix * vec4(viewNormal, 0.0)); //transform world-->view space
 
+	#if (MERGE_MISC == 1)
+		vec4 modelMiscInfo = texture(modelMiscTex, uv);
+		vec4 mapMiscInfo = texture(mapMiscTex, uv);
+		vec4 miscInfo = mix(mapMiscInfo, modelMiscInfo, modelOccludesMap);
+	#endif
+
 	// MRT output:
 	//[0] = gbuffFuseViewPosTex
 	//[1] = gbuffFuseViewNormalTex
+	//[2] = gbuffFuseMiscTex (conditional to MERGE_MISC == 1)
 	gl_FragData[0].xyz = viewPosition.xyz;
 	gl_FragData[1].xyz = mix( vec3(0.0), viewNormal.xyz, vec3(validNormal) );
+	#if (MERGE_MISC == 1)
+		gl_FragData[2] = miscInfo;
+	#endif
 }

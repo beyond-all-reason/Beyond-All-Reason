@@ -88,7 +88,11 @@ void main() {
 
 			float delta = viewPositionSampled.z - viewTestPosition.z;
 
-			float occlusionCondition = float(delta >= SSAO_MIN && delta <= SSAO_MAX);
+			#if 0
+				float occlusionCondition = float(delta >= SSAO_MIN && delta <= SSAO_MAX);
+			#else
+				float occlusionCondition = float(delta >= SSAO_MIN) * smoothstep(SSAO_MAX, 0.5 * SSAO_MAX, delta);
+			#endif
 
 			occlusion += occlusionCondition;
 		}
