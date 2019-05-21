@@ -24,6 +24,9 @@ include("system.lua")
 include("callins.lua")
 include("savetable.lua")
 
+Spring.Utilities = {}
+VFS.Include("LuaRules/Utilities/tablefunctions.lua")
+
 
 local gl = gl
 
