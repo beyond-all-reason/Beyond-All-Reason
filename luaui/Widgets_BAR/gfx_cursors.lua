@@ -19,7 +19,8 @@ Settings['cursorSet'] = Settings['defaultCursorSet']
 -- note: first entry should be icons inside base /anims folder
 local cursorSets = {}
 for k, subdir in pairs(VFS.SubDirs('anims')) do
-	cursorSets[#cursorSets + 1] = string.gsub(string.sub(subdir, 1, #subdir-1), 'anims/', '')
+	cursorSets[#cursorSets + 1] = string.gsub(string.sub(subdir, 1, #subdir-1), 'anims/', '')	-- game anims folder
+	cursorSets[#cursorSets] = string.gsub(string.sub(cursorSets[#cursorSets], 1, #subdir), 'anims\\', '')	-- spring anims folder
 end
 
 
