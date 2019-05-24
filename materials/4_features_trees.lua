@@ -32,6 +32,7 @@ local materials = {
 		deferredDefinitions = {
 			--"#define use_normalmapping", --very expensive for trees (too much overdraw)
 			"#define deferred_mode 1",
+			"#define MAT_IDX 129",
 		},
 		shaderPlugins = {
 			VERTEX_GLOBAL_NAMESPACE = [[

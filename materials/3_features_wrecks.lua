@@ -29,6 +29,7 @@ local materials = {
 			"#define deferred_mode 1",
 			--"#define use_vertex_ao",
 			"#define SPECULARMULT 6.0",
+			"#define MAT_IDX 128",
 		},
 		force     = false, --// always use the shader even when normalmapping is disabled
 		usecamera = false,

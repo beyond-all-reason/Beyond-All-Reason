@@ -27,6 +27,7 @@ local matTemplate = {
 			"#define flashlights",
 			"#define use_vertex_ao",
 			"#define SPECULARMULT 8.0",
+			"#define MAT_IDX 1",
 		},
 
 		shader    = default_lua,
