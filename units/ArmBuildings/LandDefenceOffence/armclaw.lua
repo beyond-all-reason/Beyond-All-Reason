@@ -141,6 +141,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
+				intensity = 24,
 				name = "Close-quarters g2g lightning turret",
 				noselfdamage = true,
 				range = 440,
@@ -153,6 +154,7 @@ return {
 				soundstart = "lghthvy1",
 				soundtrigger = true,
 				turret = true,
+				thickness = 1.7,
 				weapontype = "LightningCannon",
 				weaponvelocity = 450,
 				customparams = {
