@@ -26,12 +26,12 @@ local MIN_FPS_DELTA = 10
 local AVG_FPS_ELASTICITY = 0.2
 local AVG_FPS_ELASTICITY_INV = 1.0 - AVG_FPS_ELASTICITY
 
-local BLUR_HALF_KERNEL_SIZE = 4 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
+local BLUR_HALF_KERNEL_SIZE = 5 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur.
 local BLUR_PASSES = 1 -- number of blur passes
 local BLUR_SIGMA = 2.5 -- Gaussian sigma of a single blur pass, other factors like BLUR_HALF_KERNEL_SIZE, BLUR_PASSES and DOWNSAMPLE affect the end result gaussian shape too
 
 local OUTLINE_COLOR = {0.0, 0.0, 0.0, 1.0}
-local OUTLINE_STRENGTH = 2.5
+local OUTLINE_STRENGTH = 3.0 -- make it much smaller for softer edges
 
 local USE_MATERIAL_INDICES = true -- for future material indices based SSAO evaluation
 
@@ -64,6 +64,7 @@ local blurFBOs = {}
 
 local shapeShader
 local gaussianBlurShader
+local applicationShader
 
 
 -----------------------------------------------------------------
@@ -165,14 +166,14 @@ function widget:Initialize()
 	end
 
 
+	local identityShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 
-	local shapeShaderVert = VFS.LoadFile(shadersDir.."outline.vert.glsl")
-	local shapeShaderFrag = VFS.LoadFile(shadersDir.."outline.frag.glsl")
+	local shapeShaderFrag = VFS.LoadFile(shadersDir.."outlineShape.frag.glsl")
 
 	shapeShaderFrag = shapeShaderFrag:gsub("###USE_MATERIAL_INDICES###", tostring((USE_MATERIAL_INDICES and 1) or 0))
 
 	shapeShader = LuaShader({
-		vertex = shapeShaderVert,
+		vertex = identityShaderVert,
 		fragment = shapeShaderFrag,
 		uniformInt = {
 			-- be consistent with gfx_deferred_rendering.lua
@@ -184,16 +185,15 @@ function widget:Initialize()
 		uniformFloat = {
 			outlineColor = OUTLINE_COLOR,
 		},
-	}, "Outline: Shape drawing")
+	}, wiName..": Shape drawing")
 	shapeShader:Initialize()
 
-	local gaussianBlurVert = VFS.LoadFile(shadersDir.."gaussianBlur.vert.glsl")
 	local gaussianBlurFrag = VFS.LoadFile(shadersDir.."gaussianBlur.frag.glsl")
 
 	gaussianBlurFrag = gaussianBlurFrag:gsub("###BLUR_HALF_KERNEL_SIZE###", tostring(BLUR_HALF_KERNEL_SIZE))
 
 	gaussianBlurShader = LuaShader({
-		vertex = gaussianBlurVert,
+		vertex = identityShaderVert,
 		fragment = gaussianBlurFrag,
 		uniformInt = {
 			tex = 0,
@@ -201,7 +201,7 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
 		},
-	}, "SSAO: Gaussian Blur")
+	}, wiName..": Gaussian Blur")
 	gaussianBlurShader:Initialize()
 
 	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(BLUR_SIGMA, BLUR_HALF_KERNEL_SIZE, OUTLINE_STRENGTH)
@@ -210,6 +210,21 @@ function widget:Initialize()
 		gaussianBlurShader:SetUniformFloatArrayAlways("weights", gaussWeights)
 		gaussianBlurShader:SetUniformFloatArrayAlways("offsets", gaussOffsets)
 	end)
+
+	local applicationFrag = VFS.LoadFile(shadersDir.."outlineApplication.frag.glsl")
+
+	applicationShader = LuaShader({
+		vertex = identityShaderVert,
+		fragment = applicationFrag,
+		uniformInt = {
+			tex = 0,
+			modelDepthTex = 1,
+		},
+		uniformFloat = {
+			viewPortSize = {vsx, vsy},
+		},
+	}, wiName..": Outline Application")
+	applicationShader:Initialize()
 end
 
 function widget:Shutdown()
@@ -236,6 +251,7 @@ function widget:Shutdown()
 
 	shapeShader:Finalize()
 	gaussianBlurShader:Finalize()
+	applicationShader:Finalize()
 end
 
 local show = true
@@ -268,7 +284,7 @@ local function DoDrawOutline(isScreenSpace)
 
 			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 
-			gl.Texture(1, false)
+			--gl.Texture(1, false) --will reuse later
 			if USE_MATERIAL_INDICES then
 				gl.Texture(2, false)
 			end
@@ -299,9 +315,14 @@ local function DoDrawOutline(isScreenSpace)
 	gl.Blending(true)
 	gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
 
-	gl.CallList(screenWideList)
+	--gl.Texture(1, "$model_gbuffer_zvaltex") -- already bound
+
+	applicationShader:ActivateWith( function ()
+		gl.CallList(screenWideList)
+	end)
 
 	gl.Texture(0, false)
+	gl.Texture(1, false)
 end
 
 
