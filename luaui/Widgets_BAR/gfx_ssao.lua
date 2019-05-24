@@ -264,7 +264,7 @@ function widget:Initialize()
 	end
 
 
-	local gbuffFuseShaderVert = VFS.LoadFile(shadersDir.."gbuffFuse.vert.glsl")
+	local gbuffFuseShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 	local gbuffFuseShaderFrag = VFS.LoadFile(shadersDir.."gbuffFuse.frag.glsl")
 
 	gbuffFuseShaderFrag = gbuffFuseShaderFrag:gsub("###DEPTH_CLIP01###", tostring((Platform.glSupportClipSpaceControl and 1) or 0))
@@ -290,11 +290,11 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
 		},
-	}, "SSAO: G-buffer Fuse")
+	}, wiName..": G-buffer Fuse")
 	gbuffFuseShader:Initialize()
 
 
-	local ssaoShaderVert = VFS.LoadFile(shadersDir.."ssao.vert.glsl")
+	local ssaoShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 	local ssaoShaderFrag = VFS.LoadFile(shadersDir.."ssao.frag.glsl")
 
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_KERNEL_SIZE###", tostring(SSAO_KERNEL_SIZE))
@@ -315,7 +315,7 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx / DOWNSAMPLE, vsy / DOWNSAMPLE},
 		},
-	}, "SSAO: Processing")
+	}, wiName..": Processing")
 	ssaoShader:Initialize()
 
 	ssaoShader:ActivateWith( function()
@@ -327,7 +327,7 @@ function widget:Initialize()
 	end)
 
 
-	local gaussianBlurVert = VFS.LoadFile(shadersDir.."gaussianBlur.vert.glsl")
+	local gaussianBlurVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 	local gaussianBlurFrag = VFS.LoadFile(shadersDir.."gaussianBlur.frag.glsl")
 
 	gaussianBlurFrag = gaussianBlurFrag:gsub("###BLUR_HALF_KERNEL_SIZE###", tostring(BLUR_HALF_KERNEL_SIZE))
@@ -341,7 +341,7 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx / DOWNSAMPLE, vsy / DOWNSAMPLE},
 		},
-	}, "SSAO: Gaussian Blur")
+	}, wiName..": Gaussian Blur")
 	gaussianBlurShader:Initialize()
 
 	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(BLUR_SIGMA, BLUR_HALF_KERNEL_SIZE, 1.0)
