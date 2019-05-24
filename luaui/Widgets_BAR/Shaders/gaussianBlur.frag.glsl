@@ -1,11 +1,6 @@
 #version 150 compatibility
 
-#define BLUR_BILATERAL ###BLUR_BILATERAL###
-#define SSAO_RADIUS ###SSAO_RADIUS###
-#define BLUR_BILATERAL_DEPTH_CUTOFF ###BLUR_BILATERAL_DEPTH_CUTOFF### * SSAO_RADIUS
-
 uniform sampler2D tex;
-uniform sampler2D viewPosTex;
 
 uniform float offsets[###BLUR_HALF_KERNEL_SIZE###];
 uniform float weights[###BLUR_HALF_KERNEL_SIZE###];
@@ -20,11 +15,6 @@ void main(void)
 	vec4 acc = texture( tex, uv ) * weights[0];
 	float okCoords;
 
-	#if (BLUR_BILATERAL == 1)
-		const float eps = 1e-6;
-		float centralViewDepth = texture( viewPosTex, uv ).z;
-	#endif
-
 	for (int i = 1; i < ###BLUR_HALF_KERNEL_SIZE###; ++i) {
 		vec2 uvOff = offsets[i] * dir / viewPortSize;
 		vec2 uvP = uv + uvOff;
@@ -32,16 +22,6 @@ void main(void)
 
 		float weightP = weights[i];
 		float weightN = weights[i];
-
-		#if (BLUR_BILATERAL == 1)
-			float thisViewDepth;
-
-			thisViewDepth = texture( viewPosTex, uvP ).z;
-			weightP *= smoothstep(0.0, 1.0, BLUR_BILATERAL_DEPTH_CUTOFF/abs(centralViewDepth - thisViewDepth + eps) );
-
-			thisViewDepth = texture( viewPosTex, uvN ).z;
-			weightN *= smoothstep(0.0, 1.0, BLUR_BILATERAL_DEPTH_CUTOFF/abs(centralViewDepth - thisViewDepth + eps) );
-		#endif
 
 		okCoords = float( all(bvec4( greaterThanEqual(uvP, vec2(0.0)), lessThanEqual(uvP, vec2(1.0)) )) );
 		weightP *= okCoords;
