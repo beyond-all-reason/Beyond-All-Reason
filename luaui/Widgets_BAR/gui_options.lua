@@ -1546,7 +1546,9 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'enemyspotter_opacity' then
 			saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', {'spotterOpacity'}, value)
 		elseif id == 'outline_size' then
-			saveOptionValue('Outline', 'outline', 'setSize', {'customSize'}, value)
+			saveOptionValue('Outline', 'outline', 'setSize', {'BLUR_SIGMA'}, value)
+		elseif id == 'outline_strength' then
+			saveOptionValue('Outline', 'outline', 'setStrength', {'OUTLINE_STRENGTH'}, value)
 		elseif id == 'underconstructiongfx_opacity' then
 			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setOpacity', {'highlightAlpha'}, value)
 		elseif id == 'highlightselunits_opacity' then
@@ -2039,7 +2041,8 @@ function loadAllWidgetData()
 	loadWidgetData("EnemySpotter", "enemyspotter_opacity", {'spotterOpacity'})
 	loadWidgetData("EnemySpotter", "enemyspotter_highlight", {'useXrayHighlight'})
 
-	loadWidgetData("Outline", "outline_size", {'customSize'})
+	loadWidgetData("Outline", "outline_size", {'BLUR_SIGMA'})
+	loadWidgetData("Outline", "outline_strength", {'OUTLINE_STRENGTH'})
 
 	loadWidgetData("Under construction gfx", "underconstructiongfx_opacity", {'highlightAlpha'})
 	loadWidgetData("Under construction gfx", "underconstructiongfx_shader", {'useHighlightShader'})
@@ -2196,8 +2199,9 @@ function init()
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
 
-		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
-		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
+		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
+		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.8, max=2.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
+		{id="outline_strength", group="gfx", name=widgetOptionColor.."   opacity", min=1, max=6, step=0.05, type="slider", value=2.5, description='Set the opacity of the outline'},
 
 		{id="disticon", group="gfx", name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
@@ -2644,6 +2648,7 @@ function init()
 	if widgetHandler.knownWidgets["Outline"] == nil then
 		options[getOptionByID('outline')] = nil
 		options[getOptionByID("outline_size")] = nil
+		options[getOptionByID("outline_strength")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
