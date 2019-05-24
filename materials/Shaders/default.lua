@@ -141,10 +141,11 @@ fragment = [[
 	uniform vec3 sunAmbient;
 	uniform vec3 sunSpecular;
 
-	uniform int lightingModel;
-	const float sunSpecularExp = 16.0;
-
 	uniform vec3 etcLoc;
+
+	#ifndef SPECULARSUNEXP
+		#define SPECULARSUNEXP 16.0
+	#endif
 
 	#ifndef SPECULARMULT
 		#define SPECULARMULT 2.0
@@ -304,7 +305,7 @@ fragment = [[
 		// blinn-phong
 		vec3 H = normalize(L + V);
 		float HdotN = max(dot(H, N), 0.0);
-		specularColor = sunSpecular * pow(HdotN, sunSpecularExp);
+		specularColor = sunSpecular * pow(HdotN, SPECULARSUNEXP);
 
 		specularColor *= extraColor.g * SPECULARMULT;
 
