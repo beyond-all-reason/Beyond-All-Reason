@@ -61,6 +61,7 @@ local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
+local changesRequireRestart = false
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
 local customScale = 1
@@ -614,7 +615,7 @@ function DrawWindow()
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
 		local buttonSize = 52
-		local buttonMargin = 13
+		local buttonMargin = 18
 		local startX = x+screenWidth
 		local startY = screenY-screenHeight+buttonMargin
 
@@ -643,6 +644,15 @@ function DrawWindow()
 		else
 			optionButtonBackward = nil
 		end
+	end
+
+	-- require restart notification
+	if changesRequireRestart then
+		font:Begin()
+		font:SetTextColor(1,0.35,0.35,1)
+		font:SetOutlineColor(0,0,0,0.4)
+		font:Print("...made changes that require restart", x+screenWidth-3, screenY-screenHeight+3, 15, "rn")
+		font:End()
 	end
 
 	-- draw options
@@ -706,7 +716,17 @@ function DrawWindow()
 
 				elseif option.type == 'slider' then
 					local sliderSize = oHeight*0.75
-					local sliderPos = (option.value-option.min) / (option.max-option.min)
+					local sliderPos = 0
+					if option.steps then
+						local min, max = option.steps[1], option.steps[1]
+						for k, v in ipairs(option.steps) do
+							if v > max then max = v end
+							if v < min then min = v end
+						end
+						sliderPos = (option.value-min) / (max-min)
+					else
+						sliderPos = (option.value-option.min) / (option.max-option.min)
+					end
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
 					glColor(0.8,0.8,0.8,1)
@@ -1095,6 +1115,10 @@ end
 
 function applyOptionValue(i, skipRedrawWindow)
 	if options[i] == nil then return end
+
+	if options[i].restart then
+		changesRequireRestart = true
+	end
 
 	local id = options[i].id
 	if options[i].type == 'bool' then
@@ -1708,9 +1732,20 @@ end
 function getSliderValue(draggingSlider, cx)
 	local sliderWidth = optionButtons[draggingSlider].sliderXpos[2] - optionButtons[draggingSlider].sliderXpos[1]
 	local value = (cx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
-	value = options[draggingSlider].min + ((options[draggingSlider].max - options[draggingSlider].min) * value)
-	if value < options[draggingSlider].min then value = options[draggingSlider].min end
-	if value > options[draggingSlider].max then value = options[draggingSlider].max end
+	local min, max
+	if options[draggingSlider].steps then
+		min, max = options[draggingSlider].steps[1], options[draggingSlider].steps[1]
+		for k, v in ipairs(options[draggingSlider].steps) do
+			if v > max then max = v end
+			if v < min then min = v end
+		end
+	else
+		min = options[draggingSlider].min
+		max = options[draggingSlider].max
+	end
+	value = min + ((max - min) * value)
+	if value < min then value = min end
+	if value > max then value = max end
 	if options[draggingSlider].steps ~= nil then
 		value = NearestValue(options[draggingSlider].steps, value)
 	elseif options[draggingSlider].step ~= nil then
@@ -2172,7 +2207,7 @@ function init()
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		--{id="vsync2", group="gfx", name="V-sync", type="slider", min=-2, max=2, step=1, value=tonumber(Spring.GetConfigInt("VSync",0) or 0), description='Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).'},
-		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, steps={0,1,2,4,8}, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
+		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", steps={0,1,2,4,8}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
 		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
@@ -2186,7 +2221,7 @@ function init()
 
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
-		--{id="advsky", group="gfx", name="Clouds", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
+		--{id="advsky", group="gfx", name="Clouds", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		{id="bloomdeferred", group="gfx", widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)'},
 		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description=''},
@@ -2250,7 +2285,7 @@ function init()
 		--{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
 		--{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
 
-		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
+		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 		{id="treewind", group="gfx", name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)'},
 
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
@@ -2296,7 +2331,7 @@ function init()
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps"},
 		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size'},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
-		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
+		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 		{id="containmouse", group="control", widget="Grabinput", name="Contain mouse", type="bool", value=GetWidgetToggleValue("Grabinput"), description='When in windowed mode, this prevents your mouse from moving out of it'},
 		{id="allyselunits_select", group="control", name="Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this selects what the player has selected"},
 		{id="lockcamera_hideenemies", group="control", name="Only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will display what the tracked player sees"},
@@ -2495,6 +2530,7 @@ function init()
 				applyOptionValue(getOptionByID(k))
 			end
 		end
+		changesRequireRestart = false
 	end
 
     -- detect AI
@@ -2729,7 +2765,7 @@ function init()
 	local insert = true
 	for oid,option in pairs(options) do
 		insert = true
-		if option.type == 'slider' then
+		if option.type == 'slider' and not option.steps then
 			if option.value < option.min then option.value = option.min end
 			if option.value > option.max then option.value = option.max end
 		end
