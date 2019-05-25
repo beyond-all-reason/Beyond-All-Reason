@@ -964,9 +964,13 @@ function widget:DrawScreen()
 						RectRound(o[1], o[2], o[3], o[4], 1)
 						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 							local value = options[i].value
-							local decimalValue, floatValue = math.modf(options[i].step)
-							if floatValue ~= 0 then
-								value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+							if options[i].steps then
+								value = NearestValue(options[i].steps, value)
+							else
+								local decimalValue, floatValue = math.modf(options[i].step)
+								if floatValue ~= 0 then
+									value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+								end
 							end
 							WG['tooltip'].ShowTooltip('options_showvalue', value)
 						end
@@ -1691,13 +1695,25 @@ function round(num, numDecimalPlaces)
     else return math.ceil(num * mult - 0.5) / mult end
 end
 
+function NearestValue(table, number)
+	local smallestSoFar, smallestIndex
+	for i, y in ipairs(table) do
+		if not smallestSoFar or (math.abs(number-y) < smallestSoFar) then
+			smallestSoFar = math.abs(number-y)
+			smallestIndex = i
+		end
+	end
+	return table[smallestIndex]
+end
 function getSliderValue(draggingSlider, cx)
 	local sliderWidth = optionButtons[draggingSlider].sliderXpos[2] - optionButtons[draggingSlider].sliderXpos[1]
 	local value = (cx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
 	value = options[draggingSlider].min + ((options[draggingSlider].max - options[draggingSlider].min) * value)
 	if value < options[draggingSlider].min then value = options[draggingSlider].min end
 	if value > options[draggingSlider].max then value = options[draggingSlider].max end
-	if options[draggingSlider].step ~= nil then
+	if options[draggingSlider].steps ~= nil then
+		value = NearestValue(options[draggingSlider].steps, value)
+	elseif options[draggingSlider].step ~= nil then
 		value = math.floor(value / options[draggingSlider].step) * options[draggingSlider].step
 	end
 	return value	-- is a string now :(
@@ -2156,7 +2172,7 @@ function init()
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		--{id="vsync2", group="gfx", name="V-sync", type="slider", min=-2, max=2, step=1, value=tonumber(Spring.GetConfigInt("VSync",0) or 0), description='Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).'},
-		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
+		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, steps={0,1,2,4,8}, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
 		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
