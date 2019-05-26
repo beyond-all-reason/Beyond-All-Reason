@@ -14,39 +14,38 @@ end
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local matTemplate = {
-		shaderDefinitions = {
-			"#define use_normalmapping",
-			"#define deferred_mode 0",
-			"#define use_vertex_ao",
-			"#define flashlights",
-			"#define SPECULARMULT 8.0",
-		},
-		deferredDefinitions = {
-			"#define use_normalmapping",
-			"#define deferred_mode 1",
-			"#define flashlights",
-			"#define use_vertex_ao",
-			"#define SPECULARMULT 8.0",
-			"#define MAT_IDX 1",
-		},
+	shaderDefinitions = {
+		"#define use_normalmapping",
+		"#define deferred_mode 0",
+		"#define use_vertex_ao",
+		"#define flashlights",
+		"#define SPECULARMULT 8.0",
+		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
+	},
+	deferredDefinitions = {
+		"#define use_normalmapping",
+		"#define deferred_mode 1",
+		"#define flashlights",
+		"#define use_vertex_ao",
+		"#define SPECULARMULT 8.0",
+		"#define MAT_IDX 1",
+	},
 
-		shader    = default_lua,
-		deferred  = default_lua,
-		usecamera = false,
-		culling   = GL.BACK,
-		predl  = nil,
-		postdl = nil,
-		texunits  = {
-			[0] = '%%UNITDEFID:0',
-			[1] = '%%UNITDEFID:1',
-			[2] = '$shadow',
-			[4] = '$reflection',
-			[5] = '%NORMALTEX',
-		},
-		-- uniforms = {
-		-- }
-		--DrawUnit = DrawUnit,
-		SunChanged = SunChanged,
+	shader    = default_lua,
+	deferred  = default_lua,
+	usecamera = false,
+	force = true,
+	culling   = GL.BACK,
+	predl  = nil,
+	postdl = nil,
+	texunits  = {
+		[0] = '%%UNITDEFID:0',
+		[1] = '%%UNITDEFID:1',
+		[2] = '$shadow',
+		[4] = '$reflection',
+		[5] = '%NORMALTEX',
+	},
+	SunChanged = SunChanged,
 }
 
 --------------------------------------------------------------------------------
@@ -74,6 +73,7 @@ for i = 1, #UnitDefs do
 		unitMaterials[udef.name] = {matName, NORMALTEX = udefCM.normaltex}
 	end
 end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

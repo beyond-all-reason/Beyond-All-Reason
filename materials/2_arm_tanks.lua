@@ -48,6 +48,7 @@ local matTemplate = {
 		"#define flashlights",
 		"#define use_vertex_ao",
 		"#define SPECULARMULT 8.0",
+		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
@@ -62,6 +63,7 @@ local matTemplate = {
 	shader    = default_lua,
 	deferred  = default_lua,
 	usecamera = false,
+	force = true,
 	culling   = GL.BACK,
 	predl  = nil,
 	postdl = nil,

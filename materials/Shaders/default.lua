@@ -155,10 +155,35 @@ fragment = [[
 		#define MAT_IDX 0
 	#endif
 
-	#ifndef SHADOW_SAMPLES
+	#define SHADOW_HARD 0
+	#define SHADOW_SOFT 1
+	#define SHADOW_SOFTER 2
+	#define SHADOW_SOFTEST 3
+
+	#ifndef SHADOW_SOFTNESS
+		#define SHADOW_SOFTNESS SHADOW_SOFT
+	#endif
+
+	#if (SHADOW_SOFTNESS == SHADOW_HARD)
+		#define SHADOW_SAMPLES 1
+	#endif
+
+	#if (SHADOW_SOFTNESS == SHADOW_SOFT)
+		#define SHADOW_SAMPLES 2 // number of shadowmap samples per fragment
+		#define SHADOW_RANDOMNESS 0.5 // 0.0 - blocky look, 1.0 - random points look
+		#define SHADOW_SAMPLING_DISTANCE 2.0 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
+	#endif
+
+	#if (SHADOW_SOFTNESS == SHADOW_SOFTER)
 		#define SHADOW_SAMPLES 6 // number of shadowmap samples per fragment
 		#define SHADOW_RANDOMNESS 0.4 // 0.0 - blocky look, 1.0 - random points look
 		#define SHADOW_SAMPLING_DISTANCE 2.0 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
+	#endif
+
+	#if (SHADOW_SOFTNESS == SHADOW_SOFTEST)
+		#define SHADOW_SAMPLES 8 // number of shadowmap samples per fragment
+		#define SHADOW_RANDOMNESS 0.4 // 0.0 - blocky look, 1.0 - random points look
+		#define SHADOW_SAMPLING_DISTANCE 2.5 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
 	#endif
 
 	#ifdef use_shadows
@@ -184,6 +209,12 @@ fragment = [[
 		#define normalv tbnMatrix[2]
 	#else
 		in vec3 normalv;
+	#endif
+
+	#ifdef USE_LOSMAP
+		uniform vec2 mapSize;
+		uniform float inLosMode;
+		uniform sampler2D losMapTex;
 	#endif
 
 	in vec2 tex_coord0;
@@ -335,17 +366,20 @@ fragment = [[
 
 		outColor.rgb = mix(outColor.rgb, teamColor.rgb, outColor.a);
 
-		//#if (deferred_mode == 0)
-			// diffuse + specularColor + envcube lighting
-			// (reflection contains the NdotL term!)
-			outColor.rgb = outColor.rgb * reflection + specularColor;
-		//#endif
-
+		outColor.rgb = outColor.rgb * reflection + specularColor;
 		outColor.a   = extraColor.a;
-		//outColor.rgb = outColor.rgb + outColor.rgb * (normaltex.a - 0.5) * etcLoc.g; // no more wreck color blending
 
 		#ifdef use_vertex_ao
 			outColor.rgb = outColor.rgb * aoTerm;
+		#endif
+
+		#ifdef USE_LOSMAP
+			float losValue = 0.5 + texture(losMapTex, worldPos.xz / mapSize).r;
+			losValue = mix(1.0, losValue, inLosMode);
+
+			outColor.rgb *= losValue;
+			specularColor.rgb *= losValue;
+			extraColor.r *= losValue;
 		#endif
 
 		// debug hook
@@ -374,6 +408,7 @@ fragment = [[
 		shadowTex   = 2,
 		reflectTex  = 4,
 		normalMap   = 5,
+		losMapTex   = 6,
 	},
 	uniformFloat = {
 		-- sunPos = {gl.GetSun("pos")}, -- material has sunPosLoc
@@ -383,6 +418,7 @@ fragment = [[
 		--sunSpecularExp = gl.GetSun("specularExponent"), -- this might return crazy values like 100.0, which are unapplicable for Phong/Blinn-Phong
 		shadowDensity = gl.GetSun("shadowDensity" ,"unit"),
 		-- shadowParams  = {gl.GetShadowMapParams()}, -- material has shadowParamsLoc
+		mapSize = {Game.mapSizeX, Game.mapSizeZ},
 	},
 	uniformMatrix = {
 		-- shadowMatrix = {gl.GetMatrixData("shadow")}, -- material has shadow{Matrix}Loc
