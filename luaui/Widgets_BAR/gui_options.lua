@@ -2208,7 +2208,7 @@ function init()
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		--{id="vsync2", group="gfx", name="V-sync", type="slider", min=-2, max=2, step=1, value=tonumber(Spring.GetConfigInt("VSync",0) or 0), description='Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).'},
 		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", steps={0,1,2,4,8}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
-		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
+		--{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		--{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
@@ -2851,10 +2851,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvModelShading",1)
 		end
 		-- enable normal mapping
-		--if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
-		--	Spring.SetConfigInt("NormalMapping",1)
-		--	Spring.SendCommands("luarules normalmapping 1")
-		--end
+		if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
+			Spring.SetConfigInt("NormalMapping",1)
+			Spring.SendCommands("luarules normalmapping 1")
+		end
 		-- disable clouds
 		if Spring.GetConfigInt("AdvSky",0) ~= 0 then
 			Spring.SetConfigInt("AdvSky",0)
