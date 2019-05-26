@@ -53,6 +53,12 @@ local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local MATERIALS_DIR = "materials/"
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+
 local shadows = false
 local advShading = false
 local normalmapping = (tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1)
@@ -109,6 +115,11 @@ local featureRendering = {
   DrawObject           = "DrawFeature",
   ObjectCreated        = "FeatureCreated",
   ObjectDestroyed      = "FeatureDestroyed",
+}
+
+local allRendering = {
+	unitRendering,
+	featureRendering,
 }
 
 --------------------------------------------------------------------------------
@@ -239,8 +250,9 @@ local function _CompileMaterialShaders(rendering)
 end
 
 local function CompileMaterialShaders()
-	_CompileMaterialShaders(unitRendering)
-	_CompileMaterialShaders(featureRendering)
+	for _, rendering in ipairs(allRendering) do
+		_CompileMaterialShaders(rendering)
+	end
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -455,46 +467,42 @@ function gadget:RenderUnitDestroyed(unitID, unitDefID)
 end
 
 function gadget:FeatureDestroyed(featureID)
-	idToDefID[featureID] = nil --not really required
+	idToDefID[-featureID] = nil --not really required
 	ObjectDestroyed(featureRendering, featureID, Spring.GetFeatureDefID(featureID))
 end
 
 function gadget:DrawGenesis()
+	for _, rendering in ipairs(allRendering) do
+		for _, mat in pairs(rendering.materialDefs) do
+			local SunChangedFunc = (sunChanged and mat.SunChanged) or nil
+			local DrawGenesisFunc = mat.DrawGenesis
+
+			if SunChangedFunc or DrawGenesisFunc then
+				if mat.standardShaderObj then
+					mat.standardShaderObj:ActivateWith( function ()
+						if SunChangedFunc then
+							SunChangedFunc(mat.standardShaderObj)
+						end
+						if DrawGenesisFunc then
+							DrawGenesisFunc(mat.standardShaderObj)
+						end
+					end)
+				end
+				if mat.deferredShaderObj then
+					mat.deferredShaderObj:ActivateWith( function ()
+						if SunChangedFunc then
+							SunChangedFunc(mat.deferredShaderObj)
+						end
+						if DrawGenesisFunc then
+							DrawGenesisFunc(mat.deferredShaderObj)
+						end
+					end)
+				end
+			end
+		end
+	end
+
 	if sunChanged then
-		for _, mat in pairs(unitRendering.materialDefs) do
-			local SunChangedFunc = mat.SunChanged
-
-			if SunChangedFunc then
-				if mat.standardShaderObj then
-					mat.standardShaderObj:ActivateWith( function ()
-						SunChangedFunc(mat.standardShaderObj)
-					end)
-				end
-				if mat.deferredShaderObj then
-					mat.deferredShaderObj:ActivateWith( function ()
-						SunChangedFunc(mat.deferredShaderObj)
-					end)
-				end
-			end
-		end
-
-		for _, mat in pairs(featureRendering.materialDefs) do
-			local SunChangedFunc = mat.SunChanged
-
-			if SunChangedFunc then
-				if mat.standardShaderObj then
-					mat.standardShaderObj:ActivateWith( function ()
-						SunChangedFunc(mat.standardShaderObj)
-					end)
-				end
-				if mat.deferredShaderObj then
-					mat.deferredShaderObj:ActivateWith( function ()
-						SunChangedFunc(mat.deferredShaderObj)
-					end)
-				end
-			end
-		end
-
 		sunChanged = false
 	end
 end
@@ -584,9 +592,10 @@ end
 
 
 Shutdown.func = function()
-   --// unload textures, so the user can do a `/luarules reload` to reload the normalmaps
-  _CleanupTextures(unitRendering)
-  _CleanupTextures(featureRendering)
+	--// unload textures, so the user can do a `/luarules reload` to reload the normalmaps
+	for _, rendering in ipairs(allRendering) do
+		_CleanupTextures(rendering)
+	end
 end
 
 
@@ -685,7 +694,6 @@ function ToggleTreeWind(_,newSetting,_, playerID)
   featureRendering.loadedTextures  = {}
 
   --// load the materials config files
-  local MATERIALS_DIR = "materials/"
   local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
   _ProcessMaterials(featureRendering, featureMaterialDefs)
 
@@ -752,7 +760,6 @@ function ToggleNormalmapping(_,newSetting,_, playerID)
   featureRendering.loadedTextures  = {}
 
   --// load the materials config files
-  local MATERIALS_DIR = "materials/"
   local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
   _ProcessMaterials(unitRendering,    unitMaterialDefs)
   _ProcessMaterials(featureRendering, featureMaterialDefs)
@@ -789,7 +796,6 @@ function gadget:Initialize()
   advShading = Spring.HaveAdvShading()
 
   --// load the materials config files
-  local MATERIALS_DIR = "materials/"
   local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
 	-- Spring.Echo('unitMaterialDefs',to_string(unitMaterialDefs))
 	-- Spring.Echo('featureMaterialDefs',to_string(featureMaterialDefs))
