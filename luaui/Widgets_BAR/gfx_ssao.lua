@@ -216,6 +216,7 @@ function widget:Initialize()
 		gbuffFuseMiscTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
 	end
 
+	commonTexOpts.min_filter = GL.LINEAR
 	commonTexOpts.mag_filter = GL.LINEAR
 
 	commonTexOpts.format = GL_RGBA8

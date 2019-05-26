@@ -131,7 +131,7 @@ function widget:Initialize()
 		target = GL_TEXTURE_2D,
 		border = false,
 		min_filter = GL.NEAREST,
-		mag_filter = GL.NEAREST,
+		mag_filter = GL.LINEAR,
 
 		wrap_s = GL.CLAMP_TO_EDGE,
 		wrap_t = GL.CLAMP_TO_EDGE,
@@ -139,7 +139,6 @@ function widget:Initialize()
 
 	shapeTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
 
-	commonTexOpts.mag_filter = GL.LINEAR
 	for i = 1, 2 do
 		blurTexes[i] = gl.CreateTexture(vsx, vsy, commonTexOpts)
 	end
