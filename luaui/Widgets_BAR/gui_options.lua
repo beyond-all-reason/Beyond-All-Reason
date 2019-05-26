@@ -1370,12 +1370,6 @@ function applyOptionValue(i, skipRedrawWindow)
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
 		if id == 'msaa' then
-			if value > 0 then
-				Spring.SetConfigInt("MSAALevel",1)
-			else
-				Spring.SetConfigInt("MSAALevel",0)
-			end
-			Spring.SetConfigInt("FSAALevel",0)		-- engine deprecated it in 104.x
 			Spring.SetConfigInt("MSAALevel",value)
 		elseif id == 'vsync2' then
 			Spring.SetConfigInt("VSync",value)
@@ -2207,7 +2201,7 @@ function init()
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		--{id="vsync2", group="gfx", name="V-sync", type="slider", min=-2, max=2, step=1, value=tonumber(Spring.GetConfigInt("VSync",0) or 0), description='Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).'},
-		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", steps={0,1,2,4,8}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
+		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", steps={0,1,2,4}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
 		--{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
@@ -2862,6 +2856,10 @@ function widget:Initialize()
 		-- disable grass
 		if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
 			Spring.SetConfigInt("GrassDetail",0)
+		end
+		-- limit MSAA
+		if Spring.GetConfigInt("MSAALevel",0) > 4 then
+			Spring.SetConfigInt("MSAALevel",4)
 		end
 
 		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards

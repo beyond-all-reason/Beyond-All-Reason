@@ -13,23 +13,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local commands					= {}
-local mapDrawNicknameTime		= {}	-- this table is used to filter out previous map drawing nicknames if user has drawn something new
-
--- spring vars
-local spGetCameraPosition		= Spring.GetCameraPosition
-local spTraceScreenRay			= Spring.TraceScreenRay
-local spGetMouseState			= Spring.GetMouseState
-
-local glCreateList				= gl.CreateList
-local glDeleteList				= gl.DeleteList
-local glCallList				= gl.CallList
-
-local diag						= math.diag
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 local scaleWithCamera			= true
 local showMouseclicks			= true
 
@@ -69,9 +52,23 @@ local types = {
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local spGetCameraPosition		= Spring.GetCameraPosition
+local spTraceScreenRay			= Spring.TraceScreenRay
+local spGetMouseState			= Spring.GetMouseState
+
+local glCreateList				= gl.CreateList
+local glDeleteList				= gl.DeleteList
+local glCallList				= gl.CallList
+
+local diag						= math.diag
+
+local commands = {}
 local commandCount = 0
 local mouseButton = false
 local baseDlist
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 local function DrawGroundquad(x,y,z,size)
