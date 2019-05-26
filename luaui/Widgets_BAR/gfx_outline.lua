@@ -272,7 +272,7 @@ function widget:Shutdown()
 end
 
 local show = true
-local function DoDrawOutline(isScreenSpace)
+local function PrepareOutline()
 	if not show then
 		return
 	end
@@ -282,12 +282,7 @@ local function DoDrawOutline(isScreenSpace)
 
 	if firstTime then
 		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
-		if isScreenSpace then
-			--screenWideList = gl.CreateList(gl.TexRect, 0, vsy, vsx, 0)
-			screenWideList = gl.CreateList(gl.TexRect, 0, vsy, vsx, 0)
-		else
-			screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
-		end
+		screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
 		firstTime = false
 	end
 
@@ -329,16 +324,23 @@ local function DoDrawOutline(isScreenSpace)
 		end)
 	end
 
+	gl.Texture(0, false)
+	gl.Texture(1, false)
+end
+
+local function DrawOutline(strength)
 	gl.Blending(true)
 	gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
 
-	--gl.Texture(1, "$model_gbuffer_zvaltex") -- already bound
+	gl.Texture(0, blurTexes[2])
+	gl.Texture(1, "$model_gbuffer_zvaltex")
 
 	applicationShader:ActivateWith( function ()
+		applicationShader:SetUniformFloat("strength", strength or 1.0)
 		gl.CallList(screenWideList)
 	end)
 
-	gl.Texture(0, false)
+		gl.Texture(0, false)
 	gl.Texture(1, false)
 end
 
@@ -360,15 +362,7 @@ end
 --	end
 --end
 
-function widget:DrawUnitsPostDeferred() --to be done
-	--Spring.Echo("DrawUnitsPostDeferred")
-end
-
-function widget:DrawScreenEffects()
-	--DoDrawOutline(true)
-end
-
-function widget:DrawWorld()
+local function EnterLeaveScreenSpace(functionName, ...)
 	gl.MatrixMode(GL.MODELVIEW)
 	gl.PushMatrix()
 	gl.LoadIdentity()
@@ -377,13 +371,28 @@ function widget:DrawWorld()
 		gl.PushMatrix()
 		gl.LoadIdentity();
 
-			DoDrawOutline(false)
+			functionName(...)
 
 		gl.MatrixMode(GL.PROJECTION)
 		gl.PopMatrix()
 
 	gl.MatrixMode(GL.MODELVIEW)
 	gl.PopMatrix()
+end
+
+function widget:DrawUnitsPostDeferred() --to be done
+	--Spring.Echo("DrawUnitsPostDeferred")
+end
+
+function widget:DrawWorldPreUnit()
+	EnterLeaveScreenSpace( function()
+		PrepareOutline()
+		DrawOutline(1.0)
+	end)
+end
+
+function widget:DrawWorld()
+	--EnterLeaveScreenSpace(DrawOutline, 0.25)
 end
 
 
