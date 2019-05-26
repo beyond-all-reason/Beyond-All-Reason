@@ -648,11 +648,9 @@ function DrawWindow()
 
 	-- require restart notification
 	if changesRequireRestart then
-		font:Begin()
 		font:SetTextColor(1,0.35,0.35,1)
 		font:SetOutlineColor(0,0,0,0.4)
 		font:Print("...made changes that require restart", x+screenWidth-3, screenY-screenHeight+3, 15, "rn")
-		font:End()
 	end
 
 	-- draw options
@@ -2502,8 +2500,8 @@ function init()
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
 		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel",0))
-		if fsaa > options[getOptionByID('msaa')].max then
-			fsaa = options[getOptionByID('msaa')].max
+		if fsaa > 4 then
+			fsaa = 4
 		end
 		Spring.SetConfigInt("MSAALevel", fsaa)
 		Spring.SetConfigInt("FSAALevel", 0)
