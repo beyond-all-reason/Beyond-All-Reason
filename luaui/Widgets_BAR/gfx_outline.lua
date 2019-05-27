@@ -50,7 +50,6 @@ local luaShaderDir = "LuaUI/Widgets_BAR/Include/"
 local LuaShader = VFS.Include(luaShaderDir.."LuaShader.lua")
 
 local vsx, vsy, vpx, vpy
-local firstTime
 
 local screenQuadList
 local screenWideList
@@ -123,8 +122,12 @@ function widget:Initialize()
 	if not canContinue then
 		Spring.Echo(string.format("Error in [%s] widget: %s", wiName, "Deferred shading is not enabled or advanced shading is not active"))
 	end
+	
+	local configName = "AllowDrawModelPostDeferredEvents"
+	if Spring.GetConfigInt(configName, 0) == 0 then
+		Spring.SetConfigInt(configName, 1) --required to enable receiving DrawUnitsPostDeferred/DrawFeaturesPostDeferred
+	end
 
-	firstTime = true
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 
 	local commonTexOpts = {
@@ -225,6 +228,10 @@ function widget:Initialize()
 	}, wiName..": Outline Application")
 	applicationShader:Initialize()
 
+	screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
+	screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
+
+
 	WG['outline'] = {}
 	WG['outline'].getSize = function()
 		return BLUR_SIGMA
@@ -245,8 +252,6 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-	firstTime = nil
-
 	if screenQuadList then
 		gl.DeleteList(screenQuadList)
 	end
@@ -279,12 +284,6 @@ local function PrepareOutline()
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 	gl.Blending(false)
-
-	if firstTime then
-		screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
-		screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
-		firstTime = false
-	end
 
 	gl.ActiveFBO(shapeFBO, function()
 		shapeShader:ActivateWith( function ()
@@ -340,7 +339,7 @@ local function DrawOutline(strength)
 		gl.CallList(screenWideList)
 	end)
 
-		gl.Texture(0, false)
+	gl.Texture(0, false)
 	gl.Texture(1, false)
 end
 
@@ -380,11 +379,15 @@ local function EnterLeaveScreenSpace(functionName, ...)
 	gl.PopMatrix()
 end
 
-function widget:DrawUnitsPostDeferred() --to be done
-	--Spring.Echo("DrawUnitsPostDeferred")
+function widget:DrawFeaturesPostDeferred() -- this is how it's done correctly
+	widgetHandler:RemoveCallIn("DrawWorldPreUnit") --remove legacy way
+	EnterLeaveScreenSpace( function()
+		PrepareOutline()
+		DrawOutline(1.0)
+	end)
 end
 
-function widget:DrawWorldPreUnit()
+function widget:DrawWorldPreUnit() --legacy way, lags one drawframe behind
 	EnterLeaveScreenSpace( function()
 		PrepareOutline()
 		DrawOutline(1.0)
@@ -392,7 +395,7 @@ function widget:DrawWorldPreUnit()
 end
 
 function widget:DrawWorld()
-	--EnterLeaveScreenSpace(DrawOutline, 0.25)
+	EnterLeaveScreenSpace(DrawOutline, 0.25)
 end
 
 

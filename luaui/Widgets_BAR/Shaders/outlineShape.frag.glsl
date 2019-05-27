@@ -14,7 +14,7 @@ void main() {
 	float mapDepth = texelFetch(mapDepthTex, imageCoord, 0).r;
 	float modelDepth = texelFetch(modelDepthTex, imageCoord, 0).r;
 
-	bool cond = mapDepth > modelDepth && modelDepth < 1.0;
+	bool cond = mapDepth >= modelDepth && modelDepth < 1.0;
 
 	vec4 validUnit = vec4(cond);
 	#if (USE_MATERIAL_INDICES == 1)
