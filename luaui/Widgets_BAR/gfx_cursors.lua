@@ -11,12 +11,18 @@ function widget:GetInfo()
 	}
 end
 
--- note: first entry should be icons inside base /anims folder
-local cursorSets = {'bar_75', 'bar_100', 'bar_133', 'bar_166', 'bar_200'}
-
 local Settings = {}
 Settings['defaultCursorSet'] = 'bar_100'
 Settings['cursorSet'] = Settings['defaultCursorSet']
+
+
+-- note: first entry should be icons inside base /anims folder
+local cursorSets = {}
+for k, subdir in pairs(VFS.SubDirs('anims')) do
+	cursorSets[#cursorSets + 1] = string.gsub(string.sub(subdir, 1, #subdir-1), 'anims/', '')	-- game anims folder
+	cursorSets[#cursorSets] = string.gsub(string.sub(cursorSets[#cursorSets], 1, #subdir), 'anims\\', '')	-- spring anims folder
+end
+
 
 function table_invert(t)
    local s={}

@@ -61,6 +61,7 @@ local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
+local changesRequireRestart = false
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
 local customScale = 1
@@ -614,7 +615,7 @@ function DrawWindow()
 	-- draw navigation... backward/forward
 	if totalColumns > maxShownColumns then
 		local buttonSize = 52
-		local buttonMargin = 13
+		local buttonMargin = 18
 		local startX = x+screenWidth
 		local startY = screenY-screenHeight+buttonMargin
 
@@ -643,6 +644,13 @@ function DrawWindow()
 		else
 			optionButtonBackward = nil
 		end
+	end
+
+	-- require restart notification
+	if changesRequireRestart then
+		font:SetTextColor(1,0.35,0.35,1)
+		font:SetOutlineColor(0,0,0,0.4)
+		font:Print("...made changes that require restart", x+screenWidth-3, screenY-screenHeight+3, 15, "rn")
 	end
 
 	-- draw options
@@ -706,7 +714,17 @@ function DrawWindow()
 
 				elseif option.type == 'slider' then
 					local sliderSize = oHeight*0.75
-					local sliderPos = (option.value-option.min) / (option.max-option.min)
+					local sliderPos = 0
+					if option.steps then
+						local min, max = option.steps[1], option.steps[1]
+						for k, v in ipairs(option.steps) do
+							if v > max then max = v end
+							if v < min then min = v end
+						end
+						sliderPos = (option.value-min) / (max-min)
+					else
+						sliderPos = (option.value-option.min) / (option.max-option.min)
+					end
 					glColor(1,1,1,0.11)
 					RectRound(xPosMax-(sliderSize/2)-sliderWidth-rightPadding, yPos-((oHeight/7)*4.2), xPosMax-(sliderSize/2)-rightPadding, yPos-((oHeight/7)*2.8), 1)
 					glColor(0.8,0.8,0.8,1)
@@ -964,9 +982,13 @@ function widget:DrawScreen()
 						RectRound(o[1], o[2], o[3], o[4], 1)
 						if WG['tooltip'] ~= nil and options[i].type == 'slider' then
 							local value = options[i].value
-							local decimalValue, floatValue = math.modf(options[i].step)
-							if floatValue ~= 0 then
-								value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+							if options[i].steps then
+								value = NearestValue(options[i].steps, value)
+							else
+								local decimalValue, floatValue = math.modf(options[i].step)
+								if floatValue ~= 0 then
+									value = string.format("%."..string.len(string.sub(''..options[i].step, 3)).."f", value)	-- do rounding via a string because floats show rounding errors at times
+								end
 							end
 							WG['tooltip'].ShowTooltip('options_showvalue', value)
 						end
@@ -1091,6 +1113,10 @@ end
 
 function applyOptionValue(i, skipRedrawWindow)
 	if options[i] == nil then return end
+
+	if options[i].restart then
+		changesRequireRestart = true
+	end
 
 	local id = options[i].id
 	if options[i].type == 'bool' then
@@ -1342,12 +1368,6 @@ function applyOptionValue(i, skipRedrawWindow)
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
 		if id == 'msaa' then
-			if value > 0 then
-				Spring.SetConfigInt("MSAALevel",1)
-			else
-				Spring.SetConfigInt("MSAALevel",0)
-			end
-			Spring.SetConfigInt("FSAALevel",0)		-- engine deprecated it in 104.x
 			Spring.SetConfigInt("MSAALevel",value)
 		elseif id == 'vsync2' then
 			Spring.SetConfigInt("VSync",value)
@@ -1546,7 +1566,9 @@ function applyOptionValue(i, skipRedrawWindow)
 		elseif id == 'enemyspotter_opacity' then
 			saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', {'spotterOpacity'}, value)
 		elseif id == 'outline_size' then
-			saveOptionValue('Outline', 'outline', 'setSize', {'customSize'}, value)
+			saveOptionValue('Outline', 'outline', 'setSize', {'BLUR_SIGMA'}, value)
+		elseif id == 'outline_strength' then
+			saveOptionValue('Outline', 'outline', 'setStrength', {'OUTLINE_STRENGTH'}, value)
 		elseif id == 'underconstructiongfx_opacity' then
 			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setOpacity', {'highlightAlpha'}, value)
 		elseif id == 'highlightselunits_opacity' then
@@ -1689,13 +1711,36 @@ function round(num, numDecimalPlaces)
     else return math.ceil(num * mult - 0.5) / mult end
 end
 
+function NearestValue(table, number)
+	local smallestSoFar, smallestIndex
+	for i, y in ipairs(table) do
+		if not smallestSoFar or (math.abs(number-y) < smallestSoFar) then
+			smallestSoFar = math.abs(number-y)
+			smallestIndex = i
+		end
+	end
+	return table[smallestIndex]
+end
 function getSliderValue(draggingSlider, cx)
 	local sliderWidth = optionButtons[draggingSlider].sliderXpos[2] - optionButtons[draggingSlider].sliderXpos[1]
 	local value = (cx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
-	value = options[draggingSlider].min + ((options[draggingSlider].max - options[draggingSlider].min) * value)
-	if value < options[draggingSlider].min then value = options[draggingSlider].min end
-	if value > options[draggingSlider].max then value = options[draggingSlider].max end
-	if options[draggingSlider].step ~= nil then
+	local min, max
+	if options[draggingSlider].steps then
+		min, max = options[draggingSlider].steps[1], options[draggingSlider].steps[1]
+		for k, v in ipairs(options[draggingSlider].steps) do
+			if v > max then max = v end
+			if v < min then min = v end
+		end
+	else
+		min = options[draggingSlider].min
+		max = options[draggingSlider].max
+	end
+	value = min + ((max - min) * value)
+	if value < min then value = min end
+	if value > max then value = max end
+	if options[draggingSlider].steps ~= nil then
+		value = NearestValue(options[draggingSlider].steps, value)
+	elseif options[draggingSlider].step ~= nil then
 		value = math.floor(value / options[draggingSlider].step) * options[draggingSlider].step
 	end
 	return value	-- is a string now :(
@@ -2039,7 +2084,8 @@ function loadAllWidgetData()
 	loadWidgetData("EnemySpotter", "enemyspotter_opacity", {'spotterOpacity'})
 	loadWidgetData("EnemySpotter", "enemyspotter_highlight", {'useXrayHighlight'})
 
-	loadWidgetData("Outline", "outline_size", {'customSize'})
+	loadWidgetData("Outline", "outline_size", {'BLUR_SIGMA'})
+	loadWidgetData("Outline", "outline_strength", {'OUTLINE_STRENGTH'})
 
 	loadWidgetData("Under construction gfx", "underconstructiongfx_opacity", {'highlightAlpha'})
 	loadWidgetData("Under construction gfx", "underconstructiongfx_shader", {'useHighlightShader'})
@@ -2153,8 +2199,8 @@ function init()
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
 		--{id="vsync2", group="gfx", name="V-sync", type="slider", min=-2, max=2, step=1, value=tonumber(Spring.GetConfigInt("VSync",0) or 0), description='Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).'},
-		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", min=0, max=8, step=1, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
-		{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
+		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", steps={0,1,2,4}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
+		--{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
 		--{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
@@ -2167,7 +2213,7 @@ function init()
 
 		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
 
-		--{id="advsky", group="gfx", name="Clouds", type="bool", value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
+		--{id="advsky", group="gfx", name="Clouds", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		{id="bloomdeferred", group="gfx", widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)'},
 		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description=''},
@@ -2196,8 +2242,9 @@ function init()
 		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
 		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
 
-		{id="outline", group="gfx", widget="Outline", name="Unit outline (expensive)", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp\n\nLimits total outlined units to 1000.\nStops rendering outlines when average fps falls below 13.'},
-		{id="outline_size", group="gfx", name=widgetOptionColor.."   thickness", min=0.8, max=1.5, step=0.05, type="slider", value=1, description='Set the size of the outline'},
+		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
+		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.5, max=3, step=0.05, type="slider", value=1, description='Set the size of the outline'},
+		{id="outline_strength", group="gfx", name=widgetOptionColor.."   opacity", min=1, max=6, step=0.05, type="slider", value=2.5, description='Set the opacity of the outline'},
 
 		{id="disticon", group="gfx", name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
@@ -2230,7 +2277,7 @@ function init()
 		--{id="underconstructiongfx_opacity", group="gfx", name=widgetOptionColor.."   opacity", min=0.25, max=0.5, step=0.01, type="slider", value=0.2, description='Set the opacity of the highlight on selected units'},
 		--{id="underconstructiongfx_shader", group="gfx", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
 
-		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
+		--{id="treeradius", group="gfx", name="Tree render distance", type="slider", min=0, max=2000, step=50, restart=true, value=tonumber(Spring.GetConfigInt("TreeRadius",1) or 1000), description='Applies to SpringRTS engine default trees\n\nChanges will be applied next game'},
 		{id="treewind", group="gfx", name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)'},
 
 		{id="snow", group="gfx", widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
@@ -2276,7 +2323,7 @@ function init()
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps"},
 		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size'},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
-		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
+		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 		{id="containmouse", group="control", widget="Grabinput", name="Contain mouse", type="bool", value=GetWidgetToggleValue("Grabinput"), description='When in windowed mode, this prevents your mouse from moving out of it'},
 		{id="allyselunits_select", group="control", name="Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this selects what the player has selected"},
 		{id="lockcamera_hideenemies", group="control", name="Only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will display what the tracked player sees"},
@@ -2453,8 +2500,8 @@ function init()
 	-- fsaa is deprecated in 104.x
 	if tonumber(Spring.GetConfigInt("FSAALevel",0)) > 0 then
 		local fsaa = tonumber(Spring.GetConfigInt("FSAALevel",0))
-		if fsaa > options[getOptionByID('msaa')].max then
-			fsaa = options[getOptionByID('msaa')].max
+		if fsaa > 4 then
+			fsaa = 4
 		end
 		Spring.SetConfigInt("MSAALevel", fsaa)
 		Spring.SetConfigInt("FSAALevel", 0)
@@ -2475,6 +2522,7 @@ function init()
 				applyOptionValue(getOptionByID(k))
 			end
 		end
+		changesRequireRestart = false
 	end
 
     -- detect AI
@@ -2644,6 +2692,7 @@ function init()
 	if widgetHandler.knownWidgets["Outline"] == nil then
 		options[getOptionByID('outline')] = nil
 		options[getOptionByID("outline_size")] = nil
+		options[getOptionByID("outline_strength")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
@@ -2708,7 +2757,7 @@ function init()
 	local insert = true
 	for oid,option in pairs(options) do
 		insert = true
-		if option.type == 'slider' then
+		if option.type == 'slider' and not option.steps then
 			if option.value < option.min then option.value = option.min end
 			if option.value > option.max then option.value = option.max end
 		end
@@ -2794,10 +2843,10 @@ function widget:Initialize()
 			Spring.SetConfigInt("AdvModelShading",1)
 		end
 		-- enable normal mapping
-		--if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
-		--	Spring.SetConfigInt("NormalMapping",1)
-		--	Spring.SendCommands("luarules normalmapping 1")
-		--end
+		if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
+			Spring.SetConfigInt("NormalMapping",1)
+			Spring.SendCommands("luarules normalmapping 1")
+		end
 		-- disable clouds
 		if Spring.GetConfigInt("AdvSky",0) ~= 0 then
 			Spring.SetConfigInt("AdvSky",0)
@@ -2805,6 +2854,10 @@ function widget:Initialize()
 		-- disable grass
 		if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
 			Spring.SetConfigInt("GrassDetail",0)
+		end
+		-- limit MSAA
+		if Spring.GetConfigInt("MSAALevel",0) > 4 then
+			Spring.SetConfigInt("MSAALevel",4)
 		end
 
 		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards

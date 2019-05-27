@@ -156,10 +156,14 @@ local flexCallIns = {
   'DrawGenesis',
   'DrawWorld',
   'DrawWorldPreUnit',
+  'DrawWorldPreParticles',
   'DrawWorldShadow',
   'DrawWorldReflection',
   'DrawWorldRefraction',
+  'DrawUnitsPostDeferred',
+  'DrawFeaturesPostDeferred',
   'DrawScreenEffects',
+  'DrawScreenPost',
   'DrawInMiniMap',
   'SunChanged',
   'FeatureCreated',
@@ -1298,6 +1302,13 @@ function widgetHandler:DrawWorldPreUnit()
   return
 end
 
+function widgetHandler:DrawWorldPreParticles()
+  for _,w in ripairs(self.DrawWorldPreParticlesList) do
+    w:DrawWorldPreParticles()
+  end
+  return
+end
+
 
 function widgetHandler:DrawWorldShadow()
   for _,w in ripairs(self.DrawWorldShadowList) do
@@ -1323,9 +1334,33 @@ function widgetHandler:DrawWorldRefraction()
 end
 
 
+function widgetHandler:DrawUnitsPostDeferred()
+  for _,w in ripairs(self.DrawUnitsPostDeferredList) do
+    w:DrawUnitsPostDeferred()
+  end
+  return
+end
+
+
+function widgetHandler:DrawFeaturesPostDeferred()
+  for _,w in ripairs(self.DrawFeaturesPostDeferredList) do
+    w:DrawFeaturesPostDeferred()
+  end
+  return
+end
+
+
 function widgetHandler:DrawScreenEffects(vsx, vsy)
   for _,w in ripairs(self.DrawScreenEffectsList) do
     w:DrawScreenEffects(vsx, vsy)
+  end
+  return
+end
+
+
+function widgetHandler:DrawScreenPost()
+  for _,w in ripairs(self.DrawScreenPostList) do
+    w:DrawScreenPost()
   end
   return
 end
@@ -1337,6 +1372,7 @@ function widgetHandler:DrawInMiniMap(xSize, ySize)
   end
   return
 end
+
 
 function widgetHandler:SunChanged()
   for _,w in ripairs(self.SunChangedList) do

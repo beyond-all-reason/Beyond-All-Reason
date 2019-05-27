@@ -244,6 +244,7 @@ local icons = {
     {"air_t2_bomber.user", "air_bomber",1.66},
     {"air_t2_transport.user", "air_trans",1.75},
     {"air_t2_radar.user", "air_los",1.33},
+    {"air_t2_torpbomber.user", "air_hover",1.6},
     {"air_bladew.user", "air_hover_bw",0.75},
     {"air_torp.user", "air_hover",1.5},
     {"air_krow.user", "air_krow",2},
@@ -631,6 +632,8 @@ function loadUnitIcons()
           Spring.SetUnitDefIcon(udid, "air_krow2.user")
       elseif (name=="armstil") then
           Spring.SetUnitDefIcon(udid, "air_krow2.user")
+      elseif (name=="armlance" or name=="cortitan") then
+          Spring.SetUnitDefIcon(udid, "air_t2_torpbomber.user")
       elseif (name=="armseap" or name=="corseap") then
           Spring.SetUnitDefIcon(udid, "air_torp.user")
       elseif (name=="armawac" or name=="corawac" or name=="armsehak" or name=="corhunt") then

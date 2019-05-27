@@ -29,9 +29,10 @@ local materials = {
 			"#define deferred_mode 1",
 			--"#define use_vertex_ao",
 			"#define SPECULARMULT 6.0",
+			"#define MAT_IDX 128",
 		},
-		force     = false, --// always use the shader even when normalmapping is disabled
 		usecamera = false,
+		force = true,
 		culling   = GL.BACK,
 		texunits  = {
 			[0] = '%%FEATUREDEFID:0',
@@ -71,7 +72,6 @@ local function FindNormalmap(tex1, tex2)
 end
 
 
-
 local featureMaterials = {}
 
 for id, featureDef in pairs(FeatureDefs) do
@@ -107,45 +107,7 @@ for id, featureDef in pairs(FeatureDefs) do
 	end
 end
 
-function to_string(data, indent)
-	local str = ""
 
-	if(indent == nil) then
-		indent = 0
-	end
-
-	-- Check the type
-	if(type(data) == "string") then
-		str = str .. ("    "):rep(indent) .. data .. "\n"
-	elseif(type(data) == "number") then
-		str = str .. ("    "):rep(indent) .. data .. "\n"
-	elseif(type(data) == "boolean") then
-		if(data == true) then
-			str = str .. "true"
-		else
-			str = str .. "false"
-		end
-	elseif(type(data) == "table") then
-		local i, v
-		for i, v in pairs(data) do
-			-- Check for a table in a table
-			if(type(v) == "table") then
-				str = str .. ("    "):rep(indent) .. i .. ":\n"
-				str = str .. to_string(v, indent + 2)
-			else
-				str = str .. ("    "):rep(indent) .. i .. ": " .. to_string(v, 0)
-			end
-		end
-	elseif (data ==nil) then
-		str=str..'nil'
-	else
-		--print_debug(1, "Error: unknown data type: %s", type(data))
-		str=str.. "Error: unknown data type:" .. type(data)
-		Spring.Echo('X data type')
-	end
-
-	return str
-end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

@@ -18,20 +18,29 @@ local function SunChanged(curShaderObj)
 	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 end
 
+local spGetMapDrawMode = Spring.GetMapDrawMode
+local function DrawGenesis(curShaderObj)
+	local inLosMode = ((spGetMapDrawMode() or "") == "los" and 1.0) or 0.0
+	curShaderObj:SetUniform("inLosMode", inLosMode)
+end
+
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
 local materials = {
-	feature_tree = {
+	feature_tree_normalmap = {
 		shader    = default_lua,
 		deferred  = default_lua,
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
+			"#define USE_LOSMAP",
+			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --very expensive for trees (too much overdraw)
 			"#define deferred_mode 1",
+			"#define MAT_IDX 129",
 		},
 		shaderPlugins = {
 			VERTEX_GLOBAL_NAMESPACE = [[
@@ -81,93 +90,75 @@ local materials = {
 				vertex.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
 
 				vertex.xz += diff + diff2 * wind;
-			]],
-			FRAGMENT_POST_SHADING = [[
-				//gl_FragColor.r=1.0;
 			]]
 		},
-		force     = true, --// always use the shader even when normalmapping is disabled
 		feature = true, --// This is used to define that this is a feature shader
 		usecamera = false,
+		force = true,
 		culling   = GL.BACK,
 		texunits  = {
 			[0] = '%%FEATUREDEFID:0',
 			[1] = '%%FEATUREDEFID:1',
 			[2] = '$shadow',
 			[4] = '$reflection',
-			[5] = '%NORMALTEX',
+			[5] = "%NORMALTEX",
+			[6] = "$info",
 		},
 		--DrawFeature = DrawFeature,
+		DrawGenesis = DrawGenesis,
 		SunChanged = SunChanged,
-	},
+	}
 }
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- affected unitdefs
 
-local featureMaterials = {}
 local featureNameStubs = {
-							"ad0_",
-							"btree",
-							"art",
-							"bush",
-							"tree",
-							"vegetation",
-							"vegitation",
-							"baobab",
-							"aleppo",
-							"pine",
-							"senegal",
-							"palm",
-							"shrub",
-							"bloodthorn",
-							"birch",
-							"maple",
-							"oak",
-							"fern",
-							"grass",
-							"weed",
-							"plant",
-							"palmetto"
-						} -- This list should cover all vegetative features in spring features
-local tex1_to_normaltex = {}
--- All feature defs that contain the string "aleppo" will be affected by it
-local echoline = ''
+	"ad0_",
+	"btree",
+	"art",
+	"bush",
+	"tree",
+	"vegetation",
+	"vegitation",
+	"baobab",
+	"aleppo",
+	"pine",
+	"senegal",
+	"palm",
+	"shrub",
+	"bloodthorn",
+	"birch",
+	"maple",
+	"oak",
+	"fern",
+	"grass",
+	"weed",
+	"plant",
+	"palmetto",
+	"lowpoly_tree",
+} -- This list should cover all vegetative features in spring features
+
+local featureMaterials = {}
+
 for id, featureDef in pairs(FeatureDefs) do
 	Spring.PreloadFeatureDefModel(id)
 	for _,stub in ipairs (featureNameStubs) do
 		if featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.name and featureDef.name:find(stub) and featureDef.name:find(stub) == 1 then --also starts with
-			--if featureDef.customParam.normaltex then
-				echoline = echoline..(echoline ~= '' and ', ' or '')..featureDef.name
-				if featureDef.name:find('btree') == 1 then --beherith's old trees suffer if they get shitty normals
-					featureMaterials[featureDef.name] = {"feature_tree", NORMALTEX = "unittextures/blank_normal.tga"}
-				else
-					featureMaterials[featureDef.name] = {"feature_tree", NORMALTEX = "unittextures/default_tree_normal.tga"}
-				end
-
-			--TODO: dont forget the feature normals!
-			--TODO: actually generate normals for all these old-ass features, and include them in BAR
-			--TODO: add a blank normal map to avoid major fuckups.
-			--Todo, grab the texture1 names for features in tex1_to_normaltex assignments,
-			--and hope that I dont have to actually load the models to do so
-
+			if featureDef.name:find('btree') == 1 then --beherith's old trees suffer if they get shitty normals
+				featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/blank_normal.tga"}
+			else
+				featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/default_tree_normal.tga"}
+			end
 		end
 	end
 end
-if echoline ~= '' then
-	--Spring.Echo('Adding normal texture to trees: '..echoline)
-end
-
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-if Spring.GetConfigInt("TreeWind",1) == 0 then
-	return {}, {}
-else
-	return materials, featureMaterials
-end
+return materials, featureMaterials
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

@@ -45,10 +45,6 @@ local BLUR_SIGMA = 1.8 -- Gaussian sigma of a single blur pass, other factors li
 
 local DOWNSAMPLE = 2 -- increasing downsapling will reduce GPU RAM occupation (a little bit), increase performace (a little bit), introduce occlusion blockiness
 
--- experimantal options
-local BLUR_BILATERAL = false -- enable depth-aware blur. I observe no difference between bilateral and regular gaussian blur
-local BLUR_BILATERAL_DEPTH_CUTOFF = 1.0 -- depth-aware blur cutoff
-
 local MERGE_MISC = false -- for future material indices based SSAO evaluation
 local DEBUG_SSAO = false -- use for debug
 
@@ -220,6 +216,7 @@ function widget:Initialize()
 		gbuffFuseMiscTex = gl.CreateTexture(vsx, vsy, commonTexOpts)
 	end
 
+	commonTexOpts.min_filter = GL.LINEAR
 	commonTexOpts.mag_filter = GL.LINEAR
 
 	commonTexOpts.format = GL_RGBA8
@@ -262,10 +259,13 @@ function widget:Initialize()
 			color0 = ssaoBlurTexes[i],
 			drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 		})
+		if not gl.IsValidFBO(ssaoBlurFBOs[i]) then
+			Spring.Echo(string.format("Error in [%s] widget: %s", wiName, string.format("Invalid ssaoBlurFBOs[%d]", i)))
+		end
 	end
 
 
-	local gbuffFuseShaderVert = VFS.LoadFile(shadersDir.."gbuffFuse.vert.glsl")
+	local gbuffFuseShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 	local gbuffFuseShaderFrag = VFS.LoadFile(shadersDir.."gbuffFuse.frag.glsl")
 
 	gbuffFuseShaderFrag = gbuffFuseShaderFrag:gsub("###DEPTH_CLIP01###", tostring((Platform.glSupportClipSpaceControl and 1) or 0))
@@ -291,11 +291,11 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
 		},
-	}, "SSAO: G-buffer Fuse")
+	}, wiName..": G-buffer Fuse")
 	gbuffFuseShader:Initialize()
 
 
-	local ssaoShaderVert = VFS.LoadFile(shadersDir.."ssao.vert.glsl")
+	local ssaoShaderVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 	local ssaoShaderFrag = VFS.LoadFile(shadersDir.."ssao.frag.glsl")
 
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_KERNEL_SIZE###", tostring(SSAO_KERNEL_SIZE))
@@ -316,7 +316,7 @@ function widget:Initialize()
 		uniformFloat = {
 			viewPortSize = {vsx / DOWNSAMPLE, vsy / DOWNSAMPLE},
 		},
-	}, "SSAO: Processing")
+	}, wiName..": Processing")
 	ssaoShader:Initialize()
 
 	ssaoShader:ActivateWith( function()
@@ -328,25 +328,21 @@ function widget:Initialize()
 	end)
 
 
-	local gaussianBlurVert = VFS.LoadFile(shadersDir.."gaussianBlur.vert.glsl")
+	local gaussianBlurVert = VFS.LoadFile(shadersDir.."identity.vert.glsl")
 	local gaussianBlurFrag = VFS.LoadFile(shadersDir.."gaussianBlur.frag.glsl")
 
 	gaussianBlurFrag = gaussianBlurFrag:gsub("###BLUR_HALF_KERNEL_SIZE###", tostring(BLUR_HALF_KERNEL_SIZE))
-	gaussianBlurFrag = gaussianBlurFrag:gsub("###BLUR_BILATERAL###", tostring((BLUR_BILATERAL and 1) or 0))
-	gaussianBlurFrag = gaussianBlurFrag:gsub("###SSAO_RADIUS###", tostring(SSAO_RADIUS))
-	gaussianBlurFrag = gaussianBlurFrag:gsub("###BLUR_BILATERAL_DEPTH_CUTOFF###", tostring(BLUR_BILATERAL_DEPTH_CUTOFF))
 
 	gaussianBlurShader = LuaShader({
 		vertex = gaussianBlurVert,
 		fragment = gaussianBlurFrag,
 		uniformInt = {
 			tex = 0,
-			viewPosTex = 1,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx / DOWNSAMPLE, vsy / DOWNSAMPLE},
 		},
-	}, "SSAO: Gaussian Blur")
+	}, wiName..": Gaussian Blur")
 	gaussianBlurShader:Initialize()
 
 	local gaussWeights, gaussOffsets = GetGaussLinearWeightsOffsets(BLUR_SIGMA, BLUR_HALF_KERNEL_SIZE, 1.0)
@@ -400,7 +396,7 @@ function widget:Shutdown()
 	gaussianBlurShader:Finalize()
 end
 
-local function DoEverything(isScreenSpace)
+local function DoDrawSSAO(isScreenSpace)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 	gl.Blending(false)
@@ -462,9 +458,6 @@ local function DoEverything(isScreenSpace)
 	end)
 
 	gl.Texture(0, ssaoTex)
-	if BLUR_BILATERRAL then
-		gl.Texture(1, gbuffFuseViewPosTex)
-	end
 
 	for i = 1, BLUR_PASSES do
 		gaussianBlurShader:ActivateWith( function ()
@@ -499,9 +492,6 @@ local function DoEverything(isScreenSpace)
 
 	-- Already bound
 	--gl.Texture(0, ssaoBlurTexes[1])
-	if BLUR_BILATERRAL then
-		gl.Texture(1, false)
-	end
 
 	gl.CallList(screenWideList)
 
@@ -532,7 +522,7 @@ function widget:DrawWorld()
 		gl.PushMatrix()
 		gl.LoadIdentity();
 
-			DoEverything(false)
+			DoDrawSSAO(false)
 
 		gl.MatrixMode(GL.PROJECTION)
 		gl.PopMatrix()

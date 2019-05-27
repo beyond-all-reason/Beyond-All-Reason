@@ -16,8 +16,8 @@ end
 
 local vignetteTexture	= ":n:"..LUAUI_DIRNAME.."Images/vignette.dds"
 
-local duration = 1.2
-local maxOpacity = 0.4
+local duration = 1.55
+local maxOpacity = 0.55
 local opacity = 0
 
 local myTeamID = Spring.GetMyTeamID()
