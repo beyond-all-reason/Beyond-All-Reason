@@ -37,7 +37,7 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
-			model_author = "FireStorm",
+			model_author = "FireStorm","FLaka",
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armkbots/t2",
