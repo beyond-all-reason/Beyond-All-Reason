@@ -4,7 +4,7 @@
 #include "exptype.h"
 
 piece  torso, pelvis, flare, rthigh, lthigh, lleg, rleg, ruparm, luparm,
-	   lloarm, rloarm, gripstatic, gunstatic, griphand, gunhand, emit_spark,lfoot,rfoot;
+	   lloarm, rloarm, gunstatic, gunhand, emit_spark,lfoot,rfoot;
 
 static-var  bMoving, bAiming, Static_Var_2, Static_Var_3, Static_Var_4, restore_delay,
             statechg_DesiredState, statechg_StateChanging, moveSpeed,
@@ -290,12 +290,10 @@ drawgun()
 	turn luparm to x-axis <-179> speed <720>;
 	sleep 125;
 	
-	hide gripstatic;
 	hide gunstatic;
-	show griphand;
 	show gunhand;
 	turn luparm to x-axis <90> speed <720>;
-	turn gunhand to y-axis <-90> speed <720>;
+	//turn gunhand to y-axis <-90> speed <720>;
 	turn ruparm to x-axis <-179> speed <720>;
 	sleep 125;
 	turn ruparm to x-axis <0> speed <720>;
@@ -317,9 +315,8 @@ holstgun()
 	turn luparm to x-axis <0> speed <720>;
 	sleep 125;
 
-	show gripstatic;
+
 	show gunstatic;
-	hide griphand;
 	hide gunhand;
 
 	turn ruparm to x-axis <-179> speed <720>;
@@ -477,9 +474,7 @@ Sparks()
 Create()
 {
 	hide flare;
-	show gripstatic;
 	show gunstatic;
-	hide griphand;
 	hide gunhand;
 	hide emit_spark;
 	bMoving = FALSE;
@@ -552,7 +547,7 @@ AimPrimary(heading, pitch)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = griphand;
+//	piecenum = griphand;
 }
 
 QueryPrimary(piecenum)
@@ -572,11 +567,9 @@ Killed(severity, corpsetype)
 		corpsetype = 1 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type BITMAPONLY | NOHEATCLOUD;
-		explode gripstatic type BITMAPONLY | NOHEATCLOUD;
 		explode gunstatic type BITMAPONLY | NOHEATCLOUD;
 		explode ruparm type BITMAPONLY | NOHEATCLOUD;
 		explode rloarm type BITMAPONLY | NOHEATCLOUD;
-		explode griphand type BITMAPONLY | NOHEATCLOUD;
 		explode gunhand type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
 		explode emit_spark type BITMAPONLY | NOHEATCLOUD;
@@ -595,11 +588,9 @@ Killed(severity, corpsetype)
 		corpsetype = 2 ;
 		explode pelvis type BITMAPONLY | NOHEATCLOUD;
 		explode torso type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode gripstatic type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gunstatic type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode griphand type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode gunhand type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode emit_spark type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -618,11 +609,9 @@ Killed(severity, corpsetype)
 		corpsetype = 3 ;
 		explode pelvis type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode gripstatic type SHATTER | NOHEATCLOUD;
 		explode gunstatic type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type SMOKE | FALL | NOHEATCLOUD;
-		explode griphand type SHATTER | NOHEATCLOUD;
 		explode gunhand type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type SMOKE | FALL | NOHEATCLOUD;
 		explode emit_spark type SMOKE | FALL | NOHEATCLOUD;
@@ -639,11 +628,9 @@ Killed(severity, corpsetype)
 	corpsetype = 3 ;
 		explode pelvis type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode torso type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode gripstatic type SHATTER | NOHEATCLOUD;
 		explode gunstatic type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode ruparm type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode rloarm type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode griphand type SHATTER | NOHEATCLOUD;
 		explode gunhand type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode emit_spark type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
