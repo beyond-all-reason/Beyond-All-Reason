@@ -8,13 +8,19 @@ uniform vec4 outlineColor;
 
 #define USE_MATERIAL_INDICES ###USE_MATERIAL_INDICES###
 
+const float eps = 1e-4;
+
 void main() {
 	ivec2 imageCoord = ivec2(gl_FragCoord.xy);
 
 	float mapDepth = texelFetch(mapDepthTex, imageCoord, 0).r;
 	float modelDepth = texelFetch(modelDepthTex, imageCoord, 0).r;
 
-	bool cond = mapDepth >= modelDepth && modelDepth < 1.0;
+	#if (USE_MATERIAL_INDICES == 1)
+		bool cond = mapDepth + eps >= modelDepth;
+	#else
+		bool cond = mapDepth + eps >= modelDepth && modelDepth < 1.0;
+	#endif
 
 	vec4 validUnit = vec4(cond);
 	#if (USE_MATERIAL_INDICES == 1)

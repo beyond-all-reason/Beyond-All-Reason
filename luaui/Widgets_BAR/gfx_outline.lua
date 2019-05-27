@@ -31,10 +31,9 @@ local BLUR_PASSES = 1 -- number of blur passes
 local BLUR_SIGMA = 1 -- Gaussian sigma of a single blur pass, other factors like BLUR_HALF_KERNEL_SIZE, BLUR_PASSES and DOWNSAMPLE affect the end result gaussian shape too
 
 local OUTLINE_COLOR = {0.0, 0.0, 0.0, 1.0}
-local OUTLINE_TEAMCOLOR = true
 local OUTLINE_STRENGTH = 2.5 -- make it much smaller for softer edges
 
-local USE_MATERIAL_INDICES = true -- for future material indices based SSAO evaluation
+local USE_MATERIAL_INDICES = false -- for future material indices based outline evaluation
 
 
 -----------------------------------------------------------------
@@ -123,15 +122,10 @@ function widget:Initialize()
 	if not canContinue then
 		Spring.Echo(string.format("Error in [%s] widget: %s", wiName, "Deferred shading is not enabled or advanced shading is not active"))
 	end
-	
+
 	local configName = "AllowDrawModelPostDeferredEvents"
 	if Spring.GetConfigInt(configName, 0) == 0 then
 		Spring.SetConfigInt(configName, 1) --required to enable receiving DrawUnitsPostDeferred/DrawFeaturesPostDeferred
-	end
-	
-	if OUTLINE_TEAMCOLOR then
-		local r, g, b = Spring.GetTeamColor(Spring.GetMyTeamID())
-		OUTLINE_COLOR[1], OUTLINE_COLOR[2], OUTLINE_COLOR[3] = 0.2 * r, 0.2 * g, 0.2 * b
 	end
 
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
@@ -337,7 +331,7 @@ end
 local function DrawOutline(strength)
 	gl.Blending(true)
 	gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
-	
+
 	gl.DepthTest(true)
 
 	gl.Texture(0, blurTexes[2])
@@ -348,7 +342,7 @@ local function DrawOutline(strength)
 		applicationShader:SetUniformFloat("strength", strength or 1.0)
 		gl.CallList(screenWideList)
 	end)
-	
+
 	gl.DepthTest(false)
 
 	gl.Texture(0, false)

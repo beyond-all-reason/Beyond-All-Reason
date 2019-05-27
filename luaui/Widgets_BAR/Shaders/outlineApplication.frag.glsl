@@ -14,5 +14,5 @@ void main() {
 	float mapDepth = texelFetch(mapDepthTex, imageCoord, 0).r;
 
 	gl_FragColor = mix(vec4(0.0), color, vec4(strength));
-	gl_FragDepth = mix(modelDepth, mapDepth, 2.0);	//bullshit but works
+	gl_FragDepth = mix(modelDepth, mapDepth, 2.0);	//bullshit but works somehow
 }
