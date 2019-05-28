@@ -51,6 +51,6 @@ void main() {
 	float modelDepth = texelFetch(modelDepthTex, imageCoord, 0).r;
 	float mapDepth = texelFetch(mapDepthTex, imageCoord, 0).r;
 
-	gl_FragColor = mix(vec4(0.0), color, vec4(2.0 * strength));
+	gl_FragColor = mix(vec4(0.0), color, vec4(strength));
 	gl_FragDepth = GetNewNDCDepth(mapDepth, epsVS); //precision hack. Move depth a bit closer to camera than terrain surface
 }

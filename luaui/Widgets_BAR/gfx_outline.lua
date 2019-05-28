@@ -404,7 +404,7 @@ function widget:DrawWorldPreUnit() --legacy way, lags one drawframe behind
 end
 
 function widget:DrawWorld()
-	EnterLeaveScreenSpace(DrawOutline, 0.1)
+	EnterLeaveScreenSpace(DrawOutline, 0.2)
 end
 
 
