@@ -1038,7 +1038,7 @@ Create()
 	Static_Var_1 = 0;
 	hide flare;
 	turn flare to x-axis <-90> now;
-	restore_delay = 2000;
+	restore_delay = 800;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	moveSpeed = get MAX_SPEED;
