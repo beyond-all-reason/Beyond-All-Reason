@@ -33,7 +33,7 @@ local BLUR_SIGMA = 1 -- Gaussian sigma of a single blur pass, other factors like
 local OUTLINE_COLOR = {0.0, 0.0, 0.0, 1.0}
 local OUTLINE_STRENGTH = 2.5 -- make it much smaller for softer edges
 
-local USE_MATERIAL_INDICES = false -- for future material indices based outline evaluation
+local USE_MATERIAL_INDICES = true -- for future material indices based outline evaluation
 
 
 -----------------------------------------------------------------
@@ -214,6 +214,7 @@ function widget:Initialize()
 	end)
 
 	local applicationFrag = VFS.LoadFile(shadersDir.."outlineApplication.frag.glsl")
+	applicationFrag = applicationFrag:gsub("###DEPTH_CLIP01###", tostring((Platform.glSupportClipSpaceControl and 1) or 0))
 
 	applicationShader = LuaShader({
 		vertex = identityShaderVert,
@@ -332,7 +333,7 @@ local function DrawOutline(strength)
 	gl.Blending(true)
 	gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
 
-	gl.DepthTest(true)
+	gl.DepthTest(GL.LEQUAL)
 
 	gl.Texture(0, blurTexes[2])
 	gl.Texture(1, "$model_gbuffer_zvaltex")
@@ -340,6 +341,7 @@ local function DrawOutline(strength)
 
 	applicationShader:ActivateWith( function ()
 		applicationShader:SetUniformFloat("strength", strength or 1.0)
+		applicationShader:SetUniformMatrix("projMat", "projection")
 		gl.CallList(screenWideList)
 	end)
 
@@ -402,7 +404,7 @@ function widget:DrawWorldPreUnit() --legacy way, lags one drawframe behind
 end
 
 function widget:DrawWorld()
-	EnterLeaveScreenSpace(DrawOutline, 0.15)
+	EnterLeaveScreenSpace(DrawOutline, 0.1)
 end
 
 
