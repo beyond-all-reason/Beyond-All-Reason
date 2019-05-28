@@ -285,7 +285,7 @@ local function PrepareOutline()
 	end
 	gl.DepthTest(false)
 	gl.DepthMask(false)
-	gl.Blending(false)
+	--gl.Blending(false)
 
 	gl.ActiveFBO(shapeFBO, function()
 		shapeShader:ActivateWith( function ()
@@ -327,12 +327,17 @@ local function PrepareOutline()
 
 	gl.Texture(0, false)
 	gl.Texture(1, false)
+
+	--gl.Blending(true)
+	gl.DepthMask(true)
+	gl.DepthTest(true)
 end
 
 local function DrawOutline(strength)
 	gl.Blending(true)
 	gl.BlendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA) --alpha NO pre-multiply
 
+	gl.DepthMask(true)
 	gl.DepthTest(GL.LEQUAL)
 
 	gl.Texture(0, blurTexes[2])
@@ -345,7 +350,9 @@ local function DrawOutline(strength)
 		gl.CallList(screenWideList)
 	end)
 
-	gl.DepthTest(false)
+	gl.DepthMask(true)
+	gl.DepthTest(true)
+	gl.Blending(false)
 
 	gl.Texture(0, false)
 	gl.Texture(1, false)
