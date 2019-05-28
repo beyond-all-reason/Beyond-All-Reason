@@ -281,34 +281,37 @@ walklegs()
 drawgun()
 {
 
-	turn rloarm to x-axis <0> speed <720>;
-	turn lloarm to x-axis <0> speed <720>;
-	turn ruparm to x-axis <-179> speed <720>;
+	turn rloarm to x-axis <0> speed <360>;
+	turn lloarm to x-axis <0> speed <360>;
+	turn ruparm to x-axis <-150> speed <360>;
+	turn rloarm to x-axis <-45> speed <360>;
 	sleep 250;
 	
-	turn ruparm to x-axis <90> speed <720>;
-	turn luparm to x-axis <-179> speed <720>;
+	turn ruparm to x-axis <90> speed <360>;
+	turn luparm to x-axis <-179> speed <360>;
 	sleep 125;
 	
 	hide gunstatic;
 	show gunhand;
-	turn luparm to x-axis <90> speed <720>;
-	//turn gunhand to y-axis <-90> speed <720>;
-	turn ruparm to x-axis <-179> speed <720>;
+	turn luparm to x-axis <0> speed <360>; //90   arm bleibt beim schieﬂen nun unten
+	turn ruparm to x-axis <-60> speed <360>; //-179*   720
 	sleep 125;
-	turn ruparm to x-axis <0> speed <720>;
+	turn ruparm to x-axis <-30> speed <360>;  //0* ****** arm position when shooting (only ruparm, rloarm is in aiming)
 	sleep 125;
+	turn rloarm to x-axis <-45> speed <360>; //new armhaltung nach dem schieﬂen wenn waffe wieder im holster
+	sleep 125;  //new
+
 }
 
 holstgun()
 {
-	turn rloarm to x-axis <0> speed <720>;
+	turn rloarm to x-axis <45> speed <720>; //0
 	turn lloarm to x-axis <0> speed <720>;
-	turn ruparm to x-axis <-179> speed <720>;
+	turn ruparm to x-axis <0> speed <720>;//-179*
 	sleep 250;
 
-	turn ruparm to x-axis <90> speed <720>;
-	turn luparm to x-axis <-179> speed <720>;
+	turn ruparm to x-axis <45> speed <720>; //90
+	turn luparm to x-axis <-100> speed <720>; //-179
 	turn gunhand to y-axis <0> speed <720>;
 	sleep 125;
 	
@@ -533,7 +536,7 @@ AimPrimary(heading, pitch)
 	}
 	bAiming = TRUE;
 	turn torso to y-axis heading speed <250.000000>;
-	turn rloarm to x-axis <0.000000> - pitch speed <90.000000>;
+	turn rloarm to x-axis <-30.000000> - pitch speed <90.000000>; //0 position of lower right  arm whe shooting
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
