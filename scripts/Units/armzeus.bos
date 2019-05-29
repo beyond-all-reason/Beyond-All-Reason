@@ -18,7 +18,7 @@ walk()
 {
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.300000] speed [3.578313] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.650000] speed [3.578313] *  currentSpeed / 100;
 		turn pelvis to x-axis <13.000000> speed <155.060241> *  currentSpeed / 100;
 		turn rthigh to x-axis <-3.214286> speed <205.327026> *  currentSpeed / 100;
 		turn lthigh to x-axis <-68.868132> speed <582.884948> *  currentSpeed / 100;
@@ -32,7 +32,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.200000] speed [1.192771] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.600000] speed [1.192771] *  currentSpeed / 100;
 		turn pelvis to x-axis <9.137363> speed <46.072417> *  currentSpeed / 100;
 		turn rthigh to x-axis <10.236264> speed <155.322388> *  currentSpeed / 100;
 		turn lthigh to x-axis <-52.346154> speed <197.069376> *  currentSpeed / 100;
@@ -46,7 +46,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-0.500000] speed [8.349398] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.250000] speed [8.349398] *  currentSpeed / 100;
 		turn pelvis to x-axis <6.313187> speed <33.685955> *  currentSpeed / 100;
 		turn rthigh to x-axis <-20.335165> speed <364.647165> *  currentSpeed / 100;
 		turn lthigh to x-axis <-42.846154> speed <113.313253> *  currentSpeed / 100;
@@ -59,7 +59,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-.800000] speed [3.578313] *  currentSpeed / 100;
+		move pelvis to y-axis [-.400000] speed [3.578313] *  currentSpeed / 100;
 		turn pelvis to x-axis <2.802198> speed <41.878062> *  currentSpeed / 100;
 		turn rthigh to x-axis <-48.467033> speed <335.548787> *  currentSpeed / 100;
 		turn lthigh to x-axis <-30.890110> speed <142.608236> *  currentSpeed / 100;
@@ -71,7 +71,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		turn pelvis to x-axis <-1> speed <33.423807> *  currentSpeed / 100;
+		turn pelvis to x-axis <-0.5> speed <33.423807> *  currentSpeed / 100;
 		turn rthigh to x-axis <-62.346154> speed <46.269034> *  currentSpeed / 100;
 		turn lthigh to x-axis <-20.390110> speed <146.474913> *  currentSpeed / 100;
 		turn ruparm to x-axis <4.912088> speed <96.142598> *  currentSpeed / 100;
@@ -82,7 +82,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.500000] speed [8.349398] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.750000] speed [8.349398] *  currentSpeed / 100;
 		turn pelvis to x-axis <4.203297> speed <50.135711> *  currentSpeed / 100;
 		turn rthigh to x-axis <-62.890110> speed <125.765258> *  currentSpeed / 100;
 		turn lthigh to x-axis <-11.247253> speed <117.573151> *  currentSpeed / 100;
@@ -96,7 +96,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.450000] speed [0.596386] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.725000] speed [0.596386] *  currentSpeed / 100;
 		turn pelvis to x-axis <13.000000> speed <104.924530> *  currentSpeed / 100;
 		turn rthigh to x-axis <-68.868132> speed <71.304118> *  currentSpeed / 100;
 		turn lthigh to x-axis <-8.291209> speed <12.452005> *  currentSpeed / 100;
@@ -110,7 +110,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.200000] speed [2.981928] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.600000] speed [2.981928] *  currentSpeed / 100;
 		turn pelvis to x-axis <9.137363> speed <46.072417> *  currentSpeed / 100;
 		turn rthigh to x-axis <-53.758242> speed <180.226399> *  currentSpeed / 100;
 		turn lthigh to x-axis <-17.148352> speed <109.053355> *  currentSpeed / 100;
@@ -123,7 +123,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.500000] speed [3.578313] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.750000] speed [3.578313] *  currentSpeed / 100;
 		turn pelvis to x-axis <6.313187> speed <33.685955> *  currentSpeed / 100;
 		turn rthigh to x-axis <-45.659341> speed <96.601349> *  currentSpeed / 100;
 		turn lthigh to x-axis <-31.593407> speed <175.835439> *  currentSpeed / 100;
@@ -136,7 +136,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-0.800000] speed [8.349398] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.400000] speed [8.349398] *  currentSpeed / 100;
 		turn pelvis to x-axis <2.802198> speed <41.878062> *  currentSpeed / 100;
 		turn rthigh to x-axis <-35.104396> speed <125.896332> *  currentSpeed / 100;
 		turn lthigh to x-axis <-47.071429> speed <184.617371> *  currentSpeed / 100;
@@ -148,7 +148,7 @@ walk()
 	}
 	if( bMoving )
 	{
-		turn pelvis to x-axis <-1.000000> speed <33.423807> *  currentSpeed / 100;
+		turn pelvis to x-axis <-0.500000> speed <33.423807> *  currentSpeed / 100;
 		turn rthigh to x-axis <-18.093407> speed <205.130421> *  currentSpeed / 100;
 		turn lthigh to x-axis <-54.104396> speed <83.887197> *  currentSpeed / 100;
 		turn lleg to x-axis <68.560440> speed <25.100627> *  currentSpeed / 100;
@@ -158,7 +158,7 @@ walk()
 		turn rloarm to x-axis <-0.703297> now;
 		sleep animSpeed;
 	}
-	move pelvis to y-axis [-1.400000] speed [7.156627] *  currentSpeed / 100;
+	move pelvis to y-axis [-0.700000] speed [7.156627] *  currentSpeed / 100;
 	turn pelvis to x-axis <4.203297> speed <50.135711> *  currentSpeed / 100;
 	turn rthigh to x-axis <-11.247253> speed <109.184428> *  currentSpeed / 100;
 	turn lthigh to x-axis <-64.291209> speed <121.505360> *  currentSpeed / 100;
@@ -173,7 +173,7 @@ walklegs()
 {
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.300000] speed [3.578313] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.650000] speed [3.578313] *  currentSpeed / 100;
 		turn pelvis to x-axis <13.000000> speed <155.060241> *  currentSpeed / 100;
 		turn rthigh to x-axis <-3.214286> speed <205.327026> *  currentSpeed / 100;
 		turn lthigh to x-axis <-68.868132> speed <582.884948> *  currentSpeed / 100;
@@ -183,7 +183,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.200000] speed [1.192771] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.600000] speed [1.192771] *  currentSpeed / 100;
 		turn pelvis to x-axis <9.137363> speed <46.072417> *  currentSpeed / 100;
 		turn rthigh to x-axis <10.236264> speed <155.322388> *  currentSpeed / 100;
 		turn lthigh to x-axis <-52.346154> speed <197.069376> *  currentSpeed / 100;
@@ -193,7 +193,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-0.500000] speed [8.349398] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.250000] speed [8.349398] *  currentSpeed / 100;
 		turn pelvis to x-axis <6.313187> speed <33.685955> *  currentSpeed / 100;
 		turn rthigh to x-axis <-20.335165> speed <364.647165> *  currentSpeed / 100;
 		turn lthigh to x-axis <-42.846154> speed <113.313253> *  currentSpeed / 100;
@@ -202,7 +202,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-.800000] speed [3.578313] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.400000] speed [3.578313] *  currentSpeed / 100;
 		turn pelvis to x-axis <2.802198> speed <41.878062> *  currentSpeed / 100;
 		turn rthigh to x-axis <-48.467033> speed <335.548787> *  currentSpeed / 100;
 		turn lthigh to x-axis <-30.890110> speed <142.608236> *  currentSpeed / 100;
@@ -218,7 +218,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.500000] speed [8.349398] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.750000] speed [8.349398] *  currentSpeed / 100;
 		turn pelvis to x-axis <4.203297> speed <50.135711> *  currentSpeed / 100;
 		turn rthigh to x-axis <-62.890110> speed <125.765258> *  currentSpeed / 100;
 		turn lthigh to x-axis <-11.247253> speed <117.573151> *  currentSpeed / 100;
@@ -228,7 +228,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.450000] speed [0.596386] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.725000] speed [0.596386] *  currentSpeed / 100;
 		turn pelvis to x-axis <13.000000> speed <104.924530> *  currentSpeed / 100;
 		turn rthigh to x-axis <-68.868132> speed <71.304118> *  currentSpeed / 100;
 		turn lthigh to x-axis <-8.291209> speed <12.452005> *  currentSpeed / 100;
@@ -238,7 +238,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.200000] speed [2.981928] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.600000] speed [2.981928] *  currentSpeed / 100;
 		turn pelvis to x-axis <9.137363> speed <46.072417> *  currentSpeed / 100;
 		turn rthigh to x-axis <-53.758242> speed <180.226399> *  currentSpeed / 100;
 		turn lthigh to x-axis <-17.148352> speed <109.053355> *  currentSpeed / 100;
@@ -247,7 +247,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-1.500000] speed [3.578313] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.750000] speed [3.578313] *  currentSpeed / 100;
 		turn pelvis to x-axis <6.313187> speed <33.685955> *  currentSpeed / 100;
 		turn rthigh to x-axis <-45.659341> speed <96.601349> *  currentSpeed / 100;
 		turn lthigh to x-axis <-31.593407> speed <175.835439> *  currentSpeed / 100;
@@ -256,7 +256,7 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		move pelvis to y-axis [-0.800000] speed [8.349398] *  currentSpeed / 100;
+		move pelvis to y-axis [-0.400000] speed [8.349398] *  currentSpeed / 100;
 		turn pelvis to x-axis <2.802198> speed <41.878062> *  currentSpeed / 100;
 		turn rthigh to x-axis <-35.104396> speed <125.896332> *  currentSpeed / 100;
 		turn lthigh to x-axis <-47.071429> speed <184.617371> *  currentSpeed / 100;
@@ -264,13 +264,13 @@ walklegs()
 	}
 	if( bMoving )
 	{
-		turn pelvis to x-axis <-1.000000> speed <33.423807> *  currentSpeed / 100;
+		turn pelvis to x-axis <-0.500000> speed <33.423807> *  currentSpeed / 100;
 		turn rthigh to x-axis <-18.093407> speed <205.130421> *  currentSpeed / 100;
 		turn lthigh to x-axis <-54.104396> speed <83.887197> *  currentSpeed / 100;
 		turn lleg to x-axis <68.560440> speed <25.100627> *  currentSpeed / 100;
 		sleep animSpeed;
 	}
-	move pelvis to y-axis [-1.400000] speed [7.156627] *  currentSpeed / 100;
+	move pelvis to y-axis [-0.700000] speed [7.156627] *  currentSpeed / 100;
 	turn pelvis to x-axis <4.203297> speed <50.135711> *  currentSpeed / 100;
 	turn rthigh to x-axis <-11.247253> speed <109.184428> *  currentSpeed / 100;
 	turn lthigh to x-axis <-64.291209> speed <121.505360> *  currentSpeed / 100;
@@ -379,7 +379,7 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
-MotionControl(moving, aiming, justmoved)
+MotionControl(moving, aiming, justmoved) //what happens when standing still
 {
 	justmoved = TRUE;
 	while( TRUE )
@@ -405,7 +405,9 @@ MotionControl(moving, aiming, justmoved)
 			Static_Var_3 = 1;
 			if( justmoved )
 			{
-				move pelvis to y-axis [0.000000] speed [3.000000];
+				turn torso to x-axis <-1> speed <45>; //*** balanced position
+				turn pelvis to x-axis <-3> speed <45>; //*** balanced position
+				move pelvis to y-axis [-0.30000] speed [0.050000];   //brings unit up on the ground again because when moving it sinks in a bit 0; 3.00
 				turn rthigh to x-axis <0.000000> speed <200.000000>;
 				turn rleg to x-axis <0.000000> speed <200.000000>;
 				turn lthigh to x-axis <0.000000> speed <200.000000>;
@@ -427,7 +429,7 @@ UnitSpeed()
 	{
 		currentSpeed = (get CURRENT_SPEED)*100/moveSpeed;
 		if (currentSpeed<20) currentSpeed=20;
-		animSpeed = 10000 / currentSpeed;
+		animSpeed = 6000 / currentSpeed; //org animspeed = 10000; lower value = faster animation
 		sleep 142;
 	}
 }
@@ -521,6 +523,11 @@ RestoreAfterDelay()
 	set-signal-mask 0;
 	turn torso to y-axis <0.000000> speed <90.000000>;
 	turn rloarm to x-axis <0.000000> speed <90.000000>;
+	//turn ruparm to z-axis <0> speed <90>; //***
+	//turn luparm to z-axis <0> speed <90>; //***
+	//turn luparm to y-axis <0> speed <90>; //***
+	//turn luparm to x-axis <0> speed <90>; //***
+	//turn gunhand to z-axis <0> speed <90>; //***
 	wpn1_lasthead = 1000000;
 	bAiming = FALSE;
 	start-script RequestState(1);
@@ -536,7 +543,14 @@ AimPrimary(heading, pitch)
 	}
 	bAiming = TRUE;
 	turn torso to y-axis heading speed <250.000000>;
-	turn rloarm to x-axis <-30.000000> - pitch speed <90.000000>; //0 position of lower right  arm whe shooting
+	turn rloarm to x-axis <-26.000000> - pitch speed <90.000000>; //0 position of lower right  arm whe shooting
+	//turn ruparm to z-axis <-30> speed <90>; //***  adjustment needed on 3d obj to reduce dislocated shoulder effect before going ahead on this. 
+	//turn luparm to z-axis <0> speed <90>; //*** 45
+	//turn luparm to y-axis <-45> speed <90>;//*** -45
+	//turn luparm to x-axis <-60> speed <90>; //***  extension for left hand on 3d obj file before going on
+	//turn lloarm to x-axis <30> speed <90>; //***
+	//turn gunhand to z-axis <30> speed <90>; //***
+	
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
