@@ -39,7 +39,7 @@ return {
 		turninplacespeedlimit = 0.66,
 		turnrate = 368,
 		customparams = {
-			model_author = "Kaiser",
+			model_author = "Kaiser, PtaQ",
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armkbots/t2",

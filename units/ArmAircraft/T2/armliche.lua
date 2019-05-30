@@ -46,7 +46,7 @@ return {
 		wingangle = 0.062,
 		wingdrag = 0.135,
 		customparams = {
-			model_author = "Firestorm & Flaka",
+			model_author = "Firestorm, Flaka",
 			normalmaps = "yes",
 			lumamult = "1.7",
 			normaltex = "unittextures/Arm_normal.dds",

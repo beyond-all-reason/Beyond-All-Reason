@@ -56,7 +56,7 @@ return {
 			flare1name = "flare1",
 			flare2name = "flare2",
 			kickback = "-2",
-			model_author = "Mr Bob",
+			model_author = "Mr Bob, Flaka",
 			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			restoretime = "3000",
