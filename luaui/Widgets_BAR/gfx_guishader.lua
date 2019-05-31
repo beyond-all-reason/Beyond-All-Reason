@@ -445,9 +445,8 @@ function widget:DrawScreenEffectsBlur()
 
       gl.UseShader(blurShader)
       gl.Uniform(intensityLoc, blurIntensity)
-      gl.Texture(2,stenciltex)
-      gl.Texture(2,false)
 
+      gl.Texture(2,stenciltex)
       gl.Texture(blurtex)
       gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
       gl.Texture(blurtex2)

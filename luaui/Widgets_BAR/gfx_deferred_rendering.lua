@@ -9,7 +9,7 @@ function widget:GetInfo()
 	author    = "beherith, aeonios",
 	date      = "2015 Sept.",
 	license   = "GPL V2",
-	layer     = -1000000000,
+	layer     = -99999990,
 	enabled   = true
   }
 end
@@ -462,6 +462,11 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 		end
 	end
 	glUseShader(0)
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(2, false)
+	glTexture(3, false)
+	glTexture(4, false)
 end
 
 local function renderToTextureFunc(tex, s, t)
