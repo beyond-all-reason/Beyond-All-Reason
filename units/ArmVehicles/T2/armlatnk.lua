@@ -93,6 +93,9 @@ return {
 			},
 		},
 		sfxtypes = {
+            explosiongenerators = {
+                [1] = "custom:barrelshot-lightning",
+            },
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
