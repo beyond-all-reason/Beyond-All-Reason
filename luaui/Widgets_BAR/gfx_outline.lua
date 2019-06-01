@@ -176,7 +176,7 @@ local function PrepareOutline(cleanState)
 	end
 end
 
-local function DrawOutline(strength, setState, alwaysVisible)
+local function DrawOutline(strength, loadTextures, alwaysVisible)
 	if not show then
 		return
 	end
