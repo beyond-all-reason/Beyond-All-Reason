@@ -8,7 +8,7 @@
             },
             "downloads": {
                 "games" : ["bar:test", "chobby:test"],
-                "engines" : [ "104.0.1-1179-ge932a0a maintenance" ]
+                "engines" : [ "104.0.1-1244-gb487190 maintenance" ]
             },
             "no_start_script" : true,
             "launch": {
@@ -21,7 +21,7 @@
                 "display": "Dev Lobby"
             },
             "downloads": {
-                "engines" : [ "104.0.1-1179-ge932a0a maintenance" ]
+                "engines" : [ "104.0.1-1244-gb487190 maintenance" ]
             },
             "no_start_script" : true,
             "no_downloads" : true,

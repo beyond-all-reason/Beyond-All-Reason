@@ -7,5 +7,5 @@ return {
   game = 'Beyond all Reason',
   shortGame = 'BAR',
   modtype = 1,
-  url = "",
+  url = "https://www.beyondallreason.info",
 }
