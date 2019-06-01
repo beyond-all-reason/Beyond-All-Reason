@@ -24,6 +24,8 @@ uniform float strength = 1.0;
 
 		ivec2 thisCoord = ivec2(gl_FragCoord.xy);
 
+		vec2 bnd = vec2(DILATE_HALF_KERNEL_SIZE - 1, DILATE_HALF_KERNEL_SIZE + 2) * strength;
+
 		for (int x = -DILATE_HALF_KERNEL_SIZE; x <= DILATE_HALF_KERNEL_SIZE; ++x) {
 			for (int y = -DILATE_HALF_KERNEL_SIZE; y <= DILATE_HALF_KERNEL_SIZE; ++y) {
 
@@ -37,11 +39,6 @@ uniform float strength = 1.0;
 				if (okCoords) {
 					minDepth = min(minDepth, texelFetchOffset( depthTex, thisCoord, 0, offset).r);
 					vec4 thisColor = texelFetchOffset( colorTex, thisCoord, 0, offset);
-					//thisColor.a = 0.1;
-					//thisColor.a *= 1.0 - float(max(abs(x), abs(y))) / DILATE_HALF_KERNEL_SIZE;
-					//thisColor.a *= 1.0 - float(x * x + y * y) / float(DILATE_HALF_KERNEL_SIZE * DILATE_HALF_KERNEL_SIZE);
-					vec2 bnd = vec2(DILATE_HALF_KERNEL_SIZE - 1, DILATE_HALF_KERNEL_SIZE + 2) * strength;
-					//thisColor.a *= smoothstep(bnd.y, bnd.x, sqrt(float(x * x + y * y)));
 					thisColor.a *= smoothstep(bnd.y, bnd.x, sqrt(float(x * x + y * y)));
 					maxColor = max(maxColor, thisColor);
 				}
@@ -61,6 +58,8 @@ uniform float strength = 1.0;
 
 		ivec2 thisCoord = ivec2(gl_FragCoord.xy);
 
+		vec2 bnd = vec2(DILATE_HALF_KERNEL_SIZE - 1, DILATE_HALF_KERNEL_SIZE + 2) * strength;
+
 		for (int i = -DILATE_HALF_KERNEL_SIZE; i <= DILATE_HALF_KERNEL_SIZE; ++i) {
 
 			ivec2 offset = ivec2(i) * ivec2(dir);
@@ -73,7 +72,7 @@ uniform float strength = 1.0;
 			if (okCoords) {
 				minDepth = min(minDepth, texelFetchOffset( depthTex, thisCoord, 0, offset).r);
 				vec4 thisColor = texelFetchOffset( colorTex, thisCoord, 0, offset);
-				//thisColor.a *= 1.0 - float(abs(i)) / DILATE_HALF_KERNEL_SIZE;
+				thisColor.a *= smoothstep(bnd.y, bnd.x, abs(i));
 				maxColor = max(maxColor, thisColor);
 			}
 		}

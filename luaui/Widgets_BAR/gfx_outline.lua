@@ -33,7 +33,7 @@ local AVG_FPS_ELASTICITY = 0.2
 local AVG_FPS_ELASTICITY_INV = 1.0 - AVG_FPS_ELASTICITY
 ]]--
 
-local DILATE_SINGLE_PASS = true --true is slower on my system
+local DILATE_SINGLE_PASS = false --true is slower on my system
 local DILATE_HALF_KERNEL_SIZE = 3
 local DILATE_PASSES = 1
 
@@ -108,7 +108,6 @@ local function PrepareOutline(cleanState)
 	end
 
 	gl.DepthTest(true)
-	gl.DepthMask(true)
 	gl.DepthTest(GL.ALWAYS)
 
 	gl.ActiveFBO(shapeFBO, function()
@@ -174,13 +173,10 @@ local function PrepareOutline(cleanState)
 		gl.Texture(1, false)
 		gl.Texture(2, false)
 		gl.Texture(3, false)
-
-		gl.AlphaTest(GL.GREATER, 0.5);  --default mode
-		gl.AlphaTest(false)
 	end
 end
 
-local function DrawOutline(strength, loadTextures, alwaysVisible)
+local function DrawOutline(strength, setState, alwaysVisible)
 	if not show then
 		return
 	end
