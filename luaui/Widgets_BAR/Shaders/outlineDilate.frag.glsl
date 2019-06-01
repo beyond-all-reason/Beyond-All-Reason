@@ -30,13 +30,14 @@ uniform float strength = 1.0;
 			for (int y = -DILATE_HALF_KERNEL_SIZE; y <= DILATE_HALF_KERNEL_SIZE; ++y) {
 
 				ivec2 offset = ivec2(x, y);
+				/*
 				ivec2 samplingCoord = thisCoord + offset;
 				bool okCoords = ( all(bvec4(
 					greaterThanEqual(samplingCoord, vpsMinMax.xy),
 					lessThanEqual(samplingCoord, vpsMinMax.zw) ))
 				);
 
-				if (okCoords) {
+				if (okCoords)*/ {
 					minDepth = min(minDepth, texelFetchOffset( depthTex, thisCoord, 0, offset).r);
 					vec4 thisColor = texelFetchOffset( colorTex, thisCoord, 0, offset);
 					thisColor.a *= smoothstep(bnd.y, bnd.x, sqrt(float(x * x + y * y)));
@@ -63,13 +64,14 @@ uniform float strength = 1.0;
 		for (int i = -DILATE_HALF_KERNEL_SIZE; i <= DILATE_HALF_KERNEL_SIZE; ++i) {
 
 			ivec2 offset = ivec2(i) * ivec2(dir);
+			/*
 			ivec2 samplingCoord = thisCoord + offset;
 			bool okCoords = ( all(bvec4(
 				greaterThanEqual(samplingCoord, vpsMinMax.xy),
 				lessThanEqual(samplingCoord, vpsMinMax.zw) ))
 			);
 
-			if (okCoords) {
+			if (okCoords)*/ {
 				minDepth = min(minDepth, texelFetchOffset( depthTex, thisCoord, 0, offset).r);
 				vec4 thisColor = texelFetchOffset( colorTex, thisCoord, 0, offset);
 				thisColor.a *= smoothstep(bnd.y, bnd.x, abs(i));
