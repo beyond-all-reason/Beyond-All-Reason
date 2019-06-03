@@ -1,7 +1,7 @@
 return {
   name = 'Beyond all Reason',
   description = 'Beyond all Reason',
-  shortname = 'BAR',
+  shortname = 'BYAR',
   version = '$VERSION',
   mutator = 'Official',
   game = 'Beyond all Reason',
