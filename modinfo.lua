@@ -1,7 +1,7 @@
 return {
   name = 'Beyond all Reason',
   description = 'Beyond all Reason',
-  shortname = 'BYAR',
+  shortName = 'BYAR',   -- 'BAR' is used by original bar project still
   version = '$VERSION',
   mutator = 'Official',
   game = 'Beyond all Reason',
