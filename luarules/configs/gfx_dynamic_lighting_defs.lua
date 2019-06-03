@@ -246,8 +246,8 @@ local dynLightDefs = {
 }
 
 
-local modLightDefs = dynLightDefs[Game.modShortName]
-local modCopyDefs = copyLightDefs[Game.modShortName]
+local modLightDefs = dynLightDefs[Game.gameShortName]
+local modCopyDefs = copyLightDefs[Game.gameShortName]
 
 -- insert copy-definitions for each light that has one
 if (modLightDefs ~= nil and modCopyDefs ~= nil) then

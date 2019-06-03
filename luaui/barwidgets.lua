@@ -30,7 +30,7 @@ VFS.Include("LuaRules/Utilities/tablefunctions.lua")
 
 local gl = gl
 
-local CONFIG_FILENAME    = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '.lua'
+local CONFIG_FILENAME    = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME     = LUAUI_DIRNAME .. 'Widgets_BAR/'
 local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
 

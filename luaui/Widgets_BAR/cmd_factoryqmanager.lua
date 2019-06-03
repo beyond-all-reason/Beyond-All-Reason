@@ -198,7 +198,7 @@ function widget:Initialize()
     end
 	widget:ViewResize(_,_)
 	
-	curModId = string.upper(Game.modShortName or "")
+	curModId = string.upper(Game.gameShortName or "")
 end
 
 -- Included FactoryClear Lua widget

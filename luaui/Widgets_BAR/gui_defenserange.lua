@@ -595,7 +595,7 @@ function widget:Update()
 end
 
 function DetectMod()
-	state["curModID"] = upper(Game.modShortName or "")
+	state["curModID"] = upper(Game.gameShortName or "")
 	
 	if ( modConfig[state["curModID"]] == nil ) then
 		spEcho("<DefenseRange> Unsupported Game, shutting down...")

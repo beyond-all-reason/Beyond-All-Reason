@@ -131,7 +131,7 @@ function widget:Initialize()
 
 	myColour = colourNames(Spring.GetMyTeamID())
 	markerLocal = nil --note: this name of this here and on the lua wiki is a misnomer
-	curModID = string.upper(Game.modShortName or "")
+	curModID = string.upper(Game.gameShortName or "")
 	if ( unitList[curModID] == nil ) then
 		spEcho("<Unit Marker> Unsupported Game, shutting down...")
 		widgetHandler:RemoveWidget(self)
