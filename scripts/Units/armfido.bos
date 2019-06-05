@@ -164,9 +164,47 @@ walk()
 		turn rloarm to x-axis <4.038462> speed <117.769768> *  currentSpeed / 100;
 		turn rhand to x-axis <-9.890110> speed <198.314581> *  currentSpeed / 100;
 		sleep animSpeed;
+
 	}
-	
 }
+
+
+stand()
+{
+
+
+	move torso to y-axis [0.00000] speed [1.789157];
+	move ruparm to y-axis [0.000000] speed [1.192771];
+	move luparm to y-axis [0.000000] speed [7.156627];
+	turn pelvis to z-axis <0> speed <31.850924>;
+	turn torso to z-axis <0> speed <48.366211>;
+	turn lthigh to x-axis <0> speed <305.860583>;
+	turn rthigh to x-axis <0> speed <397.350062>;
+	turn rleg to x-axis <0> speed <424.220177>;
+	turn lleg to x-axis <0> speed <160.696418>;
+	turn lfoot to x-axis <0> speed <26.935658>;
+	turn luparm to x-axis <0> speed <144.902030>;
+	turn ruparm to x-axis <0> speed <100>;
+	turn lloarm to x-axis <0> speed <139.528000>;
+	turn lhand to x-axis <0> speed <703.145103>;
+	turn rloarm to x-axis <0> speed <117.769768>;
+	turn rhand to x-axis <-0> speed <198.314581>;
+		
+	/* turn lthigh to x-axis <0.000000> speed <777.456827>;
+	turn rthigh to x-axis <0.000000> speed <61.766091>;
+	turn Torso to x-axis <0.000000> speed <9.042386>;
+	turn Shoulder to x-axis <0.000000> speed <10.549449>;
+	turn lleg to x-axis <0.000000> speed <10.549449>;
+	turn rleg to x-axis <0.000000> speed <296.868133>;
+	move Barrel to x-axis [0.000000] now;
+	turn lfoot to x-axis <0.000000> speed <58.775511>;
+	turn lhand to x-axis <0.000000> now;
+	turn rhand to z-axis <0.000000> now;
+	turn pelvis toz-axis <0> now; */
+	sleep 200; 
+	return (0);
+}
+
 
 UnitSpeed()
 {
@@ -278,6 +316,7 @@ StartMoving()
 StopMoving()
 {
 	signal SIG_MOVE;
+	call-script stand(); //*
 }
 
 SweetSpot(piecenum)
