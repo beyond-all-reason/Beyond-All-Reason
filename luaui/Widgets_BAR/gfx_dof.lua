@@ -1,12 +1,12 @@
 function widget:GetInfo()
 	return {
-		name      = "Depth of Field",
+		name	  = "Depth of Field",
 		version	  = 2.0,
-		desc      = "Blurs far away objects.",
-		author    = "aeonios, Shadowfury333 (with some code from Kleber Garcia)",
-		date      = "Feb. 2019",
+		desc	  = "Blurs far away objects.",
+		author	= "aeonios, Shadowfury333 (with some code from Kleber Garcia)",
+		date	  = "Feb. 2019",
 		license   = "GPL, MIT",
-		layer     = -100000, --To run after gfx_deferred_rendering.lua
+		layer	 = -100000, --To run after gfx_deferred_rendering.lua
 		enabled   = true
 	}
 end
@@ -34,20 +34,20 @@ end
 -- Engine Functions
 -----------------------------------------------------------------
 
-local spGetCameraPosition    = Spring.GetCameraPosition
+local spGetCameraPosition	= Spring.GetCameraPosition
 
-local glCopyToTexture        = gl.CopyToTexture
-local glCreateShader         = gl.CreateShader
-local glCreateTexture        = gl.CreateTexture
-local glDeleteShader         = gl.DeleteShader
-local glDeleteTexture        = gl.DeleteTexture
-local glTexture              = gl.Texture
-local glTexRect              = gl.TexRect
-local glRenderToTexture		 = gl.RenderToTexture
-local glUseShader            = gl.UseShader
-local glUniform				 = gl.Uniform
-local glUniformInt			 = gl.UniformInt
-local glUniformMatrix		 = gl.UniformMatrix
+local glCopyToTexture = gl.CopyToTexture
+local glCreateShader = gl.CreateShader
+local glCreateTexture = gl.CreateTexture
+local glDeleteShader = gl.DeleteShader
+local glDeleteTexture = gl.DeleteTexture
+local glTexture	= gl.Texture
+local glTexRect	= gl.TexRect
+local glRenderToTexture = gl.RenderToTexture
+local glUseShader = gl.UseShader
+local glUniform = gl.Uniform
+local glUniformInt = gl.UniformInt
+local glUniformMatrix = gl.UniformMatrix
 
 local GL_DEPTH_COMPONENT   = 0x1902
 local GL_DEPTH_COMPONENT16 = 0x81A5
@@ -75,11 +75,11 @@ local function CleanupTextures()
 	glDeleteTexture(depthTex or "")
 	gl.DeleteFBO(intermediateBlurFBO)
 	gl.DeleteFBO(baseBlurFBO)
-	baseBlurTex, baseNearBlurTex, intermediateBlurTex0, intermediateBlurTex1, 
-	intermediateBlurTex2, intermediateBlurTex3, finalBlurTex, finalNearBlurTex, 
-	screenTex, depthTex = 
+	baseBlurTex, baseNearBlurTex, intermediateBlurTex0, intermediateBlurTex1,
+	intermediateBlurTex2, intermediateBlurTex3, finalBlurTex, finalNearBlurTex,
+	screenTex, depthTex =
 		nil, nil, nil, nil,
-		nil, nil, nil, nil, 
+		nil, nil, nil, nil,
 		nil, nil
 	intermediateBlurFBO = nil
 	baseBlurFBO = nil
@@ -118,7 +118,7 @@ local qualityLoc = nil
 local passLoc = nil
 
 -- shader uniform enums
-local shaderPasses = 
+local shaderPasses =
 {
 	filterSize = 0,
 	initialBlur = 1,
@@ -148,7 +148,7 @@ function InitTextures()
 	local blurTexSizeX, blurTexSizeY = vsx/2, vsy/2;
 
 	CleanupTextures()
-	
+
 	screenTex = glCreateTexture(vsx, vsy, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
@@ -159,7 +159,7 @@ function InitTextures()
 		format = GL_DEPTH_COMPONENT24,
 		min_filter = GL.NEAREST,
 		mag_filter = GL.NEAREST,
-	})	
+	})
 
 	baseBlurTex = glCreateTexture(blurTexSizeX, blurTexSizeY, {
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
@@ -171,29 +171,29 @@ function InitTextures()
 			format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
 		})
 	end
-	
+
 	intermediateBlurTex0 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
 		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
 	})
-	
+
 	intermediateBlurTex1 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
 		 min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
 	})
-	
+
 	intermediateBlurTex2 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
 		 min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
 	})
-	
+
 	if highQuality then
 		intermediateBlurTex3 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
 			 min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 			format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
 		})
 	end
-	
+
 	finalBlurTex = glCreateTexture(blurTexSizeX, blurTexSizeY, {
 		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
 		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
@@ -209,10 +209,10 @@ function InitTextures()
 		baseBlurFBO = gl.CreateFBO({
 			color0 = baseBlurTex,
 			color1 = baseNearBlurTex,
-	     drawbuffers = { 
-	     	GL_COLOR_ATTACHMENT0_EXT, 
-	     	GL_COLOR_ATTACHMENT1_EXT
-	     }
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT,
+			GL_COLOR_ATTACHMENT1_EXT
+		}
 			})
 
 		intermediateBlurFBO = gl.CreateFBO({
@@ -220,39 +220,38 @@ function InitTextures()
 			color1 = intermediateBlurTex1,
 			color2 = intermediateBlurTex2,
 			color3 = intermediateBlurTex3,
-	     drawbuffers = { 
-	     	GL_COLOR_ATTACHMENT0_EXT, 
-	     	GL_COLOR_ATTACHMENT1_EXT, 
-	     	GL_COLOR_ATTACHMENT2_EXT,
-	     	GL_COLOR_ATTACHMENT3_EXT
-	     }
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT,
+			GL_COLOR_ATTACHMENT1_EXT,
+			GL_COLOR_ATTACHMENT2_EXT,
+			GL_COLOR_ATTACHMENT3_EXT
+		}
 			})
 	else
 		baseBlurFBO = gl.CreateFBO({
 			color0 = baseBlurTex,
-	     drawbuffers = {
-	     	GL_COLOR_ATTACHMENT0_EXT
-	     }
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT
+		}
 			})
-		
+
 		intermediateBlurFBO = gl.CreateFBO({
 			color0 = intermediateBlurTex0,
 			color1 = intermediateBlurTex1,
 			color2 = intermediateBlurTex2,
-	     drawbuffers = { 
-	     	GL_COLOR_ATTACHMENT0_EXT, 
-	     	GL_COLOR_ATTACHMENT1_EXT, 
-	     	GL_COLOR_ATTACHMENT2_EXT
-	     }
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT,
+			GL_COLOR_ATTACHMENT1_EXT,
+			GL_COLOR_ATTACHMENT2_EXT
+		}
 			})
 	end
 
 	if not intermediateBlurTex0 or not intermediateBlurTex1 or not intermediateBlurTex2
 		 or not finalBlurTex or not baseBlurTex or not screenTex or not depthTex
-		 or (highQuality and (not baseNearBlurTex or not intermediateBlurTex3 or not finalNearBlurTex))
-		  then
-		Spring.Echo("Depth of Field: Failed to create textures!")
-		widgetHandler:RemoveWidget()
+		 or (highQuality and (not baseNearBlurTex or not intermediateBlurTex3 or not finalNearBlurTex)) then
+			Spring.Echo("Depth of Field: Failed to create textures!")
+			widgetHandler:RemoveWidget()
 		return
 	end
 end
@@ -267,13 +266,14 @@ function init()
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
+
 	if not useDoF then
 		return
 	end
 
 	dofShader = dofShader or glCreateShader({
-		defines = {"#version 150 compatibility\n",
+		defines = {
+			"#version 150 compatibility\n",
 			"#define DEPTH_CLIP01 " .. (Platform.glSupportClipSpaceControl and "1" or "0") .. "\n",
 
 			"#define FILTER_SIZE_PASS " .. shaderPasses.filterSize .. "\n",
@@ -289,17 +289,17 @@ function init()
 			"#define HIGH_QUALITY 1 \n"
 		},
 		fragment = VFS.LoadFile("LuaUI\\Widgets\\Shaders\\dof.fs", VFS.ZIP),
-		
+
 		uniformInt = {origTex = 0, blurTex0 = 1, blurTex1 = 2, blurTex2 = 3, blurTex3 = 4},
 	})
-	
+
 	if not dofShader then
 		Spring.Echo("Depth of Field: Failed to create shader!")
 		Spring.Echo(gl.GetShaderLog())
 		widgetHandler:RemoveWidget()
 		return
 	end
-	
+
 	eyePosLoc = gl.GetUniformLocation(dofShader, "eyePos")
 	viewProjectionLoc = gl.GetUniformLocation(dofShader, "viewProjection")
 	resolutionLoc = gl.GetUniformLocation(dofShader, "resolution")
@@ -309,14 +309,14 @@ function init()
 	fStopLoc = gl.GetUniformLocation(dofShader, "fStop")
 	qualityLoc = gl.GetUniformLocation(dofShader, "quality")
 	passLoc = gl.GetUniformLocation(dofShader, "pass")
-	
+
 	widget:ViewResize()
 end
 
 function widget:Initialize()
 	widgetHandler:AddAction("dofToggle", dofToggle, nil, "t")
 	Spring.SendCommands({"bind "..keyToggle.." dofToggle"})
-	--Spring.SendCommands({"dofToggle 0"})     -- toggle off defaultly
+	--Spring.SendCommands({"dofToggle 0"})	 -- toggle off defaultly
 	WG['dof'] = {}
 
 	init()
@@ -326,7 +326,7 @@ function widget:Shutdown()
 	if (glDeleteShader and dofShader) then
 		glDeleteShader(dofShader)
 	end
-	
+
 	if glDeleteTexture then
 		CleanupTextures()
 	end
@@ -348,7 +348,7 @@ local function FilterCalculation()
 
 	-- glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
 	glTexRect(0, 0, vsx, vsy, false, true)
-	-- 
+	--
 	glTexture(0, false)
 	glTexture(1, false)
 end
@@ -428,7 +428,7 @@ function widget:DrawScreenEffects()
 	gl.Blending(false)
 	glCopyToTexture(screenTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
 	glCopyToTexture(depthTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
-	
+
 	glUseShader(dofShader)
 		glUniform(distanceLimitsLoc, gl.GetViewRange())
 
@@ -436,7 +436,7 @@ function widget:DrawScreenEffects()
 		glUniform(focusDepthLoc, focusDepth / maxBlurDistance)
 		glUniform(fStopLoc, fStop)
 		glUniformInt(qualityLoc, highQuality and 1 or 0)
-		
+
 		gl.ActiveFBO(baseBlurFBO, FilterCalculation)
 		gl.ActiveFBO(intermediateBlurFBO, InitialBlur)
 		glRenderToTexture(finalBlurTex, FinalBlur)
