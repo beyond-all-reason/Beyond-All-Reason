@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local useDoF = false		--onChangeFunc()
-local highQuality = false	--OnChange = function(self) InitTextures() end,
+local highQuality = true	--OnChange = function(self) InitTextures() end,
 local autofocus = true
 local focusDepth = 300
 local fStop = 16
@@ -136,9 +136,9 @@ function dofToggle(cmd, line, words)
 		useDoF = words[1] == "0"
 	end
 	if not useDoF then
-		Spring.Echo("Depth of Field: on")
-	else
 		Spring.Echo("Depth of Field: off")
+	else
+		Spring.Echo("Depth of Field: on")
 	end
 	onChangeFunc()
 end
