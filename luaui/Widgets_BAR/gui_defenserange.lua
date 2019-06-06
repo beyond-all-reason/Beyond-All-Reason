@@ -31,8 +31,8 @@ local modConfig = {}
 -- BAR
 --to support other mods
 --table initialized and unitList is needed!
-modConfig["BAR"] = {}
-modConfig["BAR"]["unitList"] = {
+modConfig["BYAR"] = {}
+modConfig["BYAR"]["unitList"] = {
 	armclaw = { weapons = { 1 } },
 	cormaw = { weapons = { 1 } },
 	armllt = { weapons = { 1 } },
@@ -93,16 +93,16 @@ modConfig["BAR"]["unitList"] = {
 
 --implement this if you want dps-depending ring-colors
 --colors will be interpolated by dps scores between min and max values. values outside range will be set to nearest value in range -> min or max
-modConfig["BAR"]["armorTags"] = {}
-modConfig["BAR"]["armorTags"]["air"] = "vtol"
-modConfig["BAR"]["armorTags"]["ground"] = "else"
-modConfig["BAR"]["dps"] = {}
-modConfig["BAR"]["dps"]["ground"] = {}
-modConfig["BAR"]["dps"]["air"] = {}
-modConfig["BAR"]["dps"]["ground"]["min"] = 50
-modConfig["BAR"]["dps"]["ground"]["max"] = 500
-modConfig["BAR"]["dps"]["air"]["min"] = 80
-modConfig["BAR"]["dps"]["air"]["max"] = 500
+modConfig["BYAR"]["armorTags"] = {}
+modConfig["BYAR"]["armorTags"]["air"] = "vtol"
+modConfig["BYAR"]["armorTags"]["ground"] = "else"
+modConfig["BYAR"]["dps"] = {}
+modConfig["BYAR"]["dps"]["ground"] = {}
+modConfig["BYAR"]["dps"]["air"] = {}
+modConfig["BYAR"]["dps"]["ground"]["min"] = 50
+modConfig["BYAR"]["dps"]["ground"]["max"] = 500
+modConfig["BYAR"]["dps"]["air"]["min"] = 80
+modConfig["BYAR"]["dps"]["air"]["max"] = 500
 --end of dps-colors
 
 

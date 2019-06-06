@@ -1220,6 +1220,10 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Snow', 'snow', 'setSnowMap', {'snowMaps',Game.mapName:lower()}, options[i].value)
 		elseif id == 'snowautoreduce' then
 			saveOptionValue('Snow', 'snow', 'setAutoReduce', {'autoReduce'}, options[i].value)
+		elseif id == 'dof_highquality' then
+			saveOptionValue('Depth of Field', 'dof', 'setHighQuality', {'highQuality'}, options[i].value)
+		elseif id == 'dof_autofocus' then
+			saveOptionValue('Depth of Field', 'dof', 'setAutofocus', {'autofocus'}, options[i].value)
 		elseif id == 'sun_reset' then
             options[getOptionByID('sun_x')].value = defaultMapSunPos[1]
             options[getOptionByID('sun_y')].value = defaultMapSunPos[2]
@@ -1485,6 +1489,10 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigFloat("ui_opacity", value)
 		elseif id == 'snowamount' then
 			saveOptionValue('Snow', 'snow', 'setMultiplier', {'customParticleMultiplier'}, value)
+		elseif id == 'dof_focusdepth' then
+			saveOptionValue('Depth of Field', 'dof', 'setFocusDepth', {'focusDepth'}, value)
+		elseif id == 'dof_fstop' then
+			saveOptionValue('Depth of Field', 'dof', 'setFstop', {'fStop'}, value)
 		elseif id == 'sun_x' then
 			local sunX,sunY,sunZ = gl.GetSun("pos")
 			sunX = value
@@ -2067,6 +2075,11 @@ function loadAllWidgetData()
 
 	loadWidgetData("GUI Shader", "guishaderintensity", {'blurIntensity'})
 
+	loadWidgetData("Depth of Field", "dof_focusdepth", {'focusDepth'})
+	loadWidgetData("Depth of Field", "dof_fstop", {'fStop'})
+	loadWidgetData("Depth of Field", "dof_highquality", {'highQuality'})
+	loadWidgetData("Depth of Field", "dof_autofocus", {'autofocus'})
+
 	loadWidgetData("Snow", "snowamount", {'customParticleMultiplier'})
 	loadWidgetData("Snow", "snowmap", {'snowMaps',Game.mapName:lower()})
 	loadWidgetData("Snow", "snowautoreduce", {'autoReduce'})
@@ -2239,6 +2252,10 @@ function init()
 		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=7, step=1, value=4, description=''},
 
 		{id="dof", group="gfx", widget="Depth of Field", name="Depth of Field", type="bool", value=GetWidgetToggleValue("Depth of Field"), description='Applies out of focus blur'},
+		{id="dof_autofocus", group="gfx", name=widgetOptionColor.."   autofocus", type="bool", value=true, description=''},
+		--{id="dof_focusdepth", group="gfx", name=widgetOptionColor.."   focus depth", type="slider", min=0, max=2000, step=1, value=300, description=''},
+		{id="dof_fstop", group="gfx", name=widgetOptionColor.."   f-stop", type="slider", min=1, max=20, step=0.1, value=12, description=''},
+		--{id="dof_highquality", group="gfx", name=widgetOptionColor.."   high quality", type="bool", value=false, description=''},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.5, max=3, step=0.05, type="slider", value=1, description='Set the size of the outline'},

@@ -11,16 +11,19 @@ function widget:GetInfo()
 	}
 end
 
-local highQuality = false	--OnChange = function(self) InitTextures() end,
+local highQuality = false		-- doesnt seem to do anything
 local autofocus = true
 local focusDepth = 300
-local fStop = 16
+local fStop = 12
 
 -----------------------------------------------------------------
 -- Engine Functions
 -----------------------------------------------------------------
 
-local spGetCameraPosition	= Spring.GetCameraPosition
+local spGetCameraPosition   = Spring.GetCameraPosition
+local spGetMouseState       = Spring.GetMouseState
+local spTraceScreenRay      = Spring.TraceScreenRay
+local diag = math.diag
 
 local glCopyToTexture = gl.CopyToTexture
 local glCreateShader = gl.CreateShader
@@ -233,6 +236,8 @@ function widget:ViewResize(x, y)
 end
 
 function init()
+	reset()
+
 	if (glCreateShader == nil) then
 		Spring.Echo("[Depth of Field::Initialize] removing widget, no shader support")
 		widgetHandler:RemoveWidget()
@@ -283,9 +288,35 @@ end
 
 function widget:Initialize()
 	init()
+	WG['dof'] = {}
+	WG['dof'].getFocusDepth = function()
+		return focusDepth
+	end
+	WG['dof'].setFocusDepth = function(value)
+		focusDepth = value
+	end
+	WG['dof'].getFstop = function()
+		return fStop
+	end
+	WG['dof'].setFstop = function(value)
+		fStop = value
+	end
+	WG['dof'].getHighQuality = function()
+		return highQuality
+	end
+	WG['dof'].setHighQuality = function(value)
+		highQuality = value
+		InitTextures()
+	end
+	WG['dof'].getAutofocus = function()
+		return autofocus
+	end
+	WG['dof'].setAutofocus = function(value)
+		autofocus = value
+	end
 end
 
-function widget:Shutdown()
+function reset()
 	if (glDeleteShader and dofShader) then
 		glDeleteShader(dofShader)
 	end
@@ -294,6 +325,11 @@ function widget:Shutdown()
 		CleanupTextures()
 	end
 	dofShader = nil
+end
+
+function widget:Shutdown()
+	reset()
+	WG['dof'] = nil
 end
 
 local function FilterCalculation()
@@ -373,6 +409,19 @@ local function Composition()
 	glTexture(2, false)
 end
 
+function widget:Update(dt)
+	if autofocus then
+		return
+	end
+	local mx, my = spGetMouseState()
+	local  _, coords = spTraceScreenRay(mx, my, true)
+	if type(coords) == "table" then
+		local camX, camY, camZ = spGetCameraPosition()
+		-- this isnt actually correct method
+		focusDepth = diag(camX-coords[1], camY-coords[2], camZ-coords[3])
+	end
+end
+
 function widget:DrawWorld()
 	gl.ActiveShader(dofShader, function() glUniformMatrix(viewProjectionLoc, "projection") end)
 end
@@ -412,8 +461,8 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	--highQuality = data.highQuality
-	--autofocus = data.autofocus
-	--focusDepth = data.focusDepth
-	--fStop = data.fStop
+	highQuality = data.highQuality
+	autofocus = data.autofocus
+	focusDepth = data.focusDepth
+	fStop = data.fStop
 end
