@@ -204,6 +204,7 @@ local function DrawOutline(strength, loadTextures, alwaysVisible)
 	gl.Texture(2, false)
 	gl.Texture(3, false)
 
+	gl.DepthTest(not alwaysVisible)
 	gl.Blending(false)
 	gl.AlphaTest(GL.GREATER, 0.5);  --default mode
 	gl.AlphaTest(false)
