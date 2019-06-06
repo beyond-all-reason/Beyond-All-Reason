@@ -1545,8 +1545,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			end
 		elseif id == 'commandsfxopacity' then
 			saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', {'opacity'}, value)
-		elseif id == 'dofintensity' then
-			saveOptionValue('Depth of Field', 'dof', 'setIntensity', {'intensity'}, value)
 		elseif id == 'minimapiconsize' then
 			minimapIconsize = value
 			Spring.SetConfigFloat("MinimapIconScale", value)
@@ -2076,8 +2074,6 @@ function loadAllWidgetData()
 	loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'})
 	loadWidgetData("Commands FX", "commandsfxfilterai", {'filterAIteams'})
 
-	loadWidgetData("Depth of Field", "dofintensity", {'intensity'})
-
 	loadWidgetData("TeamPlatter", "teamplatter_opacity", {'spotterOpacity'})
 	loadWidgetData("TeamPlatter", "teamplatter_skipownteam", {'skipOwnTeam'})
 
@@ -2227,6 +2223,9 @@ function init()
 
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
+		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
+		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
+
 		{id="darkenmap", group="gfx", name="Darken map", min=0, max=0.5, step=0.01, type="slider", value=0, description='Darkens the whole map (not the units)\n\nRemembers setting per map\nUse /resetmapdarkness if you want to reset all stored map settings'},
 		{id="darkenmap_darkenfeatures", group="gfx", name=widgetOptionColor.."   darken features", type="bool", value=false, description='Darkens features (trees, wrecks, ect..) along with darken map slider above\n\nNOTE: Can be CPU intensive: it cycles through all visible features \nand renders them another time.'},
 
@@ -2239,8 +2238,7 @@ function init()
 		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=1, max=5, step=0.05, value=3.5, description=''},
 		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=7, step=1, value=4, description=''},
 
-		{id="decals", group="gfx", name="Ground decals", type="slider", min=0, max=5, step=1, value=tonumber(Spring.GetConfigInt("GroundDecals",1) or 1), description='Set how long map decals will stay.\n\nDecals are ground scars, footsteps/tracks and shading under buildings'},
-		{id="grounddetail", group="gfx", name="Ground detail", type="slider", min=60, max=200, step=1, value=tonumber(Spring.GetConfigInt("GroundDetail",1) or 1), description='Set how detailed the map mesh/model is'},
+		{id="dof", group="gfx", widget="Depth of Field", name="Depth of Field", type="bool", value=GetWidgetToggleValue("Depth of Field"), description='Applies out of focus blur'},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
 		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.5, max=3, step=0.05, type="slider", value=1, description='Set the size of the outline'},
@@ -2284,8 +2282,6 @@ function init()
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)'},
 		{id="snowautoreduce", group="gfx", name=widgetOptionColor.."   auto reduce", type="bool", value=true, description='Automaticly reduce snow when average FPS gets lower\n\n(re-enabling this needs time to readjust  to average fps again'},
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='disable "auto reduce" option to see the max snow amount you have set'},
-
-		--{id="dofintensity", group="gfx", name="DoF intensity", type="slider", min=0.05, max=5, step=0.01, value=1.5, description='Enable with F8 first\nctrl+] or [ to change intensity\n/dofQuality # (default:4)'},
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
         {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
@@ -2678,11 +2674,6 @@ function init()
 	if WG['playercolorpalette'] == nil or WG['playercolorpalette'].getSameTeamColors == nil then
 		options[getOptionByID('sameteamcolors')] = nil
 	end
-
-	if (WG['dof'] == nil) then
-		options[getOptionByID('dofintensity')] = nil
-	end
-
 
 	if WG['advplayerlist_api']==nil or WG['advplayerlist_api'].GetLockTransitionTime==nil then
 		options[getOptionByID('lockcamera_transitiontime')] = nil

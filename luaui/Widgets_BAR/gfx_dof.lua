@@ -11,24 +11,10 @@ function widget:GetInfo()
 	}
 end
 
-local useDoF = false		--onChangeFunc()
-local highQuality = true	--OnChange = function(self) InitTextures() end,
+local highQuality = false	--OnChange = function(self) InitTextures() end,
 local autofocus = true
 local focusDepth = 300
 local fStop = 16
-local keyToggle = 'f8'
-
-local function onChangeFunc()
-	if useDoF then
-		init()
-		--widgetHandler:UpdateCallIn('DrawScreenEffects')
-	else
-		if glDeleteTexture then
-			CleanupTextures()
-		end
-		--widgetHandler:RemoveCallIn('DrawScreenEffects')
-	end
-end
 
 -----------------------------------------------------------------
 -- Engine Functions
@@ -128,20 +114,6 @@ local shaderPasses =
 	composition = 5,
 }
 
------------------------------------------------------------------
-
-function dofToggle(cmd, line, words)
-	useDoF = not useDoF
-	if words[1] then
-		useDoF = words[1] == "0"
-	end
-	if not useDoF then
-		Spring.Echo("Depth of Field: off")
-	else
-		Spring.Echo("Depth of Field: on")
-	end
-	onChangeFunc()
-end
 
 function InitTextures()
 	vsx, vsy = gl.GetViewSizes()
@@ -267,10 +239,6 @@ function init()
 		return
 	end
 
-	if not useDoF then
-		return
-	end
-
 	dofShader = dofShader or glCreateShader({
 		defines = {
 			"#version 150 compatibility\n",
@@ -314,11 +282,6 @@ function init()
 end
 
 function widget:Initialize()
-	widgetHandler:AddAction("dofToggle", dofToggle, nil, "t")
-	Spring.SendCommands({"bind "..keyToggle.." dofToggle"})
-	--Spring.SendCommands({"dofToggle 0"})	 -- toggle off defaultly
-	WG['dof'] = {}
-
 	init()
 end
 
@@ -331,9 +294,6 @@ function widget:Shutdown()
 		CleanupTextures()
 	end
 	dofShader = nil
-	WG['dof'] = nil
-	Spring.SendCommands({"dofToggle 0"})
-	widgetHandler:RemoveAction("dofToggle", dofToggle)
 end
 
 local function FilterCalculation()
@@ -414,17 +374,10 @@ local function Composition()
 end
 
 function widget:DrawWorld()
-	if not useDoF then
-		return -- if the option is disabled don't set any uniforms.
-	end
 	gl.ActiveShader(dofShader, function() glUniformMatrix(viewProjectionLoc, "projection") end)
 end
 
 function widget:DrawScreenEffects()
-	if not useDoF then
-		return -- if the option is disabled don't draw anything.
-	end
-
 	gl.Blending(false)
 	glCopyToTexture(screenTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
 	glCopyToTexture(depthTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
@@ -451,7 +404,6 @@ end
 
 function widget:GetConfigData()
 	return {
-		useDoF  = useDoF,
 		highQuality = highQuality,
 		autofocus = autofocus,
 		focusDepth = focusDepth,
@@ -460,7 +412,6 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	--useDoF = data.useDoF
 	--highQuality = data.highQuality
 	--autofocus = data.autofocus
 	--focusDepth = data.focusDepth
