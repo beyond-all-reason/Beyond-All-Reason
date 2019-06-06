@@ -1,5 +1,3 @@
-#version 150 compatibility
-
 #define NORMALIZE_FILTER(fullRangeFilter) (fullRangeFilter * 0.25) + 0.5
 #define UNNORMALIZE_FILTER(normedFilter) ((2.0 * normedFilter) - 1.0) * 2.0
 
