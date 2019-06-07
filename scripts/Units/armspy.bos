@@ -264,6 +264,27 @@ Activate()
 	return (0);
 }
 
+QueryNanoPiece(piecenum)
+{
+	piecenum = body;
+}
+
+StartBuilding(Func_Var_1)
+{
+	while( !Static_Var_3 )
+	{
+		sleep 100;
+	}
+	Static_Var_3 = 0;
+	set INBUILDSTANCE to 1;
+	//start-script Reload();
+}
+
+StopBuilding()
+{
+	set INBUILDSTANCE to 0;
+}
+
 Deactivate()
 {
 	signal SIG_ACTIVATE;

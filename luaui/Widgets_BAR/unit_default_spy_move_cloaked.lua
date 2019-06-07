@@ -18,7 +18,6 @@ local spies  = {
 local GetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local GetUnitStates = Spring.GetUnitStates
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
-local GetPlayerInfo = Spring.GetPlayerInfo
 
 local CMD_MOVE = CMD.MOVE
 
@@ -44,7 +43,7 @@ function widget:Initialize()
 end
 
 local spySelected = false
-local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnitsCount = GetSelectedUnitsCount()
 function widget:SelectionChanged(sel)
 	selectionChanged = true
 end
@@ -57,7 +56,7 @@ function widget:Update(dt)
 		selChangedSec = 0
 		selectionChanged = nil
 
-		selectedUnitsCount = Spring.GetSelectedUnitsCount()
+		selectedUnitsCount = GetSelectedUnitsCount()
 
 		spySelected = false
 		if selectedUnitsCount > 0 and selectedUnitsCount <= 12 then  -- above a little amount we aren't micro-ing spies anymore...
