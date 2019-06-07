@@ -11,10 +11,11 @@ function widget:GetInfo()
 	}
 end
 
-local highQuality = false		-- doesnt seem to do anything
+local highQuality = true		-- doesnt seem to do anything
 local autofocus = true
+local mousefocus = not autofocus
 local focusDepth = 300
-local fStop = 12
+local fStop = 3
 
 -----------------------------------------------------------------
 -- Engine Functions
@@ -101,7 +102,9 @@ local viewProjectionLoc = nil
 local resolutionLoc = nil
 local distanceLimitsLoc = nil
 local autofocusLoc = nil
+local mousefocusLoc = nil
 local focusDepthLoc = nil
+local mouseDepthCoordLoc = nil
 local fStopLoc = nil
 local qualityLoc = nil
 local passLoc = nil
@@ -278,7 +281,9 @@ function init()
 	resolutionLoc = gl.GetUniformLocation(dofShader, "resolution")
 	distanceLimitsLoc = gl.GetUniformLocation(dofShader, "distanceLimits")
 	autofocusLoc = gl.GetUniformLocation(dofShader, "autofocus")
+	mousefocusLoc = gl.GetUniformLocation(dofShader, "mousefocus")
 	focusDepthLoc = gl.GetUniformLocation(dofShader, "manualFocusDepth")
+	mouseDepthCoordLoc = gl.GetUniformLocation(dofShader, "mouseDepthCoord")
 	fStopLoc = gl.GetUniformLocation(dofShader, "fStop")
 	qualityLoc = gl.GetUniformLocation(dofShader, "quality")
 	passLoc = gl.GetUniformLocation(dofShader, "pass")
@@ -313,6 +318,7 @@ function widget:Initialize()
 	end
 	WG['dof'].setAutofocus = function(value)
 		autofocus = value
+		mousefocus = not autofocus
 	end
 end
 
@@ -409,19 +415,6 @@ local function Composition()
 	glTexture(2, false)
 end
 
-function widget:Update(dt)
-	if autofocus then
-		return
-	end
-	local mx, my = spGetMouseState()
-	local  _, coords = spTraceScreenRay(mx, my, true)
-	if type(coords) == "table" then
-		local camX, camY, camZ = spGetCameraPosition()
-		-- this isnt actually correct method
-		focusDepth = diag(camX-coords[1], camY-coords[2], camZ-coords[3])
-	end
-end
-
 function widget:DrawWorld()
 	gl.ActiveShader(dofShader, function() glUniformMatrix(viewProjectionLoc, "projection") end)
 end
@@ -431,10 +424,14 @@ function widget:DrawScreenEffects()
 	glCopyToTexture(screenTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
 	glCopyToTexture(depthTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
 
+	local mx, my = Spring.GetMouseState()
+
 	glUseShader(dofShader)
 		glUniform(distanceLimitsLoc, gl.GetViewRange())
 
 		glUniformInt(autofocusLoc, autofocus and 1 or 0)
+		glUniformInt(mousefocusLoc, mousefocus and 1 or 0)
+		glUniform(mouseDepthCoordLoc, mx/vsx, my/vsy)
 		glUniform(focusDepthLoc, focusDepth / maxBlurDistance)
 		glUniform(fStopLoc, fStop)
 		glUniformInt(qualityLoc, highQuality and 1 or 0)
@@ -463,6 +460,7 @@ end
 function widget:SetConfigData(data)
 	highQuality = data.highQuality
 	autofocus = data.autofocus
+	mousefocus = not autofocus
 	focusDepth = data.focusDepth
 	fStop = data.fStop
 end
