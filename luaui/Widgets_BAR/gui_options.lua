@@ -1148,6 +1148,15 @@ function applyOptionValue(i, skipRedrawWindow)
 			if value == 1 then
 				options[getOptionByID('borderless')].value = false
 				applyOptionValue(getOptionByID('borderless'))
+				local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed',ssx))
+				local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed',ssy))
+				Spring.SetConfigInt("XResolution", xres)
+				Spring.SetConfigInt("YResolution", yres)
+			else
+				local xres = tonumber(Spring.GetConfigInt('XResolution',ssx))
+				local yres = tonumber(Spring.GetConfigInt('YResolution',ssy))
+				Spring.SetConfigInt("XResolutionWindowed", xres)
+				Spring.SetConfigInt("YResolutionWindowed", yres)
 			end
 			Spring.SendCommands("Fullscreen "..value)
 			Spring.SetConfigInt("Fullscreen",value)
