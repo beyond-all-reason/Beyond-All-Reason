@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  barrel, turret, flare, sleeve, torso, pelvis, lthigh, lleg, lfoot, rthigh, rleg, rfoot, luparm, lloarm, lhand, ruparm, rloarm, rhand,
+piece  barrel, turret, loturret, flare, sleeve, torso, pelvis, lthigh, lleg, lfoot, rthigh, rleg, rfoot, luparm, lloarm, lhand, ruparm, rloarm, rhand,
        eyes, shoulder, ltooth, rtooth;
 
 static-var  restore_delay, Static_Var_2, gun_2, statechg_DesiredState,
@@ -300,7 +300,7 @@ RestoreAfterDelay()
 	set-signal-mask SIG_AIM;
 	sleep restore_delay;
 	set-signal-mask 0;
-	turn turret to y-axis <0.000000> speed <90.000000>;
+	turn loturret to y-axis <0.000000> speed <90.000000>;
 	turn sleeve to x-axis <0.000000> speed <50.000000>;
 	wait-for-turn turret around y-axis;
 	wait-for-turn sleeve around x-axis;
@@ -342,7 +342,7 @@ SweetSpot(piecenum)
 AimPrimary(heading, pitch)
 {
 	signal SIG_AIM;
-	turn turret to y-axis heading speed <150.000000>;
+	turn loturret to y-axis heading speed <150.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	if( Static_Var_2 == 1 OR gun_2 == 1 )
 	{
@@ -351,7 +351,7 @@ AimPrimary(heading, pitch)
 	if (((get ABS(wpn1_lasthead - heading)) > 65536) OR(((get ABS(wpn1_lasthead - heading)) > 1300) AND ((get ABS(wpn1_lasthead - heading)) < 64236)))
 	{
 		wpn1_lasthead = 1000000;
-        wait-for-turn turret around y-axis;
+        wait-for-turn loturret around y-axis;
         wait-for-turn sleeve around x-axis;
 	}
 	start-script RestoreAfterDelay();
@@ -362,7 +362,7 @@ AimPrimary(heading, pitch)
 AimSecondary(heading, pitch)
 {
 	signal SIG_AIM;
-	turn turret to y-axis heading speed <150.000000>;
+	turn loturret to y-axis heading speed <150.000000>;
 	turn sleeve to x-axis <0.000000> - pitch speed <50.000000>;
 	if( Static_Var_2 == 0 OR gun_2 == 1 )
 	{
@@ -371,7 +371,7 @@ AimSecondary(heading, pitch)
 	if (((get ABS(wpn2_lasthead - heading)) > 65536) OR(((get ABS(wpn2_lasthead - heading)) > 5000) AND ((get ABS(wpn2_lasthead - heading)) < 60536)))
 	{
 		wpn2_lasthead = 1000000;
-        wait-for-turn turret around y-axis;
+        wait-for-turn loturret around y-axis;
         wait-for-turn sleeve around x-axis;
 	}
 	start-script RestoreAfterDelay();
@@ -381,12 +381,12 @@ AimSecondary(heading, pitch)
 
 AimFromPrimary(piecenum)
 {
-	piecenum = turret;
+	piecenum = loturret;
 }
 
 AimFromSecondary(piecenum)
 {
-	piecenum = turret;
+	piecenum = loturret;
 }
 
 FirePrimary()
