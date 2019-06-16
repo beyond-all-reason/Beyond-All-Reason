@@ -13,7 +13,7 @@ end
 --  Config
 ---------------------------------------------------------------------------------------------------
 
-local imageDirectory			= ":n:LuaUI/Images/advplayerslist_mascotte/"
+local imageDirectory			= ":n:"..LUAUI_DIRNAME.."Images/advplayerslist_mascotte/"
 
 local OPTIONS = {}
 OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values 

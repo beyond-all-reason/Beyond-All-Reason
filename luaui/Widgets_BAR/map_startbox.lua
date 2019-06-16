@@ -91,7 +91,7 @@ local gaiaAllyTeamID
 
 local startTimer = Spring.GetTimer()
 
-local texName = 'LuaUI/Images/highlight_strip.png'
+local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
 local texScale = 512
 
 

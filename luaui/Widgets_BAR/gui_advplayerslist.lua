@@ -116,11 +116,11 @@ local gl_Text			= gl.Text
 -- IMAGES
 --------------------------------------------------------------------------------
 
-local imageDirectory  = ":n:LuaUI/Images/advplayerslist/"
+local imageDirectory  = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/"
 
 local flagsDirectory  = imageDirectory.."flags/"
 
-local bgcorner        = "LuaUI/Images/bgcorner.png"
+local bgcorner        = LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local pics = {
 	chipPic         = imageDirectory.."chip.dds",
@@ -234,8 +234,8 @@ local myLastCameraState
 --------------------------------------------------------------------------------
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local playSounds = true
-local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
-local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
+local buttonclick = LUAUI_DIRNAME..'Sounds/buildbar_waypoint.wav'
+local sliderdrag = LUAUI_DIRNAME..'Sounds/buildbar_rem.wav'
 
 local lastActivity = {}
 local lastFpsData = {}
