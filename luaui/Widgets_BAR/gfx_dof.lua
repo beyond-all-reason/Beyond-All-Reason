@@ -458,7 +458,7 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	if data.highQuality then
+	if data.highQuality ~= nil then
 		highQuality = data.highQuality
 		autofocus = data.autofocus
 		mousefocus = not autofocus

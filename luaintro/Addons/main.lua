@@ -243,7 +243,12 @@ if not VFS.FileExists(fontfile) then
 	Spring.SetConfigString('ui_font', defaultFont)
 	fontfile = 'luaui/fonts/'..defaultFont
 end
-local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("ui_font2", "Xolonium.otf")
+local defaultFont2 = 'Exo2-SemiBold.otf'
+local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+if not VFS.FileExists(fontfile2) then
+	Spring.SetConfigString('ui_font2', defaultFont2)
+	fontfile2 = 'luaui/fonts/'..defaultFont2
+end
 local fontfile3 = 'luaui/fonts/Xolonium.otf'
 
 local vsx,vsy = Spring.GetViewGeometry()
