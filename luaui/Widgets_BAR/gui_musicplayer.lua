@@ -77,7 +77,6 @@ local buttonHighlightTex	= ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
 local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local widgetScale = 1
-local glText         = gl.Text
 local glBlending     = gl.Blending
 local glScale        = gl.Scale
 local glRotate       = gl.Rotate
@@ -98,6 +97,7 @@ local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 23
 local top, left, bottom, right = 0,0,0,0
+local borderPadding = 5
 
 local shown = false
 local mouseover = false
@@ -472,8 +472,8 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
-	gl.DeleteFont(font)
 	WG['music'] = nil
+	gl.DeleteFont(font)
 end
 
 function widget:UnitDamaged(_, _, _, damage)

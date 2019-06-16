@@ -458,9 +458,11 @@ function widget:GetConfigData()
 end
 
 function widget:SetConfigData(data)
-	highQuality = data.highQuality
-	autofocus = data.autofocus
-	mousefocus = not autofocus
-	focusDepth = data.focusDepth
-	fStop = data.fStop
+	if data.highQuality then
+		highQuality = data.highQuality
+		autofocus = data.autofocus
+		mousefocus = not autofocus
+		focusDepth = data.focusDepth
+		fStop = data.fStop
+	end
 end
