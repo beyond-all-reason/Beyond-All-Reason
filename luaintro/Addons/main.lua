@@ -238,13 +238,13 @@ if k%2 == 1 then
 end
 
 local defaultFont = 'Poppins-Regular.otf'
-local fontfile = 'luaui/fonts/'..Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = 'luaui/fonts/'..Spring.GetConfigString("bar_font", defaultFont)
 if not VFS.FileExists(fontfile) then
 	Spring.SetConfigString('ui_font', defaultFont)
 	fontfile = 'luaui/fonts/'..defaultFont
 end
 local defaultFont2 = 'Exo2-SemiBold.otf'
-local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("bar_font2", defaultFont2)
 if not VFS.FileExists(fontfile2) then
 	Spring.SetConfigString('ui_font2', defaultFont2)
 	fontfile2 = 'luaui/fonts/'..defaultFont2

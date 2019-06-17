@@ -488,7 +488,7 @@ end
 else
 ----------------------------------------------------------------
 
-local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font2", "Exo2-SemiBold.otf")
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
