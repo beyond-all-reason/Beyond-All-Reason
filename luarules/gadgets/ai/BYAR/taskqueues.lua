@@ -14,7 +14,6 @@ local TechLevel = {
 	armack = 2,
 	armaca = 2,
 	armch = 1,
-	armbeaver = 1,
 	corcv = 1,
 	corca = 1,
 	corck = 1,
@@ -22,7 +21,6 @@ local TechLevel = {
 	coraca = 2,
 	corack = 2,
 	corch = 1,
-	cormuskrat = 1,
 }
 
 local EcoBuilders = {
@@ -34,7 +32,6 @@ local EcoBuilders = {
 	armack = true,
 	armaca = true,
 	armch = true,
-	armbeaver = true,
 	corcv = true,
 	corca = true,
 	corck = true,
@@ -42,7 +39,6 @@ local EcoBuilders = {
 	coraca = true,
 	corack = true,
 	corch = true,
-	cormuskrat = true,
 	},
 	{
 	armacv = true,
@@ -67,7 +63,6 @@ local ExpBuilders = {
 	armack = true,
 	armaca = true,
 	armch = true,
-	armbeaver = true,
 	corcv = true,
 	corca = true,
 	corck = true,
@@ -75,7 +70,6 @@ local ExpBuilders = {
 	coraca = true,
 	corack = true,
 	corch = true,
-	cormuskrat = true,
 	},
 	{
 	armacv = true,
@@ -1262,7 +1256,11 @@ lab = {
 	OffensiveUnit,
 	OffensiveUnit,
 	TryRequest,
-	Helper,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	OffensiveUnit,
+	TryRequest,
 	Helper,
 }
 
