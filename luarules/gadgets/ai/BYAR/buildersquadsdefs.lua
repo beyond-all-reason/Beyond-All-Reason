@@ -6,7 +6,7 @@ TechLevel = {
 	armack = 2,
 	armaca = 2,
 	armch = 1,
-	armbeaver = 1,
+	-- armbeaver = 1,
 	corcv = 1,
 	corca = 1,
 	corck = 1,
@@ -14,7 +14,7 @@ TechLevel = {
 	coraca = 2,
 	corack = 2,
 	corch = 1,
-	cormuskrat = 1,
+	-- cormuskrat = 1,
 }
 
 EcoBuilders = {
@@ -26,7 +26,7 @@ EcoBuilders = {
 	armack = true,
 	armaca = true,
 	armch = true,
-	armbeaver = true,
+	-- armbeaver = true,
 	corcv = true,
 	corca = true,
 	corck = true,
@@ -34,7 +34,7 @@ EcoBuilders = {
 	coraca = true,
 	corack = true,
 	corch = true,
-	cormuskrat = true,
+	-- cormuskrat = true,
 	},
 	{
 	armacv = true,
@@ -59,7 +59,7 @@ ExpBuilders = {
 	armack = true,
 	armaca = true,
 	armch = true,
-	armbeaver = true,
+	-- armbeaver = true,
 	corcv = true,
 	corca = true,
 	corck = true,
@@ -67,7 +67,7 @@ ExpBuilders = {
 	coraca = true,
 	corack = true,
 	corch = true,
-	cormuskrat = true,
+	-- cormuskrat = true,
 	},
 	{
 	armacv = true,

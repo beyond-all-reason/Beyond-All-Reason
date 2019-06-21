@@ -279,10 +279,10 @@ function Helper(tqb, ai, unit)
 end
 
 function OffensiveUnit(tqb,ai,unit)
-	local r = math.random(1,ai.aimodehandler.perarty)
+	local r = math.random(1,100)
 	if r <= ai.aimodehandler.perraider then
 		return Raider(tqb,ai,unit)
-	elseif r <= ai.aimodehandler.perskirmer then
+	elseif r <=(ai.aimodehandler.perraider + ai.aimodehandler.perskirmer) then
 		return Skirmisher(tqb, ai, unit)
 	else
 		return Artillery(tqb,ai,unit)
@@ -1261,8 +1261,8 @@ lab = {
 	OffensiveUnit,
 	OffensiveUnit,
 	OffensiveUnit,
-	OffensiveUnit,
 	TryRequest,
+	Helper,
 	Helper,
 }
 
@@ -1273,41 +1273,12 @@ airlab = {
 	Fighter,
 	Bomber,
 	Bomber,
-	Bomber,
-	Bomber,
-	Bomber,
 	Fighter,
 	TryRequest,
 }
 
 economy = {
 	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	Economy,
-	assistaround,
 }
 
 util = {
@@ -1315,20 +1286,15 @@ util = {
 	RequestedAction,
 	TryRequest,
 	RequestedAction,
-	--patrolaround1,
 	TryRequest,
 	RequestedAction,
-	--patrolaround2,
 	TryRequest,
 	RequestedAction,
-	--patrolaround3,
 	TryRequest,
 	RequestedAction,
-	--patrolaround4,
 	Protection,
 	Epic,
 	LolCannon,
-	--assistaround,
 }
 
 function Protection(tqb,ai,unit)
@@ -1582,8 +1548,8 @@ local corcommanderfirst = {
 	CorMexT1,
 	CorThirdMex,
 	CorWindOrSolar,
-	CorStarterLabT1,
 	CorWindOrSolar,
+	CorStarterLabT1,
 	CorWindOrSolar,
 	CorWindOrSolar,
 	ShortDefense,
@@ -1602,7 +1568,6 @@ local cort1eco = {
 	CorTech,
 	-- CorNanoT,
 	CorTech,
-	assistaround,
 }
 
 local cort1expand = {
@@ -1646,7 +1611,6 @@ local cort2eco = {
 	-- CorExpandRandomLab,
 	Epic,
 	LolCannon,
-	assistaround,
 }
 
 local cort2expand = {
@@ -1945,8 +1909,8 @@ local armcommanderfirst = {
 	ArmMexT1,
 	ArmThirdMex,
 	ArmWindOrSolar,
-	ArmStarterLabT1,
 	ArmWindOrSolar,
+	ArmStarterLabT1,
 	ArmWindOrSolar,
 	ArmWindOrSolar,
 	ShortDefense,

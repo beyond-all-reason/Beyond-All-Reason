@@ -52,6 +52,12 @@ behaviours = {
 	cornecro = {
 		SkirmisherBehaviour,
 	},
+	armbeaver = {
+		SkirmisherBehaviour,
+	},
+	cormuskrat = {
+		SkirmisherBehaviour,
+	},
 	armdecom = {
 		TaskQueueBehaviour,
 	},

@@ -13,7 +13,6 @@ builderlist = {
 	"armacsub",
 	"armcsa",
 	"armch",
-	"armbeaver",
 	"corck",
 	"corcv",
 	"corca",
@@ -23,11 +22,12 @@ builderlist = {
 	"corcs",
 	"coracsub",
 	"corcsa",
-	"cormuskrat",
 	"corch",
 }
 
 helperlist = {
+	"armbeaver",
+	"cormuskrat",
 	"armconsul",
 	"armrectr",
 	"armfark",

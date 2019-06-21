@@ -19,7 +19,7 @@ local function squadtable(domain)
 	local maxpendingrequests
 	if domain == "military" then
 		maxallowedbp = 2000
-		maxpendingrequests = 3
+		maxpendingrequests = 4
 	elseif domain == "economy" then
 		maxallowedbp = 1500
 		maxpendingrequests = 2
@@ -27,10 +27,10 @@ local function squadtable(domain)
 		maxallowedbp = 400
 		maxpendingrequests = 1
 	elseif domain == "util" then
-		maxallowedbp = 200
+		maxallowedbp = 150
 		maxpendingrequests = 1
 	else
-		maxallowedbp = 200
+		maxallowedbp = 300
 		maxpendingrequests = 1
 	end
 	local stable = {
@@ -76,7 +76,7 @@ function BuilderSquadsHandler:Init()
 	self.idle = {} -- [i] = tqb
 	self.states = {} -- [unitID] = {state = state, [params = params]}
 	-- Initial setup, later this should become mapdependant and difficulty level dependant
-	self.coeff = self.coeff or {economy = 1.0, military = 1.0, expand = 1.0, util = 1.0, commander = 1.0}
+	self.coeff = self.coeff or {economy = 0.2, military = 0.2, expand = 0.2, util = 0.2, commander = 0.2}
 	--
 	self.currentTechLevel = 1
 end
@@ -157,7 +157,7 @@ function BuilderSquadsHandler:RemoveSquad(domain, i)
 				self:RemoveRequest(k)
 			end
 		end
-		self.squads[domain][i] = {helper = {}, leader = {}}
+		self.squads[domain][i] = nil--{helper = {}, leader = {}}
 	end
 	self:AddRequest(_,domain, "leader") -- request for replacement squad
 end
@@ -202,16 +202,16 @@ function BuilderSquadsHandler:AddRecruit(tqb)
 				if req.name and unitName == req.name then
 					req.squadn = self:CreateSquad(req.domain)
 					local success = self:AssignToSquad(tqb, unit, req.domain, req.role, req.squadn)
+					self:RemoveRequest(i)
 					if success then
-						self:RemoveRequest(i)
 						return true
 					end
 					self:RemoveSquad(req.domain, req.squadn)					
 				elseif (not req.name) and canBe[req.domain][req.role] == true then
 					req.squadn = self:CreateSquad(req.domain)
 					local success = self:AssignToSquad(tqb, unit, req.domain, req.role, req.squadn)
+					self:RemoveRequest(i)
 					if success then
-						self:RemoveRequest(i)
 						return true
 					end
 					self:RemoveSquad(req.domain, req.squadn)
@@ -223,13 +223,14 @@ function BuilderSquadsHandler:AddRecruit(tqb)
 						self:RemoveRequest(i)
 						return true
 					elseif success == false then -- = squad err
+						self:RemoveRequest(i)
 						self:RemoveSquad(req.domain, req.squadn)
 					end
 					-- no squad err but dist not ok, don't get stucked
 				else
 					local success = self:AssignToSquad(tqb, unit, req.domain, req.role, req.squadn)
+					self:RemoveRequest(i)
 					if success then
-						self:RemoveRequest(i)
 						return true
 					end
 					self:RemoveSquad(req.domain, req.squadn)
@@ -289,6 +290,10 @@ function BuilderSquadsHandler:AssignToMilSquad(tqb, unit, domain, role, squadn)
 		if self.squads[domain][squadn]["leader"] and self.squads[domain][squadn]["leader"][1] and self.squads[domain][squadn]["leader"][1].unit then
 			local leader = self.squads[domain][squadn]["leader"][1].unit
 			local unitID, leaderID = unit.id, leader.id
+			if not unitID then
+				self:RemoveRecruit(tqb,unit)
+				return false
+			end
 			local dist = Spring.GetUnitSeparation(unitID, leaderID, true)
 			if dist < 380 then
 				self.squads[domain][squadn][role][#self.squads[domain][squadn][role] + 1] = {tqb = tqb, unit = unit}

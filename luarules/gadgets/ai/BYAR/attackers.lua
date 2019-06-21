@@ -59,7 +59,6 @@ attackerlist = {
 	"corcat",	--	Catapult		/	Heavy Rocket Kbot
 }
 
---[[
 gunshiplist = {
 	"armbrawl",	--	Brawler			/	Gunship	
 	"armblade",	--	Blade			/	Rapid Assault Gunship	
@@ -73,7 +72,6 @@ gunshiplist = {
 	"armsaber",	--	Sabre			/	Seaplane Gunship
 	-- "armdfly",	--	Dragonfly		/	Sealthy Armed Transport
 }
-]]
 
 unusedlist = {
 	"armvader", --  Invader         /   Amphibious Crawling Bomb
@@ -85,6 +83,7 @@ unusedlist = {
 	"corseah",	--	Seahook			/	Assault Transport
 	"cormabm",	--	Hedgehog		/	Mobile Anti Nuke
 	"armscab",  --  Scarab          /   Mobile Anti Nuke
+	"armdship",	--	Hunter			/	Light Torpedo Boat
 	"armrecl",	--	Grim Reaper		/	Ressurection Sub
 	"armroy",	--	Crusader		/	Destroyer
 	"armsub",	--	Lurker			/	Submarine
@@ -97,6 +96,7 @@ unusedlist = {
 	"armserp",	--	Serpent			/	Battle Submarine
 	"armsjam",	--	Escort			/	Radar Jammer Ship
 	"armsubk",	--	Piranha			/	Submarine Killer
+	"cordship",	--	Chaser			/	Light Torpedo Boat
 	"correcl",	--	Death Cavalry	/	Ressurection Sub
 	"corroy",	--	Enforcer		/	Destroyer
 	"corsub",	--	Snake			/	Submarine
@@ -126,18 +126,6 @@ bomberlist = {
 	"armpnix",	--	Phoenix			/	Strategic Bomber	
 	"armsb",	--	Tsunami			/	Seaplane Bomber
 	"armstil",	--	Stiletto		/	EMP Bomber
-	---------------GUNSHIPS
-	"armbrawl",	--	Brawler			/	Gunship	
-	"armblade",	--	Blade			/	Rapid Assault Gunship	
-	"armkam",	--	Banshee			/	Light Gunship	
-	"corbw",	--	Bladewing		/	Paralyzer Drone	
-	"corcrw",	--	Krow			/	Flying Fortress	
-	"corape",	--	Rapier			/	Gunship	
-	"corcut",	--	Cutlass			/	Seaplane Gunship	
-	-- "corseap",	--	Typhoon			/	Torpedo Gunship
-	-- "armseap",	--	Albatross		/	Torpedo Gunship
-	"armsaber",	--	Sabre			/	Seaplane Gunship
-	-- "armdfly",	--	Dragonfly		/	Sealthy Armed Transport
 
 }
 
