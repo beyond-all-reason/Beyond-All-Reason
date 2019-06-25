@@ -31,7 +31,7 @@
 	end
 	
     function gadget:UnitCreated(unitID, unitDefID)
-		if UnitDefs[unitDefID].weapons and (not string.find((UnitDefs[unitDefID].scriptName), "BASICTANKSCRIPT.LUA")) then
+		if UnitDefs[unitDefID].weapons and (not string.find((UnitDefs[unitDefID].scriptName), "lua") then
 			for i = 1, 32 do
 				if UnitDefs[unitDefID].weapons[i] then
 					local customParamName = "wpn"..(tostring(i)).."turret"
