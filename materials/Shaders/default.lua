@@ -356,7 +356,7 @@ fragment = [[
 		light     = mix(sunAmbient, light, shadow);
 		specularColor *= shadow;
 
-		reflection = mix(light, reflection, extraColor.b); // reflection
+		reflection = mix(light, reflection, extraColor.g); // reflection
 
 		#ifdef flashlights
 			extraColor.r = extraColor.r * selfIllumMod;
