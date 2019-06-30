@@ -142,13 +142,10 @@ fragment = [[
 	uniform vec3 sunSpecular;
 
 	uniform vec3 etcLoc;
-
-	#ifndef SPECULARSUNEXP
-		#define SPECULARSUNEXP 16.0
-	#endif
+	uniform int simFrame;
 
 	#ifndef SPECULARMULT
-		#define SPECULARMULT 2.0
+		#define SPECULARMULT 1.0
 	#endif
 
 	#ifndef MAT_IDX
@@ -258,12 +255,35 @@ fragment = [[
 	}
 
 #ifdef use_shadows
-	float GetShadowPCFRandom(float NdotL) {
+	// Derivatives of light-space depth with respect to texture2D coordinates
+	vec2 DepthGradient(vec3 xyz) {
+		vec2 dZduv = vec2(0.0, 0.0);
+
+		vec3 dUVZdx = dFdx(xyz);
+		vec3 dUVZdy = dFdy(xyz);
+
+		dZduv.x  = dUVZdy.y * dUVZdx.z;
+		dZduv.x -= dUVZdx.y * dUVZdy.z;
+
+		dZduv.y  = dUVZdx.x * dUVZdy.z;
+		dZduv.y -= dUVZdy.x * dUVZdx.z;
+
+		float det = (dUVZdx.x * dUVZdy.y) - (dUVZdx.y * dUVZdy.x);
+		dZduv /= det;
+
+		return dZduv;
+	}
+
+	float BiasedZ(float z0, vec2 dZduv, vec2 offset) {
+		return z0 + dot(dZduv, offset);
+	}
+
+	float GetShadowPCFRandom() {
 		float shadow = 0.0;
 
-		const float cb = 0.00005;
-		float bias = cb * tan(acos(NdotL));
-		bias = clamp(bias, 0.0, 5.0 * cb);
+		vec3 shadowCoord = tex_coord1.xyz / tex_coord1.w;
+
+		vec2 dZduv = DepthGradient(shadowCoord.xyz);
 
 		#if defined(SHADOW_SAMPLES) && (SHADOW_SAMPLES > 1)
 
@@ -279,25 +299,45 @@ fragment = [[
 				// SpiralSNorm return low discrepancy sampling vec2
 				vec2 offset = (rotMat * SpiralSNorm( i, SHADOW_SAMPLES )) * filterSize;
 
-				vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
-				shadow += textureProj( shadowTex, shTexCoord );
+				vec3 shadowSamplingCoord = vec3(shadowCoord.xy, 0.0) + vec3(offset, BiasedZ(shadowCoord.z, dZduv, offset));
+				shadow += texture( shadowTex, shadowSamplingCoord );
 			}
 
 			shadow /= float(SHADOW_SAMPLES);
 			shadow *= 1.0 - smoothstep(shadow, 1.0,  0.2);
 		#else
-			vec4 shTexCoord = tex_coord1;
-			shTexCoord.z -= bias;
-			shadow = textureProj( shadowTex, shTexCoord );
+			vec3 shadowSamplingCoord = vec3(shadowCoord.xy, BiasedZ(shadowCoord.z, dZduv, vec2(0.0)));
+			shadow = texture( shadowTex, shadowSamplingCoord );
 		#endif
 
 		return mix(1.0, shadow, shadowDensity);
 	}
 #endif
 
+	// From PBR branch
+
+	// Normal (Microfacet) Distribution function --------------------------------------
+	// Standard across every implementation so far
+	float D_GGX(float NdotH, float roughness4) {
+		float denom = NdotH * NdotH * (roughness4 - 1.0) + 1.0;
+		return roughness4/(PI * denom * denom);
+	}
+
+	float G_SchlickSmithGGX(float NdotL, float NdotV, float roughness) {
+		float k = roughness + 1.0;
+		k = k * k / 8.0;
+		float GL = NdotL / (NdotL * (1.0 - k) + k);
+		float GV = NdotV / (NdotV * (1.0 - k) + k);
+		return GL * GV;
+	}
+
+	vec3 F_Schlick(float VdotX, vec3 R0) {
+		return R0 + (vec3(1.0) - R0) * pow(1.0 - VdotX, 5.0);
+	}
+
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20212
+		#line 20340
 
 		#ifdef use_normalmapping
 			vec2 tc = tex_coord0.st;
@@ -311,12 +351,6 @@ fragment = [[
 			vec3 N = normalize(normalv);
 		#endif
 
-		vec3 L = normalize(lightDir); //just in case
-
-		float NdotLu = dot(N, L);
-		float NdotL = max(NdotLu, 0.0);
-		vec3 light = NdotL * sunDiffuse + sunAmbient;
-
 		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
 
 		#ifdef LUMAMULT
@@ -324,39 +358,63 @@ fragment = [[
 			yCbCr.x *= LUMAMULT;
 			diffuseIn.rgb = YCBCR2RGB * yCbCr;
 		#endif
+		diffuseIn.rgb = mix(diffuseIn.rgb, teamColor.rgb, diffuseIn.a);
 
-		vec4 outColor   = diffuseIn;
 		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
 
 		vec3 V = normalize(viewDir);
 		vec3 Rv = -reflect(V, N);
+		vec3 L = normalize(lightDir);
+
+		vec3 H = normalize(L + V);
+		float NdotLu = dot(N, L);
+		float NdotL = max(NdotLu, 1e-3);
+		float HdotN = max(dot(H, N), 1e-3);
+		float NdotV = max(dot(N, V), 1e-3);
+		float VdotH = max(dot(V, H), 0.0);
+
+		float roughness = extraColor.b;
+		roughness = clamp(roughness, 0.05, 1.0);
+
+		float roughness4 = roughness * roughness;
+		roughness4 *= roughness4;
+
+		vec3 R0 = mix(vec3(0.04), diffuseIn.rgb, extraColor.g);
+
+		vec3 F = F_Schlick(VdotH, R0);
+		float G = G_SchlickSmithGGX(NdotL, NdotV, roughness4);
+		float D = D_GGX(HdotN, roughness4);
+
+
+		vec3 light = (vec3(1.0) - F) * (NdotL * sunDiffuse / PI) + sunAmbient;
 
 		vec3 specularColor;
+		specularColor = D * F * G / (4.0 * NdotL * NdotV);
+		specularColor *= SPECULARMULT * sunSpecular;
 
-		// blinn-phong
-		vec3 H = normalize(L + V);
-		float HdotN = max(dot(H, N), 0.0);
-		specularColor = sunSpecular * pow(HdotN, SPECULARSUNEXP);
-
-		specularColor *= extraColor.g * SPECULARMULT;
-
-		vec3 reflection = texture(reflectTex,  Rv).rgb;
+		ivec2 reflectionTexSize = textureSize(reflectTex, 0);
+		float reflectionTexMaxLOD = log2(float(max(reflectionTexSize.x, reflectionTexSize.y)));
+		float lodBias = reflectionTexMaxLOD * roughness;
+		vec3 reflection = texture(reflectTex,  Rv, lodBias).rgb;
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);
 
 		#ifdef use_shadows
-			float gShadow = GetShadowPCFRandom(NdotL);
+			float gShadow = GetShadowPCFRandom();
 		#else
 			float gShadow = 1.0;
 		#endif
 
 		float shadow = min(nShadow, gShadow);
 
-		light     = mix(sunAmbient, light, shadow);
+		light = mix(sunAmbient, light, shadow);
 		specularColor *= shadow;
 
-		reflection = mix(light, reflection, extraColor.g); // reflection
+		//reflection = mix(light, reflection, extraColor.g); // reflection
+		//reflection = light + reflection * extraColor.g; // reflection
+		reflection = light + reflection * R0; // reflection
+
 
 		#ifdef flashlights
 			extraColor.r = extraColor.r * selfIllumMod;
@@ -364,8 +422,7 @@ fragment = [[
 
 		reflection += (extraColor.rrr); // self-illum
 
-		outColor.rgb = mix(outColor.rgb, teamColor.rgb, outColor.a);
-
+		vec4 outColor = diffuseIn;
 		outColor.rgb = outColor.rgb * reflection + specularColor;
 		outColor.a   = extraColor.a;
 
