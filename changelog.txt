@@ -1,6 +1,5 @@
 ﻿10.24 -> 1.00
 
- • Movedefs/slopes equalized to allow for less steep, more beautifull map slopes
  • Enabled ground deformation
 
 
