@@ -278,12 +278,35 @@ fragment = [[
 
 
 #ifdef use_shadows
-	float GetShadowPCFRandom(float NdotL) {
+	// Derivatives of light-space depth with respect to texture2D coordinates
+	vec2 DepthGradient(vec3 xyz) {
+		vec2 dZduv = vec2(0.0, 0.0);
+
+		vec3 dUVZdx = dFdx(xyz);
+		vec3 dUVZdy = dFdy(xyz);
+
+		dZduv.x  = dUVZdy.y * dUVZdx.z;
+		dZduv.x -= dUVZdx.y * dUVZdy.z;
+
+		dZduv.y  = dUVZdx.x * dUVZdy.z;
+		dZduv.y -= dUVZdy.x * dUVZdx.z;
+
+		float det = (dUVZdx.x * dUVZdy.y) - (dUVZdx.y * dUVZdy.x);
+		dZduv /= det;
+
+		return dZduv;
+	}
+
+	float BiasedZ(float z0, vec2 dZduv, vec2 offset) {
+		return z0 + dot(dZduv, offset);
+	}
+
+	float GetShadowPCFRandom() {
 		float shadow = 0.0;
 
-		const float cb = 0.00005;
-		float bias = cb * tan(acos(NdotL));
-		bias = clamp(bias, 0.0, 5.0 * cb);
+		vec3 shadowCoord = tex_coord1.xyz / tex_coord1.w;
+
+		vec2 dZduv = DepthGradient(shadowCoord.xyz);
 
 		#if defined(SHADOW_SAMPLES) && (SHADOW_SAMPLES > 1)
 
@@ -299,19 +322,17 @@ fragment = [[
 				// SpiralSNorm return low discrepancy sampling vec2
 				vec2 offset = (rotMat * SpiralSNorm( i, SHADOW_SAMPLES )) * filterSize;
 
-				vec4 shTexCoord = tex_coord1 + vec4(offset, -bias, 0.0);
-				shadow += textureProj( shadowTex, shTexCoord );
+				vec3 shadowSamplingCoord = vec3(shadowCoord.xy, 0.0) + vec3(offset, BiasedZ(shadowCoord.z, dZduv, offset));
+				shadow += texture( shadowTex, shadowSamplingCoord );
 			}
 
 			shadow /= float(SHADOW_SAMPLES);
 			shadow *= 1.0 - smoothstep(shadow, 1.0,  0.2);
 		#else
-			vec4 shTexCoord = tex_coord1;
-			shTexCoord.z -= bias;
-			shadow = textureProj( shadowTex, shTexCoord );
+			vec3 shadowSamplingCoord = vec3(shadowCoord.xy, BiasedZ(shadowCoord.z, dZduv, vec2(0.0)));
+			shadow = texture( shadowTex, shadowSamplingCoord );
 		#endif
-
-		return mix(1.0, shadow, shadowDensity);
+		return shadow;
 	}
 #endif
 
@@ -375,8 +396,8 @@ fragment = [[
 		float roughness = extraColor.b;
 		float metalness = extraColor.g;
 
-		#if (ROUGHNESS_PERTURB_NORMAL == 1)
-			float rndScale = mix(0.0, 0.25, roughness);
+		#ifdef ROUGHNESS_PERTURB_NORMAL
+			float rndScale = mix(0.0, ROUGHNESS_PERTURB_NORMAL, roughness);
 			vec3 seedVec = modelPos.xyz * 16.0;
 			float xRnd = NORM2SNORM(Value3D(seedVec.xyz));
 			float yRnd = NORM2SNORM(Value3D(seedVec.zyx));
@@ -413,18 +434,22 @@ fragment = [[
 
 		specularColor *= metalness * SPECULARMULT;
 
-		// environment reflection
-		ivec2 reflectTexSize = textureSize(reflectTex, 0);
-		float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
-		float lodBias = reflectTexMaxLOD * roughness;
+		#ifdef ROUGHNESS_PERTURB_NORMAL
+			vec3 reflection = texture(reflectTex, Rv).rgb;
+		#else
+			// environment reflection
+			ivec2 reflectTexSize = textureSize(reflectTex, 0);
+			float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
+			float lodBias = reflectTexMaxLOD * roughness;
 
-		vec3 reflection = texture(reflectTex,  Rv, lodBias).rgb;
+			vec3 reflection = texture(reflectTex, Rv, lodBias).rgb;
+		#endif
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);
 
 		#ifdef use_shadows
-			float gShadow = GetShadowPCFRandom(NdotL);
+			float gShadow = GetShadowPCFRandom();
 		#else
 			float gShadow = 1.0;
 		#endif
