@@ -47,7 +47,7 @@ local matTemplate = {
 		"#define use_treadoffset",
 		"#define flashlights",
 		"#define use_vertex_ao",
-		"#define SPECULARMULT 4.0",
+		"#define SPECULARMULT 8.0",
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 	},
 	deferredDefinitions = {
@@ -56,7 +56,7 @@ local matTemplate = {
 		"#define use_treadoffset",
 		"#define flashlights",
 		--"#define use_vertex_ao",
-		"#define SPECULARMULT 4.0",
+		"#define SPECULARMULT 8.0",
 		"#define MAT_IDX 2",
 	},
 
