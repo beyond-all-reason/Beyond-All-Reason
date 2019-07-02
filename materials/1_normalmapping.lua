@@ -19,7 +19,8 @@ local matTemplate = {
 		"#define deferred_mode 0",
 		"#define use_vertex_ao",
 		"#define flashlights",
-		"#define SPECULARMULT 8.0",
+		"#define SPECULARMULT 2.0",
+		"#define ROUGHNESS_PERTURB_NORMAL 1",
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 	},
 	deferredDefinitions = {
@@ -27,7 +28,7 @@ local matTemplate = {
 		"#define deferred_mode 1",
 		"#define flashlights",
 		"#define use_vertex_ao",
-		"#define SPECULARMULT 8.0",
+		"#define SPECULARMULT 2.0",
 		"#define MAT_IDX 1",
 	},
 

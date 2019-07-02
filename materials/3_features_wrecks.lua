@@ -22,13 +22,13 @@ local materials = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
 			--"#define use_vertex_ao",
-			"#define SPECULARMULT 6.0",
+			"#define SPECULARMULT 2.0",
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --actively disable normalmapping, it can be pricey, and is only shown for deferred lights...
 			"#define deferred_mode 1",
 			--"#define use_vertex_ao",
-			"#define SPECULARMULT 6.0",
+			"#define SPECULARMULT 2.0",
 			"#define MAT_IDX 128",
 		},
 		usecamera = false,

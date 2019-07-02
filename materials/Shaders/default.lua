@@ -12,8 +12,6 @@ vertex = [[
 	uniform mat4 camera;   //ViewMatrix (gl_ModelViewMatrix is ModelMatrix!)
 	uniform vec3 cameraPos;
 
-	uniform vec3 sunDiffuse;
-	uniform vec3 sunAmbient;
 	uniform vec3 etcLoc;
 	uniform int simFrame;
 
@@ -34,14 +32,10 @@ vertex = [[
 
 	out vec3 viewDir;
 
-	#ifdef use_normalmapping
-		out mat3 tbnMatrix;
-	#else
-		out vec3 normalv;
-	#endif
-
+	out mat3 tbnMatrix;
 	out vec2 tex_coord0;
 	out vec4 tex_coord1;
+	out vec4 modelPos;
 	out vec4 worldPos;
 
 	void main(void)
@@ -51,17 +45,14 @@ vertex = [[
 
 		%%VERTEX_PRE_TRANSFORM%%
 
-		#ifdef use_normalmapping
-			vec3 tangent   = gl_MultiTexCoord5.xyz;
-			vec3 bitangent = gl_MultiTexCoord6.xyz;
-			tbnMatrix = gl_NormalMatrix * mat3(tangent, bitangent, normal);
-		#else
-			normalv = gl_NormalMatrix * normal;
-		#endif
+		vec3 tangent   = gl_MultiTexCoord5.xyz;
+		vec3 bitangent = gl_MultiTexCoord6.xyz;
+		tbnMatrix = gl_NormalMatrix * mat3(tangent, bitangent, normal);
 
+		modelPos = vertex;
 		worldPos = gl_ModelViewMatrix * vertex;
-		gl_Position   = gl_ProjectionMatrix * (camera * worldPos);
-		viewDir     = cameraPos - worldPos.xyz;
+		gl_Position = gl_ProjectionMatrix * (camera * worldPos);
+		viewDir = cameraPos - worldPos.xyz;
 
 		#ifdef use_shadows
 			tex_coord1 = shadowMatrix * worldPos;
@@ -117,7 +108,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
-	#line 20120
+	#line 20180
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -142,6 +133,7 @@ fragment = [[
 	uniform vec3 sunSpecular;
 
 	uniform vec3 etcLoc;
+	uniform int simFrame;
 
 	#ifndef SPECULARSUNEXP
 		#define SPECULARSUNEXP 16.0
@@ -203,12 +195,10 @@ fragment = [[
 		in float selfIllumMod;
 	#endif
 
+
+	#define normalv tbnMatrix[2]
 	#ifdef use_normalmapping
-		in mat3 tbnMatrix;
 		uniform sampler2D normalMap;
-		#define normalv tbnMatrix[2]
-	#else
-		in vec3 normalv;
 	#endif
 
 	#ifdef USE_LOSMAP
@@ -217,9 +207,11 @@ fragment = [[
 		uniform sampler2D losMapTex;
 	#endif
 
+	in mat3 tbnMatrix;
 	in vec2 tex_coord0;
 	in vec4 tex_coord1;
 	in vec4 worldPos;
+	in vec4 modelPos;
 
 	#if (deferred_mode == 1)
 		out vec4 fragData[GBUFFER_COUNT];
@@ -250,12 +242,40 @@ fragment = [[
 		return vec2 (r * cos(theta), r * sin(theta));
 	}
 
-	float hash12(vec2 p) {
+	float hash12L(vec2 p) {
 		const float HASHSCALE1 = 0.1031;
 		vec3 p3  = fract(vec3(p.xyx) * HASHSCALE1);
 		p3 += dot(p3, p3.yzx + 19.19);
 		return fract((p3.x + p3.y) * p3.z);
 	}
+
+	float Value3D( vec3 P ) {
+		//  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
+
+		// establish our grid cell and unit position
+		vec3 Pi = floor(P);
+		vec3 Pf = P - Pi;
+		vec3 Pf_min1 = Pf - 1.0;
+
+		// clamp the domain
+		Pi.xyz = Pi.xyz - floor(Pi.xyz * ( 1.0 / 69.0 )) * 69.0;
+		vec3 Pi_inc1 = step( Pi, vec3( 69.0 - 1.5 ) ) * ( Pi + 1.0 );
+
+		// calculate the hash
+		vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
+		Pt *= Pt;
+		Pt = Pt.xzxz * Pt.yyww;
+		vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
+		vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
+		vec4 hash_highz = fract( Pt * hash_mod.yyyy );
+
+		//	blend the results and return
+		vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
+		vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
+		vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
+		return dot( res0, blend2.zxzx * blend2.wwyy );
+	}
+
 
 #ifdef use_shadows
 	float GetShadowPCFRandom(float NdotL) {
@@ -268,7 +288,7 @@ fragment = [[
 		#if defined(SHADOW_SAMPLES) && (SHADOW_SAMPLES > 1)
 
 
-			float rndRotAngle = NORM2SNORM(hash12(gl_FragCoord.xy)) * PI / 2.0 * SHADOW_RANDOMNESS;
+			float rndRotAngle = NORM2SNORM(hash12L(gl_FragCoord.xy)) * PI / 2.0 * SHADOW_RANDOMNESS;
 
 			vec2 vSinCos = vec2(sin(rndRotAngle), cos(rndRotAngle));
 			mat2 rotMat = mat2(vSinCos.y, -vSinCos.x, vSinCos.x, vSinCos.y);
@@ -295,29 +315,109 @@ fragment = [[
 	}
 #endif
 
+	vec3 GetSpecularBlinnPhong(float HdotN, float roughness) {
+		float power = 1.0 / max(roughness * 0.4, 0.01);
+		float powerNorm = (power + 8.0) / (PI * 8.0);
+		return sunSpecular * pow(HdotN, power) * powerNorm;
+	}
+
+	vec3 GetSpecularGGX(vec3 F0, float NdotL, float NdotV, float VdotH, float NdotH, float roughness) {
+		float alpha = roughness * roughness;
+
+		// NDF : GGX
+		float alphaSqr = alpha * alpha;
+		float denom = NdotH * NdotH *(alphaSqr - 1.0) + 1.0;
+		float D = alphaSqr / (PI * denom * denom);
+
+		// Fresnel (Schlick)
+		float dotLH5 = pow (1.0 - VdotH, 5.0);
+		vec3 F = F0 + (vec3(1.0) - F0) * (dotLH5);
+
+		// Visibility term (G) : Smith with Schlick's approximation
+		float G = 0.5 / mix(2.0 * NdotL * NdotV, NdotL + NdotV, alpha);
+
+		return D * F * G;
+	}
+
+	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
+	vec3 SteveMTM1(in vec3 x) {
+		const float a = 10.0; /// Mid
+		const float b = 0.3; /// Toe
+		const float c = 0.5; /// Shoulder
+		const float d = 1.5; /// Mid
+
+		return (x * (a * x + b)) / (x * (a * x + c) + d);
+	}
+
+	// RNM - Already unpacked
+	// https://www.shadertoy.com/view/4t2SzR
+	vec3 NormalBlendUnpackedRNM(vec3 n1, vec3 n2) {
+		n1 += vec3(0.0, 0.0, 1.0);
+		n2 *= vec3(-1.0, -1.0, 1.0);
+
+		return n1 * dot(n1, n2) / n1.z - n2;
+	}
+
+	// gamma correction
+	#if 1
+		#define GAMMA 2.2
+		#define INV_GAMMA 1.0 / GAMMA
+		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
+		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
+	#else
+		#define SRGBtoLINEAR(c) ( c )
+		#define LINEARtoSRGB(c) ( c )
+	#endif
+
+	const float angleEPS = 1e-3;
+
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20212
+		#line 20370
 
 		#ifdef use_normalmapping
 			vec2 tc = tex_coord0.st;
 			#ifdef flip_normalmap
 				tc.t = 1.0 - tc.t;
 			#endif
-			vec4 normaltex = texture(normalMap, tc);
+			vec4 normaltex = texture(normalMap, tc, -2.0);
 			vec3 nvTS = normalize(NORM2SNORM(normaltex.xyz));
-			vec3 N = tbnMatrix * nvTS;
+
 		#else
-			vec3 N = normalize(normalv);
+			vec3 nvTS = vec3(0.0, 0.0, 1.0);
 		#endif
 
+		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
+		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
+
+		float roughness = extraColor.b;
+		float metalness = extraColor.g;
+
+		#if (ROUGHNESS_PERTURB_NORMAL == 1)
+			float rndScale = mix(0.0, 0.25, roughness);
+			vec3 seedVec = modelPos.xyz * 16.0;
+			float xRnd = NORM2SNORM(Value3D(seedVec.xyz));
+			float yRnd = NORM2SNORM(Value3D(seedVec.zyx));
+			vec3 rndNormal = normalize(vec3(
+				rndScale * vec2(xRnd, yRnd),
+				1.0
+			));
+
+			nvTS = NormalBlendUnpackedRNM(nvTS, rndNormal);
+		#endif
+
+		vec3 N = normalize(tbnMatrix * nvTS);
+
 		vec3 L = normalize(lightDir); //just in case
+		vec3 V = normalize(viewDir);
+		vec3 Rv = -reflect(V, N);
+		vec3 H = normalize(L + V);
 
 		float NdotLu = dot(N, L);
-		float NdotL = max(NdotLu, 0.0);
-		vec3 light = NdotL * sunDiffuse + sunAmbient;
-
-		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
+		float NdotL = max(NdotLu, angleEPS);
+		float NdotH = max(dot(H, N), angleEPS);
+		float NdotV = max(dot(N, V), angleEPS);
+		float VdotH = max(dot(V, H), 0.0);
 
 		#ifdef LUMAMULT
 			vec3 yCbCr = RGB2YCBCR * diffuseIn.rgb;
@@ -325,22 +425,29 @@ fragment = [[
 			diffuseIn.rgb = YCBCR2RGB * yCbCr;
 		#endif
 
-		vec4 outColor   = diffuseIn;
-		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
+		vec3 outColor = mix(diffuseIn.rgb, teamColor.rgb, diffuseIn.a);
 
-		vec3 V = normalize(viewDir);
-		vec3 Rv = -reflect(V, N);
+		outColor = SRGBtoLINEAR(outColor);
 
-		vec3 specularColor;
 
-		// blinn-phong
-		vec3 H = normalize(L + V);
-		float HdotN = max(dot(H, N), 0.0);
-		specularColor = sunSpecular * pow(HdotN, SPECULARSUNEXP);
 
-		specularColor *= extraColor.g * SPECULARMULT;
+		#if 1
+			// blinn-phong
+			vec3 specularColor = GetSpecularBlinnPhong(NdotH, roughness);
+		#else
+			// GGX
+			vec3 F0 = mix(vec3(0.04), outColor.rgb, metalness);
+			vec3 specularColor = GetSpecularGGX(F0, NdotL, NdotV, VdotH, NdotH, roughness);
+		#endif
 
-		vec3 reflection = texture(reflectTex,  Rv).rgb;
+		specularColor *= metalness * SPECULARMULT;
+
+		// environment reflection
+		ivec2 reflectTexSize = textureSize(reflectTex, 0);
+		float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
+		float lodBias = reflectTexMaxLOD * roughness;
+
+		vec3 reflection = texture(reflectTex,  Rv, lodBias).rgb;
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);
@@ -353,10 +460,11 @@ fragment = [[
 
 		float shadow = min(nShadow, gShadow);
 
-		light     = mix(sunAmbient, light, shadow);
+		vec3 light = NdotL * sunDiffuse + sunAmbient;
+		light = mix(sunAmbient, light, shadow);
 		specularColor *= shadow;
 
-		reflection = mix(light, reflection, extraColor.g); // reflection
+		reflection = mix(light, reflection, metalness); // reflection
 
 		#ifdef flashlights
 			extraColor.r = extraColor.r * selfIllumMod;
@@ -364,35 +472,38 @@ fragment = [[
 
 		reflection += (extraColor.rrr); // self-illum
 
-		outColor.rgb = mix(outColor.rgb, teamColor.rgb, outColor.a);
-
-		outColor.rgb = outColor.rgb * reflection + specularColor;
-		outColor.a   = extraColor.a;
+		outColor = outColor * reflection + specularColor;
 
 		#ifdef use_vertex_ao
-			outColor.rgb = outColor.rgb * aoTerm;
+			outColor = outColor * aoTerm;
 		#endif
 
 		#ifdef USE_LOSMAP
 			float losValue = 0.5 + texture(losMapTex, worldPos.xz / mapSize).r;
 			losValue = mix(1.0, losValue, inLosMode);
 
-			outColor.rgb *= losValue;
+			outColor *= losValue;
 			specularColor.rgb *= losValue;
 			extraColor.r *= losValue;
 		#endif
 
 		// debug hook
 		#if 0
-			//outColor.rgb = vec3(normalv);
-			outColor.rgb = vec3(N);
+			//outColor = vec3(nvTS);
+			outColor = vec3(nvTS);
 		#endif
 
+		outColor = SteveMTM1(outColor);
+		outColor = LINEARtoSRGB(outColor);
+
 		#if (deferred_mode == 0)
-			fragData[0] = outColor;
+			fragData[0] = vec4(outColor, extraColor.a);
 		#else
+			specularColor = SteveMTM1(specularColor);
+			specularColor = LINEARtoSRGB(specularColor);
+
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), 1.0);
-			fragData[GBUFFER_DIFFTEX_IDX] = outColor;
+			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, extraColor.a);
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(specularColor, extraColor.a);
 			fragData[GBUFFER_EMITTEX_IDX] = vec4(extraColor.rrr, 1.0);
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(MAT_IDX) / 255.0, 0.0, 0.0, 0.0);
