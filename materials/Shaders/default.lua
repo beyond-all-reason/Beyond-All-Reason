@@ -26,9 +26,7 @@ vertex = [[
 		uniform vec4 shadowParams;
 	#endif
 
-	#ifdef use_vertex_ao
-		out float aoTerm;
-	#endif
+	out float aoTerm;
 
 	out vec3 viewDir;
 
@@ -75,7 +73,9 @@ vertex = [[
 		#endif
 
 		#ifdef use_vertex_ao
-			aoTerm = max(0.4, fract(gl_MultiTexCoord0.s * 16384.0) * 1.3); // great
+			aoTerm = clamp(1.0 * fract(gl_MultiTexCoord0.s * 16384.0), 0.1, 1.0);
+		#else
+			aoTerm = 1.0;
 		#endif
 
 		#ifndef use_treadoffset
@@ -135,10 +135,6 @@ fragment = [[
 	uniform vec3 etcLoc;
 	uniform int simFrame;
 
-	#ifndef SPECULARSUNEXP
-		#define SPECULARSUNEXP 16.0
-	#endif
-
 	#ifndef SPECULARMULT
 		#define SPECULARMULT 2.0
 	#endif
@@ -183,9 +179,7 @@ fragment = [[
 	#endif
 	uniform float shadowDensity;
 
-	#ifdef use_vertex_ao
-		in float aoTerm;
-	#endif
+	in float aoTerm;
 
 	uniform vec4 teamColor;
 	in vec3 viewDir;
@@ -394,6 +388,8 @@ fragment = [[
 		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
 
 		float roughness = extraColor.b;
+		//roughness = 0.5;
+		//roughness = SNORM2NORM(sin(simFrame * 0.1));
 		float metalness = extraColor.g;
 
 		#ifdef ROUGHNESS_PERTURB_NORMAL
@@ -430,7 +426,11 @@ fragment = [[
 
 		outColor = SRGBtoLINEAR(outColor);
 
-		vec3 specularColor = GetSpecularBlinnPhong(NdotH, roughness);
+
+		vec3 specularColor = vec3(0.0);
+		if (NdotL > angleEPS) {
+			specularColor = GetSpecularBlinnPhong(NdotH, roughness);
+		}
 
 		specularColor *= metalness * SPECULARMULT;
 
@@ -442,7 +442,10 @@ fragment = [[
 			float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
 			float lodBias = reflectTexMaxLOD * roughness;
 
-			vec3 reflection = texture(reflectTex, Rv, lodBias).rgb;
+			vec3 reflection = mix(
+				textureLod(reflectTex, Rv, lodBias).rgb,
+				texture(reflectTex, Rv, lodBias).rgb,
+				0.5);
 		#endif
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
@@ -456,11 +459,11 @@ fragment = [[
 
 		float shadow = mix(1.0, min(nShadow, gShadow), shadowDensity);
 
-		vec3 light = NdotL * sunDiffuse + sunAmbient;
-		light = mix(sunAmbient, light, shadow);
+		vec3 light = aoTerm * sunAmbient + NdotL * sunDiffuse * shadow;
 		specularColor *= shadow;
 
 		reflection = mix(light, reflection, metalness); // reflection
+		//reflection = light + reflection * metalness;
 
 		#ifdef flashlights
 			extraColor.r = extraColor.r * selfIllumMod;
@@ -469,10 +472,6 @@ fragment = [[
 		reflection += (extraColor.rrr); // self-illum
 
 		outColor = outColor * reflection + specularColor;
-
-		#ifdef use_vertex_ao
-			outColor = outColor * aoTerm;
-		#endif
 
 		#ifdef USE_LOSMAP
 			float losValue = 0.5 + texture(losMapTex, worldPos.xz / mapSize).r;
@@ -483,14 +482,13 @@ fragment = [[
 			extraColor.r *= losValue;
 		#endif
 
-		// debug hook
-		#if 0
-			//outColor = vec3(nvTS);
-			outColor = vec3(nvTS);
-		#endif
-
 		outColor = SteveMTM1(outColor);
 		outColor = LINEARtoSRGB(outColor);
+
+		// debug hook
+		#if 0
+			outColor = vec3(metalness);
+		#endif
 
 		#if (deferred_mode == 0)
 			fragData[0] = vec4(outColor, extraColor.a);

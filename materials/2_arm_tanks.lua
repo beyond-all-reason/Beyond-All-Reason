@@ -56,7 +56,7 @@ local matTemplate = {
 		"#define deferred_mode 1",
 		"#define use_treadoffset",
 		"#define flashlights",
-		--"#define use_vertex_ao",
+		"#define use_vertex_ao",
 		"#define SPECULARMULT 2.0",
 		"#define MAT_IDX 2",
 	},
