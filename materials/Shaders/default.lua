@@ -321,24 +321,6 @@ fragment = [[
 		return sunSpecular * pow(HdotN, power) * powerNorm;
 	}
 
-	vec3 GetSpecularGGX(vec3 F0, float NdotL, float NdotV, float VdotH, float NdotH, float roughness) {
-		float alpha = roughness * roughness;
-
-		// NDF : GGX
-		float alphaSqr = alpha * alpha;
-		float denom = NdotH * NdotH *(alphaSqr - 1.0) + 1.0;
-		float D = alphaSqr / (PI * denom * denom);
-
-		// Fresnel (Schlick)
-		float dotLH5 = pow (1.0 - VdotH, 5.0);
-		vec3 F = F0 + (vec3(1.0) - F0) * (dotLH5);
-
-		// Visibility term (G) : Smith with Schlick's approximation
-		float G = 0.5 / mix(2.0 * NdotL * NdotV, NdotL + NdotV, alpha);
-
-		return D * F * G;
-	}
-
 	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
 	vec3 SteveMTM1(in vec3 x) {
 		const float a = 10.0; /// Mid
@@ -416,8 +398,6 @@ fragment = [[
 		float NdotLu = dot(N, L);
 		float NdotL = max(NdotLu, angleEPS);
 		float NdotH = max(dot(H, N), angleEPS);
-		float NdotV = max(dot(N, V), angleEPS);
-		float VdotH = max(dot(V, H), 0.0);
 
 		#ifdef LUMAMULT
 			vec3 yCbCr = RGB2YCBCR * diffuseIn.rgb;
@@ -429,16 +409,7 @@ fragment = [[
 
 		outColor = SRGBtoLINEAR(outColor);
 
-
-
-		#if 1
-			// blinn-phong
-			vec3 specularColor = GetSpecularBlinnPhong(NdotH, roughness);
-		#else
-			// GGX
-			vec3 F0 = mix(vec3(0.04), outColor.rgb, metalness);
-			vec3 specularColor = GetSpecularGGX(F0, NdotL, NdotV, VdotH, NdotH, roughness);
-		#endif
+		vec3 specularColor = GetSpecularBlinnPhong(NdotH, roughness);
 
 		specularColor *= metalness * SPECULARMULT;
 
