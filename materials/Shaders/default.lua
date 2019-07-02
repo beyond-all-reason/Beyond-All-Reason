@@ -454,7 +454,7 @@ fragment = [[
 			float gShadow = 1.0;
 		#endif
 
-		float shadow = min(nShadow, gShadow);
+		float shadow = mix(1.0, min(nShadow, gShadow), shadowDensity);
 
 		vec3 light = NdotL * sunDiffuse + sunAmbient;
 		light = mix(sunAmbient, light, shadow);
