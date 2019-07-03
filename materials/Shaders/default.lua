@@ -507,8 +507,8 @@ fragment = [[
 		outColor = LINEARtoSRGB(outColor);
 
 		// debug hook
-		#if 0
-			outColor = vec3(metalness);
+		#if 1
+			outColor = vec3(roughness);
 		#endif
 
 		#if (deferred_mode == 0)
