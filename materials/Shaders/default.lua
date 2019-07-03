@@ -507,7 +507,7 @@ fragment = [[
 		outColor = LINEARtoSRGB(outColor);
 
 		// debug hook
-		#if 1
+		#if 0
 			outColor = vec3(roughness);
 		#endif
 
