@@ -243,8 +243,8 @@ fragment = [[
 		return fract((p3.x + p3.y) * p3.z);
 	}
 
-	float Value3D( vec3 P ) {
-		//  https://github.com/BrianSharpe/Wombat/blob/master/Value3D.glsl
+	float Perlin3D( vec3 P ) {
+		//  https://github.com/BrianSharpe/Wombat/blob/master/Perlin3D.glsl
 
 		// establish our grid cell and unit position
 		vec3 Pi = floor(P);
@@ -259,15 +259,33 @@ fragment = [[
 		vec4 Pt = vec4( Pi.xy, Pi_inc1.xy ) + vec2( 50.0, 161.0 ).xyxy;
 		Pt *= Pt;
 		Pt = Pt.xzxz * Pt.yyww;
-		vec2 hash_mod = vec2( 1.0 / ( 635.298681 + vec2( Pi.z, Pi_inc1.z ) * 48.500388 ) );
-		vec4 hash_lowz = fract( Pt * hash_mod.xxxx );
-		vec4 hash_highz = fract( Pt * hash_mod.yyyy );
+		const vec3 SOMELARGEFLOATS = vec3( 635.298681, 682.357502, 668.926525 );
+		const vec3 ZINC = vec3( 48.500388, 65.294118, 63.934599 );
+		vec3 lowz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi.zzz * ZINC ) );
+		vec3 highz_mod = vec3( 1.0 / ( SOMELARGEFLOATS + Pi_inc1.zzz * ZINC ) );
+		vec4 hashx0 = fract( Pt * lowz_mod.xxxx );
+		vec4 hashx1 = fract( Pt * highz_mod.xxxx );
+		vec4 hashy0 = fract( Pt * lowz_mod.yyyy );
+		vec4 hashy1 = fract( Pt * highz_mod.yyyy );
+		vec4 hashz0 = fract( Pt * lowz_mod.zzzz );
+		vec4 hashz1 = fract( Pt * highz_mod.zzzz );
 
-		//	blend the results and return
+		// calculate the gradients
+		vec4 grad_x0 = hashx0 - 0.49999;
+		vec4 grad_y0 = hashy0 - 0.49999;
+		vec4 grad_z0 = hashz0 - 0.49999;
+		vec4 grad_x1 = hashx1 - 0.49999;
+		vec4 grad_y1 = hashy1 - 0.49999;
+		vec4 grad_z1 = hashz1 - 0.49999;
+		vec4 grad_results_0 = inversesqrt( grad_x0 * grad_x0 + grad_y0 * grad_y0 + grad_z0 * grad_z0 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x0 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y0 + Pf.zzzz * grad_z0 );
+		vec4 grad_results_1 = inversesqrt( grad_x1 * grad_x1 + grad_y1 * grad_y1 + grad_z1 * grad_z1 ) * ( vec2( Pf.x, Pf_min1.x ).xyxy * grad_x1 + vec2( Pf.y, Pf_min1.y ).xxyy * grad_y1 + Pf_min1.zzzz * grad_z1 );
+
+		// Classic Perlin Interpolation
 		vec3 blend = Pf * Pf * Pf * (Pf * (Pf * 6.0 - 15.0) + 10.0);
-		vec4 res0 = mix( hash_lowz, hash_highz, blend.z );
+		vec4 res0 = mix( grad_results_0, grad_results_1, blend.z );
 		vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
-		return dot( res0, blend2.zxzx * blend2.wwyy );
+		float final = dot( res0, blend2.zxzx * blend2.wwyy );
+		return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
 	}
 
 
@@ -392,16 +410,17 @@ fragment = [[
 		//roughness = SNORM2NORM(sin(simFrame * 0.1));
 		float metalness = extraColor.g;
 
-		#ifdef ROUGHNESS_PERTURB_NORMAL
-			float rndScale = mix(0.0, ROUGHNESS_PERTURB_NORMAL, roughness);
-			vec3 seedVec = modelPos.xyz * 16.0;
-			float xRnd = NORM2SNORM(Value3D(seedVec.xyz));
-			float yRnd = NORM2SNORM(Value3D(seedVec.zyx));
+		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
+			vec3 seedVec = modelPos.xyz * 4.0;
+			float rndValue = Perlin3D(seedVec.xyz);
+		#endif
+
+		#if defined(ROUGHNESS_PERTURB_NORMAL)
+			float normalPerturbScale = mix(0.0, ROUGHNESS_PERTURB_NORMAL, roughness);
 			vec3 rndNormal = normalize(vec3(
-				rndScale * vec2(xRnd, yRnd),
+				normalPerturbScale * vec2(rndValue),
 				1.0
 			));
-
 			nvTS = NormalBlendUnpackedRNM(nvTS, rndNormal);
 		#endif
 
@@ -418,13 +437,19 @@ fragment = [[
 
 		#ifdef LUMAMULT
 			vec3 yCbCr = RGB2YCBCR * diffuseIn.rgb;
-			yCbCr.x *= LUMAMULT;
-			diffuseIn.rgb = YCBCR2RGB * yCbCr;
+			#if defined(LUMAMULT)
+				yCbCr.x *= LUMAMULT;
+			#endif
 		#endif
 
 		vec3 outColor = mix(diffuseIn.rgb, teamColor.rgb, diffuseIn.a);
 
 		outColor = SRGBtoLINEAR(outColor);
+
+		#if defined(ROUGHNESS_PERTURB_COLOR)
+			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
+			outColor *= (1.0 - colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
+		#endif
 
 
 		vec3 specularColor = vec3(0.0);
@@ -434,19 +459,15 @@ fragment = [[
 
 		specularColor *= metalness * SPECULARMULT;
 
-		#ifdef ROUGHNESS_PERTURB_NORMAL
-			vec3 reflection = texture(reflectTex, Rv).rgb;
-		#else
-			// environment reflection
-			ivec2 reflectTexSize = textureSize(reflectTex, 0);
-			float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
-			float lodBias = reflectTexMaxLOD * roughness;
+		// environment reflection
+		ivec2 reflectTexSize = textureSize(reflectTex, 0);
+		float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
+		float lodBias = reflectTexMaxLOD * roughness;
 
-			vec3 reflection = mix(
-				textureLod(reflectTex, Rv, lodBias).rgb,
-				texture(reflectTex, Rv, lodBias).rgb,
-				0.5);
-		#endif
+		vec3 reflection = mix(
+			textureLod(reflectTex, Rv, lodBias).rgb,
+			texture(reflectTex, Rv, lodBias).rgb,
+			0.5);
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);

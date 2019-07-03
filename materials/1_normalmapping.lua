@@ -20,7 +20,8 @@ local matTemplate = {
 		"#define use_vertex_ao",
 		"#define flashlights",
 		"#define SPECULARMULT 2.0",
-		"#define ROUGHNESS_PERTURB_NORMAL 0.2",
+		"#define ROUGHNESS_PERTURB_NORMAL 0.1",
+		"#define ROUGHNESS_PERTURB_COLOR 0.1",
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 	},
 	deferredDefinitions = {
