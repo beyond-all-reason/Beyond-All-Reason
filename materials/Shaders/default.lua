@@ -349,8 +349,8 @@ fragment = [[
 #endif
 
 	vec3 GetSpecularBlinnPhong(float HdotN, float roughness) {
-		float power = 1.0 / max(roughness * 0.4, 0.01);
-		float powerNorm = (power + 8.0) / (PI * 8.0);
+		float power = 2.0 / max(roughness * 0.25, 0.01);
+		float powerNorm = (power + 8.0) / 32.0;
 		return sunSpecular * pow(HdotN, power) * powerNorm;
 	}
 
@@ -409,9 +409,10 @@ fragment = [[
 		//roughness = 0.5;
 		//roughness = SNORM2NORM(sin(simFrame * 0.1));
 		float metalness = extraColor.g;
+		//metalness = SNORM2NORM(sin(simFrame * 0.1));
 
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
-			vec3 seedVec = modelPos.xyz * 4.0;
+			vec3 seedVec = modelPos.xyz * 8.0;
 			float rndValue = Perlin3D(seedVec.xyz);
 		#endif
 
@@ -448,7 +449,7 @@ fragment = [[
 
 		#if defined(ROUGHNESS_PERTURB_COLOR)
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
-			outColor *= (1.0 - colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
+			outColor *= (1.0 + colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
 		#endif
 
 
@@ -464,10 +465,7 @@ fragment = [[
 		float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
 		float lodBias = reflectTexMaxLOD * roughness;
 
-		vec3 reflection = mix(
-			textureLod(reflectTex, Rv, lodBias).rgb,
-			texture(reflectTex, Rv, lodBias).rgb,
-			0.5);
+		vec3 reflection = texture(reflectTex, Rv, lodBias).rgb;
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);
@@ -508,7 +506,7 @@ fragment = [[
 
 		// debug hook
 		#if 0
-			outColor = vec3(roughness);
+			outColor = vec3(N.bbb);
 		#endif
 
 		#if (deferred_mode == 0)
