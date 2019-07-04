@@ -30,7 +30,10 @@ vertex = [[
 
 	out vec3 viewDir;
 
-	out mat3 tbnMatrix;
+	out vec3 worldTangent;
+	out vec3 worldBitangent;
+	out vec3 worldNormal;
+
 	out vec2 tex_coord0;
 	out vec4 tex_coord1;
 	out vec4 modelPos;
@@ -45,7 +48,10 @@ vertex = [[
 
 		vec3 tangent   = gl_MultiTexCoord5.xyz;
 		vec3 bitangent = gl_MultiTexCoord6.xyz;
-		tbnMatrix = gl_NormalMatrix * mat3(tangent, bitangent, normal);
+
+		worldTangent = gl_NormalMatrix * tangent;
+		worldBitangent = gl_NormalMatrix * bitangent;
+		worldNormal = gl_NormalMatrix * normal;
 
 		modelPos = vertex;
 		worldPos = gl_ModelViewMatrix * vertex;
@@ -108,7 +114,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
-	#line 20180
+	#line 20117
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -190,7 +196,6 @@ fragment = [[
 	#endif
 
 
-	#define normalv tbnMatrix[2]
 	#ifdef use_normalmapping
 		uniform sampler2D normalMap;
 	#endif
@@ -201,7 +206,10 @@ fragment = [[
 		uniform sampler2D losMapTex;
 	#endif
 
-	in mat3 tbnMatrix;
+	in vec3 worldTangent;
+	in vec3 worldBitangent;
+	in vec3 worldNormal;
+
 	in vec2 tex_coord0;
 	in vec4 tex_coord1;
 	in vec4 worldPos;
@@ -286,6 +294,21 @@ fragment = [[
 		vec4 blend2 = vec4( blend.xy, vec2( 1.0 - blend.xy ) );
 		float final = dot( res0, blend2.zxzx * blend2.wwyy );
 		return ( final * 1.1547005383792515290182975610039 );  // scale things to a strict -1.0->1.0 range  *= 1.0/sqrt(0.75)
+	}
+
+	vec3 SampleEnvironmentWithRoughness(vec3 samplingVec, float roughness) {
+		int reflectTexSize = textureSize(reflectTex, 0).x;
+		float maxLodLevel = log2(float(reflectTexSize));
+
+		// makes roughness of reflection scale perceptually much more linear
+		// Assumes "CubeTexSizeReflection" = 2048
+		maxLodLevel -= 5.0;
+
+		float lodBias = maxLodLevel * roughness;
+
+		vec3 reflection = texture(reflectTex, samplingVec, lodBias).rgb;
+
+		return reflection;
 	}
 
 
@@ -373,22 +396,24 @@ fragment = [[
 		return n1 * dot(n1, n2) / n1.z - n2;
 	}
 
-	// gamma correction
+	// gamma correction & tonemapping
 	#if 1
 		#define GAMMA 2.2
 		#define INV_GAMMA 1.0 / GAMMA
 		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
 		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
+		#define TONEMAP(c) SteveMTM1(c)
 	#else
 		#define SRGBtoLINEAR(c) ( c )
 		#define LINEARtoSRGB(c) ( c )
+		#define TONEMAP(c) (c)
 	#endif
 
 	const float angleEPS = 1e-3;
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20370
+		#line 20413
 
 		#ifdef use_normalmapping
 			vec2 tc = tex_coord0.st;
@@ -407,9 +432,10 @@ fragment = [[
 
 		float roughness = extraColor.b;
 		//roughness = 0.5;
-		//roughness = SNORM2NORM(sin(simFrame * 0.1));
+		//roughness = SNORM2NORM(sin(simFrame * 0.05));
+
 		float metalness = extraColor.g;
-		//metalness = SNORM2NORM(sin(simFrame * 0.1));
+		//metalness = SNORM2NORM(sin(simFrame * 0.05));
 
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
 			vec3 seedVec = modelPos.xyz * 8.0;
@@ -425,7 +451,13 @@ fragment = [[
 			nvTS = NormalBlendUnpackedRNM(nvTS, rndNormal);
 		#endif
 
-		vec3 N = normalize(tbnMatrix * nvTS);
+		mat3 worldTBN = mat3(
+			normalize(worldTangent),
+			normalize(worldBitangent),
+			normalize(worldNormal)
+		);
+
+		vec3 N = normalize(worldTBN * nvTS);
 
 		vec3 L = normalize(lightDir); //just in case
 		vec3 V = normalize(viewDir);
@@ -461,11 +493,7 @@ fragment = [[
 		specularColor *= metalness * SPECULARMULT;
 
 		// environment reflection
-		ivec2 reflectTexSize = textureSize(reflectTex, 0);
-		float reflectTexMaxLOD = log2(float(max(reflectTexSize.x, reflectTexSize.y)));
-		float lodBias = reflectTexMaxLOD * roughness;
-
-		vec3 reflection = texture(reflectTex, Rv, lodBias).rgb;
+		vec3 reflection = SampleEnvironmentWithRoughness(Rv, roughness);
 
 		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
 		float nShadow = mix(1.0, nShadowMix, shadowDensity);
@@ -501,18 +529,18 @@ fragment = [[
 			extraColor.r *= losValue;
 		#endif
 
-		outColor = SteveMTM1(outColor);
+		outColor = TONEMAP(outColor);
 		outColor = LINEARtoSRGB(outColor);
 
 		// debug hook
 		#if 0
-			outColor = vec3(N.bbb);
+			outColor = vec3(roughness);
 		#endif
 
 		#if (deferred_mode == 0)
 			fragData[0] = vec4(outColor, extraColor.a);
 		#else
-			specularColor = SteveMTM1(specularColor);
+			specularColor = TONEMAP(specularColor);
 			specularColor = LINEARtoSRGB(specularColor);
 
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), 1.0);
