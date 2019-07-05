@@ -420,12 +420,17 @@ fragment = [[
 			#ifdef flip_normalmap
 				tc.t = 1.0 - tc.t;
 			#endif
-			vec4 normaltex = texture(normalMap, tc, -2.0);
+			vec4 normaltex = texture(normalMap, tc);
 			vec3 nvTS = normalize(NORM2SNORM(normaltex.xyz));
-
 		#else
 			vec3 nvTS = vec3(0.0, 0.0, 1.0);
 		#endif
+
+		mat3 worldTBN = mat3(
+			normalize(worldTangent),
+			normalize(worldBitangent),
+			normalize(worldNormal)
+		);
 
 		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
 		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
@@ -436,6 +441,20 @@ fragment = [[
 
 		float metalness = extraColor.g;
 		//metalness = SNORM2NORM(sin(simFrame * 0.05));
+
+		// https://gamedev.stackexchange.com/questions/84186/fighting-aliasing-on-specular-highlights
+		#if defined(SPECULAR_AA)
+			vec3 prePerturbN = worldTBN * nvTS;
+			vec3 dNdx = dFdx(prePerturbN);
+			vec3 dNdy = dFdy(prePerturbN);
+			float curv2 = max( dot( dNdx, dNdx ), dot( dNdy, dNdy ) );
+
+			const float CURV_MOD = 0.5;
+			float glossMax = clamp(-1.0 / 10.0 * (1.0 + log2(CURV_MOD * curv2)), 0.0, 1.0);
+
+			float rmax = max(roughness, 1.0 - glossMax);
+			roughness = mix(roughness, rmax, SPECULAR_AA);
+		#endif
 
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
 			vec3 seedVec = modelPos.xyz * 8.0;
@@ -450,12 +469,6 @@ fragment = [[
 			));
 			nvTS = NormalBlendUnpackedRNM(nvTS, rndNormal);
 		#endif
-
-		mat3 worldTBN = mat3(
-			normalize(worldTangent),
-			normalize(worldBitangent),
-			normalize(worldNormal)
-		);
 
 		vec3 N = normalize(worldTBN * nvTS);
 
@@ -553,7 +566,6 @@ fragment = [[
 		%%FRAGMENT_POST_SHADING%%
 	}
 ]],
-
 	uniformInt = {
 		textureS3o1 = 0,
 		textureS3o2 = 1,
@@ -563,16 +575,10 @@ fragment = [[
 		losMapTex   = 6,
 	},
 	uniformFloat = {
-		-- sunPos = {gl.GetSun("pos")}, -- material has sunPosLoc
 		sunAmbient = {gl.GetSun("ambient" ,"unit")},
 		sunDiffuse = {gl.GetSun("diffuse" ,"unit")},
 		sunSpecular = {gl.GetSun("specular" ,"unit")},
-		--sunSpecularExp = gl.GetSun("specularExponent"), -- this might return crazy values like 100.0, which are unapplicable for Phong/Blinn-Phong
 		shadowDensity = gl.GetSun("shadowDensity" ,"unit"),
-		-- shadowParams  = {gl.GetShadowMapParams()}, -- material has shadowParamsLoc
 		mapSize = {Game.mapSizeX, Game.mapSizeZ},
-	},
-	uniformMatrix = {
-		-- shadowMatrix = {gl.GetMatrixData("shadow")}, -- material has shadow{Matrix}Loc
 	},
 }
