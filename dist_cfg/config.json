@@ -8,7 +8,7 @@
             },
             "downloads": {
                 "games" : ["byar:stable", "chobby:test"],
-                "engines" : [ "104.0.1-1244-gb487190 maintenance" ]
+                "engines" : [ "104.0.1-1239-g12caea1 maintenance" ]
             },
             "no_start_script" : true,
             "launch": {
@@ -22,7 +22,7 @@
             },
             "downloads": {
                 "games" : ["byar:test", "chobby:test"],
-                "engines" : [ "104.0.1-1244-gb487190 maintenance" ]
+                "engines" : [ "104.0.1-1239-g12caea1 maintenance" ]
             },
             "no_start_script" : true,
             "launch": {
@@ -35,7 +35,7 @@
                 "display": "Dev Lobby"
             },
             "downloads": {
-                "engines" : [ "104.0.1-1244-gb487190 maintenance" ]
+                "engines" : [ "104.0.1-1239-g12caea1 maintenance" ]
             },
             "no_start_script" : true,
             "no_downloads" : true,
