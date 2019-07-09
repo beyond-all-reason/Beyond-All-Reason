@@ -3,8 +3,22 @@
     "setups" : [
         {
             "package": {
-                "id": "byar",
-                "display": "Beyond All Reason"
+                "id": "stable",
+                "display": "Stable"
+            },
+            "downloads": {
+                "games" : ["byar:stable", "chobby:test"],
+                "engines" : [ "104.0.1-1244-gb487190 maintenance" ]
+            },
+            "no_start_script" : true,
+            "launch": {
+                "start_args" : ["--menu", "rapid://chobby:test"]
+            }
+        },
+        {
+            "package": {
+                "id": "test",
+                "display": "Test"
             },
             "downloads": {
                 "games" : ["byar:test", "chobby:test"],
