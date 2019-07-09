@@ -3,20 +3,6 @@
     "setups" : [
         {
             "package": {
-                "id": "stable",
-                "display": "Stable"
-            },
-            "downloads": {
-                "games" : ["byar:stable", "chobby:test"],
-                "engines" : [ "104.0.1-1239-g12caea1 maintenance" ]
-            },
-            "no_start_script" : true,
-            "launch": {
-                "start_args" : ["--menu", "rapid://chobby:test"]
-            }
-        },
-        {
-            "package": {
                 "id": "test",
                 "display": "Test"
             },
