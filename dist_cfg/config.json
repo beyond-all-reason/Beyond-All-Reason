@@ -3,11 +3,11 @@
     "setups" : [
         {
             "package": {
-                "id": "bar",
+                "id": "byar",
                 "display": "Beyond All Reason"
             },
             "downloads": {
-                "games" : ["bar:test", "chobby:test"],
+                "games" : ["byar:test", "chobby:test"],
                 "engines" : [ "104.0.1-1244-gb487190 maintenance" ]
             },
             "no_start_script" : true,
