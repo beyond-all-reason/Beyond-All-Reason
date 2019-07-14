@@ -103,8 +103,9 @@ local GL_FILL = GL.FILL
 local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
-local widgetScale = 1
 local vsx, vsy = Spring.GetViewGeometry()
+local widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+WG.uiScale = widgetScale
 local resolutionX, resolutionY = Spring.GetScreenGeometry()
 
 local myTeamID = Spring.GetMyTeamID()
@@ -271,6 +272,7 @@ function widget:ViewResize()
   screenX = (vsx*0.5) - (screenWidth/2)
   screenY = (vsy*0.5) + (screenHeight/2)
   widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
+  WG.uiScale = widgetScale
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
