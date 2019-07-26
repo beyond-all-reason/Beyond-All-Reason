@@ -226,9 +226,11 @@ if VFS.FileExists(filename) then
 end
 k = k + 1
 local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
-    file:write(k)
-    file:close()
-file = nil
+if file then
+	file:write(k)
+	file:close()
+	file = nil
+end
 
 local random_tip_or_desc = unit_descs[((k/2) % #unit_descs) + 1]
 if k%2 == 1 then
