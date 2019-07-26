@@ -2341,7 +2341,7 @@ function init()
 
 		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
 
-		{id="scrollspeed", group="control", name="Scroll zoom speed", type="slider", min=1, max=45, step=1, value=math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25)), description=''},
+		{id="scrollspeed", group="control", name="Scroll zoom speed", type="slider", min=1, max=50, step=1, value=math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25)), description=''},
 		{id="scrollinverse", group="control", name="Scroll inversed", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description=""},
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps"},
@@ -3053,6 +3053,7 @@ function widget:GetConfigData(data)
 		sndvolunitreply = {'snd_volunitreply', tonumber(Spring.GetConfigInt("snd_volunitreply",40) or 40)},
 		--sndvolmusic = {'snd_volmusic', tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
 		guiopacity = {'ui_opacity', tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)},
+		scrollwheelspeed = {'ScrollWheelSpeed', tonumber(Spring.GetConfigInt("ScrollWheelSpeed",25) or 25)},
 	}
 	return savedTable
 end
