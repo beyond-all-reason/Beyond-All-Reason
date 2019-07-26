@@ -715,7 +715,7 @@ function gadget:Initialize()
 end
 
 
-local timer3 = 20
+local timer3 = 30
 function gadget:DrawScreen()
 
 	-- only support AI's:  NullAI, DAI and KAIK
