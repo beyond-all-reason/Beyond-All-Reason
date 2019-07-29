@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  body, turret, flare, barrel, sleeve, rfthigh, rfleg, rffoot, lfthigh, lfleg, lffoot, rbthigh, rbleg, rbfoot, lbthigh, lbleg, lbfoot;
+piece  base, body, turret, flare, barrel, sleeve, rfhip, rfhip2, rfthigh, rfleg, rffoot, lfhip, lfhip2, lfthigh, lfleg, lffoot, lbhip, lbhip2, lbthigh, lbleg, lbfoot, rbhip, rbhip2, rbthigh, rbleg, rbfoot;
 
 static-var  bMoving, bAiming, Static_Var_3, gun_1, oldHeading, bSteering, wpn1_lasthead;
 
@@ -48,95 +48,96 @@ MotionControl()
 		// step 0 all centered
 		if (bMoving | bSteering) 
 		{
+		turn base to z-axis <3> speed <12.5>;
+		turn base to x-axis <2.5> speed <12.5>;
+		turn body to z-axis <-1.5> speed <6.25>;
+		turn body to x-axis <-1.25> speed <6.25>;	
+
+	
+		move lbhip2 to z-axis [-2] speed [5];
+		move rbhip2 to z-axis [-5] speed [5];
+		move rfhip2 to z-axis [2] speed [5];
+		move lfhip2 to z-axis [5] speed [25];
 		
-		turn rfthigh to y-axis <0> speed <72.000000>;
-		turn rfthigh to z-axis <0> speed <42.000000>;
 		
-		turn rfleg to x-axis <0> speed <48.000000>;
-		turn rfleg to z-axis <0> speed <126.000000>;
+		turn lfhip to y-axis <18> speed <27.000000>;
+		turn lfthigh to x-axis <-10> speed <60.000000>;
 		
-		turn rffoot to x-axis <0> speed <60.000000>;
-		turn rffoot to y-axis <0> speed <54.000000>;
-		turn rffoot to z-axis <0> speed <66.000000>;
-		
-		
-		turn rbthigh to y-axis <-9> speed <54.000000>;
-		turn rbthigh to z-axis <10> speed <60.000000>;
-		
-		turn rbleg to x-axis <0> now;
-		turn rbleg to z-axis <-11> speed <66.000000>;
-		
-		turn rbfoot to x-axis <9.3> speed <55.800000>;
-		turn rbfoot to y-axis <9> speed <54.000000>;
-		turn rbfoot to z-axis <-1> speed <6.000000>;
-		
-		turn lbthigh to y-axis <0> speed <72.000000>;
-		turn lbthigh to z-axis <0> speed <42.000000>;
-		
-		turn lbleg to x-axis <0> speed <48.000000>;
-		turn lbleg to z-axis <0> speed <126.000000>;
-		
-		turn lbfoot to x-axis <0> speed <60.000000>;
-		turn lbfoot to y-axis <0> speed <54.000000>;
-		turn lbfoot to z-axis <0> speed <66.000000>;
-		
-		turn lfthigh to y-axis <9> speed <54.000000>;
-		turn lfthigh to z-axis <-10> speed <60.000000>;
-		
-		turn lfleg to x-axis <0> now;
-		turn lfleg to z-axis <11> speed <66.000000>;
+		turn lfleg to x-axis 4 * <0> speed 4 * <48>;
 		
 		turn lffoot to x-axis <9.3> speed <55.800000>;
 		turn lffoot to y-axis <-9> speed <54.000000>;
 		turn lffoot to z-axis <1> speed <6.000000>;
 		
+		turn rfhip to y-axis <-22.5> speed <36.000000>;
+		turn rfthigh to x-axis <0> speed <42.000000>;
+		
+		turn rfleg to x-axis 4 * <0> speed 4 * <48.000000>;
+		
+		turn rffoot to x-axis <0> speed <60.000000>;
+		turn rffoot to y-axis <0> speed <54.000000>;
+		turn rffoot to z-axis <0> speed <66.000000>;
+			
+		turn lbhip to y-axis <-30> speed <60.000000>;
+		turn lbthigh to x-axis <-10> speed <42.000000>;
+		
+		turn lbleg to x-axis 4* <6> speed 2 * <48.000000>;
+		
+		turn lbfoot to x-axis <0> speed <60.000000>;
+
+		turn rbhip to y-axis <45> speed <54.000000>;
+		turn rbthigh to x-axis <20> speed <60.000000>;
+		
+		turn rbleg to x-axis 4 * <8> speed 4 * <48>;
+		
+		turn rbfoot to x-axis <-9.3> speed <55.800000>;
+
 		sleep 140;
 		}
 		if (bMoving | bSteering) 
 		{
+		turn base to z-axis <6> speed <12.5>;
+		turn base to x-axis <0> speed <12.5>;
+		turn body to z-axis <-3> speed <6.25>;
+		turn body to x-axis <0> speed <6.25>;	
+		
+		move lbhip2 to z-axis [-3] speed [5];
+		move rbhip2 to z-axis [0] speed [25];
+		move rfhip2 to z-axis [1] speed [5];
+		move lfhip2 to z-axis [4] speed [5];
 		
 		// step 1 foot back
+		turn lfhip to y-axis <19.5> speed <27.000000>;
+		turn lfthigh to x-axis <0> speed <60.000000>;
 		
-		turn rfthigh to y-axis <-15> speed <90.000000>;
-		turn rfthigh to z-axis <-4> speed <24.000000>;
-		
-		turn rfleg to x-axis <0> now;
-		turn rfleg to z-axis <14> speed <84.000000>;
-		
-		turn rffoot to x-axis <-2> speed <12.000000>;
-		turn rffoot to y-axis <15> speed <90.000000>;
-		turn rffoot to z-axis <-9> speed <54.000000>;
-		
-		turn rbthigh to y-axis <12> speed <126.000000>;
-		turn rbthigh to z-axis <20> speed <60.000000>;
-		
-		turn rbleg to x-axis <-8> speed <48.000000>;
-		turn rbleg to z-axis <-28> speed <102.000000>;
-		
-		turn rbfoot to x-axis <-12> speed <127.800000>;
-		turn rbfoot to y-axis <-13> speed <132.000000>;
-		turn rbfoot to z-axis <9> speed <60.000000>;
-		
-		turn lbthigh to y-axis <15> speed <90.000000>;
-		turn lbthigh to z-axis <4> speed <24.000000>;
-		
-		turn lbleg to x-axis <0> now;
-		turn lbleg to z-axis <-14> speed <84.000000>;
-		
-		turn lbfoot to x-axis <-2> speed <12.000000>;
-		turn lbfoot to y-axis <-15> speed <90.000000>;
-		turn lbfoot to z-axis <9> speed <54.000000>;
-		
-		turn lfthigh to y-axis <-12> speed <126.000000>;
-		turn lfthigh to z-axis <-20> speed <60.000000>;
-		
-		turn lfleg to x-axis <-8> speed <48.000000>;
-		turn lfleg to z-axis <28> speed <102.000000>;
+		turn lfleg to x-axis 4 * <-8> speed 4 * <48.000000>;
 		
 		turn lffoot to x-axis <-12> speed <127.800000>;
 		turn lffoot to y-axis <13> speed <132.000000>;
 		turn lffoot to z-axis <-9> speed <60.000000>;
 		
+		turn rfhip to y-axis <-30> speed <45.000000>;
+		turn rfthigh to x-axis <4> speed <24.000000>;
+		
+		turn rfleg to x-axis 4 * <0> speed 4 * <48>;
+		
+		turn rffoot to x-axis <-2> speed <12.000000>;
+		turn rffoot to y-axis <15> speed <90.000000>;
+		turn rffoot to z-axis <9> speed <54.000000>;
+		
+		turn lbhip to y-axis <-30> speed <90.000000>;
+		turn lbthigh to x-axis <-15> speed <24.000000>;
+		
+		turn lbleg to x-axis 4* <8> speed 2 * <48>;
+		
+		turn lbfoot to x-axis <0> speed <12.000000>;
+
+		turn rbhip to y-axis <60> speed <54.000000>;
+		turn rbthigh to x-axis <20> speed <80.000000>;
+		
+		turn rbleg to x-axis 4 * <-2> speed 2 * <48.000000>;
+		
+		turn rbfoot to x-axis <12> speed <127.800000>;
 		
 		sleep 140;
 		}
@@ -145,45 +146,47 @@ MotionControl()
 		
 		// step 2 foot lift heel
 		
-		turn rfthigh to y-axis <-23> speed <48.000000>;
-		turn rfthigh to z-axis <0> speed <24.000000>;
+		move lbhip2 to z-axis [-4] speed [5];
+		move rbhip2 to z-axis [-1] speed [5];
+		move rfhip2 to z-axis [0] speed [5];
+		move lfhip2 to z-axis [3] speed [5];
 		
-		turn rfleg to x-axis <0> now;
-		turn rfleg to z-axis <10> speed <24.000000>;
+		turn base to z-axis <0> speed <12.5>;
+		turn base to x-axis <-2.5> speed <12.5>;
+		turn body to z-axis <0> speed <6.25>;
+		turn body to x-axis <1.25> speed <6.25>;	
 		
-		turn rffoot to x-axis <9.3> speed <67.800000>;
-		turn rffoot to y-axis <25> speed <60.000000>;
-		turn rffoot to z-axis <-10> speed <6.000000>;
+		turn lfhip to y-axis <19.5> speed <27.000000>;
+		turn lfthigh to x-axis <7> speed <162.000000>;
 		
-		turn rbthigh to y-axis <12> now;
-		turn rbthigh to z-axis <-7> speed <162.000000>;
-		
-		turn rbleg to x-axis <-8> now;
-		turn rbleg to z-axis <21> speed <294.000000>;
-		
-		turn rbfoot to x-axis <10> speed <132.000000>;
-		turn rbfoot to y-axis <-9> speed <24.000000>;
-		turn rbfoot to z-axis <-11> speed <120.000000>;
-		
-		turn lbthigh to y-axis <23> speed <48.000000>;
-		turn lbthigh to z-axis <0> speed <24.000000>;
-		
-		turn lbleg to x-axis <0> now;
-		turn lbleg to z-axis <-10> speed <24.000000>;
-		
-		turn lbfoot to x-axis <9.3> speed <67.800000>;
-		turn lbfoot to y-axis <-25> speed <60.000000>;
-		turn lbfoot to z-axis <10> speed <6.000000>;
-		
-		turn lfthigh to y-axis <-12> now;
-		turn lfthigh to z-axis <7> speed <162.000000>;
-		
-		turn lfleg to x-axis <-8> now;
-		turn lfleg to z-axis <-21> speed <294.000000>;
+		turn lfleg to x-axis 4 * <-8> speed 4 * <48>;
 		
 		turn lffoot to x-axis <10> speed <132.000000>;
 		turn lffoot to y-axis <9> speed <24.000000>;
 		turn lffoot to z-axis <11> speed <120.000000>;
+		
+		turn rfhip to y-axis <-34> speed <24.000000>;
+		turn rfthigh to x-axis <0> speed <24.000000>;
+		
+		turn rfleg to x-axis 4 * <0> speed 4 * <48>;
+		
+		turn rffoot to x-axis <9.3> speed <67.800000>;
+		turn rffoot to y-axis <25> speed <60.000000>;
+		turn rffoot to z-axis <10> speed <6.000000>;
+
+		turn lbhip to y-axis <-39> speed <48.000000>;
+		turn lbthigh to x-axis <-8> speed <24.000000>;
+		
+		turn lbleg to x-axis 4 * <12> speed 2 * <48>;
+		
+		turn lbfoot to x-axis <-9.3> speed <67.800000>;
+		
+		turn rbhip to y-axis <68> speed <54.000000>;
+		turn rbthigh to x-axis <0> speed <162.000000>;
+		
+		turn rbleg to x-axis 4 * <-2> speed 2 * <48>;
+		
+		turn rbfoot to x-axis <-10> speed <132.000000>;
 		
 		sleep 140;
 		}
@@ -192,93 +195,95 @@ MotionControl()
 		
 		// step 3 foot lifted up
 		
-		turn rfthigh to y-axis <-9> speed <84.000000>;
-		turn rfthigh to z-axis <10> speed <60.000000>;
+		turn base to z-axis <-3> speed <12.5>;
+		turn base to x-axis <2.5> speed <12.5>;
+		turn body to z-axis <1.5> speed <6.25>;
+		turn body to x-axis <-1.25> speed <6.25>;	
 		
-		turn rfleg to x-axis <0> now;
-		turn rfleg to z-axis <-11> speed <126.000000>;
+		move lbhip2 to z-axis [-5] speed [5];
+		move rbhip2 to z-axis [-2] speed [5];
+		move rfhip2 to z-axis [5] speed [25];
+		move lfhip2 to z-axis [2] speed [5];
+				
+		turn lfhip to y-axis <22.5> speed <36.000000>;
+		turn lfthigh to x-axis <0> speed <42.000000>;
 		
-		turn rffoot to x-axis <9.3> now;
-		turn rffoot to y-axis <9> speed <96.000000>;
-		turn rffoot to z-axis <-1> speed <54.000000>;
-		
-		turn rbthigh to y-axis <0> speed <72.000000>;
-		turn rbthigh to z-axis <0> speed <42.000000>;
-		
-		turn rbleg to x-axis <0> speed <48.000000>;
-		turn rbleg to z-axis <0> speed <126.000000>;
-		
-		turn rbfoot to x-axis <0> speed <60.000000>;
-		turn rbfoot to y-axis <0> speed <54.000000>;
-		turn rbfoot to z-axis <0> speed <66.000000>;
-		
-		turn lbthigh to y-axis <9> speed <84.000000>;
-		turn lbthigh to z-axis <-10> speed <60.000000>;
-		
-		turn lbleg to x-axis <0> now;
-		turn lbleg to z-axis <11> speed <126.000000>;
-		
-		turn lbfoot to x-axis <9.3> now;
-		turn lbfoot to y-axis <-9> speed <96.000000>;
-		turn lbfoot to z-axis <1> speed <54.000000>;
-		
-		turn lfthigh to y-axis <0> speed <72.000000>;
-		turn lfthigh to z-axis <0> speed <42.000000>;
-		
-		turn lfleg to x-axis <0> speed <48.000000>;
-		turn lfleg to z-axis <0> speed <126.000000>;
+		turn lfleg to x-axis 4 * <0> speed 4 * <48.000000>;
 		
 		turn lffoot to x-axis <0> speed <60.000000>;
 		turn lffoot to y-axis <0> speed <54.000000>;
 		turn lffoot to z-axis <0> speed <66.000000>;
 		
+		turn rfhip to y-axis <-18> speed <27.000000>;
+		turn rfthigh to x-axis <-10> speed <60.000000>;
+		
+		turn rfleg to x-axis 4 * <0> speed 4 * <48>;
+		
+		turn rffoot to x-axis <9.3> speed <55.800000>;
+		turn rffoot to y-axis <9> speed <54.000000>;
+		turn rffoot to z-axis <1> speed <6.000000>;
+		
+		turn lbhip to y-axis <-45> speed <54.000000>;
+		turn lbthigh to x-axis <20> speed <60.000000>;
+		
+		turn lbleg to x-axis 4 * <8> speed 4 * <48>;
+		
+		turn lbfoot to x-axis <-9.3> speed <55.800000>;
+			
+		turn rbhip to y-axis <30> speed <60.000000>;
+		turn rbthigh to x-axis <-10> speed <42.000000>;
+		
+		turn rbleg to x-axis 4* <6> speed 2 * <48.000000>;
+		
+		turn rbfoot to x-axis <0> speed <60.000000>;
+
 		sleep 140;
 		}
 		if (bMoving | bSteering) 
 		{
 		
 		// step 4 foot forward
+		move lbhip2 to z-axis [0] speed [25];
+		move rbhip2 to z-axis [-3] speed [5];
+		move rfhip2 to z-axis [4] speed [5];
+		move lfhip2 to z-axis [1] speed [5];
 		
-		turn rfthigh to y-axis <12> speed <126.000000>;
-		turn rfthigh to z-axis <20> speed <60.000000>;
+		turn base to z-axis <-6> speed <12.5>;
+		turn base to x-axis <0> speed <12.5>;
+		turn body to z-axis <3> speed <6.25>;
+		turn body to x-axis <0> speed <6.25>;	
 		
-		turn rfleg to x-axis <-8> speed <48.000000>;
-		turn rfleg to z-axis <-28> speed <102.000000>;
+		turn lfhip to y-axis <30> speed <45.000000>;
+		turn lfthigh to x-axis <4> speed <24.000000>;
 		
-		turn rffoot to x-axis <-12> speed <127.800000>;
-		turn rffoot to y-axis <-13> speed <132.000000>;
-		turn rffoot to z-axis <9> speed <60.000000>;
-		
-		turn rbthigh to y-axis <-15> speed <90.000000>;
-		turn rbthigh to z-axis <-4> speed <24.000000>;
-		
-		turn rbleg to x-axis <0> now;
-		turn rbleg to z-axis <14> speed <84.000000>;
-		
-		turn rbfoot to x-axis <-2> speed <12.000000>;
-		turn rbfoot to y-axis <15> speed <90.000000>;
-		turn rbfoot to z-axis <-9> speed <54.000000>;
-		
-		turn lbthigh to y-axis <-12> speed <126.000000>;
-		turn lbthigh to z-axis <-20> speed <60.000000>;
-		
-		turn lbleg to x-axis <-8> speed <48.000000>;
-		turn lbleg to z-axis <28> speed <102.000000>;
-		
-		turn lbfoot to x-axis <-12> speed <127.800000>;
-		turn lbfoot to y-axis <13> speed <132.000000>;
-		turn lbfoot to z-axis <-9> speed <60.000000>;
-		
-		turn lfthigh to y-axis <15> speed <90.000000>;
-		turn lfthigh to z-axis <4> speed <24.000000>;
-		
-		turn lfleg to x-axis <0> now;
-		turn lfleg to z-axis <-14> speed <84.000000>;
+		turn lfleg to x-axis 4 * <0> speed 4 * <48>;
 		
 		turn lffoot to x-axis <-2> speed <12.000000>;
 		turn lffoot to y-axis <-15> speed <90.000000>;
 		turn lffoot to z-axis <9> speed <54.000000>;
 		
+		turn rfhip to y-axis <-19.5> speed <27.000000>;
+		turn rfthigh to x-axis <0> speed <60.000000>;
+		
+		turn rfleg to x-axis 4 * <-8> speed 4 * <48.000000>;
+		
+		turn rffoot to x-axis <-12> speed <127.800000>;
+		turn rffoot to y-axis <-13> speed <132.000000>;
+		turn rffoot to z-axis <-9> speed <60.000000>;
+
+		turn lbhip to y-axis <-60> speed <54.000000>;
+		turn lbthigh to x-axis <20> speed <80.000000>;
+		
+		turn lbleg to x-axis 4 * <-2> speed 2 * <48.000000>;
+		
+		turn lbfoot to x-axis <12> speed <127.800000>;
+		
+		turn rbhip to y-axis <30> speed <90.000000>;
+		turn rbthigh to x-axis <-15> speed <24.000000>;
+		
+		turn rbleg to x-axis 4* <8> speed 2 * <48>;
+		
+		turn rbfoot to x-axis <0> speed <12.000000>;
 		sleep 140;
 		}
 		if (bMoving | bSteering) 
@@ -286,52 +291,49 @@ MotionControl()
 		
 		// step 5 put down foot up front
 		
-		turn rfthigh to y-axis <12> now;
-		turn rfthigh to z-axis <-7> speed <162.000000>;
+		turn base to z-axis <0> speed <12.5>;		
+		turn base to x-axis <-2.5> speed <12.5>;
+		turn body to z-axis <0> speed <6.25>;
+		turn body to x-axis <1.25> speed <6.25>;	
 		
-		turn rfleg to x-axis <-8> now;
-		turn rfleg to z-axis <21> speed <294.000000>;
+		move lbhip2 to z-axis [-1] speed [5];
+		move rbhip2 to z-axis [-4] speed [5];
+		move rfhip2 to z-axis [3] speed [5];
+		move lfhip2 to z-axis [0] speed [5];
 		
-		turn rffoot to x-axis <10> speed <132.000000>;
-		turn rffoot to y-axis <-9> speed <24.000000>;
-		turn rffoot to z-axis <-11> speed <120.000000>;
+		turn lfhip to y-axis <34> speed <24.000000>;
+		turn lfthigh to x-axis <0> speed <24.000000>;
 		
-		
-		turn rbthigh to y-axis <-23> speed <48.000000>;
-		turn rbthigh to z-axis <0> speed <24.000000>;
-		
-		turn rbleg to x-axis <0> now;
-		turn rbleg to z-axis <10> speed <24.000000>;
-		
-		turn rbfoot to x-axis <9.3> speed <67.800000>;
-		turn rbfoot to y-axis <25> speed <60.000000>;
-		turn rbfoot to z-axis <-10> speed <6.000000>;
-		
-		
-		turn lbthigh to y-axis <-12> now;
-		turn lbthigh to z-axis <7> speed <162.000000>;
-		
-		turn lbleg to x-axis <-8> now;
-		turn lbleg to z-axis <-21> speed <294.000000>;
-		
-		turn lbfoot to x-axis <10> speed <132.000000>;
-		turn lbfoot to y-axis <9> speed <24.000000>;
-		turn lbfoot to z-axis <11> speed <120.000000>;
-		
-		
-		turn lfthigh to y-axis <23> speed <48.000000>;
-		turn lfthigh to z-axis <0> speed <24.000000>;
-		
-		turn lfleg to x-axis <0> now;
-		turn lfleg to z-axis <-10> speed <24.000000>;
+		turn lfleg to x-axis 4 * <0> speed 4 * <48>;
 		
 		turn lffoot to x-axis <9.3> speed <67.800000>;
 		turn lffoot to y-axis <-25> speed <60.000000>;
 		turn lffoot to z-axis <10> speed <6.000000>;
+		
+		turn rfhip to y-axis <-19.5> speed <27.000000>;
+		turn rfthigh to x-axis <7> speed <162.000000>;
+		
+		turn rfleg to x-axis 4 * <-8> speed 4 * <48>;
+		
+		turn rffoot to x-axis <10> speed <132.000000>;
+		turn rffoot to y-axis <-9> speed <24.000000>;
+		turn rffoot to z-axis <11> speed <120.000000>;
+		
+		turn lbhip to y-axis <-68> speed <54.000000>;
+		turn lbthigh to x-axis <0> speed <162.000000>;
+		
+		turn lbleg to x-axis 4 * <-2> speed 2 * <48>;
+		
+		turn lbfoot to x-axis <-10> speed <132.000000>;
+
+		turn rbhip to y-axis <39> speed <48.000000>;
+		turn rbthigh to x-axis <-8> speed <24.000000>;
+		
+		turn rbleg to x-axis 4 * <12> speed 2 * <48>;
+		
+		turn rbfoot to x-axis <-9.3> speed <67.800000>;
 		}
 		sleep 140;
-
-	
 	}
 }
 
@@ -365,12 +367,7 @@ HitByWeapon(anglex, anglez)
 
 RockUnit(anglex, anglez)
 {
-	turn body to x-axis anglex speed <50.000000>;
-	turn body to z-axis <0> - anglez speed <50.000000>;
-	wait-for-turn body around z-axis;
-	wait-for-turn body around x-axis;
-	turn body to z-axis <0.000000> speed <20.000000>;
-	turn body to x-axis <0.000000> speed <20.000000>;
+
 }
 
 Create()
@@ -386,6 +383,10 @@ Create()
 	start-script SmokeUnit();
 	start-script Steering();
 	start-script MotionControl();
+	turn lfhip to y-axis <30> now;
+	turn rfhip to y-axis <-30> now;
+	turn lbhip to y-axis <-54> now;
+	turn rbhip to y-axis <54> now;
 }
 
 StartMoving()
@@ -449,11 +450,9 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	gun_1 = turret;
-	move barrel to z-axis [-2.750000] speed [20.625000];
+	move barrel to z-axis [-5] now;
 	emit-sfx 1024 + 0 from flare;
-	sleep 50;
 	move barrel to z-axis [0.000000] speed [1.000000];
-	sleep 100;
 	gun_1 = body;
 }
 
@@ -470,15 +469,15 @@ Killed(severity, corpsetype)
 		explode sleeve type BITMAPONLY | NOHEATCLOUD;
 		explode barrel type BITMAPONLY | NOHEATCLOUD;
 		explode flare type BITMAPONLY | NOHEATCLOUD;
-		explode rbthigh type BITMAPONLY | NOHEATCLOUD;
-		explode rbleg type BITMAPONLY | NOHEATCLOUD;
-		explode rbfoot type BITMAPONLY | NOHEATCLOUD;
-		explode lfthigh type BITMAPONLY | NOHEATCLOUD;
-		explode lfleg type BITMAPONLY | NOHEATCLOUD;
-		explode lffoot type BITMAPONLY | NOHEATCLOUD;
 		explode lbthigh type BITMAPONLY | NOHEATCLOUD;
 		explode lbleg type BITMAPONLY | NOHEATCLOUD;
 		explode lbfoot type BITMAPONLY | NOHEATCLOUD;
+		explode lfthigh type BITMAPONLY | NOHEATCLOUD;
+		explode lfleg type BITMAPONLY | NOHEATCLOUD;
+		explode lffoot type BITMAPONLY | NOHEATCLOUD;
+		explode rbthigh type BITMAPONLY | NOHEATCLOUD;
+		explode rbleg type BITMAPONLY | NOHEATCLOUD;
+		explode rbfoot type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
@@ -492,15 +491,15 @@ Killed(severity, corpsetype)
 		explode sleeve type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbthigh type FALL | NOHEATCLOUD;
-		explode rbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbthigh type FALL | NOHEATCLOUD;
+		explode lbleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lffoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbthigh type FALL | NOHEATCLOUD;
-		explode lbleg type FALL | NOHEATCLOUD;
-		explode lbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbthigh type FALL | NOHEATCLOUD;
+		explode rbleg type FALL | NOHEATCLOUD;
+		explode rbfoot type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
@@ -514,15 +513,15 @@ Killed(severity, corpsetype)
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type SMOKE | FALL | NOHEATCLOUD;
-		explode rbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbleg type SMOKE | FALL | NOHEATCLOUD;
-		explode rbfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode lbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbleg type SMOKE | FALL | NOHEATCLOUD;
+		explode lbfoot type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		explode lfthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfleg type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lffoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbthigh type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbleg type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
@@ -534,14 +533,14 @@ Killed(severity, corpsetype)
 		explode sleeve type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode barrel type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode flare type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode rbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode rbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode lbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfthigh type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode lfleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode lffoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode lbthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode lbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rbthigh type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rbleg type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rbfoot type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
