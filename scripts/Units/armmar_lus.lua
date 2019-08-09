@@ -24,9 +24,9 @@ hasWpn = false
 currentSpeed = 200
 weapons = {}
 
-include(unitName.."_lus/setup.lua")
-include(unitName.."_lus/move.lua")
-include(unitName.."_lus/weaponsdata.lua")
+include("units/"..unitName.."_lus/setup.lua")
+include("units/"..unitName.."_lus/move.lua")
+include("units/"..unitName.."_lus/weaponsdata.lua")
 	
 isMoving, isAiming, isBuilding, counter, canAim, isInLoop, isUW = false, false, false, 0, false, false, false
 step = 1

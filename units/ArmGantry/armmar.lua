@@ -27,7 +27,7 @@ return {
 		name = "Marauder",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
-		script = "bots_lus.lua",
+		script = "Units/armmar_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 455,
