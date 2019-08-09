@@ -74,7 +74,7 @@ end
 
 function walk()
 	isInLoop = true
-	while (isMoving) and not (isAiming) do
+	while (isMoving) and not (isAiming) and not (isUW) do
 		local keyFrame = keyFramesWalk
 		local timer = stepTimes[step]
 		for pieceNum, anims in pairs(keyFrame) do
@@ -98,7 +98,7 @@ end
 
 function walklegs()
 	isInLoop = true
-	while (isMoving) and (isAiming) do
+	while (isMoving) and (isAiming) and not (isUW) do
 		local keyFrame = keyFramesWalk
 		local timer = stepTimes[step]
 		for pieceNum, anims in pairs(keyFrame) do
@@ -122,27 +122,93 @@ function walklegs()
 	isInLoop = false
 end
 
+function swim()
+	isInLoop = true
+	if (isMoving) and (isUW) then
+		-- swim transform anim	
+		Move(ruparm, 3, 14, 14)
+		Move(luparm, 3, 14, 14)
+		Move(ruparm, 2, -5, 5)
+		Move(luparm, 2, -5, 5)
+		Turn(ruparm, 1, ang(175),ang(80))	
+		Turn(luparm, 1, ang(175),ang(80))	
+		Turn(rthigh, 1, ang(85), ang(100))	
+		Turn(lthigh, 1, ang(85), ang(100))	
+		Turn(rleg, 1, ang(30),ang(50))	
+		Turn(lleg, 1, ang(30),ang(50))	
+		Turn(rfoot, 1, ang(45),ang(60))	
+		Turn(lfoot, 1, ang(45),ang(60))	
+		Sleep(500)
+	end
+	while (isMoving) and (isUW) do
+		-- swim transform anim	
+		Move(ruparm, 3, 14, 14)
+		Move(luparm, 3, 14, 14)
+		Move(ruparm, 2, -5, 5)
+		Move(luparm, 2, -5, 5)
+		Turn(ruparm, 1, ang(180),ang(80))	
+		Turn(luparm, 1, ang(180),ang(80))	
+		Turn(rthigh, 1, ang(85), ang(100))	
+		Turn(lthigh, 1, ang(85), ang(100))	
+		Turn(rleg, 1, ang(30),ang(50))	
+		Turn(lleg, 1, ang(30),ang(50))	
+		Turn(rfoot, 1, ang(45),ang(60))	
+		Turn(lfoot, 1, ang(45),ang(60))	
+		Sleep(500)
+	end
+	RestoreArms()
+	Sleep(800)
+	isInLoop = false
+end
+
+
 function RestoreLegs()
-	for pieceNum, data in pairs(keyFramesWalk) do
-		if not PiecesToLock[pieceNum] then
-			timedTurn(pieceNum, 1, 0, ang(30), 500)
-			timedTurn(pieceNum, 2, 0, ang(30), 500)
-			timedTurn(pieceNum, 3, 0, ang(30), 500)
-			timedMove(pieceNum, 1, 0, 1.5, 500)
-			timedMove(pieceNum, 2, 0, 1.5, 500)
-			timedMove(pieceNum, 3, 0, 1.5, 500)
+	if isUW then
+		Turn(rthigh, 1, ang(85), ang(100))	
+		Turn(lthigh, 1, ang(85), ang(100))
+		Turn(rleg, 1, ang(30), ang(50))	
+		Turn(lleg, 1, ang(30), ang(50))	
+		Turn(rfoot, 1, ang(45), ang(60))	
+		Turn(lfoot, 1, ang(45), ang(60))	
+	else
+		for pieceNum, data in pairs(keyFramesWalk) do
+			if not PiecesToLock[pieceNum] then
+				timedTurn(pieceNum, 1, 0, ang(30), 150)
+				timedTurn(pieceNum, 2, 0, ang(30), 150)
+				timedTurn(pieceNum, 3, 0, ang(30), 150)
+				timedMove(pieceNum, 1, 0, 1.5, 150)
+				timedMove(pieceNum, 2, 0, 1.5, 150)
+				timedMove(pieceNum, 3, 0, 1.5, 150)
+			end
 		end
 	end
 	Sleep(500)
 end
 
 function RestoreArms()
-	for pieceNum, data in pairs(PiecesToLock) do
-			timedTurn(pieceNum, 1, 0, ang(30), 500)
-			timedTurn(pieceNum, 2, 0, ang(30), 500)
-			timedTurn(pieceNum, 3, 0, ang(30), 500)
-			timedMove(pieceNum, 1, 0, 1.5, 500)
-			timedMove(pieceNum, 2, 0, 1.5, 500)
-			timedMove(pieceNum, 3, 0, 1.5, 500)
+	if isUW then
+		Move(ruparm, 3, 14, 14)
+		Move(luparm, 3, 14, 14)
+		Move(ruparm, 2, -5, 5)
+		Move(luparm, 2, -5, 5)
+		Turn(ruparm, 1, ang(180),ang(80))	
+		Turn(luparm, 1, ang(180),ang(80))	
+		Move(laaturret, 2, -5.5)
+		Move(raaturret, 2, -5.5)
+		Turn(laacannon, 1, ang(27.5))
+		Turn(raacannon, 1, ang(27.5))
+	else
+		for pieceNum, data in pairs(PiecesToLock) do
+			timedTurn(pieceNum, 1, 0, ang(30), 150)
+			timedTurn(pieceNum, 2, 0, ang(30), 150)
+			timedTurn(pieceNum, 3, 0, ang(30), 150)
+			timedMove(pieceNum, 1, 0, 1.5, 150)
+			timedMove(pieceNum, 2, 0, 1.5, 150)
+			timedMove(pieceNum, 3, 0, 1.5, 150)
+		end
+		Move(laaturret, 2, -5.5)
+		Move(raaturret, 2, -5.5)
+		Turn(laacannon, 1, ang(27.5))
+		Turn(raacannon, 1, ang(27.5))
 	end
 end

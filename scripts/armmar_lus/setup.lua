@@ -8,6 +8,12 @@ pelvis = piece 'pelvis'
 				ruparm = piece 'ruparm'
 					rcannon = piece 'rcannon'
 						lflare = piece 'lflare'
+			laaturret =  piece 'laaturret'
+				laacannon = piece 'laacannon'
+					lflareaa =  piece 'lflareaa'
+			raaturret =  piece 'raaturret'
+				raacannon =  piece 'raacannon'
+					rflareaa =  piece 'rflareaa'
 	rthigh = piece 'rthigh'
 		rleg = piece 'rleg'
 			rfoot = piece 'rfoot'
@@ -18,4 +24,5 @@ currentSpeed = 100
 			
 			
 function InitialPiecesSetup()
+
 end

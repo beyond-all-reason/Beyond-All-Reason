@@ -28,7 +28,7 @@ include(unitName.."_lus/setup.lua")
 include(unitName.."_lus/move.lua")
 include(unitName.."_lus/weaponsdata.lua")
 	
-isMoving, isAiming, isBuilding, counter, canAim, isInLoop = false, false, false, 0, false, false
+isMoving, isAiming, isBuilding, counter, canAim, isInLoop, isUW = false, false, false, 0, false, false, false
 step = 1
 	
 function MotionControl()
@@ -39,16 +39,32 @@ function MotionControl()
 		local move = isMoving
 		if move then
 			if aim then
-				canAim = true
-				StartThread(walklegs)
-				while isInLoop do
-					Sleep(1)
+				if not isUW then
+					canAim = true
+					StartThread(walklegs)
+					while isInLoop do
+						Sleep(1)
+					end
+				else
+					canAim = true
+					StartThread(swim)
+					while isInLoop do
+						Sleep(1)
+					end
 				end
 			else
-				canAim = false
-				StartThread(walk)
-				while isInLoop do
-					Sleep(1)
+				if not isUW then
+					canAim = false
+					StartThread(walk)
+					while isInLoop do
+						Sleep(1)
+					end
+				else
+					canAim = false
+					StartThread(swim)
+					while isInLoop do
+						Sleep(1)
+					end
 				end
 			end
 			justmoved = true
@@ -63,6 +79,14 @@ function MotionControl()
 			end
 		end
 		Sleep(1)
+	end
+end
+
+function ypos()
+	while true do
+		local _,y = Spring.GetUnitPosition(unitID)
+		isUW = (y < -60)
+		Sleep(500)
 	end
 end
 
@@ -122,8 +146,12 @@ function WeaponControl()
 					curPitch = wtdPitch
 					pitchReady = true
 				end
-				Turn(aimy, 2, curHead)
-				Turn(aimx, 1, curPitch)
+				for id,piecenum in pairs (aimy) do
+					Turn(piecenum, 2, curHead)
+				end
+				for id,piecenum in pairs (aimx) do
+					Turn(piecenum, 1, curPitch)
+				end
 				weapons[weaponID].curHead = curHead
 				weapons[weaponID].curPitch = curPitch
 				local canFire = headReady and pitchReady and wpnReady
@@ -147,6 +175,7 @@ end
 function script.Create()
 	InitialPiecesSetup()
 	StartThread(MotionControl)
+	StartThread(ypos)
 	if hasWpn then
 		StartThread(WeaponControl)
 	end
@@ -172,15 +201,15 @@ function RestoreProgress(weaponID)
 	return (weapons[weaponID].curHead == 0 and weapons[1].curPitch == 0)
 end
 
-function RestoreAfterDelay()
+function RestoreAfterDelay(weaponID)
 	SetSignalMask(2)
 	Sleep(sleeptime)
-	RestoreWeaponAim(1)
+	RestoreWeaponAim(weaponID)
 	RestoreArms()
-	weapons[1].wpnReady = false
+	weapons[weaponID].wpnReady = false
 	local restored = false
 	while not restored do
-		restored = RestoreProgress(1)
+		restored = RestoreProgress(weaponID)
 		Sleep(100)
 	end
 	isAiming = false
@@ -192,7 +221,7 @@ end
 
 function script.AimWeapon(weaponID, heading, pitch)
 	Signal(2)
-	StartThread(RestoreAfterDelay)
+	StartThread(RestoreAfterDelay, weaponID)
 	isAiming = true
 	if not weapons[weaponID].wpnReady then
 		StartThread(DrawWeapon, weaponID)
