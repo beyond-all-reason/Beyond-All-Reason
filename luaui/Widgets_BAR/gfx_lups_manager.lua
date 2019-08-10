@@ -451,7 +451,10 @@ local function CheckForExistingUnits()
     local unitID    = allUnits[i]
     local unitDefID = Spring.GetUnitDefID(unitID)
     if (spGetUnitRulesParam(unitID, "under_construction") ~= 1) then
-		UnitFinished(nil,unitID,unitDefID)
+        local _,_,inBuild = Spring.GetUnitIsStunned(unitID)
+        if not inBuild then
+            UnitFinished(nil,unitID,unitDefID)
+        end
 	end
   end
 
