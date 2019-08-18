@@ -17,6 +17,7 @@ end
 --------------------------------------------------------------------------------
 
 local spGetGameSpeed        = Spring.GetGameSpeed
+local spGetGameState       = Spring.GetGameState
 
 local glColor               = gl.Color
 local glTexture             = gl.Texture
@@ -149,6 +150,10 @@ function widget:Update(dt)
         paused = true
     else
         paused = false
+    end
+
+    if spGetGameState and select(3, spGetGameState()) then
+        paused = true
     end
 end
 
