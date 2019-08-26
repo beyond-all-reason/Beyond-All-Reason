@@ -120,7 +120,10 @@ else
 					s_cpu = string.gsub(s_cpu, " CPU", "")
 					s_cpu = string.gsub(s_cpu, "%((.*)%)", "")
 					s_ram = string.match(line, '([0-9]*MB RAM)')
-					s_ram = string.gsub(s_ram, " RAM", "")
+						if s_ram ~= nil then
+							s_ram = string.gsub(s_ram, " RAM", "")
+						end
+					end
 				end
 				if (string.find(line:lower(), 'operating system: ')) then
 					s_os = string.sub(line, select(2, string.find(line:lower(), 'operating system: ')))
