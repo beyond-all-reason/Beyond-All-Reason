@@ -1,7 +1,7 @@
 function widget:GetInfo()
     return {
         name      = "Messages",
-        desc      = "Typewrites messages at the center-bottom of the screen",
+        desc      = "Typewrites messages at the center-bottom of the screen (missions, tutorials)",
         author    = "Floris",
         date      = "September 2019",
         license   = "GNU GPL, v2 or later",
@@ -99,29 +99,36 @@ function addMessage(text)
     end
 end
 
+
 function widget:Initialize()
     widgetHandler:RegisterGlobal('GadgetAddMessage', addMessage)
     WG['messages'] = {}
     WG['messages'].addMessage = function(text)
         addMessage(text)
     end
+
     -- test msg
-    --if Spring.GetGameFrame() < 30 then
-    addMessage("\255\230\255\200Commander,\nWe're in a peculiar situation so you have to begin on your own...\nInitiate a base and we'll redirect reinforcements right after...")
-    --end
+    if not dataRestored then
+        addMessage("\255\230\255\200Commander,\nWe're in a peculiar situation so you have to begin on your own...\nInitiate a base and we'll redirect reinforcements right after...")
+    end
 end
+
 
 local sec = 0
 local testmessaged = 0
 function widget:Update(dt)
-    sec = sec + dt
-    if testmessaged < 1 and sec > 3.5 then
-        testmessaged = 1
-        addMessage("\nStandby we will keep you updated.\nGood luck!")
-    end
-    if testmessaged < 2 and sec > 12 then --and Spring.GetGameFrame() < 30*11 then
-        testmessaged = 2
-        addMessage("\n\nEnemies have been detected in your vicinity!\nBetter expand quick.")
+
+    -- delayed test msg
+    if not dataRestored and Spring.GetGameFrame() > 30 then
+        sec = sec + dt
+        if testmessaged < 1 and sec > 3.5 then
+            testmessaged = 1
+            addMessage("\nStandby we will keep you updated.\nGood luck!")
+        end
+        if testmessaged < 2 and sec > 12 then --and Spring.GetGameFrame() < 30*11 then
+            testmessaged = 2
+            addMessage("\n\nEnemies have been detected in your vicinity!\nBetter expand quick.")
+        end
     end
 
     if messageLines[currentLine] ~= nil then
@@ -200,5 +207,25 @@ end
 function widget:TextCommand(command)
     if string.sub(command,1, 11) == "addmessage " then
         addMessage(string.sub(command, 11))
+    end
+end
+
+
+function widget:GetConfigData(data)
+    for i, _ in ipairs(messageLines) do
+        messageLines[i][7] = messageLines[i][4] - 1   -- so displaylist will be renewed after reload
+        messageLines[i][6] = nil
+    end
+    savedTable = {}
+    savedTable.messageLines = messageLines
+    return savedTable
+end
+
+
+function widget:SetConfigData(data)
+    if Spring.GetGameFrame() > 0 and data.messageLines ~= nil then
+        messageLines = data.messageLines
+        currentLine = #messageLines
+        dataRestored = true
     end
 end
