@@ -117,8 +117,6 @@ function widget:DrawScreen()
     widgetHandler:RemoveWidget(self)
     return
   end
-  
-  local timer = widgetHandler:GetHourTimer()
 
   local msg = '\255\255\255\255' .. string.format("%s %s", "Gametype: ",  message)
   local msg2 = '\255\255\255\255' .. message2
