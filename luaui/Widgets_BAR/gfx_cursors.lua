@@ -55,7 +55,7 @@ end
 
 function widget:ViewResize()
 	local ssx,ssy = Spring.GetScreenGeometry()
-	autoCursorSize = 100 * (0.6 + (ssx*ssy / 7000000)) * sizeMult
+	autoCursorSize = 100 * (0.55 + (ssx*ssy / 6600000)) * sizeMult
 	SetCursor(Settings['cursorSet'])
 end
 
