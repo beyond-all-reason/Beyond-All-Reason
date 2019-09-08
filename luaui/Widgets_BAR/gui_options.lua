@@ -1470,6 +1470,10 @@ function applyOptionValue(i, skipRedrawWindow)
 			else
 				Spring.SetConfigInt("snd_volmusic", value)
 			end
+		elseif id == 'cursorsize' then
+			if WG['cursors'] then
+				WG['cursors'].setsizemult(value)
+			end
 		elseif id == 'crossalpha' then
 			Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value)
 		elseif id == 'darkenmap' then
@@ -2346,6 +2350,7 @@ function init()
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps"},
 		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size'},
+		{id="cursorsize", group="control", name=widgetOptionColor.."   size", type="slider", min=0.5, max=2, step=0.1, value=1, description='Note that cursor already auto scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size (when availible)'},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
 		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
 		{id="containmouse", group="control", widget="Grabinput", name="Contain mouse", type="bool", value=GetWidgetToggleValue("Grabinput"), description='When in windowed mode, this prevents your mouse from moving out of it'},
@@ -2608,6 +2613,7 @@ function init()
 	-- cursors
 	if (WG['cursors'] == nil) then
 		options[getOptionByID('cursor')] = nil
+		options[getOptionByID('cursorsize')] = nil
 	else
 		local cursorsets = {}
 		local cursor = 1
@@ -2622,6 +2628,11 @@ function init()
 		end
 		options[getOptionByID('cursor')].options = cursorsets
 		options[getOptionByID('cursor')].value = cursor
+		if WG['cursors'].getsizemult then
+			options[getOptionByID('cursorsize')].value = WG['cursors'].getsizemult()
+		else
+			options[getOptionByID('cursorsize')] = nil
+		end
 	end
 	if widgetHandler.knownWidgets["SSAO"] == nil then
 		options[getOptionByID('ssao')] = nil
