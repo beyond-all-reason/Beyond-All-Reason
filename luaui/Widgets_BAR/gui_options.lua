@@ -64,14 +64,16 @@ local screenWidth = 1050-bgMargin-bgMargin
 local changesRequireRestart = false
 local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
 
-local customScale = 1
 
 local startLine = 1
 
 local customMapSunPos = {}
 
-local screenX = (vsx*0.5) - (screenWidth/2)
-local screenY = (vsy*0.5) + (screenHeight/2)
+local customScale = 1.1
+local centerPosX = 0.51	-- note: dont go too far from 0.5
+local centerPosY = 0.49		-- note: dont go too far from 0.5
+local screenX = (vsx*centerPosX) - (screenWidth/2)
+local screenY = (vsy*centerPosY) + (screenHeight/2)
 
 local wsx,wsy,wpx,wpy = Spring.GetWindowGeometry()
 local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
@@ -269,8 +271,8 @@ local customPresets = {}
 
 function widget:ViewResize()
   vsx,vsy = Spring.GetViewGeometry()
-  screenX = (vsx*0.5) - (screenWidth/2)
-  screenY = (vsy*0.5) + (screenHeight/2)
+  screenX = (vsx*centerPosX) - (screenWidth/2)
+  screenY = (vsy*centerPosY) + (screenHeight/2)
   widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
   WG.uiScale = widgetScale
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
@@ -770,10 +772,8 @@ end
 
 
 function correctMouseForScaling(x,y)
-	local interfaceScreenCenterPosX = (screenX+(screenWidth/2))/vsx
-	local interfaceScreenCenterPosY = (screenY-(screenHeight/2))/vsy
-	x = x - (((x/vsx)-interfaceScreenCenterPosX) * vsx)*((widgetScale-1)/widgetScale)
-	y = y - (((y/vsy)-interfaceScreenCenterPosY) * vsy)*((widgetScale-1)/widgetScale)
+	x = x - (((x/vsx)-0.5) * vsx)*((widgetScale-1)/widgetScale)
+	y = y - (((y/vsy)-0.5) * vsy)*((widgetScale-1)/widgetScale)
 	return x,y
 end
 
@@ -893,7 +893,7 @@ function widget:DrawScreen()
 	  end
 
 		-- draw the options panel
-		glPushMatrix()
+	  	  glPushMatrix()
 			glTranslate(-(vsx * (widgetScale-1))/2, -(vsy * (widgetScale-1))/2, 0)
 			glScale(widgetScale, widgetScale, 1)
 			glCallList(windowList)
@@ -930,14 +930,14 @@ function widget:DrawScreen()
 			showOnceMore = false
 
 			-- draw button hover
-			local usedScreenX = (vsx*0.5) - ((screenWidth/2)*widgetScale)
-			local usedScreenY = (vsy*0.5) + ((screenHeight/2)*widgetScale)
+			local usedScreenX = (vsx*centerPosX) - ((screenWidth/2)*widgetScale)
+			local usedScreenY = (vsy*centerPosY) + ((screenHeight/2)*widgetScale)
 
 			-- mouseover (highlight and tooltip)
 
 		  	local description = ''
-			local x,y,ml = Spring.GetMouseState()
-			local cx, cy = correctMouseForScaling(x,y)
+			--local x,y,ml = Spring.GetMouseState()
+			--local cx, cy = correctMouseForScaling(x,y)
 
 			if groupRect ~= nil then
 				for id,group in pairs(optionGroups) do
@@ -1065,10 +1065,10 @@ function widget:DrawScreen()
 					local interfaceScreenCenterPosY = (screenY-(screenHeight/2))/vsy
 
 					-- translate coordinates to actual screen coords (because we applied glscale/gltranlate above)
-					local x1 = (vsx*interfaceScreenCenterPosX) - (((vsx/2) - optionButtons[showSelectOptions][1]) * widgetScale)
-					local x2 = (vsx*interfaceScreenCenterPosX) - (((vsx/2) - optionButtons[showSelectOptions][3]) * widgetScale)
-					local y1 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - (yPos-oHeight-oPadding)) * widgetScale)
-					local y2 = (vsy*interfaceScreenCenterPosY) - (((vsy/2) - optionButtons[showSelectOptions][4]) * widgetScale)
+					local x1 = (vsx*0.5) - (((vsx/2) - optionButtons[showSelectOptions][1]) * widgetScale)
+					local x2 = (vsx*0.5) - (((vsx/2) - optionButtons[showSelectOptions][3]) * widgetScale)
+					local y1 = (vsy*0.5) - (((vsy/2) - (yPos-oHeight-oPadding)) * widgetScale)
+					local y2 = (vsy*0.5) - (((vsy/2) - optionButtons[showSelectOptions][4]) * widgetScale)
 					WG['guishader'].InsertScreenRect(x1, y1, x2, y2, 'options_select')
 					WG['guishader'].insertRenderDlist(selectOptionsList)
 				else
@@ -1077,12 +1077,12 @@ function widget:DrawScreen()
 			elseif prevSelectHover ~= nil then
 				prevSelectHover = nil
 			end
-	  glPopMatrix()
+	  	glPopMatrix()
 	else
 		if WG['guishader'] then
 			WG['guishader'].DeleteDlist('options')
 		end
-  end
+	end
 	if checkedWidgetDataChanges == nil then
 		checkedWidgetDataChanges = true
 		loadAllWidgetData()

@@ -38,13 +38,13 @@ local textareaMinLines = 10		-- wont scroll down more, will show at least this a
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local customScale = 1
-
 local startLine = 1
 
-local vsx,vsy = Spring.GetViewGeometry()
-local screenX = (vsx*0.5) - (screenWidth/2)
-local screenY = (vsy*0.5) + (screenHeight/2)
+local customScale = 1.1
+local centerPosX = 0.51	-- note: dont go too far from 0.5
+local centerPosY = 0.49		-- note: dont go too far from 0.5
+local screenX = (vsx*centerPosX) - (screenWidth/2)
+local screenY = (vsy*centerPosY) + (screenHeight/2)
   
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
@@ -80,8 +80,8 @@ local totalChangelogLines = 0
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	screenX = (vsx*0.5) - (screenWidth/2)
-	screenY = (vsy*0.5) + (screenHeight/2)
+	screenX = (vsx*centerPosX) - (screenWidth/2)
+	screenY = (vsy*centerPosY) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
@@ -524,9 +524,9 @@ function widget:MouseWheel(up, value)
 		local addLines = value*-3 -- direction is retarded
 		
 		startLine = startLine + addLines
-		if startLine < 1 then startLine = 1 end
 		if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
-		
+		if startLine < 1 then startLine = 1 end
+
 		if changelogList then
 			glDeleteList(changelogList)
 		end

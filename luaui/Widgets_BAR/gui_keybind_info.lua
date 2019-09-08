@@ -29,8 +29,6 @@ local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
-local customScale = 1
-
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
 
@@ -57,16 +55,17 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
-local vsx, vsy = Spring.GetViewGeometry()
 
-local vsx,vsy = Spring.GetViewGeometry()
-local screenX = (vsx*0.5) - (screenWidth/2)
-local screenY = (vsy*0.5) + (screenHeight/2)
+local customScale = 1.1
+local centerPosX = 0.51	-- note: dont go too far from 0.5
+local centerPosY = 0.49		-- note: dont go too far from 0.5
+local screenX = (vsx*centerPosX) - (screenWidth/2)
+local screenY = (vsy*centerPosY) + (screenHeight/2)
   
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	screenX = (vsx*0.5) - (screenWidth/2)
-	screenY = (vsy*0.5) + (screenHeight/2)
+	screenX = (vsx*centerPosX) - (screenWidth/2)
+	screenY = (vsy*centerPosY) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
