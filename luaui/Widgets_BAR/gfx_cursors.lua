@@ -33,13 +33,13 @@ end
 -- note: first entry should be icons inside base /anims folder
 local cursorSets = {}
 for k, subdir in pairs(VFS.SubDirs('anims')) do
-	local cursorNameSplit = split(string.gsub(string.sub(subdir, 1, #subdir-1), 'anims/', ''), '_')
-	--cursorSets[#cursorSets + 1] = string.gsub(string.sub(subdir, 1, #subdir-1), 'anims/', '')	-- game anims folder
-	--cursorSets[#cursorSets] = string.gsub(string.sub(cursorSets[#cursorSets], 1, #subdir), 'anims\\', '')	-- spring anims folder
-	if cursorSets[cursorNameSplit[1]] == nil then
-		cursorSets[cursorNameSplit[1]] = {}
+	local set = string.gsub(string.sub(subdir, 1, #subdir-1), 'anims/', '')	-- game anims folder
+	set = string.gsub(string.sub(set, 1, #subdir), 'anims\\', '')	-- spring anims folder
+	local subdirSplit = split(set, '_')
+	if cursorSets[subdirSplit[1]] == nil then
+		cursorSets[subdirSplit[1]] = {}
 	end
-	cursorSets[cursorNameSplit[1]][#cursorSets[cursorNameSplit[1]]+1] = cursorNameSplit[2]
+	cursorSets[subdirSplit[1]][#cursorSets[subdirSplit[1]]+1] = subdirSplit[2]
 end
 
 function NearestValue(table, number)
