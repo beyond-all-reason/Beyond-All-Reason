@@ -58,7 +58,6 @@ local message4 = ""
 
 local floor = math.floor
 
-local vsx, vsy = widgetHandler:GetViewSizes()
 function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.80 + (vsx*vsy / 6000000))

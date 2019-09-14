@@ -31,7 +31,6 @@ local minuskey2								= KEYSYMS.KP_MINUS
 -- SETTINGS, internal, don't edit
 --------------------------------------------------------------------------------
 local volume
-local TextDraw            		 			= fontHandler.Draw
 local vsx,vsy                    			= gl.GetViewSizes()
 local widgetPosX 							= vsx/2.5
 local widgetPosY 							= vsy/7.5

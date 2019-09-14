@@ -241,7 +241,9 @@ local testmessaged = 0
 function widget:Update(dt)
 
     local x,y,b = Spring.GetMouseState()
-    if IsOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
+    if WG['topbar'] and WG['topbar'].showingQuit() then
+        scrolling = false
+    elseif IsOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
         local alt, ctrl, meta, shift = Spring.GetModKeyState()
         if ctrl then
             scrolling = true
