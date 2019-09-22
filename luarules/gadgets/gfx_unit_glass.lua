@@ -172,7 +172,7 @@ void main(void){
 	reflColor *= fresnel;
 
 	float roughness = tex2Color.b;
-	reflColor += GetSpecularBlinnPhong(HdotN, roughness);
+	reflColor += GetSpecularBlinnPhong(HdotN, roughness) * mix(0.1, 1.0, metalness);
 
 //	tex2Color.a = 0.35;
 	gl_FragColor.rgb = diffColor + reflColor;
