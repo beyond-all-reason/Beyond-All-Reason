@@ -91,7 +91,7 @@ void main() {
 fragGlass =
 [[
 #version 150 compatibility
-#line 200086
+#line 200094
 
 uniform sampler2D tex1;
 uniform sampler2D tex2;
@@ -127,6 +127,8 @@ in Data {
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
+#define SUN_SPEC_MULT 2.0
+
 void main(void){
 	vec4 tex1Color = texture(tex1, uv);
 	vec4 tex2Color = texture(tex2, uv);
@@ -154,16 +156,12 @@ void main(void){
 	float NdotV = clamp(dot(N, V), 0.0, 1.0);
 	float HdotN = clamp(dot(H, N), 0.0, 1.0);
 
-	reflColor += vec3(2.0) * pow(HdotN, 16.0);
+	reflColor += SUN_SPEC_MULT * sunSpecular * pow(HdotN, 16.0);
 
 	float fresnel = R0v + (1.0 - R0v) * pow((1.0 - NdotV), 5.0);
 
-	gl_FragColor.rgb = diffColor * reflColor;
-	gl_FragColor.a = fresnel;
-
-//	gl_FragColor = vec4(vec3(100.0*HdotN), 1.0);
-//	gl_FragColor = vec4(mix(refrColor, reflColor, fresnel), 1.0);
-
+	gl_FragColor.rgb = diffColor + fresnel * reflColor;
+	gl_FragColor.a = tex2Color.a;
 }
 
 ]]
