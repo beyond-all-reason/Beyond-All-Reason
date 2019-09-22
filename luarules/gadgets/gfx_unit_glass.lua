@@ -50,6 +50,8 @@ local glUnitPiece = gl.UnitPiece
 local glTexture = gl.Texture
 local glUnitShapeTextures = gl.UnitShapeTextures
 
+local GL_BACK = GL.BACK
+
 -----------------------------------------------------------------
 -- Shader sources
 -----------------------------------------------------------------
@@ -133,8 +135,13 @@ in Data {
 #define NORM2SNORM(value) (value * 2.0 - 1.0)
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
-#define SUN_SPEC_MULT 2.0
-#define REFL_MULT 1.25
+#define REFL_MULT 1.35
+
+vec3 GetSpecularBlinnPhong(float HdotN, float roughness) {
+	float power = 2.0 / max(roughness * 0.25, 0.01);
+	float powerNorm = (power + 8.0) / 32.0;
+	return sunSpecular * pow(HdotN, power) * powerNorm;
+}
 
 void main(void){
 	vec4 tex1Color = texture(tex1, uv);
@@ -145,7 +152,7 @@ void main(void){
 	vec3 diffColor = mix(tex1Color.rgb, teamColor.rgb, tex1Color.a);
 
 	vec3 N = normalize(mat3(T, B, vertexN) * normal);
-	N = mix(-N, N, float(gl_FrontFacing));
+//	N = mix(-N, N, float(gl_FrontFacing));
 
 	float metalness = tex2Color.g;
 	float R0v = mix(R0, 1.0, metalness);
@@ -156,21 +163,20 @@ void main(void){
 	vec3 H = normalize(L + V); //half vector
 
 	vec3 Rl = reflect(I, N);
-	//vec3 Rf = refract(I, N, eta);
-
-	vec3 reflColor = REFL_MULT * texture(reflectTex, Rl).rgb;
-	//vec3 refrColor = texture(reflectTex, Rf).rgb;
 
 	float NdotV = clamp(dot(N, V), 0.0, 1.0);
 	float HdotN = clamp(dot(H, N), 0.0, 1.0);
 
-	reflColor += SUN_SPEC_MULT * sunSpecular * pow(HdotN, 16.0);
-
 	float fresnel = R0v + (1.0 - R0v) * pow((1.0 - NdotV), 5.0);
+	vec3 reflColor = REFL_MULT * texture(reflectTex, Rl).rgb;
+	reflColor *= fresnel;
+
+	float roughness = tex2Color.b;
+	reflColor += GetSpecularBlinnPhong(HdotN, roughness);
 
 //	tex2Color.a = 0.35;
-	gl_FragColor.rgb = diffColor + fresnel * reflColor;
-	gl_FragColor.a = (1.0 - fresnel) * 2.0 * tex2Color.a;
+	gl_FragColor.rgb = diffColor + reflColor;
+	gl_FragColor.a = mix(2.0 * tex2Color.a, 1.0, fresnel);
 }
 
 ]]
@@ -258,7 +264,7 @@ end
 
 local function RenderGlassUnits()
 	glDepthTest(true)
-	--glCulling(false)
+	glCulling(GL_BACK)
 
 	glassShader:ActivateWith( function()
 		glTexture(3, "$reflection")
@@ -300,6 +306,9 @@ local function RenderGlassUnits()
 
 		glTexture(3, false)
 	end)
+
+	glDepthTest(false)
+	glCulling(false)
 end
 
 function gadget:SunChanged()
