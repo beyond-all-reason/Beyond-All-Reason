@@ -236,7 +236,7 @@ local function UpdateGlassUnits(unitID)
 				if not glassUnitDefs[unitDefID] then
 					glassUnitDefs[unitDefID] = {}
 				end
-				Spring.Echo(unitID, unitDefID, pieceID, pieceName)
+				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
 				table.insert(glassUnitDefs[unitDefID], pieceID)
 			end
 		end
