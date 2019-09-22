@@ -38,11 +38,17 @@ local spGetVisibleUnits = Spring.GetVisibleUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetTeamColor = Spring.GetTeamColor
 
+
+local glDepthTest = gl.DepthTest
+local glCulling = gl.Culling
+--local glBlending = gl.Blending
+
 local glPushPopMatrix = gl.PushPopMatrix
 local glUnitMultMatrix = gl.UnitMultMatrix
 local glUnitPieceMultMatrix = gl.UnitPieceMultMatrix
 local glUnitPiece = gl.UnitPiece
 local glTexture = gl.Texture
+local glUnitShapeTextures = gl.UnitShapeTextures
 
 -----------------------------------------------------------------
 -- Shader sources
@@ -139,6 +145,7 @@ void main(void){
 	vec3 diffColor = mix(tex1Color.rgb, teamColor.rgb, tex1Color.a);
 
 	vec3 N = normalize(mat3(T, B, vertexN) * normal);
+	N = mix(-N, N, float(gl_FrontFacing));
 
 	float metalness = tex2Color.g;
 	float R0v = mix(R0, 1.0, metalness);
@@ -250,18 +257,12 @@ function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
 end
 
 local function RenderGlassUnits()
-
-	--gl.Color(0.2, 0.2, 0.2, 0.6)
-	gl.DepthTest(true)
-	gl.DepthMask(false)
-	gl.Culling(GL.BACK)
-
-	gl.Blending(true)
+	glDepthTest(true)
+	--glCulling(false)
 
 	glassShader:ActivateWith( function()
 		glTexture(3, "$reflection")
 
-		--glassShader:SetUniformMatrix("viewMat", "view")
 		glassShader:SetUniformMatrix("viewInvMat", "viewinverse")
 
 		if sunChanged then
@@ -275,8 +276,9 @@ local function RenderGlassUnits()
 			local unitDefID = udIDs[unitID]
 			local teamID = teamIDs[unitID]
 
-			glTexture(0, string.format("%%%d:0", unitDefID))
-			glTexture(1, string.format("%%%d:1", unitDefID))
+			glUnitShapeTextures(unitDefID, true)
+			--glTexture(0, string.format("%%%d:0", unitDefID))
+			--glTexture(1, string.format("%%%d:1", unitDefID))
 			glTexture(2, normalMaps[unitDefID])
 
 				local tr, tg, tb, ta = spGetTeamColor(teamID) -- TODO optimize
@@ -290,18 +292,14 @@ local function RenderGlassUnits()
 					end)
 				end
 
-
-			glTexture(0, false)
-			glTexture(1, false)
+			glUnitShapeTextures(unitDefID, false)
+			--glTexture(0, false)
+			--glTexture(1, false)
 			glTexture(2, false)
 		end
 
 		glTexture(3, false)
 	end)
-
-
-
-
 end
 
 function gadget:SunChanged()
