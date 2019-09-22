@@ -128,6 +128,7 @@ in Data {
 #define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 #define SUN_SPEC_MULT 2.0
+#define REFL_MULT 1.25
 
 void main(void){
 	vec4 tex1Color = texture(tex1, uv);
@@ -150,7 +151,7 @@ void main(void){
 	vec3 Rl = reflect(I, N);
 	//vec3 Rf = refract(I, N, eta);
 
-	vec3 reflColor = texture(reflectTex, Rl).rgb;
+	vec3 reflColor = REFL_MULT * texture(reflectTex, Rl).rgb;
 	//vec3 refrColor = texture(reflectTex, Rf).rgb;
 
 	float NdotV = clamp(dot(N, V), 0.0, 1.0);
@@ -160,8 +161,9 @@ void main(void){
 
 	float fresnel = R0v + (1.0 - R0v) * pow((1.0 - NdotV), 5.0);
 
+//	tex2Color.a = 0.35;
 	gl_FragColor.rgb = diffColor + fresnel * reflColor;
-	gl_FragColor.a = tex2Color.a;
+	gl_FragColor.a = (1.0 - fresnel) * 2.0 * tex2Color.a;
 }
 
 ]]
@@ -276,10 +278,6 @@ local function RenderGlassUnits()
 			glTexture(0, string.format("%%%d:0", unitDefID))
 			glTexture(1, string.format("%%%d:1", unitDefID))
 			glTexture(2, normalMaps[unitDefID])
-
-
-
-
 
 				local tr, tg, tb, ta = spGetTeamColor(teamID) -- TODO optimize
 				glassShader:SetUniformFloat("teamColor", tr, tg, tb, ta)
