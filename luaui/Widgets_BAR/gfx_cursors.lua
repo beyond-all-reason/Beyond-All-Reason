@@ -109,9 +109,18 @@ function SetCursor(cursorSet)
 			'cursorsettarget','cursorupgmex',
 		}
 		for i=1, #cursorNames do
-			local topLeft = (cursorNames[i] == 'cursornormal')
-			Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], topLeft)
+			Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], (cursorNames[i] == 'cursornormal'))
 		end
+
+		--local files = VFS.DirList("anims/"..cursorSet.."/")
+		--for i=1, #files do
+		--	local fileName = files[i]
+		--	if string.find(fileName, "_0.") then
+		--		local cursorName = string.sub(fileName, string.len("anims/"..cursorSet.."/")+1, string.find(fileName, "_0.") -1)
+		--		--Spring.AssignMouseCursor(cursorName, cursorSet..'/'..cursorName, (cursorName == 'cursornormal'))
+		--		Spring.ReplaceMouseCursor(cursorName, cursorSet..'/'..cursorName, (cursorName == 'cursornormal'))
+		--	end
+		--end
 	end
 end
 

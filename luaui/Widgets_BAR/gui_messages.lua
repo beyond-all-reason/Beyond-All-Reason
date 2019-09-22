@@ -20,7 +20,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local showTestMessages = true
+local showTestMessages = false
 
 local charSize = 17
 local charDelay = 0.015
@@ -28,6 +28,7 @@ local maxLines = 7
 local maxLinesScroll = 10
 local lineTTL = 15
 local fadeTime = 0.4
+local fadeDelay = 0.25   -- need to hover this long in order to fadein and respond to CTRL
 local backgroundOpacity = 0.2
 
 --------------------------------------------------------------------------------
@@ -245,7 +246,7 @@ function widget:Update(dt)
         scrolling = false
     elseif IsOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) then
         local alt, ctrl, meta, shift = Spring.GetModKeyState()
-        if ctrl then
+        if ctrl and startFadeTime and os.clock() > startFadeTime+fadeDelay then
             scrolling = true
         else
             --scrolling = false
@@ -308,15 +309,11 @@ function widget:DrawScreen()
         if not startFadeTime then
             startFadeTime = os.clock()
         end
-        local alt, ctrl, meta, shift = Spring.GetModKeyState()
-        if ctrl then
-            scrolling = true
-        end
         if scrolling then
             glColor(0,0,0,backgroundOpacity)
             RectRound(activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight, 6.5*widgetScale)
         else
-            local opacity = ((os.clock() - startFadeTime) / fadeTime) * backgroundOpacity
+            local opacity = ((os.clock() - (startFadeTime+fadeDelay)) / fadeTime) * backgroundOpacity
             if opacity > backgroundOpacity then
                 opacity = backgroundOpacity
             end
@@ -327,12 +324,15 @@ function widget:DrawScreen()
     else
 
         if hovering then
-            local opacityPercentage = (os.clock() - startFadeTime) / fadeTime
+            local opacityPercentage = (os.clock() - (startFadeTime+fadeDelay)) / fadeTime
             startFadeTime = os.clock() - math.max((1-opacityPercentage)*fadeTime, 0)
         end
         hovering = false
         if startFadeTime then
             local opacity = backgroundOpacity - (((os.clock() - startFadeTime) / fadeTime) * backgroundOpacity)
+            if opacity > 1 then
+                opacity = 1
+            end
             if opacity <= 0 then
                 startFadeTime = nil
             else
