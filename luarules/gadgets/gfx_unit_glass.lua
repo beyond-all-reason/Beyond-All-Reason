@@ -155,6 +155,7 @@ void main(void){
 //	N = mix(-N, N, float(gl_FrontFacing));
 
 	float metalness = tex2Color.g;
+//	metalness = 0.6;
 	float R0v = mix(R0, 1.0, metalness);
 
 	vec3 V = normalize(viewCameraDir);
@@ -176,7 +177,7 @@ void main(void){
 
 //	tex2Color.a = 0.35;
 	gl_FragColor.rgb = diffColor + reflColor;
-	gl_FragColor.a = mix(2.0 * tex2Color.a, 1.0, fresnel);
+	gl_FragColor.a = 2.0 * tex2Color.a;
 }
 
 ]]
