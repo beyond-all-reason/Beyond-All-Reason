@@ -303,6 +303,7 @@ function processLine(i)
 end
 
 function widget:DrawScreen()
+    if not messageLines[1] then return end
     local x,y,b = Spring.GetMouseState()
     if IsOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) or  (scrolling and IsOnRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight))  then
         hovering = true
