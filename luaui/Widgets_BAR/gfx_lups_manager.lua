@@ -131,7 +131,9 @@ local UnitEffects = {
 
     --T1 ARM
     [UnitDefNames["armatlas"].id] = {
-        {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=23, piece="thrust", onActive=true, light=1}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=23, piece="thrustl", onActive=true, light=1}},
+ 	{class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=23, piece="thrustr", onActive=true, light=1}},
+	{class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=23, piece="thrustc", onActive=true, light=1}},
     },
     [UnitDefNames["armkam"].id] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrusta", onActive=true, light=1, emitVector = {0,1,0}}},
