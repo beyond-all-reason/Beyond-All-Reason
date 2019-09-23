@@ -295,7 +295,7 @@ function BuilderSquadsHandler:AssignToMilSquad(tqb, unit, domain, role, squadn)
 				return false
 			end
 			local dist = Spring.GetUnitSeparation(unitID, leaderID, true)
-			if dist < 380 then
+			if dist and dist < 380 then
 				self.squads[domain][squadn][role][#self.squads[domain][squadn][role] + 1] = {tqb = tqb, unit = unit}
 				self:SetState(tqb, unit, "squad", {domain = domain, role = role, squadn = squadn})
 				return true
