@@ -107,9 +107,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
+	hide w_glass;
 	turn jetl to x-axis <90> speed<90>;
 	turn jetr to x-axis <90> speed<90>;
-	sleep 1000
+	sleep 1000;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();

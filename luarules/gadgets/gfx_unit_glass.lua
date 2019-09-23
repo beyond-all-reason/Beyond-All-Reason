@@ -178,8 +178,6 @@ void main(void){
 //	tex2Color.a = 0.35;
 	gl_FragColor.rgb = diffColor + reflColor;
 	gl_FragColor.a = 2.0 * tex2Color.a;
-
-	if (gl_FragColor.a >= 1.0) gl_FragColor.rgba = vec4(0.0);
 }
 
 ]]
@@ -238,7 +236,7 @@ local function UpdateGlassUnits(unitID)
 				if not glassUnitDefs[unitDefID] then
 					glassUnitDefs[unitDefID] = {}
 				end
-				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
+				Spring.Echo(unitID, unitDefID, pieceID, pieceName)
 				table.insert(glassUnitDefs[unitDefID], pieceID)
 			end
 		end
