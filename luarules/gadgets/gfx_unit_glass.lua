@@ -175,9 +175,9 @@ void main(void){
 	float roughness = tex2Color.b;
 	reflColor += GetSpecularBlinnPhong(HdotN, roughness) * mix(0.1, 1.0, metalness);
 
-//	tex2Color.a = 0.35;
+//	tex2Color.a = 1.0;
 	gl_FragColor.rgb = diffColor + reflColor;
-	gl_FragColor.a = 2.0 * tex2Color.a;
+	gl_FragColor.a = NORM2SNORM(tex2Color.a);
 }
 
 ]]
@@ -236,7 +236,7 @@ local function UpdateGlassUnits(unitID)
 				if not glassUnitDefs[unitDefID] then
 					glassUnitDefs[unitDefID] = {}
 				end
-				Spring.Echo(unitID, unitDefID, pieceID, pieceName)
+				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
 				table.insert(glassUnitDefs[unitDefID], pieceID)
 			end
 		end
