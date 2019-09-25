@@ -132,12 +132,12 @@ local UnitEffects = {
     --T1 ARM AIR
     [UnitDefNames["armatlas"].id] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustl", onActive=true, light=1}},
- 	{class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustr", onActive=true, light=1}},
-	{class='AirJet',options={color={0.7,0.4,0.1}, width=4, length=15, piece="thrustc", onActive=true, light=1}},
+ 	    {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustr", onActive=true, light=1}},
+	    {class='AirJet',options={color={0.7,0.4,0.1}, width=4, length=15, piece="thrustc", onActive=true, xzVelocity=1.5, light=1}},
     },
     [UnitDefNames["armkam"].id] = {
-        {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrusta", onActive=true, light=1, emitVector = {0,1,0}}},
-        {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrustb", onActive=true, light=1, emitVector = {0,1,0}}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrusta", onActive=true, xzVelocity=1.5, light=1, emitVector = {0,1,0}}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrustb", onActive=true, xzVelocity=1.5, light=1, emitVector = {0,1,0}}},
     },
     [UnitDefNames["armthund"].id] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=2, length=17, piece="thrust1", onActive=true, light=1}},
@@ -154,7 +154,7 @@ local UnitEffects = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=45, piece="thrust", onActive=true}},
     },
     [UnitDefNames["armca"].id] = {
-        {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=24, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.7,0.4,0.1}, width=6, length=24, piece="thrust", onActive=true, xzVelocity=1.2}},
     },
 
     --T1 CORE
@@ -184,7 +184,7 @@ local UnitEffects = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=40, piece="thrustb", onActive=true, light=1}},
     },
     [UnitDefNames["armblade"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=25, piece="thrust", onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=25, piece="thrust", onActive=true, light=1, xzVelocity=1.5}},
     },
     [UnitDefNames["armliche"].id] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=44, piece="thrusta", onActive=true, light=1}},
@@ -192,14 +192,14 @@ local UnitEffects = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=44, piece="thrustc", onActive=true, light=1}},
     },
     [UnitDefNames["armaca"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=22, piece="thrust", onActive=true}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=22, piece="thrust", onActive=true, xzVelocity=1.2}},
     },
     [UnitDefNames["armawac"].id] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=30, piece="thrust", onActive=true, light=1}},
     },
     [UnitDefNames["armdfly"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=35, piece="thrusta", onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=35, piece="thrustb", onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=35, piece="thrusta", onActive=true, xzVelocity=1.5, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=3.5, length=35, piece="thrustb", onActive=true, xzVelocity=1.5, light=1}},
     },
     [UnitDefNames["armbrawl"].id] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=3.7, length=15, piece="thrust1", onActive=true, light=1}},
@@ -231,8 +231,14 @@ local UnitEffects = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=5, length=35, piece="thrustb", onActive=true, light=1}},
     },
     [UnitDefNames["corape"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=7, length=22, piece="thrust1b", emitVector= {0,1,0}, onActive=true, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=7, length=22, piece="thrust2b", emitVector= {0,1,0}, onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=7, length=22, piece="thrust1b", emitVector= {0,1,0}, onActive=true, xzVelocity=1.5, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=7, length=22, piece="thrust2b", emitVector= {0,1,0}, onActive=true, xzVelocity=1.5, light=1}},
+    },
+    [UnitDefNames["corca"].id] = {
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=15, piece="thrust", onActive=true, xzVelocity=1.2}},
+    },
+    [UnitDefNames["coraca"].id] = {
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=6, length=22, piece="thrust", onActive=true, xzVelocity=1.2}},
     },
     [UnitDefNames["corcrw"].id] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=13, length=22, piece="thrustrra", emitVector= {0,1,0}, onActive=true, light=1}},
