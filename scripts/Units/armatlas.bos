@@ -109,6 +109,8 @@ Create()
 	Static_Var_1 = 0;
 	call-script InitState();
 	start-script SmokeUnit();
+	turn jetl to x-axis <-90.000000> now;
+	turn jetr to x-axis <-90.000000> now;
 }
 
 
@@ -168,6 +170,35 @@ StopMoving()
 	signal 2;
 	Static_Var_1 = 0;
 }
+
+
+MoveRate0()
+{
+	turn jetl to x-axis <-90.000000> speed <45.000000>;
+	turn jetr to x-axis <-90.000000> speed <45.000000>;
+
+}
+
+MoveRate1()
+{
+	turn jetl to x-axis <-60.000000> speed <45.000000>;
+	turn jetr to x-axis <-60.000000> speed <45.000000>;
+}
+
+MoveRate2()
+{
+	set-signal-mask SIG_MOVE;
+	turn jetl to x-axis <-30.000000> speed <45.000000>;
+	turn jetr to x-axis <-30.000000> speed <45.000000>;
+
+}
+
+MoveRate3()
+{
+	turn jetl to x-axis <0.000000> speed <45.000000>;
+	turn jetr to x-axis <0.000000> speed <45.000000>;
+}
+
 
 
 Killed(severity, corpsetype)
