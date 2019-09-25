@@ -101,9 +101,10 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	//hide thrustl;
-	//hide thrustr;
-	//hide thrustc;
+	hide w_glass;  //glass hack
+	hide thrustl;
+	hide thrustr;
+	hide thrustc;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
