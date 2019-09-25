@@ -7,44 +7,34 @@ piece  base, body, w_glass, jetl, jetr, thrustl, thrustr, thrustc, backwing, cwi
 
 static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
+// Signal definitions
+#define SIG_MOVE			2
 
-activatescr()
+
+
+
+
+
+activatescr()   //tranport start
 {
 	if( TRUE )
 	{
-		move larm1 to x-axis [0.000000] now;
-		move larm1 to x-axis [-3.400000] speed [3.406812];
-		move larm2 to x-axis [0.000000] now;
-		move larm2 to x-axis [3.400000] speed [3.406812];
-		move larm3 to z-axis [0.000000] now;
-		move larm3 to z-axis [-4.800000] speed [4.809619];
-		turn larm1 to y-axis <0.000000> now;
-		turn larm1 to y-axis <-21.153846> speed <21.192308>;
-		turn larm2 to y-axis <0.000000> now;
-		turn larm2 to y-axis <21.153846> speed <21.192308>;
+		sleep 0;
+	}
+	sleep 44;
+}
+
+deactivatescr()  //transport end
+{
+	if( TRUE )
+	{
 		sleep 998;
 	}
 	sleep 44;
 }
 
-deactivatescr()
-{
-	if( TRUE )
-	{
-		move larm1 to x-axis [-3.400000] now;
-		move larm1 to x-axis [0.000000] speed [3.406812];
-		move larm2 to x-axis [3.400000] now;
-		move larm2 to x-axis [0.000000] speed [3.406812];
-		move larm3 to z-axis [-4.800000] now;
-		move larm3 to z-axis [0.000000] speed [4.809619];
-		turn larm1 to y-axis <-21.153846> now;
-		turn larm1 to y-axis <0.000000> speed <21.192308>;
-		turn larm2 to y-axis <21.153846> now;
-		turn larm2 to y-axis <0.000000> speed <21.192308>;
-		sleep 998;
-	}
-	sleep 44;
-}
+
+
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
 {
@@ -73,11 +63,13 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	}
 }
 
+
 InitState()
 {
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 }
+
 
 RequestState(requestedstate, currentstate)
 {
@@ -105,32 +97,38 @@ RequestState(requestedstate, currentstate)
 	statechg_StateChanging = FALSE;
 }
 
+
+
 Create()
 {
-	hide w_glass;
-	turn jetl to x-axis <90> speed<90>;
-	turn jetr to x-axis <90> speed<90>;
-	sleep 1000;
+	//hide thrustl;
+	//hide thrustr;
+	//hide thrustc;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
 	start-script SmokeUnit();
 }
 
+
+
 Demo()
 {
 	unitviewer = TRUE;
 }
+
 
 SweetSpot(piecenum)
 {
 	piecenum = base;
 }
 
+
 QueryTransport(Func_Var_1)
 {
 	Func_Var_1 = 1;
 }
+
 
 Activate()
 {
@@ -140,11 +138,13 @@ Activate()
 	}
 }
 
+
 BeginTransport(Func_Var_1)
 {
 	move rarm1 to y-axis [0.000000] - Func_Var_1 now;
 	start-script RequestState(0);
 }
+
 
 Deactivate()
 {
@@ -154,10 +154,12 @@ Deactivate()
 	}
 }
 
+
 EndTransport()
 {
 	start-script RequestState(1);
 }
+
 
 
 StopMoving()
@@ -165,6 +167,7 @@ StopMoving()
 	signal 2;
 	Static_Var_1 = 0;
 }
+
 
 Killed(severity, corpsetype)
 {
