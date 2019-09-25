@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, body, w_glass, jetl, jetr, thrustl, thrustr, thrustc, backwing, cwing, cpaddel, larm1, larm2, larm3, lhand, rarm1, rarm2, rarm3, rhand;
+piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustc, backwing, cwing, cpaddel, larm1, larm2, larm3, lhand, rarm1, rarm2, rarm3, rhand;
 
 static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
@@ -144,7 +144,8 @@ Activate()
 
 BeginTransport(Func_Var_1)
 {
-	move rarm1 to y-axis [0.000000] - Func_Var_1 now;
+	move link to y-axis [0.000000] - Func_Var_1 now;
+	//move rarm1 to y-axis [0.000000] - Func_Var_1 now;
 	start-script RequestState(0);
 }
 
