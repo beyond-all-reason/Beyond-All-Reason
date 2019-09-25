@@ -15,19 +15,29 @@ static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChang
 
 
 
-activatescr()   //tranport start
+activatescr()   //transport start
 {
 	if( TRUE )
 	{
-		sleep 0;
+		turn larm2 to z-axis <-45> speed <45>;
+		turn rarm2 to z-axis <45> speed <45>;
+		move larm3 to y-axis [3] speed [3];
+		move rarm3 to y-axis [3] speed [3];
+		sleep 1000;
+		
+		turn larm2 to z-axis <0> speed <45>;
+		turn rarm2 to z-axis <0> speed <45>;
+		move larm3 to y-axis [-3] speed [3];
+		move rarm3 to y-axis [-3] speed [3];		
 	}
-	sleep 44;
+	sleep 1000;
 }
 
 deactivatescr()  //transport end
 {
 	if( TRUE )
 	{
+		
 		sleep 998;
 	}
 	sleep 44;
@@ -105,6 +115,7 @@ Create()
 	hide thrustl;
 	hide thrustr;
 	hide thrustc;
+	hide link;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
 	call-script InitState();
