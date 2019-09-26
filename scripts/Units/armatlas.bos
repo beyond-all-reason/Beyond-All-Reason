@@ -15,20 +15,25 @@ static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChang
 
 
 
-activatescr()   //transport start
+activatescr()   //transport start  - animation of claws
 {
-	if( TRUE )
+	if( TRUE ) //open
 	{
 		turn larm2 to z-axis <-45> speed <45>;
 		turn rarm2 to z-axis <45> speed <45>;
-		move larm3 to y-axis [3] speed [3];
-		move rarm3 to y-axis [3] speed [3];
-		sleep 1000;
+		move larm3 to y-axis [-3] speed [6];
+		move rarm3 to y-axis [-3] speed [6];
+	  	move larm3 to x-axis [-3] speed [6];
+		move rarm3 to x-axis [3] speed [6];
+		
+		sleep 1000;  //close
 		
 		turn larm2 to z-axis <0> speed <45>;
 		turn rarm2 to z-axis <0> speed <45>;
-		move larm3 to y-axis [-3] speed [3];
-		move rarm3 to y-axis [-3] speed [3];		
+		move larm3 to y-axis [0] speed [6];
+		move rarm3 to y-axis [0] speed [6];	
+		move larm3 to x-axis [0] speed [6];
+		move rarm3 to x-axis [0] speed [6];	
 	}
 	sleep 1000;
 }
