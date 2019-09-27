@@ -3,7 +3,7 @@ return {
 		acceleration = 0.1,
 		airhoverfactor = 0,
 		airstrafe = false,
-		bankingallowed = false,
+		bankingallowed = true,
 		blocking = false,
 		brakerate = 0.75,
 		buildcostenergy = 1300,
