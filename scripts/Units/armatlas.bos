@@ -15,37 +15,40 @@ static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChang
 
 
 
-activatescr()   //transport start  - animation of claws
+activatescr()   //transport start  - LOAD - animation of claws
 {
-	if( TRUE ) //open
+	if( TRUE ) //
 	{
-		turn larm2 to z-axis <-45> speed <45>;
-		turn rarm2 to z-axis <45> speed <45>;
+		turn larm2 to z-axis <-45> speed <90>;
+		turn rarm2 to z-axis <45> speed <90>;
 		move larm3 to y-axis [-3] speed [6];
 		move rarm3 to y-axis [-3] speed [6];
 	  	move larm3 to x-axis [-3] speed [6];
 		move rarm3 to x-axis [3] speed [6];
 		
-		sleep 1000;  //close
+		sleep 500;  //close
 		
-		turn larm2 to z-axis <0> speed <45>;
-		turn rarm2 to z-axis <0> speed <45>;
+		turn larm2 to z-axis <0> speed <90>;
+		turn rarm2 to z-axis <0> speed <90>;
 		move larm3 to y-axis [0] speed [6];
 		move rarm3 to y-axis [0] speed [6];	
 		move larm3 to x-axis [0] speed [6];
 		move rarm3 to x-axis [0] speed [6];	
 	}
-	sleep 1000;
+	sleep 500;
 }
 
-deactivatescr()  //transport end
+deactivatescr()  //transport end - UNLOAD -
 {
 	if( TRUE )
 	{
-		
-		sleep 998;
+		turn larm2 to z-axis <-45> speed <90>;
+		turn rarm2 to z-axis <45> speed <90>;
+		sleep 500;
+		turn larm2 to z-axis <0> speed <90>;
+		turn rarm2 to z-axis <0> speed <90>;
 	}
-	sleep 44;
+	sleep 500;
 }
 
 
@@ -148,7 +151,7 @@ QueryTransport(Func_Var_1)
 	Func_Var_1 = 1;
 }
 
-
+/*
 Activate()
 {
 	if( unitviewer )
@@ -156,16 +159,18 @@ Activate()
 		start-script RequestState(0);
 	}
 }
-
+*/
 
 BeginTransport(Func_Var_1)
 {
 	move link to y-axis [0.000000] - Func_Var_1 now;
-	//move rarm1 to y-axis [0.000000] - Func_Var_1 now;
 	start-script RequestState(0);
+	move larm3 to y-axis [-3] speed [6];
+	move rarm3 to y-axis [-3] speed [6];
+
 }
 
-
+/*
 Deactivate()
 {
 	if( unitviewer )
@@ -173,7 +178,7 @@ Deactivate()
 		start-script RequestState(1);
 	}
 }
-
+*/
 
 EndTransport()
 {
