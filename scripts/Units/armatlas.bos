@@ -19,21 +19,17 @@ activatescr()   //transport start  - LOAD - animation of claws
 {
 	if( TRUE ) //
 	{
+		move larm3 to y-axis <-5> now;
+		move rarm3 to y-axis <-5> now;
 		turn larm2 to z-axis <-45> speed <90>;
 		turn rarm2 to z-axis <45> speed <90>;
-		move larm3 to y-axis [-3] speed [6];
-		move rarm3 to y-axis [-3] speed [6];
-	  	move larm3 to x-axis [-3] speed [6];
-		move rarm3 to x-axis [3] speed [6];
+
 		
 		sleep 500;  //close
 		
 		turn larm2 to z-axis <0> speed <90>;
 		turn rarm2 to z-axis <0> speed <90>;
-		move larm3 to y-axis [0] speed [6];
-		move rarm3 to y-axis [0] speed [6];	
-		move larm3 to x-axis [0] speed [6];
-		move rarm3 to x-axis [0] speed [6];	
+
 	}
 	sleep 500;
 }
@@ -165,8 +161,8 @@ BeginTransport(Func_Var_1)
 {
 	move link to y-axis [0.000000] - Func_Var_1 now;
 	start-script RequestState(0);
-	move larm3 to y-axis [-3] speed [6];
-	move rarm3 to y-axis [-3] speed [6];
+	move larm3 to y-axis [-3] now;
+	move rarm3 to y-axis [-3] now;
 
 }
 
