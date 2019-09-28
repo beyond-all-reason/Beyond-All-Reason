@@ -552,7 +552,7 @@ function widget:SetConfigData(data)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-    if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+    if msg:sub(1,18) == 'LobbyOverlayActive' then
         screenBlur = (msg:sub(1,19) == 'LobbyOverlayActive1')
         updateStencilTextureScreen = true
     end

@@ -104,7 +104,7 @@ function widget:Update(dt)
 end
 
 function widget:RecvLuaMsg(msg, playerID)
-	if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
