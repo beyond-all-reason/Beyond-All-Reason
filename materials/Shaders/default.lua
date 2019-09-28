@@ -221,7 +221,8 @@ fragment = [[
 		out vec4 fragData[1];
 	#endif
 
-	const float PI = acos(0.0) * 2.0;
+	const float PI = 3.14159265359;
+	const float angleEPS = 1e-3;
 
 	const mat3 RGB2YCBCR = mat3(
 		0.2126, -0.114572, 0.5,
@@ -377,6 +378,48 @@ fragment = [[
 		return sunSpecular * pow(HdotN, power) * powerNorm;
 	}
 
+	vec3 SpecularReflection(vec3 R0, vec3 R90, float VdotH) {
+		return R0 + (R90 - R0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
+	}
+
+	// Smith Joint GGX
+	// Note: Vis = G / (4 * NdotL * NdotV)
+	float VisibilityOcclusion(float NdotL, float NdotV, float roughness4) {
+		float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - roughness4) + roughness4);
+		float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - roughness4) + roughness4);
+
+		float GGX = GGXV + GGXL;
+
+		return mix(0.0, 0.5 / GGX, float(GGX > 0.0));
+	}
+
+	float MicrofacetDistribution(float NdotH, float roughness4) {
+		float f = (NdotH * roughness4 - NdotH) * NdotH + 1.0;
+		return roughness4 / (PI * f * f);
+	}
+
+	void GetSpecularCookTorrance(
+		vec3 R0, vec3 R90,
+		float NdotL, float NdotV, float NdotH, float VdotH,
+		float roughness4,
+		out vec3 specContrib)
+	{
+		specContrib = vec3(0.0);
+
+		if (NdotL > angleEPS || NdotV > angleEPS) {
+			// Calculate the shading terms for the microfacet specular shading model
+			float Vis = VisibilityOcclusion(NdotL, NdotV, roughness4);
+			float D = MicrofacetDistribution(NdotH, roughness4);
+			vec3 F = SpecularReflection(R0, R90, VdotH);
+
+			// Calculation of analytical lighting contribution
+			specContrib = F * Vis * D;
+
+			// Obtain final intensity as reflectance (BRDF) scaled by the energy of the light (cosine law)
+			specContrib *= NdotL;
+		}
+	}
+
 	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
 	vec3 SteveMTM1(in vec3 x) {
 		const float a = 10.0; /// Mid
@@ -409,7 +452,7 @@ fragment = [[
 		#define TONEMAP(c) (c)
 	#endif
 
-	const float angleEPS = 1e-3;
+
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
@@ -456,6 +499,9 @@ fragment = [[
 			roughness = mix(roughness, rmax, SPECULAR_AA);
 		#endif
 
+		float roughness4 = roughness * roughness;
+		roughness4 *= roughness4;
+
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
 			vec3 seedVec = modelPos.xyz * 8.0;
 			float rndValue = Perlin3D(seedVec.xyz);
@@ -478,8 +524,10 @@ fragment = [[
 		vec3 H = normalize(L + V);
 
 		float NdotLu = dot(N, L);
-		float NdotL = max(NdotLu, angleEPS);
-		float NdotH = max(dot(H, N), angleEPS);
+		float NdotL = clamp(NdotLu, angleEPS, 1.0);
+		float NdotH = clamp(dot(N, H), angleEPS, 1.0);
+		float NdotV = clamp(dot(N, V), 0.0, 1.0);
+		float VdotH = clamp(dot(V, H), 0.0, 1.0);
 
 		#ifdef LUMAMULT
 			vec3 yCbCr = RGB2YCBCR * diffuseIn.rgb;
@@ -498,12 +546,29 @@ fragment = [[
 		#endif
 
 
-		vec3 specularColor = vec3(0.0);
-		if (NdotL > angleEPS) {
-			specularColor = GetSpecularBlinnPhong(NdotH, roughness);
-		}
 
-		specularColor *= metalness * SPECULARMULT;
+
+		vec3 specularColor = vec3(0.0);
+
+		#if defined(USE_COOKTORRANCE)
+			vec3 specularColorIn = mix(vec3(0.04), outColor, metalness);
+
+			float reflectance = max(max(specularColorIn.r, specularColorIn.g), specularColorIn.b);
+
+			#define R0 specularColorIn.rgb
+			// Anything less than 2% is physically impossible and is instead considered to be shadowing. Compare to "Real-Time-Rendering" 4th editon on page 325.
+			vec3 R90 = vec3(clamp(reflectance * 50.0, 0.0, 1.0));
+
+			GetSpecularCookTorrance(
+				R0, R90,
+				NdotL, NdotV, NdotH, VdotH,
+				roughness4,
+				specularColor);
+		#else
+			specularColor = metalness * GetSpecularBlinnPhong(NdotH, roughness);
+		#endif
+
+		specularColor *= SPECULARMULT;
 
 		// environment reflection
 		vec3 reflection = SampleEnvironmentWithRoughness(Rv, roughness);
