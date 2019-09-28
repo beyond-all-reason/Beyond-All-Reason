@@ -302,8 +302,16 @@ function processLine(i)
     end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+    if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+        chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+    end
+end
+
 function widget:DrawScreen()
+    if chobbyInterface then return end
     if not messageLines[1] then return end
+
     local x,y,b = Spring.GetMouseState()
     if IsOnRect(x, y, activationArea[1], activationArea[2], activationArea[3], activationArea[4]) or  (scrolling and IsOnRect(x, y, activationArea[1], activationArea[2], activationArea[1]+lineMaxWidth+(charSize*2*widgetScale), activationArea[2]+activatedHeight))  then
         hovering = true

@@ -1048,14 +1048,21 @@ function drawResbarValues(res)
 	glCallList(dlistResValues[res][currentResValue[res]])
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
-	local now = os.clock()
+	if chobbyInterface then return end
 
 	glPushMatrix()
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
 
+	local now = os.clock()
 	local x,y,b = spGetMouseState()
 
 	local res = 'metal'

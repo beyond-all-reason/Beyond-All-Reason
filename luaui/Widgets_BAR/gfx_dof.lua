@@ -415,11 +415,19 @@ local function Composition()
 	glTexture(2, false)
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	gl.ActiveShader(dofShader, function() glUniformMatrix(viewProjectionLoc, "projection") end)
 end
 
 function widget:DrawScreenEffects()
+	if chobbyInterface then return end
 	gl.Blending(false)
 	glCopyToTexture(screenTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
 	glCopyToTexture(depthTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
