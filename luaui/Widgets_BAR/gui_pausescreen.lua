@@ -194,8 +194,16 @@ function widget:GamePaused(playerID, isGamePaused)
     paused = isGamePaused
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+    if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+        chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+    end
+end
+
 function widget:DrawScreen()
-  if Spring.IsGUIHidden() then return end
+    if chobbyInterface then return end
+    if Spring.IsGUIHidden() then return end
+
     local now = osClock()
     
     if ( paused or ( ( now - pauseTimestamp) <= slideTime ) ) then

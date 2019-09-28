@@ -836,8 +836,14 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOptions)
 	end
 end
 
-function widget:DrawScreen()
+function widget:RecvLuaMsg(msg, playerID)
+	if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
 
+function widget:DrawScreen()
+  if chobbyInterface then return end
   if spIsGUIHidden() then return end
 
   if showOptionsToggleButton then
@@ -1141,43 +1147,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.SetConfigInt("TreeWind",value)
 		elseif id == 'advsky' then
 			Spring.SetConfigInt("AdvSky",value)
-		elseif id == 'shadows' then
-			Spring.SendCommands("Shadows "..value)
-		elseif id == 'vsync' then
-			Spring.SendCommands("Vsync "..value)
-			Spring.SetConfigInt("VSync",value)
-		elseif id == 'fullscreen' then
-			if value == 1 then
-				options[getOptionByID('borderless')].value = false
-				applyOptionValue(getOptionByID('borderless'))
-				local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed',ssx))
-				local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed',ssy))
-				Spring.SetConfigInt("XResolution", xres)
-				Spring.SetConfigInt("YResolution", yres)
-			else
-				local xres = tonumber(Spring.GetConfigInt('XResolution',ssx))
-				local yres = tonumber(Spring.GetConfigInt('YResolution',ssy))
-				Spring.SetConfigInt("XResolutionWindowed", xres)
-				Spring.SetConfigInt("YResolutionWindowed", yres)
-			end
-			Spring.SendCommands("Fullscreen "..value)
-			Spring.SetConfigInt("Fullscreen",value)
-		elseif id == 'borderless' then
-			Spring.SetConfigInt("WindowBorderless",value)
-			if value == 1 then
-				options[getOptionByID('fullscreen')].value = false
-				applyOptionValue(getOptionByID('fullscreen'))
-				Spring.SetConfigInt("WindowPosX",0)
-				Spring.SetConfigInt("WindowPosY",0)
-				Spring.SetConfigInt("WindowState",0)
-			else
-				Spring.SetConfigInt("WindowPosX",0)
-				Spring.SetConfigInt("WindowPosY",0)
-				Spring.SetConfigInt("WindowState",1)
-			end
-		elseif id == 'screenedgemove' then
-			Spring.SetConfigInt("FullscreenEdgeMove",value)
-			Spring.SetConfigInt("WindowedEdgeMove",value)
 		elseif id == 'scrollinverse' then
 			if value == 1 then
 				Spring.SetConfigInt("ScrollWheelSpeed",-options[getOptionByID('scrollspeed')].value)
@@ -1382,31 +1351,8 @@ function applyOptionValue(i, skipRedrawWindow)
 	
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
-		if id == 'msaa' then
-			Spring.SetConfigInt("MSAALevel",value)
-		elseif id == 'vsync2' then
+		if id == 'vsync2' then
 			Spring.SetConfigInt("VSync",value)
-		elseif id == 'shadowslider' then
-			local enabled = 1
-			if value == options.min then 
-				enabled = 0
-			end
-			Spring.SendCommands("shadows "..enabled.." "..value)
-			Spring.SetConfigInt("shadows", value)
-		elseif id == 'shadows_maxquality' then
-			if value < options[getOptionByID('shadows_minquality')].value then
-				options[getOptionByID('shadows_minquality')].value = value
-				saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMinQuality', {'maxQuality'}, value)
-			end
-			saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMaxQuality', {'maxQuality'}, value)
-		elseif id == 'shadows_minquality' then
-			if value > options[getOptionByID('shadows_maxquality')].value then
-				options[getOptionByID('shadows_maxquality')].value = value
-				saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMaxQuality', {'maxQuality'}, value)
-			end
-			saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setMinQuality', {'minQuality'}, value)
-		elseif id == 'shadows_disablefps' then
-			saveOptionValue('Shadow Quality Manager', 'shadowmanager', 'setDisableFps', {'disableFps'}, value)
 		elseif id == 'decals' then
 			Spring.SetConfigInt("GroundDecals", value)
 			Spring.SendCommands("GroundDecals "..value)
@@ -1480,18 +1426,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Darken map', 'darkenmap', 'setMapDarkness', {'maps',Game.mapName:lower()}, value)
 		elseif id == 'healthbarsscale' then
 			saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value)
-		elseif id == 'ssao_strength' then
-			saveOptionValue('SSAO', 'ssao', 'setStrength', {'strength'}, value)
-		elseif id == 'ssao_radius' then
-			saveOptionValue('SSAO', 'ssao', 'setRadius', {'radius'}, value)
-		elseif id == 'bloomdeferredbrightness' then
-			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', {'glowAmplifier'}, value)
-		elseif id == 'bloomdeferredsize' then
-			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBlursize', {'globalBlursizeMult'}, value)
-		elseif id == 'bloombrightness' then
-			saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', {'basicAlpha'}, value)
-		elseif id == 'bloomsize' then
-			saveOptionValue('Bloom Shader', 'bloom', 'setBlursize', {'globalBlursizeMult'}, value)
 		elseif id == 'consolemaxlines' then
 			saveOptionValue('Red Console (In-game chat only)', 'red_chatonlyconsole', 'setMaxLines', {'Config','console','maxlines'}, value)
 			saveOptionValue('Red Console (old)', 'red_console', 'setMaxLines', {'Config','console','maxlines'}, value)
@@ -1550,8 +1484,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			-- just so that map/model lighting gets updated
 			Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
             customMapSunPos[Game.mapName] = {gl.GetSun("pos")}
-		elseif id == 'shadows_opacity' then
-			Spring.SetSunLighting({groundShadowDensity = value, modelShadowDensity = value})
 		elseif id == 'fog_start' then
 			Spring.SetAtmosphere({fogStart = value})
 			if value >= gl.GetAtmosphere("fogEnd") then
@@ -1624,9 +1556,6 @@ function applyOptionValue(i, skipRedrawWindow)
 			Spring.Echo('Loading preset:   '..options[i].options[value])
 			options[i].value = 0
 			loadPreset(presetNames[value])
-		elseif id == 'water' then
-			Spring.SendCommands("water "..(value-1))
-			Spring.SendCommands("water "..(value-1))
 		elseif id == 'lupseffectlevel' then
 			if WG.Lups then
 				Spring.SetConfigInt("LupsPriority",value)
@@ -1653,40 +1582,19 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setPreset', {'qualityPreset'}, value)
 		elseif id == 'bloomquality' then
 			saveOptionValue('Bloom Shader', 'bloom', 'setPreset', {'qualityPreset'}, value)
-		elseif id == 'camera' then
-			Spring.SetConfigInt("CamMode",(value-1))
-			if value == 1 then
-				Spring.SendCommands('viewfps')
-			elseif value == 2 then
-				Spring.SendCommands('viewta')
-			elseif value == 3 then
-				Spring.SendCommands('viewspring')
-			elseif value == 4 then
-				Spring.SendCommands('viewrot')
-			elseif value == 5 then
-				Spring.SendCommands('viewfree')
-			end
-		elseif id == 'cursor' then
-			saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
 		elseif id == 'fancyselectedunits_style' then
 			saveOptionValue('Fancy Selected Units', 'fancyselectedunits', 'setStyle', {'currentOption'}, value)
-		elseif id == 'resolution' then
-			local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
-			local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
-			if tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1 then
-				Spring.SendCommands("Fullscreen 0")
-				Spring.SetConfigInt("XResolution", tonumber(resolutionX))
-				Spring.SetConfigInt("YResolution", tonumber(resolutionY))
-				Spring.SendCommands("Fullscreen 1")
-			else
-				Spring.SendCommands("Fullscreen 1")
-				Spring.SetConfigInt("XResolutionWindowed", tonumber(resolutionX))
-				Spring.SetConfigInt("YResolutionWindowed", tonumber(resolutionY))
-				Spring.SendCommands("Fullscreen 0")
-			end
-			--options[i].value = 0
 		end
 	end
+
+	if options[i].onchange then
+		local value =  options[i].value
+		if options[i].type == 'bool' then
+			value = options[i].value and 1 or 0
+		end
+		options[i].onchange(i, value)
+	end
+
 	if skipRedrawWindow == nil then
 		if windowList then gl.DeleteList(windowList) end
 		windowList = gl.CreateList(DrawWindow)
@@ -2055,22 +1963,12 @@ end
 
 -- loads values via stored game config in luaui/configs
 function loadAllWidgetData()
-	loadWidgetData("Health Bars", "healthbarsscale", {'barScale'})
 
-	loadWidgetData("Shadow Quality Manager", "shadows_maxquality", {'maxQuality'})
-	loadWidgetData("Shadow Quality Manager", "shadows_minquality", {'minQuality'})
-	loadWidgetData("Shadow Quality Manager", "shadows_disablefps", {'disableFps'})
-
-	loadWidgetData("SSAO", "ssao_strength", {'strength'})
-	loadWidgetData("SSAO", "ssao_radius", {'radius'})
-
-	loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", {'glowAmplifier'})
-	loadWidgetData("Bloom Shader Deferred", "bloomdeferredsize", {'qualityBlursizeMult'})
-	loadWidgetData("Bloom Shader Deferred", "bloomdeferredquality", {'qualityPreset'})
-
-	loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'})
-	loadWidgetData("Bloom Shader", "bloomsize", {'globalBlursizeMult'})
-	loadWidgetData("Bloom Shader", "bloomquality", {'qualityPreset'})
+	for oid,option in pairs(options) do
+		if option.onload then
+			option.onload()
+		end
+	end
 
 	loadWidgetData("Red Console (In-game chat only)", "consolemaxlines", {'Config','console','maxlines'})
 	loadWidgetData("Red Console (In-game chat only)", "consolefontsize", {'fontsizeMultiplier'})
@@ -2107,9 +2005,6 @@ function loadAllWidgetData()
 
 	loadWidgetData("EnemySpotter", "enemyspotter_opacity", {'spotterOpacity'})
 	loadWidgetData("EnemySpotter", "enemyspotter_highlight", {'useXrayHighlight'})
-
-	loadWidgetData("Outline", "outline_size", {'BLUR_SIGMA'})
-	loadWidgetData("Outline", "outline_strength", {'OUTLINE_STRENGTH'})
 
 	loadWidgetData("Under construction gfx", "underconstructiongfx_opacity", {'highlightAlpha'})
 	loadWidgetData("Under construction gfx", "underconstructiongfx_shader", {'useHighlightShader'})
@@ -2217,37 +2112,124 @@ function init()
 		{id="preset", group="gfx", name="Load graphics preset", type="select", options=presetNames, value=0, description='Wont reapply the preset every time you restart a game.\n\nSave custom preset with /savepreset name\nRightclick to delete a custom preset'},
 
 		--GFX
-		{id="resolution", group="gfx", name="Resolution", type="select", options=supportedResolutions, value=0, description='WARNING: sometimes freezes game engine in windowed mode'},
-		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1},
-		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)"},
-		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging'},
-		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description=''},
+		{id="resolution", group="gfx", name="Resolution", type="select", options=supportedResolutions, value=0, description='WARNING: sometimes freezes game engine in windowed mode',
+		 onchange = function(i, value)
+			 local resolutionX = string.match(options[i].options[options[i].value], '[0-9]*')
+			 local resolutionY = string.gsub(string.match(options[i].options[options[i].value], 'x [0-9]*'), 'x ', '')
+			 if tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1 then
+				 Spring.SendCommands("Fullscreen 0")
+				 Spring.SetConfigInt("XResolution", tonumber(resolutionX))
+				 Spring.SetConfigInt("YResolution", tonumber(resolutionY))
+				 Spring.SendCommands("Fullscreen 1")
+			 else
+				 Spring.SendCommands("Fullscreen 1")
+				 Spring.SetConfigInt("XResolutionWindowed", tonumber(resolutionX))
+				 Spring.SetConfigInt("YResolutionWindowed", tonumber(resolutionY))
+				 Spring.SendCommands("Fullscreen 0")
+			 end
+		 end,
+		},
+		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1,
+		 onchange = function(i, value)
+			 if value == 1 then
+				 options[getOptionByID('borderless')].value = false
+				 applyOptionValue(getOptionByID('borderless'))
+				 local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed',ssx))
+				 local yres = tonumber(Spring.GetConfigInt('YResolutionWindowed',ssy))
+				 Spring.SetConfigInt("XResolution", xres)
+				 Spring.SetConfigInt("YResolution", yres)
+			 else
+				 local xres = tonumber(Spring.GetConfigInt('XResolution',ssx))
+				 local yres = tonumber(Spring.GetConfigInt('YResolution',ssy))
+				 Spring.SetConfigInt("XResolutionWindowed", xres)
+				 Spring.SetConfigInt("YResolutionWindowed", yres)
+			 end
+			 Spring.SendCommands("Fullscreen "..value)
+			 Spring.SetConfigInt("Fullscreen",value)
+		 end,},
+		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)",
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("WindowBorderless",value)
+			 if value == 1 then
+				 options[getOptionByID('fullscreen')].value = false
+				 applyOptionValue(getOptionByID('fullscreen'))
+				 Spring.SetConfigInt("WindowPosX",0)
+				 Spring.SetConfigInt("WindowPosY",0)
+				 Spring.SetConfigInt("WindowState",0)
+			 else
+				 Spring.SetConfigInt("WindowPosX",0)
+				 Spring.SetConfigInt("WindowPosY",0)
+				 Spring.SetConfigInt("WindowState",1)
+			 end
+		 end,
+		},
+		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging',
+		 onchange = function(i, value)
+			 Spring.SetConfigInt("FullscreenEdgeMove",value)
+			 Spring.SetConfigInt("WindowedEdgeMove",value)
+		 end,
+		},
+		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description='',
+		 onchange=function(i,value)
+			 Spring.SendCommands("Vsync "..value)
+			 Spring.SetConfigInt("VSync",value)
+		 end,
+		},
 		--{id="vsync2", group="gfx", name="V-sync", type="slider", min=-2, max=2, step=1, value=tonumber(Spring.GetConfigInt("VSync",0) or 0), description='Synchronize buffer swaps with vertical blanking interval. Modes are -N (adaptive), +N (standard), or 0 (disabled).'},
-		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", steps={0,1,2,4}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game'},
+		{id="msaa", group="gfx", name="Anti Aliasing", type="slider", steps={0,1,2,4}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		 onchange=function(i,value)
+			 Spring.SetConfigInt("MSAALevel",value)
+		 end,
+		},
+
 		--{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
-		-- only one of these shadow options are shown, depending if "Shadow Quality Manager" widget is active
-		--{id="shadows", group="gfx", name="Shadows", type="bool", value=tonumber(Spring.GetConfigInt("Shadows",1) or 1) == 1, description='Shadow detail is currently controlled by "Shadow Quality Manager" widget\n...this widget will auto reduce detail when fps gets low.\n\nShadows requires "Advanced map shading" option to be enabled'},
-		{id="shadowslider", group="gfx", name="Shadows", type="slider", steps={1024,2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail'},
-		--{id="shadows_disablefps", group="gfx", name="Shadows disable at FPS", min=0, max=30, step=1, type="slider", value=0, description='Automaticly disables shadows at this average FPS value\n\n(but first... shadow quality reduces when average FPS gets lower)'},
-		{id="shadows_maxquality", group="gfx", name="Shadows max quality", min=2000, max=8000, step=500, type="slider", value=6000, description='Maximum shadow detail\n\n(when having high Frames Per Second)'},
-		{id="shadows_minquality", group="gfx", name=widgetOptionColor.."   min quality", min=2000, max=8000, step=500, type="slider", value=2000, description='Minimum shadow detail\n\n(when having low Frames Per Second)'},
+		{id="shadowslider", group="gfx", name="Shadows", type="slider", steps={1024,2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail',
+		 onchange=function(i,value)
+			 local enabled = (value < 1000) and 0 or 1
+			 Spring.SendCommands("shadows "..enabled.." "..value)
+			 Spring.SetConfigInt("shadows", value)
+		 end,
+		},
+		{id="shadows_opacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.01, value=gl.GetSun("shadowDensity"), description='',
+		 onchange=function(i,value)
+			 Spring.SetSunLighting({groundShadowDensity = value, modelShadowDensity = value})
+		 end,
+		},
 
-		{id="shadows_opacity", group="gfx", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.01, value=gl.GetSun("shadowDensity"), description=''},
-
-		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1)},
-
+		{id="water", group="gfx", name="Water type", type="select", options={'basic','reflective','dynamic','reflective&refractive','bump-mapped'}, value=(tonumber(Spring.GetConfigInt("Water",1) or 1)+1),
+		 onchange=function(i,value)
+			 Spring.SendCommands("water "..(value-1))
+			 --Spring.SendCommands("water "..(value-1)) -- dont know why i applied it twice, so disabling for now
+		 end,
+		},
 		--{id="advsky", group="gfx", name="Clouds", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("AdvSky",1) or 1) == 1, description='Enables high resolution clouds\n\nChanges will be applied next game'},
 
 		{id="bloomdeferred", group="gfx", widget="Bloom Shader Deferred", name="Bloom (unit)", type="bool", value=GetWidgetToggleValue("Bloom Shader Deferred"), description='Unit highlights and lights will glow.\n\n(via deferred rendering = less lag)'},
-		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description=''},
-		--{id="bloomdeferredsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.8, max=1.5, step=0.05, value=1, description=''},
-		--{id="bloomdeferredquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
+		{id="bloomdeferredbrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.4, max=1.1, step=0.05, value=1, description='',
+		 onchange=function(i,value) saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBrightness', {'glowAmplifier'}, value) end,
+		 onload=function() loadWidgetData("Bloom Shader Deferred", "bloomdeferredbrightness", {'glowAmplifier'}) end,
+		},
+		--{id="bloomdeferredsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.8, max=1.5, step=0.05, value=1, description='',
+		-- onchange=saveOptionValue('Bloom Shader Deferred', 'bloomdeferred', 'setBlursize', {'globalBlursizeMult'}, value) end,
+		-- onload=function() loadWidgetData("Bloom Shader Deferred", "bloomdeferredsize", {'qualityBlursizeMult'}) end
+		--},
+		--{id="bloomdeferredquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality',
+		-- onload=function() loadWidgetData("Bloom Shader Deferred", "bloomdeferredquality", {'qualityPreset'}) end
+		--},
 
 		{id="bloom", group="gfx", widget="Bloom Shader", name="Bloom (global)", type="bool", value=GetWidgetToggleValue("Bloom Shader"), description='Bloom will make the map and units glow\n\n(might result in more laggy experience)'},
-		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.15, max=0.5, step=0.05, value=0.25, description=''},
-		--{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.9, max=1.5, step=0.05, value=1.1, description=''},
-		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality'},
+		{id="bloombrightness", group="gfx", name=widgetOptionColor.."   brightness", type="slider", min=0.15, max=0.5, step=0.05, value=0.25, description='',
+		 onchange=function(i,value) saveOptionValue('Bloom Shader', 'bloom', 'setBrightness', {'basicAlpha'}, value) end,
+		 onload=function() loadWidgetData("Bloom Shader", "bloombrightness", {'basicAlpha'}) end,
+		},
+		--{id="bloomsize", group="gfx", name=widgetOptionColor.."   size", type="slider", min=0.9, max=1.5, step=0.05, value=1.1, description='',
+		--	onchange=saveOptionValue('Bloom Shader', 'bloom', 'setBlursize', {'globalBlursizeMult'}, value) end,
+		-- onload=function() loadWidgetData("Bloom Shader", "bloomsize", {'globalBlursizeMult'}) end
+		--},
+		--{id="bloomquality", group="gfx", name=widgetOptionColor.."   quality", type="select", options={'low','medium'}, value=1, description='Render quality',
+		-- onload=function() loadWidgetData("Bloom Shader", "bloomquality", {'qualityPreset'}) end
+		--},
 
 		{id="mapedgeextension", group="gfx", widget="Map Edge Extension", name="Map edge extension", type="bool", value=GetWidgetToggleValue("Map Edge Extension"), description='Mirrors the map at screen edges and darkens and decolorizes them\n\nEnable shaders for best result'},
 
@@ -2260,11 +2242,17 @@ function init()
 		{id="sun_y", group="gfx", name="Sun height", type="slider", min=0.05, max=0.9999, step=0.0001, value=select(2,gl.GetSun("pos")), description=''},
 		{id="sun_x", group="gfx", name=widgetOptionColor.."   pos X", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(1,gl.GetSun("pos")), description=''},
 		{id="sun_z", group="gfx", name=widgetOptionColor.."   pos Z", type="slider", min=-0.9999, max=0.9999, step=0.0001, value=select(3,gl.GetSun("pos")), description=''},
-        {id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
+		{id="sun_reset", group="gfx", name=widgetOptionColor.."   reset map default", type="bool", value=false, description=''},
 
 		{id="ssao", group="gfx", widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
-		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=1, max=5, step=0.05, value=3.5, description=''},
-		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=7, step=1, value=4, description=''},
+		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=1, max=5, step=0.05, value=3.5, description='',
+		 onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setRadius', {'radius'}, value) end,
+		 onload=function() loadWidgetData("SSAO", "ssao_strength", {'strength'}) end,
+		},
+		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=7, step=1, value=4, description='',
+		 onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setStrength', {'strength'}, value) end,
+		 onload=function() loadWidgetData("SSAO", "ssao_radius", {'radius'}) end,
+		},
 
 		{id="dof", group="gfx", widget="Depth of Field", name="Depth of Field", type="bool", value=GetWidgetToggleValue("Depth of Field"), description='Applies out of focus blur'},
 		{id="dof_autofocus", group="gfx", name=widgetOptionColor.."   autofocus", type="bool", value=true, description='Disable to have mouse position focus'},
@@ -2273,8 +2261,12 @@ function init()
 		--{id="dof_highquality", group="gfx", name=widgetOptionColor.."   high quality", type="bool", value=false, description=''},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
-		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.5, max=3, step=0.05, type="slider", value=1, description='Set the size of the outline'},
-		{id="outline_strength", group="gfx", name=widgetOptionColor.."   opacity", min=1, max=6, step=0.05, type="slider", value=2.5, description='Set the opacity of the outline'},
+		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.5, max=3, step=0.05, type="slider", value=1, description='Set the size of the outline',
+		 onload=function() loadWidgetData("Outline", "outline_size", {'BLUR_SIGMA'}) end,
+		},
+		{id="outline_strength", group="gfx", name=widgetOptionColor.."   opacity", min=1, max=6, step=0.05, type="slider", value=2.5, description='Set the opacity of the outline',
+		 onload=function() loadWidgetData("Outline", "outline_strength", {'OUTLINE_STRENGTH'}) end,
+		},
 
 		{id="disticon", group="gfx", name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
@@ -2316,7 +2308,7 @@ function init()
 		{id="snowamount", group="gfx", name=widgetOptionColor.."   amount", type="slider", min=0.2, max=2, step=0.2, value=1, description='disable "auto reduce" option to see the max snow amount you have set'},
 
 		{id="resurrectionhalos", group="gfx", widget="Resurrection Halos", name="Resurrected unit halos", type="bool", value=GetWidgetToggleValue("Resurrection Halos"), description='Gives units have have been resurrected a little halo above it.'},
-        {id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
+		{id="tombstones", group="gfx", widget="Tombstones", name="Tombstones", type="bool", value=GetWidgetToggleValue("Tombstones"), description='Displays tombstones where commanders died'},
 
 		--{id="fog_start", group="gfx", name="Fog Start", type="slider", min=0, max=1, step=0.0001, value=gl.GetAtmosphere("fogStart"), description=''},
 		--{id="fog_end", group="gfx", name=widgetOptionColor.."   end", type="slider", min=0, max=1, step=0.0001, value=gl.GetAtmosphere("fogEnd"), description=''},
@@ -2329,15 +2321,25 @@ function init()
 		{id="sndvolunitreply", group="snd", name=widgetOptionColor.."   unit reply", type="slider", min=0, max=100, step=2, value=tonumber(Spring.GetConfigInt("snd_volunitreply",1) or 100)},
 		{id="sndvolmusic", group="snd", name=widgetOptionColor.."   music", type="slider", min=0, max=50, step=2, value=tonumber(Spring.GetConfigInt("snd_volmusic",20) or 20)},
 		--{id="sndairabsorption", group="snd", name="Air absorption", type="slider", min=0, max=1, step=0.01, value=tonumber(Spring.GetConfigFloat("snd_airAbsorption",1) or.1)},
-        {id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Enable music player (on top of advplayerlist)'},
+		{id="musicplayer", group="snd", widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Enable music player (on top of advplayerlist)'},
 		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons'},
 
-        {id="voicenotifs", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
+		{id="voicenotifs", group="snd", widget="Voice Notifs", name="Voice notifications", type="bool", value=GetWidgetToggleValue("Voice Notifs"), description='Plays various voice notifications\n\nAdjust volume with the interface volume slider'},
 		{id="voicenotifs_playtrackedplayernotifs", group="snd", name=widgetOptionColor.."   tracked cam/player notifs",type="bool", value=(WG['voicenotifs']~=nil and WG['voicenotifs'].getPlayTrackedPlayerNotifs()), description='Play voice notifs from the perspective of the currently camera tracked player'},
 		{id="voicenotifs_volume", group="snd", name=widgetOptionColor.."   volume", type="slider", min=0.05, max=1, step=0.05, value=1, description='NOTE: It uses interface volume channel'},
 
 		-- CONTROL
-		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2))},
+		{id="camera", group="control", name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2)),
+		 onchange = function(i, value)
+			Spring.SetConfigInt("CamMode",(value-1))
+			if value == 1 then Spring.SendCommands('viewfps')
+			elseif value == 2 then Spring.SendCommands('viewta')
+			elseif value == 3 then Spring.SendCommands('viewspring')
+			elseif value == 4 then Spring.SendCommands('viewrot')
+			elseif value == 5 then Spring.SendCommands('viewfree')
+			end
+		 end,
+		},
 		{id="camerashake", group="control", widget="CameraShake", name="Camera shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
 		{id="camerasmoothness", group="control", name="Camera smoothing", type="slider", min=0, max=3, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
 		--{id="camerapansmoothness", group="control", name=widgetOptionColor.."   pan mode smoothing", type="slider", min=0, max=2, step=0.01, value=cameraPanTransitionTime, description="Smoothness of camera panning mode"},
@@ -2349,7 +2351,11 @@ function init()
 		{id="scrollinverse", group="control", name="Scroll inversed", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description=""},
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps"},
-		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size'},
+		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size',
+		 onchange=function(i, value)
+		 	saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
+		 end,
+		},
 		{id="cursorsize", group="control", name=widgetOptionColor.."   size", type="slider", min=0.3, max=1.7, step=0.1, value=1, description='Note that cursor already auto scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size (when availible)'},
 		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)'},
 		{id="screenedgemove", group="control", name="Screen edge moves camera", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game"},
@@ -2373,7 +2379,9 @@ function init()
 
 		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
-		{id="healthbarsscale", group="ui", name="Health bar scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description=''},
+		{id="healthbarsscale", group="ui", name="Health bar scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
+		 onload=function() loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end
+		},
 
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name=widgetOptionColor.."   font size", type="slider", min=0.9, max=1.1, step=0.05, value=1, description=''},
@@ -2411,14 +2419,14 @@ function init()
 		{id="teamplatter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.15, max=0.4, step=0.01, type="slider", value=0.3, description='Set the opacity of the team spotters'},
 		{id="teamplatter_skipownteam", group="ui", name=widgetOptionColor.."   skip own units", type="bool", value=false, description='Doesnt draw platters for yourself'},
 
-        {id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
+		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units'},
 		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.12, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings'},
 		--{id="enemyspotter_highlight", group="ui", name=widgetOptionColor.."   unit highlight", type="bool", value=false, description='Colorize/highlight enemy units'},
 
 		{id="highlightselunits", group="ui", widget="Highlight Selected Units", name="Highlight selected units", type="bool", value=GetWidgetToggleValue("Highlight Selected Units"), description='Highlights unit models when selected'},
 		{id="highlightselunits_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.05, max=0.3, step=0.01, type="slider", value=0.1, description='Set the opacity of the highlight on selected units'},
-        --{id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
-        {id="highlightselunits_teamcolor", group="ui", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
+		--{id="highlightselunits_shader", group="ui", name=widgetOptionColor.."   use shader", type="bool", value=false, description='Highlight model edges a bit'},
+		{id="highlightselunits_teamcolor", group="ui", name=widgetOptionColor.."   use teamcolor", type="bool", value=false, description='Use teamcolor instead of unit health coloring'},
 
 		{id="fancyselectedunits", group="ui", widget="Fancy Selected Units", name="Fancy selected units", type="bool", value=GetWidgetToggleValue("Fancy Selected Units"), description='Draws a platter under selected units\n\n\NOTE: this widget can be heavy when having lots of units selected'},
 		--{id="fancyselectedunits_style", group="ui", name=widgetOptionColor.."   style", type="select", options={}, value=1},
@@ -2462,7 +2470,7 @@ function init()
 		{id="factoryholdpos", group="game", widget="Factory hold position", name="Factory hold position", type="bool", value=GetWidgetToggleValue("Factory hold position"), description='Sets factories and units they produce, to hold position automatically (not aircraft)'},
 		{id="factoryrepeat", group="game", widget="Factory Auto-Repeat", name="Factory auto-repeat", type="bool", value=GetWidgetToggleValue("Factory Auto-Repeat"), description='Sets new factories on Repeat mode'},
 
-        {id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
+		{id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 	}
@@ -2554,21 +2562,21 @@ function init()
 		changesRequireRestart = false
 	end
 
-    -- detect AI
-    local aiDetected = false
-    local t = Spring.GetTeamList()
-    for _,teamID in ipairs(t) do
-        if select(4,Spring.GetTeamInfo(teamID,false)) then
-            aiDetected = true
-        end
-    end
-    if not aiDetected then
-        options[getOptionByID('commandsfxfilterai')] = nil
+	-- detect AI
+	local aiDetected = false
+	local t = Spring.GetTeamList()
+	for _,teamID in ipairs(t) do
+		if select(4,Spring.GetTeamInfo(teamID,false)) then
+			aiDetected = true
+		end
+	end
+	if not aiDetected then
+		options[getOptionByID('commandsfxfilterai')] = nil
 	end
 
 	if #supportedResolutions < 2 then
 		options[getOptionByID('resolution')] = nil
-	else
+		else
 		for id,res in pairs(options[getOptionByID('resolution')].options) do
 			if res == vsx..' x '..vsy then
 				options[getOptionByID('resolution')].value = id
@@ -2788,14 +2796,8 @@ function init()
 	for oid,option in pairs(options) do
 		insert = true
 		if option.type == 'slider' and not option.steps then
-			if option.value < option.min then option.value = option.min end
-			if option.value > option.max then option.value = option.max end
-		end
-		if (option.id == "shadows" or option.id == "shadows_maxquality" or option.id == "shadows_minquality" or option.id == "shadows_disablefps") and (widgetHandler.knownWidgets["Shadow Quality Manager"] == nil or (widgetHandler.orderList["Shadow Quality Manager"] == 0)) then
-			insert = false
-		end
-		if option.id == "shadowslider" and widgetHandler.knownWidgets["Shadow Quality Manager"] ~= nil and (widgetHandler.orderList["Shadow Quality Manager"] > 0) then
-			insert = false
+		if option.value < option.min then option.value = option.min end
+		if option.value > option.max then option.value = option.max end
 		end
 		if option.widget ~= nil and widgetHandler.knownWidgets[option.widget] == nil then
 			insert = false
@@ -2836,7 +2838,7 @@ function savePreset(name)
 	end
 	if presets[name] ~= nil then
 		Spring.Echo("preset '"..name.."' already exists")
-	else
+		else
 		local preset = {}
 		for optionID, _ in pairs(presets['lowest']) do
 			if options[getOptionByID(optionID)] ~= nil then
@@ -2857,61 +2859,61 @@ end
 function widget:Initialize()
 
 	if Spring.GetGameFrame() == 0 then
-		-- set minimum particle amount
-		if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
-			Spring.SetConfigInt("MaxParticles",10000)
-		end
-		-- enable lua shaders
-		if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) then
-			Spring.SetConfigInt("ForceShaders", 1)
-		end
-		-- enable map/model shading
-		if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
-			Spring.SetConfigInt("AdvMapShading",1)
-		end
-		if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
-			Spring.SetConfigInt("AdvModelShading",1)
-		end
-		-- enable normal mapping
-		if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
-			Spring.SetConfigInt("NormalMapping",1)
-			Spring.SendCommands("luarules normalmapping 1")
-		end
-		-- disable clouds
-		if Spring.GetConfigInt("AdvSky",0) ~= 0 then
-			Spring.SetConfigInt("AdvSky",0)
-		end
-		-- disable grass
-		if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
-			Spring.SetConfigInt("GrassDetail",0)
-		end
-		-- limit MSAA
-		if Spring.GetConfigInt("MSAALevel",0) > 4 then
-			Spring.SetConfigInt("MSAALevel",4)
-		end
+	-- set minimum particle amount
+	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
+		Spring.SetConfigInt("MaxParticles",10000)
+	end
+	-- enable lua shaders
+	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) then
+		Spring.SetConfigInt("ForceShaders", 1)
+	end
+	-- enable map/model shading
+	if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
+		Spring.SetConfigInt("AdvMapShading",1)
+	end
+	if Spring.GetConfigInt("AdvModelShading",0) ~= 1 then
+		Spring.SetConfigInt("AdvModelShading",1)
+	end
+	-- enable normal mapping
+	if Spring.GetConfigInt("NormalMapping",0) ~= 1 then
+		Spring.SetConfigInt("NormalMapping",1)
+		Spring.SendCommands("luarules normalmapping 1")
+	end
+	-- disable clouds
+	if Spring.GetConfigInt("AdvSky",0) ~= 0 then
+		Spring.SetConfigInt("AdvSky",0)
+	end
+	-- disable grass
+	if Spring.GetConfigInt("GrassDetail",0) ~= 0 then
+		Spring.SetConfigInt("GrassDetail",0)
+	end
+	-- limit MSAA
+	if Spring.GetConfigInt("MSAALevel",0) > 4 then
+		Spring.SetConfigInt("MSAALevel",4)
+	end
 
-		--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
-		--Spring.SetConfigInt("UsePBO",0)
-		--end
+	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards
+	--Spring.SetConfigInt("UsePBO",0)
+	--end
 
-		-- enable shadows at gamestart
-		if Spring.GetConfigInt("Shadows",0) ~= 1 then
-			Spring.SetConfigInt("Shadows",1)
-			Spring.SendCommands("Shadows 1")
-		end
-		-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
-		if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-			Spring.SendCommands("Shadows 1 1000")
-        end
+	-- enable shadows at gamestart
+	if Spring.GetConfigInt("Shadows",0) ~= 1 then
+		Spring.SetConfigInt("Shadows",1)
+		Spring.SendCommands("Shadows 1")
+	end
+	-- set lowest quality shadows for Intel GPU (they eat fps but dont really show, but without any shadows enables it looks glitchy)
+	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+		Spring.SendCommands("Shadows 1 1000")
+	end
 
-        -- set custom user map sun position
-        if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
-            Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
-            Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
-        end
+	-- set custom user map sun position
+	if customMapSunPos[Game.mapName] and customMapSunPos[Game.mapName][1] then
+		Spring.SetSunDirection(customMapSunPos[Game.mapName][1],customMapSunPos[Game.mapName][2],customMapSunPos[Game.mapName][3])
+		Spring.SetSunLighting({groundShadowDensity = gl.GetSun("shadowDensity"), modelShadowDensity = gl.GetSun("shadowDensity")})
+	end
 
-		-- disable fog
-		Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
+	-- disable fog
+	Spring.SetAtmosphere({fogStart = 0.99999, fogEnd = 1.0, fogColor = {1.0, 1.0, 1.0, 0.0}})
 	end
 
 	Spring.SendCommands("minimap unitsize "..(Spring.GetConfigFloat("MinimapIconScale", 3.5)))		-- spring wont remember what you set with '/minimap iconssize #'
@@ -2926,12 +2928,8 @@ function widget:Initialize()
 			show = not show
 		end
 	end
-	WG['options'].isvisible = function()
-		return show
-	end
-	WG['options'].getCameraSmoothness = function()
-		return cameraTransitionTime
-	end
+	WG['options'].isvisible = function() return show end
+	WG['options'].getCameraSmoothness = function() return cameraTransitionTime end
 
 	presets = tableMerge(presets, customPresets)
 	for preset,_ in pairs(customPresets) do
@@ -2942,11 +2940,11 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-    if buttonGL then
-        glDeleteList(buttonGL)
-    end
-    if windowList then
-        glDeleteList(windowList)
+	if buttonGL then
+		glDeleteList(buttonGL)
+	end
+	if windowList then
+		glDeleteList(windowList)
 	end
 	if fontOption then
 		for i, font in pairs(fontOption) do
@@ -3005,7 +3003,7 @@ function widget:TextCommand(command)
 						else
 							options[optionID].value = true
 						end
-						applyOptionValue(optionID)
+							applyOptionValue(optionID)
 					else
 						options[optionID].value = tonumber(option[2])
 						applyOptionValue(optionID)
@@ -3040,11 +3038,11 @@ function widget:GetConfigData(data)
 	savedTable.cameraTransitionTime = cameraTransitionTime
 	savedTable.cameraPanTransitionTime = cameraPanTransitionTime
 	savedTable.maxNanoParticles = maxNanoParticles
-    savedTable.currentGroupTab = currentGroupTab
-    savedTable.show = show
-    savedTable.defaultMapSunPos = defaultMapSunPos
-    savedTable.mapName = Game.mapName
-    savedTable.customMapSunPos = customMapSunPos
+	savedTable.currentGroupTab = currentGroupTab
+	savedTable.show = show
+	savedTable.defaultMapSunPos = defaultMapSunPos
+	savedTable.mapName = Game.mapName
+	savedTable.customMapSunPos = customMapSunPos
 	savedTable.savedConfig = {
 		vsync = {'VSync', tonumber(Spring.GetConfigInt("VSync",1) or 1)},
 		water = {'Water', tonumber(Spring.GetConfigInt("Water",1) or 1)},
@@ -3053,7 +3051,6 @@ function widget:GetConfigData(data)
 		--nanoparticles = {'MaxNanoParticles', tonumber(Spring.GetConfigInt("MaxNanoParticles",1) or 500)},	-- already saved above in: maxNanoParticles
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
-		--shadows = {'Shadows', tonumber(Spring.GetConfigInt("Shadows",1) or 1)},
 		--advsky = {'AdvSky', tonumber(Spring.GetConfigInt("AdvSky",1) or 1)},
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
 		--normalmapping = {'NormalMapping', tonumber(Spring.GetConfigInt("NormalMapping",1) or 1)},
@@ -3082,22 +3079,22 @@ function widget:SetConfigData(data)
 	if data.maxNanoParticles ~= nil then
 		maxNanoParticles = data.maxNanoParticles
 	end
-    if data.currentGroupTab ~= nil then
-        currentGroupTab = data.currentGroupTab
-    end
-    if data.show ~= nil and Spring.GetGameFrame() > 0 then
-        show = data.show
-    end
+	if data.currentGroupTab ~= nil then
+		currentGroupTab = data.currentGroupTab
+	end
+	if data.show ~= nil and Spring.GetGameFrame() > 0 then
+		show = data.show
+	end
 	if data.savedConfig ~= nil then
 		savedConfig = data.savedConfig
 		for k, v in pairs(savedConfig) do
 			Spring.SetConfigFloat(v[1],v[2])
 		end
-    end
-    if data.defaultMapSunPos ~= nil and data.mapName == Game.mapName then
-        defaultMapSunPos = data.defaultMapSunPos
-    end
-    if data.customMapSunPos then
-        customMapSunPos = data.customMapSunPos
-    end
+	end
+	if data.defaultMapSunPos ~= nil and data.mapName == Game.mapName then
+		defaultMapSunPos = data.defaultMapSunPos
+	end
+	if data.customMapSunPos then
+		customMapSunPos = data.customMapSunPos
+	end
 end

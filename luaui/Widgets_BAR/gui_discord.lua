@@ -123,7 +123,14 @@ function widget:GameFrame(n)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	updatePosition()
 	if drawlist[1] ~= nil then
 		glPushMatrix()

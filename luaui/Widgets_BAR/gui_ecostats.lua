@@ -1654,9 +1654,15 @@ function widget:Update(dt)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if not inSpecMode or not myFullview then return end
-	
 	if Spring.IsGUIHidden() or (not inSpecMode) then return end
 
 	if not sideImageList then makeSideImageList() end

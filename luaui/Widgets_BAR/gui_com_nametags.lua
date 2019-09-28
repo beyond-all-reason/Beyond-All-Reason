@@ -283,7 +283,14 @@ function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guish
     drawScreenUnits = {}
 end
 
-function widget:DrawWorld()
+function widget:RecvLuaMsg(msg, playerID)
+    if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+        chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+    end
+end
+
+function widget:DrawScreen()
+  if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
   if not CheckedForSpec and Spring.GetGameFrame() > 1 then

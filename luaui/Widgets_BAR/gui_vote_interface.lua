@@ -357,7 +357,14 @@ function widget:Shutdown()
 	EndVote()
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if playerID == Spring.GetMyPlayerID() and msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if voteDlist then
 		if (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 			local x,y,b = Spring.GetMouseState()
