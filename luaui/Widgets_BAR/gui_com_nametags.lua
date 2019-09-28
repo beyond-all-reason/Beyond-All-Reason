@@ -271,14 +271,16 @@ function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guish
             createComnameIconList(unitID, attributes)
         end
         local x,y,z = GetUnitPosition(unitID)
-        x,z = Spring.WorldToScreenCoords(x, y+50+heightOffset, z)
-        local scale = 1-(attributes[5]/25000)
-        if scale < 0.5 then scale = 0.5 end
-        gl.PushMatrix()
-        gl.Translate(x,z,0)
-        gl.Scale(scale,scale,scale)
-        gl.CallList(comnameIconList[attributes[1]])
-        gl.PopMatrix()
+        if x and y and z then
+            x,z = Spring.WorldToScreenCoords(x, y+50+heightOffset, z)
+            local scale = 1-(attributes[5]/25000)
+            if scale < 0.5 then scale = 0.5 end
+            gl.PushMatrix()
+            gl.Translate(x,z,0)
+            gl.Scale(scale,scale,scale)
+            gl.CallList(comnameIconList[attributes[1]])
+            gl.PopMatrix()
+        end
     end
     drawScreenUnits = {}
 end
