@@ -122,6 +122,11 @@ local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
 
+local chobbyLoaded = false
+if Spring.GetMenuName and string.find(Spring.GetMenuName(), 'Chobby') ~= nil then
+	chobbyLoaded = true
+end
+
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
@@ -335,13 +340,14 @@ local function updateButtons()
     if (WG['keybinds'] ~= nil) then text = text..'Keys    ' end
     if (WG['changelog'] ~= nil) then text = text..'Changes    ' end
     if (WG['options'] ~= nil) then text = text..'Settings    ' end
-    text = text..'Quit    '
+	if not chobbyLoaded then
+		text = text..'Quit    '
+	end
 
 	local fontsize = totalWidth / font2:GetTextWidth(text)
 	if fontsize > (height*widgetScale)/3 then
 		fontsize = (height*widgetScale)/3
 	end
-
 
 	-- add background blur
 	if dlistButtonsGuishader ~= nil then
@@ -409,9 +415,11 @@ local function updateButtons()
                 width = font2:GetTextWidth('  Options  ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
-            offset = offset+width
-            width = font2:GetTextWidth('  Quit    ') * fontsize
-            buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
+			if not chobbyLoaded then
+				offset = offset+width
+				width = font2:GetTextWidth('  Quit    ') * fontsize
+				buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
+			end
 		end
 	end)
 	
