@@ -223,6 +223,7 @@ fragment = [[
 
 	const float PI = 3.1415926535897932384626433832795;
 	const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
+	const float angleEPS = 1e-3;
 
 	const mat3 RGB2YCBCR = mat3(
 		0.2126, -0.114572, 0.5,
@@ -394,7 +395,7 @@ fragment = [[
 		return vec3(radius * vec2(cos(theta), sin(theta)), z);
 	}
 
-	#define ENV_SMPL_NUM 32
+	#define ENV_SMPL_NUM 8
 	void textureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSpecular, out float avgDiffLum) {
 		iblDiffuse = vec3(0.0);
 		iblSpecular = vec3(0.0);
@@ -405,7 +406,7 @@ fragment = [[
 		vec2 ts = vec2(textureSize(reflectTex, 0));
 		float maxMipMap = log2(max(ts.x, ts.y));
 
-		vec2 lodBias = vec2(maxMipMap - 2.0, 2.0);
+		vec2 lodBias = vec2(maxMipMap - 1.0, 2.0);
 
 		for (int i=0; i < ENV_SMPL_NUM; ++i) {
 			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
@@ -414,7 +415,7 @@ fragment = [[
 					dot(sp, N ) * 0.5 + 0.5,
 					dot(sp, Rv) * 0.5 + 0.5);
 
-			w = pow(w, vec2(2.0, 6.0));
+			w = pow(w, vec2(2.0, 10.0));
 
 			vec3 iblD = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.x).rgb);
 			vec3 iblS = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.y).rgb);
@@ -444,9 +445,20 @@ fragment = [[
 		return pow(NdotH, power) * powerNorm;
 	}
 
-	float G1V(float dotX, float k ) {
+	//#define G1V(dotX, r, r2) G1V_2(dotX, r)
+	#define G1V(dotX, r, r2) G1V_1(dotX, r2)
+
+	float G1V_1(float dotX, float r2 ) {
+		float k = r2 / 2.0;
 		return 1.0 / (dotX * (1.0 - k) + k);
 	}
+
+	float G1V_2(float dotX, float r) {
+		float k = (r + 1.0);
+		k *= k / 8.0;
+		return dotX / (dotX * (1.0 - k) + k);
+	}
+
 
 	float GGX(float NdotL, float NdotV, float NdotH, float LdotH, float roughness, float F0) {
 		float alpha = roughness * roughness;
@@ -467,10 +479,9 @@ fragment = [[
 		}
 
 		// Visibility term (G) : Smith with Schlick's approximation
-		float k = alpha / 2.0;
-		G = G1V(NdotL, k) * G1V (NdotV, k);
+		G = G1V(NdotL, roughness, alpha) * G1V(NdotV, roughness, alpha);
 
-		return NdotL * D * F * G;
+		return (D * F * G);
 	}
 
 
@@ -507,8 +518,6 @@ fragment = [[
 		return n1 * dot(n1, n2) / n1.z - n2;
 	}
 
-	const float angleEPS = 1e-3;
-
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
 		#line 20469
@@ -539,6 +548,7 @@ fragment = [[
 		//roughness = SNORM2NORM( sin(simFrame * 0.1) );
 
 		float metalness    = extraColor.g;
+		//metalness = 0.0;
 
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
 			vec3 seedVec = modelPos.xyz * 8.0;
@@ -580,6 +590,9 @@ fragment = [[
 			albedoColor *= (1.0 + colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
 		#endif
 
+		vec3 F0 = vec3(0.04);
+		F0 = mix(F0, albedoColor, metalness);
+
         // fresnel
 		float fresnel;
 		{
@@ -593,12 +606,13 @@ fragment = [[
 		vec3 iblSpecular;
 		vec3 ambientColor;
 		{
-			float avgDiffLum;
-			textureEnvBlured(N, Rv, iblDiffuse, iblSpecular, avgDiffLum);
-			#if 0
+			#if 1
+				float avgDiffLum;
+				textureEnvBlured(N, Rv, iblDiffuse, iblSpecular, avgDiffLum);
+
 				vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
-				//iblDiffuseYCbCr.x *= dot(LUMA, sunAmbient) / avgDiffLum;
 				iblDiffuseYCbCr.x = dot(LUMA, sunAmbient);
+
 				iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
 				ambientColor = aoTerm * iblDiffuse;
 			#else
@@ -638,7 +652,7 @@ fragment = [[
 			#if 0
 				spec = GetSpecularBlinnPhong(NdotH, roughness);
 			#else
-				spec = GGX(NdotL, NdotV, NdotH, LdotH, roughness * 0.7, 0.04);
+				spec = GGX(NdotL, NdotV, NdotH, LdotH, roughness * 0.7, dot(LUMA, F0));
 			#endif
 		}
 
@@ -673,8 +687,8 @@ fragment = [[
 
 		// debug hook
 		#if 0
-			//outColor = vec3(metalness);
-			outColor = vec3(aoTerm*sunAmbient);
+			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
+			outColor = LINEARtoSRGB(albedoColor*(iblSpecular + iblDiffuse));
 		#endif
 
 		#if (deferred_mode == 0)
