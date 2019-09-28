@@ -775,11 +775,11 @@ local function IsUnitFXVisible(fx)
 		unitActive = GetUnitIsActive(unitID)
 	end
 	if fx.xzVelocity then
-		local uvx,uvy,uvz = Spring.GetUnitVelocity(fx.unit)
+		local uvx,_,uvz = Spring.GetUnitVelocity(unitID)
 		if math.abs(uvx)+math.abs(uvz) > fx.xzVelocity then
 			unitActive = true
 		else
-			unitActive = false
+			return false
 		end
 	end
 	--Spring.Utilities.UnitEcho(unitID, "w")
