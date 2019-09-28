@@ -221,7 +221,8 @@ fragment = [[
 		out vec4 fragData[1];
 	#endif
 
-	const float PI = acos(0.0) * 2.0;
+	const float PI = 3.1415926535897932384626433832795;
+	const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
 
 	const mat3 RGB2YCBCR = mat3(
 		0.2126, -0.114572, 0.5,
@@ -235,6 +236,20 @@ fragment = [[
 
 	#define NORM2SNORM(value) (value * 2.0 - 1.0)
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
+
+	// gamma correction & tonemapping
+	#if 1
+		#define GAMMA 2.2
+		#define INV_GAMMA 1.0 / GAMMA
+		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
+		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
+		//#define LINEARtoSRGB(c) ( c )
+		#define TONEMAP(c) ACESFilmicTM(c)
+	#else
+		#define SRGBtoLINEAR(c) ( c )
+		#define LINEARtoSRGB(c) ( c )
+		#define TONEMAP(c) (c)
+	#endif
 
 	// http://blog.marmakoide.org/?p=1
 	const float goldenAngle = PI * (3.0 - sqrt(5.0));
@@ -306,7 +321,7 @@ fragment = [[
 
 		float lodBias = maxLodLevel * roughness;
 
-		vec3 reflection = texture(reflectTex, samplingVec, lodBias).rgb;
+		vec3 reflection = SRGBtoLINEAR(texture(reflectTex, samplingVec, lodBias).rgb);
 
 		return reflection;
 	}
@@ -371,11 +386,93 @@ fragment = [[
 	}
 #endif
 
-	vec3 GetSpecularBlinnPhong(float HdotN, float roughness) {
-		float power = 2.0 / max(roughness * 0.25, 0.01);
-		float powerNorm = (power + 8.0) / 32.0;
-		return sunSpecular * pow(HdotN, power) * powerNorm;
+
+	vec3 SpherePoints_GoldenAngle(float i, float numSamples) {
+		float theta = i * goldenAngle;
+		float z = (1.0 - 1.0 / numSamples) * (1.0 - 2.0 * i / (numSamples - 1.0));
+		float radius = sqrt(1.0 - z * z);
+		return vec3(radius * vec2(cos(theta), sin(theta)), z);
 	}
+
+	#define ENV_SMPL_NUM 32
+	void textureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSpecular, out float avgDiffLum) {
+		iblDiffuse = vec3(0.0);
+		iblSpecular = vec3(0.0);
+		avgDiffLum = 0.0;
+
+		vec2 sum = vec2(0.0);
+
+		vec2 ts = vec2(textureSize(reflectTex, 0));
+		float maxMipMap = log2(max(ts.x, ts.y));
+
+		vec2 lodBias = vec2(maxMipMap - 2.0, 2.0);
+
+		for (int i=0; i < ENV_SMPL_NUM; ++i) {
+			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
+
+			vec2 w = vec2(
+					dot(sp, N ) * 0.5 + 0.5,
+					dot(sp, Rv) * 0.5 + 0.5);
+
+			w = pow(w, vec2(2.0, 6.0));
+
+			vec3 iblD = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.x).rgb);
+			vec3 iblS = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.y).rgb);
+
+			avgDiffLum  += dot(LUMA, iblD);
+
+			iblDiffuse  += iblD * w.x;
+			iblSpecular += iblS * w.y;
+
+			sum += w;
+		}
+
+		iblDiffuse  /= sum.x;
+		iblSpecular /= sum.y;
+		avgDiffLum  /= float(ENV_SMPL_NUM);
+
+	}
+	#undef ENV_SMPL_NUM
+
+	float GetSpecularBlinnPhong(float NdotH, float roughness) {
+		float power = 2.0 / max(roughness * 0.25, 0.01);
+		float powerNorm = (power + 8.0) / 128.0;
+
+		//float power = 16.0 / max(roughness * 0.25, 0.005);
+		//float powerNorm = power / 200.0;
+
+		return pow(NdotH, power) * powerNorm;
+	}
+
+	float G1V(float dotX, float k ) {
+		return 1.0 / (dotX * (1.0 - k) + k);
+	}
+
+	float GGX(float NdotL, float NdotV, float NdotH, float LdotH, float roughness, float F0) {
+		float alpha = roughness * roughness;
+
+		float D, G, F;
+
+		// NDF : GGX
+		{
+			float alphaSqr = alpha * alpha;
+			float denom = NdotH * NdotH * (alphaSqr - 1.0) + 1.0;
+			D = alphaSqr / (PI * denom * denom);
+		}
+
+		// Fresnel (Schlick)
+		{
+			float Fs = pow(1.0 - LdotH, 5.0);
+			F = F0 + (1.0 - F0) * Fs;
+		}
+
+		// Visibility term (G) : Smith with Schlick's approximation
+		float k = alpha / 2.0;
+		G = G1V(NdotL, k) * G1V (NdotV, k);
+
+		return NdotL * D * F * G;
+	}
+
 
 	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
 	vec3 SteveMTM1(in vec3 x) {
@@ -387,6 +484,20 @@ fragment = [[
 		return (x * (a * x + b)) / (x * (a * x + c) + d);
 	}
 
+	vec3 FilmicTM(in vec3 x) {
+		vec3 outColor = max(vec3(0.0), x - vec3(0.004));
+		return (outColor * (6.2 * outColor + 0.5)) / (outColor * (6.2 * outColor + 1.7) + 0.06);
+	}
+
+	vec3 ACESFilmicTM(in vec3 x) {
+		float a = 2.51;
+		float b = 0.03;
+		float c = 2.43;
+		float d = 0.59;
+		float e = 0.14;
+		return (x * (a * x + b)) / (x * (c * x + d) + e);
+	}
+
 	// RNM - Already unpacked
 	// https://www.shadertoy.com/view/4t2SzR
 	vec3 NormalBlendUnpackedRNM(vec3 n1, vec3 n2) {
@@ -396,24 +507,11 @@ fragment = [[
 		return n1 * dot(n1, n2) / n1.z - n2;
 	}
 
-	// gamma correction & tonemapping
-	#if 1
-		#define GAMMA 2.2
-		#define INV_GAMMA 1.0 / GAMMA
-		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
-		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
-		#define TONEMAP(c) SteveMTM1(c)
-	#else
-		#define SRGBtoLINEAR(c) ( c )
-		#define LINEARtoSRGB(c) ( c )
-		#define TONEMAP(c) (c)
-	#endif
-
 	const float angleEPS = 1e-3;
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20413
+		#line 20469
 
 		#ifdef use_normalmapping
 			vec2 tc = tex_coord0.st;
@@ -432,35 +530,20 @@ fragment = [[
 			normalize(worldNormal)
 		);
 
-		vec4 diffuseIn  = texture(textureS3o1, tex_coord0.st);
-		vec4 extraColor = texture(textureS3o2, tex_coord0.st);
+		vec4 diffuseColIn = texture(textureS3o1, tex_coord0.st);
+		vec4 extraColor   = texture(textureS3o2, tex_coord0.st);
 
-		float roughness = extraColor.b;
-		//roughness = 0.5;
-		//roughness = SNORM2NORM(sin(simFrame * 0.05));
+		float emissiveness = extraColor.r;
 
-		float metalness = extraColor.g;
-		//metalness = SNORM2NORM(sin(simFrame * 0.05));
+		float roughness    = extraColor.b;
+		//roughness = SNORM2NORM( sin(simFrame * 0.1) );
 
-		// https://gamedev.stackexchange.com/questions/84186/fighting-aliasing-on-specular-highlights
-		#if defined(SPECULAR_AA)
-			vec3 prePerturbN = worldTBN * nvTS;
-			vec3 dNdx = dFdx(prePerturbN);
-			vec3 dNdy = dFdy(prePerturbN);
-			float curv2 = max( dot( dNdx, dNdx ), dot( dNdy, dNdy ) );
-
-			const float CURV_MOD = 0.5;
-			float glossMax = clamp(-1.0 / 10.0 * (1.0 + log2(CURV_MOD * curv2)), 0.0, 1.0);
-
-			float rmax = max(roughness, 1.0 - glossMax);
-			roughness = mix(roughness, rmax, SPECULAR_AA);
-		#endif
+		float metalness    = extraColor.g;
 
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
 			vec3 seedVec = modelPos.xyz * 8.0;
 			float rndValue = Perlin3D(seedVec.xyz);
 		#endif
-
 		#if defined(ROUGHNESS_PERTURB_NORMAL)
 			float normalPerturbScale = mix(0.0, ROUGHNESS_PERTURB_NORMAL, roughness);
 			vec3 rndNormal = normalize(vec3(
@@ -480,58 +563,101 @@ fragment = [[
 		float NdotLu = dot(N, L);
 		float NdotL = max(NdotLu, angleEPS);
 		float NdotH = max(dot(H, N), angleEPS);
+		float NdotV = max(dot(N, V), angleEPS);
+		float LdotH = max(dot(L, H), angleEPS);
 
 		#ifdef LUMAMULT
-			vec3 yCbCr = RGB2YCBCR * diffuseIn.rgb;
+			vec3 yCbCr = RGB2YCBCR * diffuseColIn.rgb;
 			#if defined(LUMAMULT)
 				yCbCr.x *= LUMAMULT;
 			#endif
 		#endif
 
-		vec3 outColor = mix(diffuseIn.rgb, teamColor.rgb, diffuseIn.a);
-
-		outColor = SRGBtoLINEAR(outColor);
+		vec3 albedoColor = SRGBtoLINEAR(mix(diffuseColIn.rgb, teamColor.rgb, diffuseColIn.a));
 
 		#if defined(ROUGHNESS_PERTURB_COLOR)
 			float colorPerturbScale = mix(0.0, ROUGHNESS_PERTURB_COLOR, roughness);
-			outColor *= (1.0 + colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
+			albedoColor *= (1.0 + colorPerturbScale * rndValue); //try cheap way first (no RGB2YCBCR / YCBCR2RGB)
 		#endif
 
-
-		vec3 specularColor = vec3(0.0);
-		if (NdotL > angleEPS) {
-			specularColor = GetSpecularBlinnPhong(NdotH, roughness);
+        // fresnel
+		float fresnel;
+		{
+			float fresnelPow = mix(5.0, 3.5, metalness);
+			fresnel = max(1.0 - NdotV, 0.0);
+			fresnel = pow(fresnel, fresnelPow);
 		}
 
-		specularColor *= metalness * SPECULARMULT;
+		// IBL
+		vec3 iblDiffuse;
+		vec3 iblSpecular;
+		vec3 ambientColor;
+		{
+			float avgDiffLum;
+			textureEnvBlured(N, Rv, iblDiffuse, iblSpecular, avgDiffLum);
+			#if 0
+				vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
+				//iblDiffuseYCbCr.x *= dot(LUMA, sunAmbient) / avgDiffLum;
+				iblDiffuseYCbCr.x = dot(LUMA, sunAmbient);
+				iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
+				ambientColor = aoTerm * iblDiffuse;
+			#else
+				ambientColor = aoTerm * sunAmbient;
+			#endif
+		}
+
 
 		// environment reflection
-		vec3 reflection = SampleEnvironmentWithRoughness(Rv, roughness);
+		vec3 reflection;
+		{
+			reflection = SampleEnvironmentWithRoughness(Rv, roughness);
+			//reflection = SRGBtoLINEAR(texture(reflectTex, Rv).rgb);
+			//reflection = mix(reflection, iblSpecular, (1.0 - fresnel) * roughness);
+			//reflection = mix(reflection, iblSpecular, roughness);
+		}
+		reflection += vec3(emissiveness);
 
-		float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
-		float nShadow = mix(1.0, nShadowMix, shadowDensity);
 
-		#ifdef use_shadows
-			float gShadow = GetShadowPCFRandom();
-		#else
-			float gShadow = 1.0;
-		#endif
+		// shadows
+		float shadowMult;
+		{
+			float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
+			float nShadow = mix(1.0, nShadowMix, shadowDensity);
 
-		float shadow = mix(1.0, min(nShadow, gShadow), shadowDensity);
+			#ifdef use_shadows
+				float gShadow = GetShadowPCFRandom();
+			#else
+				float gShadow = 1.0;
+			#endif
 
-		vec3 light = aoTerm * sunAmbient + NdotL * sunDiffuse * shadow;
-		specularColor *= shadow;
+			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity);
+		}
 
-		reflection = mix(light, reflection, metalness); // reflection
-		//reflection = light + reflection * metalness;
+		float spec;
+		{
+			#if 0
+				spec = GetSpecularBlinnPhong(NdotH, roughness);
+			#else
+				spec = GGX(NdotL, NdotV, NdotH, LdotH, roughness * 0.7, 0.04);
+			#endif
+		}
 
-		#ifdef flashlights
-			extraColor.r = extraColor.r * selfIllumMod;
-		#endif
+		vec3 outColor;
+		vec3 diffuseColor;
+		vec3 specularColor;
+		{
+			specularColor = SPECULARMULT * spec * sunSpecular * shadowMult;
+			diffuseColor  = sunDiffuse * NdotL * shadowMult;
 
-		reflection += (extraColor.rrr); // self-illum
+			outColor  = diffuseColor;
+			outColor  = mix(outColor, reflection, fresnel  );
+			outColor  = mix(outColor, reflection, metalness);
+			outColor += ambientColor;
 
-		outColor = outColor * reflection + specularColor;
+			outColor *= albedoColor;
+
+			outColor += specularColor;
+		}
 
 		#ifdef USE_LOSMAP
 			float losValue = 0.5 + texture(losMapTex, worldPos.xz / mapSize).r;
@@ -547,7 +673,8 @@ fragment = [[
 
 		// debug hook
 		#if 0
-			outColor = vec3(roughness);
+			//outColor = vec3(metalness);
+			outColor = vec3(aoTerm*sunAmbient);
 		#endif
 
 		#if (deferred_mode == 0)
