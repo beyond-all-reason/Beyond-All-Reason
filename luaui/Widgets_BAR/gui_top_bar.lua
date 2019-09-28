@@ -123,10 +123,9 @@ local gameFrame = Spring.GetGameFrame()
 local draggingShareIndicatorValue = {}
 
 local chobbyLoaded = false
-if Spring.GetMenuName and string.find(Spring.GetMenuName(), 'Chobby') ~= nil then
+if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
 	chobbyLoaded = true
 end
-
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
