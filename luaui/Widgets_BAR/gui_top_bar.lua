@@ -339,7 +339,9 @@ local function updateButtons()
     if (WG['keybinds'] ~= nil) then text = text..'Keys    ' end
     if (WG['changelog'] ~= nil) then text = text..'Changes    ' end
     if (WG['options'] ~= nil) then text = text..'Settings    ' end
-	if not chobbyLoaded then
+	if chobbyLoaded then
+		text = text..'Lobby    '
+	else
 		text = text..'Quit    '
 	end
 
@@ -414,7 +416,11 @@ local function updateButtons()
                 width = font2:GetTextWidth('  Options  ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
-			if not chobbyLoaded then
+			if chobbyLoaded then
+				offset = offset+width
+				width = font2:GetTextWidth('  Lobby    ') * fontsize
+				buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
+			else
 				offset = offset+width
 				width = font2:GetTextWidth('  Quit    ') * fontsize
 				buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
@@ -1361,21 +1367,25 @@ local function applyButtonAction(button)
 
 	local isvisible = false
 	if button == 'quit' then
-		local oldShowQuitscreen
-		if showQuitscreen ~= nil then
-			oldShowQuitscreen = showQuitscreen
-			isvisible = true
-		end
-		hideWindows()
-		if oldShowQuitscreen ~= nil then
-			if isvisible ~= true then
-				showQuitscreen = oldShowQuitscreen
-				if WG['guishader'] then
-					WG['guishader'].setScreenBlur(true)
-				end
-			end
+		if chobbyLoaded then
+			Spring.SendLuaMenuMsg("showLobby")
 		else
-			showQuitscreen = os.clock()
+			local oldShowQuitscreen
+			if showQuitscreen ~= nil then
+				oldShowQuitscreen = showQuitscreen
+				isvisible = true
+			end
+			hideWindows()
+			if oldShowQuitscreen ~= nil then
+				if isvisible ~= true then
+					showQuitscreen = oldShowQuitscreen
+					if WG['guishader'] then
+						WG['guishader'].setScreenBlur(true)
+					end
+				end
+			else
+				showQuitscreen = os.clock()
+			end
 		end
 	elseif button == 'options' then
 		if (WG['options'] ~= nil) then
