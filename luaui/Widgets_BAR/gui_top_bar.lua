@@ -23,7 +23,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local height = 44
+local height = 45
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
@@ -760,9 +760,9 @@ local function updateResbar(res)
 			if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
 				local padding = shareSliderWidth/8
 				glColor(0.8, 0.8, 0.5, 1)
-				RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],2.5*widgetScale)
+				RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],8*widgetScale)
 				glColor(0.7, 0.7, 0.47, 1)
-				RectRound(conversionIndicatorArea[1]+padding, conversionIndicatorArea[2]+padding, conversionIndicatorArea[3]-padding, conversionIndicatorArea[4]-padding,2.5*widgetScale)
+				RectRound(conversionIndicatorArea[1]+padding, conversionIndicatorArea[2]+padding, conversionIndicatorArea[3]-padding, conversionIndicatorArea[4]-padding,6.5*widgetScale)
 			else
 				glColor(0.85, 0.85, 0.55, 1)
 				glTexRect(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4])
