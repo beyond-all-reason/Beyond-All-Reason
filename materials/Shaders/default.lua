@@ -543,7 +543,7 @@ fragment = [[
 
 	//https://mynameismjp.wordpress.com/2010/04/30/a-closer-look-at-tone-mapping/ (comments by STEVEM)
 	vec3 SteveMTM1(in vec3 x) {
-		const float a = 10.0; /// Mid
+		const float a = 15.0; /// Mid
 		const float b = 0.3; /// Toe
 		const float c = 0.5; /// Shoulder
 		const float d = 1.5; /// Mid
