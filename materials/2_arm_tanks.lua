@@ -44,23 +44,43 @@ local matTemplate = {
 	shaderDefinitions = {
 		"#define use_normalmapping",
 		"#define deferred_mode 0",
-		"#define use_treadoffset",
 		"#define flashlights",
 		"#define use_vertex_ao",
-		"#define SPECULARMULT 2.0",
-		--"#define ROUGHNESS_PERTURB_NORMAL 0.1",
-		--"#define ROUGHNESS_PERTURB_COLOR 0.2",
-		--"#define SPECULAR_AA 1.0",
+		"#define use_treadoffset",
+
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
-		"#define USE_COOKTORRANCE",
+
+		"#define SPECULARMULT 2.0",
+
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
+		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
+
+		"#define USE_ENVIRONMENT_DIFFUSE",
+		"#define USE_ENVIRONMENT_SPECULAR",
+
+		"#define DO_GAMMA_CORRECTION",
+		"#define TONEMAP(c) SteveMTM1(c)",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
 		"#define deferred_mode 1",
-		"#define use_treadoffset",
 		"#define flashlights",
 		"#define use_vertex_ao",
+		"#define use_treadoffset",
+
+		"#define SHADOW_SOFTNESS SHADOW_HARD",
+
 		"#define SPECULARMULT 2.0",
+
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
+		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
+
+		"#define USE_ENVIRONMENT_DIFFUSE",
+		"#define USE_ENVIRONMENT_SPECULAR",
+
+		"#define DO_GAMMA_CORRECTION",
+		"#define TONEMAP(c) SteveMTM1(c)",
+
 		"#define MAT_IDX 2",
 	},
 
@@ -77,6 +97,8 @@ local matTemplate = {
 		[2] = '$shadow',
 		[4] = '$reflection',
 		[5] = '%NORMALTEX',
+		[6] = "$info",
+		[7] = GG.GetBrdfTexture(),
 	},
 	DrawUnit = DrawUnit,
 	SunChanged = SunChanged,

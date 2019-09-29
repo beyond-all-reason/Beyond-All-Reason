@@ -21,14 +21,37 @@ local materials = {
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
-			--"#define use_vertex_ao",
+
+			"#define SHADOW_SOFTNESS SHADOW_SOFT",
+
 			"#define SPECULARMULT 2.0",
+
+			"#define METALNESS 0.5",
+			"#define ROUGHNESS 0.9",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		deferredDefinitions = {
-			--"#define use_normalmapping", --actively disable normalmapping, it can be pricey, and is only shown for deferred lights...
+			"#define use_normalmapping",
 			"#define deferred_mode 1",
-			--"#define use_vertex_ao",
+
+			"#define SHADOW_SOFTNESS SHADOW_SOFT",
+
 			"#define SPECULARMULT 2.0",
+
+			--"#define METALNESS 0.5",
+			--"#define ROUGHNESS 0.9",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
+
 			"#define MAT_IDX 128",
 		},
 		usecamera = false,
@@ -40,6 +63,8 @@ local materials = {
 			[2] = '$shadow',
 			[4] = '$reflection',
 			[5] = '%NORMALTEX',
+			[6] = "$info",
+			[7] = GG.GetBrdfTexture(),
 		},
 		--DrawFeature = DrawFeature,
 		SunChanged = SunChanged,

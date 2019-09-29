@@ -34,12 +34,41 @@ local materials = {
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
+
 			"#define USE_LOSMAP",
+
 			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
+
+			"#define SPECULARMULT 2.0",
+
+			"#define METALNESS 0.5",
+			"#define ROUGHNESS 0.5",
+
+			"#define USE_ENVIRONMENT_DIFFUSE",
+			"#define USE_ENVIRONMENT_SPECULAR",
+
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --very expensive for trees (too much overdraw)
 			"#define deferred_mode 1",
+
+			"#define USE_LOSMAP",
+
+			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
+
+			"#define SPECULARMULT 2.0",
+
+			"#define METALNESS 0.5",
+			"#define ROUGHNESS 0.5",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
+
 			"#define MAT_IDX 129",
 		},
 		shaderPlugins = {
@@ -103,6 +132,7 @@ local materials = {
 			[4] = '$reflection',
 			[5] = "%NORMALTEX",
 			[6] = "$info",
+			[7] = GG.GetBrdfTexture(),
 		},
 		--DrawFeature = DrawFeature,
 		DrawGenesis = DrawGenesis,
