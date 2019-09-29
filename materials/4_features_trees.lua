@@ -103,6 +103,7 @@ local materials = {
 			[4] = '$reflection',
 			[5] = "%NORMALTEX",
 			[6] = "$info",
+			[7] = GG.GetBrdfTexture(),
 		},
 		--DrawFeature = DrawFeature,
 		DrawGenesis = DrawGenesis,

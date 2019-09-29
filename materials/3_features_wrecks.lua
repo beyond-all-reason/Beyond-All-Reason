@@ -40,6 +40,8 @@ local materials = {
 			[2] = '$shadow',
 			[4] = '$reflection',
 			[5] = '%NORMALTEX',
+			[6] = "$info",
+			[7] = GG.GetBrdfTexture(),
 		},
 		--DrawFeature = DrawFeature,
 		SunChanged = SunChanged,

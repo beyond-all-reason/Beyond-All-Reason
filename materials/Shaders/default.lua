@@ -206,6 +206,8 @@ fragment = [[
 		uniform sampler2D losMapTex;
 	#endif
 
+	uniform sampler2D brdfLUT;
+
 	in vec3 worldTangent;
 	in vec3 worldBitangent;
 	in vec3 worldNormal;
@@ -398,7 +400,7 @@ fragment = [[
 		return vec3(radius * vec2(cos(theta), sin(theta)), z);
 	}
 
-	#define ENV_SMPL_NUM 8
+	#define ENV_SMPL_NUM 16
 	void TextureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSpecular, out float avgDiffLum) {
 		iblDiffuse = vec3(0.0);
 		iblSpecular = vec3(0.0);
@@ -493,6 +495,46 @@ fragment = [[
 			diffuseContrib *= NdotL;
 			specContrib    *= NdotL;
 		}
+	}
+
+	void GetAmbient(
+		vec3 diffuseColor,
+		vec3 specularColor,
+		vec3 N,
+		vec3 Rv,
+		float NdotV,
+		float roughness,
+		out vec3 ambientColor
+		)
+	{
+		vec3 iblDiffuse;
+		vec3 iblSpecular;
+
+		#if (defined USE_ENVIRONMENT_DIFFUSE) || defined (USE_ENVIRONMENT_SPECULAR)
+			float avgDiffLum;
+			TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular, avgDiffLum);
+		#endif
+
+		#if (defined USE_ENVIRONMENT_DIFFUSE)
+			vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
+			float sunAmbientLuma = dot(LUMA, sunAmbient);
+
+			iblDiffuseYCbCr.x = sunAmbientLuma;
+
+			iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
+		#else
+			iblDiffuse  = sunAmbient;
+		#endif
+		iblDiffuse *= diffuseColor;
+
+		vec2 lutValue = texture2D(brdfLUT, vec2(NdotV, roughness)).rg;
+		#if defined (USE_ENVIRONMENT_SPECULAR)
+			iblSpecular *= specularColor * lutValue.x + lutValue.y;
+		#else
+			iblSpecular  = sunAmbient * (specularColor * lutValue.x + lutValue.y);
+		#endif
+
+		ambientColor = aoTerm * (iblDiffuse + iblSpecular);
 	}
 
 
@@ -593,7 +635,7 @@ fragment = [[
 		float emissiveness = extraColor.r;
 
 		float roughness    = extraColor.b;
-		//roughness = SNORM2NORM( sin(simFrame * 0.1) );
+		//roughness = SNORM2NORM( sin(simFrame * 0.2) );
 		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 
 		float roughness2 = roughness * roughness;
@@ -667,6 +709,7 @@ fragment = [[
 
 
 		// IBL
+		/*
 		vec3 iblDiffuse;
 		vec3 iblSpecular;
 		vec3 ambientColor;
@@ -686,18 +729,39 @@ fragment = [[
 			#else
 				ambientColor = aoTerm * sunAmbient;
 			#endif
-			ambientColor *= albedoColor;
+
+
+			#ifdef USE_ENVIRONMENT_SPECULAR
+				reflection = mix(reflection, iblSpecular, (vec3(1.0) - fresnel) * roughness);
+				reflection = mix(reflection, iblSpecular, roughness);
+			#else
+
+			#endif
+
 		}
+		*/
+		vec3 ambientColor;
+		GetAmbient(
+			diffuseColor,
+			specularColor,
+			N,
+			Rv,
+			NdotV,
+			roughness,
+			ambientColor
+			);
 
 
 		// environment reflection
 		vec3 reflection;
 		{
 			reflection = SampleEnvironmentWithRoughness(Rv, roughness);
+			/*
 			#ifdef USE_ENVIRONMENT_SPECULAR
 				reflection = mix(reflection, iblSpecular, (vec3(1.0) - fresnel) * roughness);
 				reflection = mix(reflection, iblSpecular, roughness);
 			#endif
+			*/
 			#ifdef flashlights
 				reflection += vec3(selfIllumMod * emissiveness);
 			#endif
@@ -750,7 +814,7 @@ fragment = [[
 		// debug hook
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			outColor = vec3(iblDiffuse);
+			outColor = vec3(texture(brdfLUT, tex_coord0.xy).rg, 0.0);
 		#endif
 
 		#if (deferred_mode == 0)
@@ -776,6 +840,7 @@ fragment = [[
 		reflectTex  = 4,
 		normalMap   = 5,
 		losMapTex   = 6,
+		brdfLUT     = 7,
 	},
 	uniformFloat = {
 		sunAmbient = {gl.GetSun("ambient" ,"unit")},
