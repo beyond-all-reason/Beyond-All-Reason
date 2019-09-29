@@ -341,7 +341,7 @@ function widget:RecvLuaMsg(msg, playerID)
   end
 end
 
-function widget:DrawScreen()
+function widget:DrawWorld()
   if chobbyInterface then return end
   if (WG['topbar'] and WG['topbar'].showingQuit()) then
     return
