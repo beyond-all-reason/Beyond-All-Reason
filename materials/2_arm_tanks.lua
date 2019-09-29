@@ -48,6 +48,8 @@ local matTemplate = {
 		"#define flashlights",
 		"#define use_vertex_ao",
 		"#define SPECULARMULT 2.0",
+		"#define DO_GAMMA_CORRECTION",
+		"#define TONEMAP(c) SteveMTM1(c)",
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
@@ -61,6 +63,8 @@ local matTemplate = {
 		"#define flashlights",
 		"#define use_vertex_ao",
 		"#define SPECULARMULT 2.0",
+		"#define DO_GAMMA_CORRECTION",
+		"#define TONEMAP(c) SteveMTM1(c)",
 		"#define MAT_IDX 2",
 	},
 

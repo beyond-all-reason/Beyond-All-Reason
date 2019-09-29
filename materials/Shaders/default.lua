@@ -244,14 +244,14 @@ fragment = [[
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 	// gamma correction & tonemapping
-	#if 1
+	#ifdef DO_GAMMA_CORRECTION
 		#define GAMMA 2.2
 		#define INV_GAMMA 1.0 / GAMMA
 		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
 		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
-		//#define LINEARtoSRGB(c) ( c )
-		#define TONEMAP(c) SteveMTM1(c)
-		//#define TONEMAP(c) (c)
+		#ifndef TONEMAP
+			#define TONEMAP(c) (c)
+		#endif
 	#else
 		#define SRGBtoLINEAR(c) ( c )
 		#define LINEARtoSRGB(c) ( c )
