@@ -634,14 +634,24 @@ fragment = [[
 
 		float emissiveness = extraColor.r;
 
-		float roughness    = extraColor.b;
+		#ifdef ROUGHNESS
+			float roughness    = ROUGHNESS;
+		#else
+			float roughness    = extraColor.b;
+		#endif
+
 		//roughness = SNORM2NORM( sin(simFrame * 0.2) );
 		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 
 		float roughness2 = roughness * roughness;
 		float roughness4 = roughness2 * roughness2;
 
-		float metalness    = extraColor.g;
+		#ifdef METALNESS
+			float metalness    = METALNESS;
+		#else
+			float metalness    = extraColor.g;
+		#endif
+
 		//metalness = SNORM2NORM( sin(simFrame * 0.1) );
 		//metalness = 0.0;
 

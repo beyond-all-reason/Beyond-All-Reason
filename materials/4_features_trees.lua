@@ -34,13 +34,23 @@ local materials = {
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
+
 			"#define USE_LOSMAP",
+
 			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
+
+			"#define METALNESS 0.0",
+			"#define ROUGHNESS 0.9",
+
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --very expensive for trees (too much overdraw)
 			"#define deferred_mode 1",
 			"#define MAT_IDX 129",
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		shaderPlugins = {
 			VERTEX_GLOBAL_NAMESPACE = [[

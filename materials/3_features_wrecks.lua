@@ -23,12 +23,18 @@ local materials = {
 			"#define deferred_mode 0",
 			--"#define use_vertex_ao",
 			"#define SPECULARMULT 2.0",
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
+			"#define METALNESS 0.5",
+			"#define ROUGHNESS 0.9",
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --actively disable normalmapping, it can be pricey, and is only shown for deferred lights...
 			"#define deferred_mode 1",
 			--"#define use_vertex_ao",
 			"#define SPECULARMULT 2.0",
+			"#define DO_GAMMA_CORRECTION",
+			"#define TONEMAP(c) SteveMTM1(c)",
 			"#define MAT_IDX 128",
 		},
 		usecamera = false,
