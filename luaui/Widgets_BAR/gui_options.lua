@@ -2348,7 +2348,7 @@ function init()
 		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?"},
 
 		{id="scrollspeed", group="control", name="Scroll zoom speed", type="slider", min=1, max=50, step=1, value=math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25)), description=''},
-		{id="scrollinverse", group="control", name="Scroll inversed", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description=""},
+		{id="scrollinverse", group="control", name="Scroll reversed", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description=""},
 
 		{id="hwcursor", group="control", name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps"},
 		{id="cursor", group="control", name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size',

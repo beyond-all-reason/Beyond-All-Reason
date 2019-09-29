@@ -291,7 +291,7 @@ function widget:RecvLuaMsg(msg, playerID)
     end
 end
 
-function widget:DrawScreen()
+function widget:DrawWorld()
   if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
