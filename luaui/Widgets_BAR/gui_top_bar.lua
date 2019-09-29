@@ -125,6 +125,7 @@ local draggingShareIndicatorValue = {}
 local chobbyLoaded = false
 if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
 	chobbyLoaded = true
+	Spring.SendLuaMenuMsg("disableLobbyButton")
 end
 --------------------------------------------------------------------------------
 -- Rejoin
