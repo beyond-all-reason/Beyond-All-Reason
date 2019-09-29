@@ -98,7 +98,7 @@ local finalNearBlurTex = nil
 
 -- shader uniform handles
 local eyePosLoc = nil
-local viewProjectionLoc = nil
+local projectionMatLoc = nil
 local resolutionLoc = nil
 local distanceLimitsLoc = nil
 local autofocusLoc = nil
@@ -277,7 +277,7 @@ function init()
 	end
 
 	eyePosLoc = gl.GetUniformLocation(dofShader, "eyePos")
-	viewProjectionLoc = gl.GetUniformLocation(dofShader, "viewProjection")
+	projectionMatLoc = gl.GetUniformLocation(dofShader, "projectionMat")
 	resolutionLoc = gl.GetUniformLocation(dofShader, "resolution")
 	distanceLimitsLoc = gl.GetUniformLocation(dofShader, "distanceLimits")
 	autofocusLoc = gl.GetUniformLocation(dofShader, "autofocus")
@@ -423,7 +423,7 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-	gl.ActiveShader(dofShader, function() glUniformMatrix(viewProjectionLoc, "projection") end)
+	gl.ActiveShader(dofShader, function() glUniformMatrix(projectionMatLoc, "projection") end)
 end
 
 function widget:DrawScreenEffects()
