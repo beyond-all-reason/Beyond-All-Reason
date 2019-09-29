@@ -400,7 +400,7 @@ fragment = [[
 		return vec3(radius * vec2(cos(theta), sin(theta)), z);
 	}
 
-	#define ENV_SMPL_NUM 16
+	#define ENV_SMPL_NUM 32
 	void TextureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSpecular, out float avgDiffLum) {
 		iblDiffuse = vec3(0.0);
 		iblSpecular = vec3(0.0);
@@ -411,7 +411,7 @@ fragment = [[
 		vec2 ts = vec2(textureSize(reflectTex, 0));
 		float maxMipMap = log2(max(ts.x, ts.y));
 
-		vec2 lodBias = vec2(maxMipMap - 1.0, 2.0);
+		vec2 lodBias = vec2(maxMipMap - 1.0, 4.0);
 
 		for (int i=0; i < ENV_SMPL_NUM; ++i) {
 			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
@@ -420,7 +420,7 @@ fragment = [[
 					dot(sp, N ) * 0.5 + 0.5,
 					dot(sp, Rv) * 0.5 + 0.5);
 
-			w = pow(w, vec2(2.0, 5.0));
+			w = pow(w, vec2(2.0, 16.0));
 
 			vec3 iblD = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.x).rgb);
 			vec3 iblS = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.y).rgb);
@@ -504,11 +504,13 @@ fragment = [[
 		vec3 Rv,
 		float NdotV,
 		float roughness,
-		out vec3 ambientColor
+		out vec3 ambientColor,
+		out vec3 iblDiffuse,
+		out vec3 iblSpecular
 		)
 	{
-		vec3 iblDiffuse;
-		vec3 iblSpecular;
+		//vec3 iblDiffuse;
+		//vec3 iblSpecular;
 
 		#if (defined USE_ENVIRONMENT_DIFFUSE) || defined (USE_ENVIRONMENT_SPECULAR)
 			float avgDiffLum;
@@ -652,6 +654,8 @@ fragment = [[
 			float metalness    = extraColor.g;
 		#endif
 
+		metalness = clamp(metalness, 0.0, 1.0);
+
 		//metalness = SNORM2NORM( sin(simFrame * 0.1) );
 		//metalness = 0.0;
 
@@ -705,75 +709,6 @@ fragment = [[
 		// Anything less than 2% is physically impossible and is instead considered to be shadowing. Compare to "Real-Time-Rendering" 4th editon on page 325.
 		vec3 R90 = vec3(clamp(reflectance * 50.0, 0.0, 1.0));
 
-		// BRDF
-		vec3 dirDiffuseContrib;
-		vec3 dirSpecularContrib;
-		vec3 fresnel;
-		GetBRDF(
-			diffuseColor,
-			R0, R90,
-			NdotL, NdotV, NdotH, VdotH,
-			roughness4,
-			fresnel,
-			dirDiffuseContrib, dirSpecularContrib);
-
-
-		// IBL
-		/*
-		vec3 iblDiffuse;
-		vec3 iblSpecular;
-		vec3 ambientColor;
-		{
-			#if (defined USE_ENVIRONMENT_DIFFUSE) || defined (USE_ENVIRONMENT_SPECULAR)
-				float avgDiffLum;
-				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular, avgDiffLum);
-			#endif
-
-			#ifdef USE_ENVIRONMENT_DIFFUSE
-				vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
-				float sunAmbientLuma = dot(LUMA, sunAmbient);
-				iblDiffuseYCbCr.x = sunAmbientLuma;
-
-				iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
-				ambientColor = aoTerm * iblDiffuse;
-			#else
-				ambientColor = aoTerm * sunAmbient;
-			#endif
-
-
-			#ifdef USE_ENVIRONMENT_SPECULAR
-				reflection = mix(reflection, iblSpecular, (vec3(1.0) - fresnel) * roughness);
-				reflection = mix(reflection, iblSpecular, roughness);
-			#else
-
-			#endif
-
-		}
-		*/
-		vec3 ambientColor;
-		GetAmbient(
-			diffuseColor,
-			specularColor,
-			N,
-			Rv,
-			NdotV,
-			roughness,
-			ambientColor
-			);
-
-
-		// environment reflection
-		vec3 reflection;
-		{
-			reflection = SampleEnvironmentWithRoughness(Rv, roughness);
-			/*
-			#ifdef USE_ENVIRONMENT_SPECULAR
-				reflection = mix(reflection, iblSpecular, (vec3(1.0) - fresnel) * roughness);
-				reflection = mix(reflection, iblSpecular, roughness);
-			#endif
-			*/
-			reflection *= albedoColor;
-		}
 
 		// shadows
 		float shadowMult;
@@ -790,6 +725,49 @@ fragment = [[
 			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity);
 		}
 
+		// BRDF
+		vec3 dirDiffuseContrib;
+		vec3 dirSpecularContrib;
+		vec3 fresnel;
+		GetBRDF(
+			diffuseColor,
+			R0, R90,
+			NdotL, NdotV, NdotH, VdotH,
+			roughness4,
+			fresnel,
+			dirDiffuseContrib, dirSpecularContrib);
+
+		// Ambient
+		vec3 ambientColor;
+		vec3 iblDiffuse;
+		vec3 iblSpecular;
+		GetAmbient(
+			diffuseColor,
+			specularColor,
+			N,
+			Rv,
+			NdotV,
+			roughness,
+			ambientColor,
+			iblDiffuse,
+			iblSpecular
+			);
+
+
+		// environment reflection
+		vec3 reflection;
+		{
+			reflection = SampleEnvironmentWithRoughness(Rv, roughness);
+			/*
+			#ifdef USE_ENVIRONMENT_SPECULAR
+				reflection = mix(reflection, iblSpecular, (vec3(1.0) - fresnel) * roughness);
+				reflection = mix(reflection, iblSpecular, roughness);
+			#endif
+			*/
+			reflection *= albedoColor;
+		}
+		//reflection *= shadowMult;
+
 		vec3 outColor;
 		vec3 outDiffuseColor;
 		vec3 outSpecularColor;
@@ -800,7 +778,7 @@ fragment = [[
 
 			outColor  = outDiffuseColor;
 			outColor  = mix(outColor, reflection, fresnel  );
-			outColor  = mix(outColor, reflection, metalness);
+			//outColor  = mix(outColor, reflection, metalness);
 			outColor += ambientColor;
 
 			outColor += outSpecularColor;
@@ -825,7 +803,7 @@ fragment = [[
 		// debug hook
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			outColor = vec3(texture(brdfLUT, tex_coord0.xy).rg, 0.0);
+			outColor = LINEARtoSRGB(ambientColor);
 		#endif
 
 		#if (deferred_mode == 0)
