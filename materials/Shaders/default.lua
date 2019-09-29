@@ -762,9 +762,6 @@ fragment = [[
 				reflection = mix(reflection, iblSpecular, roughness);
 			#endif
 			*/
-			#ifdef flashlights
-				reflection += vec3(selfIllumMod * emissiveness);
-			#endif
 			reflection *= albedoColor;
 		}
 
@@ -797,6 +794,10 @@ fragment = [[
 			outColor += ambientColor;
 
 			outColor += outSpecularColor;
+
+			#ifdef flashlights
+				outColor += vec3(selfIllumMod * emissiveness) * albedoColor;
+			#endif
 		}
 
 		#ifdef USE_LOSMAP

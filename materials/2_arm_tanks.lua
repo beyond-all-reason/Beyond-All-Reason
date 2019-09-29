@@ -51,8 +51,8 @@ local matTemplate = {
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
-		"#define USE_ENVIRONMENT_DIFFUSE",
-		"#define USE_ENVIRONMENT_SPECULAR",
+		--"#define USE_ENVIRONMENT_DIFFUSE",
+		--"#define USE_ENVIRONMENT_SPECULAR",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
