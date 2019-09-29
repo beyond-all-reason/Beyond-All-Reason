@@ -160,7 +160,7 @@ local function ProcessSoundDefaults(wd)
 		return
 	end
 
-	local defaultDamage = wd.damage and tonumber(wd.damage.default)
+	local defaultDamage = wd.damage and wd.damage.default
 	if (not defaultDamage) or (defaultDamage <= 50) then
 		wd.soundstartvolume = 5
 		wd.soundhitvolume = 5
