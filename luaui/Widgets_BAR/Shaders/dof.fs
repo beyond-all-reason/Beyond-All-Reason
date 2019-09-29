@@ -128,9 +128,9 @@ float LinearizeDepth(vec2 uv){
 
     float n22 = viewProjection[2][2];
 
-    return ((abs(((1.0 + depthNDC) * (1.0 + n22))/(2.0 * (depthNDC + n22)))
-      * (distanceLimits.y - distanceLimits.x)) + distanceLimits.x) / BLUR_START_DIST;
-    // return abs(viewProjection[3][2] / (viewProjection[2][2] + depthNDC)) / BLUR_START_DIST;
+    //return ((abs(((1.0 + depthNDC) * (1.0 + n22))/(2.0 * (depthNDC + n22)))
+    //  * (distanceLimits.y - distanceLimits.x)) + distanceLimits.x) / BLUR_START_DIST;
+    return abs(viewProjection[3][2] / (viewProjection[2][2] + depthNDC)) / BLUR_START_DIST;
 }
 
 float GetFilterRadius(vec2 uv)

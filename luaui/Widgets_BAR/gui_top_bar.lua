@@ -23,7 +23,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local height = 45
+local height = 44
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
@@ -644,7 +644,7 @@ local function updateResbarText(res)
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding = 2.5*widgetScale
 					local text = 'Overflowing'
-					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 10) * widgetScale
+					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale
 
 					-- background
 					glColor(0.3,0,0,0.6)
@@ -655,7 +655,7 @@ local function updateResbarText(res)
                     font2:Begin()
                     font2:SetTextColor(1,0.88,0.88,1)
                     font2:SetOutlineColor(0.2,0,0,0.6)
-                    font2:Print(text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 10*widgetScale, 'or')
+                    font2:Print(text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 11.5*widgetScale, 'or')
                     font2:End()
 				end
 			else
