@@ -375,7 +375,7 @@ fragment = [[
 	vec3 GetSpecularBlinnPhong(float HdotN, float roughness) {
 		float power = 2.0 / max(roughness * 0.25, 0.01);
 		float powerNorm = (power + 8.0) / 32.0;
-		return sunSpecular * pow(HdotN, power) * powerNorm;
+		return vec3(pow(HdotN, power) * powerNorm);
 	}
 
 	vec3 SpecularReflection(vec3 R0, vec3 R90, float VdotH) {
@@ -568,7 +568,7 @@ fragment = [[
 			specularColor = metalness * GetSpecularBlinnPhong(NdotH, roughness);
 		#endif
 
-		specularColor *= SPECULARMULT;
+		specularColor *= sunSpecular * SPECULARMULT;
 
 		// environment reflection
 		vec3 reflection = SampleEnvironmentWithRoughness(Rv, roughness);
