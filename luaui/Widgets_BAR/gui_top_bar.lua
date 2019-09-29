@@ -23,7 +23,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local height = 38
+local height = 44
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
@@ -667,10 +667,10 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][2])
 	end
 	local barHeight = (height*widgetScale/10)
-	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+	local barHeighPadding = 9*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = 39 * widgetScale
-	local barRightPadding = 8 * widgetScale
+	local barLeftPadding = 41 * widgetScale
+	local barRightPadding = 10 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 2.2
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
