@@ -121,7 +121,7 @@ local lutFS =
 	void main() {
 		//NdotV, roughness
 		vec2 inUV = gl_FragCoord.xy / texSize;
-		gl_FragColor = vec4(BRDF(inUV.x, 1.0 - inUV.y), 0.0, 1.0);
+		gl_FragColor = vec4(BRDF(inUV.x, inUV.y), 0.0, 1.0);
 	}
 ]]
 

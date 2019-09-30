@@ -14,7 +14,7 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 	local genLut
 
 	local BRDFLUT_TEXDIM = 512 --512 is BRDF LUT texture resolution
-	local BRDFLUT_GOPTION = 3
+	local BRDFLUT_GOPTION = 1
 
 	local function GetBrdfTexture()
 		return genLut:GetTexture()
@@ -29,7 +29,7 @@ if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
 
 	function gadget:Initialize()
 		Spring.SetConfigInt("CubeTexGenerateMipMaps", 1)
-		Spring.SetConfigInt("CubeTexSizeReflection", 2048)
+		Spring.SetConfigInt("CubeTexSizeReflection", 1024)
 		local genLutClass = VFS.Include("LuaRules/Gadgets/Include/GenBrdfLut.lua")
 		if genLutClass then
 			genLut = genLutClass(BRDFLUT_TEXDIM, BRDFLUT_GOPTION)

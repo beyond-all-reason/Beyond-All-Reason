@@ -46,8 +46,8 @@ local matTemplate = {
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
-		--"#define USE_ENVIRONMENT_DIFFUSE",
-		--"#define USE_ENVIRONMENT_SPECULAR",
+		"#define USE_ENVIRONMENT_DIFFUSE",
+		"#define USE_ENVIRONMENT_SPECULAR",
 
 		"#define DO_GAMMA_CORRECTION",
 		"#define TONEMAP(c) SteveMTM1(c)",

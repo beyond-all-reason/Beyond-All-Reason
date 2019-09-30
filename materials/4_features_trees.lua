@@ -41,8 +41,8 @@ local materials = {
 
 			"#define SPECULARMULT 2.0",
 
-			"#define METALNESS 0.5",
-			"#define ROUGHNESS 0.5",
+			"#define METALNESS 0.2",
+			"#define ROUGHNESS 0.9",
 
 			"#define USE_ENVIRONMENT_DIFFUSE",
 			"#define USE_ENVIRONMENT_SPECULAR",
@@ -63,8 +63,8 @@ local materials = {
 			"#define METALNESS 0.5",
 			"#define ROUGHNESS 0.5",
 
-			--"#define USE_ENVIRONMENT_DIFFUSE",
-			--"#define USE_ENVIRONMENT_SPECULAR",
+			"#define USE_ENVIRONMENT_DIFFUSE",
+			"#define USE_ENVIRONMENT_SPECULAR",
 
 			"#define DO_GAMMA_CORRECTION",
 			"#define TONEMAP(c) SteveMTM1(c)",
