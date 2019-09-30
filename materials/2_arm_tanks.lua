@@ -50,7 +50,7 @@ local matTemplate = {
 
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 
-		"#define SPECULARMULT 2.0",
+		"#define SUNMULT 2.0",
 
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
@@ -70,7 +70,7 @@ local matTemplate = {
 
 		"#define SHADOW_SOFTNESS SHADOW_HARD",
 
-		"#define SPECULARMULT 2.0",
+		"#define SUNMULT 2.0",
 
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",

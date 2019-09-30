@@ -141,8 +141,8 @@ fragment = [[
 	uniform vec3 etcLoc;
 	uniform int simFrame;
 
-	#ifndef SPECULARMULT
-		#define SPECULARMULT 2.0
+	#ifndef SUNMULT
+		#define SUNMULT 2.0
 	#endif
 
 	#ifndef MAT_IDX
@@ -446,9 +446,19 @@ fragment = [[
 		return R0 + (max(R90 - vec3(roughness), R0) - R0) * pow(1.0 - VdotH, 5.0);
 	}
 
-	// Smith Joint GGX
+	// Smith GGX Correlated visibility function
 	// Note: Vis = G / (4 * NdotL * NdotV)
-	float VisibilityOcclusion(float NdotL, float NdotV, float roughness4) {
+	#define VisibilityOcclusion(NdotL, NdotV, roughness2, roughness4) \
+	VisibilityOcclusionFast(NdotL, NdotV, roughness2)
+	//VisibilityOcclusionSlow(NdotL, NdotV, roughness4)
+
+	float VisibilityOcclusionFast(float NdotL, float NdotV, float roughness2) {
+		float GGXV = NdotL * (NdotV * (1.0 - roughness2) + roughness2);
+		float GGXL = NdotV * (NdotL * (1.0 - roughness2) + roughness2);
+		return 0.5 / (GGXV + GGXL);
+	}
+
+	float VisibilityOcclusionSlow(float NdotL, float NdotV, float roughness4) {
 		float GGXV = NdotL * sqrt(NdotV * NdotV * (1.0 - roughness4) + roughness4);
 		float GGXL = NdotV * sqrt(NdotL * NdotL * (1.0 - roughness4) + roughness4);
 
@@ -456,6 +466,7 @@ fragment = [[
 
 		return mix(0.0, 0.5 / GGX, float(GGX > 0.0));
 	}
+
 
 	float MicrofacetDistribution(float NdotH, float roughness4) {
 		float f = (NdotH * roughness4 - NdotH) * NdotH + 1.0;
@@ -680,7 +691,7 @@ fragment = [[
 		#endif
 
 		#if 1
-			vec3 energyCompensation = 1.0 + F0 * (1.0 / envBRDF.x - 1.0);
+			vec3 energyCompensation = 1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0);
 		#else
 			//manual fit
 			const vec3 energyCompensationK = vec3(0.008980345973388601, -0.2213503990248456, 0.45669533015311775);
@@ -695,11 +706,13 @@ fragment = [[
 			// Cook-Torrance BRDF
 
 			vec3 F = FresnelSchlick(F0, F90, VdotH);
-			float Vis = VisibilityOcclusion(NdotL, NdotV, roughness4);
+			float Vis = VisibilityOcclusion(NdotL, NdotV, roughness2, roughness4);
 			float D = MicrofacetDistribution(NdotH, roughness4);
 			outSpecularColor = F * Vis * D;
 
-			outSpecularColor *= sunSpecular * SPECULARMULT;
+			vec3 maxSun = mix(SUNMULT * sunSpecular, sunDiffuse, dot(sunDiffuse, LUMA) > SUNMULT * dot(sunSpecular, LUMA));
+
+			outSpecularColor *= maxSun;
 			outSpecularColor *= NdotL * shadowMult;
 
             // Scale the specular lobe to account for multiscattering
@@ -720,7 +733,7 @@ fragment = [[
 			kD *= 1.0 - metalness;
 
 			// add to outgoing radiance dirContrib
-			dirContrib  = sunDiffuse * (kD * albedoColor / PI) * NdotL * shadowMult;
+			dirContrib  = maxSun * (kD * albedoColor / PI) * NdotL * shadowMult;
 			//dirContrib  = (kD * albedoColor / PI) * NdotL * shadowMult;
 			dirContrib += outSpecularColor;
         }

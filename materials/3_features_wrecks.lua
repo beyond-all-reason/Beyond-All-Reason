@@ -24,15 +24,16 @@ local materials = {
 
 			"#define SHADOW_SOFTNESS SHADOW_SOFT",
 
-			"#define SPECULARMULT 2.0",
+			"#define SUNMULT 2.0",
 
 			"#define METALNESS 0.5",
-			"#define ROUGHNESS 0.9",
+			"#define ROUGHNESS 0.7",
+			"#define EMISSIVENESS 0.1",
 
-			"#define USE_ENVIRONMENT_DIFFUSE",
-			"#define USE_ENVIRONMENT_SPECULAR",
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			"#define DO_GAMMA_CORRECTION",
+			--"#define DO_GAMMA_CORRECTION",
 			"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		deferredDefinitions = {
@@ -41,7 +42,7 @@ local materials = {
 
 			"#define SHADOW_SOFTNESS SHADOW_SOFT",
 
-			"#define SPECULARMULT 2.0",
+			"#define SUNMULT 2.0",
 
 			--"#define METALNESS 0.5",
 			--"#define ROUGHNESS 0.9",
@@ -111,7 +112,7 @@ for id, featureDef in pairs(FeatureDefs) do
 	-- how to check if its a wreck or a heap?
 
 	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and ((featureDef.modelpath and featureDef.modelpath:find("%.3ds")) or (featureDef.model ~= nil and featureDef.model.path ~= nil and featureDef.model.path:find("%.3ds") == nil)) then --its likely a proper feature
-		if  featureDef.name:find("_dead") then
+		if featureDef.name:find("_dead") then
 			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then
 				--ignore these two edge cases.
 			elseif featureDef.name == "freefusion_free_fusion_dead" then
