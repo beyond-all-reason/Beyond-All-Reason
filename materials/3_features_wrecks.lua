@@ -26,9 +26,8 @@ local materials = {
 
 			"#define SUNMULT 2.0",
 
-			"#define METALNESS 0.5",
-			"#define ROUGHNESS 0.7",
-			"#define EMISSIVENESS 0.1",
+			--"#define METALNESS 0.0",
+			"#define ROUGHNESS 0.4",
 
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
@@ -44,17 +43,18 @@ local materials = {
 
 			"#define SUNMULT 2.0",
 
-			--"#define METALNESS 0.5",
-			--"#define ROUGHNESS 0.9",
+			--"#define METALNESS 0.8",
+			"#define ROUGHNESS 0.4",
 
-			"#define USE_ENVIRONMENT_DIFFUSE",
-			"#define USE_ENVIRONMENT_SPECULAR",
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			"#define DO_GAMMA_CORRECTION",
+			--"#define DO_GAMMA_CORRECTION",
 			"#define TONEMAP(c) SteveMTM1(c)",
 
 			"#define MAT_IDX 128",
 		},
+		feature = true,
 		usecamera = false,
 		force = true,
 		culling   = GL.BACK,
@@ -69,7 +69,6 @@ local materials = {
 		},
 		--DrawFeature = DrawFeature,
 		SunChanged = SunChanged,
-		feature = true, --// This is used to define that this is a feature shader
 	},
 }
 
@@ -111,7 +110,7 @@ for id, featureDef in pairs(FeatureDefs) do
 	Spring.PreloadFeatureDefModel(id)
 	-- how to check if its a wreck or a heap?
 
-	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and ((featureDef.modelpath and featureDef.modelpath:find("%.3ds")) or (featureDef.model ~= nil and featureDef.model.path ~= nil and featureDef.model.path:find("%.3ds") == nil)) then --its likely a proper feature
+	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.modeltype == "s3o" then --its likely a proper feature
 		if featureDef.name:find("_dead") then
 			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then
 				--ignore these two edge cases.
@@ -131,7 +130,6 @@ for id, featureDef in pairs(FeatureDefs) do
 			end
 		end
 	end
-	--Spring.Echo("feature_wreck", featureDef.name)
 end
 
 

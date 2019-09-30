@@ -41,8 +41,8 @@ local materials = {
 
 			"#define SUNMULT 2.0",
 
-			"#define METALNESS 0.0",
-			"#define ROUGHNESS 1.0",
+			"#define METALNESS 0.1",
+			"#define ROUGHNESS 0.5",
 			"#define EMISSIVENESS 0.1",
 
 			--"#define USE_ENVIRONMENT_DIFFUSE",

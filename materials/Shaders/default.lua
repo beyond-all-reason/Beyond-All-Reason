@@ -564,7 +564,7 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20560
+		#line 20567
 
 		#ifdef use_normalmapping
 			vec2 tc = tex_coord0.st;
@@ -598,7 +598,7 @@ fragment = [[
 		#endif
 
 		//metalness = SNORM2NORM( sin(simFrame * 0.05) );
-		//metalness = 0.0;
+		//metalness = 1.0;
 
 		//metalness = clamp(metalness, 0.0, 1.0);
 
@@ -758,6 +758,7 @@ fragment = [[
             ///
 
             #if (defined USE_ENVIRONMENT_DIFFUSE)
+			{
                 vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
                 float sunAmbientLuma = dot(LUMA, sunAmbient);
 
@@ -768,6 +769,7 @@ fragment = [[
 					(1.0 + sunAmbientLumaTolerance) * sunAmbientLuma);
 
                 iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
+			}
 			#else
 				iblDiffuse = sunAmbient;
             #endif
@@ -813,7 +815,7 @@ fragment = [[
 		// debug hook
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			outColor = vec3(roughness);
+			outColor = vec3(N);
 		#endif
 
 		#if (deferred_mode == 0)
