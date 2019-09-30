@@ -131,6 +131,7 @@ for id, featureDef in pairs(FeatureDefs) do
 			end
 		end
 	end
+	--Spring.Echo("feature_wreck", featureDef.name)
 end
 
 
