@@ -405,7 +405,7 @@ fragment = [[
 		vec2 ts = vec2(textureSize(reflectTex, 0));
 		float maxMipMap = log2(max(ts.x, ts.y));
 
-		vec2 lodBias = vec2(maxMipMap - 1.0, 4.0);
+		vec2 lodBias = vec2(maxMipMap - 4.0, 4.0);
 
 		for (int i=0; i < ENV_SMPL_NUM; ++i) {
 			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
@@ -414,10 +414,10 @@ fragment = [[
 					dot(sp, N ) * 0.5 + 0.5,
 					dot(sp, Rv) * 0.5 + 0.5);
 
-			w = pow(w, vec2(2.0, 16.0));
+			w = pow(w, vec2(8.0, 16.0));
 
-			vec3 iblD = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.x).rgb);
-			vec3 iblS = SRGBtoLINEAR(texture(reflectTex, sp, lodBias.y).rgb);
+			vec3 iblD = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.x).rgb);
+			vec3 iblS = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.y).rgb);
 
 			iblDiffuse  += iblD * w.x;
 			iblSpecular += iblS * w.y;
@@ -703,7 +703,7 @@ fragment = [[
 			float D = MicrofacetDistribution(NdotH, roughness4);
 			outSpecularColor = F * Vis * D;
 
-			vec3 maxSun = mix(SUNMULT * sunSpecular, sunDiffuse, dot(sunDiffuse, LUMA) > SUNMULT * dot(sunSpecular, LUMA));
+			vec3 maxSun = SUNMULT * mix(sunSpecular, sunDiffuse, dot(sunDiffuse, LUMA) > dot(sunSpecular, LUMA));
 
 			outSpecularColor *= maxSun;
 			outSpecularColor *= NdotL * shadowMult;
@@ -809,7 +809,7 @@ fragment = [[
 		// debug hook
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			outColor = vec3(ambientContrib);
+			outColor = LINEARtoSRGB(iblSpecular);
 		#endif
 
 		#if (deferred_mode == 0)
