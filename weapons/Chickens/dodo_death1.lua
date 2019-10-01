@@ -9,7 +9,7 @@ return {
 		impulseboost = 0.2,
 		impulsefactor = 0.2,
 		interceptedbyshieldtype = 1,
-		name = CrawlingBomb,
+		name = "CrawlingBomb",
 		range = 450,
 		reloadtime = 3.6,
 		soundhit = "chickens/chicken_nuke",
