@@ -15,9 +15,7 @@ vertex = [[
 	uniform vec3 etcLoc;
 	uniform int simFrame;
 
-	#ifdef flashlights
-		out float selfIllumMod;
-	#endif
+	out float selfIllumMod;
 	//uniform float frameLoc;
 
 	//The api_custom_unit_shaders supplies this definition:
@@ -34,8 +32,8 @@ vertex = [[
 	out vec3 worldBitangent;
 	out vec3 worldNormal;
 
-	out vec2 tex_coord0;
-	out vec4 tex_coord1;
+	out vec2 modelUV;
+	out vec4 shadowVertexPos;
 	out vec4 modelPos;
 	out vec4 worldPos;
 
@@ -59,22 +57,23 @@ vertex = [[
 		viewDir = cameraPos - worldPos.xyz;
 
 		#ifdef use_shadows
-			tex_coord1 = shadowMatrix * worldPos;
+			shadowVertexPos = shadowMatrix * worldPos;
 			#if 1
-				tex_coord1.xy = tex_coord1.xy + 0.5;
+				shadowVertexPos.xy = shadowVertexPos.xy + 0.5;
 			#else
-				tex_coord1.xy *= (inversesqrt(abs(tex_coord1.xy) + shadowParams.zz) + shadowParams.ww);
-				tex_coord1.xy += shadowParams.xy;
+				shadowVertexPos.xy *= (inversesqrt(abs(shadowVertexPos.xy) + shadowParams.zz) + shadowParams.ww);
+				shadowVertexPos.xy += shadowParams.xy;
 			#endif
 		#endif
 
+		modelUV.xy = gl_MultiTexCoord0.xy;
 		#ifdef use_treadoffset
-			tex_coord0.st = gl_MultiTexCoord0.st;
+
 			const vec4 treadBoundaries = vec4(0.6279296875, 0.74951171875, 0.5702890625, 0.6220703125);
 			if (all(bvec4(
-					tex_coord0.s >= treadBoundaries.x, tex_coord0.s <= treadBoundaries.y,
-					tex_coord0.t >= treadBoundaries.z, tex_coord0.t <= treadBoundaries.w))) {
-				tex_coord0.s = gl_MultiTexCoord0.s + etcLoc.z;
+					modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
+					modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
+				modelUV.x += etcLoc.z;
 			}
 		#endif
 
@@ -84,13 +83,11 @@ vertex = [[
 			aoTerm = 1.0;
 		#endif
 
-		#ifndef use_treadoffset
-			tex_coord0.st = gl_MultiTexCoord0.st;
-		#endif
-
 		#ifdef flashlights
 			// gl_ModelViewMatrix[3][0] + gl_ModelViewMatrix[3][2] are Tx, Tz elements of translation of matrix
 			selfIllumMod = max(-0.2, sin(simFrame * 0.063 + (gl_ModelViewMatrix[3][0] + gl_ModelViewMatrix[3][2]) * 0.1)) + 0.2;
+		#else
+			selfIllumMod = 1.0;
 		#endif
 
 		//float fogCoord = length(gl_Position.xyz); // maybe fog should be readded?
@@ -191,9 +188,7 @@ fragment = [[
 	in vec3 viewDir;
 	//varying float fogFactor;
 
-	#ifdef flashlights
-		in float selfIllumMod;
-	#endif
+	in float selfIllumMod;
 
 
 	#ifdef use_normalmapping
@@ -212,8 +207,8 @@ fragment = [[
 	in vec3 worldBitangent;
 	in vec3 worldNormal;
 
-	in vec2 tex_coord0;
-	in vec4 tex_coord1;
+	in vec2 modelUV;
+	in vec4 shadowVertexPos;
 	in vec4 worldPos;
 	in vec4 modelPos;
 
@@ -338,15 +333,13 @@ fragment = [[
 		return z0 + dot(dZduv, offset);
 	}
 
-	float GetShadowPCFRandom() {
+	float GetShadowPCFRandom(float NdotL) {
 		float shadow = 0.0;
 
-		vec3 shadowCoord = tex_coord1.xyz / tex_coord1.w;
-
-		vec2 dZduv = DepthGradient(shadowCoord.xyz);
+		vec3 shadowCoord = shadowVertexPos.xyz; // shadowVertexPos.w is always 1.0
 
 		#if defined(SHADOW_SAMPLES) && (SHADOW_SAMPLES > 1)
-
+			vec2 dZduv = DepthGradient(shadowCoord.xyz);
 
 			float rndRotAngle = NORM2SNORM(hash12L(gl_FragCoord.xy)) * PI / 2.0 * SHADOW_RANDOMNESS;
 
@@ -366,7 +359,13 @@ fragment = [[
 			shadow /= float(SHADOW_SAMPLES);
 			shadow *= 1.0 - smoothstep(shadow, 1.0,  0.2);
 		#else
-			vec3 shadowSamplingCoord = vec3(shadowCoord.xy, BiasedZ(shadowCoord.z, dZduv, vec2(0.0)));
+			const float cb = 5e-5;
+			float bias = cb * tan(acos(NdotL));
+			bias = clamp(bias, 0.0, 5.0 * cb);
+
+			vec3 shadowSamplingCoord = shadowCoord;
+			shadowSamplingCoord.z -= bias;
+
 			shadow = texture( shadowTex, shadowSamplingCoord );
 		#endif
 		return shadow;
@@ -385,7 +384,7 @@ fragment = [[
 
 		float lodBias = maxLodLevel * roughness;
 
-		return texture(reflectTex, samplingVec, lodBias).rgb;
+		return SRGBtoLINEAR(texture(reflectTex, samplingVec, lodBias).rgb);
 	}
 
 	vec3 SpherePoints_GoldenAngle(float i, float numSamples) {
@@ -567,7 +566,7 @@ fragment = [[
 		#line 20567
 
 		#ifdef use_normalmapping
-			vec2 tc = tex_coord0.st;
+			vec2 tc = modelUV.st;
 			vec4 normaltex = texture(normalMap, tc);
 			vec3 nvTS = normalize(NORM2SNORM(normaltex.xyz));
 		#else
@@ -580,8 +579,8 @@ fragment = [[
 			normalize(worldNormal)
 		);
 
-		vec4 diffuseColIn = texture(textureS3o1, tex_coord0.st);
-		vec4 extraColor   = texture(textureS3o2, tex_coord0.st);
+		vec4 diffuseColIn = texture(textureS3o1, modelUV.st);
+		vec4 extraColor   = texture(textureS3o2, modelUV.st);
 
 		#ifdef EMISSIVENESS
 			float emissiveness    = EMISSIVENESS;
@@ -661,16 +660,16 @@ fragment = [[
 		// shadows
 		float shadowMult;
 		{
-			float nShadowMix = smoothstep(0.0, 0.35, NdotLu);
-			float nShadow = mix(1.0, nShadowMix, shadowDensity);
+			float nShadow = smoothstep(0.0, 0.35, NdotLu); //normal based shadowing, always on
 
 			#ifdef use_shadows
-				float gShadow = GetShadowPCFRandom();
+				float gShadow = GetShadowPCFRandom(NdotL);
 			#else
 				float gShadow = 1.0;
 			#endif
 
-			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity);
+			//somehow scale the shadow strength with SUNMULT
+			shadowMult = mix(1.0, min(nShadow, gShadow) / SUNMULT, shadowDensity);
 		}
 
         ///
@@ -727,7 +726,6 @@ fragment = [[
 
 			// add to outgoing radiance dirContrib
 			dirContrib  = maxSun * (kD * albedoColor / PI) * NdotL * shadowMult;
-			//dirContrib  = (kD * albedoColor / PI) * NdotL * shadowMult;
 			dirContrib += outSpecularColor;
         }
 
@@ -755,8 +753,8 @@ fragment = [[
                 vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
                 float sunAmbientLuma = dot(LUMA, sunAmbient);
 
-				// allow environement to be 30% darker, but only 20% lighter than the sunAmbient
-				const vec2 sunAmbientLumaLeeway = vec2(0.3, 0.2); //total 50% leeway
+				// allow environement to be 20% darker and 20% lighter than the sunAmbient
+				const vec2 sunAmbientLumaLeeway = vec2(0.2, 0.2); //total 40% leeway
 
                 iblDiffuseYCbCr.x = smoothclamp(iblDiffuseYCbCr.x,
 					(1.0 - sunAmbientLumaLeeway.x) * sunAmbientLuma,
@@ -771,7 +769,7 @@ fragment = [[
             vec3 diffuse = iblDiffuse * albedoColor * aoTerm;
 
             // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-            vec3 reflectionColor = SRGBtoLINEAR(SampleEnvironmentWithRoughness(Rv, roughness));
+            vec3 reflectionColor = SampleEnvironmentWithRoughness(Rv, roughness);
 
 			#if (defined USE_ENVIRONMENT_SPECULAR)
 				reflectionColor = mix(reflectionColor, iblSpecular, roughness);
@@ -788,12 +786,7 @@ fragment = [[
             outColor = ambientContrib + dirContrib;
         }
 
-		#ifdef flashlights
-			outColor += vec3(selfIllumMod * emissiveness) * albedoColor;
-		#else
-			outColor += vec3(emissiveness) * albedoColor;
-		#endif
-
+		outColor += vec3(selfIllumMod * emissiveness) * albedoColor;
 
 		#ifdef USE_LOSMAP
 			float losValue = 0.5 + texture(losMapTex, worldPos.xz / mapSize).r;
@@ -809,7 +802,7 @@ fragment = [[
 		// debug hook
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			outColor = LINEARtoSRGB(iblSpecular);
+			outColor = LINEARtoSRGB(ambientContrib);
 		#endif
 
 		#if (deferred_mode == 0)
