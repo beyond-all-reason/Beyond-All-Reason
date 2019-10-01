@@ -598,7 +598,7 @@ fragment = [[
 		#endif
 
 		//metalness = SNORM2NORM( sin(simFrame * 0.05) );
-		//metalness = 1.0;
+		//metalness = 0.8;
 
 		//metalness = clamp(metalness, 0.0, 1.0);
 
@@ -609,7 +609,7 @@ fragment = [[
 		#endif
 
 		//roughness = SNORM2NORM( sin(simFrame * 0.1) );
-		//roughness = 1.0;
+		//roughness = 0.3;
 
 		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 
@@ -690,14 +690,7 @@ fragment = [[
 			vec2 envBRDF = EnvBRDFApprox(NdotV, roughness);
 		#endif
 
-		#if 1
-			vec3 energyCompensation = 1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0);
-		#else
-			//manual fit
-			const vec3 energyCompensationK = vec3(0.008980345973388601, -0.2213503990248456, 0.45669533015311775);
-			vec3 energyCompensationV = vec3(1.0, roughness2, roughness2 * roughness);
-			vec3 energyCompensation = mix(vec3(0.0), vec3(dot(energyCompensationK, energyCompensationV)), float(roughness > 0.35));
-		#endif
+		vec3 energyCompensation = 1.0 + F0 * (1.0 / max(envBRDF.x, EPS) - 1.0);
 
         vec3 dirContrib = vec3(0.0);
 		vec3 outSpecularColor = vec3(0.0);
@@ -762,11 +755,12 @@ fragment = [[
                 vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
                 float sunAmbientLuma = dot(LUMA, sunAmbient);
 
-				const float sunAmbientLumaTolerance = 0.1; //total 20% tolerance
+				// allow environement to be 30% darker, but only 20% lighter than the sunAmbient
+				const vec2 sunAmbientLumaLeeway = vec2(0.3, 0.2); //total 50% leeway
 
                 iblDiffuseYCbCr.x = smoothclamp(iblDiffuseYCbCr.x,
-					(1.0 - sunAmbientLumaTolerance) * sunAmbientLuma,
-					(1.0 + sunAmbientLumaTolerance) * sunAmbientLuma);
+					(1.0 - sunAmbientLumaLeeway.x) * sunAmbientLuma,
+					(1.0 + sunAmbientLumaLeeway.y) * sunAmbientLuma);
 
                 iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
 			}
@@ -815,7 +809,7 @@ fragment = [[
 		// debug hook
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			outColor = vec3(N);
+			outColor = vec3(ambientContrib);
 		#endif
 
 		#if (deferred_mode == 0)
