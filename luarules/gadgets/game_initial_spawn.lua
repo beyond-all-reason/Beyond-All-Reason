@@ -722,7 +722,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:DrawScreen()
+function gadget:DrawScreen()
 	if chobbyInterface then return end
 
 	-- only support AI's:  NullAI, DAI and KAIK
