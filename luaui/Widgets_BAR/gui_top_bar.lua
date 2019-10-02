@@ -335,15 +335,15 @@ local function updateButtons()
 	local totalWidth = area[3] - area[1]
 
 	local text = '    '
-    if (WG['teamstats'] ~= nil) then text = text..'Stats    ' end
-    if (WG['commands'] ~= nil) then text = text..'Cmd    ' end
-    if (WG['keybinds'] ~= nil) then text = text..'Keys    ' end
-    if (WG['changelog'] ~= nil) then text = text..'Changes    ' end
-    if (WG['options'] ~= nil) then text = text..'Settings    ' end
+    if (WG['teamstats'] ~= nil) then text = text..'Stats   ' end
+    if (WG['commands'] ~= nil) then text = text..'Cmd   ' end
+    if (WG['keybinds'] ~= nil) then text = text..'Keys   ' end
+    if (WG['changelog'] ~= nil) then text = text..'Changes   ' end
+    if (WG['options'] ~= nil) then text = text..'Settings   ' end
 	if chobbyLoaded then
-		text = text..'Lobby    '
+		text = text..'Lobby  '
 	else
-		text = text..'Quit    '
+		text = text..'Quit  '
 	end
 
 	local fontsize = totalWidth / font2:GetTextWidth(text)
@@ -390,40 +390,40 @@ local function updateButtons()
             if (WG['teamstats'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('   Stats  ') * fontsize
+                width = font2:GetTextWidth('   Stats ') * fontsize
                 buttonsArea['buttons']['stats'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4] }
             end
             if (WG['commands'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Cmd  ') * fontsize
+                width = font2:GetTextWidth('  Cmd ') * fontsize
                 buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			end
             if (WG['keybinds'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Keys  ') * fontsize
+                width = font2:GetTextWidth('  Keys ') * fontsize
                 buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['changelog'] ~= nil) then
                 button = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Changes  ') * fontsize
+                width = font2:GetTextWidth('  Changes ') * fontsize
                 buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['options'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Options  ') * fontsize
+                width = font2:GetTextWidth('  Settings ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
 			if chobbyLoaded then
 				offset = offset+width
-				width = font2:GetTextWidth('  Lobby    ') * fontsize
+				width = font2:GetTextWidth('  Lobby  ') * fontsize
 				buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
 			else
 				offset = offset+width
-				width = font2:GetTextWidth('  Quit    ') * fontsize
+				width = font2:GetTextWidth('  Quit  ') * fontsize
 				buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
 			end
 		end
