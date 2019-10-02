@@ -90,7 +90,7 @@ const float colorPower = 1.9;
 const float inFocusThreshold = 0.4 / float(KERNEL_RADIUS);
 const float focusMixDepthRange = (float(KERNEL_RADIUS) * 2.0);
 const float maxFilterRadius = 1.2; //keep between 0 and 2. Any higher than 2 will require modifying the normalization maths
-																	 //(currently does (radius/4)+0.5 to get [-2..2] to [0..1])
+								   //(currently does (radius/4)+0.5 to get [-2..2] to [0..1])
 
 //Approximately a circle, but bulging slightly up to help with focus making sense when looking down ramps
 const vec2 autofocusTestCoordOffsets[] = vec2[](
@@ -224,7 +224,7 @@ void main()
 			{
 				testDepth = LinearizeDepth(centerUV +
 					(vec2(autofocusTestCoordOffsets[i].x * aspectRatio,
-						autofocusTestCoordOffsets[i].y) * clamp(focusDepth * 4.4, 0.1, 0.225)));
+						autofocusTestCoordOffsets[i].y) * clamp(focusDepth * 3.3, 0.1, 0.225)));
 				//We use averages here instead of just directly min/max testing testDepth in order to have smoother focus transitions
 				//across big changes to focus depth, such as the camera scrolling over a cliff or being zoomed in on a unit.
 				minTestDepth = min(minTestDepth, (3.0 * minTestDepth + 2.0 * testDepth) / 5.0);
@@ -243,13 +243,13 @@ void main()
 					(maxTestDepth + 2.5 * maxTestDepth * focusDepthAirFactor) / 3.5 :
 					maxTestDepth * focusDepthAirFactor, focusDepth);
 
-			float focalLength = 0.05;
+			float focalLength = 0.03;
 			float minFStop = 1.0 * focalLength;
 			float curveDepth = 6.0;
 			float baseAperture =
 				focalLength/max(testFocusDepth * exp(curveDepth * testFocusDepth), minFStop);
 
-			float apertureBoundsFudgeFactor = 1.15; //Used to control bounds depths without having to change inFocusThreshold
+			float apertureBoundsFudgeFactor = 2.55; //Used to control bounds depths without having to change inFocusThreshold
 			float maxDepthAperture = ApertureSizeToKeepFocusFor(maxTestDepth, focusDepth) * apertureBoundsFudgeFactor;
 			float minDepthAperture = ApertureSizeToKeepFocusFor(minTestDepth, focusDepth) * apertureBoundsFudgeFactor;
 
