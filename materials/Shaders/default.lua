@@ -702,7 +702,7 @@ fragment = [[
 			float D = MicrofacetDistribution(NdotH, roughness4);
 			outSpecularColor = F * Vis * D;
 
-			vec3 maxSun = SUNMULT * mix(sunSpecular, sunDiffuse, dot(sunDiffuse, LUMA) > dot(sunSpecular, LUMA));
+			vec3 maxSun = SUNMULT * mix(sunSpecular, sunDiffuse, step(dot(sunSpecular, LUMA), dot(sunDiffuse, LUMA)));
 
 			outSpecularColor *= maxSun;
 			outSpecularColor *= NdotL * shadowMult;
