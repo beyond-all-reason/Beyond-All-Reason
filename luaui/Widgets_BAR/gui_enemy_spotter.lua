@@ -304,6 +304,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	if not drawWithHiddenGUI then
 		if spIsGUIHidden() then return end
 	end
@@ -335,6 +336,7 @@ local sec = 0
 local sceduledCheck = false
 local updateTime = 1
 function widget:Update(dt)
+	if chobbyInterface then return end
 	sec=sec+dt
 	local camX, camY, camZ = spGetCameraPosition()
 	if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then

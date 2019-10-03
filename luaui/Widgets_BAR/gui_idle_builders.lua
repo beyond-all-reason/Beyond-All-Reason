@@ -469,6 +469,7 @@ end
 local sec = 0
 local doUpdate = true
 function widget:Update(dt)
+	if chobbyInterface then return end
 
 	if not enabled then return end
 		

@@ -590,6 +590,14 @@ local function processLine(line,g,cfg,newlinecolor)
 	if sfind(line," now spectating team ") then
 		ignoreThisMessage = true
 	end
+
+	-- filter lobby on/off message
+	if sfind(line,"TotalHideLobbyInterface, ") then
+		ignoreThisMessage = true
+	end
+	if sfind(line,"HandleLobbyOverlay") then
+		ignoreThisMessage = true
+	end
 	
 	if sfind(line,"->") then
 		ignoreThisMessage = true

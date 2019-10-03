@@ -651,6 +651,7 @@ local prevOsClock = os.clock()
 
 
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	drawFrame = drawFrame + 1
 
 	if spIsGUIHidden() then return end
@@ -798,7 +799,6 @@ function widget:DrawWorldPreUnit()
 	--newCommands = nil
     glColor(1,1,1,1)
 end
-
 
 
 function widget:RecvLuaMsg(msg, playerID)

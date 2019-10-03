@@ -485,6 +485,7 @@ end
 
 local sec = 0
 function widget:Update(dt)
+	if chobbyInterface then return end
 
   if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
       widgetHandler:RemoveWidget(self)

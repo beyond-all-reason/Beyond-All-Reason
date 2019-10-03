@@ -420,6 +420,7 @@ end
 local sec = 0
 local flushDistsTime = 20
 function widget:Update(dt)
+	if chobbyInterface then return end
 	if (sIsGUIHidden()) then
 		for i=1,#Todo do
 			Todo[i] = nil

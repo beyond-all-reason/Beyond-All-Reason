@@ -338,6 +338,7 @@ local sec = 0
 local sceduledCheck = false
 local updateTime = 1
 function widget:Update(dt)
+	if chobbyInterface then return end
   sec=sec+dt
   local camX, camY, camZ = spGetCameraPosition()
   if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
@@ -382,7 +383,14 @@ function widget:SelectionChanged(sel)
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
   if spIsGUIHidden() then return end
 
   glLineWidth(3.0)

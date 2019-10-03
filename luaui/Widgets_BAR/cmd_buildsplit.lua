@@ -75,7 +75,8 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts) -- 3 of 3 parameters
 	return true
 end
 
-function widget:Update() -- 0 of 0 parameters
+function widget:Update()
+	if chobbyInterface then return end -- 0 of 0 parameters
 	
 	if buildCount == 0 then return end
 	

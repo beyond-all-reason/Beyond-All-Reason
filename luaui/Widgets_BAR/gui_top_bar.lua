@@ -914,6 +914,8 @@ local sec2 = 0
 local secComCount = 0
 local t = UPDATE_RATE_S
 function widget:Update(dt)
+	if chobbyInterface then return end
+	
     local prevMyTeamID = myTeamID
     if spec and spGetMyTeamID() ~= prevMyTeamID then  -- check if the team that we are spectating changed
         checkStatus()

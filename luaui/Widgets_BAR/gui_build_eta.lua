@@ -95,6 +95,7 @@ end
 local lastGameUpdate = Spring.GetGameSeconds()
 
 function widget:Update(dt)
+	if chobbyInterface then return end
 
   local userSpeed,_,pause = Spring.GetGameSpeed()
   if (pause) then

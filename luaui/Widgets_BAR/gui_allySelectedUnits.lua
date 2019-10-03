@@ -445,6 +445,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
 	DrawSelectedUnits()
@@ -578,17 +579,17 @@ function widget:SetConfigData(data)
 end
 
 
-
-
-if showGui then
-    function widget:RecvLuaMsg(msg, playerID)
+function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
 
-function widget:DrawScreen()
-	if chobbyInterface then return end
+
+if showGui then
+
+	function widget:DrawScreen()
+		if chobbyInterface then return end
         if lockPlayerID ~= nil then
             if not guiList then
                 createGuiList()

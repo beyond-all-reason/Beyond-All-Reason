@@ -416,7 +416,14 @@ local function DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
     if spIsGUIHidden() then return end
     gl.DepthTest(GL.ALWAYS)
     gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
