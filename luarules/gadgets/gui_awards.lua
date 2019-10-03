@@ -803,8 +803,7 @@ function gadget:MousePress(x,y,button)
 		x,y = correctMouseForScaling(x,y)
 		if chobbyLoaded then
 			if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Leave')+5) and (y>by+50-5) and (y<by+50+16+5) then --leave button
-				Spring.Echo('sending: restartGame')
-				Spring.SendLuaMenuMsg("restartGame")
+				Spring.Reload("")
 			end
 		else
 			if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
