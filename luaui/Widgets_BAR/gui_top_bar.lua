@@ -1233,11 +1233,11 @@ function widget:DrawScreen()
 
             if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
 
-                local width = vsx/5.8
+                local width = vsx/5.3
                 local height = width/3.5
                 local padding = width/70
-                local buttonPadding = width/100
-                local buttonMargin = width/32
+                local buttonPadding = width/90
+                local buttonMargin = width/30
                 local buttonHeight = height*0.55
 
                 quitscreenArea = {(vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2)}
@@ -1270,7 +1270,7 @@ function widget:DrawScreen()
                 RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 2.8*widgetScale)
 				font:End()
 
-                fontSize = fontSize*0.9
+                fontSize = fontSize*0.92
 				font2:Begin()
                 font2:SetTextColor(1,1,1,1)
                 font2:SetOutlineColor(0,0,0,0.23)
