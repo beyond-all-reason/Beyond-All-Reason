@@ -454,7 +454,10 @@ fragment = [[
 	float VisibilityOcclusionFast(float NdotL, float NdotV, float roughness2) {
 		float GGXV = NdotL * (NdotV * (1.0 - roughness2) + roughness2);
 		float GGXL = NdotV * (NdotL * (1.0 - roughness2) + roughness2);
-		return 0.5 / (GGXV + GGXL);
+
+		float GGX = GGXV + GGXL;
+
+		return mix(0.0, 0.5 / GGX, float(GGX > 0.0));
 	}
 
 	float VisibilityOcclusionSlow(float NdotL, float NdotV, float roughness4) {
@@ -597,7 +600,7 @@ fragment = [[
 		#endif
 
 		//metalness = SNORM2NORM( sin(simFrame * 0.05) );
-		//metalness = 0.8;
+		//metalness = 0.0;
 
 		//metalness = clamp(metalness, 0.0, 1.0);
 
@@ -608,7 +611,7 @@ fragment = [[
 		#endif
 
 		//roughness = SNORM2NORM( sin(simFrame * 0.1) );
-		//roughness = 0.3;
+		//roughness = 0.0;
 
 		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 

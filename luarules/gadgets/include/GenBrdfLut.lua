@@ -12,7 +12,7 @@ local lutFS =
 	#version 150 compatibility
 
 	const uint NUM_SAMPLES = 1024u;
-	const float M_PI = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
+	const float PI = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;
 
 	uniform vec2 texSize;
 
@@ -44,10 +44,11 @@ local lutFS =
 	// Based on http://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_slides.pdf
 	vec3 importanceSample_GGX(vec2 Xi, float roughness, vec3 normal) {
 		// Maps a 2D point to a hemisphere with spread based on roughness
-		float alpha = roughness * roughness;
-		float phi = 2.0 * M_PI * Xi.x + hash12(normal.xz) * 0.1;
-		float cosTheta = sqrt((1.0 - Xi.y) / (1.0 + (alpha * alpha - 1.0) * Xi.y));
-		float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+		float roughness2 = roughness * roughness;
+		float phi = 2.0 * PI * Xi.x;
+		float cosTheta2 = (1.0 - Xi.y) / (1.0 + (roughness2 * roughness2 - 1.0) * Xi.y);
+		float cosTheta = sqrt(cosTheta2);
+		float sinTheta = sqrt(1.0 - cosTheta2);
 		vec3 H = vec3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
 
 		// Tangent space
@@ -62,6 +63,7 @@ local lutFS =
 		// Convert to world Space
 		return normalize(tangentX * H.x + tangentY * H.y + normal * H.z);
 	}
+
 
 	#define G_OPTION ###G_OPTION###
 
