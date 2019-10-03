@@ -503,10 +503,11 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 end
 
 local chobbyLoaded = false
+if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+	chobbyLoaded = true
+end
+
 function gadget:Initialize()
-	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
-		chobbyLoaded = true
-	end
 	gadget:ViewResize()
 	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)	
