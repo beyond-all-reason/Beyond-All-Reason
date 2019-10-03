@@ -145,7 +145,14 @@ end
 
 
 -- draw icons
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	local osClock = os.clock()
 	--local gameSecs = Spring.GetGameSeconds()

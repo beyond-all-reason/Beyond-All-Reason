@@ -723,8 +723,8 @@ end
 --  return MouseOverIcon(x, y) ~= -1
 --end
 
-
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if mouseOnUnitID and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		if widgetHandler:InTweakMode() then return -1 end
 		glColor(1,1,1,0.22)

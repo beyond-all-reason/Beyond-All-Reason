@@ -185,6 +185,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	glColor(1, 1, 1, 0.5)
 	glDepthTest(false)
 	for i = 1, #teamList do

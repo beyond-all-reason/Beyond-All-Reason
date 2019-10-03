@@ -194,7 +194,14 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 
 	if Spring.IsGUIHidden() then return end
 

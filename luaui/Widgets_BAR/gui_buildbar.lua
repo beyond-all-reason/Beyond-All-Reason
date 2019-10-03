@@ -701,8 +701,8 @@ function widget:DrawScreen()
 end
 
 
-
 function widget:DrawWorld()
+	if chobbyInterface then return end
   
   -- Draw factories command lines
   if waypointMode>1 or openedMenu>=0 then

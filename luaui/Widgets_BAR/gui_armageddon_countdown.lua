@@ -49,7 +49,14 @@ function widget:GameFrame(n)
     end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
     local timeLeft = math.max(0, armageddonTime - Spring.GetGameSeconds())
     if timeLeft <= 300 and gameStarted then
         local vsx, vsy = gl.GetViewSizes()

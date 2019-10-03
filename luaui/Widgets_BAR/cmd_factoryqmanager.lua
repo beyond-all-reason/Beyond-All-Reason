@@ -628,7 +628,14 @@ function widget:Update()
 	lastGameSeconds = now
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if ( alpha > 0.0 ) then
 		DrawBoxes( )
 	else

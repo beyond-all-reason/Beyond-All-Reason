@@ -360,7 +360,14 @@ function widget:Update(dt)
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
 	if useXrayHighlight and visibleUnitsCount > 0 then

@@ -358,7 +358,14 @@ function DrawWidgetList(list,name,x,y,j, fontSize,lineSpace,maxLines,colWidth,da
 	return x,j
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if not (next(callinStats)) then
 		return --// nothing to do
 	end
