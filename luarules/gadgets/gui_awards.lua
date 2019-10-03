@@ -502,7 +502,11 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 	--drawAwards = true
 end
 
+local chobbyLoaded = false
 function gadget:Initialize()
+	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+		chobbyLoaded = true
+	end
 	gadget:ViewResize()
 	--register actions to SendToUnsynced messages
 	gadgetHandler:AddSyncAction("ReceiveAwards", ProcessAwards)	
@@ -797,8 +801,15 @@ function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
 	if drawAwards then
 		x,y = correctMouseForScaling(x,y)
-		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
-			Spring.SendCommands("quitforce")
+		if chobbyLoaded then
+			if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Leave')+5) and (y>by+50-5) and (y<by+50+16+5) then --leave button
+				Spring.Echo('sending: restartGame')
+				Spring.SendLuaMenuMsg("restartGame")
+			end
+		else
+			if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
+				Spring.SendCommands("quitforce")
+			end
 		end
 		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
@@ -864,7 +875,11 @@ function gadget:DrawScreen()
 			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
 		font2:Begin()
-		font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 17, "o")
+		if chobbyLoaded then
+			font2:Print(quitColour .. 'Leave', bx+w-quitX, by+50, 17, "o")
+		else
+			font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 17, "o")
+		end
 		font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 17, "o")
 		font2:End()
 
