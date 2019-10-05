@@ -1699,7 +1699,7 @@ function widget:MouseMove(x, y)
 		if options[draggingSlider].value ~= newValue then
 			options[draggingSlider].value = newValue
 			sliderValueChanged = true
-			applyOptionValue(draggingSlider)
+			--applyOptionValue(draggingSlider)	-- disabled so only on release it gets applied
 			if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os.clock()
 				Spring.PlaySoundFile(sliderdrag, 0.4, 'ui')
@@ -1875,7 +1875,7 @@ function mouseEvent(x, y, button, release)
 								local newValue = getSliderValue(draggingSlider,cx)
 								if options[draggingSlider].value ~= newValue then
 									options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-									applyOptionValue(draggingSlider)
+									--applyOptionValue(draggingSlider)	-- disabled so only on release it gets applied
 									if playSounds then
 										Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
 									end
