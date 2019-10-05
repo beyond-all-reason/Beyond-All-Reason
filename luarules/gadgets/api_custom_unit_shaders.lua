@@ -803,25 +803,34 @@ end
 
 
 function gadget:Initialize()
-  --// check user configs
-  shadows = Spring.HaveShadows()
-  advShading = Spring.HaveAdvShading()
+    --// check user configs
+    shadows = Spring.HaveShadows()
+    advShading = Spring.HaveAdvShading()
 
-  --// load the materials config files
-  local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
-	-- Spring.Echo('unitMaterialDefs',to_string(unitMaterialDefs))
-	-- Spring.Echo('featureMaterialDefs',to_string(featureMaterialDefs))
-  --// process the materials (compile shaders, load textures, ...)
-  _ProcessMaterials(unitRendering,    unitMaterialDefs)
-  _ProcessMaterials(featureRendering, featureMaterialDefs)
+    --// load the materials config files
+    local unitMaterialDefs, featureMaterialDefs = _LoadMaterialConfigFiles(MATERIALS_DIR)
+    -- Spring.Echo('unitMaterialDefs',to_string(unitMaterialDefs))
+    -- Spring.Echo('featureMaterialDefs',to_string(featureMaterialDefs))
+    --// process the materials (compile shaders, load textures, ...)
+    _ProcessMaterials(unitRendering,    unitMaterialDefs)
+    _ProcessMaterials(featureRendering, featureMaterialDefs)
 
-  --// insert synced actions
+    --// insert synced actions
 
-  gadgetHandler:AddSyncAction("unitshaders_reverse", UnitReverseBuilt)
-  gadgetHandler:AddChatAction("normalmapping", ToggleNormalmapping)
-  gadgetHandler:AddChatAction("treewind", ToggleTreeWind)
-  gadgetHandler:AddChatAction("reloadshaders", ReloadShaders)
-  gadgetHandler:AddChatAction("updateshaders", UpdateShaders)
+    gadgetHandler:AddSyncAction("unitshaders_reverse", UnitReverseBuilt)
+    gadgetHandler:AddChatAction("normalmapping", ToggleNormalmapping)
+    gadgetHandler:AddChatAction("treewind", ToggleTreeWind)
+    gadgetHandler:AddChatAction("reloadshaders", ReloadShaders)
+    gadgetHandler:AddChatAction("updateshaders", UpdateShaders)
+
+    -- set tonemapping defaults
+    if Spring.GetConfigFloat("shadervar1", -0.1) == -0.1 then
+        Spring.SetConfigFloat("shadervar1", 15.0)
+        Spring.SetConfigFloat("shadervar2", 0.3)
+        Spring.SetConfigFloat("shadervar3", 0.3)
+        Spring.SetConfigFloat("shadervar4", 1.3)
+        Spring.SetConfigFloat("shadervar5", 0.0)
+    end
 end
 
 function to_string(data, indent)

@@ -2515,25 +2515,25 @@ function init()
 			 Spring.SendCommands("luarules updateshaders")
 		 end,
 		},
-		{id="shadervar2", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		{id="shadervar2", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar2",1), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("shadervar2", value)
 			 Spring.SendCommands("luarules updateshaders")
 		 end,
 		},
-		{id="shadervar3", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		{id="shadervar3", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar3",1), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("shadervar3", value)
 			 Spring.SendCommands("luarules updateshaders")
 		 end,
 		},
-		{id="shadervar4", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		{id="shadervar4", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar4",1), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("shadervar4", value)
 			 Spring.SendCommands("luarules updateshaders")
 		 end,
 		},
-		{id="shadervar5", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		{id="shadervar5", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar5",1), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("shadervar5", value)
 			 Spring.SendCommands("luarules updateshaders")
