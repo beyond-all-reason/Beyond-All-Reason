@@ -380,7 +380,7 @@ fragment = [[
 
 		// makes roughness of reflection scale perceptually much more linear
 		// Assumes "CubeTexSizeReflection" = 1024
-		maxLodLevel -= 4.0;
+		//maxLodLevel -= 4.0;
 
 		float lodBias = maxLodLevel * roughness;
 
@@ -440,10 +440,18 @@ fragment = [[
 		return R0 + (R90 - R0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
 	}
 
-	// Fresnel - Schlick with Roughness
+	// Fresnel - Schlick with Roughness - LearnOpenGL
 	vec3 FresnelSchlickWithRoughness(vec3 R0, vec3 R90, float VdotH, float roughness) {
 		return R0 + (max(R90 - vec3(roughness), R0) - R0) * pow(1.0 - VdotH, 5.0);
 	}
+
+	// Fresnel - Blender - Seems like it's not applicable for us
+	vec3 FresnelBlenderWithRoughness(vec3 R0, vec3 R90, vec2 envBRDF) {
+		return clamp(envBRDF.y * R90 + envBRDF.x * R0, vec3(0.0), vec3(1.0));
+	}
+	#define FresnelWithRoughness(R0, R90, VdotH, roughness, envBRDF) \
+	FresnelSchlickWithRoughness(R0, R90, VdotH, roughness)
+	//FresnelBlenderWithRoughness(R0, R90, envBRDF)
 
 	// Smith GGX Correlated visibility function
 	// Note: Vis = G / (4 * NdotL * NdotV)
@@ -474,6 +482,24 @@ fragment = [[
 		float f = (NdotH * roughness4 - NdotH) * NdotH + 1.0;
 		return roughness4 / (PI * f * f);
 	}
+
+	float ComputeSpecularAOBlender(float NoV, float diffuseAO, float roughness2) {
+		#if (defined SPECULAR_AO) && (defined use_vertex_ao)
+			return clamp(pow(NoV + diffuseAO, roughness2) - 1.0 + diffuseAO, 0.0, 1.0);
+		#else
+			return 1.0;
+		#endif
+	}
+
+	float ComputeSpecularAOFilament(float NoV, float diffuseAO, float roughness2) {
+	#if (defined SPECULAR_AO) && (defined use_vertex_ao)
+		return clamp(pow(NoV + diffuseAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + diffuseAO, 0.0, 1.0);
+	#else
+		return 1.0;
+	#endif
+	}
+	#define ComputeSpecularAO ComputeSpecularAOFilament
+
 
 	// https://www.unrealengine.com/en-US/blog/physically-based-shading-on-mobile
 	vec2 EnvBRDFApprox(float ndotv, float roughness) {
@@ -566,7 +592,7 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20567
+		#line 20595
 
 		#ifdef use_normalmapping
 			vec2 tc = modelUV.st;
@@ -600,7 +626,7 @@ fragment = [[
 		#endif
 
 		//metalness = SNORM2NORM( sin(simFrame * 0.05) );
-		//metalness = 0.0;
+		metalness = 0.5;
 
 		//metalness = clamp(metalness, 0.0, 1.0);
 
@@ -610,8 +636,8 @@ fragment = [[
 			float roughness    = extraColor.b;
 		#endif
 
-		//roughness = SNORM2NORM( sin(simFrame * 0.1) );
-		//roughness = 0.0;
+		//roughness = SNORM2NORM( sin(simFrame * 0.025) );
+		//roughness = 1.0;
 
 		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 
@@ -733,11 +759,14 @@ fragment = [[
         }
 
 
+		// getSpecularDominantDirection (Filament)
+		Rv = mix(Rv, N, roughness4);
+
         vec3 outColor;
 		vec3 ambientContrib;
         {
             // ambient lighting (we now use IBL as the ambient term)
-            vec3 F = FresnelSchlickWithRoughness(F0, F90, VdotH, roughness);
+			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
 
             vec3 kS = F;
             vec3 kD = 1.0 - kS;
@@ -779,7 +808,11 @@ fragment = [[
 			#endif
 
             //vec3 specular = reflectionColor * (F * envBRDF.x + (1.0 - F) * envBRDF.y);
+
+			// specular ambient occlusion (see Filament)
+			float aoTermSpec = ComputeSpecularAO(NdotV, aoTerm, roughness2);
 			vec3 specular = reflectionColor * mix(vec3(envBRDF.y), vec3(envBRDF.x), F);
+			specular *= aoTermSpec;
 
 
 			outSpecularColor += specular;
@@ -805,7 +838,9 @@ fragment = [[
 		// debug hook
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			outColor = LINEARtoSRGB(ambientContrib);
+			//outColor = LINEARtoSRGB(vec3(abs(ComputeSpecularAOBlender(NdotV, aoTerm, roughness2) - ComputeSpecularAOFilament(NdotV, aoTerm, roughness2))));
+			outColor = LINEARtoSRGB( vec3(1.0 - ComputeSpecularAOBlender(NdotV, aoTerm, roughness2)) );
+			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif
 
 		#if (deferred_mode == 0)

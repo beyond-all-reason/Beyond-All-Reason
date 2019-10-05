@@ -52,8 +52,10 @@ local matTemplate = {
 
 		"#define SUNMULT 2.0",
 
-		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
-		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
+		"#define SPECULAR_AO",
+
+		"#define ROUGHNESS_PERTURB_NORMAL 0.025",
+		--"#define ROUGHNESS_PERTURB_COLOR 0.07",
 
 		"#define USE_ENVIRONMENT_DIFFUSE",
 		"#define USE_ENVIRONMENT_SPECULAR",
@@ -72,7 +74,9 @@ local matTemplate = {
 
 		"#define SUNMULT 2.0",
 
-		--"#define ROUGHNESS_PERTURB_NORMAL 0.05",
+		"#define SPECULAR_AO",
+
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
 		"#define USE_ENVIRONMENT_DIFFUSE",
