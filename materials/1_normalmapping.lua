@@ -26,7 +26,7 @@ local matTemplate = {
 
 		"#define SPECULAR_AO",
 
-		"#define ROUGHNESS_PERTURB_NORMAL 0.025",
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
 		"#define USE_ENVIRONMENT_DIFFUSE",
