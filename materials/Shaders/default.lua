@@ -812,7 +812,7 @@ fragment = [[
 			// specular ambient occlusion (see Filament)
 			float aoTermSpec = ComputeSpecularAO(NdotV, aoTerm, roughness2);
 			vec3 specular = reflectionColor * mix(vec3(envBRDF.y), vec3(envBRDF.x), F);
-			specular *= aoTermSpec;
+			specular *= aoTermSpec * energyCompensation;
 
 
 			outSpecularColor += specular;
