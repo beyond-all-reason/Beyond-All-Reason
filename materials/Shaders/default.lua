@@ -626,7 +626,7 @@ fragment = [[
 		#endif
 
 		//metalness = SNORM2NORM( sin(simFrame * 0.05) );
-		metalness = 0.5;
+		//metalness = 0.5;
 
 		//metalness = clamp(metalness, 0.0, 1.0);
 
