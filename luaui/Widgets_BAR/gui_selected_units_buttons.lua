@@ -310,6 +310,7 @@ end
 function widget:Shutdown()
   if picList then
     gl.DeleteList(picList)
+    picList = nil
   end
   gl.DeleteFont(font)
   WG['selunitbuttons'] = nil

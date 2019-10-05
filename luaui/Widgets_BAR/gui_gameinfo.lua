@@ -638,6 +638,7 @@ function widget:Initialize()
 		for i, line in ipairs(changelogLines) do
 			totalChangelogLines = i
 		end
+		widget:ViewResize()
 
 	else
 		--Spring.Echo("Commands info: couldn't load the commandslist file")
