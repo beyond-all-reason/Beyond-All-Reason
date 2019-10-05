@@ -8,6 +8,12 @@ local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
 	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
+
+	curShaderObj:SetUniformAlways("shadervar1", Spring.GetConfigFloat("shadervar1",1))
+	curShaderObj:SetUniformAlways("shadervar2", Spring.GetConfigFloat("shadervar2",1))
+	curShaderObj:SetUniformAlways("shadervar3", Spring.GetConfigFloat("shadervar3",1))
+	curShaderObj:SetUniformAlways("shadervar4", Spring.GetConfigFloat("shadervar4",1))
+	curShaderObj:SetUniformAlways("shadervar5", Spring.GetConfigFloat("shadervar5",1))
 end
 
 

@@ -775,7 +775,11 @@ function Reload()
     end
 end
 
-function ReloadUnitShaders(_,newSetting,_, playerID)
+function UpdateShaders(_,newSetting,_, playerID)
+    sunChanged = true
+end
+
+function ReloadShaders(_,newSetting,_, playerID)
     Reload()
 end
 
@@ -816,7 +820,8 @@ function gadget:Initialize()
   gadgetHandler:AddSyncAction("unitshaders_reverse", UnitReverseBuilt)
   gadgetHandler:AddChatAction("normalmapping", ToggleNormalmapping)
   gadgetHandler:AddChatAction("treewind", ToggleTreeWind)
-  gadgetHandler:AddChatAction("reloadunitshaders", ReloadUnitShaders)
+  gadgetHandler:AddChatAction("reloadshaders", ReloadShaders)
+  gadgetHandler:AddChatAction("updateshaders", UpdateShaders)
 end
 
 function to_string(data, indent)
