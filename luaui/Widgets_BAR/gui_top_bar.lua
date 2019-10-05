@@ -1441,7 +1441,9 @@ end
 
 function widget:KeyPress(key)
 	if key == 27 then	-- ESC
-		hideWindows()
+		if not WG['options'] or (WG['options'].disallowEsc and not WG['options'].disallowEsc()) then
+			hideWindows()
+		end
 	end
 	if showQuitscreen ~= nil and quitscreenArea ~= nil then
 		return true

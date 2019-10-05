@@ -1628,6 +1628,11 @@ function widget:KeyPress(key)
 	if key == 27 then	-- ESC
 		if showSelectOptions then
 			showSelectOptions = nil
+		elseif draggingSlider ~= nil then
+			options[draggingSlider].value = draggingSliderPreDragValue
+			draggingSlider = nil
+			sliderValueChanged = nil
+			draggingSliderPreDragValue = nil
 		else
 			show = false
 		end
@@ -1783,6 +1788,7 @@ function mouseEvent(x, y, button, release)
 					options[draggingSlider].value = getSliderValue(draggingSlider,cx)
 					applyOptionValue(draggingSlider)
 					draggingSlider = nil
+					draggingSliderPreDragValue = nil
 					return
 				end
 
@@ -1872,6 +1878,7 @@ function mouseEvent(x, y, button, release)
 						for i, o in pairs(optionButtons) do
 							if options[i].type == 'slider' and (IsOnRect(cx, cy, o.sliderXpos[1], o[2], o.sliderXpos[2], o[4]) or IsOnRect(cx, cy, o[1], o[2], o[3], o[4])) then
 								draggingSlider = i
+								draggingSliderPreDragValue = options[draggingSlider].value
 								local newValue = getSliderValue(draggingSlider,cx)
 								if options[draggingSlider].value ~= newValue then
 									options[draggingSlider].value = getSliderValue(draggingSlider,cx)
@@ -2990,6 +2997,13 @@ function widget:Initialize()
 	end
 	WG['options'].isvisible = function() return show end
 	WG['options'].getCameraSmoothness = function() return cameraTransitionTime end
+	WG['options'].disallowEsc = function()
+		if showSelectOptions or draggingSlider then
+			return true
+		else
+			return false
+		end
+	end
 
 	presets = tableMerge(presets, customPresets)
 	for preset,_ in pairs(customPresets) do
