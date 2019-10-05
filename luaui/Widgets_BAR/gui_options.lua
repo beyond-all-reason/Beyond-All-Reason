@@ -2099,6 +2099,7 @@ function init()
 		{id='snd', name='Sound'},
 		{id='control', name='Control'},
 		{id='game', name='Game'},
+		{id='dev', name='Dev'},
 	}
 	if not currentGroupTab or Spring.GetGameFrame() == 0 then
 		currentGroupTab = optionGroups[1].id
@@ -2499,6 +2500,39 @@ function init()
 		{id="transportai", group="game", widget="Transport AI", name="Transport AI", type="bool", value=GetWidgetToggleValue("Transport AI"), description='Transport units automatically pick up new units going to factory waypoint.'},
 		{id="settargetdefault", group="game", widget="Set target default", name="Set-target as default", type="bool", value=GetWidgetToggleValue("Set target default"), description='Replace default attack command to a set-target command\n(when rightclicked on enemy unit)'},
 		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
+
+		-- DEV
+		{id="shadervar1", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("shadervar1", value)
+			 Spring.SendCommands("luarules reloadunitshaders")
+		 end,
+		},
+		{id="shadervar2", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("shadervar2", value)
+			 Spring.SendCommands("luarules reloadunitshaders")
+		 end,
+		},
+		{id="shadervar3", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("shadervar3", value)
+			 Spring.SendCommands("luarules reloadunitshaders")
+		 end,
+		},
+		{id="shadervar4", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("shadervar4", value)
+			 Spring.SendCommands("luarules reloadunitshaders")
+		 end,
+		},
+		{id="shadervar5", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("shadervar5", value)
+			 Spring.SendCommands("luarules reloadunitshaders")
+		 end,
+		},
+
 	}
 
 	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)

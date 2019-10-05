@@ -873,5 +873,10 @@ fragment = [[
 		sunSpecular = {gl.GetSun("specular" ,"unit")},
 		shadowDensity = gl.GetSun("shadowDensity" ,"unit"),
 		mapSize = {Game.mapSizeX, Game.mapSizeZ},
+		shadervar1 = Spring.GetConfigFloat("shadervar1",1),	--or directly insert them in the shader code, whatever is best for you
+		shadervar2 = Spring.GetConfigFloat("shadervar2",1),
+		shadervar3 = Spring.GetConfigFloat("shadervar3",1),
+		shadervar4 = Spring.GetConfigFloat("shadervar4",1),
+		shadervar5 = Spring.GetConfigFloat("shadervar5",1),
 	},
 }
