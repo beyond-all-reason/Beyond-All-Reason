@@ -62,7 +62,7 @@ local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
 local changesRequireRestart = false
-local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines 
+local textareaMinLines = 10		-- wont scroll down more, will show at least this amount of lines
 
 
 local startLine = 1
@@ -1348,7 +1348,7 @@ function applyOptionValue(i, skipRedrawWindow)
       			Spring.SendCommands("luarules reloadluaui")	-- cause several widgets are still using old colors
 			end
 		end
-	
+
 	elseif options[i].type == 'slider' then
 		local value =  options[i].value
 		if id == 'vsync2' then
@@ -2509,34 +2509,34 @@ function init()
 		{id="dgunnogroundenemies", group="game", widget="DGun no ground enemies", name="Dont snap DGun to ground units", type="bool", value=GetWidgetToggleValue("DGun no ground enemies"), description='Prevents dgun aim to snap onto enemy ground units.\nholding SHIFT will still target units\n\nWill still snap to air, ships and hovers (when on water)'},
 
 		-- DEV
-		{id="shadervar1", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("shadervar1",1), description="",
+		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 15.0), description="",
 		 onchange=function(i, value)
-			 Spring.SetConfigFloat("shadervar1", value)
-			 Spring.SendCommands("luarules updateshaders")
+			 Spring.SetConfigFloat("tonemapA", value)
+			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-		{id="shadervar2", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar2",1), description="",
+		{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapB", 0.3), description="",
 		 onchange=function(i, value)
-			 Spring.SetConfigFloat("shadervar2", value)
-			 Spring.SendCommands("luarules updateshaders")
+			 Spring.SetConfigFloat("tonemapB", value)
+			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-		{id="shadervar3", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar3",1), description="",
+		{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapC", 15.0), description="",
 		 onchange=function(i, value)
-			 Spring.SetConfigFloat("shadervar3", value)
-			 Spring.SendCommands("luarules updateshaders")
+			 Spring.SetConfigFloat("tonemapC", value)
+			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-		{id="shadervar4", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar4",1), description="",
+		{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.5), description="",
 		 onchange=function(i, value)
-			 Spring.SetConfigFloat("shadervar4", value)
-			 Spring.SendCommands("luarules updateshaders")
+			 Spring.SetConfigFloat("tonemapD", value)
+			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-		{id="shadervar5", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=6, step=0.01, value=Spring.GetConfigFloat("shadervar5",1), description="",
+		{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.5), description="",
 		 onchange=function(i, value)
-			 Spring.SetConfigFloat("shadervar5", value)
-			 Spring.SendCommands("luarules updateshaders")
+			 Spring.SetConfigFloat("tonemapE", value)
+			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
 

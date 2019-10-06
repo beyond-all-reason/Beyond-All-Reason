@@ -138,6 +138,8 @@ fragment = [[
 	uniform vec3 etcLoc;
 	uniform int simFrame;
 
+	uniform float toneMapParams[5];
+
 	#ifndef SUNMULT
 		#define SUNMULT 2.0
 	#endif
@@ -571,6 +573,10 @@ fragment = [[
 		return LINEARtoSRGB((x * (a * x + b)) / (x * (c * x + d) + e));
 	}
 
+	vec3 CustomTM(const vec3 x) {
+		return LINEARtoSRGB((x * (toneMapParams[0] * x + toneMapParams[1])) / (x * (toneMapParams[2] * x + toneMapParams[3]) + toneMapParams[4]));
+	}
+
 	// RNM - Already unpacked
 	// https://www.shadertoy.com/view/4t2SzR
 	vec3 NormalBlendUnpackedRNM(vec3 n1, vec3 n2) {
@@ -868,15 +874,6 @@ fragment = [[
 		brdfLUT     = 7,
 	},
 	uniformFloat = {
-		sunAmbient = {gl.GetSun("ambient" ,"unit")},
-		sunDiffuse = {gl.GetSun("diffuse" ,"unit")},
-		sunSpecular = {gl.GetSun("specular" ,"unit")},
-		shadowDensity = gl.GetSun("shadowDensity" ,"unit"),
 		mapSize = {Game.mapSizeX, Game.mapSizeZ},
-		shadervar1 = Spring.GetConfigFloat("shadervar1",1),
-		shadervar2 = Spring.GetConfigFloat("shadervar2",1),
-		shadervar3 = Spring.GetConfigFloat("shadervar3",1),
-		shadervar4 = Spring.GetConfigFloat("shadervar4",1),
-		shadervar5 = Spring.GetConfigFloat("shadervar5",1),
 	},
 }

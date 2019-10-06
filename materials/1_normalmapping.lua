@@ -7,13 +7,14 @@ local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
 	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
 	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
-	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
 
-	curShaderObj:SetUniformAlways("shadervar1", Spring.GetConfigFloat("shadervar1",1))
-	curShaderObj:SetUniformAlways("shadervar2", Spring.GetConfigFloat("shadervar2",1))
-	curShaderObj:SetUniformAlways("shadervar3", Spring.GetConfigFloat("shadervar3",1))
-	curShaderObj:SetUniformAlways("shadervar4", Spring.GetConfigFloat("shadervar4",1))
-	curShaderObj:SetUniformAlways("shadervar5", Spring.GetConfigFloat("shadervar5",1))
+	curShaderObj:SetUniformFloatArrayAlways("toneMapParams", {
+		Spring.GetConfigFloat("tonemapA", 15.0),
+		Spring.GetConfigFloat("tonemapB", 0.3),
+		Spring.GetConfigFloat("tonemapC", 15.0),
+		Spring.GetConfigFloat("tonemapD", 0.5),
+		Spring.GetConfigFloat("tonemapE", 1.5),
+	})
 end
 
 
@@ -39,7 +40,7 @@ local matTemplate = {
 		"#define USE_ENVIRONMENT_SPECULAR",
 
 		"#define DO_GAMMA_CORRECTION",
-		"#define TONEMAP(c) SteveMTM1(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
@@ -60,7 +61,7 @@ local matTemplate = {
 		"#define USE_ENVIRONMENT_SPECULAR",
 
 		"#define DO_GAMMA_CORRECTION",
-		"#define TONEMAP(c) SteveMTM1(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 
 		"#define MAT_IDX 1",
 	},

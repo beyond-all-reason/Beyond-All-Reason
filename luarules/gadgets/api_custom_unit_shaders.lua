@@ -63,7 +63,7 @@ local shadows = false
 local advShading = false
 local normalmapping = (tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1)
 local treewind = tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1
-local sunChanged = false
+local sunChanged = true
 
 local idToDefID = {}
 
@@ -775,7 +775,7 @@ function Reload()
     end
 end
 
-function UpdateShaders(_,newSetting,_, playerID)
+function UpdateSun(_,newSetting,_, playerID)
     sunChanged = true
 end
 
@@ -821,16 +821,7 @@ function gadget:Initialize()
     gadgetHandler:AddChatAction("normalmapping", ToggleNormalmapping)
     gadgetHandler:AddChatAction("treewind", ToggleTreeWind)
     gadgetHandler:AddChatAction("reloadshaders", ReloadShaders)
-    gadgetHandler:AddChatAction("updateshaders", UpdateShaders)
-
-    -- set tonemapping defaults
-    if Spring.GetConfigFloat("shadervar1", -0.1) == -0.1 then
-        Spring.SetConfigFloat("shadervar1", 15.0)
-        Spring.SetConfigFloat("shadervar2", 0.3)
-        Spring.SetConfigFloat("shadervar3", 0.3)
-        Spring.SetConfigFloat("shadervar4", 1.3)
-        Spring.SetConfigFloat("shadervar5", 0.0)
-    end
+    gadgetHandler:AddChatAction("updatesun", UpdateSun)
 end
 
 function to_string(data, indent)
