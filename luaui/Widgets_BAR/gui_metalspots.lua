@@ -15,14 +15,14 @@ end
 
 local OPTIONS = {
 	circlePieces					= 3,
-	circlePieceDetail				= 14,
+	circlePieceDetail				= 20,
 	circleSpaceUsage				= 0.8,
 	circleInnerOffset				= 0,
 	rotationSpeed					= 8,
 	
 	-- size
-	innersize						= 1.85,		-- outersize-innersize = circle width
-	outersize						= 2.02,		-- outersize-innersize = circle width
+	innersize						= 1.86,		-- outersize-innersize = circle width
+	outersize						= 2.08,		-- outersize-innersize = circle width
 }
 
 
@@ -31,21 +31,18 @@ local spIsSphereInView = Spring.IsSphereInView
 
 local metalSpots = {}
 local valueList = {}
-local spotsizeList = {}
 local previousOsClock = os.clock()
 local currentRotationAngle = 0
 local currentRotationAngleOpposite = 0
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 75
 local fontfileOutlineSize = 15
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
-local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local loadedFontSize = fontfileSize*fontfileScale
+
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
@@ -54,9 +51,6 @@ function widget:ViewResize()
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		gl.DeleteFont(font2)
-		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-		loadedFontSize = fontfileSize*fontfileScale
 	end
 end
 
@@ -99,38 +93,28 @@ function widget:Initialize()
 	for i = 1, #mSpots do
 		local spot = mSpots[i]
 		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-		metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value}
+		local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+		metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value, scale}
 		if not valueList[value] then
 			valueList[value] = gl.CreateList(function()
-				font2:Begin()
-				font2:SetTextColor(1,1,1,1)
-				font2:SetOutlineColor(0,0,0,0.4)
-				font2:Print(value, 0, 0, 1, "con")
-				font2:End()
+				font:Begin()
+				font:SetTextColor(1,1,1,1)
+				font:SetOutlineColor(0,0,0,0.4)
+				font:Print(value, 0, 0, 1, "con")
+				font:End()
 			end)
 		end
 	end
 	circleList = gl.CreateList(DrawCircleLine, OPTIONS.innersize, OPTIONS.outersize)
-	spotsizeList[1] = gl.CreateList(function()
-		gl.Scale(20,20,20)
-		gl.Rotate(currentRotationAngle, 0,1,0)
-		gl.Color(1, 1, 1, 0.16)
-		gl.CallList(circleList)
-
-		gl.Scale(1.17, 1.17, 1.17)
-		gl.Rotate(-currentRotationAngle*2, 0,1,0)
-		gl.Color(1, 1, 1, 0.32)
-		gl.CallList(circleList)
-		gl.Rotate(currentRotationAngle, 0,1,0)
-		gl.Billboard()
-	end)
 end
+
 
 function widget:Shutdown()
 	gl.DeleteList(circleList)
 	for k,v in pairs(valueList) do
 		gl.DeleteList(v)
 	end
+	gl.DeleteFont(font)
 end
 
 
@@ -139,6 +123,7 @@ function widget:RecvLuaMsg(msg, playerID)
 		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
 end
+
 
 -- todo: periodically try Spring.TestBuildOrder(uDefID, x, y, z, facing)
 function widget:DrawWorldPreUnit()
@@ -163,25 +148,30 @@ function widget:DrawWorldPreUnit()
 		   currentRotationAngleOpposite = currentRotationAngleOpposite + 360
 		end
 	end
-	
-	local alpha = 1
+
+	if spotList then
+		gl.DeleteList(spotList)
+	end
+	spotList = gl.CreateList(function()
+		gl.Rotate(currentRotationAngle, 0,1,0)
+		gl.Color(1, 1, 1, 0.16)
+		gl.CallList(circleList)
+
+		gl.Scale(1.18, 1.18, 1.18)
+		gl.Rotate(-currentRotationAngle*2, 0,1,0)
+		gl.Color(1, 1, 1, 0.32)
+		gl.CallList(circleList)
+
+		gl.Rotate(currentRotationAngle, 0,1,0)
+		gl.Billboard()
+	end)
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
 		if spIsSphereInView(spot[1], spot[2], spot[3], spot[4]) then
 			gl.PushMatrix()
 			gl.Translate(spot[1], spot[2], spot[3])
-			gl.Scale(20,20,20)
-			gl.Rotate(currentRotationAngle, 0,1,0)
-			gl.Color(1, 1, 1, 0.16)
-			gl.CallList(circleList)
-
-			gl.Scale(1.17, 1.17, 1.17)
-			gl.Rotate(-currentRotationAngle*2, 0,1,0)
-			gl.Color(1, 1, 1, 0.32)
-			gl.CallList(circleList)
-
-			gl.Rotate(currentRotationAngle, 0,1,0)
-			gl.Billboard()
+			gl.Scale(19*spot[5],19*spot[5],19*spot[5])
+			gl.CallList(spotList)
 			gl.CallList(valueList[spot[4]])
 			gl.PopMatrix()
 		end
