@@ -1628,11 +1628,11 @@ function widget:KeyPress(key)
 	if key == 27 then	-- ESC
 		if showSelectOptions then
 			showSelectOptions = nil
-		elseif draggingSlider ~= nil then
-			options[draggingSlider].value = draggingSliderPreDragValue
-			draggingSlider = nil
-			sliderValueChanged = nil
-			draggingSliderPreDragValue = nil
+		--elseif draggingSlider ~= nil then
+		--	options[draggingSlider].value = draggingSliderPreDragValue
+		--	draggingSlider = nil
+		--	sliderValueChanged = nil
+		--	draggingSliderPreDragValue = nil
 		else
 			show = false
 		end
@@ -1704,7 +1704,7 @@ function widget:MouseMove(x, y)
 		if options[draggingSlider].value ~= newValue then
 			options[draggingSlider].value = newValue
 			sliderValueChanged = true
-			--applyOptionValue(draggingSlider)	-- disabled so only on release it gets applied
+			applyOptionValue(draggingSlider)	-- disabled so only on release it gets applied
 			if playSounds and (lastSliderSound == nil or os.clock() - lastSliderSound > 0.04) then
 				lastSliderSound = os.clock()
 				Spring.PlaySoundFile(sliderdrag, 0.4, 'ui')
@@ -1882,7 +1882,7 @@ function mouseEvent(x, y, button, release)
 								local newValue = getSliderValue(draggingSlider,cx)
 								if options[draggingSlider].value ~= newValue then
 									options[draggingSlider].value = getSliderValue(draggingSlider,cx)
-									--applyOptionValue(draggingSlider)	-- disabled so only on release it gets applied
+									applyOptionValue(draggingSlider)	-- disabled so only on release it gets applied
 									if playSounds then
 										Spring.PlaySoundFile(sliderdrag, 0.3, 'ui')
 									end
@@ -2998,7 +2998,7 @@ function widget:Initialize()
 	WG['options'].isvisible = function() return show end
 	WG['options'].getCameraSmoothness = function() return cameraTransitionTime end
 	WG['options'].disallowEsc = function()
-		if showSelectOptions or draggingSlider then
+		if showSelectOptions then --or draggingSlider then
 			return true
 		else
 			return false
