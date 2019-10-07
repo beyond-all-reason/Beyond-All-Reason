@@ -28,7 +28,8 @@ local OPTIONS = {
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
-local spTestBuildOrder = Spring.TestBuildOrder
+local spGetUnitsInSphere = Spring.GetUnitsInSphere
+local spGetUnitDefID = Spring.GetUnitDefID
 
 local metalSpots = {}
 local valueList = {}
@@ -44,7 +45,12 @@ local fontfileOutlineSize = 15
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local testMexUdefID = UnitDefNames['armmex'].id
+local extractors = {}
+for uDefID, uDef in pairs(UnitDefs) do
+	if uDef.extractsMetal > 0 then
+		extractors[uDefID] = true
+	end
+end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
@@ -128,15 +134,18 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 
--- periodically check if mex sot is occupied
+-- periodically check if mex spot is occupied
 function widget:GameFrame(gf)
-	if gf % 30 == 1 then
-		for i = 1, #metalSpots do
+	if gf % 35 == 1 then
+		for i=1, #metalSpots do
+			metalSpots[i][6] = false
 			local spot = metalSpots[i]
-			if spTestBuildOrder(testMexUdefID, spot[1], spot[2], spot[3], 0) == 0 then
-				metalSpots[i][6] = true
-			else
-				metalSpots[i][6] = false
+			local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 70*spot[5])
+			for j=1, #units do
+				if extractors[spGetUnitDefID(units[j])]  then
+					metalSpots[i][6] = true
+					break
+				end
 			end
 		end
 	end
@@ -184,7 +193,7 @@ function widget:DrawWorldPreUnit()
 	end)
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
-		if not spot[6] and spIsSphereInView(spot[1], spot[2], spot[3], spot[4]) then
+		if not spot[6] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
 			gl.PushMatrix()
 			gl.Translate(spot[1], spot[2], spot[3])
 			gl.Scale(21*spot[5],21*spot[5],21*spot[5])
