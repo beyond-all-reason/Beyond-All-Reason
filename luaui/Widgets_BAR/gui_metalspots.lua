@@ -14,15 +14,18 @@ end
 -------------------------------------------------------------------------------
 
 local OPTIONS = {
-	circlePieces					= 3,
-	circlePieceDetail				= 20,
-	circleSpaceUsage				= 0.8,
-	circleInnerOffset				= 0,
-	rotationSpeed					= 8,
-	
+	showValue			= true,
+
+	circlePieces		= 3,
+	circlePieceDetail	= 20,
+	circleSpaceUsage	= 0.8,
+	circleInnerOffset	= 0,
+	rotationSpeed		= 8,
+	opacity				= 0.5,
+
 	-- size
-	innersize						= 1.86,		-- outersize-innersize = circle width
-	outersize						= 2.08,		-- outersize-innersize = circle width
+	innersize			= 1.86,		-- outersize-innersize = circle width
+	outersize			= 2.08,		-- outersize-innersize = circle width
 }
 
 
@@ -96,6 +99,21 @@ function widget:Initialize()
 		Spring.Echo("<metalspots> This widget requires the 'Metalspot Finder' widget to run.")
 		widgetHandler:RemoveWidget(self)
 	end
+
+	WG.metalspots = {}
+	WG.metalspots.setShowValue = function(value)
+		OPTIONS.showValue = value
+	end
+	WG.metalspots.getShowValue = function()
+		return OPTIONS.showValue
+	end
+	WG.metalspots.setOpacity = function(value)
+		OPTIONS.opacity = value
+	end
+	WG.metalspots.getOpacity = function()
+		return OPTIONS.opacity
+	end
+
 	currentClock = os.clock()
 	local mSpots = WG.metalSpots
 	for i = 1, #mSpots do
@@ -180,12 +198,12 @@ function widget:DrawWorldPreUnit()
 	end
 	spotList = gl.CreateList(function()
 		gl.Rotate(currentRotationAngle, 0,1,0)
-		gl.Color(1, 1, 1, 0.25)
+		gl.Color(1, 1, 1, OPTIONS.opacity*0.5)
 		gl.CallList(circleList)
 
 		gl.Rotate(-currentRotationAngle*2, 0,1,0)
 		gl.Scale(1.18, 1.18, 1.18)
-		gl.Color(1, 1, 1, 0.45)
+		gl.Color(1, 1, 1, OPTIONS.opacity)
 		gl.CallList(circleList)
 
 		gl.Rotate(currentRotationAngle, 0,1,0)
@@ -198,11 +216,29 @@ function widget:DrawWorldPreUnit()
 			gl.Translate(spot[1], spot[2], spot[3])
 			gl.Scale(21*spot[5],21*spot[5],21*spot[5])
 			gl.CallList(spotList)
-			gl.CallList(valueList[spot[4]])
+			if OPTIONS.showValue then
+				gl.CallList(valueList[spot[4]])
+			end
 			gl.PopMatrix()
 		end
     end
 
     gl.DepthTest(true)
     gl.Color(1,1,1,1)
+end
+
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.showValue = OPTIONS.showValue
+	savedTable.opacity = OPTIONS.opacity
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.showValue ~= nil then
+		OPTIONS.showValue = data.showValue
+	end
+	if data.opacity ~= nil then
+		OPTIONS.opacity = data.opacity
+	end
 end

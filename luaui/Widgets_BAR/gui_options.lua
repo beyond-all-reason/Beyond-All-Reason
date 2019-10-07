@@ -2411,11 +2411,29 @@ function init()
 		{id="guishader", group="ui", widget="GUI Shader", name="GUI blur", type="bool", value=GetWidgetToggleValue("GUI Shader"), description='Blurs the world under every user interface element'},
 		{id="guishaderintensity", group="ui", name=widgetOptionColor.."   intensity", type="slider", min=0.001, max=0.003, step=0.0001, value=0.002, description=''},
 
+		{id="metalspots", group="ui", widget="Metalspots", name="Metalspot indicators", type="bool", value=GetWidgetToggleValue("Metalspots"), description='Shows a circle around metal spots with the amount of metal in it'},
+		{id="metalspots_opacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.1, max=1, step=0.01, value=0.5, description='Display metal values in the center',
+		 onload=function() loadWidgetData("Metalspots", "metalspots_opacity", {'opacity'}) end,
+		 onchange=function(i, value)
+			 WG.metalspots.setShowValue(value)
+			 saveOptionValue('Metalspots', 'metalspots', 'setOpacity', {'opacity'}, options[getOptionByID('metalspots_opacity')].value)
+		 end,
+		},
+		{id="metalspots_values", group="ui", name=widgetOptionColor.."   show values", type="bool", value=true, description='Display metal values',
+		 onload=function() loadWidgetData("Metalspots", "metalspots_values", {'showValues'}) end,
+		 onchange=function(i, value)
+			 WG.metalspots.setShowValue(value)
+			 saveOptionValue('Metalspots', 'metalspots', 'setShowValue', {'showValue'}, options[getOptionByID('metalspots_values')].value)
+		 end,
+		},
+
 		{id="showbuilderqueue", group="ui", widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
 		{id="healthbarsscale", group="ui", name="Health bar scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
 		 onload=function() loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end
 		},
+
+		{id="nametags_icon", group="ui", name="Commander name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon'},
 
 		{id="consolemaxlines", group="ui", name="Console max lines", type="slider", min=3, max=9, step=1, value=6, description=''},
 		{id="consolefontsize", group="ui", name=widgetOptionColor.."   font size", type="slider", min=0.9, max=1.1, step=0.05, value=1, description=''},
@@ -2436,8 +2454,6 @@ function init()
 		{id="mascotte", group="ui", widget=widgetOptionColor.."Playerlist mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList mascotte"), description='Shows a mascotte on top of the (adv)playerslist'},
 
 		{id="displaydps", group="ui", widget="Display DPS", name="Display DPS", type="bool", value=GetWidgetToggleValue("Display DPS"), description='Display the \'Damage Per Second\' done where target are hit'},
-
-		{id="nametags_icon", group="ui", name="Commander name on icon", type="bool", value=(WG['nametags']~=nil and WG['nametags'].getDrawForIcon()), description='Show commander name when its displayed as icon'},
 
 		{id="rankicons", group="ui", widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
