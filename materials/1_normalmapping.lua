@@ -10,9 +10,9 @@ local function SunChanged(curShaderObj)
 
 	curShaderObj:SetUniformFloatArrayAlways("toneMapParams", {
 		Spring.GetConfigFloat("tonemapA", 15.0),
-		Spring.GetConfigFloat("tonemapB", 0.3),
-		Spring.GetConfigFloat("tonemapC", 15.0),
-		Spring.GetConfigFloat("tonemapD", 0.5),
+		Spring.GetConfigFloat("tonemapB", 0.0),
+		Spring.GetConfigFloat("tonemapC", 5.0),
+		Spring.GetConfigFloat("tonemapD", 1.8),
 		Spring.GetConfigFloat("tonemapE", 1.5),
 	})
 end
