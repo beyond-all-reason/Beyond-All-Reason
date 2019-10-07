@@ -28,6 +28,7 @@ local OPTIONS = {
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
+local spTestBuildOrder = Spring.TestBuildOrder
 
 local metalSpots = {}
 local valueList = {}
@@ -43,6 +44,7 @@ local fontfileOutlineSize = 15
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
+local testMexUdefID = UnitDefNames['armmex'].id
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
@@ -100,7 +102,7 @@ function widget:Initialize()
 				font:Begin()
 				font:SetTextColor(1,1,1,1)
 				font:SetOutlineColor(0,0,0,0.4)
-				font:Print(value, 0, 0, 1, "con")
+				font:Print(value, 0, 0, 1.05, "con")
 				font:End()
 			end)
 		end
@@ -111,6 +113,7 @@ end
 
 function widget:Shutdown()
 	gl.DeleteList(circleList)
+	gl.DeleteList(spotList)
 	for k,v in pairs(valueList) do
 		gl.DeleteList(v)
 	end
@@ -125,7 +128,21 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 
--- todo: periodically try Spring.TestBuildOrder(uDefID, x, y, z, facing)
+-- periodically check if mex sot is occupied
+function widget:GameFrame(gf)
+	if gf % 30 == 1 then
+		for i = 1, #metalSpots do
+			local spot = metalSpots[i]
+			if spTestBuildOrder(testMexUdefID, spot[1], spot[2], spot[3], 0) == 0 then
+				metalSpots[i][6] = true
+			else
+				metalSpots[i][6] = false
+			end
+		end
+	end
+end
+
+
 function widget:DrawWorldPreUnit()
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
@@ -154,12 +171,12 @@ function widget:DrawWorldPreUnit()
 	end
 	spotList = gl.CreateList(function()
 		gl.Rotate(currentRotationAngle, 0,1,0)
-		gl.Color(1, 1, 1, 0.16)
+		gl.Color(1, 1, 1, 0.25)
 		gl.CallList(circleList)
 
-		gl.Scale(1.18, 1.18, 1.18)
 		gl.Rotate(-currentRotationAngle*2, 0,1,0)
-		gl.Color(1, 1, 1, 0.32)
+		gl.Scale(1.18, 1.18, 1.18)
+		gl.Color(1, 1, 1, 0.45)
 		gl.CallList(circleList)
 
 		gl.Rotate(currentRotationAngle, 0,1,0)
@@ -167,10 +184,10 @@ function widget:DrawWorldPreUnit()
 	end)
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
-		if spIsSphereInView(spot[1], spot[2], spot[3], spot[4]) then
+		if not spot[6] and spIsSphereInView(spot[1], spot[2], spot[3], spot[4]) then
 			gl.PushMatrix()
 			gl.Translate(spot[1], spot[2], spot[3])
-			gl.Scale(19*spot[5],19*spot[5],19*spot[5])
+			gl.Scale(21*spot[5],21*spot[5],21*spot[5])
 			gl.CallList(spotList)
 			gl.CallList(valueList[spot[4]])
 			gl.PopMatrix()
