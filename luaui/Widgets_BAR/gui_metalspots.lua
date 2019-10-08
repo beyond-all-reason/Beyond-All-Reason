@@ -16,11 +16,9 @@ end
 local OPTIONS = {
 	showValue			= true,
 
-	circlePieces		= 3,
-	circlePieceDetail	= 20,
-	circleSpaceUsage	= 0.8,
-	circleInnerOffset	= 0,
-	rotationSpeed		= 6,
+	circleSpaceUsage	= 0.75,
+	circleInnerOffset	= 0.35,
+	rotationSpeed		= 4,
 	opacity				= 0.5,
 
 	-- size
@@ -33,10 +31,11 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetGroundHeight = sSpring.GetGroundHeight
+local spGetGroundHeight = Spring.GetGroundHeight
 
 local metalSpots = {}
 local valueList = {}
+local circleList = {}
 local previousOsClock = os.clock()
 local currentRotation = 0
 
@@ -70,10 +69,10 @@ local function DrawCircleLine(innersize, outersize)
 	gl.BeginEnd(GL.QUADS, function()
 		local detailPartWidth, a1,a2,a3,a4
 		local width = OPTIONS.circleSpaceUsage
-		local detail = OPTIONS.circlePieceDetail
-
-		local radstep = (2.0 * math.pi) / OPTIONS.circlePieces
-		for i = 1, OPTIONS.circlePieces do
+		local pieces = 3 + math.ceil(innersize/10)
+		local detail = math.ceil(innersize/pieces)
+		local radstep = (2.0 * math.pi) / pieces
+		for i = 1, pieces do
 			for d = 1, detail do
 				
 				detailPartWidth = ((width / detail) * d)
@@ -119,7 +118,7 @@ function widget:Initialize()
 	for i = 1, #mSpots do
 		local spot = mSpots[i]
 		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-		if value > 0.001 then
+		if tonumber(value) > 0.001 then
 			local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 			metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value, scale}
 			if not valueList[value] then
@@ -131,16 +130,19 @@ function widget:Initialize()
 					font:End()
 				end)
 			end
+			if not circleList[scale] then
+				circleList[scale] = gl.CreateList(DrawCircleLine, (OPTIONS.innersize*21*scale)-((1-scale)*4), (OPTIONS.outersize*21*scale))
+			end
 		end
 	end
-	circleList = gl.CreateList(DrawCircleLine, OPTIONS.innersize, OPTIONS.outersize)
 end
 
 
 function widget:Shutdown()
-	gl.DeleteList(circleList)
-	gl.DeleteList(spotList)
 	for k,v in pairs(valueList) do
+		gl.DeleteList(v)
+	end
+	for k,v in pairs(circleList) do
 		gl.DeleteList(v)
 	end
 	gl.DeleteFont(font)
@@ -191,29 +193,27 @@ function widget:DrawWorldPreUnit()
 		end
 	end
 
-	if spotList then
-		gl.DeleteList(spotList)
-	end
-	spotList = gl.CreateList(function()
-		gl.Rotate(currentRotation, 0,1,0)
-		gl.Color(1, 1, 1, OPTIONS.opacity*0.5)
-		gl.CallList(circleList)
-
-		gl.Rotate(-currentRotation*2, 0,1,0)
-		gl.Scale(1.18, 1.18, 1.18)
-		gl.Color(1, 1, 1, OPTIONS.opacity)
-		gl.CallList(circleList)
-
-		gl.Rotate(currentRotation, 0,1,0)
-		gl.Billboard()
-	end)
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
 		if not spot[6] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
 			gl.PushMatrix()
 			gl.Translate(spot[1], spot[2], spot[3])
+
+			gl.Rotate(currentRotation, 0,1,0)
+			gl.Color(1, 1, 1, OPTIONS.opacity*0.5)
+			gl.CallList(circleList[spot[5]])
+
+			gl.Rotate(-currentRotation*2, 0,1,0)
+			gl.Rotate(180, 1,0,0)
+			local scale = 1.3 - (spot[5]*0.11)
+			gl.Scale(scale, scale, scale)
+			gl.Color(1, 1, 1, OPTIONS.opacity)
+			gl.CallList(circleList[spot[5]])
+			gl.Rotate(-180, 1,0,0)
+
 			gl.Scale(21*spot[5],21*spot[5],21*spot[5])
-			gl.CallList(spotList)
+			gl.Rotate(currentRotation, 0,1,0)
+			gl.Billboard()
 			if OPTIONS.showValue then
 				gl.CallList(valueList[spot[4]])
 			end
