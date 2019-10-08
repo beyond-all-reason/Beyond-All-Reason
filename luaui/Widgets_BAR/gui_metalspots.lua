@@ -20,7 +20,7 @@ local OPTIONS = {
 	circlePieceDetail	= 20,
 	circleSpaceUsage	= 0.8,
 	circleInnerOffset	= 0,
-	rotationSpeed		= 8,
+	rotationSpeed		= 6,
 	opacity				= 0.5,
 
 	-- size
