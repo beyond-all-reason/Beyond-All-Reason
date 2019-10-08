@@ -2562,6 +2562,7 @@ function init()
 			 Spring.SetConfigFloat("envAmbient", value)
 			 Spring.SendCommands("luarules updatesun")
 		end,
+		},
 		{id="tonemapDefaults", group="dev", name=widgetOptionColor.."   restore defaults", type="bool", value=GetWidgetToggleValue("Unit Reclaimer"), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", 15.0)
