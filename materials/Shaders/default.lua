@@ -586,6 +586,18 @@ fragment = [[
 		return n1 * dot(n1, n2) / n1.z - n2;
 	}
 
+	ivec2 NPOT(ivec2 n) {
+	    ivec2 v = n;
+
+		v--;
+		v |= v >> 1;
+		v |= v >> 2;
+		v |= v >> 4;
+		v |= v >> 8;
+		v |= v >> 16;
+		return ++v; // next power of 2
+	}
+
 	#define smoothclamp(v, v0, v1) ( mix(v0, v1, smoothstep(v0, v1, v)) )
 
 	#ifndef TONEMAP
@@ -836,7 +848,10 @@ fragment = [[
 		outColor += vec3(selfIllumMod * emissiveness) * albedoColor;
 
 		#ifdef USE_LOSMAP
-			float losValue = 0.5 + texture(losMapTex, worldPos.xz / mapSize).r;
+			vec2 losMapUV = worldPos.xz;
+			//losMapUV /= exp2(ceil(log2((mapSize)))); // $infomap is next power of two of mapSize
+			losMapUV /= vec2(NPOT( ivec2(mapSize) ));
+			float losValue = 0.5 + texture(losMapTex, losMapUV).r;
 			losValue = mix(1.0, losValue, inLosMode);
 
 			outColor *= losValue;
