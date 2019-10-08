@@ -27,7 +27,7 @@ local pairs					= pairs
 local spGetMyPlayerID       = Spring.GetMyPlayerID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spIsUnitInView		= Spring.IsUnitInView
-
+local spIsUnitVisible       = Spring.IsUnitVisible
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
 local glUnitShape			= gl.UnitShape
@@ -40,10 +40,10 @@ local glLoadIdentity       	= gl.LoadIdentity
 
 local debug = false
 local dots = {}
-local spec,_ = Spring.GetSpectatingState()
+local spec,specFullView = Spring.GetSpectatingState()
 
 function widget:PlayerChanged()
-	spec,_,_ = Spring.GetSpectatingState()
+	spec,specFullView,_ = Spring.GetSpectatingState()
 end
 
 function widget:UnitEnteredRadar(unitID, allyTeam)
@@ -101,14 +101,16 @@ function widget:DrawWorld()
 	glDepthTest(true)
 
 	for unitID, dot in pairs( dots ) do
-		if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) then
-			local x, y, z = spGetUnitPosition(unitID)
-			if x and ( spIsUnitInView(unitID) ) then
-				glPushMatrix()
+		if not spec or not spIsUnitVisible(unitID) then
+			if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) then
+				local x, y, z = spGetUnitPosition(unitID)
+				if x and ( spIsUnitInView(unitID) ) then
+					glPushMatrix()
 					glLoadIdentity()
 					glTranslate( x, y + 5 , z)
 					glUnitShape( dot["unitDefId"], dot["teamId"], false, false, false)
-				glPopMatrix()
+					glPopMatrix()
+				end
 			end
 		end
 	end
