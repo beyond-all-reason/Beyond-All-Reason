@@ -587,7 +587,7 @@ fragment = [[
 	}
 
 	ivec2 NPOT(ivec2 n) {
-	    ivec2 v = n;
+		ivec2 v = n;
 
 		v--;
 		v |= v >> 1;
