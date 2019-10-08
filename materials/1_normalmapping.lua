@@ -8,12 +8,13 @@ local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
 	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 
-	curShaderObj:SetUniformFloatArrayAlways("toneMapParams", {
+	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
 		Spring.GetConfigFloat("tonemapA", 15.0),
-		Spring.GetConfigFloat("tonemapB", 1.0),
-		Spring.GetConfigFloat("tonemapC", 5.0),
-		Spring.GetConfigFloat("tonemapD", 1.0),
-		Spring.GetConfigFloat("tonemapE", 1.6),
+		Spring.GetConfigFloat("tonemapB", 0.3),
+		Spring.GetConfigFloat("tonemapC", 15.0),
+		Spring.GetConfigFloat("tonemapD", 0.5),
+		Spring.GetConfigFloat("tonemapE", 1.5),
+		Spring.GetConfigFloat("envAmbient", 0.2)
 	})
 end
 
@@ -29,7 +30,7 @@ local matTemplate = {
 
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 
-		"#define SUNMULT 2.0",
+		"#define SUNMULT 1.0",
 
 		"#define SPECULAR_AO",
 
@@ -50,7 +51,7 @@ local matTemplate = {
 
 		"#define SHADOW_SOFTNESS SHADOW_HARD",
 
-		"#define SUNMULT 2.0",
+		"#define SUNMULT 1.0",
 
 		"#define SPECULAR_AO",
 

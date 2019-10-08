@@ -33,12 +33,12 @@ local spIsGUIHidden = Spring.IsGUIHidden
 local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
+local spGetGroundHeight = sSpring.GetGroundHeight
 
 local metalSpots = {}
 local valueList = {}
 local previousOsClock = os.clock()
-local currentRotationAngle = 0
-local currentRotationAngleOpposite = 0
+local currentRotation = 0
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -119,16 +119,18 @@ function widget:Initialize()
 	for i = 1, #mSpots do
 		local spot = mSpots[i]
 		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
-		local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
-		metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value, scale}
-		if not valueList[value] then
-			valueList[value] = gl.CreateList(function()
-				font:Begin()
-				font:SetTextColor(1,1,1,1)
-				font:SetOutlineColor(0,0,0,0.4)
-				font:Print(value, 0, 0, 1.05, "con")
-				font:End()
-			end)
+		if value > 0.001 then
+			local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
+			metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value, scale}
+			if not valueList[value] then
+				valueList[value] = gl.CreateList(function()
+					font:Begin()
+					font:SetTextColor(1,1,1,1)
+					font:SetOutlineColor(0,0,0,0.4)
+					font:Print(value, 0, 0, 1.05, "con")
+					font:End()
+				end)
+			end
 		end
 	end
 	circleList = gl.CreateList(DrawCircleLine, OPTIONS.innersize, OPTIONS.outersize)
@@ -154,11 +156,12 @@ end
 
 -- periodically check if mex spot is occupied
 function widget:GameFrame(gf)
-	if gf % 35 == 1 then
+	if gf % 39 == 1 then
 		for i=1, #metalSpots do
 			metalSpots[i][6] = false
+			metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
 			local spot = metalSpots[i]
-			local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 75*spot[5])
+			local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 90*spot[5])
 			for j=1, #units do
 				if extractors[spGetUnitDefID(units[j])]  then
 					metalSpots[i][6] = true
@@ -182,14 +185,9 @@ function widget:DrawWorldPreUnit()
 	-- animate rotation
 	if OPTIONS.rotationSpeed > 0 then
 		local angleDifference = (OPTIONS.rotationSpeed) * (clockDifference * 5)
-		currentRotationAngle = currentRotationAngle + (angleDifference*0.66)
-		if currentRotationAngle > 360 then
-		   currentRotationAngle = currentRotationAngle - 360
-		end
-	
-		currentRotationAngleOpposite = currentRotationAngleOpposite - angleDifference
-		if currentRotationAngleOpposite < -360 then
-		   currentRotationAngleOpposite = currentRotationAngleOpposite + 360
+		currentRotation = currentRotation + (angleDifference*0.66)
+		if currentRotation > 360 then
+		   currentRotation = currentRotation - 360
 		end
 	end
 
@@ -197,16 +195,16 @@ function widget:DrawWorldPreUnit()
 		gl.DeleteList(spotList)
 	end
 	spotList = gl.CreateList(function()
-		gl.Rotate(currentRotationAngle, 0,1,0)
+		gl.Rotate(currentRotation, 0,1,0)
 		gl.Color(1, 1, 1, OPTIONS.opacity*0.5)
 		gl.CallList(circleList)
 
-		gl.Rotate(-currentRotationAngle*2, 0,1,0)
+		gl.Rotate(-currentRotation*2, 0,1,0)
 		gl.Scale(1.18, 1.18, 1.18)
 		gl.Color(1, 1, 1, OPTIONS.opacity)
 		gl.CallList(circleList)
 
-		gl.Rotate(currentRotationAngle, 0,1,0)
+		gl.Rotate(currentRotation, 0,1,0)
 		gl.Billboard()
 	end)
 	for i = 1, #metalSpots do
