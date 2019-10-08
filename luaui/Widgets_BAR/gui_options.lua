@@ -2370,7 +2370,7 @@ function init()
 		},
 		{id="camerashake", group="control", widget="CameraShake", name=widgetOptionColor.."   shake", type="bool", value=GetWidgetToggleValue("CameraShake"), description='Shakes camera on explosions'},
 		{id="camerasmoothness", group="control", name=widgetOptionColor.."   smoothing", type="slider", min=0, max=3, step=0.01, value=cameraTransitionTime, description="How smooth should the transitions between camera movement be?"},
-		--{id="camerapanspeed", group="control", name=widgetOptionColor.."   pan speed", type="slider", min=0, max=2, step=0.01, value=Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.01), description="Smoothness of camera panning mode"},
+		{id="camerapanspeed", group="control", name=widgetOptionColor.."   middleclick grab speed", type="slider", min=-0.01, max=-0.00195, step=0.0001, value=Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description="Smoothness of camera panning mode"},
 		{id="cameramovespeed", group="control", name=widgetOptionColor.."   move speed", type="slider", min=0, max=50, step=1, value=Spring.GetConfigInt("CamSpringScrollSpeed", 10), description="Smoothness of camera moving mode"},
 		{id="scrollspeed", group="control", name=widgetOptionColor.."   scroll zoom speed", type="slider", min=1, max=50, step=1, value=math.abs(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25)), description=''},
 		{id="scrollinverse", group="control", name=widgetOptionColor.."   reverse scrolling", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description=""},
