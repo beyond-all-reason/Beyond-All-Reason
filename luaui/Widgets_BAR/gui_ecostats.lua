@@ -793,7 +793,6 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	local h
 	local dx
 	local dy
-
 	if small then
 		w = tH*0.36
 		h = tH*0.36
@@ -841,7 +840,7 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	if WG['tooltip'] then
 		WG['tooltip'].AddTooltip('ecostats_team_'..tID, area, teamData[tID]["leaderName"])
 	end
-	glTexture(sideImage)
+	--glTexture(sideImage)
 	glTexRect(area[1],area[2],area[3],area[4])
 	glTexture(false)
 	glColor(1,1,1,1)
@@ -1666,7 +1665,8 @@ function widget:DrawScreen()
 	if Spring.IsGUIHidden() or (not inSpecMode) then return end
 
 	if not sideImageList then makeSideImageList() end
-	
+
+	gl.PolygonOffset(-7,-10)
 	gl.PushMatrix()
 	gl.CallList(sideImageList)
 	drawListStandard()

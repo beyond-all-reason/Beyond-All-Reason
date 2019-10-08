@@ -69,7 +69,7 @@ local function DrawCircleLine(innersize, outersize)
 	gl.BeginEnd(GL.QUADS, function()
 		local detailPartWidth, a1,a2,a3,a4
 		local width = OPTIONS.circleSpaceUsage
-		local pieces = 3 + math.ceil(innersize/10)
+		local pieces = 3 + math.ceil(innersize/11)
 		local detail = math.ceil(innersize/pieces)
 		local radstep = (2.0 * math.pi) / pieces
 		for i = 1, pieces do
@@ -209,12 +209,12 @@ function widget:DrawWorldPreUnit()
 			gl.Scale(scale, scale, scale)
 			gl.Color(1, 1, 1, OPTIONS.opacity)
 			gl.CallList(circleList[spot[5]])
-			gl.Rotate(-180, 1,0,0)
 
-			gl.Scale(21*spot[5],21*spot[5],21*spot[5])
-			gl.Rotate(currentRotation, 0,1,0)
-			gl.Billboard()
 			if OPTIONS.showValue then
+				gl.Scale(21*spot[5],21*spot[5],21*spot[5])
+				gl.Rotate(-180, 1,0,0)
+				gl.Rotate(currentRotation, 0,1,0)
+				gl.Billboard()
 				gl.CallList(valueList[spot[4]])
 			end
 			gl.PopMatrix()
