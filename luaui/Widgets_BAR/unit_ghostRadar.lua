@@ -40,8 +40,11 @@ local glLoadIdentity       	= gl.LoadIdentity
 
 local debug = false
 local dots = {}
-local lastTime
-local updateInt = 2 --seconds for the ::update loop
+local spec,_ = Spring.GetSpectatingState()
+
+function widget:PlayerChanged()
+	spec,_,_ = Spring.GetSpectatingState()
+end
 
 function widget:UnitEnteredRadar(unitID, allyTeam)
 	if ( dots[unitID] ~= nil ) then
@@ -112,20 +115,6 @@ function widget:DrawWorld()
 
 	glDepthTest(false)
  	glColor(1, 1, 1, 1)
-end
-
-function widget:Update()
-	local timef = spGetGameSeconds()
-	local time = floor(timef)
-
-	-- update timers once every <updateInt> seconds
-	if (time % updateInt == 0 and time ~= lastTime) then	
-		lastTime = time
-		if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) then
-			widgetHandler:RemoveWidget(self)
-			return false
-		end
-	end
 end
 
 function printDebug( value )

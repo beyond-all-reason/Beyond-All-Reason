@@ -309,8 +309,7 @@ function widget:DrawWorld()
   local camX, camY, camZ = GetCameraPosition()
 
   for unitID, attributes in pairs(comms) do
-    
-    -- calc opacity
+
 	if IsUnitInView(unitID) then
 		local x,y,z = GetUnitPosition(unitID)
 		camDistance = diag(camX-x, camY-y, camZ-z) 
