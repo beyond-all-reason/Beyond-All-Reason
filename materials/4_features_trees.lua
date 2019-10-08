@@ -16,12 +16,13 @@ local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
 	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 
-	curShaderObj:SetUniformFloatArrayAlways("toneMapParams", {
+	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
 		Spring.GetConfigFloat("tonemapA", 15.0),
-		Spring.GetConfigFloat("tonemapB", 1.0),
-		Spring.GetConfigFloat("tonemapC", 5.0),
-		Spring.GetConfigFloat("tonemapD", 1.0),
-		Spring.GetConfigFloat("tonemapE", 1.6),
+		Spring.GetConfigFloat("tonemapB", 0.3),
+		Spring.GetConfigFloat("tonemapC", 15.0),
+		Spring.GetConfigFloat("tonemapD", 0.5),
+		Spring.GetConfigFloat("tonemapE", 1.5),
+		Spring.GetConfigFloat("envAmbient", 0.2)
 	})
 end
 
@@ -46,7 +47,7 @@ local materials = {
 
 			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
 
-			"#define SUNMULT 2.0",
+			"#define SUNMULT 1.0",
 
 			"#define METALNESS 0.1",
 			"#define ROUGHNESS 0.5",
@@ -56,7 +57,7 @@ local materials = {
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
 			--"#define DO_GAMMA_CORRECTION",
-			"#define TONEMAP(c) CustomTM(c)",
+			"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --very expensive for trees (too much overdraw)
@@ -66,7 +67,7 @@ local materials = {
 
 			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
 
-			"#define SUNMULT 2.0",
+			"#define SUNMULT 1.0",
 
 			"#define METALNESS 0.0",
 			"#define ROUGHNESS 1.0",
@@ -76,7 +77,7 @@ local materials = {
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
 			--"#define DO_GAMMA_CORRECTION",
-			"#define TONEMAP(c) CustomTM(c)",
+			"#define TONEMAP(c) SteveMTM1(c)",
 
 			"#define MAT_IDX 129",
 		},

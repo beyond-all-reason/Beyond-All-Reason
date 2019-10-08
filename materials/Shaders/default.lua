@@ -138,7 +138,7 @@ fragment = [[
 	uniform vec3 etcLoc;
 	uniform int simFrame;
 
-	uniform float toneMapParams[5];
+	uniform float pbrParams[6];
 
 	#ifndef SUNMULT
 		#define SUNMULT 2.0
@@ -245,7 +245,7 @@ fragment = [[
 		#define GAMMA 2.2
 		#define INV_GAMMA 1.0 / GAMMA
 		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
-		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
+		#define LINEARtoSRGB(c) ( clamp(pow(c, vec3(INV_GAMMA)), vec3(0.0), vec3(1.0)) )
 	#else
 		#define SRGBtoLINEAR(c) ( c )
 		#define LINEARtoSRGB(c) ( c )
@@ -482,7 +482,7 @@ fragment = [[
 
 	float MicrofacetDistribution(float NdotH, float roughness4) {
 		float f = (NdotH * roughness4 - NdotH) * NdotH + 1.0;
-		return roughness4 / (PI * f * f);
+		return roughness4 / (/*PI */ f * f);
 	}
 
 	float ComputeSpecularAOBlender(float NoV, float diffuseAO, float roughness2) {
@@ -574,7 +574,7 @@ fragment = [[
 	}
 
 	vec3 CustomTM(const vec3 x) {
-		return LINEARtoSRGB((x * (toneMapParams[0] * x + toneMapParams[1])) / (x * (toneMapParams[2] * x + toneMapParams[3]) + toneMapParams[4]));
+		return LINEARtoSRGB((x * (pbrParams[0] * x + pbrParams[1])) / (x * (pbrParams[2] * x + pbrParams[3]) + pbrParams[4]));
 	}
 
 	// RNM - Already unpacked
@@ -713,7 +713,8 @@ fragment = [[
         vec3 F0 = vec3(DEFAULT_F0);
         F0 = mix(F0, albedoColor, metalness);
 
-		float reflectance = dot(LUMA, F0);
+		//float reflectance = dot(LUMA, F0);
+		float reflectance = max(F0.r, max(F0.g, F0.b));
 
 		// Anything less than 2% is physically impossible and is instead considered to be shadowing. Compare to "Real-Time-Rendering" 4th editon on page 325.
 		vec3 F90 = vec3(clamp(reflectance * 50.0, 0.0, 1.0));
@@ -760,7 +761,7 @@ fragment = [[
 			kD *= 1.0 - metalness;
 
 			// add to outgoing radiance dirContrib
-			dirContrib  = maxSun * (kD * albedoColor / PI) * NdotL * shadowMult;
+			dirContrib  = maxSun * (kD * albedoColor /* PI */) * NdotL * shadowMult;
 			dirContrib += outSpecularColor;
         }
 
@@ -770,6 +771,7 @@ fragment = [[
 
         vec3 outColor;
 		vec3 ambientContrib;
+
         {
             // ambient lighting (we now use IBL as the ambient term)
 			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
@@ -788,17 +790,20 @@ fragment = [[
 
             #if (defined USE_ENVIRONMENT_DIFFUSE)
 			{
-                vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
-                float sunAmbientLuma = dot(LUMA, sunAmbient);
+				#if 0
+					vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
+					float sunAmbientLuma = dot(LUMA, sunAmbient);
 
-				// allow environement to be 20% darker and 20% lighter than the sunAmbient
-				const vec2 sunAmbientLumaLeeway = vec2(0.2, 0.2); //total 40% leeway
+					vec2 sunAmbientLumaLeeway = vec2(pbrParams[5]);
 
-                iblDiffuseYCbCr.x = smoothclamp(iblDiffuseYCbCr.x,
-					(1.0 - sunAmbientLumaLeeway.x) * sunAmbientLuma,
-					(1.0 + sunAmbientLumaLeeway.y) * sunAmbientLuma);
+					iblDiffuseYCbCr.x = smoothclamp(iblDiffuseYCbCr.x,
+						(1.0 - sunAmbientLumaLeeway.x) * sunAmbientLuma,
+						(1.0 + sunAmbientLumaLeeway.y) * sunAmbientLuma);
 
-                iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
+					iblDiffuse = YCBCR2RGB * iblDiffuseYCbCr;
+				#else
+					iblDiffuse = mix(sunAmbient, iblDiffuse, pbrParams[5]);
+				#endif
 			}
 			#else
 				iblDiffuse = sunAmbient;
@@ -845,7 +850,7 @@ fragment = [[
 		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
 			//outColor = LINEARtoSRGB(vec3(abs(ComputeSpecularAOBlender(NdotV, aoTerm, roughness2) - ComputeSpecularAOFilament(NdotV, aoTerm, roughness2))));
-			outColor = LINEARtoSRGB( vec3(1.0 - ComputeSpecularAOBlender(NdotV, aoTerm, roughness2)) );
+			outColor = LINEARtoSRGB( ambientContrib );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif
 
