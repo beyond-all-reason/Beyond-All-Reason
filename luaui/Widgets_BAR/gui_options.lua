@@ -2563,6 +2563,18 @@ function init()
 			 Spring.SendCommands("luarules updatesun")
 		end,
 		},
+		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitSunMult", 1.0), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("unitSunMult", value)
+			 Spring.SendCommands("luarules updatesun")
+		end,
+		},
+		{id="unitExposureMult", group="dev", name="Units exposure mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitExposureMult", 1.0), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("unitExposureMult", value)
+			 Spring.SendCommands("luarules updatesun")
+		end,
+		},
 		{id="tonemapDefaults", group="dev", name=widgetOptionColor.."   restore defaults", type="bool", value=GetWidgetToggleValue("Unit Reclaimer"), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("tonemapA", 15.0)
@@ -2571,12 +2583,16 @@ function init()
 			 Spring.SetConfigFloat("tonemapD", 0.5)
 			 Spring.SetConfigFloat("tonemapE", 1.5)
 			 Spring.SetConfigFloat("envAmbient", 0.2)
+			 Spring.SetConfigFloat("unitSunMult", 1.0)
+			 Spring.SetConfigFloat("unitExposureMult", 1.0)
 			 options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
 			 options[getOptionByID('tonemapB')].value = Spring.GetConfigFloat("tonemapB")
 			 options[getOptionByID('tonemapC')].value = Spring.GetConfigFloat("tonemapC")
 			 options[getOptionByID('tonemapD')].value = Spring.GetConfigFloat("tonemapD")
 			 options[getOptionByID('tonemapE')].value = Spring.GetConfigFloat("tonemapE")
 			 options[getOptionByID('envAmbient')].value = Spring.GetConfigFloat("envAmbient")
+			 options[getOptionByID('unitSunMult')].value = Spring.GetConfigFloat("unitSunMult")
+			 options[getOptionByID('unitExposureMult')].value = Spring.GetConfigFloat("unitExposureMult")
 			 Spring.SendCommands("luarules updatesun")
 			 options[getOptionByID('tonemapDefaults')].value = false
 		 end,

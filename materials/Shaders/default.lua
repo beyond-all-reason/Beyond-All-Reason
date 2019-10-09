@@ -138,7 +138,7 @@ fragment = [[
 	uniform vec3 etcLoc;
 	uniform int simFrame;
 
-	uniform float pbrParams[6];
+	uniform float pbrParams[8];
 
 	#ifndef SUNMULT
 		#define SUNMULT 2.0
@@ -716,7 +716,7 @@ fragment = [[
 			#endif
 
 			//somehow scale the shadow strength with SUNMULT
-			shadowMult = mix(1.0, min(nShadow, gShadow) / SUNMULT, shadowDensity);
+			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity);
 		}
 
         ///
@@ -857,6 +857,11 @@ fragment = [[
 			outColor *= losValue;
 			outSpecularColor.rgb *= losValue;
 			extraColor.r *= losValue;
+		#endif
+
+		#ifdef EXPOSURE
+			outSpecularColor.rgb *= EXPOSURE;
+			outColor *= EXPOSURE;
 		#endif
 
 		outColor = TONEMAP(outColor);

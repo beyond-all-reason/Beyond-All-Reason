@@ -15,7 +15,9 @@ local function SunChanged(curShaderObj)
 		Spring.GetConfigFloat("tonemapC", 15.0),
 		Spring.GetConfigFloat("tonemapD", 0.5),
 		Spring.GetConfigFloat("tonemapE", 1.5),
-		Spring.GetConfigFloat("envAmbient", 0.2)
+		Spring.GetConfigFloat("envAmbient", 0.2),
+		Spring.GetConfigFloat("unitSunMult", 1.0),
+		Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
 end
 
@@ -33,6 +35,7 @@ local materials = {
 			"#define SHADOW_SOFTNESS SHADOW_SOFT",
 
 			"#define SUNMULT 1.0",
+			--"#define EXPOSURE 1.0",
 
 			--"#define METALNESS 0.0",
 			"#define ROUGHNESS 0.4",
@@ -50,6 +53,7 @@ local materials = {
 			"#define SHADOW_SOFTNESS SHADOW_SOFT",
 
 			"#define SUNMULT 1.0",
+			--"#define EXPOSURE 1.0",
 
 			--"#define METALNESS 0.8",
 			"#define ROUGHNESS 0.4",
