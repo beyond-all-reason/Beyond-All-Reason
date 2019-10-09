@@ -97,24 +97,29 @@ end
 
 
 function widget:DrawWorld()
+	if spec then
+		_,specFullView,_ = Spring.GetSpectatingState()
+	end
+
 	glColor(1.0, 1.0, 1.0, 0.35 )
 	glDepthTest(true)
 
-	for unitID, dot in pairs( dots ) do
-		if not spec or not spIsUnitVisible(unitID) then
-			if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) then
-				local x, y, z = spGetUnitPosition(unitID)
-				if x and ( spIsUnitInView(unitID) ) then
-					glPushMatrix()
-					glLoadIdentity()
-					glTranslate( x, y + 5 , z)
-					glUnitShape( dot["unitDefId"], dot["teamId"], false, false, false)
-					glPopMatrix()
+	if not spec or not specFullView then
+		for unitID, dot in pairs( dots ) do
+			if not spec or not spIsUnitVisible(unitID) then
+				if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) then
+					local x, y, z = spGetUnitPosition(unitID)
+					if x and ( spIsUnitInView(unitID) ) then
+						glPushMatrix()
+						glLoadIdentity()
+						glTranslate( x, y + 5 , z)
+						glUnitShape( dot["unitDefId"], dot["teamId"], false, false, false)
+						glPopMatrix()
+					end
 				end
 			end
 		end
 	end
-
 	glDepthTest(false)
  	glColor(1, 1, 1, 1)
 end
