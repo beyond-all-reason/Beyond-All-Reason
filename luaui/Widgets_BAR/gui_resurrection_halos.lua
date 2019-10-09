@@ -43,6 +43,7 @@ local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetCameraPosition 		= Spring.GetCameraPosition
 local spGetUnitPosition			= Spring.GetUnitPosition
+local spIsGUIHidden				= Spring.IsGUIHidden
 
 local prevOsClock				= os.clock();
 
@@ -136,6 +137,7 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
+	if spIsGUIHidden() then return end
 
 	if haloUnitsCount > 0 then
 		osClock = os.clock()
