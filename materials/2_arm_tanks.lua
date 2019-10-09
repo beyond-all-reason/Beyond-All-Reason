@@ -58,7 +58,7 @@ local matTemplate = {
 
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 
-		"#define SUNMULT 1.0",
+		"#define SUNMULT 1.5",
 
 		"#define SPECULAR_AO",
 
