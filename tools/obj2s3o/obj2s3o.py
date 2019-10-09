@@ -59,9 +59,9 @@ def fix_zero_normals_piece(piece):
 							fixednormals+=1
 							break
 	if badnormals>0:
-		print 'Bad normals:',badnormals,'Fixed:',fixednormals
+		print '[WARN]','Bad normals:',badnormals,'Fixed:',fixednormals
 		if badnormals!=fixednormals:
-			print 'WARNING: NOT ALL ZERO NORMALS fixed!!!!!' #this isnt possible with above code anyway :/
+			print '[WARN]','NOT ALL ZERO NORMALS fixed!!!!!' #this isnt possible with above code anyway :/
 	# for child in piece.children:
 		# fix_zero_normals_piece(child)
 
@@ -82,7 +82,7 @@ def chunks(l, n):
 def optimize_piece(piece):
     remap = {}
     new_indices = []
-    print 'optimizing:',piece.name
+    print '[INFO]','Optimizing:',piece.name
     for index in piece.indices:
         vertex = piece.vertices[index]
         if vertex not in remap:
@@ -218,9 +218,9 @@ class App:
 						b=float(self.transformB.get())
 						c=float(self.transformC.get())
 						d=float(self.transformD.get())
-						print 'Using an UV space transform U=%.3f * U + %.3f  V=%.3f * V + %.3f'%(a,b,c,d)
+						print '[INFO]','Using an UV space transform U=%.3f * U + %.3f  V=%.3f * V + %.3f'%(a,b,c,d)
 					except ValueError:
-						print 'Failed to parse transformation parameters, ignoring transformation!'
+						print '[WARN]','Failed to parse transformation parameters, ignoring transformation!'
 						transform=0
 				OBJtoS3O(file, transform,outputfilename,a,b,c,d)
 	def opens3o(self):
@@ -262,7 +262,7 @@ def S3OtoOBJ(filename,outputfilename,optimize_for_wings3d=True):
 		data=open(filename,'rb').read()
 		model=S3O(data)
 		model.S3OtoOBJ(outputfilename,optimize_for_wings3d)
-		print "Succesfully converted", filename,'to',outputfilename
+		print '[INFO]',"Succesfully converted", filename,'to',outputfilename
 def OBJtoS3O(objfile,transform,outputfilename,a,b,c,d):
 	if '.obj' in objfile.lower():
 		data = open(objfile).readlines()
@@ -280,7 +280,7 @@ def OBJtoS3O(objfile,transform,outputfilename,a,b,c,d):
 		output_file.close()
 	#	if (self.tex1.get()!='' and self.tex2.get()!=''):
 	#		swaptex(outputfilename, self.tex1.get(),self.tex2.get())
-		print "Succesfully converted", objfile,'to',outputfilename
+		print '[INFO]',"Succesfully converted", objfile,'to',outputfilename
 		
 def swaptex(filename,tex1,tex2):
 	datafile=open(filename,'rb')
@@ -288,11 +288,11 @@ def swaptex(filename,tex1,tex2):
 	model=S3O(data)
 	model.texture_paths=[tex1,tex2]
 	datafile.close()
-	print 'Changed texture to',tex1,tex2
+	print '[INFO]','Changed texture to',tex1,tex2
 	output_file=open(filename,'wb')
 	output_file.write(model.serialize())
 	output_file.close()
-	print "Succesfully optimized", filename
+	print '[INFO]',"Succesfully optimized", filename
 def optimizeS3O(filename):
 	datafile=open(filename,'rb')
 	data=datafile.read()
@@ -301,11 +301,11 @@ def optimizeS3O(filename):
 	recursively_optimize_pieces(model.root_piece)
 	optimized_data = model.serialize()
 	datafile.close()
-	print 'Number of vertices before optimization:',pre_vertex_count,' after optimization:',countvertices(model.root_piece)
+	print '[INFO]','Number of vertices before optimization:',pre_vertex_count,' after optimization:',countvertices(model.root_piece)
 	output_file=open(filename,'wb')
 	output_file.write(optimized_data)
 	output_file.close()
-	print "Succesfully optimized", filename
+	print '[INFO]',"Succesfully optimized", filename
 def countvertices(piece):
 	numverts=len(piece.vertices)
 	for child in piece.children:
