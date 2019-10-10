@@ -271,7 +271,7 @@ class S3O(object):
 						offset[2] + piece.parent_offset[2]))
 					# objfile.write('v 0 0 0\n')
 					# objfile.write('v 0 0 1\n')
-					objfile.write('f %i/1/1 %i/2/2/ %i/3/3\n' % (vi + 1, vi + 2, vi + 3))
+					objfile.write('f %i/1/1 %i/2/2 %i/3/3\n' % (vi + 1, vi + 2, vi + 3))
 					vcount += 3
 				elif len(piece.vertices) == 1:
 					print '[INFO]', 'Emit vertices:', piece.vertices, 'offset:  %f %f %f\n' % (
@@ -289,7 +289,7 @@ class S3O(object):
 						offset[2] + piece.parent_offset[2]))
 					# objfile.write('v 0 0 0\n')
 					# objfile.write('v 0 0 1\n')
-					objfile.write('f %i/1/1 %i/2/2/ %i/3/3\n' % (vi + 1, vi + 2, vi + 3))
+					objfile.write('f %i/1/1 %i/2/2 %i/3/3\n' % (vi + 1, vi + 2, vi + 3))
 					vcount += 3
 				elif len(piece.vertices) == 2:
 					print '[INFO]', 'Emit vertices:', piece.vertices, 'offset:  %f %f %f\n' % (
@@ -310,7 +310,7 @@ class S3O(object):
 
 					# objfile.write('v 0 0 0\n')
 					# objfile.write('v 0 0 1\n')
-					objfile.write('f %i/1/1 %i/2/2/ %i/3/3\n' % (vi + 1, vi + 2, vi + 3))
+					objfile.write('f %i/1/1 %i/2/2 %i/3/3\n' % (vi + 1, vi + 2, vi + 3))
 					vcount += 3
 				else:
 					print '[ERROR]', 'Piece', piece.name, ': failed to write as it looks invalid'
