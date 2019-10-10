@@ -2419,11 +2419,17 @@ function init()
 			 saveOptionValue('Metalspots', 'metalspots', 'setOpacity', {'opacity'}, options[getOptionByID('metalspots_opacity')].value)
 		 end,
 		},
-		{id="metalspots_values", group="ui", name=widgetOptionColor.."   show values", type="bool", value=true, description='Display metal values',
+		{id="metalspots_values", group="ui", name=widgetOptionColor.."   show values", type="bool", value=true, description='Display metal values (during game))\n\nPre-gamestart or when in metalmap view (f4) this will always be shown',
 		 onload=function() loadWidgetData("Metalspots", "metalspots_values", {'showValues'}) end,
 		 onchange=function(i, value)
 			 WG.metalspots.setShowValue(value)
 			 saveOptionValue('Metalspots', 'metalspots', 'setShowValue', {'showValue'}, options[getOptionByID('metalspots_values')].value)
+		 end,
+		},
+		{id="metalspots_metalviewonly", group="ui", name=widgetOptionColor.."   limit to F4 view", type="bool", value=false, description='Limit display to only during pre-gamestart or when in metalmap view (f4)',
+		 onload=function() loadWidgetData("Metalspots", "metalspots_metalviewonly", {'metalViewOnly'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', {'showValue'}, options[getOptionByID('metalspots_metalviewonly')].value)
 		 end,
 		},
 

@@ -15,6 +15,7 @@ end
 
 local OPTIONS = {
 	showValue			= true,
+	metalViewOnly		= false,
 
 	circleSpaceUsage	= 0.75,
 	circleInnerOffset	= 0.35,
@@ -112,6 +113,12 @@ function widget:Initialize()
 	WG.metalspots.getOpacity = function()
 		return OPTIONS.opacity
 	end
+	WG.metalspots.setMetalViewOnly = function(value)
+		OPTIONS.metalViewOnly = value
+	end
+	WG.metalspots.getMetalViewOnly = function()
+		return OPTIONS.metalViewOnly
+	end
 
 	currentClock = os.clock()
 	local mSpots = WG.metalSpots
@@ -176,6 +183,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
+	if OPTIONS.metalViewOnly and Spring.GetMapDrawMode() ~= 'metal' then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	
@@ -210,7 +218,7 @@ function widget:DrawWorldPreUnit()
 			gl.Color(1, 1, 1, OPTIONS.opacity)
 			gl.CallList(circleList[spot[5]])
 
-			if OPTIONS.showValue then
+			if OPTIONS.showValue or Spring.GetGameFrame() == 0 then
 				gl.Scale(21*spot[5],21*spot[5],21*spot[5])
 				gl.Rotate(-180, 1,0,0)
 				gl.Rotate(currentRotation, 0,1,0)
@@ -229,6 +237,7 @@ function widget:GetConfigData(data)
 	savedTable = {}
 	savedTable.showValue = OPTIONS.showValue
 	savedTable.opacity = OPTIONS.opacity
+	savedTable.metalViewOnly = OPTIONS.metalViewOnly
 	return savedTable
 end
 
@@ -238,5 +247,8 @@ function widget:SetConfigData(data)
 	end
 	if data.opacity ~= nil then
 		OPTIONS.opacity = data.opacity
+	end
+	if data.metalViewOnly ~= nil then
+		OPTIONS.metalViewOnly = data.metalViewOnly
 	end
 end
