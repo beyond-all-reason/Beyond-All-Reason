@@ -2865,8 +2865,8 @@ function init()
 	-- disable options when widget isnt availible
 	if widgetHandler.knownWidgets["Outline"] == nil then
 		options[getOptionByID('outline')] = nil
-		options[getOptionByID("outline_size")] = nil
-		options[getOptionByID("outline_strength")] = nil
+		options[getOptionByID("outline_width")] = nil
+		options[getOptionByID("outline_mult")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
