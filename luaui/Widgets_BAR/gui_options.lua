@@ -2076,6 +2076,7 @@ function init()
 	local infolog = VFS.LoadFile("infolog.txt")
 	if infolog then
 		local fileLines = lines(infolog)
+		local desktop = ''
 		for i, line in ipairs(fileLines) do
 			if addResolutions then
 				local resolution = string.match(line, '[0-9]*x[0-9]*')
@@ -2083,7 +2084,7 @@ function init()
 					local resolution = string.gsub(resolution, "x", " x ")
 					local resolutionX = string.match(resolution, '[0-9]*')
 					local resolutionY = string.gsub(string.match(resolution, 'x [0-9]*'), 'x ', '')
-					if tonumber(resolutionX) >= 640 and tonumber(resolutionY) >= 480 then
+					if tonumber(resolutionX) >= 640 and tonumber(resolutionY) >= 480 and resolution ~= desktop then
 						supportedResolutions[#supportedResolutions+1] = resolution
 					end
 				else
@@ -2095,6 +2096,10 @@ function init()
 					break
 				end
 				addResolutions = true
+				local width = string.sub(string.match(line, 'w=([0-9]*)'), 1)
+				local height = string.sub(string.match(line, 'h=([0-9]*)'), 1)
+				desktop = width..' x '..height
+				supportedResolutions[#supportedResolutions+1] = desktop
 			end
 		end
 	end
