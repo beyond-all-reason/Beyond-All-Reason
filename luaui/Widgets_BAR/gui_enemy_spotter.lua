@@ -304,6 +304,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
+	if singleTeams then return end
 	if chobbyInterface then return end
 	if not drawWithHiddenGUI then
 		if spIsGUIHidden() then return end
@@ -336,6 +337,7 @@ local sec = 0
 local sceduledCheck = false
 local updateTime = 1
 function widget:Update(dt)
+	if singleTeams then return end
 	if chobbyInterface then return end
 	sec=sec+dt
 	local camX, camY, camZ = spGetCameraPosition()
@@ -369,6 +371,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
+	if singleTeams then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
@@ -486,5 +489,6 @@ function widget:TextCommand(command)
     if (string.find(command, "-enemyspotter_highlight") == 1) then 
 		highlightOpacity = highlightOpacity + (0.02 + highlightOpacity / 6) if highlightOpacity > 10 then highlightOpacity = 10 end
 		Spring.Echo("EnemySpotter: highlight opacity: "..highlightOpacity) 
-		CreateHighlightShader() end
+		CreateHighlightShader()
+	end
 end
