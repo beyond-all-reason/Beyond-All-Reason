@@ -218,7 +218,7 @@ function widget:DrawWorldPreUnit()
 			gl.Color(1, 1, 1, OPTIONS.opacity)
 			gl.CallList(circleList[spot[5]])
 
-			if OPTIONS.showValue or Spring.GetGameFrame() == 0 then
+			if OPTIONS.showValue or Spring.GetGameFrame() == 0 or (OPTIONS.metalViewOnly and Spring.GetMapDrawMode() == 'metal') then
 				gl.Scale(21*spot[5],21*spot[5],21*spot[5])
 				gl.Rotate(-180, 1,0,0)
 				gl.Rotate(currentRotation, 0,1,0)
