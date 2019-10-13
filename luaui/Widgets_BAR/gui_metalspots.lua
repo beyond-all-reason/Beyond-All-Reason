@@ -14,7 +14,7 @@ end
 -------------------------------------------------------------------------------
 
 local OPTIONS = {
-	showValue			= true,
+	showValue			= false,
 	metalViewOnly		= false,
 
 	circleSpaceUsage	= 0.75,
