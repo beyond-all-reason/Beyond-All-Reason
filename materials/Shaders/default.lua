@@ -58,12 +58,7 @@ vertex = [[
 
 		#ifdef use_shadows
 			shadowVertexPos = shadowMatrix * worldPos;
-			#if 1
-				shadowVertexPos.xy = shadowVertexPos.xy + 0.5;
-			#else
-				shadowVertexPos.xy *= (inversesqrt(abs(shadowVertexPos.xy) + shadowParams.zz) + shadowParams.ww);
-				shadowVertexPos.xy += shadowParams.xy;
-			#endif
+			shadowVertexPos.xy = shadowVertexPos.xy + 0.5;
 		#endif
 
 		modelUV.xy = gl_MultiTexCoord0.xy;
@@ -139,10 +134,6 @@ fragment = [[
 	uniform int simFrame;
 
 	uniform float pbrParams[8];
-
-	#ifndef SUNMULT
-		#define SUNMULT 2.0
-	#endif
 
 	#ifndef MAT_IDX
 		#define MAT_IDX 0
@@ -715,7 +706,7 @@ fragment = [[
 				float gShadow = 1.0;
 			#endif
 
-			//somehow scale the shadow strength with SUNMULT
+			//TODO: somehow scale the shadow strength with SUNMULT
 			shadowMult = mix(1.0, min(nShadow, gShadow), shadowDensity);
 		}
 
@@ -750,7 +741,10 @@ fragment = [[
 			float D = MicrofacetDistribution(NdotH, roughness4);
 			outSpecularColor = F * Vis * D;
 
-			vec3 maxSun = SUNMULT * mix(sunSpecular, sunDiffuse, step(dot(sunSpecular, LUMA), dot(sunDiffuse, LUMA)));
+			vec3 maxSun = mix(sunSpecular, sunDiffuse, step(dot(sunSpecular, LUMA), dot(sunDiffuse, LUMA)));
+			#ifdef SUNMULT
+				maxSun *= SUNMULT;
+			#endif
 
 			outSpecularColor *= maxSun;
 			outSpecularColor *= NdotL * shadowMult;
