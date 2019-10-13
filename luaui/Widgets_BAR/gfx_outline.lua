@@ -34,8 +34,10 @@ local AVG_FPS_ELASTICITY_INV = 1.0 - AVG_FPS_ELASTICITY
 ]]--
 
 local DILATE_SINGLE_PASS = false --true is slower on my system
-local DILATE_HALF_KERNEL_SIZE = 3
+local DILATE_HALF_KERNEL_SIZE = 1
 local DILATE_PASSES = 1
+
+local STRENGTH_MULT = 1.0
 
 local OUTLINE_ZOOM_SCALE = true
 local OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
@@ -131,12 +133,15 @@ local function PrepareOutline(cleanState)
 	gl.Texture(0, shapeDepthTex)
 	gl.Texture(1, shapeColorTex)
 
+	--Spring.Echo("DILATE_HALF_KERNEL_SIZE", DILATE_HALF_KERNEL_SIZE)
+
 	for i = 1, DILATE_PASSES do
 		dilationShader:ActivateWith( function ()
 			if OUTLINE_ZOOM_SCALE then
 				strength = GetZoomScale()
 			end
 			dilationShader:SetUniformFloat("strength", strength)
+			dilationShader:SetUniformInt("dilateHalfKernelSize", DILATE_HALF_KERNEL_SIZE)
 
 			if DILATE_SINGLE_PASS then
 				pingPongIdx = (pingPongIdx + 1) % 2
@@ -195,7 +200,7 @@ local function DrawOutline(strength, loadTextures, alwaysVisible)
 
 	applicationShader:ActivateWith( function ()
 		applicationShader:SetUniformFloat("alwaysShowOutLine", (alwaysVisible and 1.0) or 0.0)
-		applicationShader:SetUniformFloat("strength", strength)
+		applicationShader:SetUniformFloat("strength", strength * STRENGTH_MULT)
 		gl.CallList(screenWideList)
 	end)
 
@@ -320,7 +325,6 @@ function widget:Initialize()
 
 	local dilationShaderFrag = VFS.LoadFile(shadersDir.."outlineDilate.frag.glsl")
 	dilationShaderFrag = dilationShaderFrag:gsub("###DILATE_SINGLE_PASS###", tostring((DILATE_SINGLE_PASS and 1) or 0))
-	dilationShaderFrag = dilationShaderFrag:gsub("###DILATE_HALF_KERNEL_SIZE###", tostring(DILATE_HALF_KERNEL_SIZE))
 
 	dilationShader = LuaShader({
 		vertex = identityShaderVert,
@@ -328,6 +332,7 @@ function widget:Initialize()
 		uniformInt = {
 			depthTex = 0,
 			colorTex = 1,
+			dilateHalfKernelSize = DILATE_HALF_KERNEL_SIZE,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
@@ -430,4 +435,18 @@ function widget:DrawUnitsPostDeferred()
 		PrepareOutline(false)
 		DrawOutline(OUTLINE_STRENGTH_BLENDED, false, false)
 	end)
+end
+
+
+function widget:GetConfigData()
+	savedTable = {}
+	savedTable.DILATE_HALF_KERNEL_SIZE = DILATE_HALF_KERNEL_SIZE
+	savedTable.STRENGTH_MULT = STRENGTH_MULT
+
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.DILATE_HALF_KERNEL_SIZE then DILATE_HALF_KERNEL_SIZE = data.DILATE_HALF_KERNEL_SIZE or DILATE_HALF_KERNEL_SIZE end
+	if data.STRENGTH_MULT then STRENGTH_MULT = data.STRENGTH_MULT or STRENGTH_MULT end
 end

@@ -1518,10 +1518,10 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('TeamPlatter', 'teamplatter', 'setOpacity', {'spotterOpacity'}, value)
 		elseif id == 'enemyspotter_opacity' then
 			saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', {'spotterOpacity'}, value)
-		elseif id == 'outline_size' then
-			saveOptionValue('Outline', 'outline', 'setSize', {'BLUR_SIGMA'}, value)
-		elseif id == 'outline_strength' then
-			saveOptionValue('Outline', 'outline', 'setStrength', {'OUTLINE_STRENGTH'}, value)
+		elseif id == 'outline_width' then
+			saveOptionValue('Outline', 'outline', 'setWidth', {'DILATE_HALF_KERNEL_SIZE'}, value)
+		elseif id == 'outline_mult' then
+			saveOptionValue('Outline', 'outline', 'setMult', {'STRENGTH_MULT'}, value)
 		elseif id == 'underconstructiongfx_opacity' then
 			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setOpacity', {'highlightAlpha'}, value)
 		elseif id == 'highlightselunits_opacity' then
@@ -2283,11 +2283,11 @@ function init()
 		--{id="dof_highquality", group="gfx", name=widgetOptionColor.."   high quality", type="bool", value=false, description=''},
 
 		{id="outline", group="gfx", widget="Outline", name="Unit outline", type="bool", value=GetWidgetToggleValue("Outline"), description='Adds a small outline to all units which makes them crisp.'},
-		{id="outline_size", group="gfx", name=widgetOptionColor.."   size", min=0.5, max=3, step=0.05, type="slider", value=1, description='Set the size of the outline',
-		 onload=function() loadWidgetData("Outline", "outline_size", {'BLUR_SIGMA'}) end,
+		{id="outline_width", group="gfx", name=widgetOptionColor.."   width", min=1, max=4, step=1, type="slider", value=1, description='Set the width of the outline',
+		 onload=function() loadWidgetData("Outline", "outline_width", {'DILATE_HALF_KERNEL_SIZE'}) end,
 		},
-		{id="outline_strength", group="gfx", name=widgetOptionColor.."   opacity", min=1, max=6, step=0.05, type="slider", value=2.5, description='Set the opacity of the outline',
-		 onload=function() loadWidgetData("Outline", "outline_strength", {'OUTLINE_STRENGTH'}) end,
+		{id="outline_mult", group="gfx", name=widgetOptionColor.."    multiplier", min=0.1, max=1.5, step=0.1, type="slider", value=1.0, description='Set the relative strength of the outline',
+		 onload=function() loadWidgetData("Outline", "outline_mult", {'STRENGTH_MULT'}) end,
 		},
 
 		{id="disticon", group="gfx", name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},

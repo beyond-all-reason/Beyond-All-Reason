@@ -6,7 +6,8 @@ uniform sampler2D colorTex;
 uniform mat4 projMatrix;
 
 #define DILATE_SINGLE_PASS ###DILATE_SINGLE_PASS###
-#define DILATE_HALF_KERNEL_SIZE ###DILATE_HALF_KERNEL_SIZE###
+
+uniform int dilateHalfKernelSize = 1;
 
 uniform vec2 viewPortSize;
 uniform float strength = 1.0;
@@ -24,10 +25,10 @@ uniform float strength = 1.0;
 
 		ivec2 thisCoord = ivec2(gl_FragCoord.xy);
 
-		vec2 bnd = vec2(DILATE_HALF_KERNEL_SIZE - 1, DILATE_HALF_KERNEL_SIZE + 2) * strength;
+		vec2 bnd = vec2(dilateHalfKernelSize - 1, dilateHalfKernelSize + 2) * strength;
 
-		for (int x = -DILATE_HALF_KERNEL_SIZE; x <= DILATE_HALF_KERNEL_SIZE; ++x) {
-			for (int y = -DILATE_HALF_KERNEL_SIZE; y <= DILATE_HALF_KERNEL_SIZE; ++y) {
+		for (int x = -dilateHalfKernelSize; x <= dilateHalfKernelSize; ++x) {
+			for (int y = -dilateHalfKernelSize; y <= dilateHalfKernelSize; ++y) {
 
 				ivec2 offset = ivec2(x, y);
 				/*
@@ -59,9 +60,9 @@ uniform float strength = 1.0;
 
 		ivec2 thisCoord = ivec2(gl_FragCoord.xy);
 
-		vec2 bnd = vec2(DILATE_HALF_KERNEL_SIZE - 1, DILATE_HALF_KERNEL_SIZE + 2) * strength;
+		vec2 bnd = vec2(dilateHalfKernelSize - 1, dilateHalfKernelSize + 2) * strength;
 
-		for (int i = -DILATE_HALF_KERNEL_SIZE; i <= DILATE_HALF_KERNEL_SIZE; ++i) {
+		for (int i = -dilateHalfKernelSize; i <= dilateHalfKernelSize; ++i) {
 
 			ivec2 offset = ivec2(i) * ivec2(dir);
 			/*
