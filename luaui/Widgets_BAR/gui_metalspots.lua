@@ -213,7 +213,7 @@ function widget:DrawWorldPreUnit()
 
 			gl.Rotate(-currentRotation*2, 0,1,0)
 			gl.Rotate(180, 1,0,0)
-			local scale = 1.3 - (spot[5]*0.11)
+			local scale = 1.33 - (spot[5]*0.075)
 			gl.Scale(scale, scale, scale)
 			gl.Color(1, 1, 1, OPTIONS.opacity)
 			gl.CallList(circleList[spot[5]])

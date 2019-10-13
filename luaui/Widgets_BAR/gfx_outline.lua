@@ -360,6 +360,24 @@ function widget:Initialize()
 
 	screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
 	screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
+
+	WG['outline'] = {}
+	WG['outline'].getWidth = function()
+		return DILATE_HALF_KERNEL_SIZE
+	end
+	WG['outline'].setWidth = function(value)
+		DILATE_HALF_KERNEL_SIZE = value
+		widget:Shutdown()
+		widget:Initialize()
+	end
+	WG['outline'].getMult = function()
+		return STRENGTH_MULT
+	end
+	WG['outline'].setMult = function(value)
+		STRENGTH_MULT = value
+		widget:Shutdown()
+		widget:Initialize()
+	end
 end
 
 function widget:Shutdown()
@@ -371,8 +389,6 @@ function widget:Shutdown()
 		gl.DeleteList(screenWideList)
 	end
 
-
-
 	gl.DeleteTexture(shapeDepthTex)
 	gl.DeleteTexture(shapeColorTex)
 
@@ -380,7 +396,6 @@ function widget:Shutdown()
 		gl.DeleteTexture(dilationColorTexes[i])
 		gl.DeleteTexture(dilationDepthTexes[i])
 	end
-
 
 	gl.DeleteFBO(shapeFBO)
 
@@ -391,6 +406,8 @@ function widget:Shutdown()
 	shapeShader:Finalize()
 	dilationShader:Finalize()
 	applicationShader:Finalize()
+
+	WG['outline'] = nil
 end
 
 --[[
