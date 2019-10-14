@@ -3006,6 +3006,8 @@ end
 
 function checkResolution()
 	-- resize resolution if is larger than screen resolution
+	wsx,wsy,wpx,wpy = Spring.GetWindowGeometry()
+	ssx,ssy,spx,spy = Spring.GetScreenGeometry()
 	if wsx > ssx or wsy > ssy then
 		if tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1 then
 			Spring.SendCommands("Fullscreen 0")
