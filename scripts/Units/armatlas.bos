@@ -24,9 +24,9 @@ activatescr()   //transport start  - LOAD - animation of claws
 		turn larm2 to z-axis <-45> speed <90>;
 		turn rarm2 to z-axis <45> speed <90>;
 
-		
+
 		sleep 500;  //close
-		
+
 		turn larm2 to z-axis <0> speed <90>;
 		turn rarm2 to z-axis <0> speed <90>;
 
@@ -115,7 +115,6 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	hide w_glass;  //glass hack
 	hide thrustl;
 	hide thrustr;
 	hide thrustc;

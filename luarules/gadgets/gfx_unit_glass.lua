@@ -10,13 +10,58 @@ function gadget:GetInfo()
 	}
 end
 
+-----------------------------------------------------------------
+-- Global Acceleration
+-----------------------------------------------------------------
+
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitPieceList = Spring.GetUnitPieceList
+local spGetUnitTeam = Spring.GetUnitTeam
 
 if (gadgetHandler:IsSyncedCode()) then -- Synced
 
-
+local glassUnitDefs = {}
 
 function gadget:UnitDestroyed(unitID)
 	SendToUnsynced("GlassUnitDestroyed", unitID) --TODO: figure out if it's worth performance toll
+end
+
+local function HideGlassPiece(unitID, pieceID)
+	Spring.SetUnitPieceVisible(unitID, pieceID, false)
+end
+
+local function FillGlassUnitDefs(unitID, unitDefID)
+	if not glassUnitDefs[unitDefID] then
+		pieceList = Spring.GetUnitPieceList(unitID)
+		for pieceID, pieceName in ipairs(pieceList) do
+			if pieceName:find("_glass") then
+
+				if not glassUnitDefs[unitDefID] then
+					glassUnitDefs[unitDefID] = {}
+				end
+				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
+				table.insert(glassUnitDefs[unitDefID], pieceID)
+			end
+		end
+	end
+end
+
+function gadget:UnitFinished(unitID, unitDefID)
+	FillGlassUnitDefs(unitID, unitDefID)
+	if glassUnitDefs[unitDefID] then
+		for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do
+			HideGlassPiece(unitID, pieceID)
+		end
+	end
+end
+
+function gadget:Initialize()
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in ipairs(allUnits) do
+		local unitDefID = spGetUnitDefID(unitID)
+		local unitTeamID = spGetUnitTeam(unitID)
+		gadget:UnitFinished(unitID, unitDefID, unitTeamID)
+	end
 end
 
 
@@ -32,16 +77,13 @@ local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 -- Acceleration
 -----------------------------------------------------------------
 
-local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPieceList = Spring.GetUnitPieceList
 local spGetVisibleUnits = Spring.GetVisibleUnits
-local spGetUnitTeam = Spring.GetUnitTeam
 local spGetTeamColor = Spring.GetTeamColor
 
 
 local glDepthTest = gl.DepthTest
 local glCulling = gl.Culling
---local glBlending = gl.Blending
+local glBlending = gl.Blending
 
 local glPushPopMatrix = gl.PushPopMatrix
 local glUnitMultMatrix = gl.UnitMultMatrix
@@ -143,6 +185,19 @@ vec3 GetSpecularBlinnPhong(float HdotN, float roughness) {
 	return sunSpecular * pow(HdotN, power) * powerNorm;
 }
 
+vec3 SampleEnvironmentWithRoughness(vec3 samplingVec, float roughness) {
+	float maxLodLevel = log2(float(textureSize(reflectTex, 0).x));
+
+	// makes roughness of reflection scale perceptually much more linear
+	// Assumes "CubeTexSizeReflection" = 1024
+	//maxLodLevel -= 4.0;
+
+	float lodBias = maxLodLevel * roughness;
+
+	return texture(reflectTex, samplingVec, lodBias).rgb;
+}
+
+
 void main(void){
 	vec4 tex1Color = texture(tex1, uv);
 	vec4 tex2Color = texture(tex2, uv);
@@ -154,8 +209,12 @@ void main(void){
 	vec3 N = normalize(mat3(T, B, vertexN) * normal);
 //	N = mix(-N, N, float(gl_FrontFacing));
 
-	float metalness = tex2Color.g;
-//	metalness = 0.6;
+	float metalness = clamp(tex2Color.g, 0.04, 1.0);
+	float roughness = clamp(tex2Color.b, 0.04, 1.0);
+
+	float roughness4 = roughness * roughness;
+	roughness4 *= roughness4;
+
 	float R0v = mix(R0, 1.0, metalness);
 
 	vec3 V = normalize(viewCameraDir);
@@ -165,14 +224,18 @@ void main(void){
 
 	vec3 Rl = reflect(I, N);
 
+	// getSpecularDominantDirection (Filament)
+	Rl = mix(Rl, N, roughness4);
+
 	float NdotV = clamp(dot(N, V), 0.0, 1.0);
 	float HdotN = clamp(dot(H, N), 0.0, 1.0);
 
 	float fresnel = R0v + (1.0 - R0v) * pow((1.0 - NdotV), 5.0);
-	vec3 reflColor = REFL_MULT * texture(reflectTex, Rl).rgb;
+	vec3 reflColor = REFL_MULT * SampleEnvironmentWithRoughness(Rl, roughness).rgb;
 	reflColor *= fresnel;
 
-	float roughness = tex2Color.b;
+
+
 	reflColor += GetSpecularBlinnPhong(HdotN, roughness) * mix(0.1, 1.0, metalness);
 
 //	tex2Color.a = 1.0;
