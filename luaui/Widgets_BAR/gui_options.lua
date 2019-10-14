@@ -2580,13 +2580,13 @@ function init()
 			 Spring.SendCommands("luarules updatesun")
 		 end,
 		},
-		{id="envAmbient", group="dev", name="Unit env ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.2), description="",
+		{id="envAmbient", group="dev", name="Unit env ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.5), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("envAmbient", value)
 			 Spring.SendCommands("luarules updatesun")
 		end,
 		},
-		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitSunMult", 1.0), description="",
+		{id="unitSunMult", group="dev", name="Units sun mult", type="slider", min=0, max=4, step=0.1, value=Spring.GetConfigFloat("unitSunMult", 1.5), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("unitSunMult", value)
 			 Spring.SendCommands("luarules updatesun")
@@ -2605,8 +2605,8 @@ function init()
 			 Spring.SetConfigFloat("tonemapC", 15.0)
 			 Spring.SetConfigFloat("tonemapD", 0.5)
 			 Spring.SetConfigFloat("tonemapE", 1.5)
-			 Spring.SetConfigFloat("envAmbient", 0.2)
-			 Spring.SetConfigFloat("unitSunMult", 1.0)
+			 Spring.SetConfigFloat("envAmbient", 0.5)
+			 Spring.SetConfigFloat("unitSunMult", 1.5)
 			 Spring.SetConfigFloat("unitExposureMult", 1.0)
 			 options[getOptionByID('tonemapA')].value = Spring.GetConfigFloat("tonemapA")
 			 options[getOptionByID('tonemapB')].value = Spring.GetConfigFloat("tonemapB")

@@ -14,8 +14,8 @@ local function SunChanged(curShaderObj)
 		Spring.GetConfigFloat("tonemapC", 15.0),
 		Spring.GetConfigFloat("tonemapD", 0.5),
 		Spring.GetConfigFloat("tonemapE", 1.5),
-		Spring.GetConfigFloat("envAmbient", 0.2),
-		Spring.GetConfigFloat("unitSunMult", 1.0),
+		Spring.GetConfigFloat("envAmbient", 0.5),
+		Spring.GetConfigFloat("unitSunMult", 1.5),
 		Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
 end
