@@ -397,7 +397,7 @@ fragment = [[
 		vec2 ts = vec2(textureSize(reflectTex, 0));
 		float maxMipMap = log2(max(ts.x, ts.y));
 
-		vec2 lodBias = vec2(maxMipMap - 4.0, 4.0);
+		vec2 lodBias = vec2(maxMipMap - 5.0, 4.0);
 
 		for (int i=0; i < ENV_SMPL_NUM; ++i) {
 			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
@@ -406,7 +406,7 @@ fragment = [[
 					dot(sp, N ) * 0.5 + 0.5,
 					dot(sp, Rv) * 0.5 + 0.5);
 
-			w = pow(w, vec2(8.0, 16.0));
+			w = pow(w, vec2(24.0, 32.0));
 
 			vec3 iblD = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.x).rgb);
 			vec3 iblS = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.y).rgb);
@@ -777,7 +777,6 @@ fragment = [[
 
         vec3 outColor;
 		vec3 ambientContrib;
-
         {
             // ambient lighting (we now use IBL as the ambient term)
 			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
