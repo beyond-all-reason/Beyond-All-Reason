@@ -2291,7 +2291,7 @@ function init()
 		{id="outline_mult", group="gfx", name=widgetOptionColor.."    multiplier", min=0.1, max=1.5, step=0.1, type="slider", value=1.0, description='Set the relative strength of the outline',
 		 onload=function() loadWidgetData("Outline", "outline_mult", {'STRENGTH_MULT'}) end,
 		},
-		{id="outline_color", group="gfx", name=widgetOptionColor.."    white colored", type="bool", value=true, description="Black (off) or white (on) colored outline ",
+		{id="outline_color", group="gfx", name=widgetOptionColor.."    white colored", type="bool", value=false, description="Black (off) or white (on) colored outline ",
 		 onload=function() loadWidgetData("Outline", "outline_color", {'whiteColored'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Outline', 'outline', 'setColor', {'whiteColored'}, options[getOptionByID('outline_color')].value)

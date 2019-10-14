@@ -40,8 +40,8 @@ local DILATE_PASSES = 1
 local STRENGTH_MULT = 1.0
 
 local OUTLINE_ZOOM_SCALE = true
-local OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
-local whiteColored = true
+local OUTLINE_COLOR = {0, 0, 0, 1.0}
+local whiteColored = false
 --local OUTLINE_COLOR = {0.0, 0.0, 0.0, 1.0}
 local OUTLINE_STRENGTH_BLENDED = 1.0
 local OUTLINE_STRENGTH_ALWAYS_ON = 0.6
