@@ -41,6 +41,7 @@ local STRENGTH_MULT = 1.0
 
 local OUTLINE_ZOOM_SCALE = true
 local OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
+local whiteColored = true
 --local OUTLINE_COLOR = {0.0, 0.0, 0.0, 1.0}
 local OUTLINE_STRENGTH_BLENDED = 1.0
 local OUTLINE_STRENGTH_ALWAYS_ON = 0.6
@@ -378,6 +379,19 @@ function widget:Initialize()
 		widget:Shutdown()
 		widget:Initialize()
 	end
+	WG['outline'].getColor = function()
+		return whiteColored
+	end
+	WG['outline'].setColor = function(value)
+		whiteColored = value
+		if whiteColored then
+			OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
+		else
+			OUTLINE_COLOR = {0, 0, 0, 1.0}
+		end
+		widget:Shutdown()
+		widget:Initialize()
+	end
 end
 
 function widget:Shutdown()
@@ -459,11 +473,20 @@ function widget:GetConfigData()
 	savedTable = {}
 	savedTable.DILATE_HALF_KERNEL_SIZE = DILATE_HALF_KERNEL_SIZE
 	savedTable.STRENGTH_MULT = STRENGTH_MULT
-
+	savedTable.whiteColored = whiteColored
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.DILATE_HALF_KERNEL_SIZE then DILATE_HALF_KERNEL_SIZE = data.DILATE_HALF_KERNEL_SIZE or DILATE_HALF_KERNEL_SIZE end
 	if data.STRENGTH_MULT then STRENGTH_MULT = data.STRENGTH_MULT or STRENGTH_MULT end
+	if data.whiteColored ~= nil then
+		whiteColored = data.whiteColored
+		Spring.Echo(whiteColored)
+		if whiteColored then
+			OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
+		else
+			OUTLINE_COLOR = {0, 0, 0, 1.0}
+		end
+	end
 end

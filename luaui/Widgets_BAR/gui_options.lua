@@ -1522,6 +1522,8 @@ function applyOptionValue(i, skipRedrawWindow)
 			saveOptionValue('Outline', 'outline', 'setWidth', {'DILATE_HALF_KERNEL_SIZE'}, value)
 		elseif id == 'outline_mult' then
 			saveOptionValue('Outline', 'outline', 'setMult', {'STRENGTH_MULT'}, value)
+		elseif id == 'outline_color' then
+			saveOptionValue('Outline', 'outline', 'setColor', {'whiteColored'}, value)
 		elseif id == 'underconstructiongfx_opacity' then
 			saveOptionValue('Highlight Selected Units', 'underconstructiongfx', 'setOpacity', {'highlightAlpha'}, value)
 		elseif id == 'highlightselunits_opacity' then
@@ -2289,6 +2291,12 @@ function init()
 		{id="outline_mult", group="gfx", name=widgetOptionColor.."    multiplier", min=0.1, max=1.5, step=0.1, type="slider", value=1.0, description='Set the relative strength of the outline',
 		 onload=function() loadWidgetData("Outline", "outline_mult", {'STRENGTH_MULT'}) end,
 		},
+		{id="outline_color", group="gfx", name=widgetOptionColor.."    white colored", type="bool", value=true, description="Black (off) or white (on) colored outline ",
+		 onload=function() loadWidgetData("Outline", "outline_color", {'whiteColored'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('Outline', 'outline', 'setColor', {'whiteColored'}, options[getOptionByID('outline_color')].value)
+		 end,
+		},
 
 		{id="disticon", group="gfx", name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
 		{id="iconscale", group="gfx", name=widgetOptionColor.."   scale", type="slider", min=0.85, max=1.35, step=0.05, value=tonumber(Spring.GetConfigFloat("UnitIconScale",1.15) or 1.05), description='Note that the minimap icon size is affected as well'},
@@ -2867,6 +2875,7 @@ function init()
 		options[getOptionByID('outline')] = nil
 		options[getOptionByID("outline_width")] = nil
 		options[getOptionByID("outline_mult")] = nil
+		options[getOptionByID("outline_color")] = nil
 	end
 
 	if widgetHandler.knownWidgets["Fancy Selected Units"] == nil then
