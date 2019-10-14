@@ -56,12 +56,17 @@ for uDefID, uDef in pairs(UnitDefs) do
 end
 
 function widget:ViewResize()
+	local old_vsx, old_vsy = vsx, vsy
 	vsx,vsy = Spring.GetViewGeometry()
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	end
+	if old_vsx ~= vsx or old_vsy ~= vsy then
+		widget:Shutdown()
+		widget:Initialize()
 	end
 end
 
@@ -152,7 +157,11 @@ function widget:Shutdown()
 	for k,v in pairs(circleList) do
 		gl.DeleteList(v)
 	end
-	gl.DeleteFont(font)
+	WG.metalspots = nil
+	metalSpots = {}
+	circleList = {}
+	valueList = {}
+	--gl.DeleteFont(font)
 end
 
 
