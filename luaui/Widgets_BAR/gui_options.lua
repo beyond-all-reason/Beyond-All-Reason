@@ -78,6 +78,7 @@ local screenY = (vsy*centerPosY) + (screenHeight/2)
 local wsx,wsy,wpx,wpy = Spring.GetWindowGeometry()
 local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
 
+
 local spIsGUIHidden = Spring.IsGUIHidden
 
 local glColor = gl.Color
@@ -2151,6 +2152,7 @@ function init()
 				 Spring.SetConfigInt("YResolutionWindowed", tonumber(resolutionY))
 				 Spring.SendCommands("Fullscreen 0")
 			 end
+			 checkResolution()
 		 end,
 		},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1,
@@ -2168,6 +2170,7 @@ function init()
 				 Spring.SetConfigInt("XResolutionWindowed", xres)
 				 Spring.SetConfigInt("YResolutionWindowed", yres)
 			 end
+			 checkResolution()
 			 Spring.SendCommands("Fullscreen "..value)
 			 Spring.SetConfigInt("Fullscreen",value)
 		 end,},
@@ -2185,6 +2188,7 @@ function init()
 				 Spring.SetConfigInt("WindowPosY",0)
 				 Spring.SetConfigInt("WindowState",1)
 			 end
+			 checkResolution()
 		 end,
 		},
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging',
@@ -3000,6 +3004,25 @@ function savePreset(name)
 	end
 end
 
+function checkResolution()
+	-- resize resolution if is larger than screen resolution
+	if wsx > ssx or wsy > ssy then
+		if tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1 then
+			Spring.SendCommands("Fullscreen 0")
+		else
+			Spring.SendCommands("Fullscreen 1")
+		end
+		Spring.SetConfigInt("XResolution", tonumber(ssx))
+		Spring.SetConfigInt("YResolution", tonumber(ssy))
+		Spring.SetConfigInt("XResolutionWindowed", tonumber(ssx))
+		Spring.SetConfigInt("YResolutionWindowed", tonumber(ssy))
+		if tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1 then
+			Spring.SendCommands("Fullscreen 0")
+		else
+			Spring.SendCommands("Fullscreen 1")
+		end
+	end
+end
 
 function widget:Initialize()
 
@@ -3064,6 +3087,8 @@ function widget:Initialize()
 	Spring.SendCommands("minimap unitsize "..(Spring.GetConfigFloat("MinimapIconScale", 3.5)))		-- spring wont remember what you set with '/minimap iconssize #'
 
 	Spring.SendCommands({"bind f10 options"})
+
+	checkResolution()
 
 	WG['options'] = {}
 	WG['options'].toggle = function(state)
