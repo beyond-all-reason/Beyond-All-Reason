@@ -1138,7 +1138,7 @@ function setTeamTable(teamID)
 	teamData[teamID]["isDead"] 			= teamData[teamID]["isDead"] or isDead
 	teamData[teamID]["hasCom"]			= commanderAlive
 	teamData[teamID]["minc"]			= minc
-	teamData[teamID]["mrecl"]			= minc
+	teamData[teamID]["mrecl"]			= mrecl
 	teamData[teamID]["einc"] 			= einc
 	teamData[teamID]["erecl"] 			= erecl
 	teamData[teamID]["leaderID"]		= leaderID
