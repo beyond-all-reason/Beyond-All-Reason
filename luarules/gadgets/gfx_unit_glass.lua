@@ -17,6 +17,7 @@ end
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitPieceList = Spring.GetUnitPieceList
 local spGetUnitTeam = Spring.GetUnitTeam
+local spSetUnitPieceVisible = Spring.SetUnitPieceVisible
 
 if (gadgetHandler:IsSyncedCode()) then -- Synced
 
@@ -27,12 +28,12 @@ function gadget:UnitDestroyed(unitID)
 end
 
 local function HideGlassPiece(unitID, pieceID)
-	Spring.SetUnitPieceVisible(unitID, pieceID, false)
+	spSetUnitPieceVisible(unitID, pieceID, false)
 end
 
 local function FillGlassUnitDefs(unitID, unitDefID)
 	if not glassUnitDefs[unitDefID] then
-		pieceList = Spring.GetUnitPieceList(unitID)
+		pieceList = spGetUnitPieceList(unitID)
 		for pieceID, pieceName in ipairs(pieceList) do
 			if pieceName:find("_glass") then
 
@@ -80,6 +81,7 @@ local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 local spGetVisibleUnits = Spring.GetVisibleUnits
 local spGetTeamColor = Spring.GetTeamColor
 
+local glGetSun = gl.GetSun
 
 local glDepthTest = gl.DepthTest
 local glCulling = gl.Culling
@@ -207,7 +209,7 @@ void main(void){
 	vec3 diffColor = mix(tex1Color.rgb, teamColor.rgb, tex1Color.a);
 
 	vec3 N = normalize(mat3(T, B, vertexN) * normal);
-//	N = mix(-N, N, float(gl_FrontFacing));
+	N = mix(-N, N, float(gl_FrontFacing));
 
 	float metalness = clamp(tex2Color.g, 0.04, 1.0);
 	float roughness = clamp(tex2Color.b, 0.04, 1.0);
@@ -234,11 +236,8 @@ void main(void){
 	vec3 reflColor = REFL_MULT * SampleEnvironmentWithRoughness(Rl, roughness).rgb;
 	reflColor *= fresnel;
 
+	reflColor += GetSpecularBlinnPhong(HdotN, roughness);
 
-
-	reflColor += GetSpecularBlinnPhong(HdotN, roughness) * mix(0.1, 1.0, metalness);
-
-//	tex2Color.a = 1.0;
 	gl_FragColor.rgb = diffColor + reflColor;
 	gl_FragColor.a = NORM2SNORM(tex2Color.a);
 }
@@ -251,9 +250,8 @@ void main(void){
 
 
 local udIDs = {}
-local teamIDs = {}
+local teamColors = {}
 local normalMaps = {}
---local teamColors = {}
 
 local solidUnitDefs = {}
 local glassUnitDefs = {}
@@ -292,7 +290,7 @@ local function UpdateGlassUnits(unitID)
 	end
 
 	if not glassUnitDefs[unitDefID] then -- unknown unitdef
-		pieceList = Spring.GetUnitPieceList(unitID)
+		pieceList = spGetUnitPieceList(unitID)
 		for pieceID, pieceName in ipairs(pieceList) do
 			if pieceName:find("_glass") then
 
@@ -312,23 +310,24 @@ local function UpdateGlassUnits(unitID)
 
 	if glassUnitDefs[unitDefID] then --unitdef with glass pieces
 		glassUnits[unitID] = true
-		teamIDs[unitID] = spGetUnitTeam(unitID)
+		teamColors[unitID] = { spGetTeamColor(spGetUnitTeam(unitID)) }
 	end
 end
 
 local function GlassUnitDestroyed(unitID)
 	udIDs[unitID] = nil
 	glassUnits[unitID] = nil
-	teamIDs[unitID] = nil
+	teamColors[unitID] = nil
 end
 
 function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
-	teamIDs[unitID] = newTeam
+	teamColors[unitID] = { spGetTeamColor(newTeam) }
 end
 
 local function RenderGlassUnits()
 	glDepthTest(true)
 	glCulling(GL_BACK)
+	--glCulling(false) --uncomment when OIT is implemented :)
 
 	glassShader:ActivateWith( function()
 		glTexture(3, "$reflection")
@@ -336,23 +335,20 @@ local function RenderGlassUnits()
 		glassShader:SetUniformMatrix("viewInvMat", "viewinverse")
 
 		if sunChanged then
-			glassShader:SetUniformFloat("sunSpecular", gl.GetSun("specular" ,"unit"))
-			glassShader:SetUniformFloat("sunPos", gl.GetSun("pos"))
+			glassShader:SetUniformFloat("sunSpecular", glGetSun("specular" ,"unit"))
+			glassShader:SetUniformFloat("sunPos", glGetSun("pos"))
 
 			sunChanged = false
 		end
 
 		for unitID, _ in pairs(glassUnits) do
 			local unitDefID = udIDs[unitID]
-			local teamID = teamIDs[unitID]
 
 			glUnitShapeTextures(unitDefID, true)
-			--glTexture(0, string.format("%%%d:0", unitDefID))
-			--glTexture(1, string.format("%%%d:1", unitDefID))
 			glTexture(2, normalMaps[unitDefID])
 
-				local tr, tg, tb, ta = spGetTeamColor(teamID) -- TODO optimize
-				glassShader:SetUniformFloat("teamColor", tr, tg, tb, ta)
+				local tc = teamColors[unitID]
+				glassShader:SetUniformFloat("teamColor", tc[1], tc[2], tc[3], tc[4] )
 
 				for _, pieceID in ipairs(glassUnitDefs[unitDefID]) do --go over pieces list
 					glPushPopMatrix( function()
@@ -363,8 +359,6 @@ local function RenderGlassUnits()
 				end
 
 			glUnitShapeTextures(unitDefID, false)
-			--glTexture(0, false)
-			--glTexture(1, false)
 			glTexture(2, false)
 		end
 
