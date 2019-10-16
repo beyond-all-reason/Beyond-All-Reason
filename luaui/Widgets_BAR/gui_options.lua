@@ -2305,6 +2305,9 @@ function init()
 		{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Contrast Adaptive Sharpen'},
 		{id="cas_sharpness", group="gfx", name=widgetOptionColor.."   sharpness", min=0.1, max=1, step=0.01, type="slider", value=0.75, description='',
 		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
+		 end,
 		},
 
 		{id="disticon", group="gfx", name="Strategic icon distance", type="slider", min=0, max=900, step=10, value=tonumber(Spring.GetConfigInt("UnitIconDist",1) or 400), description='Set a lower value to get better performance'},
