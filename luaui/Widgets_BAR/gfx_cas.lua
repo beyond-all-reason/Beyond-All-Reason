@@ -50,7 +50,7 @@ local fsCAS = [[
 #line 20051
 
 uniform sampler2D screenCopyTex;
-uniform float sharpness = 1.0;
+uniform float sharpness;
 
 #if 0
 	#define TEXEL_FETCH_OFFSET(t, c, l, o) texelFetch(t, c + o, l)
@@ -124,8 +124,6 @@ local casShader
 
 local fullTexQuad
 
-local sharpness = SHARPNESS
-
 -----------------------------------------------------------------
 -- Local Functions
 -----------------------------------------------------------------
@@ -192,7 +190,7 @@ function widget:DrawScreenEffects()
 	glCopyToTexture(screenCopyTex, 0, 0, vpx, vpy, vsx, vsy)
 	glTexture(0, screenCopyTex)
 	casShader:ActivateWith( function()
-		casShader:SetUniform("sharpness", sharpness)
+		casShader:SetUniform("sharpness", SHARPNESS)
 		glCallList(fullTexQuad)
 	end)
 	glTexture(0, false)
