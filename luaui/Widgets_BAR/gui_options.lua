@@ -129,6 +129,7 @@ local presets = {
 	lowest = {
 		bloom = false,
 		bloomdeferred = false,
+		cas = false,
 		ssao = false,
 		water = 1,
 		mapedgeextension = false,
@@ -156,6 +157,7 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
+		cas = false,
 		ssao = false,
 		water = 2,
 		mapedgeextension = false,
@@ -183,6 +185,7 @@ local presets = {
 	medium = {
 		bloom = true,
 		bloomdeferred = true,
+		cas = true,
 		ssao = false,
 		water = 4,
 		mapedgeextension = true,
@@ -210,6 +213,7 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomdeferred = true,
+		cas = true,
 		ssao = true,
 		water = 3,
 		mapedgeextension = true,
@@ -237,6 +241,7 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomdeferred = true,
+		cas = true,
 		ssao = true,
 		water = 5,
 		mapedgeextension = true,
@@ -2210,6 +2215,14 @@ function init()
 		 end,
 		},
 
+		{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
+		{id="cas_sharpness", group="gfx", name=widgetOptionColor.."   sharpness", min=0, max=1, step=0.01, type="slider", value=0.75, description='',
+		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
+		 end,
+		},
+
 		--{id="normalmapping", group="gfx", name="Extra unit shading", type="bool", value=tonumber(Spring.GetConfigInt("NormalMapping",1) or 1) == 1, description='Adds highlights/darker areas, and even blinking lights to some units'},
 
 		{id="shadowslider", group="gfx", name="Shadows", type="slider", steps={1024,2048,4096,8192}, value=tonumber(Spring.GetConfigInt("ShadowMapSize",1) or 4096), description='Set shadow detail',
@@ -2299,14 +2312,6 @@ function init()
 		 onload=function() loadWidgetData("Outline", "outline_color", {'whiteColored'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Outline', 'outline', 'setColor', {'whiteColored'}, options[getOptionByID('outline_color')].value)
-		 end,
-		},
-
-		{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Contrast Adaptive Sharpen'},
-		{id="cas_sharpness", group="gfx", name=widgetOptionColor.."   sharpness", min=0.1, max=1, step=0.01, type="slider", value=0.75, description='',
-		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
-		 onchange=function(i, value)
-			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
 		 end,
 		},
 
