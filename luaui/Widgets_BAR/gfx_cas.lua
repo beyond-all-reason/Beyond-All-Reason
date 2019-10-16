@@ -167,6 +167,14 @@ function widget:Initialize()
 		gl.TexRect(-1, -1, 1, 1, false, true) --false, true
 		gl.Blending(true)
 	end)
+
+	WG.cas = {}
+	WG.cas.setSharpness = function(value)
+		SHARPNESS = value
+	end
+	WG.cas.getSharpness = function(value)
+		return SHARPNESS
+	end
 end
 
 function widget:Shutdown()
@@ -188,4 +196,16 @@ function widget:DrawScreenEffects()
 		glCallList(fullTexQuad)
 	end)
 	glTexture(0, false)
+end
+
+function widget:GetConfigData(data)
+	savedTable = {}
+	savedTable.SHARPNESS = SHARPNESS
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.SHARPNESS ~= nil then
+		sharpness = data.SHARPNESS
+	end
 end
