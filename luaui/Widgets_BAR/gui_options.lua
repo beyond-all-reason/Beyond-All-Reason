@@ -1101,6 +1101,7 @@ function NearestValue(table, number)
 	end
 	return table[smallestIndex]
 end
+
 function getSliderValue(draggingSlider, cx)
 	local sliderWidth = optionButtons[draggingSlider].sliderXpos[2] - optionButtons[draggingSlider].sliderXpos[1]
 	local value = (cx - optionButtons[draggingSlider].sliderXpos[1]) / sliderWidth
@@ -1121,7 +1122,7 @@ function getSliderValue(draggingSlider, cx)
 	if options[draggingSlider].steps ~= nil then
 		value = NearestValue(options[draggingSlider].steps, value)
 	elseif options[draggingSlider].step ~= nil then
-		value = math.floor(value / options[draggingSlider].step) * options[draggingSlider].step
+		value = math.floor((value+(options[draggingSlider].step/2)) / options[draggingSlider].step) * options[draggingSlider].step
 	end
 	return value	-- is a string now :(
 end
@@ -1719,11 +1720,11 @@ function init()
 		 onload=function() loadWidgetData("Outline", "outline_width", {'DILATE_HALF_KERNEL_SIZE'}) end,
 		 onchange=function(i,value) saveOptionValue('Outline', 'outline', 'setWidth', {'DILATE_HALF_KERNEL_SIZE'}, value) end
 		},
-		{id="outline_mult", group="gfx", name=widgetOptionColor.."    multiplier", min=0.1, max=1, step=0.1, type="slider", value=0.5, description='Set the relative strength of the outline',
+		{id="outline_mult", group="gfx", name=widgetOptionColor.."   multiplier", min=0.1, max=1, step=0.1, type="slider", value=0.5, description='Set the relative strength of the outline',
 		 onload=function() loadWidgetData("Outline", "outline_mult", {'STRENGTH_MULT'}) end,
 		 onchange=function(i,value) saveOptionValue('Outline', 'outline', 'setMult', {'STRENGTH_MULT'}, value) end,
 		},
-		{id="outline_color", group="gfx", name=widgetOptionColor.."    white", type="bool", value=false, description="Black (off) or white (on) colored outline ",
+		{id="outline_color", group="gfx", name=widgetOptionColor.."   white", type="bool", value=false, description="Black (off) or white (on) colored outline ",
 		 onload=function() loadWidgetData("Outline", "outline_color", {'whiteColored'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Outline', 'outline', 'setColor', {'whiteColored'}, value)
