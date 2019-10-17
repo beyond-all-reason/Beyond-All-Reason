@@ -204,6 +204,6 @@ end
 
 function widget:SetConfigData(data)
 	if data.SHARPNESS ~= nil then
-		sharpness = data.SHARPNESS
+		SHARPNESS = data.SHARPNESS
 	end
 end
