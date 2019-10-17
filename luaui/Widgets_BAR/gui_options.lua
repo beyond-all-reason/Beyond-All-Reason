@@ -2277,7 +2277,7 @@ function init()
 		 onchange = function(i, value) saveOptionValue('TeamPlatter', 'teamplatter', 'setSkipOwnTeam', {'skipOwnTeam'}, value) end,
 		},
 
-		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units\n\nDisables when without teammates'},
+		{id="enemyspotter", group="ui", widget="EnemySpotter", name="Enemy spotters", type="bool", value=GetWidgetToggleValue("EnemySpotter"), description='Draws smoothed circles under enemy units\n\nDisables when enemy is single colored or alone'},
 		{id="enemyspotter_opacity", group="ui", name=widgetOptionColor.."   opacity", min=0.12, max=0.4, step=0.01, type="slider", value=0.15, description='Set the opacity of the enemy-spotter rings',
 		 onload = function() loadWidgetData("EnemySpotter", "enemyspotter_opacity", {'spotterOpacity'}) end,
 		 onchange = function(i, value) saveOptionValue('EnemySpotter', 'enemyspotter', 'setOpacity', {'spotterOpacity'}, value) end,

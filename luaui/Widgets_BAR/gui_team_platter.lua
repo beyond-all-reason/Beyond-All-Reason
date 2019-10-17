@@ -95,7 +95,7 @@ if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
 end
 
 local sameTeamColors = false
-if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors then
   sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
 end
 

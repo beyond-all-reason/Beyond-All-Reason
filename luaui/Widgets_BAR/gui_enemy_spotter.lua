@@ -88,8 +88,9 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+local numAllyTeams = #Spring.GetAllyTeamList()-1
 local singleTeams = false
-if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+if #Spring.GetTeamList()-1 == numAllyTeams then
 	singleTeams = true
 end
 
@@ -304,7 +305,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	if singleTeams then return end
+	if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
 	if chobbyInterface then return end
 	if not drawWithHiddenGUI then
 		if spIsGUIHidden() then return end
@@ -337,7 +338,6 @@ local sec = 0
 local sceduledCheck = false
 local updateTime = 1
 function widget:Update(dt)
-	if singleTeams then return end
 	if chobbyInterface then return end
 	sec=sec+dt
 	local camX, camY, camZ = spGetCameraPosition()
@@ -346,19 +346,21 @@ function widget:Update(dt)
 	end
 	if (sec>1/updateTime and lastUpdatedFrame ~= spGetGameFrame() or (sec>1/(updateTime*5) and sceduledCheck)) then
 		sec = 0
-		if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+		if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors then
 			if WG['playercolorpalette'].getSameTeamColors() ~= sameTeamColors then
 				sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
 				setColors()
 			end
+
 		end
-		checkAllUnits()
 		lastUpdatedFrame = spGetGameFrame()
 		sceduledCheck = false
 		updateTime = Spring.GetFPS() / 15
-		if updateTime < 0.66 then 
+		if updateTime < 0.66 then
 			updateTime = 0.66
 		end
+		--if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
+		checkAllUnits()
 	end
 	prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
 end
@@ -371,7 +373,7 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
-	if singleTeams then return end
+	if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
