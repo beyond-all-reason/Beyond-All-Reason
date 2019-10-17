@@ -37,7 +37,7 @@ local DILATE_SINGLE_PASS = false --true is slower on my system
 local DILATE_HALF_KERNEL_SIZE = 1
 local DILATE_PASSES = 1
 
-local STRENGTH_MULT = 1.0
+local STRENGTH_MULT = 0.5
 
 local OUTLINE_ZOOM_SCALE = true
 local OUTLINE_COLOR = {0, 0, 0, 1.0}
