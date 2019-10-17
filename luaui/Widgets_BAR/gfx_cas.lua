@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc	  = "Spring port of AMD FidelityFX' Contrast Adaptive Sharpen (CAS)",
 		author	  = "martymcmodding, ivand",
 		layer	  = 2000,
-		enabled   = false,
+		enabled   = true,
 	}
 end
 
