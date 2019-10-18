@@ -71,7 +71,7 @@ function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTe
     if massLeft[transportID] == 0 then
         TransportIsFull(transportID)
     end
-    if (not transportDef.springCategories.vtol) and (not transportDef.isAirBase) then 
+    if (not transportDef.springCategories.vtol) and (not transportDef.customParams.isairbase) then
         SetUnitNoDraw(unitID, true)
         SetUnitStealth(unitID, true)
         SetUnitSonarStealth(unitID, true)
@@ -85,7 +85,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     local unitDef = UnitDefs[unitDefID]
     if not massLeft[transportID] then return end
     massLeft[transportID] = massLeft[transportID] + unitDef.mass
-    if (not transportDef.springCategories.vtol) and (not transportDef.isAirBase) then 
+    if (not transportDef.springCategories.vtol) and (not transportDef.isairbase) then
         SetUnitNoDraw(unitID, false)
         SetUnitStealth(unitID, false)
         SetUnitSonarStealth(unitID, false)

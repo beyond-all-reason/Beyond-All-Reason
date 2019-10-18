@@ -27,7 +27,6 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		isairbase = true,
 		mass = 200000,
 		maxdamage = 1600,
 		maxslope = 10,
@@ -51,6 +50,7 @@ return {
 			removewait = true,
 			subfolder = "corebuildings/landutil",
 			techlevel = 2,
+			isairbase = true,
 		},
 		featuredefs = {
 			dead = {
