@@ -1555,7 +1555,7 @@ function init()
 		},
 		{id="fullscreen", group="gfx", name="Fullscreen", type="bool", value=tonumber(Spring.GetConfigInt("Fullscreen",1) or 1) == 1,
 		 onchange = function(i, value)
-			 if value == 1 then
+			 if value then
 				 options[getOptionByID('borderless')].value = false
 				 applyOptionValue(getOptionByID('borderless'))
 				 local xres = tonumber(Spring.GetConfigInt('XResolutionWindowed',ssx))
@@ -1569,13 +1569,13 @@ function init()
 				 Spring.SetConfigInt("YResolutionWindowed", yres)
 			 end
 			 checkResolution()
-			 Spring.SendCommands("Fullscreen "..value)
-			 Spring.SetConfigInt("Fullscreen",value)
+			 Spring.SendCommands("Fullscreen "..(value and 1 or 0))
+			 Spring.SetConfigInt("Fullscreen",(value and 1 or 0))
 		 end,},
 		{id="borderless", group="gfx", name="Borderless window", type="bool", value=tonumber(Spring.GetConfigInt("WindowBorderless",1) or 1) == 1, description="Changes will be applied next game.\n\n(dont forget to turn off the \'fullscreen\' option next game)",
 		 onchange = function(i, value)
-			 Spring.SetConfigInt("WindowBorderless",value)
-			 if value == 1 then
+			 Spring.SetConfigInt("WindowBorderless",(value and 1 or 0))
+			 if value then
 				 options[getOptionByID('fullscreen')].value = false
 				 applyOptionValue(getOptionByID('fullscreen'))
 				 Spring.SetConfigInt("WindowPosX",0)
@@ -1591,8 +1591,8 @@ function init()
 		},
 		{id="windowpos", group="gfx", widget="Move Window Position", name="Move window position", type="bool", value=GetWidgetToggleValue("Move Window Position"), description='Toggle and move window position with the arrow keys or by dragging',
 		 onchange = function(i, value)
-			 Spring.SetConfigInt("FullscreenEdgeMove",value)
-			 Spring.SetConfigInt("WindowedEdgeMove",value)
+			 Spring.SetConfigInt("FullscreenEdgeMove",(value and 1 or 0))
+			 Spring.SetConfigInt("WindowedEdgeMove",(value and 1 or 0))
 		 end,
 		},
 		{id="vsync", group="gfx", name="V-sync", type="bool", value=tonumber(Spring.GetConfigInt("VSync",1) or 1) == 1, description='',
@@ -1835,7 +1835,7 @@ function init()
 		{id="lighteffects", group="gfx", name="Lights", type="bool", value=GetWidgetToggleValue("Light Effects"), description='Adds lights to projectiles, lasers and explosions.\n\nRequires shaders.',
 		 onload = function() end,
 		 onchange = function(i, value)
-			 if value ~= 0 then
+			 if value  then
 				 if widgetHandler.orderList["Deferred rendering"] ~= nil then
 					 widgetHandler:EnableWidget("Deferred rendering")
 				 end
@@ -2078,7 +2078,7 @@ function init()
 		{id="scrollinverse", group="control", name=widgetOptionColor.."   reverse scrolling", type="bool", value=(tonumber(Spring.GetConfigInt("ScrollWheelSpeed",1) or 25) < 0), description="",
 		 onload = function() end,
 		 onchange = function(i, value)
-			 if value == 1 then
+			 if value then
 				 Spring.SetConfigInt("ScrollWheelSpeed",-options[getOptionByID('scrollspeed')].value)
 			 else
 				 Spring.SetConfigInt("ScrollWheelSpeed",options[getOptionByID('scrollspeed')].value)
