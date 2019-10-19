@@ -694,7 +694,7 @@ function DrawWindow()
 					glColor(1,1,1,0.16)
 					glTexture(bgcorner)
 					glPushMatrix()
-					glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
+						glTranslate(xPosMax-(oHeight*0.5)-rightPadding, yPos-(oHeight*0.33), 0)
 						glRotate(-45,0,0,1)
 						glTexRect(-(oHeight*0.25),-(oHeight*0.25),(oHeight*0.25),(oHeight*0.25))
 					glPopMatrix()
@@ -803,7 +803,7 @@ function widget:DrawScreen()
   	selectOptionsList = nil
   end
 
-  if show or showOnceMore then
+  if (show or showOnceMore) and windowList then
 
 	  --on window
 	  local rectX1 = ((screenX-bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
@@ -1706,11 +1706,11 @@ function init()
 		},
 
 		{id="ssao", group="gfx", widget="SSAO", name="SSAO", type="bool", value=GetWidgetToggleValue("SSAO"), description='Screen-Space Ambient Occlusion.'},
-		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=1, max=10, step=0.1, value=4, description='',
+		{id="ssao_strength", group="gfx", name=widgetOptionColor.."   strength", type="slider", min=4, max=15, step=1, value=8, description='',
 		 onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setStrength', {'strength'}, value) end,
 		 onload=function() loadWidgetData("SSAO", "ssao_strength", {'strength'}) end,
 		},
-		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=3, max=6, step=1, value=4, description='',
+		{id="ssao_radius", group="gfx", name=widgetOptionColor.."   radius", type="slider", min=4, max=6, step=1, value=5, description='',
 		 onchange=function(i,value) saveOptionValue('SSAO', 'ssao', 'setRadius', {'radius'}, value) end,
 		 onload=function() loadWidgetData("SSAO", "ssao_radius", {'radius'}) end,
 		},
@@ -3023,6 +3023,14 @@ function widget:Shutdown()
 	end
 	if WG['guishader'] then
 		WG['guishader'].DeleteDlist('options')
+	end
+	if selectOptionsList then
+		if WG['guishader'] then
+			WG['guishader'].RemoveScreenRect('options_select')
+			WG['guishader'].removeRenderDlist(selectOptionsList)
+		end
+		glDeleteList(selectOptionsList)
+		selectOptionsList = nil
 	end
 	gl.DeleteFont(font)
 	gl.DeleteFont(font2)
