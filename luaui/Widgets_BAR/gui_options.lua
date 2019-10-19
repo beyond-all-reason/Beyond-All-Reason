@@ -1608,7 +1608,7 @@ function init()
 		},
 
 		{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		{id="cas_sharpness", group="gfx", name=widgetOptionColor.."   sharpness", min=0, max=1, step=0.01, type="slider", value=0.75, description='',
+		{id="cas_sharpness", group="gfx", name=widgetOptionColor.."   sharpness", min=0, max=1, step=0.01, type="slider", value=0.6, description='',
 		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
