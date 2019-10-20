@@ -3195,7 +3195,7 @@ function widget:SetConfigData(data)
 	if data.show ~= nil and Spring.GetGameFrame() > 0 then
 		show = data.show
 	end
-	if data.show ~= nil and Spring.GetGameFrame() > 0 then
+	if data.advSettings ~= nil then
 		advSettings = data.advSettings
 	end
 	if data.savedConfig ~= nil then
