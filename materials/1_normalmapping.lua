@@ -43,8 +43,8 @@ local matTemplate = {
 		"#define USE_ENVIRONMENT_DIFFUSE",
 		"#define USE_ENVIRONMENT_SPECULAR",
 
-		"#define DO_GAMMA_CORRECTION",
-		"#define TONEMAP(c) CustomTM(c)",
+		--"#define GAMMA 2.2",
+		--"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
@@ -65,8 +65,8 @@ local matTemplate = {
 		"#define USE_ENVIRONMENT_DIFFUSE",
 		"#define USE_ENVIRONMENT_SPECULAR",
 
-		"#define DO_GAMMA_CORRECTION",
-		"#define TONEMAP(c) CustomTM(c)",
+		--"#define GAMMA 2.2",
+		--"#define TONEMAP(c) CustomTM(c)",
 
 		"#define MAT_IDX 1",
 	},

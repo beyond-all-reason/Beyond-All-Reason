@@ -38,13 +38,13 @@ local materials = {
 			--"#define EXPOSURE 1.0",
 
 			--"#define METALNESS 0.0",
-			"#define ROUGHNESS 0.4",
+			"#define ROUGHNESS 0.6",
 
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			--"#define DO_GAMMA_CORRECTION",
-			"#define TONEMAP(c) SteveMTM1(c)",
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		deferredDefinitions = {
 			"#define use_normalmapping",
@@ -55,14 +55,14 @@ local materials = {
 			"#define SUNMULT 1.0",
 			--"#define EXPOSURE 1.0",
 
-			--"#define METALNESS 0.8",
-			"#define ROUGHNESS 0.4",
+			--"#define METALNESS 0.0",
+			"#define ROUGHNESS 0.6",
 
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			--"#define DO_GAMMA_CORRECTION",
-			"#define TONEMAP(c) SteveMTM1(c)",
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
 
 			"#define MAT_IDX 128",
 		},

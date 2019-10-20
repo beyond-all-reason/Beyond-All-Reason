@@ -49,18 +49,18 @@ local materials = {
 
 			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
 
-			"#define SUNMULT 1.0",
+			"#define SUNMULT 1.5",
 			--"#define EXPOSURE 1.0",
 
 			"#define METALNESS 0.1",
-			"#define ROUGHNESS 0.5",
-			"#define EMISSIVENESS 0.1",
+			"#define ROUGHNESS 0.8",
+			"#define EMISSIVENESS 0.0",
 
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			--"#define DO_GAMMA_CORRECTION",
-			"#define TONEMAP(c) SteveMTM1(c)",
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) ACESFilmicTM(c)",
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --very expensive for trees (too much overdraw)
@@ -70,18 +70,18 @@ local materials = {
 
 			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
 
-			"#define SUNMULT 1.0",
+			"#define SUNMULT 1.5",
 			--"#define EXPOSURE 1.0",
 
-			"#define METALNESS 0.0",
-			"#define ROUGHNESS 1.0",
-			"#define EMISSIVENESS 0.1",
+			"#define METALNESS 0.1",
+			"#define ROUGHNESS 0.8",
+			"#define EMISSIVENESS 0.0",
 
 			--"#define USE_ENVIRONMENT_DIFFUSE",
 			--"#define USE_ENVIRONMENT_SPECULAR",
 
-			--"#define DO_GAMMA_CORRECTION",
-			"#define TONEMAP(c) SteveMTM1(c)",
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
 
 			"#define MAT_IDX 129",
 		},
