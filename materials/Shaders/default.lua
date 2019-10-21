@@ -62,8 +62,16 @@ vertex = [[
 		#endif
 
 		modelUV.xy = gl_MultiTexCoord0.xy;
-		#ifdef use_treadoffset
-
+		#ifdef use_treadoffset_core
+			/core 93,1732 /351,1647
+			const vec4 treadBoundaries = vec4( 0.04541015625,0.17138671875, 0.154296875,0.19580078125);
+			if (all(bvec4(
+					modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
+					modelUV.y >= treadBoundaries.z, modelUV.y <= treadBoundaries.w))) {
+				modelUV.x += etcLoc.z;
+			}
+		#endif
+		#ifdef use_treadoffset_arm
 			const vec4 treadBoundaries = vec4(0.6279296875, 0.74951171875, 0.5702890625, 0.6220703125);
 			if (all(bvec4(
 					modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,

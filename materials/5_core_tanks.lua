@@ -15,7 +15,7 @@ local function DrawUnit(unitID, unitDefID, material, drawMode, luaShaderObj)
 
 	local usx, usy, usz, speed = Spring.GetUnitVelocity(unitID)
 	if speed > 0.01 then speed = 1 end
-	local offset = (((GetGameFrame()) % 9) * (2.0 / 4096.0)) * speed
+	local offset = (((GetGameFrame()) % 14) * (2.0 / 4096.0)) * speed
 	-- check if moving backwards
 	local udx, udy, udz = Spring.GetUnitDirection(unitID)
 	if udx > 0 and usx < 0  or  udx < 0 and usx > 0  or  udz > 0 and usz < 0  or  udz < 0 and usz > 0 then
@@ -42,8 +42,8 @@ local function SunChanged(curShaderObj)
 		Spring.GetConfigFloat("tonemapC", 15.0),
 		Spring.GetConfigFloat("tonemapD", 0.5),
 		Spring.GetConfigFloat("tonemapE", 1.5),
-		Spring.GetConfigFloat("envAmbient", 0.5),
-		Spring.GetConfigFloat("unitSunMult", 1.5),
+		Spring.GetConfigFloat("envAmbient", 0.2),
+		Spring.GetConfigFloat("unitSunMult", 1.0),
 		Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
 end
@@ -56,7 +56,7 @@ local matTemplate = {
 		"#define deferred_mode 0",
 		"#define flashlights",
 		"#define use_vertex_ao",
-		"#define use_treadoffset_arm",
+		"#define use_treadoffset_core",
 
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
 
@@ -68,18 +68,18 @@ local matTemplate = {
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.07",
 
-		--"#define USE_ENVIRONMENT_DIFFUSE",
-		--"#define USE_ENVIRONMENT_SPECULAR",
+		"#define USE_ENVIRONMENT_DIFFUSE",
+		"#define USE_ENVIRONMENT_SPECULAR",
 
-		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) CustomTM(c)",
+		"#define DO_GAMMA_CORRECTION",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
 		"#define deferred_mode 1",
 		"#define flashlights",
 		"#define use_vertex_ao",
-		"#define use_treadoffset_arm",
+		"#define use_treadoffset_core",
 
 		"#define SHADOW_SOFTNESS SHADOW_HARD",
 
@@ -94,8 +94,8 @@ local matTemplate = {
 		"#define USE_ENVIRONMENT_DIFFUSE",
 		"#define USE_ENVIRONMENT_SPECULAR",
 
-		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) CustomTM(c)",
+		"#define DO_GAMMA_CORRECTION",
+		"#define TONEMAP(c) CustomTM(c)",
 
 		"#define MAT_IDX 2",
 	},
@@ -131,9 +131,9 @@ for i = 1, #UnitDefs do
 	local udef = UnitDefs[i]
 	local udefCM = udef.customParams
 
-	if (udefCM.arm_tank and udefCM.normaltex and VFS.FileExists(udefCM.normaltex)) then
+	if (udefCM.core_tank and udefCM.normaltex and VFS.FileExists(udefCM.normaltex)) then
 		local lm = tonumber(udefCM.lumamult) or 1
-		local matName = string.format("%s(lumamult=%f)", "normalMappedS3O_arm_tank", lm)
+		local matName = string.format("%s(lumamult=%f)", "normalMappedS3O_core_tank", lm)
 		if not materials[matName] then
 			materials[matName] = Spring.Utilities.CopyTable(matTemplate, true)
 			if lm ~= 1 then
