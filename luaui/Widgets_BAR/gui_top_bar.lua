@@ -913,6 +913,9 @@ local sec = 0
 local sec2 = 0
 local secComCount = 0
 local t = UPDATE_RATE_S
+local blinkDirection = true
+local blinkProgress = 0
+local blinkTime = 0.5
 function widget:Update(dt)
 	if chobbyInterface then return end
 	
@@ -932,6 +935,19 @@ function widget:Update(dt)
 		end
 	end
 
+	if blinkDirection then
+		blinkProgress = blinkProgress + (dt/blinkProgress)
+		if blinkProgress > 1 then
+			blinkProgress = 1
+			blinkDirection = false
+		end
+	else
+		blinkProgress = blinkProgress - (dt/blinkProgress)
+		if blinkProgress < 0 then
+			blinkProgress = 0
+			blinkDirection = true
+		end
+	end
 
     now = os.clock()
 	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] ~= nil then
@@ -1090,7 +1106,7 @@ function widget:DrawScreen()
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
 				if process > 1.3 then process = 1.3 end
-				glColor(1,1,1,0.085*process)
+				glColor(1,1,1,0.17*process*blinkProgress)
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
@@ -1109,7 +1125,7 @@ function widget:DrawScreen()
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
 				if process > 1.3 then process = 1.3 end
-				glColor(1,1,0,0.05*process)
+				glColor(1,1,0,0.09*process*blinkProgress)
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
