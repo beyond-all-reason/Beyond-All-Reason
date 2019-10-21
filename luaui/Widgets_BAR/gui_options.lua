@@ -2495,36 +2495,36 @@ function init()
 		{id="profiler", group="dev", widget="Widget Profiler", name="Widget profiler", type="bool", value=GetWidgetToggleValue("Widget Profiler"), description=""},
 
 		-- DEV
-		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 15.0), description="",
-		 onchange=function(i, value)
-			 Spring.SetConfigFloat("tonemapA", value)
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-		{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapB", 0.3), description="",
-		 onchange=function(i, value)
-			 Spring.SetConfigFloat("tonemapB", value)
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-		{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapC", 15.0), description="",
-		 onchange=function(i, value)
-			 Spring.SetConfigFloat("tonemapC", value)
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-		{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.5), description="",
-		 onchange=function(i, value)
-			 Spring.SetConfigFloat("tonemapD", value)
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
-		{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.5), description="",
-		 onchange=function(i, value)
-			 Spring.SetConfigFloat("tonemapE", value)
-			 Spring.SendCommands("luarules updatesun")
-		 end,
-		},
+		--{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 15.0), description="",
+		-- onchange=function(i, value)
+		--	 Spring.SetConfigFloat("tonemapA", value)
+		--	 Spring.SendCommands("luarules updatesun")
+		-- end,
+		--},
+		--{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapB", 0.3), description="",
+		-- onchange=function(i, value)
+		--	 Spring.SetConfigFloat("tonemapB", value)
+		--	 Spring.SendCommands("luarules updatesun")
+		-- end,
+		--},
+		--{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapC", 15.0), description="",
+		-- onchange=function(i, value)
+		--	 Spring.SetConfigFloat("tonemapC", value)
+		--	 Spring.SendCommands("luarules updatesun")
+		-- end,
+		--},
+		--{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.5), description="",
+		-- onchange=function(i, value)
+		--	 Spring.SetConfigFloat("tonemapD", value)
+		--	 Spring.SendCommands("luarules updatesun")
+		-- end,
+		--},
+		--{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.5), description="",
+		-- onchange=function(i, value)
+		--	 Spring.SetConfigFloat("tonemapE", value)
+		--	 Spring.SendCommands("luarules updatesun")
+		-- end,
+		--},
 		{id="envAmbient", group="dev", name="Unit env ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.5), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("envAmbient", value)
