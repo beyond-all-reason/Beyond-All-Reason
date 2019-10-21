@@ -232,11 +232,10 @@ fragment = [[
 	#define SNORM2NORM(value) (value * 0.5 + 0.5)
 
 	// gamma correction & tonemapping
-	#ifdef DO_GAMMA_CORRECTION
-		#define GAMMA 2.2
+	#ifdef GAMMA
 		#define INV_GAMMA 1.0 / GAMMA
 		#define SRGBtoLINEAR(c) ( pow(c, vec3(GAMMA)) )
-		#define LINEARtoSRGB(c) ( clamp(pow(c, vec3(INV_GAMMA)), vec3(0.0), vec3(1.0)) )
+		#define LINEARtoSRGB(c) ( pow(c, vec3(INV_GAMMA)) )
 	#else
 		#define SRGBtoLINEAR(c) ( c )
 		#define LINEARtoSRGB(c) ( c )
@@ -480,7 +479,7 @@ fragment = [[
 		#if (defined SPECULAR_AO) && (defined use_vertex_ao)
 			return clamp(pow(NoV + diffuseAO, roughness2) - 1.0 + diffuseAO, 0.0, 1.0);
 		#else
-			return 1.0;
+			return diffuseAO;
 		#endif
 	}
 
@@ -488,7 +487,7 @@ fragment = [[
 	#if (defined SPECULAR_AO) && (defined use_vertex_ao)
 		return clamp(pow(NoV + diffuseAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + diffuseAO, 0.0, 1.0);
 	#else
-		return 1.0;
+		return diffuseAO;
 	#endif
 	}
 	#define ComputeSpecularAO ComputeSpecularAOFilament
@@ -536,6 +535,13 @@ fragment = [[
 	vec3 Reinhard(const vec3 x) {
 		// Reinhard et al. 2002, "Photographic Tone Reproduction for Digital Images", Eq. 3
 		return LINEARtoSRGB(x / (1.0 + dot(LUMA, x)));
+	}
+
+	vec3 JodieReinhard(vec3 c){
+		float l = dot(c, LUMA);
+		vec3 tc = c / (c + 1.0);
+
+		return LINEARtoSRGB(mix(c / (l + 1.0), tc, tc));
 	}
 
 	vec3 ACESFilmicTM(in vec3 x) {

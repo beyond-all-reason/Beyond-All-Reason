@@ -179,7 +179,7 @@ function widget:GameFrame(gf)
 			metalSpots[i][6] = false
 			metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
 			local spot = metalSpots[i]
-			local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 90*spot[5])
+			local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 100*spot[5])
 			for j=1, #units do
 				if extractors[spGetUnitDefID(units[j])]  then
 					metalSpots[i][6] = true

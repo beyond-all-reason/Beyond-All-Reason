@@ -4,7 +4,7 @@ function widget:GetInfo()
 		desc	  = "Spring port of AMD FidelityFX' Contrast Adaptive Sharpen (CAS)",
 		author	  = "martymcmodding, ivand",
 		layer	  = 2000,
-		enabled   = false,
+		enabled   = true,
 	}
 end
 
@@ -16,7 +16,7 @@ end
 
 local GL_RGBA8 = 0x8058
 
-local SHARPNESS = 0.75
+local SHARPNESS = 0.6
 
 -----------------------------------------------------------------
 -- Lua Shortcuts
@@ -204,6 +204,6 @@ end
 
 function widget:SetConfigData(data)
 	if data.SHARPNESS ~= nil then
-		sharpness = data.SHARPNESS
+		SHARPNESS = data.SHARPNESS
 	end
 end

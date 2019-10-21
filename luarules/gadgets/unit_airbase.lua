@@ -520,7 +520,7 @@ end
 function gadget:Initialize()
    -- fixme: when using new transport mechanics, this is the proper way to define airbases
    for unitDefID, unitDef in pairs(UnitDefs) do
-      if unitDef.isAirBase then
+      if unitDef.customParams and unitDef.customParams.isairbase then
          airbaseDefIDs[unitDefID] = airbaseDefIDs[unitDefID] or tractorDist 
       end
    end
@@ -597,7 +597,7 @@ function gadget:DefaultCommand()
    end
 
    local targetDefID = spGetUnitDefID(targetID)
-   if not (UnitDefs[targetDefID].isAirBase or airbaseDefIDs[targetDefID]) then
+   if not ((UnitDefs[targetDefID].customParams and UnitDefs[targetDefID].customParams.isairbase) or airbaseDefIDs[targetDefID]) then
       return false
    end
 

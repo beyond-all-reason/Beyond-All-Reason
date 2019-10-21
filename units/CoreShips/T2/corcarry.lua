@@ -30,7 +30,6 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		isairbase = true,
 		losemitheight = 50,
 		mass = 10000,
 		maxdamage = 4500,
@@ -60,6 +59,7 @@ return {
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships/t2",
 			techlevel = 2,
+			isairbase = true,
 		},
 		featuredefs = {
 			dead = {
