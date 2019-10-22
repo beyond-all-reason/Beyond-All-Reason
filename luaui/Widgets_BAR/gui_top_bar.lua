@@ -71,8 +71,8 @@ local glDeleteList = gl.DeleteList
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamResources = Spring.GetTeamResources
 local spGetMyTeamID = Spring.GetMyTeamID
-local sformat = string.format
 local spGetMouseState = Spring.GetMouseState
+local spGetWind = Spring.GetWind
 
 local spec = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -80,7 +80,7 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
-local spGetWind = Spring.GetWind
+local sformat = string.format
 
 local minWind = Game.windMin
 local maxWind = Game.windMax
@@ -127,6 +127,17 @@ if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobb
 	chobbyLoaded = true
 	Spring.SendLuaMenuMsg("disableLobbyButton")
 end
+
+local numAllyTeams = #Spring.GetAllyTeamList()-1
+local singleTeams = false
+if #Spring.GetTeamList()-1 == numAllyTeams then
+	singleTeams = true
+end
+
+local allyteamOverflowingMetal = (singleTeams and true or false)
+local allyteamOverflowingEnergy = (singleTeams and true or false)
+
+
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
@@ -643,7 +654,12 @@ local function updateResbarText(res)
 				end
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding = 2.5*widgetScale
-					local text = 'Overflowing'
+					local text = ''
+					if res == 'metal' then
+						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
+					else
+						text = (allyteamOverflowingEnergy and 'Wasting Metal' or 'Overflowing')
+					end
 					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale
 
 					-- background
@@ -915,7 +931,6 @@ local secComCount = 0
 local t = UPDATE_RATE_S
 local blinkDirection = true
 local blinkProgress = 0
-local blinkTime = 0.5
 function widget:Update(dt)
 	if chobbyInterface then return end
 	
@@ -936,13 +951,13 @@ function widget:Update(dt)
 	end
 
 	if blinkDirection then
-		blinkProgress = blinkProgress + (dt/blinkProgress)
+		blinkProgress = blinkProgress + (dt*9)
 		if blinkProgress > 1 then
 			blinkProgress = 1
 			blinkDirection = false
 		end
 	else
-		blinkProgress = blinkProgress - (dt/blinkProgress)
+		blinkProgress = blinkProgress - (dt/(blinkProgress*1.5))
 		if blinkProgress < 0 then
 			blinkProgress = 0
 			blinkDirection = true
@@ -999,6 +1014,9 @@ function widget:Update(dt)
 		sec2 = 0
 		updateResbarText('metal')
 		updateResbarText('energy')
+		if not singleTeams then
+			updateAllyTeamOverflowing()
+		end
 	end
 
 	-- wind
@@ -1086,6 +1104,28 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+function updateAllyTeamOverflowing()
+	allyteamOverflowingMetal = true
+	allyteamOverflowingEnergy = true
+	for i, teamID in pairs(Spring.GetTeamList(Spring.GetMyAllyTeamID())) do
+		if allyteamOverflowingEnergy then
+			local energy, energyStorage = spGetTeamResources(teamID, "energy")
+			if energy < energyStorage*0.96 then
+				allyteamOverflowingEnergy = false
+			end
+		end
+		if allyteamOverflowingMetal then
+			local metal, metalStorage = spGetTeamResources(teamID, "metal")
+			if metal < metalStorage*0.96 then
+				allyteamOverflowingMetal = false
+			end
+		end
+		if not allyteamOverflowingEnergy and not allyteamOverflowingMetal then
+			break
+		end
+	end
+end
+
 function widget:DrawScreen()
 	if chobbyInterface then return end
 
@@ -1106,7 +1146,11 @@ function widget:DrawScreen()
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
 				if process > 1.3 then process = 1.3 end
-				glColor(1,1,1,0.17*process*blinkProgress)
+				if allyteamOverflowingMetal then
+					glColor(1,0,0,0.22*process*blinkProgress)
+				else
+					glColor(1,1,1,0.17*process*blinkProgress)
+				end
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
@@ -1125,7 +1169,11 @@ function widget:DrawScreen()
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
 				if process > 1.3 then process = 1.3 end
-				glColor(1,1,0,0.09*process*blinkProgress)
+				if allyteamOverflowingEnergy then
+					glColor(1,0,0,0.11*process*blinkProgress)
+				else
+					glColor(1,1,0,0.09*process*blinkProgress)
+				end
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
