@@ -658,7 +658,7 @@ local function updateResbarText(res)
 					if res == 'metal' then
 						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
 					else
-						text = (allyteamOverflowingEnergy and 'Wasting Metal' or 'Overflowing')
+						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
 					end
 					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale
 
