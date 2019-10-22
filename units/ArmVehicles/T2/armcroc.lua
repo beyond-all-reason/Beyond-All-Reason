@@ -35,7 +35,7 @@ return {
 		selfdestructas = "largeExplosionGenericSelfd-phib",
 		sightdistance = 372,
 		sonardistance = 279,
-		trackoffset = 6,
+		trackoffset = 16,
 		trackstrength = 5,
 		tracktype = "armcroc_tracks",
 		trackwidth = 44,

@@ -38,7 +38,7 @@ return {
 		selfdestructas = "smallExplosionGenericSelfd-builder",
 		sightdistance = 500,
 		terraformspeed = 750,
-		trackoffset = 6,
+		trackoffset = 10,
 		trackstrength = 5,
 		tracktype = "armst_tracks",
 		trackwidth = 35,
