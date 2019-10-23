@@ -87,8 +87,14 @@ function widget:Update(dt)
 	if lastUpdateGameFrame ~= Spring.GetGameFrame() then
 		lastUpdateGameFrame = Spring.GetGameFrame()
 		teamEnergy = {}
-		for i, teamID in pairs(Spring.GetTeamList((not fullview and Spring.GetMyAllyTeamID() or nil))) do --onlyShowOwnTeam and myTeamID or nil
-			if fullview or not onlyShowOwnTeam or teamID == myTeamID then
+		local teamList
+		if onlyShowOwnTeam then
+			teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
+		else
+			teamList = Spring.GetTeamList()
+		end
+		for i, teamID in pairs(teamList) do --onlyShowOwnTeam and myTeamID or nil
+			if (fullview and not onlyShowOwnTeam) or not onlyShowOwnTeam or teamID == myTeamID then
 				teamEnergy[teamID] = select(1, spGetTeamResources(teamID, 'energy'))
 			end
 		end
