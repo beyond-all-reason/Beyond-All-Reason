@@ -243,16 +243,18 @@ function widget:GameFrame(n)
 
 				if nearestEnemyUnitID then
 					local ex,ey,ez = spGetUnitPosition(nearestEnemyUnitID)
-					local distance = diag(x-ex, y-ey, z-ez)
-					if distance < blastRadius + showOnEnemyDistance then
-						draw = true
-						opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
-						if opacityMultiplier > 1 then
-							opacityMultiplier = 1
-						elseif opacityMultiplier < 0 then
-							opacityMultiplier = 0
+					if ex then
+						local distance = diag(x-ex, y-ey, z-ez)
+						if distance < blastRadius + showOnEnemyDistance then
+							draw = true
+							opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
+							if opacityMultiplier > 1 then
+								opacityMultiplier = 1
+							elseif opacityMultiplier < 0 then
+								opacityMultiplier = 0
+							end
+							oldOpacityMultiplier = opacityMultiplier
 						end
-						oldOpacityMultiplier = opacityMultiplier
 					end
 				else
 					opacityMultiplier = 0

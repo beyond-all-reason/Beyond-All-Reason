@@ -2236,6 +2236,12 @@ function init()
 
 		{id="showbuilderqueue", group="ui", basic=true, widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
+		{id="unitenergyicons", group="ui", basic=true, widget="Unit energy icons", name="Unit insufficient energy icons", type="bool", value=GetWidgetToggleValue("Unit energy icons"), description='Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy availible.'},
+		{id="unitenergyicons_self", group="ui", name=widgetOptionColor.."   limit to own units", type="bool", value=(WG['unitenergyicons']~=nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description='Only show above your own units',
+		 onload = function() loadWidgetData("Unit energy icons", "unitenergyicons_self", {'onlyShowOwnTeam'}) end,
+		 onchange = function(i, value) saveOptionValue('Unit energy icons', 'unitenergyicons', 'setOnlyShowOwnTeam', {'onlyShowOwnTeam'}, value) end,
+		},
+
 		{id="healthbarsscale", group="ui", name="Health bar scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
 		 onload=function() loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
 		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
