@@ -625,7 +625,6 @@ function addon.DrawLoadScreen()
 		end
 
 		-- game name
-		--font3:Print("Beyond all Reason", vsy * 0.03, (vsy * 0.97)-(barTextSize*0.77), barTextSize*1.44, "o")
 		font3:Print(Game.gameName, vsx * 0.5, vsy * (yPos-0.113), barTextSize*1.44, "co")
 	gl.PopMatrix()
 

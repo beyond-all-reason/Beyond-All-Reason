@@ -31,7 +31,6 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		isairbase = true,
 		losemitheight = 56,
 		mass = 10000,
 		maxdamage = 4500,
@@ -61,6 +60,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
 			techlevel = 2,
+			isairbase = true,
 		},
 		featuredefs = {
 			dead = {

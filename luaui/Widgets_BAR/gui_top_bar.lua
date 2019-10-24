@@ -23,7 +23,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-local height = 38
+local height = 44
 local relXpos = 0.3
 local borderPadding = 5
 local showConversionSlider = true
@@ -71,8 +71,8 @@ local glDeleteList = gl.DeleteList
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamResources = Spring.GetTeamResources
 local spGetMyTeamID = Spring.GetMyTeamID
-local sformat = string.format
 local spGetMouseState = Spring.GetMouseState
+local spGetWind = Spring.GetWind
 
 local spec = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -80,7 +80,7 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
-local spGetWind = Spring.GetWind
+local sformat = string.format
 
 local minWind = Game.windMin
 local maxWind = Game.windMax
@@ -121,6 +121,22 @@ local now = os.clock()
 local gameFrame = Spring.GetGameFrame()
 
 local draggingShareIndicatorValue = {}
+
+local chobbyLoaded = false
+if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+	chobbyLoaded = true
+	Spring.SendLuaMenuMsg("disableLobbyButton")
+end
+
+local numAllyTeams = #Spring.GetAllyTeamList()-1
+local singleTeams = false
+if #Spring.GetTeamList()-1 == numAllyTeams then
+	singleTeams = true
+end
+
+local allyteamOverflowingMetal = (singleTeams and true or false)
+local allyteamOverflowingEnergy = (singleTeams and true or false)
+
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -330,18 +346,21 @@ local function updateButtons()
 	local totalWidth = area[3] - area[1]
 
 	local text = '    '
-    if (WG['teamstats'] ~= nil) then text = text..'Stats    ' end
-    if (WG['commands'] ~= nil) then text = text..'Cmd    ' end
-    if (WG['keybinds'] ~= nil) then text = text..'Keys    ' end
-    if (WG['changelog'] ~= nil) then text = text..'Changes    ' end
-    if (WG['options'] ~= nil) then text = text..'Settings    ' end
-    text = text..'Quit    '
+    if (WG['teamstats'] ~= nil) then text = text..'Stats   ' end
+    if (WG['commands'] ~= nil) then text = text..'Cmd   ' end
+    if (WG['keybinds'] ~= nil) then text = text..'Keys   ' end
+    if (WG['changelog'] ~= nil) then text = text..'Changes   ' end
+    if (WG['options'] ~= nil) then text = text..'Settings   ' end
+	if chobbyLoaded then
+		text = text..'Lobby  '
+	else
+		text = text..'Quit  '
+	end
 
 	local fontsize = totalWidth / font2:GetTextWidth(text)
 	if fontsize > (height*widgetScale)/3 then
 		fontsize = (height*widgetScale)/3
 	end
-
 
 	-- add background blur
 	if dlistButtonsGuishader ~= nil then
@@ -382,36 +401,42 @@ local function updateButtons()
             if (WG['teamstats'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('   Stats  ') * fontsize
+                width = font2:GetTextWidth('   Stats ') * fontsize
                 buttonsArea['buttons']['stats'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4] }
             end
             if (WG['commands'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Cmd  ') * fontsize
+                width = font2:GetTextWidth('  Cmd ') * fontsize
                 buttonsArea['buttons']['commands'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
 			end
             if (WG['keybinds'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Keys  ') * fontsize
+                width = font2:GetTextWidth('  Keys ') * fontsize
                 buttonsArea['buttons']['keybinds'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['changelog'] ~= nil) then
                 button = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Changes  ') * fontsize
+                width = font2:GetTextWidth('  Changes ') * fontsize
                 buttonsArea['buttons']['changelog'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
             if (WG['options'] ~= nil) then
                 buttons = buttons + 1
                 if buttons > 1 then offset = offset+width end
-                width = font2:GetTextWidth('  Options  ') * fontsize
+                width = font2:GetTextWidth('  Settings ') * fontsize
                 buttonsArea['buttons']['options'] = {area[1]+offset, area[2]+margin, area[1]+offset+width, area[4]}
             end
-            offset = offset+width
-            width = font2:GetTextWidth('  Quit    ') * fontsize
-            buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
+			if chobbyLoaded then
+				offset = offset+width
+				width = font2:GetTextWidth('  Lobby  ') * fontsize
+				buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
+			else
+				offset = offset+width
+				width = font2:GetTextWidth('  Quit  ') * fontsize
+				buttonsArea['buttons']['quit'] = {area[1]+offset, area[2]+margin, area[3], area[4]}
+			end
 		end
 	end)
 	
@@ -629,8 +654,13 @@ local function updateResbarText(res)
 				end
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding = 2.5*widgetScale
-					local text = 'Overflowing'
-					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 10) * widgetScale
+					local text = ''
+					if res == 'metal' then
+						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
+					else
+						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
+					end
+					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale
 
 					-- background
 					glColor(0.3,0,0,0.6)
@@ -641,7 +671,7 @@ local function updateResbarText(res)
                     font2:Begin()
                     font2:SetTextColor(1,0.88,0.88,1)
                     font2:SetOutlineColor(0.2,0,0,0.6)
-                    font2:Print(text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 10*widgetScale, 'or')
+                    font2:Print(text, resbarArea[res][3]-5*widgetScale, resbarArea[res][4]-9.5*widgetScale, 11.5*widgetScale, 'or')
                     font2:End()
 				end
 			else
@@ -660,10 +690,10 @@ local function updateResbar(res)
 		glDeleteList(dlistResbar[res][2])
 	end
 	local barHeight = (height*widgetScale/10)
-	local barHeighPadding = 7*widgetScale --((height/2) * widgetScale) - (barHeight/2)
+	local barHeighPadding = 9*widgetScale --((height/2) * widgetScale) - (barHeight/2)
 	--local barLeftPadding = 2 * widgetScale
-	local barLeftPadding = 39 * widgetScale
-	local barRightPadding = 8 * widgetScale
+	local barLeftPadding = 41 * widgetScale
+	local barRightPadding = 10 * widgetScale
 	local barArea = {area[1]+(height*widgetScale)+barLeftPadding, area[2]+barHeighPadding, area[3]-barRightPadding, area[2]+barHeight+barHeighPadding}
 	local sliderHeightAdd = barHeight / 2.2
 	local shareSliderWidth = barHeight + sliderHeightAdd + sliderHeightAdd
@@ -753,9 +783,9 @@ local function updateResbar(res)
 			if not showQuitscreen and resbarHover ~= nil and resbarHover == res then
 				local padding = shareSliderWidth/8
 				glColor(0.8, 0.8, 0.5, 1)
-				RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],2.5*widgetScale)
+				RectRound(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4],8*widgetScale)
 				glColor(0.7, 0.7, 0.47, 1)
-				RectRound(conversionIndicatorArea[1]+padding, conversionIndicatorArea[2]+padding, conversionIndicatorArea[3]-padding, conversionIndicatorArea[4]-padding,2.5*widgetScale)
+				RectRound(conversionIndicatorArea[1]+padding, conversionIndicatorArea[2]+padding, conversionIndicatorArea[3]-padding, conversionIndicatorArea[4]-padding,6.5*widgetScale)
 			else
 				glColor(0.85, 0.85, 0.55, 1)
 				glTexRect(conversionIndicatorArea[1], conversionIndicatorArea[2], conversionIndicatorArea[3], conversionIndicatorArea[4])
@@ -899,7 +929,11 @@ local sec = 0
 local sec2 = 0
 local secComCount = 0
 local t = UPDATE_RATE_S
+local blinkDirection = true
+local blinkProgress = 0
 function widget:Update(dt)
+	if chobbyInterface then return end
+	
     local prevMyTeamID = myTeamID
     if spec and spGetMyTeamID() ~= prevMyTeamID then  -- check if the team that we are spectating changed
         checkStatus()
@@ -916,6 +950,19 @@ function widget:Update(dt)
 		end
 	end
 
+	if blinkDirection then
+		blinkProgress = blinkProgress + (dt*9)
+		if blinkProgress > 1 then
+			blinkProgress = 1
+			blinkDirection = false
+		end
+	else
+		blinkProgress = blinkProgress - (dt/(blinkProgress*1.5))
+		if blinkProgress < 0 then
+			blinkProgress = 0
+			blinkDirection = true
+		end
+	end
 
     now = os.clock()
 	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] ~= nil then
@@ -967,6 +1014,9 @@ function widget:Update(dt)
 		sec2 = 0
 		updateResbarText('metal')
 		updateResbarText('energy')
+		if not singleTeams then
+			updateAllyTeamOverflowing()
+		end
 	end
 
 	-- wind
@@ -1048,14 +1098,43 @@ function drawResbarValues(res)
 	glCallList(dlistResValues[res][currentResValue[res]])
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
+function updateAllyTeamOverflowing()
+	allyteamOverflowingMetal = true
+	allyteamOverflowingEnergy = true
+	for i, teamID in pairs(Spring.GetTeamList(Spring.GetMyAllyTeamID())) do
+		if allyteamOverflowingEnergy then
+			local energy, energyStorage = spGetTeamResources(teamID, "energy")
+			if energy < energyStorage*0.96 then
+				allyteamOverflowingEnergy = false
+			end
+		end
+		if allyteamOverflowingMetal then
+			local metal, metalStorage = spGetTeamResources(teamID, "metal")
+			if metal < metalStorage*0.96 then
+				allyteamOverflowingMetal = false
+			end
+		end
+		if not allyteamOverflowingEnergy and not allyteamOverflowingMetal then
+			break
+		end
+	end
+end
+
 function widget:DrawScreen()
-	local now = os.clock()
+	if chobbyInterface then return end
 
 	glPushMatrix()
 	if dlistBackground then
 		glCallList(dlistBackground)
 	end
 
+	local now = os.clock()
 	local x,y,b = spGetMouseState()
 
 	local res = 'metal'
@@ -1067,7 +1146,11 @@ function widget:DrawScreen()
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
 				if process > 1.3 then process = 1.3 end
-				glColor(1,1,1,0.085*process)
+				if allyteamOverflowingMetal then
+					glColor(1,0,0,0.22*process*blinkProgress)
+				else
+					glColor(1,1,1,0.17*process*blinkProgress)
+				end
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
@@ -1086,7 +1169,11 @@ function widget:DrawScreen()
 			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
 			if process > 0 then
 				if process > 1.3 then process = 1.3 end
-				glColor(1,1,0,0.05*process)
+				if allyteamOverflowingEnergy then
+					glColor(1,0,0,0.11*process*blinkProgress)
+				else
+					glColor(1,1,0,0.09*process*blinkProgress)
+				end
 				local bgpadding = 3*widgetScale
 				glCallList(dlistResbar[res][4])
 			end
@@ -1212,11 +1299,11 @@ function widget:DrawScreen()
 
             if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
 
-                local width = vsx/5.8
+                local width = vsx/5.3
                 local height = width/3.5
                 local padding = width/70
-                local buttonPadding = width/100
-                local buttonMargin = width/32
+                local buttonPadding = width/90
+                local buttonMargin = width/30
                 local buttonHeight = height*0.55
 
                 quitscreenArea = {(vsx/2)-(width/2), (vsy/1.8)-(height/2), (vsx/2)+(width/2), (vsy/1.8)+(height/2)}
@@ -1249,7 +1336,7 @@ function widget:DrawScreen()
                 RectRound(quitscreenQuitArea[1]+buttonPadding, quitscreenQuitArea[2]+buttonPadding, quitscreenQuitArea[3]-buttonPadding, quitscreenQuitArea[4]-buttonPadding, 2.8*widgetScale)
 				font:End()
 
-                fontSize = fontSize*0.9
+                fontSize = fontSize*0.92
 				font2:Begin()
                 font2:SetTextColor(1,1,1,1)
                 font2:SetOutlineColor(0,0,0,0.23)
@@ -1347,21 +1434,25 @@ local function applyButtonAction(button)
 
 	local isvisible = false
 	if button == 'quit' then
-		local oldShowQuitscreen
-		if showQuitscreen ~= nil then
-			oldShowQuitscreen = showQuitscreen
-			isvisible = true
-		end
-		hideWindows()
-		if oldShowQuitscreen ~= nil then
-			if isvisible ~= true then
-				showQuitscreen = oldShowQuitscreen
-				if WG['guishader'] then
-					WG['guishader'].setScreenBlur(true)
-				end
-			end
+		if chobbyLoaded then
+			Spring.SendLuaMenuMsg("showLobby")
 		else
-			showQuitscreen = os.clock()
+			local oldShowQuitscreen
+			if showQuitscreen ~= nil then
+				oldShowQuitscreen = showQuitscreen
+				isvisible = true
+			end
+			hideWindows()
+			if oldShowQuitscreen ~= nil then
+				if isvisible ~= true then
+					showQuitscreen = oldShowQuitscreen
+					if WG['guishader'] then
+						WG['guishader'].setScreenBlur(true)
+					end
+				end
+			else
+				showQuitscreen = os.clock()
+			end
 		end
 	elseif button == 'options' then
 		if (WG['options'] ~= nil) then
@@ -1414,7 +1505,9 @@ end
 
 function widget:KeyPress(key)
 	if key == 27 then	-- ESC
-		hideWindows()
+		if not WG['options'] or (WG['options'].disallowEsc and not WG['options'].disallowEsc()) then
+			hideWindows()
+		end
 	end
 	if showQuitscreen ~= nil and quitscreenArea ~= nil then
 		return true

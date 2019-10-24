@@ -16,7 +16,7 @@ return {
 		collisionvolumescales = "75 23 75",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Intrusion Countermeasure System",
+		description = "Intrusion Countermeasure System - tracks down stealthy units",
 		energyuse = 125,
 		explodeas = "mediumBuildingexplosiongeneric",
 		footprintx = 4,

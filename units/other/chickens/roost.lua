@@ -22,7 +22,6 @@ return {
 		footprintz = 2,
 		idleautoheal = 10,
 		idletime = 90,
-		isairbase = true,
 		levelground = false,
 		mass = 165.75,
 		maxdamage = 1800,
@@ -48,6 +47,7 @@ return {
 		yardmap = "oo oo",
 		customparams = {
 			subfolder = "other/chickens",
+			isairbase = true,
 		},
 		featuredefs = {},
 		sfxtypes = {

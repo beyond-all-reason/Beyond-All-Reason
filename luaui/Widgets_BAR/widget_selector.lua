@@ -366,7 +366,14 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 local activeGuishader = false
 local scrollbarOffset = -15
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
   if not show then 
     if activeGuishader and (WG['guishader']) then
       activeGuishader = false

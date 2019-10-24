@@ -19,9 +19,8 @@ include("setupdefs.lua")
 include("savetable.lua")
 
 include("debug.lua")
-include("fonts.lua")
+--include("fonts.lua")
 include("layout.lua")   -- contains a simple LayoutButtons()
--- include("barwidgets.lua")  -- the widget handler
 VFS.Include(LUAUI_DIRNAME .. 'barwidgets.lua', nil, VFS.ZIP)
 
 --------------------------------------------------------------------------------
@@ -73,8 +72,6 @@ function Update()
     forceLayout = false
   end
   activePage = currentPage
-
-  fontHandler.Update()
 
   widgetHandler:Update()
 

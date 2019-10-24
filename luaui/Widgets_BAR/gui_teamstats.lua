@@ -624,10 +624,15 @@ function widget:Update()
 	mousex,mousey = x,y
 end
 
-function widget:DrawScreen()
-	if IsGUIHidden() then
-		return
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
+end
+
+function widget:DrawScreen()
+	if chobbyInterface then return end
+	if IsGUIHidden() then return end
 	if not guiData.mainPanel.visible and WG['guishader'] then
 		WG['guishader'].DeleteDlist('teamstats_window')
 	end

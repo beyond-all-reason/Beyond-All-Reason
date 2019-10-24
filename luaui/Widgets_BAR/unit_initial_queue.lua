@@ -666,7 +666,14 @@ local queueTimeFormat = whiteColor .. 'Queued ' .. metalColor .. '%dm ' .. energ
 
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	gl.PushMatrix()
 		gl.Translate(wl, wt, 0)
 		gl.Scale(widgetScale,widgetScale,widgetScale)
@@ -743,6 +750,7 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	--don't draw anything once the game has started; after that engine can draw queues itself
 	if gameStarted then return end
 

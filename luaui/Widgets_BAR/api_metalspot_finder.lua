@@ -79,8 +79,8 @@ function GetMexPositions(spot, uDefID, facing, testBuild)
 	for z, vLeft in pairs(validLeft) do
 		if z % 16 == zoff then
 			for x = gridSize *  ceil((vLeft         + xoff) / gridSize) - xoff,
-					gridSize * floor((validRight[z] + xoff) / gridSize) - xoff,
-					gridSize do
+				gridSize * floor((validRight[z] + xoff) / gridSize) - xoff,
+				gridSize do
 				local y = spGetGroundHeight(x, z)
 				if not (testBuild and spTestBuildOrder(uDefID, x, y, z, facing) == 0) then
 					positions[#positions + 1] = {x, y, z}

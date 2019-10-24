@@ -27,7 +27,7 @@ local pairs					= pairs
 local spGetMyPlayerID       = Spring.GetMyPlayerID
 local spGetPlayerInfo       = Spring.GetPlayerInfo
 local spIsUnitInView		= Spring.IsUnitInView
-
+local spIsUnitVisible       = Spring.IsUnitVisible
 local glColor               = gl.Color
 local glDepthTest           = gl.DepthTest
 local glUnitShape			= gl.UnitShape
@@ -40,8 +40,11 @@ local glLoadIdentity       	= gl.LoadIdentity
 
 local debug = false
 local dots = {}
-local lastTime
-local updateInt = 2 --seconds for the ::update loop
+local spec,specFullView = Spring.GetSpectatingState()
+
+function widget:PlayerChanged()
+	spec,specFullView,_ = Spring.GetSpectatingState()
+end
 
 function widget:UnitEnteredRadar(unitID, allyTeam)
 	if ( dots[unitID] ~= nil ) then
@@ -94,38 +97,31 @@ end
 
 
 function widget:DrawWorld()
+	if spec then
+		_,specFullView,_ = Spring.GetSpectatingState()
+	end
+
 	glColor(1.0, 1.0, 1.0, 0.35 )
 	glDepthTest(true)
 
-	for unitID, dot in pairs( dots ) do
-		if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) then
-			local x, y, z = spGetUnitPosition(unitID)
-			if x and ( spIsUnitInView(unitID) ) then
-				glPushMatrix()
-					glLoadIdentity()
-					glTranslate( x, y + 5 , z)
-					glUnitShape( dot["unitDefId"], dot["teamId"], false, false, false)
-				glPopMatrix()
+	if not spec or not specFullView then
+		for unitID, dot in pairs( dots ) do
+			if not spec or not spIsUnitVisible(unitID) then
+				if ( dot["radar"] == true ) and ( dot["los"] == false ) and ( dot["unitDefId"] ~= nil ) then
+					local x, y, z = spGetUnitPosition(unitID)
+					if x and ( spIsUnitInView(unitID) ) then
+						glPushMatrix()
+						glLoadIdentity()
+						glTranslate( x, y + 5 , z)
+						glUnitShape( dot["unitDefId"], dot["teamId"], false, false, false)
+						glPopMatrix()
+					end
+				end
 			end
 		end
 	end
-
 	glDepthTest(false)
  	glColor(1, 1, 1, 1)
-end
-
-function widget:Update()
-	local timef = spGetGameSeconds()
-	local time = floor(timef)
-
-	-- update timers once every <updateInt> seconds
-	if (time % updateInt == 0 and time ~= lastTime) then	
-		lastTime = time
-		if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) then
-			widgetHandler:RemoveWidget(self)
-			return false
-		end
-	end
 end
 
 function printDebug( value )

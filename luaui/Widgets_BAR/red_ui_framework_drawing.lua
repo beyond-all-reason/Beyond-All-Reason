@@ -336,7 +336,15 @@ function widget:Initialize()
 	F[6] = RectRound
 end
 
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 
 	newBlurRect = {}
 
@@ -412,6 +420,7 @@ end
 local sec = 0
 local flushDistsTime = 20
 function widget:Update(dt)
+	if chobbyInterface then return end
 	if (sIsGUIHidden()) then
 		for i=1,#Todo do
 			Todo[i] = nil

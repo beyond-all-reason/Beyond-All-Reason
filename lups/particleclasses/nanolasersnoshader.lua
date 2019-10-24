@@ -186,7 +186,7 @@ function NanoLasersNoShader:ReInitialize()
 end
 
 function NanoLasersNoShader:Visible()
-  if ((self.allyID ~= LocalAllyTeamID)and(self.visibility == 0)) or not self._midpos then
+  if not self._midpos then
     return false
   end
 
@@ -248,7 +248,7 @@ function NanoLasersNoShader.Create(Options)
     newObject.unitDefID = Spring.GetUnitDefID(unit)
     newObject.quickupdates = airBuilders[newObject.unitDefID] and true or false
 
-    setmetatable(newObject,NanoLasers)  -- make handle lookup
+    setmetatable(newObject,NanoLasersNoShader)  -- make handle lookup
     newObject:CreateParticle()
 
     if (unit and nanopiece) then

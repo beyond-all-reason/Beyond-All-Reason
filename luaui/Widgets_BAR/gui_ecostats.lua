@@ -793,7 +793,6 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	local h
 	local dx
 	local dy
-
 	if small then
 		w = tH*0.36
 		h = tH*0.36
@@ -841,7 +840,7 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	if WG['tooltip'] then
 		WG['tooltip'].AddTooltip('ecostats_team_'..tID, area, teamData[tID]["leaderName"])
 	end
-	glTexture(sideImage)
+	--glTexture(sideImage)
 	glTexRect(area[1],area[2],area[3],area[4])
 	glTexture(false)
 	glColor(1,1,1,1)
@@ -1139,7 +1138,7 @@ function setTeamTable(teamID)
 	teamData[teamID]["isDead"] 			= teamData[teamID]["isDead"] or isDead
 	teamData[teamID]["hasCom"]			= commanderAlive
 	teamData[teamID]["minc"]			= minc
-	teamData[teamID]["mrecl"]			= minc
+	teamData[teamID]["mrecl"]			= mrecl
 	teamData[teamID]["einc"] 			= einc
 	teamData[teamID]["erecl"] 			= erecl
 	teamData[teamID]["leaderID"]		= leaderID
@@ -1654,13 +1653,20 @@ function widget:Update(dt)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if not inSpecMode or not myFullview then return end
-	
 	if Spring.IsGUIHidden() or (not inSpecMode) then return end
 
 	if not sideImageList then makeSideImageList() end
-	
+
+	gl.PolygonOffset(-7,-10)
 	gl.PushMatrix()
 	gl.CallList(sideImageList)
 	drawListStandard()

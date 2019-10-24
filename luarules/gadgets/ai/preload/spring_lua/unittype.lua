@@ -152,7 +152,7 @@ function ShardUnitType:CanSelfRepair()
 end
 
 function ShardUnitType:IsAirbase()
-	return self.def.isAirbase
+	return self.def.customParams and self.def.customParams.isairbase
 end
 
 function ShardUnitType:CanHover()

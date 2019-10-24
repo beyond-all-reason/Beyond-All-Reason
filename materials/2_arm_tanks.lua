@@ -35,7 +35,17 @@ local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
 	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
 	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
-	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
+
+	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
+		Spring.GetConfigFloat("tonemapA", 0.0),
+		Spring.GetConfigFloat("tonemapB", 1.0),
+		Spring.GetConfigFloat("tonemapC", 0.0),
+		Spring.GetConfigFloat("tonemapD", 0.0),
+		Spring.GetConfigFloat("tonemapE", 1.0),
+		Spring.GetConfigFloat("envAmbient", 0.5),
+		Spring.GetConfigFloat("unitSunMult", 1.5),
+		Spring.GetConfigFloat("unitExposureMult", 1.0),
+	})
 end
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
@@ -44,22 +54,49 @@ local matTemplate = {
 	shaderDefinitions = {
 		"#define use_normalmapping",
 		"#define deferred_mode 0",
-		"#define use_treadoffset",
 		"#define flashlights",
 		"#define use_vertex_ao",
-		"#define SPECULARMULT 2.0",
-		"#define ROUGHNESS_PERTURB_NORMAL 0.1",
-		"#define ROUGHNESS_PERTURB_COLOR 0.2",
-		--"#define SPECULAR_AA 1.0",
+		"#define use_treadoffset",
+
 		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
+
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
+		--"#define ROUGHNESS_PERTURB_COLOR 0.07",
+
+		--"#define USE_ENVIRONMENT_DIFFUSE",
+		--"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
 		"#define deferred_mode 1",
-		"#define use_treadoffset",
 		"#define flashlights",
 		"#define use_vertex_ao",
-		"#define SPECULARMULT 2.0",
+		"#define use_treadoffset",
+
+		"#define SHADOW_SOFTNESS SHADOW_HARD",
+
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
+		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
+
+		"#define USE_ENVIRONMENT_DIFFUSE",
+		"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		"#define TONEMAP(c) CustomTM(c)",
+
 		"#define MAT_IDX 2",
 	},
 
@@ -76,6 +113,8 @@ local matTemplate = {
 		[2] = '$shadow',
 		[4] = '$reflection',
 		[5] = '%NORMALTEX',
+		[6] = "$info",
+		[7] = GG.GetBrdfTexture(),
 	},
 	DrawUnit = DrawUnit,
 	SunChanged = SunChanged,

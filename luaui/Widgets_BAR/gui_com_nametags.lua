@@ -271,19 +271,28 @@ function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guish
             createComnameIconList(unitID, attributes)
         end
         local x,y,z = GetUnitPosition(unitID)
-        x,z = Spring.WorldToScreenCoords(x, y+50+heightOffset, z)
-        local scale = 1-(attributes[5]/25000)
-        if scale < 0.5 then scale = 0.5 end
-        gl.PushMatrix()
-        gl.Translate(x,z,0)
-        gl.Scale(scale,scale,scale)
-        gl.CallList(comnameIconList[attributes[1]])
-        gl.PopMatrix()
+        if x and y and z then
+            x,z = Spring.WorldToScreenCoords(x, y+50+heightOffset, z)
+            local scale = 1-(attributes[5]/25000)
+            if scale < 0.5 then scale = 0.5 end
+            gl.PushMatrix()
+            gl.Translate(x,z,0)
+            gl.Scale(scale,scale,scale)
+            gl.CallList(comnameIconList[attributes[1]])
+            gl.PopMatrix()
+        end
     end
     drawScreenUnits = {}
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+    if msg:sub(1,18) == 'LobbyOverlayActive' then
+        chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+    end
+end
+
 function widget:DrawWorld()
+  if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
   if not CheckedForSpec and Spring.GetGameFrame() > 1 then
@@ -300,8 +309,7 @@ function widget:DrawWorld()
   local camX, camY, camZ = GetCameraPosition()
 
   for unitID, attributes in pairs(comms) do
-    
-    -- calc opacity
+
 	if IsUnitInView(unitID) then
 		local x,y,z = GetUnitPosition(unitID)
 		camDistance = diag(camX-x, camY-y, camZ-z) 

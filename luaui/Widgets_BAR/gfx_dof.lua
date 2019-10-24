@@ -98,7 +98,7 @@ local finalNearBlurTex = nil
 
 -- shader uniform handles
 local eyePosLoc = nil
-local viewProjectionLoc = nil
+local projectionMatLoc = nil
 local resolutionLoc = nil
 local distanceLimitsLoc = nil
 local autofocusLoc = nil
@@ -277,7 +277,7 @@ function init()
 	end
 
 	eyePosLoc = gl.GetUniformLocation(dofShader, "eyePos")
-	viewProjectionLoc = gl.GetUniformLocation(dofShader, "viewProjection")
+	projectionMatLoc = gl.GetUniformLocation(dofShader, "projectionMat")
 	resolutionLoc = gl.GetUniformLocation(dofShader, "resolution")
 	distanceLimitsLoc = gl.GetUniformLocation(dofShader, "distanceLimits")
 	autofocusLoc = gl.GetUniformLocation(dofShader, "autofocus")
@@ -415,11 +415,19 @@ local function Composition()
 	glTexture(2, false)
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
-	gl.ActiveShader(dofShader, function() glUniformMatrix(viewProjectionLoc, "projection") end)
+	if chobbyInterface then return end
+	gl.ActiveShader(dofShader, function() glUniformMatrix(projectionMatLoc, "projection") end)
 end
 
 function widget:DrawScreenEffects()
+	if chobbyInterface then return end
 	gl.Blending(false)
 	glCopyToTexture(screenTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
 	glCopyToTexture(depthTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image

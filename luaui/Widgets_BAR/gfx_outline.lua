@@ -34,11 +34,14 @@ local AVG_FPS_ELASTICITY_INV = 1.0 - AVG_FPS_ELASTICITY
 ]]--
 
 local DILATE_SINGLE_PASS = false --true is slower on my system
-local DILATE_HALF_KERNEL_SIZE = 3
+local DILATE_HALF_KERNEL_SIZE = 1
 local DILATE_PASSES = 1
 
+local STRENGTH_MULT = 0.5
+
 local OUTLINE_ZOOM_SCALE = true
-local OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
+local OUTLINE_COLOR = {0, 0, 0, 1.0}
+local whiteColored = false
 --local OUTLINE_COLOR = {0.0, 0.0, 0.0, 1.0}
 local OUTLINE_STRENGTH_BLENDED = 1.0
 local OUTLINE_STRENGTH_ALWAYS_ON = 0.6
@@ -131,12 +134,15 @@ local function PrepareOutline(cleanState)
 	gl.Texture(0, shapeDepthTex)
 	gl.Texture(1, shapeColorTex)
 
+	--Spring.Echo("DILATE_HALF_KERNEL_SIZE", DILATE_HALF_KERNEL_SIZE)
+
 	for i = 1, DILATE_PASSES do
 		dilationShader:ActivateWith( function ()
 			if OUTLINE_ZOOM_SCALE then
 				strength = GetZoomScale()
 			end
 			dilationShader:SetUniformFloat("strength", strength)
+			dilationShader:SetUniformInt("dilateHalfKernelSize", DILATE_HALF_KERNEL_SIZE)
 
 			if DILATE_SINGLE_PASS then
 				pingPongIdx = (pingPongIdx + 1) % 2
@@ -195,7 +201,7 @@ local function DrawOutline(strength, loadTextures, alwaysVisible)
 
 	applicationShader:ActivateWith( function ()
 		applicationShader:SetUniformFloat("alwaysShowOutLine", (alwaysVisible and 1.0) or 0.0)
-		applicationShader:SetUniformFloat("strength", strength)
+		applicationShader:SetUniformFloat("strength", strength * STRENGTH_MULT)
 		gl.CallList(screenWideList)
 	end)
 
@@ -320,7 +326,6 @@ function widget:Initialize()
 
 	local dilationShaderFrag = VFS.LoadFile(shadersDir.."outlineDilate.frag.glsl")
 	dilationShaderFrag = dilationShaderFrag:gsub("###DILATE_SINGLE_PASS###", tostring((DILATE_SINGLE_PASS and 1) or 0))
-	dilationShaderFrag = dilationShaderFrag:gsub("###DILATE_HALF_KERNEL_SIZE###", tostring(DILATE_HALF_KERNEL_SIZE))
 
 	dilationShader = LuaShader({
 		vertex = identityShaderVert,
@@ -328,6 +333,7 @@ function widget:Initialize()
 		uniformInt = {
 			depthTex = 0,
 			colorTex = 1,
+			dilateHalfKernelSize = DILATE_HALF_KERNEL_SIZE,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
@@ -355,6 +361,37 @@ function widget:Initialize()
 
 	screenQuadList = gl.CreateList(gl.TexRect, -1, -1, 1, 1)
 	screenWideList = gl.CreateList(gl.TexRect, -1, -1, 1, 1, false, true)
+
+	WG['outline'] = {}
+	WG['outline'].getWidth = function()
+		return DILATE_HALF_KERNEL_SIZE
+	end
+	WG['outline'].setWidth = function(value)
+		DILATE_HALF_KERNEL_SIZE = value
+		widget:Shutdown()
+		widget:Initialize()
+	end
+	WG['outline'].getMult = function()
+		return STRENGTH_MULT
+	end
+	WG['outline'].setMult = function(value)
+		STRENGTH_MULT = value
+		widget:Shutdown()
+		widget:Initialize()
+	end
+	WG['outline'].getColor = function()
+		return whiteColored
+	end
+	WG['outline'].setColor = function(value)
+		whiteColored = value
+		if whiteColored then
+			OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
+		else
+			OUTLINE_COLOR = {0, 0, 0, 1.0}
+		end
+		widget:Shutdown()
+		widget:Initialize()
+	end
 end
 
 function widget:Shutdown()
@@ -366,8 +403,6 @@ function widget:Shutdown()
 		gl.DeleteList(screenWideList)
 	end
 
-
-
 	gl.DeleteTexture(shapeDepthTex)
 	gl.DeleteTexture(shapeColorTex)
 
@@ -375,7 +410,6 @@ function widget:Shutdown()
 		gl.DeleteTexture(dilationColorTexes[i])
 		gl.DeleteTexture(dilationDepthTexes[i])
 	end
-
 
 	gl.DeleteFBO(shapeFBO)
 
@@ -386,6 +420,8 @@ function widget:Shutdown()
 	shapeShader:Finalize()
 	dilationShader:Finalize()
 	applicationShader:Finalize()
+
+	WG['outline'] = nil
 end
 
 --[[
@@ -430,4 +466,27 @@ function widget:DrawUnitsPostDeferred()
 		PrepareOutline(false)
 		DrawOutline(OUTLINE_STRENGTH_BLENDED, false, false)
 	end)
+end
+
+
+function widget:GetConfigData()
+	savedTable = {}
+	savedTable.DILATE_HALF_KERNEL_SIZE = DILATE_HALF_KERNEL_SIZE
+	savedTable.STRENGTH_MULT = STRENGTH_MULT
+	savedTable.whiteColored = whiteColored
+	return savedTable
+end
+
+function widget:SetConfigData(data)
+	if data.DILATE_HALF_KERNEL_SIZE then DILATE_HALF_KERNEL_SIZE = data.DILATE_HALF_KERNEL_SIZE or DILATE_HALF_KERNEL_SIZE end
+	if data.STRENGTH_MULT then STRENGTH_MULT = data.STRENGTH_MULT or STRENGTH_MULT end
+	if data.whiteColored ~= nil then
+		whiteColored = data.whiteColored
+		Spring.Echo(whiteColored)
+		if whiteColored then
+			OUTLINE_COLOR = {0.75, 0.75, 0.75, 1.0}
+		else
+			OUTLINE_COLOR = {0, 0, 0, 1.0}
+		end
+	end
 end

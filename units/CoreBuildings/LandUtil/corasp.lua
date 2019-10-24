@@ -9,8 +9,8 @@ return {
 		builddistance = 136,
 		builder = true,
 		buildinggrounddecaldecayspeed = 30,
-		buildinggrounddecalsizex = 12,
-		buildinggrounddecalsizey = 12,
+		buildinggrounddecalsizex = 11,
+		buildinggrounddecalsizey = 11,
 		buildinggrounddecaltype = "decals/corasp_aoplane.dds",
 		buildpic = "CORASP.DDS",
 		buildtime = 9315,
@@ -27,7 +27,6 @@ return {
 		icontype = "building",
 		idleautoheal = 5,
 		idletime = 1800,
-		isairbase = true,
 		mass = 200000,
 		maxdamage = 1600,
 		maxslope = 10,
@@ -51,6 +50,7 @@ return {
 			removewait = true,
 			subfolder = "corebuildings/landutil",
 			techlevel = 2,
+			isairbase = true,
 		},
 		featuredefs = {
 			dead = {

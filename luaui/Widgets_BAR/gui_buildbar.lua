@@ -485,6 +485,7 @@ end
 
 local sec = 0
 function widget:Update(dt)
+	if chobbyInterface then return end
 
   if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
       widgetHandler:RemoveWidget(self)
@@ -587,7 +588,14 @@ end
 -- DRAWSCREEN
 -------------------------------------------------------------------------------
 
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 function widget:DrawScreen()
+  if chobbyInterface then return end
 
   local icon,mx,my,lb,mb,rb = -1,-1,-1,false,false,false
   if (not inTweak) then
@@ -694,8 +702,8 @@ function widget:DrawScreen()
 end
 
 
-
 function widget:DrawWorld()
+	if chobbyInterface then return end
   
   -- Draw factories command lines
   if waypointMode>1 or openedMenu>=0 then

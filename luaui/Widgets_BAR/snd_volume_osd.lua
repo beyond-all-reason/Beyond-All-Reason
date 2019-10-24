@@ -31,7 +31,6 @@ local minuskey2								= KEYSYMS.KP_MINUS
 -- SETTINGS, internal, don't edit
 --------------------------------------------------------------------------------
 local volume
-local TextDraw            		 			= fontHandler.Draw
 local vsx,vsy                    			= gl.GetViewSizes()
 local widgetPosX 							= vsx/2.5
 local widgetPosY 							= vsy/7.5
@@ -106,7 +105,14 @@ function RectRound(px,py,sx,sy,cs)
 	gl.Texture(false)
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	local y1 = widgetPosY 
 	local y2 = widgetPosY + widgetHeight
 	local x1 = widgetPosX

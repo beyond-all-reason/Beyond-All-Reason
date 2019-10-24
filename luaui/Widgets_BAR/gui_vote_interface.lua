@@ -357,10 +357,17 @@ function widget:Shutdown()
 	EndVote()
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if voteDlist then
-		local x,y,b = Spring.GetMouseState()
 		if (not WG['topbar'] or not WG['topbar'].showingQuit()) then
+			local x,y,b = Spring.GetMouseState()
 			if IsOnRect(x, y, windowArea[1], windowArea[2], windowArea[3], windowArea[4]) then
 				if (not voteOwner and IsOnRect(x, y, yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4])) or
 						IsOnRect(x, y, noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4]) or

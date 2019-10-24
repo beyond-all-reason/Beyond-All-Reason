@@ -57,7 +57,7 @@ local gameFrame = 0
 function ShieldSphereParticle:BeginDraw()
 	gl.DepthMask(false)
 	gl.UseShader(shieldShader)
-	gl.Culling(GL.FRONT)
+	gl.Culling(false)
 	gameFrame = Spring.GetGameFrame()
 end
 
@@ -65,7 +65,6 @@ function ShieldSphereParticle:EndDraw()
 	gl.DepthMask(false)
 	gl.UseShader(0)
 
-	gl.Culling(GL.BACK)
 	gl.Culling(false)
 
 	glMultiTexCoord(1, 1, 1, 1, 1)
@@ -267,7 +266,7 @@ function ShieldSphereParticle:Initialize()
 					vec2 thisUV = uv;
 					thisUV.x -= dx * float(k);
 					thisUV.y += float(k);
-					t += abs(strength / ((thisUV.x + Fbm12( thisUV + time))));
+					t += abs(strength / ((thisUV.x + Fbm12( thisUV + time ))));
 				}
 
 				return color * t;
@@ -304,22 +303,37 @@ function ShieldSphereParticle:Initialize()
 				return vec2(sphereCoords.x * 0.5 + 0.5, 1.0 - sphereCoords.y);
 			}
 
+			vec3 RotAroundY(vec3 p)
+			{
+				float ra = -time * 1.5;
+				mat4 tr = mat4(cos(ra), 0.0, sin(ra), 0.0,
+							   0.0, 1.0, 0.0, 0.0,
+							   -sin(ra), 0.0, cos(ra), 0.0,
+							   0.0, 0.0, 0.0, 1.0);
+
+				return (tr * vec4(p, 1.0)).xyz;
+			}
+
 			void main(void)
 			{
 				gl_FragColor = mix(color1, color2, opac);
 
 				if (technique == 1) { // LightningOrb
-					vec2 vUv = (RadialCoords(modelPos.xyz));
+					vec3 noiseVec = modelPos.xyz;
+					noiseVec = RotAroundY(noiseVec);
+					vec2 vUv = (RadialCoords(noiseVec));
 					vec3 col = LightningOrb(vUv, gl_FragColor.rgb);
 					gl_FragColor.rgb = max(gl_FragColor.rgb, col * col);
 				}
 				else if (technique == 2) { // MagicOrb
 					vec3 noiseVec = modelPos.xyz;
+					noiseVec = RotAroundY(noiseVec);
 					vec3 col = MagicOrb(noiseVec, gl_FragColor.rgb);
 					gl_FragColor.rgb = max(gl_FragColor.rgb, col * col);
 				}
 				else if (technique == 3) { // ElectroOrb
 					vec3 noiseVec = modelPos.xyz;
+					noiseVec = RotAroundY(noiseVec);
 					vec3 col = ElectroOrb(noiseVec, gl_FragColor.rgb);
 					gl_FragColor.rgb = max(gl_FragColor.rgb, col * col);
 				}

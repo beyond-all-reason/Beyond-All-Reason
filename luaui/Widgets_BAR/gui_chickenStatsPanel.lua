@@ -55,10 +55,21 @@ local math            = math
 local table           = table
 
 local displayList
-local fontHandler     = loadstring(VFS.LoadFile("LuaUI/modfonts.lua"))()
-local panelFont       = "LuaUI/Fonts/FreeSansBold_14"
-local waveFont        = "LuaUI/Fonts/Skrawl_40"
 local panelTexture    = ":n:LuaUI/Images/chickenpanel.tga"
+
+local panelFontSize = 14
+local waveFontSize   = 36
+
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
+local vsx,vsy = Spring.GetViewGeometry()
+local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileSize = 45
+local fontfileOutlineSize = 8
+local fontfileOutlineStrength = 1.7
+local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfileScale2 = fontfileScale * 1.2
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 local viewSizeX, viewSizeY = 0,0
 local w               = 300
@@ -167,11 +178,6 @@ end
 --------------------------------------------------------------------------------
 
 
-fontHandler.UseFont(panelFont)
-local panelFontSize  = fontHandler.GetFontSize()
-fontHandler.UseFont(waveFont)
-local waveFontSize   = fontHandler.GetFontSize()
-
 function comma_value(amount)
   local formatted = amount
   while true do  
@@ -217,7 +223,7 @@ local function updatePos(x, y)
 end
 
 local function PanelRow(n)
-  return panelMarginX, h-panelMarginY-(n-1)*(panelFontSize+panelSpacingY)
+  return h-panelMarginY-(n-1)*(panelFontSize+panelSpacingY)
 end
 
 
@@ -231,9 +237,7 @@ local function CreatePanelDisplayList()
   gl.Translate(x1, y1, 0)
   gl.Scale(widgetScale, widgetScale, 1)
   gl.CallList(displayList)
-  fontHandler.DisableCache()
-  fontHandler.UseFont(panelFont)
-  fontHandler.BindTexture()
+
   local currentTime = GetGameSeconds()
   local techLevel = ""
   if (currentTime > gameInfo.gracePeriod) then
@@ -245,17 +249,21 @@ local function CreatePanelDisplayList()
   else
     techLevel = "Grace Period: " .. math.ceil(((currentTime - gameInfo.gracePeriod) * -1) -0.5)
   end
-  fontHandler.DrawStatic(white..techLevel, PanelRow(1))
-  fontHandler.DrawStatic(white..gameInfo.unitCounts, PanelRow(2))
-  fontHandler.DrawStatic(white..gameInfo.unitKills, PanelRow(3))
-  fontHandler.DrawStatic(white.."Burrows: "..gameInfo.roostCount, PanelRow(4))
-  fontHandler.DrawStatic(white.."Burrow Kills: "..gameInfo.roostKills, PanelRow(5))
+
+  font:Begin()
+  font:Print(white..techLevel, panelMarginX, PanelRow(1), panelFontSize, "")
+  font:Print(white..gameInfo.unitCounts, panelMarginX, PanelRow(2), panelFontSize, "")
+  font:Print(white..gameInfo.unitKills, panelMarginX, PanelRow(3), panelFontSize, "")
+  font:Print(white.."Burrows: "..gameInfo.roostCount, panelMarginX, PanelRow(4), panelFontSize, "")
+  font:Print(white.."Burrow Kills: "..gameInfo.roostKills, panelMarginX, PanelRow(5), panelFontSize, "")
   local s = white.."Mode: "..difficulties[gameInfo.difficulty]
   if gotScore then
-    fontHandler.DrawStatic(white.."Your Score: "..comma_value(scoreCount), 88, h-170)
+    font:Print(white.."Your Score: "..comma_value(scoreCount), 88, h-170, panelFontSize "")
   else
-    fontHandler.DrawStatic(white.."Mode: "..difficulties[gameInfo.difficulty], 120, h-170)
+    font:Print(white.."Mode: "..difficulties[gameInfo.difficulty], 120, h-170, panelFontSize, "")
   end
+  font:End()
+
   gl.Texture(false)
   gl.PopMatrix()
 end
@@ -278,12 +286,14 @@ local function Draw()
 
   if (waveMessage)  then
     local t = Spring.GetTimer()
-    fontHandler.UseFont(waveFont)
+
     local waveY = viewSizeY - Spring.DiffTimers(t, waveTime)*waveSpeed*viewSizeY
     if (waveY > 0) then
+      font2:Begin()
       for i, message in ipairs(waveMessage) do
-        fontHandler.DrawCentered(message, viewSizeX/2, waveY-WaveRow(i))
+        font2:Print(message, viewSizeX/2, waveY-WaveRow(i), waveFontSize*widgetScale, "co")
       end
+      font2:End()
     else
       waveMessage = nil
       waveY = viewSizeY
@@ -366,8 +376,8 @@ function widget:Shutdown()
   if hasChickenEvent then
     Spring.SendCommands({"luarules HasChickenEvent 0"})
   end
-  fontHandler.FreeFont(panelFont)
-  fontHandler.FreeFont(waveFont)
+  gl.DeleteFont(font)
+  gl.DeleteFont(font2)
 
   if (guiPanel) then gl.DeleteList(guiPanel); guiPanel=nil end
 
@@ -405,7 +415,14 @@ function widget:GameFrame(n)
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 function widget:DrawScreen()
+  if chobbyInterface then return end
   Draw()
 end
 
@@ -445,12 +462,18 @@ function widget:ViewResize(vsx, vsy)
   widgetScale = (0.75 + (viewSizeX*viewSizeY / 10000000)) * customScale
   x1 = viewSizeX + x1+((x1/2) * (widgetScale-1))
   y1 = viewSizeY + y1+((y1/2) * (widgetScale-1))
+
+  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+  if (fontfileScale ~= newFontfileScale) then
+    fontfileScale = newFontfileScale
+    gl.DeleteFont(font)
+    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+  end
 end
 
 
 local widgetScale = 1
-local vsx, vsy = Spring.GetViewGeometry()
-
 local changelogLines = {}
 local totalChangelogLines = 0
 

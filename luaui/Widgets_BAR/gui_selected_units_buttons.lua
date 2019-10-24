@@ -105,6 +105,9 @@ local rectMaxX = 0
 local rectMinY = 0
 local rectMaxY = 0
 
+local prevMouseIcon
+local hoverClock = nil
+
 local backgroundDimentions = {}
 local iconMargin = usedIconSizeX / 25		-- changed in ViewResize anyway
 local fontSize = iconSizeY * 0.28		-- changed in ViewResize anyway
@@ -191,9 +194,14 @@ function cacheUnitIcons()
     end
 end
 
-local prevMouseIcon
-local hoverClock = nil
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 function widget:DrawScreen()
+  if chobbyInterface then return end
   cacheUnitIcons()    -- else white icon bug happens
   if picList then
     if (spIsGUIHidden()) then return end
@@ -302,6 +310,7 @@ end
 function widget:Shutdown()
   if picList then
     gl.DeleteList(picList)
+    picList = nil
   end
   gl.DeleteFont(font)
   WG['selunitbuttons'] = nil

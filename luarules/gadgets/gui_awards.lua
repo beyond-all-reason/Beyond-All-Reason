@@ -502,6 +502,11 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 	--drawAwards = true
 end
 
+local chobbyLoaded = false
+if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+	chobbyLoaded = true
+end
+
 function gadget:Initialize()
 	gadget:ViewResize()
 	--register actions to SendToUnsynced messages
@@ -797,10 +802,16 @@ function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
 	if drawAwards then
 		x,y = correctMouseForScaling(x,y)
-		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
-			Spring.SendCommands("quitforce")
+		if chobbyLoaded then
+			if (x > bx+w-quitX-5) and (x < bx+w-quitX+20*font:GetTextWidth('Leave')+5) and (y>by+50-5) and (y<by+50+16+5) then --leave button
+				Spring.Reload("")
+			end
+		else
+			if (x > bx+w-quitX-5) and (x < bx+w-quitX+20*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
+				Spring.SendCommands("quitforce")
+			end
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+20*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
 			if Script.LuaUI("GuishaderRemoveRect") then
 				Script.LuaUI.GuishaderRemoveRect('awards')
@@ -864,8 +875,12 @@ function gadget:DrawScreen()
 			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
 		font2:Begin()
-		font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 17, "o")
-		font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 17, "o")
+		if chobbyLoaded then
+			font2:Print(quitColour .. 'Leave', bx+w-quitX, by+50, 20, "o")
+		else
+			font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 20, "o")
+		end
+		font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 20, "o")
 		font2:End()
 
 		if bettingScores ~= nil and bettingScores[1] ~= '' then

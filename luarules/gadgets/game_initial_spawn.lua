@@ -32,10 +32,10 @@ elseif Game and Game.version then
 end
 
 -- set minimun engine version
-local minEngineVersionTitle = '104.0.1.1239'
 local unsupportedEngine = true
 local enabled = false
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011239 then
+local minEngineVersionTitle = '104.0.1-1429'
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011429 then
 	unsupportedEngine = false
 	enabled = true
 end
@@ -717,7 +717,6 @@ end
 
 local timer3 = 30
 function gadget:DrawScreen()
-
 	-- only support AI's:  NullAI, DAI and KAIK
 	if enabled then
 		local teams = Spring.GetTeamList()

@@ -88,8 +88,9 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+local numAllyTeams = #Spring.GetAllyTeamList()-1
 local singleTeams = false
-if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
+if #Spring.GetTeamList()-1 == numAllyTeams then
 	singleTeams = true
 end
 
@@ -304,6 +305,8 @@ end
 
 
 function widget:DrawWorldPreUnit()
+	if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
+	if chobbyInterface then return end
 	if not drawWithHiddenGUI then
 		if spIsGUIHidden() then return end
 	end
@@ -335,6 +338,7 @@ local sec = 0
 local sceduledCheck = false
 local updateTime = 1
 function widget:Update(dt)
+	if chobbyInterface then return end
 	sec=sec+dt
 	local camX, camY, camZ = spGetCameraPosition()
 	if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
@@ -342,25 +346,35 @@ function widget:Update(dt)
 	end
 	if (sec>1/updateTime and lastUpdatedFrame ~= spGetGameFrame() or (sec>1/(updateTime*5) and sceduledCheck)) then
 		sec = 0
-		if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+		if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors then
 			if WG['playercolorpalette'].getSameTeamColors() ~= sameTeamColors then
 				sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
 				setColors()
 			end
+
 		end
-		checkAllUnits()
 		lastUpdatedFrame = spGetGameFrame()
 		sceduledCheck = false
 		updateTime = Spring.GetFPS() / 15
-		if updateTime < 0.66 then 
+		if updateTime < 0.66 then
 			updateTime = 0.66
 		end
+		--if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
+		checkAllUnits()
 	end
 	prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if singleTeams or (sameTeamColors and numAllyTeams <= 2) then return end
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
 	if useXrayHighlight and visibleUnitsCount > 0 then
@@ -477,5 +491,6 @@ function widget:TextCommand(command)
     if (string.find(command, "-enemyspotter_highlight") == 1) then 
 		highlightOpacity = highlightOpacity + (0.02 + highlightOpacity / 6) if highlightOpacity > 10 then highlightOpacity = 10 end
 		Spring.Echo("EnemySpotter: highlight opacity: "..highlightOpacity) 
-		CreateHighlightShader() end
+		CreateHighlightShader()
+	end
 end

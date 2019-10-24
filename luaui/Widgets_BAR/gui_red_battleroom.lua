@@ -580,9 +580,22 @@ local function processLine(line,g,cfg,newlinecolor)
 		ignoreThisMessage = true
 		-- Spring.SendCommands("wByNum "..regID.." Registered as "..myname)
 	end
-	
+
 	-- filter shadows config changes
 	if sfind(line,"^Set \"shadows\" config(-)parameter to ") then
+		ignoreThisMessage = true
+	end
+
+	-- filter spectating team change
+	if sfind(line," now spectating team ") then
+		ignoreThisMessage = true
+	end
+
+	-- filter lobby on/off message
+	if sfind(line,"TotalHideLobbyInterface, ") then
+		ignoreThisMessage = true
+	end
+	if sfind(line,"HandleLobbyOverlay") then
 		ignoreThisMessage = true
 	end
 	

@@ -15,7 +15,17 @@ local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
 	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
 	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
-	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
+
+	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
+		Spring.GetConfigFloat("tonemapA", 0.0),
+		Spring.GetConfigFloat("tonemapB", 1.0),
+		Spring.GetConfigFloat("tonemapC", 0.0),
+		Spring.GetConfigFloat("tonemapD", 0.0),
+		Spring.GetConfigFloat("tonemapE", 1.0),
+		Spring.GetConfigFloat("envAmbient", 0.5),
+		Spring.GetConfigFloat("unitSunMult", 1.5),
+		Spring.GetConfigFloat("unitExposureMult", 1.0),
+	})
 end
 
 local spGetMapDrawMode = Spring.GetMapDrawMode
@@ -34,12 +44,45 @@ local materials = {
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
+
 			"#define USE_LOSMAP",
+
 			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
+
+			"#define SUNMULT 1.5",
+			--"#define EXPOSURE 1.0",
+
+			"#define METALNESS 0.1",
+			"#define ROUGHNESS 0.8",
+			"#define EMISSIVENESS 0.0",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) ACESFilmicTM(c)",
 		},
 		deferredDefinitions = {
 			--"#define use_normalmapping", --very expensive for trees (too much overdraw)
 			"#define deferred_mode 1",
+
+			"#define USE_LOSMAP",
+
+			"#define SHADOW_SOFTNESS SHADOW_HARD", -- cuz shadow for swaying trees is bugged anyway
+
+			"#define SUNMULT 1.5",
+			--"#define EXPOSURE 1.0",
+
+			"#define METALNESS 0.1",
+			"#define ROUGHNESS 0.8",
+			"#define EMISSIVENESS 0.0",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
+
 			"#define MAT_IDX 129",
 		},
 		shaderPlugins = {
@@ -103,6 +146,7 @@ local materials = {
 			[4] = '$reflection',
 			[5] = "%NORMALTEX",
 			[6] = "$info",
+			[7] = GG.GetBrdfTexture(),
 		},
 		--DrawFeature = DrawFeature,
 		DrawGenesis = DrawGenesis,
@@ -147,9 +191,9 @@ for id, featureDef in pairs(FeatureDefs) do
 	for _,stub in ipairs (featureNameStubs) do
 		if featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.name and featureDef.name:find(stub) and featureDef.name:find(stub) == 1 then --also starts with
 			if featureDef.name:find('btree') == 1 then --beherith's old trees suffer if they get shitty normals
-				featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/blank_normal.tga"}
+				featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/blank_normal.dds"}
 			else
-				featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/default_tree_normal.tga"}
+				featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = "unittextures/default_tree_normal.dds"}
 			end
 		end
 	end

@@ -45,7 +45,7 @@ local function GetTransportTarget(uID)
 	
 	local uCmd, _, _, cmdParam1, cmdParam2 = spGetUnitCurrentCommand(uID)
 	if not uCmd then return end
-	if uCmd.id == CMD_LOAD_UNITS and cmdParam2 == nil then
+	if uCmd == CMD_LOAD_UNITS and cmdParam2 == nil then
 		if spGetUnitTeam(cmdParam1) == spGetMyTeamID() then
 			return cmdParam1
 		end

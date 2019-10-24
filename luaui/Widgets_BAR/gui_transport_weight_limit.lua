@@ -169,7 +169,14 @@ end
 local previousOsClock = os.clock()
 local currentRotationAngle = 0
 local currentRotationAngleOpposite = 0
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()

@@ -153,7 +153,6 @@ end
 
 local bgMargin = 6
 
-local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 400-bgMargin-bgMargin
 
@@ -401,18 +400,6 @@ function DrawWindow()
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
 
-	-- close button
-	local size = closeButtonSize*0.7
-	local width = size*0.055
-	gl.Color(1,1,1,1)
-	gl.PushMatrix()
-	gl.Translate(screenX+screenWidth-(closeButtonSize/2),screenY-(closeButtonSize/2),0)
-	gl.Rotate(-45,0,0,1)
-	gl.Rect(-width,size/2,width,-size/2)
-	gl.Rotate(90,0,0,1)
-	gl.Rect(-width,size/2,width,-size/2)
-	gl.PopMatrix()
-
 	-- title
 	local title = "Game info"
 	local titleFontSize = 18
@@ -430,7 +417,14 @@ function DrawWindow()
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	if amNewbie then return end
 
@@ -541,18 +535,6 @@ function mouseEvent(x, y, button, release)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-
-			-- on close button
-			local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
-				if release then
-					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-					show = not show
-				end
-				return true
-			end
-
 			if button == 1 or button == 3 then
 				if button == 3 and release then
 					show = not show
@@ -631,6 +613,7 @@ function widget:Initialize()
 		for i, line in ipairs(changelogLines) do
 			totalChangelogLines = i
 		end
+		widget:ViewResize()
 
 	else
 		--Spring.Echo("Commands info: couldn't load the commandslist file")

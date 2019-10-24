@@ -550,3 +550,10 @@ function widget:SetConfigData(data)
         blurIntensity = data.blurIntensity
     end
 end
+
+function widget:RecvLuaMsg(msg, playerID)
+    if msg:sub(1,18) == 'LobbyOverlayActive' then
+        screenBlur = (msg:sub(1,19) == 'LobbyOverlayActive1')
+        updateStencilTextureScreen = true
+    end
+end

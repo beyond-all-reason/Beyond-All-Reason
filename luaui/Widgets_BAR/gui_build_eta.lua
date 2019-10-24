@@ -95,6 +95,7 @@ end
 local lastGameUpdate = Spring.GetGameSeconds()
 
 function widget:Update(dt)
+	if chobbyInterface then return end
 
   local userSpeed,_,pause = Spring.GetGameSpeed()
   if (pause) then
@@ -212,18 +213,23 @@ local function DrawEtaText(timeLeft,yoffset)
   gl.Translate(0, yoffset,10)
   gl.Billboard()
   gl.Translate(0, 5 ,0)
-  --fontHandler.DrawCentered(etaStr)
   font:Begin()
   font:Print(etaStr, 0, 0, 5.75, "co")
   font:End()
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if Spring.IsGUIHidden() == false then 
 	  gl.DepthTest(true)
 
 	  gl.Color(1, 1, 1,0.1)
-	  --fontHandler.UseDefaultFont()
 	  local cx, cy, cz = Spring.GetCameraPosition()
 	  for unitID, bi in pairs(etaTable) do
 		local ux,uy,uz = Spring.GetUnitViewPosition(unitID)

@@ -25,11 +25,8 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 
 local bgMargin = 6
 
-local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
-
-local customScale = 1
 
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
@@ -57,16 +54,17 @@ local GL_FRONT_AND_BACK = GL.FRONT_AND_BACK
 local GL_LINE_STRIP = GL.LINE_STRIP
 
 local widgetScale = 1
-local vsx, vsy = Spring.GetViewGeometry()
 
-local vsx,vsy = Spring.GetViewGeometry()
-local screenX = (vsx*0.5) - (screenWidth/2)
-local screenY = (vsy*0.5) + (screenHeight/2)
+local customScale = 1.1
+local centerPosX = 0.51	-- note: dont go too far from 0.5
+local centerPosY = 0.49		-- note: dont go too far from 0.5
+local screenX = (vsx*centerPosX) - (screenWidth/2)
+local screenY = (vsy*centerPosY) + (screenHeight/2)
   
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	screenX = (vsx*0.5) - (screenWidth/2)
-	screenY = (vsy*0.5) + (screenHeight/2)
+	screenX = (vsx*centerPosX) - (screenWidth/2)
+	screenY = (vsy*centerPosY) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
@@ -204,18 +202,6 @@ function DrawWindow()
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,8)
 	
-	-- close button
-	local size = closeButtonSize*0.7
-	local width = size*0.055
-  gl.Color(1,1,1,1)
-	gl.PushMatrix()
-		gl.Translate(screenX+screenWidth-(closeButtonSize/2),screenY-(closeButtonSize/2),0)
-  	gl.Rotate(-45,0,0,1)
-  	gl.Rect(-width,size/2,width,-size/2)
-  	gl.Rotate(90,0,0,1)
-  	gl.Rect(-width,size/2,width,-size/2)
-	gl.PopMatrix()
-	
 	-- title background
     local title = "Keybinds"
     local titleFontSize = 18
@@ -246,7 +232,14 @@ function DrawWindow()
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+  if chobbyInterface then return end
   if spIsGUIHidden() then return end
   
   -- draw the help
@@ -320,17 +313,6 @@ function mouseEvent(x, y, button, release)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-			
-			-- on close button
-			rectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			rectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-				if release then
-					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-					show = not show
-				end
-				return true
-			end
 			return true
 		elseif titleRect == nil or not IsOnRect(x, y, (titleRect[1] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[2] * widgetScale) - ((vsy * (widgetScale-1))/2), (titleRect[3] * widgetScale) - ((vsx * (widgetScale-1))/2), (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)) then
 			if release then
@@ -355,6 +337,7 @@ function widget:Initialize()
 	WG['keybinds'].isvisible = function()
 		return show
 	end
+	widget:ViewResize()
 end
 
 function widget:Shutdown()

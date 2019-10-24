@@ -58,7 +58,6 @@ local message4 = ""
 
 local floor = math.floor
 
-local vsx, vsy = widgetHandler:GetViewSizes()
 function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.80 + (vsx*vsy / 6000000))
@@ -112,13 +111,18 @@ function widget:Update(dt)
   end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
   if (spGetGameSeconds() > 0) then
     widgetHandler:RemoveWidget(self)
     return
   end
-  
-  local timer = widgetHandler:GetHourTimer()
 
   local msg = '\255\255\255\255' .. string.format("%s %s", "Gametype: ",  message)
   local msg2 = '\255\255\255\255' .. message2

@@ -37,7 +37,7 @@ local SSAO_KERNEL_SIZE = 24 -- how many samples are used for SSAO spatial sampli
 local SSAO_RADIUS = 5 -- world space maximum sampling radius
 local SSAO_MIN = 1.0 -- minimum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Absolute value in world space coords.
 local SSAO_MAX = 1.0 -- maximum depth difference between fragment and sample depths to trigger SSAO sample occlusion. Percentage of SSAO_RADIUS.
-local SSAO_ALPHA_POW = 3.0 -- consider this as SSAO effect strength
+local SSAO_ALPHA_POW = 8.0 -- consider this as SSAO effect strength
 
 local BLUR_HALF_KERNEL_SIZE = 4 -- (BLUR_HALF_KERNEL_SIZE + BLUR_HALF_KERNEL_SIZE + 1) samples are used to perform the blur
 local BLUR_PASSES = 3 -- number of blur passes
@@ -45,7 +45,7 @@ local BLUR_SIGMA = 1.8 -- Gaussian sigma of a single blur pass, other factors li
 
 local DOWNSAMPLE = 2 -- increasing downsapling will reduce GPU RAM occupation (a little bit), increase performace (a little bit), introduce occlusion blockiness
 
-local MERGE_MISC = false -- for future material indices based SSAO evaluation
+--local MERGE_MISC = true -- for future material indices based SSAO evaluation
 local DEBUG_SSAO = false -- use for debug
 
 
@@ -282,11 +282,12 @@ function widget:Initialize()
 			--	glTexture(3, "$map_gbuffer_zvaltex")
 			modelNormalTex = 0,
 			modelDepthTex = 1,
-			mapNormalTex = 2,
-			mapDepthTex = 3,
+			modelDiffTex = 2,
+			mapNormalTex = 3,
+			mapDepthTex = 4,
 
-			modelMiscTex = 4,
-			mapMiscTex = 5,
+			modelMiscTex = 5,
+			mapMiscTex = 6,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx, vsy},
@@ -305,6 +306,7 @@ function widget:Initialize()
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_MAX###", tostring(SSAO_MAX))
 
 	ssaoShaderFrag = ssaoShaderFrag:gsub("###SSAO_ALPHA_POW###", tostring(SSAO_ALPHA_POW))
+	ssaoShaderFrag = ssaoShaderFrag:gsub("###USE_MATERIAL_INDICES###", tostring((MERGE_MISC and 1) or 0))
 
 	ssaoShader = LuaShader({
 		vertex = ssaoShaderVert,
@@ -312,6 +314,7 @@ function widget:Initialize()
 		uniformInt = {
 			viewPosTex = 0,
 			viewNormalTex = 1,
+			miscTex = 2,
 		},
 		uniformFloat = {
 			viewPortSize = {vsx / DOWNSAMPLE, vsy / DOWNSAMPLE},
@@ -420,12 +423,13 @@ local function DoDrawSSAO(isScreenSpace)
 
 			gl.Texture(0, "$model_gbuffer_normtex")
 			gl.Texture(1, "$model_gbuffer_zvaltex")
-			gl.Texture(2, "$map_gbuffer_normtex")
-			gl.Texture(3, "$map_gbuffer_zvaltex")
+			gl.Texture(2, "$model_gbuffer_difftex")
+			gl.Texture(3, "$map_gbuffer_normtex")
+			gl.Texture(4, "$map_gbuffer_zvaltex")
 
 			if MERGE_MISC then
-				gl.Texture(4, "$model_gbuffer_misctex")
-				gl.Texture(5, "$map_gbuffer_misctex")
+				gl.Texture(5, "$model_gbuffer_misctex")
+				gl.Texture(6, "$map_gbuffer_misctex")
 			end
 
 
@@ -436,9 +440,11 @@ local function DoDrawSSAO(isScreenSpace)
 			gl.Texture(1, false)
 			gl.Texture(2, false)
 			gl.Texture(3, false)
+			gl.Texture(4, false)
 			if MERGE_MISC then
 				gl.Texture(4, false)
 				gl.Texture(5, false)
+				gl.Texture(6, false)
 			end
 		end)
 	end)
@@ -449,11 +455,17 @@ local function DoDrawSSAO(isScreenSpace)
 
 			gl.Texture(0, gbuffFuseViewPosTex)
 			gl.Texture(1, gbuffFuseViewNormalTex)
+			if MERGE_MISC then
+				gl.Texture(2, gbuffFuseMiscTex)
+			end
 			gl.CallList(screenQuadList) -- gl.TexRect(-1, -1, 1, 1)
 			--gl.TexRect(-1, -1, 1, 1)
 
 			gl.Texture(0, false)
 			gl.Texture(1, false)
+			if MERGE_MISC then
+				gl.Texture(2, false)
+			end
 		end)
 	end)
 
