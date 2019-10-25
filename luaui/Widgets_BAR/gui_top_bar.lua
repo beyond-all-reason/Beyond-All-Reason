@@ -16,8 +16,8 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
+local fontfileSize = 36
+local fontfileOutlineSize = 9
 local fontfileOutlineStrength = 1.33
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -652,7 +652,7 @@ local function updateResbarText(res)
 			-- display overflow notification
 			if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
 				if showOverflowTooltip[res] == nil then
-					showOverflowTooltip[res] = os.clock() + 1.1
+					showOverflowTooltip[res] = os.clock() + 0.5
 				end
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding = 2.5*widgetScale
@@ -675,7 +675,7 @@ local function updateResbarText(res)
 						if allyteamOverflowingEnergy then
 							glColor(0.3,0,0,0.6)
 						else
-							glColor(0.3,0.3,0,0.6)
+							glColor(0.3,0.25,0,0.6)
 						end
 					end
 					RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
@@ -689,7 +689,7 @@ local function updateResbarText(res)
 						if allyteamOverflowingEnergy then
 							glColor(1,0.3,0.3,0.2)
 						else
-							glColor(1,1,0,0.2)
+							glColor(1,0.88,0,0.2)
 						end
 					end
 					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25)
