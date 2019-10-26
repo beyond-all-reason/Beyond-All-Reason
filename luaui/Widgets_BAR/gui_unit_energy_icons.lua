@@ -25,6 +25,7 @@ local spGetTeamUnits			= Spring.GetTeamUnits
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
+local spGetUnitResources		= Spring.GetUnitResources
 
 local unitConf = {}
 local teamEnergy = {}
@@ -39,6 +40,7 @@ function SetUnitConf()
 	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = 6*( xsize^2 + zsize^2 )^0.5
+		local buildingNeedingUpkeep = false
 		local neededEnergy = 0
 		if table.getn(unitDef.weapons) > 0 then
 			for i=1, #unitDef.weapons do
@@ -48,9 +50,12 @@ function SetUnitConf()
                     neededEnergy = weaponDef.energyCost
 				end
 			end
+		elseif unitDef.isBuilding and unitDef.energyUpkeep and unitDef.energyUpkeep > 0 and unitDef.energyUpkeep > unitDef.energyMake then
+			neededEnergy = unitDef.energyUpkeep
+			buildingNeedingUpkeep = true
 		end
 		if neededEnergy > 0 then
-			unitConf[udid] = {7 +(scale/2.5), neededEnergy}
+			unitConf[udid] = {7 +(scale/2.5), neededEnergy, buildingNeedingUpkeep}
 		end
 	end
 end
@@ -109,7 +114,7 @@ end
 
 function DrawIcon(size, self)
 	gl.Color(1,0,0, (self and 0.7 or 0.4))
-	gl.Texture(':n:LuaUI/Images/energy.png')
+	gl.Texture(':n:LuaUI/Images/energy2.png')
 	gl.Translate(0,size*3,0)
 	gl.Billboard()
 	gl.TexRect(-(size*0.5), -(size*0.5), (size*0.5), (size*0.5))
@@ -128,7 +133,7 @@ function widget:DrawWorld()
 		for i=1, #units do
 			local unitID = units[i]
 			local unitDefID = spGetUnitDefID(unitID)
-			if unitConf[unitDefID] and unitConf[unitDefID][2] > availibleEnergy then
+			if unitConf[unitDefID] and unitConf[unitDefID][2] > availibleEnergy and (not unitConf[unitDefID][3] or  ((unitConf[unitDefID][3] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][2])) then
 				if spIsUnitInView(unitID) then
 					if spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
 						if fullview or spIsUnitAllied(unitID) then
