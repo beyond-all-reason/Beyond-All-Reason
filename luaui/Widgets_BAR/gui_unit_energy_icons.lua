@@ -22,16 +22,19 @@ local spIsGUIHidden				= Spring.IsGUIHidden
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetTeamUnits			= Spring.GetTeamUnits
-local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
+local spAreTeamsAllied			= Spring.AreTeamsAllied
+local spIsUnitAllied			= Spring.IsUnitAllied
 
 local unitConf = {}
 local teamEnergy = {}
+local finishedUnits = {}
 local spec, fullview = Spring.GetSpectatingState()
 local lastUpdateGameFrame = Spring.GetGameFrame()
 local myTeamID = Spring.GetMyTeamID()
+local myAllyTeamID = Spring.GetLocalAllyTeamID()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -66,6 +69,11 @@ end
 
 function widget:PlayerChanged(playerID)
 	myTeamID = Spring.GetMyTeamID()
+	local prevmyAllyTeamID = myAllyTeamID
+	myAllyTeamID = Spring.GetLocalAllyTeamID()
+	if myAllyTeamID ~= prevmyAllyTeamID then
+		finishedUnits = {}
+	end
 	init()
 end
 
@@ -125,29 +133,31 @@ function widget:DrawWorld()
 	if spIsGUIHidden() then return end
 
 	gl.DepthTest(true)
-
     gl.Color(1,0,0,0.85)
 
 	for teamID, availibleEnergy in pairs(teamEnergy) do
-		local units = spGetTeamUnits(teamID)
-		for i=1, #units do
-			local unitID = units[i]
-			local unitDefID = spGetUnitDefID(unitID)
-			if unitConf[unitDefID] and unitConf[unitDefID][2] > availibleEnergy and (not unitConf[unitDefID][3] or  ((unitConf[unitDefID][3] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][2])) then
-				if spIsUnitInView(unitID) then
-					if spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
-						if fullview or spIsUnitAllied(unitID) then
-							local unitScale = unitConf[unitDefID][1]
-							glDrawFuncAtUnit(unitID, false, DrawIcon, unitScale, (teamID == myTeamID))
-						end
+		if fullview or spAreTeamsAllied(teamID, myTeamID) then
+			local units = spGetTeamUnits(teamID)
+			for i=1, #units do
+				local unitID = units[i]
+				local unitDefID = spGetUnitDefID(unitID)
+				if unitConf[unitDefID] and unitConf[unitDefID][2] > availibleEnergy and (not unitConf[unitDefID][3] or  ((unitConf[unitDefID][3] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][2])) then
+					if spIsUnitInView(unitID) and (finishedUnits[unitID] ~= nil or spGetUnitRulesParam(unitID, "under_construction") ~= 1) then
+						finishedUnits[unitID] = true
+						glDrawFuncAtUnit(unitID, false, DrawIcon, unitConf[unitDefID][1], (teamID == myTeamID))
 					end
 				end
 			end
 		end
 	end
+
 	gl.Color(1,1,1,1)
 	gl.Texture(false)
 	gl.DepthTest(false)
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	finishedUnits[unitID] = nil
 end
 
 function widget:GetConfigData(data)
