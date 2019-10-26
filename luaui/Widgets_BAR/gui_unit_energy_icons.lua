@@ -25,16 +25,16 @@ local spGetTeamUnits			= Spring.GetTeamUnits
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
-local spAreTeamsAllied			= Spring.AreTeamsAllied
-local spIsUnitAllied			= Spring.IsUnitAllied
 
 local unitConf = {}
 local teamEnergy = {}
-local finishedUnits = {}
+local teamUnits = {}
+local teamList = {}
 local spec, fullview = Spring.GetSpectatingState()
-local lastUpdateGameFrame = Spring.GetGameFrame()
 local myTeamID = Spring.GetMyTeamID()
-local myAllyTeamID = Spring.GetLocalAllyTeamID()
+local updateFrame = 0
+local lastGameFrame = 0
+local sceduledGameFrame = 1
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -67,16 +67,6 @@ function init()
 	spec, fullview = Spring.GetSpectatingState()
 end
 
-function widget:PlayerChanged(playerID)
-	myTeamID = Spring.GetMyTeamID()
-	local prevmyAllyTeamID = myAllyTeamID
-	myAllyTeamID = Spring.GetLocalAllyTeamID()
-	if myAllyTeamID ~= prevmyAllyTeamID then
-		finishedUnits = {}
-	end
-	init()
-end
-
 function widget:Initialize()
 	SetUnitConf()
 
@@ -91,26 +81,84 @@ function widget:Initialize()
 	init()
 end
 
+function widget:PlayerChanged(playerID)
+	local prevMyTeamID = myTeamID
+	myTeamID = Spring.GetMyTeamID()
+	if myTeamID ~= prevMyTeamID then
+		doUpdate()
+	end
+	init()
+end
+
+function doUpdate()
+	teamUnits = {}
+	for i, teamID in pairs(teamList) do
+		if (fullview and not onlyShowOwnTeam) or not onlyShowOwnTeam or teamID == myTeamID then
+			teamUnits[teamID] = {}
+			local teamUnitsRaw = spGetTeamUnits(teamID)
+			for i=1, #teamUnitsRaw do
+				local unitID = teamUnitsRaw[i]
+				local unitDefID = spGetUnitDefID(unitID)
+				if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+					teamUnits[teamID][unitID] = unitDefID
+				end
+			end
+		end
+	end
+	sceduledGameFrame = Spring.GetGameFrame() + 33
+end
 
 function widget:Update(dt)
+	updateFrame = updateFrame + 1
 	if spec then
 		fullview = select(2,Spring.GetSpectatingState())
 		myTeamID = Spring.GetMyTeamID()
 	end
-	if lastUpdateGameFrame ~= Spring.GetGameFrame() then
-		lastUpdateGameFrame = Spring.GetGameFrame()
-		teamEnergy = {}
-		local teamList
+	if Spring.GetGameFrame() ~= lastGameFrame then
+		lastGameFrame = Spring.GetGameFrame()
 		if onlyShowOwnTeam then
 			teamList = Spring.GetTeamList(Spring.GetMyAllyTeamID())
 		else
 			teamList = Spring.GetTeamList()
 		end
+		teamEnergy = {}
 		for i, teamID in pairs(teamList) do --onlyShowOwnTeam and myTeamID or nil
 			if (fullview and not onlyShowOwnTeam) or not onlyShowOwnTeam or teamID == myTeamID then
 				teamEnergy[teamID] = select(1, spGetTeamResources(teamID, 'energy'))
 			end
 		end
+	end
+	if Spring.GetGameFrame() >= sceduledGameFrame then
+		doUpdate()
+	end
+end
+
+function widget:UnitTaken(unitID, unitDefID, teamID, newTeamID)
+	if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+		if teamUnits[teamID] then
+			teamUnits[teamID][unitID] = nil
+		end
+		if teamUnits[newTeamID] then
+			teamUnits[newTeamID][unitID] = unitDefID
+		end
+	end
+end
+
+function widget:UnitGiven(unitID, unitDefID, teamID, oldTeamID)
+	if unitConf[unitDefID] and spGetUnitRulesParam(unitID, "under_construction") ~= 1 then
+		if teamUnits[oldTeamID] then
+			teamUnits[oldTeamID][unitID] = nil
+		end
+		if teamUnits[teamID] then
+			teamUnits[teamID][unitID] = unitDefID
+		end
+
+	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, teamID)
+	if teamUnits[teamID] then
+		teamUnits[teamID][unitID] = nil
 	end
 end
 
@@ -135,17 +183,11 @@ function widget:DrawWorld()
 	gl.DepthTest(true)
     gl.Color(1,0,0,0.85)
 
-	for teamID, availibleEnergy in pairs(teamEnergy) do
-		if fullview or spAreTeamsAllied(teamID, myTeamID) then
-			local units = spGetTeamUnits(teamID)
-			for i=1, #units do
-				local unitID = units[i]
-				local unitDefID = spGetUnitDefID(unitID)
-				if unitConf[unitDefID] and unitConf[unitDefID][2] > availibleEnergy and (not unitConf[unitDefID][3] or  ((unitConf[unitDefID][3] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][2])) then
-					if spIsUnitInView(unitID) and (finishedUnits[unitID] ~= nil or spGetUnitRulesParam(unitID, "under_construction") ~= 1) then
-						finishedUnits[unitID] = true
-						glDrawFuncAtUnit(unitID, false, DrawIcon, unitConf[unitDefID][1], (teamID == myTeamID))
-					end
+	for teamID, units in pairs(teamUnits) do
+		for unitID, unitDefID in pairs(units) do
+			if unitConf[unitDefID] and unitConf[unitDefID][2] > teamEnergy[teamID] and (not unitConf[unitDefID][3] or  ((unitConf[unitDefID][3] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][2])) then
+				if spIsUnitInView(unitID) then
+					glDrawFuncAtUnit(unitID, false, DrawIcon, unitConf[unitDefID][1], (teamID == myTeamID))
 				end
 			end
 		end
@@ -156,9 +198,6 @@ function widget:DrawWorld()
 	gl.DepthTest(false)
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	finishedUnits[unitID] = nil
-end
 
 function widget:GetConfigData(data)
 	savedTable = {}
