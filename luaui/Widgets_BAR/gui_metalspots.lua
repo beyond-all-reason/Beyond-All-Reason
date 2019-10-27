@@ -223,9 +223,9 @@ function widget:DrawWorldPreUnit()
 		   currentRotation = currentRotation - 360
 		end
 	end
-	local mult
+	local mult, scale, spot
 	for i = 1, #metalSpots do
-		local spot = metalSpots[i]
+		spot = metalSpots[i]
 		if spot[7] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
 			if not spot[6] then
 				mult = math_min(1, (previousOsClock-spot[7])/fadeTime)
@@ -237,6 +237,10 @@ function widget:DrawWorldPreUnit()
 			else
 				gl.PushMatrix()
 				gl.Translate(spot[1], spot[2], spot[3])
+				if mult ~= 1 then
+					scale = 0.8 + (0.2 * (mult*mult))
+					gl.Scale(scale,scale,scale)
+				end
 
 				gl.Rotate(currentRotation, 0,1,0)
 				gl.Color(1, 1, 1, opacity*0.5*mult)
@@ -244,7 +248,7 @@ function widget:DrawWorldPreUnit()
 
 				gl.Rotate(-currentRotation*2, 0,1,0)
 				gl.Rotate(180, 1,0,0)
-				local scale = 1.33 - (spot[5]*0.075)
+				scale = 1.33 - (spot[5]*0.075)
 				gl.Scale(scale, scale, scale)
 				gl.Color(1, 1, 1, opacity*mult)
 				gl.CallList(circleList[spot[5]])
