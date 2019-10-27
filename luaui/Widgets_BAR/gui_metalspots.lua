@@ -13,19 +13,17 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local OPTIONS = {
-	showValue			= false,
-	metalViewOnly		= false,
+local showValue			= false
+local metalViewOnly		= false
 
-	circleSpaceUsage	= 0.75,
-	circleInnerOffset	= 0.35,
-	rotationSpeed		= 4,
-	opacity				= 0.5,
+local circleSpaceUsage	= 0.75
+local circleInnerOffset	= 0.35
+local rotationSpeed		= 4
+local opacity			= 0.5
+local fadeTime			= 0.6
 
-	-- size
-	innersize			= 1.86,		-- outersize-innersize = circle width
-	outersize			= 2.08,		-- outersize-innersize = circle width
-}
+local innersize			= 1.86		-- outersize-innersize = circle width
+local outersize			= 2.08		-- outersize-innersize = circle width
 
 
 local spIsGUIHidden = Spring.IsGUIHidden
@@ -33,6 +31,7 @@ local spIsSphereInView = Spring.IsSphereInView
 local spGetUnitsInSphere = Spring.GetUnitsInSphere
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetGroundHeight = Spring.GetGroundHeight
+local math_min = math.min
 
 local metalSpots = {}
 local valueList = {}
@@ -74,7 +73,7 @@ end
 local function DrawCircleLine(innersize, outersize)
 	gl.BeginEnd(GL.QUADS, function()
 		local detailPartWidth, a1,a2,a3,a4
-		local width = OPTIONS.circleSpaceUsage
+		local width = circleSpaceUsage
 		local pieces = 3 + math.ceil(innersize/11)
 		local detail = math.ceil(innersize/pieces)
 		local radstep = (2.0 * math.pi) / pieces
@@ -84,8 +83,8 @@ local function DrawCircleLine(innersize, outersize)
 				detailPartWidth = ((width / detail) * d)
 				a1 = ((i+detailPartWidth - (width / detail)) * radstep)
 				a2 = ((i+detailPartWidth) * radstep)
-				a3 = ((i+OPTIONS.circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
-				a4 = ((i+OPTIONS.circleInnerOffset+detailPartWidth) * radstep)
+				a3 = ((i+circleInnerOffset+detailPartWidth - (width / detail)) * radstep)
+				a4 = ((i+circleInnerOffset+detailPartWidth) * radstep)
 				
 				--outer (fadein)
 				gl.Vertex(math.sin(a4)*innersize, 0, math.cos(a4)*innersize)
@@ -107,22 +106,22 @@ function widget:Initialize()
 
 	WG.metalspots = {}
 	WG.metalspots.setShowValue = function(value)
-		OPTIONS.showValue = value
+		showValue = value
 	end
 	WG.metalspots.getShowValue = function()
-		return OPTIONS.showValue
+		return showValue
 	end
 	WG.metalspots.setOpacity = function(value)
-		OPTIONS.opacity = value
+		opacity = value
 	end
 	WG.metalspots.getOpacity = function()
-		return OPTIONS.opacity
+		return opacity
 	end
 	WG.metalspots.setMetalViewOnly = function(value)
-		OPTIONS.metalViewOnly = value
+		metalViewOnly = value
 	end
 	WG.metalspots.getMetalViewOnly = function()
-		return OPTIONS.metalViewOnly
+		return metalViewOnly
 	end
 
 	currentClock = os.clock()
@@ -132,7 +131,16 @@ function widget:Initialize()
 		local value = string.format("%0.1f",math.round(spot.worth/1000,1))
 		if tonumber(value) > 0.001 then
 			local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
-			metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value, scale}
+
+			local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 100*scale)
+			local occupied = false
+			for j=1, #units do
+				if extractors[spGetUnitDefID(units[j])]  then
+					occupied = true
+					break
+				end
+			end
+			metalSpots[#metalSpots+1] = {spot.x, Spring.GetGroundHeight(spot.x,spot.z), spot.z, value, scale, occupied, currentClock}
 			if not valueList[value] then
 				valueList[value] = gl.CreateList(function()
 					font:Begin()
@@ -143,7 +151,7 @@ function widget:Initialize()
 				end)
 			end
 			if not circleList[scale] then
-				circleList[scale] = gl.CreateList(DrawCircleLine, (OPTIONS.innersize*21*scale)-((1-scale)*4), (OPTIONS.outersize*21*scale))
+				circleList[scale] = gl.CreateList(DrawCircleLine, (innersize*21*scale)-((1-scale)*4), (outersize*21*scale))
 			end
 		end
 	end
@@ -175,16 +183,22 @@ end
 -- periodically check if mex spot is occupied
 function widget:GameFrame(gf)
 	if gf % 39 == 1 then
+		local now = os.clock()
 		for i=1, #metalSpots do
-			metalSpots[i][6] = false
 			metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
 			local spot = metalSpots[i]
 			local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 100*spot[5])
+			local occupied = false
+			local prevOccupied = metalSpots[i][6]
 			for j=1, #units do
 				if extractors[spGetUnitDefID(units[j])]  then
-					metalSpots[i][6] = true
+					occupied = true
 					break
 				end
+			end
+			if occupied ~= prevOccupied then
+				metalSpots[i][7] = now
+				metalSpots[i][6] = occupied
 			end
 		end
 	end
@@ -192,7 +206,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
-	if OPTIONS.metalViewOnly and Spring.GetMapDrawMode() ~= 'metal' then return end
+	if metalViewOnly and Spring.GetMapDrawMode() ~= 'metal' then return end
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	
@@ -202,39 +216,48 @@ function widget:DrawWorldPreUnit()
 	gl.DepthTest(false)
 
 	-- animate rotation
-	if OPTIONS.rotationSpeed > 0 then
-		local angleDifference = (OPTIONS.rotationSpeed) * (clockDifference * 5)
+	if rotationSpeed > 0 then
+		local angleDifference = (rotationSpeed) * (clockDifference * 5)
 		currentRotation = currentRotation + (angleDifference*0.66)
 		if currentRotation > 360 then
 		   currentRotation = currentRotation - 360
 		end
 	end
-
+	local mult
 	for i = 1, #metalSpots do
 		local spot = metalSpots[i]
-		if not spot[6] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
-			gl.PushMatrix()
-			gl.Translate(spot[1], spot[2], spot[3])
-
-			gl.Rotate(currentRotation, 0,1,0)
-			gl.Color(1, 1, 1, OPTIONS.opacity*0.5)
-			gl.CallList(circleList[spot[5]])
-
-			gl.Rotate(-currentRotation*2, 0,1,0)
-			gl.Rotate(180, 1,0,0)
-			local scale = 1.33 - (spot[5]*0.075)
-			gl.Scale(scale, scale, scale)
-			gl.Color(1, 1, 1, OPTIONS.opacity)
-			gl.CallList(circleList[spot[5]])
-
-			if OPTIONS.showValue or Spring.GetGameFrame() == 0 or Spring.GetMapDrawMode() == 'metal' then
-				gl.Scale(21*spot[5],21*spot[5],21*spot[5])
-				gl.Rotate(-180, 1,0,0)
-				gl.Rotate(currentRotation, 0,1,0)
-				gl.Billboard()
-				gl.CallList(valueList[spot[4]])
+		if spot[7] and spIsSphereInView(spot[1], spot[2], spot[3], 60) then
+			if not spot[6] then
+				mult = math_min(1, (previousOsClock-spot[7])/fadeTime)
+			else
+				mult = 1 - math_min(1, (previousOsClock-spot[7])/fadeTime)
 			end
-			gl.PopMatrix()
+			if mult < 0 then
+				metalSpots[i][7] = nil
+			else
+				gl.PushMatrix()
+				gl.Translate(spot[1], spot[2], spot[3])
+
+				gl.Rotate(currentRotation, 0,1,0)
+				gl.Color(1, 1, 1, opacity*0.5*mult)
+				gl.CallList(circleList[spot[5]])
+
+				gl.Rotate(-currentRotation*2, 0,1,0)
+				gl.Rotate(180, 1,0,0)
+				local scale = 1.33 - (spot[5]*0.075)
+				gl.Scale(scale, scale, scale)
+				gl.Color(1, 1, 1, opacity*mult)
+				gl.CallList(circleList[spot[5]])
+
+				if showValue or Spring.GetGameFrame() == 0 or Spring.GetMapDrawMode() == 'metal' then
+					gl.Scale(21*spot[5],21*spot[5],21*spot[5])
+					gl.Rotate(-180, 1,0,0)
+					gl.Rotate(currentRotation, 0,1,0)
+					gl.Billboard()
+					gl.CallList(valueList[spot[4]])
+				end
+				gl.PopMatrix()
+			end
 		end
     end
 
@@ -244,20 +267,20 @@ end
 
 function widget:GetConfigData(data)
 	savedTable = {}
-	savedTable.showValue = OPTIONS.showValue
-	savedTable.opacity = OPTIONS.opacity
-	savedTable.metalViewOnly = OPTIONS.metalViewOnly
+	savedTable.showValue = showValue
+	savedTable.opacity = opacity
+	savedTable.metalViewOnly = metalViewOnly
 	return savedTable
 end
 
 function widget:SetConfigData(data)
 	if data.showValue ~= nil then
-		OPTIONS.showValue = data.showValue
+		showValue = data.showValue
 	end
 	if data.opacity ~= nil then
-		OPTIONS.opacity = data.opacity
+		opacity = data.opacity
 	end
 	if data.metalViewOnly ~= nil then
-		OPTIONS.metalViewOnly = data.metalViewOnly
+		metalViewOnly = data.metalViewOnly
 	end
 end
