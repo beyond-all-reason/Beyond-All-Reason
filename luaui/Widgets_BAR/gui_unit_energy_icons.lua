@@ -52,9 +52,13 @@ function SetUnitConf()
 			for i=1, #unitDef.weapons do
 				local weaponDefID = unitDef.weapons[i].weaponDef
 				local weaponDef   = WeaponDefs[weaponDefID]
-				if weaponDef and weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
-                    neededEnergy = weaponDef.energyCost
-				end
+                if weaponDef then
+                    if weaponDef.stockpile then
+                        neededEnergy = math.floor(weaponDef.energyCost / (weaponDef.stockpileTime/30))
+                    elseif weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
+                        neededEnergy = weaponDef.energyCost
+                    end
+                end
 			end
 		elseif unitDef.isBuilding and unitDef.energyUpkeep and unitDef.energyUpkeep > 0 and unitDef.energyUpkeep > unitDef.energyMake then
 			neededEnergy = unitDef.energyUpkeep
