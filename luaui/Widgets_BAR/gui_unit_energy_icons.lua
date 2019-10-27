@@ -71,8 +71,6 @@ function init()
 end
 
 function widget:Initialize()
-	SetUnitConf()
-
 	WG['unitenergyicons'] = {}
 	WG['unitenergyicons'].setOnlyShowOwnTeam = function(value)
 		onlyShowOwnTeam = value
@@ -80,7 +78,7 @@ function widget:Initialize()
 	WG['unitenergyicons'].getOnlyShowOwnTeam = function(value)
 		return onlyShowOwnTeam
 	end
-
+    SetUnitConf()
 	init()
 end
 
@@ -88,6 +86,7 @@ function widget:PlayerChanged(playerID)
 	local prevMyTeamID = myTeamID
 	myTeamID = Spring.GetMyTeamID()
 	if myTeamID ~= prevMyTeamID then
+        unitIconTimes = {}
 		doUpdate()
 	end
 	init()
@@ -144,6 +143,7 @@ function widget:UnitTaken(unitID, unitDefID, teamID, newTeamID)
 		if teamUnits[newTeamID] then
 			teamUnits[newTeamID][unitID] = unitDefID
 		end
+        unitIconTimes[unitID] = nil
 	end
 end
 
@@ -155,13 +155,14 @@ function widget:UnitGiven(unitID, unitDefID, teamID, oldTeamID)
 		if teamUnits[teamID] then
 			teamUnits[teamID][unitID] = unitDefID
 		end
-
+        unitIconTimes[unitID] = nil
 	end
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, teamID)
 	if teamUnits[teamID] then
 		teamUnits[teamID][unitID] = nil
+        unitIconTimes[unitID] = nil
 	end
 end
 
