@@ -38,7 +38,7 @@ return {
 		sightdistance = 364,
 		trackoffset = 6,
 		trackstrength = 5,
-		tracktype = "armbeaver_tracks",
+		tracktype = "armpincer_tracks",
 		trackwidth = 30,
 		turninplace = true,
 		turninplaceanglelimit = 90,
