@@ -10,8 +10,9 @@ function widget:GetInfo()
    }
 end
 
-
+local weaponEnergyCostFloor = 6
 local onlyShowOwnTeam = false
+local fadeTime = 0.4
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -25,11 +26,13 @@ local spGetTeamUnits			= Spring.GetTeamUnits
 local spGetUnitRulesParam		= Spring.GetUnitRulesParam
 local spGetTeamResources		= Spring.GetTeamResources
 local spGetUnitResources		= Spring.GetUnitResources
+local math_min = math.min
 
 local unitConf = {}
 local teamEnergy = {}
 local teamUnits = {}
 local teamList = {}
+local unitIconTimes = {}
 local spec, fullview = Spring.GetSpectatingState()
 local myTeamID = Spring.GetMyTeamID()
 local updateFrame = 0
@@ -49,7 +52,7 @@ function SetUnitConf()
 			for i=1, #unitDef.weapons do
 				local weaponDefID = unitDef.weapons[i].weaponDef
 				local weaponDef   = WeaponDefs[weaponDefID]
-				if weaponDef and weaponDef.energyCost > neededEnergy then
+				if weaponDef and weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
                     neededEnergy = weaponDef.energyCost
 				end
 			end
@@ -58,7 +61,7 @@ function SetUnitConf()
 			buildingNeedingUpkeep = true
 		end
 		if neededEnergy > 0 then
-			unitConf[udid] = {7 +(scale/2.5), neededEnergy, buildingNeedingUpkeep}
+			unitConf[udid] = {7 +(scale/2.5), unitDef.height, neededEnergy, buildingNeedingUpkeep}
 		end
 	end
 end
@@ -168,28 +171,44 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function DrawIcon(size, self)
-	gl.Color(1,0,0, (self and 0.7 or 0.4))
+function DrawIcon(size, height, self, mult)
+	gl.Color(1,0,0, (self and 0.7 or 0.4) * (mult or 1))
 	gl.Texture(':n:LuaUI/Images/energy2.png')
-	gl.Translate(0,size*3,0)
+	gl.Translate(0,5+height+(size*0.5),0)
 	gl.Billboard()
-	gl.TexRect(-(size*0.5), -(size*0.5), (size*0.5), (size*0.5))
+	gl.TexRect(-(size*0.5), -(size*0.5), (size*0.5), (size/2))
 end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
+    local now = os.clock()
+
 	gl.DepthTest(true)
     gl.Color(1,0,0,0.85)
 
 	for teamID, units in pairs(teamUnits) do
 		for unitID, unitDefID in pairs(units) do
-			if unitConf[unitDefID] and unitConf[unitDefID][2] > teamEnergy[teamID] and (not unitConf[unitDefID][3] or  ((unitConf[unitDefID][3] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][2])) then
-				if spIsUnitInView(unitID) then
-					glDrawFuncAtUnit(unitID, false, DrawIcon, unitConf[unitDefID][1], (teamID == myTeamID))
-				end
-			end
+            if unitConf[unitDefID][3] > teamEnergy[teamID] and (not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
+                if not unitIconTimes[unitID] then
+                    unitIconTimes[unitID] = now
+                end
+                if spIsUnitInView(unitID) then
+                    local mult = math_min(1, (now-unitIconTimes[unitID])/fadeTime)
+                    glDrawFuncAtUnit(unitID, false, DrawIcon, unitConf[unitDefID][1], unitConf[unitDefID][2], (teamID == myTeamID), mult)
+                end
+            elseif unitIconTimes[unitID] then
+                if (now-unitIconTimes[unitID])/(fadeTime*0.4) > 1.1 then
+                    unitIconTimes[unitID] = now
+                end
+                local mult = 1 - math_min(1, (now-unitIconTimes[unitID])/(fadeTime*0.4))
+                if mult > 0 then
+                    glDrawFuncAtUnit(unitID, false, DrawIcon, unitConf[unitDefID][1], unitConf[unitDefID][2], (teamID == myTeamID), mult)
+                else
+                    unitIconTimes[unitID] = nil
+                end
+            end
 		end
 	end
 
