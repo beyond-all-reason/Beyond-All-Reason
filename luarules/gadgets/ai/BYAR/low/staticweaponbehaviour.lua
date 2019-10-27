@@ -1,4 +1,4 @@
-shard_include( "staticweapons" )
+shard_include( "staticweapons", "low")
 
 local CMD_STOCKPILE = 100
 

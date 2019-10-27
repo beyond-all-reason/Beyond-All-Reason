@@ -1,10 +1,13 @@
 -- initial setup of things
 
-function shard_include( file )
+function shard_include( file , subf)
 	if type(file) ~= 'string' then
 		return nil
 	end
-	subdir = Game.gameShortName
+	subdir = Game.gameShortName	
+	if subf then
+	 subdir = subdir.."/"..subf -- "BYAR/low/behaviourfactory.lua"
+	end
 	local gameFile = "luarules/gadgets/ai/" ..  subdir .. "/" .. file .. ".lua"
 	local baseFile = "luarules/gadgets/ai/" .. file .. ".lua"
 	local preloadFile = "luarules/gadgets/ai/preload/" .. file .. ".lua"

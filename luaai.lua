@@ -9,7 +9,12 @@
 
 return {
   {
-	name = 'DAI',
+	name = 'DAI low',
+	desc = 'Shard by AF for Spring (Lua), tuned for BAR by Damgam/Doo',
+  },
+  
+    {
+	name = 'DAI high',
 	desc = 'Shard by AF for Spring (Lua), tuned for BAR by Damgam/Doo',
   },
   

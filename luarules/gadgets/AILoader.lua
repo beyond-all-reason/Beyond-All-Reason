@@ -14,7 +14,7 @@ local teams = Spring.GetTeamList()
 for i =1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI ~= "" then
-		if luaAI == "DAI" then
+		if (type(luaAI) == "string") and (string.sub(luaAI,1,3) == "DAI") then
 			shardEnabled = true
 		end
 	end
@@ -89,11 +89,15 @@ function gadget:Initialize()
 		if (isAI) then
 			spEcho( "K9: IT IS AI")
 			local aiInfo = spGetTeamLuaAI(id)
-			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,8) == "DAI") then
+			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,3) == "DAI") then
 				numberOfmFAITeams = numberOfmFAITeams + 1
 				spEcho("Moomin Player " .. teamList[i] .. " is " .. aiInfo)
 				-- add AI object
-				thisAI = ShardAI()
+				if (type(aiInfo) == "string") and (string.find(aiInfo, "low"))  then	
+					thisAI = ShardAI("low")
+				else
+					thisAI = ShardAI("high")		
+				end
 				thisAI.id = id
 				thisAI.allyId = allyId
 				-- thisAI:Init()

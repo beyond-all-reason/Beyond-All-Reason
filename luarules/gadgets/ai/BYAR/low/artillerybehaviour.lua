@@ -1,4 +1,4 @@
-shard_include( "attackers" )
+shard_include( "attackers", "low")
 
 
 -- speedups
@@ -13,8 +13,8 @@ local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 ------
 
 
-function IsRaider(unit)
-	for i,name in ipairs(raiderlist) do
+function IsArtillery(unit)
+	for i,name in ipairs(artillerylist) do
 		if name == unit:Internal():Name() then
 			return true
 		end
@@ -22,10 +22,10 @@ function IsRaider(unit)
 	return false
 end
 
-RaiderBehaviour = class(Behaviour)
+ArtilleryBehaviour = class(Behaviour)
 
-function RaiderBehaviour:Init()
-	--self.ai.game:SendToConsole("raider!")
+function ArtilleryBehaviour:Init()
+	--self.ai.game:SendToConsole("artillery!")
 	--self.game:AddMarker({ x = startPosx, y = startPosy, z = startPosz }, "my start position")
 	CMD.MOVE_STATE = 50
 	CMD.FIRE_STATE = 45
@@ -39,7 +39,7 @@ local function Distance(x1,z1, x2,z2)
 	return dis
 end
 
-function RaiderBehaviour:Update()
+function ArtilleryBehaviour:Update()
 	local frame = SpGetGameFrame()
 	if not self.unitID then
 		self.unitID = self.unit:Internal().id
@@ -64,13 +64,13 @@ function RaiderBehaviour:Update()
 	end
 	local frame = SpGetGameFrame()
 	local unit = self.unit:Internal()
-	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or raidRangeUpdateRate == nil or raidMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
+	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or artyRangeUpdateRate == nil or artyMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
 		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
-		raidRangeUpdateRate = self.myUnitCount
-		raidMapUpdateRate = raidRangeUpdateRate*3
+		artyRangeUpdateRate = self.myUnitCount*2
+		artyMapUpdateRate = artyRangeUpdateRate*3
 	end
-	if (frame%raidMapUpdateRate == self.unitIDrefreshrate%raidMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%artyMapUpdateRate == self.unitIDrefreshrate%artyMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
@@ -85,7 +85,7 @@ function RaiderBehaviour:Update()
 			end
 		end
 	end
-	if (frame%raidRangeUpdateRate == self.unitIDrefreshrate%raidRangeUpdateRate) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%artyRangeUpdateRate == self.unitIDrefreshrate%artyRangeUpdateRate) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -108,12 +108,12 @@ function RaiderBehaviour:Update()
 			return
 		end
 	end
-	if self.unitIDrefreshrate%raidRangeUpdateRate == frame%raidRangeUpdateRate then
+	if self.unitIDrefreshrate%artyRangeUpdateRate == frame%artyRangeUpdateRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end
 
-function RaiderBehaviour:OwnerBuilt()
+function ArtilleryBehaviour:OwnerBuilt()
 	self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 	self.unit:Internal():ExecuteCustomCommand(CMD.FIRE_STATE, { 2 }, {})
 	self.attacking = true
@@ -123,25 +123,25 @@ function RaiderBehaviour:OwnerBuilt()
 	self.ai.mainsquadhandler:AssignToASquad(self)
 end
 
-function RaiderBehaviour:OwnerDead()
+function ArtilleryBehaviour:OwnerDead()
 	if not self.behaviourcontroled then
 		self.ai.mainsquadhandler:RemoveFromSquad(self)
 	end
 end
 
-function RaiderBehaviour:OwnerIdle()
+function ArtilleryBehaviour:OwnerIdle()
 	self.attacking = true
 	self.active = true
 end
 
-function RaiderBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange, alliedNear)
+function ArtilleryBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange, alliedNear)
 	local p
 	local unit = self.unit:Internal()
 	local unitID = unit.id
 	local currenthealth = unit:GetHealth()
 	local maxhealth = unit:GetMaxHealth()
 	-- Retreating first so we have less data process/only what matters
-	if not (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
+	if not (currenthealth >= maxhealth*0.95 or currenthealth > 3000) then
 	local nanotcx, nanotcy, nanotcz = GG.AiHelpers.NanoTC.GetClosestNanoTC(self.unitID)
 		if nanotcx and nanotcy and nanotcz then
 			p = api.Position()
@@ -171,32 +171,33 @@ function RaiderBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRan
 	if not (nearestVisibleAcrossMap or nearestVisibleInRange) then
 		return
 	end
-	
 	if nearestVisibleInRange then -- process cases where there isn't any visible nearestVisibleInRange first
 		local ex,ey,ez = SpGetUnitPosition(nearestVisibleInRange)
 		local ux,uy,uz = SpGetUnitPosition(self.unitID)
 		local pointDis = SpGetUnitSeparation(self.unitID,nearestVisibleInRange)
-		local dis = 120
-		local f = dis/pointDis
-		local wantedRange
-		wantedRange = (math.random(25,75)/100)*self.myRange
-		-- offset upos randomly so it moves a bit while keeping distance
-		local dx, _, dz, dw = SpGetUnitVelocity(self.unitID) -- attempt to not always queue awful turns
-		local modifier = "ctrl"
-		ux = ux + 10*dx + math.random (-80,80)
-		uy = uy
-		uz = uz + 10*dz + math.random (-80,80)
-		if wantedRange <= pointDis then
-			modifier = nil -- Do not try to move backwards if attempting to get closer to target
+		if pointDis >= self.myRange then
+			local dis = 120
+			local f = dis/pointDis
+			local wantedRange
+			wantedRange = self.myRange
+			-- offset upos randomly so it moves a bit while keeping distance
+			local dx, _, dz, dw = SpGetUnitVelocity(self.unitID) -- attempt to not always queue awful turns
+			local modifier = "ctrl"
+			ux = ux + 10*dx + math.random (-80,80)
+			uy = uy
+			uz = uz + 10*dz + math.random (-80,80)
+			if wantedRange <= pointDis then
+				modifier = nil -- Do not try to move backwards if attempting to get closer to target
+			end
+			-- here we find the goal position
+			if (pointDis+dis > wantedRange) then
+				f = (wantedRange-pointDis)/pointDis
+			end
+			local cx = ux+(ux-ex)*f
+			local cy = uy
+			local cz = uz+(uz-ez)*f
+			self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
 		end
-		-- here we find the goal position
-		if (pointDis+dis > wantedRange) then
-			f = (wantedRange-pointDis)/pointDis
-		end
-		local cx = ux+(ux-ex)*f
-		local cy = uy
-		local cz = uz+(uz-ez)*f
-		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
 		return
 	end
 	
@@ -218,7 +219,7 @@ function RaiderBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRan
 end
 
 
-function RaiderBehaviour:Priority()
+function ArtilleryBehaviour:Priority()
 	if not self.attacking then
 		return 0
 	else
@@ -226,7 +227,7 @@ function RaiderBehaviour:Priority()
 	end
 end
 
-function RaiderBehaviour:Activate()
+function ArtilleryBehaviour:Activate()
 	self.active = true
 	if self.target then
 		self.unit:Internal():MoveAndFire(self.target)
@@ -236,7 +237,7 @@ function RaiderBehaviour:Activate()
 end
 
 
-function RaiderBehaviour:OwnerDied()
+function ArtilleryBehaviour:OwnerDied()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil

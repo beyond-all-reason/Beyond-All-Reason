@@ -1,4 +1,7 @@
-ShardAI = class(AIBase)
+ShardAI = class(AIBase, (function(c, subf)
+	c.subf = subf
+	end)
+	)
 
 function ShardAI:Init()
 	self.api = shard_include("preload/api")
@@ -8,12 +11,11 @@ function ShardAI:Init()
 	self.map.ai = self
 	self.game.map = self.map
 	self.game:SendToConsole("Shard by AF - playing: "..self.game:GameName().." on: "..self.map:MapName())
-
-	shard_include("behaviourfactory")
-	shard_include("unit")
-	shard_include("modules")
-
+	shard_include("behaviourfactory", self.subf)
+	shard_include("unit", self.subf)
+	shard_include("modules", self.subf)
 	self.modules = {}
+
 	if next(modules) ~= nil then
 		for i,m in ipairs(modules) do
 			newmodule = m()

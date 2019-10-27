@@ -1,4 +1,4 @@
-shard_include( "attackers" )
+shard_include( "attackers", "low")
 
 
 -- speedups
@@ -13,8 +13,8 @@ local SpGetUnitNearestEnemy = Spring.GetUnitNearestEnemy
 ------
 
 
-function IsSkirmisher(unit)
-	for i,name in ipairs(skirmisherlist) do
+function IsRaider(unit)
+	for i,name in ipairs(raiderlist) do
 		if name == unit:Internal():Name() then
 			return true
 		end
@@ -22,10 +22,10 @@ function IsSkirmisher(unit)
 	return false
 end
 
-SkirmisherBehaviour = class(Behaviour)
+RaiderBehaviour = class(Behaviour)
 
-function SkirmisherBehaviour:Init()
-	--self.ai.game:SendToConsole("skirmisher!")
+function RaiderBehaviour:Init()
+	--self.ai.game:SendToConsole("raider!")
 	--self.game:AddMarker({ x = startPosx, y = startPosy, z = startPosz }, "my start position")
 	CMD.MOVE_STATE = 50
 	CMD.FIRE_STATE = 45
@@ -39,7 +39,7 @@ local function Distance(x1,z1, x2,z2)
 	return dis
 end
 
-function SkirmisherBehaviour:Update()
+function RaiderBehaviour:Update()
 	local frame = SpGetGameFrame()
 	if not self.unitID then
 		self.unitID = self.unit:Internal().id
@@ -62,14 +62,15 @@ function SkirmisherBehaviour:Update()
 	if not self.AggFactor then
 		self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
 	end
+	local frame = SpGetGameFrame()
 	local unit = self.unit:Internal()
-	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or skirRangeUpdateRate == nil or skirMapUpdateRate == nil  then --refresh "myRange" casually because it can change with experience
+	if (frame%2000 == self.unitIDrefreshrate%2000) or self.myRange == nil or self.myUnitCount == nil or raidRangeUpdateRate == nil or raidMapUpdateRate == nil then --refresh "myRange" casually because it can change with experience
 		self.myUnitCount = Spring.GetTeamUnitCount(self.ai.id)
-		self.myRange = (self.isHelper and 1200) or math.max(SpGetUnitMaxRange(self.unitID),250)
-		skirRangeUpdateRate = self.myUnitCount
-		skirMapUpdateRate = skirRangeUpdateRate*3
+		self.myRange = math.min(SpGetUnitMaxRange(self.unitID),500)
+		raidRangeUpdateRate = self.myUnitCount
+		raidMapUpdateRate = raidRangeUpdateRate*3
 	end
-	if (frame%skirMapUpdateRate == self.unitIDrefreshrate%skirMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
+	if (frame%raidMapUpdateRate == self.unitIDrefreshrate%raidMapUpdateRate) then -- a unit on map stays 'visible' for max 3s, this also reduces lag
 		local nearestVisibleAcrossMap = SpGetUnitNearestEnemy(self.unitID, self.AggFactor*self.myRange)
 		if nearestVisibleAcrossMap and (GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleAcrossMap, self.ai.id)) then
 			self.nearestVisibleAcrossMap = nearestVisibleAcrossMap
@@ -80,11 +81,11 @@ function SkirmisherBehaviour:Update()
 			self.nearestVisibleAcrossMap = nil
 			if self.behaviourcontroled then
 				self.ai.mainsquadhandler:AssignToASquad(self)
-			return
+				return
 			end
 		end
 	end
-	if (frame%skirRangeUpdateRate == self.unitIDrefreshrate%skirRangeUpdateRate) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
+	if (frame%raidRangeUpdateRate == self.unitIDrefreshrate%raidRangeUpdateRate) then -- a unit in range stays 'visible' for max 1.5s, this also reduces lag
 		local nearestVisibleInRange = SpGetUnitNearestEnemy(self.unitID, 1.75*self.myRange)
 		local closestVisible = nearestVisibleInRange and GG.AiHelpers.VisibilityCheck.IsUnitVisible(nearestVisibleInRange, self.ai.id)
 		if nearestVisibleInRange and closestVisible then
@@ -97,7 +98,7 @@ function SkirmisherBehaviour:Update()
 			self.nearestVisibleInRange = nil
 			if self.behaviourcontroled then
 				self.ai.mainsquadhandler:AssignToASquad(self)
-			return
+				return
 			end
 		end
 	end
@@ -107,12 +108,12 @@ function SkirmisherBehaviour:Update()
 			return
 		end
 	end
-	if self.unitIDrefreshrate%skirRangeUpdateRate == frame%skirRangeUpdateRate then
+	if self.unitIDrefreshrate%raidRangeUpdateRate == frame%raidRangeUpdateRate then
 		self:AttackCell(self.nearestVisibleAcrossMap, self.nearestVisibleInRange, self.enemyRange, self.alliedNear)
 	end
 end
 
-function SkirmisherBehaviour:OwnerBuilt()
+function RaiderBehaviour:OwnerBuilt()
 	self.unit:Internal():ExecuteCustomCommand(CMD.MOVE_STATE, { 2 }, {})
 	self.unit:Internal():ExecuteCustomCommand(CMD.FIRE_STATE, { 2 }, {})
 	self.attacking = true
@@ -120,28 +121,27 @@ function SkirmisherBehaviour:OwnerBuilt()
 	self.unitID = self.unit:Internal().id
 	self.AggFactor = self.ai.mainsquadhandler:GetAggressiveness(self)
 	self.ai.mainsquadhandler:AssignToASquad(self)
-	self.isHelper = UnitDefs[UnitDefNames[self.unit:Internal():Name()].id].canRepair == true
 end
 
-function SkirmisherBehaviour:OwnerDead()
+function RaiderBehaviour:OwnerDead()
 	if not self.behaviourcontroled then
 		self.ai.mainsquadhandler:RemoveFromSquad(self)
 	end
 end
 
-function SkirmisherBehaviour:OwnerIdle()
+function RaiderBehaviour:OwnerIdle()
 	self.attacking = true
 	self.active = true
 end
 
-function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange, alliedNear)
+function RaiderBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleInRange, enemyRange, alliedNear)
 	local p
 	local unit = self.unit:Internal()
 	local unitID = unit.id
 	local currenthealth = unit:GetHealth()
 	local maxhealth = unit:GetMaxHealth()
 	-- Retreating first so we have less data process/only what matters
-	if not (currenthealth >= maxhealth*0.85 or currenthealth > 3000) then
+	if not (currenthealth >= maxhealth*0.75 or currenthealth > 3000) then
 	local nanotcx, nanotcy, nanotcz = GG.AiHelpers.NanoTC.GetClosestNanoTC(self.unitID)
 		if nanotcx and nanotcy and nanotcz then
 			p = api.Position()
@@ -171,6 +171,7 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 	if not (nearestVisibleAcrossMap or nearestVisibleInRange) then
 		return
 	end
+	
 	if nearestVisibleInRange then -- process cases where there isn't any visible nearestVisibleInRange first
 		local ex,ey,ez = SpGetUnitPosition(nearestVisibleInRange)
 		local ux,uy,uz = SpGetUnitPosition(self.unitID)
@@ -178,7 +179,7 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 		local dis = 120
 		local f = dis/pointDis
 		local wantedRange
-		wantedRange = self.myRange
+		wantedRange = (math.random(25,75)/100)*self.myRange
 		-- offset upos randomly so it moves a bit while keeping distance
 		local dx, _, dz, dw = SpGetUnitVelocity(self.unitID) -- attempt to not always queue awful turns
 		local modifier = "ctrl"
@@ -195,13 +196,7 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 		local cx = ux+(ux-ex)*f
 		local cy = uy
 		local cz = uz+(uz-ez)*f
-		if self.isHelper then
-			if SpGetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
-				self.unit:Internal():ExecuteCustomCommand(CMD.FIGHT, {cx, cy, cz}, {"alt"})
-			end
-		else
-			self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
-		end
+		self.unit:Internal():ExecuteCustomCommand(CMD.MOVE, {cx, cy, cz}, {modifier})
 		return
 	end
 	
@@ -213,24 +208,17 @@ function SkirmisherBehaviour:AttackCell(nearestVisibleAcrossMap, nearestVisibleI
 	else
 		return
 	end
-
 	p = api.Position()
 	p.x = enemyposx + math.random(-math.sqrt(2)/2*self.myRange*0.90, math.sqrt(2)/2*self.myRange*0.90)
 	p.z = enemyposz + math.random(-math.sqrt(2)/2*self.myRange*0.90, math.sqrt(2)/2*self.myRange*0.90)
 	p.y = enemyposy
 	self.target = p
 	self.attacking = true
-	if self.isHelper then
-		if SpGetUnitCurrentBuildPower(unit.id) == 0 then -- if currently IDLE
-			unit:ExecuteCustomCommand(CMD.FIGHT, {p.x, p.y, p.z}, {"alt"})
-		end
-	else
-		unit:Move(self.target)
-	end
+	unit:Move(self.target)
 end
 
 
-function SkirmisherBehaviour:Priority()
+function RaiderBehaviour:Priority()
 	if not self.attacking then
 		return 0
 	else
@@ -238,7 +226,7 @@ function SkirmisherBehaviour:Priority()
 	end
 end
 
-function SkirmisherBehaviour:Activate()
+function RaiderBehaviour:Activate()
 	self.active = true
 	if self.target then
 		self.unit:Internal():MoveAndFire(self.target)
@@ -248,7 +236,7 @@ function SkirmisherBehaviour:Activate()
 end
 
 
-function SkirmisherBehaviour:OwnerDied()
+function RaiderBehaviour:OwnerDied()
 	self.attacking = nil
 	self.active = nil
 	self.unit = nil

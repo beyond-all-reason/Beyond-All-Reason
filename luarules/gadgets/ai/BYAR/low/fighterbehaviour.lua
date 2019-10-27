@@ -1,4 +1,4 @@
-shard_include( "attackers" )
+shard_include( "attackers", "low")
 
 function IsFighter(unit)
 	for i,name in ipairs(fighterlist) do
