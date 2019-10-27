@@ -46,7 +46,7 @@ local isInView = true
 
 local island = nil -- Later it will be checked and set to true of false
 local drawingEnabled = true
-
+local borderMargin = 40
 local checkInView = true
 
 --------------------------------------------------------------------------------
@@ -351,6 +351,37 @@ local function DrawOMap(useMirrorShader)
 	----	
 end
 
+
+local maxGroundHeights = {top=0,bottom=0,left=0,right=0}
+function GetMaxGroundHeights()
+	maxGroundHeights.topleft = spGetGroundHeight(0,0)
+	maxGroundHeights.topright = spGetGroundHeight(Game.mapSizeX,0)
+	maxGroundHeights.bottomleft = spGetGroundHeight(0,Game.mapSizeZ)
+	maxGroundHeights.bottomright = spGetGroundHeight(Game.mapSizeX,Game.mapSizeZ)
+
+	local sampleDist = 512
+	for i=1,Game.mapSizeX,sampleDist do
+		-- top edge
+		if spGetGroundHeight(i, 0) > maxGroundHeights.top then
+			maxGroundHeights.top = spGetGroundHeight(i,0)
+		end
+		-- bottom edge
+		if spGetGroundHeight(i, Game.mapSizeZ) > maxGroundHeights.bottom then
+			maxGroundHeights.bottom = spGetGroundHeight(i,0)
+		end
+	end
+	for i=1,Game.mapSizeZ,sampleDist do
+		-- left edge
+		if spGetGroundHeight(0, i) > maxGroundHeights.left then
+			maxGroundHeights.left = spGetGroundHeight(0,i)
+		end
+		-- right edge
+		if spGetGroundHeight(Game.mapSizeX, i) > maxGroundHeights.right then
+			maxGroundHeights.right = spGetGroundHeight(Game.mapSizeX,i)
+		end
+	end
+end
+
 function widget:Initialize()
 
 	if not drawingEnabled then
@@ -363,6 +394,7 @@ function widget:Initialize()
 	if island == nil then
 		island = IsIsland()
 	end
+	GetMaxGroundHeights()
 
 	SetupShaderTable()
 	Spring.SendCommands("luaui disablewidget External VR Grid")
@@ -413,6 +445,7 @@ if (Spring.GetModOptions() ~= nil and Spring.GetModOptions().map_waterlevel ~= 0
 	doWaterLevelCheck = true
 end
 
+local inViewParts = {}
 local groundHeightPoint = Spring.GetGroundHeight(0,0)
 function widget:Update(dt)
 	if (doWaterLevelCheck and not resetted) or (Spring.IsCheatingEnabled() and Spring.GetGroundHeight(0,0) ~= groundHeightPoint)then
@@ -424,11 +457,16 @@ function widget:Update(dt)
 		end
 	end
 	if checkInView then
-		if	spIsAABBInView(-9999,-400,-9999, mapSizeX+9999,50,22) or
-			spIsAABBInView(-9999,-400,-22, 0,50,mapSizeZ) or
-			spIsAABBInView(mapSizeX-22,-400,-22, mapSizeX+9999,50,mapSizeZ) or
-			spIsAABBInView(-9999,-400,mapSizeZ+9999, mapSizeX+9999,50,mapSizeZ-22)
-		then
+		inViewParts.topleft = spIsAABBInView(-Game.mapSizeX,0,-Game.mapSizeZ, borderMargin,maxGroundHeights.topleft,borderMargin)
+		inViewParts.topright = spIsAABBInView(Game.mapSizeX-borderMargin,0,-Game.mapSizeZ, Game.mapSizeX*2,maxGroundHeights.topright,borderMargin)
+		inViewParts.bottomleft = spIsAABBInView(-Game.mapSizeX,0,Game.mapSizeZ-borderMargin, borderMargin,maxGroundHeights.bottomleft,Game.mapSizeZ*2)
+		inViewParts.bottomright = spIsAABBInView(Game.mapSizeX-borderMargin,0,Game.mapSizeZ-borderMargin, Game.mapSizeX*2,maxGroundHeights.bottomright,Game.mapSizeZ*2)
+		inViewParts.top = spIsAABBInView(-borderMargin,0,-Game.mapSizeZ, Game.mapSizeX+borderMargin,maxGroundHeights.top,borderMargin)
+		inViewParts.bottom = spIsAABBInView(-borderMargin,0,Game.mapSizeZ*2, Game.mapSizeX+borderMargin,maxGroundHeights.bottom,Game.mapSizeZ-borderMargin)
+		inViewParts.left = spIsAABBInView(-Game.mapSizeX,0,-borderMargin, 0,maxGroundHeights.left,Game.mapSizeZ)
+		inViewParts.right = spIsAABBInView(Game.mapSizeX-borderMargin,0,-borderMargin, Game.mapSizeX*2,maxGroundHeights.right,Game.mapSizeZ)
+		if	inViewParts.top or inViewParts.bottom or inViewParts.left or inViewParts.right or
+			inViewParts.topleft or inViewParts.topright or inViewParts.bottomleft or inViewParts.bottomright then
 			isInView = true
 		else
 			isInView = false
@@ -464,15 +502,24 @@ end
 --	end);
 --end
 --function widget:DrawWorld()
---	gl.Color(1,0,0,0.5)
---	DrawMyBox(-9999,0,-9999, Game.mapSizeX+9999,1,22)
---	gl.Color(1,1,0,0.5)
---	DrawMyBox(-9999,0,-22, 0,1,Game.mapSizeZ)
---	gl.Color(0,1,0,0.5)
---	DrawMyBox(Game.mapSizeX-22,0,-22, Game.mapSizeX+9999,1,Game.mapSizeZ)
---	gl.Color(0,0,1,0.5)
---	DrawMyBox(-9999,0,Game.mapSizeZ+9999, Game.mapSizeX+9999,1,Game.mapSizeZ-22)
---	gl.Color(1,1,1,1)
+--	--gl.Color(1,0,0,0.5)
+--	--DrawMyBox(-9999,0,-9999, borderMargin,1,borderMargin)
+--	--gl.Color(1,0,1,0.5)
+--	--DrawMyBox(Game.mapSizeX-borderMargin,0,-9999, Game.mapSizeX*2,1,borderMargin)
+--	--gl.Color(1,1,0,0.5)
+--	--DrawMyBox(-9999,0,Game.mapSizeZ-borderMargin, borderMargin,1,Game.mapSizeZ*2)
+--	--gl.Color(1,1,1,0.5)
+--	--DrawMyBox(Game.mapSizeX-borderMargin,0,Game.mapSizeZ-borderMargin, Game.mapSizeX*2,1,Game.mapSizeZ*2)
+--
+--	--gl.Color(1,0,0,0.5)
+--	--DrawMyBox(-9999,0,-9999, Game.mapSizeX*2,1,borderMargin)
+--	--gl.Color(1,1,0,0.5)
+--	--DrawMyBox(-9999,0,-borderMargin, 0,1,Game.mapSizeZ)
+--	--gl.Color(0,1,0,0.5)
+--	--DrawMyBox(Game.mapSizeX-borderMargin,0,-borderMargin, Game.mapSizeX*2,1,Game.mapSizeZ)
+--	--gl.Color(0,0,1,0.5)
+--	--DrawMyBox(-9999,0,Game.mapSizeZ*2, Game.mapSizeX*2,1,Game.mapSizeZ-borderMargin)
+--	--gl.Color(1,1,1,1)
 --end
 
 
@@ -488,14 +535,14 @@ local function DrawWorldFunc() --is overwritten when not using the shader
 		gl.PushMatrix()
 		gl.DepthMask(true)
 		if options.mapBorderStyle.value == "texture" then
-				gl.Texture(realTex)
-				glUniform(ubrightness, options.textureBrightness.value)
-				glUniform(ugrid, 0)
-				else
-						gl.Texture(gridTex)
-				glUniform(ubrightness, 1.0)
-				glUniform(ugrid, 1)
-				end
+			gl.Texture(realTex)
+			glUniform(ubrightness, options.textureBrightness.value)
+			glUniform(ugrid, 0)
+		else
+			gl.Texture(gridTex)
+			glUniform(ubrightness, 1.0)
+			glUniform(ugrid, 1)
+		end
 		if wiremap then
 			gl.PolygonMode(GL.FRONT_AND_BACK, GL.LINE)
 		end
@@ -506,33 +553,49 @@ local function DrawWorldFunc() --is overwritten when not using the shader
 		glUniform(uleft, 1)
 		glUniform(uup, 1)
 		glTranslate(-GamemapSizeX,0,-GamemapSizeZ)
-		gl.CallList(dList)
+		if inViewParts.topleft then
+			gl.CallList(dList)
+		end
 		glUniform(uleft , 0)
 		glTranslate(GamemapSizeX*2,0,0)
-		gl.CallList(dList)
-		gl.Uniform(uup, 0)
+		if inViewParts.topright then
+			gl.CallList(dList)
+		end
+		glUniform(uup, 0)
 		glTranslate(0,0,GamemapSizeZ*2)
-		gl.CallList(dList)
+		if inViewParts.bottomright then
+			gl.CallList(dList)
+		end
 		glUniform(uleft, 1)
 		glTranslate(-GamemapSizeX*2,0,0)
-		gl.CallList(dList)
+		if inViewParts.bottomleft then
+			gl.CallList(dList)
+		end
 
 		glUniform(umirrorX, 0)
 		glTranslate(GamemapSizeX,0,0)
-		gl.CallList(dList)
+		if inViewParts.bottom then
+			gl.CallList(dList)
+		end
 		glUniform(uleft, 0)
 		glUniform(uup, 1)
 		glTranslate(0,0,-GamemapSizeZ*2)
-		gl.CallList(dList)
+		if inViewParts.top then
+			gl.CallList(dList)
+		end
 
 		glUniform(uup, 0)
 		glUniform(umirrorZ, 0)
 		glUniform(umirrorX, GamemapSizeX)
 		glTranslate(GamemapSizeX,0,GamemapSizeZ)
-		gl.CallList(dList)
+		if inViewParts.right then
+			gl.CallList(dList)
+		end
 		glUniform(uleft, 1)
 		glTranslate(-GamemapSizeX*2,0,0)
-		gl.CallList(dList)
+		if inViewParts.left then
+			gl.CallList(dList)
+		end
 		if wiremap then
 			gl.PolygonMode(GL.FRONT_AND_BACK, GL.FILL)
 		end
