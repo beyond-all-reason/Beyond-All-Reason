@@ -11,22 +11,25 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:GetInfo()
+function gadget:GetInfo()
   return {
     name      = "Display DPS",
-    desc      = "Displays damage per second done to your allies units v2.1",
+    desc      = "Displays damage per second done to visible units",
     author    = "TheFatController",
     date      = "May 27, 2008",
     license   = "GNU GPL, v2 or later",
     layer     = 0,
-    enabled   = false  --  loaded by default?
+    enabled   = true  --  loaded by default?
   }
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+if gadgetHandler:IsSyncedCode() then return end
+
+
+local enabled = (tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1)
+
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
@@ -34,14 +37,13 @@ local fontfileOutlineSize = 6
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
--- Speed Up
-
 local GetUnitDefID         = Spring.GetUnitDefID
 local GetUnitDefDimensions = Spring.GetUnitDefDimensions
 local AreTeamsAllied       = Spring.AreTeamsAllied
 local GetGameSpeed         = Spring.GetGameSpeed
 local GetGameSeconds       = Spring.GetGameSeconds
 local GetUnitViewPosition  = Spring.GetUnitViewPosition
+local IsUnitInView         = Spring.IsUnitInView
 
 local glTranslate      = gl.Translate
 local glColor          = gl.Color
@@ -74,26 +76,26 @@ local heightList = {}
 local drawTextLists = {}
 local drawTextListsDeath = {}
 local drawTextListsEmp = {}
+local myTeamID = Spring.GetMyTeamID()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function widget:ViewResize(n_vsx,n_vsy)
+function gadget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local fontScale = widgetScale/2
+  local fontScale = (0.5 + (vsx*vsy / 5700000)) / 2
   gl.DeleteFont(font)
   font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
 local function unitHeight(unitDefID)
-  if not heightList[unitDefID] then 
+  if not heightList[unitDefID] then
     heightList[unitDefID] = (GetUnitDefDimensions(unitDefID).height * 0.9)
   end
-  return heightList[unitDefID]  
+  return heightList[unitDefID]
 end
 
-function widget:UnitFinished(unitID, unitDefID, unitTeam)
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
   if not heightList[unitDefID] then
     heightList[unitDefID] = (GetUnitDefDimensions(unitDefID).height * 0.9)
   end
@@ -120,7 +122,7 @@ local function displayDamage(unitID, unitDefID, damage, paralyze)
   }
 end
 
-function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
   if unitDamage[unitID] then
     local ux, uy, uz = GetUnitViewPosition(unitID)
     if ux ~= nil then
@@ -165,16 +167,18 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   end
 end
 
-function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
+function gadget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
   if not (AreTeamsAllied(oldTeam, newTeam)) then
-    widget:UnitDestroyed(unitID, unitDefID, newTeam)
+    gadget:UnitDestroyed(unitID, unitDefID, newTeam)
   end
 end
 
-function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
+
   if (damage < 1.5) then return end
-  
+
   if (UnitDefs[unitDefID] == nil) then return end
+  if not CallAsTeam(myTeamID, IsUnitInView, unitID) then return end
 
   if paralyzer and unitParalyze[unitID] then
     unitParalyze[unitID].damage = (unitParalyze[unitID].damage + damage)
@@ -183,7 +187,7 @@ function widget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
     unitDamage[unitID].damage = (unitDamage[unitID].damage + damage)
     return
   end
-    
+
   if paralyzer then
     unitParalyze[unitID] = {}
     unitParalyze[unitID].damage = damage
@@ -212,7 +216,7 @@ local function calcDPS(inTable, paralyze, theTime)
 end
 
 local function drawDeathDPS(damage,ux,uy,uz,textSize,red,alpha)
-  
+
   glPushMatrix()
   glTranslate(ux, uy, uz)
   glBillboard()
@@ -239,7 +243,7 @@ local function drawDeathDPS(damage,ux,uy,uz,textSize,red,alpha)
       end
       glCallList(drawTextLists[damage])
   end
-  
+
   glPopMatrix()
 end
 
@@ -270,35 +274,69 @@ local function DrawUnitFunc(yshift, xshift, damage, textSize, alpha, paralyze)
   end
 end
 
-function widget:RecvLuaMsg(msg, playerID)
+function gadget:PlayerChanged(playerID)
+  myTeamID = Spring.GetMyTeamID()
+end
+
+function gadget:RecvLuaMsg(msg, playerID)
   if msg:sub(1,18) == 'LobbyOverlayActive' then
     chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
   end
 end
 
-function widget:DrawScreen()
+function checkEnabled()
+  prevEnabled = enabled
+  enabled = (tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1)
+  if prevEnabled ~= enabled then
+    damageTable = {}
+    unitParalyze = {}
+    unitDamage = {}
+    deadList = {}
+    lastTime = 0
+    changed = false
+    heightList = {}
+    drawTextLists = {}
+    drawTextListsDeath = {}
+    drawTextListsEmp = {}
+    if enabled then
+      gadgetHandler:UpdateCallIn("UnitDamaged")
+      gadgetHandler:UpdateCallIn("UnitTaken")
+      gadgetHandler:UpdateCallIn("UnitDestroyed")
+      gadgetHandler:UpdateCallIn("UnitFinished")
+    else
+      gadgetHandler:RemoveCallIn("UnitDamaged")
+      gadgetHandler:RemoveCallIn("UnitTaken")
+      gadgetHandler:RemoveCallIn("UnitDestroyed")
+      gadgetHandler:RemoveCallIn("UnitFinished")
+    end
+  end
+end
+
+function gadget:DrawWorld()
+  checkEnabled()
+  if not enabled then return end
   if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
 
   local theTime = GetGameSeconds()
-  
+
   if (theTime ~= lastTime) then
-  
+
     if next(unitDamage) then calcDPS(unitDamage, false, theTime) end
     if next(unitParalyze) then calcDPS(unitParalyze, true, theTime) end
-    
+
     if changed then
       table.sort(damageTable, function(m1,m2) return m1.damage < m2.damage; end)
       changed = false
     end
   end
-  
+
   lastTime = theTime
- 
+
+
   if (not next(damageTable)) and (not next(deadList)) then return end
-    
+
   _,_,paused = GetGameSpeed()
-  
   glDepthMask(true)
   glDepthTest(true)
   glAlphaTest(GL_GREATER, 0)
@@ -306,25 +344,26 @@ function widget:DrawScreen()
   gl.Texture(1, "LuaUI/images/gradient_alpha_2.png")
 
   for i, damage in pairs(damageTable) do
-    if (damage.lifeSpan <= 0) then 
+    if (damage.lifeSpan <= 0) then
       table.remove(damageTable,i)
     else
-      glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset), 
-                       damage.offset, damage.damage, damage.textSize, damage.lifeSpan, damage.paralyze)
+      if CallAsTeam(myTeamID, IsUnitInView, damage.unitID) then
+        glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset),
+                damage.offset, damage.damage, damage.textSize, damage.lifeSpan, damage.paralyze)
+      end
       if not paused then
         --if damage.paralyze then
         --  damage.lifeSpan = (damage.lifeSpan - 0.05)
         --  damage.textSize = (damage.textSize + 0.2)
         --else
           damage.heightOffset = (damage.heightOffset + damage.riseTime)
-          if (damage.heightOffset > 25) then 
+          if (damage.heightOffset > 25) then
             damage.lifeSpan = (damage.lifeSpan - damage.fadeTime)
           end
         --end
       end
     end
   end
-  
   for i, death in pairs(deadList) do
     if (death.lifeSpan <= 0) then
       table.remove(deadList,i)
@@ -336,7 +375,7 @@ function widget:DrawScreen()
       end
     end
   end
-    
+
   gl.Texture(1, false)
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
   glAlphaTest(false)
@@ -345,7 +384,7 @@ function widget:DrawScreen()
 end
 
 
---function widget:Initialize()
+--function gadget:Initialize()
 --  for damage=1, 200 do
 --    drawTextLists[damage] = gl.CreateList(function()
 --      glText(damage, 0, 0, getTextSize(damage, false), 'cnO')
@@ -353,7 +392,7 @@ end
 --  end
 --end
 
-function widget:Shutdown()
+function gadget:Shutdown()
     for k,_ in pairs(drawTextLists) do
         gl.DeleteList(drawTextLists[k])
     end
@@ -365,6 +404,3 @@ function widget:Shutdown()
     end
   gl.DeleteFont(font)
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
