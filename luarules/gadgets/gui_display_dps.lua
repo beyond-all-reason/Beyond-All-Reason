@@ -287,7 +287,7 @@ function gadget:RecvLuaMsg(msg, playerID)
 end
 
 function checkEnabled()
-  prevEnabled = enabled
+  local prevEnabled = enabled
   enabled = (tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1)
   if prevEnabled ~= enabled then
     damageTable = {}

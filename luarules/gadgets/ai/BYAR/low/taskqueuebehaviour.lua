@@ -118,7 +118,7 @@ function TaskQueueBehaviour:CompareWithOldPos()
 end
 
 function TaskQueueBehaviour:Update()
-	if Spring.GetGameFrame()%600 == 0 then
+	if Spring.GetGameFrame()%600 == math.floor((self.unit:Internal().id/35000)*600) then	-- i havent seen unit id's going above 32000
 		if (not self.unit:Internal():Type():IsFactory()) then
 			if self:IsRunningAQueue() and (not self:IsBusy()) and self:CompareWithOldPos() then -- check stucked cons
 				self.unit:Internal():ExecuteCustomCommand(CMD.STOP, {}, {}) --> Triggers UnitIdle -> Next Task
@@ -128,8 +128,7 @@ function TaskQueueBehaviour:Update()
 			else
 				self:CompareWithOldPos() -- still register current position
 			end		
-		end
-		if self.unit:Internal():Type():IsFactory() then
+		else
 			if not(self:IsBusy() and self:IsRunningAQueue()) then
 				self:OwnerIdle()
 			end
