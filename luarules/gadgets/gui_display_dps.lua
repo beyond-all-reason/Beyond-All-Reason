@@ -31,10 +31,10 @@ local enabled = (tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1)
 
 local fontfile = "luaui/fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileScale = (1 + (vsx*vsy / 5700000))
 local fontfileSize = 25
 local fontfileOutlineSize = 6
-local fontfileOutlineStrength = 1.4
+local fontfileOutlineStrength = 1.3
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local GetUnitDefID         = Spring.GetUnitDefID
@@ -77,15 +77,16 @@ local drawTextLists = {}
 local drawTextListsDeath = {}
 local drawTextListsEmp = {}
 local myTeamID = Spring.GetMyTeamID()
+local _, fullview = Spring.GetSpectatingState()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function gadget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
-  local fontScale = (0.5 + (vsx*vsy / 5700000)) / 2
-  gl.DeleteFont(font)
-  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+  local fontScale = (1 + (vsx*vsy / 5700000))
+  gadget:Shutdown()
+  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.3)
 end
 
 local function unitHeight(unitDefID)
@@ -178,7 +179,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer)
   if (damage < 1.5) then return end
 
   if (UnitDefs[unitDefID] == nil) then return end
-  if not CallAsTeam(myTeamID, IsUnitInView, unitID) then return end
+  if not fullview and not CallAsTeam(myTeamID, IsUnitInView, unitID) then return end
 
   if paralyzer and unitParalyze[unitID] then
     unitParalyze[unitID].damage = (unitParalyze[unitID].damage + damage)
@@ -276,6 +277,7 @@ end
 
 function gadget:PlayerChanged(playerID)
   myTeamID = Spring.GetMyTeamID()
+  _, fullview = Spring.GetSpectatingState()
 end
 
 function gadget:RecvLuaMsg(msg, playerID)
@@ -347,7 +349,7 @@ function gadget:DrawWorld()
     if (damage.lifeSpan <= 0) then
       table.remove(damageTable,i)
     else
-      if CallAsTeam(myTeamID, IsUnitInView, damage.unitID) then
+      if fullview or CallAsTeam(myTeamID, IsUnitInView, damage.unitID) then
         glDrawFuncAtUnit(damage.unitID, false, DrawUnitFunc, (damage.height + damage.heightOffset),
                 damage.offset, damage.damage, damage.textSize, damage.lifeSpan, damage.paralyze)
       end
