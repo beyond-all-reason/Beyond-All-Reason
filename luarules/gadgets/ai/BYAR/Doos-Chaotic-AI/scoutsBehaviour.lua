@@ -1,4 +1,4 @@
-shard_include( "scouts", "low")
+shard_include( "scouts", "doos-chaotic-ai")
 
 
 -- speedups

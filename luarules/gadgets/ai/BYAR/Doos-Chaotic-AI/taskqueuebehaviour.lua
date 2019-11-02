@@ -1,5 +1,5 @@
 TaskQueueBehaviour = class(Behaviour)
-shard_include("nanolayers", "low")
+shard_include("nanolayers", "doos-chaotic-ai")
 function TaskQueueBehaviour:Init()
 	self.active = false
 	u = self.unit

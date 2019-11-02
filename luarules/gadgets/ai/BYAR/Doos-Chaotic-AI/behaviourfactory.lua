@@ -1,7 +1,7 @@
 shard_include( "behaviour" )
 BehaviourFactory = class(AIBase)
 Spring.Echo("low loaded")
-shard_include( "behaviours", "low" )
+shard_include( "behaviours", "doos-chaotic-ai" )
 function BehaviourFactory:Init()
 	--
 end

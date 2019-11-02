@@ -1,4 +1,4 @@
-shard_include( "attackers", "high")
+shard_include( "attackers", "base-ai")
 
 function IsBomber(unit)
 	for i,name in ipairs(bomberlist) do

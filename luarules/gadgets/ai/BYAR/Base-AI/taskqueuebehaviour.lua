@@ -1,5 +1,5 @@
 TaskQueueBehaviour = class(Behaviour)
-shard_include("nanolayers", "high")
+shard_include("nanolayers", "base-ai")
 function TaskQueueBehaviour:Init()
 	self.active = false
 	u = self.unit

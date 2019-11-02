@@ -1,4 +1,4 @@
-shard_include( "staticweapons", "low")
+shard_include( "staticweapons", "doos-chaotic-ai")
 
 local CMD_STOCKPILE = 100
 

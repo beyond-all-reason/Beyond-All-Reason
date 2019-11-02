@@ -12,7 +12,7 @@
 -- Commander squad can't have any helper. There can only be one commander squad at a time, this isn't really useful for now (beside retrocontrol on comm's bp) but might be useful if we want to give certain particular tasks to the "last com" to ensure its survival, while others could be sent to front (ie revived comms)
 
 BuilderSquadsHandler = class(Module)
-shard_include('buildersquadsdefs', "low")
+shard_include('buildersquadsdefs', "doos-chaotic-ai")
 
 local function squadtable(domain)
 	local maxallowedbp

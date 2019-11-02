@@ -1,4 +1,4 @@
-shard_include( "attackers", "low")
+shard_include( "attackers", "doos-chaotic-ai")
 
 function IsFighter(unit)
 	for i,name in ipairs(fighterlist) do
