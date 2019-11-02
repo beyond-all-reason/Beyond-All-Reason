@@ -33,6 +33,22 @@ local teams = Spring.GetTeamList()
 ShardSpringLua = true -- this is the AI Boot gadget, so we're in Spring Lua
 VFS.Include("luarules/gadgets/ai/boot.lua")
 
+local function checkAImode(modeName)
+	local path = "luarules/gadgets/ai/byar/"..modeName.."/"
+	if VFS.FileExists(path.."modules.lua") and VFS.FileExists(path.."behaviourfactory.lua") then
+		return true
+	end
+	return false
+end
+
+local DAIlist = {}
+local DAIModes = VFS.SubDirs("luarules/gadgets/ai/byar/")
+for i,lmodeName in pairs(DAIModes) do
+	local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/ai/byar/") + 1, string.len(lmodeName) - 1)
+	if checkAImode(smodeName) == true then
+		DAIlist[smodeName] = true
+	end
+end
 -- fake os object
 --os = shard_include("spring_lua/fakeos")
 
@@ -93,10 +109,12 @@ function gadget:Initialize()
 				numberOfmFAITeams = numberOfmFAITeams + 1
 				spEcho("Moomin Player " .. teamList[i] .. " is " .. aiInfo)
 				-- add AI object
-				if (type(aiInfo) == "string") and (string.find(aiInfo, "low"))  then	
-					thisAI = ShardAI("low")
+				local mode = string.sub(aiInfo, 5)
+				if DAIlist[mode] == true then
+					thisAI = ShardAI(mode)
 				else
-					thisAI = ShardAI("high")		
+					Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
+					break
 				end
 				thisAI.id = id
 				thisAI.allyId = allyId
