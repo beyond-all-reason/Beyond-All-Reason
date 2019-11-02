@@ -1,4 +1,4 @@
-shard_include( "attackers", "base-ai")
+shard_include( "attackers", subf)
 
 function IsFighter(unit)
 	for i,name in ipairs(fighterlist) do

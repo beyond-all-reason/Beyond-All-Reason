@@ -1,4 +1,4 @@
-shard_include( "attackers", "doos-chaotic-ai")
+shard_include( "attackers", subf)
 
 
 -- speedups

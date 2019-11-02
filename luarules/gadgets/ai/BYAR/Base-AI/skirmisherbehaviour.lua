@@ -1,4 +1,4 @@
-shard_include( "attackers", "base-ai")
+shard_include( "attackers", subf)
 
 
 -- speedups

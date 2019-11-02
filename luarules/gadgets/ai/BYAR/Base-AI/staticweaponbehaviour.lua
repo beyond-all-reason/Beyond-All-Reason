@@ -1,4 +1,4 @@
-shard_include( "staticweapons", "base-ai")
+shard_include( "staticweapons", subf)
 
 local CMD_STOCKPILE = 100
 

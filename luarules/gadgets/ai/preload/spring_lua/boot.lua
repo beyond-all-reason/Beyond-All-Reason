@@ -5,15 +5,18 @@ function shard_include( file , subf)
 		return nil
 	end
 	subdir = Game.gameShortName	
+	local curEnv = nil
 	if subf then
 	 subdir = subdir.."/"..subf -- "BYAR/low/behaviourfactory.lua"
+	 curEnv = getfenv()
+     curEnv.subf = subf
 	end
 	local gameFile = "luarules/gadgets/ai/" ..  subdir .. "/" .. file .. ".lua"
 	local baseFile = "luarules/gadgets/ai/" .. file .. ".lua"
 	local preloadFile = "luarules/gadgets/ai/preload/" .. file .. ".lua"
 	if VFS.FileExists(gameFile) then
 		-- Spring.Echo("got gameFile", gameFile)
-		return VFS.Include(gameFile)
+		return VFS.Include(gameFile, curEnv)
 	elseif VFS.FileExists(baseFile) then
 		-- Spring.Echo("got baseFile", baseFile)
 		return VFS.Include(baseFile)

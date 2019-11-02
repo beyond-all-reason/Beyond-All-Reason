@@ -1,4 +1,4 @@
-shard_include( "scouts", "base-ai")
+shard_include( "scouts", subf)
 
 
 -- speedups

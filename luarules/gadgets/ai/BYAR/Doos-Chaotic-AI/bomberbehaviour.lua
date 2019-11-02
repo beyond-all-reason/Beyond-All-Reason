@@ -1,4 +1,4 @@
-shard_include( "attackers", "doos-chaotic-ai")
+shard_include( "attackers", subf)
 
 function IsBomber(unit)
 	for i,name in ipairs(bomberlist) do
