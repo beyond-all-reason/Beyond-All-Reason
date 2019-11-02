@@ -52,9 +52,13 @@ function SetUnitConf()
 			for i=1, #unitDef.weapons do
 				local weaponDefID = unitDef.weapons[i].weaponDef
 				local weaponDef   = WeaponDefs[weaponDefID]
-				if weaponDef and weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
-                    neededEnergy = weaponDef.energyCost
-				end
+                if weaponDef then
+                    if weaponDef.stockpile then
+                        neededEnergy = math.floor(weaponDef.energyCost / (weaponDef.stockpileTime/30))
+                    elseif weaponDef.energyCost > neededEnergy and weaponDef.energyCost >= weaponEnergyCostFloor then
+                        neededEnergy = weaponDef.energyCost
+                    end
+                end
 			end
 		elseif unitDef.isBuilding and unitDef.energyUpkeep and unitDef.energyUpkeep > 0 and unitDef.energyUpkeep > unitDef.energyMake then
 			neededEnergy = unitDef.energyUpkeep
@@ -191,7 +195,7 @@ function widget:DrawWorld()
 
 	for teamID, units in pairs(teamUnits) do
 		for unitID, unitDefID in pairs(units) do
-            if unitConf[unitDefID][3] > teamEnergy[teamID] and (not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
+            if teamEnergy[teamID] and unitConf[unitDefID][3] > teamEnergy[teamID] and (not unitConf[unitDefID][4] or ((unitConf[unitDefID][4] and (select(4, spGetUnitResources(unitID))) or 999999) < unitConf[unitDefID][3])) then
                 if not unitIconTimes[unitID] then
                     unitIconTimes[unitID] = now
                 end
