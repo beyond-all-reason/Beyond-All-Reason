@@ -481,12 +481,15 @@ function gadget:DrawGenesis()
 				if mat.standardShaderObj then
 					mat.standardShaderObj:ActivateWith( function ()
 						if SunChangedFunc then
+							Spring.Echo("api_CUS DrawGenesis SunChangedFunc")
 							SunChangedFunc(mat.standardShaderObj)
 						end
 						if DrawGenesisFunc then
 							DrawGenesisFunc(mat.standardShaderObj)
 						end
 					end)
+				else
+					Spring.Echo("mat.standardShaderObj is nil!!!")
 				end
 				if mat.deferredShaderObj then
 					mat.deferredShaderObj:ActivateWith( function ()
@@ -776,6 +779,7 @@ function Reload()
 end
 
 function UpdateSun(_,newSetting,_, playerID)
+	Spring.Echo("api_CUS UpdateSun")
     sunChanged = true
 end
 
