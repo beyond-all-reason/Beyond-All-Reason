@@ -37,8 +37,8 @@ if (gadgetHandler:IsSyncedCode()) then
 			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end
 	end
-	
-	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+
+	function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		if reverseUnit[unitID] then
 			refreshList[unitID] = unitDefID
 		end

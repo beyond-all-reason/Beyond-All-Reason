@@ -19,7 +19,7 @@ local com = {}
 com[UnitDefNames["armcom"].id] = true
 com[UnitDefNames["corcom"].id] = true
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
     if com[unitDefID] then
         local cmdIndex = Spring.FindUnitCmdDesc(unitID, cmdID)
         local cmdArrays = Spring.GetUnitCmdDescs(unitID, cmdIndex, cmdIndex)

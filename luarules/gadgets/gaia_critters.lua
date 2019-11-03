@@ -633,7 +633,7 @@ end
 
 
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30109
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)	
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	--Spring.Echo (CMD[cmdID] or "nil")
 	if cmdID and cmdID == CMD.ATTACK then 		
 		if cmdParams and #cmdParams == 1 then			

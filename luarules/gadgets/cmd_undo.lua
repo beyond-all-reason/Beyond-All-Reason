@@ -217,7 +217,7 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- log selfd commands
-	function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+	function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 
 		-- check for queued selfd (to check if queue gets cancelled)
 		if selfdCmdUnits[unitID] then

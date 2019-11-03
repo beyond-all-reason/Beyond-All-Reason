@@ -473,9 +473,9 @@ function updateCommand(unitID, insertID, cmd)
   else 
     EditUnitCmdDesc(unitID, cmdDescId, cmd) 
   end 
-end 
+end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, _) 
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
   --Echo("AC " .. cmdID) 
   local builder = builders[teamID][unitID] 
   if cmdID == CMD_UPGRADEMEX then 

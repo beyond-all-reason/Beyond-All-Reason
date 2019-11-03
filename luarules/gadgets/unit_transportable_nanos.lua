@@ -54,10 +54,10 @@ local Nanos = {
 
 local watchList = {}
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
- -- if synced then return true end
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+ -- if fromSynced then return true end
 	if (cmdID == CMD_LOAD_UNITS) then
-		--Spring.Echo('Load','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',to_string(cmdOptions), 'cmdTag',cmdTag, 'synced',synced)
+		--Spring.Echo('Load','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',to_string(cmdOptions), 'cmdTag',cmdTag, 'fromSynced',fromSynced)
 		if #cmdParams==1 then -- if unit is target
 			if (ValidUnitID(cmdParams[1]) and GetUnitTeam(cmdParams[1]) ~= teamID and Nanos[GetUnitDefID(cmdParams[1])]) then
 				return false
@@ -67,7 +67,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 		--end
 	end
 	if (cmdID == CMD_UNLOAD_UNITS) then
-		--Spring.Echo('Unload','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',cmdOptions, 'cmdTag',cmdTag, 'synced',synced)
+		--Spring.Echo('Unload','unitID',unitID, 'unitDefID', unitDefID, 'teamID', teamID, 'cmdID', cmdID, 'cmdParams',to_string(cmdParams), 'cmdOptions',cmdOptions, 'cmdTag',cmdTag, 'fromSynced',fromSynced)
 		if (GetUnitIsTransporting(unitID)) then
 			local intrans=GetUnitIsTransporting(unitID)
 			if #intrans>=1 then

@@ -97,7 +97,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 	
-	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		if cmdID == CMD_SET_PRIORITY then
 			local cmdDescId = Spring.FindUnitCmdDesc(unitID, CMD_SET_PRIORITY)
 			if cmdParams and cmdParams[1] and cmdDescId then
@@ -113,7 +113,7 @@ if gadgetHandler:IsSyncedCode() then
 		return true
 	end
 	
-	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+	function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 		if cmdID == CMD_SET_PRIORITY then
 			if cmdParams and cmdParams[1] then
 				if cmdParams[1] == 0 then

@@ -29,7 +29,7 @@ local toBeLoaded = {}
 
 if (gadgetHandler:IsSyncedCode()) then
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
     if cmdID == CMD_LOAD_ONTO then
         local transportID = cmdParams[1]
         toBeLoaded[unitID] = transportID

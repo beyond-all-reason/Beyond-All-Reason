@@ -41,7 +41,7 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 	return waitRemoveDefs
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if (cmdID == CMD_WAIT and waitRemoveDefs[unitDefID]) then
 		return false
 	end

@@ -15,7 +15,7 @@ function gadget:GetInfo()
 end
 attempt = {}
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 
 	if (cmdID == CMD.MOVE or cmdID == CMD.RAWMOVE) and UnitDefs[unitDefID].canFly == false then
 		-- if UnitDefs[unitDefID].moveDef and UnitDefs[unitDefID].moveDef.name and string.find(UnitDefs[unitDefID].moveDef.name, "boat") then -- unquote if you want this for ships only

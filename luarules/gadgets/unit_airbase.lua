@@ -351,7 +351,7 @@ end
 local CMD_INSERT = CMD.INSERT
 local CMD_REMOVE = CMD.REMOVE
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
    return true
 end
 
@@ -361,7 +361,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	Spring.ClearUnitGoal(unitID)
 end
 
-function gadget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function gadget:UnitCommand(unitID, unitDefID, unitTeamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
    -- if a plane is given a command, assume the user wants that command to be actioned and release control
    -- (unless its one of our custom commands, etc)
    if not planes[unitID] then return end

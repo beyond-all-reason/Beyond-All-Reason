@@ -109,7 +109,7 @@ function checkAndBreakAlliance(attackerTeam,targetTeam,attackerAllyTeam,targetAl
 end
 
 
-function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_MANUALFIRE) then
 		local targetID = cmdParams[1]
 		if ValidUnitID(targetID) then

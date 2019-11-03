@@ -40,7 +40,7 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD.ATTACK
 	and cmdParams[2] == nil
 	and onlyTargetsSurface[unitDefID]

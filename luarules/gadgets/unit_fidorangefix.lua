@@ -58,7 +58,7 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
 	end
   end
   
-  function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag)
+  function gadget:UnitCommand(unitID, unitDefID, unitTeam, cmdID, cmdOpts, cmdParams, cmdTag, playerID, fromSynced, fromLua)
 	if unitDefID == FIDOID then
 		if cmdID == CMD.ONOFF then
 			if cmdParams and cmdOpts[1] == 0 then -- DESACTIVATE (GAUSS)

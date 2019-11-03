@@ -1064,10 +1064,10 @@ end
 
 
 function gadgetHandler:AllowCommand(unitID, unitDefID, unitTeam,
-                                    cmdID, cmdParams, cmdOptions, cmdTag, synced)
+                                    cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
   for _,g in ipairs(self.AllowCommandList) do
     if (not g:AllowCommand(unitID, unitDefID, unitTeam,
-                           cmdID, cmdParams, cmdOptions, cmdTag, synced)) then
+                           cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)) then
       return false
     end
   end
@@ -1430,9 +1430,9 @@ end
 
 
 
-function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag)
+function gadgetHandler:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
   for _,g in ipairs(self.UnitCommandList) do
-    g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag)
+    g:UnitCommand(unitID, unitDefID, unitTeam, cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
   end
   return
 end
