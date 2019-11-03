@@ -45,7 +45,7 @@ local previousHealFrame = 0
 
 local tractorSpeed = 2
 local rotTractorSpeed = 0.05
-
+local math_sqrt = math.sqrt
 
 ---------------------------
 -- custom commands
@@ -436,7 +436,7 @@ function gadget:GameFrame(n)
          local airbaseID, padPieceNum = t[1], t[2]
          local px, py, pz = Spring.GetUnitPiecePosDir(airbaseID, padPieceNum)
          local ux, uy, uz = Spring.GetUnitPosition(unitID)
-         local sqrDist = (ux and px) and (ux-px)^2 + (uy-py)^2 + (uz-pz)^2
+         local sqrDist = (ux and px) and (ux-px)*(ux-px) + (uy-py)*(uy-py) + (uz-pz)*(uz-pz)
          if sqrDist and h<mh then
             -- check if we're close enough, move into tractorPlanes if so
             local r = Spring.GetUnitRadius(unitID)
@@ -462,8 +462,8 @@ function gadget:GameFrame(n)
       local ux, uy, uz = Spring.GetUnitPosition(unitID)         
       local upitch,uyaw,uroll = Spring.GetUnitRotation(unitID)
       local ppitch,pyaw,proll = Spring.GetUnitRotation(airbaseID)
-      local sqrDist = (ux and px) and (ux-px)^2 + (uy-py)^2 + (uz-pz)^2
-      local rotSqrDist = (upitch and ppitch) and (upitch-ppitch)^2 + (uyaw-pyaw)^2 + (uroll-proll)^2
+      local sqrDist = (ux and px) and (ux-px)*(ux-px) + (uy-py)*(uy-py) + (uz-pz)*(uz-pz)
+      local rotSqrDist = (upitch and ppitch) and (upitch-ppitch)*(upitch-ppitch) + (uyaw-pyaw)*(uyaw-pyaw) + (uroll-proll)*(uroll-proll)
       if sqrDist and sqrDist < 2 and rotSqrDist and rotSqrDist < 0.025 then
          -- snap into place
          tractorPlanes[unitID] = nil
@@ -476,13 +476,13 @@ function gadget:GameFrame(n)
          -- tractor towards pad
          if sqrDist >=2 then
             local dx,dy,dz = px-ux,py-uy,pz-uz
-            local velNormMult = tractorSpeed / math.sqrt(dx^2+dy^2+dz^2)
+            local velNormMult = tractorSpeed / math_sqrt(dx*dx + dy*dy + dz*dz)
             local vx,vy,vz = dx*velNormMult,dy*velNormMult,dz*velNormMult
             Spring.MoveCtrl.SetPosition(unitID, ux+vx, uy+vy, uz+vz)         
          end
          if rotSqrDist >=0.025 then
             local dpitch,dyaw,droll = ppitch-upitch,pyaw-uyaw,proll-uroll 
-            local rotNormMult = rotTractorSpeed / math.sqrt(dpitch^2+dyaw^2+droll^2)
+            local rotNormMult = rotTractorSpeed / math_sqrt(dpitch*dpitch + dyaw*dyaw + droll*droll)
             local rpitch,ryaw,rroll = dpitch*rotNormMult,dyaw*rotNormMult,droll*rotNormMult
             Spring.MoveCtrl.SetRotation(unitID, upitch+rpitch, uyaw+ryaw, uroll+rroll)
          end

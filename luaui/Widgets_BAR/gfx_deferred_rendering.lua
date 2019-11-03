@@ -50,6 +50,7 @@ local spEcho                 = Spring.Echo
 local spGetCameraPosition    = Spring.GetCameraPosition
 local spWorldToScreenCoords  = Spring.WorldToScreenCoords
 
+local math_sqrt = math.sqrt
 
 local glowImg			= "LuaUI/Images/glow2.dds"
 local beamGlowImg = ":n:LuaUI/Images/barglow-center.png"
@@ -417,7 +418,7 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			sx = sx/vsx
 			sy = sy/vsy --since FOV is static in the Y direction, the Y ratio is the correct one
 			local dist_sq = (light.px-cx)^2 + (light.py-cy)^2 + (light.pz-cz)^2
-			local ratio = lightradius / math.sqrt(dist_sq) * 1.5
+			local ratio = lightradius / math_sqrt(dist_sq) * 1.5
 			glUniform(lightposlocPoint, light.px, light.py, light.pz, param.radius) --in world space
 			glUniform(lightcolorlocPoint, param.r * light.colMult, param.g * light.colMult, param.b * light.colMult, 1) 
 			glTexRect(
@@ -436,13 +437,13 @@ local function DrawLightType(lights, lightsCount, lighttype) -- point = 0 beam =
 			local px = light.px+light.dx*0.5
 			local py = light.py+light.dy*0.5
 			local pz = light.pz+light.dz*0.5
-			local lightradius = param.radius + math.sqrt(light.dx^2 + light.dy^2 + light.dz^2)*0.5
+			local lightradius = param.radius + math_sqrt(light.dx*light.dx + light.dy*light.dy + light.dz*light.dz)*0.5
 			VerboseEcho("Drawlighttype position = ", light.px, light.py, light.pz)
 			local sx, sy, sz = spWorldToScreenCoords(px, py, pz) -- returns x, y, z, where x and y are screen pixels, and z is z buffer depth.
 			sx = sx/vsx
 			sy = sy/vsy --since FOV is static in the Y direction, the Y ratio is the correct one
 			local dist_sq = (px-cx)^2 + (py-cy)^2 + (pz-cz)^2
-			local ratio = lightradius / math.sqrt(dist_sq)
+			local ratio = lightradius / math_sqrt(dist_sq)
 			ratio = ratio*2
 
 			glUniform(lightposlocBeam, light.px, light.py, light.pz, param.radius) --in world space

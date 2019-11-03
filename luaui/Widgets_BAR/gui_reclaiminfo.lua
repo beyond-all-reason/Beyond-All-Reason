@@ -47,6 +47,8 @@ local xstart,ystart = 0
 local cmd,xend,yend,x,y,b1,b2
 local inMinimap = false --mouse cursor in minimap
 
+local math_sqrt = math.sqrt
+
 function widget:ViewResize(n_vsx,n_vsy)
     vsx,vsy = Spring.GetViewGeometry()
     widgetScale = (0.5 + (vsx*vsy / 5700000))
@@ -133,13 +135,13 @@ function widget:DrawScreen()
      metal=0
      energy=0
      local rdx, rdy = (rangestart[1] - rangeend[1]), (rangestart[3]- rangeend[3])
-     local dist = math.sqrt((rdx * rdx) + (rdy * rdy))
+     local dist = math_sqrt((rdx * rdx) + (rdy * rdy))
      --because there is only GetFeaturesInRectangle. Features outside of the circle are needed to be ignored
      local units = Spring.GetFeaturesInRectangle(rangestart[1]-dist,rangestart[3]-dist,rangestart[1]+dist,rangestart[3]+dist)
      for _,unit in ipairs(units) do
         local ux, _, uy = Spring.GetFeaturePosition(unit)
         local udx, udy = (ux - rangestart[1]), (uy - rangestart[3])
-        udist = math.sqrt((udx * udx) + (udy * udy))
+        udist = math_sqrt((udx * udx) + (udy * udy))
         if(udist < dist) then
           local fm,_,fe  = Spring.GetFeatureResources(unit) 
           metal = metal + fm

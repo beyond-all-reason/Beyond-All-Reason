@@ -11,13 +11,15 @@ function gadget:GetInfo()
   }
 end
 
-local uPos = Spring.GetUnitPosition
-local fPos = Spring.GetFeaturePosition
-local uDir = Spring.GetUnitDirection
-
-Ignoring = {}
-
 if (gadgetHandler:IsSyncedCode()) then --SYNCED
+
+    local math_sqrt = math.sqrt
+    local uPos = Spring.GetUnitPosition
+    local fPos = Spring.GetFeaturePosition
+    local uDir = Spring.GetUnitDirection
+
+    Ignoring = {}
+
     Units = {}
 
     function SendToIgnoreList(id, delay)
@@ -66,8 +68,8 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
     end
 
     function Norm2DVectr(cx,cy,cz)
-        local ndx = (cx/math.abs(cx))*math.sqrt(cx^2/(cx^2+cz^2))
-        local ndz = (cz/math.abs(cz))*math.sqrt(cz^2/(cx^2+cz^2))
+        local ndx = (cx/math.abs(cx))*math_sqrt(cx*cx/(cx*cx+cz*cz))
+        local ndz = (cz/math.abs(cz))*math_sqrt(cz*cz/(cx*cx+cz*cz))
             if cx == 0 then
                 ndx = 0
                 ndz = ndz

@@ -48,6 +48,7 @@ local DOWNSAMPLE = 2 -- increasing downsapling will reduce GPU RAM occupation (a
 --local MERGE_MISC = true -- for future material indices based SSAO evaluation
 local DEBUG_SSAO = false -- use for debug
 
+local math_sqrt = math.sqrt
 
 -----------------------------------------------------------------
 -- File path Constants
@@ -87,7 +88,7 @@ local gaussianBlurShader
 -----------------------------------------------------------------
 
 local function G(x, sigma)
-	return ( 1 / ( math.sqrt(2 * math.pi) * sigma ) ) * math.exp( -(x * x) / (2 * sigma * sigma) )
+	return ( 1 / ( math_sqrt(2 * math.pi) * sigma ) ) * math.exp( -(x * x) / (2 * sigma * sigma) )
 end
 
 local function GetGaussDiscreteWeightsOffsets(sigma, kernelHalfSize, valMult)
@@ -147,7 +148,7 @@ local function GetSamplingVectorArray(kernelSize)
 
 		x, y = 2.0 * x - 1.0, 2.0 * y - 1.0 -- xy:[-1, 1]^2, z:[0, 1]
 
-		local l = math.sqrt(x * x + y * y + z * z) --norm
+		local l = math_sqrt(x * x + y * y + z * z) --norm
 		x, y, z = x / l, y / l, z / l --normalize
 
 		local scale = i / (kernelSize - 1)

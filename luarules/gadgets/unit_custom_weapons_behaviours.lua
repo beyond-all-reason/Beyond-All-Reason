@@ -20,6 +20,7 @@ if gadgetHandler:IsSyncedCode() then
 	local projectiles = {}
 	local checkingFunctions = {}
 	local applyingFunctions = {}
+	local math_sqrt = math.sqrt
 
 	checkingFunctions.split = {}
 	checkingFunctions.split["yvel<0"] = function (proID)
@@ -34,7 +35,7 @@ if gadgetHandler:IsSyncedCode() then
 	applyingFunctions.split = function (proID)
 		local px, py, pz = Spring.GetProjectilePosition(proID)
 		local vx, vy, vz = Spring.GetProjectileVelocity(proID)
-		local vw = math.sqrt(vx^2+vy^2+vz^2)
+		local vw = math_sqrt(vx*vx + vy*vy + vz*vz)
 		local ownerID = Spring.GetProjectileOwnerID(proID)
 		local infos = projectiles[proID]
 		for i = 1, tonumber(infos.number) do

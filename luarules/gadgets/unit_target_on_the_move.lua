@@ -169,10 +169,10 @@ local function AreUnitsAllied(unitID,targetID)
 	return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam,enemyTeam)
 end
 
-local function locationInRange(unitID, x, y, z, range)
-	local ux, uy, uz = spGetUnitPosition(unitID)
-	return range and ((ux - x)^2 + (uz - z)^2) < range^2
-end
+--local function locationInRange(unitID, x, y, z, range)
+--	local ux, uy, uz = spGetUnitPosition(unitID)
+--	return range and ((ux - x)^2 + (uz - z)^2) < range^2
+--end
 
 local function TargetCanBeReached(unitID, teamID, weaponList, target)
 	for weaponID in pairs(weaponList) do

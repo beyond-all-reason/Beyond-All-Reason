@@ -247,7 +247,7 @@ function widget:CommandNotify(id, params, options)
 			end
 			mex.x = mexes[k].x
 			mex.z = mexes[k].z
-			if (Distance(cx,cz,mex.x,mex.z) < cr^2) then -- circle area, slower
+			if (Distance(cx,cz,mex.x,mex.z) < cr*cr) then -- circle area, slower
 				if NoAlliedMex(mex.x, mex.z, maxbatchextracts) == true then
 					commands[#commands+1] = {x = mex.x, z = mex.z, d = Distance(aveX,aveZ,mex.x,mex.z)}
 				end
@@ -298,24 +298,24 @@ function widget:CommandNotify(id, params, options)
 
 						-- for ox = 0, Game.extractorRadius do
 								-- for oz = 0, Game.extractorRadius do
-										-- if math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1) ~= 0 then
+										-- if sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1) ~= 0 then
 											-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
 											-- newx = command.x + ox
 											-- newz = command.z + oz
 											-- break
-										-- elseif math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z + oz),command.z + oz,1) ~= 0 then
+										-- elseif sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z + oz),command.z + oz,1) ~= 0 then
 											-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
 											-- newx = command.x - ox
 											-- newz = command.z + oz
 											-- break
 										
-										-- elseif math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z - oz),command.z - oz,1) ~= 0 then
+										-- elseif sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z - oz),command.z - oz,1) ~= 0 then
 											-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
 											-- newx = command.x + ox
 											-- newz = command.z - oz
 											-- break
 										
-										-- elseif math.sqrt(ox^2 + oz^2) <= math.sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z - oz),command.z - oz,1) ~= 0 then
+										-- elseif sqrt(ox^2 + oz^2) <= sqrt(Game.extractorRadius^2)-spotSize and spTestBuildOrder(-mexBuilder[id].building[j],command.x - ox,spGetGroundHeight(command.x - ox,command.z - oz),command.z - oz,1) ~= 0 then
 											-- buildable = spTestBuildOrder(-mexBuilder[id].building[j],command.x + ox,spGetGroundHeight(command.x + ox,command.z + oz),command.z + oz,1)
 											-- command.x = command.x - ox
 											-- command.z = command.z - oz

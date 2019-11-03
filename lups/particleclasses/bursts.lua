@@ -2,6 +2,16 @@
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+local glBeginEnd = gl.BeginEnd
+local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
+local glTexCoord = gl.TexCoord
+local glVertex = gl.Vertex
+
+local rand = math.random
+local sqrt = math.sqrt
+
+local lasttexture = nil
+
 -- todo: burst .rotArc length (in DisplayList creation)
 
 local Bursts = {}
@@ -70,16 +80,16 @@ function Bursts:InitializePartList(partList)
   partList.start_pos= self.pos
 
   -- spread values
-  if (self.sizeSpread>0)  then partList.size    = partList.size     + math.random(self.sizeSpread*100)/100 end
-  if (self.rotSpread>0)   then partList.rotspeed= partList.rotspeed + math.random(self.rotSpread*100)/100 end
-  if (self.arcSpread>0)   then partList.arc     = partList.arc + math.random(self.arc) end
+  if (self.sizeSpread>0)  then partList.size    = partList.size     + random(self.sizeSpread*100)/100 end
+  if (self.rotSpread>0)   then partList.rotspeed= partList.rotspeed + random(self.rotSpread*100)/100 end
+  if (self.arcSpread>0)   then partList.arc     = partList.arc + random(self.arc) end
   local rand = 0
-  if (self.lifeSpread>0) then rand = math.random(self.lifeSpread) end
+  if (self.lifeSpread>0) then rand = random(self.lifeSpread) end
   partList.life_incr = 1/(self.life+rand)
 
   -- create rotation up vector
-  partList.rotv = {((-1)^math.random(2,3))*math.random(),((-1)^math.random(2,3))*math.random(),((-1)^math.random(2,3))*math.random()}
-  local  length = math.sqrt(partList.rotv[1]^2+partList.rotv[2]^2+partList.rotv[3]^2)
+  partList.rotv = {((-1)^random(2,3))*random(),((-1)^random(2,3))*random(),((-1)^random(2,3))*random()}
+  local  length = sqrt(partList.rotv[1]*partList.rotv[1] + partList.rotv[2]*partList.rotv[2] + partList.rotv[3]*partList.rotv[3])
   partList.rotv = {partList.rotv[1]/length,partList.rotv[2]/length,partList.rotv[3]/length}
 end
 
@@ -98,7 +108,6 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-local lasttexture = nil
 
 function Bursts:BeginDraw()
 	lasttexture = nil
@@ -174,8 +183,6 @@ local function rotateVector(vector,axis,phi)
          x * matrix[2][0] + y * matrix[2][1] + z * matrix[2][2];
 end
 
-local glTexCoord = gl.TexCoord
-local glVertex = gl.Vertex
 
 function DrawBurstVertices(rotv,directional,arc, alpha,beta,gamma)
       glTexCoord(1,1)
@@ -207,9 +214,6 @@ function DrawBurstVertices(rotv,directional,arc, alpha,beta,gamma)
 
 end
 
-local glBeginEnd = gl.BeginEnd
-local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
-local rand = math.random
 
 local function DrawBurst(rotv,directional,arc)
   -- we need a orthognalized vector to the rotation vector "rotv"
@@ -219,13 +223,13 @@ local function DrawBurst(rotv,directional,arc)
     local gamma = rand()-rand()
 
     -- gram-schmidt
-    local proj = (rotv[1]*alpha + rotv[2]*beta + rotv[3]*gamma) / (rotv[1]^2 + rotv[2]^2 + rotv[3]^2)
+    local proj = (rotv[1]*alpha + rotv[2]*beta + rotv[3]*gamma) / (rotv[1]*rotv[1] + rotv[2]*rotv[2] + rotv[3]*rotv[3])
     alpha = alpha-rotv[1]*proj
     beta  = beta-rotv[2]*proj
     gamma = gamma-rotv[3]*proj
 
     -- normalization
-    local length = math.sqrt(alpha*alpha+beta*beta+gamma*gamma)
+    local length = sqrt(alpha*alpha + beta*beta + gamma*gamma)
     alpha = alpha/length
     beta  = beta/length
     gamma = gamma/length

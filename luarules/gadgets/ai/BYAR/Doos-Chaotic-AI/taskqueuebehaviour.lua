@@ -107,7 +107,10 @@ function TaskQueueBehaviour:CompareWithOldPos()
 	local result = false
 	local x,y,z = Spring.GetUnitPosition(self.unit:Internal().id)
 	if self.oldPos then
-		if math.sqrt((x-self.oldPos.x)^2+(y-self.oldPos.y)^2+(z-self.oldPos.z)^2) < 16 then
+		local xx = (x-self.oldPos.x)
+		local zz = (y-self.oldPos.y)
+		local yy = (z-self.oldPos.z)
+		if math.sqrt(xx*xx + yy*yy + zz*zz) < 16 then
 			result = true
 		else
 			result = false

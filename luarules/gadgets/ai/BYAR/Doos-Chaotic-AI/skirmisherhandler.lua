@@ -89,7 +89,7 @@ end
 function SkirmisherHandler:GetMovePosition(target, position)
 	local movex = (target.x - position.x)
 	local movez = (target.z - position.z)
-	local distancesqr = movex^2 + movez^2
+	local distancesqr = movex*movex + movez*movez
 	local distance = math.sqrt(distancesqr)
 	local limitedDistance = math.min(distance, 500)
 	local factor = limitedDistance / distance

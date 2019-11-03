@@ -54,6 +54,7 @@ local GetTeamUnits = Spring.GetTeamUnits
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitIsTransporting = Spring.GetUnitIsTransporting
 local GetGroundHeight = Spring.GetGroundHeight
+local math_sqrt = math.sqrt
 
 local function IgBuilderChanged()
   CONST_IGNORE_BUILDERS = options.ignoreBuilders.value
@@ -578,7 +579,7 @@ function Dist(x,y,z, x2, y2, z2)
   local xd = x2-x
   local yd = y2-y
   local zd = z2-z
-  return math.sqrt(xd*xd + yd*yd + zd*zd)
+  return math_sqrt(xd*xd + yd*yd + zd*zd)
 end
 
 

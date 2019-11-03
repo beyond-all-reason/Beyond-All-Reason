@@ -132,7 +132,7 @@ function widget:Initialize()
 		if tonumber(value) > 0.001 then
 			local scale = 0.77 + ((math.max(spot.maxX,spot.minX)-(math.min(spot.maxX,spot.minX))) * (math.max(spot.maxZ,spot.minZ)-(math.min(spot.maxZ,spot.minZ)))) / 10000
 
-			local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 100*scale)
+			local units = spGetUnitsInSphere(spot.x, spot.y, spot.z, 115*scale)
 			local occupied = false
 			for j=1, #units do
 				if extractors[spGetUnitDefID(units[j])]  then

@@ -28,6 +28,7 @@ local mapwidth = math.max(Game.mapSizeX, Game.mapSizeZ)
 local celltoscan = celltoscan or {}
 local defidpersizetype = defidpersizetype or {}
 local cells = cells or {}
+local math_sqrt = math.sqrt
 
 GG.AiHelpers.NewPlacementHandler.GetPosFromID = function(id)
 	local z = id%mapwidth
@@ -295,7 +296,7 @@ end
 	function gadget:Distance(x1,z1, x2,z2)
 		local vectx = x2 - x1
 		local vectz = z2 - z1
-		local dis = math.sqrt(vectx^2+vectz^2)
+		local dis = math_sqrt(vectx*vectx + vectz*vectz)
 		return dis
 	end
 	
