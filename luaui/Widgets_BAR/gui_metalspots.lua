@@ -186,10 +186,10 @@ end
 
 function widget:PlayerChanged(playerID)
 	local prevFullView = fullView
-	isSpec, fullview = Spring.GetSpectatingState()
 	local prevMyAllyTeamID = myAllyTeamID
+	isSpec, fullview = Spring.GetSpectatingState()
 	myAllyTeamID = Spring.GetMyAllyTeamID()
-	if fullview ~= prevFullview then
+	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
 		checkMetalspots()
 	end
 end
