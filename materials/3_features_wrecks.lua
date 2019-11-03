@@ -19,7 +19,6 @@ local function SunChanged(curShaderObj)
 		Spring.GetConfigFloat("unitSunMult", 1.5),
 		Spring.GetConfigFloat("unitExposureMult", 1.0),
 	})
-	Spring.Echo("Feature_Wrecks SunChanged")
 end
 
 
