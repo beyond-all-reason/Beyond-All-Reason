@@ -7,7 +7,7 @@ local GL_TRIANGLE_FAN = GL.TRIANGLE_FAN
 local glTexCoord = gl.TexCoord
 local glVertex = gl.Vertex
 
-local rand = math.random
+local random = math.random
 local sqrt = math.sqrt
 
 local lasttexture = nil
@@ -218,9 +218,9 @@ end
 local function DrawBurst(rotv,directional,arc)
   -- we need a orthognalized vector to the rotation vector "rotv"
     -- random vector
-    local alpha = rand()-rand()
-    local beta  = rand()-rand()
-    local gamma = rand()-rand()
+    local alpha = random()-random()
+    local beta  = random()-random()
+    local gamma = random()-random()
 
     -- gram-schmidt
     local proj = (rotv[1]*alpha + rotv[2]*beta + rotv[3]*gamma) / (rotv[1]*rotv[1] + rotv[2]*rotv[2] + rotv[3]*rotv[3])
