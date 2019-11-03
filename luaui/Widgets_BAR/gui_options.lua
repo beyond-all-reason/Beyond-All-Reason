@@ -117,11 +117,9 @@ local presets = {
 		nanoparticles = 1500,
 		nanobeamamount = 5,
 		treeradius = 0,
-		treewind = false,
+		--treewind = false,
 		guishader = false,
 		--shadows = false,
-		shadows_maxquality = 4000,
-		shadows_minquality = 2000,
 		decals = 0,
 		grounddetail = 70,
 		darkenmap_darkenfeatures = false,
@@ -142,11 +140,9 @@ local presets = {
 		nanoparticles = 3000,
 		nanobeamamount = 7,
 		treeradius = 200,
-		treewind = false,
+		--treewind = false,
 		guishader = false,
 		--shadows = true,
-		shadows_maxquality = 6000,
-		shadows_minquality = 2000,
 		decals = 0,
 		grounddetail = 100,
 		darkenmap_darkenfeatures = false,
@@ -167,11 +163,9 @@ local presets = {
 		nanoparticles = 5000,
 		nanobeamamount = 10,
 		treeradius = 400,
-		treewind = false,
+		--treewind = false,
 		guishader = false,
 		--shadows = true,
-		shadows_maxquality = 6000,
-		shadows_minquality = 2000,
 		decals = 1,
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
@@ -192,11 +186,9 @@ local presets = {
 		nanoparticles = 9000,
 		nanobeamamount = 14,
 		treeradius = 800,
-		treewind = true,
+		--treewind = true,
 		guishader = true,
 		--shadows = true,
-		shadows_maxquality = 8000,
-		shadows_minquality = 3000,
 		decals = 2,
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
@@ -217,11 +209,9 @@ local presets = {
 		nanoparticles = 15000,
 		nanobeamamount = 20,
 		treeradius = 800,
-		treewind = true,
+		--treewind = true,
 		guishader = true,
 		--shadows = true,
-		shadows_maxquality = 8000,
-		shadows_minquality = 4000,
 		decals = 3,
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
@@ -1962,13 +1952,13 @@ function init()
 		--		 onload = function() end,
 		--		 onchange = function(i, value) Spring.SetConfigInt("TreeRadius",value) end,
 		--		},
-		{id="treewind", group="gfx", basic=true, name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)',
-		 onload = function() end,
-		 onchange = function(i, value)
-			 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
-			 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
-		 end,
-		},
+		--{id="treewind", group="gfx", basic=true, name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)',
+		-- onload = function() end,
+		-- onchange = function(i, value)
+		--	 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
+		--	 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
+		-- end,
+		--},
 
 		{id="snow", group="gfx", basic=true, widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)',
@@ -2580,12 +2570,10 @@ function init()
 	}
 
 	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-		options[getOptionByID('shadows_maxquality')] = nil
-		options[getOptionByID('shadows_minquality')] = nil
-		options[getOptionByID('shadowslider')] = nil
-		options[getOptionByID('shadows_opacity')] = nil
-	end
+	--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	--	options[getOptionByID('shadowslider')] = nil
+	--	options[getOptionByID('shadows_opacity')] = nil
+	--end
 
 	-- add fonts
 	if getOptionByID('font') then
@@ -3175,7 +3163,7 @@ function widget:GetConfigData(data)
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
-		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
+		--treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)},
 		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",40) or 40)},
