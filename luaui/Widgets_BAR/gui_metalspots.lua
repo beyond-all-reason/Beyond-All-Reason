@@ -20,7 +20,7 @@ local circleSpaceUsage	= 0.75
 local circleInnerOffset	= 0.35
 local rotationSpeed		= 4
 local opacity			= 0.5
-local fadeTime			= 0.6
+local fadeTime			= 0.5
 
 local innersize			= 1.86		-- outersize-innersize = circle width
 local outersize			= 2.08		-- outersize-innersize = circle width
@@ -38,6 +38,11 @@ local valueList = {}
 local circleList = {}
 local previousOsClock = os.clock()
 local currentRotation = 0
+local checkspots = true
+local sceduledCheckedSpotsFrame = Spring.GetGameFrame()
+
+local isSpec, fullview = Spring.GetSpectatingState()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
@@ -179,28 +184,54 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+function widget:PlayerChanged(playerID)
+	local prevFullView = fullView
+	isSpec, fullview = Spring.GetSpectatingState()
+	local prevMyAllyTeamID = myAllyTeamID
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	if fullview ~= prevFullview then
+		checkMetalspots()
+	end
+end
 
--- periodically check if mex spot is occupied
-function widget:GameFrame(gf)
-	if gf % 39 == 1 then
-		local now = os.clock()
-		for i=1, #metalSpots do
-			metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
-			local spot = metalSpots[i]
-			local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 100*spot[5])
-			local occupied = false
-			local prevOccupied = metalSpots[i][6]
-			for j=1, #units do
-				if extractors[spGetUnitDefID(units[j])]  then
-					occupied = true
-					break
-				end
-			end
-			if occupied ~= prevOccupied then
-				metalSpots[i][7] = now
-				metalSpots[i][6] = occupied
+function checkMetalspots()
+	local now = os.clock()
+	for i=1, #metalSpots do
+		metalSpots[i][2] = spGetGroundHeight(metalSpots[i][1],metalSpots[i][3])
+		local spot = metalSpots[i]
+		local units = spGetUnitsInSphere(spot[1], spot[2], spot[3], 100*spot[5])
+		local occupied = false
+		local prevOccupied = metalSpots[i][6]
+		for j=1, #units do
+			if extractors[spGetUnitDefID(units[j])]  then
+				occupied = true
+				break
 			end
 		end
+		if occupied ~= prevOccupied then
+			metalSpots[i][7] = now
+			metalSpots[i][6] = occupied
+		end
+	end
+	sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 89
+	checkspots = false
+end
+
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+	if extractors[unitDefID] then
+		checkspots = true
+	end
+end
+
+function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if extractors[unitDefID] then
+		sceduledCheckedSpotsFrame = Spring.GetGameFrame() + 3	-- delay needed, i don't know why
+	end
+end
+
+function widget:GameFrame(gf)
+	if checkspots or gf >= sceduledCheckedSpotsFrame then
+		checkMetalspots()
 	end
 end
 
@@ -238,7 +269,7 @@ function widget:DrawWorldPreUnit()
 				gl.PushMatrix()
 				gl.Translate(spot[1], spot[2], spot[3])
 				if mult ~= 1 then
-					scale = 0.8 + (0.2 * (mult*mult))
+					scale = 0.94 + (0.06 * (mult*mult))
 					gl.Scale(scale,scale,scale)
 				end
 

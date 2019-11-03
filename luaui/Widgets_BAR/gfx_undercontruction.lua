@@ -221,9 +221,9 @@ function widget:DrawWorld()
 end
 
 
-widget.DrawWorldReflection = widget.DrawWorld
+--widget.DrawWorldReflection = widget.DrawWorld
 
-widget.DrawWorldRefraction = widget.DrawWorld
+--widget.DrawWorldRefraction = widget.DrawWorld
 
 
 
