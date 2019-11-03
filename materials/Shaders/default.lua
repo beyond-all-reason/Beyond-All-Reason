@@ -610,6 +610,19 @@ fragment = [[
 		return ++v; // next power of 2
 	}
 
+	float AdjustRoughnessByNormalMap(in float roughness, in vec3 normal) {
+		// Based on The Order : 1886 SIGGRAPH course notes implementation (page 21 notes)
+		float nlen2 = dot(normal, normal);
+		if (nlen2 < 1.0) {
+			float nlen = sqrt(nlen2);
+			float kappa = (3.0 * nlen -  nlen2 * nlen) / (1.0 - nlen2);
+			// http://www.frostbite.com/2014/11/moving-frostbite-to-pbr/
+			// page 91 : they use 0.5/kappa instead
+			return min(1.0, sqrt(roughness * roughness + 1.0 / kappa));
+		}
+		return roughness;
+	}
+
 	#define smoothclamp(v, v0, v1) ( mix(v0, v1, smoothstep(v0, v1, v)) )
 
 	#ifndef TONEMAP
@@ -622,12 +635,12 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20625
+		#line 20638
 
 		#ifdef use_normalmapping
 			vec2 tc = modelUV.st;
 			vec4 normaltex = texture(normalMap, tc);
-			vec3 nvTS = normalize(NORM2SNORM(normaltex.xyz));
+			vec3 nvTS = NORM2SNORM(normaltex.xyz);
 		#else
 			vec3 nvTS = vec3(0.0, 0.0, 1.0);
 		#endif
@@ -668,14 +681,19 @@ fragment = [[
 		#endif
 
 		//roughness = SNORM2NORM( sin(simFrame * 0.025) );
-		//roughness = 0.0;
+		//roughness = 0.2;
+
+		// this is great to remove specular aliasing on the edges.
+		#ifdef ROUGHNESS_AA
+			roughness = mix(roughness, AdjustRoughnessByNormalMap(roughness, nvTS), ROUGHNESS_AA);
+		#endif
 
 		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 
 		float roughness2 = roughness * roughness;
 		float roughness4 = roughness2 * roughness2;
 
-
+		//nvTS = normalize(nvTS);
 
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
 			vec3 seedVec = modelPos.xyz * 8.0;
@@ -882,10 +900,10 @@ fragment = [[
 		outColor = TONEMAP(outColor);
 
 		// debug hook
-		#if 0
+		#if 1
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
 			//outColor = LINEARtoSRGB(vec3(abs(ComputeSpecularAOBlender(NdotV, aoTerm, roughness2) - ComputeSpecularAOFilament(NdotV, aoTerm, roughness2))));
-			outColor = LINEARtoSRGB( ambientContrib );
+			outColor = vec3( roughness );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif
 
