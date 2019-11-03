@@ -372,7 +372,7 @@ fragment = [[
 
 		// makes roughness of reflection scale perceptually much more linear
 		// Assumes "CubeTexSizeReflection" = 1024
-		//maxLodLevel -= 4.0;
+		maxLodLevel -= 4.0;
 
 		float lodBias = maxLodLevel * roughness;
 
@@ -780,7 +780,7 @@ fragment = [[
 
 
 		// getSpecularDominantDirection (Filament)
-		Rv = mix(Rv, N, roughness4);
+		//Rv = mix(Rv, N, roughness4);
 
         vec3 outColor;
 		vec3 ambientContrib;
