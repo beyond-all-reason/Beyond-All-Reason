@@ -183,7 +183,8 @@ function widget:DrawWorld()
     gl.UseShader(shader)
   end
   local teamID, prevTeamID, r,g,b
-  for _,unitID in ipairs(selectedUnits) do
+  for i=1,#selectedUnits do
+    local unitID = selectedUnits[i]
     if not spIsUnitIcon(unitID) and spIsUnitInView(unitID) then
       local health,maxHealth,paralyzeDamage,captureProgress,buildProgress=Spring.GetUnitHealth(unitID)
       if maxHealth ~= nil then

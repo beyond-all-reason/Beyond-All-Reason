@@ -201,7 +201,8 @@ function checkComs()
 
     local visibleUnits = spGetAllUnits()
     if visibleUnits ~= nil then
-        for _, unitID in ipairs(visibleUnits) do
+		for i=1,#visibleUnits do
+			local unitID    = visibleUnits[i]
             local unitDefID = spGetUnitDefID(unitID)
             if unitDefID and UnitDefs[unitDefID].customParams.iscommander == "1" then
 				addCom(unitID)

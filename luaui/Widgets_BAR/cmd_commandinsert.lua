@@ -113,14 +113,16 @@ function widget:CommandNotify(id, params, options)
       return false
     end
     
-    local units=Spring.GetSelectedUnits()
-    for i, unit_id in ipairs(units) do
+    local units = Spring.GetSelectedUnits()
+    for i=1,#units do
+      local unit_id = units[i]
       local commands = Spring.GetCommandQueue(unit_id,100)
       local px,py,pz = Spring.GetUnitPosition(unit_id)
       local min_dlen = 1000000
       local insert_tag = 0
       local insert_pos = 0
-      for i, command in ipairs(commands) do
+      for i=1,#commands do
+        local command = commands[i]
         --Spring.Echo("cmd:"..table.tostring(command))
         local px2,py2,pz2 = GetCommandPos(command)
         if px2>-1 then

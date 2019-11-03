@@ -119,7 +119,6 @@ local GetUnitDefDimensions = Spring.GetUnitDefDimensions
 
 local GetViewGeometry = Spring.GetViewGeometry
 local ValidUnitID = Spring.ValidUnitID
-local GetTeamUnitsSorted = Spring.GetTeamUnitsSorted
 local GetGameFrame = Spring.GetGameFrame
 local GetCameraPosition = Spring.GetCameraPosition
 local GetCameraDirection = Spring.GetCameraDirection

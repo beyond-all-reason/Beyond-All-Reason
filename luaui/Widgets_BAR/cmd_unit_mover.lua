@@ -71,7 +71,10 @@ function widget:Initialize()
 			end
 		end
 	end
-	for _,unitID in pairs(Spring.GetTeamUnits(myTeamID)) do
+
+	local units = Spring.GetTeamUnits(myTeamID);
+	for i=1,#units do
+		local unitID = units[i]
 		widget:UnitCreated(unitID,GetUnitDefID(unitID),myTeamID)
 	end
 end

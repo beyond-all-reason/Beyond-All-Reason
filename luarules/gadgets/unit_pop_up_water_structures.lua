@@ -70,13 +70,15 @@ function gadget:GameFrame(n)
 				SendToUnsynced("splashsound", x,y,z)
 				popUps[unitID].process = false
 				local collisions = Spring.GetUnitsInSphere(x,0,z,35)
-				for _,colUnitID in ipairs(collisions) do
+				for i=1,#collisions do
+					local colUnitID    = collisions[i]
 					if (colUnitID ~= newUnitID) and (colUnitID ~= unitID) then
 						Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
 					end
 				end
 				collisions = Spring.GetFeaturesInSphere(x,0,z,35)
-				for _,colFeatureID in ipairs(collisions) do
+				for i=1,#collisions do
+					local colFeatureID    = collisions[i]
 					Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
 					if Spring.ValidFeatureID(colFeatureID) then
 						Spring.DestroyFeature(colFeatureID)

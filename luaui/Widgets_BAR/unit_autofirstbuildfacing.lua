@@ -21,10 +21,11 @@ local n=0
 function widget:GameFrame(f)
   if f==3 then
     if Spring.GetTeamUnitCount(Spring.GetMyTeamID()) and Spring.GetTeamUnitCount(Spring.GetMyTeamID())>0 then
-      for k,unitID in pairs(Spring.GetTeamUnits(Spring.GetMyTeamID())) do
+      local units = Spring.GetTeamUnits(Spring.GetMyTeamID())
+      for i=1,#units do
         local ux=0
         local uz=0
-        ux,_,uz=Spring.GetUnitPosition(unitID)
+        ux,_,uz=Spring.GetUnitPosition(units[i])
         if ux and uz then
           x=x+ux
           z=z+uz

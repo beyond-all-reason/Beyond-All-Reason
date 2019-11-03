@@ -40,7 +40,8 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weap
       local x,y,z = Spring.GetUnitPosition(unitID)
       local nearUnits = Spring.GetUnitsInSphere(x,y,z,60)
       local count = 0
-      for _,nearUnit in ipairs(nearUnits) do
+      for i=1,#nearUnits do
+        local nearUnit = nearUnits[i]
         if (count >= sparkWeapons[weaponID].maxunits) then 
           return
         end

@@ -38,7 +38,7 @@ function registerUpgradePairs(v)
 end 
 
 function widget:UpdateLayout(commandsChanged,page,alt,ctrl,meta, shift) 
-return true 
+  return true
 end 
 
 

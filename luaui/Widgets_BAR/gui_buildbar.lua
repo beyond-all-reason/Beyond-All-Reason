@@ -859,9 +859,7 @@ function UpdateFactoryList()
   local count = 0
 
   local teamUnits = Spring.GetTeamUnits(myTeamID)
-  local totalUnits = #teamUnits
-
-  for num = 1, totalUnits do
+  for num = 1, #teamUnits do
     local unitID = teamUnits[num]
     local unitDefID = GetUnitDefID(unitID)
     if UnitDefs[unitDefID].isFactory then

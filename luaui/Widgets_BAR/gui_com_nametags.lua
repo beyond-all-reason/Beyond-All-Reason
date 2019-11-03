@@ -335,18 +335,19 @@ end
 
 function CheckCom(unitID, unitDefID, unitTeam)
     if comDefs[unitDefID] then
-      comms[unitID] = GetCommAttributes(unitID, unitDefID)
-  end
+        comms[unitID] = GetCommAttributes(unitID, unitDefID)
+    end
 end
 
 function CheckAllComs()
-  local allUnits = GetAllUnits()
-  for _, unitID in pairs(allUnits) do
-    local unitDefID = GetUnitDefID(unitID)
-    if comDefs[unitDefID] then
-      comms[unitID] = GetCommAttributes(unitID, unitDefID)
+    local allUnits = GetAllUnits()
+    for i=1,#allUnits do
+        local unitID    = allUnits[i]
+        local unitDefID = GetUnitDefID(unitID)
+        if comDefs[unitDefID] then
+            comms[unitID] = GetCommAttributes(unitID, unitDefID)
+        end
     end
-  end
 end
 
 function widget:Initialize()

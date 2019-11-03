@@ -20,8 +20,9 @@ function TriggerHandler:Update()
 		if comms[1] then
 			x,y,z = Spring.GetUnitPosition(comms[1])
 			self.commpos = {x = x, y = y, z = z}
-			local CommSurrounding = Spring.GetUnitsInCylinder(self.commpos.x, self.commpos.z, 2000)
-			for ct, uid in pairs(CommSurrounding) do
+			local units = Spring.GetUnitsInCylinder(self.commpos.x, self.commpos.z, 2000)
+			for ct=1,#units do
+				local uid = units[ct]
 				if not Spring.GetUnitNeutral(uid) and not Spring.GetUnitIsBuilding(uid) and not Spring.AreTeamsAllied(Spring.GetUnitTeam(uid), self.ai.id) then
 					ax,ay,az = Spring.GetUnitPosition(uid)
 					self.CommAttackerPos = {x = ax, y = ay, z = az}

@@ -12,8 +12,8 @@ end
 
 --fixed for 0.83 (by vbs)
 
-local bombers={armpnix=true, armliche=true, armstil=true, armthund=true, armsb=true, corhurc=true, corsb=true, corshad=true, cortitan=true}
-local bomber_uds={}
+local bombers = {armpnix=true, armliche=true, armstil=true, armthund=true, armsb=true, corhurc=true, corsb=true, corshad=true, cortitan=true}
+local bomber_uds = {}
 
 local GetUnitWeaponState   = Spring.GetUnitWeaponState
 local GetUnitDefID         = Spring.GetUnitDefID
@@ -25,15 +25,15 @@ local GetGameFrame         = Spring.GetGameFrame
 local GetCommandQueue      = Spring.GetCommandQueue
 local GetUnitStates        = Spring.GetUnitStates
 
-local my_bombers={}
+local my_bombers = {}
 
 local function AddUnit(unit_id, unit_udid_)
-	local unit_udid=unit_udid_
-	if GetUnitTeam(unit_id)==GetMyTeamID() then --my unit
-		if unit_udid==nil then
-			unit_udid=GetUnitDefID(unit_id)
+	local unit_udid = unit_udid_
+	if GetUnitTeam(unit_id) == GetMyTeamID() then --my unit
+		if unit_udid == nil then
+			unit_udid = GetUnitDefID(unit_id)
 		end
-		local ud=UnitDefs[unit_udid]
+		local ud = UnitDefs[unit_udid]
 		if ud and bomber_uds[unit_udid] then
 			if  ud.primaryWeapon then
 				local _,reloaded_,reloadFrame = GetUnitWeaponState(unit_id,ud.primaryWeapon)		
@@ -45,13 +45,13 @@ local function AddUnit(unit_id, unit_udid_)
 end
 
 function widget:UnitCreated(unit_id, unit_udid, unit_tid)
-	if unit_tid==Spring.GetMyTeamID() then
+	if unit_tid == Spring.GetMyTeamID() then
 		AddUnit(unit_id,unit_udid)
 	end
 end
 
 local function RemoveUnit(unit_id)
-	my_bombers[unit_id]=nil
+	my_bombers[unit_id] = nil
 end
 
 function widget:UnitDestroyed(unit_id, unit_udid, unit_tid)
@@ -61,17 +61,18 @@ end
 
 function widget:UnitGiven(unit_id, unit_udid, old_team, new_team)
 	RemoveUnit(unit_id)
-	if new_team==GetMyTeamID() then
+	if new_team == GetMyTeamID() then
 		AddUnit(unit_id,unit_udid)
 	end	
 end
 
 
 local function UpdateUnitsList()
-	local my_team=GetMyTeamID()
-	my_bombers={}
-	for _,unit_id in ipairs(Spring.GetTeamUnits(my_team)) do
-		AddUnit(unit_id,nil)
+	local my_team = GetMyTeamID()
+	my_bombers = {}
+	local units = Spring.GetTeamUnits(my_team)
+	for i=1,#units do
+		AddUnit(units[i],nil)
 	end
 end
 
@@ -97,7 +98,6 @@ function widget:Initialize()
 	for i,ud in pairs(UnitDefs) do
 		if bombers[ud.name] then
 			bomber_uds[i]=ud
-			--bomber_uds[i]=true
 			ud.reloadTime    = 0
 			ud.primaryWeapon = 0
 			ud.shieldPower   = 0
@@ -118,10 +118,10 @@ local current_team=1234567
 
 function widget:Update(dt)
 	local gameFrame = GetGameFrame()
-    if ((gameFrame%15)<1) then
+    if ((gameFrame%15) < 1) then
 		local my_team=GetMyTeamID()
-		if my_team~=current_team then
-			current_team=my_team
+		if my_team ~= current_team then
+			current_team = my_team
 			UpdateUnitsList()
 		end
     end
@@ -131,13 +131,12 @@ function widget:Update(dt)
 			local ud = UnitDefs[udid or -1]
 			if ud and ud.primaryWeapon then
 				local _,reloaded,reload_frame = GetUnitWeaponState(bomber_id, ud.primaryWeapon)
-				local did_shot=(bomber_data.reloaded and not reloaded) or (bomber_data.reload_frame~=reload_frame)
-				bomber_data.reloaded=reloaded
-				bomber_data.reload_frame=reload_frame
+				local did_shot = (bomber_data.reloaded and not reloaded) or (bomber_data.reload_frame ~= reload_frame)
+				bomber_data.reloaded = reloaded
+				bomber_data.reload_frame = reload_frame
 				if did_shot then
-					local commands=GetCommandQueue(bomber_id,50)
-					if commands and commands[1] and commands[1].id==CMD.ATTACK and commands[2] then
-						--Spring.Echo(CMD[commands[2].id])
+					local commands = GetCommandQueue(bomber_id,50)
+					if commands and commands[1] and commands[1].id == CMD.ATTACK and commands[2] then
 						GiveOrderToUnit(bomber_id, CMD.REMOVE,{commands[1].tag},{})
 						if select(4,GetUnitStates(bomber_id,false,true)) then	-- 4=repeat
 							GiveOrderToUnit(bomber_id, commands[1].id,commands[1].params,{'shift'})

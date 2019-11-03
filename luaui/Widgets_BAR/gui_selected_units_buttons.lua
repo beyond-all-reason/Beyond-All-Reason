@@ -559,7 +559,9 @@ local function RightMouseButton(unitDefID, unitTable)
   -- remove selected units of icon type
   local selUnits = spGetSelectedUnits()
   local map = {}
-  for _,uid in ipairs(selUnits) do map[uid] = true end
+  for i=1,#selUnits do
+    map[selUnits[i]] = true
+  end
   for _,uid in ipairs(unitTable) do
     map[uid] = nil
     if (ctrl) then break end -- only remove 1 unit

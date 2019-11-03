@@ -454,9 +454,9 @@ end
 
 local function CheckForExistingUnits()
   --// initialize effects for existing units
-  local allUnits = Spring.GetAllUnits();
+  local allUnits = Spring.GetAllUnits()
   for i=1,#allUnits do
-    local unitID    = allUnits[i]
+    local unitID = allUnits[i]
     local unitDefID = Spring.GetUnitDefID(unitID)
     if (spGetUnitRulesParam(unitID, "under_construction") ~= 1) then
         local _,_,inBuild = Spring.GetUnitIsStunned(unitID)

@@ -124,7 +124,9 @@ function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, c
 		local attackerAllyTeam = GetUnitAllyTeam(unitID)
 		local totalDamageSum = 0
 		local targetAllyTeamToTeam = {}
-		for _,targetID in pairs(GetUnitsInSphere(cmdParams[1],cmdParams[2],cmdParams[3],attackAOE)) do
+		local units = GetUnitsInSphere(cmdParams[1],cmdParams[2],cmdParams[3],attackAOE)
+		for i=1,#units do
+			local targetID = units[i]
 			local targetAllyTeam = GetUnitAllyTeam(targetID)
 			local targetDefID = GetUnitDefID(targetID)
 			local targetDef = UnitDefs[targetDefID]
@@ -145,7 +147,9 @@ function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, c
 		end
 	elseif #cmdParams == 4 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK) then
 		local attackerAllyTeam = GetUnitAllyTeam(unitID)
-		for _,targetID in pairs(GetUnitsInCylinder(cmdParams[1],cmdParams[3],cmdParams[4])) do
+		local units = GetUnitsInCylinder(cmdParams[1],cmdParams[3],cmdParams[4])
+		for i=1,#units do
+			local targetID = units[i]
 			checkAndBreakAlliance(attackerTeam,GetUnitTeam(targetID),attackerAllyTeam,GetUnitAllyTeam(targetID))
 		end
 	end

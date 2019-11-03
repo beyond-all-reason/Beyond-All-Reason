@@ -1495,14 +1495,16 @@ function CorRad(tqb,ai,unit)
 		return skip
 	end
 	local pos = unit:GetPosition()
-	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armrad.id].radarRadius, ai.id)) do
-		local defID = Spring.GetUnitDefID(unitID)
+	local units = Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armrad.id].radarRadius, ai.id)
+	for ct=1,#units do
+		local defID = Spring.GetUnitDefID(units[ct])
 		if defID == UDN.armrad.id or defID == UDN.corrad.id then
 			return skip
 		end
 	end
-	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
-		local defID = Spring.GetUnitDefID(unitID)
+	units = Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)
+	for ct=1,#units do
+		local defID = Spring.GetUnitDefID(units[ct])
 		if defID == UDN.armarad.id or defID == UDN.corarad.id then
 			return skip
 		end
@@ -1529,8 +1531,9 @@ end
 
 function CorARad(tqb,ai,unit)
 	local pos = unit:GetPosition()
-	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
-		local defID = Spring.GetUnitDefID(unitID)
+	local units = Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)
+	for ct=1,#units do
+		local defID = Spring.GetUnitDefID(units[ct])
 		if defID == UDN.armarad.id or defID == UDN.corarad.id or defID == UDN.corrad.id or defID == UDN.armrad.id then
 			return skip
 		end
@@ -1855,14 +1858,16 @@ function ArmRad(tqb,ai,unit)
 		return skip
 	end
 	local pos = unit:GetPosition()
-	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armrad.id].radarRadius, ai.id)) do
-		local defID = Spring.GetUnitDefID(unitID)
+	local units = Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armrad.id].radarRadius, ai.id)
+	for ct=1,#units do
+		local defID = Spring.GetUnitDefID(units[ct])
 		if defID == UDN.armrad.id or defID == UDN.corrad.id then
 			return skip
 		end
 	end
-	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
-		local defID = Spring.GetUnitDefID(unitID)
+	units = Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)
+	for ct=1,#units do
+		local defID = Spring.GetUnitDefID(units[ct])
 		if defID == UDN.armarad.id or defID == UDN.corarad.id then
 			return skip
 		end
@@ -1872,7 +1877,9 @@ end
 
 function ArmARad(tqb,ai,unit)
 	local pos = unit:GetPosition()
-	for ct, unitID in pairs (Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)) do
+	local units = Spring.GetUnitsInCylinder(pos.x, pos.z, UnitDefs[UDN.armarad.id].radarRadius, ai.id)
+	for ct=1,#units do
+		local unitID = units[ct]
 		local defID = Spring.GetUnitDefID(unitID)
 		if defID == UDN.armarad.id or defID == UDN.corarad.id or defID == UDN.armrad.id or defID == UDN.corrad.id then
 			return skip

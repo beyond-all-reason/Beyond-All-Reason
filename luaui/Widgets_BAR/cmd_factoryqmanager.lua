@@ -296,15 +296,15 @@ function getSingleFactory()
   --only do something when exactly ONE factory is selected to avoid execution by mistake
   if ( #selUnits ~= 1 ) then
   	return nil, nil
-	end
+  end
   
   local unitDef = udefTab[Spring.GetUnitDefID(selUnits[1])]
   
   if ( unitDef.isFactory ~= true ) then
-		return nil, nil
-	end
+    return nil, nil
+  end
 
-	return selUnits[1], unitDef
+  return selUnits[1], unitDef
 end
 
 function saveQueue( unitId, unitDef, groupNo )
@@ -353,9 +353,10 @@ function loadQueue( unitId, unitDef, groupNo )
 			repVal = 0 
 		end
 		Spring.GiveOrderToUnit(unitId, CMD.REPEAT, { repVal }, {})
-				
-		for k,cmd in ipairs(queue) do  --  in order
-			if (not cmd.options.internal) then
+
+		for i=1,#queue do
+		  local cmd = queue[i]
+		  if (not cmd.options.internal) then
 		  	local opts = {}
 		    Spring.GiveOrderToUnit(unitId, cmd.id, cmd.params, opts)
 		  end
@@ -465,7 +466,8 @@ end
 
 function SortQueueToUnits( queue )
 	local units = {}
-	for k,entity in pairs( queue ) do
+	for i=1,#queue do
+		local entity = queue[i]
 		if ( type(entity) == "table" ) then			
 			if ( entity.id < 0 ) then
 				local idx = -1 * entity.id

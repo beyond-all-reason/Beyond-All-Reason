@@ -31,6 +31,10 @@ local GetCommandQueue = Spring.GetCommandQueue
 local dlists = {}
 local prevCam = {Spring.GetCameraPosition()}
 
+local spGetUnitDefID = Spring.GetUnitDefID
+local spGetUnitTeam = Spring.GetUnitTeam
+local spGetGroundHeight = Spring.GetGroundHeight
+
 local builderUnitDefs = {}
 
 local function clearBuilderCommands(unitID)
@@ -57,17 +61,17 @@ local function checkBuilder(unitID)
 			if ( cmd.id < 0 ) then
 				local myCmd = {
 					id = -cmd.id,
-					teamid = Spring.GetUnitTeam(unitID),
+					teamid = spGetUnitTeam(unitID),
 					params = cmd.params
 				}
 				local y = cmd.params[2]
 				if UnitDefs[math.abs(cmd.id)].minWaterDepth < 0 then	-- AI bots queue very high y pos so this corrects that
-					y = Spring.GetGroundHeight(cmd.params[1],cmd.params[3])
+					y = spGetGroundHeight(cmd.params[1],cmd.params[3])
 				else
 					y = - UnitDefs[math.abs(cmd.id)].waterline
 				end
 				myCmd.params[2] = y
-				local id = Spring.GetUnitTeam(unitID)..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..myCmd.params[2]..'_'..cmd.params[3]
+				local id = myCmd.teamid..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..myCmd.params[2]..'_'..cmd.params[3]
 				if showForCreatedUnits or commandCreatedUnits[id] == nil then
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
@@ -93,8 +97,9 @@ end
 function addBuilders()
 	command = {}
 	local allUnits = Spring.GetAllUnits()
-	for _, unitID in ipairs(allUnits) do
-		local uDefID = Spring.GetUnitDefID(unitID)
+	for i=1,#allUnits do
+		local unitID = allUnits[i]
+		local uDefID = spGetUnitDefID(unitID)
 		if builderUnitDefs[uDefID] then
 			builders[unitID] = true
 			checkBuilder(unitID)
@@ -240,7 +245,7 @@ function widget:DrawWorld()
 	-- the method below unfortunately adds lines and ranges as well
 	--local allUnits = Spring.GetAllUnits()
 	--for _, unitID in ipairs(allUnits) do
-	--	if builderUnitDefs[Spring.GetUnitDefID(unitID)] then
+	--	if builderUnitDefs[spGetUnitDefID(unitID)] then
 	--		Spring.DrawUnitCommands(unitID)
 	--	end
 	--end

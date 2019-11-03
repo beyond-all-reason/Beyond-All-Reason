@@ -85,8 +85,9 @@ function init()
 	spec = Spring.GetSpectatingState()
 	-- check all units for selfd cmd
 	selfdUnits = {}
-	local units = spGetAllUnits()
-	for _, unitID in ipairs(units) do
+	local allUnits = spGetAllUnits()
+	for i=1,#allUnits do
+		local unitID = allUnits[i]
 		if spGetUnitSelfDTime(unitID) ~= nil then
 			if spGetUnitSelfDTime(unitID) > 0 then
 				selfdUnits[unitID] = true
@@ -94,8 +95,8 @@ function init()
 			-- check for queued selfd
 			local unitQueue = spGetCommandQueue(unitID,20) or {}
 			if (#unitQueue > 0) then
-				for _,cmd in ipairs(unitQueue) do
-					if cmd.id == CMD.SELFD then
+				for i=1,#unitQueue do
+					if unitQueue[i].id == CMD.SELFD then
 						selfdUnits[unitID] = true
 					end
 				end
@@ -182,8 +183,8 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 		local foundSelfdCmd = false
 		local unitQueue = spGetCommandQueue(unitID,20) or {}
 		if (#unitQueue > 0) then
-			for _,cmd in ipairs(unitQueue) do
-				if cmd.id == CMD.SELFD then
+			for i=1,#unitQueue do
+				if unitQueue[i].id == CMD.SELFD then
 					foundSelfdCmd = true
 					break
 				end

@@ -156,11 +156,12 @@ function NoMex(x,z, batchextracts,teamID) -- Is there any better mex at this loc
 		return false
 	end
 	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius+32)
-		for ct, uid in pairs(mexesatspot) do
-			if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal >= batchextracts or UnitDefs[Spring.GetUnitDefID(uid)].canMove then
-				return false
-			end	
+	for ct=1,#mexesatspot do
+		local uid = mexesatspot[ct]
+		if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal >= batchextracts or UnitDefs[Spring.GetUnitDefID(uid)].canMove then
+			return false
 		end
+	end
 	return true
 end
 
@@ -170,13 +171,14 @@ function EnemyMex(x,z, batchextracts,teamID) -- Is there any better mex at this 
 		return false
 	end
 	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius+16)
-		for ct, uid in pairs(mexesatspot) do
-			if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal > 0 and (teamID and not Spring.AreTeamsAllied(Spring.GetUnitTeam(uid), teamID)) then
-				if GG.AiHelpers.VisibilityCheck.IsUnitVisible(uid, teamID) then
-					return true
-				end
+	for ct=1,#mexesatspot do
+		local uid = mexesatspot[ct]
+		if UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal > 0 and (teamID and not Spring.AreTeamsAllied(Spring.GetUnitTeam(uid), teamID)) then
+			if GG.AiHelpers.VisibilityCheck.IsUnitVisible(uid, teamID) then
+				return true
 			end
 		end
+	end
 	return false
 end
 

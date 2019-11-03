@@ -424,7 +424,8 @@ function widget:DrawWorldPreUnit()
   -- mark selected units
   if useSelections and selectedUnits then
     glColor(1, 1, 1, highlightOpacity)
-    for _,unitID in ipairs(selectedUnits) do
+    for i=1,#selectedUnits do
+      local unitID = selectedUnits[i]
       local udefid = spGetUnitDefID(unitID)
       if udefid then
         local unitScale = unitConf[udefid].scale

@@ -102,15 +102,16 @@ function widget:GameFrame(n)
         	transID = selectedUnits[1]
 		end
         elseif selectedUnitsCount > 1 then
-			for _,unitID in pairs(selectedUnits) do
-
+			for i=1,#selectedUnits do
+				local unitID = selectedUnits[i]
 				local unitdefID = Spring.GetUnitDefID(unitID)
 				if validTrans[unitdefID] then
 				   transID = unitID
 				   unitcount = unitcount + 1
 				   if unitcount > 1 then
 					   transID = nil
-					   return end
+					   return
+				   end
 				end
 			end
         else

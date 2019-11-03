@@ -46,10 +46,11 @@ local lab = {}
 --------------------------------------------------------------------------------
 
 function checkLabs()
-  for Lid,Lv in pairs(lab) do  
+  for Lid,Lv in pairs(lab) do
+
     local units = spGetUnitsInBox(Lv.minx, Lv.miny, Lv.minz, Lv.maxx, Lv.maxy, Lv.maxz)
-	
-    for i,id in ipairs(units) do 
+  	for i=1,#units do
+	  local id = units[i]
 	  local ud = spGetUnitDefID(id)
 	  local fly = UnitDefs[ud].canFly
 	  local team = spGetUnitAllyTeam(id)

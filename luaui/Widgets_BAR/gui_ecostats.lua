@@ -1020,7 +1020,8 @@ function setReclaimerUnits()
 		reclaimerUnits[tID] = {}
 	end
 	local allUnits = Spring.GetAllUnits()
-	for _, unitID in ipairs(allUnits) do
+	for i=1,#allUnits do
+		local unitID    = allUnits[i]
 		local uDefID = Spring.GetUnitDefID(unitID)
 		if reclaimerUnitDefs[uDefID] then
 			local unitTeam = Spring.GetUnitTeam(unitID)
@@ -1277,8 +1278,8 @@ function checkCommander(teamID)
 	for _, commanderID in pairs (comTable) do
 		if Spring.GetTeamUnitDefCount(teamID,commanderID) > 0 then 
 			local unitList = Spring.GetTeamUnitsByDefs(teamID,commanderID)
-			for _, uID in pairs(unitList) do
-				if not Spring.GetUnitIsDead(uID) then
+			for i=1,#unitList do
+				if not Spring.GetUnitIsDead(unitList[i]) then
 					hasCom = true 
 				end
 			end

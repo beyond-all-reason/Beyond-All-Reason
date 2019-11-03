@@ -318,14 +318,16 @@ function widget:CommandNotify(id, params, options)
   local sel = nil
   if (not options.shift) then
     sel = GetSelectedUnits()
-    for _, uid in ipairs(sel) do
+    for i=1,#sel do
+      local uid = sel[i]
       widget:UnitDestroyed(uid, GetUnitDefID(uid), myTeamID)
     end
   end
 
   if (id == CMD.WAIT and options.alt) then
     if (sel == nil) then sel = GetSelectedUnits() end
-    for _, uid in ipairs(sel) do
+    for i=1,#sel do
+      local uid = sel[i]
       priorityUnits[uid] = GetUnitDefID(uid)
     end
   end

@@ -79,7 +79,8 @@ function widget:CommandNotify(id, params, options)
     if (id == CMD.REPAIR) then
       local selUnits = GetSelectedUnits()
       local blockUnits = {}
-      for _,unitID in ipairs(selUnits) do
+      for i=1,#selUnits do
+        local unitID = selUnits[i]
         local cmdID, _, _, cmdParam1, _, cmdParam3 = GetUnitCurrentCommand(unitID)
         if cmdID then
           if cmdID < 0 and (params[1] == buildList[toLocString(cmdParam1, 0, cmdParam3)]) then
@@ -90,7 +91,8 @@ function widget:CommandNotify(id, params, options)
         end
       end
       if next(blockUnits) then
-        for _,unitID in ipairs(selUnits) do
+        for i=1,#selUnits do
+          local unitID = selUnits[i]
           if not blockUnits[unitID] then
             GiveOrderToUnit(unitID, id, params, options)
           else
@@ -109,19 +111,22 @@ function widget:CommandNotify(id, params, options)
     elseif (id == CMD.ATTACK) then
       local selUnits = GetSelectedUnits()
       local blockUnits = {}
-      for _,unitID in ipairs(selUnits) do
+      for i=1,#selUnits do
+        local unitID = selUnits[i]
         local cQueue = GetCommandQueue(unitID,50) or {}
         if (#cQueue > 0) and (params[1] == cQueue[1].params[1]) then
           blockUnits[unitID] = true
         end
       end
       if next(blockUnits) then
-        for _,unitID in ipairs(selUnits) do
+        for i=1,#selUnits do
+          local unitID = selUnits[i]
           if not blockUnits[unitID] then
             GiveOrderToUnit(unitID, id, params, options)
           else
             local cQueue = GetCommandQueue(unitID,50) or {}
-            for _,v in ipairs(cQueue) do
+            for i=1,#cQueue do
+              local v = cQueue[i]
               if (v.tag ~= cQueue[1].tag) then
                 GiveOrderToUnit(unitID,v.id,v.params,{"shift"})
               end

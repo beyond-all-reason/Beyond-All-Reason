@@ -260,8 +260,8 @@ function checkAllUnits()
 	antiOutLos				= {}
 	
 	local allUnits = spGetAllUnits()
-    for _, unitID in ipairs(allUnits) do
-        processVisibleUnit(unitID)
+    for i=1,#allUnits do
+        processVisibleUnit(allUnits[i])
     end
 end
 
