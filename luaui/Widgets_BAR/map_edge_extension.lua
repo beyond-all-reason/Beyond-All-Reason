@@ -353,6 +353,7 @@ end
 
 
 local maxGroundHeights = {top=0,bottom=0,left=0,right=0}
+local minGroundHeights = {top=-50,bottom=-50,left=-50,right=-50}
 function GetMaxGroundHeights()
 	maxGroundHeights.topleft = spGetGroundHeight(0,0)
 	maxGroundHeights.topright = spGetGroundHeight(Game.mapSizeX,0)
@@ -365,9 +366,15 @@ function GetMaxGroundHeights()
 		if spGetGroundHeight(i, 0) > maxGroundHeights.top then
 			maxGroundHeights.top = spGetGroundHeight(i,0)
 		end
+		if spGetGroundHeight(i, 0) < minGroundHeights.top then
+			minGroundHeights.top = spGetGroundHeight(i,0)
+		end
 		-- bottom edge
 		if spGetGroundHeight(i, Game.mapSizeZ) > maxGroundHeights.bottom then
 			maxGroundHeights.bottom = spGetGroundHeight(i,0)
+		end
+		if spGetGroundHeight(i, Game.mapSizeZ) < minGroundHeights.bottom then
+			minGroundHeights.bottom = spGetGroundHeight(i,0)
 		end
 	end
 	for i=1,Game.mapSizeZ,sampleDist do
@@ -375,11 +382,25 @@ function GetMaxGroundHeights()
 		if spGetGroundHeight(0, i) > maxGroundHeights.left then
 			maxGroundHeights.left = spGetGroundHeight(0,i)
 		end
+		if spGetGroundHeight(0, i) < minGroundHeights.left then
+			minGroundHeights.left = spGetGroundHeight(0,i)
+		end
 		-- right edge
 		if spGetGroundHeight(Game.mapSizeX, i) > maxGroundHeights.right then
 			maxGroundHeights.right = spGetGroundHeight(Game.mapSizeX,i)
 		end
+		if spGetGroundHeight(Game.mapSizeX, i) < minGroundHeights.right then
+			minGroundHeights.right = spGetGroundHeight(Game.mapSizeX,i)
+		end
 	end
+	minGroundHeights.top = minGroundHeights.top - 50
+	minGroundHeights.bottom = minGroundHeights.bottom - 50
+	minGroundHeights.left = minGroundHeights.bottom - 50
+	minGroundHeights.right = minGroundHeights.right - 50
+	minGroundHeights.topleft = math.min(minGroundHeights.top, minGroundHeights.left)
+	minGroundHeights.topright = math.min(minGroundHeights.top, minGroundHeights.right)
+	minGroundHeights.bottomleft = math.min(minGroundHeights.bottom, minGroundHeights.left)
+	minGroundHeights.bottomright = math.min(minGroundHeights.bottom, minGroundHeights.right)
 end
 
 function widget:Initialize()
@@ -457,14 +478,14 @@ function widget:Update(dt)
 		end
 	end
 	if checkInView then
-		inViewParts.topleft = spIsAABBInView(-Game.mapSizeX,0,-Game.mapSizeZ, borderMargin,maxGroundHeights.topleft,borderMargin)
-		inViewParts.topright = spIsAABBInView(Game.mapSizeX-borderMargin,0,-Game.mapSizeZ, Game.mapSizeX*2,maxGroundHeights.topright,borderMargin)
-		inViewParts.bottomleft = spIsAABBInView(-Game.mapSizeX,0,Game.mapSizeZ-borderMargin, borderMargin,maxGroundHeights.bottomleft,Game.mapSizeZ*2)
-		inViewParts.bottomright = spIsAABBInView(Game.mapSizeX-borderMargin,0,Game.mapSizeZ-borderMargin, Game.mapSizeX*2,maxGroundHeights.bottomright,Game.mapSizeZ*2)
-		inViewParts.top = spIsAABBInView(-borderMargin,0,-Game.mapSizeZ, Game.mapSizeX+borderMargin,maxGroundHeights.top,borderMargin)
-		inViewParts.bottom = spIsAABBInView(-borderMargin,0,Game.mapSizeZ*2, Game.mapSizeX+borderMargin,maxGroundHeights.bottom,Game.mapSizeZ-borderMargin)
-		inViewParts.left = spIsAABBInView(-Game.mapSizeX,0,-borderMargin, 0,maxGroundHeights.left,Game.mapSizeZ)
-		inViewParts.right = spIsAABBInView(Game.mapSizeX-borderMargin,0,-borderMargin, Game.mapSizeX*2,maxGroundHeights.right,Game.mapSizeZ)
+		inViewParts.topleft = spIsAABBInView(-Game.mapSizeX,minGroundHeights.topleft,-Game.mapSizeZ, borderMargin,maxGroundHeights.topleft,borderMargin)
+		inViewParts.topright = spIsAABBInView(Game.mapSizeX-borderMargin,minGroundHeights.topright,-Game.mapSizeZ, Game.mapSizeX*2,maxGroundHeights.topright,borderMargin)
+		inViewParts.bottomleft = spIsAABBInView(-Game.mapSizeX,minGroundHeights.bottomleft,Game.mapSizeZ-borderMargin, borderMargin,maxGroundHeights.bottomleft,Game.mapSizeZ*2)
+		inViewParts.bottomright = spIsAABBInView(Game.mapSizeX-borderMargin,minGroundHeights.bottomright,Game.mapSizeZ-borderMargin, Game.mapSizeX*2,maxGroundHeights.bottomright,Game.mapSizeZ*2)
+		inViewParts.top = spIsAABBInView(-borderMargin,minGroundHeights.top,-Game.mapSizeZ, Game.mapSizeX+borderMargin,maxGroundHeights.top,borderMargin)
+		inViewParts.bottom = spIsAABBInView(-borderMargin,minGroundHeights.bottom,Game.mapSizeZ*2, Game.mapSizeX+borderMargin,maxGroundHeights.bottom,Game.mapSizeZ-borderMargin)
+		inViewParts.left = spIsAABBInView(-Game.mapSizeX,minGroundHeights.left,-borderMargin, 0,maxGroundHeights.left,Game.mapSizeZ)
+		inViewParts.right = spIsAABBInView(Game.mapSizeX-borderMargin,minGroundHeights.right,-borderMargin, Game.mapSizeX*2,maxGroundHeights.right,Game.mapSizeZ)
 		if	inViewParts.top or inViewParts.bottom or inViewParts.left or inViewParts.right or
 			inViewParts.topleft or inViewParts.topright or inViewParts.bottomleft or inViewParts.bottomright then
 			isInView = true
