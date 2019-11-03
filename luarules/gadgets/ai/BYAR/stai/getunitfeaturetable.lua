@@ -64,21 +64,15 @@ local function GetBuiltBy()
 	return builtBy
 end
 
-local function GetUnitSide(unitDefID, builtBy)
-	local defID = unitDefID
-	while builtBy[defID] and #builtBy[defID] > 0 do
-		-- Spring.Echo(UnitDefs[defID].name)
-		for i, parentDefID in pairs(builtBy[defID]) do
-			if UnitDefs[parentDefID].techLevel < UnitDefs[defID].techLevel then
-				defID = parentDefID
-			end
-			if commanderSide[UnitDefs[parentDefID].name] then
-				defID = parentDefID
-				break
-			end
-		end
-	end
-	return commanderSide[UnitDefs[defID].name]
+local function GetUnitSide(name)
+    if string.find(name, 'arm') then
+        return 'arm'
+    elseif string.find(name, 'cor') then
+        return 'core'
+    elseif string.find(name, 'chicken') then
+        return 'chicken'
+    end
+    return 'unknown'
 end
 
 local function GetUnitTable()
@@ -125,10 +119,12 @@ local function GetUnitTable()
 		else
 			utable.needsWater = false
 		end
-		utable.techLevel = unitDef["techLevel"]
-		if hoverplatform[unitDef["name"]] then
+        
+		utable.techLevel = unitDef.customParams.techLevel or 1
+        if hoverplatform[unitDef["name"]] then
 			utable.techLevel = utable.techLevel - 0.5
 		end
+        
 		if utable.techLevel < 0 then
 			utable.mtype = 'chk'
 		elseif unitDef["canFly"] then
@@ -172,10 +168,11 @@ local function GetUnitTable()
 				end
 			end
 		end
+
 		utable.bigExplosion = unitDef["deathExplosion"] == "atomic_blast"
 		utable.xsize = unitDef["xsize"]
 		utable.zsize = unitDef["zsize"]
-		utable.side = GetUnitSide(unitDefID, builtBy)
+		utable.side = GetUnitSide(unitDef.name)
 		-- Spring.Echo(unitDef.name, utable.side)
 		utable.wreckName = unitDef["wreckName"]
 		wrecks[unitDef["wreckName"]] = unitDef["name"]

@@ -1,21 +1,21 @@
-shard_include "taskqueuebehaviour"
-shard_include "attackerbehaviour"
-shard_include "raiderbehaviour"
-shard_include "bomberbehaviour"
-shard_include "wardbehaviour"
-shard_include "mexupgradebehaviour"
-shard_include "assistbehaviour"
-shard_include "reclaimbehaviour"
-shard_include "cleanerbehaviour"
-shard_include "defendbehaviour"
-shard_include "factoryregisterbehaviour"
-shard_include "scoutbehaviour"
-shard_include "antinukebehaviour"
-shard_include "nukebehaviour"
-shard_include "bombardbehaviour"
-shard_include "commanderbehaviour"
-shard_include "bootbehaviour"
-shard_include "countbehaviour"
+shard_include ("taskqueuebehaviour",subf)
+shard_include ("attackerbehaviour",subf)
+shard_include ("raiderbehaviour",subf)
+shard_include ("bomberbehaviour",subf)
+shard_include ("wardbehaviour",subf)
+shard_include ("mexupgradebehaviour",subf)
+shard_include ("assistbehaviour",subf)
+shard_include ("reclaimbehaviour",subf)
+shard_include ("cleanerbehaviour",subf)
+shard_include ("defendbehaviour",subf)
+shard_include ("factoryregisterbehaviour",subf)
+shard_include ("scoutbehaviour",subf)
+shard_include ("antinukebehaviour",subf)
+shard_include ("nukebehaviour",subf)
+shard_include ("bombardbehaviour",subf)
+shard_include ("commanderbehaviour",subf)
+shard_include ("bootbehaviour",subf)
+shard_include ("countbehaviour",subf)
 
 
 behaviours = {
