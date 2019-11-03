@@ -386,7 +386,7 @@ fragment = [[
 		return vec3(radius * vec2(cos(theta), sin(theta)), z);
 	}
 
-	#define ENV_SMPL_NUM 32
+	#define ENV_SMPL_NUM 64
 	void TextureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSpecular) {
 		iblDiffuse = vec3(0.0);
 		iblSpecular = vec3(0.0);
@@ -396,16 +396,17 @@ fragment = [[
 		vec2 ts = vec2(textureSize(reflectTex, 0));
 		float maxMipMap = log2(max(ts.x, ts.y));
 
-		vec2 lodBias = vec2(maxMipMap - 5.0, 4.0);
+		vec2 lodBias = vec2(maxMipMap - 6.0, 4.0);
 
 		for (int i=0; i < ENV_SMPL_NUM; ++i) {
 			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
 
 			vec2 w = vec2(
-					dot(sp, N ) * 0.5 + 0.5,
-					dot(sp, Rv) * 0.5 + 0.5);
+				dot(sp, N ) * 0.5 + 0.5,
+				dot(sp, Rv) * 0.5 + 0.5);
 
-			w = pow(w, vec2(24.0, 32.0));
+
+			w = pow(w, vec2(4.0, 32.0));
 
 			vec3 iblD = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.x).rgb);
 			vec3 iblS = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.y).rgb);
