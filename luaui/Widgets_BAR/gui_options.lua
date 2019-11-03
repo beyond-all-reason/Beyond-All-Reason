@@ -105,7 +105,7 @@ local presets = {
 	lowest = {
 		bloom = false,
 		bloomdeferred = false,
-		cas = false,
+		--cas = false,
 		ssao = false,
 		water = 1,
 		mapedgeextension = false,
@@ -128,7 +128,7 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = false,
 		water = 2,
 		mapedgeextension = false,
@@ -151,7 +151,7 @@ local presets = {
 	medium = {
 		bloom = true,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = false,
 		water = 4,
 		mapedgeextension = true,
@@ -174,7 +174,7 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = true,
 		water = 3,
 		mapedgeextension = true,
@@ -197,7 +197,7 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = true,
 		water = 5,
 		mapedgeextension = true,
@@ -238,7 +238,8 @@ function widget:ViewResize()
   windowList = gl.CreateList(DrawWindow)
 end
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+
+local engineVersion = 104 -- just filled this in here incorrectly but old engines arent used anyway
 if Engine and Engine.version then
 	local function Split(s, separator)
 		local results = {}
@@ -253,8 +254,6 @@ if Engine and Engine.version then
 	else
 		engineVersion = tonumber(Engine.version)
 	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
 end
 
 
@@ -1631,8 +1630,8 @@ function init()
 		 end,
 		},
 
-		{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		{id="cas_sharpness", group="gfx", name=widgetOptionColor.."   sharpness", min=0, max=1, step=0.01, type="slider", value=0.6, description='',
+		--{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
+		{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.2, max=0.9, step=0.01, type="slider", value=0.6, description='How much sharpening should be applied to the image',
 		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)

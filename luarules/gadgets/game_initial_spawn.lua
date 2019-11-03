@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+local engineVersion = 104 -- just filled this in here incorrectly but old engines arent used anyway
 if Engine and Engine.version then
 	local function Split(s, separator)
 		local results = {}
@@ -27,8 +27,6 @@ if Engine and Engine.version then
 	else
 		engineVersion = tonumber(Engine.version)
 	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
 end
 
 -- set minimun engine version
