@@ -8,6 +8,27 @@ function MapHandler:internalName()
 	return "maphandler"
 end
 
+
+function MapHandler:basicMapInfo()
+    print(self)
+    for i,v in pairs(self) do
+        print(i.. ' ' ..tostring(v))
+    end
+    print('--------------------------------------------------------------------------------------------------------')
+    for i,v in pairs(MapHandler) do
+        print(i.. ' ' ..tostring(v))
+    end   
+    MapHandler.mapSize = MapHandler.map:MapDimensions()
+    MapHandler.elmoMapSizeX = MapHandler.mapSize.x * 8
+	MapHandler.elmoMapSizeZ = MapHandler.mapSize.z * 8    
+    MapHandler.mobilityGridSize = math.max( math.floor(math.max(MapHandler.mapSize.x * 8, MapHandler.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
+    MapHandler.mobilityGridSizeHalf = MapHandler.mobilityGridSize/ 2
+	MapHandler.maxX = math.ceil((MapHandler.mapSize.x * 8) / MapHandler.mobilityGridSize)
+	MapHandler.maxZ = math.ceil((MapHandler.mapSize.z * 8) / MapHandler.mobilityGridSize)
+    MapHandler:EchoDebug("grid size: " .. MapHandler.mobilityGridSize)
+    MapHandler:EchoDebug("Map size in grids: x "..maxX.." z "..maxZ)
+end
+
 MapHandler.DebugEnabled = true
 local DebugDrawEnabled = false
 
@@ -246,6 +267,9 @@ function MapHandler:MapMobility()
     for i,v in pairs(MapHandler) do
         self:EchoDebug(i,v)
     end    
+    print('****************************************************************************************')
+    print(self.map)
+    print(MapHandler.map)
     
 	local mapSize = MapHandler.map:MapDimensions()
 	mobilityGridSize = math.floor(math.max(mapSize.x * 8, mapSize.z * 8) / 128)
@@ -448,6 +472,9 @@ end
 
 function MapHandler:Init()
     self:EchoDebug('self',self)
+    MapHandler.map = self.map
+    MapHandler:basicMapInfo()
+    
 --     for i,v in pairs(self) do
 --         self:EchoDebug(i,v)
 --     end
