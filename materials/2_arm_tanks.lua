@@ -91,7 +91,6 @@ local matTemplate = {
 		"#define SPECULAR_AO",
 
 		--
-		/grabin
 		"#define FAKE_ENV_HDR 0.4",
 
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
