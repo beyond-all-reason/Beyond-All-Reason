@@ -900,7 +900,7 @@ fragment = [[
 		outColor = TONEMAP(outColor);
 
 		// debug hook
-		#if 1
+		#if 0
 			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
 			//outColor = LINEARtoSRGB(vec3(abs(ComputeSpecularAOBlender(NdotV, aoTerm, roughness2) - ComputeSpecularAOFilament(NdotV, aoTerm, roughness2))));
 			outColor = vec3( roughness );
