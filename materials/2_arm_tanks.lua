@@ -65,7 +65,7 @@ local matTemplate = {
 
 		"#define SPECULAR_AO",
 
-		"#define FAKE_ENV_HDR 0.6",
+		"#define FAKE_ENV_HDR 0.4",
 
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.07",
@@ -90,7 +90,9 @@ local matTemplate = {
 
 		"#define SPECULAR_AO",
 
-		"#define FAKE_ENV_HDR 0.6",
+		--
+		/grabin
+		"#define FAKE_ENV_HDR 0.4",
 
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
