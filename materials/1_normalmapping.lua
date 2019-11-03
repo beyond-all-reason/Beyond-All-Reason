@@ -37,6 +37,8 @@ local matTemplate = {
 
 		"#define SPECULAR_AO",
 
+		"#define FAKE_ENV_HDR 0.6",
+
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
@@ -58,6 +60,8 @@ local matTemplate = {
 		"#define EXPOSURE pbrParams[7]",
 
 		"#define SPECULAR_AO",
+
+		"#define FAKE_ENV_HDR 0.6",
 
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
