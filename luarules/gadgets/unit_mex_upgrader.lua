@@ -158,11 +158,13 @@ end
 
 
 function registerUnits() 
-  local teams = Spring.GetTeamList() 
-  for _, teamID in ipairs(teams) do 
-    builders[teamID] = {} 
-    mexes[teamID] = {} 
-    for _, unitID in ipairs(GetTeamUnits(teamID)) do 
+  local teams = Spring.GetTeamList()
+  for _, teamID in ipairs(teams) do
+    builders[teamID] = {}
+    mexes[teamID] = {}
+    local units = GetTeamUnits(teamID)
+    for i=1,#units do
+      local unitID = units[i]
       local unitDefID = GetUnitDefID(unitID) 
       registerUnit(unitID, unitDefID, teamID)    
     end 
@@ -201,8 +203,9 @@ function gadget:GameFrame(n)
   scheduledBuilders = {} 
 
   for unitID, _ in pairs(addFakeReclaim) do 
-    local commands = GetCommandQueue(unitID,20) 
-    for i, cmd in ipairs(commands) do 
+    local commands = GetCommandQueue(unitID,20)
+    for i=1,#commands do
+      local cmd = commands[i]
       if cmd.id == CMD_UPGRADEMEX and not (commands[i+1] and commands[i+1].id == CMD_RECLAIM) then 
         GiveOrderToUnit(unitID, CMD_INSERT, {i, CMD_RECLAIM, CMD_OPT_INTERNAL+1, cmd.params[1]}, {"alt"}) 
       end 

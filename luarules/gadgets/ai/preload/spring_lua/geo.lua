@@ -1,7 +1,9 @@
 local function GetGeos()
 	local geos = {}
 	local i = 1
-	for ct, featureID in pairs(Spring.GetAllFeatures()) do
+	local features = Spring.GetAllFeatures()
+	for ct=1,#features do
+		local featureID = features[ct]
 		local featureDefID = Spring.GetFeatureDefID(featureID)
 		if FeatureDefs[featureDefID].geoThermal == true then
 			local x, y, z = Spring.GetFeaturePosition(featureID)

@@ -112,7 +112,7 @@ function widget:CommandNotify(id, params, options)
     if cx < -1 then
       return false
     end
-    
+
     local units = Spring.GetSelectedUnits()
     for i=1,#units do
       local unit_id = units[i]
@@ -126,7 +126,7 @@ function widget:CommandNotify(id, params, options)
         --Spring.Echo("cmd:"..table.tostring(command))
         local px2,py2,pz2 = GetCommandPos(command)
         if px2>-1 then
-          local dlen = math_sqrt(((px2-cx)^2)+((py2-cy)^2)+((pz2-cz)^2)) + math_sqrt(((px-cx)^2)+((py-cy)^2)+((pz-cz)^2)) - math_sqrt((((px2-px)^2)+((py2-py)^2)+((pz2-pz)^2)))
+          local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((py2-py)*(py2-py))))
           --Spring.Echo("dlen "..dlen)
           if dlen < min_dlen then
             min_dlen = dlen
@@ -137,7 +137,7 @@ function widget:CommandNotify(id, params, options)
         end   
       end
       -- check for insert at end of queue if its shortest walk.
-      local dlen = math_sqrt(((px-cx)^2) + ((py-cy)^2) + ((pz-cz)^2))
+      local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(py-cy)))
       if dlen < min_dlen then
         --options.meta=nil
         --options.shift=true

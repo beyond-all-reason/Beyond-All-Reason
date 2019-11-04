@@ -47,7 +47,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
      end
      local cQueue = GetCommandQueue(unitID,20)
      if (#cQueue > 0) then
-       for _,command in ipairs(cQueue) do
+       for i=1,#cQueue do
+         local command = cQueue[i]
          if (command.id == CMD_LOAD_UNITS) and (#command.params == 1) then
            watchList[unitID] = GetGameFrame() + 30
            return false
@@ -60,7 +61,8 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
      end
      local cQueue = GetCommandQueue(unitID,20)
      if (#cQueue > 0) then
-       for _,command in ipairs(cQueue) do
+       for i=1,#cQueue do
+         local command = cQueue[i]
          if (command.id == CMD_LOAD_UNITS) and (#command.params == 1) then
            watchList[unitID] = GetGameFrame() + 30
            return false

@@ -299,8 +299,9 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	if (CONST_IGNORE_GROUNDSCOUTS and ud.modCategories.groundscout) then return end
     if (IsTransportable(unitDefID) and not userOrders) then 
 --      Echo ("new unit from factory "..unitID)
-
-      for _,v in ipairs(GetCommandQueue(unitID,20)) do
+      local commands = GetCommandQueue(unitID,20)
+      for i=1,#commands do
+        local v = commands[i]
         if (IsEmbark(v)) then 
           priorityUnits[unitID] = unitDefID
           return
@@ -410,7 +411,8 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
   DeleteToPickTran(transportID)
   hackIdle[transportID] = true
   local cnt = 0
-  for k, v in ipairs(queue) do
+  for i=1,#queue do
+    local v = queue[i]
     if (not v.options.internal) then 
       if ((v.id == CMD.MOVE or (v.id==CMD.WAIT)) and not ender) then
         cnt = cnt +1
@@ -597,7 +599,8 @@ function GetPathLength(unitID)
   local d = 0
   local queue = GetCommandQueue(unitID,20);
   if (queue == nil) then return 0 end
-  for k, v in ipairs(queue) do
+  for i=1,#queue do
+    local v = queue[i]
     if (v.id == CMD.MOVE or v.id==CMD.WAIT) then
       if (v.id == CMD.MOVE) then 
         d = d + Dist(px,py, pz, v.params[1], v.params[2], v.params[3])

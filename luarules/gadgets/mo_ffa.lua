@@ -76,7 +76,8 @@ end
 function destroyTeam(teamID,dropTime)
 	local teamUnits = GetTeamUnits(teamID)
 	local nowrecks = dropTime < noWrecksLimit
-	for _, unitID in pairs(teamUnits) do
+	for i=1,#teamUnits do
+		local unitID = teamUnits[i]
 		if not GetUnitTransporter(unitID) then
 			if nowrecks then
 				DestroyUnit(unitID,false, true)

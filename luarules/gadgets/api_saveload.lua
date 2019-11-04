@@ -969,7 +969,8 @@ local function SaveUnits()
 			
 			local commandsTemp = spGetCommandQueue(unitID, -1)
 			local commands = {}
-			for i,v in ipairs(commandsTemp) do
+			for i=1,#commandsTemp do
+				local v = commandsTemp[i]
 				if (type(v) == "table" and v.params) then v.params.n = nil end
 				
 				-- don't save commands from retreat, we'll regenerate those at load)

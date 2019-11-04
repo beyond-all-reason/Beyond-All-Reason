@@ -123,7 +123,9 @@ function gadget:GameFrame(t)
 		for at,defs in pairs(destroyQueue) do
 			if aliveCount[at] <= 0 then --safety check, triggers on transferring the last com otherwise
 				for _,team in ipairs(GetTeamList(at)) do
-					for _,unitID in ipairs(GetTeamUnits(team)) do
+					local teamUnits = GetTeamUnits(team)
+					for i=1,#teamUnits do
+						local unitID = teamUnits[i]
 						local x,y,z = GetUnitPosition(unitID)
 						local deathTime = min(((getSqrDistance(x,z,defs.x,defs.z) / DISTANCE_LIMIT) * 450), 450)
 						if (destroyUnitQueue[unitID] == nil) then

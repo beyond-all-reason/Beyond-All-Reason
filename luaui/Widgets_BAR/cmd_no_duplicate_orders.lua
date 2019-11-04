@@ -97,7 +97,8 @@ function widget:CommandNotify(id, params, options)
             GiveOrderToUnit(unitID, id, params, options)
           else
             local cQueue = GetCommandQueue(unitID,50) or {}
-            for _,v in ipairs(cQueue) do
+            for i=1,#cQueue do
+              local v = cQueue[i]
               if (v.tag ~= cQueue[1].tag) then
                 GiveOrderToUnit(unitID,v.id,v.params,{"shift"})
               end

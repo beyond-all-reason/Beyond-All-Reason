@@ -347,14 +347,14 @@ local function ToggleShadows()
 
   unitRendering.bufMaterials = {}
   local units = Spring.GetAllUnits()
-  for _, unitID in pairs(units) do
-    ResetUnit(unitID)
+  for i=1,#units do
+    ResetUnit(units[i])
   end
 
   featureRendering.bufMaterials = {}
   local features = Spring.GetAllFeatures()
-  for _, featureID in pairs(features) do
-    ResetFeature(featureID)
+  for i=1,#features do
+    ResetFeature(features[i])
   end
 end
 
@@ -366,14 +366,14 @@ local function ToggleAdvShading()
     --// unload all materials
     unitRendering.drawList = {}
     local units = Spring.GetAllUnits()
-    for _,unitID in pairs(units) do
-      ResetUnit(unitID)
+    for i=1,#units do
+      ResetUnit(units[i])
     end
 
     featureRendering.drawList = {}
     local features = Spring.GetAllFeatures()
-    for _, featureID in pairs(features) do
-      ResetFeature(featureID)
+      for i=1,#features do
+      ResetFeature(features[i])
     end
   elseif (normalmapping) then
     --// reinitializes all shaders

@@ -121,7 +121,8 @@ if gadgetHandler:IsSyncedCode() then
 
 				-- destroy old unit wreckage if any
 				local features = Spring.GetFeaturesInCylinder(math.floor(params[4]),math.floor(params[6]),70)	-- using radius larger than 1 cause wreckage can fly off a bit
-				for i, featureID in pairs(features) do
+				for i=1,#features do
+					local featureID = features[i]
 					if UnitDefs[params[2]] ~= nil then
 						local wreckName = UnitDefs[params[2]].wreckName
 						if wreckName ~= nil then
@@ -224,7 +225,8 @@ if gadgetHandler:IsSyncedCode() then
 			local foundSelfdCmd = false
 			local unitQueue = Spring.GetCommandQueue(unitID,20) or {}
 			if (#unitQueue > 0) then
-				for _,cmd in ipairs(unitQueue) do
+				for i=1,#unitQueue do
+					local cmd = unitQueue[i]
 					if cmd.id == CMD.SELFD then
 						foundSelfdCmd = true
 						break

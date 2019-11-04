@@ -59,7 +59,7 @@ function gadget:GameFrame(n)
 			local newUnitID = Spring.CreateUnit(POP_UP_UNIT[Spring.GetUnitDefID(unitID)].unit,x,0,z,h,Spring.GetUnitTeam(unitID))
 			if newUnitID then
 				local cmds = Spring.GetCommandQueue(unitID,20)
-				for i,cmd in ipairs(cmds) do
+				for i=1,#cmds do
 					local cmd = cmds[i]
 					Spring.GiveOrderToUnit(newUnitID, cmd.id, cmd.params, cmd.options.coded)
 				end

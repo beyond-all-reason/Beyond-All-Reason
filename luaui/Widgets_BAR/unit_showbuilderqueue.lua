@@ -57,7 +57,8 @@ local function checkBuilder(unitID)
 	local queueDepth = GetCommandQueue(unitID, 0)
 	if queueDepth and queueDepth > 0 then
 		local queue = GetCommandQueue(unitID, math.min(queueDepth, 200))
-		for _, cmd in ipairs(queue) do
+		for i=1,#queue do
+			local cmd = queue[i]
 			if ( cmd.id < 0 ) then
 				local myCmd = {
 					id = -cmd.id,
