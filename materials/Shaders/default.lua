@@ -681,7 +681,7 @@ fragment = [[
 		#endif
 
 		//roughness = SNORM2NORM( sin(simFrame * 0.025) );
-		//roughness = 0.2;
+		//roughness = 0.0;
 
 		// this is great to remove specular aliasing on the edges.
 		#ifdef ROUGHNESS_AA
@@ -794,12 +794,12 @@ fragment = [[
 			outSpecularColor *= energyCompensation;
 
 			 // kS is equal to Fresnel
-			vec3 kS = F;
+			//vec3 kS = F;
 
 			// for energy conservation, the diffuse and specular light can't
 			// be above 1.0 (unless the surface emits light); to preserve this
 			// relationship the diffuse component (kD) should equal 1.0 - kS.
-			vec3 kD = vec3(1.0) - kS;
+			vec3 kD = vec3(1.0) - F;
 
 			// multiply kD by the inverse metalness such that only non-metals
 			// have diffuse lighting, or a linear blend if partly metal (pure metals
@@ -821,8 +821,8 @@ fragment = [[
             // ambient lighting (we now use IBL as the ambient term)
 			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
 
-            vec3 kS = F;
-            vec3 kD = 1.0 - kS;
+            //vec3 kS = F;
+            vec3 kD = 1.0 - F;
             kD *= 1.0 - metalness;
 
             ///
@@ -867,7 +867,8 @@ fragment = [[
 
 			// specular ambient occlusion (see Filament)
 			float aoTermSpec = ComputeSpecularAO(NdotV, aoTerm, roughness2);
-			vec3 specular = reflectionColor * mix(vec3(envBRDF.y), vec3(envBRDF.x), F);
+			//vec3 specular = reflectionColor * mix(vec3(envBRDF.y), vec3(envBRDF.x), F);
+			vec3 specular = reflectionColor * (F0 * envBRDF.x + F90 * envBRDF.y);
 			specular *= aoTermSpec * energyCompensation;
 
 
@@ -901,9 +902,7 @@ fragment = [[
 
 		// debug hook
 		#if 0
-			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			//outColor = LINEARtoSRGB(vec3(abs(ComputeSpecularAOBlender(NdotV, aoTerm, roughness2) - ComputeSpecularAOFilament(NdotV, aoTerm, roughness2))));
-			outColor = vec3( roughness );
+			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif
 
