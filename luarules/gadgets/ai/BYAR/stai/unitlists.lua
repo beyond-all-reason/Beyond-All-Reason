@@ -1,4 +1,4 @@
-local DebugEnabled = true
+local DebugEnabled = false
 
 local function EchoDebug(inStr)
 	if DebugEnabled then
@@ -29,8 +29,8 @@ factoryMobilities = {
 	armsy = {"shp", "sub"},
 	corasy = {"shp", "sub"},
 	armasy = {"shp", "sub"},
-	csubpen = {"amp","sub"},
-	asubpen = {"amp","sub"},
+	coramsub = {"amp","sub"},
+	armamsub = {"amp","sub"},
 	corgant = {"bot", "amp"},
 	armshltx = {"bot", "amp"},
 	corgantuw = {"amp"},

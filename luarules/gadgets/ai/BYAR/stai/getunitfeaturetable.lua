@@ -1,5 +1,7 @@
 -- BEGIN CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
 
+local backupUnitFeature = true
+
 local hoverplatform = {
 	armhp = 1,
 	armfhp = 1,
@@ -20,6 +22,13 @@ local commanderSide = {
 }
 
 local featureKeysToGet = { "metal" , "energy", "reclaimable", "blocking", }
+
+local function SaveTable(tableinput, tablename, filename)
+	local fileobj = io.open(filename, 'w')
+	fileobj:write(tablename .. " = ")
+	serialize(tableinput, fileobj)
+	fileobj:close()
+end
 
 local function GetLongestWeaponRange(unitDefID, GroundAirSubmerged)
 	local weaponRange = 0
@@ -202,6 +211,18 @@ end
 
 local unitTable, wrecks = GetUnitTable()
 local featureTable = GetFeatureTable(wrecks)
+if backupUnitFeature then
+    SaveTable(unitTable, 'unitTable', 'unitTable-' .. Game.gameShortName .. '.lua')
+    SaveTable(featureTable, 'featureTable', 'featureTable-' .. Game.gameShortName.. '.lua')
+end
+
+for i,v in pairs(unitTable) do
+    val = ''
+    for ii,vv in pairs(v) do
+        val = val .. tostring(vv) .. ', '
+    end
+    print(i .. val)
+end
 wrecks = nil
 
 return unitTable, featureTable

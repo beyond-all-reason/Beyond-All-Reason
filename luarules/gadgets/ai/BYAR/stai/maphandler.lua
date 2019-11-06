@@ -8,29 +8,28 @@ function MapHandler:internalName()
 	return "maphandler"
 end
 
+MapHandler.DebugEnabled = false
+
 
 function MapHandler:basicMapInfo()
-    print(self)
-    for i,v in pairs(self) do
+--[[    for i,v in pairs(self) do
         print(i.. ' ' ..tostring(v))
     end
-    print('--------------------------------------------------------------------------------------------------------')
     for i,v in pairs(MapHandler) do
         print(i.. ' ' ..tostring(v))
-    end   
-    MapHandler.mapSize = MapHandler.map:MapDimensions()
+    end]]   
+    MapHandler.mapSize = self.map:MapDimensions()
     MapHandler.elmoMapSizeX = MapHandler.mapSize.x * 8
 	MapHandler.elmoMapSizeZ = MapHandler.mapSize.z * 8    
     MapHandler.mobilityGridSize = math.max( math.floor(math.max(MapHandler.mapSize.x * 8, MapHandler.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
     MapHandler.mobilityGridSizeHalf = MapHandler.mobilityGridSize/ 2
 	MapHandler.maxX = math.ceil((MapHandler.mapSize.x * 8) / MapHandler.mobilityGridSize)
 	MapHandler.maxZ = math.ceil((MapHandler.mapSize.z * 8) / MapHandler.mobilityGridSize)
-    MapHandler:EchoDebug("grid size: " .. MapHandler.mobilityGridSize)
-    MapHandler:EchoDebug("Map size in grids: x "..maxX.." z "..maxZ)
+    self:EchoDebug("grid size: " .. MapHandler.mobilityGridSize)
+--     self:EchoDebug("Map size in grids: x "..MapHandler.maxX.." z "..MapHandler.maxZ)
 end
 
-MapHandler.DebugEnabled = true
-local DebugDrawEnabled = false
+
 
 local mapColors = {
 	veh = { 1, 0, 0 },
@@ -258,20 +257,7 @@ end
 function MapHandler:MapMobility()
 	-- check for water map works like this:
 	-- the map is divided into sectors, then center of each sector is tested if specific unit can be built there (water, kbot, vehicle)
-    for i,v in pairs(self) do
-        self:EchoDebug(i,v)
-    end
-    self:EchoDebug('-------------------------------ai------------------------------------',ai)
-    
-    self:EchoDebug('MapHandler',MapHandler)
-    for i,v in pairs(MapHandler) do
-        self:EchoDebug(i,v)
-    end    
-    print('****************************************************************************************')
-    print(self.map)
-    print(MapHandler.map)
-    
-	local mapSize = MapHandler.map:MapDimensions()
+	local mapSize = self.map:MapDimensions()
 	mobilityGridSize = math.floor(math.max(mapSize.x * 8, mapSize.z * 8) / 128)
 	mobilityGridSize = math.max(mobilityGridSize, 32) -- don't make grids smaller than 32
 	mobilityGridSizeHalf = mobilityGridSize/ 2
@@ -305,16 +291,9 @@ function MapHandler:MapMobility()
 			-- find out if each mobility type can exist there
 			for mtype, utypes in pairs(mobUnitTypes) do
 				local canbuild = false
-				if ShardSpringLua then
-					local uname = mobUnitExampleName[mtype]
-					local uDef = UnitDefNames[uname]
-					canbuild = Spring.TestMoveOrder(uDef.id, pos.x, Spring.GetGroundHeight(pos.x,pos.z), pos.z)
-				else
-					for _, utype in pairs(utypes) do
-						canbuild = self.map:CanBuildHere(utype, pos)
-						if canbuild then break end
-					end
-				end
+                local uname = mobUnitExampleName[mtype]
+                local uDef = UnitDefNames[uname]
+                canbuild = Spring.TestMoveOrder(uDef.id, pos.x, Spring.GetGroundHeight(pos.x,pos.z), pos.z)
 				if canbuild then
 					-- self:EchoDebug(mtype .. " at " .. x .. "," .. z .. " count " .. mobCount[mtype])
 					mobCount[mtype] = mobCount[mtype] + 1
@@ -345,7 +324,7 @@ local function InitializeTopology()
 	end
 end
 
-local function MapSpotMobility(metals, geos)
+function MapHandler:MapSpotMobility(metals, geos)
 	local half = mobilityGridSizeHalf
 	networkSize = {}
 	mobNetworkGeos = {}
@@ -429,10 +408,10 @@ local function MapSpotMobility(metals, geos)
 	return mobSpots, mobNetworkMetals, mobNetworks, mobNetworkCount
 end
 
-local function MergePositions(posTable, cutoff, includeNonMerged)
+function MapHandler:MergePositions(posTable, cutoff, includeNonMerged)
 	local list = {} -- make copy to prevent clearing table
 	for k, v in pairs(posTable) do table.insert(list, v) end
-	self:EchoDebug(#list .. " " .. cutoff)
+	self:EchoDebug('#list&cutof',#list .. " " .. cutoff)
 	local merged = {}
 	while #list > 0 do
 		local lp = table.remove(list)
@@ -455,13 +434,12 @@ local function MergePositions(posTable, cutoff, includeNonMerged)
 			table.insert(merged, pos1)
 		end
 	end
-	self:EchoDebug(#merged)
+	self:EchoDebug('#merged',#merged)
 	return merged
 end
 
 function MapHandler:Update()
 -- 	-- workaround for shifting metal spots: map data is reloaded every two minutess
---     Spring.SendCommands("Exception")
 -- 	local f = Spring.GetGameFrame()
 --     self:EchoDebug('frame',f)
 -- 	if f > self.lastDataResetFrame + 3600 then
@@ -471,13 +449,13 @@ function MapHandler:Update()
 end
 
 function MapHandler:Init()
+        self:EchoDebug('MapHandler START')
     self:EchoDebug('self',self)
-    MapHandler.map = self.map
-    MapHandler:basicMapInfo()
-    
---     for i,v in pairs(self) do
---         self:EchoDebug(i,v)
---     end
+--     MapHandler.map = self.map
+    self:basicMapInfo()
+    for i,v in pairs(self.ai) do
+        self:EchoDebug('self.ai',i,v)
+    end
 --     self:EchoDebug('-------------------------------ai------------------------------------',ai)
 --     
 --     self:EchoDebug('MapHandler',MapHandler)
@@ -485,12 +463,12 @@ function MapHandler:Init()
 --         self:EchoDebug(i,v)
 --     end    
     
-    self:EchoDebug('MapHandler START')
+
     
 	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)
 	end
-
+   
 	local mapSize = self.map:MapDimensions()
 	self.ai.elmoMapSizeX = mapSize.x * 8
 	self.ai.elmoMapSizeZ = mapSize.z * 8
@@ -505,13 +483,13 @@ function MapHandler:Init()
 	-- local dataloaded = self:LoadMapData()
 
 	self.lastDataResetFrame = Spring.GetGameFrame()
-
+    
 	if dataloaded then
 		return
 	end
 
 	mobilityGridSize = 256 -- will be recalculated by MapMobility()
-
+    
 	for mtype, unames in pairs(mobUnitNames) do
 		mobUnitTypes[mtype] = {}
 		for i, uname in pairs(unames) do
@@ -521,7 +499,7 @@ function MapHandler:Init()
 	UWMetalSpotCheckUnitType = self.game:GetTypeByName(UWMetalSpotCheckUnit)
 
 	if not mobMap then
-		totalCount, mobilityGridMaxX, mobilityGridMaxZ, mobCount = MapHandler:MapMobility()
+		totalCount, mobilityGridMaxX, mobilityGridMaxZ, mobCount = self:MapMobility()
 	end
 	mobilityGridArea = totalCount
 	self.ai.mobilityGridArea = totalCount
@@ -529,7 +507,7 @@ function MapHandler:Init()
 	if not topology then
 		InitializeTopology()
 	end
-
+    
 	-- now let's see how much water we found
 	self:EchoDebug("total sectors "..totalCount)
 	local wetness = mobCount["sub"] * 100 / totalCount
@@ -570,14 +548,15 @@ function MapHandler:Init()
 				end
 			end
 		end
-		game:SendToConsole(#geoSpots, "geovents")
+		self:EchoDebug(#geoSpots, "geovents")
 	end
-
+    
 	if not didMapSpotMobility then
 		UWMetalSpots = {}
 		landMetalSpots = {}
-		mobSpots, mobNetworkMetals, mobNetworks, mobNetworkCount = MapSpotMobility(metalSpots, geoSpots)
+		mobSpots, mobNetworkMetals, mobNetworks, mobNetworkCount = self:MapSpotMobility(metalSpots, geoSpots)
 	end
+   
 	self.ai.landMetalSpots = landMetalSpots
 	self.ai.UWMetalSpots = UWMetalSpots
 	self.ai.scoutSpots = scoutSpots
@@ -586,12 +565,17 @@ function MapHandler:Init()
 	if not hotSpot then
 		hotSpot = self:SpotSimplyfier(metalSpots,geoSpots)
 	end
+    
 	self.ai.hotSpot = hotSpot
-	if ShardSpringLua and not spotPathMobRank then
+	if not spotPathMobRank then
 		spotPathMobRank, spotPathMobRankSuccessOnly = self:SpotPathMobRank(scoutSpots.air[1])
+    else
+        
+        self:EchoDebug('spotPathMobRank',spotPathMobRank)
 	end
+    
 	for mtype, mspots in pairs(mobSpots) do
-		self:EchoDebug(mtype .. " spots: " .. #mspots)
+		self:EchoDebug('mtype-spots-#spots',mtype .. " spots: " .. #mspots)
 	end
 	-- self:EchoDebug(" spots sub:" .. #mobSpots["sub"] .. " bot:" .. #mobSpots["bot"] .. " veh:" .. #mobSpots["veh"])
 	for mtype, utypes in pairs(mobUnitTypes) do
@@ -636,7 +620,7 @@ function MapHandler:Init()
 		numberOfRatings = numberOfRatings + 1
 		self:EchoDebug(mtype .. " rating: " .. mobRating[mtype])
 	end
-
+    
 	-- add in bechmark air rating
 	-- local airRating = (#scoutSpots["air"][1] + (#scoutSpots["air"][1] * 0.25)) * 0.5
 	local airRating = #scoutSpots["air"][1] + (#scoutSpots["air"][1] * 0.25)
@@ -678,7 +662,7 @@ function MapHandler:Init()
 			end
 		end
 	end
-
+    
 	-- self:SaveMapData()
 
 	-- cleanup
@@ -686,6 +670,7 @@ function MapHandler:Init()
 	self.ai.factoriesRanking, self.ai.ranksByFactories = self:factoriesRating()
 
 	self:DebugDrawMobilities()
+
     self:EchoDebug('MapHandler STOP')
     
 end
@@ -723,7 +708,7 @@ function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 		table.insert(spots,v)
 	end
 	local spotscleaned={ }
-	self:EchoDebug(tostring(limit))
+	self:EchoDebug('limit',tostring(limit))
 	for index1,pos1 in pairs(spots) do 
 		if spots[index1] ~= false then
 			mirrorspots[index1] = {}
@@ -754,7 +739,7 @@ function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 		local x =mirrorspots[i].x/items
 		local z = mirrorspots[i].z/items
 		local y = 0
-		if ShardSpringLua then y = Spring.GetGroundHeight(x,z) end
+		y = Spring.GetGroundHeight(x,z)
 		mirrorspots[i].x = x
 		mirrorspots[i].y = y
 		mirrorspots[i].z = z
@@ -764,16 +749,20 @@ function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 end
 
 function MapHandler:SpotPathMobRank(spotscleaned)
+    self:EchoDebug('spotPathMobRank START')
 	local moveclass = {}
 	local pathDistRatios = {}
 	local pathDistRatiosSuccessOnly = {}
-	for id,unitDef in pairs(UnitDefs) do
-		if unitDef.moveDef.name  and unitDef.techLevel >=0 then 
+
+    for id,unitDef in pairs(UnitDefs) do
+		if unitDef.moveDef.name  then--maybe because we have already chickens
 			if moveclass[unitDef.moveDef.name] ==   nil then
 				moveclass[unitDef.moveDef.name] = id
+                self:EchoDebug('name&id',unitDef.moveDef.name,id)
 			end
 		end
 	end
+                                                                                                                    
 	for mclass, number in pairs(moveclass) do
 		pathDistRatios[mclass] = 0
 		pathDistRatiosSuccessOnly[mclass] = 0
@@ -787,13 +776,14 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 		while #mySpots > 0 do
 			local pos2 = table.remove(mySpots)
 			if Spring.TestMoveOrder(number,pos1.x,pos1.y,pos1.z) == true and Spring.TestMoveOrder(number,pos2.x,pos2.y,pos2.z) == true then
-				local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z)
+				local metapath = Spring.RequestPath(mclass, pos1.x,pos1.y,pos1.z,pos2.x,pos2.y,pos2.z) 
 				if metapath then 
 					local waypoints, pathStartIdx = metapath:GetPathWayPoints()
 					local dist  = Distance3d(pos1,pos2)
 					if waypoints and #waypoints > 0 and dist > 0 then
+                        --self:EchoDebug(mclass,'has a path')
 						-- if mclass == 'tank2' then
-							-- self.map:DrawLine(pos1, pos2, {0,0,0,1}, nil, true, 1)
+							--self.map:DrawLine(pos1, pos2, {0,0,0,1}, nil, true, 1)
 						-- end
 						local waypointsNumber = #waypoints
 						local last = waypoints[#waypoints]
@@ -814,11 +804,14 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 							pathDistRatios[mclass] = pathDistRatios[mclass] + (dist / totalPathDist)
 							pathCount = pathCount + 1
 							pathSuccessCount = pathSuccessCount + 1
-							-- Spring.Echo(mclass, totalPathDist, dist, dist / totalPathDist)
+							self:EchoDebug('mclasstotpathdistdist',mclass, totalPathDist, dist, dist / totalPathDist)
 						else
-							-- path does not get to destination
+							--self:EchoDebug('path does not get to destination')
 							pathCount = pathCount + 1
 						end
+                        
+                        
+                    else
 					end
 				end
 			end
@@ -833,14 +826,12 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 				pathDistRatios[mclass] = pathDistRatios[mclass] / pathCount
 			end
 		end
-		-- Spring.Echo(mclass, pathDistRatios[mclass], pathDistRatiosSuccessOnly[mclass])
+		self:EchoDebug('spmr',mclass, pathDistRatios[mclass], pathDistRatiosSuccessOnly[mclass])
 	end
-	if DebugEnabled then
-		for pathType, rank in pairs(pathDistRatios) do
-			self:EchoDebug(pathType .. ' = ' ..rank)
-		end
-	end
-			
+    for pathType, rank in pairs(pathDistRatios) do
+        self:EchoDebug('pathdistRatios',pathType .. ' = ' ..rank)
+    end
+    self:EchoDebug('spotPathMobRank STOP')
 	return pathDistRatios, pathDistRatiosSuccessOnly
 end
 
@@ -889,7 +880,7 @@ function MapHandler:GuessStartLocations(spots)
 	if #matches == 0 then return end
 
 	-- merge matches close to each other
-	local merged = MergePositions(matches, cutoff, false)
+	local merged = self:MergePositions(matches, cutoff, false)
 	if #merged < 2 then
 		self:EchoDebug("not enough merged, using all matches")
 		return matches
@@ -923,6 +914,7 @@ function MapHandler:factoriesRating()
 		local spots = 0
 		local geos= 0
 		local realRating = self.ai.mobRating[mtype] / 100
+        
 		if self.ai.mobCount[mtype] ~= 0 then
 			realSize = self.ai.mobCount[mtype] / mobilityGridArea --relative area occupable
 		end
@@ -938,7 +930,7 @@ function MapHandler:factoriesRating()
 			realGeos = math.min(0.1 * #geoSpots,1) --if there are more then 10 geos is useless give it more weight on bestfactory type calculations
 		end 
 		
-		-- mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
+		mtypesMapRatings[mtype] = (( realMetals + realSize + realGeos) / 3) * realRating
 		mtypesMapRatings[mtype] = (self.ai.mobRating[mtype] / self.ai.mobRating['air']) * mobilityEffeciencyMultiplier[mtype]
 		-- area is not as important as number of metal and geo
 		-- mtypesMapRatings[mtype] = (( realMetals + (realSize*0.5) + realGeos) / 2.5) * mobilityEffeciencyMultiplier[mtype]
@@ -976,12 +968,11 @@ function MapHandler:factoriesRating()
 					if (self.ai.hasUWSpots and mtype ~= 'veh') or (not self.ai.hasUWSpots and mtype ~= 'amp') then
 						count = count + 1
 						factoryMtypeRating = factoryMtypeRating + mtypesMapRatings[mtype]
-						-- self:EchoDebug(factory .. ' ' .. unit .. ' ' .. unitTable[unit].mtype .. ' ' .. mtypesMapRatings[unitTable[unit].mtype])
-						if ShardSpringLua then
-							bestPath = math.max(bestPath,spotPathMobRank[mclass])
-							maxPath = math.max(maxPath,spotPathMobRank[mclass])
-							mediaPath = mediaPath + spotPathMobRank[mclass]
-						end
+						self:EchoDebug(factory .. ' ' .. unit .. ' ' .. unitTable[unit].mtype .. ' ' .. mtypesMapRatings[unitTable[unit].mtype])
+                        bestPath = math.max(bestPath,spotPathMobRank[mclass])
+                        maxPath = math.max(maxPath,spotPathMobRank[mclass])
+                        mediaPath = mediaPath + spotPathMobRank[mclass]
+                        self:EchoDebug('bigdbg',factory .. ' ' .. unit .. ' ' .. unitTable[unit].mtype .. ' ' .. mtypesMapRatings[unitTable[unit].mtype],bestPath,maxPath,mediaPath,spotPathMobRank[mclass])
 					end
 				end
 			end
@@ -990,14 +981,12 @@ function MapHandler:factoriesRating()
 			else
 				factoryMtypeRating = factoryMtypeRating / count
 			end
-			if ShardSpringLua then
-				if maxPath == 0 then
-					mediaPath = 0
-				else
-					mediaPath = (mediaPath / count)
-					factoryPathRating = (maxPath + mediaPath) / 2
-				end
-			end
+            if maxPath == 0 then
+                mediaPath = 0
+            else
+                mediaPath = (mediaPath / count)
+                factoryPathRating = (maxPath + mediaPath) / 2
+            end
 		else
 			factoryPathRating = 1
 			if #landMetalSpots + #UWMetalSpots == 0 then
@@ -1011,13 +1000,9 @@ function MapHandler:factoriesRating()
 		self:EchoDebug(factory .. ' mtype rating: ' .. factoryMtypeRating)
 
 		local Rating
-		if ShardSpringLua then
-			self:EchoDebug(factory .. ' path rating: ' .. factoryPathRating)
-			Rating = factoryPathRating * factoryMtypeRating * unitTable[factory].techLevel
-		else
-			Rating = factoryMtypeRating * unitTable[factory].techLevel
-		end
-
+        self:EchoDebug(factory .. ' path rating: ' .. factoryPathRating)
+        Rating = factoryPathRating * factoryMtypeRating * unitTable[factory].techLevel
+        self:EchoDebug('Rating',factoryPathRating, factoryMtypeRating , unitTable[factory].techLevel)
 		if factoryMobilities[factory][1] == ('hov') then
 			Rating = Rating * (self.ai.mobCount['shp'] /mobilityGridArea)
 		end
@@ -1038,6 +1023,8 @@ function MapHandler:factoriesRating()
 	local rank = {}
 	
 	for name, rating in pairs(factoryRating) do
+
+        self:EchoDebug('name,rating,rank[rating]',name,rating,rank[rating])
 		if not rank[rating] then
 			rank[rating] = {}
 			table.insert(rank[rating],name)
@@ -1045,7 +1032,7 @@ function MapHandler:factoriesRating()
 			table.insert(rank[rating],name)
 		end
 		table.insert(sorting, rating)
-	end
+	end 
 	table.sort(sorting)
 	
 	local factoriesRanking = {}
@@ -1055,7 +1042,7 @@ function MapHandler:factoriesRating()
 			local factoryName = table.remove(rank[v],ii)
 			table.insert(factoriesRanking, factoryName)
 			ranksByFactories[factoryName] = #factoriesRanking
-			self:EchoDebug((i .. ' ' .. factoryName))
+			self:EchoDebug('i-factoryname',(i .. ' ' .. factoryName))
 		end
 	end
 	return factoriesRanking, ranksByFactories
@@ -1240,11 +1227,11 @@ function MapHandler:ClosestFreeSpot(unittype, builder, position)
 		local coruwtype
 		local armuwtype
 		if uname == "cormex" or uname == "armmex" then
-			coruwtype = game:GetTypeByName("coruwmex")
-			armuwtype = game:GetTypeByName("armuwmex")
+			coruwtype = self.game:GetTypeByName("coruwmex")
+			armuwtype = self.game:GetTypeByName("armuwmex")
 		elseif uname == "cormoho" or uname == "armoho" then
-			coruwtype = game:GetTypeByName("coruwmme")
-			armuwtype = game:GetTypeByName("armuwmme")
+			coruwtype = self.game:GetTypeByName("coruwmme")
+			armuwtype = self.game:GetTypeByName("armuwmme")
 		end
 		if coruwtype ~= nil then
 			if builder:CanBuild(coruwtype) then
@@ -1355,13 +1342,11 @@ function MapHandler:UnitCanGoHere(unit, position)
 	if position == nil then return false end
 	local mtype, unet = self:MobilityOfUnit(unit)
 	if mtype == 'air' then return true end
-	if ShardSpringLua then
-		-- check if it's even a valid move order
-		local moveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false)
-		if not moveOrderTest then
-			return false
-		end
-	end
+    -- check if it's even a valid move order
+    local moveOrderTest = Spring.TestMoveOrder(unit:Type():ID(), position.x, position.y, position.z, nil, nil, nil, true, false)
+    if not moveOrderTest then
+        return false
+    end
 	local pnet = self:MobilityNetworkHere(mtype, position)
 	if unet == pnet then
 		return true
@@ -1422,13 +1407,7 @@ function MapHandler:AccessibleMetalGeoSpotsHere(mtype, position)
 end
 
 function MapHandler:IsUnderWater(position)
-	if ShardSpringLua then return Spring.GetGroundHeight(position.x, position.z) < 0 end
-	local x = math.ceil(position.x / mobilityGridSize)
-	local z = math.ceil(position.z / mobilityGridSize)
-	if topology["sub"][x] ~= nil then
-		if topology["sub"][x][z] then return true end
-	end
-	return false
+	return Spring.GetGroundHeight(position.x, position.z) < 0
 end
 
 function MapHandler:OutmodedFactoryHere(mtype, position, network)
@@ -1520,9 +1499,8 @@ function MapHandler:GetPathGraph(mtype, targetNodeSize)
 					position.x = bestX
 					position.z = bestZ
 				end
-				if ShardSpringLua then
-					position.y = Spring.GetGroundHeight(x, z)
-				end
+				
+				position.y = Spring.GetGroundHeight(x, z)
 				local nodeX = mCeil(cx / cellsPerNodeSide)
 				local nodeY = mCeil(cz / cellsPerNodeSide)
 				local node = { x = nodeX, y = nodeY, id = id, position = position }
