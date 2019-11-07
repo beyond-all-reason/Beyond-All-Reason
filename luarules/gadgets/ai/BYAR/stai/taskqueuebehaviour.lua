@@ -1,17 +1,15 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("TaskQueueBehaviour: " .. inStr)
-	end
-end
+
+
 
 TaskQueueBehaviour = class(Behaviour)
 
 function TaskQueueBehaviour:Name()
 	return "TaskQueueBehaviour"
 end
+
+TaskQueueBehaviour.DebugEnabled = false
 
 local CMD_GUARD = 25
 
@@ -39,14 +37,14 @@ end
 function TaskQueueBehaviour:GetAmpOrGroundWeapon()
 	if ai.enemyBasePosition then
 		if ai.maphandler:MobilityNetworkHere('veh', self.position) ~= ai.maphandler:MobilityNetworkHere('veh', ai.enemyBasePosition) and ai.maphandler:MobilityNetworkHere('amp', self.position) == ai.maphandler:MobilityNetworkHere('amp', ai.enemyBasePosition) then
-			EchoDebug('canbuild amphibious because of enemyBasePosition')
+			self:EchoDebug('canbuild amphibious because of enemyBasePosition')
 			return true
 		end
 	end
 	local mtype = factoryMobilities[self.name][1]
 	local network = ai.maphandler:MobilityNetworkHere(mtype, self.position)
 	if not network or not ai.factoryBuilded[mtype] or not ai.factoryBuilded[mtype][network] then
-		EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
+		self:EchoDebug('canbuild amphibious because ' .. mtype .. ' network here is too small or has not enough spots')
 		return true
 	end
 	return false
@@ -56,28 +54,28 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	if value == nil then return DummyUnitName end
 	if value == DummyUnitName then return DummyUnitName end
 	local overview =self.ai.overviewhandler
-	EchoDebug(value .. " (before econ filter)")
-	-- EchoDebug("ai.Energy: " .. ai.Energy.reserves .. " " .. ai.Energy.capacity .. " " .. ai.Energy.income .. " " .. ai.Energy.usage)
-	-- EchoDebug("ai.Metal: " .. ai.Metal.reserves .. " " .. ai.Metal.capacity .. " " .. ai.Metal.income .. " " .. ai.Metal.usage)
+	self:EchoDebug(value .. " (before econ filter)")
+	-- self:EchoDebug("ai.Energy: " .. ai.Energy.reserves .. " " .. ai.Energy.capacity .. " " .. ai.Energy.income .. " " .. ai.Energy.usage)
+	-- self:EchoDebug("ai.Metal: " .. ai.Metal.reserves .. " " .. ai.Metal.capacity .. " " .. ai.Metal.income .. " " .. ai.Metal.usage)
 	if Eco1[value] or Eco2[value] then
 		return value
 	end
 	if reclaimerList[value] then
 		-- dedicated reclaimer
-		EchoDebug(" dedicated reclaimer")
+		self:EchoDebug(" dedicated reclaimer")
 		if overview.metalAboveHalf or overview.energyTooLow or overview.farTooFewCombats then
 			value = DummyUnitName
 		end
 	elseif unitTable[value].isBuilding then
 		-- buildings
-		EchoDebug(" building")
+		self:EchoDebug(" building")
 		if unitTable[value].buildOptions ~= nil then
 			-- factory
-			EchoDebug("  factory")
+			self:EchoDebug("  factory")
 			return value
 		elseif unitTable[value].isWeapon then
 			-- defense
-			EchoDebug("  defense")
+			self:EchoDebug("  defense")
 			if bigPlasmaList[value] or nukeList[value] then
 				-- long-range plasma and nukes aren't really defense
 				if overview.metalTooLow or overview.energyTooLow or ai.Metal.income < 35 or ai.factories == 0 or overview.notEnoughCombats then
@@ -95,29 +93,29 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 			end
 		elseif unitTable[value].radarRadius > 0 then
 			-- radar
-			EchoDebug("  radar")
+			self:EchoDebug("  radar")
 			if overview.metalTooLow or overview.energyTooLow or ai.factories == 0 or ai.Energy.full < 0.5 then
 				value = DummyUnitName
 			end
 		else
 			-- other building
-			EchoDebug("  other building")
+			self:EchoDebug("  other building")
 			if overview.notEnoughCombats or overview.metalTooLow or overview.energyTooLow or ai.Energy.income < 200 or ai.Metal.income < 8 or ai.factories == 0 then
 				value = DummyUnitName
 			end
 		end
 	else
 		-- moving units
-		EchoDebug(" moving unit")
+		self:EchoDebug(" moving unit")
 		if unitTable[value].buildOptions ~= nil then
 			-- construction unit
-			EchoDebug("  construction unit")
+			self:EchoDebug("  construction unit")
 			if ai.Energy.full < 0.05 or ai.Metal.full < 0.05 then
 				value = DummyUnitName
 			end
 		elseif unitTable[value].isWeapon then
 			-- combat unit
-			EchoDebug("  combat unit")
+			self:EchoDebug("  combat unit")
 			if ai.Energy.full < 0.1 or ai.Metal.full < 0.1 then
 				value = DummyUnitName 
 			end
@@ -128,7 +126,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 			end
 		else
 			-- other unit
-			EchoDebug("  other unit")
+			self:EchoDebug("  other unit")
 			if overview.notEnoughCombats or ai.Energy.full < 0.3 or ai.Metal.full < 0.3 then
 				value = DummyUnitName
 			end
@@ -140,7 +138,7 @@ function TaskQueueBehaviour:Init()
 	self.DebugEnabled = false
 
 	if not taskqueues then
-		shard_include "taskqueues"
+		shard_include("taskqueues",subf)
 	end
 	if ai.outmodedFactories == nil then ai.outmodedFactories = 0 end
 
@@ -156,7 +154,7 @@ function TaskQueueBehaviour:Init()
 	self.speed = unitTable[self.name].speed
 	if commanderList[self.name] then self.isCommander = true end
 	self.id = u:ID()
-	EchoDebug(self.name .. " " .. self.id .. " initializing...")
+	self:EchoDebug(self.name .. " " .. self.id .. " initializing...")
 
 	-- register if factory is going to use outmoded queue
 	if factoryMobilities[self.name] ~= nil then
@@ -172,7 +170,7 @@ function TaskQueueBehaviour:Init()
 			if mtype == "air" then self.isAirFactory = true end
 		end
 		if outmoded then
-			EchoDebug("outmoded " .. self.name)
+			self:EchoDebug("outmoded " .. self.name)
 			self.outmodedFactory = true
 			ai.outmodedFactoryID[self.id] = true
 			ai.outmodedFactories = ai.outmodedFactories + 1
@@ -248,7 +246,7 @@ end
 function TaskQueueBehaviour:GetHelp(value, position)
 	if value == nil then return DummyUnitName end
 	if value == DummyUnitName then return DummyUnitName end
-	EchoDebug(value .. " before getting help")
+	self:EchoDebug(value .. " before getting help")
 	local builder = self.unit:Internal()
 	if assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
 		return value
@@ -267,13 +265,13 @@ function TaskQueueBehaviour:GetHelp(value, position)
 	
 	if unitTable[value].isBuilding and unitTable[value].buildOptions then
 		if ai.factories - ai.outmodedFactories <= 0 or advFactories[value] then
-			EchoDebug("can get help to build factory but don't need it")
+			self:EchoDebug("can get help to build factory but don't need it")
 			ai.assisthandler:Summon(builder, position)
 			ai.assisthandler:Magnetize(builder, position)
 			ai.assisthandler:TakeUpSlack(builder)
 			return value
 		else
-			EchoDebug("help for factory that need help")
+			self:EchoDebug("help for factory that need help")
 			local hashelp = ai.assisthandler:Summon(builder, position, unitTable[value].techLevel)
 			if hashelp then
 				ai.assisthandler:Magnetize(builder, position)
@@ -313,9 +311,9 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			if reclaimEnemyMex then
 				value = {"ReclaimEnemyMex", reclaimEnemyMex}
 			else
-				EchoDebug("extractor spot: " .. p.x .. ", " .. p.z)
+				self:EchoDebug("extractor spot: " .. p.x .. ", " .. p.z)
 				if uw then
-					EchoDebug("underwater extractor " .. uw:Name())
+					self:EchoDebug("underwater extractor " .. uw:Name())
 					utype = uw
 					value = uw:Name()
 				end
@@ -336,7 +334,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		-- geothermal
 		p = self.ai.maphandler:ClosestFreeGeo(utype, builder)
 		if p then
-			EchoDebug("geo spot", p.x, p.y, p.z)
+			self:EchoDebug("geo spot", p.x, p.y, p.z)
 			if value == "cmgeo" or value == "amgeo" then
 				-- don't build moho geos next to factories
 				if ai.buildsitehandler:ClosestHighestLevelFactory(p, 500) ~= nil then
@@ -358,23 +356,23 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		end
 	elseif nanoTurretList[value] then
 		-- build nano turrets next to a factory near you
-		EchoDebug("looking for factory for nano")
+		self:EchoDebug("looking for factory for nano")
 		local currentLevel = 0
 		local target = nil
 		local mtype = unitTable[self.name].mtype
 		for level, factories in pairs (ai.factoriesAtLevel)  do
-			EchoDebug( ' analysis for level ' .. level)
+			self:EchoDebug( ' analysis for level ' .. level)
 			for index, factory in pairs(factories) do
 				local factoryName = factory.unit:Internal():Name()
 				if mtype == factoryMobilities[factoryName][1] and level > currentLevel then
-					EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
+					self:EchoDebug( self.name .. ' can push up self mtype ' .. factoryName)
 					currentLevel = level
 					target = factory
 				end
 			end
 		end
 		if target then
-			EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
+			self:EchoDebug(self.name..' search position for nano near ' ..target.unit:Internal():Name())
 			local factoryPos = target.unit:Internal():GetPosition()
 			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
 		end
@@ -382,23 +380,23 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			
 			local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
 			if factoryPos then
-				EchoDebug("searching for top level factory")
+				self:EchoDebug("searching for top level factory")
 				p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
 				if p == nil then
-					EchoDebug("no spot near factory found")
+					self:EchoDebug("no spot near factory found")
 					utype = nil
 				end
 			else
-				EchoDebug("no factory found")
+				self:EchoDebug("no factory found")
 				utype = nil
 			end
 		end
 	elseif (unitTable[value].isWeapon and unitTable[value].isBuilding and not nukeList[value] and not bigPlasmaList[value] and not littlePlasmaList[value]) then
-		EchoDebug("looking for least turtled positions")
+		self:EchoDebug("looking for least turtled positions")
 		local turtlePosList = ai.turtlehandler:LeastTurtled(builder, value)
 		if turtlePosList then
 			if #turtlePosList ~= 0 then
-				EchoDebug("found turtle positions")
+				self:EchoDebug("found turtle positions")
 				for i, turtlePos in ipairs(turtlePosList) do
 					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
 					if p ~= nil then break end
@@ -420,17 +418,17 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		-- 	end
 		-- end
 		if p == nil then
-			EchoDebug("did NOT find build spot near turtle position")
+			self:EchoDebug("did NOT find build spot near turtle position")
 			utype = nil
 		end
 	elseif nukeList[value] or bigPlasmaList[value] or littlePlasmaList[value] then
 		-- bombarders
-		EchoDebug("seeking bombard build spot")
+		self:EchoDebug("seeking bombard build spot")
 		local turtlePosList = ai.turtlehandler:MostTurtled(builder, value, value)
 		if turtlePosList then
-			EchoDebug("got sorted turtle list")
+			self:EchoDebug("got sorted turtle list")
 			if #turtlePosList ~= 0 then
-				EchoDebug("turtle list has turtles")
+				self:EchoDebug("turtle list has turtles")
 				for i, turtlePos in ipairs(turtlePosList) do
 					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
 					if p ~= nil then break end
@@ -439,17 +437,17 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		end
 		if p == nil then
 			utype = nil
-			EchoDebug("could not find bombard build spot")
+			self:EchoDebug("could not find bombard build spot")
 		else
-			EchoDebug("found bombard build spot")
+			self:EchoDebug("found bombard build spot")
 		end
 	elseif shieldList[value] or antinukeList[value] or unitTable[value].jammerRadius ~= 0 or unitTable[value].radarRadius ~= 0 or unitTable[value].sonarRadius ~= 0 or (unitTable[value].isWeapon and unitTable[value].isBuilding and not nukeList[value] and not bigPlasmaList[value] and not littlePlasmaList[value]) then
 		-- shields, defense, antinukes, jammer towers, radar, and sonar
-		EchoDebug("looking for least turtled positions")
+		self:EchoDebug("looking for least turtled positions")
 		local turtlePosList = ai.turtlehandler:LeastTurtled(builder, value)
 		if turtlePosList then
 			if #turtlePosList ~= 0 then
-				EchoDebug("found turtle positions")
+				self:EchoDebug("found turtle positions")
 				for i, turtlePos in ipairs(turtlePosList) do
 					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
 					if p ~= nil then break end
@@ -463,7 +461,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			-- p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
 		end
 		if p == nil then
-			EchoDebug("did NOT find build spot near turtle position")
+			self:EchoDebug("did NOT find build spot near turtle position")
 			utype = nil
 		end
 	elseif unitTable[value].isBuilding then
@@ -515,7 +513,7 @@ function TaskQueueBehaviour:GetQueue()
 				for index, factory in pairs(factories) do
 					local factoryName = factory.unit:Internal():Name()
 					if mtype == factoryMobilities[factoryName][1] and uT[self.name].techLevel < level then
-						EchoDebug( self.name .. ' have major factory ' .. factoryName)
+						self:EchoDebug( self.name .. ' have major factory ' .. factoryName)
 						-- stop buidling lvl1 attackers if we have a lvl2, unless we're with proportioned resources
 						q = outmodedTaskqueues[self.name]
 						self.outmodedTechLevel = true
@@ -539,12 +537,12 @@ function TaskQueueBehaviour:GetQueue()
 end
 
 function TaskQueueBehaviour:ConstructionBegun(unitID, unitName, position)
-	EchoDebug(self.name .. " " .. self.id .. " began constructing " .. unitName .. " " .. unitID)
+	self:EchoDebug(self.name .. " " .. self.id .. " began constructing " .. unitName .. " " .. unitID)
 	self.constructing = { unitID = unitID, unitName = unitName, position = position }
 end
 
 function TaskQueueBehaviour:ConstructionComplete()
-	EchoDebug(self.name .. " " .. self.id .. " completed construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
+	self:EchoDebug(self.name .. " " .. self.id .. " completed construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
 	self.constructing = nil
 end
 
@@ -572,8 +570,8 @@ function TaskQueueBehaviour:Update()
 			local tmpOwnName = self.unit:Internal():Name() or "no-unit"
 			local tmpProjectName = self.currentProject or "empty project"
 			if self.currentProject ~= nil then
-				EchoDebug("Watchdog: "..tmpOwnName.." abandoning "..tmpProjectName)
-				EchoDebug("last watchdog check: "..self.lastWatchdogCheck .. ", watchdog timeout:"..self.watchdogTimeout)
+				self:EchoDebug("Watchdog: "..tmpOwnName.." abandoning "..tmpProjectName)
+				self:EchoDebug("last watchdog check: "..self.lastWatchdogCheck .. ", watchdog timeout:"..self.watchdogTimeout)
 			end
 			self:ProgressQueue()
 			return
@@ -585,7 +583,7 @@ function TaskQueueBehaviour:Update()
 end
 
 function TaskQueueBehaviour:ProgressQueue()
-	EchoDebug(self.name .. " " .. self.id .. " progress queue")
+	self:EchoDebug(self.name .. " " .. self.id .. " progress queue")
 	self.lastWatchdogCheck = game:Frame()
 	self.constructing = false
 	self.progress = false
@@ -632,14 +630,14 @@ function TaskQueueBehaviour:ProgressQueue()
 
 			local success = false
 			if value ~= DummyUnitName and value ~= nil then
-				EchoDebug(self.name .. " filtering...")
+				self:EchoDebug(self.name .. " filtering...")
 				value = self:CategoryEconFilter(value)
 				if value ~= DummyUnitName then
-					EchoDebug("before duplicate filter " .. value)
+					self:EchoDebug("before duplicate filter " .. value)
 					local duplicate = ai.buildsitehandler:CheckForDuplicates(value)
 					if duplicate then value = DummyUnitName end
 				end
-				EchoDebug(value .. " after filters")
+				self:EchoDebug(value .. " after filters")
 			else
 				value = DummyUnitName
 			end
@@ -661,14 +659,14 @@ function TaskQueueBehaviour:ProgressQueue()
 							if p == nil then utype, value, p = self:LocationFilter(utype, value) end
 							if utype ~= nil and p ~= nil then
 								if type(value) == "table" and value[1] == "ReclaimEnemyMex" then
-									EchoDebug("reclaiming enemy mex...")
+									self:EchoDebug("reclaiming enemy mex...")
 									--  success = self.unit:Internal():Reclaim(value[2])
 									success = CustomCommand(self.unit:Internal(), CMD_RECLAIM, {value[2].unitID})
 									value = value[1]
 								else
 									local helpValue = self:GetHelp(value, p)
 									if helpValue ~= nil and helpValue ~= DummyUnitName then
-										EchoDebug(utype:Name() .. " has help")
+										self:EchoDebug(utype:Name() .. " has help")
 										ai.buildsitehandler:NewPlan(value, p, self)
 										success = self.unit:Internal():Build(utype, p)
 									end
@@ -684,7 +682,7 @@ function TaskQueueBehaviour:ProgressQueue()
 			end
 			-- DebugEnabled = false -- debugging plasma
 			if success then
-				EchoDebug(self.name .. " " .. self.id .. " successful build command for " .. utype:Name())
+				self:EchoDebug(self.name .. " " .. self.id .. " successful build command for " .. utype:Name())
 				if self.isFactory then
 					if not self.outmodedTechLevel and not self.ai.underReserves then
 						-- factories take up idle assistants
@@ -721,7 +719,7 @@ end
 function TaskQueueBehaviour:Activate()
 	self.active = true
 	if self.constructing then
-		EchoDebug(self.name .. " " .. self.id .. " resuming construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
+		self:EchoDebug(self.name .. " " .. self.id .. " resuming construction of " .. self.constructing.unitName .. " " .. self.constructing.unitID)
 		-- resume construction if we were interrupted
 		local floats = api.vectorFloat()
 		floats:push_back(self.constructing.unitID)

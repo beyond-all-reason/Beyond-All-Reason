@@ -782,9 +782,9 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 					local dist  = Distance3d(pos1,pos2)
 					if waypoints and #waypoints > 0 and dist > 0 then
                         --self:EchoDebug(mclass,'has a path')
-						-- if mclass == 'tank2' then
-							--self.map:DrawLine(pos1, pos2, {0,0,0,1}, nil, true, 1)
-						-- end
+-- 						if mclass == 'tank2' then
+-- 							self.map:DrawLine(pos1, pos2, {0,0,0,1}, nil, true, 1)
+-- 						end
 						local waypointsNumber = #waypoints
 						local last = waypoints[#waypoints]
 						if pos2.x == last[1] and pos2.z == last[3] then
@@ -795,16 +795,19 @@ function MapHandler:SpotPathMobRank(spotscleaned)
 								local dx = wp2[1] - wp1[1]
 								local dy = wp2[2] - wp1[2]
 								local dz = wp2[3] - wp1[3]
-								local segDist = math.sqrt(dx*dx + dy*dy + dz*dz)
-								totalPathDist = totalPathDist + segDist
-								-- if mclass == 'tank2' then
-									-- self.map:DrawLine({x=wp1[1], y=wp1[2], z=wp1[3]}, {x=wp2[1], y=wp2[2], z=wp2[3]}, {1,1,1,1}, nil, true, 1)
-								-- end
+								local segDist = math.sqrt(dx*dx + dy*dy + dz*dz) + 1
+								totalPathDist = totalPathDist + segDist 
+                                
+--                                 self:EchoDebug(segDist)
+-- 								if mclass == 'tank2' then
+-- 									self.map:DrawLine({x=wp1[1], y=wp1[2], z=wp1[3]}, {x=wp2[1], y=wp2[2], z=wp2[3]}, {1,1,1,1}, nil, true, 1)
+-- 								end
 							end
+                            if totalPathDist == 0 then totalPathDist = 1 end --TODO understand why totalpathdist somtime is 0
 							pathDistRatios[mclass] = pathDistRatios[mclass] + (dist / totalPathDist)
 							pathCount = pathCount + 1
 							pathSuccessCount = pathSuccessCount + 1
-							self:EchoDebug('mclasstotpathdistdist',mclass, totalPathDist, dist, dist / totalPathDist)
+							self:EchoDebug('mclasstotpathdistdist',mclass,UnitDefs[number].name,dist, totalPathDist, dist / totalPathDist,pathDistRatios[mclass])
 						else
 							--self:EchoDebug('path does not get to destination')
 							pathCount = pathCount + 1
@@ -988,6 +991,7 @@ function MapHandler:factoriesRating()
                 factoryPathRating = (maxPath + mediaPath) / 2
             end
 		else
+            self:EchoDebug('airfactory',factory)
 			factoryPathRating = 1
 			if #landMetalSpots + #UWMetalSpots == 0 then
 				factoryMtypeRating = mtypesMapRatings['air']

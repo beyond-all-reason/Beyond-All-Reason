@@ -1,11 +1,7 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("BomberHandler: " .. inStr)
-	end
-end
+
+
 
 BomberHandler = class(Module)
 
@@ -17,21 +13,24 @@ function BomberHandler:internalName()
 	return "bomberhandler"
 end
 
-function BomberHandler:Init()
-	self.DebugEnabled = false
+BomberHandler.DebugEnabled = false
 
+function BomberHandler:Init()
+    BomberHandler.plans = {} --TODO why here and why called with bomberhandler instead of self
 	self.recruits = {}
 	self.needsTargetting = {}
 	self.counter = baseBomberCounter
-	ai.hasBombed = 0
-	ai.couldBomb = 0
+	self.ai.hasBombed = 0
+	self.ai.couldBomb = 0
 	self.pathValidFuncs = {}
-	self.plans = {}
+	
 end
 
 function BomberHandler:Update()
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
+    self:EchoDebug(f, f % 30)
 	if f % 30 == 0 then self:DoTargetting() end
+    
 	for i = #self.plans, 1, -1 do
 		local plan = self.plans[i]
 		local pathfinder = plan.pathfinder
@@ -69,17 +68,17 @@ function BomberHandler:Bomb(plan, path)
 		local bomber = bombers[i]
 		bomber:BombTarget(target, path)
 	end
-	ai.hasBombed = ai.hasBombed + 1
+	self.ai.hasBombed = self.ai.hasBombed + 1
 end
 
 function BomberHandler:DoTargetting()
 	for weapon, _ in pairs(self.needsTargetting) do
 		local recruits = self.recruits[weapon]
-		ai.couldBomb = ai.couldBomb + 1
+		self.ai.couldBomb = self.ai.couldBomb + 1
 		-- find somewhere to attack
 		EchoDebug("getting target for " .. weapon)
 		local torpedo = weapon == 'torpedo'
-		local targetUnit = ai.targethandler:GetBestBomberTarget(torpedo)
+		local targetUnit = self.ai.targethandler:GetBestBomberTarget(torpedo)
 		if targetUnit ~= nil then
 			local tupos = targetUnit:GetPosition()
 			if tupos and tupos.x then
@@ -157,7 +156,7 @@ end
 function BomberHandler:NeedLess()
 	self.counter = self.counter - 1
 	self.counter = math.max(self.counter, minBomberCounter)
-	EchoDebug("bomber counter: " .. self.counter .. " (AA died)")
+	self:EchoDebug("bomber counter: " .. self.counter .. " (AA died)")
 end
 
 function BomberHandler:GetCounter()
@@ -169,7 +168,7 @@ function BomberHandler:GetPathValidFunc(unitName)
 		return self.pathValidFuncs[unitName]
 	end
 	local valid_node_func = function ( node )
-		return ai.targethandler:IsSafePosition(node.position, unitName, nil, true)
+		return self.ai.targethandler:IsSafePosition(node.position, unitName, nil, true)
 	end
 	self.pathValidFuncs[unitName] = valid_node_func
 	return valid_node_func

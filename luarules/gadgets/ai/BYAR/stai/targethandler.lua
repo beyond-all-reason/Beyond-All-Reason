@@ -172,7 +172,7 @@ function TargetHandler:Init()
 	self.ai.areLandTargets = true
 	self.ai.canNuke = true
 	self:InitializeDangers()
-	self.lastEnemyThreatUpdateFrame = 0
+-- 	self.lastEnemyThreatUpdateFrame = 0
 	self.feints = {}
 	self.raiderCounted = {}
 	self.lastUpdateFrame = 0
@@ -373,12 +373,12 @@ function TargetHandler:InitializeDangers()
 	self.dangers["landtarget"] = NewDangerLayer()
 	self.dangers["landtarget"].duration = 2400
 	self.dangers["landtarget"].present = true
-	self.dangers["landtarget"].obsolesce = game:Frame() + 5400
+	self.dangers["landtarget"].obsolesce = Spring.GetGameFrame() + 5400
 	self.dangers["ground"] = NewDangerLayer()
 	self.dangers["ground"].duration = 2400 -- keep ground threat alive for one and a half minutes
 	-- assume there are ground threats for the first three minutes
 	self.dangers["ground"].present = true
-	self.dangers["ground"].obsolesce = game:Frame() + 5400
+	self.dangers["ground"].obsolesce = Spring.GetGameFrame() + 5400
 	self.dangers["air"] = NewDangerLayer()
 	self.dangers["submerged"] = NewDangerLayer()
 	self.dangers["plasma"] = NewDangerLayer()
@@ -388,7 +388,7 @@ function TargetHandler:InitializeDangers()
 end
 
 function TargetHandler:UpdateDangers()
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
 
 	for layer, danger in pairs(self.dangers) do
 		if danger.count >= danger.threshold then
@@ -562,7 +562,7 @@ function TargetHandler:UpdateMetalGeoSpots()
 end
 
 function TargetHandler:UpdateBadPositions()
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
 	for i = #self.badPositions, 1, -1 do
 		local r = self.badPositions[i]
 		if self.cells[r.px] then
@@ -704,8 +704,9 @@ function TargetHandler:UnitDamaged(unit, attacker, damage)
 end
 
 function TargetHandler:Update()
-	local f = game:Frame()
-	if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then
+	local f = Spring.GetGameFrame()
+    if f == 0 or f % 1800 == 0 then
+	--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
 		-- store and reset the threat count
 		-- self:EchoDebug(self.currentEnemyThreatCount .. " enemy threat last 2000 frames")
 		self:EchoDebug(self.currentEnemyThreatCount)
@@ -725,7 +726,7 @@ function TargetHandler:AddBadPosition(position, mtype, threat, duration)
 	duration = duration or 1800
 	local px, pz = GetCellPosition(position)
 	local gas = WhatHurtsUnit(nil, mtype, position)
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
 	for groundAirSubmerged, yes in pairs(gas) do
 		if yes then
 			local newRecord =
@@ -1026,7 +1027,7 @@ function TargetHandler:GetBestBombardCell(position, range, minValueThreat, ignor
 	if best then
 		local bestBuildingID, bestBuildingVT
 		for i, buildingID in pairs(best.buildingIDs) do
-			local building = game:GetUnitByID(buildingID)
+			local building = self.game:GetUnitByID(buildingID)
 			if building then
 				local uname = building:Name()
 				local value = Value(uname)
@@ -1333,7 +1334,7 @@ function TargetHandler:BestAdjacentPosition(unit, targetPosition)
 	local best
 	local notsafe = false
 	local uname = unit:Name()
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
 	local maxThreat = baseUnitThreat
 	local uthreat, urange = ThreatRange(uname)
 	self:EchoDebug(uname .. ": " .. uthreat .. " " .. urange)

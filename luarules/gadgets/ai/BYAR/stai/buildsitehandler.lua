@@ -1,4 +1,4 @@
-local DebugEnabled = false
+
 local DebugEnabledPlans = false
 local DebugEnabledDraw = false
 
@@ -44,9 +44,11 @@ function BuildSiteHandler:internalName()
 	return "buildsitehandler"
 end
 
+BuildSiteHandler.DebugEnabled = false
+
 function BuildSiteHandler:Init()
 	self.debugPlotDrawn = {}
-	local mapSize = map:MapDimensions()
+	local mapSize = self.map:MapDimensions()
 	self.ai.maxElmosX = mapSize.x * 8
 	self.ai.maxElmosZ = mapSize.z * 8
 	self.ai.maxElmosDiag = sqrt(self.ai.maxElmosX^2 + self.ai.maxElmosZ^2)

@@ -24,13 +24,13 @@ function AssistHandler:Init()
 	self.magnets = {}
 	self.ai.IDByName = {}
 	self.IDByNameTaken = {}
-	self.lastAllocation = game:Frame()
+	self.lastAllocation = Spring.GetGameFrame()
 	self.ai.nonAssistantsPerName = 2
 	self.ai.nonAssistant = {}
 end
 
 function AssistHandler:Update()
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
 	if f > self.lastAllocation + 1800 then
 		self.lastAllocation = f
 		if self.ai.Metal.full > 0.33 then
@@ -61,7 +61,7 @@ function AssistHandler:IsLocal(asstbehaviour, position)
 			return false
 		end
 	else
-		if not ai.maphandler:UnitCanGoHere(aunit, position) then
+		if not self.ai.maphandler:UnitCanGoHere(aunit, position) then
 			return false
 		end
 	end

@@ -1,11 +1,7 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("EconHandler: " .. inStr)
-	end
-end
+
+
 
 EconHandler = class(Module)
 
@@ -17,6 +13,7 @@ function EconHandler:internalName()
 	return "econhandler"
 end
 
+EconHandler.DebugEnabled = false
 local framesPerAvg = 20
 local resourceNames = { "Energy", "Metal" }
 local resourceCount = #resourceNames
@@ -34,7 +31,7 @@ function EconHandler:Update()
 	-- because resource data is stored as userdata
 	for i = 1, resourceCount do
 		local name = resourceNames[i]
-		local udata = game:GetResourceByName(name)
+		local udata = self.game:GetResourceByName(name)
 		sample[name] = { income = udata.income, usage = udata.usage, reserves = udata.reserves }
 		self.ai[name].capacity = udata.capacity -- capacity is not something that fluctuates wildly
 	end

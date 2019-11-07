@@ -1,12 +1,8 @@
-local DebugEnabled = false
+
 local DebugDrawEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("LosHandler: " .. inStr)
-	end
-end
+
 
 local mapColors = {
 	[1] = { 1, 1, 0 },
@@ -73,6 +69,8 @@ function LosHandler:internalName()
 	return "loshandler"
 end
 
+LosHandler.DebugEnabled = false
+
 function LosHandler:Init()
 	self.losGrid = {}
 	self.ai.knownEnemies = {}
@@ -84,50 +82,16 @@ function LosHandler:Init()
 end
 
 function LosHandler:Update()
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
 
 	if f % 23 == 0 then
-		if ShardSpringLua and self.ai.alliedTeamIds then
-			self.ai.friendlyTeamID = {}
-			self.ai.friendlyTeamID[self.game:GetTeamID()] = true
-			for teamID, _ in pairs(self.ai.alliedTeamIds) do
-				self.ai.friendlyTeamID[teamID] = true
-			end
-		else
-			-- game:SendToConsole("updating los")
-			self.losGrid = {}
-			-- note: this could be more effecient by using a behaviour
-			-- if the unit is a building, we know it's LOS contribution forever
-			-- if the unit moves, the behaviours can be polled rather than GetFriendlies()
-			-- except for allies' units
-			local friendlies = game:GetFriendlies()
-			self.ai.friendlyTeamID = {}
-			self.ai.friendlyTeamID[game:GetTeamID()] = true
-			if friendlies ~= nil then
-				for _, unit in pairs(friendlies) do
-					self.ai.friendlyTeamID[unit:Team()] = true -- because I can't get allies' teamIDs directly
-					local uname = unit:Name()
-					local utable = unitTable[uname]
-					local upos = unit:GetPosition()
-					if utable.losRadius > 0 then
-						self:FillCircle(upos.x, upos.z, utable.losRadius, 2)
-					end
-					if utable.airLosRadius > 0 then
-						-- 4 will become 2 in IsKnownEnemy
-						self:FillCircle(upos.x, upos.z, (utable.losRadius + utable.airLosRadius), 4)
-					end
-					if utable.radarRadius > 0 then
-						self:FillCircle(upos.x, upos.z, utable.radarRadius, 1)
-					end
-					if utable.sonarRadius > 0 then
-						-- 3 will become 2 in IsKnownEnemy
-						self:FillCircle(upos.x, upos.z, utable.sonarRadius, 3)
-					end
-				end
-			end
-		end
+        self.ai.friendlyTeamID = {}
+        self.ai.friendlyTeamID[self.game:GetTeamID()] = true
+        for teamID, _ in pairs(self.ai.alliedTeamIds) do
+            self.ai.friendlyTeamID[teamID] = true
+        end
 		-- update enemy jamming and populate list of enemies
-		local enemies = game:GetEnemies()
+		local enemies = self.game:GetEnemies()
 		if enemies ~= nil then
 			local enemyList = {}
 			for i, e in pairs(enemies) do
@@ -237,7 +201,7 @@ function LosHandler:UpdateEnemies(enemyList)
 	-- this is cheating a little bit, because dead units outside of sight will automatically be removed
 	-- also populate moving blips (whether in radar or in sight) for analysis
 	local blips = {}
-	local f = game:Frame()
+	local f = Spring.GetGameFrame()
 	for id, e in pairs(self.ai.knownEnemies) do
 		if not exists[id] then
 			-- enemy died
@@ -299,7 +263,7 @@ function LosHandler:UpdateEnemies(enemyList)
 end
 
 function LosHandler:UpdateWrecks()
-	local wrecks = game.map:GetMapFeatures()
+	local wrecks = self.map:GetMapFeatures()
 	if wrecks == nil then
 		self.ai.knownWrecks = {}
 		return

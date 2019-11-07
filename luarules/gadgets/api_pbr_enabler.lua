@@ -6,7 +6,7 @@ function gadget:GetInfo()
 		date      = "2019",
 		license   = "PD",
 		layer     = -1,
-		enabled   = false,
+		enabled   = true,
 	}
 end
 
