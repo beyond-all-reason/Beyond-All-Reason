@@ -20,6 +20,13 @@ for i =1, #teams do
 	end
 end
 
+local isCritter = {}
+for udid, unitDef in pairs(UnitDefs) do
+	if string.sub(UnitDefs[udid].name, 1, 7) == "critter" then
+		isCritter[udid] = true
+	end
+end
+
 if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == 0 or shardEnabled == true then
 	return
 end
@@ -213,6 +220,16 @@ end
 
 
 function gadget:Initialize()
+
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in pairs(allUnits) do
+		local unitDefID = GetUnitDefID(unitID)
+		if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+			local x,_,z = GetUnitPosition(unitID)
+			commanders[unitID] = {x,z}
+		end
+	end
+
 	local mo = Spring.GetModOptions()
 	if mo and tonumber(mo.critters)==0 then
 		Spring.Echo("[Gaia Critters] Critters disabled via ModOption")
@@ -310,21 +327,6 @@ local function adjustCritters(newAliveCritters)
 	end
 end
 
-
-function getCommanders()
-	local comlist = {}
-	local allUnits = Spring.GetAllUnits()
-	for _, unitID in pairs(allUnits) do
-		local unitDefID = GetUnitDefID(unitID)
-		if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
-			local x,y,z = GetUnitPosition(unitID)
-			comlist[unitID] = {x,z}
-		end
-	end
-	return comlist
-end
-
-
 function nearUnits(x, z, radius, units)
 	for unitID, pos in pairs(units) do
 		if pos[1] ~= nil and pos[2] ~= nil then	-- had nil error once so yeah...
@@ -360,7 +362,6 @@ end
 
 
 function convertMapCrittersToCompanion()
-	commanders = getCommanders()
 	for unitID, critter in pairs(critterUnits) do
 		if critter.alive then
 			critterToCompanion(unitID)
@@ -585,8 +586,12 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then
-		local x,y,z = GetUnitPosition(unitID,true,true)
+
+	if UnitDefs[unitDefID].customParams.iscommander then
+		local x,_,z = GetUnitPosition(unitID,true,true)
+		commanders[unitID] = {x,z}
+	elseif isCritter[unitDefID] then
+		local x,_,z = GetUnitPosition(unitID,true,true)
 		local radius = 300
 		if UnitDefs[unitDefID].name == "critter_gull" then
 			radius = 1500
@@ -601,7 +606,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				makeUnitCritter(unitID)
 				critterUnits[unitID].unitName = UnitDefs[unitDefID].name
 		--end
-			commanders = getCommanders()
 			for _, comUnitID in pairs(commanders) do
 				--pairCompanionToUnit(unitID,comUnitID)
 				critterToCompanion(unitID)
@@ -624,7 +628,7 @@ end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-
+	commanders[unitID] = nil
 	if critterUnits[unitID] ~= nil and attackerID ~= nil then 
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
