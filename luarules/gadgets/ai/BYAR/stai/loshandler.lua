@@ -211,7 +211,7 @@ function LosHandler:UpdateEnemies(enemyList)
 			if self.ai.IDsWeAreRaiding[id] then
 				self.ai.raidhandler:TargetDied(self.ai.IDsWeAreRaiding[id])
 			end
-			EchoDebug("enemy " .. e.unitName .. " died!")	
+			self:EchoDebug("enemy " .. e.unitName .. " died!")	
 			local mtypes = UnitWeaponMtypeList(e.unitName)
 			for i, mtype in pairs(mtypes) do
 				self.ai.raidhandler:NeedMore(mtype)
