@@ -1,11 +1,7 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("AssistHandler: " .. inStr)
-	end
-end
+
+
 
 AssistHandler = class(Module)
 
@@ -16,6 +12,8 @@ end
 function AssistHandler:internalName()
 	return "assisthandler"
 end
+
+AssistHandler.DebugEnabled = false
 
 function AssistHandler:Init()
 	self.free = {}
@@ -47,7 +45,7 @@ function AssistHandler:Update()
 				end
 			end
 		end
-		EchoDebug("nonassistants per name: " .. self.ai.nonAssistantsPerName)
+		self:EchoDebug("nonassistants per name: " .. self.ai.nonAssistantsPerName)
 	end
 end
 
@@ -72,10 +70,10 @@ end
 -- if there aren't enough available, returns false
 function AssistHandler:Summon(builder, position, number, force)
 	if number == nil or number == 0 then number = #self.free end
-	EchoDebug(#self.free .. " assistants free")
+	self:EchoDebug(#self.free .. " assistants free")
 	if #self.free < number then 
-		-- EchoDebug("total assignments: " .. self.totalAssignments)
-		EchoDebug("less than " .. number .. " assistants free")
+		-- self:EchoDebug("total assignments: " .. self.totalAssignments)
+		self:EchoDebug("less than " .. number .. " assistants free")
 		if not force then return false end
 	end
 	local bid = builder:ID()
@@ -132,7 +130,7 @@ function AssistHandler:Summon(builder, position, number, force)
 					n = n + 1
 				end
 			end
-			EchoDebug(n .. " assistants summoned to " .. bid .. "now " .. #self.free .. " assistants free")
+			self:EchoDebug(n .. " assistants summoned to " .. bid .. "now " .. #self.free .. " assistants free")
 			return n
 		end
 	end
@@ -228,7 +226,7 @@ function AssistHandler:DoMagnets()
 				asstbehaviour:Assign(magnet.bid)
 				table.remove(self.free, fi)
 				if magnet.number ~= -1 then magnet.number = magnet.number - 1 end
-				EchoDebug("one assistant magnetted to " .. magnet.bid .. " magnet has " .. magnet.number .. " left to get from " .. #self.free .. " available")
+				self:EchoDebug("one assistant magnetted to " .. magnet.bid .. " magnet has " .. magnet.number .. " left to get from " .. #self.free .. " available")
 				if magnet.number == 0 then
 					table.remove(self.magnets, 1)
 				end
@@ -247,7 +245,7 @@ function AssistHandler:Release(builder, bid, dead)
 		self.working[bid] = nil
 		return false
 	end
-	EchoDebug("releasing " .. #self.working[bid] .. " from " .. bid)
+	self:EchoDebug("releasing " .. #self.working[bid] .. " from " .. bid)
 	while #self.working[bid] > 0 do
 		local asstbehaviour = table.remove(self.working[bid])
 		if dead then asstbehaviour:Assign(nil) end
@@ -258,21 +256,21 @@ function AssistHandler:Release(builder, bid, dead)
 			end
 		end
 		-- self.ai:UnitIdle(asstbehaviour.unit:Internal())
-		EchoDebug(asstbehaviour.name .. " released to available assistants")
+		self:EchoDebug(asstbehaviour.name .. " released to available assistants")
 	end
 	self.working[bid] = nil
 	self.totalAssignments = self.totalAssignments - 1
-	EchoDebug("demagnetizing " .. bid)
+	self:EchoDebug("demagnetizing " .. bid)
 	for i = #self.magnets, 1, -1 do
 		local magnet = self.magnets[i]
 		if magnet.bid == bid then
-			EchoDebug("removing a magnet")
+			self:EchoDebug("removing a magnet")
 			table.remove(self.magnets, i)
 		end
 	end
-	-- EchoDebug("resetting magnets...")
+	-- self:EchoDebug("resetting magnets...")
 	self:DoMagnets()
-	-- EchoDebug("magnets reset")
+	-- self:EchoDebug("magnets reset")
 	return true
 end
 
@@ -286,7 +284,7 @@ end
 function AssistHandler:AddFree(asstbehaviour)
 	if not self:IsFree(asstbehaviour) then
 		table.insert(self.free, asstbehaviour)
-		EchoDebug(asstbehaviour.name .. " added to available assistants")
+		self:EchoDebug(asstbehaviour.name .. " added to available assistants")
 	end
 	if self.lastPullPosition then
 		asstbehaviour:SetFallback(self.lastPullPosition)
@@ -298,7 +296,7 @@ function AssistHandler:RemoveFree(asstbehaviour)
 	for i, ab in pairs(self.free) do
 		if ab == asstbehaviour then
 			table.remove(self.free, i)
-			EchoDebug(asstbehaviour.name .. " removed from available assistants")
+			self:EchoDebug(asstbehaviour.name .. " removed from available assistants")
 			return true
 		end
 	end
@@ -317,7 +315,7 @@ function AssistHandler:RemoveWorking(asstbehaviour)
 						self.working[bid] = nil
 						self.totalAssignments = self.totalAssignments - 1
 					end
-					EchoDebug(asstbehaviour.name .. " removed from working assistants")
+					self:EchoDebug(asstbehaviour.name .. " removed from working assistants")
 					return true
 				end
 			end

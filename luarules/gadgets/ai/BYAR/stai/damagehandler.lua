@@ -1,13 +1,8 @@
 -- keeps track of hits to our units
 
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("DamageHandler: " .. inStr)
-	end
-end
+
 
 DamageHandler = class(Module)
 
@@ -18,6 +13,8 @@ end
 function DamageHandler:internalName()
 	return "damagehandler"
 end
+
+DamageHandler.DebugEnabled = false
 
 function DamageHandler:Init()
 	self.isDamaged = {}

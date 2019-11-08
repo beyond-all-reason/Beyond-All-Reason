@@ -2,11 +2,7 @@
 local DebugEnabledPlans = false
 local DebugEnabledDraw = false
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("BuildSiteHandler: " .. inStr)
-	end
-end
+
 
 local function EchoDebugPlans(inStr)
 	if DebugEnabledPlans then
@@ -91,13 +87,13 @@ function BuildSiteHandler:LandWaterFilter(pos, unitTypeToBuild, builder)
 	-- is this a land or a water unit we're building?
 	local waterBuildOrder = unitTable[unitName].needsWater
 	-- if this is a movement from land to water or water to land, check the distance
-	if water then EchoDebug(builderName .. " is in water") else EchoDebug(builderName .. " is on land") end
-	if waterBuildOrder then EchoDebug(unitName .. " would be in water") else EchoDebug(unitName .. " would be on land") end
+	if water then self:EchoDebug(builderName .. " is in water") else self:EchoDebug(builderName .. " is on land") end
+	if waterBuildOrder then self:EchoDebug(unitName .. " would be in water") else self:EchoDebug(unitName .. " would be on land") end
 	if (water and not waterBuildOrder) or (not water and waterBuildOrder) then
-		EchoDebug("builder would traverse the shore to build " .. unitName)
+		self:EchoDebug("builder would traverse the shore to build " .. unitName)
 		local dist = Distance(pos, builderPos)
 		if dist > 250 then
-			EchoDebug("build too far away from shore to build " .. unitName)
+			self:EchoDebug("build too far away from shore to build " .. unitName)
 			return false
 		else
 			return true
@@ -114,12 +110,12 @@ function BuildSiteHandler:CheckBuildPos(pos, unitTypeToBuild, builder, originalP
 			-- don't build factories too close to south map edge because they face south
 			-- Spring.Echo(pos.x, pos.z, self.ai.maxElmosX, self.ai.maxElmosZ)
 			if (pos.x <= 0) or (pos.x > self.ai.maxElmosX) or (pos.z <= 0) or (pos.z > self.ai.maxElmosZ - 240) then
-				EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
+				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
 				pos = nil
 			end
 		else
 			if (pos.x <= 0) or (pos.x > self.ai.maxElmosX) or (pos.z <= 0) or (pos.z > self.ai.maxElmosZ) then
-				EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
+				self:EchoDebug("bad position: " .. pos.x .. ", " .. pos.z)
 				pos = nil
 			end
 		end
@@ -128,7 +124,7 @@ function BuildSiteHandler:CheckBuildPos(pos, unitTypeToBuild, builder, originalP
 	if pos ~= nil then
 		local s = map:CanBuildHere(unitTypeToBuild, pos)
 		if not s then
-			EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
+			self:EchoDebug("cannot build " .. unitTypeToBuild:Name() .. " here: " .. pos.x .. ", " .. pos.z)
 			pos = nil
 		end
 	end
@@ -165,7 +161,7 @@ function BuildSiteHandler:CheckBuildPos(pos, unitTypeToBuild, builder, originalP
 	-- don't build where the builder can't go
 	if pos ~= nil then
 		if not self.ai.maphandler:UnitCanGoHere(builder, pos) then
-			EchoDebug(builder:Name() .. " can't go there: " .. pos.x .. "," .. pos.z)
+			self:EchoDebug(builder:Name() .. " can't go there: " .. pos.x .. "," .. pos.z)
 			pos = nil
 		end
 	end
@@ -174,16 +170,16 @@ function BuildSiteHandler:CheckBuildPos(pos, unitTypeToBuild, builder, originalP
 		if nanoTurretList[uname] then
 			-- don't build nanos too far away from factory
 			local dist = Distance(originalPosition, pos)
-			EchoDebug("nano distance: " .. dist)
+			self:EchoDebug("nano distance: " .. dist)
 			if dist > 390 then
-				EchoDebug("nano too far from factory")
+				self:EchoDebug("nano too far from factory")
 				pos = nil
 			end
 		elseif bigPlasmaList[uname] or littlePlasmaList[uname] or nukeList[uname] then
 			-- don't build bombarding units outside of bombard positions
 			local b = self.ai.targethandler:IsBombardPosition(pos, uname)
 			if not b then
-				EchoDebug("bombard not in bombard position")
+				self:EchoDebug("bombard not in bombard position")
 				pos = nil
 			end
 		end
@@ -203,7 +199,7 @@ end
 function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, minimumDistance, attemptNumber, buildDistance, maximumDistance)
 	maximumDistance = maximumDistance or 400
 	-- return self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position)
-	if attemptNumber == nil then EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
+	if attemptNumber == nil then self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
 	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
 	buildDistance = buildDistance or 100
 	if ShardSpringLua then
@@ -224,19 +220,19 @@ function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, m
 		searchPos.x = position.x + searchRadius * math.sin(searchAngle)
 		searchPos.z = position.z + searchRadius * math.cos(searchAngle)
 		searchPos.y = position.y + 0
-		-- EchoDebug(math.ceil(searchPos.x) .. ", " .. math.ceil(searchPos.z))
+		-- self:EchoDebug(math.ceil(searchPos.x) .. ", " .. math.ceil(searchPos.z))
 		pos = map:FindClosestBuildSite(unitTypeToBuild, searchPos, searchRadius / 2, minDistance)
 	else
 		pos = map:FindClosestBuildSite(unitTypeToBuild, position, buildDistance, minDistance)
 	end
 
-	-- if pos == nil then EchoDebug("pos is nil before check") end
+	-- if pos == nil then self:EchoDebug("pos is nil before check") end
 
 	-- check that we haven't got an offmap order, that it's possible to build the unit there, that it's not in front of a factory or on top of a metal spot, and that the builder can actually move there
 	pos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
 
 	if pos == nil then
-		-- EchoDebug("attempt number " .. tmpAttemptNumber .. " nil")
+		-- self:EchoDebug("attempt number " .. tmpAttemptNumber .. " nil")
 		-- first try increasing tmpAttemptNumber, up to 7
 		if tmpAttemptNumber < 19 then
 			if tmpAttemptNumber == 7 or tmpAttemptNumber == 13 then
@@ -250,11 +246,11 @@ function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, m
 			pos = self:ClosestBuildSpot(builder, position, unitTypeToBuild, minDistance, tmpAttemptNumber + 1, buildDistance, maximumDistance)
 		else
 			-- check manually check in a spiral
-			EchoDebug("trying spiral check")
+			self:EchoDebug("trying spiral check")
 			pos = self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, maximumDistance or minDistance * 16)
 		end
 	else
-		EchoDebug(builder:Name() .. " building " .. unitTypeToBuild:Name() .. " build position found in " .. tmpAttemptNumber .. " attempts")
+		self:EchoDebug(builder:Name() .. " building " .. unitTypeToBuild:Name() .. " build position found in " .. tmpAttemptNumber .. " attempts")
 	end
 
 	return pos
@@ -276,9 +272,9 @@ function BuildSiteHandler:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, pos
 	searchPos.y = position.y + 0
 	searchPos.z = position.z + 0
 
-	EchoDebug("new spiral search")
+	self:EchoDebug("new spiral search")
 	while segmentSize < 8 do
-		-- EchoDebug(i .. " " .. direction .. " " .. segmentSize .. " : " .. math.ceil(position.x) .. " " .. math.ceil(position.z))
+		-- self:EchoDebug(i .. " " .. direction .. " " .. segmentSize .. " : " .. math.ceil(position.x) .. " " .. math.ceil(position.z))
 		if direction == 1 then
 			searchPos.x = searchPos.x + dist
 		elseif direction == 2 then
@@ -310,7 +306,7 @@ function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 	if not builderPos then return end
 	local minDist = maxDist
 	local maxLevel = self.ai.maxFactoryLevel
-	EchoDebug(maxLevel .. " max factory level")
+	self:EchoDebug(maxLevel .. " max factory level")
 	local factorybhvr
 	if self.ai.factoriesAtLevel[maxLevel] ~= nil then
 		for i, factory in pairs(self.ai.factoriesAtLevel[maxLevel]) do
@@ -363,17 +359,17 @@ function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
 end
 
 function BuildSiteHandler:BuildNearNano(builder, utype)
-	EchoDebug("looking for spot near nano hotspots")
+	self:EchoDebug("looking for spot near nano hotspots")
 	local nanoHots = self.ai.nanohandler:GetHotSpots()
 	if nanoHots then
-		EchoDebug("got " .. #nanoHots .. " nano hotspots")
+		self:EchoDebug("got " .. #nanoHots .. " nano hotspots")
 		local hotRadius = self.ai.nanohandler:HotBuildRadius()
 		for i = 1, #nanoHots do
 			local hotPos = nanoHots[i]
 			-- find somewhere within hotspot
 			local p = self:ClosestBuildSpot(builder, hotPos, utype, 10, nil, nil, hotRadius)
 			if p then 
-				EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
+				self:EchoDebug('found Position for near nano hotspot at: ' .. hotPos.x ..' ' ..hotPos.z)
 				return p
 			end
 		end
@@ -382,10 +378,10 @@ function BuildSiteHandler:BuildNearNano(builder, utype)
 end
 
 function BuildSiteHandler:BuildNearLastNano(builder, utype)
-	EchoDebug("looking for spot near last nano")
+	self:EchoDebug("looking for spot near last nano")
 	local p = nil
 	if self.ai.lastNanoBuild then
-		EchoDebug('found position near last nano')
+		self:EchoDebug('found position near last nano')
 		-- find somewhere at most 400 away
 		p = self:ClosestBuildSpot(builder, self.ai.lastNanoBuild, utype, 30, nil, nil, 400)
 	end
@@ -402,10 +398,10 @@ function BuildSiteHandler:UnitCreated(unit)
 		if plan.unitName == unitName and PositionWithinRect(position, plan) then
 			if plan.resurrect then
 				-- so that bootbehaviour will hold it in place while it gets repaired
-				EchoDebug("resurrection of " .. unitName .. " begun")
+				self:EchoDebug("resurrection of " .. unitName .. " begun")
 				self.resurrectionRepair[unitID] = plan.behaviour
 			else
-				EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
+				self:EchoDebug(plan.behaviour.name .. " began constructing " .. unitName)
 				if unitTable[unitName].isBuilding or nanoTurretList[unitName] then
 					-- so that oversized factory lane rectangles will overlap with existing buildings
 					self:DontBuildRectangle(plan.x1, plan.z1, plan.x2, plan.z2, unitID)

@@ -1,11 +1,6 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("AttackerBehaviour: " .. inStr)
-	end
-end
+
 
 function IsAttacker(unit)
 	return attackerlist[unit:Internal():Name()] or false
@@ -16,6 +11,8 @@ AttackerBehaviour = class(Behaviour)
 function AttackerBehaviour:Name()
 	return "AttackerBehaviour"
 end
+
+AttackerBehaviour.DebugEnabled = false
 
 function AttackerBehaviour:Init()
 	local mtype, network = self.ai.maphandler:MobilityOfUnit(self.unit:Internal())

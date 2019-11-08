@@ -76,13 +76,13 @@ function BomberHandler:DoTargetting()
 		local recruits = self.recruits[weapon]
 		self.ai.couldBomb = self.ai.couldBomb + 1
 		-- find somewhere to attack
-		EchoDebug("getting target for " .. weapon)
+		self:EchoDebug("getting target for " .. weapon)
 		local torpedo = weapon == 'torpedo'
 		local targetUnit = self.ai.targethandler:GetBestBomberTarget(torpedo)
 		if targetUnit ~= nil then
 			local tupos = targetUnit:GetPosition()
 			if tupos and tupos.x then
-				EchoDebug("got target for " .. weapon)
+				self:EchoDebug("got target for " .. weapon)
 				local sumX = 0
 				local sumZ = 0
 				local validFunc
@@ -150,7 +150,7 @@ end
 function BomberHandler:NeedMore()
 	self.counter = self.counter + 1
 	self.counter = math.min(self.counter, maxBomberCounter)
-	-- EchoDebug("bomber counter: " .. self.counter .. " (bomber died)")
+	-- self:EchoDebug("bomber counter: " .. self.counter .. " (bomber died)")
 end
 
 function BomberHandler:NeedLess()

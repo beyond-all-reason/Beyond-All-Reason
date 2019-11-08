@@ -1,11 +1,3 @@
-local DebugEnabled = false
-
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("ScoutHandler: " .. inStr)
-	end
-end
 
 ScoutHandler = class(Module)
 
@@ -16,6 +8,8 @@ end
 function ScoutHandler:internalName()
 	return "scouthandler"
 end
+
+ScoutHandler.DebugEnabled = false
 
 function ScoutHandler:Init()
 	self.spotsToScout = {}
@@ -61,7 +55,7 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 			if ai.startLocations[mtype] ~= nil then
 				if ai.startLocations[mtype][network] ~= nil then
 					-- scout all probable start locations first
-					EchoDebug(unit:Name() .. " got starts")
+					self:EchoDebug(unit:Name() .. " got starts")
 					for i, p in pairs(ai.startLocations[mtype][network]) do
 						table.insert(self.spotsToScout[mtype][network], p)
 					end
@@ -71,14 +65,14 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 			self.usingStarts[mtype][network] = true
 		elseif self.usingStarts[mtype][network] then
 			-- then use metal and geo spots
-			EchoDebug(unit:Name() .. " got metals and geos")
+			self:EchoDebug(unit:Name() .. " got metals and geos")
 			for i, p in pairs(ai.scoutSpots[mtype][network]) do
 				table.insert(self.spotsToScout[mtype][network], p)
 			end
 			self.usingStarts[mtype][network] = false
 		end
 	end
-	EchoDebug(mtype .. " " .. network .. " has " .. #self.spotsToScout[mtype][network] .. " spots")
+	self:EchoDebug(mtype .. " " .. network .. " has " .. #self.spotsToScout[mtype][network] .. " spots")
 	-- find the closest spot
 	local pos = nil
 	local index = nil
@@ -120,10 +114,10 @@ function ScoutHandler:ClosestSpot(scoutbehaviour)
 	end
 	self.lastCount[mtype][network] = #self.spotsToScout[mtype][network]
 	if pos ~= nil then
-		EchoDebug("and spot found")
+		self:EchoDebug("and spot found")
 		pos.y = 0
 	else
-		EchoDebug("but NO spot found")
+		self:EchoDebug("but NO spot found")
 	end
 	return pos
 end

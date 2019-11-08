@@ -332,7 +332,7 @@ function LosHandler:UpdateWrecks()
 end
 
 function LosHandler:HorizontalLine(x, z, tx, val, jam)
-	-- EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val)
+	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val)
 	for ix = x, tx do
 		if jam then
 			if self.losGrid[ix] == nil then return end

@@ -1,12 +1,8 @@
-local DebugEnabled = false
+
 local DebugDrawEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("TurtleHandler: " .. inStr)
-	end
-end
+
 
 local maxOrganDistance = 400
 
@@ -87,6 +83,8 @@ end
 function TurtleHandler:internalName()
 	return "turtlehandler"
 end
+
+TurtleHandler.DebugEnabled = false
 
 function TurtleHandler:Init()
 	self.turtles = {} -- zones to protect
@@ -443,7 +441,7 @@ end
 function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 	-- if 1 then return end -- ai might actually be more effective without defenses, uncomment to disable all defense emplacements
 	if builder == nil then return end
-	EchoDebug("checking for least turtled from " .. builder:Name() .. " for " .. tostring(unitName) .. " bombard: " .. tostring(bombard))
+	self:EchoDebug("checking for least turtled from " .. builder:Name() .. " for " .. tostring(unitName) .. " bombard: " .. tostring(bombard))
 	if unitName == nil then return end
 	local position = builder:GetPosition()
 	local ut = unitTable[unitName]
@@ -525,15 +523,15 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 					end
 					mod = mod * layerMod[layer]
 					local modDefecit = modLimit - mod
-					EchoDebug("turtled: " .. mod .. ", limit: " .. tostring(modLimit) .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
+					self:EchoDebug("turtled: " .. mod .. ", limit: " .. tostring(modLimit) .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
 					if mod == 0 or mod < ut.metalCost or mod < modLimit then
 						local dist = Distance(position, limb.position)
 						dist = dist - (modDefecit * modDistance)
 						if hurtyLayer[layer] and limb[layer] == 0 and turtle.priority > factoryPriority then dist = dist - missingFactoryDefenseDistance end
-						EchoDebug("distance: " .. dist)
+						self:EchoDebug("distance: " .. dist)
 						if oneOnly then
 							if dist < bestDist then
-								EchoDebug("best distance")
+								self:EchoDebug("best distance")
 								bestDist = dist
 								best = limb.position
 							end
@@ -564,7 +562,7 @@ function TurtleHandler:LeastTurtled(builder, unitName, bombard, oneOnly)
 			newpos.y = pos.y+0
 			table.insert(sorted, newpos)
 		end
-		EchoDebug("outputting " .. #sorted .. " least turtles")
+		self:EchoDebug("outputting " .. #sorted .. " least turtles")
 		return sorted
 	end
 end
@@ -585,7 +583,7 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDi
 	local modDist = modDistance
 	if unitName then modDist = modDist * Priority(unitName) end
 	if builder == nil then return end
-	EchoDebug("checking for most turtled from " .. builder:Name() .. ", bombard: " .. tostring(bombard))
+	self:EchoDebug("checking for most turtled from " .. builder:Name() .. ", bombard: " .. tostring(bombard))
 	local position = builder:GetPosition()
 	local bestDist = 100000
 	local best
@@ -595,17 +593,17 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDi
 		and self.ai.maphandler:UnitCanGoHere(builder, turtle.position)
 		and (not bombard or self:GetIsBombardPosition(turtle, unitName)) then
 			local mod = turtle.ground + turtle.air + turtle.submerged + (turtle.shield * layerMod["shield"]) + (turtle.jam * layerMod["jam"])
-			EchoDebug("turtled: " .. mod .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
+			self:EchoDebug("turtled: " .. mod .. ", priority: " .. turtle.priority .. ", total priority: " .. self.totalPriority)
 			if mod ~= 0 then
 				local dist = 0
 				if not ignoreDistance then
 					dist = Distance(position, turtle.position)
 				end
 				dist = dist - (mod * modDist)
-				EchoDebug("distance: " .. dist)
+				self:EchoDebug("distance: " .. dist)
 				if oneOnly then
 					if dist < bestDist then
-						EchoDebug("best distance")
+						self:EchoDebug("best distance")
 						bestDist = dist
 						best = turtle.position
 					end
@@ -634,7 +632,7 @@ function TurtleHandler:MostTurtled(builder, unitName, bombard, oneOnly, ignoreDi
 			newpos.y = pos.y+0
 			table.insert(sorted, newpos)
 		end
-		EchoDebug("outputting " .. #sorted .. " most turtles")
+		self:EchoDebug("outputting " .. #sorted .. " most turtles")
 		return sorted
 	end
 end

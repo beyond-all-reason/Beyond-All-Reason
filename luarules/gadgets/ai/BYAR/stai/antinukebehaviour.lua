@@ -4,13 +4,9 @@ function AntinukeBehaviour:Name()
 	return "AntinukeBehaviour"
 end
 
-local DebugEnabled = false
+AntinukeBehaviour.DebugEnabled = false
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("AntinukeBehaviour: " .. inStr)
-	end
-end
+
 
 local CMD_STOCKPILE = 100
 
