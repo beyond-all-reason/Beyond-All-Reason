@@ -29,7 +29,21 @@ local mapConfig = VFS.FileExists(MAPSIDE_METALMAP) and VFS.Include(MAPSIDE_METAL
 
 -- assigns metal to the defined metal spots when the gadget loads
 function gadget:Initialize()
-	if mapConfig and Spring.GetGameFrame() == 0 then
+	-- dont add lua metal when map already has metal somewhere on it
+	local hasMetalmap = false
+	for x=1, MAP_SIZE_X do
+		for z=1, MAP_SIZE_Z do
+			if select(3,Spring.GetGroundInfo(x, z)) > 0 then
+				hasMetalmap = true
+				break
+			end
+		end
+		if hasMetalmap then
+			break
+		end
+	end
+
+	if not hasMetalmap and mapConfig and Spring.GetGameFrame() == 0 then
 	
 		Spring.Log(gadget:GetInfo().name, LOG.INFO, "Loading map-side lua metal spot configuration...")
 		local spots = mapConfig.spots
