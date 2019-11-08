@@ -9,7 +9,7 @@ function TaskQueueBehaviour:Name()
 	return "TaskQueueBehaviour"
 end
 
-TaskQueueBehaviour.DebugEnabled = true
+TaskQueueBehaviour.DebugEnabled = false
 
 local CMD_GUARD = 25
 
