@@ -49,7 +49,7 @@ end
 function HoverBreakthrough(tskqbhvr)
 	local unitName = ""
 	if MyTB.side == CORESideName then
-		unitName = "nsaclash"
+		unitName = "corhal"
 	else
 		unitName = "armanac"
 	end

@@ -72,8 +72,8 @@ factoryExitSides = {
 	armsy = 4,
 	corasy = 4,
 	armasy = 4,
-	csubpen = 4,
-	asubpen = 4,
+	coramsub = 4,
+	armamsub = 4,
 	corgant = 1,
 	armshltx = 1,
 	corgantuw = 1,
@@ -90,20 +90,20 @@ littlePlasmaList = {
 
 -- these big energy plants will be shielded in addition to factories
 bigEnergyList = {
-	cmgeo = 1,
-	amgeo = 1,
+	corageo = 1,
+	armageo = 1,
 	corfus = 1,
 	armfus = 1,
-	cafus = 1,
-	aafus = 1,
+	corafus = 1,
+	armafus = 1,
 }
 
 -- geothermal plants
 geothermalPlant = {
 	corgeo = 1,
 	armgeo = 1,
-	cmgeo = 1,
-	amgeo = 1,
+	corageo = 1,
+	armageo = 1,
 	corbhmth = 1,
 	armgmm = 1,
 }
@@ -134,12 +134,12 @@ helpList = {
 	armfus = 0,
 	coruwfus = 0,
 	armuwfus = 0,
-	aafus = 0,
-	cafus = 0,
+	armafus = 0,
+	corafus = 0,
 	corgeo = 2,
 	armgeo = 2,
-	cmgeo = 0,
-	amgeo = 0,
+	corageo = 0,
+	armageo = 0,
 	cormoho = 2,
 	armmoho = 2,
 	coruwmme = 2,
@@ -213,7 +213,7 @@ battleList = {
 	corstorm = 1,
 	armrock = 1,
 	coresupp = 1,
-	decade = 1,
+	armdecade = 1,
 	corroy = 1,
 	armroy = 1,
 	corsnap = 1,
@@ -238,16 +238,16 @@ breakthroughList = {
 	corsumo = 2,
 	armfboy = 2,
 	corparrow = 2,
-	nsaclash = 2,
+	corhal = 2,
 	corbats = 2,
 	armbats = 2,
 	corkrog = 3,
-	gorg = 3,
+	corjugg = 3,
 	armbanth = 3,
 	corblackhy = 3,
-	aseadragon = 3,
+	armepoch = 3,
 	corcrw = 3,
-	armcybr = 3,
+	armliche = 3,
 }
 
 -- for milling about next to con units and factories only
@@ -278,7 +278,7 @@ defenderList = {
 attackerlist = {
 	armsam = 1 ,
 	corwolv = 1 ,
-	tawf013 = 1 ,
+	armart = 1 ,
 	armjanus = 1 ,
 	corlvlr = 1 ,
 	corthud = 1 ,
@@ -313,28 +313,28 @@ attackerlist = {
 	corcrw = 1 ,
 	-- experimentals
 	armraz = 1 ,
-	armshock = 1 ,
+	armvang = 1 ,
 	armbanth = 1 ,
-	shiva = 1 ,
-	armraven = 1 ,
+	armshiva = 1 ,
+	corcat = 1 ,
 	corkarg = 1 ,
-	gorg = 1 ,
+	corjugg = 1 ,
 	corkrog = 1 ,
 	-- ships
 	coresupp = 1 ,
-	decade = 1 ,
+	armdecade = 1 ,
 	corroy = 1 ,
 	armroy = 1 ,
 	corcrus = 1 ,
 	armcrus = 1 ,
 	corblackhy = 1 ,
-	aseadragon = 1 ,
-	tawf009 = 1 ,
+	armepoch = 1 ,
+	armserp = 1 ,
 	corssub = 1 ,
 	-- hover
 	corsnap = 1 ,
 	armanac = 1 ,
-	nsaclash = 1 ,
+	corhal = 1 ,
 	-- amphib
 	corseal = 1 ,
 	armcroc = 1 ,
@@ -350,7 +350,7 @@ raiderList = {
 	armlatnk = 1,
 	armpw = 1,
 	corak = 1,
-	marauder = 1,
+	armmar = 1,
 	-- amphibious
 	corgarp = 1,
 	armpincer = 1,
@@ -361,8 +361,8 @@ raiderList = {
 	armbrawl = 1,
 	armkam = 1,
 	armsaber = 1,
-	blade = 1,
-	bladew = 1,
+	armblade = 1,
+	armcorbw = 1,
 	corape = 1,
 	corcut = 1,
 	corcrw = 1,
@@ -388,7 +388,7 @@ scoutList = {
 }
 
 raiderDisarms = {
-	bladew = 1,
+	armcorbw = 1,
 }
 
 -- units in this list are bombers or torpedo bombers
@@ -397,7 +397,7 @@ bomberList = {
 	armthund = 1,
 	corhurc = 2,
 	armpnix = 2,
-	armcybr = 3,
+	armliche = 3,
 	corsb = 2,
 	armsb = 2,
 	cortitan = 2,
@@ -434,7 +434,7 @@ nanoTurretList = {
 assistList = {
 	armfark = 1,
 	corfast = 1,
-	consul = 1,
+	armconsul = 1,
 }
 
 reclaimerList = {
@@ -469,12 +469,12 @@ groundFacList = {
 	armhp = 1,
 	corfhp = 1,
 	armfhp = 1,
-	csubpen = 1,
-	asubpen = 1,
+	coramsub = 1,
+	armamsub = 1,
 	corgant = 1,
 	armshltx = 1,
 	corfast = 1,
-	consul = 1,
+	armconsul = 1,
 	armfark = 1,
 }
 
@@ -494,8 +494,8 @@ subFacList = {
 	armsy = 1,
 	corasy = 1,
 	armasy = 1,
-	csubpen = 1,
-	asubpen = 1,
+	coramsub = 1,
+	armamsub = 1,
 }
 
 -- if any of these is found among enemy units, plasma shields will be built
@@ -583,15 +583,15 @@ Eco2={
 	coruwadves=3,
 	coruwadvms=3,
 
-	cmgeo = 4,
-	amgeo = 4,
+	corageo = 4,
+	armageo = 4,
 	corbhmth = 4,
 	armgmm = 4,
 
 	corfus = 1,
 	armfus = 1,
-	cafus = 1,
-	aafus = 1,
+	corafus = 1,
+	armafus = 1,
 	armuwfus = 0,
 	coruwfus = 0,
 

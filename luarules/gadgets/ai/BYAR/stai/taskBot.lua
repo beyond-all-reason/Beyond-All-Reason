@@ -119,7 +119,7 @@ end
 function NewCommanders(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = 'commando'
+		unitName = 'cormando'
 	else
 		unitName = DummyUnitName
 	end

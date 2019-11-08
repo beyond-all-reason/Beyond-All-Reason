@@ -56,7 +56,7 @@ function Lvl1ShipBattle(tskqbhvr)
 		if MyTB.side == CORESideName then
 			unitName = "coresupp"
 		else
-			unitName = "decade"
+			unitName = "armdecade"
 		end
 	else
 		if MyTB.side == CORESideName then
@@ -131,7 +131,7 @@ function MegaShip()
 	if MyTB.side == CORESideName then
 		unitName = "corblackhy"
 	else
-		unitName = "aseadragon"
+		unitName = "armepoch"
 	end
 	return BuildBreakthroughIfNeeded(BuildWithLimitedNumber(unitName, 1))
 end
@@ -152,7 +152,7 @@ function Lvl2SubWar(tskqbhvr)
 		if MyTB.side == CORESideName then
 			unitName = "corssub"
 		else
-			unitName = "tawf009"
+			unitName = "armserp"
 		end
 
 	return BuildBattleIfNeeded(unitName)

@@ -170,9 +170,9 @@ function BuildMohoGeo()
 		return DummyUnitName
 	end
 	if MyTB.side == CORESideName then
-		return "cmgeo"
+		return "corageo"
 	else
-		return "amgeo"
+		return "armageo"
 	end
 	-- will turn into a safe geothermal or a geothermal plasma battery if too close to a factory
 end
@@ -195,16 +195,16 @@ local function BuildFusion()
 	else
 		return "armfus"
 	end
-	-- will become cafus and aafus in CategoryEconFilter in TaskQueueBehaviour if energy income is higher than 4000
+	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBehaviour if energy income is higher than 4000
 end
 
 local function BuildAdvFusion()
 	if MyTB.side == CORESideName then
-		return "cafus"
+		return "corafus"
 	else
-		return "aafus"
+		return "armafus"
 	end
-	-- will become cafus and aafus in CategoryEconFilter in TaskQueueBehaviour if energy income is higher than 4000
+	-- will become corafus and armafus in CategoryEconFilter in TaskQueueBehaviour if energy income is higher than 4000
 end
 
 local function BuildAdvEnergy(tskqbhvr)

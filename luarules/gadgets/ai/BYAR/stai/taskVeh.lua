@@ -70,7 +70,7 @@ function Lvl1VehArty(tskqbhvr)
 		if MyTB.side == CORESideName then
 			unitName = "corwolv"
 		else
-			unitName = "tawf013"
+			unitName = "armart"
 		end
 	end
 	return BuildSiegeIfNeeded(unitName)
@@ -171,7 +171,7 @@ function Lvl2VehAssist()
 	if MyTB.side == CORESideName then
 		return DummyUnitName
 	else
-		unitName = 'consul'
+		unitName = 'armconsul'
 		local mtypedLv = GetMtypedLv(unitName)
 		return BuildWithLimitedNumber(unitName, math.min((mtypedLv / 8) + 1, ai.conUnitPerTypeLimit))
 	end

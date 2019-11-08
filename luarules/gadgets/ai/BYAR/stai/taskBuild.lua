@@ -33,9 +33,9 @@ function BuildSpecialLT(tskqbhvr)
 		end
 	else
 		if MyTB.side == CORESideName then
-			unitName = "hllt"
+			unitName = "corhllt"
 		else
-			unitName = "tawf001"
+			unitName = "armbeamer"
 		end
 	end
 	local unit = tskqbhvr.unit:Internal()
@@ -45,9 +45,9 @@ end
 function BuildSpecialLTOnly(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = "hllt"
+		unitName = "corhllt"
 	else
-		unitName = "tawf001"
+		unitName = "armbeamer"
 	end
 	local unit = tskqbhvr.unit:Internal()
 	return GroundDefenseIfNeeded(unitName)
@@ -167,9 +167,9 @@ end
 function BuildMediumAA(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = BuildAAIfNeeded("madsam")
+		unitName = BuildAAIfNeeded("cormadsam")
 	else
-		unitName = BuildAAIfNeeded("packo")
+		unitName = BuildAAIfNeeded("armpacko")
 	end
 	return unitName
 end
@@ -209,9 +209,9 @@ end
 function BuildExtraHeavyAA(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = BuildAAIfNeeded("screamer")
+		unitName = BuildAAIfNeeded("corscreamer")
 	else
-		unitName = BuildAAIfNeeded("mercury")
+		unitName = BuildAAIfNeeded("armmercury")
 	end
 	return unitName
 end
@@ -295,9 +295,9 @@ end
 function BuildAntiRadar()
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
-		unitName = "cjuno"
+		unitName = "corjuno"
 	else
-		unitName = "ajuno"
+		unitName = "armjuno"
 	end
 	return unitName
 end

@@ -335,10 +335,10 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		p = self.ai.maphandler:ClosestFreeGeo(utype, builder)
 		if p then
 			self:EchoDebug("geo spot", p.x, p.y, p.z)
-			if value == "cmgeo" or value == "amgeo" then
+			if value == "corageo" or value == "armageo" then
 				-- don't build moho geos next to factories
 				if ai.buildsitehandler:ClosestHighestLevelFactory(p, 500) ~= nil then
-					if value == "cmgeo" then
+					if value == "corageo" then
 						if ai.targethandler:IsBombardPosition(p, "corbhmth") then
 							-- instead build geothermal plasma battery if it's a good spot for it
 							value = "corbhmth"

@@ -22,7 +22,7 @@ end
 function Lvl1AirRaider(tskqbhvr)
 	local unitName = ""
 	if MyTB.side == CORESideName then
-		unitName = "bladew"
+		unitName = "armcorbw"
 	else
 		unitName = "armkam"
 	end
@@ -89,7 +89,7 @@ function Lvl2AirRaider(tskqbhvr)
 		-- spedical case: arm has an ubergunship
 		local raidCounter = ai.raidhandler:GetCounter("air")
 		if raidCounter < baseRaidCounter and raidCounter > minRaidCounter then
-			return "blade"
+			return "armblade"
 		else
 			unitName = "armbrawl"
 		end
@@ -122,7 +122,7 @@ function MegaAircraft()
 	if MyTB.side == CORESideName then
 		return BuildBreakthroughIfNeeded("corcrw")
 	else
-		return BuildBreakthroughIfNeeded("armcybr")
+		return BuildBreakthroughIfNeeded("armliche")
 	end
 end
 

@@ -294,7 +294,7 @@ function EngineerAsFactory(tskqbhvr)
 	if MyTB.side == CORESideName then
 		unitName = FreakerAsFactory(tskqbhvr)
 	else
-		unitName = ConsulAsFactory(tskqbhvr)
+		unitName = armconsulAsFactory(tskqbhvr)
 	end
 	return unitName
 end	
@@ -635,7 +635,7 @@ taskqueues = {
 	armacsub = anyAdvConSub,
 	cormls = anyNavalEngineer,
 	armmls = anyNavalEngineer,
-	consul = anyCombatEngineer,
+	armconsul = anyCombatEngineer,
 	corfast = anyCombatEngineer,
 	corap = anyLvl1AirPlant,
 	armap = anyLvl1AirPlant,
@@ -649,8 +649,8 @@ taskqueues = {
 	armhp = anyHoverPlatform,
 	corfhp = anyHoverPlatform,
 	armfhp = anyHoverPlatform,
-	csubpen = anyAmphibiousComplex,
-	asubpen = anyAmphibiousComplex,
+	coramsub = anyAmphibiousComplex,
+	armamsub = anyAmphibiousComplex,
 	armalab = anyLvl2BotLab,
 	armavp = anyLvl2VehPlant,
 	coraap = anyLvl2AirPlant,
