@@ -249,14 +249,13 @@ void main(void){
 -- Global variables
 -----------------------------------------------------------------
 
-
 local udIDs = {}
-local teamColors = {}
 local normalMaps = {}
 
 local solidUnitDefs = {}
 local glassUnitDefs = {}
 
+local teamColors = {}
 local glassUnits = {}
 
 local pieceList
@@ -264,6 +263,23 @@ local allUnits
 
 local sunChanged = true
 local glassShader
+
+local isSpec, fullview = Spring.GetSpectatingState()
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local myTeamID = Spring.GetMyTeamID()
+
+function gadget:PlayerChanged(playerID)
+	local prevFullView = fullView
+	local prevMyAllyTeamID = myAllyTeamID
+	isSpec, fullview = Spring.GetSpectatingState()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	myTeamID = Spring.GetMyTeamID()
+	if fullview ~= prevFullview or myAllyTeamID ~= prevMyAllyTeamID then
+		teamColors = {}
+		glassUnits = {}
+		UpdateAllGlassUnits()
+	end
+end
 
 local function GetNormalMap(unitDefID)
 	local udef = UnitDefs[unitDefID]
@@ -274,55 +290,6 @@ local function GetNormalMap(unitDefID)
 	else
 		return "unittextures/blank_normal.dds"
 	end
-end
-
-local function UpdateGlassUnits(unitID)
-	if not udIDs[unitID] then
-		udIDs[unitID] = spGetUnitDefID(unitID)
-	end
-	local unitDefID = udIDs[unitID]
-
-	if not unitDefID then --unidentified object ?
-		return
-	end
-
-	if solidUnitDefs[unitDefID] then --a known solid unitDef
-		return
-	end
-
-	if not glassUnitDefs[unitDefID] then -- unknown unitdef
-		pieceList = spGetUnitPieceList(unitID)
-		for pieceID, pieceName in ipairs(pieceList) do
-			if pieceName:find("_glass") then
-
-				if not glassUnitDefs[unitDefID] then
-					glassUnitDefs[unitDefID] = {}
-				end
-				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
-				table.insert(glassUnitDefs[unitDefID], pieceID)
-			end
-		end
-		normalMaps[unitDefID] = GetNormalMap(unitDefID)
-
-		if not glassUnitDefs[unitDefID] then --no glass pieces found
-			solidUnitDefs[unitDefID] = true
-		end
-	end
-
-	if glassUnitDefs[unitDefID] then --unitdef with glass pieces
-		glassUnits[unitID] = true
-		teamColors[unitID] = { spGetTeamColor(spGetUnitTeam(unitID)) }
-	end
-end
-
-local function GlassUnitDestroyed(unitID)
-	udIDs[unitID] = nil
-	glassUnits[unitID] = nil
-	teamColors[unitID] = nil
-end
-
-function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
-	teamColors[unitID] = { spGetTeamColor(newTeam) }
 end
 
 local function RenderGlassUnits()
@@ -382,19 +349,95 @@ local function RenderGlassUnits()
 	glCulling(false)
 end
 
-function gadget:SunChanged()
-	sunChanged = true
+
+local function UpdateGlassUnit(unitID)
+	if not udIDs[unitID] then
+		udIDs[unitID] = spGetUnitDefID(unitID)
+	end
+	local unitDefID = udIDs[unitID]
+
+	if not unitDefID then --unidentified object ?
+		return
+	end
+
+	if solidUnitDefs[unitDefID] then --a known solid unitDef
+		return
+	end
+
+	if not glassUnitDefs[unitDefID] then -- unknown unitdef
+		pieceList = spGetUnitPieceList(unitID)
+		for pieceID, pieceName in ipairs(pieceList) do
+			if pieceName:find("_glass") then
+
+				if not glassUnitDefs[unitDefID] then
+					glassUnitDefs[unitDefID] = {}
+				end
+				--Spring.Echo(unitID, unitDefID, pieceID, pieceName)
+				table.insert(glassUnitDefs[unitDefID], pieceID)
+			end
+		end
+		normalMaps[unitDefID] = GetNormalMap(unitDefID)
+
+		if not glassUnitDefs[unitDefID] then --no glass pieces found
+			solidUnitDefs[unitDefID] = true
+		end
+	end
+
+	if glassUnitDefs[unitDefID] then --unitdef with glass pieces
+		glassUnits[unitID] = true
+		teamColors[unitID] = { spGetTeamColor(spGetUnitTeam(unitID)) }
+	end
+end
+
+function UpdateAllGlassUnits()
+	teamColors = {}
+	glassUnits = {}
+	local units
+	if fullview then
+		units = Spring.GetAllUnits()
+	else
+		units = CallAsTeam(myTeamID, spGetVisibleUnits, -1, nil, false)
+	end
+	for i=1, #units do
+		UpdateGlassUnit(units[i])
+	end
+end
+
+
+local function GlassUnitDestroyed(unitID)
+	udIDs[unitID] = nil
+	glassUnits[unitID] = nil
+	teamColors[unitID] = nil
+end
+
+function gadget:UnitTaken(unitID, unitDefID, newTeam, oldTeam)
+	teamColors[unitID] = { spGetTeamColor(newTeam) }
+end
+
+function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
+	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
+		UpdateGlassUnit(unitID)
+	end
+end
+
+function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
+	if (glassUnitDefs[unitDefID] or not solidUnitDefs[unitDefID]) and not CallAsTeam(myTeamID, Spring.IsUnitVisible, unitID, nil, false) then
+		GlassUnitDestroyed(unitID)
+	end
 end
 
 function gadget:GameFrame(gf)
-	allUnits = spGetVisibleUnits(-1, nil, false)
-	for _, uID in ipairs(allUnits) do
-		UpdateGlassUnits(uID)
+	if gf % 7 == 1 then
+		UpdateAllGlassUnits()
 	end
 end
 
 function gadget:DrawWorld()
 	RenderGlassUnits()
+end
+
+function gadget:SunChanged()
+	sunChanged = true
 end
 
 function gadget:Initialize()
@@ -414,6 +457,7 @@ function gadget:Initialize()
 	glassShader:Initialize()
 
 	gadgetHandler:AddSyncAction("GlassUnitDestroyed", GlassUnitDestroyed)
+	UpdateAllGlassUnits()
 end
 
 function gadget:Shutdown()
