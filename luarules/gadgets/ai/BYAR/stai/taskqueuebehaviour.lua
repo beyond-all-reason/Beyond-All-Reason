@@ -135,7 +135,7 @@ function TaskQueueBehaviour:CategoryEconFilter(value)
 	return value
 end
 function TaskQueueBehaviour:Init()
-	self.DebugEnabled = false
+	
 
 	if not taskqueues then
 		shard_include("taskqueues",subf)

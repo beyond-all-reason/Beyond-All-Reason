@@ -1,4 +1,4 @@
-shard_include("astarclass")
+shard_include("astarclass",subf)
 
 sqrt = math.sqrt
 random = math.random
