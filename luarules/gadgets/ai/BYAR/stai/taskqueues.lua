@@ -294,7 +294,7 @@ function EngineerAsFactory(tskqbhvr)
 	if MyTB.side == CORESideName then
 		unitName = FreakerAsFactory(tskqbhvr)
 	else
-		unitName = armconsulAsFactory(tskqbhvr)
+		unitName = ConsulAsFactory(tskqbhvr)
 	end
 	return unitName
 end	
