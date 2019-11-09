@@ -4,13 +4,8 @@ function CountBehaviour:Name()
 	return "CountBehaviour"
 end
 
-local DebugEnabled = false
+CountBehaviour.DebugEnabled = false
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("CountBehaviour: " .. inStr)
-	end
-end
 
 function CountBehaviour:Init()
 	self.finished = false
@@ -46,8 +41,8 @@ function CountBehaviour:Init()
 	else
 		self.ai.nameCount[self.name] = self.ai.nameCount[self.name] + 1
 	end
-	EchoDebug(self.ai.nameCount[self.name] .. " " .. self.name .. " created")
-	self.ai.lastNameCreated[self.name] = game:Frame()
+	self:EchoDebug(self.ai.nameCount[self.name] .. " " .. self.name .. " created")
+	self.ai.lastNameCreated[self.name] = self.game:Frame()
 	self.unit:ElectBehaviour()
 end
 
@@ -75,8 +70,8 @@ function CountBehaviour:OwnerBuilt()
 		self.ai.nanoList[self.id] = self.unit:Internal():GetPosition() 
 		self.ai.lastNanoBuild = self.unit:Internal():GetPosition()
 	end
-	self.ai.lastNameFinished[self.name] = game:Frame()
-	EchoDebug(self.ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
+	self.ai.lastNameFinished[self.name] = self.game:Frame()
+	self:EchoDebug(self.ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 	self.finished = true
 	--mtyped leveled counters
 	if self.mobileMtyped then ai.mtypeCount[self.mobileMtyped] = ai.mtypeCount[self.mobileMtyped] + 1 end

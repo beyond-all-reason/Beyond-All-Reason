@@ -5,14 +5,7 @@ function BootBehaviour:Name()
 	return "BootBehaviour"
 end
 
-local DebugEnabled = false
-
-
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("BootBehaviour: " .. inStr)
-	end
-end
+BootBehaviour.DebugEnabled = false
 
 local CMD_MOVE_STATE = 50
 local MOVESTATE_HOLDPOS = 0
@@ -22,7 +15,7 @@ function BootBehaviour:Init()
 	self.name = self.unit:Internal():Name()
 	self.mobile = not unitTable[self.name].isBuilding
 	self.mtype = unitTable[self.name].mtype
-	self.lastInFactoryCheck = game:Frame()
+	self.lastInFactoryCheck = self.game:Frame()
 	self.repairedBy = self.ai.buildsitehandler:ResurrectionRepairedBy(self.id)
 	-- air units don't need to leave the factory
 	self.ignoreFactories = self.mtype == "air" or not self.mobile
@@ -33,7 +26,7 @@ end
 
 function BootBehaviour:OwnerBuilt()
 	self.finished = true
-	if self.active then self.lastOrderFrame = game:Frame() end
+	if self.active then self.lastOrderFrame = self.game:Frame() end
 end
 
 function BootBehaviour:OwnerDead()
@@ -46,7 +39,7 @@ end
 function BootBehaviour:Update()
 	if not self.finished then return end
 
-	local f = game:Frame()
+	local f = self.game:Frame()
 
 	if self.repairedBy then
 		if f % 30 == 0 then
@@ -65,7 +58,7 @@ function BootBehaviour:Update()
 		if f % 30 == 0 then
 			local u = self.unit:Internal()
 			local pos = u:GetPosition()
-			-- EchoDebug(pos.x .. " " .. pos.z .. " " .. self.factory.exitRect.x1 .. " " .. self.factory.exitRect.z1 .. " " .. self.factory.exitRect.x2 .. " " .. self.factory.exitRect.z2)
+			-- self:EchoDebug(pos.x .. " " .. pos.z .. " " .. self.factory.exitRect.x1 .. " " .. self.factory.exitRect.z1 .. " " .. self.factory.exitRect.x2 .. " " .. self.factory.exitRect.z2)
 			if not PositionWithinRect(pos, self.factory.exitRect) then
 				self.factory = nil
 				self.unit:ElectBehaviour()
@@ -109,7 +102,7 @@ function BootBehaviour:Update()
 			self.lastInFactoryCheck = f
 			self:FindMyFactory()
 			if self.factory then
-				EchoDebug(self.name .. " is in a factory")
+				self:EchoDebug(self.name .. " is in a factory")
 				self.unit:ElectBehaviour()
 			end
 		end
@@ -117,7 +110,7 @@ function BootBehaviour:Update()
 end
 
 function BootBehaviour:Activate()
-	EchoDebug("activated on " .. self.name)
+	self:EchoDebug("activated on " .. self.name)
 	self.active = true
 	if self.repairedBy then
 		self:SetMoveState()
@@ -127,7 +120,7 @@ function BootBehaviour:Activate()
 end
 
 function BootBehaviour:Deactivate()
-	EchoDebug("deactivated on " .. self.name)
+	self:EchoDebug("deactivated on " .. self.name)
 	self.active = false
 end
 
@@ -163,7 +156,7 @@ function BootBehaviour:FindMyFactory()
 end
 
 function BootBehaviour:ExitFactory(side)
-		EchoDebug(self.name .. " exiting " .. side)
+		self:EchoDebug(self.name .. " exiting " .. side)
 		local outX, outZ
 		if side == "south" then
 			outX = 0
@@ -195,6 +188,6 @@ function BootBehaviour:ExitFactory(side)
 			out.z = 1
 		end
 		u:Move(out)
-		self.lastOrderFrame = game:Frame()
+		self.lastOrderFrame = self.game:Frame()
 		self.lastExitSide = side
 end

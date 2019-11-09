@@ -143,6 +143,7 @@ function WindSolar()
 end
 
 function Energy1()
+
 	if ai.Energy.income > math.max(map:AverageWind() * 20, 150) then --and ai.Metal.reserves >50
 		return SolarAdv()
 	else
@@ -327,6 +328,10 @@ function buildWMconv1()
 end
 
 function Economy0()
+    print('drgfetgsdcaxai ' ..tostring(ai))
+    for i,v in pairs(ai) do 
+        print(i .. ' ' .. tostring(v))
+    end
 	local unitName=DummyUnitName
 	if ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.3) then
 		unitName = BuildMex()

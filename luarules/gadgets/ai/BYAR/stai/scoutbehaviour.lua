@@ -1,11 +1,7 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("ScoutBehaviour: " .. inStr)
-	end
-end
+
+
 
 function IsScout(unit)
 	local unitName = unit:Internal():Name()
@@ -22,6 +18,8 @@ function ScoutBehaviour:Name()
 	return "ScoutBehaviour"
 end
 
+ScoutBehaviour.DebugEnabled = false
+
 function ScoutBehaviour:Init()
 	self.evading = false
 	self.active = false
@@ -32,9 +30,9 @@ function ScoutBehaviour:Init()
 	self.keepYourDistance = unitTable[self.name].losRadius * 0.5
 	if mtype == "air" then
 		self.airDistance = unitTable[self.name].losRadius * 1.5
-		self.lastCircleFrame = game:Frame()
+		self.lastCircleFrame = self.game:Frame()
 	end
-	self.lastUpdateFrame = game:Frame()
+	self.lastUpdateFrame = self.game:Frame()
 end
 
 function ScoutBehaviour:Priority()
@@ -42,12 +40,12 @@ function ScoutBehaviour:Priority()
 end
 
 function ScoutBehaviour:Activate()
-	EchoDebug("activated on " .. self.name)
+	self:EchoDebug("activated on " .. self.name)
 	self.active = true
 end
 
 function ScoutBehaviour:Deactivate()
-	EchoDebug("deactivated on " .. self.name)
+	self:EchoDebug("deactivated on " .. self.name)
 	self.active = false
 	self.target = nil
 	self.evading = false
@@ -57,13 +55,13 @@ end
 
 function ScoutBehaviour:Update()
 	if self.active then
-		local f = game:Frame()
+		local f = self.game:Frame()
 		if f > self.lastUpdateFrame + 30 then
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
 			if self.target ~= nil then
 				local los = ai.scouthandler:ScoutLos(self, self.target)
-				EchoDebug("target los: " .. los)
+				self:EchoDebug("target los: " .. los)
 				if los == 2 or los == 3 then
 					self.target = nil
 				end
@@ -103,12 +101,12 @@ function ScoutBehaviour:Update()
 			if self.target == nil and attackTarget == nil then
 				local topos = ai.scouthandler:ClosestSpot(self) -- first look for closest metal/geo spot that hasn't been seen recently
 				if topos ~= nil then
-					EchoDebug("scouting spot at " .. topos.x .. "," .. topos.z)
+					self:EchoDebug("scouting spot at " .. topos.x .. "," .. topos.z)
 					self.target = RandomAway(topos, self.keepYourDistance) -- don't move directly onto the spot
 					unit:Move(self.target)
 					self.attacking = false
 				else
-					EchoDebug("nothing to scout!")
+					self:EchoDebug("nothing to scout!")
 				end
 			end
 			self.lastUpdateFrame = f
@@ -117,7 +115,7 @@ function ScoutBehaviour:Update()
 	
 	-- keep air units circling
 	if self.mtype == "air" and self.active then
-		local f = game:Frame()
+		local f = self.game:Frame()
 		if f > self.lastCircleFrame + 60 then
 			local unit = self.unit:Internal()
 			local upos = unit:GetPosition()

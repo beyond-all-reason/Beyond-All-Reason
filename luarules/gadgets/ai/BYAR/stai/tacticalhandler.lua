@@ -42,7 +42,7 @@ function TacticalHandler:Init()
 end
 
 function TacticalHandler:NewEnemyPositions(positions)
-	local f = game:Frame()
+	local f = self.game:Frame()
 	local since = f - self.lastPositionsFrame
 	local update = {}
 	for i, e in pairs(positions) do
@@ -80,7 +80,7 @@ function TacticalHandler:AverageUnitSamples(samples)
 end
 
 function TacticalHandler:AverageSamples()
-	local f = game:Frame()
+	local f = self.game:Frame()
 	local since = f - self.lastAverageFrame
 	if since < 300 then return end
 	-- self.ai.turtlehandler:ResetThreatForecast()

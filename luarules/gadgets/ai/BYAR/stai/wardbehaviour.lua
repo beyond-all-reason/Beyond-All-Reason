@@ -1,11 +1,5 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("WardBehaviour: ", inStr)
-	end
-end
 
 WardBehaviour = class(Behaviour)
 
@@ -13,9 +7,11 @@ function WardBehaviour:Name()
 	return "WardBehaviour"
 end
 
+WardBehaviour.DebugEnabled = false
+
 function WardBehaviour:Init()
 	self.minFleeDistance = 500
-	self.lastAttackedFrame = game:Frame()
+	self.lastAttackedFrame = self.game:Frame()
 	self.initialLocation = self.unit:Internal():GetPosition()
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
@@ -32,7 +28,7 @@ function WardBehaviour:Init()
 		self.threshold = 0.5
 	end
 	-- any threat whatsoever will trigger for buildings
-	EchoDebug("WardBehaviour: added to unit "..self.name)
+	self:EchoDebug("WardBehaviour: added to unit "..self.name)
 end
 
 function WardBehaviour:OwnerBuilt()
@@ -55,7 +51,7 @@ function WardBehaviour:OwnerIdle()
 end
 
 function WardBehaviour:Update()
-	local f = game:Frame()
+	local f = self.game:Frame()
 
 	-- timeout on underFire condition
 	if self.underFire then
@@ -77,10 +73,10 @@ function WardBehaviour:Update()
 				self.underFire = false
 				self.response = nil
 			else
-				EchoDebug(self.name .. " is not safe")
+				self:EchoDebug(self.name .. " is not safe")
 				self.underFire = true
 				self.response = response
-				self.lastAttackedFrame = game:Frame()
+				self.lastAttackedFrame = self.game:Frame()
 				if not self.mobile then self.ai.defendhandler:Danger(self) end
 			end
 			if self.mobile then self.withinTurtle = self.ai.turtlehandler:SafeWithinTurtle(position, self.name) end
@@ -90,21 +86,21 @@ function WardBehaviour:Update()
 end
 
 function WardBehaviour:Activate()
-	EchoDebug("activated on unit "..self.name)
+	self:EchoDebug("activated on unit "..self.name)
 
 	-- can we move at all?
 	if self.mobile then
 		-- run to the most defended base location
 		local salvation = self.ai.turtlehandler:MostTurtled(self.unit:Internal(), nil, nil, true) or self:NearestCombat()
-		EchoDebug(tostring(salvation), "salvation")
+		self:EchoDebug(tostring(salvation), "salvation")
 		if salvation and Distance(self.unit:Internal():GetPosition(), salvation) > self.minFleeDistance then
 			self.unit:Internal():Move(RandomAway(salvation,150))
 			self.noSalvation = false
 			self.active = true
-			EchoDebug("unit ".. self.name .." runs away from danger")
+			self:EchoDebug("unit ".. self.name .." runs away from danger")
 		else
 			-- we're already as safe as we can get
-			EchoDebug("no salvation for", self.name)
+			self:EchoDebug("no salvation for", self.name)
 			self.noSalvation = true
 			self.unit:ElectBehaviour()
 		end
@@ -134,12 +130,12 @@ function WardBehaviour:NearestCombat()
 			end
 		end
 	end
-	if best then EchoDebug("got NearestCombat for ", fn, bestDistance, "away") end
+	if best then self:EchoDebug("got NearestCombat for ", fn, bestDistance, "away") end
 	return best
 end
 
 function WardBehaviour:Deactivate()
-	EchoDebug("WardBehaviour: deactivated on unit "..self.name)
+	self:EchoDebug("WardBehaviour: deactivated on unit "..self.name)
 	self.active = false
 	self.underFire = false
 end
@@ -156,7 +152,7 @@ function WardBehaviour:OwnerDamaged(attacker,damage)
 	if not self.underFire then
 		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.8 then
 			self.underFire = true
-			self.lastAttackedFrame = game:Frame()
+			self.lastAttackedFrame = self.game:Frame()
 			if not self.mobile then self.ai.defendhandler:Danger(self) end
 			self.unit:ElectBehaviour()
 		end

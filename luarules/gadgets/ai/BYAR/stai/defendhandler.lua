@@ -1,11 +1,6 @@
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("DefendHandler: " .. inStr)
-	end
-end
+
 
 local techLevelPriority = 1
 local commanderPriority = 2
@@ -30,6 +25,8 @@ end
 function DefendHandler:internalName()
 	return "defendhandler"
 end
+
+DebugEnabled = false
 
 function DefendHandler:Init()
 	self.defenders = {}
@@ -110,14 +107,14 @@ function DefendHandler:RemoveWard(behaviour, turtle)
 				self:MarkAllMtypesForAssignment(GAS)
 			end
 			table.remove(self.wards, i)
-			EchoDebug("ward removed from table. there are " .. #self.wards .. " wards total")
+			self:EchoDebug("ward removed from table. there are " .. #self.wards .. " wards total")
 			break
 		end
 	end
 end
 
 function DefendHandler:Update()
-	local f = game:Frame()
+	local f = self.game:Frame()
 	if f % 30 == 0 then
 		local scrambleCalls = 0
 		for i, ward in pairs(self.wards) do
@@ -212,14 +209,14 @@ end
 function DefendHandler:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), mobility type
 	if #self.wards == 0 then 
 		-- if nothing to defend, make sure defenders aren't defending ghosts (this causes a crash)
-		EchoDebug("nothing to defend")
+		self:EchoDebug("nothing to defend")
 		for di, dfndbehaviour in pairs(self.defenders[GAS][mtype]) do
 			dfndbehaviour:Assign(nil)
 			self.wardsByDefenderID[dfndbehaviour.id] = nil
 		end
 		return
 	end
-	EchoDebug("assigning all defenders...")
+	self:EchoDebug("assigning all defenders...")
 	-- assign defenders to wards
 	local defenders = self.defenders[GAS][mtype]
 	local defendersPerPriority = #defenders / self.totalPriority[GAS]
@@ -337,7 +334,7 @@ function DefendHandler:AssignAll(GAS, mtype) -- Ground Air Submerged (weapon), m
 			end
 		end
 	end
-	EchoDebug("all defenders assigned")
+	self:EchoDebug("all defenders assigned")
 end
 
 function DefendHandler:AssignLoiterers(ward)
@@ -582,7 +579,7 @@ end
 
 -- receive a signal that a building is threatened or a turtle is on the front
 function DefendHandler:Danger(behaviour, turtle, GAS)
-	local f = game:Frame()
+	local f = self.game:Frame()
 	if turtle == nil and behaviour ~= nil then turtle = self.ai.turtlehandler:GetUnitTurtle(behaviour.id) end
 	if turtle ~= nil then
 		for i, ward in pairs(self.wards) do
@@ -614,7 +611,7 @@ function DefendHandler:Danger(behaviour, turtle, GAS)
 end
 
 function DefendHandler:WardSafe(ward)
-	local f = game:Frame()
+	local f = self.game:Frame()
 	local behaviour = ward.behaviour
 	local threatened = ward.threatened
 	if behaviour ~= nil then

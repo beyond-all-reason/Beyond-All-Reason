@@ -82,7 +82,7 @@ function LosHandler:Init()
 end
 
 function LosHandler:Update()
-	local f = Spring.GetGameFrame()
+	local f = self.game:Frame()
 
 	if f % 23 == 0 then
         self.ai.friendlyTeamID = {}
@@ -201,7 +201,7 @@ function LosHandler:UpdateEnemies(enemyList)
 	-- this is cheating a little bit, because dead units outside of sight will automatically be removed
 	-- also populate moving blips (whether in radar or in sight) for analysis
 	local blips = {}
-	local f = Spring.GetGameFrame()
+	local f = self.game:Frame()
 	for id, e in pairs(self.ai.knownEnemies) do
 		if not exists[id] then
 			-- enemy died
@@ -332,7 +332,7 @@ function LosHandler:UpdateWrecks()
 end
 
 function LosHandler:HorizontalLine(x, z, tx, val, jam)
-	-- EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val)
+	-- self:EchoDebug("horizontal line from " .. x .. " to " .. tx .. " along z " .. z .. " with value " .. val)
 	for ix = x, tx do
 		if jam then
 			if self.losGrid[ix] == nil then return end

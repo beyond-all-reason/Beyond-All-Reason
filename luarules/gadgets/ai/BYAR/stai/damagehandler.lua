@@ -1,13 +1,8 @@
 -- keeps track of hits to our units
 
-local DebugEnabled = false
 
 
-local function EchoDebug(inStr)
-	if DebugEnabled then
-		game:SendToConsole("DamageHandler: " .. inStr)
-	end
-end
+
 
 DamageHandler = class(Module)
 
@@ -18,6 +13,8 @@ end
 function DamageHandler:internalName()
 	return "damagehandler"
 end
+
+DamageHandler.DebugEnabled = false
 
 function DamageHandler:Init()
 	self.isDamaged = {}
@@ -34,7 +31,7 @@ function DamageHandler:UnitDamaged(engineUnit, attacker, damage)
 end
 
 function DamageHandler:Update()
-	local f = game:Frame()
+	local f = self.game:Frame()
 	if f > self.lastDamageCheckFrame + 90 then
 		for unitID, engineUnit in pairs(self.isDamaged) do
 			local health = engineUnit:GetHealth()
