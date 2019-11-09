@@ -10,7 +10,7 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 32
@@ -91,7 +91,7 @@ end
 function tsOrderPlayers()
 	local playersList = Spring.GetPlayerList()
 	for _,playerID in ipairs(playersList) do
-		local _,_,spec,teamID = Spring.GetPlayerInfo(playerID)
+		local _,_,spec,teamID = Spring.GetPlayerInfo(playerID,false)
 		if playersTS[playerID] ~= nil then
 			addPlayerTsOrdered(playersTS[playerID], playerID, teamID, spec)
 		end
@@ -117,7 +117,7 @@ function SelectTrackingPlayer(playerID)
 		local highestTs = 0
 		local playersList = Spring.GetPlayerList()
 		for _,playerID in ipairs(playersList) do
-			local _,active,spec = Spring.GetPlayerInfo(playerID)
+			local _,active,spec = Spring.GetPlayerInfo(playerID,false)
 			if not spec and active then
 				if playersTS[playerID] ~= nil and playersTS[playerID] > highestTs then
 					highestTs = playersTS[playerID]
@@ -348,10 +348,10 @@ function widget:Initialize()
     local humanPlayers = 0
 	local playersList = Spring.GetPlayerList()
 	for _,playerID in ipairs(playersList) do
-		local _,active,spec,team = Spring.GetPlayerInfo(playerID)
+		local _,active,spec,team = Spring.GetPlayerInfo(playerID,false)
 		if not spec then
 			playersTS[playerID] = GetSkill(playerID)
-            if not select(3,Spring.GetTeamInfo(team)) and not select(4,Spring.GetTeamInfo(team)) then
+            if not select(3,Spring.GetTeamInfo(team,false)) and not select(4,Spring.GetTeamInfo(team,false)) then
                 humanPlayers = humanPlayers + 1
             end
 		end
@@ -459,7 +459,7 @@ function widget:GameFrame(n)
 		prevGameframeClock = os.clock()
 
 		if currentTrackedPlayer ~= nil and not rejoining then
-			local _,active,spec = Spring.GetPlayerInfo(currentTrackedPlayer)
+			local _,active,spec = Spring.GetPlayerInfo(currentTrackedPlayer,false)
 			if not active or spec then
 				SelectTrackingPlayer()
 			end
@@ -509,7 +509,14 @@ end
 
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if not isSpec then return end
 
 	local gameFrame = Spring.GetGameFrame()
@@ -551,7 +558,7 @@ function widget:DrawScreen()
 				end
 				if lockPlayerID and not drawlistsPlayername[lockPlayerID] then
 					drawlistsPlayername[lockPlayerID] = gl.CreateList( function()
-						local name,_,spec,teamID,_,_,_,_,_ = Spring.GetPlayerInfo(lockPlayerID)
+						local name,_,spec,teamID,_,_,_,_,_ = Spring.GetPlayerInfo(lockPlayerID,false)
 						local fontSize = 31 * widgetScale
 						local nameColourR,nameColourG,nameColourB = 1,1,1
 						if not spec then

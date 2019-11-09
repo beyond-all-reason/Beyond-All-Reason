@@ -331,4 +331,69 @@ definitions["barrelshot-sniper"].fireglow.properties.colormap = [[0.122 0.066 0.
 definitions["barrelshot-sniper"].smoke.properties.colormap = [[0 0 0 0   0.15 0.055 0.03 0.2    0.48 0.26 0.15 0.44    0.2 0.135 0.1 0.4     0.16 0.12 0.11 0.4    0.145 0.11 0.095 0.4    0.13 0.095 0.075 0.4     0.115 0.088 0.07 0.35    0.1 0.075 0.066 0.3    0.09 0.07 0.06 0.26   0.08 0.065 0.06 0.22  0 0 0 0]]
 
 
+
+
+definitions["barrelshot-lightning"] = {
+    groundflash = {
+        circlealpha        = 1,
+        circlegrowth       = 0,
+        flashalpha         = 0.12,
+        flashsize          = 35,
+        ttl                = 3,
+        color = {
+            [1]  = 0.66,
+            [2]  = 0.66,
+            [3]  = 1,
+        },
+    },
+    blueelectricityspikes = {
+        air                = true,
+        class              = [[CSimpleParticleSystem]],
+        count              = 1,
+        ground             = true,
+        water              = true,
+        underwater         = true,
+        properties = {
+            airdrag            = 0.8,
+            colormap           = [[0.7 0.7 0.9 0.03   0.5 0.5 0.9 0.01]],
+            directional        = true,
+            emitrot            = 45,
+            emitrotspread      = 32,
+            emitvector         = [[0, 1, 0]],
+            gravity            = [[0, -0.01, 0]],
+            numparticles       = 2,
+            particlelife       = 3,
+            particlelifespread = 1,
+            particlesize       = 4.5,
+            particlesizespread = 1.5,
+            particlespeed      = 0.5,
+            particlespeedspread = 0.5,
+            pos                = [[0, 2, 0]],
+            sizegrowth         = 1,
+            sizemod            = 1,
+            texture            = [[whitelightb]],
+            useairlos          = false,
+        },
+    },
+    centerflare = {
+        air                = true,
+        class              = [[heatcloud]],
+        count              = 1,
+        ground             = true,
+        water              = true,
+        underwater         = true,
+        properties = {
+            heat               = 7,
+            heatfalloff        = 1.6,
+            maxheat            = 15,
+            pos                = [[r-2 r2, 5, r-2 r2]],
+            size               = 1,
+            sizegrowth         = 4,
+            speed              = [[0, 1 0, 0]],
+            texture            = [[flare]],
+        },
+    },
+}
+
+
 return definitions

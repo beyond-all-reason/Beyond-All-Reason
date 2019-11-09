@@ -28,12 +28,12 @@ local OrangeStr  = "\255\255\190\128"
 --
 --  vars
 --
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -- saved values
@@ -109,7 +109,7 @@ local teamColors = {}
 local GetTeamColor = Spring.GetTeamColor or function (teamID)
   local color = teamColors[teamID]
   if (color) then return unpack(color) end
-  local _,_,_,_,_,_,r,g,b = Spring.GetTeamInfo(teamID)
+  local _,_,_,_,_,_,r,g,b = Spring.GetTeamInfo(teamID)  ---?
   teamColors[teamID] = {r,g,b}
   return r,g,b
 end
@@ -485,6 +485,7 @@ end
 
 local sec = 0
 function widget:Update(dt)
+	if chobbyInterface then return end
 
   if Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
       widgetHandler:RemoveWidget(self)
@@ -553,9 +554,8 @@ function widget:Update(dt)
         end
       end
       -- repeat mode?
-      local ustate   = GetUnitStates(facInfo.unitID)
-      if ustate ~= nil then
-        options['repeat'] = ustate["repeat"]
+      if select(4,GetUnitStates(facInfo.unitID,false,true)) then
+        options['repeat'] = true
       else
         options['repeat'] = false
       end
@@ -588,7 +588,14 @@ end
 -- DRAWSCREEN
 -------------------------------------------------------------------------------
 
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 function widget:DrawScreen()
+  if chobbyInterface then return end
 
   local icon,mx,my,lb,mb,rb = -1,-1,-1,false,false,false
   if (not inTweak) then
@@ -695,8 +702,8 @@ function widget:DrawScreen()
 end
 
 
-
 function widget:DrawWorld()
+	if chobbyInterface then return end
   
   -- Draw factories command lines
   if waypointMode>1 or openedMenu>=0 then
@@ -998,9 +1005,8 @@ function MenuHandler(x,y,button)
     if IsInRect(x,y, icoRect) then
       --repeat icon clicked
       local unitID = facs[pressedFac+1].unitID
-      local ustate = GetUnitStates(unitID)
       local onoff  = {1}
-      if ustate ~= nil and ustate["repeat"] then onoff = {0} end
+      if select(4,GetUnitStates(unitID,false,true)) then onoff = {0} end
       Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, { })
       Spring.PlaySoundFile(sound_click, 0.8, 'ui')
     else--if (bar_openByClick) then

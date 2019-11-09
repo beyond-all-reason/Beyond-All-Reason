@@ -1,8 +1,3 @@
-local wreck_metal = 2500
-if (Spring.GetModOptions) then
-    wreck_metal = Spring.GetModOptions().comm_wreck_metal or 2500
-end
-
 return {
    xmascomwreck = {
        blocking = true,
@@ -18,7 +13,7 @@ return {
        footprintz = 2,
        height = 20,
        hitdensity = 100,
-       metal = wreck_metal,
+       metal = 2500,
        object = "gingerbread",
        reclaimable = true,
        seqnamereclamate = "TREE1RECLAMATE",

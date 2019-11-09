@@ -1,0 +1,2 @@
+hotspot topleft
+frame  anims/cursornormal_0.png  5

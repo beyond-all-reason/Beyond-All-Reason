@@ -18,7 +18,7 @@ NOTE: This widget will block map draw commands from ignored players.
 
 local pID_table = {}
 local ignoredPlayers = {}
-local myName,_ = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+local myName,_ = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 
 local specColStr = "\255\255\255\1"
 local whiteStr = "\255\255\255\1"
@@ -26,8 +26,7 @@ local whiteStr = "\255\255\255\1"
 function CheckPIDs()
     local playerList = Spring.GetPlayerList()
     for _,pID in ipairs(playerList) do
-        local name,_ = Spring.GetPlayerInfo(pID)
-        pID_table[name] = pID
+        pID_table[select(1,Spring.GetPlayerInfo(pID,false))] = pID
     end
 end
 
@@ -44,7 +43,7 @@ function colourPlayer(playerName)
         local playerID = pID_table[playerName]
         if not playerID then return whiteStr end
         
-        local _,_,spec,teamID = Spring.GetPlayerInfo(playerID)
+        local _,_,spec,teamID = Spring.GetPlayerInfo(playerID,false)
         if spec then return specColStr end
     	nameColourR,nameColourG,nameColourB,nameColourA = Spring.GetTeamColor(teamID)
 		R255 = math.floor(nameColourR*255)  --the first \255 is just a tag (not colour setting) no part can end with a zero due to engine limitation (C)
@@ -161,8 +160,7 @@ function UnignoreAll ()
 end
 
 function widget:MapDrawCmd(playerID, cmdType, startx, starty, startz, a, b, c)
-    local name,_ = Spring.GetPlayerInfo(playerID)
-    if ignoredPlayers[name] then
+    if ignoredPlayers[select(1,Spring.GetPlayerInfo(playerID,false))] then
         return true
     end
     return nil

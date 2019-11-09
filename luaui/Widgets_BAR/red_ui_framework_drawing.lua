@@ -69,16 +69,17 @@ local function Color(c)
 	glColor(c[1],c[2],c[3],c[4])
 end
 
-local function Text(px,py,fontsize,text,options,c)
+local function Text(px,py,fontsize,text,options,c,usefont2)
 	glPushMatrix()
-	font:Begin()
+	local f = usefont2 and font2 or font
+	f:Begin()
 	if (c) then
-		font:SetTextColor(c[1],c[2],c[3],c[4])
-		font:SetOutlineColor(0,0,0,1)
+		f:SetTextColor(c[1],c[2],c[3],c[4])
+		f:SetOutlineColor(0,0,0,1)
 		--glColor(c[1],c[2],c[3],c[4])
 	else
-		font:SetTextColor(1,1,1,1)
-		font:SetOutlineColor(0,0,0,1)
+		f:SetTextColor(1,1,1,1)
+		f:SetOutlineColor(0,0,0,1)
 		--glColor(1,1,1,1)
 	end
 	glTranslate(px,py+fontsize,0)
@@ -90,8 +91,8 @@ local function Text(px,py,fontsize,text,options,c)
 	glScale(1,-1,1) --flip
 
 	--glText(text,0,0,fontsize,options)
-	font:Print(text,0,0,fontsize,options)
-	font:End()
+	f:Print(text,0,0,fontsize,options)
+	f:End()
 	glPopMatrix()
 end
 
@@ -295,11 +296,13 @@ end
 function widget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = widgetHandler:GetViewSizes()
 	font = WG['Red'].font
+	font2 = WG['Red'].font2
 	CreateStartList()
 end
 
 function widget:Initialize()
 	font = WG['Red'].font
+	font2 = WG['Red'].font2
 	vsx,vsy = widgetHandler:GetViewSizes()
 	CreateStartList()
 	
@@ -318,8 +321,8 @@ function widget:Initialize()
 	T.Border = function(a,b,c,d,e,f)
 		Todo[#Todo+1] = {4,a,b,c,d,e,f}
 	end
-	T.Text = function(a,b,c,d,e,f)
-		Todo[#Todo+1] = {5,a,b,c,d,e,f}
+	T.Text = function(a,b,c,d,e,f,g)
+		Todo[#Todo+1] = {5,a,b,c,d,e,f,g}
 	end
 	T.RectRound = function(a,b,c,d,e,f,g,h,i)
 		Todo[#Todo+1] = {6,a,b,c,d,e,f,g,h,i}
@@ -331,89 +334,55 @@ function widget:Initialize()
 	F[4] = Border
 	F[5] = Text
 	F[6] = RectRound
-	dList[1] = {}
-	dList[2] = {}
-	dList[3] = {}
-	dList[4] = {}
-	dList[5] = {}
-	dList[6] = {}
 end
 
-local dlistCount = 0
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 
 	newBlurRect = {}
-	
+
 	glResetState()
 	glResetMatrices()
-	
-	glCallList(StartList)
-	
-	for i=1,#Todo do
-		local t = Todo[i]
-		
-		local id = ''
-		
-		-- using dlists worked only for text :S
-		--[[if t[1] == 1 then	-- color
-			id = t[2][1]..'_'..t[2][2]..'_'..t[2][3]..'_'..t[2][4]
-			
-		elseif t[1] == 2 then	-- rect
-			id = t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]
-			if type(t[6]) == 'table' then
-				id = id .. t[6][1]..'_'..t[6][2]..'_'..t[6][3]..'_'..t[6][4]
-			end
-			id = id .. '_' ..(t[7] or '')
-			
-		elseif t[1] == 3 then	-- texrect
-			id = t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]..'_'..t[6]
-			if type(t[7]) == 'table' then
-				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
-			end
-			id = id .. '_' ..(t[8] or '')
-			
-		elseif t[1] == 4 then	-- border
-			id = t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]..'_'..(t[6] or '')
-			if type(t[7]) == 'table' then
-				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
-			end
-			
-		elseif t[1] == 6 then	-- rectround
-			id = t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]
-			if type(t[6]) == 'table' then
-				id = id .. t[6][1]..'_'..t[6][2]..'_'..t[6][3]..'_'..t[6][4]
-				if t[6][4] >= blurShaderStartColor then	-- add blur shader
-					newBlurRect[t[2]..' '..t[3]..' '..t[4]..' '..t[5] ] = {px=t[2],py=t[3],sx=t[4],sy=t[5]}
-				end
-			end
-			id = id .. '_' ..(t[7] or '')..id .. '_' ..(t[8] or '')..id .. '_' ..(t[9] and '1' or '')	
-		end]]--
 
+	glCallList(StartList)
+
+	local id = ''
+	local t
+	for i=1,#Todo do
+		t = Todo[i]
+		id = ''
 		if t[1] == 5 then	-- text
-			id = t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]..'_'..t[6]
+			id = t[1]..'_'..t[2]..'_'..t[3]..'_'..t[4]..'_'..t[5]
 			if type(t[7]) == 'table' then
 				id = id .. t[7][1]..'_'..t[7][2]..'_'..t[7][3]..'_'..t[7][4]
 			end
-			if dList[t[1]][id] == nil then
-				dlistCount = dlistCount + 1
-				dList[t[1]][id] = glCreateList(function()
+		end
+
+		if id ~= '' then
+			if dList[id] == nil then
+				dList[id] = glCreateList(function()
 					F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
 				end)
 			end
-			glCallList(dList[t[1]][id])
+			glCallList(dList[id])
 		else
 			F[t[1]](t[2],t[3],t[4],t[5],t[6],t[7],t[8],t[9],t[10])
 		end
-			
+
 		Todo[i] = nil
 	end
-	
-	
+
+
 	glResetState()
 	glResetMatrices()
-	
-	CleanedTodo = true
-	
+
 	if WG['guishader'] then
 
 		-- remove changed blur areas
@@ -451,13 +420,13 @@ end
 local sec = 0
 local flushDistsTime = 20
 function widget:Update(dt)
-		
+	if chobbyInterface then return end
 	if (sIsGUIHidden()) then
 		for i=1,#Todo do
 			Todo[i] = nil
 		end
 	end
-	
+
 	sec=sec+dt
 	if (sec>flushDistsTime) then
 		sec = 0
@@ -466,12 +435,10 @@ function widget:Update(dt)
 end
 
 function removeDLists()
-	for t, idlist in pairs(dList) do
-		for id in pairs(idlist) do
-			glDeleteList(dList[t][id])
-		end
-		dList[t] = {}
+	for t, l in pairs(dList) do
+		glDeleteList(dList[l])
 	end
+	dList = {}
 end
 
 function widget:Shutdown()

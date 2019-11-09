@@ -199,7 +199,7 @@ end
 function NeedsRepair(unitID)
    -- check if this unitID (which is assumed to be a plane) would want to land
    local health, maxHealth, _, _, buildProgress = Spring.GetUnitHealth(unitID)
-   local landAtState = Spring.GetUnitStates(unitID).autorepairlevel
+   local landAtState = select(3,Spring.GetUnitStates(unitID,false,true,true)) -- autorepairlevel
    if buildProgress<1 then return false end
    return health < maxHealth * landAtState;
 end
@@ -224,7 +224,7 @@ function FlyAway(unitID, airbaseID)
    --
    
    -- if the unit has no orders, tell it to move a little away from the airbase
-   local q = Spring.GetUnitCommands(unitID, 0)
+    local q = Spring.GetCommandQueue(unitID,0)
    if q==0 then
       local px,_,pz = Spring.GetUnitPosition(airbaseID)
       local theta = math.random()*2*math.pi
@@ -464,7 +464,7 @@ function gadget:GameFrame(n)
       local ppitch,pyaw,proll = Spring.GetUnitRotation(airbaseID)
       local sqrDist = (ux and px) and (ux-px)^2 + (uy-py)^2 + (uz-pz)^2
       local rotSqrDist = (upitch and ppitch) and (upitch-ppitch)^2 + (uyaw-pyaw)^2 + (uroll-proll)^2
-      if sqrDist < 2 and rotSqrDist < 0.025 then
+      if sqrDist and sqrDist < 2 and rotSqrDist and rotSqrDist < 0.025 then
          -- snap into place
          tractorPlanes[unitID] = nil
          landedPlanes[unitID] = airbaseID
@@ -520,7 +520,7 @@ end
 function gadget:Initialize()
    -- fixme: when using new transport mechanics, this is the proper way to define airbases
    for unitDefID, unitDef in pairs(UnitDefs) do
-      if unitDef.isAirBase then
+      if unitDef.customParams and unitDef.customParams.isairbase then
          airbaseDefIDs[unitDefID] = airbaseDefIDs[unitDefID] or tractorDist 
       end
    end
@@ -597,7 +597,7 @@ function gadget:DefaultCommand()
    end
 
    local targetDefID = spGetUnitDefID(targetID)
-   if not (UnitDefs[targetDefID].isAirBase or airbaseDefIDs[targetDefID]) then
+   if not ((UnitDefs[targetDefID].customParams and UnitDefs[targetDefID].customParams.isairbase) or airbaseDefIDs[targetDefID]) then
       return false
    end
 

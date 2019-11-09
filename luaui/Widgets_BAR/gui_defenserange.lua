@@ -31,8 +31,8 @@ local modConfig = {}
 -- BAR
 --to support other mods
 --table initialized and unitList is needed!
-modConfig["BAR"] = {}
-modConfig["BAR"]["unitList"] = {
+modConfig["BYAR"] = {}
+modConfig["BYAR"]["unitList"] = {
 	armclaw = { weapons = { 1 } },
 	cormaw = { weapons = { 1 } },
 	armllt = { weapons = { 1 } },
@@ -93,16 +93,16 @@ modConfig["BAR"]["unitList"] = {
 
 --implement this if you want dps-depending ring-colors
 --colors will be interpolated by dps scores between min and max values. values outside range will be set to nearest value in range -> min or max
-modConfig["BAR"]["armorTags"] = {}
-modConfig["BAR"]["armorTags"]["air"] = "vtol"
-modConfig["BAR"]["armorTags"]["ground"] = "else"
-modConfig["BAR"]["dps"] = {}
-modConfig["BAR"]["dps"]["ground"] = {}
-modConfig["BAR"]["dps"]["air"] = {}
-modConfig["BAR"]["dps"]["ground"]["min"] = 50
-modConfig["BAR"]["dps"]["ground"]["max"] = 500
-modConfig["BAR"]["dps"]["air"]["min"] = 80
-modConfig["BAR"]["dps"]["air"]["max"] = 500
+modConfig["BYAR"]["armorTags"] = {}
+modConfig["BYAR"]["armorTags"]["air"] = "vtol"
+modConfig["BYAR"]["armorTags"]["ground"] = "else"
+modConfig["BYAR"]["dps"] = {}
+modConfig["BYAR"]["dps"]["ground"] = {}
+modConfig["BYAR"]["dps"]["air"] = {}
+modConfig["BYAR"]["dps"]["ground"]["min"] = 50
+modConfig["BYAR"]["dps"]["ground"]["max"] = 500
+modConfig["BYAR"]["dps"]["air"]["min"] = 80
+modConfig["BYAR"]["dps"]["air"]["max"] = 500
 --end of dps-colors
 
 
@@ -509,9 +509,7 @@ end
 
 function CheckSpecState()
 	local playerID = spGetMyPlayerID()
-	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
-		
-	if ( spec == true ) then
+	if (select(3,spGetPlayerInfo(playerID,false)) == true ) then
 		widgetHandler:RemoveWidget(self)
 		return false
 	end
@@ -597,7 +595,7 @@ function widget:Update()
 end
 
 function DetectMod()
-	state["curModID"] = upper(Game.modShortName or "")
+	state["curModID"] = upper(Game.gameShortName or "")
 	
 	if ( modConfig[state["curModID"]] == nil ) then
 		spEcho("<DefenseRange> Unsupported Game, shutting down...")
@@ -843,7 +841,14 @@ function UpdateCircleList()
 	end)
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if not spIsGUIHidden() and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		if rangeCircleList then
 			glCallList(rangeCircleList)

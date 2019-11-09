@@ -13,7 +13,7 @@ end
 --  Config
 ---------------------------------------------------------------------------------------------------
 
-local imageDirectory			= ":n:LuaUI/Images/advplayerslist_mascotte/"
+local imageDirectory			= ":n:"..LUAUI_DIRNAME.."Images/advplayerslist_mascotte/"
 
 local OPTIONS = {}
 OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values 
@@ -244,8 +244,15 @@ function widget:Update(dt)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
-	--if spGetGameFrame() == 0 then return end
+	if chobbyInterface then return end
+
 	if drawlist[1] ~= nil then
 		glPushMatrix()
 			glTranslate(xPos, yPos, 0)

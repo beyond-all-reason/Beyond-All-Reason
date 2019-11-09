@@ -13,16 +13,14 @@ function widget:GetInfo()
 end
 
 local spGetSpectatingState = Spring.GetSpectatingState
-local spGetSelectedUnits = Spring.GetSelectedUnits
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetMyTeamID = Spring.GetMyTeamID
 local spSendCommands = Spring.SendCommands
 
-function widget:CommandsChanged()
+function widget:SelectionChanged(sel)
 	if spGetSpectatingState() then
-        local selUnits = spGetSelectedUnits()
-        if #selUnits > 0 then
-            local selTeam = spGetUnitTeam(selUnits[1])
+        if #sel > 0 then
+            local selTeam = spGetUnitTeam(sel[1])
             if selTeam and selTeam ~= spGetMyTeamID() then
                 spSendCommands('specteam ' .. selTeam)
             end

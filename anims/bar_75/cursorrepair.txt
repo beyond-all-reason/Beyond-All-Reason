@@ -1,0 +1,14 @@
+hotspot topleft
+frame  anims/cursorrepair_0.png  0.4
+frame  anims/cursorrepair_1.png  0.1
+frame  anims/cursorrepair_2.png  0.1
+frame  anims/cursorrepair_3.png  0.1
+frame  anims/cursorrepair_4.png  0.1
+frame  anims/cursorrepair_5.png  0.1
+frame  anims/cursorrepair_6.png  0.1
+frame  anims/cursorrepair_7.png  0.1
+frame  anims/cursorrepair_8.png  0.1
+frame  anims/cursorrepair_9.png  0.1
+frame  anims/cursorrepair_10.png  0.1
+frame  anims/cursorrepair_11.png  0.1
+frame  anims/cursorrepair_12.png  0.1

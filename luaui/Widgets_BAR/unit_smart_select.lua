@@ -19,7 +19,7 @@ function widget:GetInfo()
 		author    = "aegis",
 		date      = "Jan 2, 2011",
 		license   = "Public Domain",
-		layer     = 0,
+		layer     = -99999999999,
 		enabled   = true
 	}
 end
@@ -68,7 +68,7 @@ local IsAboveMiniMap = Spring.IsAboveMiniMap
 
 local GetUnitDefID = Spring.GetUnitDefID
 local GetUnitPosition = Spring.GetUnitPosition
-local GetUnitCommands = Spring.GetUnitCommands
+local GetCommandQueue = Spring.GetCommandQueue
 
 local UnitDefs = UnitDefs
 local min = math.min
@@ -162,9 +162,27 @@ local function GetUnitsInScreenRectangle(x1, y1, x2, y2, team)
 	return result
 end
 
+
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+	local equalSelection = true
+	for k,v in pairs(sel) do
+		if selectedUnits[k] ~= v then
+			equalSelection = false
+			break
+		end
+	end
+	selectedUnits = sel
+	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
+		if not select(3,GetMouseState()) and referenceSelection ~= nil and lastSelection ~= nil and equalSelection then
+			WG['smartselect'].updateSelection = false	-- widgethandler uses this to ignore the engine mouserelease selection
+		end
+	end
+end
+
 function widget:MousePress(x, y, button)
 	if (button == 1) then
-		referenceSelection = GetSelectedUnits()
+		referenceSelection = selectedUnits
 		referenceSelectionTypes = {}
 		for i=1, #referenceSelection do
 			udid = GetUnitDefID(referenceSelection[i])
@@ -223,21 +241,16 @@ function widget:SetConfigData(data)
 	if data.includeBuilders ~= nil 	then  includeBuilders	= data.includeBuilders end
 end
 
-
 function widget:Update()
-	--[[
-	local newUpdate = GetTimer()
-	if (DiffTimers(newUpdate, lastUpdate) < 0.1) then
-		return
-	end
-	lastUpdate = newUpdate
-	--]]
 
+	WG['smartselect'].updateSelection = true
 	if (referenceCoords ~= nil and GetActiveCommand() == 0) then
-		x, y, pressed = GetMouseState()
+		local x, y, pressed = GetMouseState()
+
 		local px, py, sx, sy = GetMiniMapGeometry()
-		
-		if (pressed) and (referenceSelection ~= nil) then
+
+		if (pressed or lastSelection) and (referenceSelection ~= nil) then
+
 			local alt, ctrl, meta, shift = GetModKeyState()
 			if (#referenceSelection == 0) then
 				-- no point in inverting an empty selection
@@ -246,7 +259,7 @@ function widget:Update()
 
 			local sameSelect = GetKeyState(sameSelectKey)
 			local idleSelect = GetKeyState(idleSelectKey)
-			
+
 			local sameLast = (referenceScreenCoords ~= nil) and (x == referenceScreenCoords[1] and y == referenceScreenCoords[2])
 			if (sameLast and lastCoords == referenceCoords) then
 				return
@@ -261,7 +274,7 @@ function widget:Update()
 
 			local mouseSelection, originalMouseSelection
 			local r = referenceScreenCoords
-			local playing = GetPlayerInfo(myPlayerID).spectating == false
+			local playing = GetPlayerInfo(myPlayerID,false).spectating == false
 			local team = (playing and GetMyTeamID())
 			if (r ~= nil and IsAboveMiniMap(r[1], r[2])) then
 				local mx, my = max(px, min(px+sx, x)), max(py, min(py+sy, y))
@@ -296,7 +309,7 @@ function widget:Update()
 				for i=1, #mouseSelection do
 					uid = mouseSelection[i]
 					udid = GetUnitDefID(uid)
-					if (mobileFilter[udid] or builderFilter[udid]) and (#GetUnitCommands(uid, 1) == 0) then
+					if (mobileFilter[udid] or builderFilter[udid]) and (GetCommandQueue(uid, 0) == 0) then
 						tmp[#tmp+1] = uid
 					end
 				end
@@ -412,20 +425,23 @@ function widget:Update()
 				lastSelection = nil
 				return
 			end
-			lastSelection = GetSelectedUnits()
-		elseif (lastSelection ~= nil) then
-			SelectUnitArray(lastSelection)
-			lastSelection = nil
-			referenceSelection = nil
-			referenceSelectionTypes = nil
-			referenceCoords = nil
-			minimapRect = nil
+
+			if pressed then
+				lastSelection = true --selectedUnits
+			else
+				lastSelection = nil
+				referenceSelection = nil
+				referenceSelectionTypes = nil
+				referenceCoords = nil
+				minimapRect = nil
+			end
 		else
 			referenceSelection = nil
 			referenceSelectionTypes = nil
 			referenceCoords = nil
 			minimapRect = nil
 		end
+
 	end
 end
 
@@ -471,6 +487,7 @@ function widget:Initialize()
 	WG['smartselect'].setIncludeBuilders = function(value)
 		includeBuilders = value
 	end
+	WG['smartselect'].updateSelection = false
 	init()
 end
 
@@ -483,11 +500,13 @@ local function DrawRectangle(r)
 	glVertex(r[1], 0, r[2])
 end
 
-function widget:DrawWorld()
-	if (minimapRect ~= nil) then
-		glColor(1, 1, 1, 1)
-		glLineWidth(1.0)
-		glDepthTest(false)
-		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)
-	end
-end
+
+
+--function widget:DrawWorld()
+--	if (minimapRect ~= nil) then
+--		glColor(1, 1, 1, 1)
+--		glLineWidth(1.0)
+--		glDepthTest(false)
+--		glBeginEnd(GL_LINE_STRIP, DrawRectangle, minimapRect)	-- drawing coordinates display incorrect
+--	end
+--end

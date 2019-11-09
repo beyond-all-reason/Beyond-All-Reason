@@ -120,37 +120,38 @@ else
 					s_cpu = string.gsub(s_cpu, " CPU", "")
 					s_cpu = string.gsub(s_cpu, "%((.*)%)", "")
 					s_ram = string.match(line, '([0-9]*MB RAM)')
-					s_ram = string.gsub(s_ram, " RAM", "")
+					if s_ram ~= nil then
+						s_ram = string.gsub(s_ram, " RAM", "")
+					end
 				end
 				if (string.find(line:lower(), 'operating system: ')) then
 					s_os = string.sub(line, select(2, string.find(line:lower(), 'operating system: ')))
 				end
 			end
+		end
 
 
-			--if s_os == nil and s_configs_os == nil and string.find(line, 'Operating System:') then
-			--	local charStart = string.find(line, 'Operating System:')
-			--	s_os = string.sub(line, 18 + charStart)
-			--end
+		--if s_os == nil and s_configs_os == nil and string.find(line, 'Operating System:') then
+		--	local charStart = string.find(line, 'Operating System:')
+		--	s_os = string.sub(line, 18 + charStart)
+		--end
 
-			if s_config ~= nil and configEnd == nil and line == '============== </User Config> ==============' then
-				configEnd = true
-			end
-			if  s_config ~= nil and configEnd == nil then
-				s_config = s_config..nl..line
-				nl = '\n'
-			end
-			if s_config == nil and line == '============== <User Config> ==============' then
-				s_config = ''
-				nl = ''
-			end
+		if s_config ~= nil and configEnd == nil and line == '============== </User Config> ==============' then
+			configEnd = true
+		end
+		if  s_config ~= nil and configEnd == nil then
+			s_config = s_config..nl..line
+			nl = '\n'
+		end
+		if s_config == nil and line == '============== <User Config> ==============' then
+			s_config = ''
+			nl = ''
 		end
 
 		if s_os then
 			if string.find(s_os, 'Windows') then	-- simplyfy, also for some privacy (hiding build number)
 				s_os = string.match(s_os, "(Windows [0-9.]*)")
-			end
-			if string.find(s_os, 'Linux') then	-- simplyfy, also for some privacy (hiding build number)
+			elseif string.find(s_os, 'Linux') then	-- simplyfy, also for some privacy (hiding build number)
 				s_os = 'Linux'
 			end
 		end

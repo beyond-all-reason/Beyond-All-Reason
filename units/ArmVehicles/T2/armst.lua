@@ -38,7 +38,7 @@ return {
 		sightdistance = 494,
 		stealth = true,
 		trackstrength = 6,
-		tracktype = "StdTank",
+		tracktype = "armst_tracks",
 		trackwidth = 29,
 		turninplace = true,
 		turninplaceanglelimit = 90,

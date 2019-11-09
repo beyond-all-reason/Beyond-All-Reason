@@ -25,28 +25,86 @@
 
 local options={
 	{
-		key    = 'MaxUnits',
-		name   = 'Max units',
-		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
-		type   = 'number',
-		def    = 10000,
-		min    = 1,
-		max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
-		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
-		section= "bar_options",
+		key="modes",
+		name="Game Modes",
+		desc="Game Modes",
+		type="section",
 	},
 	{
-		key    = "StartingResources",
-		name   = "Starting Resources",
-		desc   = "Sets storage and amount of resources that players will start with",
-		type   = "section",
+		key="deathmode",
+		name="Game End Mode",
+		desc="What it takes to eliminate a team",
+		type="list",
+		def="com",
+		section="modes",
+		items={
+			{key="neverend", name="None", desc="Teams are never eliminated"},
+			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
+			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
+		}
+	},
+	{
+		key    = "ffa_mode",
+		name   = "FFA Mode",
+		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
+		type   = "bool",
+		def    = false,
+		section= "modes",
+	},
+	{
+		key    = 'armageddontime',
+		name   = 'Armageddon time (minutes)',
+		desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
+		type   = 'number',
+		section= 'modes',
+		def    = 0,
+		min    = 0,
+		max    = 120,
+		step   = 1,
+	},
+	--{	-- BAR doesnt have the modelpieces needed for this
+	--	key="unba",
+	--	name="Unbalanced Commanders",
+	--	desc="Defines if commanders level up with xp and gain more power or not",
+	--	type="list",
+	--	def="disabled",
+	--	section="modes",
+	--	items={
+	--		{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
+	--		{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
+	--		{key="exponly", name="ExperienceOnly", desc="Enable Unbalanced Commanders experience to power, health and reload multipliers"},
+	--	}
+	--},
+	{
+		key    = 'coop',
+		name   = 'Cooperative mode',
+		desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
+		type   = 'bool',
+		def    = false,
+		section= 'modes',
+	},
+	{
+		key    = "shareddynamicalliancevictory",
+		name   = "Dynamic Ally Victory",
+		desc   = "Ingame alliance should count for game over condition.",
+		type   = "bool",
+		section= 'modes',
+		def    = false,
+	},
+
+
+	{
+		key="options",
+		name="Options",
+		desc="Options",
+		type="section",
 	},
 	{
 		key    = "startmetal",
 		name   = "Starting metal",
 		desc   = "Determines amount of metal and metal storage that each player will start with",
 		type   = "number",
-		section= "StartingResources",
+		section= "options",
 		def    = 1000,
 		min    = 0,
 		max    = 10000,
@@ -57,40 +115,118 @@ local options={
 		name   = "Starting energy",
 		desc   = "Determines amount of energy and energy storage that each player will start with",
 		type   = "number",
-		section= "StartingResources",
+		section= "options",
 		def    = 1000,
 		min    = 0,
 		max    = 10000,
 		step   = 1,
 	},
 	{
-		key    = 'LimitSpeed',
-		name   = 'Speed Restriction',
-		desc   = 'Limits maximum and minimum speed that the players will be allowed to change to',
+		key    = 'MaxUnits',
+		name   = 'Max units',
+		desc   = 'Maximum number of units (including buildings) for each team allowed at the same time',
+		type   = 'number',
+		def    = 10000,
+		min    = 1,
+		max    = 10000, --- engine caps at lower limit if more than 3 team are ingame
+		step   = 1,  -- quantization is aligned to the def value, (step <= 0) means that there is no quantization
+		section= "options",
+	},
+	{
+		key    = 'ai_incomemultiplier',
+		name   = 'AI Income Multiplier',
+		desc   = 'Multiplies AI resource income',
+		type   = 'number',
+		section= 'options',
+		def    = 1,
+		min    = 1,
+		max    = 10,
+		step   = 0.1,
+	},
+	{
+		key="map_tidal",
+		name="Tidal Strength",
+		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
+		type="list",
+		def="unchanged",
+		section="options",
+		items={
+			{key="unchanged", name="Unchanged", desc="Use map settings"},
+			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
+			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
+			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
+		}
+	},
+	{
+		key="map_terraintype",
+		name="Map TerrainTypes",
+		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
+		type="list",
+		def="enabled",
+		section="options",
+		items={
+			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
+			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
+		}
+	},
+	{
+		key="map_waterlevel",
+		name="Water Level",
+		desc=" <0 = Decrease water level, >0 = Increase water level",
+		type="number",
+		def    = 0,
+		min    = -10000,
+		max    = 10000,
+		step   = 1,
+		section="options",
+	},
+	{
+		key    = 'critters',
+		name   = 'Animal amount',
+		desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
+		type   = 'number',
+		section= 'options',
+		def    = 1,
+		min    = 0,
+		max    = 2,
+		step   = 0.2,
+	},
+	{
+		key    = "newbie_placer",
+		name   = "Newbie Placer",
+		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
+		type   = "bool",
+		def    = false,
+		section= "options",
+	},
+
+
+	{
+		key    = 'restrictions',
+		name   = 'Restrictions',
+		desc   = '',
 		type   = 'section',
+	},
+	{
+		key    = 'MinSpeed',
+		name   = 'Minimum game speed',
+		desc   = 'Sets the minimum speed that the players will be allowed to change to',
+		type   = 'number',
+		section= 'restrictions',
+		def    = 0.3,
+		min    = 0.1,
+		max    = 100,
+		step   = 0.1,
 	},
 	{
 		key    = 'MaxSpeed',
 		name   = 'Maximum game speed',
 		desc   = 'Sets the maximum speed that the players will be allowed to change to',
 		type   = 'number',
-		section= 'LimitSpeed',
+		section= 'restrictions',
 		def    = 5,
 		min    = 0.1,
 		max    = 50,
-		step   = 0.1,
-
-	},
-
-	{
-		key    = 'MinSpeed',
-		name   = 'Minimum game speed',
-		desc   = 'Sets the minimum speed that the players will be allowed to change to',
-		type   = 'number',
-		section= 'LimitSpeed',
-		def    = 0.3,
-		min    = 0.1,
-		max    = 100,
 		step   = 0.1,
 	},
 	{
@@ -99,147 +235,7 @@ local options={
 		desc   = 'Prevents the map shape from being changed by weapons',
 		type   = 'bool',
 		def    = false,
-		section= "bar_options",
-
-	},
-    {
-       key="bar_modes",
-       name="Beyond All Reason - Game Modes",
-       desc="Beyond All Reason - Game Modes",
-       type="section",
-    },
-    {
-       key="bar_options",
-       name="Beyond All Reason - Options",
-       desc="Beyond All Reason - Options",
-       type="section",
-    },
-	{
-        key    = 'ai_incomemultiplier',
-        name   = 'AI Income Multiplier',
-        desc   = 'Multiplies AI resource income',
-        type   = 'number',
-        section= 'bar_options',
-        def    = 1,
-        min    = 1,
-        max    = 10,
-        step   = 0.1,
-    },
-	{
-		key="deathmode",
-		name="Game End Mode",
-		desc="What it takes to eliminate a team",
-		type="list",
-		def="com",
-		section="bar_modes",
-		items={
-			{key="neverend", name="None", desc="Teams are never eliminated"},
-			{key="com", name="Kill all enemy Commanders", desc="When a team has no Commanders left, it loses"},
-			{key="killall", name="Kill everything", desc="Every last unit must be eliminated, no exceptions!"},
-		}
-	},
-    {
-        key    = 'armageddontime',
-        name   = 'Armageddon time (minutes)',
-        desc   = 'At armageddon every immobile unit is destroyed and you fight to the death with what\'s left! (0=off)',
-        type   = 'number',
-        section= 'bar_modes',
-        def    = 0,
-        min    = 0,
-        max    = 120,
-        step   = 1,
-    },
-    {
-		key    = "ffa_mode",
-		name   = "FFA Mode",
-		desc   = "Units with no player control are removed/destroyed \nUse FFA spawning mode",
-		type   = "bool",
-		def    = false,
-		section= "bar_modes",
-    },
-
-	{
-		key="map_terraintype",
-		name="Map TerrainTypes",
-		desc="Allows to cancel the TerrainType movespeed buffs of a map.",
-		type="list",
-		def="enabled",
-		section="bar_options",
-		items={
-			{key="disabled", name="Disabled", desc="Disable TerrainTypes related MoveSpeed Buffs"},
-			{key="enabled", name="Enabled", desc="Enable TerrainTypes related MoveSpeed Buffs"},
-		}
-	},
-	
-	{
-		key="map_waterlevel",
-		name="Water Level",
-		desc=" <0 = Decrease water level, >0 = Increase water level",
-		type="number",
-        def    = 0,
-        min    = -10000,
-        max    = 10000,
-        step   = 1,
-		section="bar_options",
-	},	
-	
-	{
-		key="map_tidal",
-		name="Tidal Strength",
-		desc="Unchanged = map setting, low = 13e/sec, medium = 18e/sec, high = 23e/sec.",
-		type="list",
-		def="unchanged",
-		section="bar_options",
-		items={
-			{key="unchanged", name="Unchanged", desc="Use map settings"},
-			{key="low", name="Low", desc="Set tidal incomes to 13 energy per second"},
-			{key="medium", name="Medium", desc="Set tidal incomes to 18 energy per second"},
-			{key="high", name="High", desc="Set tidal incomes to 23 energy per second"},
-		}
-	},
-
-	--{	-- BAR doesnt have the modelpieces needed for this
-	--	key="unba",
-	--	name="Unbalanced Commanders",
-	--	desc="Defines if commanders level up with xp and gain more power or not",
-	--	type="list",
-	--	def="disabled",
-	--	section="bar_modes",
-	--	items={
-	--		{key="disabled", name="Disabled", desc="Disable Unbalanced Commanders"},
-	--		{key="enabled", name="Enabled", desc="Enable Unbalanced Commanders"},
-	--		{key="exponly", name="ExperienceOnly", desc="Enable Unbalanced Commanders experience to power, health and reload multipliers"},
-	--	}
-	--},
-	
-    {
-        key    = 'coop',
-        name   = 'Cooperative mode',
-        desc   = 'Adds extra commanders to id-sharing teams, 1 com per player',
-        type   = 'bool',
-        def    = false,
-        section= 'bar_modes',
-    },
-    {
-      key    = "shareddynamicalliancevictory",
-      name   = "Dynamic Ally Victory",
-      desc   = "Ingame alliance should count for game over condition.",
-      type   = "bool",
-	  section= 'bar_modes',
-      def    = false,
-    },
-	
-    {
-		key="transportenemy",
-		name="Enemy Transporting",
-		desc="Toggle which enemy units you can kidnap with an air transport",
-		type="list",
-		def="notcoms",
-		section="bar_options",
-		items={
-			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
-			{key="none", name="Disallow All", desc="No enemy units can be napped"},
-		}
+		section= "restrictions",
 	},
 	{
 		key    = "allowuserwidgets",
@@ -247,7 +243,7 @@ local options={
 		desc   = "Allow custom user widgets or disallow them",
 		type   = "bool",
 		def    = true,
-		section= 'bar_others',
+		section= 'restrictions',
 	},
 	{
 		key    = "allowmapmutators",
@@ -255,62 +251,31 @@ local options={
 		desc   = "Allows maps to overwrite files from the game",
 		type   = "bool",
 		def    = true,
-		section= 'bar_others',
+		section= 'restrictions',
 	},
-    {
-        key    = 'FixedAllies',
-        name   = 'Fixed ingame alliances',
-        desc   = 'Disables the possibility of players to dynamically change alliances ingame',
-        type   = 'bool',
-        def    = true,
-        section= "bar_others",
-    },
-    {
-		key    = "newbie_placer",
-		name   = "Newbie Placer",
-		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
-		type   = "bool",
-		def    = false,
-		section= "bar_options",
-    },
-    {
-        key    = 'critters',
-        name   = 'How many cute amimals? (0 is disabled)',
-        desc   = 'This multiplier will be applied on the amount of critters a map will end up with',
-        type   = 'number',
-        section= 'bar_others',
-        def    = 0.6,
-        min    = 0,
-        max    = 2,
-        step   = 0.2,
-    },
-	
-    {
-       key="bar_enhancements_misc",
-       name="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
-       desc="Beyond All Reason - Gameplay Enhancements: Miscellaneous",
-       type="section",
-    },
+	{
+		key    = 'FixedAllies',
+		name   = 'Fixed ingame alliances',
+		desc   = 'Disables the possibility of players to dynamically change alliances ingame',
+		type   = 'bool',
+		def    = true,
+		section= "restrictions",
+	},
+	{
+		key="transportenemy",
+		name="Enemy Transporting",
+		desc="Toggle which enemy units you can kidnap with an air transport",
+		type="list",
+		def="notcoms",
+		section="restrictions",
+		items={
+			{key="notcoms", name="All But Commanders", desc="Only commanders are immune to napping"},
+			{key="none", name="Disallow All", desc="No enemy units can be napped"},
+		}
+	},
 
-	{
-		key    = 'comm_wreck_metal',
-		name   = 'Commander Wreck Metal',
-		desc   = 'Sets the amount of metal left by a destroyed Commander.',
-		type   = 'number',
-		section= 'bar_enhancements_misc',
-		def    = 2500,
-		min    = 0,
-		max    = 5000,
-		step   = 1,
-	},
-	{
-		key = 'globallos',
-		name = 'Full visibility',
-		desc = 'No fog of war, everyone can see the entire map.',
-		type = 'bool',
-		section = 'bar_enhancements_misc',
-		def = false,
-	},
+
+
 -- Chicken Defense Options
 	{
 		key    = 'chicken_defense_options',
@@ -393,8 +358,8 @@ local options={
 
 -- Chicken Defense Custom Difficulty Settings
 	{
-		key    = 'chicken_defense_custom_difficulty_settings',
-		name   = 'Chicken Defense Custom Difficulty Settings',
+		key    = 'chicken_defense_custom_settings',
+		name   = 'Chicken Defense Custom Settings',
 		desc   = 'Use these settings to adjust the difficulty of Chicken Defense',
 		type   = 'section',
 	},
@@ -407,7 +372,7 @@ local options={
 		min    = 1,
 		max    = 600,
 		step   = 1,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "chicken_custom_chickenspawn",
@@ -418,7 +383,7 @@ local options={
 		min    = 10,
 		max    = 600,
 		step   = 1,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "chicken_custom_minchicken",
@@ -429,18 +394,18 @@ local options={
 		min    = 1,
 		max    = 250,
 		step   = 1,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "chicken_custom_spawnchance",
 		name   = "Spawn Chance (Percent)",
-		desc   = "Percent chance of each chicken spawn once greater thwn the min chickens per player limit",
+		desc   = "Percent chance of each chicken spawn once greater than the min chickens per player limit",
 		type   = "number",
 		def    = 33,
 		min    = 0,
 		max    = 100,
 		step   = 1,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "chicken_custom_angerbonus",
@@ -451,7 +416,7 @@ local options={
 		min    = 0,
 		max    = 100,
 		step   = 0.01,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "chicken_custom_queenspawnmult",
@@ -462,7 +427,7 @@ local options={
 		min    = 0,
 		max    = 5,
 		step   = 1,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "custom_expstep",
@@ -473,7 +438,7 @@ local options={
 		min    = 0,
 		max    = 2.5,
 		step   = 0.1,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "chicken_custom_lobberemp",
@@ -484,7 +449,7 @@ local options={
 		min    = 0,
 		max    = 30,
 		step   = 0.5,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 	{
 		key    = "chicken_custom_damagemod",
@@ -495,7 +460,7 @@ local options={
 		min    = 5,
 		max    = 250,
 		step   = 1,
-		section= "chicken_defense_custom_difficulty_settings",
+		section= "chicken_defense_custom_settings",
 	},
 -- End Chicken Defense Settings
 }

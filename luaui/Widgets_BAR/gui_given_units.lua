@@ -109,12 +109,12 @@ local sec = 0
 local prevCam = {spGetCameraDirection()}
 function widget:Update(dt)
 	sec = sec + dt
-	if sec > 0.15 then
+	if sec > 0.25 then
 		sec = 0
-
-		if commandsChangedCheck then
-			commandsChangedCheck = nil
-			for uDID,unit in pairs(Spring.GetSelectedUnitsSorted()) do
+		if selectionChanged then
+			selectionChanged = nil
+			local selectedUnitsCount = Spring.GetSelectedUnitsSorted()
+			for uDID,unit in pairs(selectedUnitsCount) do
 				if uDID ~= 'n' then --'n' returns table size
 					for i=1,#unit do
 						local unitID = unit[i]
@@ -145,7 +145,14 @@ end
 
 
 -- draw icons
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	local osClock = os.clock()
 	--local gameSecs = Spring.GetGameSeconds()
@@ -193,11 +200,7 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 
--- remove icons when the given units are selected
-function widget:CommandsChanged()
-	
-	if spGetSelectedUnitsCount() > 0 then
-		commandsChangedCheck = true
-	end
+function widget:SelectionChanged(sel)
+	selectionChanged = true
 end
 

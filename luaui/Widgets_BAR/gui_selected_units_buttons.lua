@@ -29,12 +29,12 @@ end
 
 -- Automatically generated local definitions
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 
@@ -60,6 +60,7 @@ local spGetModKeyState         = Spring.GetModKeyState
 local spGetMouseState          = Spring.GetMouseState
 local spGetMyTeamID            = Spring.GetMyTeamID
 local spGetSelectedUnits       = Spring.GetSelectedUnits
+local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 local spGetSelectedUnitsCounts = Spring.GetSelectedUnitsCounts
 local spGetSelectedUnitsSorted = Spring.GetSelectedUnitsSorted
 local spGetTeamUnitsSorted     = Spring.GetTeamUnitsSorted
@@ -67,7 +68,6 @@ local spSelectUnitArray        = Spring.SelectUnitArray
 local spSelectUnitMap          = Spring.SelectUnitMap
 local spSendCommands           = Spring.SendCommands
 local spIsGUIHidden            = Spring.IsGUIHidden
-local spGetSelectedUnitsCount  = Spring.GetSelectedUnitsCount
 
 
 -------------------------------------------------------------------------------
@@ -104,6 +104,9 @@ local rectMinX = 0
 local rectMaxX = 0
 local rectMinY = 0
 local rectMaxY = 0
+
+local prevMouseIcon
+local hoverClock = nil
 
 local backgroundDimentions = {}
 local iconMargin = usedIconSizeX / 25		-- changed in ViewResize anyway
@@ -144,6 +147,18 @@ local function updateGuishader()
 	end
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+local selectedUnitsCounts = Spring.GetSelectedUnitsCounts()
+local selectionChanged = true
+function widget:SelectionChanged(sel)
+  selectedUnits = sel
+  selectedUnitsCount = Spring.GetSelectedUnitsCount()
+  selectedUnitsCounts = Spring.GetSelectedUnitsCounts()
+  selectionChanged = true
+end
+
+
 local vsx, vsy = widgetHandler:GetViewSizes()
 function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
@@ -161,7 +176,6 @@ function widget:ViewResize(n_vsx,n_vsy)
   iconMargin = usedIconSizeX / 25
   
   if picList then
-    unitCounts = spGetSelectedUnitsCounts()
     gl.DeleteList(picList)
 	picList = gl.CreateList(DrawPicList)
   end
@@ -180,19 +194,25 @@ function cacheUnitIcons()
     end
 end
 
-local prevMouseIcon
-local hoverClock = nil
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 function widget:DrawScreen()
+  if chobbyInterface then return end
   cacheUnitIcons()    -- else white icon bug happens
   if picList then
     if (spIsGUIHidden()) then return end
+
     if mouseIcon ~= prevMouseIcon then
-      unitCounts = spGetSelectedUnitsCounts()
       gl.DeleteList(picList)
       picList = gl.CreateList(DrawPicList)
       prevMouseIcon = mouseIcon
     end
     gl.CallList(picList)
+
     -- draw the highlights
     local x,y,lb,mb,rb = spGetMouseState()
     mouseIcon = MouseOverIcon(x, y)
@@ -213,12 +233,14 @@ function widget:DrawScreen()
       if WG['tooltip'] ~= nil and mouseIcon then
         local unitName = ' --- '
         local i = 0
-        for udid,count in pairs(unitCounts) do
-          if i == mouseIcon then
-            unitName = UnitDefs[udid].humanName
-            break
+        for udid,count in pairs(selectedUnitsCounts) do
+          if type(udid) == 'number' then
+            if i == mouseIcon then
+              unitName = UnitDefs[udid].humanName
+              break
+            end
+            i = i + 1
           end
-          i = i + 1
         end
         WG['tooltip'].ShowTooltip('selectedunitbuttons_unit', "\255\215\255\215"..unitName, x, backgroundDimentions[4]+(usedIconSizeY*0.37))
       end
@@ -233,21 +255,6 @@ function widget:DrawScreen()
   end
 end
 
-function widget:CommandsChanged()
-  if spGetSelectedUnitsCount() > 0 then
-    checkSelectedUnits = true
-    --updateDlist = true
-  elseif picList then
-    gl.DeleteList(picList)
-    picList = nil
-    checkSelectedUnits = nil
-  end
-  if not picList and not guishaderDisabled then
-    updateGuishader()
-  end
-  sec = 0
-end
-
 function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
   if unitCounts ~= nil and unitCounts[unitDefID] ~= nil then
     if unitCounts[unitDefID] > 1 then
@@ -260,10 +267,9 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
   end
 end
 
-local sec = 0
-local uiOpacitySec = 0.5
+local uiOpacitySec = 0
+local selChangedSec = 0
 function widget:Update(dt)
-
   uiOpacitySec = uiOpacitySec + dt
   if uiOpacitySec>0.5 then
     uiOpacitySec = 0
@@ -274,38 +280,17 @@ function widget:Update(dt)
     end
   end
 
-  sec = sec + dt
-  if (checkSelectedUnits and sec>0.09) then
-    sec = 0
-    if not skipGetUnitCounts then
-      unitCounts = spGetSelectedUnitsCounts()
-      local equal = true
-      if unitCounts.n ~= prevUnitCount.n then
-        equal = false
-      else
-        for udid,count in pairs(unitCounts) do
-          if not prevUnitCount[udid] or prevUnitCount[udid] ~= count then
-            equal = false
-            break
-          end
-        end
-      end
-      skipGetUnitCounts = nil
-    else
-      equal = false
-    end
-    if not equal and spGetSelectedUnitsCount() > 0 then
-      updateDlist = true
-    end
-  end
-  if updateDlist then
-    sec = 0
-    checkSelectedUnits = nil
-    updateDlist = nil
+  selChangedSec = selChangedSec + dt
+  if selectionChanged and selChangedSec>0.1 then
+    selChangedSec = 0
+    selectionChanged = nil
     if picList then
       gl.DeleteList(picList)
+      picList = nil
     end
-    picList = gl.CreateList(DrawPicList)
+    if selectedUnitsCount > 0 then
+      picList = gl.CreateList(DrawPicList)
+    end
     updateGuishader()
   end
 end
@@ -325,6 +310,7 @@ end
 function widget:Shutdown()
   if picList then
     gl.DeleteList(picList)
+    picList = nil
   end
   gl.DeleteFont(font)
   WG['selunitbuttons'] = nil
@@ -334,11 +320,10 @@ end
 
 local startFromIcon = 0
 function DrawPicList()
+  if selectedUnitsCount == 0 then return end
   --Spring.Echo(Spring.GetGameFrame()..'  '..math.random())
-  prevUnitCount = unitCounts
-  unitCounts = spGetSelectedUnitsCounts()
 
-  unitTypes = unitCounts.n;
+  unitTypes = selectedUnitsCounts.n;
   displayedUnitTypes = unitTypes
   if displayedUnitTypes > iconsPerRow then
     displayedUnitTypes = iconsPerRow
@@ -397,20 +382,21 @@ function DrawPicList()
   end
 
   -- draw the buildpics
-  unitCounts.n = nil 
   local row = 0
   local icon = 0
   local displayedIcon = 0
-  for udid,count in pairs(unitCounts) do
-    if icon >= startFromIcon then
-      --if icon % iconsPerRow == 0 then
-      --	row = row + 1
-      --end
-      DrawUnitDefTexture(udid, icon, count, row)
-      displayedIcon = displayedIcon + 1
-      if displayedIcon >= iconsPerRow then break end
+  for udid,count in pairs(selectedUnitsCounts) do
+    if type(udid) == 'number' then
+      if icon >= startFromIcon then
+        --if icon % iconsPerRow == 0 then
+        --	row = row + 1
+        --end
+        DrawUnitDefTexture(udid, icon, count, row)
+        displayedIcon = displayedIcon + 1
+        if displayedIcon >= iconsPerRow then break end
+      end
+      icon = icon + 1
     end
-    icon = icon + 1
   end
 end
 
@@ -589,6 +575,7 @@ end
 
 
 function widget:MouseRelease(x, y, button)
+    if WG['smartselect'] and not WG['smartselect'].updateSelection then return end
   if (not activePress) then
     return -1
   end
@@ -615,9 +602,9 @@ function widget:MouseRelease(x, y, button)
   if (unitTable == nil) then
     return -1
   end
-  
+
   local alt, ctrl, meta, shift = spGetModKeyState()
-  
+
   if (button == 1) then
     LeftMouseButton(unitDefID, unitTable)
   elseif (button == 2) then

@@ -180,7 +180,7 @@ function widget:Initialize()
     widget:PlayerChanged()
   end
 
-  local _, _, _, teamID = GetPlayerInfo(Spring.GetMyPlayerID())
+  local _, _, _, teamID = GetPlayerInfo(Spring.GetMyPlayerID(),false)
   myTeamID = teamID
   widgetHandler:RegisterGlobal('taiEmbark', taiEmbark)
 
@@ -461,8 +461,10 @@ function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     GiveOrderToUnit(unitID, x[1], x[2], x[3])
   end
   storedQueue[unitID] = nil
-  local queue = GetCommandQueue(unitID,2)
-  if (queue and queue[1] and queue[1].id == CMD.WAIT) then GiveOrderToUnit(unitID, CMD.WAIT, {}, {}) end -- workaround: clears wait order if STOP fails to do so
+  local cmdID = Spring.GetUnitCurrentCommand(unitID, 1) --GetCommandQueue(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
+  if (cmdID and cmdID == CMD.WAIT) then
+    GiveOrderToUnit(unitID, CMD.WAIT, {}, {})  -- workaround: clears wait order if STOP fails to do so
+  end
 end
 
 

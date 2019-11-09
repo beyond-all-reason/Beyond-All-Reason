@@ -15,8 +15,17 @@ if (not gadgetHandler:IsSyncedCode()) then
 
 	local unitScalesUnaffected = true		-- exclude units defined in unitScales from additional scalings
 	local unitScales = {
-		--[UnitDefNames['armcom'].id] = 1,
-		--[UnitDefNames['corcom'].id] = 1,
+		[UnitDefNames['armcom'].id] = 0.9,
+		[UnitDefNames['corcom'].id] = 0.9,
+		[UnitDefNames['armpw'].id] = 0.9,
+		[UnitDefNames['armjeth'].id] = 0.95,
+		[UnitDefNames['armrectr'].id] = 0.95,
+		[UnitDefNames['armck'].id] = 0.97,
+		[UnitDefNames['armham'].id] = 0.97,
+		[UnitDefNames['armwar'].id] = 1.02,
+		[UnitDefNames['armrock'].id] = 1.04,
+		
+
 	}
 	local scales = {
 		--global = 1,

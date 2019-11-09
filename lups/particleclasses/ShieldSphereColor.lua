@@ -13,11 +13,13 @@ ShieldSphereColorParticle.__index = ShieldSphereColorParticle
 local geometryLists = {}
 
 local renderBuckets
+local canOutline
 local haveTerrainOutline
 local haveUnitsOutline
 
 local LuaShader = VFS.Include("LuaRules/Gadgets/Include/LuaShader.lua")
 local shieldShader
+local checkStunned = true
 
 -----------------------------------------------------------------
 -- Constants
@@ -72,10 +74,16 @@ function ShieldSphereColorParticle:BeginDraw()
 	renderBuckets = {}
 	haveTerrainOutline = false
 	haveUnitsOutline = false
+	canOutline = LuaShader.isDeferredShadingEnabled and LuaShader.GetAdvShadingActive()
 end
 
 function ShieldSphereColorParticle:Draw()
-
+    if checkStunned then
+        self.stunned = Spring.GetUnitIsStunned(self.unit)
+    end
+    if self.stunned then --or Spring.IsUnitIcon(self.unit) then
+        return
+    end
 	local radius = self.radius
 	if not renderBuckets[radius] then
 		renderBuckets[radius] = {}
@@ -83,8 +91,8 @@ function ShieldSphereColorParticle:Draw()
 
 	table.insert(renderBuckets[radius], self)
 
-	haveTerrainOutline = haveTerrainOutline or self.terrainOutline
-	haveUnitsOutline = haveUnitsOutline or self.unitsOutline
+	haveTerrainOutline = haveTerrainOutline or (self.terrainOutline and canOutline)
+	haveUnitsOutline = haveUnitsOutline or (self.unitsOutline and canOutline)
 end
 
 -- Lua limitations only allow to send 24 bits. Should be enough :)
@@ -125,8 +133,8 @@ function ShieldSphereColorParticle:EndDraw()
 				shieldShader:SetUniformFloat("rotMargin", pitch, yaw, roll, info.margin)
 
 				local optionX = 0 -- bitmask field
-				optionX = EncodeBitmaskField(optionX, info.terrainOutline, 1)
-				optionX = EncodeBitmaskField(optionX, info.unitsOutline, 2)
+				optionX = EncodeBitmaskField(optionX, info.terrainOutline and canOutline, 1)
+				optionX = EncodeBitmaskField(optionX, info.unitsOutline and canOutline, 2)
 				optionX = EncodeBitmaskField(optionX, info.impactAnimation, 3)
 				optionX = EncodeBitmaskField(optionX, info.impactChrommaticAberrations, 4)
 				optionX = EncodeBitmaskField(optionX, info.impactHexSwirl, 5)
@@ -226,7 +234,15 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
-function ShieldSphereColorParticle:Update()
+local time = 0
+function ShieldSphereColorParticle:Update(n)
+    time = time + n
+    if time > 40 then
+        checkStunned = true
+        time = 0
+    else
+        checkStunned = false
+    end
 end
 
 -- used if repeatEffect=true;

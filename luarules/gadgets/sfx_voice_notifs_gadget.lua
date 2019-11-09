@@ -15,20 +15,17 @@ end
 
 
 function GetAllyTeamID(teamID)
-	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
-	return allyTeamID
+	return select(6,Spring.GetTeamInfo(teamID,false))
 end
 
 function GetPlayerTeamID(playerID)
-	local _,_,_,_,allyTeam = Spring.GetPlayerInfo(id)
-	return allyTeam
+	return select(5,Spring.GetPlayerInfo(playerID,false))
 end
 
 function AllPlayers()
 	local players = Spring.GetPlayerList()
 	for ct, id in pairs(players) do
-		local _,_,spectate = Spring.GetPlayerInfo(id)
-		if spectate == true then players[ct] = nil end
+		if select(3,Spring.GetPlayerInfo(id,false)) then players[ct] = nil end
 	end
 	return players
 end
@@ -41,8 +38,7 @@ end
 function PlayersInAllyTeamID(allyTeamID)
 	local players = AllPlayers()
 	for ct, id in pairs(players) do
-		local _,_,_,_,allyTeam = Spring.GetPlayerInfo(id)
-		if allyTeam ~= allyTeamID then players[ct] = nil end
+		if select(5,Spring.GetPlayerInfo(id,false)) ~= allyTeamID then players[ct] = nil end
 	end
 	return players
 end
@@ -50,8 +46,7 @@ end
 function AllButAllyTeamID(allyTeamID)
 	local players = AllPlayers()
 	for ct, id in pairs(players) do
-		local _,_,_,_,allyTeam = Spring.GetPlayerInfo(id)
-		if allyTeam == allyTeamID then players[ct] = nil end
+		if select(5,Spring.GetPlayerInfo(id,false)) == allyTeamID then players[ct] = nil end
 	end
 	return players
 end

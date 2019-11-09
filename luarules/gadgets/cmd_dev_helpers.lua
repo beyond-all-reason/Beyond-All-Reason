@@ -239,7 +239,7 @@ else
         end
 
         -- team
-        local _,_,_,teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+        local _,_,_,teamID = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
         if string.match(line, ' ([0-9].*)') then
             teamID = string.match(line, ' ([0-9].*)')
         end

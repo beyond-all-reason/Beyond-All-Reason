@@ -602,14 +602,6 @@ end
 --callins
 --------------------------------------------------------------------------------
 
-function widget:MousePress()
-  UpdateSelection()
-end
-
-function widget:KeyPress()
-  UpdateSelection()
-end
-
 function widget:Initialize()
   for unitDefID, unitDef in pairs(UnitDefs) do
     SetupUnitDef(unitDefID, unitDef)
@@ -621,7 +613,14 @@ function widget:Shutdown()
   DeleteDisplayLists()
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
  
   if not hasSelection then return end
   local _, cmd, _ = GetActiveCommand()
@@ -674,9 +673,8 @@ function widget:DrawWorld()
   local weaponType = info.type
 
   if (weaponType == "ballistic") then
-    local states = GetUnitStates(aoeUnitID)
-    local trajectory
-    if (states and states.trajectory) then
+    local trajectory = select(7,Spring.GetUnitStates(aoeUnitID,false,true))
+    if trajectory then
       trajectory = 1
     else
       trajectory = -1
@@ -704,12 +702,18 @@ function widget:DrawWorld()
 end
 
 function widget:SelectionChanged(sel)
-  UpdateSelection()
-  widgetHandler:RemoveCallIn("MousePress")
-  widgetHandler:RemoveCallIn("KeyPress")
+  selectionChanged = true
 end
 
+local selChangedSec = 0
 function widget:Update(dt)
   secondPart = secondPart + dt
   secondPart = secondPart - floor(secondPart)
+
+  selChangedSec = selChangedSec + dt
+  if selectionChanged and selChangedSec>0.15 then
+    selChangedSec = 0
+    selectionChanged = nil
+    UpdateSelection()
+  end
 end

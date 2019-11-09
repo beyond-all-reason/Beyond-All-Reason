@@ -69,7 +69,14 @@ function widget:Shutdown()
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
     local _, cmdID = Spring.GetActiveCommand()
 	if spGetMapDrawMode() == 'metal' or cmdID == -am_geo or cmdID == -arm_geo or cmdID == -cm_geo
 	or cmdID == -corbhmth_geo or cmdID == -cor_geo or cmdID == -arm_gmm then

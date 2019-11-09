@@ -44,14 +44,17 @@ end
 -- enable simple version by default though
 local drawGroundQuads = true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
 local fontfileOutlineSize = 10
-local fontfileOutlineStrength = 10
+local fontfileOutlineStrength = 1.7
+local fontfileOutlineStrength2 = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.5)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength2)
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -63,14 +66,13 @@ local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
 local infotext = "Pick a startspot within the green area, and click the Ready button. (F4 shows metal spots)"
-local infotextFontsize = 20
-local infotextWidth = font:GetTextWidth(infotext) * infotextFontsize
+local infotextFontsize = 13
 
 local comnameList = {}
 local drawShadow = fontShadow
 local usedFontSize = fontSize
 
-local vsx,vsy = Spring.GetViewGeometry()
+local widgetScale = (1 + (vsx*vsy / 5500000))
 
 local gl = gl  --  use a local copy for faster access
 
@@ -89,7 +91,7 @@ local gaiaAllyTeamID
 
 local startTimer = Spring.GetTimer()
 
-local texName = 'LuaUI/Images/highlight_strip.png'
+local texName = LUAUI_DIRNAME .. 'Images/highlight_strip.png'
 local texScale = 512
 
 
@@ -193,17 +195,19 @@ local function createComnameList(x, y, name, teamID, color)
 			  shadowFont:End()
 			  glTranslate(0, (usedFontSize/44), 0)
 			end
-			font:SetTextColor(outlineColor)
-			font:SetOutlineColor(outlineColor)
+            font2:Begin()
+			font2:SetTextColor(outlineColor)
+			font2:SetOutlineColor(outlineColor)
 			
-			font:Print(name, x-(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
-			font:Print(name, x+(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+			font2:Print(name, x-(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+			font2:Print(name, x+(usedFontSize/38), y-(usedFontSize/33), usedFontSize, "con")
+            font2:End()
 		end
-		font:Begin()
-		font:SetTextColor(color)
-		font:SetOutlineColor(outlineColor)
-		font:Print(name, x, y, usedFontSize, "con")
-		font:End()
+		font2:Begin()
+		font2:SetTextColor(color)
+		font2:SetOutlineColor(outlineColor)
+		font2:Print(name, x, y, usedFontSize, "con")
+		font2:End()
 	end)
 end
 
@@ -218,6 +222,19 @@ local function DrawName(x, y, name, teamID, color)
 	glCallList(comnameList[teamID]['list'])
 end
 
+
+function createInfotextList()
+  if infotextList then
+    gl.DeleteList(infotextList)
+  end
+  infotextList = gl.CreateList(function()
+    font:Begin()
+    font:SetTextColor(0.75,0.75,0.75,1)
+    font:Print(infotext, 0,0, infotextFontsize*widgetScale, "cno")
+    font:End()
+  end)
+end
+
 function widget:Initialize()
   -- only show at the beginning
   if (Spring.GetGameFrame() > 1) then
@@ -225,18 +242,12 @@ function widget:Initialize()
     return
   end
 
-  infotextList = gl.CreateList(function()
-    font:Begin()
-    font:SetTextColor(1,1,1,0.5)
-    font:Print(infotext, 0,0, infotextFontsize, "cno")
-    font:End()
-  end)
+  createInfotextList()
   
   -- get the gaia teamID and allyTeamID
   gaiaTeamID = Spring.GetGaiaTeamID()
   if (gaiaTeamID) then
-    local _,_,_,_,_,atid = Spring.GetTeamInfo(gaiaTeamID)
-    gaiaAllyTeamID = atid
+    gaiaAllyTeamID = select(6,Spring.GetTeamInfo(gaiaTeamID,false))
   end
 
   -- flip and scale  (using x & y for gl.Rect())
@@ -312,25 +323,29 @@ function widget:Initialize()
 end
 
 
-
-function widget:Shutdown()
+function removeLists()
   gl.DeleteList(infotextList)
   gl.DeleteList(xformList)
   gl.DeleteList(coneList)
   gl.DeleteList(startboxDListStencil)
   gl.DeleteList(startboxDListColor)
-  gl.DeleteFont(font)
   removeTeamLists()
+end
+
+function widget:Shutdown()
+  removeLists()
+  gl.DeleteFont(font)
+  gl.DeleteFont(shadowFont)
 end
 
 
 function removeTeamLists()
   for _, teamID in ipairs(Spring.GetTeamList()) do
     if comnameList[teamID] ~= nil then
-      gl.DeleteList(comnameList[teamID]['list'])
-      comnameList[teamID] = nil
+      gl.DeleteList(comnameList[teamID].list)
     end
   end
+  comnameList = {}
 end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -424,8 +439,7 @@ function widget:DrawWorld()
 
   -- show the team start positions
   for _, teamID in ipairs(Spring.GetTeamList()) do
-    local _,leader = Spring.GetTeamInfo(teamID)
-    local _,_,spec = Spring.GetPlayerInfo(leader)
+    local _,_,spec = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(teamID,false)),false)
     if ((not spec) and (teamID ~= gaiaTeamID)) then
       local x, y, z = Spring.GetTeamStartPosition(teamID)
 	  local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
@@ -451,8 +465,7 @@ function widget:DrawScreenEffects()
   -- show the names over the team start positions
   --gl.Fog(false)
   for _, teamID in ipairs(Spring.GetTeamList()) do
-    local _,leader = Spring.GetTeamInfo(teamID)
-    local name,_,spec = Spring.GetPlayerInfo(leader)
+    local name,_,spec = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(teamID,false)),false)
 	local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
     if (name ~= nil) and ((not spec) and (teamID ~= gaiaTeamID)) and not isNewbie then
       local colorStr, outlineStr = GetTeamColorStr(teamID)
@@ -471,8 +484,16 @@ function widget:DrawScreenEffects()
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+  if msg:sub(1,18) == 'LobbyOverlayActive' then
+    chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+  end
+end
+
 function widget:DrawScreen()
-	if not isSpec then
+  if chobbyInterface then return end
+
+  if not isSpec then
 		gl.PushMatrix()
 			gl.Translate(vsx/2, vsy/6.2, 0)
 			gl.Scale(1*widgetScale, 1*widgetScale, 1)
@@ -498,8 +519,7 @@ function widget:DrawInMiniMap(sx, sz)
   local gaiaAllyTeamID
   local gaiaTeamID = Spring.GetGaiaTeamID()
   if (gaiaTeamID) then
-    local _,_,_,_,_,atid = Spring.GetTeamInfo(gaiaTeamID)
-    gaiaAllyTeamID = atid
+    gaiaAllyTeamID = select(6,Spring.GetTeamInfo(gaiaTeamID,false))
   end
 
   -- show all start boxes
@@ -529,8 +549,7 @@ function widget:DrawInMiniMap(sx, sz)
 
   -- show the team start positions
   for _, teamID in ipairs(Spring.GetTeamList()) do
-    local _,leader = Spring.GetTeamInfo(teamID)
-    local _,_,spec = Spring.GetPlayerInfo(leader)
+    local _,_,spec = Spring.GetPlayerInfo(select(2,Spring.GetTeamInfo(teamID,false)),false)
     if ((not spec) and (teamID ~= gaiaTeamID)) then
       local x, y, z = Spring.GetTeamStartPosition(teamID)
 	  local isNewbie = (Spring.GetTeamRulesParam(teamID, 'isNewbie') == 1) -- =1 means the startpoint will be replaced and chosen by initial_spawn
@@ -560,13 +579,16 @@ function widget:ViewResize(x, y)
   vsx,vsy = x,y
   widgetScale = (0.75 + (vsx*vsy / 7500000))
   removeTeamLists()
-
+  usedFontSize = fontSize * widgetScale
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
     gl.DeleteFont(font)
+    gl.DeleteFont(shadowFont)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+    font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength2)
     shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+    createInfotextList()
   end
 end
 
@@ -586,7 +608,7 @@ function widget:Update(dt)
     if resetsec > 1 then
       groundHeightPoint = Spring.GetGroundHeight(0,0)
       resetted = true
-      widget:Shutdown()
+      removeLists()
       widget:Initialize()
     end
   end

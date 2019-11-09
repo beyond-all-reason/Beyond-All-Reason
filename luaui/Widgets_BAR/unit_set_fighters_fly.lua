@@ -62,7 +62,7 @@ function widget:Initialize()
     if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
         widget:PlayerChanged()
     end
-    local _, _, _, teamId = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+    local teamId = select(4,Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false))
     for _, unitID in ipairs(spGetTeamUnits(teamId)) do  -- init existing labs
         switchToFlyMode(unitID, spGetUnitDefID(unitID))
     end

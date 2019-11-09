@@ -30,7 +30,7 @@ return {
 		maxvelocity = 1.376,
 		metalstorage = 100,
 		minwaterdepth = 15,
-		movementclass = "DBOAT68X8",
+		movementclass = "BOAT8",
 		name = "Black Hydra",
 		objectname = "Units/CORBLACKHY.s3o",
 		pushresistant = true,

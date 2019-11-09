@@ -199,7 +199,14 @@ function widget:UnitLeftLos(unitID, unitDefID, unitTeam)
     end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
     local _, specFullView, _ = spGetSpectatingState()
 
     if not specFullView then
@@ -272,9 +279,7 @@ function widget:Initialize()
 end
 
 function detectSpectatorView()
-    local _, _, spec, teamId = spGetPlayerInfo(spGetMyPlayerID())
-
-    if spec then
+    if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) then
         spectatorMode = true
     end
 

@@ -37,6 +37,7 @@ local NON_POWER_OF_TWO = gl.HasExtension("GL_ARB_texture_non_power_of_two")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local renderDlists = {}
+local deleteDlistQueue = {}
 local blurShader
 local screencopy
 local blurtex
@@ -206,6 +207,7 @@ local function CheckHardware()
   return true
 end
 
+
 function widget:Initialize()
   if (not CheckHardware()) then return false end
   
@@ -231,10 +233,8 @@ function widget:Initialize()
       local found = false
       if guishaderDlists[name] ~= nil then
           found = true
+          deleteDlistQueue[name] = guishaderDlists[name]
       end
-      gl.DeleteList(guishaderDlists[name])
-      guishaderDlists[name] = nil
-      updateStencilTexture = true
       return found
   end
   WG['guishader'].InsertRect = function(left,top,right,bottom,name)
@@ -267,10 +267,8 @@ function widget:Initialize()
       local found = false
       if guishaderScreenDlists[name] ~= nil then
           found = true
+          deleteDlistQueue[name] = guishaderScreenDlists[name]
       end
-      gl.DeleteList(guishaderScreenDlists[name])
-      guishaderScreenDlists[name] = nil
-      updateStencilTextureScreen = true
       return found
   end
   WG['guishader'].InsertScreenRect = function(left,top,right,bottom,name)
@@ -298,6 +296,7 @@ function widget:Initialize()
   end
 
   WG['guishader'].setScreenBlur = function(value)
+    updateStencilTextureScreen = true
   	screenBlur = value
   end
   WG['guishader'].getScreenBlur = function(value)
@@ -348,7 +347,7 @@ function CreateShaders()
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j) {
                     vec2 samplingCoords = texCoord + vec2(i, j) * intensity;
-                    float samplingCoordsOk = float( all( greaterThanEqual(samplingCoords, vec2(0.0)) && lessThanEqual(samplingCoords, vec2(1.0)) ) );
+                    float samplingCoordsOk = float( all( greaterThanEqual(samplingCoords, vec2(0.0)) ) && all( lessThanEqual(samplingCoords, vec2(1.0)) ) );
                     gl_FragColor.rgb += texture2D(tex0, samplingCoords).rgb * samplingCoordsOk;
                     sum += samplingCoordsOk;
             }
@@ -428,7 +427,7 @@ end
 function widget:DrawScreenEffectsBlur()
   if Spring.IsGUIHidden() then return end
 
-  if not screenBlur then
+  if not screenBlur and blurShader then
 	  if not next(guishaderRects) and not next(guishaderDlists) then return end
 
 	  gl.Texture(false)
@@ -446,13 +445,13 @@ function widget:DrawScreenEffectsBlur()
 
       gl.UseShader(blurShader)
       gl.Uniform(intensityLoc, blurIntensity)
-      gl.Texture(2,stenciltex)
-      gl.Texture(2,false)
 
+      gl.Texture(2,stenciltex)
       gl.Texture(blurtex)
       gl.RenderToTexture(blurtex2, gl.TexRect, -1,1,1,-1)
       gl.Texture(blurtex2)
       gl.RenderToTexture(blurtex, gl.TexRect, -1,1,1,-1)
+      gl.Texture(2,false)
       gl.UseShader(0)
 
       if blurIntensity >= 0.0016 then
@@ -471,13 +470,13 @@ function widget:DrawScreenEffectsBlur()
 	  gl.Texture(false)
 
 	  gl.Blending(true)
-	 end
+  end
 end
 
 function widget:DrawScreen()
   if Spring.IsGUIHidden() then return end
 
-	if (screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists)) then
+	if ((screenBlur or next(guishaderScreenRects) or next(guishaderScreenDlists))) and blurShader  then
 	  gl.Texture(false)
 	  gl.Color(1,1,1,1)
 	  gl.Blending(false)
@@ -527,6 +526,17 @@ function widget:DrawScreen()
     for k,v in pairs(renderDlists) do
         gl.CallList(k)
     end
+
+    for k,v in pairs(deleteDlistQueue) do
+        gl.DeleteList(deleteDlistQueue[v])
+        if guishaderDlists[k] then
+            guishaderDlists[k] = nil
+        elseif guishaderScreenDlists[k] then
+            guishaderScreenDlists[k] = nil
+        end
+        updateStencilTexture = true
+    end
+    deleteDlistQueue = {}
 end
 
 function widget:GetConfigData(data)
@@ -538,5 +548,12 @@ end
 function widget:SetConfigData(data)
     if data.blurIntensity ~= nil then
         blurIntensity = data.blurIntensity
+    end
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+    if msg:sub(1,18) == 'LobbyOverlayActive' then
+        screenBlur = (msg:sub(1,19) == 'LobbyOverlayActive1')
+        updateStencilTextureScreen = true
     end
 end

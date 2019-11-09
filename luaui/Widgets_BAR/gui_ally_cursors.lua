@@ -24,12 +24,12 @@ end
 
 -- configs
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local cursorSize					= 11
@@ -140,8 +140,7 @@ function updateSpecList()
     specList = {}
     local t = Spring.GetPlayerList()
     for _,playerID in ipairs(t) do
-        local _,_,spec = spGetPlayerInfo(playerID)
-        specList[playerID] = spec
+        specList[playerID] = select(3,spGetPlayerInfo(playerID,false))
     end
 end
 
@@ -229,7 +228,7 @@ function MouseCursorEvent(playerID,x,z,click)
 
         acp[(numMousePos+1)*2+1] = clock()
         acp[(numMousePos+1)*2+2] = playerPosList[#playerPosList].click
-        _,_,_,acp[(numMousePos+1)*2+3] = spGetPlayerInfo(playerID)
+        acp[(numMousePos+1)*2+3] = select(4,spGetPlayerInfo(playerID,false))
     end
     
     
@@ -296,7 +295,7 @@ end
 
 
 function widget:PlayerChanged(playerID)
-    local _, _, isSpec, teamID = spGetPlayerInfo(playerID)
+    local _, _, isSpec, teamID = spGetPlayerInfo(playerID,false)
     specList[playerID] = isSpec
     local r, g, b = spGetTeamColor(teamID)
     local color
@@ -317,7 +316,7 @@ end
 
 
 function createCursorDrawList(playerID, opacityMultiplier)
-    local name,_,spec,teamID = spGetPlayerInfo(playerID)
+    local name,_,spec,teamID = spGetPlayerInfo(playerID,false)
     local r, g, b = spGetTeamColor(teamID)
     local wx,gy,wz = 0,0,0
     local quadSize = usedCursorSize
@@ -417,7 +416,14 @@ local function DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
     if spIsGUIHidden() then return end
     gl.DepthTest(GL.ALWAYS)
     gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)

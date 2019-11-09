@@ -19,7 +19,7 @@ local unitConf				= {}
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 45
@@ -36,7 +36,7 @@ local spGetUnitDefID			= Spring.GetUnitDefID
 local spIsUnitInView 			= Spring.IsUnitInView
 local spGetUnitSelfDTime		= Spring.GetUnitSelfDTime
 local spGetAllUnits				= Spring.GetAllUnits
-local spGetUnitCommands			= Spring.GetUnitCommands
+local spGetCommandQueue			= Spring.GetCommandQueue
 local spIsUnitAllied			= Spring.IsUnitAllied
 local spGetCameraDirection		= Spring.GetCameraDirection
 
@@ -92,7 +92,7 @@ function init()
 				selfdUnits[unitID] = true
 			end
 			-- check for queued selfd
-			local unitQueue = spGetUnitCommands(unitID,20) or {}
+			local unitQueue = spGetCommandQueue(unitID,20) or {}
 			if (#unitQueue > 0) then
 				for _,cmd in ipairs(unitQueue) do
 					if cmd.id == CMD.SELFD then
@@ -140,7 +140,14 @@ function widget:Update(dt)
 end
 
 -- draw icons
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 
 	gl.DepthTest(true)
@@ -173,7 +180,7 @@ function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpti
 	-- check for queued selfd (to check if queue gets cancelled)
 	if selfdUnits[unitID] then
 		local foundSelfdCmd = false
-		local unitQueue = spGetUnitCommands(unitID,20) or {}
+		local unitQueue = spGetCommandQueue(unitID,20) or {}
 		if (#unitQueue > 0) then
 			for _,cmd in ipairs(unitQueue) do
 				if cmd.id == CMD.SELFD then

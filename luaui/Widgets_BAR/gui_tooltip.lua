@@ -37,12 +37,12 @@ local usedFontSize = 15
 local xOffset = 35
 local yOffset = -35-usedFontSize
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 5.5
-local fontfileOutlineStrength = 1.9
+local fontfileOutlineSize = 4.5
+local fontfileOutlineStrength = 1.8
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ------------------------------------------------------------------------------------
@@ -224,7 +224,14 @@ function drawTooltip(name, x, y)
 end
 
 local cleanupGuishaderAreas = {} 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
 	end

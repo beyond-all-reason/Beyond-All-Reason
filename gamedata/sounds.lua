@@ -45,23 +45,29 @@ for i=1,#files do
    fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
    t[fileNames] = {
       file     = fileName;
-	  gain = 1.2*0.3,
-      pitchmod = 0.01,
+      gain = 1.2*0.3,
+      pitchmod = 0.18,
       gainmod  = 0.2*0.3,
-	  dopplerscale = 1.0,
-      maxconcurrent = 4,
-	  rolloff = 0.5,
+      dopplerscale = 1.0,
+      maxconcurrent = 16,
+      rolloff = 1.5,
    }
    
    if fileNames == "disigun1" then
-	t[fileNames].gain = 0.075*0.3
-	end
+    t[fileNames].gain = 0.075*0.3
+    end
    if fileNames == "xplomas2" then
-	t[fileNames].gain = 0.225*0.3
-	end
+    t[fileNames].gain = 0.225*0.3
+    end
    if fileNames == "newboom" then
-	t[fileNames].gain = 0.045*0.3
-	end
+    t[fileNames].gain = 0.045*0.3
+    end
+   if string.sub(fileNames, 1, 4) == "lasr" then
+    t[fileNames].pitchmod = 0
+    end
+   if string.sub(fileNames, 1, 4) == "xplolrg" then
+    t[fileNames].pitchmod = 0.3
+    end
 end
 
 -- REPLY SOUNDS

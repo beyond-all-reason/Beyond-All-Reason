@@ -49,7 +49,8 @@ function widget:Initialize()
 end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
-	for ct, unitID in pairs(Spring.GetSelectedUnits()) do
+    local selectedUnits = Spring.GetSelectedUnits()
+    for ct, unitID in pairs(selectedUnits) do
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitTeam = Spring.GetUnitTeam(unitID)
 		unitSet[UnitDefs[unitDefID].name] = unitSet[UnitDefs[unitDefID].name] or {}

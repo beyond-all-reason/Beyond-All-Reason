@@ -1,0 +1,17 @@
+hotspot center
+frame  anims/cursordgun_0.png  0.2
+frame  anims/cursordgun_1.png  0.05
+frame  anims/cursordgun_2.png  0.05
+frame  anims/cursordgun_3.png  0.05
+frame  anims/cursordgun_4.png  0.05
+frame  anims/cursordgun_5.png  0.05
+frame  anims/cursordgun_6.png  0.05
+frame  anims/cursordgun_7.png  0.05
+frame  anims/cursordgun_8.png  0.2
+frame  anims/cursordgun_7.png  0.05
+frame  anims/cursordgun_6.png  0.05
+frame  anims/cursordgun_5.png  0.05
+frame  anims/cursordgun_4.png  0.05
+frame  anims/cursordgun_3.png  0.05
+frame  anims/cursordgun_2.png  0.05
+frame  anims/cursordgun_1.png  0.05

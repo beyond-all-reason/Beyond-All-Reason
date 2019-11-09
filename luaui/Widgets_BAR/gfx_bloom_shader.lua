@@ -217,7 +217,7 @@ function widget:DrawWorldPreUnit()
 	gl.Color(0,0,0,(drawWorldPreUnitAlpha/2) + drawWorldPreUnitAlpha*(basicAlpha*1.5))
 	gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
 	gl.Billboard()
-	gl.Rect(-500, -500, 500, 500)
+	gl.Rect(-vsx, -vsy, vsx, vsy)
 	gl.PopMatrix()
 end
 
@@ -228,7 +228,7 @@ function widget:DrawWorld()
 	gl.Color(0,0,0,(drawWorldAlpha/2) + drawWorldAlpha*(basicAlpha*1.5))
 	gl.Translate(camX+(camDirX*360),camY+(camDirY*360),camZ+(camDirZ*360))
 	gl.Billboard()
-	gl.Rect(-500, -500, 500, 500)
+	gl.Rect(-vsx, -vsy, vsx, vsy)
 	gl.PopMatrix()
 end
 

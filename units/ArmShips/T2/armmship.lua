@@ -26,7 +26,7 @@ return {
 		maxdamage = 3000,
 		maxvelocity = 2.1,
 		minwaterdepth = 12,
-		movementclass = "BOAT55X5",
+		movementclass = "BOAT5",
 		name = "Ranger",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMSHIP.s3o",

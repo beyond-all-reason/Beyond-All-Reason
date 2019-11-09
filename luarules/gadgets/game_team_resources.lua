@@ -40,7 +40,7 @@ function gadget:Initialize()
         local playerList = Spring.GetPlayerList()
         for i = 1, #playerList do
             local playerID = playerList[i]
-            local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID)
+            local _, _, isSpec, teamID = Spring.GetPlayerInfo(playerID,false)
             if not isSpec then
                 teamPlayerCounts[teamID] = (teamPlayerCounts[teamID] or 0) + 1
             end

@@ -27,7 +27,7 @@ return {
 		maxdamage = 1314,
 		maxvelocity = 2.2,
 		minwaterdepth = 15,
-		movementclass = "BOAT44X4",
+		movementclass = "BOAT4",
 		name = "Valiant",
 		objectname = "Units/ARMMLS.s3o",
 		script = "Units/ARMMLS.cob",

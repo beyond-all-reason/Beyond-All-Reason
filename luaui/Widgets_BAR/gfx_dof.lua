@@ -1,421 +1,476 @@
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
 function widget:GetInfo()
-  return {
-    name      = "Depth of Field",
-    desc      = "f8 toggles on/off,   ctrl+] or [ to change intensity,   /dofQuality #",
-    author    = "jK, Satirik (shortcuts: BD & Floris)",
-    date      = "March, 2013",
-    license   = "GNU GPL, v2 or later",
-    layer     = -10000,
-    enabled   = false
-  }
+	return {
+		name	  = "Depth of Field",
+		version	  = 2.0,
+		desc	  = "Blurs far away objects.",
+		author	= "aeonios, Shadowfury333 (with some code from Kleber Garcia)",
+		date	  = "Feb. 2019",
+		license   = "GPL, MIT",
+		layer	 = -100000, --To run after gfx_deferred_rendering.lua
+		enabled   = false
+	}
 end
 
+local highQuality = true		-- doesnt seem to do anything
+local autofocus = true
+local mousefocus = not autofocus
+local focusDepth = 300
+local fStop = 3
 
-options = {
-	fadeInOut = 2,		-- seconds
-	shortcuts = {
-		toggle = 'f8',
-		intensityIncrease = 'Ctrl+]',
-		intensityDecrease = 'Ctrl+[',
-	},
-	quality = {
-		name = 'Quality',
-		type = 'number',
-		min = 1,
-		max = 30,
-		step = 1,
-		value = 4,
-	},
-	intensity = {
-		name = 'Intensity',
-		type = 'number',
-		min = 0.05,
-		max = 5.,
-		step = 0.05,
-		value = 1.5,
-	},
-	focusCurveExp = {
-		name = 'Non linear focused area',
-		type = 'number',
-		min = 1.,
-		max = 4.,
-		step = 0.1,
-		value = 2,
-	},
-	focusRangeMultiplier = {
-		name = 'Focus range multiplier',
-		type = 'number',
-		min = 0.1,
-		max = 3.0,
-		step = 0.1,
-		value = 0.2,
-	},
-}
+-----------------------------------------------------------------
+-- Engine Functions
+-----------------------------------------------------------------
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local spGetCameraPosition   = Spring.GetCameraPosition
+local spGetMouseState       = Spring.GetMouseState
+local spTraceScreenRay      = Spring.TraceScreenRay
+local diag = math.diag
 
---hardware capability
-
-local canRTT    = (gl.RenderToTexture ~= nil)
-local canCTT    = (gl.CopyToTexture ~= nil)
-local canShader = (gl.CreateShader ~= nil)
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local GL_DEPTH_BITS = 0x0D56
+local glCopyToTexture = gl.CopyToTexture
+local glCreateShader = gl.CreateShader
+local glCreateTexture = gl.CreateTexture
+local glDeleteShader = gl.DeleteShader
+local glDeleteTexture = gl.DeleteTexture
+local glTexture	= gl.Texture
+local glTexRect	= gl.TexRect
+local glRenderToTexture = gl.RenderToTexture
+local glUseShader = gl.UseShader
+local glUniform = gl.Uniform
+local glUniformInt = gl.UniformInt
+local glUniformMatrix = gl.UniformMatrix
 
 local GL_DEPTH_COMPONENT   = 0x1902
 local GL_DEPTH_COMPONENT16 = 0x81A5
 local GL_DEPTH_COMPONENT24 = 0x81A6
 local GL_DEPTH_COMPONENT32 = 0x81A7
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local GL_COLOR_ATTACHMENT0_EXT = 0x8CE0
+local GL_COLOR_ATTACHMENT1_EXT = 0x8CE1
+local GL_COLOR_ATTACHMENT2_EXT = 0x8CE2
+local GL_COLOR_ATTACHMENT3_EXT = 0x8CE3
 
-local blurShader
-local dofShader
-local screencopy
-local depthcopy
+-----------------------------------------------------------------
 
-local focusLoc
-local focusRangeLoc
-local viewXLoc
-local viewYLoc
-local qualityLoc
-local intensityLoc
-local focusCurveExpLoc
-local focusRangeMultiplierLoc
-local focusPtXLoc
-local focusPtYLoc
 
-local oldvs = 0
-local vsx, vsy   = widgetHandler:GetViewSizes()
-function widget:ViewResize(viewSizeX, viewSizeY)
-  vsx, vsy  = viewSizeX,viewSizeY
+local function CleanupTextures()
+	glDeleteTexture(baseBlurTex or "")
+	glDeleteTexture(baseNearBlurTex or "")
+	glDeleteTexture(intermediateBlurTex0 or "")
+	glDeleteTexture(intermediateBlurTex1 or "")
+	glDeleteTexture(intermediateBlurTex2 or "")
+	glDeleteTexture(intermediateBlurTex3 or "")
+	glDeleteTexture(finalBlurTex or "")
+	glDeleteTexture(finalNearBlurTex or "")
+	glDeleteTexture(screenTex or "")
+	glDeleteTexture(depthTex or "")
+	gl.DeleteFBO(intermediateBlurFBO)
+	gl.DeleteFBO(baseBlurFBO)
+	baseBlurTex, baseNearBlurTex, intermediateBlurTex0, intermediateBlurTex1,
+	intermediateBlurTex2, intermediateBlurTex3, finalBlurTex, finalNearBlurTex,
+	screenTex, depthTex =
+		nil, nil, nil, nil,
+		nil, nil, nil, nil,
+		nil, nil
+	intermediateBlurFBO = nil
+	baseBlurFBO = nil
+end
+-----------------------------------------------------------------
+-- Global Vars
+-----------------------------------------------------------------
 
-  if (gl.DeleteTextureFBO) then
-    gl.DeleteTexture(depthcopy)
-    gl.DeleteTextureFBO(blurtex)
-    gl.DeleteTextureFBO(blurtex2)
-    gl.DeleteTexture(screencopy)
-  end
+local maxBlurDistance = 10000 --Distance in Spring units above which autofocus blurring can't happen
 
-  depthcopy = gl.CreateTexture(vsx,vsy, {
-    border = false,
-    format = GL_DEPTH_COMPONENT24,
-    min_filter = GL.NEAREST,
-    mag_filter = GL.NEAREST,
-  })
-  screencopy = gl.CreateTexture(vsx, vsy, {
-    border = false,
-    min_filter = GL.NEAREST,
-    mag_filter = GL.NEAREST,
-  })
+local vsx = nil	-- current viewport width
+local vsy = nil	-- current viewport height
+local dofShader = nil
+local screenTex = nil
+local depthTex = nil
+local baseBlurTex = nil
+local baseNearBlurTex = nil
+local baseBlurFBO = nil
+local intermediateBlurTex0 = nil
+local intermediateBlurTex1 = nil
+local intermediateBlurTex2 = nil
+local intermediateBlurTex3 = nil
+local intermediateBlurFBO = nil
+local finalBlurTex = nil
+local finalNearBlurTex = nil
 
-  if (screencopy == nil) then
-    Spring.Echo("Depth of Field: texture error")
-    widgetHandler:RemoveWidget(self)
-    return false
-  end
+-- shader uniform handles
+local eyePosLoc = nil
+local projectionMatLoc = nil
+local resolutionLoc = nil
+local distanceLimitsLoc = nil
+local autofocusLoc = nil
+local mousefocusLoc = nil
+local focusDepthLoc = nil
+local mouseDepthCoordLoc = nil
+local fStopLoc = nil
+local qualityLoc = nil
+local passLoc = nil
+
+-- shader uniform enums
+local shaderPasses =
+{
+	filterSize = 0,
+	initialBlur = 1,
+	finalBlur = 2,
+	initialNearBlur = 3,
+	finalNearBlur = 4,
+	composition = 5,
+}
+
+
+function InitTextures()
+	vsx, vsy = gl.GetViewSizes()
+	local blurTexSizeX, blurTexSizeY = vsx/2, vsy/2;
+
+	CleanupTextures()
+
+	screenTex = glCreateTexture(vsx, vsy, {
+		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+	})
+
+	depthTex = gl.CreateTexture(vsx,vsy, {
+		border = false,
+		format = GL_DEPTH_COMPONENT24,
+		min_filter = GL.NEAREST,
+		mag_filter = GL.NEAREST,
+	})
+
+	baseBlurTex = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+	})
+	if highQuality then
+		baseNearBlurTex = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+			min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+			format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		})
+	end
+
+	intermediateBlurTex0 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+		min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+	})
+
+	intermediateBlurTex1 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+		 min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+	})
+
+	intermediateBlurTex2 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+		 min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+	})
+
+	if highQuality then
+		intermediateBlurTex3 = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+			 min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+			format = GL_RGBA16F_ARB, wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		})
+	end
+
+	finalBlurTex = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+		fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+		wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+	})
+	if highQuality then
+		finalNearBlurTex = glCreateTexture(blurTexSizeX, blurTexSizeY, {
+			fbo = true, min_filter = GL.LINEAR, mag_filter = GL.LINEAR,
+			wrap_s = GL.CLAMP_TO_EDGE, wrap_t = GL.CLAMP_TO_EDGE,
+		})
+	end
+
+	if highQuality then
+		baseBlurFBO = gl.CreateFBO({
+			color0 = baseBlurTex,
+			color1 = baseNearBlurTex,
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT,
+			GL_COLOR_ATTACHMENT1_EXT
+		}
+			})
+
+		intermediateBlurFBO = gl.CreateFBO({
+			color0 = intermediateBlurTex0,
+			color1 = intermediateBlurTex1,
+			color2 = intermediateBlurTex2,
+			color3 = intermediateBlurTex3,
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT,
+			GL_COLOR_ATTACHMENT1_EXT,
+			GL_COLOR_ATTACHMENT2_EXT,
+			GL_COLOR_ATTACHMENT3_EXT
+		}
+			})
+	else
+		baseBlurFBO = gl.CreateFBO({
+			color0 = baseBlurTex,
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT
+		}
+			})
+
+		intermediateBlurFBO = gl.CreateFBO({
+			color0 = intermediateBlurTex0,
+			color1 = intermediateBlurTex1,
+			color2 = intermediateBlurTex2,
+		drawbuffers = {
+			GL_COLOR_ATTACHMENT0_EXT,
+			GL_COLOR_ATTACHMENT1_EXT,
+			GL_COLOR_ATTACHMENT2_EXT
+		}
+			})
+	end
+
+	if not intermediateBlurTex0 or not intermediateBlurTex1 or not intermediateBlurTex2
+		 or not finalBlurTex or not baseBlurTex or not screenTex or not depthTex
+		 or (highQuality and (not baseNearBlurTex or not intermediateBlurTex3 or not finalNearBlurTex)) then
+			Spring.Echo("Depth of Field: Failed to create textures!")
+			widgetHandler:RemoveWidget()
+		return
+	end
+end
+
+function widget:ViewResize(x, y)
+	InitTextures()
+end
+
+function init()
+	reset()
+
+	if (glCreateShader == nil) then
+		Spring.Echo("[Depth of Field::Initialize] removing widget, no shader support")
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	dofShader = dofShader or glCreateShader({
+		defines = {
+			"#version 150 compatibility\n",
+			"#define DEPTH_CLIP01 " .. (Platform.glSupportClipSpaceControl and "1" or "0") .. "\n",
+
+			"#define FILTER_SIZE_PASS " .. shaderPasses.filterSize .. "\n",
+			"#define INITIAL_BLUR_PASS " .. shaderPasses.initialBlur .. "\n",
+			"#define FINAL_BLUR_PASS " .. shaderPasses.finalBlur .. "\n",
+			"#define INITIAL_NEAR_BLUR_PASS " .. shaderPasses.initialNearBlur .. "\n",
+			"#define FINAL_NEAR_BLUR_PASS " .. shaderPasses.finalNearBlur .. "\n",
+			"#define COMPOSITION_PASS " .. shaderPasses.composition .. "\n",
+
+			"#define BLUR_START_DIST " .. maxBlurDistance .. "\n",
+
+			"#define LOW_QUALITY 0 \n",
+			"#define HIGH_QUALITY 1 \n"
+		},
+		fragment = VFS.LoadFile("LuaUI/Widgets_BAR/Shaders/dof.fs", VFS.ZIP),
+
+		uniformInt = {origTex = 0, blurTex0 = 1, blurTex1 = 2, blurTex2 = 3, blurTex3 = 4},
+	})
+
+	if not dofShader then
+		Spring.Echo("Depth of Field: Failed to create shader!")
+		Spring.Echo(gl.GetShaderLog())
+		widgetHandler:RemoveWidget()
+		return
+	end
+
+	eyePosLoc = gl.GetUniformLocation(dofShader, "eyePos")
+	projectionMatLoc = gl.GetUniformLocation(dofShader, "projectionMat")
+	resolutionLoc = gl.GetUniformLocation(dofShader, "resolution")
+	distanceLimitsLoc = gl.GetUniformLocation(dofShader, "distanceLimits")
+	autofocusLoc = gl.GetUniformLocation(dofShader, "autofocus")
+	mousefocusLoc = gl.GetUniformLocation(dofShader, "mousefocus")
+	focusDepthLoc = gl.GetUniformLocation(dofShader, "manualFocusDepth")
+	mouseDepthCoordLoc = gl.GetUniformLocation(dofShader, "mouseDepthCoord")
+	fStopLoc = gl.GetUniformLocation(dofShader, "fStop")
+	qualityLoc = gl.GetUniformLocation(dofShader, "quality")
+	passLoc = gl.GetUniformLocation(dofShader, "pass")
+
+	widget:ViewResize()
+end
+
+function widget:Initialize()
+	init()
+	WG['dof'] = {}
+	WG['dof'].getFocusDepth = function()
+		return focusDepth
+	end
+	WG['dof'].setFocusDepth = function(value)
+		focusDepth = value
+	end
+	WG['dof'].getFstop = function()
+		return fStop
+	end
+	WG['dof'].setFstop = function(value)
+		fStop = value
+	end
+	WG['dof'].getHighQuality = function()
+		return highQuality
+	end
+	WG['dof'].setHighQuality = function(value)
+		highQuality = value
+		InitTextures()
+	end
+	WG['dof'].getAutofocus = function()
+		return autofocus
+	end
+	WG['dof'].setAutofocus = function(value)
+		autofocus = value
+		mousefocus = not autofocus
+	end
+end
+
+function reset()
+	if (glDeleteShader and dofShader) then
+		glDeleteShader(dofShader)
+	end
+
+	if glDeleteTexture then
+		CleanupTextures()
+	end
+	dofShader = nil
+end
+
+function widget:Shutdown()
+	reset()
+	WG['dof'] = nil
+end
+
+local function FilterCalculation()
+	local cpx, cpy, cpz = spGetCameraPosition()
+	local gmin, gmax = Spring.GetGroundExtremes()
+	local effectiveHeight = cpy - math.max(0, gmin)
+	cpy = 3.5 * math.sqrt(effectiveHeight) * math.log(effectiveHeight)
+	glUniform(eyePosLoc, cpx, cpy, cpz)
+	glUniformInt(passLoc, shaderPasses.filterSize)
+	glTexture(0, screenTex)
+	glTexture(1, depthTex)
+
+	-- glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
+	glTexRect(0, 0, vsx, vsy, false, true)
+	--
+	glTexture(0, false)
+	glTexture(1, false)
+end
+
+local function InitialBlur()
+	glUniform(resolutionLoc, vsx/2, vsy/2)
+	glUniformInt(passLoc, shaderPasses.initialBlur)
+	glTexture(0, baseBlurTex)
+	glTexRect(0, 0, vsx, vsy, false, true)
+	glTexture(0, false)
+end
+
+local function FinalBlur()
+	glUniform(resolutionLoc, vsx/2, vsy/2)
+	glUniformInt(passLoc, shaderPasses.finalBlur)
+	glTexture(0, baseBlurTex)
+	glTexture(1, intermediateBlurTex0) --R
+	glTexture(2, intermediateBlurTex1) --G
+	glTexture(3, intermediateBlurTex2) --B
+	glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(2, false)
+	glTexture(3, false)
+end
+
+local function InitialNearBlur()
+	glUniform(resolutionLoc, vsx/2, vsy/2)
+	glUniformInt(passLoc, shaderPasses.initialNearBlur)
+	glTexture(0, baseNearBlurTex)
+	glTexRect(0, 0, vsx, vsy, false, true)
+	glTexture(0, false)
+end
+
+local function FinalNearBlur()
+	glUniform(resolutionLoc, vsx/2, vsy/2)
+	glUniformInt(passLoc, shaderPasses.finalNearBlur)
+	glTexture(0, baseNearBlurTex)
+	glTexture(1, intermediateBlurTex0) --R
+	glTexture(2, intermediateBlurTex1) --G
+	glTexture(3, intermediateBlurTex2) --B
+	glTexture(4, intermediateBlurTex3) --A
+	glTexRect(-1-0.5/vsx,1+0.5/vsy,1+0.5/vsx,-1-0.5/vsy)
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(2, false)
+	glTexture(3, false)
+	glTexture(4, false)
+end
+
+local function Composition()
+	glUniformInt(passLoc, shaderPasses.composition)
+	glTexture(0, screenTex)
+	glTexture(1, finalBlurTex)
+	if (highQuality) then
+		glTexture(2, finalNearBlurTex)
+	end
+
+	glTexRect(0, 0, vsx, vsy, false, true)
+	glTexture(0, false)
+	glTexture(1, false)
+	glTexture(2, false)
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
+function widget:DrawWorld()
+	if chobbyInterface then return end
+	gl.ActiveShader(dofShader, function() glUniformMatrix(projectionMatLoc, "projection") end)
+end
+
+function widget:DrawScreenEffects()
+	if chobbyInterface then return end
+	gl.Blending(false)
+	glCopyToTexture(screenTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
+	glCopyToTexture(depthTex, 0, 0, 0, 0, vsx, vsy) -- the original screen image
+
+	local mx, my = Spring.GetMouseState()
+
+	glUseShader(dofShader)
+		glUniform(distanceLimitsLoc, gl.GetViewRange())
+
+		glUniformInt(autofocusLoc, autofocus and 1 or 0)
+		glUniformInt(mousefocusLoc, mousefocus and 1 or 0)
+		glUniform(mouseDepthCoordLoc, mx/vsx, my/vsy)
+		glUniform(focusDepthLoc, focusDepth / maxBlurDistance)
+		glUniform(fStopLoc, fStop)
+		glUniformInt(qualityLoc, highQuality and 1 or 0)
+
+		gl.ActiveFBO(baseBlurFBO, FilterCalculation)
+		gl.ActiveFBO(intermediateBlurFBO, InitialBlur)
+		glRenderToTexture(finalBlurTex, FinalBlur)
+		if highQuality then
+			gl.ActiveFBO(intermediateBlurFBO, InitialNearBlur)
+			glRenderToTexture(finalNearBlurTex, FinalNearBlur)
+		end
+		Composition()
+
+	glUseShader(0)
 end
 
 function widget:GetConfigData()
-  return {
-    quality  = options.quality.value,
-	intensity = options.intensity.value,
-	focusCurveExp = options.focusCurveExp.value,
-	focusRangeMultiplier = options.focusRangeMultiplier.value,
-  }
+	return {
+		highQuality = highQuality,
+		autofocus = autofocus,
+		focusDepth = focusDepth,
+		fStop = fStop,
+	}
 end
 
 function widget:SetConfigData(data)
-  --options.quality.value  = data.quality or 2.
-  --options.intensity.value = data.intensity or 1.
-  --options.focusCurveExp.value = data.focusCurveExp or 2.
-  --options.focusRangeMultiplier.value = data.focusRangeMultiplier or 1.
+	if data.highQuality ~= nil then
+		highQuality = data.highQuality
+		autofocus = data.autofocus
+		mousefocus = not autofocus
+		focusDepth = data.focusDepth
+		fStop = data.fStop
+	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local function CheckHardware()
-  if (not canCTT) then
-    Spring.Echo("Depth of Field: your hardware is missing the necessary CopyToTexture feature")
-    widgetHandler:RemoveWidget(self)
-    return false
-  end
-
-  if (not canRTT) then
-    Spring.Echo("Depth of Field: your hardware is missing the necessary RenderToTexture feature")
-    widgetHandler:RemoveWidget(self)
-    return false
-  end
-
-  if (not canShader) then
-    Spring.Echo("Depth of Field: your hardware does not support shaders")
-    widgetHandler:RemoveWidget(self)
-    return false
-  end
-
-  return true
-end
-
-
--- user controls
-local deactivated = true
-function dofToggle(cmd, line, words)
-  deactivated = not deactivated
-  if words[1] then
-     deactivated = words[1] == "0"
-  end
-  if not deactivated then
-     widgetHandler:UpdateCallIn('DrawScreenEffects')
- 	 Spring.Echo("Depth of Field: on")
-  else
-     widgetHandler:RemoveCallIn('DrawScreenEffects')
- 	 Spring.Echo("Depth of Field: off")
-  end
-end
-
-function dofIntensity(cmd, line, words)
-  options.intensity.value = tonumber(words[1])
-  --Spring.Echo("Depth of Field: intensity: "..options.intensity.value)
-  return true
-end
-
-function dofIntensityIncrease()
-  options.intensity.value = options.intensity.value + options.intensity.step
-  if (options.intensity.value > options.intensity.max) then
-  	 options.intensity.value = options.intensity.max
-  end
-  --Spring.Echo("Depth of Field: intensity: "..options.intensity.value)
-  return true
-end
-
-function dofIntensityDecrease()
-  options.intensity.value = options.intensity.value - options.intensity.step
-  if (options.intensity.value < options.intensity.min) then
-  	 options.intensity.value = options.intensity.min
-  end
-  --Spring.Echo("Depth of Field: intensity: "..options.intensity.value)
-  return true
-end
-
-function dofQuality(cmd, line, words)
-  options.quality.value = tonumber(words[1])
-  if (options.quality.value > options.quality.max) then
-  	 options.quality.value = options.quality.max
-  end
-  --Spring.Echo("Depth of Field: quality changed to: "..options.quality.value)
-  return true
-end
-
-
-
-function widget:Initialize()
-  if (not CheckHardware()) then return false end
-  
-  -- register user control commands/keys
-  widgetHandler:AddAction("dofToggle", dofToggle, nil, "t")
-  Spring.SendCommands({"bind "..options.shortcuts.toggle.." dofToggle"})
-  Spring.SendCommands({"dofToggle 0"})     -- toggle off defaultly
-  
-  widgetHandler:AddAction("dofIntensityIncrease", dofIntensityIncrease, nil, "t")
-  Spring.SendCommands({"bind "..options.shortcuts.intensityIncrease.." dofIntensityIncrease"})
-  
-  widgetHandler:AddAction("dofIntensityDecrease", dofIntensityDecrease, nil, "t")
-  Spring.SendCommands({"bind "..options.shortcuts.intensityDecrease.." dofIntensityDecrease"})
-  
-  widgetHandler:AddAction("dofQuality", dofQuality, nil, "t")
-  widgetHandler:AddAction("dofIntensity", dofIntensity, nil, "t")
-
-  WG['dof'] = {}
-  WG['dof'].getIntensity = function()
-      return options.intensity.value
-  end
-  WG['dof'].setIntensity = function(value)
-      options.intensity.value = value
-  end
-  
-  dofShader = gl.CreateShader({
-    fragment = [[
-      #version 150 compatibility
-
-      uniform sampler2D tex0;
-      uniform sampler2D tex1;
-      uniform sampler2D tex2;
-
-      uniform float focus;
-      uniform float focusRange;
-	  uniform float viewX;
-	  uniform float viewY;
-	  uniform float quality;
-	  uniform float intensity;
-	  uniform float focusCurveExp;
-	  uniform float focusRangeMultiplier;
-	  uniform float focusPtX;
-	  uniform float focusPtY;
-	  
-      void main(void)
-      {
-		vec2 texCoord = vec2(gl_TextureMatrix[0] * gl_TexCoord[0]);
-	  	gl_FragColor = vec4(0.0,0.0,0.0,1.0);
-		
-		float focus = texture2D(tex2, vec2(focusPtX,focusPtY)).z;
-		
-		float k,l;
-		float zValue = texture2D(tex2, texCoord).z;
-		float dmix = clamp(abs(focus-zValue)*focusRange*focusRangeMultiplier ,0.0,1.0);
-		
-		if(dmix > 0.05 || focus>zValue)
-		{
-			zValue = 0;
-			for(k = -1; k <= 1; k++){
-			  for(l = -1; l <= 1; l++){
-				zValue += texture2D(tex2, texCoord + vec2(0.005*k,0.005*l)).z/9.;
-			  }
-			}
-			dmix = clamp(abs(focus-zValue)*focusRange*focusRangeMultiplier ,0.0,1.0);
-		}
-		if(focusCurveExp>1.){
-			dmix = (exp(focusCurveExp*dmix)-1.)/exp(focusCurveExp);
-		}
-		
-		
-		float halfSizeKernel = quality; // quality
-		float dy = (8./halfSizeKernel)*dmix/viewY*intensity;
-		float dx = (8./halfSizeKernel)*dmix/viewX*intensity;
-		float i,j;
-		float sumKernel = 0;
-		for(j = -halfSizeKernel; j <= halfSizeKernel; j++)
-			for(i = -halfSizeKernel; i <= halfSizeKernel; i++){
-				sumKernel += (halfSizeKernel+1-abs(i)+halfSizeKernel+1-abs(j))/2.;
-			}
-		for(j = -halfSizeKernel; j <= halfSizeKernel; j++)
-			for(i = -halfSizeKernel; i <= halfSizeKernel; i++){
-				gl_FragColor.rgb+= (halfSizeKernel+1-abs(i)+halfSizeKernel+1-abs(j))/(2*sumKernel)*texture2D(tex0, texCoord + vec2(j*dy,i*dx)).rgb;
-			}
-		//gl_FragColor.rgb = vec3(dmix,dmix,dmix);
-      }
-    ]],
-    uniform = {
-      focus      = 0.9955,
-      focusRange = 1./0.0005,
-    },
-    uniformInt = {
-      tex0 = 0,
-      tex1 = 1,
-      tex2 = 2,
-    }
-  })
-
-  Spring.Echo('DoF shaderlog:')
-  Spring.Echo(gl.GetShaderLog())
-
-  -- create blurtexture
-  depthcopy = gl.CreateTexture(vsx,vsy, {
-    border = false,
-    format = GL_DEPTH_COMPONENT24,
-    min_filter = GL.NEAREST,
-    mag_filter = GL.NEAREST,
-  })
-  screencopy = gl.CreateTexture(vsx, vsy, {
-    border = false,
-    min_filter = GL.NEAREST,
-    mag_filter = GL.NEAREST,
-  })
-
-  -- debug?
-  if (screencopy == nil) then
-    Spring.Echo("Depth of Field: texture error")
-    widgetHandler:RemoveWidget(self)
-    return false
-  end
-
-  focusLoc      = gl.GetUniformLocation(dofShader,"focus")
-  focusRangeLoc = gl.GetUniformLocation(dofShader,"focusRange")
-  viewXLoc = gl.GetUniformLocation(dofShader,"viewX")
-  viewYLoc = gl.GetUniformLocation(dofShader,"viewY")
-  qualityLoc = gl.GetUniformLocation(dofShader,"quality")
-  intensityLoc = gl.GetUniformLocation(dofShader,"intensity")
-  focusCurveExpLoc = gl.GetUniformLocation(dofShader,"focusCurveExp")
-  focusRangeMultiplierLoc = gl.GetUniformLocation(dofShader,"focusRangeMultiplier")
-  focusRangeMultiplierLoc = gl.GetUniformLocation(dofShader,"focusRangeMultiplier")
-  focusPtXLoc = gl.GetUniformLocation(dofShader,"focusPtX")
-  focusPtYLoc = gl.GetUniformLocation(dofShader,"focusPtY")  
-end
-
-
-function widget:Shutdown()
-  WG['dof'] = nil
-  Spring.SendCommands({"DofEnable 0"})
-  widgetHandler:RemoveAction("DofEnable", DofEnable)
-  
-  if (gl.DeleteTextureFBO) then
-    gl.DeleteTexture(depthcopy)
-    gl.DeleteTexture(screencopy)
-    gl.DeleteTextureFBO(blurtex)
-    gl.DeleteTextureFBO(blurtex2)
-  end
-  if (gl.DeleteShader) then
-    gl.DeleteShader(blurShader or 0)
-    gl.DeleteShader(dofShader or 0)
-  end
-end
-
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-function widget:DrawScreenEffects()
-  if deactivated then return  end
-  
-  local zfocus = 0.9995
-
-  local msx,msy = widgetHandler:GetViewSizes()
-  msx,msy = 0.5*msx,0.5*msy
-  local type,mpos = Spring.TraceScreenRay(msx,msy,true)
-  if (type=="ground") then
-    _,_,zfocus  = Spring.WorldToScreenCoords(mpos[1],mpos[2],mpos[3])
-  end
-  
-  viewX,viewY = gl.GetViewSizes()
-  
-  local mouseX,mouseY = Spring.GetMouseState()
-  
-  local focusRange = 0.8*(1-zfocus) -- + ((1-zfocus)*(1-zfocus)*10)
-  --zfocus = zfocus - zfocus^10000
-
-    gl.CopyToTexture(depthcopy, 0, 0, 0, 0, vsx, vsy)
-    gl.CopyToTexture(screencopy, 0, 0, 0, 0, vsx, vsy)
-
-    gl.Texture(screencopy)
-
-    gl.UseShader(dofShader)
-      gl.Uniform(focusLoc,zfocus)
-      gl.Uniform(focusRangeLoc,1/focusRange)
-	  gl.Uniform(viewXLoc,viewX)
-	  gl.Uniform(viewYLoc,viewY)
-	  gl.Uniform(qualityLoc,options.quality.value)
-	  gl.Uniform(intensityLoc,options.intensity.value)
-	  gl.Uniform(focusCurveExpLoc,options.focusCurveExp.value)
-	  gl.Uniform(focusRangeMultiplierLoc,options.focusRangeMultiplier.value)
-	  gl.Uniform(focusPtXLoc,mouseX/viewX)
-	  gl.Uniform(focusPtYLoc,mouseY/viewY)
-    gl.Texture(0,screencopy)
-    gl.Texture(2,depthcopy)
-    gl.TexRect(0,vsy,vsx,0)
-
-    gl.Texture(0,false)
-    gl.Texture(1,false)
-    gl.Texture(2,false)
-    gl.UseShader(0)
-end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------

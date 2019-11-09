@@ -10,17 +10,17 @@ function widget:GetInfo()
 	}
 end
 
-local discordLink = 'balancedannihilation.com/discord'
+local discordLink = 'beyondallreason.info/discord'
 
 local iconTexture = ":n:LuaUI/Images/discord.png"
 local iconSize = 32
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local spGetGameFrame		= Spring.GetGameFrame
@@ -123,7 +123,14 @@ function widget:GameFrame(n)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	updatePosition()
 	if drawlist[1] ~= nil then
 		glPushMatrix()

@@ -151,6 +151,36 @@ function UnitDef_Post(name, uDef)
 end
 
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local function ProcessSoundDefaults(wd)
+	local forceSetVolume = (not wd.soundstartvolume) or (not wd.soundhitvolume)
+	if not forceSetVolume then
+		return
+	end
+
+	local defaultDamage = wd.damage and wd.damage.default
+	if (not defaultDamage) or (defaultDamage <= 50) then
+		wd.soundstartvolume = 5
+		wd.soundhitvolume = 5
+		return
+	end
+
+	local soundVolume = math.sqrt(defaultDamage * 0.5)
+	if wd.weapontype == "LaserCannon" then
+		soundVolume = soundVolume*0.5
+	end
+
+	if (not wd.soundstartvolume) then
+		wd.soundstartvolume = soundVolume
+	end
+	if (not wd.soundhitvolume) then
+		wd.soundhitvolume = soundVolume
+	end
+end
+
+
 -- process weapondef
 function WeaponDef_Post(name, wDef)
 
@@ -191,6 +221,8 @@ function WeaponDef_Post(name, wDef)
 			wDef.beamdecay = 0.7
 		end
 	end
+
+	ProcessSoundDefaults(wDef)
 end
 
 -- process effects

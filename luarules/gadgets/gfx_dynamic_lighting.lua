@@ -28,7 +28,7 @@
 --   (slighly) higher priority than the corresponding
 --   projectile lights
 local allDynLightDefs = include("LuaRules/Configs/gfx_dynamic_lighting_defs.lua")
-local modDynLightDefs = allDynLightDefs[Game.modShortName] or {}
+local modDynLightDefs = allDynLightDefs[Game.gameShortName] or {}
 local weaponLightDefs = modDynLightDefs.weaponLightDefs or {}
 
 -- shared synced/unsynced globals

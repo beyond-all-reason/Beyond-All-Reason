@@ -34,6 +34,11 @@ function widget:GetInfo()
   }
 end
 
+local chobbyLoaded = false
+if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+  chobbyLoaded = true
+end
+
 function widget:Initialize()
   endTime = false
 end
@@ -53,10 +58,18 @@ function widget:Update(dt)
       mx,my = GetMouseState()
     elseif not mousemoved and DiffTimers(GetTimer(), endTime) > delay then
       Echo("<autoquit> Autoquit sending quit command.")
-      SendCommands("quitforce")
+      if chobbyLoaded then
+        Spring.Reload("")
+      else
+        SendCommands("quitforce")
+      end
     elseif mousemoved and DiffTimers(GetTimer(), endTime) > mousemovedDelay then
       Echo("<autoquit> Autoquit sending quit command.")
-      SendCommands("quitforce")
+      if chobbyLoaded then
+        Spring.Reload("")
+      else
+        SendCommands("quitforce")
+      end
     end
   end
 end

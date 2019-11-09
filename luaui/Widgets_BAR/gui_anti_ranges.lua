@@ -57,11 +57,7 @@ local glColor					= gl.Color
 local glDepthTest				= gl.DepthTest
 local glLineWidth				= gl.LineWidth
 local glDrawGroundCircle		= gl.DrawGroundCircle
-local glDrawListAtUnit          = gl.DrawListAtUnit
 
-
-local spGetMyPlayerID			= Spring.GetMyPlayerID
-local spGetPlayerInfo			= Spring.GetPlayerInfo
 local spGetUnitDefID			= Spring.GetUnitDefID
 local spGetUnitPosition			= Spring.GetUnitPosition
 local spGetPositionLosState 	= Spring.GetPositionLosState
@@ -72,7 +68,6 @@ local GetUnitIsStunned     		= Spring.GetUnitIsStunned
 
 local antiInLos					= {}
 local antiOutLos				= {}
-
 
 local coverageRangeArmStatic	= WeaponDefs[UnitDefNames.armamd.weapons[1].weaponDef].coverageRange
 local coverageRangeCoreStatic	= WeaponDefs[UnitDefNames.corfmd.weapons[1].weaponDef].coverageRange
@@ -89,7 +84,14 @@ local diag = math.diag
 
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
     if Spring.IsGUIHidden() then return end
 	local camX, camY, camZ = spGetCameraPosition()
 
@@ -254,8 +256,6 @@ end
 
 
 function checkAllUnits()
-    local _, _, spec, teamId = spGetPlayerInfo(spGetMyPlayerID())
-
 	antiInLos				= {}
 	antiOutLos				= {}
 	

@@ -30,12 +30,12 @@ end
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ------------------------------------------------------------
@@ -419,7 +419,7 @@ function widget:Initialize()
 	end
 	WG['initialqueue'].setOldUnitIcons = function(value)
 		oldUnitpics = value
-		local _, _, _, _, mySide = Spring.GetTeamInfo(myTeamID)
+		local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
 		InitializeFaction(UnitDefNames[Spring.GetSideData(mySide)].id)
 	end
 	if (Game.startPosType == 1) or			-- Don't run if start positions are random
@@ -430,7 +430,7 @@ function widget:Initialize()
 		return
 	end
 	-- Get our starting unit
-	local _, _, _, _, mySide = Spring.GetTeamInfo(myTeamID)
+	local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
 	if mySide == "" then -- Don't run unless we know what faction the player is
 		widgetHandler:RemoveWidget(self)
 		return
@@ -596,7 +596,7 @@ function widget:GetConfigData()
 	if (Spring.GetSpectatingState()) then return end
 	--local wWidth, wHeight = Spring.GetWindowGeometry()
 	--return {wl / wWidth, wt / wHeight}
-	local _, _, _, _, mySide = Spring.GetTeamInfo(Spring.GetMyTeamID())
+	local mySide = select(5,Spring.GetTeamInfo(Spring.GetMyTeamID(),false))
 	if Spring.GetGameSeconds() <= 0 and  mySide ~= "" then
 		local startUnitName = Spring.GetSideData(mySide)
 		local sDefID = UnitDefNames[startUnitName].id
@@ -666,7 +666,14 @@ local queueTimeFormat = whiteColor .. 'Queued ' .. metalColor .. '%dm ' .. energ
 
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	gl.PushMatrix()
 		gl.Translate(wl, wt, 0)
 		gl.Scale(widgetScale,widgetScale,widgetScale)
@@ -743,6 +750,7 @@ function widget:DrawScreen()
 end
 
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	--don't draw anything once the game has started; after that engine can draw queues itself
 	if gameStarted then return end
 

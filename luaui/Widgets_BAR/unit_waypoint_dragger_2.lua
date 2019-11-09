@@ -2,7 +2,7 @@ local spGetActiveCommand    = Spring.GetActiveCommand
 local spGetGameSeconds      = Spring.GetGameSeconds
 local spGetSelectedUnits    = Spring.GetSelectedUnits
 local spGetCommandQueue     = Spring.GetCommandQueue
-local spGetUnitCommands     = Spring.GetUnitCommands
+local spGetCommandQueue     = Spring.GetCommandQueue
 local spGetMouseState       = Spring.GetMouseState
 local spGetModKeyState      = Spring.GetModKeyState
 local spGiveOrderToUnit     = Spring.GiveOrderToUnit
@@ -332,7 +332,14 @@ function widget:Update(_)
 	UpdateWayPoints(selWayPtsTbl)
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	local mx, my, _, _, _ = spGetMouseState()
 	local _, _, _, shift = spGetModKeyState()
 

@@ -1,0 +1,13 @@
+hotspot topleft
+frame  anims/cursorfight_0.png  0.2
+frame  anims/cursorfight_1.png  0.1
+frame  anims/cursorfight_2.png  0.1
+frame  anims/cursorfight_3.png  0.1
+frame  anims/cursorfight_4.png  0.1
+frame  anims/cursorfight_5.png  0.1
+frame  anims/cursorfight_6.png  0.1
+frame  anims/cursorfight_7.png  0.1
+frame  anims/cursorfight_8.png  0.1
+frame  anims/cursorfight_9.png  0.1
+frame  anims/cursorfight_10.png  0.1
+frame  anims/cursorfight_11.png  0.4

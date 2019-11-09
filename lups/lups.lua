@@ -86,6 +86,7 @@ local spGetUnitPieceMap      = Spring.GetUnitPieceMap
 local spValidUnitID          = Spring.ValidUnitID
 local spGetUnitIsStunned     = Spring.GetUnitIsStunned
 local spGetProjectilePosition = Spring.GetProjectilePosition
+local spGetUnitHealth		 = Spring.GetUnitHealth
 
 local glUnitPieceMatrix = gl.UnitPieceMatrix
 local glPushMatrix      = gl.PushMatrix
@@ -713,7 +714,6 @@ local function GetUnitIsActive(unitID)
 		and	(spGetUnitRulesParam(unitID, "disarmed") ~= 1)
 		and (spGetUnitRulesParam(unitID, "morphDisable") ~= 1)
 		and not spGetUnitIsStunned(unitID)
-	
 	return activeUnit[unitID]
 end
 
@@ -768,8 +768,19 @@ end
 local function IsUnitFXVisible(fx)
 	local unitActive = true
 	local unitID = fx.unit
+	if spGetUnitHealth(unitID) <= 0 then
+		return false
+	end
 	if fx.onActive then
 		unitActive = GetUnitIsActive(unitID)
+	end
+	if fx.xzVelocity then
+		local uvx,_,uvz = Spring.GetUnitVelocity(unitID)
+		if math.abs(uvx)+math.abs(uvz) > fx.xzVelocity then
+			unitActive = true
+		else
+			return false
+		end
 	end
 	--Spring.Utilities.UnitEcho(unitID, "w")
 	if (not fx.onActive) or (unitActive) then

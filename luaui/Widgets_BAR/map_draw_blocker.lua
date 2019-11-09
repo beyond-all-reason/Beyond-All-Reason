@@ -87,12 +87,12 @@ local function CheckTresholds()
 			local wasBlocked = data.blocked 
 			data.blocked = timerCmd
 			if not wasBlocked then
-				Echo("Blocking map draw for " .. GetPlayerInfo(player))
+				Echo("Blocking map draw for " .. GetPlayerInfo(player,false))
 			end
 		end
 		if sum < unblocklimit and data.blocked and (currentCounter-data.blocked > unblocklimit ) then
 			data.blocked = false
-			Echo("Unblocking map draw for " .. GetPlayerInfo(player))
+			Echo("Unblocking map draw for " .. GetPlayerInfo(player,false))
 		end
 	end
 end
@@ -103,7 +103,7 @@ function ActionUnBlock(_,_,parms)
 	if not p then return end
 	if drawCmds[p] then
 		drawCmds[p].blocked = false
-		Echo("unblocking map draw for " .. GetPlayerInfo(p))
+		Echo("unblocking map draw for " .. GetPlayerInfo(p,false))
 	end
 end
 
@@ -112,7 +112,7 @@ function ActionBlock(_,_,parms)
 	if not p then return end
 	if drawCmds[p] then
 		drawCmds[p].blocked = timerCmd
-		Echo("blocking map draw for " .. GetPlayerInfo(p))
+		Echo("blocking map draw for " .. GetPlayerInfo(p,false))
 	end
 end
 
@@ -120,7 +120,7 @@ end
 function ActionList()
 	for player,data in pairs(drawCmds) do
 		if data.blocked then
-			Echo(GetPlayerInfo(player) .. " is blocked ")
+			Echo(GetPlayerInfo(player,false) .. " is blocked ")
 		end
 	end
 end

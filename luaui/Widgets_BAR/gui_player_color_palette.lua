@@ -181,8 +181,8 @@ local function SetNewTeamColors()
 					end
 				end
 
-				local _, playerID = Spring.GetTeamInfo(teamID)
-				local name = playerID and Spring.GetPlayerInfo(playerID) or 'noname'
+				local playerID = select(2,Spring.GetTeamInfo(teamID,false))
+				local name = playerID and Spring.GetPlayerInfo(playerID,false) or 'noname'
 				Spring.SetTeamColor(teamID, r,g,b)
 			end
 		end

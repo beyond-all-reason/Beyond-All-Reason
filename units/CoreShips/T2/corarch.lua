@@ -27,7 +27,7 @@ return {
 		maxdamage = 3500,
 		maxvelocity = 2.016,
 		minwaterdepth = 30,
-		movementclass = "BOAT44X4",
+		movementclass = "BOAT4",
 		name = "Shredder",
 		nochasecategory = "NOTAIR",
 		objectname = "Units/CORARCH.s3o",

@@ -265,7 +265,8 @@ function UnitJitter:CreateParticle()
 end
 
 function UnitJitter:Visible()
-  if self.allyTeam == LocalAllyTeamID then
+  if LocalAllyTeamID == -2 -- spec full view
+  or LocalAllyTeamID == self.allyTeam then
     return Spring.IsUnitVisible(self.unit, 0, true) -- Don't draw for icons
   end
 

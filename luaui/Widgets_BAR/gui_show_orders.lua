@@ -12,12 +12,12 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 -----------------------------------------------------
@@ -95,6 +95,7 @@ function widget:Initialize()
 end
 
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	
 	local alt, control, meta, shift = spGetModKeyState()
 	if not (shift and meta) then return end
@@ -107,7 +108,14 @@ function widget:DrawWorld()
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	
 	local alt, control, meta, shift = spGetModKeyState()
 	if not (shift and meta) then return end
@@ -127,8 +135,7 @@ function widget:DrawScreen()
 					local ux, uy, uz = spGetUnitPosition(uID)
 					local sx, sy = spWorldToScreenCoords(ux, uy, uz)
 					local _, _, _, _, buildProg = spGetUnitHealth(uID)
-					local uCmds = spGetFactoryCommands(uID)
-					local uStates = spGetUnitStates(uID)
+					local uCmds = spGetFactoryCommands(uID,-1)
 					
 					local cells = {}
 					
@@ -175,7 +182,7 @@ function widget:DrawScreen()
 							local cx = sx + (c - 1) * (iconSize + borderWidth)
 							local cy = sy - r * (iconSize + borderWidth)
 							
-							if (uStates and uStates["repeat"]) then
+							if select(4,spGetUnitStates(uID,false,true)) then	-- 4=repeat
 								glColor(0.0, 0.0, 0.5, 1.0)
 							else
 								glColor(0.0, 0.0, 0.0, 1.0)

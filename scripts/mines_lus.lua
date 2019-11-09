@@ -47,7 +47,8 @@ end
 function EnemyDetect()
 	while true do
 		_,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
-		if buildprogress >= 1 and Spring.GetUnitStates(unitID) and Spring.GetUnitStates(unitID).firestate > 0 and GetClosestEnemyDistance() <= triggerRange then
+		local firestate = Spring.GetUnitStates(unitID, false)
+		if buildprogress >= 1 and firestate and firestate > 0 and GetClosestEnemyDistance() <= triggerRange then
 			StartThread(Detonate)
 			break
 		else

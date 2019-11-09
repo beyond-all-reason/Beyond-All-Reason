@@ -17,12 +17,12 @@ end
 local wWidth, wHeight = Spring.GetWindowGeometry()
 local px, py = 50, 0.55*wHeight
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
@@ -185,6 +185,7 @@ function widget:Shutdown()
 end
 
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	glColor(1, 1, 1, 0.5)
 	glDepthTest(false)
 	for i = 1, #teamList do
@@ -203,7 +204,14 @@ function widget:DrawWorld()
 	glTexture(false)
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 
 	-- Spectator check
 	if spGetSpectatingState() then

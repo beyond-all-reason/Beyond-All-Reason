@@ -69,6 +69,7 @@ local spGetUnitsInRectangle		= Spring.GetUnitsInRectangle
 local spGetUnitsInCylinder		= Spring.GetUnitsInCylinder
 local spSetUnitRulesParam		= Spring.SetUnitRulesParam
 local spGetCommandQueue     	= Spring.GetCommandQueue
+local spGetUnitCurrentCommand   = Spring.GetUnitCurrentCommand
 local spGiveOrderArrayToUnitArray = Spring.GiveOrderArrayToUnitArray
 local spGetUnitWeaponTryTarget	= Spring.GetUnitWeaponTryTarget
 local spGetUnitWeaponTestTarget = Spring.GetUnitWeaponTestTarget
@@ -194,8 +195,8 @@ end
 local function setTarget(unitID, targetData)
 	local unitData = unitTargets[unitID]
 	if not TargetCanBeReached(unitID, unitData.teamID, unitData.weapons, targetData.target) then
-		local commands = Spring.GetUnitCommands(unitID, 1)
-		if commands and commands[1] and commands[1].id == CMD.ATTACK then
+		local currentCmdID = spGetUnitCurrentCommand(unitID)
+		if currentCmdID and currentCmdID == CMD.ATTACK then
 			return false
 		else
 			Spring.SetUnitTarget(unitID, nil)
@@ -228,8 +229,8 @@ end
 
 local function removeUnseenTarget(targetData,attackerAllyTeam)
 	if tonumber(targetData.target) and not targetData.alwaysSeen and spValidUnitID(targetData.target) then
-		local los = spGetUnitLosState(targetData.target, attackerAllyTeam, false)
-		if not (los and (los.los or los.radar)) then
+		local los = spGetUnitLosState(targetData.target, attackerAllyTeam, true)
+		if not los or (los % 4 == 0) then
 			if targetData.unseenTargetTimer == UNSEEN_TIMEOUT then
 				return true
 			elseif not targetData.unseenTargetTimer then
@@ -543,7 +544,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams,
 end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
-	if spGetCommandQueue(unitID, -1, false) == 0 or not cmdOptions.meta then
+	if spGetCommandQueue(unitID, 0) == 0 or not cmdOptions.meta then
 		if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 			return false --command was used & fully processed, so block command
 		elseif cmdID == CMD_STOP then
@@ -576,15 +577,15 @@ function gadget:GameFrame(n)
 	-- a set target command, howrever a quick test with 300 fidos only increased by 1%
 	-- sim here 
 	for unitID, pauseend in pairs(pauseEnd) do
-			if pauseEnd[unitID] and pauseEnd[unitID] == n then
+		if pauseEnd[unitID] and pauseEnd[unitID] == n then
 			addUnitTargets(unitID, Spring.GetUnitDefID(unitID), pausedTargets[unitID].targets, true)
 			pausedTargets[unitID] = nil
-			pauseEnd[unitID] = nil	
-			else 
-			if spGetCommandQueue(unitID, -1, false) == 2 then
-			pauseEnd[unitID] = Spring.GetGameFrame() + 15
+			pauseEnd[unitID] = nil
+		else
+			if spGetCommandQueue(unitID, 0) == 2 then
+				pauseEnd[unitID] = Spring.GetGameFrame() + 15
 			end
-			end
+		end
 	end
 	for unitID, unitData in pairs(unitTargets) do
 		local targetIndex
@@ -748,14 +749,14 @@ local function drawTargetCommand(targetData,spectator,myTeam,myAllyTeam)
 			local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
 			glVertex(x2,y2,z2)
 		else
-			local los = spGetUnitLosState(targetData.target, myAllyTeam, false)
+			local los = spGetUnitLosState(targetData.target, myAllyTeam, true)
 			if not los then
 				return
 			end
 			local _,_,_,_,_,_,x2,y2,z2 = spGetUnitPosition(targetData.target,true,true)
-			if los.los == true then
+			if los % 2 == 1 then -- in los
 				glVertex( x2, y2, z2)
-			elseif los.radar == true then
+			elseif los % 4 == 0 then -- in radar
 				local dx, dy, dz = Spring.GetUnitPosErrorParams(targetData.target)
 				local size = Spring.GetRadarErrorParams(myAllyTeam)
 				glVertex( x2+dx*size,y2+dy*size,z2+dz*size)

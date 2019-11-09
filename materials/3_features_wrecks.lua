@@ -2,13 +2,23 @@
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local function SunChanged(curShader)
-	gl.Uniform(gl.GetUniformLocation(curShader, "shadowDensity"), gl.GetSun("shadowDensity" ,"unit"))
+local function SunChanged(curShaderObj)
+	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunAmbient"), gl.GetSun("ambient" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunDiffuse"), gl.GetSun("diffuse" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecular"), gl.GetSun("specular" ,"unit"))
-	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
+	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
+
+	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
+		Spring.GetConfigFloat("tonemapA", 0.0),
+		Spring.GetConfigFloat("tonemapB", 1.0),
+		Spring.GetConfigFloat("tonemapC", 0.0),
+		Spring.GetConfigFloat("tonemapD", 0.0),
+		Spring.GetConfigFloat("tonemapE", 1.0),
+		Spring.GetConfigFloat("envAmbient", 0.5),
+		Spring.GetConfigFloat("unitSunMult", 1.5),
+		Spring.GetConfigFloat("unitExposureMult", 1.0),
+	})
 end
 
 
@@ -21,29 +31,56 @@ local materials = {
 		shaderDefinitions = {
 			"#define use_normalmapping",
 			"#define deferred_mode 0",
-			--"#define use_vertex_ao",
-			"#define SPECULARMULT 6.0",
+
+			"#define SHADOW_SOFTNESS SHADOW_SOFT",
+
+			"#define SUNMULT 1.0",
+			--"#define EXPOSURE 1.0",
+
+			--"#define METALNESS 0.0",
+			"#define ROUGHNESS 0.6",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
 		},
 		deferredDefinitions = {
-			--"#define use_normalmapping", --actively disable normalmapping, it can be pricey, and is only shown for deferred lights...
+			"#define use_normalmapping",
 			"#define deferred_mode 1",
-			--"#define use_vertex_ao",
-			"#define SPECULARMULT 6.0",
+
+			"#define SHADOW_SOFTNESS SHADOW_SOFT",
+
+			"#define SUNMULT 1.0",
+			--"#define EXPOSURE 1.0",
+
+			--"#define METALNESS 0.0",
+			"#define ROUGHNESS 0.6",
+
+			--"#define USE_ENVIRONMENT_DIFFUSE",
+			--"#define USE_ENVIRONMENT_SPECULAR",
+
+			--"#define GAMMA 2.2",
+			--"#define TONEMAP(c) SteveMTM1(c)",
+
+			"#define MAT_IDX 128",
 		},
-		force     = false, --// always use the shader even when normalmapping is disabled
+		feature = true,
 		usecamera = false,
+		force = true,
 		culling   = GL.BACK,
 		texunits  = {
 			[0] = '%%FEATUREDEFID:0',
 			[1] = '%%FEATUREDEFID:1',
 			[2] = '$shadow',
-			[3] = '$specular',
 			[4] = '$reflection',
 			[5] = '%NORMALTEX',
+			[6] = "$info",
+			[7] = GG.GetBrdfTexture(),
 		},
 		--DrawFeature = DrawFeature,
 		SunChanged = SunChanged,
-		feature = true, --// This is used to define that this is a feature shader
 	},
 }
 
@@ -72,7 +109,6 @@ local function FindNormalmap(tex1, tex2)
 end
 
 
-
 local featureMaterials = {}
 
 for id, featureDef in pairs(FeatureDefs) do
@@ -86,8 +122,8 @@ for id, featureDef in pairs(FeatureDefs) do
 	Spring.PreloadFeatureDefModel(id)
 	-- how to check if its a wreck or a heap?
 
-	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and ((featureDef.modelpath and featureDef.modelpath:find("%.3ds")) or (featureDef.model ~= nil and featureDef.model.path ~= nil and featureDef.model.path:find("%.3ds") == nil)) then --its likely a proper feature
-		if  featureDef.name:find("_dead") then
+	if (not isTree) and featureDef.model.textures and featureDef.model.textures.tex1 and featureDef.modeltype == "s3o" then --its likely a proper feature
+		if featureDef.name:find("_dead") then
 			if featureDef.name == "cormaw_dead" or featureDef.name == "armclaw_dead" then
 				--ignore these two edge cases.
 			elseif featureDef.name == "freefusion_free_fusion_dead" then
@@ -108,45 +144,7 @@ for id, featureDef in pairs(FeatureDefs) do
 	end
 end
 
-function to_string(data, indent)
-	local str = ""
 
-	if(indent == nil) then
-		indent = 0
-	end
-
-	-- Check the type
-	if(type(data) == "string") then
-		str = str .. ("    "):rep(indent) .. data .. "\n"
-	elseif(type(data) == "number") then
-		str = str .. ("    "):rep(indent) .. data .. "\n"
-	elseif(type(data) == "boolean") then
-		if(data == true) then
-			str = str .. "true"
-		else
-			str = str .. "false"
-		end
-	elseif(type(data) == "table") then
-		local i, v
-		for i, v in pairs(data) do
-			-- Check for a table in a table
-			if(type(v) == "table") then
-				str = str .. ("    "):rep(indent) .. i .. ":\n"
-				str = str .. to_string(v, indent + 2)
-			else
-				str = str .. ("    "):rep(indent) .. i .. ": " .. to_string(v, 0)
-			end
-		end
-	elseif (data ==nil) then
-		str=str..'nil'
-	else
-		--print_debug(1, "Error: unknown data type: %s", type(data))
-		str=str.. "Error: unknown data type:" .. type(data)
-		Spring.Echo('X data type')
-	end
-
-	return str
-end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

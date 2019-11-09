@@ -39,7 +39,7 @@ return {
 		turnrate = 1316.75,
 		upright = true,
 		customparams = {
-			model_author = "Beherith",
+			model_author = "Beherith, PtaQ",
 			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corekbots/t2",

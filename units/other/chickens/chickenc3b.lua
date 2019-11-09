@@ -31,7 +31,7 @@ return {
 		maxslope = 18,
 		maxvelocity = 3.5,
 		maxwaterdepth = 15,
-		movementclass = "CHICKENHKBOT2",
+		movementclass = "KBOT2",
 		name = "Weevil",
 		noautofire = false,
 		nochasecategory = "VTOL",

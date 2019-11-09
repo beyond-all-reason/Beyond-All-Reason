@@ -30,14 +30,13 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		isairbase = true,
 		losemitheight = 50,
 		mass = 10000,
 		maxdamage = 4500,
 		maxvelocity = 2.008,
 		metalstorage = 800,
 		minwaterdepth = 15,
-		movementclass = "DBOAT67X7",
+		movementclass = "BOAT7",
 		name = "Hive",
 		nochasecategory = "ALL",
 		objectname = "Units/CORCARRY.s3o",
@@ -60,6 +59,7 @@ return {
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships/t2",
 			techlevel = 2,
+			isairbase = true,
 		},
 		featuredefs = {
 			dead = {

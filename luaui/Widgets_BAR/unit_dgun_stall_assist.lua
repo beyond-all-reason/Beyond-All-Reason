@@ -30,7 +30,7 @@ local isFactory = {} -- isFactory[uDefID] = true / nil
 ----------------------------------------------------------------
 local spGetActiveCommand = Spring.GetActiveCommand
 local spGiveOrderToUnitArray = Spring.GiveOrderToUnitArray
-local spGetUnitCommands = Spring.GetUnitCommands
+local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
 local spGetFactoryCommands = Spring.GetFactoryCommands
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGetTeamResources = Spring.GetTeamResources
@@ -89,9 +89,16 @@ function widget:Update(dt)
 			for i = 1, #waitedUnits do
 				local uID = waitedUnits[i]
 				local uDefID = spGetUnitDefID(uID)
-				local uCmds = isFactory[uDefID] and spGetFactoryCommands(uID, 1) or spGetUnitCommands(uID, 1)
-				if uCmds and (#uCmds > 0) and (uCmds[1].id == CMD_WAIT) then
-					toUnwait[#toUnwait + 1] = uID
+				if isFactory[uDefID] then
+					local uCmds = spGetFactoryCommands(uID, 1)
+					if uCmds and #uCmds > 0 and uCmds[1].id == CMD_WAIT then
+						toUnwait[#toUnwait + 1] = uID
+					end
+				else
+					local uCmd = spGetUnitCurrentCommand(uID, 1)
+					if uCmd and uCmd == CMD_WAIT then
+						toUnwait[#toUnwait + 1] = uID
+					end
 				end
 			end
 			spGiveOrderToUnitArray(toUnwait, CMD_WAIT, {}, {})
@@ -112,9 +119,16 @@ function widget:Update(dt)
 				local uID = myUnits[i]
 				local uDefID = spGetUnitDefID(uID)
 				if shouldWait[uDefID] then
-					local uCmds = isFactory[uDefID] and spGetFactoryCommands(uID, 1) or spGetUnitCommands(uID, 1)
-					if (#uCmds == 0) or (uCmds[1].id ~= CMD_WAIT) then
-						waitedUnits[#waitedUnits + 1] = uID
+					if isFactory[uDefID] then
+						local uCmds = spGetFactoryCommands(uID, 1)
+						if #uCmds == 0 or uCmds[1].id ~= CMD_WAIT then
+							waitedUnits[#waitedUnits + 1] = uID
+						end
+					else
+						local uCmd = spGetUnitCurrentCommand(uID, 1)
+						if not uCmd or uCmd ~= CMD_WAIT then
+							waitedUnits[#waitedUnits + 1] = uID
+						end
 					end
 				end
 			end

@@ -37,7 +37,7 @@ return {
 		turnrate = 1214.40002,
 		upright = true,
 		customparams = {
-			model_author = "FireStorm",
+			model_author = "FireStorm, FLaka",
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armkbots/t2",
@@ -87,6 +87,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:barrelshot-lightning",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",
 				[2] = "deathceg3",
@@ -134,7 +137,7 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
-				intensity = 12,
+				intensity = 24,
 				name = "Close-quarters g2g lightning rifle",
 				noselfdamage = true,
 				range = 280,
@@ -146,8 +149,8 @@ return {
 				soundstart = "lghthvy1",
 				soundtrigger = true,
 				targetmoveerror = 0.15,
-				texture1 = "lightning",
-				thickness = 10,
+				--texture1 = "lightning",
+				thickness = 1.5,
 				turret = true,
 				weapontype = "LightningCannon",
 				weaponvelocity = 400,

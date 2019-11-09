@@ -53,7 +53,7 @@ function GetTeamIsTakeable(teamID)
 		allResigned,noneControlling = false,false
 	end
 	for _, playerID in pairs(players) do
-		local name, active, spec = GetPlayerInfo(playerID)
+		local name, active, spec = GetPlayerInfo(playerID,false)
 		allResigned = allResigned and spec
 		noneControlling = noneControlling and ( not active or spec )
 	end
@@ -61,8 +61,7 @@ function GetTeamIsTakeable(teamID)
 		--team is handled by skirmish AI, make sure the hosting player is present
 		allResigned = false
 		local hostingPlayerID = select(3,GetAIInfo(teamID))
-		local _,hostingPlayerActive = GetPlayerInfo(hostingPlayerID)
-		noneControlling = noneControlling and not hostingPlayerActive
+		noneControlling = noneControlling and not select(2,GetPlayerInfo(hostingPlayerID,false))
 	end
 	return noneControlling, allResigned
 end

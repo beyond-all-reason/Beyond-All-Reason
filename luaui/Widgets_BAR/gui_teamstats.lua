@@ -13,12 +13,12 @@ end
 
 local bgcorner	= "LuaUI/Images/bgcorner.png"
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local fontSize = 22		-- is caclulated somewhere else anyway
@@ -447,8 +447,8 @@ function widget:GameFrame(n,forceupdate)
 					end
 					history.time = nil
 					local teamColor = {GetTeamColor(teamID)}
-					local _,leader,isDead = GetTeamInfo(teamID)
-					local playerName,isActive = GetPlayerInfo(leader)
+					local _,leader,isDead = GetTeamInfo(teamID,false)
+					local playerName,isActive = GetPlayerInfo(leader,false)
 					if Spring.GetGameRulesParam('ainame_'..teamID) then
 						playerName = Spring.GetGameRulesParam('ainame_'..teamID)
 					end
@@ -624,11 +624,16 @@ function widget:Update()
 	mousex,mousey = x,y
 end
 
-function widget:DrawScreen()
-	if IsGUIHidden() then
-		return
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
 	end
-	if WG['guishader'] then
+end
+
+function widget:DrawScreen()
+	if chobbyInterface then return end
+	if IsGUIHidden() then return end
+	if not guiData.mainPanel.visible and WG['guishader'] then
 		WG['guishader'].DeleteDlist('teamstats_window')
 	end
 	DrawBackground()

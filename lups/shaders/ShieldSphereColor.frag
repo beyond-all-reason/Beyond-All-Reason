@@ -245,7 +245,7 @@ void main() {
 	}
 
 	if (BITMASK_FIELD(effects, 1) || BITMASK_FIELD(effects, 2)) {
-		const float outlineEffectSize = 10.0;
+		const float outlineEffectSize = 40.0;
 		const float outlineAlpha = 0.6;
 
 		float minDepth = 1.0;
@@ -265,6 +265,8 @@ void main() {
 
 		float minDepthView = GetViewSpaceDepth( minDepth );
 		float outlineFactor = smoothstep( 0.0, abs(viewPos.z - minDepthView), outlineEffectSize * valueNoise );
+		outlineFactor *= mix(0.25, 1.0, SNORM2NORM(sin(0.1*gameFrame + 10.0*(modelPos.x + modelPos.z +  modelPos.y))));
+
 
 		color.a = mix(color.a, outlineAlpha, outlineFactor);
 	}

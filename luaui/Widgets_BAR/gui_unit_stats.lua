@@ -51,12 +51,12 @@ include("keysym.h.lua")
 local fontSize = 13
 local useSelection = true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local customFontSize = 13
@@ -111,8 +111,6 @@ local spIsUserWriting = Spring.IsUserWriting
 local spGetModKeyState = Spring.GetModKeyState
 local spGetMouseState = Spring.GetMouseState
 local spTraceScreenRay = Spring.TraceScreenRay
-local spGetSelectedUnits = Spring.GetSelectedUnits
-local spGetSelectedUnitsCount	= Spring.GetSelectedUnitsCount
 
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitExp = Spring.GetUnitExperience
@@ -201,10 +199,10 @@ local function GetTeamName(teamID)
 
 	if not teamID then return 'Error:NoTeamID' end
 
-	local _, teamLeader = spGetTeamInfo(teamID)
+	local _, teamLeader = spGetTeamInfo(teamID,false)
 	if not teamLeader then return 'Error:NoLeader' end
 
-	local leaderName = spGetPlayerInfo(teamLeader)
+	local leaderName = spGetPlayerInfo(teamLeader,false)
 
     if Spring.GetGameRulesParam('ainame_'..teamID) then
         leaderName = Spring.GetGameRulesParam('ainame_'..teamID)
@@ -274,10 +272,27 @@ function widget:ViewResize(n_vsx,n_vsy)
 	init()
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+if useSelection then
+	function widget:SelectionChanged(sel)
+		selectedUnits = sel
+		selectedUnitsCount = Spring.GetSelectedUnitsCount()
+	end
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if (WG['topbar'] and WG['topbar'].showingQuit()) then
 		return
 	end
+
 	local alt, ctrl, meta, shift = spGetModKeyState()
 	if not meta or spIsUserWriting() then
 		WG.hoverID = nil 
@@ -291,9 +306,8 @@ function widget:DrawScreen()
 		uID = unitID
 	end
 	if useSelection then
-		local selUnits = spGetSelectedUnits()
-		if #selUnits >= 1 then
-			uID = selUnits[1]
+		if selectedUnitsCount >= 1 then
+			uID = selectedUnits[1]
 		end
 	end
 	local useHoverID = false

@@ -22,7 +22,7 @@ end
 
 -- remove gadget if modoption is not set
 
-local GetTeamInfos = Spring.GetTeamInfos
+local GetTeamInfo = Spring.GetTeamInfo
 local GetUnitPosition = Spring.GetUnitPosition
 local GetGroundHeight = Spring.GetGroundHeight
 local MoveCtrl = Spring.MoveCtrl
@@ -54,14 +54,13 @@ function CommCount(unitTeam)
 
 	local allyteamlist = Spring.GetAllyTeamList()
 	local teamsInAllyID = {}
-	local _,_,_,_,_,currentAllyTeamID = Spring.GetTeamInfo(unitTeam)
 
 	for ct, allyTeamID in pairs(allyteamlist) do
 		teamsInAllyID[allyTeamID] = Spring.GetTeamList(allyTeamID) -- [1] = teamID,
 	end
 	-- Spring.Echo(teamsInAllyID[currentAllyTeamID])
 	local count = 0
-	for _, teamID in pairs(teamsInAllyID[currentAllyTeamID]) do -- [_] = teamID,
+	for _, teamID in pairs(teamsInAllyID[select(6,GetTeamInfo(unitTeam,false))]) do -- [_] = teamID,
 		count = count + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["armcom"].id) + Spring.GetTeamUnitDefCount(teamID, UnitDefNames["corcom"].id)
 	end
 	-- Spring.Echo(currentAllyTeamID..","..count)

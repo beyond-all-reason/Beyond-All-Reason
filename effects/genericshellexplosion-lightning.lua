@@ -294,10 +294,10 @@ return {
         heatfalloff        = 1.6,
         maxheat            = 12,
         pos                = [[r-2 r2, 5, r-2 r2]],
-        size               = 1,
+        size               = 1.2,
         sizegrowth         = 7,
         speed              = [[0, 1 0, 0]],
-        texture            = [[flare]],
+        texture            = [[plasmaball]],
       },
     },
     --electricstorm = {
@@ -315,7 +315,7 @@ return {
     --},
     groundflash = {
       air                = true,
-      flashalpha         = 0.02,
+      flashalpha         = 0.04,
       flashsize          = 80,
       ground             = true,
       ttl                = 25,

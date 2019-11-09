@@ -26,7 +26,7 @@ walk()
 		move rthigh to y-axis [1.100000] speed [9.387931] *  currentSpeed / 100;
 		move lthigh to y-axis [-0.950000] speed [8.107759] *  currentSpeed / 100;
 		move rleg to y-axis [1.200000] speed [10.241379] *  currentSpeed / 100;
-		move head to z-axis [0.000000] now;
+		// move head to z-axis [0.000000] now;
 		move luparm to x-axis [0.000000] now;
 		move ruparm to x-axis [0.000000] now;
 		turn rthigh to x-axis <-19.335165> speed <165.015632> *  currentSpeed / 100;
@@ -52,7 +52,7 @@ walk()
 		turn lthigh to x-axis <6.148352> speed <52.473004> *  currentSpeed / 100;
 		turn lleg to x-axis <-9.137363> speed <77.982667> *  currentSpeed / 100;
 		turn rleg to x-axis <20.038462> speed <57.068490> *  currentSpeed / 100;
-		turn head to y-axis <2.456044> speed <20.961065> *  currentSpeed / 100;
+		// turn head to y-axis <2.456044> speed <20.961065> *  currentSpeed / 100;
 		turn ruparm to x-axis <25.659341> speed <77.935770> *  currentSpeed / 100;
 		turn luparm to x-axis <-24.258242> speed <56.974705> *  currentSpeed / 100;
 		turn luparm to z-axis <-11.247253> speed <33.012506> *  currentSpeed / 100;
@@ -74,7 +74,7 @@ walk()
 		turn lthigh to x-axis <12.302198> speed <73.401296> *  currentSpeed / 100;
 		turn lleg to x-axis <-18.280220> speed <109.053355> *  currentSpeed / 100;
 		turn rleg to x-axis <13.357143> speed <79.692841> *  currentSpeed / 100;
-		turn head to y-axis <4.923077> speed <29.426056> *  currentSpeed / 100;
+		// turn head to y-axis <4.923077> speed <29.426056> *  currentSpeed / 100;
 		turn ruparm to x-axis <34.802198> speed <109.053355> *  currentSpeed / 100;
 		turn luparm to x-axis <-30.945055> speed <79.758372> *  currentSpeed / 100;
 		turn luparm to z-axis <-7.379121> speed <46.137960> *  currentSpeed / 100;
@@ -116,7 +116,7 @@ walk()
 		turn lthigh to x-axis <22.505495> speed <60.883760> *  currentSpeed / 100;
 		turn lleg to x-axis <-7.736264> speed <62.849864> *  currentSpeed / 100;
 		turn rleg to x-axis <0.000000> speed <79.692841> *  currentSpeed / 100;
-		turn head to y-axis <8.082418> speed <18.874624> *  currentSpeed / 100;
+		//turn head to y-axis <8.082418> speed <18.874624> *  currentSpeed / 100;
 		turn ruparm to x-axis <54.857143> speed <119.539256> *  currentSpeed / 100;
 		turn luparm to x-axis <-45.714286> speed <88.147095> *  currentSpeed / 100;
 		turn luparm to z-axis <0.000000> speed <43.909709> *  currentSpeed / 100;
@@ -135,7 +135,7 @@ walk()
 		turn rthigh to x-axis <-53.269231> speed <2.097178> *  currentSpeed / 100;
 		turn lleg to x-axis <10.714286> speed <220.072825> *  currentSpeed / 100;
 		turn rleg to x-axis <17.747253> speed <211.684102> *  currentSpeed / 100;
-		turn head to y-axis <6.148352> speed <23.068980> *  currentSpeed / 100;
+		//turn head to y-axis <6.148352> speed <23.068980> *  currentSpeed / 100;
 		turn ruparm to x-axis <45.357143> speed <113.313253> *  currentSpeed / 100;
 		turn luparm to x-axis <-40.615385> speed <60.818217> *  currentSpeed / 100;
 		turn luparm to z-axis <-4.923077> speed <58.721039> *  currentSpeed / 100;
@@ -153,7 +153,7 @@ walk()
 		turn rthigh to x-axis <-53.093407> speed <2.097178> *  currentSpeed / 100;
 		turn lleg to x-axis <29.181319> speed <220.269430> *  currentSpeed / 100;
 		turn rleg to x-axis <35.516484> speed <211.946249> *  currentSpeed / 100;
-		turn head to y-axis <4.214286> speed <23.068980> *  currentSpeed / 100;
+		//turn head to y-axis <4.214286> speed <23.068980> *  currentSpeed / 100;
 		turn ruparm to x-axis <35.868132> speed <113.182179> *  currentSpeed / 100;
 		turn luparm to x-axis <-35.516484> speed <60.818217> *  currentSpeed / 100;
 		turn luparm to z-axis <-9.846154> speed <58.721039> *  currentSpeed / 100;
@@ -174,7 +174,7 @@ walk()
 		turn lthigh to x-axis <12.038462> speed <124.847743> *  currentSpeed / 100;
 		turn lleg to x-axis <28.478022> speed <8.388723> *  currentSpeed / 100;
 		turn rleg to x-axis <26.626374> speed <106.038661> *  currentSpeed / 100;
-		turn head to y-axis <3.159341> speed <12.583079> *  currentSpeed / 100;
+		//turn head to y-axis <3.159341> speed <12.583079> *  currentSpeed / 100;
 		turn ruparm to x-axis <22.505495> speed <159.385670> *  currentSpeed / 100;
 		turn luparm to x-axis <-22.593407> speed <154.142726> *  currentSpeed / 100;
 		turn luparm to z-axis <-11.159341> speed <15.663315> *  currentSpeed / 100;
@@ -196,7 +196,7 @@ walk()
 		turn lthigh to x-axis <1.571429> speed <89.330713> *  currentSpeed / 100;
 		turn lleg to x-axis <27.769231> speed <6.049165> *  currentSpeed / 100;
 		turn rleg to x-axis <17.747253> speed <75.778705> *  currentSpeed / 100;
-		turn head to y-axis <2.104396> speed <9.003410> *  currentSpeed / 100;
+		//turn head to y-axis <2.104396> speed <9.003410> *  currentSpeed / 100;
 		turn ruparm to x-axis <9.137363> speed <114.090092> *  currentSpeed / 100;
 		turn luparm to x-axis <-9.670330> speed <110.291778> *  currentSpeed / 100;
 		turn luparm to z-axis <-12.478022> speed <11.254260> *  currentSpeed / 100;
@@ -218,7 +218,7 @@ walk()
 		turn lthigh to x-axis <-8.868132> speed <89.096253> *  currentSpeed / 100;
 		turn lleg to x-axis <27.071429> speed <5.955379> *  currentSpeed / 100;
 		turn rleg to x-axis <8.868132> speed <75.778705> *  currentSpeed / 100;
-		turn head to y-axis <1.049451> speed <9.003410> *  currentSpeed / 100;
+		//turn head to y-axis <1.049451> speed <9.003410> *  currentSpeed / 100;
 		turn ruparm to x-axis <-4.214286> speed <113.949418> *  currentSpeed / 100;
 		turn luparm to x-axis <3.247253> speed <110.244889> *  currentSpeed / 100;
 		turn luparm to z-axis <-13.791209> speed <11.207372> *  currentSpeed / 100;
@@ -240,7 +240,7 @@ walk()
 		turn lthigh to x-axis <-19.335165> speed <89.330713> *  currentSpeed / 100;
 		turn lleg to x-axis <26.368132> speed <6.002276> *  currentSpeed / 100;
 		turn rleg to x-axis <0.000000> speed <75.684920> *  currentSpeed / 100;
-		turn head to y-axis <0.000000> speed <8.956521> *  currentSpeed / 100;
+		//turn head to y-axis <0.000000> speed <8.956521> *  currentSpeed / 100;
 		turn ruparm to x-axis <-17.582418> speed <114.090092> *  currentSpeed / 100;
 		turn luparm to x-axis <16.170330> speed <110.291778> *  currentSpeed / 100;
 		turn luparm to z-axis <-15.115385> speed <11.301157> *  currentSpeed / 100;
@@ -262,7 +262,7 @@ walk()
 		turn lthigh to x-axis <-34.813187> speed <132.096912> *  currentSpeed / 100;
 		turn lleg to x-axis <19.857143> speed <55.567923> *  currentSpeed / 100;
 		turn rleg to x-axis <-9.137363> speed <77.982667> *  currentSpeed / 100;
-		turn head to y-axis <-1.934066> speed <16.506253> *  currentSpeed / 100;
+		//turn head to y-axis <-1.934066> speed <16.506253> *  currentSpeed / 100;
 		turn ruparm to x-axis <-24.082418> speed <55.474138> *  currentSpeed / 100;
 		turn luparm to x-axis <25.137363> speed <76.528989> *  currentSpeed / 100;
 		turn luparm to z-axis <-13.527473> speed <13.552008> *  currentSpeed / 100;
@@ -284,7 +284,7 @@ walk()
 		turn lthigh to x-axis <-50.280220> speed <132.003126> *  currentSpeed / 100;
 		turn lleg to x-axis <13.357143> speed <55.474138> *  currentSpeed / 100;
 		turn rleg to x-axis <-18.280220> speed <78.029555> *  currentSpeed / 100;
-		turn head to y-axis <-3.868132> speed <16.506253> *  currentSpeed / 100;
+		//turn head to y-axis <-3.868132> speed <16.506253> *  currentSpeed / 100;
 		turn ruparm to x-axis <-30.593407> speed <55.567923> *  currentSpeed / 100;
 		turn luparm to x-axis <34.104396> speed <76.528989> *  currentSpeed / 100;
 		turn luparm to z-axis <-11.956044> speed <13.411334> *  currentSpeed / 100;
@@ -305,7 +305,7 @@ walk()
 		turn lthigh to x-axis <-51.681319> speed <11.957655> *  currentSpeed / 100;
 		turn lleg to x-axis <6.670330> speed <57.068490> *  currentSpeed / 100;
 		turn rleg to x-axis <-12.824176> speed <46.564513> *  currentSpeed / 100;
-		turn head to y-axis <-5.791209> speed <16.412468> *  currentSpeed / 100;
+		//turn head to y-axis <-5.791209> speed <16.412468> *  currentSpeed / 100;
 		turn ruparm to x-axis <-37.978022> speed <63.023869> *  currentSpeed / 100;
 		turn luparm to x-axis <44.126374> speed <85.532398> *  currentSpeed / 100;
 		turn luparm to z-axis <-10.549451> speed <12.004544> *  currentSpeed / 100;
@@ -326,7 +326,7 @@ walk()
 		turn lthigh to x-axis <-53.093407> speed <12.051441> *  currentSpeed / 100;
 		turn lleg to x-axis <0.000000> speed <56.927816> *  currentSpeed / 100;
 		turn rleg to x-axis <-7.379121> speed <46.470728> *  currentSpeed / 100;
-		turn head to y-axis <-7.736264> speed <16.600038> *  currentSpeed / 100;
+		//turn head to y-axis <-7.736264> speed <16.600038> *  currentSpeed / 100;
 		turn ruparm to x-axis <-45.357143> speed <62.976981> *  currentSpeed / 100;
 		turn luparm to x-axis <54.148352> speed <85.532398> *  currentSpeed / 100;
 		turn luparm to z-axis <-9.137363> speed <12.051441> *  currentSpeed / 100;
@@ -346,7 +346,7 @@ walk()
 		turn lthigh to x-axis <-53.269231> speed <1.500567> *  currentSpeed / 100;
 		turn lleg to x-axis <17.747253> speed <151.463625> *  currentSpeed / 100;
 		turn rleg to x-axis <10.901099> speed <156.012222> *  currentSpeed / 100;
-		turn head to y-axis <-6.148352> speed <13.552008> *  currentSpeed / 100;
+		//turn head to y-axis <-6.148352> speed <13.552008> *  currentSpeed / 100;
 		turn ruparm to x-axis <-40.258242> speed <43.516483> *  currentSpeed / 100;
 		turn luparm to x-axis <44.648352> speed <81.077586> *  currentSpeed / 100;
 		turn luparm to z-axis <-12.126374> speed <25.509663> *  currentSpeed / 100;
@@ -366,7 +366,7 @@ walk()
 		turn lthigh to x-axis <-53.445055> speed <2.097178> *  currentSpeed / 100;
 		turn lleg to x-axis <35.505495> speed <211.815176> *  currentSpeed / 100;
 		turn rleg to x-axis <29.181319> speed <218.041178> *  currentSpeed / 100;
-		turn head to y-axis <-4.571429> speed <18.809082> *  currentSpeed / 100;
+		//turn head to y-axis <-4.571429> speed <18.809082> *  currentSpeed / 100;
 		turn ruparm to x-axis <-35.159341> speed <60.818217> *  currentSpeed / 100;
 		turn luparm to x-axis <35.159341> speed <113.182179> *  currentSpeed / 100;
 		turn luparm to z-axis <-15.115385> speed <35.652059> *  currentSpeed / 100;
@@ -388,7 +388,7 @@ walk()
 		turn lthigh to x-axis <-40.082418> speed <159.385670> *  currentSpeed / 100;
 		turn lleg to x-axis <26.626374> speed <105.907588> *  currentSpeed / 100;
 		turn rleg to x-axis <28.560440> speed <7.405665> *  currentSpeed / 100;
-		turn head to y-axis <-3.423077> speed <13.697211> *  currentSpeed / 100;
+		//turn head to y-axis <-3.423077> speed <13.697211> *  currentSpeed / 100;
 		turn ruparm to x-axis <-22.236264> speed <154.142726> *  currentSpeed / 100;
 		turn luparm to x-axis <21.967033> speed <157.354035> *  currentSpeed / 100;
 		turn lloarm to x-axis <-55.725275> speed <165.808289> *  currentSpeed / 100;
@@ -409,7 +409,7 @@ walk()
 		turn lthigh to x-axis <-26.725275> speed <159.320139> *  currentSpeed / 100;
 		turn lleg to x-axis <17.747253> speed <105.907588> *  currentSpeed / 100;
 		turn rleg to x-axis <27.956044> speed <7.209061> *  currentSpeed / 100;
-		turn head to y-axis <-2.280220> speed <13.631668> *  currentSpeed / 100;
+		//turn head to y-axis <-2.280220> speed <13.631668> *  currentSpeed / 100;
 		turn ruparm to x-axis <-9.313187> speed <154.142726> *  currentSpeed / 100;
 		turn luparm to x-axis <8.791209> speed <157.157419> *  currentSpeed / 100;
 		turn lloarm to x-axis <-41.835165> speed <165.677216> *  currentSpeed / 100;
@@ -428,7 +428,7 @@ walk()
 	turn lthigh to x-axis <-13.357143> speed <159.451213> *  currentSpeed / 100;
 	turn lleg to x-axis <8.868132> speed <105.907588> *  currentSpeed / 100;
 	turn rleg to x-axis <27.335165> speed <7.405665> *  currentSpeed / 100;
-	turn head to y-axis <-1.137363> speed <13.631668> *  currentSpeed / 100;
+	//turn head to y-axis <-1.137363> speed <13.631668> *  currentSpeed / 100;
 	turn ruparm to x-axis <3.604396> speed <154.077195> *  currentSpeed / 100;
 	turn luparm to x-axis <-4.390110> speed <157.222962> *  currentSpeed / 100;
 	turn lloarm to x-axis <-27.956044> speed <165.546142> *  currentSpeed / 100;
@@ -686,7 +686,7 @@ ready2()
 {
 	move pelvis to z-axis [0.000000] now;
 	move body to y-axis [0.000000] now;
-	move head to z-axis [0.000000] now;
+	//move head to z-axis [0.000000] now;
 	move luparm to x-axis [0.000000] now;
 	move ruparm to x-axis [0.000000] now;
 
@@ -775,7 +775,7 @@ ready() //move hands above hipguns, extend the holsters
 	
 	
 	
-	turn head to x-axis <-65> speed <200>;
+	//turn head to x-axis <-65> speed <200>;
 	
 	turn luparm to z-axis <0.000000> now;
 	turn luparm to z-axis <-23.203297> speed <140.659341>;
@@ -827,7 +827,7 @@ holster()
 {
 	move pelvis to z-axis [0.000000] now;
 	move body to y-axis [0.000000] now;
-	move head to z-axis [0.000000] now;
+	//move head to z-axis [0.000000] now;
 	move luparm to x-axis [0.000000] now;
 	move ruparm to x-axis [0.000000] now;
 	turn ruparm to x-axis <-90.016484> now;
@@ -885,7 +885,7 @@ holster2()
 
 	move pelvis to z-axis [0.000000] now;
 	move body to y-axis [0.000000] now;
-	move head to z-axis [0.000000] now;
+	//move head to z-axis [0.000000] now;
 	move luparm to x-axis [0.000000] now;
 	move ruparm to x-axis [0.000000] now;
 	sleep 40;
@@ -1145,11 +1145,11 @@ FirePrimary()
 {
 	if( gun_1 )
 	{
-	    emit-sfx 1024 + 0 from lflare;
+	    emit-sfx 1024 + 0 from rflare;
 	}
 	else
 	{
-	    emit-sfx 1024 + 0 from rflare;
+	    emit-sfx 1024 + 0 from lflare;
 	}
 	gun_1 = !gun_1;
 }

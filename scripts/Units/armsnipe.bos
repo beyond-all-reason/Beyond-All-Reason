@@ -814,9 +814,9 @@ OpenGun()
 	sleep 108;
 	turn gun2 to x-axis <180.043956> speed <2813.000000>;
 	sleep 48;
-	move barrel1 to y-axis [4] speed [46.000000];
+	move barrel1 to y-axis [1.5] speed [46.000000];
 	sleep 78;
-	move barrel2 to y-axis [4] speed [4.000000];
+	move barrel2 to y-axis [1.5] speed [4.000000];
 	sleep 18;
 }
 
@@ -1038,7 +1038,7 @@ Create()
 	Static_Var_1 = 0;
 	hide flare;
 	turn flare to x-axis <-90> now;
-	restore_delay = 2000;
+	restore_delay = 800;
 	statechg_DesiredState = TRUE;
 	statechg_StateChanging = FALSE;
 	moveSpeed = get MAX_SPEED;

@@ -58,7 +58,7 @@ function gadget:Initialize()
 		local playerList = Spring.GetPlayerList(teamID)
 		local list = {} --without specs
 		for _,playerID in pairs(playerList) do
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID,false)
 			if not isSpec then
 				table.insert(list, name)
 			end
@@ -79,15 +79,13 @@ function gadget:GameStart()
 	for i=1,#allyTeamIDs do
 		local teamIDs = Spring.GetTeamList(allyTeamIDs[i])
 		for j=1,#teamIDs do
-			local _,_,_,isAiTeam = Spring.GetTeamInfo(teamIDs[j])
 			local isLuaAI = (Spring.GetTeamLuaAI(teamIDs[j]) ~= "")
 			local isGaiaTeam = (teamIDs[j] == gaiaTeamID)
-			if ((not isAiTeam) and (not isLuaAi) and (not isGaiaTeam)) then
+			if ((not select(4,Spring.GetTeamInfo(teamIDs[j],false))) and (not isLuaAi) and (not isGaiaTeam)) then
 				local playerIDs = Spring.GetPlayerList(teamIDs[j])
 				local numPlayers = 0
 				for _,playerID in pairs(playerIDs) do
-					local _,_,isSpec = Spring.GetPlayerInfo(playerID) 
-					if not isSpec then 
+					if not select(3,Spring.GetPlayerInfo(playerID,false)) then
 						numPlayers = numPlayers + 1
 					end
 				end
@@ -371,7 +369,7 @@ function gadget:GameOver(winningAllyTeams)
 	if ecoKillAward ~= -1 and (ecoKillAward == fightKillAward) and (fightKillAward == effKillAward) and ecoKillAward ~= -1 and nTeams > 3 then --check if some team got all the awards + if more than 3 teams in the game
 		if winningAllyTeams and winningAllyTeams[1] then
 			local won = false
-			local _,_,_,_,_,cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward)
+			local _,_,_,_,_,cowAllyTeamID = Spring.GetTeamInfo(ecoKillAward,false)
 			for _,allyTeamID in pairs(winningAllyTeams) do
 				if cowAllyTeamID == allyTeamID then --check if this team won the game
 					cowAward = ecoKillAward 
@@ -388,7 +386,7 @@ function gadget:GameOver(winningAllyTeams)
 		for playerID, info in pairs(GG['betengine'].playerScores) do
 			bettingParticipants = bettingParticipants + 1
 			if info.won > 0 then
-				local playerName, _, isSpec = Spring.GetPlayerInfo(playerID)
+				local playerName, _, isSpec = Spring.GetPlayerInfo(playerID,false)
 				if info.score > bettingScore then
 					bettingScore = info.score
 					bettingWinners = playerName
@@ -472,13 +470,15 @@ local graphColour
 local playerListByTeam = {} --does not contain specs
 local myPlayerID = Spring.GetMyPlayerID()
 
-local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.5
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = "luaui/fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
@@ -487,6 +487,8 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		gl.DeleteFont(font2)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 	--fix geometry
 	widgetScale = (0.75 + (vsx*vsy / 7500000))
@@ -498,6 +500,11 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 	byScaled = cy - (h*widgetScale)/2 - (50*widgetScale)
 	--CreateBackground()
 	--drawAwards = true
+end
+
+local chobbyLoaded = false
+if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+	chobbyLoaded = true
 end
 
 function gadget:Initialize()
@@ -518,7 +525,7 @@ function gadget:Initialize()
 		local playerList = Spring.GetPlayerList(teamID)
 		local list = {} --without specs
 		for _,playerID in pairs(playerList) do
-			local name, _, isSpec = Spring.GetPlayerInfo(playerID)
+			local name, _, isSpec = Spring.GetPlayerInfo(playerID,false)
 			if not isSpec then
 				table.insert(list, name)
 			end
@@ -795,10 +802,16 @@ function gadget:MousePress(x,y,button)
 	if button ~= 1 then return end
 	if drawAwards then
 		x,y = correctMouseForScaling(x,y)
-		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
-			Spring.SendCommands("quitforce")
+		if chobbyLoaded then
+			if (x > bx+w-quitX-5) and (x < bx+w-quitX+20*font:GetTextWidth('Leave')+5) and (y>by+50-5) and (y<by+50+16+5) then --leave button
+				Spring.Reload("")
+			end
+		else
+			if (x > bx+w-quitX-5) and (x < bx+w-quitX+20*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then --quit button
+				Spring.SendCommands("quitforce")
+			end
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+20*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
 			Spring.SendCommands('endgraph 1')
 			if Script.LuaUI("GuishaderRemoveRect") then
 				Script.LuaUI.GuishaderRemoveRect('awards')
@@ -851,19 +864,24 @@ function gadget:DrawScreen()
 		local x1,y1 = Spring.GetMouseState()
 		local x,y = correctMouseForScaling(x1,y1)
 		
-		if (x > bx+w-quitX-5) and (x < bx+w-quitX+16*font:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-quitX-5) and (x < bx+w-quitX+17*font2:GetTextWidth('Quit')+5) and (y>by+50-5) and (y<by+50+17+5) then
 			quitColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			quitColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+16*font:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+16+5) then
+		if (x > bx+w-graphsX-5) and (x < bx+w-graphsX+17*font2:GetTextWidth('Show Graphs')+5) and (y>by+50-5) and (y<by+50+17+5) then
 			graphColour = "\255"..string.char(201)..string.char(51)..string.char(51)
 		else
 			graphColour = "\255"..string.char(201)..string.char(201)..string.char(201)
 		end
-		font:Begin()
-		font:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 16, "o")
-		font:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 16, "o")
+		font2:Begin()
+		if chobbyLoaded then
+			font2:Print(quitColour .. 'Leave', bx+w-quitX, by+50, 20, "o")
+		else
+			font2:Print(quitColour .. 'Quit', bx+w-quitX, by+50, 20, "o")
+		end
+		font2:Print(graphColour .. 'Show Graphs', bx+w-graphsX, by+50, 20, "o")
+		font2:End()
 
 		if bettingScores ~= nil and bettingScores[1] ~= '' then
 			local winners = bettingScores[1]
@@ -885,9 +903,10 @@ function gadget:DrawScreen()
 				glTexRect(bx+10+xOffset, by+10+heightOffset+chipSize, bx+10+chipSize+xOffset, by+10+heightOffset)
 				heightOffset = heightOffset + chipHeight
 			end
+			font:Begin()
 			font:Print('\255\225\225\225'..winners..'\255\150\150\150 became the betting winner(s)     \255\130\130\130...among '..participants..' participants', bx+18+chipSize, by+6+(chipSize/2), 14, "o")
+			font:End()
 		end
-		font:End()
 	glPopMatrix()
 end
 

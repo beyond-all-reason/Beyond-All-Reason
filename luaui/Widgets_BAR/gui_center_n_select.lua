@@ -23,15 +23,13 @@ end
 local go = true
 local unitArray = {}
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 
 function widget:Update()
   local t = Spring.GetGameSeconds()
-  _, _, spectator = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
-  if (spectator or t > 10) then
+  if (select(3,Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)) or t > 10) then
     widgetHandler:RemoveWidget(self)
     return
   end

@@ -98,7 +98,7 @@ function gadget:AllowDirectUnitControl(unitID, unitDefID, unitTeam, playerID)
     return false
   end
   
-  if (select(3,Spring.GetPlayerInfo(playerID)) == true) then
+  if (select(3,Spring.GetPlayerInfo(playerID,false)) == true) then
     return false
   end
   

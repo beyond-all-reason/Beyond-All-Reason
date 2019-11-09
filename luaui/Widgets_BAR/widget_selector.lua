@@ -66,13 +66,15 @@ local fontSize = 13.5
 local fontSpace = 8.5
 local yStep = fontSize + fontSpace
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgPadding = 5.5
 local bgcorner	= "LuaUI/Images/bgcorner.png"
@@ -117,7 +119,7 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().allowuserwidgets) o
   buttons[3] = ''
 end
 
-local titleFontSize = 18
+local titleFontSize = 20
 local buttonFontSize = 15
 local buttonHeight = 24
 local buttonTop = 28 -- offset between top of buttons and bottom of widget
@@ -330,8 +332,9 @@ end
 function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
   widgetScale = (0.5 + (vsx*vsy / 5700000))
-  local fontScale = widgetScale/2
-  font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
+  local fontfileScale = widgetScale
+  font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+  font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
   if customScale == nil then
 	customScale = 1
@@ -363,7 +366,14 @@ function widget:KeyPress(key, mods, isRepeat)
 end
 local activeGuishader = false
 local scrollbarOffset = -15
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
   if not show then 
     if activeGuishader and (WG['guishader']) then
       activeGuishader = false
@@ -372,7 +382,6 @@ function widget:DrawScreen()
     return
   end
   UpdateList()
-  font:Begin()
   if (WG['guishader'] == nil) then
     activeGuishader = false 
   end
@@ -387,8 +396,11 @@ function widget:DrawScreen()
   bordery = (yStep*sizeMultiplier) * 0.75
 
   -- draw the header
-  font:Print("Widget Selector", midx, maxy + ((8 + bgPadding)*sizeMultiplier), titleFontSize*sizeMultiplier, "oc")
-  
+  font2:Begin()
+  font2:Print("Widget Selector", midx, maxy + ((11 + bgPadding)*sizeMultiplier), titleFontSize*sizeMultiplier, "oc")
+  font2:End()
+
+  font:Begin()
   local mx,my,lmb,mmb,rmb = Spring.GetMouseState()
   local tcol = WhiteStr
     
@@ -829,9 +841,11 @@ end
 function widget:Shutdown()
   Spring.SendCommands('bind f11 luaui selector') -- if this one is removed or crashes, then have the backup one take over.
   
-	if WG['guishader'] then
-      WG['guishader'].DeleteDlist('widgetselector')
-	end
+  if WG['guishader'] then
+    WG['guishader'].DeleteDlist('widgetselector')
+  end
+  gl.DeleteFont(font)
+  gl.DeleteFont(font2)
 end
 
 

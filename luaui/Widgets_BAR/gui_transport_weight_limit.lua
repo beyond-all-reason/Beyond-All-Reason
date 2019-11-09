@@ -82,24 +82,33 @@ function widget:Shutdown()
 	gl.DeleteList(circleList)
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+	selectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
+
 function widget:GameFrame(n)
     local unitcount = 0
 	if (n % 2 == 1) then
     unitstodraw = {}
 	local _,cmdID,_ = Spring.GetActiveCommand()
-	local selectedUnits = Spring.GetSelectedUnits()
-	if #selectedUnits == 1 then
+	if selectedUnitsCount < 1 or selectedUnitsCount > 20 then
+		return
+	end
+	if selectedUnitsCount == 1 then
 		if validTrans[Spring.GetUnitDefID(selectedUnits[1])] then
         	transID = selectedUnits[1]
 		end
-        elseif #selectedUnits > 1 then
+        elseif selectedUnitsCount > 1 then
 			for _,unitID in pairs(selectedUnits) do
-				
+
 				local unitdefID = Spring.GetUnitDefID(unitID)
 				if validTrans[unitdefID] then
 				   transID = unitID
 				   unitcount = unitcount + 1
-				   if unitcount > 1 then 
+				   if unitcount > 1 then
 					   transID = nil
 					   return end
 				end
@@ -160,7 +169,14 @@ end
 local previousOsClock = os.clock()
 local currentRotationAngle = 0
 local currentRotationAngleOpposite = 0
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	
 	local clockDifference = (os.clock() - previousOsClock)
 	previousOsClock = os.clock()

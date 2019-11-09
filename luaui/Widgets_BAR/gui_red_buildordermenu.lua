@@ -48,6 +48,7 @@ local drawRadaricon = true
 local largePrice = true
 local shortcutsInfo = false
 local largeUnitIcons = true
+local mouseClicked = 0
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
@@ -87,9 +88,9 @@ local Config = {
 		padding = 3*widgetScale, -- for border effect
 		color2 = {1,1,1,ui_opacity*0.055}, -- for border effect
 		
-		fadetime = 0.14, --fade effect time, in seconds
-		fadetimeOut = 0.022, --fade effect time, in seconds
-		
+		fadetime = 0.1, --fade effect time, in seconds
+		fadetimeOut = 0.015, --fade effect time, in seconds
+
 		ctext = {1,1,1,1}, --color {r,g,b,alpha}
 		cbackground = {0,0,0,ui_opacity},
 		cborder = {0,0,0,1},
@@ -103,7 +104,6 @@ local Config = {
 	ordermenu = {
 		menuname = "ordermenu",
 		px = 0,py = CanvasY - 415 - 145,
-		
 		isx = 45,isy = 33,
 		ix = 5,iy = 4,
 		
@@ -118,8 +118,8 @@ local Config = {
 		padding = 3*widgetScale, -- for border effect
 		color2 = {1,1,1,0.025}, -- for border effect
 		
-		fadetime = 0.14,
-		fadetimeOut = 0.022, --fade effect time, in seconds
+		fadetime = 0.1,
+		fadetimeOut = 0.015, --fade effect time, in seconds
 		
 		ctext = {1,1,1,1},
 		cbackground = {0,0,0,ui_opacity},
@@ -262,7 +262,6 @@ function wrap(str, limit)
 end
 	WG.hoverID = nil
 local function CreateGrid(r)
-
 	local background2 = {"rectanglerounded",
 		px=r.px+r.padding,py=r.py+r.padding,
 		sx=(r.isx*r.ix+r.ispreadx*(r.ix-1) +r.margin*2) -r.padding -r.padding,
@@ -333,6 +332,7 @@ local function CreateGrid(r)
 		border={0,0,0,0},
 		options="onr",
 		captioncolor={1,0.7,0.3,1},
+		--font2 = true,
 	}
 	local radaricon = {"rectangle",
 		px=0,py=0,
@@ -356,10 +356,11 @@ local function CreateGrid(r)
 		border={0,0,0,0},
 		options="n", --disable colorcodes
 		captioncolor=r.ctext,
+		font2 = true,
 		
 		overridecursor = true,
 		overrideclick = {3},
-		
+
 		mouseheld={
 			{1,function(mx,my,self)
 				self.iconscale=(iconScaling and self.iconhoverscale or 1)
@@ -388,7 +389,7 @@ local function CreateGrid(r)
 				heldhighlight.active = nil
 			end},
 		},
-		
+
 			--[[mouserelease={
 			{1,function(mx,my,self)
 				if r.menuname == "buildmenu" then
@@ -456,7 +457,7 @@ local function CreateGrid(r)
 				end
 			end]]--
 		end,
-		
+
 		onupdate=function(self)
 			local _,_,_,curcmdname = sGetActiveCommand()
 			self.iconscale= (iconScaling and self.iconnormalscale or 1)
@@ -482,6 +483,7 @@ local function CreateGrid(r)
 		captioncolor={0.8,0.8,0.8,1},
 		caption = nil,
 		options = "on",
+		--font2 = true,
 	}
 	New(background)
 	New(background2)
@@ -582,374 +584,420 @@ end
 
 
 local function UpdateGrid(g,cmds,ordertype)
-	if (#cmds==0) then
+
+	if #cmds==0 then
+		-- deactivate
 		g.background.active = false
 		g.background2.active = false
-	else
-		g.background.active = nil
-		g.background2.active = nil
-	end
-
-	local curpage = g.page
-	local icons = g.icons
-	local page = {{}}
-	
-	local visibleIconCount = #icons
-	if #cmds > #icons then
-		visibleIconCount = visibleIconCount - Config[g.menuname].ix
-	end
-	for i=1,#cmds do
-		local index = i-(#page-1)*visibleIconCount
-		page[#page][index] = cmds[i]
-		if ((i == (visibleIconCount*#page)) and (i~=#cmds)) then
-			page[#page+1] = {}
-		end
-	end
-	g.pagecount = #page
-	
-	
-	if (curpage > g.pagecount) then
-		curpage = 1
-	end
-	
-	local iconsleft = (#icons-#page[curpage])
-	if (iconsleft > 0) then
-		for i=iconsleft+#page[curpage],#page[curpage]+1,-1 do
-			icons[i].active = false --deactivate
-		end
-	end
-	
-	for i=1,#g.staterectangles do
-		g.staterectangles[i].active = false
-	end
-	local usedstaterectangles = 0
-	
-	for i=1,#g.staterectanglesglow do
-		g.staterectanglesglow[i].active = false
-	end
-	local usedstaterectanglesglow = 0
-
-	for i=1,#g.texts do
-		local text = g.texts[i]
-		text.caption = nil
-	end
-	for i=1,#g.radaricons do
-		g.radaricons[i].texture = nil
-	end
-	for i=1,#g.queuetexts do
-		g.queuetexts[i].caption = nil
-	end
-	
-	for i=1,#page[curpage] do
-		local cmd = page[curpage][i]
-		local icon = icons[i]
-		icon.tooltip = cmd.tooltip
-		icon.active = nil --activate
-		icon.cmdname = cmd.name
-		icon.cmdid = cmd.id
-		icon.texture = nil
-		if (cmd.texture) then
-			if (cmd.texture ~= "") then
-				icon.texture = cmd.texture
-			end
-		end
-		if (cmd.disabled) then
-			icon.texturecolor = {0.44,0.44,0.44,1}	
-		else
-			icon.texturecolor = {1,1,1,1}
-		end
-		
-		icon.mouseclick = {
-			{1,function(mx,my,self)
-				if playSounds then
-					Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
-				end
-				Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
-			end},
-			{3,function(mx,my,self)
-				if playSounds then
-					Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
-				end
-				Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),3,false,true,Spring.GetModKeyState())
-			end},
-		}
-		
-		if (ordertype == 1) then --build icons
-			icon.texture = "#"..cmd.id*-1
-			icon.udid = cmd.id*-1
-
-			if (cmd.params[1]) then
-				icon.options = "o"
-				--icon.caption = "    "..cmd.params[1].."  "
-				local color = "\255\190\255\190"
-				if tonumber(cmd.params[1]) < 10 then
-					g.queuetexts[i].caption = color.."        "..cmd.params[1]
-				elseif tonumber(cmd.params[1]) < 100 then
-					g.queuetexts[i].caption = color.."       "..cmd.params[1]
-				else
-					g.queuetexts[i].caption = color.."      "..cmd.params[1]
-				end
-			else
-				icon.caption = nil
-				g.queuetexts[i].caption = nil
-			end
-			icon.texturecolor = {0.95,0.95,0.95,1}
-			
-			--text to show build hotkey
-			local white = "\255\255\255\255"
-			local offwhite = "\255\222\222\222"
-			local yellow = "\255\255\255\0"
-			local orange = "\255\255\135\0"
-			local green = "\255\0\255\0"
-			local red = "\255\255\0\0"
-			local skyblue = "\255\136\197\226"
-			local s, e = string.find(cmd.tooltip, "Metal cost %d*")
-			local metalCost = string.sub(cmd.tooltip, s + 11, e)
-			local s, e = string.find(cmd.tooltip, "Energy cost %d*")
-			local energyCost = string.sub(cmd.tooltip, s + 12, e)
-			--local metalColor = "\255\136\197\226"
-			--Spring.Echo('m'..metalCost..'e'..energyCost)
-			
-			if (not cmd.disabled) then
-				local text = g.texts[i]
-				text.px = icon.px+(icon.sy/100)
-				text.py = icon.py+(icon.sy/60)
-				
-				local captionColor = "\255\175\175\175"
-				
-	-- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
-				
-				
-				local shotcutCaption = ''
-				if shortcutsInfo then
-					if i <= 15 then
-						if building == 0 then
-							captionColor = skyblue
-						end
-						shotcutCaption = captionColor.."  "..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
-					elseif i <= 30 then
-						if building == 1 then
-							captionColor = skyblue
-						end
-						shotcutCaption = captionColor.."  "..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
-					end
-				end
-				
-				if not drawPrice then
-					text.caption = ""..shotcutCaption.."\n\n\n\n"
-				else
-					-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
-					local str = tostring(math.max(metalCost, energyCost))
-					local addedSpaces = "                "			-- too bad 1 space isnt as wide as 1 number in the used font
-					local infoNewline = '\n'
-					if largePrice then
-						addedSpaces =   "             "			-- too bad 1 space isnt as wide as 1 number in the used font
-						infoNewline = '\n'
-					end
-					metalCost = ' '..metalCost
-					energyCost = ' '..energyCost
-					if tonumber(energyCost) < 10 then
-						energyCost = energyCost .. '       '
-					elseif tonumber(energyCost) < 100 then
-						energyCost = energyCost .. '    '
-					elseif tonumber(energyCost) < 1000 then
-						energyCost = energyCost .. '  '
-					elseif tonumber(energyCost) < 10000 then
-						energyCost = energyCost .. ' '
-					end
-					for digit in string.gmatch(str, "%d") do
-					  addedSpaces = string.sub(addedSpaces, 0, -2)
-					end
-					text.caption = ""..shotcutCaption.."\n\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces
-				end
-				text.options = "bs"
-				if drawRadaricon then
-					g.radaricons[i].texture = iconTypesMap[UnitDefs[icon.udid].iconType]
-				end
-			end
-		else
-			if buttonTexture ~= nil then
-				icon.texture = buttonTexture
-			end
-			if (cmd.type == 5) then --state cmds (fire at will, etc)
-				icon.caption = (cmd.params[cmd.params[1]+2] or cmd.name)
-				if string.len(icon.caption) < 4 then
-					icon.caption = "     "..icon.caption.."     "
-				elseif string.len(icon.caption) < 5 then
-					icon.caption = "  "..icon.caption.."  "
-				elseif string.len(icon.caption) < 7 then
-					icon.caption = "  "..icon.caption.."  "
-				else
-					icon.caption = " "..icon.caption.." "
-				end
-				local statecount = #cmd.params-1 --number of states for the cmd
-				local curstate = cmd.params[1]+1
-				
-				local scale = icon.iconscale * 0.9
-				local px = icon.px + ((icon.sx * (1-scale))/2)
-				local py = icon.py + ((icon.sy * (1-scale))/2)
-				local sx = icon.sx * scale
-				local sy = icon.sy * scale
-				local usr = nil
-					
-				for i=1,statecount do
-					usedstaterectangles = usedstaterectangles + 1
-					local s = g.staterectangles[usedstaterectangles]
-					if (s == nil) then
-						s = New(Copy(g.staterect,true))
-						g.staterectangles[usedstaterectangles] = s
-						g.background.movableslaves[#g.background.movableslaves+1] = s
-					end
-					s.active = nil --activate
-					
-					
-					local spread = 7
-					s.sx = (sx-(spread*(statecount-1+2)))/statecount
-					s.sy = (sy/8.5)
-					s.px = px+spread + (s.sx+spread)*(i-1)
-					s.py = py + sy - s.sy - spread
-					
-					--s.sx = (icon.sx-(spread*(statecount-1+2)))/statecount
-					--s.sy = (icon.sy/7)
-					--s.px = icon.px+spread + (s.sx+spread)*(i-1)
-					--s.py = icon.py + icon.sy - s.sy -spread
-					s.border = {0.22,0.22,0.22,0.8}
-					
-					if (i == curstate) then
-						usr = usedstaterectangles
-						if (statecount < 4) then
-							if (i == 1) then
-								s.color = {0.93,0,0,1}
-								s.border = {0.93,0,0,1}
-							elseif (i == 2) then
-								if (statecount == 3) then
-									s.color = {0.93,0.93,0,1}
-									s.border = {0.93,0.93,0,1}
-								else
-									s.color = {0,0.93,0,1}
-									s.border = {0,0.93,0,1}
-								end
-							elseif (i == 3) then
-								s.color = {0,0.93,0,1}
-								s.border = {0,0.93,0,1}
-							end
-						else
-							s.color = {0.93,0.93,0.93,1}
-							s.border = {0.93,0.93,0.93,1}
-						end
-						s.border[4] = 0.3
-					else
-						s.color = nil
-					end
-					if s.color == nil then
-						s.texturecolor = s.border
-					else
-						s.texturecolor = s.color
-					end
-				end
-				
-				-- add glow for current state
-				if (g.staterectangles[usr] ~= nil) then
-					s = g.staterectangles[usr]
-					usedstaterectanglesglow = usedstaterectanglesglow + 1
-					local s2 = g.staterectanglesglow[usedstaterectanglesglow]
-					if (s2 == nil) then
-						s2 = New(Copy(g.staterectangles[usr],true))
-						g.staterectanglesglow[usedstaterectanglesglow] = s2
-						g.background.movableslaves[#g.background.movableslaves+1] = s2
-					end
-					
-					local glowSize = s.sy * 6
-					s2.sy = s.sy + glowSize + glowSize
-					s2.py = s.py - glowSize
-					s2.px = s.px
-					s2.sx = s.sx
-					s2.texture = barGlowCenterTexture
-					s2.border = {0,0,0,0}
-					s2.color = {s.color[1] * 10, s.color[2] * 10, s.color[3] * 10, 0}
-					s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.11}
-					s2.active = true
-					
-					usedstaterectanglesglow = usedstaterectanglesglow + 1
-					local s3 = g.staterectanglesglow[usedstaterectanglesglow]
-					if (s3 == nil) then
-						s3 = New(Copy(s2,true))
-						g.staterectanglesglow[usedstaterectanglesglow] = s3
-						g.background.movableslaves[#g.background.movableslaves+1] = s3
-					end
-					s3.sy = s.sy + glowSize + glowSize
-					s3.py = s.py - glowSize
-					s3.px = s.px - (glowSize * 2)
-					s3.sx = (glowSize * 2)
-					s3.texture = barGlowEdgeTexture
-					s3.border = s2.border
-					s3.color = s2.color
-					s3.texturecolor = s2.texturecolor
-					s3.active = true
-					
-					usedstaterectanglesglow = usedstaterectanglesglow + 1
-					local s4 = g.staterectanglesglow[usedstaterectanglesglow]
-					if (s4 == nil) then
-						s4 = New(Copy(s2,true))
-						g.staterectanglesglow[usedstaterectanglesglow] = s4
-						g.background.movableslaves[#g.background.movableslaves+1] = s4
-					end
-					s4.sy = s.sy + glowSize + glowSize
-					s4.py = s.py - glowSize
-					s4.px = s.px + s.sx + (glowSize * 2)
-					s4.sx = -(glowSize * 2)
-					s4.texture = barGlowEdgeTexture
-					s4.border = s2.border
-					s4.color = s2.color
-					s4.texturecolor = s2.texturecolor
-					s4.active = true
-					
-				end
-			else
-				if string.len(cmd.name) < 4 then
-					icon.caption = "   "..cmd.name.."   "
-				elseif string.len(cmd.name) < 7 then
-					icon.caption = "  "..cmd.name.."  "
-				else
-					icon.caption = " "..cmd.name.." "
-				end
-			end
-		end
-	end
-	
-	if (#page>1) then
-		g.forward.mouseclick={
-			{1,function(mx,my,self)
-				g.page = g.page + 1
-				if (g.page > g.pagecount) then
-					g.page = 1
-				end
-				UpdateGrid(g,cmds,ordertype)
-				if playSounds then
-					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
-				end
-			end},
-		}
-		g.backward.mouseclick={
-			{1,function(mx,my,self)
-				g.page = g.page - 1
-				if (g.page < 1) then
-					g.page = g.pagecount
-				end
-				UpdateGrid(g,cmds,ordertype)
-				if playSounds then
-					Spring.PlaySoundFile(sound_button, 0.6, 'ui')
-				end
-			end},
-		}
-		g.backward.active = nil --activate
-		g.forward.active = nil
-		g.indicator.active = nil
-		g.indicator.caption = "   "..curpage.." / "..#page.."   "
-	else
 		g.backward.active = false
 		g.forward.active = false
 		g.indicator.active = false
+		for i=1,#g.icons do
+			g.icons[i].active = false
+		end
+		for i=1,#g.texts do
+			g.texts[i].active = false
+		end
+		for i=1,#g.radaricons do
+			g.radaricons[i].active = false
+		end
+		for i=1,#g.queuetexts do
+			g.queuetexts[i].active = false
+		end
+		for i=1,#g.staterectangles do
+			g.staterectangles[i].active = false
+		end
+		for i=1,#g.staterectanglesglow do
+			g.staterectanglesglow[i].active = false
+		end
+
+	else
+		-- activate
+		g.background.active = nil
+		g.background2.active = nil
+		for i=1,#g.icons do
+			g.icons[i].active = nil
+		end
+		for i=1,#g.texts do
+			g.texts[i].active = nil
+		end
+		for i=1,#g.radaricons do
+			g.radaricons[i].active = nil
+		end
+		for i=1,#g.queuetexts do
+			g.queuetexts[i].active = nil
+		end
+		--for i=1,#g.staterectangles do
+		--	g.staterectangles[i].active = nil
+		--end
+		--for i=1,#g.staterectanglesglow do
+		--	g.staterectanglesglow[i].active = nil
+		--end
+
+		local curpage = g.page
+		local icons = g.icons
+		local page = {{}}
+
+
+		local visibleIconCount = #icons
+		if #cmds > #icons then
+			visibleIconCount = visibleIconCount - Config[g.menuname].ix
+		end
+		for i=1,#cmds do
+			local index = i-(#page-1)*visibleIconCount
+			page[#page][index] = cmds[i]
+			if ((i == (visibleIconCount*#page)) and (i~=#cmds)) then
+				page[#page+1] = {}
+			end
+		end
+		g.pagecount = #page
+
+
+		if (curpage > g.pagecount) then
+			curpage = 1
+		end
+
+		local iconsleft = (#icons-#page[curpage])
+		if (iconsleft > 0) then
+			for i=iconsleft+#page[curpage],#page[curpage]+1,-1 do
+				icons[i].active = false --deactivate
+			end
+		end
+
+		for i=1,#g.staterectangles do
+			g.staterectangles[i].active = false
+		end
+		local usedstaterectangles = 0
+
+		for i=1,#g.staterectanglesglow do
+			g.staterectanglesglow[i].active = false
+		end
+		local usedstaterectanglesglow = 0
+
+		for i=1,#g.texts do
+			local text = g.texts[i]
+			text.caption = nil
+		end
+		for i=1,#g.radaricons do
+			g.radaricons[i].texture = nil
+		end
+		for i=1,#g.queuetexts do
+			g.queuetexts[i].caption = nil
+		end
+
+		for i=1,#page[curpage] do
+			local cmd = page[curpage][i]
+			local icon = icons[i]
+			icon.tooltip = cmd.tooltip
+			icon.active = nil --activate
+			icon.cmdname = cmd.name
+			icon.cmdid = cmd.id
+			icon.texture = nil
+			if (cmd.texture) then
+				if (cmd.texture ~= "") then
+					icon.texture = cmd.texture
+				end
+			end
+			if (cmd.disabled) then
+				icon.texturecolor = {0.44,0.44,0.44,1}
+			else
+				icon.texturecolor = {1,1,1,1}
+			end
+
+			icon.mouseclick = {
+				{1,function(mx,my,self)
+					mouseClicked = 2
+					if playSounds then
+						Spring.PlaySoundFile(sound_queue_add, 0.75, 'ui')
+					end
+					Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),1,true,false,Spring.GetModKeyState())
+				end},
+				{3,function(mx,my,self)
+					mouseClicked = 2
+					if playSounds then
+						Spring.PlaySoundFile(sound_queue_rem, 0.75, 'ui')
+					end
+					Spring.SetActiveCommand(Spring.GetCmdDescIndex(cmd.id),3,false,true,Spring.GetModKeyState())
+				end},
+			}
+
+			if (ordertype == 1) then --build icons
+				icon.texture = "#"..cmd.id*-1
+				icon.udid = cmd.id*-1
+
+				if (cmd.params[1]) then
+					icon.options = "o"
+					--icon.caption = "    "..cmd.params[1].."  "
+					local color = "\255\190\255\190"
+					if tonumber(cmd.params[1]) < 10 then
+						g.queuetexts[i].caption = color.."        "..cmd.params[1]
+					elseif tonumber(cmd.params[1]) < 100 then
+						g.queuetexts[i].caption = color.."       "..cmd.params[1]
+					else
+						g.queuetexts[i].caption = color.."      "..cmd.params[1]
+					end
+				else
+					icon.caption = nil
+					g.queuetexts[i].caption = nil
+				end
+				icon.texturecolor = {0.95,0.95,0.95,1}
+
+				--text to show build hotkey
+				local white = "\255\255\255\255"
+				local offwhite = "\255\222\222\222"
+				local yellow = "\255\255\255\0"
+				local orange = "\255\255\135\0"
+				local green = "\255\0\255\0"
+				local red = "\255\255\0\0"
+				local skyblue = "\255\136\197\226"
+				local s, e = string.find(cmd.tooltip, "Metal cost %d*")
+				local metalCost = string.sub(cmd.tooltip, s + 11, e)
+				local s, e = string.find(cmd.tooltip, "Energy cost %d*")
+				local energyCost = string.sub(cmd.tooltip, s + 12, e)
+				--local metalColor = "\255\136\197\226"
+				--Spring.Echo('m'..metalCost..'e'..energyCost)
+
+				if (not cmd.disabled) then
+					local text = g.texts[i]
+					text.px = icon.px+(icon.sy/100)
+					text.py = icon.py+(icon.sy/60)
+
+					local captionColor = "\255\175\175\175"
+
+		-- If you don't want to display the metal or energy cost on the unit buildicon, then you can disable it here
+
+
+					local shotcutCaption = ''
+					if shortcutsInfo then
+						if i <= 15 then
+							if building == 0 then
+								captionColor = skyblue
+							end
+							shotcutCaption = captionColor.."  "..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
+						elseif i <= 30 then
+							if building == 1 then
+								captionColor = skyblue
+							end
+							shotcutCaption = captionColor.."  "..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
+						end
+					end
+
+					if not drawPrice then
+						text.caption = ""..shotcutCaption.."\n\n\n\n"
+					else
+						-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
+						local str = tostring(math.max(metalCost, energyCost))
+						local addedSpaces = "                "			-- too bad 1 space isnt as wide as 1 number in the used font
+						local infoNewline = '\n'
+						if largePrice then
+							addedSpaces =   "             "			-- too bad 1 space isnt as wide as 1 number in the used font
+							infoNewline = '\n'
+						end
+						metalCost = ' '..metalCost
+						energyCost = ' '..energyCost
+						if tonumber(energyCost) < 10 then
+							energyCost = energyCost .. '       '
+						elseif tonumber(energyCost) < 100 then
+							energyCost = energyCost .. '    '
+						elseif tonumber(energyCost) < 1000 then
+							energyCost = energyCost .. '  '
+						elseif tonumber(energyCost) < 10000 then
+							energyCost = energyCost .. ' '
+						end
+						for digit in string.gmatch(str, "%d") do
+						  addedSpaces = string.sub(addedSpaces, 0, -2)
+						end
+						text.caption = ""..shotcutCaption.."\n\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces
+					end
+					text.options = "bs"
+					if drawRadaricon then
+						g.radaricons[i].texture = iconTypesMap[UnitDefs[icon.udid].iconType]
+					end
+				end
+			else
+				if buttonTexture ~= nil then
+					icon.texture = buttonTexture
+				end
+				if (cmd.type == 5) then --state cmds (fire at will, etc)
+					icon.caption = (cmd.params[cmd.params[1]+2] or cmd.name)
+					if string.len(icon.caption) < 4 then
+						icon.caption = "     "..icon.caption.."     "
+					elseif string.len(icon.caption) < 5 then
+						icon.caption = "  "..icon.caption.."  "
+					elseif string.len(icon.caption) < 7 then
+						icon.caption = "  "..icon.caption.."  "
+					else
+						icon.caption = " "..icon.caption.." "
+					end
+					local statecount = #cmd.params-1 --number of states for the cmd
+					local curstate = cmd.params[1]+1
+
+					local scale = icon.iconscale * 0.9
+					local px = icon.px + ((icon.sx * (1-scale))/2)
+					local py = icon.py + ((icon.sy * (1-scale))/2)
+					local sx = icon.sx * scale
+					local sy = icon.sy * scale
+					local usr = nil
+
+					for i=1,statecount do
+						usedstaterectangles = usedstaterectangles + 1
+						local s = g.staterectangles[usedstaterectangles]
+						if (s == nil) then
+							s = New(Copy(g.staterect,true))
+							g.staterectangles[usedstaterectangles] = s
+							g.background.movableslaves[#g.background.movableslaves+1] = s
+						end
+						s.active = nil --activate
+
+
+						local spread = 7
+						s.sx = (sx-(spread*(statecount-1+2)))/statecount
+						s.sy = (sy/8.5)
+						s.px = px+spread + (s.sx+spread)*(i-1)
+						s.py = py + sy - s.sy - spread
+
+						--s.sx = (icon.sx-(spread*(statecount-1+2)))/statecount
+						--s.sy = (icon.sy/7)
+						--s.px = icon.px+spread + (s.sx+spread)*(i-1)
+						--s.py = icon.py + icon.sy - s.sy -spread
+						s.border = {0.22,0.22,0.22,0.8}
+
+						if (i == curstate) then
+							usr = usedstaterectangles
+							if (statecount < 4) then
+								if (i == 1) then
+									s.color = {0.93,0,0,1}
+									s.border = {0.93,0,0,1}
+								elseif (i == 2) then
+									if (statecount == 3) then
+										s.color = {0.93,0.93,0,1}
+										s.border = {0.93,0.93,0,1}
+									else
+										s.color = {0,0.93,0,1}
+										s.border = {0,0.93,0,1}
+									end
+								elseif (i == 3) then
+									s.color = {0,0.93,0,1}
+									s.border = {0,0.93,0,1}
+								end
+							else
+								s.color = {0.93,0.93,0.93,1}
+								s.border = {0.93,0.93,0.93,1}
+							end
+							s.border[4] = 0.3
+						else
+							s.color = nil
+						end
+						if s.color == nil then
+							s.texturecolor = s.border
+						else
+							s.texturecolor = s.color
+						end
+					end
+
+					-- add glow for current state
+					if (g.staterectangles[usr] ~= nil) then
+						s = g.staterectangles[usr]
+						usedstaterectanglesglow = usedstaterectanglesglow + 1
+						local s2 = g.staterectanglesglow[usedstaterectanglesglow]
+						if (s2 == nil) then
+							s2 = New(Copy(g.staterectangles[usr],true))
+							g.staterectanglesglow[usedstaterectanglesglow] = s2
+							g.background.movableslaves[#g.background.movableslaves+1] = s2
+						end
+
+						local glowSize = s.sy * 6
+						s2.sy = s.sy + glowSize + glowSize
+						s2.py = s.py - glowSize
+						s2.px = s.px
+						s2.sx = s.sx
+						s2.texture = barGlowCenterTexture
+						s2.border = {0,0,0,0}
+						s2.color = {s.color[1] * 10, s.color[2] * 10, s.color[3] * 10, 0}
+						s2.texturecolor = {s.texturecolor[1] * 10, s.texturecolor[2] * 10, s.texturecolor[3] * 10, 0.11}
+						s2.active = true
+
+						usedstaterectanglesglow = usedstaterectanglesglow + 1
+						local s3 = g.staterectanglesglow[usedstaterectanglesglow]
+						if (s3 == nil) then
+							s3 = New(Copy(s2,true))
+							g.staterectanglesglow[usedstaterectanglesglow] = s3
+							g.background.movableslaves[#g.background.movableslaves+1] = s3
+						end
+						s3.sy = s.sy + glowSize + glowSize
+						s3.py = s.py - glowSize
+						s3.px = s.px - (glowSize * 2)
+						s3.sx = (glowSize * 2)
+						s3.texture = barGlowEdgeTexture
+						s3.border = s2.border
+						s3.color = s2.color
+						s3.texturecolor = s2.texturecolor
+						s3.active = true
+
+						usedstaterectanglesglow = usedstaterectanglesglow + 1
+						local s4 = g.staterectanglesglow[usedstaterectanglesglow]
+						if (s4 == nil) then
+							s4 = New(Copy(s2,true))
+							g.staterectanglesglow[usedstaterectanglesglow] = s4
+							g.background.movableslaves[#g.background.movableslaves+1] = s4
+						end
+						s4.sy = s.sy + glowSize + glowSize
+						s4.py = s.py - glowSize
+						s4.px = s.px + s.sx + (glowSize * 2)
+						s4.sx = -(glowSize * 2)
+						s4.texture = barGlowEdgeTexture
+						s4.border = s2.border
+						s4.color = s2.color
+						s4.texturecolor = s2.texturecolor
+						s4.active = true
+
+					end
+				else
+					if string.len(cmd.name) < 4 then
+						icon.caption = "   "..cmd.name.."   "
+					elseif string.len(cmd.name) < 7 then
+						icon.caption = "  "..cmd.name.."  "
+					else
+						icon.caption = " "..cmd.name.." "
+					end
+				end
+			end
+		end
+
+		if (#page>1) then
+			g.forward.mouseclick={
+				{1,function(mx,my,self)
+					g.page = g.page + 1
+					if (g.page > g.pagecount) then
+						g.page = 1
+					end
+					UpdateGrid(g,cmds,ordertype)
+					if playSounds then
+						Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+					end
+				end},
+			}
+			g.backward.mouseclick={
+				{1,function(mx,my,self)
+					g.page = g.page - 1
+					if (g.page < 1) then
+						g.page = g.pagecount
+					end
+					UpdateGrid(g,cmds,ordertype)
+					if playSounds then
+						Spring.PlaySoundFile(sound_button, 0.6, 'ui')
+					end
+				end},
+			}
+			g.backward.active = nil --activate
+			g.forward.active = nil
+			g.indicator.active = nil
+			g.indicator.caption = "   "..curpage.." / "..#page.."   "
+		else
+			g.backward.active = false
+			g.forward.active = false
+			g.indicator.active = false
+		end
 	end
 end
 
@@ -1138,19 +1186,9 @@ function widget:Initialize()
   end
 end
 
-local function onNewCommands(buildcmds,othercmds)
-	if (SelectedUnitsCount==0) then
-		buildmenu.page = 1
-		ordermenu.page = 1
-	end
-
-	UpdateGrid(ordermenu,othercmds,2)
-	UpdateGrid(buildmenu,buildcmds,1)
-end
 
 local function onWidgetUpdate() --function widget:Update()
 	AutoResizeObjects()
-	SelectedUnitsCount = sGetSelectedUnitsCount()
 end
 
 --save/load stuff
@@ -1201,9 +1239,6 @@ function widget:SetConfigData(data) --load config
 		end
 	end
 end
-
-
-
 
 
 
@@ -1273,6 +1308,36 @@ local function GetCommands()
 	return buildcmds,othercmds
 end
 
+
+
+local selectionChanged = true
+local function onNewCommands(force)
+	local buildcmds,othercmds = {},{}
+	if selectionChanged or force then
+		if (SelectedUnitsCount==0) then
+			buildmenu.page = 1
+			ordermenu.page = 1
+		else
+			buildcmds,othercmds = GetCommands()
+		end
+		UpdateGrid(ordermenu,othercmds,2)
+		UpdateGrid(buildmenu,buildcmds,1)
+		selectionChanged = false
+	end
+end
+
+local function updateGrids()
+	local buildcmds,othercmds = {},{}
+	if (SelectedUnitsCount == 0) then
+		buildmenu.page = 1
+		ordermenu.page = 1
+	else
+		buildcmds,othercmds = GetCommands()
+	end
+	UpdateGrid(ordermenu,othercmds,2)
+	UpdateGrid(buildmenu,buildcmds,1)
+end
+
 local hijackattempts = 0
 local layoutping = 54352 --random number
 local function hijacklayout()
@@ -1308,7 +1373,9 @@ end
 function widget:CommandsChanged()
 	haxlayout()
 end
+
 local sec = 0
+local queueUpdateSec = 0
 local guishaderCheckInterval = 1
 local uiOpacitySec = 0
 function widget:Update(dt)
@@ -1343,18 +1410,32 @@ function widget:Update(dt)
 			haxlayout()
 			firstupdate = nil
 		end
-		onNewCommands(GetCommands())
+		onNewCommands(mouseClicked>0)
+		mouseClicked = mouseClicked-1
 		updatehax = false
 		updatehax2 = true
 	end
+
+	-- refresh cause queue text could have changed
+	queueUpdateSec = queueUpdateSec + dt
+	if buildmenu.background.active == nil and queueUpdateSec > 0.5 then
+		queueUpdateSec = 0
+		local buildcmds = GetCommands()
+		UpdateGrid(buildmenu,buildcmds,1)
+	end
+
 	if (updatehax2) then
 		if (SelectedUnitsCount == 0) then
-			onNewCommands({},{}) --flush
+			onNewCommands() --flush
 			updatehax2 = false
 		end
 	end
 end
 
+function widget:SelectionChanged(sel)
+	selectionChanged = true
+	SelectedUnitsCount = sGetSelectedUnitsCount()
+end
 
 
 function widget:KeyPress(key, mods, isRepeat)
@@ -1362,7 +1443,7 @@ function widget:KeyPress(key, mods, isRepeat)
 		if building ~= -1 then
  			if building == 1 and key == buildNextKey then
  				building = 2
- 				onNewCommands(GetCommands())
+ 				onNewCommands(true)
  				return true
 			end
 			local buildcmds, othercmds = GetCommands()
@@ -1380,7 +1461,7 @@ function widget:KeyPress(key, mods, isRepeat)
 				Spring.SetActiveCommand(Spring.GetCmdDescIndex(buildcmds[found].id),1,true,false,Spring.GetModKeyState())
 			end
 			building = -1
-			onNewCommands(GetCommands())
+			onNewCommands(true)
 			return true
 		else
 			-- this prevents keys to be captured when you cannot build anything
@@ -1389,16 +1470,16 @@ function widget:KeyPress(key, mods, isRepeat)
 			
 			if key == buildStartKey then
 				building = 0
-				onNewCommands(GetCommands())
+				onNewCommands(true)
 				return true
 			elseif key == buildNextKey then
 				building = 1
-				onNewCommands(GetCommands())
+				onNewCommands(true)
 				return true
 			end
 		end
 		-- updates UI because hotkeys text changed color
-		onNewCommands(GetCommands())
+		onNewCommands(true)
 		return false
 	end
 end

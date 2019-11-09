@@ -12,13 +12,15 @@ end
 
 --local show = true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileSize = 36
+local fontfileOutlineSize = 9
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local loadedFontSize = fontfileSize*fontfileScale
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
@@ -27,7 +29,6 @@ local changelogFile = VFS.LoadFile("changelog.txt")
 
 local bgMargin = 6
 
-local closeButtonSize = 30
 local screenHeight = 520-bgMargin-bgMargin
 local screenWidth = 1050-bgMargin-bgMargin
 
@@ -36,13 +37,13 @@ local textareaMinLines = 10		-- wont scroll down more, will show at least this a
 local playSounds = true
 local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
 
-local customScale = 1
-
 local startLine = 1
 
-local vsx,vsy = Spring.GetViewGeometry()
-local screenX = (vsx*0.5) - (screenWidth/2)
-local screenY = (vsy*0.5) + (screenHeight/2)
+local customScale = 1.1
+local centerPosX = 0.51	-- note: dont go too far from 0.5
+local centerPosY = 0.49		-- note: dont go too far from 0.5
+local screenX = (vsx*centerPosX) - (screenWidth/2)
+local screenY = (vsy*centerPosY) + (screenHeight/2)
   
 local spIsGUIHidden = Spring.IsGUIHidden
 local showHelp = false
@@ -78,14 +79,16 @@ local totalChangelogLines = 0
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	screenX = (vsx*0.5) - (screenWidth/2)
-	screenY = (vsy*0.5) + (screenHeight/2)
+	screenX = (vsx*centerPosX) - (screenWidth/2)
+	screenY = (vsy*centerPosY) + (screenHeight/2)
 	widgetScale = (0.5 + (vsx*vsy / 5700000)) * customScale
   local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
   if (fontfileScale ~= newFontfileScale) then
     fontfileScale = newFontfileScale
     gl.DeleteFont(font)
     font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+	gl.DeleteFont(font2)
+	font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	loadedFontSize = fontfileSize*fontfileScale
   end
 	if changelogList then gl.DeleteList(changelogList) end
@@ -352,18 +355,6 @@ function DrawWindow()
 	gl.Color(0.33,0.33,0.33,0.15)
 	RectRound(x,y-screenHeight,x+screenWidth,y,6)
 	
-	-- close button
-	local size = closeButtonSize*0.7
-	local width = size*0.055
-  gl.Color(1,1,1,1)
-	gl.PushMatrix()
-		gl.Translate(screenX+screenWidth-(closeButtonSize/2),screenY-(closeButtonSize/2),0)
-  	gl.Rotate(-45,0,0,1)
-  	gl.Rect(-width,size/2,width,-size/2)
-  	gl.Rotate(90,0,0,1)
-  	gl.Rect(-width,size/2,width,-size/2)
-	gl.PopMatrix()
-	
 	-- title
     local title = "Changelog"
 	local titleFontSize = 18
@@ -372,13 +363,13 @@ function DrawWindow()
 	else
 		gl.Color(0,0,0,0.85)
 	end
-    titleRect = {x-bgMargin, y+bgMargin, x+(font:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
+    titleRect = {x-bgMargin, y+bgMargin, x+(font2:GetTextWidth(title)*titleFontSize)+27-bgMargin, y+37}
 	RectRound(titleRect[1], titleRect[2], titleRect[3], titleRect[4], 8, 1,1,0,0)
-	font:Begin()
-	font:SetTextColor(1,1,1,1)
-	font:SetOutlineColor(0,0,0,0.4)
-	font:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
-	font:End()
+	font2:Begin()
+	font2:SetTextColor(1,1,1,1)
+	font2:SetOutlineColor(0,0,0,0.4)
+	font2:Print(title, x-bgMargin+(titleFontSize*0.75), y+bgMargin+8, titleFontSize, "on")
+	font2:End()
 	
 	-- version links
 	DrawSidebar(x, y, 70, screenHeight)
@@ -388,7 +379,14 @@ function DrawWindow()
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+  if chobbyInterface then return end
   if spIsGUIHidden() then return end
   
   -- draw the help
@@ -422,6 +420,7 @@ function widget:DrawScreen()
 				rectY2 = (titleRect[4] * widgetScale) - ((vsy * (widgetScale-1))/2)
 				RectRound(rectX1, rectY1, rectX2, rectY2, 9*widgetScale, 1,1,0,0)
 			end)
+			dlistcreated = true
 			WG['guishader'].InsertDlist(backgroundGuishader, 'changelog')
 		end
 		showOnceMore = false
@@ -471,10 +470,9 @@ function widget:DrawScreen()
 				lineKey = lineKey + 1
 			end
 		end
-  else
-	if WG['guishader'] then
-		WG['guishader'].DeleteDlist('changelog')
-	end
+  elseif dlistcreated and WG['guishader'] then
+	WG['guishader'].DeleteDlist('changelog')
+	dlistcreated = nil
   end
 end
 
@@ -520,9 +518,9 @@ function widget:MouseWheel(up, value)
 		local addLines = value*-3 -- direction is retarded
 		
 		startLine = startLine + addLines
-		if startLine < 1 then startLine = 1 end
 		if startLine > totalChangelogLines - textareaMinLines then startLine = totalChangelogLines - textareaMinLines end
-		
+		if startLine < 1 then startLine = 1 end
+
 		if changelogList then
 			glDeleteList(changelogList)
 		end
@@ -552,18 +550,7 @@ function mouseEvent(x, y, button, release)
 		local rectX2 = ((screenX+screenWidth+bgMargin) * widgetScale) - ((vsx * (widgetScale-1))/2)
 		local rectY2 = ((screenY-screenHeight-bgMargin) * widgetScale) - ((vsy * (widgetScale-1))/2)
 		if IsOnRect(x, y, rectX1, rectY2, rectX2, rectY1) then
-		
-			-- on close button
-			local brectX1 = rectX2 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			local brectY2 = rectY1 - ((closeButtonSize+bgMargin+bgMargin) * widgetScale)
-			if IsOnRect(x, y, brectX1, brectY2, rectX2, rectY1) then
-				if release then
-					showOnceMore = true		-- show once more because the guishader lags behind, though this will not fully fix it
-					show = not show
-				end
-				return true
-			end
-			
+
 			--[[ scroll text with mouse 2
 			if button == 1 or button == 3 then
 				if IsOnRect(x, y, rectX1+(90*widgetScale), rectY2, rectX2, rectY1) then
@@ -694,7 +681,7 @@ function widget:Initialize()
 			end
 			totalChangelogLines = i
 		end
-		
+		widget:ViewResize()
 	else
 		Spring.Echo("Changelog: couldn't load the changelog file")
 		widgetHandler:RemoveWidget(self)
@@ -714,4 +701,5 @@ function widget:Shutdown()
 		WG['guishader'].DeleteDlist('changelog')
 	end
 	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 end

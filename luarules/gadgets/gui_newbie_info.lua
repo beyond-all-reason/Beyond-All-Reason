@@ -32,7 +32,7 @@ end
 else
 --
 
-local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
@@ -43,7 +43,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 local keyInfo --glList for keybind info
 local amNewbie 		
 local myPlayerID = Spring.GetMyPlayerID()
-local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID)
+local _,_,_,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local show = false
 local gameStarted = false
 

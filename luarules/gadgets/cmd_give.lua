@@ -33,7 +33,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 		local startPlayers = {}
 		function checkStartPlayers()
 			for _,playerID in ipairs(Spring.GetPlayerList()) do -- update player infos
-				local playername,_,spec,teamID = Spring.GetPlayerInfo(playerID)
+				local playername,_,spec = Spring.GetPlayerInfo(playerID,false)
 				if not spec then
 					startPlayers[playername] = true
 				end
@@ -90,7 +90,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 				return
 			end
 
-			local playername, _, spec = Spring.GetPlayerInfo(playerID)
+			local playername, _, spec = Spring.GetPlayerInfo(playerID,false)
 			local authorized = false
 			for _,name in ipairs(authorizedPlayers) do
 				if playername == name then
@@ -156,7 +156,7 @@ if (Game and Game.gameVersion and (string.find(Game.gameVersion, 'test') or stri
 		end
 
 		function RequestGive(cmd, line, words, playerID)
-			local playername, _, spec = Spring.GetPlayerInfo(Spring.GetMyPlayerID())
+			local playername = Spring.GetPlayerInfo(Spring.GetMyPlayerID(),false)
 			local authorized = false
 			for _,name in ipairs(authorizedPlayers) do
 				if playername == name or playername == "UnnamedPlayer" then

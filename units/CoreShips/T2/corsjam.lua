@@ -26,7 +26,7 @@ return {
 		maxdamage = 570,
 		maxvelocity = 2.043,
 		minwaterdepth = 6,
-		movementclass = "BOAT43X3",
+		movementclass = "BOAT3",
 		name = "Phantom",
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORSJAM.s3o",

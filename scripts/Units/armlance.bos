@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, bombdrop, wing1, wing2, thrust1, thrust2;
+piece  base, cockpit, bombdrop, lwing1, lwing2, rwing1, rwing2, lflap1, lflap2, rflap1, rflap2, lsensor, rsensor,lbox, rbox,  connectors,  rthruster, lthruster, thrust1, thrust2;
 
 static-var  statechg_DesiredState, statechg_StateChanging;
 
@@ -140,8 +140,11 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type BITMAPONLY | NOHEATCLOUD;
+		explode cockpit type BITMAPONLY | NOHEATCLOUD;
+		explode lwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing2 type BITMAPONLY | NOHEATCLOUD;
+		explode rwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing2 type BITMAPONLY | NOHEATCLOUD;
 		explode bombdrop type BITMAPONLY | NOHEATCLOUD;
 		explode thrust1 type BITMAPONLY | NOHEATCLOUD;
 		explode thrust2 type BITMAPONLY | NOHEATCLOUD;
@@ -151,8 +154,11 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cockpit type BITMAPONLY | NOHEATCLOUD;
+		explode lwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode bombdrop type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode thrust1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode thrust2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
@@ -162,8 +168,11 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type SMOKE | FALL | NOHEATCLOUD;
+		explode cockpit type BITMAPONLY | NOHEATCLOUD;
+		explode lwing1 type SMOKE | FALL | NOHEATCLOUD;
+		explode lwing2 type SMOKE | FALL | NOHEATCLOUD;
+		explode rwing1 type SMOKE | FALL | NOHEATCLOUD;
+		explode rwing2 type SMOKE | FALL | NOHEATCLOUD;
 		explode bombdrop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode thrust1 type SMOKE | FALL | NOHEATCLOUD;
 		explode thrust2 type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
@@ -171,8 +180,11 @@ Killed(severity, corpsetype)
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode wing1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode wing2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode cockpit type BITMAPONLY | NOHEATCLOUD;
+		explode lwing1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode lwing2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode rwing1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rwing2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode bombdrop type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode thrust1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode thrust2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;

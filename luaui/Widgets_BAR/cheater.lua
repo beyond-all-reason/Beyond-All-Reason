@@ -6,7 +6,7 @@ function widget:GetInfo()
     date      = "2017",
     license   = "GNU LGPL, v2.1 or later",
     layer     = 0,
-    enabled   = true  --  loaded by default?
+    enabled   = false  --  loaded by default?
   }
 end
 
@@ -27,12 +27,12 @@ function widget:GameFrame(f)
 		Spring.SendCommands("say !cheats")
 		Spring.SendCommands("say !hostsay /globallos")
 		Spring.SendCommands("say !hostsay /godmode")
-		Spring.SendCommands("say !hostsay /nocost")
+		--Spring.SendCommands("say !hostsay /nocost")
 
 		Spring.SendCommands("cheat")
 		Spring.SendCommands("globallos")
 		Spring.SendCommands("godmode")
-		Spring.SendCommands("nocost")
+		--Spring.SendCommands("nocost")
 
 		widgetHandler:RemoveCallIn('GameFrame');
 	end

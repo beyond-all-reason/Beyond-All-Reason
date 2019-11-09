@@ -52,7 +52,7 @@ local ivsx, ivsy = vsx, vsy
 ------------------------------------------
 ------------------------------------------
 
-local showTips = true
+local showTips = false
 if (Spring.GetConfigInt("LoadscreenTips",1) or 1) == 0 then
 	showTips = false
 end
@@ -226,9 +226,11 @@ if VFS.FileExists(filename) then
 end
 k = k + 1
 local file = assert(io.open(filename,'w'), "Unable to save latest randomseed from "..filename)
-    file:write(k)
-    file:close()
-file = nil
+if file then
+	file:write(k)
+	file:close()
+	file = nil
+end
 
 local random_tip_or_desc = unit_descs[((k/2) % #unit_descs) + 1]
 if k%2 == 1 then
@@ -238,15 +240,24 @@ if k%2 == 1 then
 end
 
 local defaultFont = 'Poppins-Regular.otf'
-local fontfile = 'luaui/fonts/'..Spring.GetConfigString("ui_font", "")
+local fontfile = 'luaui/fonts/'..Spring.GetConfigString("bar_font", defaultFont)
 if not VFS.FileExists(fontfile) then
 	Spring.SetConfigString('ui_font', defaultFont)
 	fontfile = 'luaui/fonts/'..defaultFont
 end
+local defaultFont2 = 'Exo2-SemiBold.otf'
+local fontfile2 = 'luaui/fonts/'..Spring.GetConfigString("bar_font2", defaultFont2)
+if not VFS.FileExists(fontfile2) then
+	Spring.SetConfigString('ui_font2', defaultFont2)
+	fontfile2 = 'luaui/fonts/'..defaultFont2
+end
+local fontfile3 = 'luaui/fonts/Xolonium.otf'
 
 local vsx,vsy = Spring.GetViewGeometry()
 local fontScale = (0.5 + (vsx*vsy / 5700000))/2
 local font = gl.LoadFont(fontfile, 128*fontScale, 32*fontScale, 1.4)
+local font2 = gl.LoadFont(fontfile2, 128*fontScale, 32*fontScale, 1.4)
+local font3 = gl.LoadFont(fontfile3, 128*fontScale, 32*fontScale, 1.25)
 local loadedFontSize = 128*fontScale
 
 
@@ -312,7 +323,7 @@ function CreateShaders()
             for (int i = -1; i <= 1; ++i)
                 for (int j = -1; j <= 1; ++j) {
                     vec2 samplingCoords = texCoord + vec2(i, j) * intensity;
-                    float samplingCoordsOk = float( all( greaterThanEqual(samplingCoords, vec2(0.0)) && lessThanEqual(samplingCoords, vec2(1.0)) ) );
+                    float samplingCoordsOk = float( all( greaterThanEqual(samplingCoords, vec2(0.0)) ) && all( lessThanEqual(samplingCoords, vec2(1.0)) ) );
                     gl_FragColor.rgb += texture2D(tex0, samplingCoords).rgb * samplingCoordsOk;
                     sum += samplingCoordsOk;
             }
@@ -357,9 +368,9 @@ function CreateShaders()
     intensityLoc = gl.GetUniformLocation(blurShader, "intensity")
 end
 
-function DrawRectRound(px,py,sx,sy,cs)
-
+local function DrawRectRound(px,py,sx,sy,cs, tl,tr,br,bl)
 	local csY = cs * (vsx / vsy)
+
 	gl.TexCoord(0.8,0.8)
 	gl.Vertex(px+cs, py, 0)
 	gl.Vertex(sx-cs, py, 0)
@@ -376,57 +387,52 @@ function DrawRectRound(px,py,sx,sy,cs)
 	gl.Vertex(sx-cs, sy-csY, 0)
 	gl.Vertex(sx, sy-csY, 0)
 
-	local offset = 0.05		-- texture offset, because else gaps could show
-	local o = offset
+	local offset = 0.07		-- texture offset, because else gaps could show
 
-	-- top left
-	--if py <= 0 or px <= 0 then o = 0.5 else o = offset end
+	-- bottom left
+	if ((py <= 0 or px <= 0)  or (bl ~= nil and bl == 0)) and bl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, py+csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, py+csY, 0)
-	-- top right
-	--if py <= 0 or sx >= vsx then o = 0.5 else o = offset end
+	-- bottom right
+	if ((py <= 0 or sx >= vsx) or (br ~= nil and br == 0)) and br ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, py, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, py, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, py+csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, py+csY, 0)
-	-- bottom left
-	--if sy >= vsy or px <= 0 then o = 0.5 else o = offset end
+	-- top left
+	if ((sy >= vsy or px <= 0) or (tl ~= nil and tl == 0)) and tl ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(px, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(px+cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(px+cs, sy-csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(px, sy-csY, 0)
-	-- bottom right
-	--if sy >= vsy or sx >= vsx then o = 0.5 else o = offset end
+	-- top right
+	if ((sy >= vsy or sx >= vsx)  or (tr ~= nil and tr == 0)) and tr ~= 2   then o = 0.5 else o = offset end
 	gl.TexCoord(o,o)
 	gl.Vertex(sx, sy, 0)
-	gl.TexCoord(o,1-o)
+	gl.TexCoord(o,1-offset)
 	gl.Vertex(sx-cs, sy, 0)
-	gl.TexCoord(1-o,1-o)
+	gl.TexCoord(1-offset,1-offset)
 	gl.Vertex(sx-cs, sy-csY, 0)
-	gl.TexCoord(1-o,o)
+	gl.TexCoord(1-offset,o)
 	gl.Vertex(sx, sy-csY, 0)
 end
-
-function RectRound(px,py,sx,sy,cs)
-	--local px,py,sx,sy,cs = math.floor(px),math.floor(py),math.ceil(sx),math.ceil(sy),math.floor(cs)
-
+function RectRound(px,py,sx,sy,cs, tl,tr,br,bl)		-- (coordinates work differently than the RectRound func in other widgets)
 	gl.Texture(":n:luaui/Images/bgcorner.png")
-	--gl.Texture(":n:luaui/Images/bgcorner.png")
-	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs)
+	gl.BeginEnd(GL.QUADS, DrawRectRound, px,py,sx,sy,cs, tl,tr,br,bl)
 	gl.Texture(false)
 end
 
@@ -500,12 +506,12 @@ function addon.DrawLoadScreen()
 			--	gl.DeleteList(guishaderDlists['loadprocess'])
 			--end
 			--guishaderDlists['loadprocess'] = gl.CreateList(function()
-			--	RectRound((0.2-paddingW)*vsx, (yPos-0.05-paddingH)*vsy, (0.8+paddingW)*vsx, (yPosTips+paddingH)*vsy, 0.007*vsx)
+			--	RectRound((0.2-paddingW)*vsx, (yPos-0.045-paddingH)*vsy, (0.8+paddingW)*vsx, (yPosTips+paddingH)*vsy, 0.007*vsx)
 			--end)
 
-			guishaderRects['loadprocess1'] = {(0.2+paddingW)*vsx,(yPos-0.05-paddingH)*vsy,(0.8-paddingW)*vsx,(yPosTips+paddingH)*vsy}
-			guishaderRects['loadprocess2'] = {(0.2)*vsx,(yPos-0.05)*vsy,(0.8)*vsx,yPosTips*vsy}
-			guishaderRects['loadprocess3'] = {(0.2-paddingW)*vsx,(yPos-0.05+paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips-paddingH)*vsy}
+			guishaderRects['loadprocess1'] = {(0.2+paddingW)*vsx,(yPos-0.045-paddingH)*vsy,(0.8-paddingW)*vsx,(yPosTips+paddingH)*vsy}
+			guishaderRects['loadprocess2'] = {(0.2)*vsx,(yPos-0.045)*vsy,(0.8)*vsx,yPosTips*vsy}
+			guishaderRects['loadprocess3'] = {(0.2-paddingW)*vsx,(yPos-0.045+paddingH)*vsy,(0.8+paddingW)*vsx,(yPosTips-paddingH)*vsy}
 			DrawStencilTexture()
 		end
 
@@ -566,38 +572,43 @@ function addon.DrawLoadScreen()
 	else
 		gl.Color(0.085,0.085,0.085,0.925)
 	end
-	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPosTips+paddingH,0.007)
+	RectRound(0.2-paddingW,yPos-0.045-paddingH,0.8+paddingW,yPosTips+paddingH,0.006)
 
 	if blurShader then
 		gl.Color(0,0,0,0.45)
 	else
 		gl.Color(0,0,0,0.75)
 	end
-	RectRound(0.2-paddingW,yPos-0.05-paddingH,0.8+paddingW,yPos+paddingH,0.007)
+	RectRound(0.2-paddingW,yPos-0.045-paddingH,0.8+paddingW,yPos+paddingH,0.006)
+
 
     if loadvalue > 0.215 then
 	    -- loadvalue
         gl.Color(0.4-(loadProgress/7),loadProgress*0.4,0,0.4)
-        RectRound(0.2,yPos-0.05,loadvalue,yPos,0.0055)
+        RectRound(0.2,yPos-0.045,loadvalue,yPos,0.0045)
 
         -- loadvalue gradient
         gl.Texture(false)
-        gl.BeginEnd(GL.QUADS, gradienth, 0.2,yPos-0.05,loadvalue,yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.14}, {0,0,0,0.14})
+        gl.BeginEnd(GL.QUADS, gradienth, 0.2+0.012, yPos-0.045, loadvalue-0.012, yPos, {1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.13}, {0,0,0,0.13})
+		gl.Color(1-(loadProgress/3)+0.2,loadProgress+0.2,0+0.08,0.13)
+		RectRound(loadvalue-0.012,yPos-0.045,loadvalue,yPos,0.004, 0,1,1,0)
+		gl.Color(0,0,0,0.13)
+		RectRound(0.2,yPos-0.045,0.212,yPos,0.004, 1,0,0,1)
 
         -- loadvalue inner glow
-        gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.05,0.04)
+        gl.Color(1-(loadProgress/3.5)+0.15,loadProgress+0.15,0+0.045,0.03)
         gl.Texture(":n:luaui/Images/barglow-center.png")
-        gl.TexRect(0.2,yPos-0.05,loadvalue,yPos)
+        gl.TexRect(0.2,yPos-0.045,loadvalue,yPos)
 
         -- loadvalue glow
-        local glowSize = 0.06
-        gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.05,0.1)
+        local glowSize = 0.0455
+        gl.Color(1-(loadProgress/3)+0.15,loadProgress+0.15,0+0.045,0.07)
         gl.Texture(":n:luaui/Images/barglow-center.png")
-        gl.TexRect(0.2,	yPos-0.05-glowSize,	loadvalue,	yPos+glowSize)
+        gl.TexRect(0.2,	yPos-0.045-glowSize,	loadvalue,	yPos+glowSize)
 
         gl.Texture(":n:luaui/Images/barglow-edge.png")
-        gl.TexRect(0.2-(glowSize*1.3), yPos-0.05-glowSize, 0.2, yPos+glowSize)
-        gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.05-glowSize, loadvalue, yPos+glowSize)
+        gl.TexRect(0.2-(glowSize*1.3), yPos-0.045-glowSize, 0.2, yPos+glowSize)
+        gl.TexRect(loadvalue+(glowSize*1.3), yPos-0.045-glowSize, loadvalue, yPos+glowSize)
     end
 
 	-- progressbar text
@@ -606,12 +617,15 @@ function addon.DrawLoadScreen()
 		local barTextSize = vsy * 0.026
 		--font:Print(lastLoadMessage, vsx * 0.5, vsy * 0.3, 50, "sc")
 		--font:Print(Game.gameName, vsx * 0.5, vsy * 0.95, vsy * 0.07, "sca")
-		font:Print(lastLoadMessage, vsx * 0.21, vsy * (yPos-0.017), barTextSize * 0.67, "oa")
+		font:Print(lastLoadMessage, vsx * 0.21, vsy * (yPos-0.015), barTextSize * 0.67, "oa")
 		if loadProgress>0 then
-			font:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.0325), barTextSize, "oc")
+			font2:Print(("%.0f%%"):format(loadProgress * 100), vsx * 0.5, vsy * (yPos-0.03), barTextSize, "oc")
 		else
-			font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.031), barTextSize, "oc")
+			font:Print("Loading...", vsx * 0.5, vsy * (yPos-0.0285), barTextSize, "oc")
 		end
+
+		-- game name
+		font3:Print(Game.gameName, vsx * 0.5, vsy * (yPos-0.113), barTextSize*1.44, "co")
 	gl.PopMatrix()
 
 

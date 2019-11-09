@@ -13,12 +13,12 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --callin driven
@@ -198,7 +198,7 @@ function widget:Shutdown()
 end
 
 function widget:PlayerAdded(playerID)
-	local playerTeam = select(4,spGetPlayerInfo(playerID))
+	local playerTeam = select(4,spGetPlayerInfo(playerID,false))
 	if not playerSelectedUnits[ playerID ] then
 		playerSelectedUnits[ playerID ] = {
 			["units"]={},
@@ -241,7 +241,7 @@ function widget:PlayerChanged(playerID)
 		end
 	end
 	myTeamID = spGetLocalTeamID()
-	local playerTeam = select(4,spGetPlayerInfo(playerID))
+	local playerTeam = select(4,spGetPlayerInfo(playerID,false))
 	local oldCoopStatus = playerSelectedUnits[ playerID ]["coop"]
 	playerSelectedUnits[ playerID ]["coop"] = (teamID == myTeamID)
 	playerSelectedUnits[ playerID ]["todraw"] = DoDrawPlayer(playerID)
@@ -298,7 +298,7 @@ end
 
 
 function selectedUnitsClear(playerID)
-	isSpec = select(3,spGetPlayerInfo(playerID))
+	isSpec = select(3,spGetPlayerInfo(playerID),false)
 	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
@@ -316,7 +316,7 @@ function selectedUnitsClear(playerID)
 end
 
 function selectedUnitsAdd(playerID,unitID)
-	isSpec = select(3,spGetPlayerInfo(playerID))
+	isSpec = select(3,spGetPlayerInfo(playerID),false)
 	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
@@ -338,7 +338,7 @@ function selectedUnitsAdd(playerID,unitID)
 end
 
 function selectedUnitsRemove(playerID,unitID)
-	isSpec = select(3,spGetPlayerInfo(playerID))
+	isSpec = select(3,spGetPlayerInfo(playerID),false)
 	if not isSpec or (lockPlayerID ~= nil and playerID == lockPlayerID) then
 		if not playerSelectedUnits[ playerID ] then
 			widget:PlayerAdded(playerID)
@@ -445,6 +445,7 @@ end
 
 
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	if spIsGUIHidden() then return end
 	gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)      -- disable layer blending
 	DrawSelectedUnits()
@@ -578,10 +579,17 @@ function widget:SetConfigData(data)
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
 
 
 if showGui then
-    function widget:DrawScreen()
+
+	function widget:DrawScreen()
+		if chobbyInterface then return end
         if lockPlayerID ~= nil then
             if not guiList then
                 createGuiList()

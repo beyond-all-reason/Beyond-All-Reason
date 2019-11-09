@@ -33,9 +33,9 @@ handler.verbose = false or true
 
 if LUA_NAME == "LuaUI" then
 	--// Config & Widget Locations
-	ORDER_FILENAME  = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '_order.lua'
-	CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '_data.lua'
-	KNOWN_FILENAME  = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '_known.lua'
+	ORDER_FILENAME  = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '_order.lua'
+	CONFIG_FILENAME = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '_data.lua'
+	KNOWN_FILENAME  = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '_known.lua'
 
 	ADDON_DIRS     = {
 		LUA_DIRNAME .. 'Addons/';

@@ -14,30 +14,30 @@ end
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local enabledAsSpec = false
 
 local MAX_ICONS = 10
-local iconsize = 38
+local iconsize = 37
 local ICON_SIZE_X = iconsize
 local ICON_SIZE_Y = iconsize
 local CONDENSE = false -- show one icon for all builders of same type
 local POSITION_X = 0.5 -- horizontal centre of screen
-local POSITION_Y = 0.086 -- near bottom
+local POSITION_Y = 0.095 -- near bottom
 local NEAR_IDLE = 0 -- this means that factories with only X build items left will be shown as idle
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
 local bgcorner			= "LuaUI/Images/bgcorner.png"
-local cornerSize		= 12
+local cornerSize		= 7
 local bgcornerSize		= cornerSize
 
 local playSounds = true
@@ -117,7 +117,6 @@ local SelectUnitArray = Spring.SelectUnitArray
 local GetModKeyState = Spring.GetModKeyState
 local GetUnitDefDimensions = Spring.GetUnitDefDimensions
 
-local GetUnitCommands = Spring.GetUnitCommands
 local GetViewGeometry = Spring.GetViewGeometry
 local ValidUnitID = Spring.ValidUnitID
 local GetTeamUnitsSorted = Spring.GetTeamUnitsSorted
@@ -187,9 +186,9 @@ local function IsIdleBuilder(unitID)
         if ud.isFactory then
           return true 
         else
-          if GetCommandQueue(unitID,_,false) == 0 then
-						return true
-					end
+          if GetCommandQueue(unitID,0) == 0 then
+			return true
+		  end
         end
       end
 		elseif ud.isFactory then
@@ -470,6 +469,7 @@ end
 local sec = 0
 local doUpdate = true
 function widget:Update(dt)
+	if chobbyInterface then return end
 
 	if not enabled then return end
 		
@@ -550,7 +550,14 @@ function calcSizes(numIcons)
 	Y_MAX = POSITION_Y*vsy+0.5*ICON_SIZE_Y
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 
 	if widgetHandler:InTweakMode() then
 		calcSizes(MAX_ICONS)
@@ -717,8 +724,8 @@ end
 --  return MouseOverIcon(x, y) ~= -1
 --end
 
-
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if mouseOnUnitID and (not WG['topbar'] or not WG['topbar'].showingQuit()) then
 		if widgetHandler:InTweakMode() then return -1 end
 		glColor(1,1,1,0.22)

@@ -25,7 +25,7 @@ return {
 		maxdamage = 650,
 		maxvelocity = 3.66,
 		minwaterdepth = 12,
-		movementclass = "BOAT43X3",
+		movementclass = "BOAT3",
 		name = "Supporter",
 		nochasecategory = "UNDERWATER VTOL",
 		objectname = "Units/CORESUPP.s3o",

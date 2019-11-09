@@ -15,12 +15,12 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local commands					= {}
@@ -97,7 +97,7 @@ local function AddEffect(cmdType, x, y, z, osClock, unitID, playerID)
 	if not playerID then
 		playerID = false
 	end
-	local nickname,_,spec,teamID = spGetPlayerInfo(playerID)
+	local nickname,_,spec,teamID = spGetPlayerInfo(playerID,false)
 	local teamcolor = {}
 	teamcolor[1],teamcolor[2],teamcolor[3] = spGetTeamColor(teamID)
 	
@@ -189,7 +189,14 @@ function Round(num, idp)
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	if Spring.IsGUIHidden() then return end
 	
 	local osClock = os.clock()

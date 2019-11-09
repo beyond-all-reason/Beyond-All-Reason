@@ -27,14 +27,14 @@ else
 
 -- remove self d orders from empty teams
 function gadget:PlayerChanged(playerID)
-	local _,active,spec,teamID = Spring.GetPlayerInfo(playerID)
+	local _,active,spec,teamID = Spring.GetPlayerInfo(playerID,false)
 	if active and not spec then return end
 	local team = Spring.GetPlayerList(teamID)
 	
 	if team then
 		-- check team is empty
 		for _,pID in pairs(team) do
-			_,active,spec = Spring.GetPlayerInfo(pID)
+			_,active,spec = Spring.GetPlayerInfo(pID,false)
 			if active and not spec then
 				return
 			end

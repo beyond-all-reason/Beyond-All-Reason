@@ -16,7 +16,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
-		collisionvolumescales = "48 80 48",
+		collisionvolumescales = "48 38 48",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		description = "Extracts Metal",

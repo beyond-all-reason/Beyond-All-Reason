@@ -32,9 +32,11 @@ elseif Game and Game.version then
 end
 
 -- set minimun engine version
-local minEngineVersionTitle = '104.0.1.969'
+local unsupportedEngine = true
 local enabled = false
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 10401969 then
+local minEngineVersionTitle = '104.0.1-1429'
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011429 then
+	unsupportedEngine = false
 	enabled = true
 end
 
@@ -130,7 +132,7 @@ end
 
 --check if a player is to be considered as a 'newbie', in terms of startpoint placements
 function isPlayerNewbie(pID)
-	local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID) 
+	local name,_,isSpec,tID,_,_,_,_,pRank = Spring.GetPlayerInfo(pID,false)
 	playerRank = tonumber(pRank) or 0
 	local customtable = select(11,Spring.GetPlayerInfo(pID)) or {} -- player custom table
 	local tsMu = tostring(customtable.skill) or ""
@@ -151,8 +153,7 @@ function isNewbie(teamID)
 	local isNewbie = false
 	for _,playerID in pairs(playerList) do
 		if playerID then
-		local _,_,isSpec,_ = Spring.GetPlayerInfo(playerID) 
-			if not isSpec then
+			if not select(3,Spring.GetPlayerInfo(playerID,false)) then
 				isNewbie = isNewbie or isPlayerNewbie(playerID)
 			end
 		end
@@ -189,7 +190,7 @@ function gadget:Initialize()
 			local teamID = teamList[i]
 			if teamID ~= gaiaTeamID then
 				--set & broadcast (current) start unit
-				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID)
+				local _, _, _, _, teamSide, teamAllyID = spGetTeamInfo(teamID,false)
 				if teamSide == 'core' then
 					spSetTeamRulesParam(teamID, startUnitParamName, corcomDefID)
 				else
@@ -207,7 +208,7 @@ function gadget:Initialize()
 				spSetTeamRulesParam(teamID, 'isNewbie', newbieParam, {public=true}) --visible to all; some widgets (faction choose, initial queue) need to know if its a newbie -> they unload
 
 				--record that this allyteam will spawn something
-				local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+				local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
 				allyTeams[allyTeamID] = allyTeamID
 			end
 		end
@@ -257,7 +258,7 @@ end
 function gadget:RecvLuaMsg(msg, playerID)
 	local startUnit = tonumber(msg:match(changeStartUnitRegex))
 	if startUnit and validStartUnits[startUnit] then
-		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID)
+		local _, _, playerIsSpec, playerTeam = spGetPlayerInfo(playerID,false)
 		if not playerIsSpec then
 			playerStartingUnits[playerID] = startUnit
 			spSetTeamRulesParam(playerTeam, startUnitParamName, startUnit, {allied=true, public=false}) -- visible to allies only, set visible to all on GameStart
@@ -287,7 +288,7 @@ function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
 
 	--[[
 	-- for debugging
-	local name,_,_,tID = Spring.GetPlayerInfo(playerID)
+	local name,_,_,tID = Spring.GetPlayerInfo(playerID,false)
 	Spring.Echo(name,tID,x,z,readyState, (startPointTable[tID]~=nil))
 	Spring.MarkerAddPoint(x,y,z,name .. " " .. readyState)
 	]]
@@ -295,7 +296,7 @@ function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
 	if Game.startPosType ~= 2 then return true end -- accept blindly unless we are in choose-in-game mode
 	if useFFAStartPoints then return true end
 
-	local _,_,_,teamID,allyTeamID,_,_,_,_,_ = Spring.GetPlayerInfo(playerID)
+	local _,_,_,teamID,allyTeamID = Spring.GetPlayerInfo(playerID,false)
 	if not teamID or not allyTeamID then return false end --fail
 
 	-- NewbiePlacer
@@ -323,8 +324,7 @@ function gadget:AllowStartPosition(playerID,teamID,readyState,x,y,z)
 		local sx,sz = startpoint[1],startpoint[2]
 		local tooClose = ((x-sx)^2+(z-sz)^2 <= closeSpawnDist^2)
 		local sameTeam = (teamID == otherTeamID)
-		local _,_,_,_,_,otherAllyTeamID = Spring.GetTeamInfo(otherTeamID)
-		local sameAllyTeam = (allyTeamID == otherAllyTeamID)
+		local sameAllyTeam = (allyTeamID == select(6,Spring.GetTeamInfo(otherTeamID,false)))
 		if (sx>0) and tooClose and sameAllyTeam and not sameTeam then
 			Spring.SendMessageToPlayer(playerID,"You cannot place your start position too close to another player")
 			return false
@@ -488,19 +488,19 @@ end
 else
 ----------------------------------------------------------------
 
-local fontfile = "luaui/fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = "luaui/fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileSize = 50
+local fontfileOutlineSize = 10
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgcorner = ":n:LuaRules/Images/bgcorner.png"
 local customScale = 1.23
 local uiScale = customScale
 local myPlayerID = Spring.GetMyPlayerID()
-local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID) 
+local _,_,spec,myTeamID = Spring.GetPlayerInfo(myPlayerID,false)
 local amNewbie
 local ffaMode = (tonumber(Spring.GetModOptions().ffa_mode) or 0) == 1
 local isReplay = Spring.IsReplay()
@@ -514,8 +514,16 @@ local gameStarting
 local timer = 0
 local timer2 = 0
 
+local readyX = vsx * 0.8
+local readyY = vsy * 0.8
+local readyH = 35
+local readyW = 100
+local bgMargin = 2.5
+
 function gadget:ViewResize(viewSizeX, viewSizeY)
 	vsx,vsy = Spring.GetViewGeometry()
+	readyX = vsx * 0.8
+	readyY = vsy * 0.8
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
@@ -523,12 +531,6 @@ function gadget:ViewResize(viewSizeX, viewSizeY)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 	end
 end
-
-local readyX = vsx * 0.8
-local readyY = vsy * 0.8 
-local readyH = 35
-local readyW = 100
-local bgMargin = 2.5
 
 local pStates = {} --local copy of playerStates table
 
@@ -713,14 +715,13 @@ function gadget:Initialize()
 end
 
 
-local timer3 = 20
+local timer3 = 30
 function gadget:DrawScreen()
-
 	-- only support AI's:  NullAI, DAI and KAIK
 	if enabled then
 		local teams = Spring.GetTeamList()
 		for i =1, #teams do
-			if select(4,Spring.GetTeamInfo(teams[i])) then	-- is AI?
+			if select(4,Spring.GetTeamInfo(teams[i],false)) then	-- is AI?
 				local aiName = Spring.GetTeamLuaAI(teams[i])
 				if aiName == "" then
 					aiName = select(4,Spring.GetAIInfo(teams[i]))
@@ -732,7 +733,6 @@ function gadget:DrawScreen()
 			end
 		end
 	end
-
 	if Script.LuaUI("GuishaderInsertRect") then
 		Script.LuaUI.GuishaderRemoveRect('ready')
 	end

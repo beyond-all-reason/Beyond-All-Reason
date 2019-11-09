@@ -26,7 +26,7 @@ return {
 		maxdamage = 450,
 		maxvelocity = 2.2,
 		minwaterdepth = 15,
-		movementclass = "UBOAT33X3",
+		movementclass = "UBOAT3",
 		name = "Grim Reaper",
 		objectname = "Units/ARMRECL.s3o",
 		reclaimspeed = 100,

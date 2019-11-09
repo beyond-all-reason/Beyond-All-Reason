@@ -1,0 +1,6 @@
+
+frame  anims/cursordwatch_0.png  0.100
+frame  anims/cursordwatch_1.png  0.100
+frame  anims/cursordwatch_0.png  0.100
+frame  anims/cursordwatch_2.png  0.100
+

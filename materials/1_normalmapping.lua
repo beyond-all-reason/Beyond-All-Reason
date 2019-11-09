@@ -1,68 +1,121 @@
 -- $Id$
 --------------------------------------------------------------------------------
 
-local function SunChanged(curShader)
-	gl.Uniform(gl.GetUniformLocation(curShader, "shadowDensity"), gl.GetSun("shadowDensity" ,"unit"))
+local function SunChanged(curShaderObj)
+	curShaderObj:SetUniformAlways("shadowDensity", gl.GetSun("shadowDensity" ,"unit"))
 
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunAmbient"), gl.GetSun("ambient" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunDiffuse"), gl.GetSun("diffuse" ,"unit"))
-	gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecular"), gl.GetSun("specular" ,"unit"))
-	--gl.Uniform(gl.GetUniformLocation(curShader, "sunSpecularExp"), gl.GetSun("specularExponent" ,"unit"))
+	curShaderObj:SetUniformAlways("sunAmbient", gl.GetSun("ambient" ,"unit"))
+	curShaderObj:SetUniformAlways("sunDiffuse", gl.GetSun("diffuse" ,"unit"))
+	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
+
+	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
+		Spring.GetConfigFloat("tonemapA", 0.0),
+		Spring.GetConfigFloat("tonemapB", 1.0),
+		Spring.GetConfigFloat("tonemapC", 0.0),
+		Spring.GetConfigFloat("tonemapD", 0.0),
+		Spring.GetConfigFloat("tonemapE", 1.0),
+		Spring.GetConfigFloat("envAmbient", 0.5),
+		Spring.GetConfigFloat("unitSunMult", 1.5),
+		Spring.GetConfigFloat("unitExposureMult", 1.0),
+	})
 end
+
 
 local default_lua = VFS.Include("materials/Shaders/default.lua")
 
-local materials = {
-	normalMappedS3O = {
-		shaderDefinitions = {
-			"#define use_normalmapping",
-			"#define deferred_mode 0",
-			"#define use_vertex_ao",
-			"#define flashlights",
-			"#define SPECULARMULT 8.0",
-		},
-		deferredDefinitions = {
-			"#define use_normalmapping",
-			"#define deferred_mode 1",
-			"#define flashlights",
-			"#define use_vertex_ao",
-			"#define SPECULARMULT 8.0",
-		},
+local matTemplate = {
+	shaderDefinitions = {
+		"#define use_normalmapping",
+		"#define deferred_mode 0",
+		"#define flashlights",
+		"#define use_vertex_ao",
 
-		shader    = default_lua,
-		deferred  = default_lua,
-		usecamera = false,
-		culling   = GL.BACK,
-		predl  = nil,
-		postdl = nil,
-		texunits  = {
-			[0] = '%%UNITDEFID:0',
-			[1] = '%%UNITDEFID:1',
-			[2] = '$shadow',
-			[3] = '$specular',
-			[4] = '$reflection',
-			[5] = '%NORMALTEX',
-		},
-		-- uniforms = {
-		-- }
-		--DrawUnit = DrawUnit,
-		SunChanged = SunChanged,
+		"#define SHADOW_SOFTNESS SHADOW_SOFTER",
+
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
+		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
+
+		"#define USE_ENVIRONMENT_DIFFUSE",
+		"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
+	deferredDefinitions = {
+		"#define use_normalmapping",
+		"#define deferred_mode 1",
+		"#define flashlights",
+		"#define use_vertex_ao",
+
+		"#define SHADOW_SOFTNESS SHADOW_HARD",
+
+		"#define SUNMULT pbrParams[6]",
+		"#define EXPOSURE pbrParams[7]",
+
+		"#define SPECULAR_AO",
+
+		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
+		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
+
+		"#define USE_ENVIRONMENT_DIFFUSE",
+		"#define USE_ENVIRONMENT_SPECULAR",
+
+		--"#define GAMMA 2.2",
+		"#define TONEMAP(c) CustomTM(c)",
+
+		"#define MAT_IDX 1",
+	},
+
+	shader    = default_lua,
+	deferred  = default_lua,
+	usecamera = false,
+	force = true,
+	culling   = GL.BACK,
+	predl  = nil,
+	postdl = nil,
+	texunits  = {
+		[0] = '%%UNITDEFID:0',
+		[1] = '%%UNITDEFID:1',
+		[2] = '$shadow',
+		[4] = '$reflection',
+		[5] = '%NORMALTEX',
+		[6] = "$info",
+		[7] = GG.GetBrdfTexture(),
+	},
+	SunChanged = SunChanged,
 }
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local materials = {}
 local unitMaterials = {}
 
-for i=1,#UnitDefs do
+for i = 1, #UnitDefs do
 	local udef = UnitDefs[i]
+	local udefCM = udef.customParams
 
-	if ((udef.customParams.arm_tank == nil ) and udef.customParams.normaltex and VFS.FileExists(udef.customParams.normaltex)) then
-		unitMaterials[udef.name] = {"normalMappedS3O", NORMALTEX = udef.customParams.normaltex}
-		--Spring.Echo('normalmapped',udef.name)
+	if (udefCM.arm_tank == nil) and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
+		local lm = tonumber(udefCM.lumamult) or 1
+		local matName = string.format("%s(lumamult=%f)", "normalMappedS3O", lm)
+		if not materials[matName] then
+			materials[matName] = Spring.Utilities.CopyTable(matTemplate, true)
+			if lm ~= 1 then
+				local lmLM = string.format("#define LUMAMULT %f", lm)
+				table.insert(materials[matName].shaderDefinitions, lmLM)
+				table.insert(materials[matName].deferredDefinitions, lmLM)
+			end
+		end
+
+		unitMaterials[udef.name] = {matName, NORMALTEX = udefCM.normaltex}
 	end
 end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

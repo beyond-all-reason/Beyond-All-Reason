@@ -96,6 +96,9 @@ return {
 			},
 		},
 		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:barrelshot-lightning",
+			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3-lightning",
 				[2] = "deathceg4-lightning",
@@ -141,18 +144,19 @@ return {
 				impactonly = 1,
 				impulseboost = 0,
 				impulsefactor = 0,
+				intensity = 24,
 				name = "Close-quarters g2g lightning turret",
 				noselfdamage = true,
 				range = 440,
 				reloadtime = 1.15,
-				rgbcolor = ".2 .5 .9",
-				rgbcolor2 = "0 0 1",
+				rgbcolor = "0.5 0.5 1",
 				soundhit = "lashit",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
 				soundstart = "lghthvy1",
 				soundtrigger = true,
 				turret = true,
+				thickness = 1.5,
 				weapontype = "LightningCannon",
 				weaponvelocity = 450,
 				customparams = {

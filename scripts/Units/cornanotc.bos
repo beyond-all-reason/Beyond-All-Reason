@@ -48,7 +48,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 Go()
 {
 	call-script Activatescr();
-	turn aim to y-axis Static_Var_1 speed <160.000000>;
+	turn aim to y-axis Static_Var_1 speed <320.000000>;
 	wait-for-turn aim around y-axis;
 	set INBUILDSTANCE to 1;
 }

@@ -5,6 +5,7 @@ return {
 		brakerate = 0.69,
 		buildcostenergy = 8800,
 		buildcostmetal = 135,
+		builddistance = 136,
 		builder = true,
 		buildpic = "ARMSPY.DDS",
 		buildtime = 17631,

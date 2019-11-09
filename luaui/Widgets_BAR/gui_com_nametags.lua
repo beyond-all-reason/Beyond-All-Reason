@@ -5,7 +5,7 @@ function widget:GetInfo()
     author    = "Bluestone, Floris",
     date      = "20 february 2015",
     license   = "GNU GPL, v2 or later",
-    layer     = 2,
+    layer     = -2,
     enabled   = true,  --  loaded by default?
   }
 end
@@ -14,6 +14,7 @@ end
 -- config
 --------------------------------------------------------------------------------
 
+local drawForIcon           = true      -- note that commander icon still gets drawn on top of the name
 local nameScaling			= true
 local useThickLeterring		= true
 local heightOffset			= 50
@@ -22,7 +23,7 @@ local scaleFontAmount		= 120
 local fontShadow			= true		-- only shows if font has a white outline
 local shadowOpacity			= 0.35
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 50
@@ -30,11 +31,15 @@ local fontfileOutlineSize = 10
 local fontfileOutlineStrength = 10
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+local fontfileScale2 = fontfileScale * 0.66
+local fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength*0.33)
 
 local singleTeams = false
 if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
     singleTeams = true
 end
+
+local spec = Spring.GetSpectatingState()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -48,7 +53,6 @@ local GetAllUnits        		= Spring.GetAllUnits
 local IsUnitInView	 	 		= Spring.IsUnitInView
 local GetCameraPosition  		= Spring.GetCameraPosition
 local GetUnitPosition    		= Spring.GetUnitPosition
-local GetSpectatingState		= Spring.GetSpectatingState
 
 local glDepthTest        		= gl.DepthTest
 local glAlphaTest        		= gl.AlphaTest
@@ -70,9 +74,18 @@ local diag						= math.diag
 
 local comms = {}
 local comnameList = {}
+local comnameIconList = {}
+local drawScreenUnits = {}
 local CheckedForSpec = false
 local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
+
+local comDefs = {}
+for unitDefID, defs in pairs(UnitDefs) do
+    if defs.customParams.iscommander then
+        comDefs[unitDefID] = true
+    end
+end
 
 local sameTeamColors = false
 if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors ~= nil then
@@ -93,10 +106,10 @@ local function GetCommAttributes(unitID, unitDefID)
       name = Spring.GetGameRulesParam('ainame_'..team)..' (AI)'
   else
     local players = GetPlayerList(team)
-    name = (#players>0) and GetPlayerInfo(players[1]) or '------'
+    name = (#players>0) and GetPlayerInfo(players[1],false) or '------'
     for _,pID in ipairs(players) do
-      local pname,active,spec = GetPlayerInfo(pID)
-      if active and not spec then
+      local pname,active,isspec = GetPlayerInfo(pID,false)
+      if active and not isspec then
         name = pname
         break
       end
@@ -117,7 +130,11 @@ local function RemoveLists()
     for name, list in pairs(comnameList) do
         gl.DeleteList(comnameList[name])
     end
+    for name, list in pairs(comnameIconList) do
+        gl.DeleteList(comnameIconList[name])
+    end
     comnameList = {}
+    comnameIconList = {}
 end
 
 local function createComnameList(attributes)
@@ -153,22 +170,26 @@ local function createComnameList(attributes)
 	end)
 end
 
+local sec = 0
 function widget:Update(dt)
+    sec = sec + dt
     if WG['playercolorpalette'] ~= nil then
         if WG['playercolorpalette'].getSameTeamColors and sameTeamColors ~= WG['playercolorpalette'].getSameTeamColors() then
             sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
             RemoveLists()
             CheckAllComs()
+            sec = 0
         end
     elseif sameTeamColors == true then
         sameTeamColors = false
         RemoveLists()
         CheckAllComs()
+        sec = 0
     end
     if not singleTeams and WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
         if myTeamID ~= Spring.GetMyTeamID() then
             -- old
-            local name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
+            local name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID,false)),false)
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
                 comnameList[name] = nil
@@ -176,13 +197,18 @@ function widget:Update(dt)
             -- new
             myTeamID = Spring.GetMyTeamID()
             myPlayerID = Spring.GetMyPlayerID()
-            name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID)))
+            name = GetPlayerInfo(select(2,Spring.GetTeamInfo(myTeamID,false)),false)
             if comnameList[name] ~= nil then
                 gl.DeleteList(comnameList[name])
                 comnameList[name] = nil
             end
             CheckAllComs()
+            sec = 0
         end
+    end
+    if not spec and sec > 1.5 then
+        sec = 0
+        CheckAllComs()
     end
 end
 
@@ -210,16 +236,67 @@ function widget:ViewResize()
         RemoveLists()
         CheckAllComs()
         fontfileScale = newFontfileScale
+        fontfileScale2 = fontfileScale * 0.66
         font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
         shadowFont = gl.LoadFont(fontfile, fontfileSize*fontfileScale, 35*fontfileScale, 1.6)
+        fonticon = gl.LoadFont(fontfile, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength*0.33)
+    end
+end
+
+local function createComnameIconList(unitID, attributes)
+    if comnameIconList[attributes[1]] ~= nil then
+        gl.DeleteList(comnameIconList[attributes[1]])
+    end
+    comnameIconList[attributes[1]] = gl.CreateList( function()
+        local x,y,z = GetUnitPosition(unitID)
+        x,z = Spring.WorldToScreenCoords(x, y, z)
+
+        local outlineColor = {0,0,0,1}
+        if (attributes[2][1] + attributes[2][2]*1.2 + attributes[2][3]*0.4) < 0.8 then  -- try to keep these values the same as the playerlist
+            outlineColor = {1,1,1,1}
+        end
+        fonticon:Begin()
+        fonticon:SetTextColor(attributes[2])
+        fonticon:SetOutlineColor(outlineColor)
+        fonticon:Print(attributes[1], 0, 0, fontSize*1.9, "con")
+        fonticon:End()
+    end)
+end
+
+function widget:DrawScreenEffects()     -- using DrawScreenEffects so that guishader will blur it when needed
+    if Spring.IsGUIHidden() then return end
+
+    for unitID, attributes in pairs(drawScreenUnits) do
+        if not comnameIconList[attributes[1]] then
+            createComnameIconList(unitID, attributes)
+        end
+        local x,y,z = GetUnitPosition(unitID)
+        if x and y and z then
+            x,z = Spring.WorldToScreenCoords(x, y+50+heightOffset, z)
+            local scale = 1-(attributes[5]/25000)
+            if scale < 0.5 then scale = 0.5 end
+            gl.PushMatrix()
+            gl.Translate(x,z,0)
+            gl.Scale(scale,scale,scale)
+            gl.CallList(comnameIconList[attributes[1]])
+            gl.PopMatrix()
+        end
+    end
+    drawScreenUnits = {}
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+    if msg:sub(1,18) == 'LobbyOverlayActive' then
+        chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
     end
 end
 
 function widget:DrawWorld()
+  if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
   -- untested fix: when you resign, to also show enemy com playernames  (because widget:PlayerChanged() isnt called anymore)
   if not CheckedForSpec and Spring.GetGameFrame() > 1 then
-	  if GetSpectatingState() then
+	  if spec then
 		CheckedForSpec = true
 		CheckAllComs()
 	  end
@@ -230,17 +307,20 @@ function widget:DrawWorld()
   glBlending(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
    
   local camX, camY, camZ = GetCameraPosition()
-  
+
   for unitID, attributes in pairs(comms) do
-    
-    -- calc opacity
+
 	if IsUnitInView(unitID) then
 		local x,y,z = GetUnitPosition(unitID)
 		camDistance = diag(camX-x, camY-y, camZ-z) 
-		
-	    usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
-	    
-		glDrawFuncAtUnit(unitID, false, DrawName, attributes)
+
+	    if drawForIcon and Spring.IsUnitIcon(unitID) then
+            attributes[5] = camDistance
+            drawScreenUnits[unitID] = attributes
+        else
+            usedFontSize = (fontSize*0.5) + (camDistance/scaleFontAmount)
+		    glDrawFuncAtUnit(unitID, false, DrawName, attributes)
+        end
 	end
   end
   
@@ -251,8 +331,10 @@ end
 
 --------------------------------------------------------------------------------
 
+
+
 function CheckCom(unitID, unitDefID, unitTeam)
-  if (unitDefID and UnitDefs[unitDefID] and UnitDefs[unitDefID].customParams.iscommander) then
+    if comDefs[unitDefID] then
       comms[unitID] = GetCommAttributes(unitID, unitDefID)
   end
 end
@@ -261,13 +343,20 @@ function CheckAllComs()
   local allUnits = GetAllUnits()
   for _, unitID in pairs(allUnits) do
     local unitDefID = GetUnitDefID(unitID)
-    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+    if comDefs[unitDefID] then
       comms[unitID] = GetCommAttributes(unitID, unitDefID)
     end
   end
 end
 
 function widget:Initialize()
+    WG['nametags'] = {}
+    WG['nametags'].getDrawForIcon = function()
+        return drawForIcon
+    end
+    WG['nametags'].setDrawForIcon = function(value)
+        drawForIcon = value
+    end
     CheckAllComs()
 end
 
@@ -277,7 +366,8 @@ function widget:Shutdown()
 end
 
 function widget:PlayerChanged(playerID)
-  local name,_ = GetPlayerInfo(playerID)
+  spec = Spring.GetSpectatingState()
+  local name,_ = GetPlayerInfo(playerID,false)
   comnameList[name] = nil
   CheckAllComs() -- handle substitutions, etc
 end
@@ -288,14 +378,27 @@ end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
   comms[unitID] = nil
+
+    if comnameIconList[unitID] then
+        gl.DeleteList(comnameIconList[unitID])
+        comnameIconList[unitID] = nil
+    end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
   CheckCom(unitID, unitDefID, unitTeam)
+    if comnameIconList[unitID] then
+        gl.DeleteList(comnameIconList[unitID])
+        comnameIconList[unitID] = nil
+    end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
   CheckCom(unitID, unitDefID, unitTeam)
+    if comnameIconList[unitID] then
+        gl.DeleteList(comnameIconList[unitID])
+        comnameIconList[unitID] = nil
+    end
 end
 
 function widget:UnitEnteredLos(unitID, unitDefID, unitTeam)
@@ -309,13 +412,17 @@ end
 
 function widget:GetConfigData()
     return {
-        nameScaling = nameScaling
+        nameScaling = nameScaling,
+        drawForIcon = drawForIcon
     }
 end
 
 function widget:SetConfigData(data) --load config
 	widgetHandler:AddAction("comnamescale", toggleNameScaling)
-	if data.nameScaling ~= nil then
-		nameScaling = data.nameScaling
-	end
+    if data.nameScaling ~= nil then
+        nameScaling = data.nameScaling
+    end
+    if data.drawForIcon ~= nil then
+        drawForIcon = data.drawForIcon
+    end
 end

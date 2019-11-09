@@ -16,10 +16,8 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-
-local initialized = os.clock()
-
 local spGetGameSpeed        = Spring.GetGameSpeed
+local spGetGameState       = Spring.GetGameState
 
 local glColor               = gl.Color
 local glTexture             = gl.Texture
@@ -28,7 +26,6 @@ local glPopMatrix           = gl.PopMatrix
 local glPushMatrix          = gl.PushMatrix
 local glTranslate           = gl.Translate
 local glTexRect             = gl.TexRect
-local glLoadFont            = gl.LoadFont
 local glDeleteFont          = gl.DeleteFont
 local glRect                = gl.Rect
 local glUseShader           = gl.UseShader
@@ -46,14 +43,14 @@ local fontfile = LUAUI_DIRNAME .. "fonts/unlisted/MicrogrammaDBold.ttf"
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local sizeMultiplier        = 1
-local maxAlpha              = 0.6
-local maxShaderAlpha        = 0.2
-local maxNonShaderAlpha     = 0.1			--background alpha when shaders arent availible
+local maxAlpha              = 0.65
+local maxShaderAlpha        = 0.25
+local maxNonShaderAlpha     = 0.12			--background alpha when shaders arent availible
 local boxWidth              = 200
 local boxHeight             = 35
 local slideTime             = 0.4
@@ -125,11 +122,6 @@ function widget:GameOver()
     gameover = true
 end
 
-local prevGameFrameTime = osClock()
-function widget:GameFrame(dt)
-    prevGameFrameTime = osClock()
-end
-
 function widget:Update(dt)
     local now = osClock()
     previousDrawScreenClock = now
@@ -154,10 +146,14 @@ function widget:Update(dt)
     lastPause = paused
 
     local _, _, isPaused = spGetGameSpeed()
-    if os.clock()-initialized > 3 and not gameover and (isPaused or (now - prevGameFrameTime > 1.2 and Spring.GetGameFrame() > 0)) then    -- when host (admin) paused its just gamespeed 0
+    if not gameover and isPaused  then    -- when host (admin) paused its just gamespeed 0
         paused = true
     else
         paused = false
+    end
+
+    if spGetGameState and select(3, spGetGameState()) then
+        paused = true
     end
 end
 
@@ -198,8 +194,16 @@ function widget:GamePaused(playerID, isGamePaused)
     paused = isGamePaused
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+    if msg:sub(1,18) == 'LobbyOverlayActive' then
+        chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+    end
+end
+
 function widget:DrawScreen()
-  if Spring.IsGUIHidden() then return end
+    if chobbyInterface then return end
+    if Spring.IsGUIHidden() then return end
+
     local now = osClock()
     
     if ( paused or ( ( now - pauseTimestamp) <= slideTime ) ) then

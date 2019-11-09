@@ -26,7 +26,7 @@ return {
 		maxreversevelocity = 0.9028,
 		maxvelocity = 2.257,
 		minwaterdepth = 20,
-		movementclass = "UBOAT34X4",
+		movementclass = "UBOAT4",
 		name = "Leviathan",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSSUB.s3o",

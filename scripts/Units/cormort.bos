@@ -431,10 +431,13 @@ AimPrimary(heading, pitch)
 FirePrimary()
 {
 	emit-sfx 1024 + 0 from flare;
-	move Barrel to z-axis [-5] speed [30.000000];
+	move Barrel to z-axis [-3] speed [20.000000]; //-5 30
 	turn Torso to x-axis <-10.000000> speed <150.120879>;
+	wait-for-move barrel along z-axis; //*
+	move barrel to z-axis [0.000000] speed [10.000000]; //*
+	wait-for-turn Torso around x-axis;
 	turn Torso to x-axis <0.000000> speed <15.000000>;
-	move Barrel to z-axis [0.000000] speed [5.500000];
+//	move Barrel to z-axis [0.000000] speed [5.500000];
 	return (0);
 }
 

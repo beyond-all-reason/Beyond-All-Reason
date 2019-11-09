@@ -147,9 +147,9 @@ Go()
 	if( !Static_Var_3 )
 	{
 		turn lturret to z-axis <0.000000> now;
-		turn lturret to z-axis <-90> speed <360>;
+		turn lturret to z-axis <-45> speed <360>;
 		turn rturret to z-axis <0.000000> now;
-		turn rturret to z-axis <90> speed <360>;
+		turn rturret to z-axis <45> speed <360>;
 		sleep 250;
 		Static_Var_3 = 1;
 	}

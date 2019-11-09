@@ -115,7 +115,14 @@ function widget:Update()
 	manipulateFacing()
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	drawOrientation()
 	
 	ResetGl()
@@ -377,10 +384,7 @@ function ResetGl()
 end
 
 function CheckSpecState()
-	local playerID = spGetMyPlayerID()
-	local _, _, spec, _, _, _, _, _ = spGetPlayerInfo(playerID)
-		
-	if ( spec == true ) then
+	if (select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) == true ) then
 		widgetHandler:RemoveWidget(self)
 		return false
 	end

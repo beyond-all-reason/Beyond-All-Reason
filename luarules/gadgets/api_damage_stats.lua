@@ -33,7 +33,7 @@ function gadget:Initialize()
     for _,teamID in pairs(tList) do
         local luaAI = Spring.GetTeamLuaAI(teamID) or ''
         local aiChicken = (luaAI:find("Chicken") ~= nil)
-        local _,_,_,aiTeam = Spring.GetTeamInfo(teamID)
+        local aiTeam = select(4,Spring.GetTeamInfo(teamID,false))
         local gaiaTeam = (teamID == Spring.GetGaiaTeamID())
         if aiChicken then
             nChickenTeams = nChickenTeams + 1
@@ -61,12 +61,12 @@ function gadget:UnitCreated(unitID, unitDefID, teamID, builderID)
     local pList = Spring.GetPlayerList(teamID)
     local playerID = pList[1]
     local customtable = false
-    if playerID and select(11,Spring.GetPlayerInfo(playerID)) then
-        customtable = select(11,Spring.GetPlayerInfo(playerID))
+    if playerID then
+        customtable = select(11,Spring.GetPlayerInfo(playerID)) or {}
     end
     local tsMu = customtable and customtable.skill or ""
     mu = tsMu and tonumber(tsMu:match("%d+%.?%d*")) or 25
-    
+
     info[unitDefID] = info[unitDefID] or {dmg_dealt=0,dmg_rec=0,kills=0,killed_cost=0,n=0,ts=0,minutes=0}
     
     info[unitDefID].n = info[unitDefID].n + 1

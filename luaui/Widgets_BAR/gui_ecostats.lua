@@ -13,12 +13,12 @@ end
 
 local loadSettings		= true
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ---------------------------------------------------------------------------------------------------
@@ -72,8 +72,7 @@ local tooltipAreas					= {}
 
 local lastPlayerChange				= 0
 local aliveAllyTeams				= 0
-local lastDrawUpdate				
-local drawList
+local lastDrawUpdate
 
 local vsx,vsy                    	= gl.GetViewSizes()
 local right							= true
@@ -87,7 +86,7 @@ local ctrlDown 						= false
 local textsize						= 14
 local textlarge						= 18
 local gaiaID						= Spring.GetGaiaTeamID()
-local gaiaAllyID					= select(6,GetTeamInfo(gaiaID))
+local gaiaAllyID					= select(6,GetTeamInfo(gaiaID,false))
 local LIMITSPEED					= 2.0 -- gamespseed under which to fully update dynamic graphics
 local haveZombies 					= (tonumber((Spring.GetModOptions() or {}).zombies) or 0) == 1
 local maxPlayers					= 0
@@ -203,7 +202,6 @@ end
 
 function widget:Shutdown()
 	removeGuiShaderRects()
-	if (drawList) then 			gl.DeleteList(drawList) end
 	if (sideImageList) then		gl.DeleteList(sideImageList) end
 	gl.DeleteFont(font)
 end
@@ -241,7 +239,7 @@ function Init()
 			allyData[allyDataIndex].exists				= #teamList > 0
 
 			for _,teamID in pairs(teamList) do
-				local myAllyID = select(6,GetTeamInfo(teamID))
+				local myAllyID = select(6,GetTeamInfo(teamID,false))
 
 				setTeamTable(teamID)
 				Button["player"][teamID] = {}
@@ -795,7 +793,6 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	local h
 	local dx
 	local dy
-
 	if small then
 		w = tH*0.36
 		h = tH*0.36
@@ -843,7 +840,7 @@ local function DrawSideImage(sideImage, hOffset, vOffset, r, g, b, a, small, mou
 	if WG['tooltip'] then
 		WG['tooltip'].AddTooltip('ecostats_team_'..tID, area, teamData[tID]["leaderName"])
 	end
-	glTexture(sideImage)
+	--glTexture(sideImage)
 	glTexRect(area[1],area[2],area[3],area[4])
 	glTexture(false)
 	glColor(1,1,1,1)
@@ -1085,8 +1082,8 @@ function setTeamTable(teamID)
 	
 	local side, aID, isDead, commanderAlive, minc, mrecl, einc, erecl, x, y, leaderName, leaderID, active, spectator
 	
-	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID)
-	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID)
+	_,leaderID,isDead,isAI,side,aID,_,_ 		= GetTeamInfo(teamID,false)
+	leaderName,active,spectator,_,_,_,_,_,_		= GetPlayerInfo(leaderID,false)
 		
 	if teamID == gaiaID then
 		if haveZombies then 
@@ -1124,7 +1121,7 @@ function setTeamTable(teamID)
 			teamside = "core"
 		end
 	else
-		_,_,_,_,teamside = Spring.GetTeamInfo(teamID)
+		teamside = select(5,Spring.GetTeamInfo(teamID,false))
 	end
 	side = teamside
 	
@@ -1141,7 +1138,7 @@ function setTeamTable(teamID)
 	teamData[teamID]["isDead"] 			= teamData[teamID]["isDead"] or isDead
 	teamData[teamID]["hasCom"]			= commanderAlive
 	teamData[teamID]["minc"]			= minc
-	teamData[teamID]["mrecl"]			= minc
+	teamData[teamID]["mrecl"]			= mrecl
 	teamData[teamID]["einc"] 			= einc
 	teamData[teamID]["erecl"] 			= erecl
 	teamData[teamID]["leaderID"]		= leaderID
@@ -1211,9 +1208,9 @@ function isTeamReal(allyID)
 	local leaderID, spectator, isDead, unitCount
 
 	for _,tID in ipairs (GetTeamList(allyID)) do
-		_,leaderID,isDead			= GetTeamInfo(tID)
+		_,leaderID,isDead			= GetTeamInfo(tID,false)
 		unitCount					= GetTeamUnitCount(tID)
-		leaderName,active,spectator	= GetPlayerInfo(leaderID)
+		leaderName,active,spectator	= GetPlayerInfo(leaderID,false)
 		if leaderName ~= nil or isDead or unitCount > 0 then return true end
 	end
 	return false
@@ -1265,7 +1262,7 @@ function getNbPlacedPositions(teamID)
 		startx = teamData[pID].startx or -1
 		starty = teamData[pID].starty or -1
 		active = teamData[pID].active
-		leaderName,active,spectator	= GetPlayerInfo(leaderID)				
+		leaderName,active,spectator	= GetPlayerInfo(leaderID,false)
 		
 		isDead = teamData[pID].isDead
 		if (active and startx >= 0 and starty >= 0 and leaderName ~= nil)  or isDead then
@@ -1292,7 +1289,7 @@ end
 
 function checkDeadTeams()
 	for teamID in pairs(teamData) do
-		isDead = select(3,GetTeamInfo(teamID))
+		isDead = select(3,GetTeamInfo(teamID,false))
 		teamData[teamID]["isDead"] = isDead
 	end
 end
@@ -1373,7 +1370,6 @@ function widget:PlayerChanged(playerID)
 		setReclaimerUnits()
 		Reinit()
 	end
-	makeStandardList()
 end
 
 function widget:GameOver()
@@ -1409,8 +1405,7 @@ end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz, labeltext)
 	if not gamestarted then 
-		UpdateAllies() 
-		makeStandardList()
+		UpdateAllies()
 	end
 end
 
@@ -1437,7 +1432,6 @@ function widget:TweakMouseMove(x,y,dx,dy,button)
 		if widgetPosY > vsy-widgetHeight then widgetPosY = vsy-widgetHeight end
 	
 		updateButtons()
-		makeStandardList()
 		makeSideImageList()
 	end
 end
@@ -1599,7 +1593,6 @@ function widget:GameFrame(frameNum)
 		updateButtons()
 		setPlayerResources()
 		UpdateAllies()
-		makeStandardList()
 	end
 	
 	if not gamestarted and frameNum > 0 then gamestarted = true end
@@ -1609,13 +1602,6 @@ end
 ---------------------------------------------------------------------------------------------------
 --  Draw
 ---------------------------------------------------------------------------------------------------
-
-function makeStandardList()
-	if not inSpecMode then return end
-	
-	if (drawList) then gl.DeleteList(drawList) end
-	drawList = gl.CreateList(drawListStandard)
-end
 
 function makeSideImageList()
 	if not inSpecMode then return end
@@ -1638,7 +1624,6 @@ function widget:TweakDrawScreen()
 	
 	DrawOptionRibbon()
 	updateButtons()
-	makeStandardList()
 end
 
 local uiOpacitySec = 0.5
@@ -1668,17 +1653,23 @@ function widget:Update(dt)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawScreen()
+	if chobbyInterface then return end
 	if not inSpecMode or not myFullview then return end
-	
 	if Spring.IsGUIHidden() or (not inSpecMode) then return end
-	
-	if not drawList then makeStandardList() end
+
 	if not sideImageList then makeSideImageList() end
-	
+
+	gl.PolygonOffset(-7,-10)
 	gl.PushMatrix()
 	gl.CallList(sideImageList)
-	gl.CallList(drawList)
+	drawListStandard()
 	gl.PopMatrix()
 end
 

@@ -12,12 +12,12 @@ function widget:GetInfo()
 	}
 end
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 --These can be modified if needed
@@ -94,7 +94,19 @@ function widget:ViewResize(n_vsx,n_vsy)
   end
 end
 
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+	selectedUnits = sel
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	DrawBuildMenuBlastRange()
 	
 	--hardcoded: meta + X
@@ -165,9 +177,6 @@ function DrawBuildMenuBlastRange()
 	--check if build command
 	local cmdDesc = spGetActiveCmdDesc( idx )
 	
-	local units = spGetSelectedUnits()
-	local cmdQ = Spring.GetCommandQueue( units[1] )
-	
 	if ( cmdDesc["type"] ~= 20 ) then
 		--quit here if not a build command
 		return
@@ -182,7 +191,7 @@ function DrawBuildMenuBlastRange()
 	
 	local deathBlasId = weapNamTab[lower(udef[explodeTag])].id
 	local blastRadius = weapTab[deathBlasId][aoeTag]
-	local defaultDamage = weapTab[deathBlasId].damages[0]	--get default damage
+	--local defaultDamage = weapTab[deathBlasId].damages[0]	--get default damage
 		
 	local mx, my = spGetMouseState()
 	local _, coords = spTraceScreenRay(mx, my, true, true)
@@ -262,8 +271,6 @@ end
 
 function DrawBlastRadiusSelectedUnits()
 	glLineWidth(blastLineWidth)
-  	  
-	local units = spGetSelectedUnits()
         
 	local deathBlasId
 	local blastId
@@ -272,7 +279,7 @@ function DrawBlastRadiusSelectedUnits()
 	local deathblastRadius
 	local deathblastDamage
 	local text
-	for i,unitID in ipairs(units) do
+	for i,unitID in ipairs(selectedUnits) do
 		DrawUnitBlastRadius( unitID )
 	end
 	  

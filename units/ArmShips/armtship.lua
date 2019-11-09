@@ -25,7 +25,7 @@ return {
 		maxdamage = 2900,
 		maxvelocity = 2.4,
 		minwaterdepth = 0,
-		movementclass = "DBOAT66X6",
+		movementclass = "BOAT5",
 		name = "Hulk",
 		nochasecategory = "ALL",
 		objectname = "Units/ARMTSHIP.s3o",

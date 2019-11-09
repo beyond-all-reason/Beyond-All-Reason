@@ -54,7 +54,6 @@ NanoLasersNoShader.Default = {
   allyID    = -1,
 
   --// custom (user) options
-  flare           = false,
   streamSpeed     = 10,
   streamThickness = -1,  --//streamThickness =  4+self.count*0.34,
   corethickness   = 1,
@@ -172,7 +171,7 @@ end
 -----------------------------------------------------------------------------------------------------------------
 
 function NanoLasersNoShader:Update(n)
-  if not self._lastupdate or thisGameFrame - self._lastupdate > 2 or (self.quickupdates and thisGameFrame - self._lastupdate >= 1) then  -- save some performance/memory
+  if not self._lastupdate or thisGameFrame - self._lastupdate > 1 or (self.quickupdates and thisGameFrame - self._lastupdate >= 1) then  -- save some performance/memory
     UpdateNanoParticles(self)
 
     if (self._dead) then
@@ -187,7 +186,7 @@ function NanoLasersNoShader:ReInitialize()
 end
 
 function NanoLasersNoShader:Visible()
-  if ((self.allyID ~= LocalAllyTeamID)and(self.visibility == 0)) or not self._midpos then
+  if not self._midpos then
     return false
   end
 
@@ -223,6 +222,14 @@ end
 -----------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------
 
+-- update (position) more frequently for air builders
+local airBuilders = {}
+for udid, unitDef in pairs(UnitDefs) do
+  if unitDef.canFly then
+    airBuilders[udid] = true
+  end
+end
+
 function NanoLasersNoShader.Create(Options)
   local unit,nanopiece=Options.unitID,Options.nanopiece
   if (unit and nanopiece)and(knownNanoLasersNoShader[unit])and(knownNanoLasersNoShader[unit][nanopiece]) then
@@ -231,7 +238,16 @@ function NanoLasersNoShader.Create(Options)
     reuseFx:CreateParticle()
     return false,reuseFx.id
   else
-    local newObject = MergeTable(Options, NanoLasersNoShader.Default)
+    local newObject = {}
+    for key, value in pairs(Options) do
+      newObject[key] = value
+    end
+    newObject.teamID = Spring.GetUnitTeam(unit)
+    newObject.color = { Spring.GetTeamColor(newObject.teamID) }
+    newObject.allyID = Spring.GetUnitAllyTeam(unit)
+    newObject.unitDefID = Spring.GetUnitDefID(unit)
+    newObject.quickupdates = airBuilders[newObject.unitDefID] and true or false
+
     setmetatable(newObject,NanoLasersNoShader)  -- make handle lookup
     newObject:CreateParticle()
 
@@ -250,11 +266,6 @@ function NanoLasersNoShader:Destroy()
   knownNanoLasersNoShader[unit][nanopiece] = nil
   if (not next(knownNanoLasersNoShader[unit])) then
     knownNanoLasersNoShader[unit] = nil
-  end
-
-  if (self.flare) then
-    RemoveParticles(self.flare1id)
-    RemoveParticles(self.flare2id)
   end
 end
 

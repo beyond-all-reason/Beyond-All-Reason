@@ -10,7 +10,7 @@
 --// Info
 if (info) then
   local ratios      = {[""]=(1/1)} -- {["16to10"]=(10/16), ["1to1"]=(1/1), ["5to4"]=(4/5)} --, ["4to3"]=(3/4)}
-  local resolutions = {{350,350}} -- {{128,128},{64,64}}
+  local resolutions = {{256,256}} -- {{128,128},{64,64}}
   local schemes     = {""}  --, "core"}
 
   return schemes,resolutions,ratios
@@ -20,7 +20,7 @@ end
 -----------------------------------------------------------------------
 
 --// filename ext
-imageExt = ".png"
+imageExt = ".png"   -- unfortumnately .dds wont be with mipmaps
 
 --// render into a fbo in 4x size
 renderScale = 4

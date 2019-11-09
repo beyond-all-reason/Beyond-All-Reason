@@ -47,7 +47,6 @@ local glLineWidth            = gl.LineWidth
 local glPolygonOffset        = gl.PolygonOffset
 local glVertex               = gl.Vertex
 local spGetVisibleUnits      = Spring.GetVisibleUnits
-local spGetSelectedUnits     = Spring.GetSelectedUnits
 local spGetTeamColor         = Spring.GetTeamColor
 local spGetUnitDefID         = Spring.GetUnitDefID
 local spGetUnitTeam          = Spring.GetUnitTeam
@@ -96,7 +95,7 @@ if #Spring.GetTeamList()-1  ==  #Spring.GetAllyTeamList()-1 then
 end
 
 local sameTeamColors = false
-if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors() then
+if WG['playercolorpalette'] ~= nil and WG['playercolorpalette'].getSameTeamColors then
   sameTeamColors = WG['playercolorpalette'].getSameTeamColors()
 end
 
@@ -339,6 +338,7 @@ local sec = 0
 local sceduledCheck = false
 local updateTime = 1
 function widget:Update(dt)
+	if chobbyInterface then return end
   sec=sec+dt
   local camX, camY, camZ = spGetCameraPosition()
   if camX ~= prevCam[1] or  camY ~= prevCam[2] or  camZ ~= prevCam[3] then
@@ -377,7 +377,20 @@ function widget:Update(dt)
 end
 
 
+local selectedUnits = Spring.GetSelectedUnits()
+function widget:SelectionChanged(sel)
+  selectedUnits = sel
+end
+
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
   if spIsGUIHidden() then return end
 
   glLineWidth(3.0)
@@ -409,9 +422,9 @@ function widget:DrawWorldPreUnit()
   end
 
   -- mark selected units
-  if useSelections then
+  if useSelections and selectedUnits then
     glColor(1, 1, 1, highlightOpacity)
-    for _,unitID in ipairs(spGetSelectedUnits()) do
+    for _,unitID in ipairs(selectedUnits) do
       local udefid = spGetUnitDefID(unitID)
       if udefid then
         local unitScale = unitConf[udefid].scale

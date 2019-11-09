@@ -87,7 +87,7 @@ GG.AiHelpers.NanoTC.GetClosestNanoTC = function (unitID)
 	local teamID = Spring.GetUnitTeam(unitID)
 	local ux, uy, uz = Spring.GetUnitPosition(unitID)
 	local bestID
-	local mindis = math.huge
+	local mindis = 2000
 	local x, y, z = math.floor(ux/256), math.floor(uy/256), math.floor(uz/256)
 	if ClosestNanoTC and ClosestNanoTC[teamID] and ClosestNanoTC[teamID][x] and ClosestNanoTC[teamID][x][z] and Spring.ValidUnitID(ClosestNanoTC[teamID][x][z]) then
 		bestID = ClosestNanoTC[teamID][x][z]
@@ -128,7 +128,7 @@ GG.AiHelpers.VisibilityCheck = {}
 local SeenBuildings = {}
 
 GG.AiHelpers.VisibilityCheck.IsUnitVisible = function(unitID, teamID)
-	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID)
+	local _,_,_,_,_,allyTeamID = Spring.GetTeamInfo(teamID,false)
 	if SeenBuildings[teamID] and SeenBuildings[teamID][unitID] then
 		return true
 	elseif Spring.IsUnitInLos(unitID, allyTeamID) or Spring.IsUnitInRadar(unitID, allyTeamID) then

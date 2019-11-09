@@ -65,7 +65,7 @@ local SetUnitBlocking      = Spring.SetUnitBlocking
 local GetGroundHeight      = Spring.GetGroundHeight
 local GetUnitTeam          = Spring.GetUnitTeam
 local GetUnitHealth        = Spring.GetUnitHealth
-local GetUnitCommands      = Spring.GetUnitCommands
+local GetCommandQueue      = Spring.GetCommandQueue
 local SetUnitExperience    = Spring.SetUnitExperience
 local GetUnitDefID         = Spring.GetUnitDefID
 local SetUnitHealth        = Spring.SetUnitHealth
@@ -1119,7 +1119,7 @@ function gadget:GameStart()
     Spring.Echo("(Assigning Chicken Team to Gaia - AI: Custom)")
   end
   if (burrowSpawnType == "initialbox") or (burrowSpawnType == "alwaysbox") then
-    local _,_,_,_,_,luaAllyID = Spring.GetTeamInfo(chickenTeamID)
+    local _,_,_,_,_,luaAllyID = Spring.GetTeamInfo(chickenTeamID,false)
     if luaAllyID then
       lsx1,lsz1,lsx2,lsz2 = Spring.GetAllyTeamStartBox(luaAllyID)
       if (not lsx1) or (not lsz1) or (not lsx2) or (not lsz2) then

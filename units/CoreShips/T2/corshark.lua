@@ -25,7 +25,7 @@ return {
 		maxdamage = 850,
 		maxvelocity = 1.89,
 		minwaterdepth = 20,
-		movementclass = "UBOAT33X3",
+		movementclass = "UBOAT3",
 		name = "Shark",
 		nochasecategory = "VTOL",
 		objectname = "Units/CORSHARK.s3o",

@@ -41,6 +41,7 @@ return {
 		turninplacespeedlimit = 1.122,
 		turnrate = 250,
 		customparams = {
+			model_author = "Flaka",
 			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armhovercraft",

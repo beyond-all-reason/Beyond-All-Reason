@@ -187,8 +187,7 @@ end
 
 function checkSpecView()
 	--check if we became a spec
-    local _,_,spec,_ = spGetPlayerInfo(spGetMyPlayerID())
-    if spec ~= amSpec then
+    if select(3,spGetPlayerInfo(spGetMyPlayerID(),false)) ~= amSpec then
         amSpec = spec
 		checkComs()
     end
@@ -244,16 +243,18 @@ function widget:GameFrame(n)
 
 				if nearestEnemyUnitID then
 					local ex,ey,ez = spGetUnitPosition(nearestEnemyUnitID)
-					local distance = diag(x-ex, y-ey, z-ez)
-					if distance < blastRadius + showOnEnemyDistance then
-						draw = true
-						opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
-						if opacityMultiplier > 1 then
-							opacityMultiplier = 1
-						elseif opacityMultiplier < 0 then
-							opacityMultiplier = 0
+					if ex then
+						local distance = diag(x-ex, y-ey, z-ez)
+						if distance < blastRadius + showOnEnemyDistance then
+							draw = true
+							opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
+							if opacityMultiplier > 1 then
+								opacityMultiplier = 1
+							elseif opacityMultiplier < 0 then
+								opacityMultiplier = 0
+							end
+							oldOpacityMultiplier = opacityMultiplier
 						end
-						oldOpacityMultiplier = opacityMultiplier
 					end
 				else
 					opacityMultiplier = 0
@@ -322,7 +323,14 @@ end
 
 
 -- draw circles
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
     if spIsGUIHidden() then return end
 
 	local camX, camY, camZ = spGetCameraPosition()

@@ -58,13 +58,16 @@ local lockcameraHideEnemies = true 			-- specfullview
 local lockcameraLos = true					-- togglelos
 local collapsable = false
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.35
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfileScale2 = fontfileScale * 1.25
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 --------------------------------------------------------------------------------
 -- SPEED UPS
@@ -113,11 +116,11 @@ local gl_Text			= gl.Text
 -- IMAGES
 --------------------------------------------------------------------------------
 
-local imageDirectory  = ":n:LuaUI/Images/advplayerslist/"
+local imageDirectory  = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/"
 
 local flagsDirectory  = imageDirectory.."flags/"
 
-local bgcorner        = "LuaUI/Images/bgcorner.png"
+local bgcorner        = LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local pics = {
 	chipPic         = imageDirectory.."chip.dds",
@@ -231,8 +234,8 @@ local myLastCameraState
 --------------------------------------------------------------------------------
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local playSounds = true
-local buttonclick = 'LuaUI/Sounds/buildbar_waypoint.wav'
-local sliderdrag = 'LuaUI/Sounds/buildbar_rem.wav'
+local buttonclick = LUAUI_DIRNAME..'Sounds/buildbar_waypoint.wav'
+local sliderdrag = LUAUI_DIRNAME..'Sounds/buildbar_rem.wav'
 
 local lastActivity = {}
 local lastFpsData = {}
@@ -620,7 +623,7 @@ end
 function SetMaxPlayerNameWidth()
 	-- determines the maximal player name width (in order to set the width of the widget)
 	local t = Spring_GetPlayerList()
-	local maxWidth = 14*font:GetTextWidth(absentName) + 8 -- 8 is minimal width
+	local maxWidth = 14*font2:GetTextWidth(absentName) + 8 -- 8 is minimal width
 	local name = ''
 	local spec = false
 	local version = ''
@@ -628,7 +631,7 @@ function SetMaxPlayerNameWidth()
 	local nextWidth = 0
 	for _,wplayer in ipairs(t) do
 		name,_,spec,teamID = Spring_GetPlayerInfo(wplayer)
-		if select(4,Spring_GetTeamInfo(teamID)) then -- is AI?
+		if select(4,Spring_GetTeamInfo(teamID,false)) then -- is AI?
 			_,_,_,_,name, version = Spring_GetAIInfo(teamID)
 			if type(version) == "string" then
 				name = "AI:" .. name .. "-" .. version
@@ -641,7 +644,7 @@ function SetMaxPlayerNameWidth()
 		end
 		local charSize
 		if spec then charSize = 11 else charSize = 14 end
-		nextWidth = charSize*font:GetTextWidth(name)+8
+		nextWidth = charSize*font2:GetTextWidth(name)+8
 		if nextWidth > maxWidth then
 			maxWidth = nextWidth
 		end
@@ -1173,7 +1176,7 @@ function SetSidePics()
 				teamSide = teamSideTwo
 			end
 		else
-			_,_,_,_,teamSide = Spring_GetTeamInfo(team)
+			_,_,_,_,teamSide = Spring_GetTeamInfo(team,false)
 		end
 	
 		if teamSide then
@@ -1210,7 +1213,7 @@ function GetAllPlayers()
 			tplayerCount = tplayerCount + 1
 		end
 
-		local _,_,_,isAiTeam = Spring.GetTeamInfo(teamN)
+		local _,_,_,isAiTeam = Spring.GetTeamInfo(teamN,false)
 		local isLuaAI = (Spring.GetTeamLuaAI(teamN) ~= "")
 		if not (isAiTeam or isLuaAI) then
 			if tplayerCount > 0 then
@@ -1221,7 +1224,7 @@ function GetAllPlayers()
 	end
 	specPlayers = Spring_GetTeamList()
 	for _,playerID in ipairs(specPlayers) do
-		local active,_,spec = Spring_GetPlayerInfo(playerID)
+		local active,_,spec = Spring_GetPlayerInfo(playerID,false)
 		if spec == true then
 			if active == true then
 				player[playerID] = CreatePlayer(playerID)
@@ -1236,7 +1239,7 @@ function GetAliveAllyTeams()
 	local allteams   = Spring_GetTeamList()
 	teamN = table.maxn(allteams) - 1               --remove gaia
 	for i = 0,teamN-1 do
-		local _,_, isDead, _, _, tallyteam = Spring_GetTeamInfo(i)
+		local _,_, isDead, _, _, tallyteam = Spring_GetTeamInfo(i,false)
 		if not isDead then
 			aliveAllyTeams[tallyteam] = true
 		end
@@ -1296,8 +1299,8 @@ end
 function CreatePlayer(playerID)
 	
 	--generic player data
-	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID)
-	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam)
+	local tname,_, tspec, tteam, tallyteam, tping, tcpu, tcountry, trank = Spring_GetPlayerInfo(playerID,false)
+	local _,_,_,_, tside, tallyteam                                      = Spring_GetTeamInfo(tteam,false)
 	local tred, tgreen, tblue  										     = Spring_GetTeamColor(tteam)
 	
 	--skill
@@ -1357,7 +1360,7 @@ end
 
 function CreatePlayerFromTeam(teamID) -- for when we don't have a human player occupying the slot, also when a player changes team (dies)
 	
-	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID)
+	local _,_, isDead, isAI, tside, tallyteam = Spring_GetTeamInfo(teamID,false)
 	local tred, tgreen, tblue                 = Spring_GetTeamColor(teamID)
 	local tname, ttotake, tskill
 	local tdead = true
@@ -1493,15 +1496,14 @@ function SortList()
 	local teamList
 	local myOldSpecStatus = mySpecStatus
 	
-	_,_, mySpecStatus,_,_,_,_,_,_ = Spring_GetPlayerInfo(myPlayerID)
+	mySpecStatus = select(3,Spring_GetPlayerInfo(myPlayerID,false))
 	
 	-- checks if a team has died
 	if mySpecStatus ~= myOldSpecStatus then
-		if mySpecStatus == true then
+		if mySpecStatus then
 			teamList = Spring_GetTeamList()
-			for _, team in ipairs(teamList) do               --
-				_,_, isDead = Spring_GetTeamInfo(team)
-				if isDead == false then
+			for _, team in ipairs(teamList) do
+				if not select(3,Spring_GetTeamInfo(team,false)) then -- not dead
 					Spec(team)
 					break
 				end
@@ -1608,8 +1610,7 @@ function SortTeams(allyTeamID, vOffset)
 		drawListOffset[#drawListOffset+1] = vOffset
 		drawList[#drawList+1] = -1
 		vOffset = SortPlayers(teamID,allyTeamID,vOffset) -- adds players form the team
-		local _,_, isDead, _, _, _ = Spring_GetTeamInfo(teamID)
-		if isDead then
+		if select(3,Spring_GetTeamInfo(teamID,false)) then
 			vOffset = vOffset - (deadPlayerHeightReduction/2)
 		end
 	end
@@ -1622,7 +1623,6 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	
 	local playersList       = Spring_GetPlayerList(teamID,true)
 	local noPlayer          = true
-	local _,_,_, isAi = Spring_GetTeamInfo(teamID)
 	
 	-- add own player (if not spec)
 	if myTeamID == teamID then
@@ -1653,7 +1653,7 @@ function SortPlayers(teamID,allyTeamID,vOffset)
 	end
 	
 	-- add AI teams
-	if isAi == true then
+	if select(4,Spring_GetTeamInfo(teamID,false)) then -- is AI
 		vOffset = vOffset + playerOffset
 		drawListOffset[#drawListOffset+1] = vOffset
 		drawList[#drawList+1] = 64 + teamID -- new AI team (instead of players)
@@ -1680,7 +1680,7 @@ function SortSpecs(vOffset)
 	local playersList = Spring_GetPlayerList(-1,true)
 	local noSpec = true
 	for _,playerID in ipairs(playersList) do
-		_,active,spec = Spring_GetPlayerInfo(playerID)
+		_,active,spec = Spring_GetPlayerInfo(playerID,false)
 		if spec and active then
 			if player[playerID].name ~= nil then
 				
@@ -1731,8 +1731,14 @@ local Background
 local ShareSlider
 
 
-function widget:DrawScreen()
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
 
+function widget:DrawScreen()
+	if chobbyInterface then return end
 	if Spring_IsGUIHidden() then return end
 
 	local mouseX,mouseY,mouseButtonL = Spring_GetMouseState()
@@ -2115,11 +2121,11 @@ function DrawLabel(text, vOffset, drawSeparator)
 		text = string.sub(text, 0, 1)
 	end
 	font:Begin()
-	font:SetTextColor(0,0,0,0.2)
-	font:Print(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
-	font:Print(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
+	--font:SetTextColor(0,0,0,0.2)
+	--font:Print(text, widgetPosX - 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
+	--font:Print(text, widgetPosX + 1, widgetPosY + widgetHeight -vOffset+6.6, 12, "")
 	font:SetTextColor(0.9,0.9,0.9,0.75)
-	font:Print(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "n")
+	font:Print(text, widgetPosX, widgetPosY + widgetHeight -vOffset+7.5, 12, "on")
 	font:End()
 	if drawSeparator then
 		--DrawSeparator(vOffset)
@@ -2131,11 +2137,11 @@ function DrawLabelTip(text, vOffset, xOffset)
 		text = string.sub(text, 0, 1)
 	end
 	font:Begin()
-	font:SetTextColor(0,0,0,0.08)
-	font:Print(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
-	font:Print(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
+	--font:SetTextColor(0,0,0,0.08)
+	--font:Print(text, widgetPosX + xOffset - 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
+	--font:Print(text, widgetPosX + xOffset + 1, widgetPosY + widgetHeight -vOffset+6.8, 10, "")
 	font:SetTextColor(0.9,0.9,0.9,0.35)
-	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "n")
+	font:Print(text, widgetPosX + xOffset, widgetPosY + widgetHeight -vOffset+7.5, 10, "on")
 	font:End()
 end
 
@@ -2630,19 +2636,19 @@ function DrawName(name, team, posY, dark, playerID)
 		DrawState(playerID, m_name.posX + widgetPosX, posY)
 	end
 	if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-        font:Begin()
-        font:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
-        font:End()
+        font2:Begin()
+        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "o")
+        font2:End()
 	else
-        font:Begin()
-        font:SetTextColor(0,0,0,0.4)
-        font:SetOutlineColor(0,0,0,0.4)
-        font:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
-        font:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
-        font:SetTextColor(1,1,1,1)
-        font:SetOutlineColor(0,0,0,1)
-        font:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
-        font:End()
+        font2:Begin()
+        font2:SetTextColor(0,0,0,0.4)
+        font2:SetOutlineColor(0,0,0,0.4)
+        font2:Print(nameText, m_name.posX + widgetPosX + 2 + xPadding, posY + 3, 14, "n") -- draws name
+        font2:Print(nameText, m_name.posX + widgetPosX + 4 + xPadding, posY + 3, 14, "n") -- draws name
+        font2:SetTextColor(1,1,1,1)
+        font2:SetOutlineColor(0,0,0,1)
+        font2:Print(colourNames(team) .. nameText, m_name.posX + widgetPosX + 3 + xPadding, posY + 4, 14, "n")
+        font2:End()
 	end
 	if ignored then
 		gl_Color(1,1,1,0.9)	
@@ -2677,30 +2683,30 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
 	if playerSpecs[playerID] ~= nil then
 		nameColourR,nameColourG,nameColourB,nameColourA = Spring_GetTeamColor(team)
 		if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-            font:Begin()
-            font:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
-            font:End()
+            font2:Begin()
+            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "o")
+            font2:End()
 		else
-            font:Begin()
-            font:SetTextColor(0,0,0,0.3)
-            font:SetOutlineColor(0,0,0,0.3)
-            font:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
-            font:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
-            font:SetTextColor(1,1,1,0.78)
-            font:SetOutlineColor(0,0,0,0.3)
+            font2:Begin()
+            font2:SetTextColor(0,0,0,0.3)
+            font2:SetOutlineColor(0,0,0,0.3)
+            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
+            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
+            font2:SetTextColor(1,1,1,0.78)
+            font2:SetOutlineColor(0,0,0,0.3)
 			--gl_Color(nameColourR,nameColourG,nameColourB,0.78)
-            font:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
-            font:End()
+            font2:Print(colourNames(team) .. name, m_name.posX + textindent + explayerindent + widgetPosX + 3, posY + 4, 11, "n")
+            font2:End()
 		end
 	else
-		font:Begin()
-		font:SetTextColor(0,0,0,0.3)
-		font:SetOutlineColor(0,0,0,0.3)
-		font:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
-		font:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
-		font:SetTextColor(1,1,1,alpha)
-		font:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
-		font:End()
+		font2:Begin()
+		font2:SetTextColor(0,0,0,0.3)
+		font2:SetOutlineColor(0,0,0,0.3)
+		font2:Print(name, m_name.posX + textindent + widgetPosX + 2.2, posY + 3.3, 10, "n")
+		font2:Print(name, m_name.posX + textindent + widgetPosX + 3.8, posY + 3.3, 10, "n")
+		font2:SetTextColor(1,1,1,alpha)
+		font2:Print(name, m_name.posX + textindent + widgetPosX + 3, posY + 4, 10, "n")
+		font2:End()
 	end
 	if ignored then
 		gl_Color(1,1,1,0.7)	
@@ -2722,21 +2728,21 @@ function DrawID(playerID, posY, dark, dead)
 	local fontSize = 11
 	local deadspace = 0
 	font:Begin()
-	if dead then
-		fontSize = 8
-		deadspace = 1.5
-		font:SetTextColor(0,0,0,0.4)
-	else
-		font:SetTextColor(0,0,0,0.6)
-	end
+	--if dead then
+	--	fontSize = 8
+	--	deadspace = 1.5
+	--	font:SetTextColor(0,0,0,0.4)
+	--else
+	--	font:SetTextColor(0,0,0,0.6)
+	--end
 	--gl_Text(colourNames(playerID) .. " ".. playerID .. "", m_ID.posX + widgetPosX+4.5, posY + 5, 11, "o")
-	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
+	--font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 4.1, fontSize, "n")
 	if dead then
-		font:SetTextColor(1,1,1,0.33)
+		font:SetTextColor(1,1,1,0.4)
 	else
-		font:SetTextColor(1,1,1,0.5)
+		font:SetTextColor(1,1,1,0.66)
 	end
-	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "n")
+	font:Print(spacer .. playerID .. "", m_ID.posX + deadspace + widgetPosX+4.5, posY + 5, fontSize, "on")
 	font:End()
 end
 
@@ -2766,15 +2772,15 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 				cpu = 99
 			end
 			if spec then
-				font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
+				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.66*alpha*grayvalue)
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
 			else
-				font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
+				--font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.8*alpha*grayvalue)
-				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+				font:Print(cpu, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "ro")
 			end
 		end
 	else
@@ -2789,15 +2795,15 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 				greyvalue = 1
 			end
 			if spec then
-				font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
+				--font:SetTextColor(0,0,0,0.1+(grayvalue*0.4))
+				--font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,0.77*alpha*grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "r")
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9, "ro")
 			else
-				font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
+				--font:SetTextColor(0,0,0,0.12+(grayvalue*0.44))
+				--font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 4.3, 9.5, "r")
 				font:SetTextColor(grayvalue,grayvalue,grayvalue,alpha*grayvalue)
-				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "r")
+				font:Print(fps, m_cpuping.posX + widgetPosX+11, posY + 5.3, 9.5, "ro")
 			end
 		else
 			gl_Texture(pics["cpuPic"])
@@ -3051,11 +3057,11 @@ function CreateShareSlider()
 			if right == true then
 				DrawRect(m_share.posX + widgetPosX  - 28,posY-1+sliderPosition, m_share.posX + widgetPosX  + 19,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  - 5,posY+3+sliderPosition, 14, "on")
 			else
 				DrawRect(m_share.posX + widgetPosX  + 76,posY-1+sliderPosition, m_share.posX + widgetPosX  + 31,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 55,posY+3+sliderPosition, 14, "on")
 			end
 		elseif metalPlayer ~= nil then
 			posY = widgetPosY + widgetHeight - metalPlayer.posY
@@ -3067,11 +3073,11 @@ function CreateShareSlider()
 			if right == true then
 				DrawRect(m_share.posX + widgetPosX  - 12,posY-1+sliderPosition, m_share.posX + widgetPosX  + 35,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 11,posY+3+sliderPosition, 14, "on")
 			else
 				DrawRect(m_share.posX + widgetPosX  + 88,posY-1+sliderPosition, m_share.posX + widgetPosX  + 47,posY+17+sliderPosition)
 				gl_Texture(false)
-				font:Print(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition)
+				font:Print(amountEM.."", m_share.posX + widgetPosX  + 71,posY+3+sliderPosition, 14, "on")
 			end
 		end
 		font:End()
@@ -3705,7 +3711,7 @@ function widget:SetConfigData(data)      -- load
 	end
 	if data.lockPlayerID ~= nil and Spring.GetGameFrame()>0 then
 		lockPlayerID = data.lockPlayerID
-		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID)) then
+		if lockPlayerID and not select(3,Spring_GetPlayerInfo(lockPlayerID),false) then
 			if not lockcameraHideEnemies then
 				if not fullView then
 					Spring.SendCommands("specfullview")
@@ -3789,7 +3795,7 @@ end
 function CheckPlayersChange()
 	local sorting = false
 	for i = 0,63 do
-		local name,active,spec,teamID,allyTeamID,pingTime,cpuUsage, country, rank = Spring_GetPlayerInfo(i)
+		local name,active,spec,teamID,allyTeamID,pingTime,cpuUsage, country, rank = Spring_GetPlayerInfo(i,false)
 		if active == false then
 			if player[i].name ~= nil then                                             -- NON SPEC PLAYER LEAVING
 				if player[i].spec==false then
@@ -4108,12 +4114,15 @@ function widget:ViewResize(viewSizeX, viewSizeY)
 		widgetRight = widgetRight - dx
 	    widgetPosX = vsx - (widgetWidth * widgetScale) - widgetRelRight
 	end
-  local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
-  if (fontfileScale ~= newFontfileScale) then
-    fontfileScale = newFontfileScale
-    gl.DeleteFont(font)
-    font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
-  end
+	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
+	if (fontfileScale ~= newFontfileScale) then
+		fontfileScale = newFontfileScale
+		fontfileScale2 = newFontfileScale * 1.25
+		gl.DeleteFont(font)
+		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		gl.DeleteFont(font2)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
+	end
 end
 
 function widget:MapDrawCmd(playerID, cmdType, px, py, pz)           -- get the points drawn (to display point indicator)

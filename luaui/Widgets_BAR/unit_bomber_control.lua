@@ -139,8 +139,7 @@ function widget:Update(dt)
 					if commands and commands[1] and commands[1].id==CMD.ATTACK and commands[2] then
 						--Spring.Echo(CMD[commands[2].id])
 						GiveOrderToUnit(bomber_id, CMD.REMOVE,{commands[1].tag},{})
-						local states=GetUnitStates(bomber_id)
-						if states and (states['repeat']) then
+						if select(4,GetUnitStates(bomber_id,false,true)) then	-- 4=repeat
 							GiveOrderToUnit(bomber_id, commands[1].id,commands[1].params,{'shift'})
 						end
 					end

@@ -247,7 +247,7 @@ local function MakeBloomShaders()
 
 			void main(void) {
 				vec2 texCoors = vec2(gl_TexCoord[0]);
-				vec3 color = vec3(texture2D(modelDiffuseTex, texCoors));
+				vec4 color = vec4(texture2D(modelDiffuseTex, texCoors));
 				vec4 colorEmit = texture2D(modelEmitTex, texCoors);
 
 				float modelDepth = texture2D(modelDepthTex, texCoors).r;
@@ -257,16 +257,16 @@ local function MakeBloomShaders()
 
 				//float detectchangedbuffer = clamp(colorEmit.g,0.0,1.0); //this is required because some things overwrite all the buffers, and deferred rendering forces this to 0.0
 				//color = color *(1.0 - detectchangedbuffer);
-
-				color += color * colorEmit.r;
-
-				float illum = dot(color, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
+				color.rgb = color.rgb * color.a;
+				color.rgb += color.rgb * colorEmit.r;
+				
+				float illum = dot(color.rgb, vec3(0.2990, 0.4870, 0.2140)); //adjusted from the real values of  vec3(0.2990, 0.5870, 0.1140)
 
 				vec4 illumCond = vec4(illum > illuminationThreshold) ;
 
 				gl_FragColor = mix(
 					vec4(0.0, 0.0, 0.0, 1.0),
-					vec4(color * (illum-illuminationThreshold), 1.0) * fragGlowAmplifier * unoccludedModel,
+					vec4(color.rgb * (illum-illuminationThreshold), 1.0) * fragGlowAmplifier * unoccludedModel,
 					illumCond);
 			}
 		]],
@@ -476,7 +476,7 @@ function widget:DrawWorld()
 		gl.Color(0, 0, 0, drawWorldAlpha * glowAmplifier)
 		gl.Translate(camX + (camDirX * 360), camY + (camDirY * 360), camZ + (camDirZ * 360))
 		gl.Billboard()
-		gl.Rect(-vsx / 2, -vsy / 2, vsx / 2, vsy / 2)
+		gl.Rect(-vsx, -vsy, vsx, vsy)
 	end)
 
 	Bloom()

@@ -24,10 +24,13 @@ include("system.lua")
 include("callins.lua")
 include("savetable.lua")
 
+Spring.Utilities = {}
+VFS.Include("LuaRules/Utilities/tablefunctions.lua")
+
 
 local gl = gl
 
-local CONFIG_FILENAME    = LUAUI_DIRNAME .. 'Config/' .. Game.modShortName .. '.lua'
+local CONFIG_FILENAME    = LUAUI_DIRNAME .. 'Config/' .. Game.gameShortName .. '.lua'
 local WIDGET_DIRNAME     = LUAUI_DIRNAME .. 'Widgets_BAR/'
 local WIDGET_DIRNAME_MAP = LUAUI_DIRNAME .. 'Widgets/'
 
@@ -106,7 +109,6 @@ widgetHandler = {
 -- these call-ins are set to 'nil' if not used
 -- they are setup in UpdateCallIns()
 local flexCallIns = {
-  'GameID',
   'GamePreload',
   'GameStart',
   'GameOver',
@@ -154,11 +156,16 @@ local flexCallIns = {
   'DrawGenesis',
   'DrawWorld',
   'DrawWorldPreUnit',
+  'DrawWorldPreParticles',
   'DrawWorldShadow',
   'DrawWorldReflection',
   'DrawWorldRefraction',
+  'DrawUnitsPostDeferred',
+  'DrawFeaturesPostDeferred',
   'DrawScreenEffects',
+  'DrawScreenPost',
   'DrawInMiniMap',
+  'SunChanged',
   'FeatureCreated',
   'FeatureDestroyed',
 }
@@ -168,7 +175,6 @@ for _,ci in ipairs(flexCallIns) do
 end
 
 local callInLists = {
-  'GameID',
   'GamePreload',
   'GameStart',
   'Shutdown',
@@ -348,15 +354,15 @@ function widgetHandler:Initialize()
   -- do we allow userland widgets?
   --local autoUserWidgets = Spring.GetConfigInt('LuaAutoEnableUserWidgets', 1)
   --self.autoUserWidgets = (autoUserWidgets ~= 0)
-  if self.allowUserWidgets==nil then 
-    self.allowUserWidgets = true 
+  if self.allowUserWidgets==nil then
+    self.allowUserWidgets = true
   end
   if self.allowUserWidgets and allowuserwidgets then
     Spring.Echo("LuaUI: Allowing User Widgets")
   else
     Spring.Echo("LuaUI: Disallowing User Widgets")
   end
-  
+
   -- create the "LuaUI/Config" directory
   Spring.CreateDir(LUAUI_DIRNAME .. 'Config')
 
@@ -373,7 +379,7 @@ function widgetHandler:Initialize()
       end
     end
   end
-  
+
   -- stuff the zip widgets into unsortedWidgets
   local widgetFiles = VFS.DirList(WIDGET_DIRNAME, "*.lua", VFS.ZIP)
   for k,wf in ipairs(widgetFiles) do
@@ -383,7 +389,7 @@ function widgetHandler:Initialize()
       table.insert(unsortedWidgets, widget)
     end
   end
-  
+
   -- stuff the map widgets into unsortedWidgets
   local widgetFiles = VFS.DirList(WIDGET_DIRNAME_MAP, "*.lua", VFS.MAP)
   for k,wf in ipairs(widgetFiles) do
@@ -418,7 +424,7 @@ function widgetHandler:Initialize()
     local basename = w.whInfo.basename
     local source = self.knownWidgets[name].fromZip and "mod: " or "user:"
     Spring.Echo(string.format("Loading widget from %s  %-18s  <%s> ...", source, name, basename))
-    
+
     widgetHandler:InsertWidget(w)
   end
 
@@ -1105,17 +1111,17 @@ end
 
 function widgetHandler:Shutdown()
   -- record if we will allow user widgets on next load
-  if self.__allowUserWidgets~=nil then 
+  if self.__allowUserWidgets~=nil then
       self.allowUserWidgets = self.__allowUserWidgets
   end
 
   -- save config
   if self.__blankOutConfig then
-    table.save({["allowUserWidgets"]=self.allowUserWidgets}, CONFIG_FILENAME, '-- Widget Custom data and order')  
+    table.save({["allowUserWidgets"]=self.allowUserWidgets}, CONFIG_FILENAME, '-- Widget Custom data and order')
   else
     self:SaveConfigData()
   end
-  
+
   for _,w in ipairs(self.ShutdownList) do
     w:Shutdown()
   end
@@ -1208,6 +1214,9 @@ end
 
 
 function widgetHandler:CommandsChanged()
+  if widgetHandler:UpdateSelection() then -- for selectionchanged
+    return -- selection updated, don't call commands changed.
+  end
   self.inCommandsChanged = true
   self.customCommands = {}
   for _,w in ipairs(self.CommandsChangedList) do
@@ -1293,6 +1302,13 @@ function widgetHandler:DrawWorldPreUnit()
   return
 end
 
+function widgetHandler:DrawWorldPreParticles()
+  for _,w in ripairs(self.DrawWorldPreParticlesList) do
+    w:DrawWorldPreParticles()
+  end
+  return
+end
+
 
 function widgetHandler:DrawWorldShadow()
   for _,w in ripairs(self.DrawWorldShadowList) do
@@ -1318,6 +1334,22 @@ function widgetHandler:DrawWorldRefraction()
 end
 
 
+function widgetHandler:DrawUnitsPostDeferred()
+  for _,w in ripairs(self.DrawUnitsPostDeferredList) do
+    w:DrawUnitsPostDeferred()
+  end
+  return
+end
+
+
+function widgetHandler:DrawFeaturesPostDeferred()
+  for _,w in ripairs(self.DrawFeaturesPostDeferredList) do
+    w:DrawFeaturesPostDeferred()
+  end
+  return
+end
+
+
 function widgetHandler:DrawScreenEffects(vsx, vsy)
   for _,w in ripairs(self.DrawScreenEffectsList) do
     w:DrawScreenEffects(vsx, vsy)
@@ -1326,9 +1358,25 @@ function widgetHandler:DrawScreenEffects(vsx, vsy)
 end
 
 
+function widgetHandler:DrawScreenPost()
+  for _,w in ripairs(self.DrawScreenPostList) do
+    w:DrawScreenPost()
+  end
+  return
+end
+
+
 function widgetHandler:DrawInMiniMap(xSize, ySize)
   for _,w in ripairs(self.DrawInMiniMapList) do
     w:DrawInMiniMap(xSize, ySize)
+  end
+  return
+end
+
+
+function widgetHandler:SunChanged()
+  for _,w in ripairs(self.SunChangedList) do
+    w:SunChanged()
   end
   return
 end
@@ -1570,13 +1618,6 @@ end
 --  Game call-ins
 --
 
-function widgetHandler:GameID(gameID)
-  for _,w in ipairs(self.GameIDList) do
-    w:GameID(gameID)
-  end
-  return
-end
-
 function widgetHandler:GamePreload()
   for _,w in ipairs(self.GamePreloadList) do
     w:GamePreload()
@@ -1648,6 +1689,59 @@ function widgetHandler:GameFrame(frameNum)
     w:GameFrame(frameNum)
   end
   return
+end
+
+-- local helper (not a real call-in)
+local oldSelection = {}
+function widgetHandler:UpdateSelection()
+  local changed
+  local newSelection = Spring.GetSelectedUnits()
+  if (#newSelection == #oldSelection) then
+    for i = 1, #oldSelection do
+      if (newSelection[i] ~= oldSelection[i]) then -- it seems the order stays
+        changed = true
+        break
+      end
+    end
+  else
+    changed = true
+  end
+  if (changed) then
+    local subselection = true
+    if #newSelection > #oldSelection then
+      subselection = false
+    else
+      local newSeen = 0
+      local oldSelectionMap = {}
+      for i = 1, #oldSelection do
+        oldSelectionMap[oldSelection[i]] = true
+      end
+      for i = 1, #newSelection do
+        if not oldSelectionMap[newSelection[i]] then
+          subselection = false
+          break
+        end
+      end
+    end
+    if widgetHandler:SelectionChanged(newSelection, subselection) then
+      -- selection changed, don't set old selection to new selection as it is soon to change.
+      return true
+    end
+  end
+  oldSelection = newSelection
+  return false
+end
+
+function widgetHandler:SelectionChanged(selectedUnits, subselection)
+  for _,w in ipairs(self.SelectionChangedList) do
+    if widgetHandler.WG['smartselect'] and not widgetHandler.WG['smartselect'].updateSelection then return end
+      local unitArray = w:SelectionChanged(selectedUnits, subselection)
+      if (unitArray) then
+        Spring.SelectUnitArray(unitArray)
+        return true
+      end
+  end
+  return false
 end
 
 function widgetHandler:GameProgress(serverFrameNum)
@@ -1965,6 +2059,7 @@ function widgetHandler:FeatureDestroyed(featureID, allyTeam)
   end
   return
 end
+
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------

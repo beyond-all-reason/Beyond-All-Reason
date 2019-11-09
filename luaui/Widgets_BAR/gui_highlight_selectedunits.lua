@@ -24,7 +24,7 @@ function widget:GetInfo()
 end
 
 local useTeamcolor = false
-local highlightAlpha = 0.2
+local highlightAlpha = 0.1
 local useHighlightShader = true
 local maxShaderUnits = 150
 local edgeExponent = 3
@@ -157,15 +157,29 @@ end
 
 --------------------------------------------------------------------------------
 
+local selectedUnits = Spring.GetSelectedUnits()
+local selectedUnitsCount = Spring.GetSelectedUnitsCount()
+function widget:SelectionChanged(sel)
+  selectedUnits = sel
+  selectedUnitsCount = Spring.GetSelectedUnitsCount()
+end
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
-  if Spring.IsGUIHidden() then return end
+	if chobbyInterface then return end
+  if not selectedUnits or Spring.IsGUIHidden() then return end
 
   gl.DepthTest(true)
   gl.PolygonOffset(-0.5, -0.5)
   gl.Blending(GL.SRC_ALPHA, GL.ONE)
 
-  local selectedUnits = Spring.GetSelectedUnits()
-  if useHighlightShader and shader and #selectedUnits < maxShaderUnits then
+  --local selectedUnits = Spring.GetSelectedUnits()
+  if useHighlightShader and shader and selectedUnitsCount < maxShaderUnits then
     gl.UseShader(shader)
   end
   local teamID, prevTeamID, r,g,b

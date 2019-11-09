@@ -7,7 +7,7 @@ function widget:GetInfo()
 		license   = "GNU GPL, v2 or later",
         version   = "5",
         layer     = 55,
-		enabled   = false,  --  loaded by default?
+		enabled   = true,  --  loaded by default?
     }
 end
 
@@ -27,50 +27,13 @@ local commandCreatedUnitsIDs = {}
 local builders = {}
 local myPlayerID = Spring.GetMyPlayerID()
 local maxDisplayed = 150
+local GetCommandQueue = Spring.GetCommandQueue
+local dlists = {}
+local prevCam = {Spring.GetCameraPosition()}
 
 local builderUnitDefs = {}
-for udefID,def in ipairs(UnitDefs) do
-	if def.isBuilder and not def.isFactory and def.buildOptions[1] then
-		local buildOptions = {}
-		for _,unit in ipairs(def.buildOptions) do
-			buildOptions[unit] = true
-		end
-		builderUnitDefs[udefID] = buildOptions
-	end
-end
 
-function updateBuilders()
-	for unitID, _ in pairs(builders) do
-		checkBuilder(unitID)
-	end
-end
-
-function addBuilders()
-	command = {}
-	local allUnits = Spring.GetAllUnits()
-	for _, unitID in ipairs(allUnits) do
-		local uDefID = Spring.GetUnitDefID(unitID)
-		if builderUnitDefs[uDefID] then
-			builders[unitID] = true
-			checkBuilder(unitID)
-		end
-	end
-end
-
-function widget:Initialize()
-	if Spring.GetGameFrame() > 0 then
-		addBuilders()
-	end
-end
-
-function widget:PlayerChanged(playerID)
-	if playerID == myPlayerID and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
-		addBuilders()
-		updateBuilders()
-	end
-end
-
-function clearBuilderCommands(unitID)
+local function clearBuilderCommands(unitID)
 	if commandOrdered[unitID] then
 		for id, _ in pairs(commandOrdered[unitID]) do
 			if command[id] and command[id][unitID] then
@@ -85,44 +48,15 @@ function clearBuilderCommands(unitID)
 	end
 end
 
-local gameFrame = Spring.GetGameFrame()
-function widget:GameFrame(gf)
-	gameFrame = gf
-end
-
-local newUnitCommands = {}
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
-	if builderUnitDefs[unitDefID] then
-		newUnitCommands[unitID] = os.clock() + 0.05
-	end
-end
-
-local sec = 0
-local lastUpdate = 0
-function widget:Update(dt)
-	sec = sec + dt
-	if sec > lastUpdate + 0.1 then
-		lastUpdate = sec
-
-		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
-		local clock =  os.clock()
-		for unitID, cmdClock in pairs(newUnitCommands) do
-			if clock > cmdClock then
-				checkBuilder(unitID)
-				newUnitCommands[unitID] = nil
-			end
-		end
-	end
-end
-
-function checkBuilder(unitID)
+local function checkBuilder(unitID)
 	clearBuilderCommands(unitID)
-	local queue = Spring.GetCommandQueue(unitID, 200)
-	if(queue and #queue > 0) then
+	local queueDepth = GetCommandQueue(unitID, 0)
+	if queueDepth and queueDepth > 0 then
+		local queue = GetCommandQueue(unitID, math.min(queueDepth, 200))
 		for _, cmd in ipairs(queue) do
 			if ( cmd.id < 0 ) then
 				local myCmd = {
-					id = math.abs(cmd.id),
+					id = -cmd.id,
 					teamid = Spring.GetUnitTeam(unitID),
 					params = cmd.params
 				}
@@ -148,6 +82,81 @@ function checkBuilder(unitID)
 			end
 		end
 	end
+end
+
+function updateBuilders()
+	for unitID, _ in pairs(builders) do
+		checkBuilder(unitID)
+	end
+end
+
+function addBuilders()
+	command = {}
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in ipairs(allUnits) do
+		local uDefID = Spring.GetUnitDefID(unitID)
+		if builderUnitDefs[uDefID] then
+			builders[unitID] = true
+			checkBuilder(unitID)
+		end
+	end
+end
+
+function widget:Initialize()
+	for udefID,def in ipairs(UnitDefs) do
+		if def.isBuilder and not def.isFactory and def.buildOptions[1] then
+			local buildOptions = {}
+			for _,unit in ipairs(def.buildOptions) do
+				buildOptions[unit] = true
+			end
+			builderUnitDefs[udefID] = buildOptions
+		end
+	end
+	if Spring.GetGameFrame() > 0 then
+		addBuilders()
+	end
+end
+
+function widget:PlayerChanged(playerID)
+	if playerID == myPlayerID and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+		addBuilders()
+		updateBuilders()
+	end
+end
+
+local newUnitCommands = {}
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
+	if builderUnitDefs[unitDefID] then
+		newUnitCommands[unitID] = os.clock() + 0.05
+	end
+end
+
+
+local sec = 0
+local lastUpdate = 0
+function widget:Update(dt)
+	sec = sec + dt
+	if sec > lastUpdate + 0.1 then
+		lastUpdate = sec
+
+		-- process newly given commands (not done in widgetUnitCommand() because with huge build queue it eats memory and can crash lua)
+		local clock =  os.clock()
+		for unitID, cmdClock in pairs(newUnitCommands) do
+			if clock > cmdClock then
+				checkBuilder(unitID)
+				newUnitCommands[unitID] = nil
+			end
+		end
+	end
+
+	--camX, camY, camZ = Spring.GetCameraPosition()
+	--if camX ~= prevCam[1]  or  camY ~= prevCam[2]  or  camZ ~= prevCam[3] then
+	--	for _,dlist in pairs(dlists) do
+	--		gl.DeleteList(dlist)
+	--	end
+	--	dlists = {}
+	--end
+	--prevCam[1],prevCam[2],prevCam[3] = camX,camY,camZ
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
@@ -185,32 +194,60 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam, builderID)
 	end
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
 
 function widget:DrawWorld()
+	if chobbyInterface then return end
+
 	if Spring.IsGUIHidden() then return end
 
-	gl.DepthTest(true)
 	local commandVisible = 0
 	for _, units in pairs(command) do
 		local myCmd = units.id
 		local params = myCmd.params
-
 		local x, y, z = params[1], params[2], params[3]
-		local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
-		if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
-			gl.PushMatrix()
-				gl.LoadIdentity()
-				gl.Translate( x, y, z )
-				gl.Rotate( degrees, 0, 1.0, 0 )
-				gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
-			gl.PopMatrix()
-			commandVisible = commandVisible + 1
-			if commandVisible > maxDisplayed then
-				break
+		-- using dlist will result in glitches, making features invisible(briefly)
+		--if not dlists[x..'_'..y..'_'..z] then
+			if Spring.IsAABBInView(x-1,y-1,z-1,x+1,y+1,z+1) then
+				local degrees = params[4] ~= nil and params[4] * 90  or 0 -- mex command doesnt supply param 4
+				--dlists[x..'_'..y..'_'..z] = gl.CreateList(function()
+					gl.PushMatrix()
+					gl.LoadIdentity()
+					gl.Translate( x, y, z )
+					gl.Rotate( degrees, 0, 1.0, 0 )
+					gl.UnitShape(myCmd.id, myCmd.teamid, false, false, false)
+					gl.PopMatrix()
+				--end)
+				commandVisible = commandVisible + 1
+				if commandVisible > maxDisplayed then
+					break
+				end
 			end
-		end
+		--end
 	end
-	gl.DepthTest(false)
-	gl.Color(1, 1, 1, 1)
+
+	--gl.DepthTest(true)
+	--for _,dlist in pairs(dlists) do
+	--	gl.CallList(dlist)
+	--end
+	--gl.DepthTest(false)
+	--gl.Color(1, 1, 1, 1)
+
+	-- the method below unfortunately adds lines and ranges as well
+	--local allUnits = Spring.GetAllUnits()
+	--for _, unitID in ipairs(allUnits) do
+	--	if builderUnitDefs[Spring.GetUnitDefID(unitID)] then
+	--		Spring.DrawUnitCommands(unitID)
+	--	end
+	--end
 end
 
+function widget:Shutdown()
+	for k,dlist in pairs(dlists) do
+		gl.DeleteList(dlist)
+	end
+end

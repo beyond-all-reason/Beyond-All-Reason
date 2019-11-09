@@ -101,6 +101,7 @@ function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 end
 
 function widget:Update()
+	if chobbyInterface then return end
 	local _,cmd,_ = spGetActiveCommand()
 	if (cmd == CMD_AREA_MEX) then
 		if (spGetMapDrawMode() ~= 'metal') then
@@ -167,7 +168,7 @@ local function GetClosestMexPosition(spot, x, z, uDefID, facing)
 	return bestPos
 end
 
-function widget:CommandNotify(id, params, options)	
+function widget:CommandNotify(id, params, options)
 	if (id == CMD_AREA_MEX) then
 	mexes = WG.metalSpots
 
@@ -192,13 +193,13 @@ function widget:CommandNotify(id, params, options)
 		
 		local aveX = 0
 		local aveZ = 0
-		
+
 		local units=spGetSelectedUnits()
 		local maxbatchextracts = 0
 		local batchMexBuilder = {}
 		local lastprocessedbestbuilder = nil
 		
-		for i, id in pairs(units) do 
+		for i, id in pairs(units) do
 		if mexBuilder[id] then -- Get best extract rates, save best builderID
 			if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal > maxbatchextracts then
 				maxbatchextracts = UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal
@@ -213,19 +214,18 @@ function widget:CommandNotify(id, params, options)
 		for i, id in pairs(units) do -- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
 			if mexBuilder[id] then
 				if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal == maxbatchextracts then
-				local x,_,z = spGetUnitPosition(id)
-				ux = ux+x
-				uz = uz+z
-				us = us+1
-				lastprocessedbestbuilder = id
-				batchSize = batchSize + 1
-				batchMexBuilder[batchSize] = id
+					local x,_,z = spGetUnitPosition(id)
+					ux = ux+x
+					uz = uz+z
+					us = us+1
+					lastprocessedbestbuilder = id
+					batchSize = batchSize + 1
+					batchMexBuilder[batchSize] = id
 				else
 					if not shift then 
-					spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
+						spGiveOrderToUnit(id, CMD.STOP, {} , CMD.OPT_RIGHT )
 					end
-				local cmdQueue = Spring.GetUnitCommands(id, 1)
-				spGiveOrderToUnit(id, CMD.GUARD, {lastprocessedbestbuilder} , {"shift"})
+					spGiveOrderToUnit(id, CMD.GUARD, {lastprocessedbestbuilder} , {"shift"})
 				end
 			end
 		end
@@ -365,11 +365,11 @@ end
 
 function widget:CommandsChanged()
 	local units=spGetSelectedUnits()
-	for i, id in pairs(units) do 
+	for i, id in pairs(units) do
 		if mexBuilder[id] then
 			local customCommands = widgetHandler.customCommands
-			
-			table.insert(customCommands, {			
+
+			table.insert(customCommands, {
 				id      = CMD_AREA_MEX,
 				type    = CMDTYPE.ICON_AREA,
 				tooltip = 'Define an area to make mexes in',

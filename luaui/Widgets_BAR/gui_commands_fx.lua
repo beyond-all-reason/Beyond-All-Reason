@@ -219,7 +219,7 @@ local drawFrame = 0
 local gameframeDrawFrame = 0
 
 local spGetUnitPosition	= Spring.GetUnitPosition
-local spGetUnitCommands	= Spring.GetUnitCommands
+local spGetCommandQueue	= Spring.GetCommandQueue
 local spIsUnitInView = Spring.IsUnitInView
 local spIsSphereInView = Spring.IsSphereInView
 local spIsUnitIcon = Spring.IsUnitIcon
@@ -295,7 +295,7 @@ function resetEnabledTeams()
 	enabledTeams = {}
 	local t = Spring.GetTeamList()
 	for _,teamID in ipairs(t) do
-		if not filterAIteams  or  not select(4,Spring.GetTeamInfo(teamID)) then
+		if not filterAIteams  or  not select(4,Spring.GetTeamInfo(teamID,false)) then
 			enabledTeams[teamID] = true
 		end
 	end
@@ -528,7 +528,7 @@ function ExtractTargetLocation(a,b,c,d,cmdID)
 end
 
 function getCommandsQueue(unitID)
-	local q = spGetUnitCommands(unitID, 35) or {} --limit to prevent mem leak, hax etc
+	local q = spGetCommandQueue(unitID, 35) or {} --limit to prevent mem leak, hax etc
 	local our_q = {}
 	local cmd
 	for i=1, #q do
@@ -617,7 +617,7 @@ function widget:Update(dt)
 						if commands[i].draw == false then
 							monitorCommands[i] = nil
 						else
-							local q = spGetUnitCommands(commands[i].unitID,35) or {}
+							local q = spGetCommandQueue(commands[i].unitID,35) or {}
 							if qsize ~= #q then
 								local our_q = getCommandsQueue(commands[i].unitID)
 								commands[i].queue = our_q
@@ -651,6 +651,7 @@ local prevOsClock = os.clock()
 
 
 function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
 	drawFrame = drawFrame + 1
 
 	if spIsGUIHidden() then return end
@@ -800,8 +801,14 @@ function widget:DrawWorldPreUnit()
 end
 
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
 
 function widget:DrawWorld()
+	if chobbyInterface then return end
   if spIsGUIHidden() then return end
     
 	if drawUnitHighlightSkipFPS > 0 and spGetFPS() < drawUnitHighlightSkipFPS then return end

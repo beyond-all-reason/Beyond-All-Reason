@@ -35,12 +35,12 @@ include("keysym.h.lua")
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("ui_font", "Poppins-Regular.otf")
+local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
 local fontfileSize = 25
-local fontfileOutlineSize = 7
-local fontfileOutlineStrength = 1.5
+local fontfileOutlineSize = 6
+local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local debug = false --of true generates debug messages
@@ -187,7 +187,14 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 end
 
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:DrawWorld()
+	if chobbyInterface then return end
 	if not IsGuiHidden() then
 		local existingGroups = GetGroupList()
 		if options.groupnumbers.value then
@@ -285,7 +292,8 @@ function widget:KeyPress(key, modifier, isRepeat)
 				selUnitDefIDs = {}
 				local unit2groupDeleted = {}
 				local exec = false --set to true when there is at least one unit to process
-				for _, unitID in ipairs(GetSelectedUnits()) do
+				local units = GetSelectedUnits()
+				for _, unitID in ipairs(units) do
 					local udid = GetUnitDefID(unitID)
 					if ( not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"] )) then
 						--if unit2group[udid] ~= nil then
@@ -345,12 +353,13 @@ function widget:KeyPress(key, modifier, isRepeat)
 			local mindist = math.huge
 			local muid = nil
 			if (pos == nil) then return end
-				for _, uid in ipairs(GetSelectedUnits()) do  
-					local x,_,z = GetUnitPosition(uid)
+				local units = GetSelectedUnits()
+				for _, unitID in ipairs(units) do
+					local x,_,z = GetUnitPosition(unitID)
 					dist = (pos[1]-x)*(pos[1]-x) + (pos[3]-z)*(pos[3]-z)
 					if (dist < mindist) then
 						mindist = dist
-						muid = uid
+						muid = unitID
 					end
 				end
 			if (muid ~= nil) then
@@ -360,8 +369,9 @@ function widget:KeyPress(key, modifier, isRepeat)
 		end
 		 --[[
 		if (key == KEYSYMS.Q) then
-		  for _, uid in ipairs(GetSelectedUnits()) do  
-			SetUnitGroup(uid,-1)
+			local units = GetSelectedUnits()
+			for _, unitID in ipairs(units) do
+			SetUnitGroup(unitID,-1)
 		  end
 		end
 		--]]

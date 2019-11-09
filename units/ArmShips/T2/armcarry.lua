@@ -31,14 +31,13 @@ return {
 		icontype = "sea",
 		idleautoheal = 15,
 		idletime = 600,
-		isairbase = true,
 		losemitheight = 56,
 		mass = 10000,
 		maxdamage = 4500,
 		maxvelocity = 2.1,
 		metalstorage = 700,
 		minwaterdepth = 15,
-		movementclass = "DBOAT67X7",
+		movementclass = "BOAT7",
 		name = "Colossus",
 		nochasecategory = "ALL",
 		objectname = "Units/ARMCARRY.s3o",
@@ -61,6 +60,7 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships/t2",
 			techlevel = 2,
+			isairbase = true,
 		},
 		featuredefs = {
 			dead = {

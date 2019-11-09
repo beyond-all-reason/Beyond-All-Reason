@@ -271,7 +271,7 @@ if gadgetHandler:IsSyncedCode() then
 				decorationsTerminal[unitID] = nil
 			end
 			decorationCount = decorationCount - 1
-		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
+		elseif attackerID ~= nil and (not _G.destroyingTeam or not _G.destroyingTeam[select(6,Spring.GetTeamInfo(teamID,false))]) then	-- is not reclaimed and not lastcom death chain ripple explosion
 			if enableUnitDecorations and hasDecoration[unitDefID] ~= nil and (decorationCount < maxDecorations or hasDecoration[unitDefID][5]) then
 
 				local _,_,_,_,buildProgress=Spring.GetUnitHealth(unitID)
@@ -312,6 +312,12 @@ if gadgetHandler:IsSyncedCode() then
 		gadgetHandler:RemoveGadget(self)
 	end
 
+	function gadget:GameStart()
+		if not _G.itsXmas then
+			gadgetHandler:RemoveGadget(self)
+		end
+	end
+
 else
 	--SYNCED.itsXmas
 	local xmasballs = {}
@@ -341,12 +347,14 @@ else
 			local team = Spring.GetUnitTeam(unitID)
 			gadget:UnitCreated(unitID, udID, team)
 		end
+		if Spring.GetGameFrame() > 1 then
+			gadgetHandler:RemoveGadget(self)
+		end
 	end
 
 	function gadget:DrawUnit(unitID, drawMode)
-		local unitScale = xmasballs[unitID]
-		if unitScale then
-			gl.Scale( unitScale, unitScale, unitScale )
+		if xmasballs[unitID] then
+			gl.Scale( xmasballs[unitID], xmasballs[unitID], xmasballs[unitID] )
 			return false
 		end
 	end
