@@ -570,7 +570,7 @@ end
 function TurtleHandler:GetIsBombardPosition(turtle, unitName)
 	turtle.bombardFor = turtle.bombardFor or {}
 	turtle.bombardForFrame = turtle.bombardForFrame or {}
-	local f = game:Frame()
+	local f = self.game:Frame()()
 	if not turtle.bombardForFrame[unitName]
 	or (turtle.bombardForFrame[unitName] and f > turtle.bombardForFrame[unitName] + 450) then
 		turtle.bombardFor[unitName] = self.ai.targethandler:IsBombardPosition(turtle.position, unitName)

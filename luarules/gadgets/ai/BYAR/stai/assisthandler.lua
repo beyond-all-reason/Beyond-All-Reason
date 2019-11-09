@@ -22,13 +22,13 @@ function AssistHandler:Init()
 	self.magnets = {}
 	self.ai.IDByName = {}
 	self.IDByNameTaken = {}
-	self.lastAllocation = Spring.GetGameFrame()
+	self.lastAllocation = self.game:Frame()()
 	self.ai.nonAssistantsPerName = 2
 	self.ai.nonAssistant = {}
 end
 
 function AssistHandler:Update()
-	local f = Spring.GetGameFrame()
+	local f = self.game:Frame()()
 	if f > self.lastAllocation + 1800 then
 		self.lastAllocation = f
 		if self.ai.Metal.full > 0.33 then

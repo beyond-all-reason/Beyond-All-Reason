@@ -81,7 +81,7 @@ function DefendBehaviour:Update()
 	end
 	if unit == nil then return end
 	if self.active then
-		local f = game:Frame()
+		local f = self.game:Frame()()
 		if f % 60 == 0 then
 			if self.target == nil then return end
 			local targetPos = self.target.position or BehaviourPosition(self.target.behaviour)

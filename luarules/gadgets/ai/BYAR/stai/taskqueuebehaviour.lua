@@ -144,7 +144,7 @@ function TaskQueueBehaviour:Init()
 
 	self.active = false
 	self.currentProject = nil
-	self.lastWatchdogCheck = game:Frame()
+	self.lastWatchdogCheck = self.game:Frame()()
 	self.watchdogTimeout = 1800
 	local u = self.unit:Internal()
 	local mtype, network = ai.maphandler:MobilityOfUnit(u)
@@ -548,7 +548,7 @@ end
 
 function TaskQueueBehaviour:Update()
 	if self.failOut then
-		local f = game:Frame()
+		local f = self.game:Frame()()
 		if f > self.failOut + 300 then
 			-- game:SendToConsole("getting back to work " .. self.name .. " " .. self.id)
 			self.failOut = nil
@@ -558,7 +558,7 @@ function TaskQueueBehaviour:Update()
 	if not self:IsActive() then
 		return
 	end
-	local f = game:Frame()
+	local f = self.game:Frame()()
 	if self.isFactory and f % 311 == 0 and (factoryMobilities[self.name][1] == 'bot' or factoryMobilities[self.name][1] == 'veh') then
 		self.AmpOrGroundWeapon = self:GetAmpOrGroundWeapon()
 	end
@@ -584,7 +584,7 @@ end
 
 function TaskQueueBehaviour:ProgressQueue()
 	self:EchoDebug(self.name .. " " .. self.id .. " progress queue")
-	self.lastWatchdogCheck = game:Frame()
+	self.lastWatchdogCheck = self.game:Frame()()
 	self.constructing = false
 	self.progress = false
 	local builder = self.unit:Internal()
@@ -708,7 +708,7 @@ function TaskQueueBehaviour:ProgressQueue()
 				if self.queue then limit = #self.queue * 2 end
 				if self.failures > limit then
 					-- game:SendToConsole("taking a break after " .. limit .. " tries. " .. self.name .. " " .. self.id)
-					self.failOut = game:Frame()
+					self.failOut = self.game:Frame()()
 					self.unit:ElectBehaviour()
 				end
 			end

@@ -98,7 +98,7 @@ function RaiderBehaviour:Deactivate()
 end
 
 function RaiderBehaviour:Update()
-	local f = game:Frame()
+	local f = self.game:Frame()()
 	if self.active then
 		if self.path and f > self.lastPathCheckFrame + 90 then
 			self.lastPathCheckFrame = f

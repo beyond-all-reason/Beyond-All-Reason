@@ -114,7 +114,7 @@ function FactoryBuildersHandler:PrePositionFilter()
 			buildMe = true
 		end
 		if buildMe and self.ai.factoriesAtLevel[1] and mtype == 'air' and isAdvanced and not self.ai.haveAdvFactory then
-			for index, factory in pairs(self.self.ai.factoriesAtLevel[1]) do
+			for index, factory in pairs(self.ai.factoriesAtLevel[1]) do
 				if factoryMobilities[factory.unit:Internal():Name()][1] ~= 'air' then
 					self:EchoDebug(factoryName .. ' dont build t2 air if we have another t1 type and dont have adv')
 					buildMe = false
@@ -182,7 +182,7 @@ end
 function FactoryBuildersHandler:GetBuilderFactory(builder)
 	local builderID = builder:ID()
 	local builderName = builder:Name()
-	local f = game:Frame()
+	local f = self.game:Frame()()
 	if self.lastCheckFrameForConName[builderName] and f - self.lastCheckFrameForConName[builderName] < 450 then
 		-- update every 15 seconds
 		-- between updates return the last factories we got for this builder

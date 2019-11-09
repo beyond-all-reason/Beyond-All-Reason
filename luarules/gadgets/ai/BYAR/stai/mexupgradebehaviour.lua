@@ -12,7 +12,7 @@ function MexUpgradeBehaviour:Init()
 	self.mohoStarted = false
 	self.released = false
 	self.mexPos = nil
-	self.lastFrame = game:Frame()
+	self.lastFrame = self.game:Frame()()
 	self.name = self.unit:Internal():Name()
 	self:EchoDebug("MexUpgradeBehaviour: added to unit "..self.name)
 end
@@ -79,7 +79,7 @@ end
 
 function MexUpgradeBehaviour:Update()
 	if not self.active then
-		if (self.lastFrame or 0) + 30 < game:Frame() then
+		if (self.lastFrame or 0) + 30 < self.game:Frame()() then
 			self:StartUpgradeProcess()
 		end
 	end
@@ -164,7 +164,7 @@ function MexUpgradeBehaviour:StartUpgradeProcess()
 	else
 		mexUnit = nil
 		self.active = false
-		self.lastFrame = game:Frame()
+		self.lastFrame = self.game:Frame()()
 		self:EchoDebug("MexUpgradeBehaviour: unit ".. self.name .." failed to start reclaiming")
 	end
 end

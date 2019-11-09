@@ -20,7 +20,7 @@ local IDLEMODE_FLY = 0
 function BomberBehaviour:Init()
 	self.DebugEnabled = false
 
-	self.lastOrderFrame = game:Frame()
+	self.lastOrderFrame = self.game:Frame()()
 	self.name = self.unit:Internal():Name()
 	if unitTable[self.name].submergedRange > 0 then
 		self.weapon = "torpedo"
@@ -71,7 +71,7 @@ function BomberBehaviour:Activate()
 	self:EchoDebug("activate")
 	self.active = true
 	if self.target then
-		self.lastOrderFrame = game:Frame()
+		self.lastOrderFrame = self.game:Frame()()
 		if self.path then
 			self:FollowPathToTarget(self.path, self.target)
 		else
@@ -92,7 +92,7 @@ function BomberBehaviour:Update()
 	if not self.lastOrderFrame then
 		return
 	end
-	if game:Frame() > self.lastOrderFrame + 1000 then
+	if self.game:Frame()() > self.lastOrderFrame + 1000 then
 		self.lastOrderFrame = nil
 		self:OwnerIdle()
 	end
@@ -171,7 +171,7 @@ function BomberBehaviour:BombTarget(targetUnit, path)
 	self.target = targetUnit
 	self.path = path
 	if self.active then
-		self.lastOrderFrame = game:Frame()
+		self.lastOrderFrame = self.game:Frame()()
 		if path then
 			self:FollowPathToTarget(path, targetUnit)
 		else

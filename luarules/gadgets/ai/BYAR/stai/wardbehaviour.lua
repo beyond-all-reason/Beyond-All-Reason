@@ -11,7 +11,7 @@ WardBehaviour.DebugEnabled = false
 
 function WardBehaviour:Init()
 	self.minFleeDistance = 500
-	self.lastAttackedFrame = game:Frame()
+	self.lastAttackedFrame = self.game:Frame()()
 	self.initialLocation = self.unit:Internal():GetPosition()
 	self.name = self.unit:Internal():Name()
 	self.id = self.unit:Internal():ID()
@@ -51,7 +51,7 @@ function WardBehaviour:OwnerIdle()
 end
 
 function WardBehaviour:Update()
-	local f = game:Frame()
+	local f = self.game:Frame()()
 
 	-- timeout on underFire condition
 	if self.underFire then
@@ -76,7 +76,7 @@ function WardBehaviour:Update()
 				self:EchoDebug(self.name .. " is not safe")
 				self.underFire = true
 				self.response = response
-				self.lastAttackedFrame = game:Frame()
+				self.lastAttackedFrame = self.game:Frame()()
 				if not self.mobile then self.ai.defendhandler:Danger(self) end
 			end
 			if self.mobile then self.withinTurtle = self.ai.turtlehandler:SafeWithinTurtle(position, self.name) end
@@ -152,7 +152,7 @@ function WardBehaviour:OwnerDamaged(attacker,damage)
 	if not self.underFire then
 		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.8 then
 			self.underFire = true
-			self.lastAttackedFrame = game:Frame()
+			self.lastAttackedFrame = self.game:Frame()()
 			if not self.mobile then self.ai.defendhandler:Danger(self) end
 			self.unit:ElectBehaviour()
 		end

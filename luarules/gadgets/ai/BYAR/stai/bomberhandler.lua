@@ -27,7 +27,7 @@ function BomberHandler:Init()
 end
 
 function BomberHandler:Update()
-	local f = Spring.GetGameFrame()
+	local f = self.game:Frame()()
     self:EchoDebug(f, f % 30)
 	if f % 30 == 0 then self:DoTargetting() end
     
