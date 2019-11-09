@@ -131,7 +131,7 @@ function widget:PlayerChanged(playerID)
 end
 
 local newUnitCommands = {}
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if builderUnitDefs[unitDefID] then
 		newUnitCommands[unitID] = os.clock() + 0.05
 	end

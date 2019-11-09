@@ -11,11 +11,16 @@ function widget:GetInfo()
 end
 
 local CMD_STOP = CMD.STOP
+local myTeamID = Spring.GetMyTeamID()
 
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function widget:PlayerChanged(playerID)
+    myTeamID = Spring.GetMyTeamID()
+end
+
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, playerID, fromSynced, fromLua)
     if cmdID ~= CMD_STOP then return end
     if not unitID then return end
-    if teamID ~= Spring.GetMyTeamID() then return end
+    if teamID ~= myTeamID then return end
 
     if (Spring.GetUnitSelfDTime(unitID) > 0) then
         Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, {})

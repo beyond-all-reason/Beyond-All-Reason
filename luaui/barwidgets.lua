@@ -1878,10 +1878,10 @@ end
 
 
 function widgetHandler:UnitCommand(unitID, unitDefID, unitTeam,
-                                   cmdId, cmdParams, cmdOpts, cmdTag)
+                                   cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
   for _,w in ipairs(self.UnitCommandList) do
     w:UnitCommand(unitID, unitDefID, unitTeam,
-                  cmdId, cmdParams, cmdOpts, cmdTag)
+                  cmdId, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
   end
   return
 end

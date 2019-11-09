@@ -489,7 +489,7 @@ function addUnitCommand(unitID, unitDefID, cmdID)
 end
 
 local newUnitCommands = {}
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, _, _)
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if enabledTeams[teamID] ~= nil then
 		if teamID ~= GaiaTeamID or not string.find(UnitDefs[unitDefID].name, "critter_") then
 			if ignoreUnits[unitDefID] == nil then

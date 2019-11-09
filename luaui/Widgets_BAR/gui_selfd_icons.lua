@@ -176,7 +176,7 @@ function widget:DrawWorld()
 end
 
 
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 
 	-- check for queued selfd (to check if queue gets cancelled)
 	if selfdUnits[unitID] then
