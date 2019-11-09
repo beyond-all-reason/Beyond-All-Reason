@@ -12,6 +12,7 @@ function widget:GetInfo()
 end
 
 local showForCreatedUnits = false		-- keep drawing unitshape for building when it has a nanoframe but isnt finished
+local maxDisplayed = 150
 
 --Changelog
 -- before v2 developed outside of BA by WarXperiment
@@ -26,11 +27,12 @@ local commandCreatedUnits = {}
 local commandCreatedUnitsIDs = {}
 local builders = {}
 local myPlayerID = Spring.GetMyPlayerID()
-local maxDisplayed = 150
-local GetCommandQueue = Spring.GetCommandQueue
+local myAllyTeamID = Spring.GetMyAllyTeamID()
+local spec,fullView,_ = Spring.GetSpectatingState()
 local dlists = {}
 local prevCam = {Spring.GetCameraPosition()}
 
+local spGetCommandQueue = Spring.GetCommandQueue
 local spGetUnitDefID = Spring.GetUnitDefID
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetGroundHeight = Spring.GetGroundHeight
@@ -54,9 +56,9 @@ end
 
 local function checkBuilder(unitID)
 	clearBuilderCommands(unitID)
-	local queueDepth = GetCommandQueue(unitID, 0)
+	local queueDepth = spGetCommandQueue(unitID, 0)
 	if queueDepth and queueDepth > 0 then
-		local queue = GetCommandQueue(unitID, math.min(queueDepth, 200))
+		local queue = spGetCommandQueue(unitID, math.min(queueDepth, 200))
 		for i=1,#queue do
 			local cmd = queue[i]
 			if ( cmd.id < 0 ) then
@@ -65,14 +67,14 @@ local function checkBuilder(unitID)
 					teamid = spGetUnitTeam(unitID),
 					params = cmd.params
 				}
-				local y = cmd.params[2]
-				if UnitDefs[math.abs(cmd.id)].minWaterDepth < 0 then	-- AI bots queue very high y pos so this corrects that
-					y = spGetGroundHeight(cmd.params[1],cmd.params[3])
-				else
-					y = - UnitDefs[math.abs(cmd.id)].waterline
-				end
-				myCmd.params[2] = y
-				local id = myCmd.teamid..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..myCmd.params[2]..'_'..cmd.params[3]
+				--local y = cmd.params[2]
+				--if UnitDefs[math.abs(cmd.id)].minWaterDepth < 0 then	-- AI bots queue very high y pos so this corrects that
+				--	y = spGetGroundHeight(cmd.params[1],cmd.params[3])
+				--else
+				--	y = - UnitDefs[math.abs(cmd.id)].waterline
+				--end
+				--myCmd.params[2] = y
+				local id = myCmd.teamid..'_'..math.abs(cmd.id)..'_'..cmd.params[1]..'_'..cmd.params[3]
 				if showForCreatedUnits or commandCreatedUnits[id] == nil then
 					if command[id] == nil then
 						command[id] = {id = myCmd, builders = 0}
@@ -89,11 +91,6 @@ local function checkBuilder(unitID)
 	end
 end
 
-function updateBuilders()
-	for unitID, _ in pairs(builders) do
-		checkBuilder(unitID)
-	end
-end
 
 function addBuilders()
 	command = {}
@@ -122,11 +119,17 @@ function widget:Initialize()
 		addBuilders()
 	end
 end
-
 function widget:PlayerChanged(playerID)
-	if playerID == myPlayerID and Spring.GetGameFrame() > 0 and Spring.GetSpectatingState() then
+	local prevSpec = spec
+	local prevFullfiew = fullview
+	local prevMyAllyTeamID = myAllyTeamID
+	spec,fullView,_ = Spring.GetSpectatingState()
+	myAllyTeamID = Spring.GetMyAllyTeamID()
+	if playerID == myPlayerID or (spec and prevMyAllyTeamID ~= myAllyTeamID or prevFullview ~= fullview) then
 		addBuilders()
-		updateBuilders()
+		for unitID, _ in pairs(builders) do
+			checkBuilder(unitID)
+		end
 	end
 end
 
@@ -174,15 +177,15 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	if UnitDefs[unitDefID].minWaterDepth < 0 then
-		y = Spring.GetGroundHeight(x,z)
-	else
-		y = - UnitDefs[unitDefID].waterline
-	end
-	if command[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] then
-		command[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] = nil
-		commandCreatedUnitsIDs[unitID] = unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z
-		commandCreatedUnits[unitTeam..'_'..unitDefID..'_'..x..'_'..y..'_'..z] = true
+	--if UnitDefs[unitDefID].minWaterDepth < 0 then	-- skipping y cause this can change with terrain deformation
+	--	y = Spring.GetGroundHeight(x,z)
+	--else
+	--	y = - UnitDefs[unitDefID].waterline
+	--end
+	if command[unitTeam..'_'..unitDefID..'_'..x..'_'..z] then
+		command[unitTeam..'_'..unitDefID..'_'..x..'_'..z] = nil
+		commandCreatedUnitsIDs[unitID] = unitTeam..'_'..unitDefID..'_'..x..'_'..z
+		commandCreatedUnits[unitTeam..'_'..unitDefID..'_'..x..'_'..z] = true
 	end
 	if builderUnitDefs[unitDefID] then
 		builders[unitID] = true
@@ -242,14 +245,6 @@ function widget:DrawWorld()
 	--end
 	--gl.DepthTest(false)
 	--gl.Color(1, 1, 1, 1)
-
-	-- the method below unfortunately adds lines and ranges as well
-	--local allUnits = Spring.GetAllUnits()
-	--for _, unitID in ipairs(allUnits) do
-	--	if builderUnitDefs[spGetUnitDefID(unitID)] then
-	--		Spring.DrawUnitCommands(unitID)
-	--	end
-	--end
 end
 
 function widget:Shutdown()
