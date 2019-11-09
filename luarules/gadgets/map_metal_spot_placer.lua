@@ -31,9 +31,9 @@ local mapConfig = VFS.FileExists(MAPSIDE_METALMAP) and VFS.Include(MAPSIDE_METAL
 function gadget:Initialize()
 	-- dont add lua metal when map already has metal somewhere on it
 	local hasMetalmap = false
-	for x=1, MAP_SIZE_X do
-		for z=1, MAP_SIZE_Z do
-			if select(3,Spring.GetGroundInfo(x, z)) > 0 then
+	for x=1, MAP_SIZE_X/4 do
+		for z=1, MAP_SIZE_Z/4 do
+			if select(3,Spring.GetGroundInfo(x*4, z*4)) > 0 then
 				hasMetalmap = true
 				break
 			end
