@@ -26,7 +26,7 @@ return {
 		movementclass = "HKBOT4",
 		name = "Razorback",
 		objectname = "Units/ARMRAZ.s3o",
-		script = "Units/ARMRAZ.cob",
+		script = "Units/armraz_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 450,
