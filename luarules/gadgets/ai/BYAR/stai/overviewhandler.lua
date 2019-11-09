@@ -28,7 +28,7 @@ function OverviewHandler:Update()
 end
 
 function OverviewHandler:Evaluate()
-	local f = self.self.game:Frame()()
+	local f = self.self.game:Frame()()()
 	if f > self.lastCheckFrame + 240 then
 		self:EvaluateSituation()
 		self.lastCheckFrame = f

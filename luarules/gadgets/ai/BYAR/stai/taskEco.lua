@@ -143,6 +143,8 @@ function WindSolar()
 end
 
 function Energy1()
+    print('drgfetgsdcaxai ' ..tostring(ai))
+    print('drgfetgsdcaxself ' ..tostring(self))
 	if ai.Energy.income > math.max(map:AverageWind() * 20, 150) then --and ai.Metal.reserves >50
 		return SolarAdv()
 	else

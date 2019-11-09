@@ -15,7 +15,7 @@ function BootBehaviour:Init()
 	self.name = self.unit:Internal():Name()
 	self.mobile = not unitTable[self.name].isBuilding
 	self.mtype = unitTable[self.name].mtype
-	self.lastInFactoryCheck = self.game:Frame()()
+	self.lastInFactoryCheck = self.game:Frame()()()
 	self.repairedBy = self.ai.buildsitehandler:ResurrectionRepairedBy(self.id)
 	-- air units don't need to leave the factory
 	self.ignoreFactories = self.mtype == "air" or not self.mobile
@@ -26,7 +26,7 @@ end
 
 function BootBehaviour:OwnerBuilt()
 	self.finished = true
-	if self.active then self.lastOrderFrame = self.game:Frame()() end
+	if self.active then self.lastOrderFrame = self.game:Frame()()() end
 end
 
 function BootBehaviour:OwnerDead()
@@ -39,7 +39,7 @@ end
 function BootBehaviour:Update()
 	if not self.finished then return end
 
-	local f = self.game:Frame()()
+	local f = self.game:Frame()()()
 
 	if self.repairedBy then
 		if f % 30 == 0 then
@@ -188,6 +188,6 @@ function BootBehaviour:ExitFactory(side)
 			out.z = 1
 		end
 		u:Move(out)
-		self.lastOrderFrame = self.game:Frame()()
+		self.lastOrderFrame = self.game:Frame()()()
 		self.lastExitSide = side
 end

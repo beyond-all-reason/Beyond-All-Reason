@@ -30,9 +30,9 @@ function ScoutBehaviour:Init()
 	self.keepYourDistance = unitTable[self.name].losRadius * 0.5
 	if mtype == "air" then
 		self.airDistance = unitTable[self.name].losRadius * 1.5
-		self.lastCircleFrame = self.game:Frame()()
+		self.lastCircleFrame = self.game:Frame()()()
 	end
-	self.lastUpdateFrame = self.game:Frame()()
+	self.lastUpdateFrame = self.game:Frame()()()
 end
 
 function ScoutBehaviour:Priority()
@@ -55,7 +55,7 @@ end
 
 function ScoutBehaviour:Update()
 	if self.active then
-		local f = self.game:Frame()()
+		local f = self.game:Frame()()()
 		if f > self.lastUpdateFrame + 30 then
 			local unit = self.unit:Internal()
 			-- reset target if it's in sight
@@ -115,7 +115,7 @@ function ScoutBehaviour:Update()
 	
 	-- keep air units circling
 	if self.mtype == "air" and self.active then
-		local f = self.game:Frame()()
+		local f = self.game:Frame()()()
 		if f > self.lastCircleFrame + 60 then
 			local unit = self.unit:Internal()
 			local upos = unit:GetPosition()

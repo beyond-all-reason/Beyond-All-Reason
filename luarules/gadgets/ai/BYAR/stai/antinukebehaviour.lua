@@ -23,7 +23,7 @@ function AntinukeBehaviour:Update()
 	if not self.active then return end
 
 	if self.finished and self.ai.needAntinuke then
-		local f = self.game:Frame()()
+		local f = self.game:Frame()()()
 		if self.lastStockpileFrame == 0 or f > self.lastStockpileFrame + 1000 then
 			local floats = api.vectorFloat()
 			floats:push_back(1)

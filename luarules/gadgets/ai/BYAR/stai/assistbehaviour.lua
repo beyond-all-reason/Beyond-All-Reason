@@ -46,7 +46,7 @@ function AssistBehaviour:Update()
 	-- nano turrets don't need updating, they already have a patrol order
 	if self.isNanoTurret then return end
 
-	local f = self.game:Frame()()
+	local f = self.game:Frame()()()
 
 	if f % 180 == 0 then
 		local unit = self.unit:Internal()
@@ -148,7 +148,7 @@ end
 
 function AssistBehaviour:Assign(builderID)
 	self.target = builderID
-	self.lastAssignFrame = self.game:Frame()()
+	self.lastAssignFrame = self.game:Frame()()()
 end
 
 function AssistBehaviour:SetFallback(position)
@@ -163,7 +163,7 @@ function AssistBehaviour:SoftAssign(builderID)
 		if self.lastAssignFrame == nil then
 			self.target = builderID
 		else
-			local f = self.game:Frame()()
+			local f = self.game:Frame()()()
 			if f > self.lastAssignFrame + 900 then
 				self.target = builderID
 			end

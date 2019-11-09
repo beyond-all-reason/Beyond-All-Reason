@@ -31,7 +31,7 @@ function DamageHandler:UnitDamaged(engineUnit, attacker, damage)
 end
 
 function DamageHandler:Update()
-	local f = self.game:Frame()()
+	local f = self.game:Frame()()()
 	if f > self.lastDamageCheckFrame + 90 then
 		for unitID, engineUnit in pairs(self.isDamaged) do
 			local health = engineUnit:GetHealth()

@@ -42,7 +42,7 @@ function CountBehaviour:Init()
 		self.ai.nameCount[self.name] = self.ai.nameCount[self.name] + 1
 	end
 	self:EchoDebug(self.ai.nameCount[self.name] .. " " .. self.name .. " created")
-	self.ai.lastNameCreated[self.name] = self.game:Frame()()
+	self.ai.lastNameCreated[self.name] = self.game:Frame()()()
 	self.unit:ElectBehaviour()
 end
 
@@ -70,7 +70,7 @@ function CountBehaviour:OwnerBuilt()
 		self.ai.nanoList[self.id] = self.unit:Internal():GetPosition() 
 		self.ai.lastNanoBuild = self.unit:Internal():GetPosition()
 	end
-	self.ai.lastNameFinished[self.name] = self.game:Frame()()
+	self.ai.lastNameFinished[self.name] = self.game:Frame()()()
 	self:EchoDebug(self.ai.nameCountFinished[self.name] .. " " .. self.name .. " finished")
 	self.finished = true
 	--mtyped leveled counters

@@ -55,12 +55,12 @@ function ReclaimBehaviour:OwnerIdle()
 		self:EraseTargets()
 		self.unit:ElectBehaviour()
 	end
-	self.idle = self.game:Frame()()
+	self.idle = self.game:Frame()()()
 end
 
 function ReclaimBehaviour:Update()
 	if self.active then return end
-	local f = self.game:Frame()()
+	local f = self.game:Frame()()()
 	if (self.idle and f > self.idle) or (self.dedicated and f > self.lastCheckFrame + 150) or (f > self.lastCheckFrame + 500) then
 		if self.idle then self:EchoDebug(f - self.idle) end
 		self.idle = nil

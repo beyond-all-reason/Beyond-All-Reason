@@ -182,7 +182,7 @@ end
 function FactoryBuildersHandler:GetBuilderFactory(builder)
 	local builderID = builder:ID()
 	local builderName = builder:Name()
-	local f = self.game:Frame()()
+	local f = self.game:Frame()()()
 	if self.lastCheckFrameForConName[builderName] and f - self.lastCheckFrameForConName[builderName] < 450 then
 		-- update every 15 seconds
 		-- between updates return the last factories we got for this builder
