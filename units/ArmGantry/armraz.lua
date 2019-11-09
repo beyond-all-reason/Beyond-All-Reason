@@ -26,7 +26,7 @@ return {
 		movementclass = "HKBOT4",
 		name = "Razorback",
 		objectname = "Units/ARMRAZ.s3o",
-		script = "Units/ARMRAZ.cob",
+		script = "Units/armraz_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 450,
@@ -40,6 +40,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,
+			wpn1turretx = 90,
+            wpn1turrety = 150,
 		},
 		featuredefs = {
 			dead = {
