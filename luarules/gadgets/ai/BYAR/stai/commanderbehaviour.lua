@@ -14,7 +14,7 @@ function CommanderBehaviour:Init()
 end
 
 function CommanderBehaviour:Update()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	if self.lowHealth and f >= self.nextHealthCheck then
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.75 then
 			self.lowHealth = false
@@ -38,7 +38,7 @@ function CommanderBehaviour:OwnerDamaged(attacker,damage)
 	if not self.lowHealth then
 		if self.unit:Internal():GetHealth() < self.unit:Internal():GetMaxHealth() * 0.75 then
 			self.lowHealth = true
-			self.nextHealthCheck = self.self.game:Frame()()() + 900
+			self.nextHealthCheck = self.self.game:Frame() + 900
 			self:FindSafeHouse()
 		end
 	end
@@ -110,7 +110,7 @@ function CommanderBehaviour:FindSafeHouse()
 	elseif not factoryUnit and safeNew then
 		self:MoveToSafety()
 	end
-	self.nextFactoryCheck = self.self.game:Frame()()() + 500
+	self.nextFactoryCheck = self.self.game:Frame() + 500
 	self:EchoDebug(safePos, factoryUnit, factoryPos)
 	self.unit:ElectBehaviour()
 end

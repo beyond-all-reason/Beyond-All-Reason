@@ -27,7 +27,7 @@ function AttackHandler:Init()
 end
 
 function AttackHandler:Update()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	if f % 150 == 0 then
 		self:DraftSquads()
 	end
@@ -68,7 +68,7 @@ function AttackHandler:DraftSquads()
 		-- return
 	-- end
 	local needtarget = {}
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	-- find which mtypes need targets
 	for mtype, count in pairs(self.count) do
 		if (f > (self.attackCountReached[mtype] or 0) + 150 or f > (self.attackSent[mtype] or 0) + 1200) and count >= self.counter[mtype] then
@@ -122,7 +122,7 @@ function AttackHandler:DraftSquads()
 end
 
 function AttackHandler:SquadReTarget(squad, squadIndex)
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	local representativeBehaviour
 	local representative
 	for iu, member in pairs(squad.members) do
@@ -341,7 +341,7 @@ function AttackHandler:SquadAdvance(squad)
 	end
 	if squad.hasMovedOnce then
 		local distToNext = Distance(squad.path[squad.pathStep-1].position, nextPos)
-		squad.idleTimeout = self.game:Frame()()() + (3 * 30 * (distToNext / squad.lowestSpeed))
+		squad.idleTimeout = self.game:Frame() + (3 * 30 * (distToNext / squad.lowestSpeed))
 	end
 	squad.hasMovedOnce = true
 end

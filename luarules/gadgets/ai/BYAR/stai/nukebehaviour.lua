@@ -35,7 +35,7 @@ end
 function NukeBehaviour:Update()
 	if not self.active then return end
 
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 
 	if self.finished then
 		if f > self.lastLaunchFrame + 100 then

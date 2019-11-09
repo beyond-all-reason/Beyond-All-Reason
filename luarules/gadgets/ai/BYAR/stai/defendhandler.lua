@@ -114,7 +114,7 @@ function DefendHandler:RemoveWard(behaviour, turtle)
 end
 
 function DefendHandler:Update()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	if f % 30 == 0 then
 		local scrambleCalls = 0
 		for i, ward in pairs(self.wards) do
@@ -579,7 +579,7 @@ end
 
 -- receive a signal that a building is threatened or a turtle is on the front
 function DefendHandler:Danger(behaviour, turtle, GAS)
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	if turtle == nil and behaviour ~= nil then turtle = self.ai.turtlehandler:GetUnitTurtle(behaviour.id) end
 	if turtle ~= nil then
 		for i, ward in pairs(self.wards) do
@@ -611,7 +611,7 @@ function DefendHandler:Danger(behaviour, turtle, GAS)
 end
 
 function DefendHandler:WardSafe(ward)
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	local behaviour = ward.behaviour
 	local threatened = ward.threatened
 	if behaviour ~= nil then

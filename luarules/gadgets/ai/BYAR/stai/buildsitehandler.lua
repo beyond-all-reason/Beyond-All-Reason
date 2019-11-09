@@ -410,7 +410,7 @@ function BuildSiteHandler:UnitCreated(unit)
 				-- tell the builder behaviour that construction has begun
 				plan.behaviour:ConstructionBegun(unitID, plan.unitName, plan.position)
 				-- pass on to the table of what we're actually building
-				plan.frame = self.game:Frame()()()
+				plan.frame = self.game:Frame()
 				self.constructing[unitID] = plan
 				table.remove(self.plans, i)
 			end
@@ -457,7 +457,7 @@ function BuildSiteHandler:UnitBuilt(unit)
 	if done then
 		EchoDebugPlans(done.behaviour.name .. " " .. done.behaviour.id ..  " completed " .. done.unitName .. " " .. unitID)
 		done.behaviour:ConstructionComplete()
-		done.frame = self.game:Frame()()()
+		done.frame = self.game:Frame()
 		-- table.insert(self.history, done)
 		self.constructing[unitID] = nil
 	end

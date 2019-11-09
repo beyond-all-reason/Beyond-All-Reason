@@ -440,7 +440,7 @@ end
 
 function MapHandler:Update()
 -- 	-- workaround for shifting metal spots: map data is reloaded every two minutess
-    local f = self.game:Frame()()
+    local f = self.game:Frame()
     self:EchoDebug('frame',f)
 	if f > self.lastDataResetFrame + 3600 then
 		-- self:LoadMapData()
@@ -482,7 +482,7 @@ function MapHandler:Init()
 
 	-- local dataloaded = self:LoadMapData()
 
-	self.lastDataResetFrame = self.game:Frame()()()
+	self.lastDataResetFrame = self.game:Frame()
     
 	if dataloaded then
 		return
@@ -1246,7 +1246,7 @@ function MapHandler:ClosestFreeSpot(unittype, builder, position)
 		end
 		-- if uwutype ~= nil then self:EchoDebug("builder can build uw mexes") end
 	end
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	for i,p in pairs(spots) do
 		-- dont use this spot if we're already building there
 		local alreadyPlanned = self.ai.buildsitehandler:PlansOverlap(p, uname)

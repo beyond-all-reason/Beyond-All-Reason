@@ -373,12 +373,12 @@ function TargetHandler:InitializeDangers()
 	self.dangers["landtarget"] = NewDangerLayer()
 	self.dangers["landtarget"].duration = 2400
 	self.dangers["landtarget"].present = true
-	self.dangers["landtarget"].obsolesce = self.game:Frame()()() + 5400
+	self.dangers["landtarget"].obsolesce = self.game:Frame() + 5400
 	self.dangers["ground"] = NewDangerLayer()
 	self.dangers["ground"].duration = 2400 -- keep ground threat alive for one and a half minutes
 	-- assume there are ground threats for the first three minutes
 	self.dangers["ground"].present = true
-	self.dangers["ground"].obsolesce = self.game:Frame()()() + 5400
+	self.dangers["ground"].obsolesce = self.game:Frame() + 5400
 	self.dangers["air"] = NewDangerLayer()
 	self.dangers["submerged"] = NewDangerLayer()
 	self.dangers["plasma"] = NewDangerLayer()
@@ -388,7 +388,7 @@ function TargetHandler:InitializeDangers()
 end
 
 function TargetHandler:UpdateDangers()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 
 	for layer, danger in pairs(self.dangers) do
 		if danger.count >= danger.threshold then
@@ -562,7 +562,7 @@ function TargetHandler:UpdateMetalGeoSpots()
 end
 
 function TargetHandler:UpdateBadPositions()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	for i = #self.badPositions, 1, -1 do
 		local r = self.badPositions[i]
 		if self.cells[r.px] then
@@ -704,7 +704,7 @@ function TargetHandler:UnitDamaged(unit, attacker, damage)
 end
 
 function TargetHandler:Update()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
     if f == 0 or f % 1800 == 0 then
 	--if f > self.lastEnemyThreatUpdateFrame + 1800 or self.lastEnemyThreatUpdateFrame == 0 then TODO changed cause broked why??
 		-- store and reset the threat count
@@ -726,7 +726,7 @@ function TargetHandler:AddBadPosition(position, mtype, threat, duration)
 	duration = duration or 1800
 	local px, pz = GetCellPosition(position)
 	local gas = WhatHurtsUnit(nil, mtype, position)
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	for groundAirSubmerged, yes in pairs(gas) do
 		if yes then
 			local newRecord =
@@ -757,7 +757,7 @@ function TargetHandler:UpdateMap()
 		-- self:UpdateMetalGeoSpots()
 		self:UpdateFronts(3)
 		self:UpdateDebug()
-		self.lastUpdateFrame = self.game:Frame()()()
+		self.lastUpdateFrame = self.game:Frame()
 		-- game:SendToConsole("after target update", collectgarbage("count")/1024)
 		-- collectgarbage()
 		-- game:SendToConsole("after collectgarbage", collectgarbage("count")/1024)
@@ -1334,7 +1334,7 @@ function TargetHandler:BestAdjacentPosition(unit, targetPosition)
 	local best
 	local notsafe = false
 	local uname = unit:Name()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	local maxThreat = baseUnitThreat
 	local uthreat, urange = ThreatRange(uname)
 	self:EchoDebug(uname .. ": " .. uthreat .. " " .. urange)

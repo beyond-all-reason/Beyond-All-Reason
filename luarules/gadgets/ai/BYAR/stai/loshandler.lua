@@ -82,7 +82,7 @@ function LosHandler:Init()
 end
 
 function LosHandler:Update()
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 
 	if f % 23 == 0 then
         self.ai.friendlyTeamID = {}
@@ -201,7 +201,7 @@ function LosHandler:UpdateEnemies(enemyList)
 	-- this is cheating a little bit, because dead units outside of sight will automatically be removed
 	-- also populate moving blips (whether in radar or in sight) for analysis
 	local blips = {}
-	local f = self.game:Frame()()()
+	local f = self.game:Frame()
 	for id, e in pairs(self.ai.knownEnemies) do
 		if not exists[id] then
 			-- enemy died
