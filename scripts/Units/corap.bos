@@ -18,7 +18,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, pad, head,nano1,nano2,blink,       dish;
+piece  base, pad, head,nano1,nano2,       dish;
 
 static-var  spray, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
@@ -30,11 +30,6 @@ Standby()
 	while( get BUILD_PERCENT_LEFT )
 	{
 		sleep 100;
-	}
-	while( TRUE )
-	{
-		emit-sfx 1024 + 0 from blink;
-		sleep 1500;
 	}
 	sleep 50;
 	start-script Standby();
@@ -254,7 +249,6 @@ Killed(severity, corpsetype)
 		explode nano1 type BITMAPONLY | NOHEATCLOUD;
 		explode nano2 type BITMAPONLY | NOHEATCLOUD;
 		explode pad type BITMAPONLY | NOHEATCLOUD;
-		explode blink type BITMAPONLY | NOHEATCLOUD;
 		explode dish type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -266,7 +260,6 @@ Killed(severity, corpsetype)
 		explode nano1 type FALL | NOHEATCLOUD;
 		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type FALL | NOHEATCLOUD;
-		explode blink type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -278,7 +271,6 @@ Killed(severity, corpsetype)
 		explode nano1 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode blink type SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
@@ -288,7 +280,6 @@ Killed(severity, corpsetype)
 		explode nano1 type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode nano2 type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
 		explode pad type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
-		explode blink type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 		explode dish type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
