@@ -295,7 +295,8 @@ function widget:KeyPress(key, modifier, isRepeat)
 				local exec = false --set to true when there is at least one unit to process
 				local units = GetSelectedUnits()
 				for i=1,#units do
-					local udid = GetUnitDefID(units[i])
+					local unitID = units[i]
+					local udid = GetUnitDefID(unitID)
 					if ( not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"] )) then
 						--if unit2group[udid] ~= nil then
 						--	unit2group[udid] = nil

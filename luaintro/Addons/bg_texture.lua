@@ -21,6 +21,9 @@ local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscree
 if not VFS.FileExists(backgroundTexture) then	-- because encountering white loadscreens once in a while (this is not a real fix ofc)
 	backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
 end
+if not backgroundTexture then
+	backgroundTexture = loadscreens[1]
+end
 local aspectRatio
 
 function addon.DrawLoadScreen()
