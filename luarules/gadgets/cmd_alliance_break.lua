@@ -65,12 +65,13 @@ function getTeamLeaderName(teamID)
 	return GetPlayerInfo(select(2,GetTeamInfo(teamID,false)),false)
 end
 
+local allyTeamList = GetAllyTeamList()
 function gadget:GameFrame(n)
 	if n%UPDATE_FRAMES ~= 0 then
 		return
 	end
-	for _,allyTeamAID in pairs(GetAllyTeamList()) do
-		for _,allyTeamBID in pairs(GetAllyTeamList()) do
+	for _,allyTeamAID in pairs(allyTeamList) do
+		for _,allyTeamBID in pairs(allyTeamList) do
 			if allyTeamAID ~= allyTeamBID then
 				for _,teamAID in pairs(GetTeamList(allyTeamAID)) do
 					for _,teamBID in pairs(GetTeamList(allyTeamBID)) do

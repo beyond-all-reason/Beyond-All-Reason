@@ -133,7 +133,7 @@ local UnitEffects = {
     [UnitDefNames["armatlas"].id] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustl", onActive=true, light=1}},
  	    {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=12, piece="thrustr", onActive=true, light=1}},
-	    {class='AirJet',options={color={0.7,0.4,0.1}, width=4, length=15, piece="thrustc", onActive=true, xzVelocity=1.5, light=1}},
+	    {class='AirJet',options={color={0.7,0.4,0.1}, width=4, length=15, piece="thrustm", onActive=true, xzVelocity=1.5, light=1}},
     },
     [UnitDefNames["armkam"].id] = {
         {class='AirJet',options={color={0.7,0.4,0.1}, width=3, length=28, piece="thrusta", onActive=true, xzVelocity=1.5, light=1, emitVector = {0,1,0}}},
