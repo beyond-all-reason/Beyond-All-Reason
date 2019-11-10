@@ -135,3 +135,9 @@ function RestoreLegs()
 	end
 	Sleep(500)
 end
+
+function RestoreArms()
+	Turn(torso, 2,  ang(0), ang(120))
+	Turn(luparm, 1,  ang(0), ang(120))
+	Turn(ruparm, 1,  ang(0), ang(120))
+end
