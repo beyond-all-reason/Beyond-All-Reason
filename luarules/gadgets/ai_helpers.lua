@@ -186,7 +186,7 @@ GG.AiHelpers.TargetsOfInterest = {}
 local TargetsOfInterest = {}
 local function IsAntiNukeCovered(unitID, attackerTeamID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	if not x and z then
+	if not x then
 		TargetsOfInterest[attackerTeamID][unitID] = nil
 		return true
 	end
