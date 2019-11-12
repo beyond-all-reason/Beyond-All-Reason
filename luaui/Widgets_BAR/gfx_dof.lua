@@ -488,10 +488,10 @@ function widget:SetConfigData(data)
 		mousefocus = not autofocus
 		focusDepth = data.focusDepth
 		fStop = data.fStop
-		if autofocusInFocusMultiplier then
-			autofocusInFocusMultiplier = data.autofocusInFocusMultiplier
-			autofocusPower = data.autofocusPower
-			autofocusFocalLength = data.autofocusFocalLength
-		end
+		--if data.autofocusInFocusMultiplier then
+		--	autofocusInFocusMultiplier = data.autofocusInFocusMultiplier
+		--	autofocusPower = data.autofocusPower
+		--	autofocusFocalLength = data.autofocusFocalLength
+		--end
 	end
 end
