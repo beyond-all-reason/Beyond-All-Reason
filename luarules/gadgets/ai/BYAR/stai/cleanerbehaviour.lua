@@ -67,7 +67,7 @@ function CleanerBehaviour:UnitDead(unit)
 end
 
 function CleanerBehaviour:Activate()
-	CustomCommand(self.unit:Internal(), CMD_RECLAIM, {self.cleanThis:ID()})
+	self.unit:Internal():Reclaim(self.cleanThis:ID())
 end
 
 function CleanerBehaviour:Priority()
