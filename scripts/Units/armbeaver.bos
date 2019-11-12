@@ -5,17 +5,17 @@
 
 #define SIG_BUILD		4	
 
-piece  base, door1, door2,  nano1, nano2, turret;
+piece  base, door1, door2,  nano1, nano2, turret, ltrack, lwheels, lfwheel, lbwheel, rtrack, rwheels, rfwheel, rbwheel;
 
 static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, nanopiece;
 
 
 activatescr()
 {
-	turn door2 to x-axis <-170.664835> speed <282.131868>;
-	turn door1 to x-axis <170.664835> speed <282.131868>;
+	move door2 to z-axis [-7] speed <7>;
+	move door1 to z-axis [7] speed <7>;
 	move turret to y-axis [5.4] speed [5.4];
-	sleep 588;
+	sleep 1000;
 }
 
 deactivatescr()
@@ -23,10 +23,10 @@ deactivatescr()
 	set INBUILDSTANCE to 0;
 	turn turret to y-axis [0] speed [360];
 	wait-for-turn turret around y-axis;
-	turn door1 to x-axis <0> speed <282.131868>;
-	turn door2 to x-axis <0> speed <282.131868>;
+	turn door1 to x-axis <0> speed <7>;
+	turn door2 to x-axis <0> speed <7>;
 	move turret to y-axis [0] speed [12];
-	sleep 588;
+	sleep 1000;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
