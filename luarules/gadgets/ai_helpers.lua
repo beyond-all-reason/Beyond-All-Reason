@@ -304,7 +304,7 @@ end
 	function gadget:Initialize()
 		if enabled ~= true then return end
 		for unitDefID, defs in pairs(UnitDefs) do
-			if defs.isBuilding or string.find(defs.name, "nanotc") then
+			if defs.isBuilding or isNanoTC[unitDefID] then
 				local cellsize = math.max(defs.xsize, defs.zsize) * 8
 				local buildtype = (defs.maxWaterDepth >= 0) and "ground" or "water"
 				if not cells[cellsize] then
@@ -346,7 +346,7 @@ end
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 		if enabled ~= true then return end
 		local defs = UnitDefs[unitDefID]
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or isNanoTC[unitDefID] then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
 				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, allyTeam)) then
 					TargetsOfInterest[id] = TargetsOfInterest[id] or {}
@@ -361,7 +361,7 @@ end
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 		if enabled ~= true then return end
 		local defs = UnitDefs[unitDefID]
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or isNanoTC[unitDefID] then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
 				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, unitTeam)) then
 					TargetsOfInterest[id] = TargetsOfInterest[id] or {}

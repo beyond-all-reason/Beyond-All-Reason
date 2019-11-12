@@ -1,3 +1,20 @@
+
+local isNanoTC = {}
+local isSolar = {}
+local isWind = {}
+local isMakr = {}
+for unitDefID, defs in pairs(UnitDefs) do
+	if string.find(defs.name, "nanotc") then
+		isNanoTC[unitDefID] = true
+	elseif string.find(defs.name, "solar") then
+		isSolar[unitDefID] = true
+	elseif string.find(defs.name, "win") then
+		isWind[unitDefID] = true
+	elseif string.find(defs.name, "makr") then
+		isMakr[unitDefID] = true
+	end
+end
+
 NewPlacementHandler = class(Module)
 
 function NewPlacementHandler:Name()
@@ -113,7 +130,7 @@ function NewPlacementHandler:UnitDead(unit)
 	local unitDefID = UnitDefNames[unit:Name()].id
 	local defs = UnitDefs[unitDefID]
 	if defs then
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or isNanoTC[unitDefID] then
 			local pos = unit:GetPosition()
 			local spacing = self:GetMinimalSpacing(unit:Type())
 			local cellsize = math.max(defs.xsize, defs.zsize) * 8
@@ -137,7 +154,7 @@ function NewPlacementHandler:UnitCreated(unit) -- Clear plan but leave position 
 	local unitDefID = UnitDefNames[unit:Name()].id
 	local defs = UnitDefs[unitDefID]
 	if defs then
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or isNanoTC[unitDefID] then
 			local pos = unit:GetPosition()
 			local spacing = self:GetMinimalSpacing(unit:Type())
 			local cellsize = math.max(defs.xsize, defs.zsize) * 8
@@ -159,7 +176,7 @@ end
 
 function NewPlacementHandler:CreateNewPlan(unit, utype, p)
 	local defs = UnitDefs[utype.id]
-	local Building = (defs.isBuilding == true or string.find(defs.name, "nanotc"))
+	local Building = (defs.isBuilding == true or isNanoTC[unitDefID])
 	local cellsize = math.max(defs.xsize, defs.zsize) * 8
 	local buildtype = "ground"
 	p = self:GetClosestBuildPosition(p.x, p.z, cellsize, buildtype)
@@ -271,25 +288,25 @@ end
 
 function NewPlacementHandler:GetMinimalSpacing(utype)
 	local r = math.random(0,2)
-	if string.find(UnitDefs[utype.id].name, "nanotc") then
+	if isNanoTC[unitDefID] then
 		if r == 0 then
 			return 60
 		else
 			return 20
 		end
-	elseif string.find(UnitDefs[utype.id].name, "solar") then
+	elseif isSolar[unitDefID] then
 		if r == 0 then
 			return 60
 		else
 			return 20
 		end
-	elseif string.find(UnitDefs[utype.id].name, "win") then
+	elseif isWind[unitDefID] then
 		if r == 0 then
 			return 60
 		else
 			return 20
 		end
-	elseif string.find(UnitDefs[utype.id].name, "makr") then
+	elseif isMakr[unitDefID] then
 		if r == 0 then
 			return 60
 		else

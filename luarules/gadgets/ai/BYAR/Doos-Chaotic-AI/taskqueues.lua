@@ -1176,13 +1176,14 @@ function TryRequest(tqb,ai,unit)
 		if req.sentToTaskQueues == true and ((req.queued == nil) or (req.queued + 3600 < Spring.GetGameFrame())) then
 			if req.domain == "military" and req.role == "leader" then
 				local choice = nil
-				if string.find(unit:Name(), "arm") then
+				local faction = string.sub(unit:Name(), 1, 3)
+				if faction == 'arm' then
 					if tqb.ai.buildersquadshandler.currentTechLevel >= 2 then
 						choice = ArmExpandRandomLab(tqb,ai,unit)
 					else
 						choice = ArmTech(tqb,ai,unit)
 					end
-				elseif string.find(unit:Name(), "cor") then
+				elseif faction == "cor" then
 					if tqb.ai.buildersquadshandler.currentTechLevel >= 2 then
 						choice = CorExpandRandomLab(tqb,ai,unit)
 					else
@@ -1226,13 +1227,13 @@ function TechCon(tqb,ai,unit)
 	local curTech = tqb.ai.buildersquadshandler.currentTechLevel
 	if curTech == 1 then
 		local typeName = unit:Name()
-		local prefix = (string.find(typeName, "arm") and "arm") or "cor"
+		local prefix = (string.sub(typeName, 1, 3)) and "arm" or "cor"
 		local suffix = ""
-		if string.find(typeName, "avp") then -- advanced vehicle plant)
+		if string.sub(typeName, 4, 6) == "avp" then -- advanced vehicle plant)
 			suffix = "acv"
-		elseif string.find(typeName, "alab") then -- advanced lab
+		elseif string.sub(typeName, 4, 7) == "alab" then -- advanced lab
 			suffix = "ack"
-		elseif string.find(typeName, "aap") then -- advanced aircraft plant
+		elseif string.sub(typeName, 4, 6) == "aap" then -- advanced aircraft plant
 			suffix = "aca"
 		end
 		if UnitDefNames[prefix..suffix] then
@@ -1297,7 +1298,7 @@ util = {
 
 function Protection(tqb,ai,unit)
 	local defs = UnitDefs[UnitDefNames[unit:Name()].id]
-	if string.find(defs.name, "cor") then
+	if string.sub(defs.name, 1, 3) == "cor" then
 		return CorProtection(tqb,ai,unit)
 	else
 		return ArmProtection(tqb,ai,unit)
@@ -1307,13 +1308,13 @@ end
 
 function Economy(tqb,ai,unit)
 	local defs = UnitDefs[UnitDefNames[unit:Name()].id]
-	if string.find(defs.name, "cora") then
+	if string.sub(defs.name, 1, 4) == "cora" then
 		return CorEnT2(tqb,ai,unit)
-	elseif string.find(defs.name, "arma") then
+	elseif string.sub(defs.name, 1, 4) == "arma" then
 		return ArmEnT2(tqb,ai,unit)
-	elseif string.find(defs.name, "cor") then
+	elseif string.sub(defs.name, 1, 3) == "cor" then
 		return CorEnT1(tqb,ai,unit)
-	elseif string.find(defs.name, "arm") then
+	elseif string.sub(defs.name, 1, 3) == "arm" then
 		return ArmEnT1(tqb,ai,unit)
 	end
 end
