@@ -174,7 +174,6 @@ function ReclaimBehaviour:Act()
 		self:EchoDebug("reclaim unit", self.targetUnit, self.targetUnit:ID())
 		self.target = self.targetUnit:GetPosition()
 		self.unit:Internal():Reclaim(self.targetUnit)
-		-- CustomCommand(self.unit:Internal(), CMD_RECLAIM, {self.targetUnit:ID()})
 		return true
 	elseif self.targetCell then
 		local cell = self.targetCell
@@ -185,7 +184,7 @@ function ReclaimBehaviour:Act()
 			local resPosition = self.targetResurrection.position
 			local unitName = featureTable[self.targetResurrection.featureName].unitName
 			self:EchoDebug(unitName)
-			CustomCommand(self.unit:Internal(), CMD_RESURRECT, {resPosition.x, resPosition.y, resPosition.z, 15})
+			self.unit:Internal():AreaRESURRECT({resPosition.x, resPosition.y, resPosition.z}, 15)
 			self.ai.buildsitehandler:NewPlan(unitName, resPosition, self, true)
 			self.resurrecting = true
 			return true
@@ -201,7 +200,7 @@ function ReclaimBehaviour:Act()
 					if self.dedicated and unitName and unitTable[unitName] and unitTable[unitName].extractsMetal > 0 then
 						-- always resurrect metal extractors
 						self:EchoDebug("resurrect mex", reclaimFeature, reclaimFeature:ID())
-						CustomCommand(self.unit:Internal(), CMD_RESURRECT, {rfpos.x, rfpos.y, rfpos.z, 15})
+                        self.unit:Internal():AreaRESURRECT({rfpos.x, rfpos.y, rfpos.z}, 15)
 						self.resurrecting = true
 						self.myFeature = reclaimFeature
 						self.myFeaturePos = reclaimFeature:GetPosition()
