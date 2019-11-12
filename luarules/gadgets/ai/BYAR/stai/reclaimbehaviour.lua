@@ -200,7 +200,7 @@ function ReclaimBehaviour:Act()
 					if self.dedicated and unitName and unitTable[unitName] and unitTable[unitName].extractsMetal > 0 then
 						-- always resurrect metal extractors
 						self:EchoDebug("resurrect mex", reclaimFeature, reclaimFeature:ID())
-                        self.unit:Internal():AreaRESURRECT({rfpos.x, rfpos.y, rfpos.z}, 15)
+						self.unit:Internal():AreaRESURRECT({rfpos.x, rfpos.y, rfpos.z}, 15)
 						self.resurrecting = true
 						self.myFeature = reclaimFeature
 						self.myFeaturePos = reclaimFeature:GetPosition()
