@@ -51,6 +51,13 @@ vertex = [[
 		worldBitangent = gl_NormalMatrix * bitangent;
 		worldNormal = gl_NormalMatrix * normal;
 
+		#if 0
+			if (dot(worldTangent, worldTangent) < 0.1 || dot(worldBitangent, worldBitangent) < 0.1) {
+				worldTangent = vec3(1.0, 0.0, 0.0);
+				worldBitangent = vec3(0.0, 1.0, 0.0);
+			}
+		#endif
+
 		modelPos = vertex;
 		worldPos = gl_ModelViewMatrix * vertex;
 		gl_Position = gl_ProjectionMatrix * (camera * worldPos);
