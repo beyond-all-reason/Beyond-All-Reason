@@ -1897,7 +1897,7 @@ function init()
 		 onload = function() loadWidgetData("Depth of Field", "dof_autofocus", {'autofocus'}) end,
 		 onchange = function(i, value) saveOptionValue('Depth of Field', 'dof', 'setAutofocus', {'autofocus'}, value) end,
 		},
-		{id="dof_fstop", group="gfx", name=widgetOptionColor.."   f-stop", type="slider", min=1, max=16, step=0.1, value=3, description='Set amount of blur\n\nOnly works if autofocus is off',
+		{id="dof_fstop", group="gfx", name=widgetOptionColor.."   f-stop", type="slider", min=1, max=6, step=0.1, value=2, description='Set amount of blur\n\nOnly works if autofocus is off',
 		 onload = function() loadWidgetData("Depth of Field", "dof_fstop", {'fStop'}) end,
 		 onchange = function(i, value) saveOptionValue('Depth of Field', 'dof', 'setFstop', {'fStop'}, value) end,
 		},

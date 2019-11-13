@@ -15,9 +15,9 @@ local highQuality = true		-- doesnt seem to do anything
 local autofocus = true
 local mousefocus = not autofocus
 local focusDepth = 300
-local fStop = 3
+local fStop = 2
 
-local autofocusInFocusMultiplier = 0.4	-- Autofocus Minimum In-Focus region size
+local autofocusInFocusMultiplier = fStop/2	-- Autofocus Minimum In-Focus region size
 local autofocusPower = 6				-- Autofocus Power (lower = blurrier at range)
 local autofocusFocalLength = 0.03		-- Autofocus Focal Length
 
@@ -315,6 +315,7 @@ function widget:Initialize()
 	end
 	WG['dof'].setFstop = function(value)
 		fStop = value
+		autofocusInFocusMultiplier = fStop/2
 	end
 	WG['dof'].getHighQuality = function()
 		return highQuality
@@ -488,6 +489,8 @@ function widget:SetConfigData(data)
 		mousefocus = not autofocus
 		focusDepth = data.focusDepth
 		fStop = data.fStop
+		autofocusInFocusMultiplier = fStop/2
+
 		--if data.autofocusInFocusMultiplier then
 		--	autofocusInFocusMultiplier = data.autofocusInFocusMultiplier
 		--	autofocusPower = data.autofocusPower
