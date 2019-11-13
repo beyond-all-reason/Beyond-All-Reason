@@ -7,15 +7,31 @@
 
 piece  base, door1, door2,  nano1, nano2, turret, ltrack, lwheels, lfwheel, lbwheel, rtrack, rwheels, rfwheel, rbwheel;
 
-static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, nanopiece;
+static-var  notBuilding, statechg_DesiredState, statechg_StateChanging, nanopiece,  currentSpeed, moveSpeed, wheelSpeed;
+
+WheelControl()
+{
+	while(TRUE)
+	{
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		wheelSpeed = currentSpeed * 1.5; //original speed 7
+		if (currentSpeed<0.5) currentSpeed=0.5;	// prevent infinite timing
+		spin lfwheel around x-axis speed  (<10>*wheelSpeed); // was all *currentSpeed     
+		spin lbwheel around x-axis speed  (<10>*wheelSpeed);			
+		spin rfwheel around x-axis speed  (<10>*wheelSpeed);
+		spin rbwheel around x-axis speed  (<10>*wheelSpeed);	
+		sleep 2; //200
+	}
+}
 
 
 activatescr()
 {
-	move door2 to z-axis [-7] speed [7];
-	move door1 to z-axis [7] speed [7];
+	move door2 to z-axis [-6] speed [7];
+	move door1 to z-axis [6] speed [7];
+	sleep 200;
 	move turret to y-axis [5.4] speed [5.4];
-	sleep 1000;
+	sleep 900;
 }
 
 deactivatescr()
@@ -26,7 +42,7 @@ deactivatescr()
 	move door1 to z-axis [0] speed [7];
 	move door2 to z-axis [0] speed [7];
 	move turret to y-axis [0] speed [12];
-	sleep 1000;
+	sleep 900;
 }
 
 SmokeUnit(healthpercent, sleeptime, smoketype)
@@ -35,6 +51,7 @@ SmokeUnit(healthpercent, sleeptime, smoketype)
 	{
 		sleep 500;
 	}
+	start-script WheelControl();
 	while( TRUE )
 	{
 		healthpercent = get HEALTH;
@@ -101,6 +118,7 @@ Create()
 	statechg_StateChanging = FALSE;
 	nanopiece=TRUE;
 	start-script SmokeUnit();
+	moveSpeed = get MAX_SPEED; //new
 }
 
 Activate()
