@@ -42,6 +42,7 @@ return {
 		turninplacespeedlimit = 1.873,
 		turnrate = 371,
 		customparams = {
+			core_tank = "1",
 			basename = "base",
 			cannon1name = "barrel",
 			core_tank  = "1",
@@ -50,7 +51,7 @@ return {
 			firingceg = "barrelshot-tiny",
 			flare1name = "flare",
 			kickback = "-2.4",
-			model_author = "Mr Bob",
+			model_author = "Mr Bob, Flaka",
 			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			restoretime = "3000",
