@@ -106,9 +106,9 @@ local materials = {
 
 
 				// fractional part of model position, clamped to >.4
-				vec4 modelPos = gl_ModelViewMatrix[3];
-				modelPos = fract(modelPos);
-				modelPos = clamp(modelPos, 0.4, 1.0);
+				vec4 fractModelPos = gl_ModelViewMatrix[3];
+				fractModelPos = fract(fractModelPos);
+				fractModelPos = clamp(fractModelPos, 0.4, 1.0);
 
 				// crude measure of wind intensity
 				float abswind = abs(wind.x) + abs(wind.y);
@@ -117,22 +117,22 @@ local materials = {
 				float simTime = 0.02 * simFrame;
 				// these determine the speed of the wind's "cosine" waves.
 				cosVec.w = 0.0;
-				cosVec.x = simTime * modelPos[0] + vertex.x;
-				cosVec.y = simTime * modelPos[2] / 3.0 + modelPos.x;
-				cosVec.z = simTime * 1.0 + vertex.z;
+				cosVec.x = simTime * fractModelPos[0] + fractModelPos.x;
+				cosVec.y = simTime * fractModelPos[2] / 3.0 + fractModelPos.x;
+				cosVec.z = simTime * 1.0 + fractModelPos.z;
 
 				// calculate "cosines" in parallel, using a smoothed triangle wave
 				vec4 tri = abs(fract(cosVec + 0.5) * 2.0 - 1.0);
 				cosVec = tri * tri *(3.0 - 2.0 * tri);
 
-				float limit = clamp((vertex.x * vertex.z * vertex.y) / 3000.0, 0.0, 0.2);
+				float limit = clamp((fractModelPos.x * fractModelPos.z * fractModelPos.y) / 3000.0, 0.0, 0.2);
 
 				float diff = cosVec.x * limit;
-				float diff2 = cosVec.y * clamp(vertex.y / 30.0, 0.05, 0.2);
+				float diff2 = cosVec.y * clamp(fractModelPos.y / 30.0, 0.05, 0.2);
 
-				vertex.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
+				fractModelPos.xyz += cosVec.z * limit * clamp(abswind, 1.2, 1.7);
 
-				vertex.xz += diff + diff2 * wind;
+				fractModelPos.xz += diff + diff2 * wind;
 			]]
 		},
 		feature = true, --// This is used to define that this is a feature shader
@@ -188,7 +188,7 @@ local featureMaterials = {}
 
 
 for id, featureDef in pairs(FeatureDefs) do
-	
+
 	--Spring.Echo("Parsed feature",featureDef.name)
 	if featureDef.customParams and featureDef.customParams.normaltex then
 		featureMaterials[featureDef.name] = {"feature_tree_normalmap", NORMALTEX = featureDef.customParams.normaltex}

@@ -39,27 +39,26 @@ vertex = [[
 
 	void main(void)
 	{
-		vec4 vertex = gl_Vertex;
-		vec3 normal = gl_Normal;
+		modelPos = gl_Vertex;
+		vec3 modelNormal = gl_Normal;
 
 		%%VERTEX_PRE_TRANSFORM%%
 
-		vec3 tangent   = gl_MultiTexCoord5.xyz;
-		vec3 bitangent = gl_MultiTexCoord6.xyz;
+		vec3 modelTangent   = gl_MultiTexCoord5.xyz;
+		vec3 modelBitangent = gl_MultiTexCoord6.xyz;
 
-		worldTangent = gl_NormalMatrix * tangent;
-		worldBitangent = gl_NormalMatrix * bitangent;
-		worldNormal = gl_NormalMatrix * normal;
-
-		#if 0
-			if (dot(worldTangent, worldTangent) < 0.1 || dot(worldBitangent, worldBitangent) < 0.1) {
-				worldTangent = vec3(1.0, 0.0, 0.0);
-				worldBitangent = vec3(0.0, 1.0, 0.0);
+		#if 1
+			if (dot(modelTangent, modelTangent) < 0.1 || dot(modelBitangent, modelBitangent) < 0.1) {
+				modelTangent = vec3(1.0, 0.0, 0.0);
+				modelBitangent = vec3(0.0, 0.0, 1.0);
 			}
 		#endif
 
-		modelPos = vertex;
-		worldPos = gl_ModelViewMatrix * vertex;
+		worldTangent = gl_NormalMatrix * modelTangent;
+		worldBitangent = gl_NormalMatrix * modelBitangent;
+		worldNormal = gl_NormalMatrix * modelNormal;
+
+		worldPos = gl_ModelViewMatrix * modelPos;
 		gl_Position = gl_ProjectionMatrix * (camera * worldPos);
 		viewDir = cameraPos - worldPos.xyz;
 
@@ -70,7 +69,7 @@ vertex = [[
 
 		modelUV.xy = gl_MultiTexCoord0.xy;
 		#ifdef use_treadoffset_core
-			/core 93,1732 /351,1647
+			// core 93,1732 /351,1647
 			const vec4 treadBoundaries = vec4( 0.04541015625,0.17138671875, 0.154296875,0.19580078125);
 			if (all(bvec4(
 					modelUV.x >= treadBoundaries.x, modelUV.x <= treadBoundaries.y,
