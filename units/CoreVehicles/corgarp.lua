@@ -55,6 +55,7 @@ return {
 			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			paralyzemultiplier = 0.125,
+			core_tank = "1",
 			restoretime = "3000",
 			rockstrength = "5",
 			sleevename = "sleeve",
