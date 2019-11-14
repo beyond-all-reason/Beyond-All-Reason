@@ -56,17 +56,17 @@ function widget:Initialize()
     end
 end
 
-function widget:UnitCommand(uID, uDefID, uTeam, cmdID, cmdParams, cmdOpts)
-	if (cmdID == CMD_CLOAK) and isCommander[uDefID] and (uTeam == spGetMyTeamID()) then
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if (cmdID == CMD_CLOAK) and isCommander[unitDefID] and (teamID == spGetMyTeamID()) then
         if spGetSpectatingState() then
             widgetHandler:RemoveWidget(self)
             return
         end
 		if cmdParams[1] == 1 then
-			spGiveOrderToUnit(uID, CMD_FIRE_STATE, {0}, 0)
-            spGiveOrderToUnit(uID, CMD_INSERT, {0, 0, 0}, CMD_OPT_ALT)
+			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, {0}, 0)
+            spGiveOrderToUnit(unitID, CMD_INSERT, {0, 0, 0}, CMD_OPT_ALT)
 		else
-			spGiveOrderToUnit(uID, CMD_FIRE_STATE, {2}, 0) 
+			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, {2}, 0)
 		end
 	end
 end

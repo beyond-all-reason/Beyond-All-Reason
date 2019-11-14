@@ -9,6 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
+
 -- NOTE: adding/removing will break at ´/luarules reload´ (needs to remember var ´critterUnits´)
 local teams = Spring.GetTeamList()
 for i =1, #teams do
@@ -17,6 +18,13 @@ for i =1, #teams do
 		if luaAI == "DAI" then
 			shardEnabled = true
 		end
+	end
+end
+
+local isCritter = {}
+for udid, unitDef in pairs(UnitDefs) do
+	if string.sub(UnitDefs[udid].name, 1, 7) == "critter" then
+		isCritter[udid] = true
 	end
 end
 
@@ -213,6 +221,16 @@ end
 
 
 function gadget:Initialize()
+
+	local allUnits = Spring.GetAllUnits()
+	for _, unitID in pairs(allUnits) do
+		local unitDefID = GetUnitDefID(unitID)
+		if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+			local x,_,z = GetUnitPosition(unitID)
+			commanders[unitID] = {x,z}
+		end
+	end
+
 	local mo = Spring.GetModOptions()
 	if mo and tonumber(mo.critters)==0 then
 		Spring.Echo("[Gaia Critters] Critters disabled via ModOption")
@@ -310,24 +328,9 @@ local function adjustCritters(newAliveCritters)
 	end
 end
 
-
-function getCommanders()
-	local comlist = {}
-	local allUnits = Spring.GetAllUnits()
-	for _, unitID in pairs(allUnits) do
-		local unitDefID = GetUnitDefID(unitID)
-		if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
-			local x,y,z = GetUnitPosition(unitID)
-			comlist[unitID] = {x,z}
-		end
-	end
-	return comlist
-end
-
-
 function nearUnits(x, z, radius, units)
 	for unitID, pos in pairs(units) do
-		if pos[1] ~= nil and pos[2] ~= nil then	-- had nil error once so yeah...
+		if pos[1] and pos[2] then	-- had nil error once so yeah...
 			if abs(x-pos[1]) < radius and abs(z-pos[2]) < radius then
 				return unitID
 			end
@@ -351,7 +354,7 @@ end
 function critterToCompanion(unitID)
 	local x,y,z = GetUnitPosition(unitID)
 	if x ~= nil and y ~= nil and z ~= nil then	-- had nil error once so yeah...
-		commanderID = nearUnits(x, z, companionRadius, commanders)
+		local commanderID = nearUnits(x, z, companionRadius, commanders)
 		if commanderID ~= false then
 			pairCompanionToUnit(unitID,commanderID)
 		end
@@ -360,9 +363,8 @@ end
 
 
 function convertMapCrittersToCompanion()
-	commanders = getCommanders()
 	for unitID, critter in pairs(critterUnits) do
-		if critter.alive then
+		if critter.alive and not companionCritters[unitID] then
 			critterToCompanion(unitID)
 		end
 	end
@@ -455,46 +457,12 @@ function addMapCritters()
 end
 
 
--- add commander companion critters
---local companionPlayers = {"[Evo]Forboding_Angel"}
-function addCompanionCritters()
-	if companionPlayers ~= nil then
-	  local allUnits = Spring.GetAllUnits()
-		local critterTypes = {"critter_penguin", "critter_penguin", "critter_penguin", "critter_duck"}
-	  for _, unitID in pairs(allUnits) do
-	    local unitDefID = GetUnitDefID(unitID)
-	    if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
-	   		local x,y,z = GetUnitPosition(unitID)
-	    	local team = GetUnitTeam(unitID)
-			if team == nil then break end
-			local players = Spring.GetPlayerList(team)
-			local name = (#players>0) and Spring.GetPlayerInfo(players[1],false) or ''
-			local found = false
-			for _, cname in pairs(companionPlayers) do
-				if cname == name then found = true end
-			end
-			if found then
-				local critters = {}
-				for i=1, random(-2, 1) do	-- amount of critters being spawn
-					local critterID = CreateUnit(critterTypes[random(1,#critterTypes)], x+random(-150, 150), y, z+random(-150, 150), 0, GaiaTeamID)
-					setGaiaUnitSpecifics(critterID)
-					critters[#critters+1] = critterID
-				end
-				companionCritters[unitID] = critters
-			end
-	    end
-	  end
-	end
-end
-
-
 -- increase/decrease critters according to unitcount
 function gadget:GameFrame(gameFrame)
 
 	if gameFrame == 1 and addedInitialCritters == nil then	-- using gameframe 1 cause at GameStart commanders arent spawn yet
 		addedInitialCritters = true
 		addMapCritters()
-		addCompanionCritters()
 	end
 	
 	-- update companion critters
@@ -558,7 +526,7 @@ end
 
 
 function gadget:UnitIdle(unitID, unitDefID, unitTeam)
-	if sceduledOrders[unitID] == nil and Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then
+	if isCritter[unitDefID] and not sceduledOrders[unitID] then
 		local x,y,z = GetUnitPosition(unitID,true,true)
 		local radius = 220
 		if UnitDefs[unitDefID].name == "critter_gull" then
@@ -572,7 +540,8 @@ end
 
 function getTeamCommanderUnitID(teamID)
 	local allUnits = Spring.GetAllUnits()
-	for _, unitID in pairs(allUnits) do
+	for i=1, #allUnits do
+		local unitID = allUnits[i]
 		if GetUnitTeam(unitID) == teamID then
 			local unitDefID = GetUnitDefID(unitID)
 			if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
@@ -585,8 +554,11 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if Spring.GetGameFrame() > 0 and string.sub(UnitDefs[unitDefID].name, 1, 7) == "critter" then
-		local x,y,z = GetUnitPosition(unitID,true,true)
+	if UnitDefs[unitDefID].customParams.iscommander then
+		local x,_,z = GetUnitPosition(unitID,true,true)
+		commanders[unitID] = {x,z}
+	elseif isCritter[unitDefID] then
+		local x,_,z = GetUnitPosition(unitID,true,true)
 		local radius = 300
 		if UnitDefs[unitDefID].name == "critter_gull" then
 			radius = 1500
@@ -601,7 +573,6 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
 				makeUnitCritter(unitID)
 				critterUnits[unitID].unitName = UnitDefs[unitDefID].name
 		--end
-			commanders = getCommanders()
 			for _, comUnitID in pairs(commanders) do
 				--pairCompanionToUnit(unitID,comUnitID)
 				critterToCompanion(unitID)
@@ -624,7 +595,7 @@ end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-
+	commanders[unitID] = nil
 	if critterUnits[unitID] ~= nil and attackerID ~= nil then 
 		critterUnits[unitID] = nil
 		totalCritters = totalCritters - 1
@@ -633,7 +604,7 @@ end
 
 
 --http://springrts.com/phpbb/viewtopic.php?f=23&t=30109
-function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)	
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	--Spring.Echo (CMD[cmdID] or "nil")
 	if cmdID and cmdID == CMD.ATTACK then 		
 		if cmdParams and #cmdParams == 1 then			

@@ -12,7 +12,7 @@ function gadget:GetInfo()
 	}
 end
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+local engineVersion = 104 -- just filled this in here incorrectly but old engines arent used anyway
 if Engine and Engine.version then
 	local function Split(s, separator)
 		local results = {}
@@ -27,15 +27,13 @@ if Engine and Engine.version then
 	else
 		engineVersion = tonumber(Engine.version)
 	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
 end
 
 -- set minimun engine version
 local unsupportedEngine = true
 local enabled = false
-local minEngineVersionTitle = '104.0.1-1429'
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011429 then
+local minEngineVersionTitle = '104.0.1-1432'
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011432 then
 	unsupportedEngine = false
 	enabled = true
 end

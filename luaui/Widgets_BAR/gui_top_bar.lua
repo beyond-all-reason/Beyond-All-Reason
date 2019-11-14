@@ -16,8 +16,8 @@ local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
+local fontfileSize = 36
+local fontfileOutlineSize = 9
 local fontfileOutlineStrength = 1.33
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
@@ -71,8 +71,8 @@ local glDeleteList = gl.DeleteList
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetTeamResources = Spring.GetTeamResources
 local spGetMyTeamID = Spring.GetMyTeamID
-local sformat = string.format
 local spGetMouseState = Spring.GetMouseState
+local spGetWind = Spring.GetWind
 
 local spec = spGetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
@@ -80,7 +80,7 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 local isReplay = Spring.IsReplay()
 
-local spGetWind = Spring.GetWind
+local sformat = string.format
 
 local minWind = Game.windMin
 local maxWind = Game.windMax
@@ -127,6 +127,19 @@ if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobb
 	chobbyLoaded = true
 	Spring.SendLuaMenuMsg("disableLobbyButton")
 end
+
+local numAllyTeams = #Spring.GetAllyTeamList()-1
+local singleTeams = false
+if #Spring.GetTeamList()-1 == numAllyTeams then
+	singleTeams = true
+end
+
+local allyteamOverflowingMetal = false
+local allyteamOverflowingEnergy = false
+local overflowingMetal = false
+local overflowingEnergy = false
+
+
 --------------------------------------------------------------------------------
 -- Rejoin
 --------------------------------------------------------------------------------
@@ -637,19 +650,48 @@ local function updateResbarText(res)
 		if not spec and gameFrame > 90 then
 
 			-- display overflow notification
-			if r[res][1] >= r[res][2] then
+			if (res == 'metal' and (allyteamOverflowingMetal or overflowingMetal)) or (res == 'energy' and (allyteamOverflowingEnergy or overflowingEnergy)) then
 				if showOverflowTooltip[res] == nil then
-					showOverflowTooltip[res] = os.clock() + 1.1
+					showOverflowTooltip[res] = os.clock() + 0.5
 				end
 				if showOverflowTooltip[res] < os.clock() then
 					local bgpadding = 2.5*widgetScale
-					local text = 'Overflowing'
+					local text = ''
+					if res == 'metal' then
+						text = (allyteamOverflowingMetal and 'Wasting Metal' or 'Overflowing')
+					else
+						text = (allyteamOverflowingEnergy and 'Wasting Energy' or 'Overflowing')
+					end
 					local textWidth = (bgpadding*2) + 15 + (font2:GetTextWidth(text) * 11.5) * widgetScale
 
 					-- background
-					glColor(0.3,0,0,0.6)
+					if res == 'metal' then
+						if allyteamOverflowingMetal then
+							glColor(0.3,0,0,0.6)
+						else
+							glColor(0.3,0.3,0.3,0.4)
+						end
+					else
+						if allyteamOverflowingEnergy then
+							glColor(0.3,0,0,0.6)
+						else
+							glColor(0.3,0.25,0,0.6)
+						end
+					end
 					RectRound(resbarArea[res][3]-textWidth, resbarArea[res][4]-15.5*widgetScale, resbarArea[res][3], resbarArea[res][4], 4*widgetScale)
-					glColor(1,0.3,0.3,0.2)
+					if res == 'metal' then
+						if allyteamOverflowingMetal then
+							glColor(1,0.3,0.3,0.2)
+						else
+							glColor(1,1,1,0.15)
+						end
+					else
+						if allyteamOverflowingEnergy then
+							glColor(1,0.3,0.3,0.2)
+						else
+							glColor(1,0.88,0,0.2)
+						end
+					end
 					RectRound(resbarArea[res][3]-textWidth+bgpadding, resbarArea[res][4]-15.5*widgetScale+bgpadding, resbarArea[res][3]-bgpadding, resbarArea[res][4], bgpadding*1.25)
 
                     font2:Begin()
@@ -913,6 +955,8 @@ local sec = 0
 local sec2 = 0
 local secComCount = 0
 local t = UPDATE_RATE_S
+local blinkDirection = true
+local blinkProgress = 0
 function widget:Update(dt)
 	if chobbyInterface then return end
 	
@@ -932,6 +976,19 @@ function widget:Update(dt)
 		end
 	end
 
+	if blinkDirection then
+		blinkProgress = blinkProgress + (dt*9)
+		if blinkProgress > 1 then
+			blinkProgress = 1
+			blinkDirection = false
+		end
+	else
+		blinkProgress = blinkProgress - (dt/(blinkProgress*1.5))
+		if blinkProgress < 0 then
+			blinkProgress = 0
+			blinkDirection = true
+		end
+	end
 
     now = os.clock()
 	if now > nextGuishaderCheck and widgetHandler.orderList["GUI Shader"] ~= nil then
@@ -983,6 +1040,7 @@ function widget:Update(dt)
 		sec2 = 0
 		updateResbarText('metal')
 		updateResbarText('energy')
+		updateAllyTeamOverflowing()
 	end
 
 	-- wind
@@ -1070,6 +1128,48 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
+function updateAllyTeamOverflowing()
+	allyteamOverflowingMetal = false
+	allyteamOverflowingEnergy = false
+	overflowingMetal = false
+	overflowingEnergy = false
+	local totalEnergy = 0
+	local totalEnergyStorage = 0
+	local totalMetal = 0
+	local totalMetalStorage = 0
+	local energyPercentile, metalPercentile
+	for i, teamID in pairs(Spring.GetTeamList(Spring.GetMyAllyTeamID())) do
+		local energy, energyStorage,_,_,_,energyShare, energySent = spGetTeamResources(teamID, "energy")
+		totalEnergy = totalEnergy + energy
+		totalEnergyStorage = totalEnergyStorage + energyStorage
+		local metal, metalStorage,_,_,_,metalShare, metalSent = spGetTeamResources(teamID, "metal")
+		totalMetal = totalMetal + metal
+		totalMetalStorage = totalMetalStorage + metalStorage
+		if teamID == myTeamID then
+			energyPercentile = energySent / totalEnergyStorage
+			metalPercentile = metalSent / totalMetalStorage
+			if energyPercentile > 0.0001 then
+				overflowingEnergy = energyPercentile * (1/0.025)
+				if overflowingEnergy > 1 then overflowingEnergy = 1 end
+			end
+			if metalPercentile > 0.0001 then
+				overflowingMetal = metalPercentile * (1/0.025)
+				if overflowingMetal > 1 then overflowingMetal = 1 end
+			end
+		end
+	end
+	energyPercentile = totalEnergy / totalEnergyStorage
+	metalPercentile = totalMetal / totalMetalStorage
+	if energyPercentile > 0.975 then
+		allyteamOverflowingEnergy = (energyPercentile - 0.975) * (1/0.025)
+		if allyteamOverflowingEnergy > 1 then allyteamOverflowingEnergy = 1 end
+	end
+	if metalPercentile > 0.975 then
+		allyteamOverflowingMetal = (metalPercentile - 0.975) * (1/0.025)
+		if allyteamOverflowingMetal > 1 then allyteamOverflowingMetal = 1 end
+	end
+end
+
 function widget:DrawScreen()
 	if chobbyInterface then return end
 
@@ -1086,13 +1186,22 @@ function widget:DrawScreen()
 		glCallList(dlistResbar[res][1])
 
 		if not spec and gameFrame > 90 then
-			-- overflowing background
-			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
-			if process > 0 then
-				if process > 1.3 then process = 1.3 end
-				glColor(1,1,1,0.085*process)
-				local bgpadding = 3*widgetScale
+			if allyteamOverflowingMetal then
+				glColor(1,0,0,0.13*allyteamOverflowingMetal*blinkProgress)
+			elseif overflowingMetal then
+				glColor(1,1,1,0.05*overflowingMetal*(0.6+(blinkProgress*0.4)))
+			end
+			if allyteamOverflowingMetal or overflowingMetal then
 				glCallList(dlistResbar[res][4])
+			end
+		end
+		-- low energy background
+		if r[res][1] < 1000 then
+			process = (r[res][1]/r[res][2]) * 13
+			if process < 1 then
+				process = 1 - process
+				glColor(0.9,0.4,1,0.08*process)
+				glCallList(dlistResbar[res][5])
 			end
 		end
 		drawResbarValues(res)
@@ -1105,12 +1214,12 @@ function widget:DrawScreen()
 		glCallList(dlistResbar[res][1])
 
 		if not spec and gameFrame > 90 then
-			-- overflowing background
-			local process = ((r[res][1]/(r[res][2]*r[res][6])) - 0.97) * 10	-- overflowing
-			if process > 0 then
-				if process > 1.3 then process = 1.3 end
-				glColor(1,1,0,0.05*process)
-				local bgpadding = 3*widgetScale
+			if allyteamOverflowingEnergy then
+				glColor(1,0,0,0.13*allyteamOverflowingEnergy*blinkProgress)
+			elseif overflowingEnergy then
+				glColor(1,1,0,0.05*overflowingEnergy*(0.6+(blinkProgress*0.4)))
+			end
+			if allyteamOverflowingEnergy or overflowingEnergy then
 				glCallList(dlistResbar[res][4])
 			end
 			-- low energy background
@@ -1118,7 +1227,7 @@ function widget:DrawScreen()
 				process = (r[res][1]/r[res][2]) * 13
 				if process < 1 then
 					process = 1 - process
-					glColor(1,0,0,0.11*process)
+					glColor(0.9,0.55,1,0.08*process)
 					glCallList(dlistResbar[res][5])
 				end
 			end

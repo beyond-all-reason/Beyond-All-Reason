@@ -81,7 +81,8 @@ end
 
 function UpdateStockPileAllUnits()
 	local allUnits = GetTeamUnits(GetMyTeamID())
-	for _, unitID in pairs(allUnits) do
+	for i=1,#allUnits do
+		local unitID    = allUnits[i]
 		local unitDefID = GetUnitDefID(unitID)
 		local ud = UnitDefs[unitDefID]
 		if ( ud and ud.canStockpile ) then

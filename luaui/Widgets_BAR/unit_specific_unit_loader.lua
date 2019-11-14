@@ -1,13 +1,13 @@
 
 function widget:GetInfo()
 	return {
-		name			= "Specific Unit Loader",
-		desc			= "Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.",
+		name		= "Specific Unit Loader",
+		desc		= "Hold down Alt or Ctrl and give an area load order, centered on a unit of the type to load.",
 		author		= "Google Frog, doo edit for load commands",
-		date			= "May 12, 2008",
-		license	 = "GNU GPL, v2 or later",
-		layer		 = 0,
-		enabled	 = true	--	loaded by default?
+		date		= "May 12, 2008",
+		license	 	= "GNU GPL, v2 or later",
+		layer		= 0,
+		enabled	 	= true	--	loaded by default?
 	}
 end
 
@@ -74,7 +74,6 @@ function widget:CommandNotify(id, params, options)
 
 			local selUnits = spGetSelectedUnits()
 
-
 			local targetEnemy = reclaimEnemy and spGetUnitAllyTeam(id) ~= allyTeam
 			local unitDef = spGetUnitDefID(id)
 			local preareaUnits = spGetUnitsInCylinder(cx ,cz , cr)
@@ -82,22 +81,24 @@ function widget:CommandNotify(id, params, options)
 				preareaUnits = spGetUnitsInCylinder(cx ,cz , cr, team)
 			end
 			local countarea = 0
-			areaUnits = {}
-			for i, aid in ipairs(preareaUnits)do
-				if (targetEnemy and spGetUnitAllyTeam(aid) ~= allyTeam) or (options.alt and not targetEnemy and spGetUnitDefID(aid) == unitDef ) or  (options.ctrl and not targetEnemy) then
+			local areaUnits = {}
+			for i=1,#preareaUnits do
+				local unitID = preareaUnits[i]
+				if (targetEnemy and spGetUnitAllyTeam(unitID) ~= allyTeam) or (options.alt and not targetEnemy and spGetUnitDefID(unitID) == unitDef ) or  (options.ctrl and not targetEnemy) then
 					countarea = countarea + 1
-					areaUnits[countarea] = aid
+					areaUnits[countarea] = unitID
 				end
 			end
-			local count = 0
-			for ct, unitID in pairs(selUnits) do
-			for i, aid in ipairs(areaUnits) do
+			for ct=1,#selUnits do
+				local unitID = selUnits[ct]
+				for i=1,#areaUnits do
+					local areaUnitID = areaUnits[i]
 					local cmdOpts = {}
-					if count ~= 0 or options.shift then
+					if options.shift then
 						cmdOpts = {"shift"}
 					end
 					if i%#areaUnits == ct%#areaUnits or ct%#selUnits == i%#selUnits then
-							Spring.GiveOrderToUnit(unitID, CMD_LOAD_UNITS, {aid}, cmdOpts)
+						Spring.GiveOrderToUnit(unitID, CMD_LOAD_UNITS, {areaUnitID}, cmdOpts)
 					end
 
 				end
@@ -106,7 +107,7 @@ function widget:CommandNotify(id, params, options)
 
 		end
 	end
-	
+
 	
 end
 

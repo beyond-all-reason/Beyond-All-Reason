@@ -139,9 +139,10 @@ function refreshUnits()
     end
 
     local myUnits = spGetTeamUnits(spGetMyTeamID())
-    for _, unitID in ipairs(myUnits) do
+    for i=1,#myUnits do
+        local unitID = myUnits[i]
         local unitDefID = spGetUnitDefID(unitID)
-        local ud = UnitDefs[unitDefID];
+        local ud = UnitDefs[unitDefID]
 
         -- re-activate all builders
         if ud and ud.isBuilder and not ud.canManualFire and ud.canAssist and (coreCommando ~= nil and ud.id ~= coreCommando.id) then

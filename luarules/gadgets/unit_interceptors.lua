@@ -43,7 +43,7 @@ function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponI
             tx, ty, tz = unpack(targetID)
         end
 
-        return (ox - tx) ^ 2 + (oz - tz) ^ 2 < wd.coverageRange ^ 2
+        return (ox - tx)*(ox - tx) + (oz - tz)*(oz - tz) < wd.coverageRange*wd.coverageRange
     end
 end
 

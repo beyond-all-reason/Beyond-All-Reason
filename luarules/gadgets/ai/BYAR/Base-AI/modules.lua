@@ -1,0 +1,21 @@
+shard_include( "spothandler", subf)
+shard_include( "controlpointhandler", subf)
+shard_include( "unithandler", subf)
+--shard_include( "raiderhandler", subf)
+--shard_include( "artilleryhandler", subf)
+shard_include( "fighterhandler", subf)
+shard_include( "buildersquadshandler", subf)
+shard_include( "bomberhandler", subf)
+--shard_include( "skirmisherhandler", subf)
+shard_include( "geohandler", subf)
+-- shard_include( "placementhandler", subf)
+shard_include( "newplacementhandler", subf)
+shard_include( "requestshandler", subf)
+shard_include( "aimodehandler", subf)
+shard_include( "sleep", subf)
+shard_include( "scoutshandler", subf)
+shard_include( "triggerhandler", subf)
+shard_include( "mainsquadhandler", subf)
+
+--modules = { UnitHandler, RaiderHandler, SkirmisherHandler, ArtilleryHandler, BomberHandler, FighterHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, AiModeHandler, Sleep, ScoutsHandler, TriggerHandler, MainSquadHandler, }
+modules = { UnitHandler, BomberHandler, BuilderSquadsHandler, FighterHandler, ControlPointHandler, MetalSpotHandler, GeoSpotHandler, NewPlacementHandler, RequestsHandler, AiModeHandler, Sleep, ScoutsHandler, TriggerHandler, MainSquadHandler, }

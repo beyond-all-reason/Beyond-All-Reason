@@ -416,7 +416,6 @@ AimPrimary(heading, pitch)
 	}
 	start-script RestoreAfterDelay();
 	wpn1_lasthead = heading;
-	start-script RestoreAfterDelay();
 	return (1);
 }
 

@@ -27,7 +27,7 @@ return {
 		name = "Marauder",
 		nochasecategory = "VTOL",
 		objectname = "Units/ARMMAR.s3o",
-		script = "Units/ARMMAR.cob",
+		script = "Units/armmar_lus.lua",
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd-phib",
 		sightdistance = 455,
@@ -42,6 +42,8 @@ return {
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,
+			wpn1turretx = 90,
+			wpn1turrety = 150,
 		},
 		featuredefs = {
 			dead = {

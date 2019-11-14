@@ -4,6 +4,8 @@ local GetUnitPosition 	= Spring.GetUnitPosition
 local unitDefID = Spring.GetUnitDefID(unitID)
 local triggerRange = tonumber(UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.detonaterange) or 64
 
+local math_sqrt = math.sqrt
+
 -- Author: Doo
 -- Requires customParams.detonaterange in unitDefs or 64 elmos range will be used
 -- Possible enhancements: Use GetUnitsInCylinder(or sphere) of detonaterange and check for any restriction on target units
@@ -11,16 +13,19 @@ local triggerRange = tonumber(UnitDefs[unitDefID].customParams and UnitDefs[unit
 function GetClosestEnemyDistance()
 	targetID = Spring.GetUnitNearestEnemy(unitID, triggerRange)
 	if targetID then
-	local tx,ty,tz = Spring.GetUnitPosition(targetID)
-	local dis = distance(ux,uy,uz,tx,ty,tz)
-	return dis
+		local tx,ty,tz = Spring.GetUnitPosition(targetID)
+		local dis = distance(ux,uy,uz,tx,ty,tz)
+		return dis
 	else
-	return math.huge
+		return math.huge
 	end
 end
 
 function distance(x1,y1,z1,x2,y2,z2)
-	local dist = math.sqrt((x1-x2)^2 + (y1-y2)^2 + (z1-z2)^2)
+	local x = (x1-x2)
+	local y = (y1-y2)
+	local z = (z1-z2)
+	local dist = math_sqrt(x*x + y*y + z*z)
 	return dist
 end
 
@@ -52,7 +57,7 @@ function EnemyDetect()
 			StartThread(Detonate)
 			break
 		else
-		Sleep(1)
+			Sleep(1)
 		end
 	end
 end
@@ -63,5 +68,5 @@ function Detonate()
 end
 
 function script.Killed()
-return 3
+	return 3
 end

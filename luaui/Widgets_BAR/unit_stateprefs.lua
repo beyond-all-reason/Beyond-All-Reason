@@ -50,7 +50,8 @@ end
 
 function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
     local selectedUnits = Spring.GetSelectedUnits()
-    for ct, unitID in pairs(selectedUnits) do
+    for i=1,#selectedUnits do
+        local unitID = selectedUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitTeam = Spring.GetUnitTeam(unitID)
 		unitSet[UnitDefs[unitDefID].name] = unitSet[UnitDefs[unitDefID].name] or {}

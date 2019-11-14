@@ -158,7 +158,7 @@ return {
 				weapontype = "LaserCannon",
 				weaponvelocity = 3000,
 				customparams = {
-					light_skip = true,
+					--light_skip = true,
 				},
 				damage = {
 					commanders = 1025,

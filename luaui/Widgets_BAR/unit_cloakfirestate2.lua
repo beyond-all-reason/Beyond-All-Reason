@@ -32,7 +32,8 @@ local STATIC_STATE_TABLE = {0}
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-local myTeam
+local myTeam = Spring.GetMyTeamID()
+local myPlayerID = Spring.GetMyPlayerID()
 
 local exceptionList = { --add exempt units here
 	"armmine1",
@@ -45,7 +46,7 @@ local exceptionList = { --add exempt units here
 	"cormine4",
 	"corfmine3",
 	"corsktl",
-	"armpb",
+	--"armpb",
 	"armamb",
 	"armpacko",
 	"armsnipe",
@@ -61,33 +62,35 @@ end
 
 local cloakUnit = {} --stores the desired fire state when decloaked of each unitID
 
-function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams)
-if cmdID == 37382 and cmdParams[1] == 1 then
-	if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] then 
-		return
-	end
-	cloakUnit[unitID] = select(1,GetUnitStates(unitID,false)) --store last state
-	if cloakUnit[unitID] ~= 0 then
-		STATIC_STATE_TABLE[1] = 0
-		GiveOrderToUnit(unitID, CMD.FIRE_STATE, STATIC_STATE_TABLE, 0)
-	end
-elseif cmdID == 37382 and cmdParams[1] == 0 then
+function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
+	if not playerID == myPlayerID then return end
+	if cmdID == 37382 and cmdParams[1] == 1 then
+		if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] then
+			return
+		end
+		cloakUnit[unitID] = select(1,GetUnitStates(unitID,false)) --store last state
+		if cloakUnit[unitID] ~= 0 then
+			STATIC_STATE_TABLE[1] = 0
+			GiveOrderToUnit(unitID, CMD.FIRE_STATE, STATIC_STATE_TABLE, 0)
+		end
+	elseif cmdID == 37382 and cmdParams[1] == 0 then
 
-	if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] or (not cloakUnit[unitID]) then 
-		return
+		if (not enabled) or (teamID ~= myTeam) or exceptionArray[unitDefID] or (not cloakUnit[unitID]) then
+			return
+		end
+		if select(1,GetUnitStates(unitID,false)) == 0 then
+			local targetState = cloakUnit[unitID]
+			STATIC_STATE_TABLE[1] = targetState
+			GiveOrderToUnit(unitID, CMD.FIRE_STATE, STATIC_STATE_TABLE, 0) --revert to last state
+			--Spring.Echo("Unit compromised - weapons free!")
+		end
+		cloakUnit[unitID] = nil
 	end
-	if select(1,GetUnitStates(unitID,false)) == 0 then
-		local targetState = cloakUnit[unitID]
-		STATIC_STATE_TABLE[1] = targetState
-		GiveOrderToUnit(unitID, CMD.FIRE_STATE, STATIC_STATE_TABLE, 0) --revert to last state
-		--Spring.Echo("Unit compromised - weapons free!")
-	end
-	cloakUnit[unitID] = nil
-end
 end
 
 function widget:PlayerChanged()
 	myTeam = Spring.GetMyTeamID()
+	myPlayerID = Spring.GetMyPlayerID()
 	CheckEnable()
 end
 

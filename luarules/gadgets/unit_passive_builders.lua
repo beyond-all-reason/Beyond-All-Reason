@@ -158,7 +158,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 end
 
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
     -- track which cons are set to passive
     if cmdID == CMD_PASSIVE and canPassive[unitDefID] then
         local cmdIdx = spFindUnitCmdDesc(unitID, CMD_PASSIVE)

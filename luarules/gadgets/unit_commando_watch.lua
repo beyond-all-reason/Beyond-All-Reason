@@ -55,7 +55,8 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
     local e,_,_,i = Spring.GetTeamResources(attackerTeam, "energy")
     local cQueue = Spring.GetCommandQueue(attackerID,20)
     local active = false
-    for _,order in ipairs(cQueue) do
+    for i=1,#cQueue do
+      local order = cQueue[i]
       if (order.id == CMD.MOVE) or (order.id < 0) then 
         active = true
         break

@@ -35,7 +35,7 @@ local unitstodraw = {}
 local transID = nil
 
 local validTrans = {}
-
+local math_sqrt = math.sqrt
 
 local function DrawCircleLine(innersize, outersize)
 	gl.BeginEnd(GL.QUADS, function()
@@ -102,15 +102,16 @@ function widget:GameFrame(n)
         	transID = selectedUnits[1]
 		end
         elseif selectedUnitsCount > 1 then
-			for _,unitID in pairs(selectedUnits) do
-
+			for i=1,#selectedUnits do
+				local unitID = selectedUnits[i]
 				local unitdefID = Spring.GetUnitDefID(unitID)
 				if validTrans[unitdefID] then
 				   transID = unitID
 				   unitcount = unitcount + 1
 				   if unitcount > 1 then
 					   transID = nil
-					   return end
+					   return
+				   end
 				end
 			end
         else
@@ -200,7 +201,7 @@ function widget:DrawWorldPreUnit()
         local pos = unitstodraw[unitID].pos
         local xDiff = cursorGround[1] - pos[1]
         local zDiff = cursorGround[3] - pos[3]
-        alpha = 1 - math.sqrt(xDiff*xDiff + zDiff*zDiff) / OPTIONS[currentOption].alphaFalloffdistance
+        alpha = 1 - math_sqrt(xDiff*xDiff + zDiff*zDiff) / OPTIONS[currentOption].alphaFalloffdistance
         if alpha > OPTIONS[currentOption].maxAlpha then alpha = OPTIONS[currentOption].maxAlpha end
         if alpha > 0.04 then
 			local size = unitstodraw[unitID].size

@@ -54,6 +54,7 @@ local GetTeamUnits = Spring.GetTeamUnits
 local GetSelectedUnits = Spring.GetSelectedUnits
 local GetUnitIsTransporting = Spring.GetUnitIsTransporting
 local GetGroundHeight = Spring.GetGroundHeight
+local math_sqrt = math.sqrt
 
 local function IgBuilderChanged()
   CONST_IGNORE_BUILDERS = options.ignoreBuilders.value
@@ -298,8 +299,9 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	if (CONST_IGNORE_GROUNDSCOUTS and ud.modCategories.groundscout) then return end
     if (IsTransportable(unitDefID) and not userOrders) then 
 --      Echo ("new unit from factory "..unitID)
-
-      for _,v in ipairs(GetCommandQueue(unitID,20)) do
+      local commands = GetCommandQueue(unitID,20)
+      for i=1,#commands do
+        local v = commands[i]
         if (IsEmbark(v)) then 
           priorityUnits[unitID] = unitDefID
           return
@@ -317,14 +319,16 @@ function widget:CommandNotify(id, params, options)
   local sel = nil
   if (not options.shift) then
     sel = GetSelectedUnits()
-    for _, uid in ipairs(sel) do
+    for i=1,#sel do
+      local uid = sel[i]
       widget:UnitDestroyed(uid, GetUnitDefID(uid), myTeamID)
     end
   end
 
   if (id == CMD.WAIT and options.alt) then
     if (sel == nil) then sel = GetSelectedUnits() end
-    for _, uid in ipairs(sel) do
+    for i=1,#sel do
+      local uid = sel[i]
       priorityUnits[uid] = GetUnitDefID(uid)
     end
   end
@@ -407,7 +411,8 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
   DeleteToPickTran(transportID)
   hackIdle[transportID] = true
   local cnt = 0
-  for k, v in ipairs(queue) do
+  for i=1,#queue do
+    local v = queue[i]
     if (not v.options.internal) then 
       if ((v.id == CMD.MOVE or (v.id==CMD.WAIT)) and not ender) then
         cnt = cnt +1
@@ -578,7 +583,7 @@ function Dist(x,y,z, x2, y2, z2)
   local xd = x2-x
   local yd = y2-y
   local zd = z2-z
-  return math.sqrt(xd*xd + yd*yd + zd*zd)
+  return math_sqrt(xd*xd + yd*yd + zd*zd)
 end
 
 
@@ -594,7 +599,8 @@ function GetPathLength(unitID)
   local d = 0
   local queue = GetCommandQueue(unitID,20);
   if (queue == nil) then return 0 end
-  for k, v in ipairs(queue) do
+  for i=1,#queue do
+    local v = queue[i]
     if (v.id == CMD.MOVE or v.id==CMD.WAIT) then
       if (v.id == CMD.MOVE) then 
         d = d + Dist(px,py, pz, v.params[1], v.params[2], v.params[3])

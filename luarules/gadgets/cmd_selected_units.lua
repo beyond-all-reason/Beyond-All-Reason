@@ -29,7 +29,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 	local function randomString(length)
 		if not length or length <= 0 then return '' end
-		--math.randomseed(os.clock()^5)
 		return randomString(length - 1) .. charset[math.random(1, #charset)]
 	end
 
@@ -164,7 +163,8 @@ else
 		
 		local partAdd = ""
 		local addCount = 0
-		for i, unitId in pairs(units) do
+		for i=1,#units do
+			local unitId = units[i]
 			--check if unit is new this time
 			if not myLastSelectedUnits[unitId] then
 				partAdd = partAdd .. PackU16(unitId)

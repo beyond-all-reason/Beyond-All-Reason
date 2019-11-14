@@ -15,7 +15,11 @@ local highQuality = true		-- doesnt seem to do anything
 local autofocus = true
 local mousefocus = not autofocus
 local focusDepth = 300
-local fStop = 3
+local fStop = 2
+
+local autofocusInFocusMultiplier = fStop/2	-- Autofocus Minimum In-Focus region size
+local autofocusPower = 6				-- Autofocus Power (lower = blurrier at range)
+local autofocusFocalLength = 0.03		-- Autofocus Focal Length
 
 -----------------------------------------------------------------
 -- Engine Functions
@@ -102,6 +106,9 @@ local projectionMatLoc = nil
 local resolutionLoc = nil
 local distanceLimitsLoc = nil
 local autofocusLoc = nil
+local autofocusFudgeFactorLoc = nil
+local autofocusPowerLoc = nil
+local autofocusFocalLengthLoc = nil
 local mousefocusLoc = nil
 local focusDepthLoc = nil
 local mouseDepthCoordLoc = nil
@@ -264,7 +271,7 @@ function init()
 			"#define LOW_QUALITY 0 \n",
 			"#define HIGH_QUALITY 1 \n"
 		},
-		fragment = VFS.LoadFile("LuaUI/Widgets_BAR/Shaders/dof.fs", VFS.ZIP),
+		fragment = VFS.LoadFile("LuaUI\\Widgets_BAR\\Shaders\\dof.fs", VFS.RAW_FIRST),
 
 		uniformInt = {origTex = 0, blurTex0 = 1, blurTex1 = 2, blurTex2 = 3, blurTex3 = 4},
 	})
@@ -281,6 +288,9 @@ function init()
 	resolutionLoc = gl.GetUniformLocation(dofShader, "resolution")
 	distanceLimitsLoc = gl.GetUniformLocation(dofShader, "distanceLimits")
 	autofocusLoc = gl.GetUniformLocation(dofShader, "autofocus")
+	autofocusFudgeFactorLoc = gl.GetUniformLocation(dofShader, "autofocusFudgeFactor")
+	autofocusPowerLoc = gl.GetUniformLocation(dofShader, "autofocusPower")
+	autofocusFocalLengthLoc = gl.GetUniformLocation(dofShader, "autofocusFocalLength")
 	mousefocusLoc = gl.GetUniformLocation(dofShader, "mousefocus")
 	focusDepthLoc = gl.GetUniformLocation(dofShader, "manualFocusDepth")
 	mouseDepthCoordLoc = gl.GetUniformLocation(dofShader, "mouseDepthCoord")
@@ -305,6 +315,7 @@ function widget:Initialize()
 	end
 	WG['dof'].setFstop = function(value)
 		fStop = value
+		autofocusInFocusMultiplier = fStop/2
 	end
 	WG['dof'].getHighQuality = function()
 		return highQuality
@@ -439,6 +450,9 @@ function widget:DrawScreenEffects()
 
 		glUniformInt(autofocusLoc, autofocus and 1 or 0)
 		glUniformInt(mousefocusLoc, mousefocus and 1 or 0)
+		glUniform(autofocusFudgeFactorLoc, autofocusInFocusMultiplier)
+		glUniform(autofocusPowerLoc, autofocusPower)
+		glUniform(autofocusFocalLengthLoc, autofocusFocalLength)
 		glUniform(mouseDepthCoordLoc, mx/vsx, my/vsy)
 		glUniform(focusDepthLoc, focusDepth / maxBlurDistance)
 		glUniform(fStopLoc, fStop)
@@ -462,6 +476,9 @@ function widget:GetConfigData()
 		autofocus = autofocus,
 		focusDepth = focusDepth,
 		fStop = fStop,
+		autofocusInFocusMultiplier = autofocusInFocusMultiplier,
+		autofocusPower = autofocusPower,
+		autofocusFocalLength = autofocusFocalLength,
 	}
 end
 
@@ -472,5 +489,12 @@ function widget:SetConfigData(data)
 		mousefocus = not autofocus
 		focusDepth = data.focusDepth
 		fStop = data.fStop
+		autofocusInFocusMultiplier = fStop/2
+
+		--if data.autofocusInFocusMultiplier then
+		--	autofocusInFocusMultiplier = data.autofocusInFocusMultiplier
+		--	autofocusPower = data.autofocusPower
+		--	autofocusFocalLength = data.autofocusFocalLength
+		--end
 	end
 end

@@ -3,7 +3,7 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustc, backwing, cwing, cpaddel, larm1, larm2, larm3, lhand, rarm1, rarm2, rarm3, rhand;
+piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustm, backwing, centerwing, centerpadd, rhookbase, rhookext1, rhookext2, rhook, lhookbase, lhookext1, lhookext2, lhook;
 
 static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
 
@@ -19,16 +19,16 @@ activatescr()   //transport start  - LOAD - animation of claws
 {
 	if( TRUE ) //
 	{
-		move larm3 to y-axis <-5> now;
-		move rarm3 to y-axis <-5> now;
-		turn larm2 to z-axis <-45> speed <90>;
-		turn rarm2 to z-axis <45> speed <90>;
+		//move larm3 to y-axis <-5> now;
+		//move rarm3 to y-axis <-5> now;
+		//turn larm2 to z-axis <-45> speed <90>;
+		//turn rarm2 to z-axis <45> speed <90>;
 
 
 		sleep 500;  //close
 
-		turn larm2 to z-axis <0> speed <90>;
-		turn rarm2 to z-axis <0> speed <90>;
+		//turn larm2 to z-axis <0> speed <90>;
+		//turn rarm2 to z-axis <0> speed <90>;
 
 	}
 	sleep 500;
@@ -38,11 +38,11 @@ deactivatescr()  //transport end - UNLOAD -
 {
 	if( TRUE )
 	{
-		turn larm2 to z-axis <-45> speed <90>;
-		turn rarm2 to z-axis <45> speed <90>;
+		//turn larm2 to z-axis <-45> speed <90>;
+		//turn rarm2 to z-axis <45> speed <90>;
 		sleep 500;
-		turn larm2 to z-axis <0> speed <90>;
-		turn rarm2 to z-axis <0> speed <90>;
+		//turn larm2 to z-axis <0> speed <90>;
+		//turn rarm2 to z-axis <0> speed <90>;
 	}
 	sleep 500;
 }
@@ -117,7 +117,7 @@ Create()
 {
 	hide thrustl;
 	hide thrustr;
-	hide thrustc;
+	hide thrustm;
 	hide link;
 	unitviewer = FALSE;
 	Static_Var_1 = 0;
@@ -160,8 +160,8 @@ BeginTransport(Func_Var_1)
 {
 	move link to y-axis [0.000000] - Func_Var_1 now;
 	start-script RequestState(0);
-	move larm3 to y-axis [-3] now;
-	move rarm3 to y-axis [-3] now;
+	//move larm3 to y-axis [-3] now;
+	//move rarm3 to y-axis [-3] now;
 
 }
 
@@ -234,7 +234,7 @@ Killed(severity, corpsetype)
 		explode jetl type FALL | BITMAP5 | NOHEATCLOUD;
 		explode jetr type FALL | BITMAP1 | NOHEATCLOUD;
 		explode backwing type FALL | BITMAP2 | NOHEATCLOUD;
-		explode larm1 type FALL | BITMAP3 | NOHEATCLOUD;
+		explode rhookext1 type FALL | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	if( severity <= 99 )
@@ -245,7 +245,7 @@ Killed(severity, corpsetype)
 		explode jetl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 		explode jetr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 		explode backwing type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-		explode larm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+		explode rhookext1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 		return (corpsetype);
 	}
 	corpsetype = 3;
@@ -254,6 +254,6 @@ Killed(severity, corpsetype)
 	explode jetl type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP5 | NOHEATCLOUD;
 	explode jetr type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP1 | NOHEATCLOUD;
 	explode backwing type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP2 | NOHEATCLOUD;
-	explode larm1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
+	explode rhookext1 type FALL | SMOKE | FIRE | EXPLODE_ON_HIT | BITMAP3 | NOHEATCLOUD;
 	return corpsetype;
 }

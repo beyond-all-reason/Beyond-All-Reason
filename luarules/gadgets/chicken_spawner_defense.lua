@@ -422,7 +422,8 @@ end
 
 local function KillAllChicken()
   local chickenUnits = GetTeamUnits(chickenTeamID)
-  for _, unitID in pairs(chickenUnits) do
+  for i=1,#chickenUnits do
+    local unitID = chickenUnits[i]
     if disabledUnits[unitID] then
       DestroyUnit(unitID, false, true)
     else
@@ -435,7 +436,8 @@ end
 local function KillAllComputerUnits()
   for teamID in pairs(computerTeams) do
     local teamUnits = GetTeamUnits(teamID)
-    for _, unitID in pairs(teamUnits) do
+    for i=1,#teamUnits do
+      local unitID = teamUnits[i]
       if disabledUnits[unitID] then
         DestroyUnit(unitID, false, true)
       else
@@ -1239,7 +1241,8 @@ local function updateSpawnQueen()
 		COWARD[UnitDefNames["chicken_dodo1"].id] = { distance = 1100, chance = 0.33 }
 		
 		local chickenUnits = GetTeamUnits(chickenTeamID)
-		for _, unitID in pairs(chickenUnits) do
+        for i=1,#chickenUnits do
+            local unitID = chickenUnits[i]
 			if (GetUnitDefID(unitID) == OVERSEER_ID) then
 				deathQueue[unitID] = { selfd = false, reclaimed = false }
 			end

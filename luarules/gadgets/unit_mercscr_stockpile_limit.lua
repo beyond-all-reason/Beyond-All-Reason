@@ -23,7 +23,7 @@ local CMD_STOCKPILE = CMD.STOCKPILE
 local CMD_INSERT = CMD.INSERT
 local SpGiveOrderToUnit = Spring.GiveOrderToUnit
 
-function gadget:AllowCommand(UnitID, UnitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua) -- Can't use StockPileChanged because that doesn't get called when the stockpile queue changes
 	if UnitID and (UnitDefID == mercDefID or UnitDefID == scrDefID) then
 		if cmdID == CMD_STOCKPILE or (cmdID == CMD_INSERT and cmdParams[2]==CMD_STOCKPILE) then
 			local pile,pileQ = Spring.GetUnitStockpile(UnitID)

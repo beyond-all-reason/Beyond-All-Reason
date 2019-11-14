@@ -208,7 +208,7 @@ function gadget:AllowCommand_GetWantedUnitDefID()
 	return true
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD_WANT_CLOAK then
 		if cloakUnitDefID[unitDefID] then
 			SetWantedCloaked(unitID,cmdParams[1])

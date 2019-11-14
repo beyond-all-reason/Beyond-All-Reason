@@ -21,6 +21,9 @@ local backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscree
 if not VFS.FileExists(backgroundTexture) then	-- because encountering white loadscreens once in a while (this is not a real fix ofc)
 	backgroundTexture = loadscreens[1+(math.floor((1000*os.clock())%#loadscreens))] -- hacky hotfix for http://springrts.com/mantis/view.php?id=4572
 end
+if not backgroundTexture then
+	backgroundTexture = loadscreens[1]
+end
 local aspectRatio
 
 function addon.DrawLoadScreen()
@@ -49,9 +52,16 @@ function addon.DrawLoadScreen()
     end
 
 	-- background
+	local scale = 1
+	local ssx,ssy,spx,spy = Spring.GetScreenGeometry()
+	if ssx / vsx < 1 then	-- adjust when window is larger than the screen resolution
+		scale = ssx / vsx
+		xDiv = xDiv * scale
+		yDiv = yDiv * scale
+	end
 	gl.Color(1,1,1,1)
 	gl.Texture(backgroundTexture)
-	gl.TexRect(0+xDiv,0+yDiv,1-xDiv,1-yDiv)
+	gl.TexRect(0+xDiv,(1-scale)+yDiv,scale-xDiv,1-yDiv)
 	gl.Texture(false)
 end
 

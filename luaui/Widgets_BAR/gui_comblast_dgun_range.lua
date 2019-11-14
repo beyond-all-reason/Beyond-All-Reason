@@ -201,7 +201,8 @@ function checkComs()
 
     local visibleUnits = spGetAllUnits()
     if visibleUnits ~= nil then
-        for _, unitID in ipairs(visibleUnits) do
+		for i=1,#visibleUnits do
+			local unitID    = visibleUnits[i]
             local unitDefID = spGetUnitDefID(unitID)
             if unitDefID and UnitDefs[unitDefID].customParams.iscommander == "1" then
 				addCom(unitID)
@@ -243,16 +244,18 @@ function widget:GameFrame(n)
 
 				if nearestEnemyUnitID then
 					local ex,ey,ez = spGetUnitPosition(nearestEnemyUnitID)
-					local distance = diag(x-ex, y-ey, z-ez)
-					if distance < blastRadius + showOnEnemyDistance then
-						draw = true
-						opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
-						if opacityMultiplier > 1 then
-							opacityMultiplier = 1
-						elseif opacityMultiplier < 0 then
-							opacityMultiplier = 0
+					if ex then
+						local distance = diag(x-ex, y-ey, z-ez)
+						if distance < blastRadius + showOnEnemyDistance then
+							draw = true
+							opacityMultiplier = 1 - (distance - showOnEnemyDistance) / fadeInDistance
+							if opacityMultiplier > 1 then
+								opacityMultiplier = 1
+							elseif opacityMultiplier < 0 then
+								opacityMultiplier = 0
+							end
+							oldOpacityMultiplier = opacityMultiplier
 						end
-						oldOpacityMultiplier = opacityMultiplier
 					end
 				else
 					opacityMultiplier = 0

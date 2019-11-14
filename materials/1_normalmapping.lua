@@ -9,11 +9,11 @@ local function SunChanged(curShaderObj)
 	curShaderObj:SetUniformAlways("sunSpecular", gl.GetSun("specular" ,"unit"))
 
 	curShaderObj:SetUniformFloatArrayAlways("pbrParams", {
-		Spring.GetConfigFloat("tonemapA", 15.0),
-		Spring.GetConfigFloat("tonemapB", 0.3),
-		Spring.GetConfigFloat("tonemapC", 15.0),
-		Spring.GetConfigFloat("tonemapD", 0.5),
-		Spring.GetConfigFloat("tonemapE", 1.5),
+		Spring.GetConfigFloat("tonemapA", 0.0),
+		Spring.GetConfigFloat("tonemapB", 1.0),
+		Spring.GetConfigFloat("tonemapC", 0.0),
+		Spring.GetConfigFloat("tonemapD", 0.0),
+		Spring.GetConfigFloat("tonemapE", 1.0),
 		Spring.GetConfigFloat("envAmbient", 0.5),
 		Spring.GetConfigFloat("unitSunMult", 1.5),
 		Spring.GetConfigFloat("unitExposureMult", 1.0),
@@ -37,6 +37,10 @@ local matTemplate = {
 
 		"#define SPECULAR_AO",
 
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define FAKE_ENV_HDR 0.4",
+
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
@@ -44,7 +48,7 @@ local matTemplate = {
 		"#define USE_ENVIRONMENT_SPECULAR",
 
 		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) CustomTM(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 	},
 	deferredDefinitions = {
 		"#define use_normalmapping",
@@ -59,6 +63,10 @@ local matTemplate = {
 
 		"#define SPECULAR_AO",
 
+		"#define ROUGHNESS_AA 1.0",
+
+		"#define FAKE_ENV_HDR 0.4",
+
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
@@ -66,7 +74,7 @@ local matTemplate = {
 		"#define USE_ENVIRONMENT_SPECULAR",
 
 		--"#define GAMMA 2.2",
-		--"#define TONEMAP(c) CustomTM(c)",
+		"#define TONEMAP(c) CustomTM(c)",
 
 		"#define MAT_IDX 1",
 	},

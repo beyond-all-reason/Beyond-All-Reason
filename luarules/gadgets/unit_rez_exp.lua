@@ -45,7 +45,7 @@ end
 
 local function sqDist(posA,posB)
 	--we only consider 2d distance because ships gets rezzed on top of water surface instead of sea floor
-	return (posA[1]-posB[1])^2+(posA[3]-posB[3])^2 --+(posA[2]-posB[2])^2
+	return (posA[1]-posB[1])*(posA[1]-posB[1]) + (posA[3]-posB[3])*(posA[3]-posB[3]) -- + (posA[2]-posB[2])*(posA[2]-posB[2])
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)

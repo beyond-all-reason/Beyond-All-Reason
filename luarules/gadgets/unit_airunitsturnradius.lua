@@ -95,7 +95,7 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:AllowCommand(unitID, _, _, _, cmdID)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 		if Bombers[unitID] and not Spring.GetUnitMoveTypeData(unitID).aircraftState == "crashing" then
 			if cmdID == CMD.ATTACK then
 				local curMoveCtrl = Spring.MoveCtrl.IsEnabled(unitID)

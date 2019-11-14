@@ -77,7 +77,7 @@ function gadget:UnitFinished(unitID, unitDefID, unitTeam)
   end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
   if AIRPLANT[unitDefID] then
     if (cmdID == 34569) then 
       local cmdDescID = FindUnitCmdDesc(unitID, 34569)

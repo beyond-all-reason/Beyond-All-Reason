@@ -28,6 +28,7 @@ local mapwidth = math.max(Game.mapSizeX, Game.mapSizeZ)
 local celltoscan = celltoscan or {}
 local defidpersizetype = defidpersizetype or {}
 local cells = cells or {}
+local math_sqrt = math.sqrt
 
 GG.AiHelpers.NewPlacementHandler.GetPosFromID = function(id)
 	local z = id%mapwidth
@@ -185,12 +186,13 @@ GG.AiHelpers.TargetsOfInterest = {}
 local TargetsOfInterest = {}
 local function IsAntiNukeCovered(unitID, attackerTeamID)
 	local x,y,z = Spring.GetUnitPosition(unitID)
-	if not x and z then
+	if not x then
 		TargetsOfInterest[attackerTeamID][unitID] = nil
 		return true
 	end
 	local unitsNear = Spring.GetUnitsInCylinder(x,z,2000)
-	for ct, id in pairs(unitsNear) do
+	for ct=1,#unitsNear do
+		local id = unitsNear[ct]
 		if (UnitDefs[Spring.GetUnitDefID(id)].name == "armamd" or UnitDefs[Spring.GetUnitDefID(id)].name == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
 			if SeenBuildings[attackerTeamID][unitID] then
 				return true
@@ -295,14 +297,14 @@ end
 	function gadget:Distance(x1,z1, x2,z2)
 		local vectx = x2 - x1
 		local vectz = z2 - z1
-		local dis = math.sqrt(vectx^2+vectz^2)
+		local dis = math_sqrt(vectx*vectx + vectz*vectz)
 		return dis
 	end
 	
 	function gadget:Initialize()
 		if enabled ~= true then return end
 		for unitDefID, defs in pairs(UnitDefs) do
-			if defs.isBuilding or string.find(defs.name, "nanotc") then
+			if defs.isBuilding or isNanoTC[unitDefID] then
 				local cellsize = math.max(defs.xsize, defs.zsize) * 8
 				local buildtype = (defs.maxWaterDepth >= 0) and "ground" or "water"
 				if not cells[cellsize] then
@@ -344,7 +346,7 @@ end
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 		if enabled ~= true then return end
 		local defs = UnitDefs[unitDefID]
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or isNanoTC[unitDefID] then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
 				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, allyTeam)) then
 					TargetsOfInterest[id] = TargetsOfInterest[id] or {}
@@ -359,7 +361,7 @@ end
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 		if enabled ~= true then return end
 		local defs = UnitDefs[unitDefID]
-		if defs.isBuilding or string.find(defs.name, "nanotc") then
+		if defs.isBuilding or isNanoTC[unitDefID] then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
 				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, unitTeam)) then
 					TargetsOfInterest[id] = TargetsOfInterest[id] or {}

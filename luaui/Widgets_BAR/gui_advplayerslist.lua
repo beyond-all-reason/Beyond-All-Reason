@@ -3218,8 +3218,8 @@ function widget:MousePress(x,y,button) --super ugly code here
 											local suc = Spring.GetSelectedUnitsCount()
 											Spring_SendCommands("say a: I gave "..suc.." units to "..clickedPlayer.name..".")
 											local su = Spring.GetSelectedUnits()
-											for _,uid in ipairs(su) do
-												local ux,uy,uz = Spring.GetUnitPosition(uid)
+											for i=1,#su do
+												local ux,uy,uz = Spring.GetUnitPosition(su[i])
 												Spring.MarkerAddPoint(ux,uy,uz)
 											end
 											Spring_ShareResources(clickedPlayer.team, "units")                                                            --

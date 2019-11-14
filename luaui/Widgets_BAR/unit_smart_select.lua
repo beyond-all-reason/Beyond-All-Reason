@@ -166,8 +166,8 @@ end
 local selectedUnits = Spring.GetSelectedUnits()
 function widget:SelectionChanged(sel)
 	local equalSelection = true
-	for k,v in pairs(sel) do
-		if selectedUnits[k] ~= v then
+	for i=1,#sel do
+		if selectedUnits[i] ~= sel[i] then
 			equalSelection = false
 			break
 		end

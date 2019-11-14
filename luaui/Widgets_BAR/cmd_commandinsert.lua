@@ -13,6 +13,8 @@ function widget:GetInfo()
   }
 end
 
+local math_sqrt = math.sqrt
+
 function widget:GameStart()
   widget:PlayerChanged()
 end
@@ -69,7 +71,7 @@ end
 --]]
 
 local function GetUnitOrFeaturePosition(id)
-	if id<=Game.maxUnits then
+	if id <= Game.maxUnits then
 		return Spring.GetUnitPosition(id)
 	else
 		return Spring.GetFeaturePosition(id-Game.maxUnits)
@@ -77,12 +79,12 @@ local function GetUnitOrFeaturePosition(id)
 end
 
 local function GetCommandPos(command)	--- get the command position
-  if command.id<0 or command.id==CMD.MOVE or command.id==CMD.REPAIR or command.id==CMD.RECLAIM or 
-  command.id==CMD.RESURRECT or command.id==CMD.DGUN or command.id==CMD.GUARD or 
-  command.id==CMD.FIGHT or command.id==CMD.ATTACK then
-    if table.getn(command.params)>=3 then
+  if command.id < 0 or command.id == CMD.MOVE or command.id == CMD.REPAIR or command.id == CMD.RECLAIM or
+  command.id == CMD.RESURRECT or command.id == CMD.DGUN or command.id == CMD.GUARD or
+  command.id == CMD.FIGHT or command.id == CMD.ATTACK then
+    if table.getn(command.params) >= 3 then
 		  return command.params[1], command.params[2], command.params[3]			
-	  elseif table.getn(command.params)>=1 then
+	  elseif table.getn(command.params) >= 1 then
 		  return GetUnitOrFeaturePosition(command.params[1])
 	  end	
 	end
@@ -93,7 +95,7 @@ function widget:CommandNotify(id, params, options)
   local _,_,meta,_ = Spring.GetModKeyState()
   if (meta) then
     local opt = 0
-    local insertfront=false
+    local insertfront = false
     if options.alt then opt = opt + CMD.OPT_ALT end
     if options.ctrl then opt = opt + CMD.OPT_CTRL end    
     if options.right then opt = opt + CMD.OPT_RIGHT end
@@ -105,42 +107,44 @@ function widget:CommandNotify(id, params, options)
     end
     
     -- Spring.GiveOrder(CMD.INSERT,{0,id,opt,unpack(params)},{"alt"})
-    local my_command={["id"]=id,["params"]=params,["options"]=options}
-    local cx,cy,cz=GetCommandPos(my_command)
+    local my_command = {["id"]=id, ["params"]=params, ["options"]=options}
+    local cx,cy,cz = GetCommandPos(my_command)
     if cx < -1 then
       return false
     end
-    
-    local units=Spring.GetSelectedUnits()
-    for i, unit_id in ipairs(units) do
-      local commands=Spring.GetCommandQueue(unit_id,100)
-      local px,py,pz=Spring.GetUnitPosition(unit_id)
-      local min_dlen=1000000
-      local insert_tag=0
-      local insert_pos=0
-      for i, command in ipairs(commands) do
+
+    local units = Spring.GetSelectedUnits()
+    for i=1,#units do
+      local unit_id = units[i]
+      local commands = Spring.GetCommandQueue(unit_id,100)
+      local px,py,pz = Spring.GetUnitPosition(unit_id)
+      local min_dlen = 1000000
+      local insert_tag = 0
+      local insert_pos = 0
+      for i=1,#commands do
+        local command = commands[i]
         --Spring.Echo("cmd:"..table.tostring(command))
-        local px2,py2,pz2=GetCommandPos(command)
+        local px2,py2,pz2 = GetCommandPos(command)
         if px2>-1 then
-          local dlen=math.sqrt(((px2-cx)^2)+((py2-cy)^2)+((pz2-cz)^2))+math.sqrt(((px-cx)^2)+((py-cy)^2)+((pz-cz)^2)) - math.sqrt((((px2-px)^2)+((py2-py)^2)+((pz2-pz)^2)))
+          local dlen = math_sqrt(((px2-cx)*(px2-cx)) + ((py2-cy)*(py2-cy)) + ((pz2-cz)*(pz2-cz))) + math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(pz-cz))) - math_sqrt((((px2-px)*(px2-px)) + ((py2-py)*(py2-py)) + ((py2-py)*(py2-py))))
           --Spring.Echo("dlen "..dlen)
-          if dlen<min_dlen then
-            min_dlen=dlen
-            insert_tag=command.tag
-            insert_pos=i
+          if dlen < min_dlen then
+            min_dlen = dlen
+            insert_tag = command.tag
+            insert_pos = i
           end
-          px,py,pz=px2,py2,pz2
+          px,py,pz = px2,py2,pz2
         end   
       end
       -- check for insert at end of queue if its shortest walk.
-      local dlen=math.sqrt(((px-cx)^2)+((py-cy)^2)+((pz-cz)^2))          
-      if dlen<min_dlen then
+      local dlen = math_sqrt(((px-cx)*(px-cx)) + ((py-cy)*(py-cy)) + ((pz-cz)*(py-cy)))
+      if dlen < min_dlen then
         --options.meta=nil
         --options.shift=true
         --Spring.GiveOrderToUnit(unit_id,id,params,options)
-        Spring.GiveOrderToUnit(unit_id,id,params,{"shift"})
+        Spring.GiveOrderToUnit(unit_id, id, params, {"shift"})
       else   
-        Spring.GiveOrderToUnit(unit_id,CMD.INSERT,{insert_pos-1,id,opt,unpack(params)},{"alt"})
+        Spring.GiveOrderToUnit(unit_id, CMD.INSERT, {insert_pos-1, id, opt, unpack(params)}, {"alt"})
       end
     end
     return true

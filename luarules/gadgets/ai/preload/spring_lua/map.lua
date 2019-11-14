@@ -64,8 +64,8 @@ function map:GetMapFeatures()
 	local fv = Spring.GetAllFeatures()
 	if not fv then return {} end
 	local f = {}
-	for _, fID in pairs(fv) do
-		f[#f+1] = Shard:shardify_feature(fID)
+	for i=1,#fv do
+		f[#f+1] = Shard:shardify_feature(fv[i])
 	end
 	return f
 end
@@ -74,8 +74,8 @@ function map:GetMapFeaturesAt(position,radius)
 	local fv = Spring.GetFeaturesInSphere(position.x, position.y, position.z, radius)
 	if not fv then return {} end
 	local f = {}
-	for _, fID in pairs(fv) do
-		f[#f+1] = Shard:shardify_feature(fID)
+	for i=1,#fv do
+		f[#f+1] = Shard:shardify_feature(fv[i])
 	end
 	return f
 end

@@ -221,7 +221,7 @@ end
 
 function ShardUnit:Reclaim( thing )--IMapFeature* mapFeature)
 	if not thing then return end
-	local gid = self:Unit_to_id( unit )
+	local gid = self:Unit_to_id( thing )
 	if thing.className == "feature" then
 		Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { gid + Game.maxUnits }, {} )
 	elseif thing.className == "unit" then
@@ -238,7 +238,7 @@ end
 
 function ShardUnit:Ressurect( thing )--IMapFeature* mapFeature)
 	if not thing then return end
-	local gid = self:Unit_to_id( unit )
+	local gid = self:Unit_to_id( thing )
 	if thing.className == "feature" then
 		Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid + Game.maxUnits }, {} )
 	elseif thing.className == "unit" then

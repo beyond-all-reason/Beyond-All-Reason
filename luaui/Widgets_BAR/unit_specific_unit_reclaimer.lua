@@ -83,14 +83,15 @@ function widget:CommandNotify(id, params, options)
 
 			local selUnits = false
 			local count = 0
-			for i, aid in ipairs(areaUnits) do
-				if (targetEnemy and spGetUnitAllyTeam(aid) ~= allyTeam) or (options.alt and not targetEnemy and spGetUnitDefID(aid) == unitDef ) or  (options.ctrl and not targetEnemy) then
+			for i=1,#areaUnits do
+				local unitID    = areaUnits[i]
+				if (targetEnemy and spGetUnitAllyTeam(unitID) ~= allyTeam) or (options.alt and not targetEnemy and spGetUnitDefID(unitID) == unitDef ) or  (options.ctrl and not targetEnemy) then
 					local cmdOpts = {}
 					if count ~= 0 or options.shift then
 						cmdOpts = {"shift"}
 					end
 					if not selUnits then selUnits = spGetSelectedUnits() end
-					spGiveOrderToUnitArray( selUnits, CMD_RECLAIM, {aid}, cmdOpts)
+					spGiveOrderToUnitArray( selUnits, CMD_RECLAIM, {unitID}, cmdOpts)
 					count = count + 1
 				end
 			end

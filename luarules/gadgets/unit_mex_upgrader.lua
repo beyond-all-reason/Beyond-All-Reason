@@ -13,7 +13,9 @@ end
 local ignoreWeapons = false --if the only weapon is a shield it is ignored
 local ignoreStealth = false 
 
-local remove = table.remove 
+local remove = table.remove
+
+local math_sqrt = math.sqrt
 
 local GetTeamUnits = Spring.GetTeamUnits 
 local GetUnitDefID = Spring.GetUnitDefID 
@@ -156,11 +158,13 @@ end
 
 
 function registerUnits() 
-  local teams = Spring.GetTeamList() 
-  for _, teamID in ipairs(teams) do 
-    builders[teamID] = {} 
-    mexes[teamID] = {} 
-    for _, unitID in ipairs(GetTeamUnits(teamID)) do 
+  local teams = Spring.GetTeamList()
+  for _, teamID in ipairs(teams) do
+    builders[teamID] = {}
+    mexes[teamID] = {}
+    local units = GetTeamUnits(teamID)
+    for i=1,#units do
+      local unitID = units[i]
       local unitDefID = GetUnitDefID(unitID) 
       registerUnit(unitID, unitDefID, teamID)    
     end 
@@ -199,8 +203,9 @@ function gadget:GameFrame(n)
   scheduledBuilders = {} 
 
   for unitID, _ in pairs(addFakeReclaim) do 
-    local commands = GetCommandQueue(unitID,20) 
-    for i, cmd in ipairs(commands) do 
+    local commands = GetCommandQueue(unitID,20)
+    for i=1,#commands do
+      local cmd = commands[i]
       if cmd.id == CMD_UPGRADEMEX and not (commands[i+1] and commands[i+1].id == CMD_RECLAIM) then 
         GiveOrderToUnit(unitID, CMD_INSERT, {i, CMD_RECLAIM, CMD_OPT_INTERNAL+1, cmd.params[1]}, {"alt"}) 
       end 
@@ -415,14 +420,14 @@ function getDistance(unitID, mexID, teamID)
   local mex = mexes[teamID][mexID] 
   local x2, y2 = mex.x, mex.z 
   if not (x1 and y1 and x2 and y2) then return math.huge end --hack
-  return math.sqrt((x1-x2)^2 + (y1-y2)^2) 
+  return math_sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
 end 
 
 function getDistanceFromPosition(x1, y1, mexID, teamID) 
   local mex = mexes[teamID][mexID] 
   local x2, y2 = mex.x, mex.z 
   if not (x2 and y2) then return math.huge end --hack
-  return math.sqrt((x1-x2)^2 + (y1-y2)^2) 
+  return math_sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))
 end 
 
 
@@ -471,9 +476,9 @@ function updateCommand(unitID, insertID, cmd)
   else 
     EditUnitCmdDesc(unitID, cmdDescId, cmd) 
   end 
-end 
+end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, _) 
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
   --Echo("AC " .. cmdID) 
   local builder = builders[teamID][unitID] 
   if cmdID == CMD_UPGRADEMEX then 

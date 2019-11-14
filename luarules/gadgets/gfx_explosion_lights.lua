@@ -61,6 +61,8 @@ else
 -------------------------------------------------------------------------------
 	
     local myAllyID = Spring.GetMyAllyTeamID()
+    local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
+    local spIsPosInLos = Spring.IsPosInLos
 
     function gadget:PlayerChanged(playerID)
         if (playerID == Spring.GetMyPlayerID()) then
@@ -71,10 +73,8 @@ else
     local function SpawnExplosion(_,px,py,pz, weaponID, ownerID)
         if Script.LuaUI("GadgetWeaponExplosion") then
             if ownerID ~= nil then
-                if (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
-                    --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
+                if (spGetUnitAllyTeam(ownerID) == myAllyID  or  spIsPosInLos(px, py, pz, myAllyID)) then
                     Script.LuaUI.GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
-                    --end
                 end
             else
                 -- dont know when this happens and if we should show the explosion...
@@ -87,10 +87,8 @@ else
         --Spring.Echo(weaponID..'  '..math.random())
         if Script.LuaUI("GadgetWeaponBarrelfire") then
             if ownerID ~= nil then
-                if (Spring.GetUnitAllyTeam(ownerID) == myAllyID  or  Spring.IsPosInLos(px, py, pz, myAllyID)) then
-                    --if skipAirWeapons[weaponID] == nil or py ~= Spring.GetGroundHeight(px, py) then
+                if (spGetUnitAllyTeam(ownerID) == myAllyID  or  spIsPosInLos(px, py, pz, myAllyID)) then
                     Script.LuaUI.GadgetWeaponBarrelfire(px, py, pz, weaponID, ownerID)
-                    --end
                 end
             else
                 -- dont know when this happens and if we should show the explosion...

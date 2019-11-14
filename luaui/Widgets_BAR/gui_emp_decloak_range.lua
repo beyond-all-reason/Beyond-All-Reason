@@ -287,7 +287,8 @@ function detectSpectatorView()
 
     local visibleUnits = spGetAllUnits()
     if visibleUnits ~= nil then
-        for _, unitID in ipairs(visibleUnits) do
+        for i=1,#visibleUnits do
+            local unitID = visibleUnits[i]
             local unitDefID = GetUnitDefID(unitID)
             if unitDefID ~= nil then
                 if isSpy(unitDefID) then

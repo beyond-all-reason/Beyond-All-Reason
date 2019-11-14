@@ -15,6 +15,9 @@ uniform vec2 distanceLimits;
 uniform vec2 mouseDepthCoord;
 
 uniform int autofocus;
+uniform float autofocusFudgeFactor;
+uniform float autofocusPower;
+uniform float autofocusFocalLength;
 uniform int mousefocus;
 uniform float manualFocusDepth;
 uniform float fStop;
@@ -243,13 +246,11 @@ void main()
 					(maxTestDepth + 2.5 * maxTestDepth * focusDepthAirFactor) / 3.5 :
 					maxTestDepth * focusDepthAirFactor, focusDepth);
 
-			float focalLength = 0.03;
-			float minFStop = 1.0 * focalLength;
-			float curveDepth = 6.0;
-			float baseAperture =
-				focalLength/max(testFocusDepth * exp(curveDepth * testFocusDepth), minFStop);
+			float minFStop = 1.0;
+			float curveDepth = autofocusPower;
+			float baseAperture = autofocusFocalLength/max(testFocusDepth * exp(curveDepth * testFocusDepth), minFStop * autofocusFocalLength);
 
-			float apertureBoundsFudgeFactor = 2.55; //Used to control bounds depths without having to change inFocusThreshold
+			float apertureBoundsFudgeFactor = 1.0 / autofocusFudgeFactor; //Used to control bounds depths without having to change inFocusThreshold
 			float maxDepthAperture = ApertureSizeToKeepFocusFor(maxTestDepth, focusDepth) * apertureBoundsFudgeFactor;
 			float minDepthAperture = ApertureSizeToKeepFocusFor(minTestDepth, focusDepth) * apertureBoundsFudgeFactor;
 

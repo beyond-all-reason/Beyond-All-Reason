@@ -83,8 +83,9 @@ function widget:Initialize()
     ud.power_xp_coeffient  = ((ud.power / 1000) ^ -0.2) / 6  -- dark magic
   end
 
-  for _,unitID in pairs( GetAllUnits() ) do
-    SetUnitRank(unitID)
+  local allUnits = GetAllUnits()
+  for i=1,#allUnits do
+    SetUnitRank(allUnits[i])
   end
 end
 

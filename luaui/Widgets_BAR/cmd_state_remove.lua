@@ -28,8 +28,8 @@ function widget:CommandNotify(id, params, options)
 	if id == CMD_FIRE_STATE then
 		if params[1] == 1 then
 			local units = spGetSelectedUnits()
-			for _,sid in ipairs(units) do
-				spGiveOrderToUnit(sid, CMD_FIRE_STATE, { 2 }, {})	
+			for i=1,#units do
+				spGiveOrderToUnit(units[i], CMD_FIRE_STATE, { 2 }, {})
 			end
 			return true
 		end
@@ -38,11 +38,11 @@ function widget:CommandNotify(id, params, options)
 	if id == CMD_MOVE_STATE then
 		if params[1] == 2 then
 			local units = spGetSelectedUnits()
-			for _,sid in ipairs(units) do
+			for i=1,#units do
 				if (excludedUnitsMovestate[spGetUnitDefID(sid)] == nil) then
-					spGiveOrderToUnit(sid, CMD_MOVE_STATE, { 0 }, {})
+					spGiveOrderToUnit(units[i], CMD_MOVE_STATE, { 0 }, {})
 				else
-					spGiveOrderToUnit(sid, CMD_MOVE_STATE, { 2 }, {})
+					spGiveOrderToUnit(units[i], CMD_MOVE_STATE, { 2 }, {})
 				end
 			end
 			return true

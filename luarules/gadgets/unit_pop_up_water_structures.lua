@@ -57,31 +57,34 @@ function gadget:GameFrame(n)
 			local h = HeadingToFacing(Spring.GetUnitHeading(unitID))
 			Spring.MoveCtrl.Disable(unitID)
 			local newUnitID = Spring.CreateUnit(POP_UP_UNIT[Spring.GetUnitDefID(unitID)].unit,x,0,z,h,Spring.GetUnitTeam(unitID))
-			local cmds = Spring.GetCommandQueue(unitID,20)
-			for i,cmd in ipairs(cmds) do
-				local cmd = cmds[i]
-				Spring.GiveOrderToUnit(newUnitID, cmd.id, cmd.params, cmd.options.coded)
-			end
-			Spring.SetUnitHealth(newUnitID, select(1,Spring.GetUnitHealth(unitID)))
-			Spring.DestroyUnit(unitID, false, true)
-	  
-			Spring.SpawnCEG("splash-tiny",x,-5,z,0,0,0)
-			SendToUnsynced("splashsound", x,y,z)
-			popUps[unitID].process = false
-			local collisions = Spring.GetUnitsInSphere(x,0,z,35)
-			for _,colUnitID in ipairs(collisions) do
-				if (colUnitID ~= newUnitID) and (colUnitID ~= unitID) then
-					Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
+			if newUnitID then
+				local cmds = Spring.GetCommandQueue(unitID,20)
+				for i=1,#cmds do
+					local cmd = cmds[i]
+					Spring.GiveOrderToUnit(newUnitID, cmd.id, cmd.params, cmd.options.coded)
 				end
-			end      
-			collisions = Spring.GetFeaturesInSphere(x,0,z,35)
-			for _,colFeatureID in ipairs(collisions) do
-				Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
-				if Spring.ValidFeatureID(colFeatureID) then
-					Spring.DestroyFeature(colFeatureID)
-				end        
-			end
-	  
+				Spring.SetUnitHealth(newUnitID, select(1,Spring.GetUnitHealth(unitID)))
+				Spring.DestroyUnit(unitID, false, true)
+
+				Spring.SpawnCEG("splash-tiny",x,-5,z,0,0,0)
+				SendToUnsynced("splashsound", x,y,z)
+				popUps[unitID].process = false
+				local collisions = Spring.GetUnitsInSphere(x,0,z,35)
+				for i=1,#collisions do
+					local colUnitID    = collisions[i]
+					if (colUnitID ~= newUnitID) and (colUnitID ~= unitID) then
+						Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
+					end
+				end
+				collisions = Spring.GetFeaturesInSphere(x,0,z,35)
+				for i=1,#collisions do
+					local colFeatureID    = collisions[i]
+					Spring.SpawnProjectile(PTL_COLLISION, { ["pos"] = {x,0,z}, ["end"] = {x,0,z} })
+					if Spring.ValidFeatureID(colFeatureID) then
+						Spring.DestroyFeature(colFeatureID)
+					end
+				end
+		  end
 		else 
 			Spring.MoveCtrl.SetRelativeVelocity(unitID,0,defs.velocity,0)
 			popUps[unitID].velocity = math.max(defs.velocity * 1.05, 1.75)

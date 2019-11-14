@@ -31,8 +31,8 @@ local CMD_INSERT = CMD.INSERT
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-function gadget:AllowCommand(UnitID, UnitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, synced)
-  if synced then return true end
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+  if fromSynced then return true end
   if (cmdID == CMD_INSERT) and (CMD_ATTACK == cmdParams[2]) and cmdParams[6] then
 	y=GetGroundHeight(cmdParams[4],cmdParams[6]) --is automatically corrected for below/above waterline and water/nonwater weapons within engine
     if (cmdParams[5] > y) then

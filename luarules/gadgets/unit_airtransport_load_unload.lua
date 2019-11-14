@@ -22,12 +22,15 @@ local AirTransports = {
 
 
 if (gadgetHandler:IsSyncedCode()) then
+
+	local math_sqrt = math.sqrt
+
 	function gadget:Distance(pos1, pos2)
 		local difX = pos1[1] - pos2[1]
 		local difY = pos1[2] - pos2[2]
 		local difZ = pos1[3] - pos2[3]
-		local sqDist = difX^2 + difY^2 + difZ^2
-		local dist = math.sqrt(sqDist)
+		local sqDist = difX*difX + difY*difY + difZ*difZ
+		local dist = math_sqrt(sqDist)
 		return (dist)
 	end
 

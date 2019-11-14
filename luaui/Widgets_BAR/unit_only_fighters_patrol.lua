@@ -62,15 +62,16 @@ end
 ]]--
 local function UnitHasPatrolOrder(unitID)
 	local queue=GetCommandQueue(unitID,20)
-	for i,cmd in ipairs(queue) do
-		if cmd.id==CMD.PATROL then
+	for i=1,#queue do
+		local cmd = queue[i]
+		if cmd.id == CMD.PATROL then
 			return true
 		end
 	end
 	return false
 end
 local function MustStop(unitID, unitDefID)
-	local ud=UnitDefs[unitDefID]
+	local ud = UnitDefs[unitDefID]
 	if ud and ud.canFly and (ud.weaponCount==0 or (not (ud.isFighterAirUnit or ud.isFighter)) or (ud.humanName=="Liche") or ud.noAutoFire) and UnitHasPatrolOrder(unitID) then --isFighter kept for 94 compat only, remove after
 		if (not opts.stop_builders)and ud and ud.isBuilder then
 			return false

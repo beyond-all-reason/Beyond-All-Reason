@@ -200,9 +200,10 @@ function widget:DrawWorld()
 		if options.groupnumbers.value then
 			for inGroup, _ in pairs(existingGroups) do
 				local units = GetGroupUnits(inGroup)
-				for _, unit in ipairs(units) do
-					if Spring.IsUnitInView(unit) then
-						local ux, uy, uz = Spring.GetUnitViewPosition(unit)
+				for i=1,#units do
+					local unitID = units[i]
+					if Spring.IsUnitInView(unitID) then
+						local ux, uy, uz = Spring.GetUnitViewPosition(unitID)
 						gl.PushMatrix()
 						gl.Translate(ux, uy, uz)
 						gl.Billboard()
@@ -293,7 +294,8 @@ function widget:KeyPress(key, modifier, isRepeat)
 				local unit2groupDeleted = {}
 				local exec = false --set to true when there is at least one unit to process
 				local units = GetSelectedUnits()
-				for _, unitID in ipairs(units) do
+				for i=1,#units do
+					local unitID = units[i]
 					local udid = GetUnitDefID(unitID)
 					if ( not UDefTab[udid]["isFactory"] and (groupableBuildings[udid] or not UDefTab[udid]["isBuilding"] )) then
 						--if unit2group[udid] ~= nil then
@@ -328,7 +330,8 @@ function widget:KeyPress(key, modifier, isRepeat)
 				end
 				if options.addall.value then
 					local myUnits = Spring.GetTeamUnits(myTeam)
-					for _, unitID in pairs(myUnits) do
+					for i=1,#myUnits do
+						local unitID    = myUnits[i]
 						local curUnitDefID = GetUnitDefID(unitID)
 						if selUnitDefIDs[curUnitDefID] then
 							if gr then
@@ -354,7 +357,8 @@ function widget:KeyPress(key, modifier, isRepeat)
 			local muid = nil
 			if (pos == nil) then return end
 				local units = GetSelectedUnits()
-				for _, unitID in ipairs(units) do
+				for i=1,#units do
+					local unitID = units[i]
 					local x,_,z = GetUnitPosition(unitID)
 					dist = (pos[1]-x)*(pos[1]-x) + (pos[3]-z)*(pos[3]-z)
 					if (dist < mindist) then

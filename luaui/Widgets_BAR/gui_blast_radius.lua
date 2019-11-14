@@ -279,7 +279,9 @@ function DrawBlastRadiusSelectedUnits()
 	local deathblastRadius
 	local deathblastDamage
 	local text
-	for i,unitID in ipairs(selectedUnits) do
+
+	for i=1,#selectedUnits do
+		local unitID = selectedUnits[i]
 		DrawUnitBlastRadius( unitID )
 	end
 	  

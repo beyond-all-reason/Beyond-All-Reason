@@ -1,7 +1,7 @@
 function gadget:GetInfo()
 	return {
 		name = "AI Prevent Take",
-		desc = "Prevent players from taking AI tema units with /take",
+		desc = "Prevent players from taking AI team units with /take",
 		author = "Floris",
 		date = "September 2018",
 		license = "GPL",

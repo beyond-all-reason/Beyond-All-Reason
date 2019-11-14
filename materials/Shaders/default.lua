@@ -51,6 +51,13 @@ vertex = [[
 		worldBitangent = gl_NormalMatrix * bitangent;
 		worldNormal = gl_NormalMatrix * normal;
 
+		#if 0
+			if (dot(worldTangent, worldTangent) < 0.1 || dot(worldBitangent, worldBitangent) < 0.1) {
+				worldTangent = vec3(1.0, 0.0, 0.0);
+				worldBitangent = vec3(0.0, 1.0, 0.0);
+			}
+		#endif
+
 		modelPos = vertex;
 		worldPos = gl_ModelViewMatrix * vertex;
 		gl_Position = gl_ProjectionMatrix * (camera * worldPos);
@@ -114,7 +121,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
-	#line 20117
+	#line 20109
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -128,7 +135,6 @@ fragment = [[
 
 	uniform sampler2D textureS3o1;
 	uniform sampler2D textureS3o2;
-	uniform samplerCube specularTex;
 	uniform samplerCube reflectTex;
 
 	uniform vec3 sunPos; //light direction in fact
@@ -374,17 +380,32 @@ fragment = [[
 
 /***********************************************************************/
 // Environment sampling functions
+	vec3 SampleReflectionMap(vec3 sp, float lodBias){
+		vec3 color = SRGBtoLINEAR(texture(reflectTex, sp, lodBias).rgb);
+		#if defined (FAKE_ENV_HDR)
+			color *= 1.0 + FAKE_ENV_HDR * smoothstep(0.55, 1.0, dot(LUMA, color)); //HDR for poors
+		#endif
+		return color;
+	}
+
+	vec3 SampleReflectionMapLod(vec3 sp, float lodBias){
+		vec3 color = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias).rgb);
+		#if defined (FAKE_ENV_HDR)
+			color *= 1.0 + FAKE_ENV_HDR * smoothstep(0.55, 1.0, dot(LUMA, color)); //HDR for poors
+		#endif
+		return color;
+	}
 
 	vec3 SampleEnvironmentWithRoughness(vec3 samplingVec, float roughness) {
 		float maxLodLevel = log2(float(textureSize(reflectTex, 0).x));
 
 		// makes roughness of reflection scale perceptually much more linear
 		// Assumes "CubeTexSizeReflection" = 1024
-		//maxLodLevel -= 4.0;
+		maxLodLevel -= 4.0;
 
 		float lodBias = maxLodLevel * roughness;
 
-		return SRGBtoLINEAR(texture(reflectTex, samplingVec, lodBias).rgb);
+		return SampleReflectionMap(samplingVec, lodBias);
 	}
 
 	vec3 SpherePoints_GoldenAngle(float i, float numSamples) {
@@ -394,7 +415,7 @@ fragment = [[
 		return vec3(radius * vec2(cos(theta), sin(theta)), z);
 	}
 
-	#define ENV_SMPL_NUM 32
+	#define ENV_SMPL_NUM 64
 	void TextureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSpecular) {
 		iblDiffuse = vec3(0.0);
 		iblSpecular = vec3(0.0);
@@ -404,19 +425,20 @@ fragment = [[
 		vec2 ts = vec2(textureSize(reflectTex, 0));
 		float maxMipMap = log2(max(ts.x, ts.y));
 
-		vec2 lodBias = vec2(maxMipMap - 5.0, 4.0);
+		vec2 lodBias = vec2(maxMipMap - 6.0, 4.0);
 
 		for (int i=0; i < ENV_SMPL_NUM; ++i) {
 			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
 
 			vec2 w = vec2(
-					dot(sp, N ) * 0.5 + 0.5,
-					dot(sp, Rv) * 0.5 + 0.5);
+				dot(sp, N ) * 0.5 + 0.5,
+				dot(sp, Rv) * 0.5 + 0.5);
 
-			w = pow(w, vec2(24.0, 32.0));
 
-			vec3 iblD = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.x).rgb);
-			vec3 iblS = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias.y).rgb);
+			w = pow(w, vec2(4.0, 32.0));
+
+			vec3 iblD = SampleReflectionMapLod(sp, lodBias.x);
+			vec3 iblS = SampleReflectionMapLod(sp, lodBias.y);
 
 			iblDiffuse  += iblD * w.x;
 			iblSpecular += iblS * w.y;
@@ -603,6 +625,19 @@ fragment = [[
 		return ++v; // next power of 2
 	}
 
+	float AdjustRoughnessByNormalMap(in float roughness, in vec3 normal) {
+		// Based on The Order : 1886 SIGGRAPH course notes implementation (page 21 notes)
+		float nlen2 = dot(normal, normal);
+		if (nlen2 < 1.0) {
+			float nlen = sqrt(nlen2);
+			float kappa = (3.0 * nlen -  nlen2 * nlen) / (1.0 - nlen2);
+			// http://www.frostbite.com/2014/11/moving-frostbite-to-pbr/
+			// page 91 : they use 0.5/kappa instead
+			return min(1.0, sqrt(roughness * roughness + 1.0 / kappa));
+		}
+		return roughness;
+	}
+
 	#define smoothclamp(v, v0, v1) ( mix(v0, v1, smoothstep(v0, v1, v)) )
 
 	#ifndef TONEMAP
@@ -615,12 +650,12 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20595
+		#line 20638
 
 		#ifdef use_normalmapping
 			vec2 tc = modelUV.st;
 			vec4 normaltex = texture(normalMap, tc);
-			vec3 nvTS = normalize(NORM2SNORM(normaltex.xyz));
+			vec3 nvTS = NORM2SNORM(normaltex.xyz);
 		#else
 			vec3 nvTS = vec3(0.0, 0.0, 1.0);
 		#endif
@@ -641,6 +676,7 @@ fragment = [[
 		#endif
 
 		emissiveness = clamp(emissiveness, 0.0, 1.0);
+		emissiveness *= selfIllumMod;
 
 		#ifdef METALNESS
 			float metalness    = METALNESS;
@@ -649,7 +685,7 @@ fragment = [[
 		#endif
 
 		//metalness = SNORM2NORM( sin(simFrame * 0.05) );
-		//metalness = 0.5;
+		//metalness = 1.0;
 
 		//metalness = clamp(metalness, 0.0, 1.0);
 
@@ -660,14 +696,19 @@ fragment = [[
 		#endif
 
 		//roughness = SNORM2NORM( sin(simFrame * 0.025) );
-		//roughness = 1.0;
+		//roughness = 0.0;
+
+		// this is great to remove specular aliasing on the edges.
+		#ifdef ROUGHNESS_AA
+			roughness = mix(roughness, AdjustRoughnessByNormalMap(roughness, nvTS), ROUGHNESS_AA);
+		#endif
 
 		roughness = clamp(roughness, MIN_ROUGHNESS, 1.0);
 
 		float roughness2 = roughness * roughness;
 		float roughness4 = roughness2 * roughness2;
 
-
+		//nvTS = normalize(nvTS);
 
 		#if defined(ROUGHNESS_PERTURB_NORMAL) || defined(ROUGHNESS_PERTURB_COLOR)
 			vec3 seedVec = modelPos.xyz * 8.0;
@@ -768,12 +809,12 @@ fragment = [[
 			outSpecularColor *= energyCompensation;
 
 			 // kS is equal to Fresnel
-			vec3 kS = F;
+			//vec3 kS = F;
 
 			// for energy conservation, the diffuse and specular light can't
 			// be above 1.0 (unless the surface emits light); to preserve this
 			// relationship the diffuse component (kD) should equal 1.0 - kS.
-			vec3 kD = vec3(1.0) - kS;
+			vec3 kD = vec3(1.0) - F;
 
 			// multiply kD by the inverse metalness such that only non-metals
 			// have diffuse lighting, or a linear blend if partly metal (pure metals
@@ -787,7 +828,7 @@ fragment = [[
 
 
 		// getSpecularDominantDirection (Filament)
-		Rv = mix(Rv, N, roughness4);
+		//Rv = mix(Rv, N, roughness4);
 
         vec3 outColor;
 		vec3 ambientContrib;
@@ -795,8 +836,8 @@ fragment = [[
             // ambient lighting (we now use IBL as the ambient term)
 			vec3 F = FresnelWithRoughness(F0, F90, VdotH, roughness, envBRDF);
 
-            vec3 kS = F;
-            vec3 kD = 1.0 - kS;
+            //vec3 kS = F;
+            vec3 kD = 1.0 - F;
             kD *= 1.0 - metalness;
 
             ///
@@ -841,7 +882,8 @@ fragment = [[
 
 			// specular ambient occlusion (see Filament)
 			float aoTermSpec = ComputeSpecularAO(NdotV, aoTerm, roughness2);
-			vec3 specular = reflectionColor * mix(vec3(envBRDF.y), vec3(envBRDF.x), F);
+			//vec3 specular = reflectionColor * mix(vec3(envBRDF.y), vec3(envBRDF.x), F);
+			vec3 specular = reflectionColor * (F0 * envBRDF.x + F90 * envBRDF.y);
 			specular *= aoTermSpec * energyCompensation;
 
 
@@ -852,7 +894,7 @@ fragment = [[
             outColor = ambientContrib + dirContrib;
         }
 
-		outColor += vec3(selfIllumMod * emissiveness) * albedoColor;
+		outColor += emissiveness * albedoColor;
 
 		#ifdef USE_LOSMAP
 			vec2 losMapUV = worldPos.xz;
@@ -863,7 +905,7 @@ fragment = [[
 
 			outColor *= losValue;
 			outSpecularColor.rgb *= losValue;
-			extraColor.r *= losValue;
+			emissiveness *= losValue;
 		#endif
 
 		#ifdef EXPOSURE
@@ -875,9 +917,7 @@ fragment = [[
 
 		// debug hook
 		#if 0
-			//outColor = LINEARtoSRGB(albedoColor*(texture(reflectTex,Rv).rgb));
-			//outColor = LINEARtoSRGB(vec3(abs(ComputeSpecularAOBlender(NdotV, aoTerm, roughness2) - ComputeSpecularAOFilament(NdotV, aoTerm, roughness2))));
-			outColor = LINEARtoSRGB( ambientContrib );
+			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif
 
@@ -889,7 +929,7 @@ fragment = [[
 			fragData[GBUFFER_NORMTEX_IDX] = vec4(SNORM2NORM(N), 1.0);
 			fragData[GBUFFER_DIFFTEX_IDX] = vec4(outColor, extraColor.a);
 			fragData[GBUFFER_SPECTEX_IDX] = vec4(outSpecularColor, extraColor.a);
-			fragData[GBUFFER_EMITTEX_IDX] = vec4(extraColor.rrr, 1.0);
+			fragData[GBUFFER_EMITTEX_IDX] = vec4(vec3(emissiveness), 1.0);
 			fragData[GBUFFER_MISCTEX_IDX] = vec4(float(MAT_IDX) / 255.0, 0.0, 0.0, 0.0);
 		#endif
 

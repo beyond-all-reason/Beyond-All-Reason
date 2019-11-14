@@ -38,8 +38,8 @@ local toggleoffclick = 'LuaUI/Sounds/switchoff.wav'
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
 local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 6
+local fontfileSize = 36
+local fontfileOutlineSize = 9
 local fontfileOutlineStrength = 1.4
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local fontfileScale2 = fontfileScale * 1.2
@@ -105,7 +105,7 @@ local presets = {
 	lowest = {
 		bloom = false,
 		bloomdeferred = false,
-		cas = false,
+		--cas = false,
 		ssao = false,
 		water = 1,
 		mapedgeextension = false,
@@ -117,11 +117,9 @@ local presets = {
 		nanoparticles = 1500,
 		nanobeamamount = 5,
 		treeradius = 0,
-		treewind = false,
+		--treewind = false,
 		guishader = false,
 		--shadows = false,
-		shadows_maxquality = 4000,
-		shadows_minquality = 2000,
 		decals = 0,
 		grounddetail = 70,
 		darkenmap_darkenfeatures = false,
@@ -130,7 +128,7 @@ local presets = {
 	low = {
 		bloom = false,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = false,
 		water = 2,
 		mapedgeextension = false,
@@ -142,11 +140,9 @@ local presets = {
 		nanoparticles = 3000,
 		nanobeamamount = 7,
 		treeradius = 200,
-		treewind = false,
+		--treewind = false,
 		guishader = false,
 		--shadows = true,
-		shadows_maxquality = 6000,
-		shadows_minquality = 2000,
 		decals = 0,
 		grounddetail = 100,
 		darkenmap_darkenfeatures = false,
@@ -155,7 +151,7 @@ local presets = {
 	medium = {
 		bloom = true,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = false,
 		water = 4,
 		mapedgeextension = true,
@@ -167,11 +163,9 @@ local presets = {
 		nanoparticles = 5000,
 		nanobeamamount = 10,
 		treeradius = 400,
-		treewind = false,
+		--treewind = false,
 		guishader = false,
 		--shadows = true,
-		shadows_maxquality = 6000,
-		shadows_minquality = 2000,
 		decals = 1,
 		grounddetail = 140,
 		darkenmap_darkenfeatures = false,
@@ -180,7 +174,7 @@ local presets = {
 	high = {
 		bloom = true,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = true,
 		water = 3,
 		mapedgeextension = true,
@@ -192,11 +186,9 @@ local presets = {
 		nanoparticles = 9000,
 		nanobeamamount = 14,
 		treeradius = 800,
-		treewind = true,
+		--treewind = true,
 		guishader = true,
 		--shadows = true,
-		shadows_maxquality = 8000,
-		shadows_minquality = 3000,
 		decals = 2,
 		grounddetail = 180,
 		darkenmap_darkenfeatures = false,
@@ -205,7 +197,7 @@ local presets = {
 	ultra = {
 		bloom = true,
 		bloomdeferred = true,
-		cas = true,
+		--cas = true,
 		ssao = true,
 		water = 5,
 		mapedgeextension = true,
@@ -217,11 +209,9 @@ local presets = {
 		nanoparticles = 15000,
 		nanobeamamount = 20,
 		treeradius = 800,
-		treewind = true,
+		--treewind = true,
 		guishader = true,
 		--shadows = true,
-		shadows_maxquality = 8000,
-		shadows_minquality = 4000,
 		decals = 3,
 		grounddetail = 200,
 		darkenmap_darkenfeatures = true,
@@ -248,7 +238,8 @@ function widget:ViewResize()
   windowList = gl.CreateList(DrawWindow)
 end
 
-local engineVersion = 100 -- just filled this in here incorrectly but old engines arent used anyway
+
+local engineVersion = 104 -- just filled this in here incorrectly but old engines arent used anyway
 if Engine and Engine.version then
 	local function Split(s, separator)
 		local results = {}
@@ -263,8 +254,6 @@ if Engine and Engine.version then
 	else
 		engineVersion = tonumber(Engine.version)
 	end
-elseif Game and Game.version then
-	engineVersion = tonumber(Game.version)
 end
 
 
@@ -1641,8 +1630,8 @@ function init()
 		 end,
 		},
 
-		{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
-		{id="cas_sharpness", group="gfx", name=widgetOptionColor.."   sharpness", min=0, max=1, step=0.01, type="slider", value=0.6, description='',
+		--{id="cas", group="gfx", widget="Contrast Adaptive Sharpen", name="Contrast Adaptive Sharpen", type="bool", value=GetWidgetToggleValue("Contrast Adaptive Sharpen"), description='Decreases blurriness and brings back details'},
+		{id="cas_sharpness", group="gfx", name="Contrast Adaptive Sharpen", min=0.2, max=0.9, step=0.01, type="slider", value=0.6, description='How much sharpening should be applied to the image',
 		 onload=function() loadWidgetData("Contrast Adaptive Sharpen", "cas_sharpness", {'SHARPNESS'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('Contrast Adaptive Sharpen', 'cas', 'setSharpness', {'SHARPNESS'}, options[getOptionByID('cas_sharpness')].value)
@@ -1908,7 +1897,7 @@ function init()
 		 onload = function() loadWidgetData("Depth of Field", "dof_autofocus", {'autofocus'}) end,
 		 onchange = function(i, value) saveOptionValue('Depth of Field', 'dof', 'setAutofocus', {'autofocus'}, value) end,
 		},
-		{id="dof_fstop", group="gfx", name=widgetOptionColor.."   f-stop", type="slider", min=1, max=16, step=0.1, value=3, description='Set amount of blur\n\nOnly works if autofocus is off',
+		{id="dof_fstop", group="gfx", name=widgetOptionColor.."   f-stop", type="slider", min=1, max=6, step=0.1, value=2, description='Set amount of blur\n\nOnly works if autofocus is off',
 		 onload = function() loadWidgetData("Depth of Field", "dof_fstop", {'fStop'}) end,
 		 onchange = function(i, value) saveOptionValue('Depth of Field', 'dof', 'setFstop', {'fStop'}, value) end,
 		},
@@ -1962,13 +1951,13 @@ function init()
 		--		 onload = function() end,
 		--		 onchange = function(i, value) Spring.SetConfigInt("TreeRadius",value) end,
 		--		},
-		{id="treewind", group="gfx", basic=true, name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)',
-		 onload = function() end,
-		 onchange = function(i, value)
-			 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
-			 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
-		 end,
-		},
+		--{id="treewind", group="gfx", basic=true, name="Tree Wind", type="bool", value=tonumber(Spring.GetConfigInt("TreeWind",1) or 1) == 1, description='Makes trees wave in the wind.\n\n(will not apply too every tree type)',
+		-- onload = function() end,
+		-- onchange = function(i, value)
+		--	 Spring.SendCommands("luarules treewind "..(value and 1 or 0))
+		--	 Spring.SetConfigInt("TreeWind",(value and 1 or 0))
+		-- end,
+		--},
 
 		{id="snow", group="gfx", basic=true, widget="Snow", name="Snow", type="bool", value=GetWidgetToggleValue("Snow"), description='Snow widget (By default.. maps with wintery names have snow applied)'},
 		{id="snowmap", group="gfx", name=widgetOptionColor.."   enabled on this map", type="bool", value=true, description='It will remember what you toggled for every map\n\n\(by default: maps with wintery names have this toggled)',
@@ -2236,6 +2225,12 @@ function init()
 
 		{id="showbuilderqueue", group="ui", basic=true, widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
+		{id="unitenergyicons", group="ui", basic=true, widget="Unit energy icons", name="Unit insufficient energy icons", type="bool", value=GetWidgetToggleValue("Unit energy icons"), description='Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy availible.'},
+		{id="unitenergyicons_self", group="ui", name=widgetOptionColor.."   limit to own units", type="bool", value=(WG['unitenergyicons']~=nil and WG['unitenergyicons'].getOnlyShowOwnTeam()), description='Only show above your own units',
+		 onload = function() loadWidgetData("Unit energy icons", "unitenergyicons_self", {'onlyShowOwnTeam'}) end,
+		 onchange = function(i, value) saveOptionValue('Unit energy icons', 'unitenergyicons', 'setOnlyShowOwnTeam', {'onlyShowOwnTeam'}, value) end,
+		},
+
 		{id="healthbarsscale", group="ui", name="Health bar scale", type="slider", min=0.7, max=1.31, step=0.1, value=1, description='',
 		 onload=function() loadWidgetData("Health Bars", "healthbarsscale", {'barScale'}) end,
 		 onchange=function(i,value) saveOptionValue('Health Bars', 'healthbars', 'setScale', {'barScale'}, value) end,
@@ -2283,7 +2278,12 @@ function init()
 		--},
 		{id="mascotte", group="ui", basic=true, widget=widgetOptionColor.."Playerlist mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList mascotte"), description='Shows a mascotte on top of the (adv)playerslist'},
 
-		{id="displaydps", group="ui", basic=true, widget="Display DPS", name="Display DPS", type="bool", value=GetWidgetToggleValue("Display DPS"), description='Display the \'Damage Per Second\' done where target are hit'},
+		{id="displaydps", group="ui", basic=true, name="Display DPS", type="bool", value=tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1, description='Display the \'Damage Per Second\' done where target are hit',
+		  onload = function()  end,
+		  onchange = function(i, value)
+			  Spring.SetConfigInt("DisplayDPS",(value and 1 or 0))
+		  end,
+		},
 
 		{id="rankicons", group="ui", basic=true, widget="Rank Icons", name="Rank icons", type="bool", value=GetWidgetToggleValue("Rank Icons"), description='Shows a rank icon depending on experience next to units'},
 
@@ -2295,7 +2295,7 @@ function init()
 		 onload = function() loadWidgetData("Commands FX", "commandsfxfilterai", {'filterAIteams'}) end,
 		 onchange = function(i, value) saveOptionValue('Commands FX', 'commandsfx', 'setFilterAI', {'filterAIteams'}, value) end,
 		},
-		{id="commandsfxopacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.3, max=1, step=0.1, value=1, description='',
+		{id="commandsfxopacity", group="ui", name=widgetOptionColor.."   opacity", type="slider", min=0.25, max=1, step=0.1, value=1, description='',
 		 onload = function() loadWidgetData("Commands FX", "commandsfxopacity", {'opacity'}) end,
 		 onchange = function(i, value) saveOptionValue('Commands FX', 'commandsfx', 'setOpacity', {'opacity'}, value) end,
 		},
@@ -2495,36 +2495,36 @@ function init()
 		{id="profiler", group="dev", widget="Widget Profiler", name="Widget profiler", type="bool", value=GetWidgetToggleValue("Widget Profiler"), description=""},
 
 		-- DEV
-		--{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 15.0), description="",
-		-- onchange=function(i, value)
-		--	 Spring.SetConfigFloat("tonemapA", value)
-		--	 Spring.SendCommands("luarules updatesun")
-		-- end,
-		--},
-		--{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapB", 0.3), description="",
-		-- onchange=function(i, value)
-		--	 Spring.SetConfigFloat("tonemapB", value)
-		--	 Spring.SendCommands("luarules updatesun")
-		-- end,
-		--},
-		--{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapC", 15.0), description="",
-		-- onchange=function(i, value)
-		--	 Spring.SetConfigFloat("tonemapC", value)
-		--	 Spring.SendCommands("luarules updatesun")
-		-- end,
-		--},
-		--{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.5), description="",
-		-- onchange=function(i, value)
-		--	 Spring.SetConfigFloat("tonemapD", value)
-		--	 Spring.SendCommands("luarules updatesun")
-		-- end,
-		--},
-		--{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.5), description="",
-		-- onchange=function(i, value)
-		--	 Spring.SetConfigFloat("tonemapE", value)
-		--	 Spring.SendCommands("luarules updatesun")
-		-- end,
-		--},
+		{id="tonemapA", group="dev", name="Unit tonemapping var 1", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapA", 0.0), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("tonemapA", value)
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="tonemapB", group="dev", name=widgetOptionColor.."   var 2", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapB", 1.0), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("tonemapB", value)
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="tonemapC", group="dev", name=widgetOptionColor.."   var 3", type="slider", min=0, max=20, step=0.01, value=Spring.GetConfigFloat("tonemapC", 0.0), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("tonemapC", value)
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="tonemapD", group="dev", name=widgetOptionColor.."   var 4", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapD", 0.0), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("tonemapD", value)
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
+		{id="tonemapE", group="dev", name=widgetOptionColor.."   var 5", type="slider", min=0, max=5, step=0.01, value=Spring.GetConfigFloat("tonemapE", 1.0), description="",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("tonemapE", value)
+			 Spring.SendCommands("luarules updatesun")
+		 end,
+		},
 		{id="envAmbient", group="dev", name="Unit env ambient %", type="slider", min=0, max=1, step=0.01, value=Spring.GetConfigFloat("envAmbient", 0.5), description="",
 		 onchange=function(i, value)
 			 Spring.SetConfigFloat("envAmbient", value)
@@ -2545,11 +2545,11 @@ function init()
 		},
 		{id="tonemapDefaults", group="dev", name=widgetOptionColor.."   restore defaults", type="bool", value=GetWidgetToggleValue("Unit Reclaimer"), description="",
 		 onchange=function(i, value)
-			 Spring.SetConfigFloat("tonemapA", 15.0)
-			 Spring.SetConfigFloat("tonemapB", 0.3)
-			 Spring.SetConfigFloat("tonemapC", 15.0)
-			 Spring.SetConfigFloat("tonemapD", 0.5)
-			 Spring.SetConfigFloat("tonemapE", 1.5)
+			 Spring.SetConfigFloat("tonemapA", 0.0)
+			 Spring.SetConfigFloat("tonemapB", 1.0)
+			 Spring.SetConfigFloat("tonemapC", 0.0)
+			 Spring.SetConfigFloat("tonemapD", 0.0)
+			 Spring.SetConfigFloat("tonemapE", 1.0)
 			 Spring.SetConfigFloat("envAmbient", 0.5)
 			 Spring.SetConfigFloat("unitSunMult", 1.5)
 			 Spring.SetConfigFloat("unitExposureMult", 1.0)
@@ -2569,12 +2569,10 @@ function init()
 	}
 
 	-- set lowest quality shadows for Intel GPU (they eat fps but dont show)
-	if Platform ~= nil and Platform.gpuVendor == 'Intel' then
-		options[getOptionByID('shadows_maxquality')] = nil
-		options[getOptionByID('shadows_minquality')] = nil
-		options[getOptionByID('shadowslider')] = nil
-		options[getOptionByID('shadows_opacity')] = nil
-	end
+	--if Platform ~= nil and Platform.gpuVendor == 'Intel' then
+	--	options[getOptionByID('shadowslider')] = nil
+	--	options[getOptionByID('shadows_opacity')] = nil
+	--end
 
 	-- add fonts
 	if getOptionByID('font') then
@@ -3164,7 +3162,7 @@ function widget:GetConfigData(data)
 		decals = {'GroundDecals', tonumber(Spring.GetConfigInt("GroundDecals",1) or 1)},
 		grounddetail = {'GroundDetail', tonumber(Spring.GetConfigInt("GroundDetail",1) or 1)},
 		camera = {'CamMode', tonumber(Spring.GetConfigInt("CamMode",1) or 1)},
-		treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
+		--treewind = {'TreeWind', tonumber(Spring.GetConfigInt("TreeWind",1) or 1)},
 		hwcursor = {'HardwareCursor', tonumber(Spring.GetConfigInt("HardwareCursor",1) or 1)},
 		sndvolmaster = {'snd_volmaster', tonumber(Spring.GetConfigInt("snd_volmaster",40) or 40)},
 		sndvolbattle = {'snd_volbattle', tonumber(Spring.GetConfigInt("snd_volbattle",40) or 40)},

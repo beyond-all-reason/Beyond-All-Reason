@@ -16,10 +16,12 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 
-defIDIsShipyard = {}
-shipyard = {}
-defIDIsBoat = {}
-boat = {}
+local math_sqrt = math.sqrt
+
+local defIDIsShipyard = {}
+local shipyard = {}
+local defIDIsBoat = {}
+local boat = {}
 
 for id, uDef in pairs(UnitDefs) do
 	if uDef.name == "armsy" or uDef.name == "armasy" or uDef.name == "corsy" or uDef.name == "corasy" then
@@ -32,7 +34,7 @@ for id, uDef in pairs(UnitDefs) do
 end
 
 function Norm3D(x, y , z)
-	length = math.sqrt(x^2 + y^2 + z^2)
+	length = math_sqrt(x*x + y*y + z*z)
 	local x2, y2, z2 = x/length, y/length, z/length
 	return x2, y2, z2
 end

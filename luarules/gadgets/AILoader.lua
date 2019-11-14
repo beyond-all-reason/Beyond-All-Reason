@@ -14,7 +14,7 @@ local teams = Spring.GetTeamList()
 for i =1, #teams do
 	local luaAI = Spring.GetTeamLuaAI(teams[i])
 	if luaAI ~= "" then
-		if luaAI == "DAI" then
+		if (type(luaAI) == "string") and (string.sub(luaAI,1,3) == "DAI") then
 			shardEnabled = true
 		end
 	end
@@ -33,6 +33,22 @@ local teams = Spring.GetTeamList()
 ShardSpringLua = true -- this is the AI Boot gadget, so we're in Spring Lua
 VFS.Include("luarules/gadgets/ai/boot.lua")
 
+local function checkAImode(modeName)
+	local path = "luarules/gadgets/ai/byar/"..modeName.."/"
+	if VFS.FileExists(path.."modules.lua") and VFS.FileExists(path.."behaviourfactory.lua") then
+		return true
+	end
+	return false
+end
+
+local DAIlist = {}
+local DAIModes = VFS.SubDirs("luarules/gadgets/ai/byar/")
+for i,lmodeName in pairs(DAIModes) do
+	local smodeName = string.sub(lmodeName, string.len("luarules/gadgets/ai/byar/") + 1, string.len(lmodeName) - 1)
+	if checkAImode(smodeName) == true then
+		DAIlist[smodeName] = true
+	end
+end
 -- fake os object
 --os = shard_include("spring_lua/fakeos")
 
@@ -89,11 +105,17 @@ function gadget:Initialize()
 		if (isAI) then
 			spEcho( "K9: IT IS AI")
 			local aiInfo = spGetTeamLuaAI(id)
-			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,8) == "DAI") then
+			if (type(aiInfo) == "string") and (string.sub(aiInfo,1,3) == "DAI") then
 				numberOfmFAITeams = numberOfmFAITeams + 1
 				spEcho("Moomin Player " .. teamList[i] .. " is " .. aiInfo)
 				-- add AI object
-				thisAI = ShardAI()
+				local mode = string.sub(aiInfo, 5)
+				if DAIlist[mode] == true then
+					thisAI = ShardAI(mode)
+				else
+					Spring.Echo("ERROR : Unknown DAI mode: "..mode..". Please stop the game and restart with another DAI mode")
+					break
+				end
 				thisAI.id = id
 				thisAI.allyId = allyId
 				-- thisAI:Init()
@@ -285,10 +307,107 @@ end
 
 --UNSYNCED CODE
 else
+    local function sdAddRectangle(_, x1, z1, x2, z2, r, g, b, a, label, filled, teamID, channel)
+        if (Script.LuaUI('ShardDrawAddRectangle')) then
+            Script.LuaUI.ShardDrawAddRectangle(x1, z1, x2, z2, {r, g, b, a}, label, filled, teamID, channel)
+        end
+    end
 
-	function gadget:Initialize()
+    local function sdEraseRectangle(_, x1, z1, x2, z2, r, g, b, a, label, filled, teamID, channel)
+        if (Script.LuaUI('ShardDrawEraseRectangle')) then
+            Script.LuaUI.ShardDrawEraseRectangle(x1, z1, x2, z2, {r, g, b, a}, label, filled, teamID, channel)
+        end
+    end
+
+    local function sdAddCircle(_, x, z, radius, r, g, b, a, label, filled, teamID, channel)
+        if (Script.LuaUI('ShardDrawAddCircle')) then
+            Script.LuaUI.ShardDrawAddCircle(x, z, radius, {r, g, b, a}, label, filled, teamID, channel)
+        end
+    end
+
+    local function sdEraseCircle(_, x, z, radius, r, g, b, a, label, filled, teamID, channel)
+        if (Script.LuaUI('ShardDrawEraseCircle')) then
+            Script.LuaUI.ShardDrawEraseCircle(x, z, radius, {r, g, b, a}, label, filled, teamID, channel)
+        end
+    end
+
+    local function sdAddLine(_, x1, z1, x2, z2, r, g, b, a, label, arrow, teamID, channel)
+        if (Script.LuaUI('ShardDrawAddLine')) then
+            Script.LuaUI.ShardDrawAddLine(x1, z1, x2, z2, {r, g, b, a}, label, arrow, teamID, channel)
+        end
+    end
+
+    local function sdEraseLine(_, x1, z1, x2, z2, r, g, b, a, label, arrow, teamID, channel)
+        if (Script.LuaUI('ShardDrawEraseLine')) then
+            Script.LuaUI.ShardDrawEraseLine(x1, z1, x2, z2, {r, g, b, a}, label, arrow, teamID, channel)
+        end
+    end
+
+    local function sdAddPoint(_, x, z, r, g, b, a, label, teamID, channel)
+        if (Script.LuaUI('ShardDrawAddPoint')) then
+            Script.LuaUI.ShardDrawAddPoint(x, z, {r, g, b, a}, label, teamID, channel)
+        end
+    end
+
+    local function sdErasePoint(_, x, z, r, g, b, a, label, teamID, channel)
+        if (Script.LuaUI('ShardDrawErasePoint')) then
+            Script.LuaUI.ShardDrawErasePoint(x, z, {r, g, b, a}, label, teamID, channel)
+        end
+    end
+
+    local function sdAddUnit(_, unitID, r, g, b, a, label, teamID, channel)
+        if (Script.LuaUI('ShardDrawAddUnit')) then
+            Script.LuaUI.ShardDrawAddUnit(unitID, {r, g, b, a}, label, teamID, channel)
+        end
+    end
+
+    local function sdEraseUnit(_, unitID, r, g, b, a, label, teamID, channel)
+        if (Script.LuaUI('ShardDrawEraseUnit')) then
+            Script.LuaUI.ShardDrawEraseUnit(unitID, {r, g, b, a}, label, teamID, channel)
+        end
+    end
+
+    local function sdClearShapes(_, teamID, channel)
+        if (Script.LuaUI('ShardDrawClearShapes')) then
+            Script.LuaUI.ShardDrawClearShapes(teamID, channel)
+        end
+    end
+
+    local function sdDisplay(_, onOff)
+        if (Script.LuaUI('ShardDrawDisplay')) then
+            Script.LuaUI.ShardDrawDisplay(onOff)
+        end
+    end
+
+    local function sStartTimer(_, name)
+        if (Script.LuaUI('ShardStartTimer')) then
+            Script.LuaUI.ShardStartTimer(name)
+        end
+    end
+
+    local function sStopTimer(_, name)
+        if (Script.LuaUI('ShardStopTimer')) then
+            Script.LuaUI.ShardStopTimer(name)
+        end
+    end
+	
+    function gadget:Initialize()
 		Spring.Echo("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
+        gadgetHandler:AddSyncAction('ShardDrawAddRectangle', sdAddRectangle)
+        gadgetHandler:AddSyncAction('ShardDrawEraseRectangle', sdEraseRectangle)
+        gadgetHandler:AddSyncAction('ShardDrawAddCircle', sdAddCircle)
+        gadgetHandler:AddSyncAction('ShardDrawEraseCircle', sdEraseCircle)
+        gadgetHandler:AddSyncAction('ShardDrawAddLine', sdAddLine)
+        gadgetHandler:AddSyncAction('ShardDrawEraseLine', sdEraseLine)
+        gadgetHandler:AddSyncAction('ShardDrawAddPoint', sdAddPoint)
+        gadgetHandler:AddSyncAction('ShardDrawErasePoint', sdErasePoint)
+        gadgetHandler:AddSyncAction('ShardDrawAddUnit', sdAddUnit)
+        gadgetHandler:AddSyncAction('ShardDrawEraseUnit', sdEraseUnit)
+        gadgetHandler:AddSyncAction('ShardDrawClearShapes', sdClearShapes)
+        gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
+        gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
+        gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
 	end
 
 	function gadget:Shutdown()

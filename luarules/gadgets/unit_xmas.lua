@@ -284,11 +284,6 @@ if gadgetHandler:IsSyncedCode() then
 		end
 	end
 
-	function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-		if decorationUdefIDs[unitDefID] then
-			setGaiaUnitSpecifics(unitID)
-		end
-	end
 
 	function gadget:UnitGiven(unitID, unitDefID, unitTeam)
 		if decorationUdefIDs[unitDefID] then
@@ -297,7 +292,10 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	-- prevents area targetting xmasballs
-	function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams, cmdOptions, cmdTag, synced)
+	function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+		if decorationUdefIDs[unitDefID] then
+			setGaiaUnitSpecifics(unitID)
+		end
 		if cmdID and cmdID == CMD.ATTACK then
 			if cmdParams and #cmdParams == 1 then
 				if decorationUdefIDs[Spring.GetUnitDefID(cmdParams[1])] then

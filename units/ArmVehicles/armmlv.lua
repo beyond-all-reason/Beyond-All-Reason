@@ -29,7 +29,7 @@ return {
 		footprintz = 2,
 		idleautoheal = 5,
 		idletime = 1800,
-		leavetracks = true,
+		leavetracks = false,
 		mass = 1500,
 		maxdamage = 155,
 		maxslope = 16,

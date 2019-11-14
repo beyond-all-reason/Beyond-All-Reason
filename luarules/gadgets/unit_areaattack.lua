@@ -52,9 +52,9 @@ function gadget:GameFrame(f)
 	end
 end
 
-function gadget:AllowCommand(u, ud, team, cmd, param, opt)
-	if cmd == CMD_AREAATTACK then
-		if UnitDefs[ud].customParams.canareaattack=="1" then
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
+	if cmdID == CMD_AREAATTACK then
+		if UnitDefs[unitDefID].customParams.canareaattack=="1" then
 			return true
 		else 
 			return false

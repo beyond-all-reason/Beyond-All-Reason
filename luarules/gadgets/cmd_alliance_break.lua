@@ -65,12 +65,13 @@ function getTeamLeaderName(teamID)
 	return GetPlayerInfo(select(2,GetTeamInfo(teamID,false)),false)
 end
 
+local allyTeamList = GetAllyTeamList()
 function gadget:GameFrame(n)
 	if n%UPDATE_FRAMES ~= 0 then
 		return
 	end
-	for _,allyTeamAID in pairs(GetAllyTeamList()) do
-		for _,allyTeamBID in pairs(GetAllyTeamList()) do
+	for _,allyTeamAID in pairs(allyTeamList) do
+		for _,allyTeamBID in pairs(allyTeamList) do
 			if allyTeamAID ~= allyTeamBID then
 				for _,teamAID in pairs(GetTeamList(allyTeamAID)) do
 					for _,teamBID in pairs(GetTeamList(allyTeamBID)) do
@@ -109,7 +110,7 @@ function checkAndBreakAlliance(attackerTeam,targetTeam,attackerAllyTeam,targetAl
 end
 
 
-function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, cmdOpts, cmdTag)
+function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if #cmdParams == 1 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK or cmdID == CMD_MANUALFIRE) then
 		local targetID = cmdParams[1]
 		if ValidUnitID(targetID) then
@@ -124,7 +125,9 @@ function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, c
 		local attackerAllyTeam = GetUnitAllyTeam(unitID)
 		local totalDamageSum = 0
 		local targetAllyTeamToTeam = {}
-		for _,targetID in pairs(GetUnitsInSphere(cmdParams[1],cmdParams[2],cmdParams[3],attackAOE)) do
+		local units = GetUnitsInSphere(cmdParams[1],cmdParams[2],cmdParams[3],attackAOE)
+		for i=1,#units do
+			local targetID = units[i]
 			local targetAllyTeam = GetUnitAllyTeam(targetID)
 			local targetDefID = GetUnitDefID(targetID)
 			local targetDef = UnitDefs[targetDefID]
@@ -145,7 +148,9 @@ function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, c
 		end
 	elseif #cmdParams == 4 and (cmdID == CMD_ATTACK or cmdID == CMD_LOOPBACKATTACK) then
 		local attackerAllyTeam = GetUnitAllyTeam(unitID)
-		for _,targetID in pairs(GetUnitsInCylinder(cmdParams[1],cmdParams[3],cmdParams[4])) do
+		local units = GetUnitsInCylinder(cmdParams[1],cmdParams[3],cmdParams[4])
+		for i=1,#units do
+			local targetID = units[i]
 			checkAndBreakAlliance(attackerTeam,GetUnitTeam(targetID),attackerAllyTeam,GetUnitAllyTeam(targetID))
 		end
 	end

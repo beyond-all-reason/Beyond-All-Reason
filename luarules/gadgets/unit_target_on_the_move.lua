@@ -169,10 +169,10 @@ local function AreUnitsAllied(unitID,targetID)
 	return ownTeam and enemyTeam and spAreTeamsAllied(ownTeam,enemyTeam)
 end
 
-local function locationInRange(unitID, x, y, z, range)
-	local ux, uy, uz = spGetUnitPosition(unitID)
-	return range and ((ux - x)^2 + (uz - z)^2) < range^2
-end
+--local function locationInRange(unitID, x, y, z, range)
+--	local ux, uy, uz = spGetUnitPosition(unitID)
+--	return range and ((ux - x)^2 + (uz - z)^2) < range^2
+--end
 
 local function TargetCanBeReached(unitID, teamID, weaponList, target)
 	for weaponID in pairs(weaponList) do
@@ -413,7 +413,8 @@ local function processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOp
 							optionKeysWithShift[#optionKeys+1] = optionName
 						end
 					end
-					for i,target in ipairs(targets) do
+					for i=1,#targets do
+						local target = targets[i]
 						--if the order didn't have append (shift), we have to add for consequent area target inserts
 						orders[i] = {
 							CMD_UNIT_SET_TARGET,
@@ -543,7 +544,7 @@ function gadget:UnitCmdDone(unitID, unitDefID, teamID, cmdID, cmdTag, cmdParams,
 	end
 end
 
-function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions)
+function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if spGetCommandQueue(unitID, 0) == 0 or not cmdOptions.meta then
 		if processCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions) then
 			return false --command was used & fully processed, so block command

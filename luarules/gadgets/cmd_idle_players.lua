@@ -28,7 +28,9 @@ if ( not gadgetHandler:IsSyncedCode()) then
     local GetLastUpdateSeconds = Spring.GetLastUpdateSeconds
     local SendLuaRulesMsg = Spring.SendLuaRulesMsg
     local GetMouseState = Spring.GetMouseState
-    local GetGameSeconds =     Spring.GetGameSeconds
+    local GetGameSeconds = Spring.GetGameSeconds
+    local GetUnitDefID = Spring.GetUnitDefID
+    local GetRealBuildQueue = Spring.GetRealBuildQueue
 
     local min = math.min
     local max = math.max
@@ -42,7 +44,6 @@ if ( not gadgetHandler:IsSyncedCode()) then
     local isIdle = true
     local updateRefreshTime = 1 --in seconds
     local initialQueueTime
-
     local mx,my = GetMouseState()
     local validation = SYNCED.validationIdle
 
@@ -103,12 +104,13 @@ if ( not gadgetHandler:IsSyncedCode()) then
             local teamID = Spring.GetMyTeamID()
             local myUnits = Spring.GetTeamUnits(teamID)
             local queueTime = 0
-            for _,unitID in pairs(myUnits) do
-                local unitDefID = Spring.GetUnitDefID(unitID)
+            for i=1,#myUnits do
+                local unitID = myUnits[i]
+                local unitDefID = GetUnitDefID(unitID)
                 local thisQueueTime = 0
                 if UnitDefs[unitDefID].isBuilder then 
                     local buildSpeed = UnitDefs[unitDefID].buildSpeed
-                    local buildQueue = Spring.GetRealBuildQueue(unitID) 
+                    local buildQueue = GetRealBuildQueue(unitID)
                     if buildQueue then
                         for uDID,_ in pairs(buildQueue) do
                             thisQueueTime = thisQueueTime + UnitDefs[uDID].buildTime / buildSpeed
@@ -226,7 +228,6 @@ else
     end
     local function randomString(length)
         if not length or length <= 0 then return '' end
-        --math.randomseed(os.clock()^5)
         return randomString(length - 1) .. charset[math.random(1, #charset)]
     end
 
@@ -384,8 +385,9 @@ else
             if GetTeamRulesParam(teamID,"numActivePlayers") == 0 then
                 numToTake = numToTake + 1
                 -- transfer all units
-                for _,unitID in ipairs(GetTeamUnits(teamID)) do
-                    TransferUnit(unitID,takerID)
+                local teamUnits = GetTeamUnits(teamID)
+                for i=1,#teamUnits do
+                    TransferUnit(teamUnits[i],takerID)
                 end
                 --send all resources en-block to the taker
                 for _,resourceName in ipairs(resourceList) do

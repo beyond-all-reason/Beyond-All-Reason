@@ -18,6 +18,7 @@ local glVertex   = gl.Vertex
 
 local sin = math.sin
 local cos = math.cos
+local sqrt = math.sqrt
 
 function DrawSphere( cx, cy, cz, r, p )
     local theta1,theta2,theta3 = 0,0,0;
@@ -67,7 +68,7 @@ end
 -- http://www.glprogramming.com/red/chapter02.html
 function DrawIcosahedron(subd, cw)
 	local function normalize(vertex)
-		r = math.sqrt(vertex[1]*vertex[1] + vertex[2]*vertex[2] + vertex[3]*vertex[3])
+		r = sqrt(vertex[1]*vertex[1] + vertex[2]*vertex[2] + vertex[3]*vertex[3])
 		vertex[1], vertex[2], vertex[3] = vertex[1] / r, vertex[2] / r, vertex[3] / r
 		return vertex
 	end
@@ -99,7 +100,7 @@ function DrawIcosahedron(subd, cw)
 	--------------------------------------------
 
 	local X = 1
-	local Z = (1 + math.sqrt(5)) / 2
+	local Z = (1 + sqrt(5)) / 2
 
 	local vertexes0 = {
 		{-X, 0.0, Z}, {X, 0.0, Z}, {-X, 0.0, -Z}, {X, 0.0, -Z},

@@ -41,9 +41,12 @@ if (gadgetHandler:IsSyncedCode()) then
 		--loading the file here allows to have /luarules reload dyn reload it as necessary
 		unitCollisionVolume, pieceCollisionVolume, dynamicPieceCollisionVolume = include("LuaRules/Configs/CollisionVolumes.lua")
 		local mapConfig = "LuaRules/Configs/DynCVmapCFG/" .. Game.mapName .. ".lua"
+
+		local allFeatures = Spring.GetAllFeatures()
 		if VFS.FileExists(mapConfig) then
 			local mapFeatures = VFS.Include(mapConfig)
-			for _, featID in pairs(Spring.GetAllFeatures()) do
+			for i=1,#allFeatures do
+				local featID = allFeatures[i]
 				local modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].modelpath
 				if modelpath == nil then
 					modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].model.path
@@ -65,7 +68,8 @@ if (gadgetHandler:IsSyncedCode()) then
 				end
 			end
 		else
-			for _, featID in pairs(Spring.GetAllFeatures()) do
+			for i=1,#allFeatures do
+				local featID = allFeatures[i]
 				local modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].modelpath
 				if modelpath == nil then    -- engine < 104 compatibility
 					modelpath = FeatureDefs[Spring.GetFeatureDefID(featID)].model.path
@@ -91,12 +95,14 @@ if (gadgetHandler:IsSyncedCode()) then
 				end
 			end
 		end
-		for _,unitID in pairs(Spring.GetAllUnits()) do
+		local allUnits = Spring.GetAllUnits()
+		for i=1,#allUnits do
+			local unitID = allUnits[i]
 			gadget:UnitCreated(unitID, spGetUnitDefID(unitID))
 			gadget:UnitFinished(unitID, spGetUnitDefID(unitID))
 		end
-		for _,featureID in pairs(Spring.GetAllFeatures()) do
-			gadget:FeatureCreated(featureID)
+		for i=1,#allFeatures do
+			gadget:FeatureCreated(allFeatures[i])
 		end
 	end
 

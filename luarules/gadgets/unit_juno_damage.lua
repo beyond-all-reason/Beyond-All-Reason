@@ -137,11 +137,13 @@ function gadget:GameFrame(frame)
 			local unitIDsBig   = SpGetUnitsInCylinder(expl.x, expl.z, q*radius)
 			local unitIDsSmall = SpGetUnitsInCylinder(expl.x, expl.z, q*(radius-width))
 
-			for _,unitID in pairs(unitIDsBig) do
+			for i=1,#unitIDsBig do
+				local unitID = unitIDsBig[i]
 				local unitDefID = SpGetUnitDefID(unitID)
 				if todenyUnits[unitDefID] then
 					local foundmatch = false
-					for _,testUnitID in pairs(unitIDsSmall) do
+					for i=1,#unitIDsSmall do
+						local testUnitID = unitIDsSmall[i]
 						if (unitID == testUnitID) then
 							foundmatch = true 
 							break

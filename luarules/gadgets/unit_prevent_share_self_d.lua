@@ -42,7 +42,8 @@ function gadget:PlayerChanged(playerID)
 	
 		-- cancel any self d orders
 		local units = Spring.GetTeamUnits(teamID)
-		for _,unitID in pairs(units) do
+		for i=1,#units do
+			local unitID = units[i]
 			if (Spring.GetUnitSelfDTime(unitID) > 0) then
 				Spring.GiveOrderToUnit(unitID, CMD.SELFD, {}, {})
 			end

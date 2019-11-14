@@ -12,6 +12,8 @@ function widget:GetInfo()
   }
 end
 
+local math_sqrt = math.sqrt
+
 local function CanUnitExecute(uID, cmdID)
     if cmdID == CMD_UNLOAD_UNITS then
         local transporting = Spring.GetUnitIsTransporting(uID)
@@ -36,7 +38,7 @@ function radius(k,n,b)
     if k > n-b then
         r = 1
     else
-        r = math.sqrt(k-1/2)/math.sqrt(n-(b+1)/2)
+        r = math_sqrt(k-1/2)/math_sqrt(n-(b+1)/2)
     end
 	return r
 end
@@ -47,16 +49,16 @@ function widget:CommandNotify(id, params, options)
 			local alt, ctrl, meta, shift = Spring.GetModKeyState()
 			local ray = params[4]
 			local units = GetExecutingUnits(id)
-			--if (2 * math.pi * ray^2)/(#units) >= 128^2 then -- Surface check to prevent clumping (needs GUI before enabling check)
+			--if (2 * math.pi * ray*ray)/(#units) >= 128*128 then -- Surface check to prevent clumping (needs GUI before enabling check)
 				local alpha = 1
-			    local b = math.floor(alpha*math.sqrt(#units))
-				local phi = (math.sqrt(5)+1)/2        
+			    local b = math.floor(alpha*math_sqrt(#units))
+				local phi = (math_sqrt(5)+1)/2
 				for k=1,#units do
 					if not shift then
 					Spring.GiveOrderToUnit(units[k], CMD.STOP, {}, {})
 					end
 					r = radius(k,#units,b)
-					theta = 2*math.pi*k/phi^2
+					theta = 2*math.pi*k / phi*phi
 					x = params[1] + r*math.cos(theta)*ray
 					z = params[3] + r*math.sin(theta)*ray			
 					y = Spring.GetGroundHeight(x, z)
