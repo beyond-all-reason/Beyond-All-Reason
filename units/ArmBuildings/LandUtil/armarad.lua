@@ -33,7 +33,7 @@ return {
 		objectname = "Units/ARMARAD.s3o",
 		onoffable = true,
 		radardistance = 3500,
-		radaremitheight = 48,
+		radaremitheight = 66,
 		script = "Units/ARMARAD.cob",
 		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
