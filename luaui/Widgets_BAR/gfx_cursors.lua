@@ -87,6 +87,10 @@ end
 
 function widget:Shutdown()
 	WG['cursors'] = nil
+	local file = VFS.LoadFile("cmdcolors.txt")
+	if file then
+		Spring.LoadCmdColorsConfig(file)
+	end
 end
 
 ----------------------------
@@ -95,8 +99,8 @@ function SetCursor(cursorSet)
 	local oldSetName = Settings['cursorSet']..'_'..Settings['cursorSize']
 	Settings['cursorSet'] = cursorSet
 	Settings['cursorSize'] = cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)]
-	cursorSet = cursorSet..'_'..Settings['cursorSize']
-	if cursorSet ~= oldSetName or force then
+	local cursorDir = cursorSet..'_'..Settings['cursorSize']
+	if cursorDir ~= oldSetName or force then
 		force = false
 		local cursorNames = {
 			'cursornormal','cursorareaattack','cursorattack','cursorattack',
@@ -109,18 +113,28 @@ function SetCursor(cursorSet)
 			'cursorsettarget','cursorupgmex',
 		}
 		for i=1, #cursorNames do
-			Spring.ReplaceMouseCursor(cursorNames[i], cursorSet..'/'..cursorNames[i], (cursorNames[i] == 'cursornormal'))
+			Spring.ReplaceMouseCursor(cursorNames[i], cursorDir..'/'..cursorNames[i], (cursorNames[i] == 'cursornormal'))
 		end
 
-		--local files = VFS.DirList("anims/"..cursorSet.."/")
+		--local files = VFS.DirList("anims/"..cursorDir.."/")
 		--for i=1, #files do
 		--	local fileName = files[i]
 		--	if string.find(fileName, "_0.") then
-		--		local cursorName = string.sub(fileName, string.len("anims/"..cursorSet.."/")+1, string.find(fileName, "_0.") -1)
-		--		--Spring.AssignMouseCursor(cursorName, cursorSet..'/'..cursorName, (cursorName == 'cursornormal'))
-		--		Spring.ReplaceMouseCursor(cursorName, cursorSet..'/'..cursorName, (cursorName == 'cursornormal'))
+		--		local cursorName = string.sub(fileName, string.len("anims/"..cursorDir.."/")+1, string.find(fileName, "_0.") -1)
+		--		--Spring.AssignMouseCursor(cursorName, cursorDir..'/'..cursorName, (cursorName == 'cursornormal'))
+		--		Spring.ReplaceMouseCursor(cursorName, cursorDir..'/'..cursorName, (cursorName == 'cursornormal'))
 		--	end
 		--end
+
+		local file = VFS.LoadFile("cmdcolors_"..cursorSet..".txt")
+		if file then
+			Spring.LoadCmdColorsConfig(file)
+		end
+
+		-- hide engine unit selection box
+		if not (WG['fancyselectedunits'] == nil and WG['teamplatter'] == nil and WG['highlightselunits'] == nil) then
+			Spring.LoadCmdColorsConfig('unitBox  0 1 0 0')
+		end
 	end
 end
 
