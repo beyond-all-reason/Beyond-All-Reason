@@ -41,7 +41,7 @@ useColorRestarts  1
 useRestartColor   0
 restartAlpha      1.0
 
-queuedLineWidth   2.49
+queuedLineWidth   1.49
 queuedBlendSrc    src_alpha
 queuedBlendDst    one_minus_src_alpha
 stipplePattern    0xffcc
