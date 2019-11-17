@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "",
 		license = "",
-		layer = 1,
+		layer = 100000000000,
 		enabled = true
 	}
 end
@@ -60,6 +60,7 @@ function widget:ViewResize()
 end
 
 function widget:Initialize()
+	force = true
 	widget:ViewResize()
 
 	WG['cursors'] = {}
@@ -74,6 +75,7 @@ function widget:Initialize()
 		return sets
 	end
 	WG['cursors'].setcursor = function(value)
+		force = true
 		SetCursor(value)
 	end
 	WG['cursors'].getsizemult = function()
