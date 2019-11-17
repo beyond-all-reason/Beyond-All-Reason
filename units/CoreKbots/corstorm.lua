@@ -40,7 +40,6 @@ return {
 		customparams = {
 			description_long = "Storm is a light rocket Kbot used mainly to push the frontline towards opponent's base. It can outrange light laser turrets so if your enemy expands solely with a Commander, Storms can force him to retreat. In bigger numbers and with repairing support of resurrection Kbots they are able to take down more advanced defensive structures. Very ineffective against fast mobile units, watch out for A.K./Peewees! To protect them use your Commander/Constructors to build progressing defense. In comparison to their ARM counterpart (Rockos) they are a bit slower, but stonger at the same time",
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corekbots",
 		},

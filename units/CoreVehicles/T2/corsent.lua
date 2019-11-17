@@ -44,7 +44,6 @@ return {
 		turnrate = 591.79999,
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			prioritytarget = "air",
 			subfolder = "corevehicles/t2",

@@ -42,7 +42,6 @@ return {
 		waterline = 0,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships/t2",
 			techlevel = 2,

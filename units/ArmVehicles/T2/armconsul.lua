@@ -75,7 +75,6 @@ return {
 			area_mex_def = "armmex",
 			arm_tank = "1",
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles/t2",
 			techlevel = 2,

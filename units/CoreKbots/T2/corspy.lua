@@ -53,7 +53,6 @@ return {
 		workertime = 50,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corekbots/t2",
 			techlevel = 2,

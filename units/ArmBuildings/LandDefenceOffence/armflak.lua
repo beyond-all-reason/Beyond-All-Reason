@@ -39,7 +39,6 @@ return {
 		yardmap = "oooo",
 		customparams = {
 			model_author = "Cremuss",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
 			removewait = true,

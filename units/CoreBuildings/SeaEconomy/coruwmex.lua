@@ -42,7 +42,6 @@ return {
 			cvbuildable = true,
 			metal_extractor = 1,
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,

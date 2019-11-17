@@ -50,7 +50,6 @@ return {
 		unloadspread = 3,
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corevehicles/t2",
 			techlevel = 2,

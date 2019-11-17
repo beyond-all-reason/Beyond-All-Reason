@@ -46,7 +46,6 @@ return {
 		},
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/seafactories",
 		},

@@ -45,7 +45,6 @@ return {
 		wingdrag = 0.185,
 		customparams = {
 			model_author = "Flaka",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,

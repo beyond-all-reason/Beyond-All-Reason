@@ -40,7 +40,6 @@ return {
 		turnrate = 1138.5,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			onoffname = "gauss",
 			subfolder = "armkbots/t2",

@@ -42,7 +42,6 @@ return {
 		stealth = true,
 		customparams = {
 			detonaterange = "64",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,

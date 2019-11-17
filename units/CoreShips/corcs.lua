@@ -71,7 +71,6 @@ return {
 		customparams = {
 			area_mex_def = "coruwmex",
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships",
 		},

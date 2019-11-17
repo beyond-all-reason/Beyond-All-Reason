@@ -38,7 +38,6 @@ return {
 		turnrate = 265.64999,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,

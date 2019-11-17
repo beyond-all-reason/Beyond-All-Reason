@@ -45,7 +45,6 @@ return {
 		customparams = {
 			detonaterange = "64",
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,

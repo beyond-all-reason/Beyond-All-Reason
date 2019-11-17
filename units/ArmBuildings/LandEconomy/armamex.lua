@@ -49,7 +49,6 @@ return {
 			cvbuildable = true,
 			metal_extractor = 1,
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/landeconomy",

@@ -44,7 +44,6 @@ return {
 		customparams = {
 			maxrange = "260",
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.1,
 			prioritytarget = "air",

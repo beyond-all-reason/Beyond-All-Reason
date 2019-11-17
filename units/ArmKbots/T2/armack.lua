@@ -78,7 +78,6 @@ return {
 		customparams = {
 			area_mex_def = "armmoho",
 			model_author = "Kaiser",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armkbots/t2",
 			techlevel = 2,

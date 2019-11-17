@@ -38,7 +38,6 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "Kaiser",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,

@@ -51,7 +51,6 @@ return {
 			flare1name = "emit",
 			kickback = "-4",
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			restoretime = "3000",
 			rockstrength = "5.5",

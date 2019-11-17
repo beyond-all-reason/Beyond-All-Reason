@@ -52,7 +52,6 @@ return {
 			flare1name = "flare1",
 			kickback = "-2.4",
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
 			rockstrength = "6",

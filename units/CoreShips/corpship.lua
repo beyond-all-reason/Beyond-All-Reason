@@ -41,7 +41,6 @@ return {
 		turnrate = 382.5,
 		waterline = 0,
 		customparams = {
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships",
 		},

@@ -48,7 +48,6 @@ return {
 		wingdrag = 0.11,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreseaplanes",
 		},

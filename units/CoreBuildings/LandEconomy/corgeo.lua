@@ -41,7 +41,6 @@ return {
 		customparams = {
 			cvbuildable = true,
 			model_author = "Cremuss",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,

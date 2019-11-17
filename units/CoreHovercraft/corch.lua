@@ -91,7 +91,6 @@ return {
 		customparams = {
 			area_mex_def = "cormex",
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corehovercraft",
 		},

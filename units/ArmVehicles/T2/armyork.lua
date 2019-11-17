@@ -45,7 +45,6 @@ return {
 		customparams = {
 			arm_tank = "1",
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
 			subfolder = "armvehicles/t2",

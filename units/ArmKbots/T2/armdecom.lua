@@ -78,7 +78,6 @@ return {
 		customparams = {
 			area_mex_def = "armmex",
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "armkbots/t2",

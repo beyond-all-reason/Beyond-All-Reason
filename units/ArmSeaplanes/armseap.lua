@@ -37,7 +37,6 @@ return {
 		turnrate = 720,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",
 		},

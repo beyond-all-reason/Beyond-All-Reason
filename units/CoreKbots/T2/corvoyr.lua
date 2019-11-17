@@ -41,7 +41,6 @@ return {
 		turnrate = 670.45001,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corekbots/t2",
 			techlevel = 2,

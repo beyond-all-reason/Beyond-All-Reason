@@ -38,7 +38,6 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "FireStorm, PtaQ",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armkbots/t2",
 			techlevel = 2,

@@ -64,7 +64,6 @@ return {
 		customparams = {
 			description_long = "The Spolier is a stealthy minelayer/minesweeper unit, that can make your base feel really safe. It produces light and heavy mines which are designed to eliminate different levels of threat. Light mines can stop Pewees, A.K., Flashes etc. and heavy can even stop most T2 units. IT's a cheap way to secure places where you don't have time to set up proper defenses, like your flanks. Always lay mines away from your opponent's line of sight and avoid having your own units on the minefield. To create effective minefields use Shift and drag with LMB while ordering a queue. REMEMBER that mines use energy to remain cloaked! Spoilers can also detonate enemy's mines using the attack command.",
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corevehicles",
 		},

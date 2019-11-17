@@ -50,7 +50,6 @@ return {
 			flare1name = "flash",
 			kickback = "-4",
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			restoretime = "3000",
 			rockstrength = "10",

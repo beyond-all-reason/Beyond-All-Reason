@@ -90,7 +90,6 @@ return {
 		customparams = {
 			area_mex_def = "armuwmex",
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armseaplanes",
 		},

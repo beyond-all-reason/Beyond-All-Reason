@@ -45,7 +45,6 @@ return {
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "Cremuss",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,

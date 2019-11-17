@@ -47,7 +47,6 @@ return {
 		waterline = 0,
 		workertime = 0,
 		customparams = {
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			removestop = true,
 			removewait = true,

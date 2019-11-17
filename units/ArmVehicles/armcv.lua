@@ -85,7 +85,6 @@ return {
 			arm_tank = "1",
 			description_long = "A construction vehicle is able to build basic T1 structures like the ones made by the Commander. Moreover it can build some more advanced land and air defense towers, advanced solar generators and most importantly the T2 Vehicle Lab. It is slightly faster and stronger than Kbot constructor, but it can not climb very steep hills, so it is effective only in expansion on relatively flat terrain. Each Construction vehicle increases the player's energy and metal storage capacity by 50. It is wise to use pairs of cons for expansion, so they can heal each other and build defensive structures faster. This makes them immune to light assault units like fleas/jeffys. ",
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armvehicles",
 		},

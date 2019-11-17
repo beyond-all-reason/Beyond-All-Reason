@@ -48,7 +48,6 @@ return {
 		},
 		customparams = {
 			model_author = "Cremuss",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armbuildings/landfactories",
 			techlevel = 3,

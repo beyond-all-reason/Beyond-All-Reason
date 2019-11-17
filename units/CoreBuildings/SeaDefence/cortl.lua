@@ -34,7 +34,6 @@ return {
 		yardmap = "wwwwwwwww",
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			removewait = true,
 			subfolder = "corebuildings/seadefence",

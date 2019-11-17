@@ -54,7 +54,6 @@ return {
 			flare2name = "flare2",
 			kickback = "-12",
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			restoretime = "3000",
 			rockstrength = "8",

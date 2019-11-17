@@ -38,7 +38,6 @@ return {
 		turnrate = 550,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreseaplanes",
 		},

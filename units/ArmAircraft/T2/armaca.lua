@@ -76,7 +76,6 @@ return {
 		customparams = {
 			area_mex_def = "armmoho",
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,

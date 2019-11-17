@@ -52,7 +52,6 @@ return {
 		},
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/seafactories",
 		},

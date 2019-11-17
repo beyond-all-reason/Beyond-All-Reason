@@ -90,7 +90,6 @@ return {
 			area_mex_def = "cormex",
 			iscommander = true,
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "",

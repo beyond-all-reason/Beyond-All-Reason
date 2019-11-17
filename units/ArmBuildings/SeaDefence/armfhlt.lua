@@ -36,7 +36,6 @@ return {
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",

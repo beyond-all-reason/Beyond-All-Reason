@@ -47,7 +47,6 @@ return {
 			cvbuildable = true,
 			metal_extractor = 1,
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			removewait = true,
 			subfolder = "corebuildings/landdefenceoffence",

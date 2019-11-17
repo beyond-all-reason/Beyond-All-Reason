@@ -53,7 +53,6 @@ return {
 			kickback = "-2.4",
 			model_author = "Flaka",
 			lumamult = "1.2",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
 			rockstrength = "4",

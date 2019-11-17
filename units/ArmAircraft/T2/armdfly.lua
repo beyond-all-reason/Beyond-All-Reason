@@ -46,7 +46,6 @@ return {
 		unloadspread = 0,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.025,
 			subfolder = "armaircraft/t2",

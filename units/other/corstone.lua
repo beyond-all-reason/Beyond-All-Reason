@@ -37,7 +37,6 @@ return {
 		yardmap = "f",
 		customparams = {
 			nohealthbars = true,
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "other",
 		},

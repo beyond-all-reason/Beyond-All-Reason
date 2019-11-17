@@ -36,7 +36,6 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			prioritytarget = "air",
 			subfolder = "corekbots/t2",

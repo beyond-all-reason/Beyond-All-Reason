@@ -38,7 +38,6 @@ return {
 		yardmap = "ffff",
 		customparams = {
 			model_author = "Cremuss",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0,
 			removestop = true,

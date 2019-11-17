@@ -35,7 +35,6 @@ return {
 		yardmap = "o",
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,

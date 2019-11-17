@@ -54,7 +54,6 @@ return {
 			flare1name = "flare",
 			kickback = "-6.25",
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			restoretime = "3000",
 			rockstrength = "10",

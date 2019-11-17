@@ -39,7 +39,6 @@ return {
 		yardmap = "ffff",
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			paralyzemultiplier = 0,
 			removestop = true,

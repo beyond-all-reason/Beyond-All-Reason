@@ -36,7 +36,6 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,

@@ -40,7 +40,6 @@ return {
 		upright = true,
 		customparams = {
 			model_author = "Beherith, PtaQ",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corekbots/t2",
 			techlevel = 2,

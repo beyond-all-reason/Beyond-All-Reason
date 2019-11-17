@@ -42,7 +42,6 @@ return {
 			cvbuildable = true,
 			metal_extractor = 4,
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removestop = true,
 			removewait = true,

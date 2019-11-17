@@ -41,7 +41,6 @@ return {
 		waterline = 0,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			prioritytarget = "air",
 			subfolder = "coreships/t2",

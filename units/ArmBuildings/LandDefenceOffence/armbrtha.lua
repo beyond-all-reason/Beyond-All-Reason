@@ -39,7 +39,6 @@ return {
 		customparams = {
 			canareaattack = 1,
 			model_author = "Cremuss",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",

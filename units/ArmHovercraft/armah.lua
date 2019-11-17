@@ -40,7 +40,6 @@ return {
 		turnrate = 490,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			prioritytarget = "air",
 			subfolder = "armhovercraft",

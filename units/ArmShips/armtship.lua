@@ -45,7 +45,6 @@ return {
 		waterline = 8,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armships",
 		},

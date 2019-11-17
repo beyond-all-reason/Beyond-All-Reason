@@ -37,7 +37,6 @@ return {
 		turnrate = 600,
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,

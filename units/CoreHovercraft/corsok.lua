@@ -46,7 +46,6 @@ return {
 		turnrate = 290,
 		waterline = 7,
 		customparams = {
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corehovercraft",
 		},

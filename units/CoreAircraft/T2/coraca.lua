@@ -75,7 +75,6 @@ return {
 		customparams = {
 			area_mex_def = "cormoho",
 			model_author = "Mr Bob, Flaka",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,

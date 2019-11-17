@@ -38,7 +38,6 @@ return {
 		turnrate = 1290.29993,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			paralyzemultiplier = 0.125,
 			subfolder = "armkbots/t2",

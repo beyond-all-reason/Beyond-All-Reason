@@ -44,7 +44,6 @@ return {
 		workertime = 200,
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corebuildings/landutil",
 		},

@@ -47,7 +47,6 @@ return {
 		turnrate = 520.29999,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "corevehicles/t2",
 			techlevel = 2,

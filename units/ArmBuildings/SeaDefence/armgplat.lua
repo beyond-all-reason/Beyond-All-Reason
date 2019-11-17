@@ -35,7 +35,6 @@ return {
 		waterline = 1,
 		yardmap = "wwwwwwwwwwwwwwww",
 		customparams = {
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/seadefence",

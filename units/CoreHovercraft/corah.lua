@@ -40,7 +40,6 @@ return {
 		turnrate = 470,
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			prioritytarget = "air",
 			subfolder = "corehovercraft",

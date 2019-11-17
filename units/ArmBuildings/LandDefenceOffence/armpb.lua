@@ -38,7 +38,6 @@ return {
 		yardmap = "ooooooooo",
 		customparams = {
 			model_author = "Beherith",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			removewait = true,
 			subfolder = "armbuildings/landdefenceoffence",

@@ -42,7 +42,6 @@ return {
 		waterline = 0,
 		customparams = {
 			model_author = "Mr Bob",
-			normalmaps = "yes",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreships",
 		},

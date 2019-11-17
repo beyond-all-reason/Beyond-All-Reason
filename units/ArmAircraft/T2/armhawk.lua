@@ -44,7 +44,6 @@ return {
 		wingdrag = 0.0575,
 		customparams = {
 			model_author = "FireStorm",
-			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armaircraft/t2",
 			techlevel = 2,
