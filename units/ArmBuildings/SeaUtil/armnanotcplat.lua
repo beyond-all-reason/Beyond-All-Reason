@@ -44,6 +44,7 @@ return {
 		upright = true,
 		usebuildinggrounddecal = false,
 		workertime = 200,
+		yardmap = "ooooooooo",
 		customparams = {
 			model_author = "Beherith",
 			normaltex = "unittextures/Arm_normal.dds",

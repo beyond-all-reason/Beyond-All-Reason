@@ -168,21 +168,23 @@ local function GetWayPointsNearCursor(wpTbl, mx, my)
 	for i = 1, #selUnitsTbl do
 		local unitID = selUnitsTbl[i]
 		local commands = spGetCommandQueue(unitID,20)
-		for cmdNum = 1, #commands do
-			local curCmd      = commands[cmdNum    ]
-			if cmdColorsTbl[curCmd.id] then
-				local nxtCmd      = commands[cmdNum + 1]
-				local x, y, z, fr = GetCommandWorldPosition(curCmd)
-				if x then
-					local p, q  = spWorldToScreenCoords(x, y, z)
-					if (GetSqDist2D(mx,my,p,q) < wayPtSelDistSqr) then
-						-- save the tag of the next command
-						local wpLink = (nxtCmd and nxtCmd.tag) or nil
-						local wpData = {x, y, z, fr, wpLink, curCmd, unitID}
-						local wpKey  = tostring(unitID) .. "-" .. tostring(curCmd.tag)
+		if commands then
+			for cmdNum = 1, #commands do
+				local curCmd      = commands[cmdNum    ]
+				if cmdColorsTbl[curCmd.id] then
+					local nxtCmd      = commands[cmdNum + 1]
+					local x, y, z, fr = GetCommandWorldPosition(curCmd)
+					if x then
+						local p, q  = spWorldToScreenCoords(x, y, z)
+						if (GetSqDist2D(mx,my,p,q) < wayPtSelDistSqr) then
+							-- save the tag of the next command
+							local wpLink = (nxtCmd and nxtCmd.tag) or nil
+							local wpData = {x, y, z, fr, wpLink, curCmd, unitID}
+							local wpKey  = tostring(unitID) .. "-" .. tostring(curCmd.tag)
 
-						wpTbl[wpKey] = wpData
-						numSelWayPts = numSelWayPts + 1
+							wpTbl[wpKey] = wpData
+							numSelWayPts = numSelWayPts + 1
+						end
 					end
 				end
 			end
