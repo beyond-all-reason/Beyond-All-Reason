@@ -41,7 +41,7 @@ useColorRestarts  1
 useRestartColor   0
 restartAlpha      1.0
 
-queuedLineWidth   1.49
+queuedLineWidth   2.49
 queuedBlendSrc    src_alpha
 queuedBlendDst    one_minus_src_alpha
 stipplePattern    0xffcc
@@ -56,16 +56,16 @@ wait        0.5  0.5  0.5  0.7
 build       0.0  1.0  0.0  0.7
 move        0.5  1.0  0.5  0.7
 attack      1.0  0.2  0.2  0.7
-fight       0.5  0.5  1.0  0.7
-guard       0.3  0.3  1.0  0.7
-patrol      0.3  0.3  1.0  0.7
+fight       1.0  0.2  1.0  0.7
+guard       0.6  1.0  1.0  0.7
+patrol      0.2  0.5  1.0  0.7
 capture     1.0  1.0  0.3  0.7
-repair      0.3  1.0  1.0  0.7
-reclaim     1.0  0.2  1.0  0.7
+repair      1.0  0.9  0.2  0.7
+reclaim     0.5  1.0  0.4  0.7
 restore     0.0  1.0  0.0  0.7
-resurrect   0.2  0.6  1.0  0.7
-load        0.3  1.0  1.0  0.7
-unload      1.0  1.0  0.0  0.7
+resurrect   0.9  0.5  1.0  0.7
+load        0.4  0.9  0.9  0.7
+unload      1.0  0.8  0.0  0.7
 deathWatch  0.5  0.5  0.5  0.7
 
 
@@ -74,7 +74,7 @@ deathWatch  0.5  0.5  0.5  0.7
 //  Selected Range Rendering
 //
 
-selectedLineWidth  1.49
+selectedLineWidth  2.49
 selectedBlendSrc   src_alpha
 selectedBlendDst   one_minus_src_alpha
 
