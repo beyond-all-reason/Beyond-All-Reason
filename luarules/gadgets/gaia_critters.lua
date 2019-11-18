@@ -261,8 +261,7 @@ end
 local function getTotalUnits()
 	local totalUnits = 0
 	local allyTeamList = Spring.GetAllyTeamList()
-	local numberOfAllyTeams = #allyTeamList
-	for allyTeamListIndex = 1, numberOfAllyTeams do
+	for allyTeamListIndex = 1, #allyTeamList do
 		local allyID = allyTeamList[allyTeamListIndex]
 		local teamList = Spring.GetTeamList(allyID)
 		for _,teamID in pairs(teamList) do

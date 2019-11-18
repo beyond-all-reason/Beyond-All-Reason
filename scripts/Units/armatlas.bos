@@ -5,14 +5,7 @@
 
 piece  base, link, body, w_glass, jetl, jetr, thrustl, thrustr, thrustm, backwing, centerwing, centerpadd, rhookbase, rhookext1, rhookext2, rhook, lhookbase, lhookext1, lhookext2, lhook;
 
-static-var  Static_Var_1, unitviewer, statechg_DesiredState, statechg_StateChanging;
-
-// Signal definitions
-#define SIG_MOVE			2
-
-
-
-
+static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
 
 
 activatescr()   //transport start  - LOAD - animation of claws
@@ -25,13 +18,13 @@ activatescr()   //transport start  - LOAD - animation of claws
 		//turn rarm2 to z-axis <45> speed <90>;
 
 
-		sleep 500;  //close
+		sleep 50;  //close
 
 		//turn larm2 to z-axis <0> speed <90>;
 		//turn rarm2 to z-axis <0> speed <90>;
 
 	}
-	sleep 500;
+	sleep 50;
 }
 
 deactivatescr()  //transport end - UNLOAD -
@@ -40,11 +33,11 @@ deactivatescr()  //transport end - UNLOAD -
 	{
 		//turn larm2 to z-axis <-45> speed <90>;
 		//turn rarm2 to z-axis <45> speed <90>;
-		sleep 500;
+		sleep 100;
 		//turn larm2 to z-axis <0> speed <90>;
 		//turn rarm2 to z-axis <0> speed <90>;
 	}
-	sleep 500;
+	sleep 50;
 }
 
 
@@ -119,19 +112,11 @@ Create()
 	hide thrustr;
 	hide thrustm;
 	hide link;
-	unitviewer = FALSE;
+	turn jetl to x-axis <-90.000000> now;
+	turn jetr to x-axis <-90.000000> now;
 	Static_Var_1 = 0;
 	call-script InitState();
 	start-script SmokeUnit();
-	turn jetl to x-axis <-90.000000> now;
-	turn jetr to x-axis <-90.000000> now;
-}
-
-
-
-Demo()
-{
-	unitviewer = TRUE;
 }
 
 
@@ -146,15 +131,6 @@ QueryTransport(Func_Var_1)
 	Func_Var_1 = 1;
 }
 
-/*
-Activate()
-{
-	if( unitviewer )
-	{
-		start-script RequestState(0);
-	}
-}
-*/
 
 BeginTransport(Func_Var_1)
 {
@@ -165,28 +141,11 @@ BeginTransport(Func_Var_1)
 
 }
 
-/*
-Deactivate()
-{
-	if( unitviewer )
-	{
-		start-script RequestState(1);
-	}
-}
-*/
-
 EndTransport()
 {
 	start-script RequestState(1);
 }
 
-
-
-StopMoving()
-{
-	signal 2;
-	Static_Var_1 = 0;
-}
 
 
 MoveRate0()
@@ -204,7 +163,6 @@ MoveRate1()
 
 MoveRate2()
 {
-	set-signal-mask SIG_MOVE;
 	turn jetl to x-axis <-50.000000> speed <55.000000>;
 	turn jetr to x-axis <-50.000000> speed <55.000000>;
 
