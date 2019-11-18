@@ -15,24 +15,15 @@ end
 if (gadgetHandler:IsSyncedCode()) then
 
     local isNano = {}
-
-    function gadget:Initialize(uid, udid)
-        for unitDefID, defs in pairs(UnitDefs) do
-            if string.find(defs.name, "nanotc") then
-                isNano[unitDefID] = true
-            end
-        end
-        local units = Spring.GetAllUnits()
-        for i=1, #units do
-            if isNano[Spring.GetUnitDefID(units[i])] then
-                Spring.SetUnitPosErrorParams(units[i], 0,0,0, 0,0,0, math.huge)
-            end
+    for unitDefID, defs in pairs(UnitDefs) do
+        if string.find(defs.name, "nanotc") then
+            isNano[unitDefID] = true
         end
     end
 
     function gadget:UnitCreated(uid, udid)
         if isNano[udid] then
-            Spring.SetUnitPosErrorParams(units[i], 0,0,0, 0,0,0, math.huge)
+            Spring.SetUnitPosErrorParams(udid, 0,0,0, 0,0,0, math.huge)
         end
     end
 
