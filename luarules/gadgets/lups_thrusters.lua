@@ -25,8 +25,7 @@ local UPDATE_PERIOD = 3
 --------------------------------------------------------------------------------
 
 local Lups
-local LupsAddParticles 
-local SYNCED = SYNCED
+local LupsAddParticles
 
 local units = {}
 local unitSpeeds = {}

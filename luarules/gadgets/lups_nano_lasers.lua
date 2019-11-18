@@ -14,44 +14,6 @@ function gadget:GetInfo()
   }
 end
 
-local builderWorkTime = {}
-local min, max = 5000,0
-for uDefID, uDef in pairs(UnitDefs) do
-  if uDef.isBuilder then
-    local buildSpeed = uDef.buildSpeed or 220
-    if buildSpeed > max then max = buildSpeed end
-    if buildSpeed < min then max = buildSpeed end
-
-    local OldMax, OldMin, NewMax, NewMin = 220,5000,0.2,2.2
-    local OldRange = (OldMax - OldMin)
-    local NewRange = (NewMax - NewMin)
-    buildSpeed = (((buildSpeed - OldMin) * NewRange) / OldRange) + NewMin
-    --Spring.Echo(uDef.name, uDef.buildSpeed,value)
-    builderWorkTime[uDefID] = buildSpeed
-  end
-end
-
-local spGetFactoryCommands = Spring.GetFactoryCommands
-local spGetUnitCurrentCommand    = Spring.GetUnitCurrentCommand
-
-local function GetCmdTag(unitID) 
-    local cmdTag = 0
-    local cmds = spGetFactoryCommands(unitID,1)
-	if (cmds) then
-		local cmd = cmds[1]
-		if cmd then
-			cmdTag = cmd.tag
-		end
-	end
-	if cmdTag == 0 then
-        local tag = select(3, spGetUnitCurrentCommand(unitID))
-        if tag then
-            cmdTag = tag
-        end
-	end 
-	return cmdTag
-end 
-	
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
@@ -60,6 +22,7 @@ if (gadgetHandler:IsSyncedCode()) then
 -------------------------------------------------------------------------------------
     --// bw-compability
     local alreadyWarned = 0
+
     local function WarnDeprecated()
         if (alreadyWarned<10) then
             alreadyWarned = alreadyWarned + 1
@@ -91,17 +54,78 @@ else
     -------------------------------------------------------------------------------------
 
     --// Speed-ups
-    local GetUnitRadius        = Spring.GetUnitRadius
-    local GetFeatureRadius     = Spring.GetFeatureRadius
-    local spGetFeatureDefID    = Spring.GetFeatureDefID
-    local spGetGameFrame       = Spring.GetGameFrame
-    local spIsUnitInView       = Spring.IsUnitInView
+    local GetUnitRadius              = Spring.GetUnitRadius
+    local GetFeatureRadius           = Spring.GetFeatureRadius
+    local spGetFeatureDefID          = Spring.GetFeatureDefID
+    local spGetGameFrame             = Spring.GetGameFrame
+    local spIsUnitInView             = Spring.IsUnitInView
+    local spGetUnitIsBuilding        = Spring.GetUnitIsBuilding
+    local spGetUnitDefID             = Spring.GetUnitDefID
+    local spGetUnitCurrentCommand    = Spring.GetUnitCurrentCommand
+    local spValidFeatureID           = Spring.ValidFeatureID
+    local spValidUnitID              = Spring.ValidUnitID
+    local spGetUnitSeparation        = Spring.GetUnitSeparation
+    local spGetGroundHeight          = Spring.GetGroundHeight
+    local spGetUnitAllyTeam          = Spring.GetUnitAllyTeam
+    local spIsUnitIcon               = Spring.IsUnitIcon
+    local spGetUnitCurrentBuildPower = Spring.GetUnitCurrentBuildPower
+    local spGetUnitNanoPieces        = Spring.GetUnitNanoPieces
+    local spGetUnitPosition          = Spring.GetUnitPosition
+    local spGetFeaturePosition       = Spring.GetFeaturePosition
+    local spGetFactoryCommands       = Spring.GetFactoryCommands
 
     local type  = type
     local pairs = pairs
 
+    local myAllyTeamID = Spring.GetMyAllyTeamID()
+    local myTeamID = Spring.GetMyTeamID()
+    local _, fullview = Spring.GetSpectatingState()
+
+    local gameMaxUnits = Game.maxUnits
+
+    local CMD_REPAIR    = CMD.REPAIR
+    local CMD_RECLAIM   = CMD.RECLAIM
+    local CMD_RESTORE   = CMD.RESTORE
+    local CMD_RESURRECT = CMD.RESURRECT
+    local CMD_CAPTURE   = CMD.CAPTURE
+
     -------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------
+
+    local builderWorkTime = {}
+    local min, max = 5000,0
+    for uDefID, uDef in pairs(UnitDefs) do
+        if uDef.isBuilder then
+            local buildSpeed = uDef.buildSpeed or 220
+            if buildSpeed > max then max = buildSpeed end
+            if buildSpeed < min then max = buildSpeed end
+
+            local OldMax, OldMin, NewMax, NewMin = 220,5000,0.2,2.2
+            local OldRange = (OldMax - OldMin)
+            local NewRange = (NewMax - NewMin)
+            buildSpeed = (((buildSpeed - OldMin) * NewRange) / OldRange) + NewMin
+            --Spring.Echo(uDef.name, uDef.buildSpeed,value)
+            builderWorkTime[uDefID] = {buildSpeed, uDef.buildRange}
+        end
+    end
+
+    local function GetCmdTag(unitID)
+        local cmdTag = 0
+        local cmds = spGetFactoryCommands(unitID,1)
+        if (cmds) then
+            local cmd = cmds[1]
+            if cmd then
+                cmdTag = cmd.tag
+            end
+        end
+        if cmdTag == 0 then
+            local tag = select(3, spGetUnitCurrentCommand(unitID))
+            if tag then
+                cmdTag = tag
+            end
+        end
+        return cmdTag
+    end
 
     local hideIfIcon = Spring.GetConfigInt("NanoLaserIcon", 0)
     if hideIfIcon == 1 then
@@ -122,6 +146,12 @@ else
                 Spring.SetConfigInt("NanoLaserIcon", 0)
             end
         end
+    end
+    
+    function gadget:PlayerChanged(playerID)
+        myAllyTeamID = Spring.GetMyAllyTeamID()
+        myTeamID = Spring.GetMyTeamID()
+        _, fullview = Spring.GetSpectatingState()
     end
 
     if (not GetFeatureRadius) then
@@ -167,7 +197,6 @@ else
     -------------------------------------------------------------------------------------
 
     local builders = {}
-
     local function BuilderFinished(unitID)
         builders[#builders+1] = unitID
     end
@@ -194,6 +223,105 @@ else
     for key, value in pairs(nanoParams) do
         knownNanoParams[key] = value
     end
+
+
+    local function IsFeatureInRange(unitID, featureID, range)
+        range = range + 100 -- fudge factor
+        local x,y,z = spGetFeaturePosition(featureID)
+        local ux,uy,uz = spGetUnitPosition(unitID)
+        return ((ux - x)*(ux - x) + (uz - z)*(uz - z)) <= range*range
+    end
+
+    local function IsGroundPosInRange(unitID, x, z, range)
+        local ux,uy,uz = spGetUnitPosition(unitID)
+        return ((ux - x)*(ux - x) + (uz - z)*(uz - z)) <= range*range
+    end
+
+    function getUnitNanoTarget(unitID)
+        local type = ""
+        local target
+        local isFeature = false
+        local inRange
+
+        local buildID = spGetUnitIsBuilding(unitID)
+        if buildID then
+            target = buildID
+            type   = "building"
+            inRange = true
+        else
+            local uDefID = spGetUnitDefID(unitID)
+            local buildRange = builderWorkTime[uDefID] and builderWorkTime[uDefID][2] or 0
+            local cmdID, _, _, cmdParam1, cmdParam2, cmdParam3, cmdParam4, cmdParam5 = spGetUnitCurrentCommand(unitID, 1)
+            if cmdID then
+
+                if cmdID == CMD_RECLAIM then
+                    --// anything except "#cmdParams = 1 or 5" is either invalid or discribes an area reclaim
+                    if not cmdParam2 or cmdParam5 then
+                        local id = cmdParam1
+                        local unitID_ = id
+                        local featureID = id - gameMaxUnits
+
+                        if (featureID >= 0) then
+                            if spValidFeatureID(featureID) then
+                                target    = featureID
+                                isFeature = true
+                                type      = "reclaim"
+                                inRange	= IsFeatureInRange(unitID, featureID, buildRange)
+                            end
+                        else
+                            if spValidUnitID(unitID_) then
+                                target = unitID_
+                                type   = "reclaim"
+                                inRange = spGetUnitSeparation(unitID, unitID_, true) <= buildRange
+                            end
+                        end
+                    end
+
+                elseif cmdID == CMD_REPAIR  then
+                    local repairID = cmdParam1
+                    if spValidUnitID(repairID) then
+                        target = repairID
+                        type   = "repair"
+                        inRange = spGetUnitSeparation(unitID, repairID, true) <= buildRange
+                    end
+
+                elseif cmdID == CMD_RESTORE then
+                    local x = cmdParam1
+                    local z = cmdParam3
+                    type   = "restore"
+                    target = {x, spGetGroundHeight(x,z)+5, z, cmd.params[4]}
+                    inRange = IsGroundPosInRange(unitID, x, z, buildRange)
+
+                elseif cmdID == CMD_CAPTURE then
+                    if (not cmdParam2)or(cmdParam5) then
+                        local captureID = cmdParam1
+                        if spValidUnitID(captureID) then
+                            target = captureID
+                            type   = "capture"
+                            inRange = spGetUnitSeparation(unitID, captureID, true) <= buildRange
+                        end
+                    end
+
+                elseif cmdID == CMD_RESURRECT then
+                    local rezzID = cmdParam1 - gameMaxUnits
+                    if spValidFeatureID(rezzID) then
+                        target    = rezzID
+                        isFeature = true
+                        type      = "resurrect"
+                        inRange	= IsFeatureInRange(unitID, rezzID, buildRange)
+                    end
+
+                end
+            end
+        end
+
+        if inRange then
+            return type, target, isFeature
+        else
+            return
+        end
+    end
+
 
     local updateFrameCount = 0
     local prevUpdateGameFrame = 0
@@ -224,30 +352,32 @@ else
         end
 
         local frame = Spring.GetGameFrame()
-        if frame == prevUpdateGameFrame then return end
+        if frame == prevUpdateGameFrame then
+            return
+        end
         prevUpdateGameFrame = frame
         updateFrameCount = updateFrameCount + 1
 
-        if currentNanoEffect == NanoFxNone then return end
+        if currentNanoEffect == NanoFxNone then
+            return
+        end
 
         local updateFramerate = math.min(15, 2 + math.floor(#builders/50)) -- update fast at gamestart and gradually slower
         local totalNanoEmitters = 0
-        local myTeamID = Spring.GetMyTeamID()
-        local _, myFullview = Spring.GetSpectatingState()
         for i=1,#builders do
             if totalNanoEmitters > maxNewNanoEmitters then
                 break
             end
             local unitID = builders[i]
-            if ((not hideIfIcon and (myFullview or Spring.GetMyAllyTeamID() == Spring.GetUnitAllyTeam(unitID))) or (not Spring.IsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID))  then
-                local UnitDefID = Spring.GetUnitDefID(unitID)
-                local buildpower = builderWorkTime[UnitDefID] or 1
+            if ((not hideIfIcon and (fullview or myAllyTeamID == spGetUnitAllyTeam(unitID))) or (not spIsUnitIcon(unitID)) and CallAsTeam(myTeamID, spIsUnitInView, unitID))  then
+                local UnitDefID = spGetUnitDefID(unitID)
+                local buildpower = builderWorkTime[UnitDefID] and builderWorkTime[UnitDefID][1] or 1
                 if ((unitID + updateFrameCount) % updateFramerate < 1) then
-                    local strength = ((Spring.GetUnitCurrentBuildPower(unitID)or 1)*buildpower) or 1	-- * 16
-                    --Spring.Echo(strength,Spring.GetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID])
+                    local strength = ((spGetUnitCurrentBuildPower(unitID)or 1)*buildpower) or 1	-- * 16
+                    --Spring.Echo(strength,spGetUnitCurrentBuildPower(unitID)*builderWorkTime[UnitDefID][1])
                     if (strength > 0) then
-                        local type, target, isFeature = Spring.Utilities.GetUnitNanoTarget(unitID)
-
+                        local type, target, isFeature = getUnitNanoTarget(unitID)
+                        
                         if (target) then
                             local endpos
                             if (type=="restore") then
@@ -268,7 +398,7 @@ else
                             ]]--
 
                             local cmdTag = GetCmdTag(unitID)
-                            local nanoPieces = Spring.GetUnitNanoPieces(unitID) or {}
+                            local nanoPieces = spGetUnitNanoPieces(unitID) or {}
                             totalNanoEmitters = totalNanoEmitters + #nanoPieces
                             if totalNanoEmitters > maxNewNanoEmitters then
                                 break
@@ -317,7 +447,7 @@ else
         end
 
         for _,unitID in ipairs(Spring.GetAllUnits()) do
-            local unitDefID = Spring.GetUnitDefID(unitID)
+            local unitDefID = spGetUnitDefID(unitID)
             gadget:UnitFinished(unitID, unitDefID)
         end
     end
@@ -329,7 +459,7 @@ else
 
     function gadget:UnitFinished(uid, udid)
         if currentNanoEffect == NanoFxNone then return end
-        if (UnitDefs[udid].isBuilder) and not registeredBuilders[uid] then
+        if builderWorkTime[udid] and not registeredBuilders[uid] then
             BuilderFinished(uid)
             registeredBuilders[uid] = nil
         end
@@ -337,7 +467,7 @@ else
 
     function gadget:UnitDestroyed(uid, udid)
         if currentNanoEffect == NanoFxNone then return end
-        if (UnitDefs[udid].isBuilder) and registeredBuilders[uid] then
+        if builderWorkTime[udid] and registeredBuilders[uid] then
             BuilderDestroyed(uid)
             registeredBuilders[uid] = nil
         end

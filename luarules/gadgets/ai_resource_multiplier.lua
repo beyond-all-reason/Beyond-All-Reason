@@ -131,7 +131,7 @@ function gadget:Initialize()
 				if type(units) == 'table' then
 					for i=1,#units do
 						local unitID = units[i]
-						if select(5,Spring.GetUnitHealth(unitID)) >= 1 then
+						if unitID and select(5,Spring.GetUnitHealth(unitID)) >= 1 then
 							gadget:UnitFinished(unitID, uDefID, teamID)
 						end
 					end

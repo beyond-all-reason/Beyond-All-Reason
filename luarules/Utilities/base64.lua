@@ -56,6 +56,10 @@ function Spring.Utilities.Base64Decode(data)
 	local result=""
 	for dpos=0,string.len(data)-1,4 do
 		for char=1,4 do chars[char] = base64bytes[(string.sub(data,(dpos+char),(dpos+char)) or "=")] end
+		if not chars[1] or not chars[2] then
+			Spring.Log("base64", LOG.ERROR, "Invalid base64 string to decode", data)
+			return ""
+		end
 		result = string.format('%s%s%s%s',result,string.char(lor(lsh(chars[1],2), rsh(chars[2],4))),(chars[3] ~= nil) and string.char(lor(lsh(chars[2],4), rsh(chars[3],2))) or "",(chars[4] ~= nil) and string.char(lor(lsh(chars[3],6) % 192, (chars[4]))) or "")
 	end
 	return result
