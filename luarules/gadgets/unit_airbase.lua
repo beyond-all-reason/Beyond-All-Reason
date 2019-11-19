@@ -567,22 +567,23 @@ local spTraceScreenRay = Spring.TraceScreenRay
 local spAreTeamsAllied = Spring.AreTeamsAllied
 local spGetUnitTeam = Spring.GetUnitTeam
 local spGetUnitDefID = Spring.GetUnitDefID
-local spGetUnitPiecePosDir = Spring.GetUnitPiecePosDir
-local spGetUnitPosition = Spring.GetUnitPosition
-local spGetUnitAllyTeam = Spring.GetUnitAllyTeam
-local spIsUnitSelected = Spring.IsUnitSelected
 local spGetSelectedUnits = Spring.GetSelectedUnits
 
 local myTeamID = Spring.GetMyTeamID()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
-local amISpec = Spring.GetSpectatingState()
 
 local strUnit = "unit"
+
+local unitConf = {}
+for udid, unitDef in pairs(UnitDefs) do
+   if unitDef.canFly then
+      unitConf[udid] = true
+   end
+end
 
 function gadget:PlayerChanged()
    myTeamID = Spring.GetMyTeamID()
    myAllyTeamID = Spring.GetMyAllyTeamID()
-   amISpec = Spring.GetSpectatingState()
 end
 
 function gadget:DefaultCommand()
@@ -604,7 +605,7 @@ function gadget:DefaultCommand()
    local sUnits = spGetSelectedUnits()
    for i=1,#sUnits do
       local unitID = sUnits[i]
-      if UnitDefs[spGetUnitDefID(unitID)].canFly then
+      if unitConf[spGetUnitDefID(unitID)] then
          return CMD_LAND_AT_SPECIFIC_AIRBASE
       end
    end
