@@ -16,6 +16,7 @@ end
 function CommanderBehaviour:Update()
 	local f = self.game:Frame()
 	if self.lowHealth and f >= self.nextHealthCheck then
+		self.map:SaveTable()
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.75 then
 			self.lowHealth = false
 			self.unit:ElectBehaviour()

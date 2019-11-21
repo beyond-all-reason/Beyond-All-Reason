@@ -239,6 +239,12 @@ function map:DisplayDrawings(onOff)
 	SendToUnsynced('ShardDrawDisplay', onOff)
 end
 
+function map:SaveTable()
+	print('sdsdcsdsddsf')
+	SendToUnsynced('ShardSaveTable')
+	print('sdsdcsdsddsfdfgertyhertyujhgcnvf')
+end
+
 -- END DRAWING FUNCTIONS
 
 	-- game.map = map

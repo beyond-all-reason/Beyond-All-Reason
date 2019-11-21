@@ -7,7 +7,7 @@ function widget:GetInfo()
 		date 	= "June 2016",
 		license	= "whatever",
 		layer 	= 0,
-		enabled	= false
+		enabled	= true
 	}
 end
 
@@ -342,7 +342,6 @@ local function DrawLines(shapes)
 end
 
 local function DrawPoints(shapes)
-    print('drawww2')
 	glDepthTest(false)
 	glPushMatrix()
 	glPointSize(6)
@@ -951,6 +950,10 @@ local function InterpretStringData(data, command)
 	return newData
 end
 
+local function SaveTable(nnn)
+	print('minchiazza')
+end
+                      
 local function BindCommand(command, func)
 	widgetHandler:RegisterGlobal(command, func)
 	commandBindings[command] = func
@@ -977,6 +980,7 @@ function widget:Initialize()
 	BindCommand("ShardDrawDisplay", DisplayOnOff)
 	BindCommand("ShardStartTimer", StartTimer)
 	BindCommand("ShardStopTimer", StopTimer)
+	BindCommand("ShardSaveTable", SaveTable)
 	myFont = glLoadFont('luaui/fonts/Xolonium.otf', 16, 4, 5) or glLoadFont('fonts/Xolonium.otf', 16, 4, 5)
 	myMonoFont = glLoadFont('luaui/fonts/Mesmerize-Bold.ttf', 16, 4, 5) or myFont
 	-- myFont:SetAutoOutlineColor(true)

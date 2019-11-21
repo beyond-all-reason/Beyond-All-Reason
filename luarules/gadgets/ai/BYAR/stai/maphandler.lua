@@ -449,8 +449,9 @@ function MapHandler:Update()
 end
 
 function MapHandler:Init()
-        self:EchoDebug('MapHandler START')
+	self:EchoDebug('MapHandler START')
     self:EchoDebug('self',self)
+	
 --     MapHandler.map = self.map
     self:basicMapInfo()
     for i,v in pairs(self.ai) do

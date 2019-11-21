@@ -391,6 +391,17 @@ else
         end
     end
 	
+	local function sSaveTable(_)
+		print(_)
+		print('plpokoikoijiuj')
+		print(Script.LuaUI.ShardSaveTable)
+		if (Script.LuaUI.ShardSaveTable) then
+			print('iuuhibuyygtv')
+			Script.LuaUI.ShardSaveTable()
+			print('sdzdfsdfgfghghjklf')
+		end
+	end
+	
     function gadget:Initialize()
 		Spring.Echo("Shard AI unsync gadget init")
 		gadgetHandler:AddSyncAction("shard_debug_position", handleShardDebugPosEvent)
@@ -408,6 +419,7 @@ else
         gadgetHandler:AddSyncAction('ShardDrawDisplay', sdDisplay)
         gadgetHandler:AddSyncAction('ShardStartTimer', sStartTimer)
         gadgetHandler:AddSyncAction('ShardStopTimer', sStopTimer)
+		gadgetHandler:AddSyncAction('ShardSaveTable', sSaveTable)
 	end
 
 	function gadget:Shutdown()
