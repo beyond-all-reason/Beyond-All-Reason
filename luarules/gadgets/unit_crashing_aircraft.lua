@@ -40,18 +40,18 @@ function gadget:Initialize()
 			crashable[UnitDef.id] = true
 		end
 	end
-	crashable[UnitDefNames['armliche'].id] = false
-	crashable[UnitDefNames['armpeep'].id] = false
-	crashable[UnitDefNames['corfink'].id] = false
+	crashable[UnitDefNames['armliche'].id] = nil
+	crashable[UnitDefNames['armpeep'].id] = nil
+	crashable[UnitDefNames['corfink'].id] = nil
 
-	crashable[UnitDefNames['corbw'].id] = false
+	crashable[UnitDefNames['corbw'].id] = nil
 
-	crashable[UnitDefNames['armfig'].id] = false
-	crashable[UnitDefNames['armsfig'].id] = false
-	crashable[UnitDefNames['armhawk'].id] = false
-	crashable[UnitDefNames['corveng'].id] = false
-	crashable[UnitDefNames['corsfig'].id] = false
-	crashable[UnitDefNames['corvamp'].id] = false
+	crashable[UnitDefNames['armfig'].id] = nil
+	crashable[UnitDefNames['armsfig'].id] = nil
+	crashable[UnitDefNames['armhawk'].id] = nil
+	crashable[UnitDefNames['corveng'].id] = nil
+	crashable[UnitDefNames['corsfig'].id] = nil
+	crashable[UnitDefNames['corvamp'].id] = nil
 end
 
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
@@ -64,9 +64,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
 			local totalUnits = #Spring.GetAllUnits()
-			percentage = 0.7 * (1 - (totalUnits/5000))
-			if percentage < 0.25 then
-				percentage = 0.25
+			percentage = 0.8 * (1 - (totalUnits/5000))
+			if percentage < 0.4 then
+				percentage = 0.4
 			end
 		end
 		if random() < percentage then
