@@ -27,6 +27,8 @@ local COB_CRASHING = COB.CRASHING
 local COM_BLAST = WeaponDefNames['commanderexplosion'].id
 
 local crashable  = {}
+local alwaysCrash = {}
+
 local crashing = {}
 local crashingCount = 0
 
@@ -39,8 +41,10 @@ function gadget:Initialize()
 		if UnitDef.canFly == true and UnitDef.transportSize == 0 and string.sub(UnitDef.name, 1, 7) ~= "critter" and string.sub(UnitDef.name, 1, 7) ~= "chicken" then
 			crashable[UnitDef.id] = true
 		end
+		if UnitDef.name == 'corcrw' or UnitDef.name == 'armliche' then
+			alwaysCrash[UnitDef.id] = true
+		end
 	end
-	crashable[UnitDefNames['armliche'].id] = nil
 	crashable[UnitDefNames['armpeep'].id] = nil
 	crashable[UnitDefNames['corfink'].id] = nil
 
@@ -69,7 +73,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 				percentage = 0.44
 			end
 		end
-		if random() < percentage then
+		if random() < percentage or alwaysCrash[unitDefID] then
 			-- make it crash
 			crashingCount = crashingCount + 1
 			crashing[unitID] = Spring.GetGameFrame() + 300
