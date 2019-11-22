@@ -123,7 +123,7 @@ return {
 				soundstart = "canlite3",
 				turret = true,
 				weapontype = "LaserCannon",
-				weaponvelocity = 310,
+				weaponvelocity = 930,
 				damage = {
 					default = 100,
 				},

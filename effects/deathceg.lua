@@ -447,15 +447,15 @@ defs["deathceg2-builder"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(eff
 defs["deathceg3-builder"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
 defs["deathceg4-builder"] = tableMerge(deepcopy(defs["deathceg4"]), deepcopy(effects))
 
-defs["deathceg2-builder"].fire.properties.colormap = [[0.5 0.8 0.4 0.04   0.4 0.7 0.35 0.035   0.3 0.55 0.25 0.03   0.2 0.3 0.15 0.022   0.15 0.18 0.06 0.015   0 0 0 0.01]]
+defs["deathceg2-builder"].fire.properties.colormap = [[0.9 0.8 0.2 0.04   0.8 0.6 0.150 0.035   0.6 0.5 0.10 0.03   0.25 0.2 0.05 0.022   0.15 0.15 0.05 0.015   0 0 0 0.01]]
 defs["deathceg3-builder"].fire.properties.colormap = deepcopy(defs["deathceg2-builder"].fire.properties.colormap)
 defs["deathceg4-builder"].fire.properties.colormap = deepcopy(defs["deathceg2-builder"].fire.properties.colormap)
 
-defs["deathceg2-builder"].fireglow.properties.colormap = [[0.16 0.33 0.04 0.01   0 0 0 0.01]]
+defs["deathceg2-builder"].fireglow.properties.colormap = [[0.50 0.40 0.04 0.01   0 0 0 0.01]]
 defs["deathceg3-builder"].fireglow.properties.colormap = deepcopy(defs["deathceg2-builder"].fireglow.properties.colormap)
 defs["deathceg4-builder"].fireglow.properties.colormap = deepcopy(defs["deathceg2-builder"].fireglow.properties.colormap)
 
-defs["deathceg3-builder"].dustparticles.properties.colormap = [[0.8 1 0.4 0.01   0 0 0 0.01]]
+defs["deathceg3-builder"].dustparticles.properties.colormap = [[0.8 1 0.2 0.01   0 0 0 0.01]]
 defs["deathceg4-builder"].dustparticles.properties.colormap = deepcopy(defs["deathceg3-builder"].dustparticles.properties.colormap)
 
 

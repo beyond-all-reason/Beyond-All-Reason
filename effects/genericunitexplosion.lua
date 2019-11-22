@@ -2499,9 +2499,9 @@ local types = {
 
   },
   builder = {
-    explosion = {properties = {colormap = [[0 0 0 0   0.92 1 0.7 0.08   0.77 0.9 0.21 0.06   0.57 0.66 0.04 0.03   0 0 0 0.01]]}},
-    fireglow = { properties = {colormap           = [[0.24 0.3 0.04 0.025   0 0 0 0]]}},
-    sparks = { properties = {colormap           = [[0.93 1 0.77 0.015   0.6 0.8 0.3 0.01   0 0 0 0]]}},
+    explosion = {properties = {colormap = [[0 0 0 0   1 0.92 0.2 0.08   0.91 0.82 0.06 0.06   0.80 0.66 0.04 0.03   0 0 0 0.01]]}},
+    fireglow = { properties = {colormap           = [[0.3 0.3 0.04 0.025   0 0 0 0]]}},
+    sparks = { properties = {colormap           = [[0.93 0.9 0.20 0.015   0.8 0.8 0.1 0.01   0 0 0 0]]}},
   },
   uw = {
     groundflash_small = false,
