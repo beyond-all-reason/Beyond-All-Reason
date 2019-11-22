@@ -64,9 +64,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		if Spring.GetGameSeconds() - totalUnitsTime > 5 then
 			totalUnitsTime = Spring.GetGameSeconds()
 			local totalUnits = #Spring.GetAllUnits()
-			percentage = 0.8 * (1 - (totalUnits/5000))
-			if percentage < 0.4 then
-				percentage = 0.4
+			percentage = 0.88 * (1 - (totalUnits/6000))
+			if percentage < 0.44 then
+				percentage = 0.44
 			end
 		end
 		if random() < percentage then
@@ -78,6 +78,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			SetUnitNoMinimap(unitID,true)
 			for weaponID, weapon in pairs(UnitDefs[unitDefID].weapons) do
 				SetUnitWeaponState(unitID, weaponID, "reloadTime", 9999)
+				SetUnitWeaponState(unitID, weaponID, "range", 0)
 			end
 			-- remove sensors
 			SetUnitSensorRadius(unitID, "los", 0)
