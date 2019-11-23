@@ -92,8 +92,8 @@ if (gadgetHandler:IsSyncedCode()) then  --Sync?
 	function gadget:UnitCreated(unitID,unitDefID,unitTeam)
 		local category = categories[unitDefID]
 		local taxvalue = taxvalues[unitDefID]
-			AddTax(unitTeam, category, taxvalue)
-			SetUnitTax(unitID, unitTeam, category)
+		AddTax(unitTeam, category, taxvalue)
+		SetUnitTax(unitID, unitTeam, category)
 	end
 	
 	function gadget:UnitDestroyed(unitID,unitDefID,unitTeam)

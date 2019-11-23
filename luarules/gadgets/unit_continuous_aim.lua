@@ -60,6 +60,11 @@ local convertedUnits = {
 	--[UnitDefNames.corjugg.id] = true,
 	[UnitDefNames.armvang.id] = true,
 }
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.scriptName == "scripts/BASICTANKSCRIPT.LUA" then
+		convertedUnits[unitDefID] = true
+	end
+end
 
 local popups = {	-- exclude auto target range boost for popup units
 	[UnitDefNames.armclaw.id] = true,
@@ -75,7 +80,7 @@ local popups = {	-- exclude auto target range boost for popup units
 }
 
 function gadget:UnitCreated(unitID,unitDefID)
-	if convertedUnits[unitDefID] or UnitDefs[unitDefID].scriptName == "scripts/BASICTANKSCRIPT.LUA" then
+	if convertedUnits[unitDefID] then
 		for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
 			Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
 		end

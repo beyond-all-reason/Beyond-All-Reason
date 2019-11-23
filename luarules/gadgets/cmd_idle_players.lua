@@ -47,6 +47,15 @@ if ( not gadgetHandler:IsSyncedCode()) then
     local mx,my = GetMouseState()
     local validation = SYNCED.validationIdle
 
+    local isBuilder = {}
+    local unitBuildSpeedTime = {}
+    for unitDefID, unitDef in pairs(UnitDefs) do
+        if unitDef.isBuilder then
+            isBuilder[unitDefID] = true
+        end
+        unitBuildSpeedTime[unitDefID] = unitDef.buildTime / unitDef.buildSpeed
+    end
+
     function gadget:Initialize()
         gadgetHandler:AddSyncAction("onGameStart", onGameStart)
         gadgetHandler:AddChatAction("initialQueueTime",onInitialQueueTime)
@@ -106,14 +115,12 @@ if ( not gadgetHandler:IsSyncedCode()) then
             local queueTime = 0
             for i=1,#myUnits do
                 local unitID = myUnits[i]
-                local unitDefID = GetUnitDefID(unitID)
                 local thisQueueTime = 0
-                if UnitDefs[unitDefID].isBuilder then 
-                    local buildSpeed = UnitDefs[unitDefID].buildSpeed
+                if isBuilder[GetUnitDefID(unitID)] then
                     local buildQueue = GetRealBuildQueue(unitID)
                     if buildQueue then
                         for uDID,_ in pairs(buildQueue) do
-                            thisQueueTime = thisQueueTime + UnitDefs[uDID].buildTime / buildSpeed
+                            thisQueueTime = thisQueueTime + unitBuildSpeedTime[uDID]
                         end
                     end
                 end

@@ -19,13 +19,13 @@ CMD[CMD_LAND_AT_AIRBASE] = "LAND_AT_AIRBASE"
 CMD.LAND_AT_SPECIFIC_AIRBASE = CMD_LAND_AT_SPECIFIC_AIRBASE
 CMD[CMD_LAND_AT_SPECIFIC_AIRBASE] = "LAND_AT_SPECIFIC_AIRBASE"
 
-local airbaseDefIDs = {
-    [UnitDefNames["armasp"].id] = 100^2, -- sqr distance in elmos for starting tractor beam (i.e. movectrl) onto pad
-    [UnitDefNames["corasp"].id] = 100^2,
-    [UnitDefNames["armcarry"].id] = 100^2,
-    [UnitDefNames["corcarry"].id] = 100^2,
-}
-local tractorDist = 100^2 -- default sqr tractor distance, if not found in table
+local tractorDist = 100^2 -- default sqr tractor distance
+local airbaseDefIDs = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+   if unitDef.customParams and unitDef.customParams.isairbase then
+      airbaseDefIDs[unitDefID] = tractorDist
+   end
+end
 
 --------------------------------------------------------------------------------
 -- Synced
@@ -46,6 +46,15 @@ local previousHealFrame = 0
 local tractorSpeed = 2
 local rotTractorSpeed = 0.05
 local math_sqrt = math.sqrt
+
+local isAirUnit = {}
+local unitTimeToBuild = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+   if unitDef.isAirUnit then
+      isAirUnit[unitDefID] = true
+   end
+   unitTimeToBuild[unitDefID] = unitDef.buildTime / unitDef.buildSpeed
+end
 
 ---------------------------
 -- custom commands
@@ -204,10 +213,6 @@ function NeedsRepair(unitID)
    return health < maxHealth * landAtState;
 end
 
-function IsPlane(unitDefID)
-    return UnitDefs[unitDefID].isAirUnit
-end
-
 function CheckAll()
    -- check all units to see if any need healing
    for unitID,_ in pairs(planes) do
@@ -231,8 +236,8 @@ function FlyAway(unitID, airbaseID)
       local r = 2.5 * Spring.GetUnitRadius(airbaseID) 
       local tx,tz = px+r*math.sin(theta), pz+r*math.cos(theta)
       local ty = Spring.GetGroundHeight(tx,tz)
-      local uDID = Spring.GetUnitDefID(unitID)
-      local cruiseAlt = UnitDefs[uDID].wantedHeight 
+      --local uDID = Spring.GetUnitDefID(unitID)
+      --local cruiseAlt = UnitDefs[uDID].wantedHeight
       Spring.GiveOrderToUnit(unitID, CMD.MOVE, {tx,ty,tz}, {})
    end
 end
@@ -241,9 +246,8 @@ function HealUnit(unitID, airbaseID, resourceFrames, h, mh)
    if resourceFrames <=0 then return end
    local airbaseDefID = Spring.GetUnitDefID(airbaseID)
    local unitDefID = Spring.GetUnitDefID(unitID)
-   local buildSpeed = UnitDefs[airbaseDefID].buildSpeed 
-   local timeToBuild = UnitDefs[unitDefID].buildTime / buildSpeed
-   local healthGain = timeToBuild / resourceFrames 
+   local buildSpeed = UnitDefs[airbaseDefID].buildSpeed
+   local healthGain = unitTimeToBuild[unitDefID] / resourceFrames
    local newHealth = math.min(h+healthGain, mh)
    Spring.SetUnitHealth(unitID, newHealth)
 end
@@ -264,7 +268,7 @@ end
 -- unit creation, destruction, etc
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
-   if IsPlane(unitDefID) then
+   if isAirUnit[unitDefID] then
       planes[unitID] = true
       InsertLandAtAirbaseCommands(unitID)
    end
@@ -518,13 +522,6 @@ function gadget:GameFrame(n)
 end
 
 function gadget:Initialize()
-   -- fixme: when using new transport mechanics, this is the proper way to define airbases
-   for unitDefID, unitDef in pairs(UnitDefs) do
-      if unitDef.customParams and unitDef.customParams.isairbase then
-         airbaseDefIDs[unitDefID] = airbaseDefIDs[unitDefID] or tractorDist 
-      end
-   end
-
    -- dummy UnitCreated events for existing units, to handle luarules reload
    -- release any planes currently attached to anything else
    local allUnits = Spring.GetAllUnits()
@@ -535,7 +532,7 @@ function gadget:Initialize()
       gadget:UnitCreated(unitID, unitDefID)
 
       local transporterID = Spring.GetUnitTransporter(unitID)
-      if transporterID and IsPlane(unitDefID) then
+      if transporterID and isAirUnit[unitDefID] then
          Spring.UnitDetach(unitID)
       end
    end
@@ -598,7 +595,7 @@ function gadget:DefaultCommand()
    end
 
    local targetDefID = spGetUnitDefID(targetID)
-   if not ((UnitDefs[targetDefID].customParams and UnitDefs[targetDefID].customParams.isairbase) or airbaseDefIDs[targetDefID]) then
+   if not airbaseDefIDs[targetDefID] then
       return false
    end
 

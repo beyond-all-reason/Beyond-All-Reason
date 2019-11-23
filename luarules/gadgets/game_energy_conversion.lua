@@ -146,8 +146,8 @@ end
 ----------------------------------------------------------------
 
 local function UnitParalysed(uID, uDefID, uTeam)
-	local cDefs = convertCapacities[uDefID]
-    if cDefs then
+    if convertCapacities[uDefID] then
+	  local cDefs = convertCapacities[uDefID]
       if teamMMList[uTeam][cDefs.e][uID].built then
 				teamMMList[uTeam][cDefs.e][uID].emped = true
         AdjustTeamCapacity(uTeam, -cDefs.c, cDefs.e)
@@ -156,12 +156,12 @@ local function UnitParalysed(uID, uDefID, uTeam)
 end
 
 local function UnitParalysisOver(uID, uDefID, uTeam)
-	local cDefs = convertCapacities[uDefID]
-    if cDefs then
-			if (teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built) then
-				teamMMList[uTeam][cDefs.e][uID].emped = false
-				AdjustTeamCapacity(uTeam, cDefs.c, cDefs.e)
-			end
+	if convertCapacities[uDefID] then
+		local cDefs = convertCapacities[uDefID]
+		if (teamMMList[uTeam][cDefs.e][uID] and teamMMList[uTeam][cDefs.e][uID].built) then
+			teamMMList[uTeam][cDefs.e][uID].emped = false
+			AdjustTeamCapacity(uTeam, cDefs.c, cDefs.e)
+		end
     end
 end
 
@@ -325,16 +325,15 @@ end
 
 
 function gadget:UnitCreated(uID, uDefID, uTeam, builderID)
-	local cDefs = convertCapacities[uDefID]
-    if cDefs then
-        teamMMList[uTeam][cDefs.e][uID] = {capacity = 0, status = 0, built = false, emped = false}
+	if convertCapacities[uDefID] then
+        teamMMList[uTeam][convertCapacities[uDefID].e][uID] = {capacity = 0, status = 0, built = false, emped = false}
     end
 end
 
 
 function gadget:UnitFinished(uID, uDefID, uTeam)
-    local cDefs = convertCapacities[uDefID]
-    if cDefs then
+	if convertCapacities[uDefID] then
+		local cDefs = convertCapacities[uDefID]
         if not teamMMList[uTeam][cDefs.e][uID] then 
 	    teamMMList[uTeam][cDefs.e][uID] = {capacity = 0, status = 0, built = false, emped = false}
         end
@@ -351,9 +350,7 @@ end
 
 
 function gadget:UnitDamaged(uID, uDefID, uTeam, damage, paralyzer)
-	local cDefs = convertCapacities[uDefID]
-
-    if paralyzer and cDefs then
+    if paralyzer and convertCapacities[uDefID] then
 		local _, maxHealth, paralyzeDamage, _ ,_ = spGetUnitHealth(uID)
 		local relativeParDmg = paralyzeDamage -  maxHealth
 		if (relativeParDmg > 0) then 
@@ -364,8 +361,8 @@ end
 
 
 function gadget:UnitDestroyed(uID, uDefID, uTeam)
-    local cDefs = convertCapacities[uDefID]
-    if cDefs then
+	if convertCapacities[uDefID] then
+		local cDefs = convertCapacities[uDefID]
         if teamMMList[uTeam][cDefs.e][uID] then
 			if teamMMList[uTeam][cDefs.e][uID].built then
 				if (teamMMList[uTeam][cDefs.e][uID].status == 1) then
@@ -382,8 +379,8 @@ function gadget:UnitDestroyed(uID, uDefID, uTeam)
 end
 
 function gadget:UnitGiven(uID, uDefID, newTeam, oldTeam)
-    local cDefs = convertCapacities[uDefID]
-    if cDefs then
+	if convertCapacities[uDefID] then
+		local cDefs = convertCapacities[uDefID]
         if teamMMList[oldTeam][cDefs.e][uID] then
 			if teamMMList[oldTeam][cDefs.e][uID].built then
 

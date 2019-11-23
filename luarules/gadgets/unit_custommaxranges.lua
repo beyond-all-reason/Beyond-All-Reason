@@ -21,6 +21,13 @@ end
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
+local unitMaxRange = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.customParams.maxrange then
+        unitMaxRange[unitDefID] = tonumber(unitDef.customParams.maxrange)
+    end
+end
+
 function gadget:Initialize()
 	for ct, unitID in pairs(Spring.GetAllUnits()) do
 		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
@@ -28,7 +35,7 @@ function gadget:Initialize()
 end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams.maxrange and tonumber(UnitDefs[unitDefID].customParams.maxrange) then
-		Spring.SetUnitMaxRange(unitID, tonumber(UnitDefs[unitDefID].customParams.maxrange))
+	if unitMaxRange[unitDefID] then
+		Spring.SetUnitMaxRange(unitID, unitMaxRange[unitDefID])
 	end
 end

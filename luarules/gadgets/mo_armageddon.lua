@@ -57,13 +57,23 @@ local nextStrike = armageddonFrame
 local meteorStrike = math.max(10,math.sqrt(15*math.floor(numX*numZ))) 
 local pStrike = meteorStrike / (armageddonDuration * 30)
 
+local isCommander = {}
+local isImmobile = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.customParams.iscommander then
+        isCommander[unitDefID] = true
+    end
+    if unitDef.isImmobile then
+        isImmobile[unitDefID] = true
+    end
+end
 
 local meteorCount = {}
 for x=1,numX do
-meteorCount[x] = {}
-for z=1,numZ do
-meteorCount[x][z] = 1 -- start with all at 1, so as not to divide by 0
-end
+    meteorCount[x] = {}
+    for z=1,numZ do
+        meteorCount[x][z] = 1 -- start with all at 1, so as not to divide by 0
+    end
 end
 
 function RandomCoordInSquare(sx,sz)
@@ -121,7 +131,7 @@ function gadget:GameFrame(n)
 		for i = 1, #allUnits do
 			unitID = allUnits[i]
 			unitDefID = spGetUnitDefID(unitID)
-			if UnitDefs[unitDefID].isImmobile then
+			if isImmobile(unitDefID) then
 				toKillUnits[#toKillUnits+1] = unitID
 				toKillFrame[#toKillFrame+1] = armageddonFrame + math.floor(armageddonDuration * 30 * math.random())
 			end
@@ -182,7 +192,7 @@ end
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if isArmageddon then
         --coms must survive & need protecting until the explosions are over
-        if UnitDefs[unitDefID].customParams.iscommander == "1" then 
+        if isCommander(unitDefID) then
             local h, mh = Spring.GetUnitHealth(unitID)
             if h <= mh/4 then
                 return 0 

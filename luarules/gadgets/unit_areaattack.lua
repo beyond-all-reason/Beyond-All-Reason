@@ -23,27 +23,39 @@ if (gadgetHandler:IsSyncedCode()) then
 ---------------------------------------------------------------------------
 
 
+local attackList = {}
+local closeList = {}
+local range = {}
 
-local attackList={}
-local closeList={}
-local range={}
+local math_random = math.random
+local math_pi = math.pi
+local math_sqrt = math.sqrt
+local math_cos = math.cos
+local math_sin = math.sin
 
-local aadesc= {
+local canAreaAttack = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.canareaattack then
+		canAreaAttack[unitDefID] = WeaponDefs[unitDef.weapons[1].weaponDef].range
+	end
+end
+
+local aadesc = {
 	name = "Area Attack",
-	action="areaattack",
-	id=CMD_AREAATTACK,
-	type=CMDTYPE.ICON_AREA,
-	tooltip="Attack an area randomly",
-	cursor="cursorattack",
+	action = "areaattack",
+	id = CMD_AREAATTACK,
+	type = CMDTYPE.ICON_AREA,
+	tooltip = "Attack an area randomly",
+	cursor = "cursorattack",
 }
 
 function gadget:GameFrame(f)
 	for i,o in pairs(attackList) do
 		attackList[i] = nil
-		local phase = math.random(200*math.pi)/100.0
+		local phase = math_random(200*math_pi)/100.0
 		if o.radius > 0 then
-			local amp = math.random(o.radius)
-			Spring.GiveOrderToUnit(o.unit, CMD.INSERT, {0, CMD.ATTACK, 0, o.x + math.cos(phase)*amp, o.y, o.z + math.sin(phase)*amp}, {"alt"})
+			local amp = math_random(o.radius)
+			Spring.GiveOrderToUnit(o.unit, CMD.INSERT, {0, CMD.ATTACK, 0, o.x + math_cos(phase)*amp, o.y, o.z + math_sin(phase)*amp}, {"alt"})
 		end
 	end
 	for i,o in pairs(closeList) do
@@ -54,9 +66,9 @@ end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 	if cmdID == CMD_AREAATTACK then
-		if UnitDefs[unitDefID].customParams.canareaattack=="1" then
+		if canAreaAttack[unitDefID] then
 			return true
-		else 
+		else
 			return false
 		end
 	else
@@ -67,7 +79,7 @@ end
 function gadget:CommandFallback(u,ud,team,cmd,param,opt)
 	if cmd == CMD_AREAATTACK then
 		local x,_,z = Spring.GetUnitPosition(u)
-		local dist = math.sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
+		local dist = math_sqrt((x-param[1])*(x-param[1]) + (z-param[3])*(z-param[3]))
 		if dist <= range[ud] - param[4] then
 			attackList[#attackList+1] = {unit = u, x=param[1], y=param[2], z=param[3], radius=param[4]}
 		else
@@ -79,8 +91,8 @@ function gadget:CommandFallback(u,ud,team,cmd,param,opt)
 end
 
 function gadget:UnitCreated(u, ud, team)
-	if UnitDefs[ud].customParams.canareaattack=="1" then
-		range[ud] = WeaponDefs[UnitDefs[ud].weapons[1].weaponDef].range
+	if canAreaAttack[ud] then
+		range[ud] = canAreaAttack[ud]	-- put the range inside canAreaAttack[ud]
 		Spring.InsertUnitCmdDesc(u,aadesc)
 	end
 end

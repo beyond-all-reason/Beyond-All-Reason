@@ -19,6 +19,11 @@ local COMMANDO = UnitDefNames["cormando"].id
 local fC = 0
 local fallingUnits = {}
 
+local unitMass = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	unitMass[unitDefID] = unitDef.mass
+end
+
 function gadget:GameFrame(n)
   if fC > 0 then
     for k,t in ipairs(fallingUnits) do
@@ -44,12 +49,10 @@ function gadget:UnitUnloaded(unitID, unitDefID, _, transID)
 		local h = math.max(0,Spring.GetGroundHeight(x,z))
 		local damage = 0
 		if (y-h) > 25 then
-			local Udef = UnitDefs[unitDefID]
-			damage = Udef.mass * (y-h)/50
+			damage = unitMass[unitDefID] * (y-h)/50
 		end
 		if damage > 10 then 
 			fC = fC + 1
-			--Spring.Echo(y-h, damage)
 			fallingUnits[fC] = {unitID, damage}
 		end
 	end	

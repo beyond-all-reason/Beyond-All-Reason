@@ -149,6 +149,20 @@ do -- load config file
   chunk()
 end
 
+
+local unitName = {}
+local unitShortName = {}
+local unitSpeed = {}
+local unitCanFly = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    unitName[unitDefID] = unitDef.name
+    unitShortName[unitDefID] = string.match(unitDef.name,"%D*")
+    unitSpeed[unitDefID] = unitDef.speed
+    if unitDef.canFly then
+        unitCanFly[unitDefID] = unitDef.canFly
+    end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --
@@ -342,7 +356,7 @@ local function UpdateUnitCount()
   
   for unitDefID, number in pairs(teamUnitCounts) do
     if UnitDefs[unitDefID] then
-      local shortName = string.match(UnitDefs[unitDefID].name,"%D*")
+      local shortName = unitShortName[unitDefID]
       if unitCounts[shortName] then
         unitCounts[shortName].count = unitCounts[shortName].count + number
       end
@@ -474,7 +488,7 @@ local function AttackNearestEnemy(unitID, unitDefID, unitTeam)
   if (targetID) and (not GetUnitIsDead(targetID)) and (not GetUnitNeutral(targetID)) then
     local defID = GetUnitDefID(targetID)
     local myDefID = GetUnitDefID(unitID)
-    if UnitDefs[defID] and UnitDefs[myDefID] and (UnitDefs[myDefID].speed < (UnitDefs[defID].speed * 1.15)) then
+    if unitSpeed[myDefID] and unitSpeed[myDefID] < (unitSpeed[defID] * 1.15) then
       return false
     end
     local x,y,z = GetUnitPosition(targetID)
@@ -517,7 +531,7 @@ local function ChooseTarget()
 			local slowunit = true
 			if targetCache and tries < 5 then
 				local defID = GetUnitDefID(targetCache)
-				if UnitDefs[defID] and (UnitDefs[defID].speed > 75) then
+				if unitSpeed[defID] and unitSpeed[defID] > 75 then
 					slowunit = false
 				end
 			end      
@@ -1165,7 +1179,7 @@ local function SpawnChickens()
 			heroChicken[unitID] = mod
 		end
 		
-		if UnitDefs[GetUnitDefID(unitID)].canFly then
+		if unitCanFly[GetUnitDefID(unitID)] then
 			GiveOrderToUnit(unitID, CMD.IDLEMODE, { 0 }, { "shift" })
 		end
 		
@@ -1347,7 +1361,7 @@ function gadget:GameFrame(n)
       for unitID,order in pairs(processOrderQueue) do
         GiveOrderToUnit(unitID, order.cmd, order.params, order.opts)
         GiveOrderToUnit(unitID, CMD.MOVE_STATE, { mRandom(0,2) }, { "shift" })
-        if UnitDefs[GetUnitDefID(unitID)].canFly then
+        if unitCanFly[GetUnitDefID(unitID)] then
 			GiveOrderToUnit(unitID, CMD.AUTOREPAIRLEVEL, { mRandom(0,3) }, { "shift" })
         end
       end
@@ -1462,7 +1476,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID)
   end
   
   if (unitTeam == chickenTeamID) and chickenDefTypes[unitDefID] then
-    local name = UnitDefs[unitDefID].name
+    local name = unitName[unitDefID]
     if unitDefID ~= burrowDef then name = string.sub(name,1,-2) end
     local kills = GetGameRulesParam(name.."Kills")
     SetGameRulesParam(name.."Kills", kills + 1)

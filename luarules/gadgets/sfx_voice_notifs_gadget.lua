@@ -171,6 +171,17 @@ if gadgetHandler:IsSyncedCode() then
 	
 else
 
+	local isCommander = {}
+	local isBuilder = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.customParams.iscommander then
+			isCommander[unitDefID] = true
+		end
+		if unitDef.isBuilder then
+			isBuilder[unitDefID] = true
+		end
+	end
+
 	function gadget:Initialize()
 		gadgetHandler:AddSyncAction("EventBroadcast", BroadcastEvent)
 		isSpec = Spring.GetSpectatingState()
@@ -188,8 +199,7 @@ else
 
 	-- Idle Builder send to all in team
 	function gadget:UnitIdle(unitID)
-		local defs = UnitDefs[Spring.GetUnitDefID(unitID)]
-		if defs.isBuilder then
+		if isBuilder[Spring.GetUnitDefID(unitID)] then
 			local broadcast = false
 			if not Spring.IsUnitInView(unitID) then
 				broadcast = true
@@ -215,7 +225,7 @@ else
 	-- Unit Lost send to all in team
 	function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam)
 		if not Spring.IsUnitInView(unitID) then
-			if not (UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom") then
+			if not isCommander[unitDefID] then
 				if attackerID or attackerDefID or attackerTeam then
 					local event = "UnitLost"
 					local players =  PlayersInTeamID(Spring.GetUnitTeam(unitID))

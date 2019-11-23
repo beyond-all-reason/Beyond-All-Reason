@@ -49,8 +49,7 @@ local UPDATE_FRAMES = math.floor(Game.gameSpeed/UPDATE_RATE)
 local attackAOEs = {}
 local attackDamages = {}
 local allianceStatus = {}
-
-
+local unitArmorType ={}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	for weaponIndex, weaponProperties in pairs(unitDef.weapons) do
 		local weaponDef = WeaponDefs[weaponProperties.weaponDef]
@@ -59,6 +58,7 @@ for unitDefID, unitDef in pairs(UnitDefs) do
 			attackDamages[unitDefID] = weaponDef.damages
 		end
 	end
+	unitArmorType[unitDefID] = unitDef.armorType
 end
 
 function getTeamLeaderName(teamID)
@@ -129,10 +129,7 @@ function gadget:UnitCommand(unitID, unitDefID, attackerTeam, cmdID, cmdParams, c
 		for i=1,#units do
 			local targetID = units[i]
 			local targetAllyTeam = GetUnitAllyTeam(targetID)
-			local targetDefID = GetUnitDefID(targetID)
-			local targetDef = UnitDefs[targetDefID]
-			local targetHp = GetUnitHealth(targetID)
-			local targetDamage = min(targetHp,attackDamages[unitDefID][targetDef.armorType])
+			local targetDamage = min(GetUnitHealth(targetID), attackDamages[unitDefID][unitArmorType[GetUnitDefID(targetID)]])
 			totalDamageSum = totalDamageSum + targetDamage
 			targetAllyTeamIDs[targetAllyTeam] = (targetAllyTeamIDs[targetAllyTeam] or 0) + targetDamage
 		end

@@ -32,6 +32,13 @@ local mines = {}
 local orderQueue = {}
 local COMMANDO_MINELAYER = WeaponDefNames['cormando_commando_minelayer'].id
 
+local isBuilding = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.isBuilding then
+        isBuilding[unitDefID] = true
+    end
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   if (unitDefID == COMMANDO) then  
     if (weaponID < 0) then
@@ -48,7 +55,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
     end
   elseif mines[unitID] and (attackerID == mines[unitID]) then
     return 0,0
-  elseif (weaponID == COMMANDO_MINELAYER) and (orderQueue[attackerID]==nil) and (attackerTeam) and (unitTeam) and (not Spring.AreTeamsAllied(attackerTeam,unitTeam)) and UnitDefs[unitDefID]["isBuilding"] then
+  elseif (weaponID == COMMANDO_MINELAYER) and (orderQueue[attackerID]==nil) and (attackerTeam) and (unitTeam) and (not Spring.AreTeamsAllied(attackerTeam,unitTeam)) and isBuilding[unitDefID] then
 	if select(2,Spring.GetUnitStates(attackerID),false,true) ~= 2 then return damage,1 end     --(2=movestate)
 
 	local vx,_,vz = Spring.GetUnitVelocity(unitID)

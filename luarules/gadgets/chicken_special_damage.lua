@@ -89,6 +89,13 @@ local CHICKEN_RESISTS = {
 	},
 }
 
+local CHICKEN_QUEENS = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if string.find(unitDef.name, "chickenq") ~= nil then
+		CHICKEN_QUEENS[unitDefID] = true
+	end
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, 
                             weaponID, projectileID, attackerID, attackerDefID, attackerTeam)
   
@@ -98,9 +105,9 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
   
   if DAMAGE_LIMITS[weaponID] then
 		return math.min(DAMAGE_LIMITS[weaponID],damage),1
-  elseif (DGUN[weaponID] and (string.find(UnitDefs[unitDefID].name, "chickenq") ~= nil)) then
+  elseif DGUN[weaponID] and CHICKEN_QUEENS[unitDefID] then
 		return math.min(DGUN[weaponID],damage),1
-  elseif ((damage > 50000) and (string.find(UnitDefs[unitDefID].name, "chickenq") ~= nil)) then
+  elseif damage > 50000 and CHICKEN_QUEENS[unitDefID] then
 		return math.min(50000,damage),1
   else
 		return damage,1

@@ -42,6 +42,24 @@ local min = math.min
 
 local lab = {}
 
+
+local canFly = {}
+local isFactory = {}
+local unitXsize = {}
+local unitYsize = {}
+local unitZsize = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canFly then
+		canFly[unitDefID] = true
+	end
+	if unitDef.isFactory and not (unitDef.name == "armap" or unitDef.name == "armaap" or unitDef.name == "corap" or unitDef.name == "coraap") then
+		isFactory[unitDefID] = true
+		unitXsize[unitDefID] = unitDef.xsize
+		unitYsize[unitDefID] = unitDef.ysize
+		unitZsize[unitDefID] = unitDef.zsize
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -51,10 +69,8 @@ function checkLabs()
     local units = spGetUnitsInBox(Lv.minx, Lv.miny, Lv.minz, Lv.maxx, Lv.maxy, Lv.maxz)
   	for i=1,#units do
 	  local id = units[i]
-	  local ud = spGetUnitDefID(id)
-	  local fly = UnitDefs[ud].canFly
 	  local team = spGetUnitAllyTeam(id)
-	  if (team ~= Lv.team) and not fly then
+	  if (team ~= Lv.team) and not canFly[spGetUnitDefID(id)] then
 	  
 	    local ux, _, uz  = spGetUnitPosition(id)
 		
@@ -104,13 +120,11 @@ function checkLabs()
 end
 
 function gadget:UnitCreated(unitID, unitDefID)
-  local ud = UnitDefs[unitDefID]
-  local name = ud.name
-  if (ud.isFactory == true) and not (name == "armap" or name == "armaap" or name == "corap" or name == "coraap") then
+  if isFactory[unitDefID] then -- NOTE: excludes airlabs
 	local ux, uy, uz  = spGetUnitPosition(unitID)
 	local face = spGetUnitBuildFacing(unitID)
-	local xsize = ud.xsize*4
-	local ysize = (ud.ysize or ud.zsize)*4
+	local xsize = unitXsize[unitDefID]*4
+	local ysize = (unitYsize[unitDefID] or unitZsize[unitDefID])*4
 	local team = spGetUnitAllyTeam(unitID)
 	
 	if ((face == 0) or(face == 2)) then

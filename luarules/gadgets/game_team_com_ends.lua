@@ -48,6 +48,12 @@ local modeComEnds = true
 local gaiaTeamID = Spring.GetGaiaTeamID()
 local allyTeamList = Spring.GetAllyTeamList()
 
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 local teamCount = 0
 for _,teamID in ipairs(GetTeamList()) do
@@ -168,7 +174,7 @@ end
 function gadget:UnitCreated(u, ud, team)
 	if modeComEnds then
 		isAlive[u] = true
-		if UnitDefs[ud].customParams.iscommander then
+		if isCommander[ud] then
 			local allyTeam = GetUnitAllyTeam(u)
 			aliveCount[allyTeam] = aliveCount[allyTeam] + 1
 		end
@@ -177,7 +183,7 @@ end
 
 function gadget:UnitGiven(u, ud, team)
 	if modeComEnds then
-		if UnitDefs[ud].customParams.iscommander then
+		if isCommander[ud] then
 			local allyTeam = GetUnitAllyTeam(u)
 			aliveCount[allyTeam] = aliveCount[allyTeam] + 1
 		end
@@ -187,7 +193,7 @@ end
 function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
 	if modeComEnds then
 		isAlive[u] = nil
-		if UnitDefs[ud].customParams.iscommander then
+		if isCommander[ud] then
 			local allyTeam = GetUnitAllyTeam(u)
 			aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 			if aliveCount[allyTeam] <= 0 then
@@ -203,7 +209,7 @@ function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
 end
 
 function gadget:UnitTaken(u, ud, team, a, ad, ateam)
-	if modeComEnds and isAlive[u] and UnitDefs[ud].customParams.iscommander then
+	if modeComEnds and isAlive[u] and isCommander[ud] then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then

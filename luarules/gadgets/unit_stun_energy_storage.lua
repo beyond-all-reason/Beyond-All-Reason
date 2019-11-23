@@ -36,16 +36,6 @@ local storageDefs = {
 
 local storageunits = {}
 
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
--- Speed-ups
-
-local uDefs = UnitDefs
-local GetUnitDefID         = Spring.GetUnitDefID
-local SpGetAllUnits        = Spring.GetAllUnits
-
-local ipairs = ipairs
 local pairs = pairs
 
 -------------------------------------------------------------------------------------
@@ -61,11 +51,11 @@ function gadget:GameFrame(n)
 	     local team = Spring.GetUnitTeam(unitID)
 	     if team ~= nil then
 			local penality = storageunits[unitID].storagecap * 0.01 -- work's out 60e per second for t1 storage and 400e per second for t2 storage
-			 local x,y,z = Spring.GetUnitPosition(unitID)
-			 local height = storageunits[unitID].height * 0.40
-			 Spring.SpawnCEG("ENERGY_STORAGE_LEAK",x,y+height,z,0,0,0)
-			 Spring.UseTeamResource(team, "energy", penality)
-			end
+			local x,y,z = Spring.GetUnitPosition(unitID)
+			local height = storageunits[unitID].height * 0.40
+			Spring.SpawnCEG("ENERGY_STORAGE_LEAK",x,y+height,z,0,0,0)
+			Spring.UseTeamResource(team, "energy", penality)
+		 end
 	   end
     end
   end
@@ -74,9 +64,8 @@ end
 -------------------------------------------------------------------------------------
 
 local function SetupUnit(unitID,unitDefID)
-  local ud = UnitDefs[unitDefID]
-  if (ud == nil)or(ud.height == nil) then return nil end
-   storageunits[unitID] = {height = ud.height,storagecap = ud.energyStorage}
+  if (UnitDefs[unitDefID] == nil)or(UnitDefs[unitDefID].height == nil) then return nil end
+   storageunits[unitID] = {height = UnitDefs[unitDefID].height,storagecap = UnitDefs[unitDefID].energyStorage}
 end
 
 --[[
@@ -91,21 +80,21 @@ end
 --]]
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
-    if (storageDefs[unitDefID]) then
-    SetupUnit(unitID,unitDefID)
-  end
+    if storageDefs[unitDefID] then
+        SetupUnit(unitID,unitDefID)
+    end
 end
 
 function gadget:UnitTaken(unitID, unitDefID, unitTeam)
-	if (storageDefs[unitDefID]) then 
+	if storageDefs[unitDefID] then
 		SetupUnit(unitID,unitDefID)
 	end
 end
 
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if (storageDefs[unitDefID]) then 
-	 storageunits[unitID]= nil
+	if storageDefs[unitDefID] then
+        storageunits[unitID] = nil
 	end
 end
 

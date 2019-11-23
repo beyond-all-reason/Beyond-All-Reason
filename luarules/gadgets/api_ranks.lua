@@ -57,15 +57,16 @@ function GetUnitRank(unitID)
 end
 
 function RankToXp(unitDefID,rank)
-  return ((UnitDefs[unitDefID] or {}).power_xp_coeffient or 0) * (rank or 0)
+  return (unitPowerXpCoeffient[unitDefID] or 0) * (rank or 0)
 end
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
-
+local unitPowerXpCoeffient = {}
 function gadget:Initialize()
   for udid, ud in pairs(UnitDefs) do
     ud.power_xp_coeffient  = ((ud.power / 1000) ^ -0.2) / 6  -- dark magic
+    unitPowerXpCoeffient[udid] = ud.power_xp_coeffient
   end
 
   GG['rankHandler'] = {}
@@ -87,14 +88,14 @@ end
 -------------------------------------------------------------------------------------
 
 function gadget:UnitExperience(unitID, unitDefID, unitTeam, xp, oldxp)
-  local ud = UnitDefs[unitDefID]
-  if (not ud or not ud.power_xp_coeffient) then
+  local power_xp_coeffient = unitPowerXpCoeffient[unitDefID]
+  if not power_xp_coeffient then
     return
   end
-  local oldRank = unitRanks[unitID] or floor(oldxp / ud.power_xp_coeffient)
+  local oldRank = unitRanks[unitID] or floor(oldxp / power_xp_coeffient)
   if oldRank>4 then return end
 
-  local newRank = floor(xp / ud.power_xp_coeffient)
+  local newRank = floor(xp / power_xp_coeffient)
   if (newRank~=oldRank) then
     unitRanks[unitID] = newRank
     if (type(GG.UnitRanked)=="table") then
@@ -110,14 +111,13 @@ end
 
 local function SetUnitRank(unitID)
   local unitDefID = GetUnitDefID(unitID)
-  local ud = UnitDefs[unitDefID]
   local xp = GetUnitExperience(unitID)
-  if (xp == nil)or(ud == nil) then
+  if xp == nil then
     unitRanks[unitID] = 0
     return
   end
 
-  local newRank = floor(xp / ud.power_xp_coeffient)
+  local newRank = floor(xp / unitPowerXpCoeffient[unitDefID])
   local oldRank = unitRanks[unitID] or 0
   if (newRank~=oldRank) then
     unitRanks[unitID] = newRank
