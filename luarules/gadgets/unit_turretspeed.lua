@@ -23,6 +23,25 @@
 	
     if (not gadgetHandler:IsSyncedCode()) then return end
 
+	local unitConf = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.weapons and (not string.find((unitDef.scriptName), "lua")) then
+			local wpn = 0
+			for weaponID, weapon in pairs(unitDef.weapons) do
+				wpn = wpn + 1
+				local customParamName = 'wpn'..wpn..'turret'
+				if unitDef.customParams and unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then
+					local TurretX = (tonumber(unitDef.customParams[customParamName..'x']))*182
+					local TurretY = (tonumber(unitDef.customParams[customParamName..'y']))*182
+					if not unitConf[unitDefID] then
+						unitConf[unitDefID] = {}
+					end
+					unitConf[unitDefID][#unitConf[unitDefID]+1] = {'SetWeapon'..(tostring(i))..'TurretSpeed', 0, TurretX, TurretY}
+				end
+			end
+		end
+	end
+
 	function gadget:Initialize()
 		for ct, unitID in pairs(Spring.GetAllUnits()) do
 			local udefID = Spring.GetUnitDefID(unitID)
@@ -31,16 +50,9 @@
 	end
 	
     function gadget:UnitCreated(unitID, unitDefID)
-		if UnitDefs[unitDefID].weapons and (not string.find((UnitDefs[unitDefID].scriptName), "lua")) then
-			for i = 1, 32 do
-				if UnitDefs[unitDefID].weapons[i] then
-					local customParamName = "wpn"..(tostring(i)).."turret"
-					if UnitDefs[unitDefID].customParams and UnitDefs[unitDefID].customParams[customParamName.."x"] and UnitDefs[unitDefID].customParams[customParamName.."y"] then
-						local TurretX = (tonumber(UnitDefs[unitDefID].customParams[customParamName.."x"]))*182
-						local TurretY = (tonumber(UnitDefs[unitDefID].customParams[customParamName.."y"]))*182
-						Spring.CallCOBScript(unitID, "SetWeapon"..(tostring(i)).."TurretSpeed", 0, TurretX, TurretY)
-					end
-				end
+		if unitConf[unitDefID] then
+			for i=1, #unitConf[unitDefID] do
+				Spring.CallCOBScript(unitID, unitConf[unitDefID][i][1], unitConf[unitDefID][i][2], unitConf[unitDefID][i][3], unitConf[unitDefID][i][4])
 			end
 		end
     end
