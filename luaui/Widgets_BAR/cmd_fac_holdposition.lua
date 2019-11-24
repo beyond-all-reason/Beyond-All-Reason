@@ -84,7 +84,7 @@ end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   if unitTeam == myTeamID then
-    if unitArray[unitDefID] or unitArray[Spring.GetUnitDefID(builderID)] then
+    if unitArray[unitDefID] or (builderID and unitArray[Spring.GetUnitDefID(builderID)]) then
       Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, {})
     end
   end
