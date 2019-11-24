@@ -1,15 +1,15 @@
 
-    function gadget:GetInfo()
-      return {
-        name      = "UnitDefs Turret TurnSpeeds",
-        desc      = "Allows to set units' turret turnspeeds from UnitDefs tables",
-        author    = "Doo",
-        date      = "May 2018",
-        license   = "Whatever works",
-        layer     = 0,
-        enabled   = true,
-      }
-    end
+function gadget:GetInfo()
+	return {
+		name      = "UnitDefs Turret TurnSpeeds",
+		desc      = "Allows to set units' turret turnspeeds from UnitDefs tables",
+		author    = "Doo",
+		date      = "May 2018",
+		license   = "Whatever works",
+		layer     = 0,
+		enabled   = true,
+	}
+end
 
 --[[ HOW TO:
  -Include unitDefsTurretSpeeds.h in unitScript
@@ -21,38 +21,36 @@
  This gadget will only call the setting function if it finds both the wpnXturretx and wpnXturrety customParams, if the weapon doesn't use a rotation around x-axis in its aiming then just set it to 1 (not nil) 
  ]]
 	
-    if (not gadgetHandler:IsSyncedCode()) then return end
+if not gadgetHandler:IsSyncedCode() then return end
 
-	local unitConf = {}
-	for unitDefID, unitDef in pairs(UnitDefs) do
-		if unitDef.weapons and (not string.find((unitDef.scriptName), "lua")) then
-			local wpn = 0
-			for weaponID, weapon in pairs(unitDef.weapons) do
-				wpn = wpn + 1
-				local customParamName = 'wpn'..wpn..'turret'
-				if unitDef.customParams and unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then
-					local TurretX = (tonumber(unitDef.customParams[customParamName..'x']))*182
-					local TurretY = (tonumber(unitDef.customParams[customParamName..'y']))*182
-					if not unitConf[unitDefID] then
-						unitConf[unitDefID] = {}
-					end
-					unitConf[unitDefID][#unitConf[unitDefID]+1] = {'SetWeapon'..(tostring(i))..'TurretSpeed', 0, TurretX, TurretY}
+local unitConf = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.weapons and not string.find((unitDef.scriptName), "lua") then
+		for weaponID, weapon in pairs(unitDef.weapons) do
+			local customParamName = 'wpn'..weaponID..'turret'
+			if unitDef.customParams and unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then
+				local TurretX = (tonumber(unitDef.customParams[customParamName..'x']))*182
+				local TurretY = (tonumber(unitDef.customParams[customParamName..'y']))*182
+				if not unitConf[unitDefID] then
+					unitConf[unitDefID] = {}
 				end
+				unitConf[unitDefID][#unitConf[unitDefID]+1] = {'SetWeapon'..weaponID..'TurretSpeed', 0, TurretX, TurretY}
 			end
 		end
 	end
+end
 
-	function gadget:Initialize()
-		for ct, unitID in pairs(Spring.GetAllUnits()) do
-			local udefID = Spring.GetUnitDefID(unitID)
-			gadget:UnitCreated(unitID, udefID)
+function gadget:Initialize()
+	for ct, unitID in pairs(Spring.GetAllUnits()) do
+		local udefID = Spring.GetUnitDefID(unitID)
+		gadget:UnitCreated(unitID, udefID)
+	end
+end
+
+function gadget:UnitCreated(unitID, unitDefID)
+	if unitConf[unitDefID] then
+		for i=1, #unitConf[unitDefID] do
+			Spring.CallCOBScript(unitID, unitConf[unitDefID][i][1], unitConf[unitDefID][i][2], unitConf[unitDefID][i][3], unitConf[unitDefID][i][4])
 		end
 	end
-	
-    function gadget:UnitCreated(unitID, unitDefID)
-		if unitConf[unitDefID] then
-			for i=1, #unitConf[unitDefID] do
-				Spring.CallCOBScript(unitID, unitConf[unitDefID][i][1], unitConf[unitDefID][i][2], unitConf[unitDefID][i][3], unitConf[unitDefID][i][4])
-			end
-		end
-    end
+end
