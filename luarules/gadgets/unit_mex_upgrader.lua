@@ -155,7 +155,7 @@ if (gadgetHandler:IsSyncedCode()) then
     if unitDef.customParams.iscommander then
       isCommander[unitDefID] = true
     end
-    unitXsize = unitDef.xsize
+    unitXsize[unitDefID] = unitDef.xsize
   end
 
 -- This part of the code determines who should upgrade what 
