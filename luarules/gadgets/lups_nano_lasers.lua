@@ -54,9 +54,6 @@ else
     -------------------------------------------------------------------------------------
 
     --// Speed-ups
-    local GetUnitRadius              = Spring.GetUnitRadius
-    local GetFeatureRadius           = Spring.GetFeatureRadius
-    local spGetFeatureDefID          = Spring.GetFeatureDefID
     local spGetGameFrame             = Spring.GetGameFrame
     local spIsUnitInView             = Spring.IsUnitInView
     local spGetUnitIsBuilding        = Spring.GetUnitIsBuilding
@@ -154,12 +151,6 @@ else
         _, fullview = Spring.GetSpectatingState()
     end
 
-    if (not GetFeatureRadius) then
-      GetFeatureRadius = function(featureID)
-        local fDefID = spGetFeatureDefID(featureID)
-        return (FeatureDefs[fDefID].radius or 0)
-      end
-    end
 
 
 

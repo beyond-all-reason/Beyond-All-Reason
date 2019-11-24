@@ -20,25 +20,35 @@ local StompedUnits = {
     [UnitDefNames["armflea"].id] = true,
 }
 
+local krogkickWeapon = {}
+local kargkickWeapon = {}
+for weaponDefID, def in pairs(WeaponDefs) do
+	if def.name == "corkrog_krogkick" then
+		krogkickWeapon[weaponDefID] = true
+	end
+	if def.name == "corkarg_kargkick" then
+		kargkickWeapon[weaponDefID] = true
+	end
+end
+
 function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, weaponDefID, projectileID, attackerID, attackerDefID, attackerTeam)
 	if WeaponDefs[weaponDefID] then
-	if WeaponDefs[weaponDefID].name == "corkrog_krogkick" then 
-		if (unitTeam) and (attackerTeam) then
-		if Spring.AreTeamsAllied(unitTeam, attackerTeam) == false then
+		if krogkickWeapon[weaponDefID] then
+			if (unitTeam) and (attackerTeam) then
+			if Spring.AreTeamsAllied(unitTeam, attackerTeam) == false then
 
-			if StompedUnits[unitDefID] then	
-				return 2000, 0
+				if StompedUnits[unitDefID] then
+					return 2000, 0
+				else
+					return 0, 0
+				end
 			else
 				return 0, 0
 			end
-		else
+			end
+		elseif kargkickWeapon[weaponDefID] then
 			return 0, 0
 		end
-		end		
-    end
-	if WeaponDefs[weaponDefID].name == "corkarg_kargkick" then 
-		return 0, 0
-    end
 	end
 	return damage, nil
 end

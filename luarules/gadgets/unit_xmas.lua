@@ -21,14 +21,21 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
+
 if gadgetHandler:IsSyncedCode() then
+
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
 
 	_G.itsXmas = false
 
+	local isComWreck = {}
+	local xmasComwreckDefID
 	for fdefID,def in ipairs(FeatureDefs) do
+		if def.tooltip == "Commander Wreckage" then
+			isComWreck[fdefID] = true
+		end
 		if def.tooltip == "Xmas Commander Wreckage" then
 			xmasComwreckDefID = fdefID
 			break
@@ -243,7 +250,7 @@ if gadgetHandler:IsSyncedCode() then
 		function gadget:FeatureCreated(featureID, allyTeam)
 			if _G.itsXmas then
 				-- replace comwreck with xmas comwreck
-				if FeatureDefs[Spring.GetFeatureDefID(featureID)] and FeatureDefs[Spring.GetFeatureDefID(featureID)].tooltip == "Commander Wreckage" then
+				if isComWreck[Spring.GetFeatureDefID(featureID)] then
 					local px,py,pz = Spring.GetFeaturePosition(featureID)
 					local rx,ry,rz = Spring.GetFeatureRotation(featureID)
 					local dx,dy,dz = Spring.GetFeatureDirection(featureID)

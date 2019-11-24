@@ -40,6 +40,11 @@ for unitDefID, unitDef in pairs(UnitDefs) do
     end
 end
 
+local weaponParalyzeDamageTime = {}
+for weaponDefID, def in pairs(WeaponDefs) do
+    weaponParalyzeDamageTime[weaponDefID] = def[weaponID].damages and def[weaponID].damages.paralyzeDamageTime or maxTime
+end
+
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
@@ -48,7 +53,7 @@ function gadget:UnitPreDamaged(uID, uDefID, uTeam, damage, paralyzer, weaponID, 
     if paralyzer then
         -- restrict the max paralysis time of mobile units to 15 sec
         if aDefID and uDefID and weaponID and not isBuilding[uDefID] and not excluded[uDefID] then
-            local max_para_time = WeaponDefs[weaponID].damages and WeaponDefs[weaponID].damages.paralyzeDamageTime or maxTime
+            local max_para_time = weaponParalyzeDamageTime[weaponID]
             local h,mh,ph = Spring.GetUnitHealth(uID)
             local max_para_damage = mh + ((max_para_time<maxTime) and mh or mh*maxTime/max_para_time)
             damage = math.min(damage, math.max(0,max_para_damage-ph) )            

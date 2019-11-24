@@ -33,24 +33,34 @@ local splashCEG2 = "splash-small"
 local splashCEG3 = "splash-medium"
 local splashCEG4 = "splash-large"
 local splashCEG5 = "splash-huge"
-	
+
+
+local weaponType = {}
+local weaponAoe = {}
+for weaponDefID, def in pairs(WeaponDefs) do
+	weaponType[weaponDefID] = def.type
+	weaponAoe[weaponDefID] = def.damageAreaOfEffect
+end
+
 function gadget:Explosion(weaponID, px, py, pz, ownerID)
-	local isWater = Spring.GetGroundHeight(px,pz) < 0
-	local aoe = WeaponDefs[weaponID]["damageAreaOfEffect"] / 2
-	local wType = WeaponDefs[weaponID].type
-	if not nonexplosiveWeapons[wType] and isWater and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= CORE_SEAADVBOMB then
-		if  aoe >= 6 and aoe < 12 then
-			Spring.SpawnCEG(splashCEG1, px, 0, pz)
-		elseif  aoe >= 12 and aoe < 24 then
-			Spring.SpawnCEG(splashCEG2, px, 0, pz)
-		elseif aoe >= 24 and aoe < 48 then
-			Spring.SpawnCEG(splashCEG3, px, 0, pz)
-		elseif aoe >= 48 and aoe < 64 then
-			Spring.SpawnCEG(splashCEG4, px, 0, pz)
-		elseif aoe >= 64 and aoe < 300 then
-			Spring.SpawnCEG(splashCEG5, px, 0, pz)
+	if Spring.GetGroundHeight(px,pz) < 0 then
+		local aoe = weaponAoe[weaponID] / 2
+		if not nonexplosiveWeapons[weaponType[weaponID]]  and abs(py) <= aoe and (not GetGroundBlocked(px, pz)) and weaponID ~= CORE_SEAADVBOMB then
+			if  aoe >= 6 and aoe < 12 then
+				Spring.SpawnCEG(splashCEG1, px, 0, pz)
+			elseif  aoe >= 12 and aoe < 24 then
+				Spring.SpawnCEG(splashCEG2, px, 0, pz)
+			elseif aoe >= 24 and aoe < 48 then
+				Spring.SpawnCEG(splashCEG3, px, 0, pz)
+			elseif aoe >= 48 and aoe < 64 then
+				Spring.SpawnCEG(splashCEG4, px, 0, pz)
+			elseif aoe >= 64 and aoe < 300 then
+				Spring.SpawnCEG(splashCEG5, px, 0, pz)
+			end
+			return true
+		else
+			return false
 		end
-		return true
 	else
 		return false
 	end
