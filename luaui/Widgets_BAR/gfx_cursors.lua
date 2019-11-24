@@ -6,7 +6,7 @@ function widget:GetInfo()
 		author = "Floris",
 		date = "",
 		license = "",
-		layer = 100000000000,
+		layer = 19000,
 		enabled = true
 	}
 end
