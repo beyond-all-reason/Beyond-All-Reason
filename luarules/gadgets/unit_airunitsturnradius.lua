@@ -38,7 +38,7 @@ if gadgetHandler:IsSyncedCode() then
 		if (uDef["weapons"] and uDef["weapons"][1] and isBomb[uDef["weapons"][1].weaponDef] == true) or (uDef.name == "armlance" or uDef.name == "cortitan") then
 			isBomber[id] = true
 		end
-		unitTurnRadius = uDef.turnRadius
+		unitTurnRadius[id] = uDef.turnRadius
 	end
 
 	function gadget:Initialize()
