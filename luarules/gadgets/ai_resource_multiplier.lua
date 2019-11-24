@@ -3,7 +3,7 @@ function gadget:GetInfo()
 		name = "AI Resource Multiplier",	-- reclaim excluded + given units excluded + filters units with insignificant production + emp'd units still included
 		desc = "",
 		author = "Floris",
-		date = "September 2018",0
+		date = "September 2018",
 		license = "GPL",
 		layer = 1,
 		enabled = true
