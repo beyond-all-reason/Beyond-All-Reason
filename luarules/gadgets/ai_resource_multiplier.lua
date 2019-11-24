@@ -3,15 +3,15 @@ function gadget:GetInfo()
 		name = "AI Resource Multiplier",	-- reclaim excluded + given units excluded + filters units with insignificant production + emp'd units still included
 		desc = "",
 		author = "Floris",
-		date = "September 2018",
+		date = "September 2018",0
 		license = "GPL",
 		layer = 1,
 		enabled = true
 	}
 end
 
-local timedResBonusMultiplier = 0.00020 
-local timedResBonusMultiplierMax = 2
+local timedResBonusMultiplier = 0.0001	-- adds this percentage boost per sec (0.0001 * 60sec * 15mins = 9%)
+local timedResBonusMultiplierMax = 0.5
 
 
 if (not gadgetHandler:IsSyncedCode()) then
