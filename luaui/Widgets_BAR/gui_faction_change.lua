@@ -262,9 +262,9 @@ function GenerateFactionChangeList()
 	end
 		-- Icons
 	glColor(1, 1, 1, 1)
-	glTexture('LuaUI/Images/ARM.png')
+	glTexture('unitpics/armcom.dds')
 	glTexRect(12*widgetScale, 17*widgetScale, 52*widgetScale, 59*widgetScale)
-	glTexture('LuaUI/Images/CORE.png')
+	glTexture('unitpics/corcom.dds')
 	glTexRect(76*widgetScale, 20*widgetScale, 116*widgetScale, 60*widgetScale)
 	glTexture(false)
 	
