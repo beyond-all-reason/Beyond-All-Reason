@@ -13,9 +13,9 @@ end
 
 local sizeMult = 1
 local Settings = {}
-Settings['cursorSet'] = 'bar'
+Settings['cursorSet'] = 'icexuick'
 Settings['cursorSize'] = 100
-Settings['version'] = 2		-- just so it wont restore configdata on load if it differs format
+Settings['version'] = 3		-- just so it wont restore configdata on load if it differs format
 
 local force = true
 
