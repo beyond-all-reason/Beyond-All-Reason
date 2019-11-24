@@ -57,17 +57,24 @@ local function ClearGroup(unitID, factID)
   end
 end
 
+local isFactory = {}
+local isAssistBuilder = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  if unitDef.isFactory then
+    isFactory[unitDefID] = true
+  end
+  if unitDef.isBuilder and unitDef.canAssist then
+    isAssistBuilder[unitDefID] = true
+  end
+end
+
 
 local function GuardFactory(unitID, unitDefID, factID, factDefID)
-  -- is this a factory?
-  local fd = UnitDefs[factDefID]
-  if (not (fd and fd.isFactory)) then
+
+  if not isFactory[factDefID] then  -- is this a factory?
     return 
   end
-
-  -- can this unit assist?
-  local ud = UnitDefs[unitDefID]
-  if (not (ud and ud.isBuilder and ud.canAssist)) then
+  if not isAssistBuilder[unitDefID] then -- can this unit assist?
     return
   end
 

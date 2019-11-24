@@ -93,6 +93,13 @@ local prevMarkZ = {}
 
 local teamNames = {}
 
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
+
 local function GetTeamName(teamID) --need to rewrite this sloppy functionality
   local name = teamNames[teamID]
   if (name) then
@@ -174,7 +181,7 @@ function widget:UnitEnteredLos(unitID, allyTeam)
 			
 			if (math.sqrt(math.pow((prevX - x), 2)+(math.pow((prevZ - z), 2)))) >= 100 then -- marker only really uses x and z
 				markColour = colourNames(spGetUnitTeam(unitID))
-				if UnitDefs[udefID].customParams.iscommander == "1" then
+				if isCommander[udefID]then
 					markName = GetTeamName(spGetUnitTeam(unitID))
 					colouredMarkName = markColour..markName
 				else

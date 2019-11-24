@@ -15,10 +15,13 @@ end
 ----------------------------------------------------------------
 -- Var
 ----------------------------------------------------------------
-local isCommander = {
-    [UnitDefNames.armcom.id] = true,
-    [UnitDefNames.corcom.id] = true,
-}
+
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 ----------------------------------------------------------------
 -- Speedups
@@ -30,13 +33,14 @@ local CMD_OPT_ALT = CMD.OPT_ALT
 local spGetMyTeamID = Spring.GetMyTeamID
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetSpectatingState = Spring.GetSpectatingState
-
+local spec = spGetSpectatingState()
+local myTeam = spGetMyTeamID()
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
 
 function maybeRemoveSelf()
-    if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
+    if spec and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget(self)
     end
 end
@@ -47,7 +51,9 @@ function widget:GameStart()
 end
 
 function widget:PlayerChanged(playerID)
-    maybeRemoveSelf()
+	spec = spGetSpectatingState()
+	myTeam = spGetMyTeamID()
+	maybeRemoveSelf()
 end
 
 function widget:Initialize()
@@ -57,11 +63,7 @@ function widget:Initialize()
 end
 
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
-	if (cmdID == CMD_CLOAK) and isCommander[unitDefID] and (teamID == spGetMyTeamID()) then
-        if spGetSpectatingState() then
-            widgetHandler:RemoveWidget(self)
-            return
-        end
+	if (cmdID == CMD_CLOAK) and isCommander[unitDefID] and (teamID == myTeam) then
 		if cmdParams[1] == 1 then
 			spGiveOrderToUnit(unitID, CMD_FIRE_STATE, {0}, 0)
             spGiveOrderToUnit(unitID, CMD_INSERT, {0, 0, 0}, CMD_OPT_ALT)

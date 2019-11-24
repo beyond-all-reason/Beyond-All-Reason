@@ -30,13 +30,14 @@ local spGiveOrderToUnit 	= Spring.GiveOrderToUnit
 local spGetMyPlayerID		= Spring.GetMyPlayerID
 local spGetPlayerInfo		= Spring.GetPlayerInfo
 
-local coreCommando = UnitDefNames["cormando"]
+local coreCommandoID = UnitDefNames["cormando"].id
 
 local passiveLabs = false;
 local passiveNanos = true;
 local passiveCons = false;
 
-local function isBuilder(ud)
+
+local function getIsBuilder(ud)
     if not passiveCons and not passiveLabs and not passiveNanos then
         return false
     end
@@ -60,8 +61,7 @@ local function isBuilder(ud)
     end
 
     --cons
-    if ud and ud.isBuilder and not ud.canManualFire and ud.canAssist
-            and (coreCommando ~= nil and ud.id ~= coreCommando.id) and not ud.isFactory and ud.canMove then
+    if ud and ud.isBuilder and not ud.canManualFire and ud.canAssist and ud.id ~= coreCommandoID and not ud.isFactory and ud.canMove then
         if passiveCons then
             return true
         else
@@ -70,6 +70,17 @@ local function isBuilder(ud)
     end
 
     return false
+end
+
+local isBuilder = {}
+local unitBuilderManualFireAssist = {}
+for udid, ud in pairs(UnitDefs) do
+    if getIsBuilder(ud) then
+        isBuilder[udid] = true
+    end
+    if ud.isBuilder and not ud.canManualFire and ud.canAssist and ud.id ~= coreCommandoID then
+        unitBuilderManualFireAssist[udid] = true
+    end
 end
 
 local function passivateBuilder(unitID)
@@ -85,7 +96,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
         return
     end
 
-    if (isBuilder(UnitDefs[unitDefID])) then
+    if isBuilder[unitDefID] then
         passivateBuilder(unitID)
     end
 end
@@ -142,15 +153,14 @@ function refreshUnits()
     for i=1,#myUnits do
         local unitID = myUnits[i]
         local unitDefID = spGetUnitDefID(unitID)
-        local ud = UnitDefs[unitDefID]
 
         -- re-activate all builders
-        if ud and ud.isBuilder and not ud.canManualFire and ud.canAssist and (coreCommando ~= nil and ud.id ~= coreCommando.id) then
+        if unitBuilderManualFireAssist[unitDefID] then
             activateBuilder(unitID)
         end
 
         -- passivate only required builders
-        if (isBuilder(ud)) then
+        if isBuilder[unitDefID] then
             passivateBuilder(unitID)
         end
     end

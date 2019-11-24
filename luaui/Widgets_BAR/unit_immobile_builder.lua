@@ -37,6 +37,7 @@ local spGetSpectatingState	= Spring.GetSpectatingState
 local hmsx = Game.mapSizeX/2
 local hmsz = Game.mapSizeZ/2
 
+local myTeamID = spGetMyTeamID()
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -44,9 +45,11 @@ local hmsz = Game.mapSizeZ/2
 -- set immobile builders (nanotowers?) to the MANEUVER movestate,
 -- and give them a FIGHT order, too close to the unit will drop the order so we add 50 distance
 
-
-local function IsImmobileBuilder(ud)
-	return ud and ud.isBuilder and not ud.canMove and not ud.isFactory
+local isImmobileBuilder = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isBuilder and not unitDef.canMove and not unitDef.isFactory then
+		isImmobileBuilder[unitDefID] = true
+	end
 end
 
 
@@ -81,6 +84,7 @@ end
 
 function widget:PlayerChanged(playerID)
     maybeRemoveSelf()
+	myTeamID = spGetMyTeamID()
 end
 
 function widget:Initialize()
@@ -89,7 +93,7 @@ function widget:Initialize()
     end
 	for _,unitID in ipairs(spGetTeamUnits(spGetMyTeamID())) do
 		local unitDefID = spGetUnitDefID(unitID)
-		if IsImmobileBuilder(UnitDefs[unitDefID]) then
+		if isImmobileBuilder[unitDefID] then
 			spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, {})
 			SetupUnit(unitID)
 		end
@@ -101,7 +105,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 	if unitTeam ~= spGetMyTeamID() then
 		return
 	end
-	if IsImmobileBuilder(UnitDefs[unitDefID]) then
+	if isImmobileBuilder[unitDefID] then
 		spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 1 }, {})
 		SetupUnit(unitID)
 	end
@@ -115,10 +119,10 @@ end
 
 
 function widget:UnitIdle(unitID, unitDefID, unitTeam)
-	if unitTeam ~= spGetMyTeamID() then
+	if unitTeam ~= myTeamID then
 		return
 	end
-	if IsImmobileBuilder(UnitDefs[unitDefID]) then
+	if isImmobileBuilder[unitDefID] then
 		SetupUnit(unitID)
 	end
 end

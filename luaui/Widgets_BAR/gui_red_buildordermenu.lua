@@ -53,6 +53,8 @@ local mouseClicked = 0
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 
+WG.hoverID = nil
+
 local normalUnitIconSize = {
 	isx = 44.5,isy = 44.5, --icon size
 	ix = 5,iy = 7, --icons x/y
@@ -133,6 +135,41 @@ local Config = {
 	},
 }
 
+function wrap(str, limit)
+	limit = limit or 72
+	local here = 1
+	local buf = ""
+	local t = {}
+	str:gsub("(%s*)()(%S+)()",
+			function(sp, st, word, fi)
+				if fi-here > limit then
+					--# Break the line
+					here = st
+					t[#t+1] = buf
+					buf = word
+				else
+					buf = buf..sp..word  --# Append
+				end
+			end)
+	--# Tack on any leftovers
+	if(buf ~= "") then
+		t[#t+1] = buf
+	end
+	return t
+end
+
+local unitHumanName = {}
+local unitDescriptionLong = {}
+local unitTooltip = {}
+local unitIconType = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	unitHumanName[unitDefID] = unitDef.humanName
+	if unitDef.customParams.description_long then
+		unitDescriptionLong[unitDefID] = wrap(unitDef.customParams.description_long, 58)
+	end
+	unitTooltip[unitDefID] = unitDef.tooltip
+	unitIconType[unitDefID] = unitDef.iconType
+end
 
 function widget:ViewResize(newX,newY)
 	vsx, vsy = gl.GetViewSizes()
@@ -237,30 +274,6 @@ local function esc(x)
             :gsub('%-', '%%-')
             :gsub('%?', '%%?'))
 end
-
-function wrap(str, limit)
-	limit = limit or 72
-	local here = 1
-	local buf = ""
-	local t = {}
-	str:gsub("(%s*)()(%S+)()",
-		function(sp, st, word, fi)
-			if fi-here > limit then
-				--# Break the line
-				here = st
-				t[#t+1] = buf
-				buf = word
-			else
-				buf = buf..sp..word  --# Append
-			end
-		end)
-	--# Tack on any leftovers
-	if(buf ~= "") then
-		t[#t+1] = buf
-	end
-	return t
-end
-	WG.hoverID = nil
 local function CreateGrid(r)
 	local background2 = {"rectanglerounded",
 		px=r.px+r.padding,py=r.py+r.padding,
@@ -422,9 +435,9 @@ local function CreateGrid(r)
 					WG.hoverID = udefid
                     local alt, ctrl, meta, shift = Spring.GetModKeyState()
                     if not meta and drawTooltip and WG['tooltip'] ~= nil then
-                        local text = "\255\215\255\215"..UnitDefs[udefid].humanName.."\n\255\240\240\240"
-                        if drawBigTooltip and UnitDefs[udefid].customParams.description_long ~= nil then
-                            local lines = wrap(UnitDefs[udefid].customParams.description_long, 58)
+                        local text = "\255\215\255\215"..unitHumanName[udefid].."\n\255\240\240\240"
+                        if drawBigTooltip and unitDescriptionLong[udefid] ~= nil then
+                            local lines = unitDescriptionLong[udefid]
                             local description = ''
                             local newline = ''
                             for i, line in ipairs(lines) do
@@ -433,10 +446,10 @@ local function CreateGrid(r)
                             end
                             text = text..description
                         else
-                            text = text..UnitDefs[udefid].tooltip
+                            text = text..unitTooltip[udefid]
                         end
                         WG['tooltip'].ShowTooltip('redui_buildmenu', text)
-                        tt = string.gsub(tt, esc("Build: "..UnitDefs[udefid].humanName.." - "..UnitDefs[udefid].tooltip).."\n", "")
+                        tt = string.gsub(tt, esc("Build: "..unitHumanName[udefid].." - "..unitTooltip[udefid]).."\n", "")
                     end
 				end
 			end
@@ -811,7 +824,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					end
 					text.options = "bs"
 					if drawRadaricon then
-						g.radaricons[i].texture = iconTypesMap[UnitDefs[icon.udid].iconType]
+						g.radaricons[i].texture = iconTypesMap[unitIconType[icon.udid]]
 					end
 				end
 			else

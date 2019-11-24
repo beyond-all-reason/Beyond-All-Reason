@@ -69,6 +69,10 @@ local spSelectUnitMap          = Spring.SelectUnitMap
 local spSendCommands           = Spring.SendCommands
 local spIsGUIHidden            = Spring.IsGUIHidden
 
+local unitNames = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  unitNames[unitDefID] = unitDef.name
+end
 
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
@@ -236,7 +240,7 @@ function widget:DrawScreen()
         for udid,count in pairs(selectedUnitsCounts) do
           if type(udid) == 'number' then
             if i == mouseIcon then
-              unitName = UnitDefs[udid].humanName
+              unitName = unitNames[udid]
               break
             end
             i = i + 1
@@ -427,7 +431,6 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local xmid = (xmin + xmax) * 0.5
   local ymid = (ymin + ymax) * 0.5
 
-  local ud = UnitDefs[unitDefID]
   glColor(color)
   glTexture('#' .. unitDefID)
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))

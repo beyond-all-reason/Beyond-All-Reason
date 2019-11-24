@@ -26,8 +26,8 @@ function widget:GetInfo()
 end
 
 local drawFeatureHighlight	= false
-local unitAlpha				= 0.2
-local featureAlpha			= 0.14
+local unitAlpha				= 0.23
+local featureAlpha			= 0.15
 
 local useShader = true
 local edgeExponent = 1.25
@@ -282,12 +282,17 @@ local function HilightFeatureModel(featureID)
 end
 
 
-local function HilightFeature(featureID)
-  local fDefID = spGetFeatureDefID(featureID)
-  local fd = FeatureDefs[fDefID]
-  if (fd == nil) then return end
+local featureDrawType0 = {}
+for id, def in pairs(FeatureDefs) do
+  if def.drawType == 0 then
+    featureDrawType0[id] = true
+  end
+end
 
-  if (fd.drawType == 0) then
+local function HilightFeature(featureID)
+  --if (FeatureDefs[spGetFeatureDefID(featureID)] == nil) then return end
+
+  if (featureDrawType0[spGetFeatureDefID(featureID)]) then
     HilightFeatureModel(featureID)
     return
   end

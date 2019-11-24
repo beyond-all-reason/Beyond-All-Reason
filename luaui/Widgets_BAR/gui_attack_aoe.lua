@@ -88,6 +88,29 @@ local max                    = math.max
 local min                    = math.min
 local sqrt                   = math.sqrt
 
+local unitCost = {}
+local isAirUnit = {}
+local isShip = {}
+local isUnderwater = {}
+local isHover = {}
+for udid, ud in pairs(UnitDefs) do
+  unitCost[udid] = ud.cost
+  if ud.isAirUnit then
+    isAirUnit[udid] = ud.isAirUnit
+  end
+  if ud.modCategories then
+    if ud.modCategories.ship then
+      isShip[udid] = true
+    end
+    if ud.modCategories.underwater then
+      isUnderwater[udid] = true
+    end
+    if ud.modCategories.hover then
+      isHover[udid] = true
+    end
+  end
+end
+
 --------------------------------------------------------------------------------
 --utility functions
 --------------------------------------------------------------------------------
@@ -121,9 +144,9 @@ local function GetMouseTargetPosition(dgun)
       mouseTargetType, mouseTarget = TraceScreenRay(mx, my, true)
       return mouseTarget[1], mouseTarget[2], mouseTarget[3]
     elseif ((dgun and WG['dgunnoenemy'] ~= nil) or (not dgun and WG['attacknoenemy'] ~= nil)) and not Spring.IsUnitAllied(mouseTarget) then
-      local def = UnitDefs[Spring.GetUnitDefID(mouseTarget)]
+      local unitDefID = Spring.GetUnitDefID(mouseTarget)
       local mouseTargetType2, mouseTarget2 = TraceScreenRay(mx, my, true)
-      if def.isAirUnit or def.modCategories["ship"] or def.modCategories["underwater"] or (Spring.GetGroundHeight(mouseTarget2[1],mouseTarget2[3]) < 0 and def.modCategories["hover"])  then
+      if isAirUnit[unitDefID] or isShip[unitDefID] or isUnderwater[unitDefID] or (Spring.GetGroundHeight(mouseTarget2[1],mouseTarget2[3]) < 0 and isHover[unitDefID]) then
         return GetUnitPosition(mouseTarget)
       else
         return mouseTarget2[1], mouseTarget2[2], mouseTarget2[3]
@@ -300,7 +323,7 @@ local function UpdateSelection()
     end
   
     if (aoeDefInfo[unitDefID]) then
-      local currCost = UnitDefs[unitDefID].cost * #unitIDs
+      local currCost = unitCost[unitDefID] * #unitIDs
       if (currCost > maxCost) then
         maxCost = currCost
         aoeUnitDefID = unitDefID

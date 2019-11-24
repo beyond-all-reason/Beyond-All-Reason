@@ -139,6 +139,12 @@ local allyteamOverflowingEnergy = false
 local overflowingMetal = false
 local overflowingEnergy = false
 
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
 
 --------------------------------------------------------------------------------
 -- Rejoin
@@ -1676,17 +1682,6 @@ function widget:PlayerChanged()
 end
 
 
-function isCom(unitID,unitDefID)
-	if not unitDefID and unitID then
-		unitDefID =  Spring.GetUnitDefID(unitID)
-	end
-	if not unitDefID or not UnitDefs[unitDefID] or not UnitDefs[unitDefID].customParams then
-		return false
-	end
-	return UnitDefs[unitDefID].customParams.iscommander ~= nil
-end
-
-
 function countComs(forceUpdate)
 	-- recount my own ally team coms
 	local prevAllyComs = allyComs
@@ -1716,7 +1711,7 @@ function countComs(forceUpdate)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	if not isCom(unitID,unitDefID) then
+	if not isCommander[unitDefID] then
 		return
 	end
 	--record com created
@@ -1729,7 +1724,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-	if not isCom(unitID,unitDefID) then
+	if not isCommander[unitDefID] then
 		return
 	end
 	--record com died

@@ -114,6 +114,14 @@ local GetTeamColor = Spring.GetTeamColor or function (teamID)
   return r,g,b
 end
 
+local unitName = {}
+local unitBuildOptions = {}
+for udid, unitDef in pairs(UnitDefs) do
+  unitName[udid] = unitDef.name
+  if unitDef.isFactory and #unitDef.buildOptions > 0 then
+    unitBuildOptions[udid] = unitDef.buildOptions
+  end
+end
 -------------------------------------------------------------------------------
 -- SCREENSIZE FUNCTIONS
 -------------------------------------------------------------------------------
@@ -443,8 +451,8 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
   end
 
   local tex = '#' .. unitDefID
-  if oldUnitpics and UnitDefs[unitDefID] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[unitDefID].name..'.dds') then
-    tex = 'unitpics/'..UnitDefs[unitDefID].name..'.dds'
+  if oldUnitpics and unitName[unitDefID] ~= nil and VFS.FileExists('unitpics/'..unitName[unitDefID]..'.dds') then
+    tex = 'unitpics/'..unitName[unitDefID]..'.dds'
   end
 
   DrawTexRect(imgRect, tex, {1,1,1,iconAlpha})
@@ -862,9 +870,9 @@ function UpdateFactoryList()
   for num = 1, #teamUnits do
     local unitID = teamUnits[num]
     local unitDefID = GetUnitDefID(unitID)
-    if UnitDefs[unitDefID].isFactory then
+    if unitBuildOptions[unitDefID] then
       count = count + 1
-      facs[count] = { unitID=unitID, unitDefID=unitDefID, buildList=UnitDefs[unitDefID].buildOptions }
+      facs[count] = { unitID=unitID, unitDefID=unitDefID, buildList=unitBuildOptions[unitDefID] }
       local _, _, _, _, buildProgress = GetUnitHealth(unitID)
       if (buildProgress)and(buildProgress<1) then
         unfinished_facs[unitID] = true
@@ -874,15 +882,14 @@ function UpdateFactoryList()
 end
 
 
-
 --function widget:UnitFinished(unitID, unitDefID, unitTeam)
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
   if (unitTeam ~= myTeamID) then
     return
   end
 
-  if UnitDefs[unitDefID].isFactory and #UnitDefs[unitDefID].buildOptions>0 then
-    facs[#facs+1] = { unitID=unitID, unitDefID=unitDefID, buildList=UnitDefs[unitDefID].buildOptions }
+  if unitBuildOptions[unitDefID] then
+    facs[#facs+1] = { unitID=unitID, unitDefID=unitDefID, buildList=unitBuildOptions[unitDefID] }
   end
   unfinished_facs[unitID] = true
 end
@@ -896,7 +903,7 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
     return
   end
 
-  if UnitDefs[unitDefID].isFactory and #UnitDefs[unitDefID].buildOptions>0 then
+  if unitBuildOptions[unitDefID] then
     for i,facInfo in ipairs(facs) do
       if unitID==facInfo.unitID then
         if (openedMenu+1==i)and(openedMenu > #facs-2) then

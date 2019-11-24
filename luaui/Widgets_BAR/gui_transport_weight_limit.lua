@@ -37,6 +37,21 @@ local transID = nil
 local validTrans = {}
 local math_sqrt = math.sqrt
 
+local transDefs = {}
+local cantBeTransported = {}
+local unitMass = {}
+local unitXsize = {}
+for defID, def in pairs(UnitDefs) do
+	if def.transportSize and def.transportSize > 0 then
+		validTrans[defID] = true
+		transDefs[defID] = {def.transportMass, def.transportCapacity, def.transportSize}
+	end
+	unitMass[defID] = def.mass
+	unitXsize[defID] = def.xsize
+	cantBeTransported[defID] = def.cantBeTransported
+end
+
+
 local function DrawCircleLine(innersize, outersize)
 	gl.BeginEnd(GL.QUADS, function()
 		local detailPartWidth, a1,a2,a3,a4
@@ -66,16 +81,8 @@ end
 
 
 function widget:Initialize()
-	
 	circleList = gl.CreateList(DrawCircleLine, OPTIONS[currentOption].innersize, OPTIONS[currentOption].outersize)
 	currentClock = os.clock()
-	
-	for i=1,#UnitDefs do
-		local unitDefID = UnitDefs[i]
-		if unitDefID.transportSize and unitDefID.transportSize > 0 then
-			validTrans[i] = true
-		end
-	end
 end
 
 function widget:Shutdown()
@@ -92,56 +99,53 @@ end
 function widget:GameFrame(n)
     local unitcount = 0
 	if (n % 2 == 1) then
-    unitstodraw = {}
-	local _,cmdID,_ = Spring.GetActiveCommand()
-	if selectedUnitsCount < 1 or selectedUnitsCount > 20 then
-		return
-	end
-	if selectedUnitsCount == 1 then
-		if validTrans[Spring.GetUnitDefID(selectedUnits[1])] then
-        	transID = selectedUnits[1]
+		unitstodraw = {}
+		local _,cmdID,_ = Spring.GetActiveCommand()
+		if selectedUnitsCount < 1 or selectedUnitsCount > 20 then
+			return
 		end
-        elseif selectedUnitsCount > 1 then
-			for i=1,#selectedUnits do
-				local unitID = selectedUnits[i]
-				local unitdefID = Spring.GetUnitDefID(unitID)
-				if validTrans[unitdefID] then
-				   transID = unitID
-				   unitcount = unitcount + 1
-				   if unitcount > 1 then
-					   transID = nil
-					   return
-				   end
-				end
+		if selectedUnitsCount == 1 then
+			if validTrans[Spring.GetUnitDefID(selectedUnits[1])] then
+				transID = selectedUnits[1]
 			end
-        else
-		transID = nil
-		return
-	end
-	
-	
-	if transID then
-		local TransDefID = Spring.GetUnitDefID(transID)
-		local udTrans = UnitDefs[TransDefID]
-		if udTrans ~= nil then
-			local transMassLimit = udTrans.transportMass
-			local transCapacity = udTrans.transportCapacity
-			local transportSize = udTrans.transportSize
-			if cmdID == CMD_LOAD_UNITS then
-				local visibleUnits = Spring.GetVisibleUnits()
-				if #visibleUnits then
-					for i=1, #visibleUnits do
-					local unitID = visibleUnits[i]
-					local visableID = Spring.GetUnitDefID(unitID)
-						local isinTrans = Spring.GetUnitIsTransporting(transID)
-						if #isinTrans >= transCapacity then
-							return
-						end
-						if transID and transID ~= visableID then
-							local ud = UnitDefs[visableID]
-							local passengerMass = ud.mass
-								local passengerX = ud.xsize/2
-								if (passengerMass <= transMassLimit) and (passengerX <= transportSize) and not ud.cantBeTransported and not Spring.IsUnitIcon(unitID) then 
+			elseif selectedUnitsCount > 1 then
+				for i=1,#selectedUnits do
+					local unitID = selectedUnits[i]
+					local unitdefID = Spring.GetUnitDefID(unitID)
+					if validTrans[unitdefID] then
+					   transID = unitID
+					   unitcount = unitcount + 1
+					   if unitcount > 1 then
+						   transID = nil
+						   return
+					   end
+					end
+				end
+			else
+			transID = nil
+			return
+		end
+
+
+		if transID then
+			local TransDefID = Spring.GetUnitDefID(transID)
+			if transDefs[TransDefID] then
+				local transMassLimit = transDefs[TransDefID][1]
+				local transCapacity = transDefs[TransDefID][2]
+				local transportSize = transDefs[TransDefID][3]
+				if cmdID == CMD_LOAD_UNITS then
+					local visibleUnits = Spring.GetVisibleUnits()
+					if #visibleUnits then
+						for i=1, #visibleUnits do
+							local unitID = visibleUnits[i]
+							local visableID = Spring.GetUnitDefID(unitID)
+							local isinTrans = Spring.GetUnitIsTransporting(transID)
+							if #isinTrans >= transCapacity then
+								return
+							end
+							if transID and transID ~= visableID then
+								local passengerX = unitXsize[visableID]/2
+								if (unitMass[visableID] <= transMassLimit) and (passengerX <= transportSize) and not cantBeTransported[visableID] and not Spring.IsUnitIcon(unitID) then
 									local x, y, z = Spring.GetUnitBasePosition(unitID)
 									if (x) then
 										 unitstodraw[unitID] = {pos = {x,y,z},size = (passengerX*6)}

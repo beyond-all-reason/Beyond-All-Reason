@@ -70,43 +70,45 @@ local function UnitHasPatrolOrder(unitID)
 	end
 	return false
 end
+
+local isFactory = {}
+local isBuilder = {}
+local checkMustStop = {}
+for udid, ud in pairs(UnitDefs) do
+	if ud.isFactory then
+		isFactory[udid] = true
+	end
+	if ud.isBuilder then
+		isBuilder[udid] = true
+	end
+	if ud.canFly and (ud.weaponCount==0 or (not (ud.isFighterAirUnit or ud.isFighter)) or (ud.humanName=="Liche") or ud.noAutoFire) then
+		checkMustStop[udid] = true
+	end
+end
+
 local function MustStop(unitID, unitDefID)
-	local ud = UnitDefs[unitDefID]
-	if ud and ud.canFly and (ud.weaponCount==0 or (not (ud.isFighterAirUnit or ud.isFighter)) or (ud.humanName=="Liche") or ud.noAutoFire) and UnitHasPatrolOrder(unitID) then --isFighter kept for 94 compat only, remove after
-		if (not opts.stop_builders)and ud and ud.isBuilder then
+	if checkMustStop[unitDefID] and UnitHasPatrolOrder(unitID) then --isFighter kept for 94 compat only, remove after
+		if not opts.stop_builders and isBuilder[unitDefID] then
 			return false
 		end
 		return true
 	end
 	return false
 end
-			
+
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders)
-	if (unitTeam ~= GetMyTeamID()) then
+	if unitTeam ~= GetMyTeamID() then
 		return
 	elseif (userOrders) then
 		return
 	end
-	local bd = UnitDefs[factDefID]
-	if (not (bd and bd.isFactory)) then
+	if not isFactory[factDefID] then
 		return
 	end
-	local ud=UnitDefs[unitDefID]
 	--- liche: workaround for BAR (liche is fighter)
 	if MustStop(unitID, unitDefID) then
 		Spring.GiveOrderToUnit(unitID,CMD.STOP,{},{})
-	else
-	--[[	
-		Spring.Echo("-----")
-		for name,param in ud:pairs() do
-			Spring.Echo(name,param)
-		end
-	]]--
 	end
-	
-	--if ud.humanName=="Liche" then
-	--	UnitCanTargetAir(unitDefID)
-	--end
 end
 
 function maybeRemoveSelf()

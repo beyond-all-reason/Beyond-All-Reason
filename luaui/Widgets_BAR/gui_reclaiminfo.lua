@@ -49,6 +49,15 @@ local inMinimap = false --mouse cursor in minimap
 
 local math_sqrt = math.sqrt
 
+local isReclaimable = {}
+local unitMetalCost = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.reclaimable then
+        isReclaimable[unitDefID] = unitDef.reclaimable
+    end
+    unitMetalCost[unitDefID] = unitDef.metalCost
+end
+
 function widget:ViewResize(n_vsx,n_vsy)
     vsx,vsy = Spring.GetViewGeometry()
     widgetScale = (0.5 + (vsx*vsy / 5700000))
@@ -167,7 +176,7 @@ function widget:DrawScreen()
       if (isunit == "unit") and (Spring.GetUnitHealth(unitID)) then --Getunithealth just to make sure that it is in los
        local unitDefID = Spring.GetUnitDefID(unitID)
        local _,_,_,_,buildprogress = Spring.GetUnitHealth(unitID)
-       metal=math.floor(UnitDefs[unitDefID].metalCost*buildprogress)
+       metal = math.floor(unitMetalCost[unitDefID] * buildprogress)
        local textwidth = 12*font:GetTextWidth("   M:"..metal.."\255\255\255\128")
         if(textwidth+x>vsx) then
         x = x - textwidth - 10
@@ -176,7 +185,7 @@ function widget:DrawScreen()
          y = y - form
         end
         local color = "\255\255\255\255"
-        if not UnitDefs[Spring.GetUnitDefID(unitID)].reclaimable then
+        if not isReclaimable[Spring.GetUnitDefID(unitID)] then
          color = "\255\220\10\10"
         end
         font:Begin()

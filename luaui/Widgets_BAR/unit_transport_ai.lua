@@ -71,18 +71,40 @@ options = {
 	},
 }
 
-function IsTransport(unitDefID) 
-  ud = UnitDefs[unitDefID]
-  return (ud ~= nil and (ud.transportCapacity >= 1) and ud.canFly)
+local isFactory = {}
+local isTransport = {}
+local isTransportable = {}
+local unitAssistBuilder = {}
+local isGroundscout = {}
+local unitspeed = {}
+local unitXsize = {}
+local unitMass = {}
+local unitTransportSize = {}
+local unitTransportCapacity = {}
+local unitTransportMass = {}
+for uDefID, uDef in pairs(UnitDefs) do
+  if uDef.isFactory then
+    isFactory[uDefID] = true
+  end
+  if uDef.isTransport and uDef.canFly and uDef.transportCapacity > 0 then
+    isTransport[uDefID] = true
+  end
+  if not uDef.canFly and uDef.speed > 0 and uDef.springCategories ~= nil then
+    isTransportable[uDefID] = true
+  end
+  if uDef.isBuilder and uDef.canAssist then
+    unitAssistBuilder[uDefID] = true
+  end
+  if uDef.modCategories.groundscout then
+    isGroundscout[uDefID] = true
+  end
+  unitspeed[uDefID] = uDef.speed
+  unitXsize[uDefID] = uDef.xisze
+  unitMass[uDefID] = uDef.mass
+  unitTransportSize[uDefID] = uDef.transportSize
+  unitTransportCapacity[uDefID] = uDef.transportCapacity
+  unitTransportMass[uDefID] = uDef.transportMass
 end
-
-function IsTransportable(unitDefID)  
-  ud = UnitDefs[unitDefID]
-  if (ud == nil) then return false end
-  udc = ud.springCategories
-  return (udc~= nil and ud.speed > 0 and not ud.canFly)
-end
-
 
 function IsEmbarkCommand(unitID)
  local queue = GetCommandQueue(unitID,20);        
@@ -252,7 +274,7 @@ end
 
 
 function AddTransport(unitID, unitDefID) 
-  if (IsTransport(unitDefID)) then -- and IsIdle(unitID)
+  if isTransport[unitDefID] then -- and IsIdle(unitID)
     idleTransports[unitID] = unitDefID
     --Echo ("transport added " .. unitID)
     return true
@@ -264,14 +286,14 @@ end
 function widget:UnitIdle(unitID, unitDefID, teamID) 
   if teamID ~= myTeamID then return end
   if WG.FerryUnits and WG.FerryUnits[unitID] then return end
-  if (hackIdle[unitID] ~= nil) then
+  if hackIdle[unitID] ~= nil then
     hackIdle[unitID] = nil
     return
   end
-  if (AddTransport(unitID, unitDefID)) then
+  if AddTransport(unitID, unitDefID) then
     AssignTransports(unitID, 0)
   else
-    if (IsTransportable(unitDefID)) then
+    if isTransportable[unitDefID] then
       priorityUnits[unitID] = nil
 
       local marked = GetToPickTransport(unitID)
@@ -293,16 +315,15 @@ end
 
 
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, userOrders) 
-	if unitTeam == myTeamID then 
-    local ud = UnitDefs[unitDefID]
-    if (CONST_IGNORE_BUILDERS and ud.isBuilder and ud.canAssist) then return end
-	if (CONST_IGNORE_GROUNDSCOUTS and ud.modCategories.groundscout) then return end
-    if (IsTransportable(unitDefID) and not userOrders) then 
+	if unitTeam == myTeamID then
+    if CONST_IGNORE_BUILDERS and unitAssistBuilder then return end
+	if CONST_IGNORE_GROUNDSCOUTS and isGroundscout[unitDefID] then return end
+    if isTransportable[unitDefID] and not userOrders then
 --      Echo ("new unit from factory "..unitID)
       local commands = GetCommandQueue(unitID,20)
       for i=1,#commands do
         local v = commands[i]
-        if (IsEmbark(v)) then 
+        if IsEmbark(v) then
           priorityUnits[unitID] = unitDefID
           return
         end
@@ -478,13 +499,13 @@ function CanTransport(transportID, unitID)
   local tdef = GetUnitDefID(transportID)
 
   if (not udef or not tdef) then return false end
-  if (UnitDefs[udef].xsize > UnitDefs[tdef].transportSize * 2) then  -- unit size check
+  if (unitXsize[udef] > unitTransportSize[tdef] * 2) then  -- unit size check
 --    Echo ("size failed")
     return false
   end
 
   local trans = GetUnitIsTransporting(transportID) -- capacity check
-  if (UnitDefs[tdef].transportCapacity <= #trans) then  
+  if (unitTransportCapacity[tdef] <= #trans) then
 --    Echo ("count failed")
     return false
   end
@@ -492,9 +513,9 @@ function CanTransport(transportID, unitID)
 
   local mass = 0 -- mass check
   for _,a in ipairs(trans) do
-    mass = mass + UnitDefs[GetUnitDefID(a)].mass
+    mass = mass + unitMass[GetUnitDefID(a)]
   end
-  if (mass > UnitDefs[tdef].transportMass) then
+  if (mass > unitTransportMass[tdef]) then
 --    Echo ("mass failed")
     return false
   end
@@ -506,16 +527,14 @@ function AssignTransports(transportID, unitID)
   local best = {}
 --  Echo ("assigning " .. transportID .. " " ..unitID)
   if (transportID~=0) then
-     local transpeed = UnitDefs[GetUnitDefID(transportID)].speed
+     local transpeed = unitSpeed[GetUnitDefID(transportID)]
      for id, val in pairs(waitingUnits) do 
        if CanTransport(transportID, id) then
-         local unitspeed = UnitDefs[val[2]].speed
-
          local ud = GetPathLength(id)
          local td = GetUnitSeparation(id, transportID, true)
 
          local ttime = (td + ud) / transpeed + CONST_TRANSPORT_PICKUPTIME
-         local utime = (ud) / unitspeed
+         local utime = (ud) / unitSpeed[val[2]]
          local benefit = utime-ttime
          if (val[1]==ST_PRIORITY) then 
            benefit = benefit + CONST_PRIORITY_BENEFIT
@@ -528,16 +547,15 @@ function AssignTransports(transportID, unitID)
        end 
      end
   elseif (unitID ~=0) then
-    local unitspeed = UnitDefs[GetUnitDefID(unitID)].speed
+    local uspeed = unitSpeed[GetUnitDefID(unitID)]
     local state = waitingUnits[unitID][1]
     local ud = GetPathLength(unitID)
     for id, def in pairs(idleTransports) do 
       if CanTransport(id, unitID) then
-        local transpeed = UnitDefs[def].speed
         local td = GetUnitSeparation(unitID, id, true)
 
-        local ttime = (td + ud) / transpeed + CONST_TRANSPORT_PICKUPTIME
-        local utime = (ud) / unitspeed
+        local ttime = (td + ud) / unitSpeed[def] + CONST_TRANSPORT_PICKUPTIME
+        local utime = (ud) / uspeed
         local benefit = utime-ttime
         if (state==ST_PRIORITY) then 
           benefit = benefit + CONST_PRIORITY_BENEFIT
@@ -630,9 +648,9 @@ function widget:KeyPress(key, modifier, isRepeat)
 
       for _, id in ipairs(GetSelectedUnits()) do -- embark
         local def = GetUnitDefID(id)
-        if (IsTransportable(def) or UnitDefs[def].isFactory) then 
+        if (isTransportable[def] or isFactory[def]) then
           GiveOrderToUnit(id, CMD.WAIT, {}, opts) 
-          if (not UnitDefs[def].isFactory) then priorityUnits[id] = def end
+          if (not isFactory[def]) then priorityUnits[id] = def end
         end
       end
     else 
@@ -640,7 +658,7 @@ function widget:KeyPress(key, modifier, isRepeat)
       if (modifier.shift) then table.insert(opts, "shift") end  
       for _, id in ipairs(GetSelectedUnits()) do --disembark
         local def = GetUnitDefID(id)
-        if (IsTransportable(def)  or UnitDefs[def].isFactory) then GiveOrderToUnit(id, CMD.WAIT, {}, opts) end
+        if (isTransportable[def]  or isFactory[def]) then GiveOrderToUnit(id, CMD.WAIT, {}, opts) end
       end
 
     end
@@ -650,17 +668,15 @@ end ]]--
 
 
 function taiEmbark(unitID, teamID, embark, shift) -- called by gadget
-  if (teamID ~= myTeamID) then return end
+  if teamID ~= myTeamID then return end
 
-  if (not shift) then
+  if not shift then
     widget:UnitDestroyed(unitID, GetUnitDefID(unitID), myTeamID)
   end
-
   
-  if (embark) then
+  if embark then
     local def = GetUnitDefID(unitID)
-    local ud = UnitDefs[def]
-    if (ud ~= nil and not ud.isFactory) then 
+    if isFactory[def] then
       priorityUnits[unitID] = def
     end
   end

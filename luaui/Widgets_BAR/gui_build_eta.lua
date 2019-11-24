@@ -42,9 +42,16 @@ local table  = table
 
 local etaTable = {}
 local etaMaxDist= 750000 -- max dist at which to draw ETA
----------------------------
 
---------------------------------------------------------------------------------
+local isOmex = {}
+local unitHeight = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  if unitDef.name == "armomex" or unitDef.name == "coromoex" then
+    isOmex[unitDefID] = true
+  end
+  unitHeight[unitDefID] = unitDef.height
+end
+
 
 local vsx, vsy = widgetHandler:GetViewSizes()
 
@@ -63,16 +70,13 @@ local function MakeETA(unitID,unitDefID)
   local _,_,_,_,buildProgress = Spring.GetUnitHealth(unitID)
   if (buildProgress == nil) then return nil end
 
-  local ud = UnitDefs[unitDefID]
-  if (ud == nil)or(ud.height == nil) then return nil end
-
   return {
     firstSet = true,
     lastTime = Spring.GetGameSeconds(),
     lastProg = buildProgress,
     rate     = nil,
     timeLeft = nil,
-    yoffset  = ud.height+14
+    yoffset  = unitHeight[unitDefID]+14
   }
 end
 
@@ -236,11 +240,10 @@ function widget:DrawWorld()
 		if ux~=nil then
 			local dx, dy, dz = ux-cx, uy-cy, uz-cz
 			local dist = dx*dx + dy*dy + dz*dz
-			if dist < etaMaxDist then 
-				local unitName = UnitDefs[Spring.GetUnitDefID(unitID)].name
-					if unitName == "armomex" or unitName == "coromoex" then
-						bi.yoffset = 25
-					end
+			if dist < etaMaxDist then
+                if isOmex[Spring.GetUnitDefID(unitID)] then
+                    bi.yoffset = 25
+                end
 				gl.DrawFuncAtUnit(unitID, false, DrawEtaText, bi.timeLeft,bi.yoffset)
 			end
 		end

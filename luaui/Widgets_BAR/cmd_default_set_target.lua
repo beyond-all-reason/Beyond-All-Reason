@@ -24,6 +24,13 @@ local SendCommmands = Spring.SendCommands
 local hotKeys = {}
 
 
+local hasSetTarget = {}
+for udid, ud in pairs(UnitDefs) do
+	if ( ud.canMove and ud.speed > 0 and not ud.canFly and ud.canAttack and ud.maxWeaponRange and ud.maxWeaponRange > 0 ) or ud.isFactory then
+		hasSetTarget[udid] = true
+	end
+end
+
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
         widgetHandler:RemoveWidget(self)
@@ -57,11 +64,6 @@ function widget:Shutdown()
 	end
 end
 
-function hasSetTarget(unitDefID)
-	local ud = UnitDefs[unitDefID]
-	return ud and ( ( ud.canMove and ud.speed > 0 and not ud.canFly and ud.canAttack and ud.maxWeaponRange and ud.maxWeaponRange > 0 ) or ud.isFactory )
-end
-
 function widget:DefaultCommand()
 	local mouseX, mouseY, onlyCoords, useMinimap, includeSky, ignoreWater = GetMouseState()
 	local targettype,data = TraceScreenRay(mouseX, mouseY, onlyCoords, useMinimap, includeSky, ignoreWater)
@@ -69,7 +71,7 @@ function widget:DefaultCommand()
 		return
 	end
 	for unitDefID in pairs(GetSelectedUnitsCounts()) do
-		if hasSetTarget(unitDefID) then
+		if hasSetTarget[unitDefID] then
 			return CMD_UNIT_SET_TARGET
 		end
 	end

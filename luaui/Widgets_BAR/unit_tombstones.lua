@@ -26,8 +26,8 @@ for udefID,def in ipairs(UnitDefs) do
   if def.name == 'corstone' then
     corstoneUdefID = udefID
   end
-  if def.customParams.iscommander ~= nil then
-    commanders[def.name] = true
+  if def.customParams.iscommander then
+    commanders[def.name] = def.name
   end
 end
 
@@ -39,11 +39,10 @@ function widget:Initialize()
 end
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  local ud = UnitDefs[unitDefID]
-  if (ud ~= nil and commanders[ud.name] ~= nil) then
+  if commanders[unitDefID] then
     local x,y,z = Spring.GetUnitPosition(unitID)
     local tombstoneUdefID = armstoneUdefID
-    if ud.name == 'corcom' then
+    if commanders[unitDefID] == 'corcom' then
       tombstoneUdefID = corstoneUdefID
     end
     z = z - 50

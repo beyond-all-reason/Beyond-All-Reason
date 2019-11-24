@@ -86,6 +86,12 @@ local comCircleDlist = {}
 local prevCamX, prevCamY, prevCamZ = spGetCameraPosition()
 
 
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.customParams.iscommander then
+        isCommander[unitDefID] = true
+    end
+end
 --------------------------------------------------------------------------------
 
 
@@ -129,26 +135,26 @@ function removeCom(unitID)
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-    if UnitDefs[unitDefID].customParams.iscommander == "1" then
+    if isCommander[unitDefID] then
         addCom(unitID)
     end
 end
 
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
-    if UnitDefs[unitDefID].customParams.iscommander == "1" then
+    if isCommander[unitDefID] then
         addCom(unitID)
     end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-    if UnitDefs[unitDefID].customParams.iscommander == "1" then
+    if isCommander[unitDefID] then
         addCom(unitID)
     end
 end
 
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-    if UnitDefs[unitDefID].customParams.iscommander == "1" then
+    if isCommander[unitDefID] then
         addCom(unitID)
     end
 end
@@ -161,8 +167,7 @@ end
 
 function widget:UnitEnteredLos(unitID, unitTeam)
     if not amSpec then
-        local unitDefID = spGetUnitDefID(unitID)
-        if UnitDefs[unitDefID].customParams.iscommander == "1" then
+        if isCommander[spGetUnitDefID(unitID)] then
             addCom(unitID)
         end
     end
@@ -203,8 +208,7 @@ function checkComs()
     if visibleUnits ~= nil then
 		for i=1,#visibleUnits do
 			local unitID    = visibleUnits[i]
-            local unitDefID = spGetUnitDefID(unitID)
-            if unitDefID and UnitDefs[unitDefID].customParams.iscommander == "1" then
+            if isCommander[spGetUnitDefID(unitID)] then
 				addCom(unitID)
             end
         end

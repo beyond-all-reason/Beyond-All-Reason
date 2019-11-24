@@ -42,7 +42,7 @@ end
 
 local weaponParalyzeDamageTime = {}
 for weaponDefID, def in pairs(WeaponDefs) do
-    weaponParalyzeDamageTime[weaponDefID] = def[weaponID].damages and def[weaponID].damages.paralyzeDamageTime or maxTime
+    weaponParalyzeDamageTime[weaponDefID] = def.damages and def.damages.paralyzeDamageTime or maxTime
 end
 
 ----------------------------------------------------------------

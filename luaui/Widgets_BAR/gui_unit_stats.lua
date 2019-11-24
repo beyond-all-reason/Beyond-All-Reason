@@ -138,6 +138,13 @@ local textBufferCount = 0
 
 local spec = Spring.GetSpectatingState()
 
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
+end
+
 ------------------------------------------------------------------------------------
 -- Functions
 ------------------------------------------------------------------------------------
@@ -354,7 +361,7 @@ function widget:DrawScreen()
 		local uExp = spGetUnitExperience(uID)
 		armoredMultiple = select(2,Spring.GetUnitArmored(uID))
 
-		local unbacom = unba and (UnitDefs[Spring.GetUnitDefID(uID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(uID)].name == "corcom")
+		local unbacom = unba and isCommander[Spring.GetUnitDefID(uID)]
 		local _, xp = Spring.GetUnitExperience(uID)
 		if unbacom then
 			if xp then

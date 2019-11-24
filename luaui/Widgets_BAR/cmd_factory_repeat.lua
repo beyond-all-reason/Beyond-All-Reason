@@ -26,6 +26,12 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local isFactory = {}
+for udid, ud in pairs(UnitDefs) do
+    if ud.isFactory then
+        isFactory[udid] = true
+    end
+end
 
 function maybeRemoveSelf()
     if Spring.GetSpectatingState() and (Spring.GetGameFrame() > 0 or gameStarted) then
@@ -49,10 +55,9 @@ function widget:Initialize()
 end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
- local ud = UnitDefs[unitDefID]
- if (ud and ud.isFactory) then
-   Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, {})
- end
+    if isFactory[unitDefID] then
+        Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, {})
+    end
 end
 
 --------------------------------------------------------------------------------

@@ -35,6 +35,15 @@ local GetUnitDefID 		= Spring.GetUnitDefID
 local GetUnitStockpile	= Spring.GetUnitStockpile
 local GiveOrderToUnit	= Spring.GiveOrderToUnit
 
+local myTeamID = Spring.GetMyTeamID()
+
+local canStockpile = {}
+for udid, ud in pairs(UnitDefs) do
+	if ud.canStockpile then
+		canStockpile[udid] = true
+	end
+end
+
 function widget:SetConfigData(data)
 	MaxStockpile = data.MaxStockpile
 	return
@@ -66,6 +75,7 @@ end
 
 function widget:PlayerChanged(playerID)
     maybeRemoveSelf()
+	myTeamID = Spring.GetMyTeamID()
 end
 
 function widget:Initialize()
@@ -82,10 +92,8 @@ end
 function UpdateStockPileAllUnits()
 	local allUnits = GetTeamUnits(GetMyTeamID())
 	for i=1,#allUnits do
-		local unitID    = allUnits[i]
-		local unitDefID = GetUnitDefID(unitID)
-		local ud = UnitDefs[unitDefID]
-		if ( ud and ud.canStockpile ) then
+		local unitID = allUnits[i]
+		if canStockpile[GetUnitDefID(unitID)] then
 			CancelExcessStockpile(unitID)
 			DoStockPile(unitID)
 		end
@@ -94,16 +102,16 @@ end
 
 function DoStockPile( unitID )
 	local stock,queued = GetUnitStockpile(unitID)
-	if ( queued and stock ) then
+	if queued and stock then
 		local count = stock + queued - MaxStockpile
-		while ( count < 0 ) do
-			if (count < -100) then
+		while  count < 0  do
+			if count < -100 then
 				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl", "shift" })
 				count = count + 100
-			elseif (count < -20) then
+			elseif count < -20 then
 				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "ctrl" })
 				count = count + 20
-			elseif (count < -5) then
+			elseif count < -5 then
 				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "shift" })
 				count = count + 5
 			else
@@ -116,16 +124,16 @@ end
 
 function CancelExcessStockpile( unitID )
 	local stock,queued = GetUnitStockpile(unitID)
-	if ( queued and stock ) then
+	if queued and stock then
 		local count = stock + queued - MaxStockpile
-		while ( count > 0 ) do
-			if (count > 100) then
+		while count > 0 do
+			if count > 100 then
 				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right", "ctrl", "shift" })
 				count = count - 100
-			elseif (count > 20) then
+			elseif count > 20 then
 				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right", "ctrl" })
 				count = count - 20
-			elseif (count > 5) then
+			elseif count > 5 then
 				GiveOrderToUnit(unitID, CMD.STOCKPILE, {}, { "right", "shift" })
 				count = count - 5
 			else
@@ -137,12 +145,9 @@ function CancelExcessStockpile( unitID )
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-	local ud = UnitDefs[unitDefID]
-	if ((ud ~= nil) and (unitTeam == GetMyTeamID())) then
-		if (ud.canStockpile) then
-			CancelExcessStockpile( unitID ) -- theorically when a unit is created it should have no stockpiled items, but better be paranoid and add this, plus code can be reused for unit given and captured
-			DoStockPile( unitID )
-		end
+	if unitTeam == myTeamID and canStockpile[unitDefID] then
+		CancelExcessStockpile( unitID ) -- theorically when a unit is created it should have no stockpiled items, but better be paranoid and add this, plus code can be reused for unit given and captured
+		DoStockPile( unitID )
 	end
 end
 
@@ -155,7 +160,7 @@ function widget:UnitCaptured(unitID, unitDefID, unitTeam)
 end
 
 function widget:StockpileChanged(unitID, unitDefID, unitTeam, weaponNum, oldCount, newCount)
-	if ( unitTeam == GetMyTeamID() ) then
+	if unitTeam == myTeamID then
 		DoStockPile( unitID )
 	end
 end

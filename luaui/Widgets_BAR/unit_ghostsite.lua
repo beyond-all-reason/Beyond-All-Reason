@@ -44,6 +44,13 @@ local matan2 = math.atan2
 
 local spec,_ = Spring.GetSpectatingState()
 
+local isBuilding = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.isBuilding then
+		isBuilding[unitDefID] = true
+	end
+end
+
 function widget:Update()
     if spec then return end
 
@@ -69,9 +76,7 @@ function widget:UnitEnteredLos(unitID, teamID)
 	end
 
     local uDID = spGetUnitDefID(unitID)
-	local uDef = UnitDefs[uDID]
-		
-	if uDef.isBuilding==true and spGetUnitRulesParam(unitID,"under_construction")==1 then
+	if isBuilding[uDID] and spGetUnitRulesParam(unitID,"under_construction")==1 then
 		local x, y, z = spGetUnitBasePosition(unitID)
 		local dx,_,dz = spGetUnitDirection(unitID)
 		local angle = mdeg(matan2(dx,dz))	

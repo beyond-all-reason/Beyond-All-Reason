@@ -62,6 +62,17 @@ local displayList = {}
 local spGetSpectatingState = Spring.GetSpectatingState
 local enabled = true
 
+local isBuilder = {}
+local isFactory = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.buildSpeed > 0 and unitDef.buildOptions[1] then
+		isBuilder[unitDefID] = true
+	end
+	if unitDef.isFactory then
+		isFactory[unitDefID] = true
+	end
+end
+
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 
@@ -173,16 +184,16 @@ function widget:GameOver()
 	widgetHandler:RemoveWidget(self)
 end
 
+
 local function IsIdleBuilder(unitID)
   local udef = GetUnitDefID(unitID)
-  local ud = UnitDefs[udef] 
 	local qCount = 0
-  if ud.buildSpeed > 0 and ud.buildOptions[1] then  --- can build
+  if isBuilder[udef] then  --- can build
     local bQueue = GetFullBuildQueue(unitID)
     if not bQueue[1] then  --- has no build queue
       local _, _, _, _, buildProg = GetUnitHealth(unitID)
       if buildProg == 1 then  --- isnt under construction
-        if ud.isFactory then
+        if isFactory[udef] then
           return true 
         else
           if GetCommandQueue(unitID,0) == 0 then
@@ -190,7 +201,7 @@ local function IsIdleBuilder(unitID)
 		  end
         end
       end
-		elseif ud.isFactory then
+		elseif isFactory[udef] then
 			for _, thing in ipairs(bQueue) do
 				for _, count in pairs(thing) do
 					qCount = qCount + count

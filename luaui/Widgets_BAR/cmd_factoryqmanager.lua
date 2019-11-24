@@ -127,6 +127,12 @@ local spEcho						 = Spring.Echo
 local spGetModKeyState   = Spring.GetModKeyState
 local lastGameSeconds 	 = Spring.GetGameSeconds()
 
+local isFactory = {}
+for udid, ud in pairs(UnitDefs) do
+	if ud.isFactory then
+		isFactory[udid] = true
+	end
+end
 	
 function calcScreenCoords()
 	vsx, vsy = widgetHandler:GetViewSizes()
@@ -273,8 +279,7 @@ function ClearFactoryQueues()
   local udTable = Spring.GetSelectedUnitsSorted()
   udTable.n = nil
   for udidFac,uTable in pairs(udTable) do
-    local ud = UnitDefs[udidFac]
-    if ((ud ~= nil) and ud.isFactory) then
+    if isFactory[udidFac] then
       uTable.n = nil
       for _,uid in ipairs(uTable) do
         local queue = Spring.GetRealBuildQueue(uid)
