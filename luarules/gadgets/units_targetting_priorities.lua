@@ -42,7 +42,7 @@ if gadgetHandler:IsSyncedCode() then
 		queueing = false,
 		params  = { '2', 'Fighters', 'Bombers', 'No priority'} ,
 	}
-	airCategories = {
+	local airCategories_ = {
 		armatlas = "Bombers",
 		armca = "Bombers",
 		armkam = "Bombers",
@@ -86,14 +86,28 @@ if gadgetHandler:IsSyncedCode() then
 		corawac = "Scouts",
 		corhunt = "Scouts",
 	}
+	local airCategories = {}
+	for name, category in pairs(airCategories_) do
+		airCategories[UnitDefNames[name].id] = category
+	end
+	airCategories_ = nil
 
+	local hasPriorityAir = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.customParams.prioritytarget and unitDef.customParams.prioritytarget == "air" then
+			hasPriorityAir[unitDefID] = true
+		end
+	end
+
+	local spSetUnitRulesParam = Spring.SetUnitRulesParam
+	local spGetUnitRulesParam = Spring.GetUnitRulesParam
+	
 	function gadget:UnitCreated(unitID, unitDefID)
-		local uDef = UnitDefs[unitDefID]
-		if uDef.customParams.prioritytarget and uDef.customParams.prioritytarget == "air" then
+		if hasPriorityAir[unitDefID] then
 			Spring.InsertUnitCmdDesc(unitID, CMD_SET_PRIORITY, setPriorityAirn)
-			Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 1)
-			Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 1)
-			Spring.SetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
+			spSetUnitRulesParam(unitID, "targetPriorityFighters", 1)
+			spSetUnitRulesParam(unitID, "targetPriorityBombers", 1)
+			spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 		end
 	end
 	
@@ -117,17 +131,17 @@ if gadgetHandler:IsSyncedCode() then
 		if cmdID == CMD_SET_PRIORITY then
 			if cmdParams and cmdParams[1] then
 				if cmdParams[1] == 0 then
-					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 1)
-					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 10)			
-					Spring.SetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
+					spSetUnitRulesParam(unitID, "targetPriorityFighters", 1)
+					spSetUnitRulesParam(unitID, "targetPriorityBombers", 10)
+					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				elseif cmdParams[1] == 1 then
-					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 10)
-					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 1)			
-					Spring.SetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
+					spSetUnitRulesParam(unitID, "targetPriorityFighters", 10)
+					spSetUnitRulesParam(unitID, "targetPriorityBombers", 1)
+					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				elseif cmdParams[1] == 2 then
-					Spring.SetUnitRulesParam(unitID, "targetPriorityFighters", 1)
-					Spring.SetUnitRulesParam(unitID, "targetPriorityBombers", 1)			
-					Spring.SetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
+					spSetUnitRulesParam(unitID, "targetPriorityFighters", 1)
+					spSetUnitRulesParam(unitID, "targetPriorityBombers", 1)
+					spSetUnitRulesParam(unitID, "targetPriorityScouts", 1000)
 				end
 			end
 		end
@@ -137,17 +151,13 @@ if gadgetHandler:IsSyncedCode() then
 		if (targetID == -1) and (attackerWeaponNum == -1) then
 			return true, defPriority
 		end
-		if Spring.GetUnitDefID(targetID) then
-			local allowed = true
-			local unitName = UnitDefs[Spring.GetUnitDefID(targetID)].name
+		local unitDefID = Spring.GetUnitDefID(targetID)
+		if unitDefID then
 			local priority = defPriority or 1.0
-			local hasPriority = (Spring.GetUnitRulesParam(unitID, "targetPriorityFighters") and Spring.GetUnitRulesParam(unitID, "targetPriorityBombers") and Spring.GetUnitRulesParam(unitID, "targetPriorityScouts"))
-			if hasPriority then
-				if airCategories[unitName] then
-					priority = priority * Spring.GetUnitRulesParam(unitID, ("targetPriority"..airCategories[unitName]))
-				end
+			if airCategories[unitDefID] and spGetUnitRulesParam(unitID, "targetPriorityFighters") then -- and spGetUnitRulesParam(unitID, "targetPriorityBombers") and spGetUnitRulesParam(unitID, "targetPriorityScouts"))
+				priority = priority * spGetUnitRulesParam(unitID, ("targetPriority"..airCategories[unitDefID]))
 			end
-			return allowed, priority
+			return true, priority
 		end
 	end
 end

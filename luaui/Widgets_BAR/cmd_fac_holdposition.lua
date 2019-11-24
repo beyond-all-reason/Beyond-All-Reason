@@ -28,7 +28,7 @@ end
 
 local unitSet = {}
 
-local unitArray = {
+local unitArray_ = {
   "armlab",
   "armalab",
   "armvp",
@@ -54,7 +54,13 @@ local unitArray = {
   "coramsub",
   "corcom",
 }
+local unitArray = {}
+for _, name in pairs(unitArray_) do
+  unitArray[UnitDefNames[name].id] = true
+end
+unitArray_ = nil
 
+local myTeamID = Spring.GetMyTeamID()
 
 ----------------------------------------------
 ------------------------------------------
@@ -63,14 +69,12 @@ function widget:PlayerChanged(playerID)
   if Spring.GetSpectatingState() then
     widgetHandler:RemoveWidget(self)
   end
+  myTeamID = Spring.GetMyTeamID()
 end
 
 function widget:Initialize()
   if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
     widget:PlayerChanged()
-  end
-  for i, v in pairs(unitArray) do
-    unitSet[v] = true
   end
 end
 
@@ -78,15 +82,10 @@ function widget:GameStart()
   widget:PlayerChanged()
 end
 
-function widget:UnitCreated(unitID, unitDefID, unitTeam)
-  local ud = UnitDefs[unitDefID]
-   if ((ud ~= nil) and (unitTeam == Spring.GetMyTeamID())) then
-    for i, v in pairs(unitSet) do
-      if (unitSet[ud.name]) then
-        Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, {})
-      end
+function widget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
+  if unitTeam == myTeamID then
+    if unitArray[unitDefID] or (builderID and unitArray[Spring.GetUnitDefID(builderID)]) then
+      Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, {})
     end
   end
 end
-
---------------------------------------------------------------------------------

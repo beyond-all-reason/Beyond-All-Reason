@@ -23,27 +23,24 @@ end
 local interceptors = {}
 
 function gadget:AllowWeaponInterceptTarget(interceptorUnitID, interceptorWeaponID, targetProjectileID)
-	local ud = UnitDefs[Spring.GetUnitDefID(interceptorUnitID)]
-	local wd = WeaponDefs[ud.weapons[interceptorWeaponID].weaponDef]
-	local ox, _, oz = Spring.GetUnitPosition(interceptorUnitID)
-
     --Spring.GetProjectileTarget( number projectileID ) -> nil | [number targetTypeInt, number targetID | table targetPos = {x, y, z}]
 	local targetType, targetID = Spring.GetProjectileTarget(targetProjectileID)
 
     if targetType then
-        local tx, ty, tz;
-
+		local coverageRange = WeaponDefs[UnitDefs[Spring.GetUnitDefID(interceptorUnitID)].weapons[interceptorWeaponID].weaponDef].coverageRange
+		local ox, _, oz = Spring.GetUnitPosition(interceptorUnitID)
+		local tx, ty, tz
         if targetType == string.byte('u') then -- unit
-            tx, ty,  tz = Spring.GetUnitPosition(targetID)
+            tx, ty, tz = Spring.GetUnitPosition(targetID)
         elseif targetType == string.byte('f') then -- feature
-            tx, ty,  tz = Spring.GetFeaturePosition(targetID)
+            tx, ty, tz = Spring.GetFeaturePosition(targetID)
         elseif targetType == string.byte('p') then --PROJECTILE
-            tx, ty,  tz = Spring.GetProjectilePosition(targetID)
+            tx, ty, tz = Spring.GetProjectilePosition(targetID)
         elseif targetType == string.byte('g') then -- ground
             tx, ty, tz = unpack(targetID)
         end
 
-        return (ox - tx)*(ox - tx) + (oz - tz)*(oz - tz) < wd.coverageRange*wd.coverageRange
+        return (ox - tx)*(ox - tx) + (oz - tz)*(oz - tz) < coverageRange*coverageRange
     end
 end
 

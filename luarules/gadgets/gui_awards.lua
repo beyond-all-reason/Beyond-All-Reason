@@ -51,6 +51,15 @@ local econUnitDefIDs = { --better to hardcode these since its complicated to pic
 	UnitDefNames.coruwmmm.id,
 }
 
+local unitNumWeapons = {}
+local unitCombinedCost = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if #unitDef.weapons > 0 then
+		unitNumWeapons[unitDefID] = #unitDef.weapons
+	end
+	unitCombinedCost[unitDefID] = unitDef.energyCost + (60 * unitDef.metalCost)
+end
+
 function gadget:Initialize()
     -- helpful for debugging/testing
 	local teamList = Spring.GetTeamList()
@@ -127,11 +136,8 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 	if SpAreTeamsAllied(teamID, attackerTeamID) then 
 		if teamID~=attackerTeamID then
 			local curTime = Spring.GetGameSeconds()
-			
-			local ud = UnitDefs[unitDefID]
-			local cost = ud.energyCost + 60 * ud.metalCost
 			--keep track of teamkilling 
-			teamInfo[attackerTeamID].teamDmg = teamInfo[attackerTeamID].teamDmg + cost
+			teamInfo[attackerTeamID].teamDmg = teamInfo[attackerTeamID].teamDmg + unitCombinedCost[unitDefID]
 		end
 		return
 	end
@@ -142,13 +148,12 @@ function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDef
 		teamInfo[attackerTeamID].sleepTime = curTime - teamInfo[attackerTeamID].lastKill
 	end
 	teamInfo[attackerTeamID].lastKill = curTime
-	
-	local ud = UnitDefs[unitDefID]
-	local cost = ud.energyCost + 60 * ud.metalCost
+
+	local cost = unitCombinedCost[unitDefID]
 	
 	--keep track of killing 
 	teamInfo[attackerTeamID].allDmg = teamInfo[attackerTeamID].allDmg + cost
-	if #(ud.weapons) > 0 then
+	if unitNumWeapons[unitDefID] then
 		teamInfo[attackerTeamID].fightDmg = teamInfo[attackerTeamID].fightDmg + cost
 	elseif isEcon(unitDefID) then
 		teamInfo[attackerTeamID].ecoDmg = teamInfo[attackerTeamID].ecoDmg + cost

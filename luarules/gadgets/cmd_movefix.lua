@@ -15,9 +15,17 @@ function gadget:GetInfo()
 end
 attempt = {}
 
+
+local unitCanFly = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canFly then
+		unitCanFly[unitDefID] = unitDef.canFly
+	end
+end
+
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
 
-	if (cmdID == CMD.MOVE or cmdID == CMD.RAWMOVE) and UnitDefs[unitDefID].canFly == false then
+	if (cmdID == CMD.MOVE or cmdID == CMD.RAWMOVE) and not unitCanFly[unitDefID] then
 		-- if UnitDefs[unitDefID].moveDef and UnitDefs[unitDefID].moveDef.name and string.find(UnitDefs[unitDefID].moveDef.name, "boat") then -- unquote if you want this for ships only
 			if #cmdParams == 6 then
 				if Spring.TestMoveOrder(unitDefID, cmdParams[4],cmdParams[5],cmdParams[6],0,0,0,true,false,false) then

@@ -11,23 +11,25 @@ function gadget:GetInfo()
 end
 
 if (gadgetHandler:IsSyncedCode()) then
-builder = {}
-function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- destroy created unit if builder is dead
-if Spring.ValidUnitID(builderID) and not Spring.GetUnitIsDead(builderID) then
-else 
-HP = Spring.GetUnitHealth(unitID) 
-if HP <= 1 then -- avoid killing /give and Spring.CreateUnit() 
-Spring.DestroyUnit(unitID, false, true)
-end
-end
-end
 
-function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing) -- do not allow create unit if builder is dead
-if Spring.ValidUnitID(builderID) and not Spring.GetUnitIsDead(builderID) then
-return true
-else 
-return false
-end
-end
+  local builder = {}
+
+  function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) -- destroy created unit if builder is dead
+    if Spring.ValidUnitID(builderID) and not Spring.GetUnitIsDead(builderID) then
+    else
+      local HP = Spring.GetUnitHealth(unitID)
+      if HP <= 1 then -- avoid killing /give and Spring.CreateUnit()
+        Spring.DestroyUnit(unitID, false, true)
+      end
+    end
+  end
+
+  function gadget:AllowUnitCreation(unitDefID, builderID, builderTeam, x, y, z, facing) -- do not allow create unit if builder is dead
+    if Spring.ValidUnitID(builderID) and not Spring.GetUnitIsDead(builderID) then
+      return true
+    else
+      return false
+    end
+  end
 
 end

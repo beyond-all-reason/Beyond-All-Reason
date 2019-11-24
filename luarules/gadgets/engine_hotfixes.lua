@@ -19,30 +19,38 @@ if gadgetHandler:IsSyncedCode() then
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
-
+	local unitTurnrate = {}
+	local unitXsize5 = {}
+	local unitZsize5 = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.moveDef and unitDef.moveDef.type ~= nil then
+			unitTurnrate[unitDefID] = unitDef.turnRate
+		end
+		if unitDef.isBuilding or unitDef.isFactory then
+			unitXsize5[unitDefID] = unitDef.xsize * 5
+			unitZsize5[unitDefID] = unitDef.zsize * 5
+		end
+	end
 
 	function gadget:UnitCreated(uID, uDefID, uTeam, bID)
-   
-		local uDef = UnitDefs[uDefID]
-		
+
 		--Fix for bad movement in 102
 		--https://springrts.com/phpbb/viewtopic.php?f=12&t=34593
-		local md = uDef.moveDef
-		if (md.type ~= nil) then -- all non-flying units
-			Spring.MoveCtrl.SetGroundMoveTypeData(uID, "turnAccel", uDef.turnRate)
+		if unitTurnrate[uDefID] then -- all non-flying units
+			Spring.MoveCtrl.SetGroundMoveTypeData(uID, "turnAccel", unitTurnrate[uDefID])
 		end
 		
 		--Instagibb any features that are unlucky enough to be in the build radius of new construction projects
-		if uDef.isBuilding or uDef.isFactory then
+		if unitXsize5[uDefID] then	-- buildings/factories
 			--Spring.Echo("Wheee it spins!")
-			local ux, uy, uz = Spring.GetUnitPosition(uID)
 			local xr, zr
 			if Spring.GetUnitBuildFacing(uID) % 2 == 0 then
- 				xr, zr = 5 * uDef.xsize, 5 * uDef.zsize
+ 				xr, zr = unitXsize5[uDefID], unitZsize5[uDefID]
  			else
- 				xr, zr = 5 * uDef.zsize, 5 * uDef.xsize
+ 				xr, zr = unitZsize5[uDefID], unitXsize5[uDefID]
 			end
-		
+
+			local ux, uy, uz = Spring.GetUnitPosition(uID)
 			local features = Spring.GetFeaturesInRectangle(ux-xr, uz-zr, ux+xr, uz+zr)
 			for i = 1, #features do
 				local fID = features[i]

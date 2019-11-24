@@ -27,6 +27,17 @@ local INTERNAL_VERSION = 1 -- bump to reset stats file (user can delete file wit
 local game = Game.gameName 
 local version = Game.gameVersion
 
+local unitName = {}
+local unitMetalCost = {}
+local unitEnergyCost = {}
+local unitHumanName = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    unitName[unitDefID] = unitDef.name
+    unitMetalCost[unitDefID] = unitDef.metalCost
+    unitEnergyCost[unitDefID] = unitDef.energyCost
+    unitHumanName[unitDefID] = unitDef.humanName
+end
+
 local chunk, err = loadfile(STATS_FILE)
 if chunk then
     local tmp = {}
@@ -61,11 +72,11 @@ end
 
 function RecieveStats(uDID, n, ts, dmg_dealt, dmg_rec, minutes, kills, killed_cost)
     if not info then return end
-    local name = UnitDefs[uDID].name
+    local name = unitName[uDID]
     if not name then return end
 
-    local cost = UnitDefs[uDID].metalCost + UnitDefs[uDID].energyCost / 60
-    info[name] = info[name] or {dmg_dealt=0,dmg_rec=0,n=0,ts=0,name=UnitDefs[uDID].humanName,minutes=0,kills=0,killed_cost=0, cost=cost}
+    local cost = unitMetalCost[uDID] + unitEnergyCost[uDID] / 60
+    info[name] = info[name] or {dmg_dealt=0,dmg_rec=0,n=0,ts=0,name=unitHumanName[uDID],minutes=0,kills=0,killed_cost=0, cost=cost}
 
     local old_n = info[name].n 
     info[name].ts = (info[name].ts * old_n + ts)/(old_n+n)

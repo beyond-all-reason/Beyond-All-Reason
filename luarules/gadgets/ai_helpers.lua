@@ -76,10 +76,21 @@ GG.AiHelpers.NanoTC = {}
 local isNanoTC = {}
 local NanoTC = {}
 local ClosestNanoTC = {}
-
+local unitNames = {}
+local unitWeaponCount = {}
+local unitMetalCost = {}
+local unitEnergyCost = {}
+local isBuilding = {}
 for unitDefID, defs in pairs(UnitDefs) do
 	if string.find(defs.name, "nanotc") then
 		isNanoTC[unitDefID] = true
+	end
+	unitNames[unitDefID] = defs.name
+	unitWeaponCount[unitDefID] = #defs.weapons
+	unitMetalCost[unitDefID] = defs.metalCost
+	unitEnergyCost[unitDefID] = defs.energyCost
+	if defs.isBuilding then
+		isBuilding[unitDefID] = true
 	end
 end
 
@@ -100,8 +111,8 @@ GG.AiHelpers.NanoTC.GetClosestNanoTC = function (unitID)
 				mindis = dis
 				bestID = uid
 				if not ClosestNanoTC then ClosestNanoTC = {} end
-				if not ClosestNanoTC[teamID] then ClosestNanoTC[teamID] = {} end		
-				if not ClosestNanoTC[teamID][x] then ClosestNanoTC[teamID][x] = {} end						
+				if not ClosestNanoTC[teamID] then ClosestNanoTC[teamID] = {} end
+				if not ClosestNanoTC[teamID][x] then ClosestNanoTC[teamID][x] = {} end
 				ClosestNanoTC[teamID][x][z] = uid
 			end
 		end
@@ -193,7 +204,7 @@ local function IsAntiNukeCovered(unitID, attackerTeamID)
 	local unitsNear = Spring.GetUnitsInCylinder(x,z,2000)
 	for ct=1,#unitsNear do
 		local id = unitsNear[ct]
-		if (UnitDefs[Spring.GetUnitDefID(id)].name == "armamd" or UnitDefs[Spring.GetUnitDefID(id)].name == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
+		if (unitNames[Spring.GetUnitDefID(id)] == "armamd" or unitNames[Spring.GetUnitDefID(id)] == "corfmd") and (not Spring.AreTeamsAllied(Spring.GetUnitTeam(id), attackerTeamID)) then
 			if SeenBuildings[attackerTeamID][unitID] then
 				return true
 			end
@@ -203,16 +214,16 @@ local function IsAntiNukeCovered(unitID, attackerTeamID)
 end
 
 local function IsInAttackRange(unitID, attackerID)
-	local weapons = UnitDefs[Spring.GetUnitDefID(attackerID)].weapons
+	local weaponCount = unitWeaponCount[Spring.GetUnitDefID(attackerID)]
 	local x, y, z = Spring.GetUnitPosition(unitID)
-	for i,_ in pairs(weapons) do
+	for i=1, weaponCount do
 		if (Spring.GetUnitWeaponTestTarget(attackerID, i, x, y, z) and Spring.GetUnitWeaponTestRange(attackerID, i, x, y, z) and Spring.GetUnitWeaponHaveFreeLineOfFire(attackerID, i, x, y, z)) then
 			return true
 		end
 	end
 	return false
 end
-	
+
 
 GG.AiHelpers.TargetsOfInterest.BombingRun = function(teamID)
 	if not TargetsOfInterest[teamID] then return end
@@ -300,11 +311,11 @@ end
 		local dis = math_sqrt(vectx*vectx + vectz*vectz)
 		return dis
 	end
-	
+
 	function gadget:Initialize()
 		if enabled ~= true then return end
 		for unitDefID, defs in pairs(UnitDefs) do
-			if defs.isBuilding or isNanoTC[unitDefID] then
+			if isBuilding[unitDefID] or isNanoTC[unitDefID] then
 				local cellsize = math.max(defs.xsize, defs.zsize) * 8
 				local buildtype = (defs.maxWaterDepth >= 0) and "ground" or "water"
 				if not cells[cellsize] then
@@ -322,7 +333,7 @@ end
 				end
 			end
 		end
-		
+
 		for ct, unitID in pairs(Spring.GetAllUnits()) do
 			local unitDefID = Spring.GetUnitDefID(unitID)
 			local unitTeam = Spring.GetUnitTeam(unitID)
@@ -335,35 +346,33 @@ end
 		info[teamID] = info[teamID] or {}
 		info[teamID][unitDefID] = info[teamID][unitDefID] or {killed_cost=0,n=0, avgkilled_cost=0}
 		info[teamID][unitDefID].n = info[teamID][unitDefID].n + 1
-		if info[teamID][unitDefID].n > 80 then 
+		if info[teamID][unitDefID].n > 80 then
 			info[teamID][unitDefID].n = info[teamID][unitDefID].n - 1
 			info[teamID][unitDefID].killed_cost = info[teamID][unitDefID].killed_cost - info[teamID][unitDefID].avgkilled_cost
 			if info[teamID][unitDefID].killed_cost <= 0 then info[teamID][unitDefID].killed_cost = 0 end
 			info[teamID][unitDefID].avgkilled_cost = info[teamID][unitDefID].killed_cost / info[teamID][unitDefID].n
 		end
 	end
-	
+
 	function gadget:UnitEnteredRadar(unitID, unitTeam, allyTeam, unitDefID)
 		if enabled ~= true then return end
-		local defs = UnitDefs[unitDefID]
-		if defs.isBuilding or isNanoTC[unitDefID] then
+		if isBuilding[unitDefID] or isNanoTC[unitDefID] then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
-				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, allyTeam)) then
+				if Interest[unitNames[unitDefID]] == true and (not Spring.AreTeamsAllied(id, allyTeam)) then
 					TargetsOfInterest[id] = TargetsOfInterest[id] or {}
 					TargetsOfInterest[id][unitID] = true
 				end
 				SeenBuildings[id] = SeenBuildings[id] or {}
 				SeenBuildings[id][unitID] = true
 			end
-		end				
+		end
 	end
-	
+
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
 		if enabled ~= true then return end
-		local defs = UnitDefs[unitDefID]
-		if defs.isBuilding or isNanoTC[unitDefID] then
+		if isBuilding[unitDefID] or isNanoTC[unitDefID] then
 			for ct, id in pairs (Spring.GetTeamList(allyTeam)) do
-				if Interest[defs.name] == true and (not Spring.AreTeamsAllied(id, unitTeam)) then
+				if Interest[unitNames[unitDefID]] == true and (not Spring.AreTeamsAllied(id, unitTeam)) then
 					TargetsOfInterest[id] = TargetsOfInterest[id] or {}
 					TargetsOfInterest[id][unitID] = true
 				end
@@ -403,8 +412,8 @@ end
 			end
 		end
 		local ratio = damage/maxh
-		local killed_m = UnitDefs[unitDefID].metalCost * ratio
-		local killed_e = UnitDefs[unitDefID].energyCost * ratio
+		local killed_m = unitMetalCost[unitDefID] * ratio
+		local killed_e = unitEnergyCost[unitDefID] * ratio
 		info[attackerTeam][attackerDefID].killed_cost = info[attackerTeam][attackerDefID].killed_cost + killed_m + killed_e/60
 		info[attackerTeam][attackerDefID].avgkilled_cost = info[attackerTeam][attackerDefID].killed_cost / info[attackerTeam][attackerDefID].n
 	end

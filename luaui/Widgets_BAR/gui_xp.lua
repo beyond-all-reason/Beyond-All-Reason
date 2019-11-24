@@ -41,11 +41,12 @@ local floor = math.floor
 ----------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------
 
-local unitHeights  = {}
 local ranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {} }
 local PWranks = { [0] = {}, [1] = {}, [2] = {}, [3] = {}, [4] = {} }
 
 local PWUnits = {}
+local unitPowerXpCoeffient = {}
+local unitHeights  = {}
 
 local iconsize   = 33
 local iconoffset = 14
@@ -69,18 +70,19 @@ local PWrankTextures = {
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
-function PWCreate(unitID)
-  PWUnits[unitID] = true
-  SetUnitRank(unitID)
-end
+--function PWCreate(unitID)
+--  PWUnits[unitID] = true
+--  SetUnitRank(unitID)
+--end
 
 function widget:Initialize()
 
-  widgetHandler:RegisterGlobal("PWCreate", PWCreate)
+  --widgetHandler:RegisterGlobal("PWCreate", PWCreate)
 
-  for udid, ud in pairs(UnitDefs) do
-    -- 0.15+2/(1.2+math.exp(Unit.power/1000))
+  for unitDefID, ud in pairs(UnitDefs) do
     ud.power_xp_coeffient  = ((ud.power / 1000) ^ -0.2) / 6  -- dark magic
+    unitPowerXpCoeffient[unitDefID] = ud.power_xp_coeffient
+    unitHeights[unitDefID] = ud.height + iconoffset
   end
 
   local allUnits = GetAllUnits()
@@ -90,7 +92,7 @@ function widget:Initialize()
 end
 
 function widget:Shutdown()
-  widgetHandler:DeregisterGlobal("PWCreate")
+  --widgetHandler:DeregisterGlobal("PWCreate")
   for _,rankTexture in ipairs(rankTextures) do
     gl.DeleteTexture(rankTexture)
   end
@@ -100,77 +102,43 @@ end
 -------------------------------------------------------------------------------------
 
 function SetUnitRank(unitID)
-  local ud = UnitDefs[GetUnitDefID(unitID)]
-  if (ud == nil) then
-    unitHeights[unitID] = nil
-    return
-  end
+  --if not GetUnitDefID(unitID) then
+  --  return
+  --end
 
   local xp = GetUnitExperience(unitID)
   if (not xp) then
-    unitHeights[unitID] = nil
     return
   end
-  xp = min(floor(xp / ud.power_xp_coeffient),4)
+  xp = min(floor(xp / unitPowerXpCoeffient[GetUnitDefID(unitID)]),4)
 
-  unitHeights[unitID] = ud.height + iconoffset
   if not PWUnits[unitID] then
     if (xp>0) then
-      ranks[xp][unitID] = true
+      ranks[xp][unitID] = GetUnitDefID(unitID)
     end
   else
-    PWranks[xp][unitID] = true
+    PWranks[xp][unitID] = GetUnitDefID(unitID)
   end
 end
-
--------------------------------------------------------------------------------------
--------------------------------------------------------------------------------------
-
---[[
-local timeCounter = math.huge -- force the first update
-
-function widget:Update(deltaTime)
-  if (timeCounter < update) then
-    timeCounter = timeCounter + deltaTime
-    return
-  end
-
-  timeCounter = 0
-
-  -- just update the units
-  for unitID in pairs(unitHeights) do
-    SetUnitRank(unitID)
-  end
-end
---]]
-
 
 -------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------
 
 function widget:UnitExperience(unitID,unitDefID,unitTeam, xp, oldXP)
-  local ud = UnitDefs[unitDefID]
-  if (ud == nil) then
-    unitHeights[unitID] = nil
-    return
-  end
-  if (not unitHeights[unitID]) then
-    unitHeights[unitID] = { nil, ud.height + iconoffset}
-  end
+
   if xp < 0 then xp = 0 end
   if oldXP < 0 then oldXP = 0 end
   
-  local rank    = min(floor(xp / ud.power_xp_coeffient),4)
-  local oldRank = min(floor(oldXP / ud.power_xp_coeffient),4)
+  local rank    = min(floor(xp / unitPowerXpCoeffient[unitDefID]),4)
+  local oldRank = min(floor(oldXP / unitPowerXpCoeffient[unitDefID]),4)
 
   if (rank~=oldRank) then
-    unitHeights[unitID] = ud.height + iconoffset
 	if not PWUnits[unitID] then
       for i=0,rank-1 do ranks[i][unitID] = nil end
-      ranks[rank][unitID] = true
+      ranks[rank][unitID] = unitDefID
     else
       for i=0,rank-1 do PWranks[i][unitID] = nil end
-      PWranks[rank][unitID] = true
+      PWranks[rank][unitID] = unitDefID
     end
   end
 end
@@ -183,15 +151,12 @@ end
 
 
 function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
-  unitHeights[unitID] = nil
   for i=0,4 do ranks[i][unitID] = nil PWranks[i][unitID] = nil end
-  PWUnits[unitID] = nil
 end
 
 
 function widget:UnitGiven(unitID, unitDefID, oldTeam, newTeam)
   if (not IsUnitAllied(unitID))and(not GetSpectatingState())  then
-    unitHeights[unitID] = nil
     for i=0,4 do ranks[i][unitID] = nil PWranks[i][unitID] = nil end
   end
 end
@@ -214,11 +179,8 @@ function widget:RecvLuaMsg(msg, playerID)
 end
 
 function widget:DrawWorld()
-	if chobbyInterface then return end
+  if chobbyInterface then return end
   if Spring.IsGUIHidden() then return end
-  if (next(unitHeights) == nil) then
-    return -- avoid unnecessary GL calls
-  end
 
   gl.Color(1,1,1,1)
   glDepthMask(true)
@@ -228,16 +190,16 @@ function widget:DrawWorld()
   for i=1,4 do
     if (next(ranks[i])) then
       glTexture( rankTextures[i] )
-      for unitID,_ in pairs(ranks[i]) do
-        glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitID])
+      for unitID,unitDefID in pairs(ranks[i]) do
+        glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
       end
     end
   end
   for i=0,4 do
     if (next(PWranks[i])) then
       glTexture( PWrankTextures[i] )
-      for unitID,_ in pairs(PWranks[i]) do
-        glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitID])
+      for unitID,unitDefID in pairs(PWranks[i]) do
+        glDrawFuncAtUnit(unitID, false, DrawUnitFunc, unitHeights[unitDefID])
       end
     end
   end

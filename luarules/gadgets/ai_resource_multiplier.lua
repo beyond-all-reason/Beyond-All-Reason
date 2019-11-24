@@ -10,8 +10,8 @@ function gadget:GetInfo()
 	}
 end
 
-local timedResBonusMultiplier = 0.00020 
-local timedResBonusMultiplierMax = 2
+local timedResBonusMultiplier = 0.0001	-- adds this percentage boost per sec (0.0001 * 60sec * 15mins = 9%)
+local timedResBonusMultiplierMax = 0.5
 
 
 if (not gadgetHandler:IsSyncedCode()) then

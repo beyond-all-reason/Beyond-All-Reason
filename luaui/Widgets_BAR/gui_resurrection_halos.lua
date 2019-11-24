@@ -49,17 +49,19 @@ local prevOsClock				= os.clock();
 
 local diag						= math.diag
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+local unitAllowsHalo = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if not (not OPTIONS.skipBuildings or (OPTIONS.skipBuildings and not (unitDef.isBuilding or unitDef.isFactory or unitDef.speed==0))) then
+		unitAllowsHalo[unitDefID] = unitDef.name
 
-function SetUnitConf()
-	for udid, unitDef in pairs(UnitDefs) do
 		local xsize, zsize = unitDef.xsize, unitDef.zsize
 		local scale = 3*( xsize^2 + zsize^2 )^0.5
-
-		unitConf[udid] = {scale=scale, iconSize=scale*OPTIONS.haloSize, height=math.ceil((unitDef.height+(OPTIONS.haloDistance * (scale/7)))/3)}
+		unitConf[unitDefID] = {scale=scale, iconSize=scale*OPTIONS.haloSize, height=math.ceil((unitDef.height+(OPTIONS.haloDistance * (scale/7)))/3)}
 	end
 end
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 function DrawIcon(unitHeight)
@@ -71,17 +73,13 @@ end
 
 -- add unit-icon to unit
 function AddHaloUnit(unitID)
-	local unitUnitDefs = UnitDefs[spGetUnitDefID(unitID)]
-	if not OPTIONS.skipBuildings or (OPTIONS.skipBuildings and not (unitUnitDefs.isBuilding or unitUnitDefs.isFactory or unitUnitDefs.speed==0)) then
-		local ud = UnitDefs[spGetUnitDefID(unitID)]
-		
+	if unitAllowsHalo[spGetUnitDefID(unitID)] then
 		haloUnits[unitID] = {}
 		haloUnits[unitID].sizeAddition		= 0
 		haloUnits[unitID].sizeUp			= true
 		haloUnits[unitID].opacityAddition	= 0
 		haloUnits[unitID].opacityUp			= true
-		haloUnits[unitID].name				= unitUnitDefs.name
-
+		haloUnits[unitID].name				= unitAllowsHalo[spGetUnitDefID(unitID)]
 		haloUnitsCount = haloUnitsCount + 1
 	end
 end
@@ -91,7 +89,6 @@ end
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
-	SetUnitConf()
 	updateUnitlist()
 end
 

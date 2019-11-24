@@ -2,7 +2,7 @@ function widget:GetInfo()
     return {
         name      = "Auto Cloak Popups",
         desc      = "Auto cloaks Pit Bull and Ambusher",
-        author    = "[teh]decay aka [teh]undertaker",
+        author    = "[teh]decay",
         date      = "29 dec 2013",
         license   = "The BSD License",
         layer     = 0,
@@ -12,11 +12,11 @@ end
 
 local CMD_CLOAK = 37382
 
-local clockingUnitDefs = {[UnitDefNames["armpb"].id]=true, [UnitDefNames["armamb"].id]=true}
+local cloakingUnitDefs = {[UnitDefNames["armpb"].id]=true, [UnitDefNames["armamb"].id]=true}
 local cloakunits = {}
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
-    if clockingUnitDefs[unitDefID] then
+    if cloakingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
         Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
@@ -29,21 +29,21 @@ function widget:UnitDestroyed(unitID, unitDefID, unitTeam)
 end
 
 function widget:UnitCreated(unitID, unitDefID, teamID, builderID)
-    if clockingUnitDefs[unitDefID] then
+    if cloakingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
         Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
 end
 
 function widget:UnitTaken(unitID, unitDefID, unitTeam, newTeam)
-    if clockingUnitDefs[unitDefID] then
+    if cloakingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
         Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
 end
 
 function widget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
-    if clockingUnitDefs[unitDefID] then
+    if cloakingUnitDefs[unitDefID] then
         cloakunits[unitID] = true
         Spring.GiveOrderToUnit(unitID, CMD_CLOAK, {1}, {})
     end
@@ -76,7 +76,7 @@ end
 --        for _, unitID in ipairs(visibleUnits) do
 --            local udefId = GetUnitDefID(unitID)
 --            if udefId ~= nil then
---                if clockingUnitDefs[udefId] then
+--                if cloakingUnitDefs[udefId] then
 --                    cloakunits[unitID] = true
 --                    cloakUnit(unitID, udefId)
 --                end

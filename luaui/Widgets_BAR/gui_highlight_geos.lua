@@ -12,36 +12,32 @@ function widget:GetInfo()
 	}
 end
 
-----------------------------------------------------------------
--- Globals
-----------------------------------------------------------------
-local geoDisplayList
-
-----------------------------------------------------------------
--- Speedups
-----------------------------------------------------------------
 local glLineWidth = gl.LineWidth
 local glDepthTest = gl.DepthTest
 local glCallList = gl.CallList
 local glColor = gl.Color
 local spGetMapDrawMode = Spring.GetMapDrawMode
-local SpGetSelectedUnits = Spring.GetSelectedUnits
 
-local am_geo = UnitDefNames.armageo.id
-local arm_geo = UnitDefNames.armgeo.id
-local arm_gmm = UnitDefNames.armgmm.id
-local cm_geo = UnitDefNames.corageo.id
-local corbhmth_geo = UnitDefNames.corbhmth.id
-local cor_geo = UnitDefNames.corgeo.id
+local geoUnits = {}
+for defID, def in pairs(UnitDefs) do
+	if def.needGeo then
+		geoUnits[defID] = true
+	end
+end
 
+local geoThermalFeatures = {}
+for defID, def in pairs(FeatureDefs) do
+	if def.geoThermal then
+		geoThermalFeatures[defID] = true
+	end
+end
 
-
-
-
+local geoDisplayList
 
 ----------------------------------------------------------------
 -- Functions
 ----------------------------------------------------------------
+
 local function PillarVerts(x, y, z)
 	gl.Color(1, 1, 0, 1)
 	gl.Vertex(x, y, z)
@@ -52,9 +48,8 @@ end
 local function HighlightGeos()
 	local features = Spring.GetAllFeatures()
 	for i = 1, #features do
-		local fID = features[i]
-		if FeatureDefs[Spring.GetFeatureDefID(fID)].geoThermal then
-			local fx, fy, fz = Spring.GetFeaturePosition(fID)
+		if geoThermalFeatures[Spring.GetFeatureDefID(features[i])] then
+			local fx, fy, fz = Spring.GetFeaturePosition(features[i])
 			gl.BeginEnd(GL.LINE_STRIP, PillarVerts, fx, fy, fz)
 		end
 	end
@@ -77,9 +72,8 @@ end
 
 function widget:DrawWorld()
 	if chobbyInterface then return end
-    local _, cmdID = Spring.GetActiveCommand()
-	if spGetMapDrawMode() == 'metal' or cmdID == -am_geo or cmdID == -arm_geo or cmdID == -cm_geo
-	or cmdID == -corbhmth_geo or cmdID == -cor_geo or cmdID == -arm_gmm then
+	local _, cmdID = Spring.GetActiveCommand()
+	if spGetMapDrawMode() == 'metal' or (cmdID~=nil and geoUnits[-cmdID]) then
 		
 		if not geoDisplayList then
 			geoDisplayList = gl.CreateList(HighlightGeos)

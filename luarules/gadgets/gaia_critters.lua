@@ -9,6 +9,10 @@ function gadget:GetInfo()
 	}
 end
 
+-- synced only
+if (not gadgetHandler:IsSyncedCode()) then
+	return false
+end
 
 -- NOTE: adding/removing will break at ´/luarules reload´ (needs to remember var ´critterUnits´)
 local teams = Spring.GetTeamList()
@@ -32,11 +36,12 @@ if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Sp
 	return
 end
 
--- synced only
-if (not gadgetHandler:IsSyncedCode()) then
-	return false
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
+	end
 end
-
 
 local removeCritters		= true		-- gradually remove critters when unitcont gets higher
 local addCrittersAgain		= true		-- re-add the removed critters again
@@ -225,7 +230,7 @@ function gadget:Initialize()
 	local allUnits = Spring.GetAllUnits()
 	for _, unitID in pairs(allUnits) do
 		local unitDefID = GetUnitDefID(unitID)
-		if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+		if unitDefID and isCommander[unitDefID] then
 			local x,_,z = GetUnitPosition(unitID)
 			commanders[unitID] = {x,z}
 		end
@@ -543,7 +548,7 @@ function getTeamCommanderUnitID(teamID)
 		local unitID = allUnits[i]
 		if GetUnitTeam(unitID) == teamID then
 			local unitDefID = GetUnitDefID(unitID)
-			if (unitDefID and UnitDefs[unitDefID].customParams.iscommander) then
+			if unitDefID and isCommander[unitDefID] then
 				return unitID
 			end
 		end
@@ -553,7 +558,7 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
-	if UnitDefs[unitDefID].customParams.iscommander then
+	if isCommander[unitDefID] then
 		local x,_,z = GetUnitPosition(unitID,true,true)
 		commanders[unitID] = {x,z}
 	elseif isCritter[unitDefID] then

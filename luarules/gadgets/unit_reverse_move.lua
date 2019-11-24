@@ -17,19 +17,28 @@ if (gadgetHandler:IsSyncedCode()) then
 	local reverseUnit = {}
 	local refreshList = {}
 
+	local unitRspeed = {}
+	local unitSpeed = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.rSpeed > 0 then
+			unitRspeed[unitDefID] = unitDef.rSpeed
+			unitSpeed[unitDefID] = unitDef.speed
+		end
+	end
+
 	function gadget:UnitCreated(unitID)
 		local unitDefID = Spring.GetUnitDefID(unitID)
-		if not (UnitDefs[unitDefID].rSpeed == nil or UnitDefs[unitDefID].rSpeed == 0) then
+		if unitRspeed[unitDefID] then
 			reverseUnit[unitID] = unitDefID
 			refreshList[unitID] = unitDefID
-			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].speed)	
+			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", unitSpeed[unitDefID])
 			Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)		
 		end
 	end
 	
 	function gadget:UnitDestroyed(unitID) -- Erase killed units from table
-			reverseUnit[unitID] = nil
-			refreshList[unitID] = nil
+		reverseUnit[unitID] = nil
+		refreshList[unitID] = nil
 	end
 	
 	function gadget:Initialize()
@@ -60,10 +69,10 @@ if (gadgetHandler:IsSyncedCode()) then
 		for unitID, unitDefID in pairs(refreshList) do
 			local cmdID, cmdOptions = spGetUnitCurrentCommand(unitID, 1)
 			if cmdID and (cmdOptions / cmdCtrl) % 2 == 1 then
-				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].rSpeed)
-				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", UnitDefs[unitDefID].rSpeed)
+				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", unitRspeed[unitDefID])
+				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", unitRspeed[unitDefID])
 			else
-				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", UnitDefs[unitDefID].speed)
+				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxSpeed", unitSpeed[unitDefID])
 				Spring.MoveCtrl.SetGroundMoveTypeData(unitID, "maxReverseSpeed", 0)
 			end
 			refreshList[unitID] = nil

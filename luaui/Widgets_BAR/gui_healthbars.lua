@@ -92,6 +92,13 @@ OPTIONS[2] = {
 }
 local currentOption = 2
 
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  if unitDef.customParams.iscommander then
+    isCommander[unitDefID] = true
+  end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -1047,8 +1054,7 @@ do
       --// Shield
       if (ci.maxShield>0) then
         local UnitDefID = Spring.GetUnitDefID(unitID)
-        local UnitName = UnitDefs[UnitDefID].name
-        if (UnitName == "armcom" or UnitName == "corcom") and Spring.GetModOptions() and Spring.GetModOptions().unba == "enabled" then
+        if isCommander[UnitDefID] and Spring.GetModOptions() and Spring.GetModOptions().unba == "enabled" then
           for i = 23,29 do
             if (GetUnitShieldState(unitID, i)) then
               local shieldOn, shieldPower = GetUnitShieldState(unitID, i)
@@ -1078,8 +1084,7 @@ do
             infotext = hp100..'%'
           end
           if alwaysDrawBarPercentageForComs then
-			  local unitName = UnitDefs[GetUnitDefID(unitID)].name
-			  if (unitName == 'corcom'  or  unitName == 'armcom') then
+			  if isCommander[GetUnitDefID(unitID)] then
 				infotext = hp100..'%'
 			  end
           end

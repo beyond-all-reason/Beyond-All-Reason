@@ -10,31 +10,34 @@ function gadget:GetInfo()
    }
 end
 
+if (not gadgetHandler:IsSyncedCode()) then return end
+
 local TRANSPORTED_MASS_SPEED_PENALTY = 0.2 -- higher makes unit slower
 local FRAMES_PER_SECOND = Game.gameSpeed
 
 local airTransports = {}
 local airTransportMaxSpeeds = {}
-	
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-if (gadgetHandler:IsSyncedCode()) then
--- BEGIN SYNCED
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+
+local canFly = {}
+local unitMass = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.canFly then
+		canFly[unitDefID] = true
+	end
+	unitMass[unitDefID] = unitDef.mass
+end
 
 local massUsageFraction = 0
 local allowedSpeed = 0
 local currentMassUsage = 0
+
 -- update allowed speed for transport
 function updateAllowedSpeed(transportId, transportUnitDef)
 	
 	-- get sum of mass and size for all transported units                                
 	currentMassUsage = 0
 	for _,tUnitId in pairs(Spring.GetUnitIsTransporting(transportId)) do
-		local tUd = UnitDefs[Spring.GetUnitDefID(tUnitId)]
-		-- currentCapacityUsage = currentCapacityUsage + tUd.xsize 
-		currentMassUsage = currentMassUsage + tUd.mass
+		currentMassUsage = currentMassUsage + unitMass[Spring.GetUnitDefID(tUnitId)]
 	end
 	massUsageFraction = (currentMassUsage / transportUnitDef.transportMass)
 	allowedSpeed = transportUnitDef.speed * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND 
@@ -46,9 +49,8 @@ end
 
 -- add transports to table when they load a unit
 function gadget:UnitLoaded(unitId, unitDefId, unitTeam, transportId, transportTeam)
-	local ud = UnitDefs[Spring.GetUnitDefID(transportId)]
-	if ud.canFly and not airTransports[transportId] then
-		airTransports[transportId] = ud
+	if canFly[Spring.GetUnitDefID(transportId)] and not airTransports[transportId] then
+		airTransports[transportId] = UnitDefs[Spring.GetUnitDefID(transportId)]
 
 		-- update allowed speed
 		updateAllowedSpeed(transportId, ud)
@@ -80,8 +82,7 @@ end
 
 
 function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
-	local ud = UnitDefs[Spring.GetUnitDefID(transportId)]
-	if ud.canFly then
+	if canFly[Spring.GetUnitDefID(transportId)] then
 		if airTransports[transportId] and not Spring.GetUnitIsTransporting(transportId)[1] then
 			-- transport is empty, cleanup tables
 			airTransports[transportId] = nil
@@ -92,19 +93,3 @@ function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
 		end
 	end
 end
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-else
-
-	
--- END SYNCED
--- BEGIN UNSYNCED
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
--- nothing to do here
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-end
--- END UNSYNCED
---------------------------------------------------------------------------------

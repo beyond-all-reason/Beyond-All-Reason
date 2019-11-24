@@ -16,6 +16,7 @@ end
 
 if gadgetHandler:IsSyncedCode() then
 	local spGetUnitCurrentCommand = Spring.GetUnitCurrentCommand
+	local unitTurnRadius = {}
 	local isBomb = {}
 	local isBomber = {}
 	local Bombers = {}
@@ -27,7 +28,6 @@ if gadgetHandler:IsSyncedCode() then
 		[UnitDefNames["armhawk"].id] = true,
 		[UnitDefNames["corvamp"].id] = true,
 	}
-
 	for id, wDef in pairs(WeaponDefs) do
 		if wDef.type == "AircraftBomb" then
 			isBomb[id] = true
@@ -38,11 +38,12 @@ if gadgetHandler:IsSyncedCode() then
 		if (uDef["weapons"] and uDef["weapons"][1] and isBomb[uDef["weapons"][1].weaponDef] == true) or (uDef.name == "armlance" or uDef.name == "cortitan") then
 			isBomber[id] = true
 		end
+		unitTurnRadius[id] = uDef.turnRadius
 	end
 
 	function gadget:Initialize()
 		for ct, unitID in pairs(Spring.GetAllUnits()) do
-		gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
+			gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID))
 		end
 	end
 
@@ -86,7 +87,7 @@ if gadgetHandler:IsSyncedCode() then
 					if curMoveCtrl then
 						Spring.MoveCtrl.Disable(unitID)
 					end
-					Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
+					Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", unitTurnRadius[Spring.GetUnitDefID(unitID)])
 					if curMoveCtrl then
 						Spring.MoveCtrl.Enable(unitID)
 					end
@@ -111,7 +112,7 @@ if gadgetHandler:IsSyncedCode() then
 				if curMoveCtrl then
 					Spring.MoveCtrl.Disable(unitID)
 				end
-				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", UnitDefs[Spring.GetUnitDefID(unitID)].turnRadius)
+				Spring.MoveCtrl.SetAirMoveTypeData(unitID, "turnRadius", unitTurnRadius[Spring.GetUnitDefID(unitID)])
 				if curMoveCtrl then
 					Spring.MoveCtrl.Enable(unitID)
 				end

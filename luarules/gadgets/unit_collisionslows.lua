@@ -11,6 +11,14 @@ function gadget:GetInfo()
   }
 end
 
+-- TODO: localize UnitDefs:
+--mass
+--isBuilding
+--isNano
+--isFactory
+--speed
+--rSpeed
+
 if (gadgetHandler:IsSyncedCode()) then --SYNCED
 
     local math_sqrt = math.sqrt

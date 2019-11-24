@@ -250,7 +250,6 @@ void main(void){
 -----------------------------------------------------------------
 
 local udIDs = {}
-local normalMaps = {}
 
 local solidUnitDefs = {}
 local glassUnitDefs = {}
@@ -268,6 +267,15 @@ local isSpec, fullview = Spring.GetSpectatingState()
 local myAllyTeamID = Spring.GetMyAllyTeamID()
 local myTeamID = Spring.GetMyTeamID()
 
+local normalMaps = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams and unitDef.customParams.normaltex and VFS.FileExists(unitDef.customParams.normaltex) then
+		normalMaps[unitDefID] = unitDef.customParams.normaltex
+	else
+		normalMaps[unitDefID] = "unittextures/blank_normal.dds"
+	end
+end
+
 function gadget:PlayerChanged(playerID)
 	local prevFullView = fullView
 	local prevMyAllyTeamID = myAllyTeamID
@@ -281,16 +289,7 @@ function gadget:PlayerChanged(playerID)
 	end
 end
 
-local function GetNormalMap(unitDefID)
-	local udef = UnitDefs[unitDefID]
-	local udefCM = udef.customParams
 
-	if udefCM and udefCM.normaltex and VFS.FileExists(udefCM.normaltex) then
-		return udefCM.normaltex
-	else
-		return "unittextures/blank_normal.dds"
-	end
-end
 
 local function RenderGlassUnits()
 	glDepthTest(true)
@@ -376,7 +375,6 @@ local function UpdateGlassUnit(unitID)
 				table.insert(glassUnitDefs[unitDefID], pieceID)
 			end
 		end
-		normalMaps[unitDefID] = GetNormalMap(unitDefID)
 
 		if not glassUnitDefs[unitDefID] then --no glass pieces found
 			solidUnitDefs[unitDefID] = true

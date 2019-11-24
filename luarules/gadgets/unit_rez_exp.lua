@@ -37,6 +37,17 @@ local deadUnits = {} -- creationFrame: wreckDefID: {experience,location}
 --this is reset every frame
 local rezzedUnits = {} -- unitDefID: location
 
+local unitWreckName = {}
+local canResurrect = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.wreckName then
+		unitWreckName[unitDefID] = unitDef.wreckName
+	end
+	if unitDef.canResurrect then
+		canResurrect[unitDefID] = true
+	end
+end
+
 function GG.GetFeatureExperience(featureID)
 	if wreckInfos[featureID] then
 		return wreckInfos[featureID].experience
@@ -49,7 +60,7 @@ local function sqDist(posA,posB)
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID, attackerID, attackerDefID, attackerTeamID)
-	local wreckName = UnitDefs[unitDefID].wreckName
+	local wreckName = unitWreckName[unitDefID]
 	if not wreckName then
 		return --unit has no wreck
 	end
@@ -99,7 +110,7 @@ function gadget:UnitCreated(unitID,unitDefID,unitTeam,builderID)
 		return
 	end
 	--if unit that created it cannot resurrect, it wasn't for sure a resurrection
-	if not UnitDefs[GetUnitDefID(builderID)].canResurrect then
+	if not canResurrect[GetUnitDefID(builderID)] then
 		return
 	end
 	rezzedUnits[unitDefID] = rezzedUnits[unitDefID] or {}

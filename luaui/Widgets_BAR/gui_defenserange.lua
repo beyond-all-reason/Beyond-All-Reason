@@ -126,6 +126,25 @@ colorConfig["enemy"]["nuke"] =  { 1.0, 1.0, 1.0 }
 colorConfig["ally"] = colorConfig["enemy"]
 --end of DEFAULT COLOR CONFIG
 
+local unitRadius = {}
+local unitNumWeapons = {}
+local canMove = {}
+local unitName = {}
+local unitWeapons = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	unitRadius[unitDefID] = unitDef.radius
+	if #unitDef.weapons > 0 then
+		unitNumWeapons[unitDefID] = #unitDef.weapons
+	end
+	canMove[unitDefID] = unitDef.canMove
+	unitName[unitDefID] = unitDef.name
+	for i=1, #unitDef.weapons do
+		if not unitWeapons[unitDefID] then
+			unitWeapons[unitDefID] = {}
+		end
+		unitWeapons[unitDefID][i] = unitDef.weapons[i].weaponDef
+	end
+end
 
 --Button display configuration
 --position only relevant if no saved config data found
@@ -342,9 +361,7 @@ function UnitDetected( unitID, allyTeam, teamId )
 		--unit already known
 		return
 	end
-	
-	local udef = UnitDefs[spGetUnitDefID(unitID)]
-	if not udef then return false end
+	local unitDefID = spGetUnitDefID(unitID)
 
 	local key = tostring(unitID)
 	local x, y, z = spGetUnitPosition(unitID)
@@ -354,37 +371,37 @@ function UnitDetected( unitID, allyTeam, teamId )
 	local dps
 	local weaponDef
 
-	if udef.radarRadius < 100 then
-		if ( #udef.weapons == 0 ) then
+	if unitRadius[unitDefID] < 100 then
+		if ( not unitNumWeapons[unitDefID] ) then
 			--not interesting, has no weapons and no radar coverage, lame
 			return
 		end
 
-		if ( udef.canMove ) then
+		if ( canMove[unitDefID] ) then
 			--not interesting, it moves
 			return
 		end
 	end
 
-	printDebug( udef.name )
+	printDebug( unitName[unitDefID] )
 	local foundWeapons = {}
-			
-	for i=1, #udef.weapons do
-		if ( currentModConfig["unitList"][udef.name] == nil or currentModConfig["unitList"][udef.name]["weapons"][i] == nil ) then
-			printDebug("Weapon skipped! Name: "..  udef.name .. " weaponidx: " .. i )
+	
+	for i=1, unitNumWeapons[unitDefID] do
+		if ( currentModConfig["unitList"][unitName[unitDefID]] == nil or currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i] == nil ) then
+			printDebug("Weapon skipped! Name: "..  unitName[unitDefID] .. " weaponidx: " .. i )
 		else
 			--get definition from weapon table
-			weaponDef = weapTab[ udef.weapons[i].weaponDef ]
+			weaponDef = weapTab[ unitWeapons[unitDefID][i] ]
 
 			range = weaponDef.range --get normal weapon range
 			--printDebug("Weapon #" .. i .. " Range: " .. range .. " Type: " .. weaponDef.type )
 
-			type = currentModConfig["unitList"][udef.name]["weapons"][i]
-							
+			type = currentModConfig["unitList"][unitName[unitDefID]]["weapons"][i]
+			
 			local dam = weaponDef.damages
 			local dps
 			local damage
-				
+			
 			--check if dps-depending colors should be used
 			if ( currentModConfig["armorTags"] ~= nil ) then
 				printDebug("DPS colors!")
@@ -576,15 +593,11 @@ function widget:Update()
 	
 		--remove dead units
 		for k, def in pairs(defences) do
-			local udefID = spGetUnitDefID(def["unitId"])
-			
 			local x, y, z = def["pos"][1], def["pos"][2], def["pos"][3]
 			local a, b, c = spGetPositionLosState(x, y, z)
 			local losState = b
-	
-			
 			if (losState) then	
-				if (udefID == nil) then
+				if spGetUnitDefID(def["unitId"]) then
 					printDebug("Unit killed.")
 					defences[k] = nil
 					UpdateCircleList()

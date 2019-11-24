@@ -1,3 +1,16 @@
+
+function widget:GetInfo()
+	return {
+		name = "Context Build",
+		desc = "Toggles buildings between buildings automagically" ,
+		author = "dizekat and BD",
+		date = "30 July 2009",
+		license = "GNU LGPL, v2.1 or later",
+		layer = 1,
+		enabled = true
+	}
+end
+
 local unitlist={--- Human friendly list. Automatically converted to unitdef IDs on init
 
 	 -- this should only ever swap between pairs of (buildable) units, 03/06/13
@@ -39,17 +52,6 @@ local unitlist={--- Human friendly list. Automatically converted to unitdef IDs 
 	{'cornanotc','cornanotcplat'},
 }
 
-function widget:GetInfo()
-	return {
-		name = "Context Build",
-		desc = "Toggles buildings between buildings automagically" ,
-		author = "dizekat and BD",
-		date = "30 July 2009",
-		license = "GNU LGPL, v2.1 or later",
-		layer = 1,
-		enabled = true
-	}
-end
 local GetActiveCommand		= Spring.GetActiveCommand
 local SetActiveCommand		= Spring.SetActiveCommand
 local GetMouseState			= Spring.GetMouseState
@@ -112,19 +114,19 @@ function widget:Update(deltaTime)
 	end
 
 	local _, cmd_id = GetActiveCommand()
-	if (not cmd_id) or (cmd_id>=0) then
+	if not cmd_id or cmd_id>=0 then
 		return
 	end
 	local unitDefID = -cmd_id
 
 	local alternatives = alternative_units[unitDefID]
-	if (not alternatives) then
+	if not alternatives then
 		return
 	end
 
 	local mx, my = GetMouseState()
 	local _, coords = TraceScreenRay(mx, my, true, true)
-	if (not coords) then
+	if not coords then
 		return
 	end
 

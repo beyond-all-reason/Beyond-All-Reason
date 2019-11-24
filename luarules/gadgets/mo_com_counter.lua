@@ -20,21 +20,19 @@ end
 local teamComs = {} -- format is enemyComs[teamID] = total # of coms in enemy teams
 local armcomDefID = UnitDefNames.armcom.id
 local corcomDefID = UnitDefNames.corcom.id
-local countChanged  = true 
+local countChanged  = true
 
-function isCom(unitID,unitDefID)
-	if not unitDefID and unitID then
-		unitDefID =  Spring.GetUnitDefID(unitID)
+local isCommander = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.customParams.iscommander then
+		isCommander[unitDefID] = true
 	end
-	if not unitDefID or not UnitDefs[unitDefID] or not UnitDefs[unitDefID].customParams then
-		return false
-	end
-	return UnitDefs[unitDefID].customParams.iscommander ~= nil
 end
+
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
 	-- record com creation
-	if isCom(unitID) then
+	if isCommander[unitDefID] then
 		if not teamComs[teamID] then 
 			teamComs[teamID] = 0
 		end
@@ -45,7 +43,7 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, teamID)
 	-- record com death
-	if isCom(unitID) then
+	if isCommander[unitDefID] then
 		if not teamComs[teamID] then 
 			teamComs[teamID] = 0 --should never happen
 		end

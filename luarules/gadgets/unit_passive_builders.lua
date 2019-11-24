@@ -42,8 +42,6 @@ local CMD_PASSIVE = 34571
 local stallMarginInc = 0.2
 local stallMarginSto = 0.01
 
-local canPassive = {} -- canPassive[unitDefID] = nil / true
-
 local passiveCons = {} -- passiveCons[teamID][builderID]
 local teamStalling = {} -- teamStalling[teamID] = {resName = res leftover after non-passive cons took their share}
 
@@ -54,7 +52,6 @@ local canBuild = {} --builders[teamID][builderID], contains all builders
 local realBuildSpeed = {} --build speed of builderID, as in UnitDefs (contains all builders)
 local currentBuildSpeed = {} --build speed of builderID for current interval, not accounting for buildOwners special speed (contains only passive builders)
 
-local cost = {} -- cost[unitDefID] = {metal=value,energy=value} 
 local costID = {} -- costID[unitID] (contains all units)
 
 local ruleName = "passiveBuilders"
@@ -90,30 +87,37 @@ local min = math.min
 local max = math.max
 local floor = math.floor
 
+
+local canPassive = {} -- canPassive[unitDefID] = nil / true
+local cost = {} -- cost[unitDefID] = {metal=value,energy=value}
+local unitBuildSpeed = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.buildSpeed > 0 then
+        unitBuildSpeed[unitDefID] = unitDef.buildSpeed
+    end
+    -- build the list of which unitdef can have passive mode
+    canPassive[unitDefID] = ((unitDef.canAssist and unitDef.buildSpeed > 0) or #unitDef.buildOptions > 0)
+    cost[unitDefID] = {}
+    cost[unitDefID].buildTime = unitDef.buildTime
+    for _,resName in pairs(resTable) do
+        cost[unitDefID][resName] = unitDef[resName .. "Cost"]
+    end
+end
+
 ----------------------------------------------------------------
 -- Callins
 ----------------------------------------------------------------
 function gadget:Initialize()
-    -- build the list of which unitdef can have passive mode
-    for unitDefID, uDef in pairs(UnitDefs) do
-        canPassive[unitDefID] = ((uDef.canAssist and uDef.buildSpeed > 0) or #uDef.buildOptions > 0)
-        cost[unitDefID] = {}
-        cost[unitDefID].buildTime = uDef.buildTime
-        for _,resName in pairs(resTable) do
-            cost[unitDefID][resName] = uDef[resName .. "Cost"]
-        end
-    end
-    
     for _,unitID in pairs(Spring.GetAllUnits()) do
         gadget:UnitCreated(unitID, Spring.GetUnitDefID(unitID), Spring.GetUnitTeam(unitID))
     end
 end
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-    if canPassive[unitDefID] or UnitDefs[unitDefID].buildSpeed>0 then
+    if canPassive[unitDefID] or unitBuildSpeed[unitDefID] then
         canBuild[teamID] = canBuild[teamID] or {}
         canBuild[teamID][unitID] = true
-        realBuildSpeed[unitID] = UnitDefs[unitDefID].buildSpeed or 0
+        realBuildSpeed[unitID] = unitBuildSpeed[unitDefID] or 0
     end    
     if canPassive[unitDefID] then
         spInsertUnitCmdDesc(unitID, cmdPassiveDesc)

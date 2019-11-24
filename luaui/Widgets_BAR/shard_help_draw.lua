@@ -105,6 +105,11 @@ local GL_LINE_STRIP = GL.LINE_STRIP
 local GL_LINE_LOOP = GL.LINE_LOOP
 local GL_POINTS = GL.POINTS
 
+local unitScale = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	unitScale[unitDefID] = math.max(unitDef.xsize, unitDef.zsize) * 5
+end
+
 local function pairsByKeys(t, f)
   local a = {}
   for n in pairs(t) do table.insert(a, n) end
@@ -712,7 +717,7 @@ end
 local function AddUnit(unitID, color, label, teamID, channel)
 	local x, y, z = spGetUnitPosition(unitID)
 	local unitDefID = spGetUnitDefID(unitID)
-	local radius = mMax(UnitDefs[unitDefID].xsize, UnitDefs[unitDefID].zsize) * 5
+	local radius = unitScale[unitDefID]
 	color = color or {}
 	color[4] = 1
 	local shape = {

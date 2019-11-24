@@ -10,6 +10,8 @@ function gadget:GetInfo()
   }
 end
 
+if (not gadgetHandler:IsSyncedCode()) then return end
+
 local SetUnitNoDraw            = Spring.SetUnitNoDraw
 local SetUnitNeutral        = Spring.SetUnitNeutral
 local SetUnitStealth        = Spring.SetUnitStealth
@@ -27,7 +29,15 @@ local CMD_STOP = CMD.STOP
 local massLeft = {}
 local toBeLoaded = {}
 
-if (gadgetHandler:IsSyncedCode()) then
+
+local unitTransportMass = {}
+local unitTransportVtol = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+    unitTransportMass[unitDefID] = unitDef.TransportMass
+    if (not unitDef.springCategories.vtol) and (not unitDef.customParams.isairbase) then
+        unitTransportVtol[unitDefID] = true
+    end
+end
 
 function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOptions, cmdTag, playerID, fromSynced, fromLua)
     if cmdID == CMD_LOAD_ONTO then
@@ -39,11 +49,7 @@ end
 
 
 function gadget:UnitCreated(unitID, unitDefID, teamID)
-    local unitDef = UnitDefs[unitDefID]
-    local maxMass = unitDef.transportMass
-    if maxMass then
-        massLeft[unitID] = maxMass
-    end
+    massLeft[unitID] = unitTransportMass[unitDefID]
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
@@ -63,15 +69,13 @@ end
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
     --Spring.Echo("UnitLoaded", unitDefID, transportID)
     if ((not unitDefID) or (not transportID)) then return end
-    local transportDef = UnitDefs[GetUnitDefID(transportID)]
-    local unitDef = UnitDefs[unitDefID]
     -- Check if transport is full (former crash risk!)
     if not massLeft[transportID] then return end
-    massLeft[transportID] = massLeft[transportID] - unitDef.mass
+    massLeft[transportID] = massLeft[transportID] - unitMass[unitDefID]
     if massLeft[transportID] == 0 then
         TransportIsFull(transportID)
     end
-    if (not transportDef.springCategories.vtol) and (not transportDef.customParams.isairbase) then
+    if unitTransportVtol[GetUnitDefID(transportID)] then
         SetUnitNoDraw(unitID, true)
         SetUnitStealth(unitID, true)
         SetUnitSonarStealth(unitID, true)
@@ -81,19 +85,12 @@ end
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
     --Spring.Echo("UnitUnloaded")
     if ((not unitDefID) or (not transportID)) then return end
-    local transportDef = UnitDefs[GetUnitDefID(transportID)]
-    local unitDef = UnitDefs[unitDefID]
     if not massLeft[transportID] then return end
-    massLeft[transportID] = massLeft[transportID] + unitDef.mass
-    if (not transportDef.springCategories.vtol) and (not transportDef.isairbase) then
+    massLeft[transportID] = massLeft[transportID] + unitMass[unitDefID]
+    if unitTransportVtol[GetUnitDefID(transportID)] then
         SetUnitNoDraw(unitID, false)
         SetUnitStealth(unitID, false)
         SetUnitSonarStealth(unitID, false)
     end
 end
-
-else
-
-end
-
 

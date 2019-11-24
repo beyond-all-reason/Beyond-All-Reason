@@ -27,19 +27,25 @@ local GetUnitStates        = Spring.GetUnitStates
 
 local my_bombers = {}
 
+local current_team=1234567
+
+local unitPrimaryWeapon = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.primaryWeapon then
+		unitPrimaryWeapon[unitDefID] = unitDef.primaryWeapon
+	end
+end
+
 local function AddUnit(unit_id, unit_udid_)
 	local unit_udid = unit_udid_
 	if GetUnitTeam(unit_id) == GetMyTeamID() then --my unit
 		if unit_udid == nil then
 			unit_udid = GetUnitDefID(unit_id)
 		end
-		local ud = UnitDefs[unit_udid]
-		if ud and bomber_uds[unit_udid] then
-			if  ud.primaryWeapon then
-				local _,reloaded_,reloadFrame = GetUnitWeaponState(unit_id,ud.primaryWeapon)		
-				my_bombers[unit_id]={reloaded=reloaded_, reload_frame}
-				--Spring.Echo("bomber added")
-			end
+		if bomber_uds[unit_udid] and unitPrimaryWeapon[unit_udid] then
+			local _,reloaded_,reloadFrame = GetUnitWeaponState(unit_id, unitPrimaryWeapon[unit_udid])
+			my_bombers[unit_id] = {reloaded=reloaded_, reloadFrame}
+			--Spring.Echo("bomber added")
 		end
 	end	
 end
@@ -102,19 +108,17 @@ function widget:Initialize()
 			ud.primaryWeapon = 0
 			ud.shieldPower   = 0
 			for i=1,#ud.weapons do
-				local WeaponDefID = ud.weapons[i].weaponDef;
-				local WeaponDef   = WeaponDefs[ WeaponDefID ];
+				local WeaponDefID = ud.weapons[i].weaponDef
+				local WeaponDef   = WeaponDefs[ WeaponDefID ]
 				if (WeaponDef.reload>ud.reloadTime) then
-					ud.reloadTime    = WeaponDef.reload;
-					ud.primaryWeapon = i;
+					ud.reloadTime    = WeaponDef.reload
+					ud.primaryWeapon = i
 				end
 			end
 		end
 	end
 	UpdateUnitsList()
 end
-
-local current_team=1234567
 
 function widget:Update(dt)
 	local gameFrame = GetGameFrame()
@@ -128,9 +132,8 @@ function widget:Update(dt)
 	if ((gameFrame%3)<1) then
 		for bomber_id,bomber_data in pairs(my_bombers) do
 		    local udid = GetUnitDefID(bomber_id)
-			local ud = UnitDefs[udid or -1]
-			if ud and ud.primaryWeapon then
-				local _,reloaded,reload_frame = GetUnitWeaponState(bomber_id, ud.primaryWeapon)
+			if unitPrimaryWeapon[udid] then
+				local _,reloaded,reload_frame = GetUnitWeaponState(bomber_id, unitPrimaryWeapon[udid])
 				local did_shot = (bomber_data.reloaded and not reloaded) or (bomber_data.reload_frame ~= reload_frame)
 				bomber_data.reloaded = reloaded
 				bomber_data.reload_frame = reload_frame

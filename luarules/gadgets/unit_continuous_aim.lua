@@ -60,6 +60,25 @@ local convertedUnits = {
 	--[UnitDefNames.corjugg.id] = true,
 	[UnitDefNames.armvang.id] = true,
 }
+local unitWeapons = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if unitDef.scriptName == "scripts/BASICTANKSCRIPT.LUA" then
+		convertedUnits[unitDefID] = true
+	end
+	if #unitDef.weapons > 0 then
+		for id, table in pairs(unitDef.weapons) do
+			if not unitWeapons[unitDefID] then
+				unitWeapons[unitDefID] = {}
+			end
+			unitWeapons[unitDefID][id] = table.weaponDef
+		end
+	end
+end
+
+local weaponRange = {}
+for weaponDefID, def in pairs(WeaponDefs) do
+	weaponRange[weaponDefID] = def.range
+end
 
 local popups = {	-- exclude auto target range boost for popup units
 	[UnitDefNames.armclaw.id] = true,
@@ -75,15 +94,14 @@ local popups = {	-- exclude auto target range boost for popup units
 }
 
 function gadget:UnitCreated(unitID,unitDefID)
-	if convertedUnits[unitDefID] or UnitDefs[unitDefID].scriptName == "scripts/BASICTANKSCRIPT.LUA" then
-		for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
+	if convertedUnits[unitDefID] and unitWeapons[unitDefID] then
+		for id, _ in pairs(unitWeapons[unitDefID]) do
 			Spring.SetUnitWeaponState(unitID, id, "reaimTime", 1)
 		end
 	end
-	if not popups[unitDefID] then
-		for id, table in pairs(UnitDefs[Spring.GetUnitDefID(unitID)].weapons) do
-			local range = WeaponDefs[table.weaponDef].range
-			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1*range) or 20)
+	if not popups[unitDefID] and unitWeapons[unitDefID] then
+		for id, wdefID in pairs(unitWeapons[unitDefID]) do
+			Spring.SetUnitWeaponState(unitID, id, "autoTargetRangeBoost", (0.1*weaponRange[wdefID]) or 20)
 		end
 	end
 end

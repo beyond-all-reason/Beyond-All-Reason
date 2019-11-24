@@ -31,10 +31,10 @@ if (not gadgetHandler:IsSyncedCode()) then return end
 
 local COMMANDO = UnitDefNames["cormando"].id
 
-toKill = {} -- [frame][unitID]
-fromtrans = {}
+local toKill = {} -- [frame][unitID]
+local fromtrans = {}
 
-currentFrame = 0
+local currentFrame = 0
 
 --when a unit is unloaded, mark it either as a commando or for possible destruction on next frame
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
@@ -57,22 +57,22 @@ end
 function gadget:GameFrame (currentFrame) 
 	if (toKill[currentFrame]) then --kill units as requested from above
 		for uID,_ in pairs (toKill[currentFrame]) do
-			tID = fromtrans[currentFrame][uID]
+			local tID = fromtrans[currentFrame][uID]
 			--Spring.Echo ("delayed killing check called for unit " .. uID .. " and trans " .. tID .. ". ")
 			--check that trans is dead/crashing and unit is still alive 
 			if ((not Spring.GetUnitIsDead(uID)) and (Spring.GetUnitIsDead(tID) or (Spring.GetUnitMoveTypeData(tID).aircraftState=="crashing")))	then	
 				--Spring.Echo("killing unit " .. uID)
 				if UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion and WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id and WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id] then
-				local tabledamages = WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id]
-				Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
-				local tabledamages = WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id].damages
-				Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
+					local tabledamages = WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id]
+					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
+					local tabledamages = WeaponDefs[WeaponDefNames[UnitDefs[Spring.GetUnitDefID(uID)].deathExplosion].id].damages
+					Spring.SetUnitWeaponDamages(uID, "selfDestruct", tabledamages)
 				end
 				Spring.DestroyUnit (uID, true, false)
 			end
 		end
-	toKill[currentFrame] = nil
-	fromtrans[currentFrame] = nil
+		toKill[currentFrame] = nil
+		fromtrans[currentFrame] = nil
 	end
 end
 

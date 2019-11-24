@@ -16,8 +16,8 @@ end
 -- Globals
 -------------------------------------------------------------------
 local watchList = {} -- watchList[uID] = tID
-local isTransport = {} -- isTransport[uDefID] = UnitDefs[uDefID].isTransport
 
+local isTransport = {} -- isTransport[uDefID] = UnitDefs[uDefID].isTransport
 for uDefID, uDef in pairs(UnitDefs) do
 	if uDef.isTransport and uDef.canFly then
 		isTransport[uDefID] = true

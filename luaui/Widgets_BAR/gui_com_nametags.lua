@@ -53,7 +53,7 @@ local GetAllUnits        		= Spring.GetAllUnits
 local IsUnitInView	 	 		= Spring.IsUnitInView
 local GetCameraPosition  		= Spring.GetCameraPosition
 local GetUnitPosition    		= Spring.GetUnitPosition
-
+local IsUnitIcon                = Spring.IsUnitIcon
 local glDepthTest        		= gl.DepthTest
 local glAlphaTest        		= gl.AlphaTest
 local glColor            		= gl.Color
@@ -81,9 +81,11 @@ local myTeamID = Spring.GetMyTeamID()
 local myPlayerID = Spring.GetMyPlayerID()
 
 local comDefs = {}
+local comHeight = {}
 for unitDefID, defs in pairs(UnitDefs) do
     if defs.customParams.iscommander then
         comDefs[unitDefID] = true
+        comHeight[unitDefID] = defs.height
     end
 end
 
@@ -122,7 +124,7 @@ local function GetCommAttributes(unitID, unitDefID)
 	bgColor = {1,1,1,1}
   end
   
-  local height = UnitDefs[unitDefID].height + heightOffset
+  local height = comHeight[unitDefID] + heightOffset
   return {name, {r, g, b, a}, height, bgColor}
 end
 
@@ -314,7 +316,7 @@ function widget:DrawWorld()
 		local x,y,z = GetUnitPosition(unitID)
 		camDistance = diag(camX-x, camY-y, camZ-z) 
 
-	    if drawForIcon and Spring.IsUnitIcon(unitID) then
+	    if drawForIcon and IsUnitIcon(unitID) then
             attributes[5] = camDistance
             drawScreenUnits[unitID] = attributes
         else

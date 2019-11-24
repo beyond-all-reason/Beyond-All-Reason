@@ -39,22 +39,22 @@ if (gadgetHandler:IsSyncedCode()) then
 		life = wd.customParams.lups_explodelife
 		normalShockwave = true
       end
-		if wd.description == "Implosion Bomb" then
-		  hasShockwave[wd.id] = {special = 1}
-	      Script.SetWatchWeapon(wd.id,true)
-		  wantedList[#wantedList + 1] = wd.id
-	    elseif normalShockwave then
-		  hasShockwave[wd.id] = {
-		  	life = 8*life,
-		  	speed = speed,
-		  	growth = wd.damageAreaOfEffect/11*speed
-		  }
-	      Script.SetWatchWeapon(wd.id,true)
-		  wantedList[#wantedList + 1] = wd.id
-        elseif (wd.type == "DGun") then
-	      	hasShockwave[wd.id] = {DGun = true}
-          Script.SetWatchWeapon(wd.id,true)
-	      	wantedList[#wantedList + 1] = wd.id
+	  if wd.description == "Implosion Bomb" then
+	    hasShockwave[wd.id] = {special = 1}
+	    Script.SetWatchWeapon(wd.id,true)
+	    wantedList[#wantedList + 1] = wd.id
+	  elseif normalShockwave then
+	    hasShockwave[wd.id] = {
+	      life = 8*life,
+	      speed = speed,
+	      growth = wd.damageAreaOfEffect/11*speed
+	    }
+	    Script.SetWatchWeapon(wd.id,true)
+	    wantedList[#wantedList + 1] = wd.id
+      elseif (wd.type == "DGun") then
+	    hasShockwave[wd.id] = {DGun = true}
+        Script.SetWatchWeapon(wd.id,true)
+        wantedList[#wantedList + 1] = wd.id
       end
     end
   end
@@ -64,9 +64,8 @@ if (gadgetHandler:IsSyncedCode()) then
   end
 
   function gadget:Explosion(weaponID, px, py, pz, ownerID)
-		local wd = WeaponDefs[weaponID]
-		local shockwave = hasShockwave[weaponID]
-		if shockwave then
+	local shockwave = hasShockwave[weaponID]
+	  if shockwave then
 	    if shockwave.DGun then
 	      SendToUnsynced("lups_shockwave", px, py, pz, 5, 7.5, 0.11, true)
 	    elseif shockwave.special == 1 then
@@ -74,7 +73,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	    else
 	      SendToUnsynced("lups_shockwave", px, py, pz, shockwave.growth, shockwave.life)
 	    end
-		end
+	  end
     return false
   end
 

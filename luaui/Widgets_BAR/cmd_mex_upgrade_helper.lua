@@ -24,6 +24,17 @@ local TraceScreenRay = Spring.TraceScreenRay
 local GetActiveCommand = Spring.GetActiveCommand
 local GetSelectedUnitsCount = Spring.GetSelectedUnitsCount
 
+local unba = (Spring.GetModOptions().unba or "disabled") == "enabled"
+
+local isCommander = {}
+local unitHumanName = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+  if unitDef.customParams.iscommander then
+    isCommander[unitDefID] = true
+  end
+  unitHumanName[unitDefID] = unitDef.humanName
+end
+
 function widget:Initialize() 
   widgetHandler:RegisterGlobal('registerUpgradePairs', registerUpgradePairs) 
 end 
@@ -57,13 +68,12 @@ function widget:MousePress(x, y, b)
     GiveOrderToUnit(rightClickUpgradeParams.builderID, CMD_UPGRADEMEX, {rightClickUpgradeParams.mexID}, options) 
     return true 
   end    
-end 
+end
 
 function widget:GetTooltip(x,y) 
   local tooltip = nil 
-  if rightClickUpgradeParams then 
-    local unitDef = UnitDefs[rightClickUpgradeParams.upgradeTo] 
-    tooltip = "Right click to upgrade to " .. unitDef.humanName 
+  if rightClickUpgradeParams then
+    tooltip = "Right click to upgrade to " .. unitHumanName[rightClickUpgradeParams.upgradeTo]
     Spring.SetMouseCursor(upgradeMouseCursor) 
   else 
     tooltip = "NO TOOLTIP AVALIABLE" 
@@ -108,11 +118,9 @@ function widget:IsAbove(x,y)
 
   rightClickUpgradeParams = {builderID = builderID, mexID = unitID, upgradeTo = upgradeTo}
 
-  if (Spring.GetModOptions().unba or "disabled") == "enabled" then
-    if UnitDefs[Spring.GetUnitDefID(builderID)].name == "armcom" or UnitDefs[Spring.GetUnitDefID(builderID)].name == "corcom" then
-      rightClickUpgradeParams = nil
-      return false
-    end
+  if unba and isCommander[builderID] then
+    rightClickUpgradeParams = nil
+    return false
   end
 
   return true

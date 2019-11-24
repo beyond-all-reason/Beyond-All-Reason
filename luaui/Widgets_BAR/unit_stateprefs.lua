@@ -13,10 +13,13 @@ function widget:GetInfo()
   }
 end
 
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+local unitName = {}
+for udid, ud in pairs(UnitDefs) do
+    unitName[udid] = ud.name
+end
 
 local unitSet = {}
 local chunk, err = loadfile("LuaUI/config/StatesPrefs.lua")
@@ -26,11 +29,8 @@ if chunk then
     unitArray = chunk()    
 end
 
-
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
 
 function widget:PlayerChanged(playerID)
   if Spring.GetSpectatingState() then
@@ -54,10 +54,11 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
         local unitID = selectedUnits[i]
 		local unitDefID = Spring.GetUnitDefID(unitID)
 		local unitTeam = Spring.GetUnitTeam(unitID)
-		unitSet[UnitDefs[unitDefID].name] = unitSet[UnitDefs[unitDefID].name] or {}
+        local name = unitName[unitDefID]
+		unitSet[name] = unitSet[name] or {}
 		local alt, ctrl, meta, shift = Spring.GetModKeyState()
-		if ctrl and #cmdParams == 1 and not (unitSet[UnitDefs[unitDefID].name][cmdID] == cmdParams[1]) then
-			unitSet[UnitDefs[unitDefID].name][cmdID] = cmdParams[1]
+		if ctrl and #cmdParams == 1 and not (unitSet[name][cmdID] == cmdParams[1]) then
+			unitSet[name][cmdID] = cmdParams[1]
 			Spring.Echo("State pref changed to: "..(cmdParams[1]))
 			table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
 		end
@@ -65,19 +66,19 @@ function widget:CommandNotify(cmdID, cmdParams, cmdOpts)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)
-  local ud = UnitDefs[unitDefID]
-  unitSet[ud.name] = unitSet[ud.name] or {}
-  if ((ud ~= nil) and (unitTeam == Spring.GetMyTeamID())) then
-  	for cmdID, cmdParam in pairs(unitSet[ud.name]) do
+  local name = unitName[unitDefID]
+  unitSet[name] = unitSet[ud.name] or {}
+  if unitTeam == Spring.GetMyTeamID() then
+  	for cmdID, cmdParam in pairs(unitSet[name]) do
       Spring.GiveOrderToUnit(unitID, cmdID , { cmdParam }, {})
 	end
   end
 end
 
 function widget:GameOver()
-		Spring.Echo("Recorded States Prefs")
-		table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
-	    widgetHandler:RemoveWidget(self)
+    Spring.Echo("Recorded States Prefs")
+    table.save(unitSet, "LuaUI/config/StatesPrefs.lua", "--States prefs")
+    widgetHandler:RemoveWidget(self)
 end
 
 --------------------------------------------------------------------------------

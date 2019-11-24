@@ -1809,9 +1809,9 @@ end
 --  Unit call-ins
 --
 
-function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam,builderID)
+function widgetHandler:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   for _,w in ipairs(self.UnitCreatedList) do
-    w:UnitCreated(unitID, unitDefID, unitTeam,builderID)
+    w:UnitCreated(unitID, unitDefID, unitTeam, builderID)
   end
   return
 end

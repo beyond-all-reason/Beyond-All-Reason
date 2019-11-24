@@ -12,15 +12,14 @@ end
 
 
 if (gadgetHandler:IsSyncedCode()) then
-	GroundHeight = {}
-	toUpdateList = {}
+
+	local toUpdateList = {}
 	
 	function gadget:UnitCreated(unitID)
-		unitDefID = Spring.GetUnitDefID(unitID)
-		unitName = UnitDefs[unitDefID].name
-		x,y,z = Spring.GetUnitPosition(unitID)
+		local unitName = UnitDefs[Spring.GetUnitDefID(unitID)].name
+		local x,y,z = Spring.GetUnitPosition(unitID)
 		if (unitName == "armuwmex" or unitName == "coruwmex") then
-			GroundHeight = Spring.GetGroundHeight(x,z)
+			local GroundHeight = Spring.GetGroundHeight(x,z)
 			Spring.CallCOBScript(unitID, "HidePieces", 0, -GroundHeight)
 			Spring.SetUnitRadiusAndHeight (unitID, 8, 0 )
 			for piecenum, name in pairs(Spring.GetUnitPieceList(unitID)) do
@@ -37,7 +36,7 @@ if (gadgetHandler:IsSyncedCode()) then
 	end
 	
 	function gadget:GameFrame(f)
-		if f%15 == 0 then
+		if f % 15 == 0 then
 			for unitID, piecenum in pairs(toUpdateList) do
 				local px,py,pz = Spring.GetUnitPiecePosition(unitID, piecenum)
 				Spring.SetUnitMidAndAimPos(unitID, px,py,pz,px,py,pz, true)

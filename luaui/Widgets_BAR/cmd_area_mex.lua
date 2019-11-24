@@ -34,6 +34,7 @@ local CMD_OPT_SHIFT = CMD.OPT_SHIFT
 local spGetSelectedUnits = Spring.GetSelectedUnits
 local spInsertUnitCmdDesc = Spring.InsertUnitCmdDesc
 local spGetGroundHeight = Spring.GetGroundHeight
+local spGetGroundBlocked = Spring.GetGroundBlocked
 local spGiveOrderToUnit = Spring.GiveOrderToUnit
 local spGetUnitPosition = Spring.GetUnitPosition 
 local spGetTeamUnits = Spring.GetTeamUnits
@@ -48,55 +49,65 @@ local spSendCommands = Spring.SendCommands
 
 local toggledMetal
 
-local mexIds = {}
 local mexes = {}
 
 local sqrt = math.sqrt
 local tasort = table.sort
 local taremove = table.remove
 
-local mexBuilderDef = {}
 
 local mexBuilder = {}
 
-
-local function Distance(x1,z1,x2,z2)
-	local dis = (x1-x2)*(x1-x2)+(z1-z2)*(z1-z2)
-	return dis
-end
-
-function widget:UnitCreated(unitID, unitDefID)
-
-	local ud = UnitDefs[unitDefID]
-	if mexBuilderDef[ud] then
-		mexBuilder[unitID] = mexBuilderDef[ud]
-		return
+local mexIds = {}
+local unitWaterDepth = {}
+local unitXsize = {}
+for udid, ud in pairs(UnitDefs) do
+	if ud.extractsMetal > 0 then
+		mexIds[udid] = ud.extractsMetal
 	end
-
+	if ud.isBuilding then
+		unitWaterDepth[udid] = {ud.minWaterDepth, ud.maxWaterDepth}
+		unitXsize[udid] = ud.xsize
+	end
+end
+local mexBuilderDef = {}
+for udid, ud in pairs(UnitDefs) do
 	if ud.buildOptions then
 		for i, option in ipairs(ud.buildOptions) do
 			if mexIds[option] then
-				if mexBuilderDef[ud] then
-					mexBuilderDef[ud].buildings = mexBuilderDef[ud].buildings+1
-					mexBuilderDef[ud].building[mexBuilderDef[ud].buildings] = mexIds[option]*-1
+				if mexBuilderDef[udid] then
+					mexBuilderDef[udid].buildings = mexBuilderDef[udid].buildings+1
+					mexBuilderDef[udid].building[mexBuilderDef[udid].buildings] = option*-1
 				else
-					mexBuilderDef[ud] = {buildings = 1, building = {[1] = mexIds[option]*-1}}
+					mexBuilderDef[udid] = {buildings = 1, building = {[1] = option*-1}}
 				end
-				mexBuilder[unitID] = mexBuilderDef[ud]
 			end
 		end
 	end
 end
 
+local function Distance(x1,z1,x2,z2)
+	return (x1-x2)*(x1-x2)+(z1-z2)*(z1-z2)
+end
+
+function widget:UnitCreated(unitID, unitDefID)
+	if mexBuilderDef[unitDefID] then
+		mexBuilder[unitID] = mexBuilderDef[unitDefID]
+		return
+	elseif mexBuilderDef[unitDefID] then
+		mexBuilder[unitID] = mexBuilderDef[unitDefID]
+	end
+end
+
 function widget:UnitTaken(unitID, unitDefID, oldTeam, newTeam)
 	if not mexBuilder[unitID] then
-	widget:UnitCreated(unitID, unitDefID, newTeam)
+		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
 end
 
 function widget:UnitGiven(unitID, unitDefID, newTeam, oldTeam)
 	if not mexBuilder[unitID] then
-	widget:UnitCreated(unitID, unitDefID, newTeam)
+		widget:UnitCreated(unitID, unitDefID, newTeam)
 	end
 end
 
@@ -131,7 +142,7 @@ function NoAlliedMex(x,z, batchextracts) -- Is there any better and allied mex a
 	local mexesatspot = Spring.GetUnitsInCylinder(x,z, Game.extractorRadius)
 	for i=1,#mexesatspot do
 		local uid = mexesatspot[i]
-		if mexIds[Spring.GetUnitDefID(uid)] and AreAlliedUnits(uid) and UnitDefs[Spring.GetUnitDefID(uid)].extractsMetal >= batchextracts then
+		if mexIds[spGetUnitDefID(uid)] and AreAlliedUnits(uid) and mexIds[spGetUnitDefID(uid)] >= batchextracts then
 			return false
 		end
 	end
@@ -204,8 +215,8 @@ function widget:CommandNotify(id, params, options)
 		for i=1,#units do
 			local id = units[i]
 			if mexBuilder[id] then -- Get best extract rates, save best builderID
-				if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal > maxbatchextracts then
-					maxbatchextracts = UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal
+				if mexIds[(mexBuilder[id].building[1])*-1] > maxbatchextracts then
+					maxbatchextracts = mexIds[(mexBuilder[id].building[1])*-1]
 					lastprocessedbestbuilder = id
 				end
 			end
@@ -217,7 +228,7 @@ function widget:CommandNotify(id, params, options)
 		for i=1,#units do -- Check position, apply guard orders to "inferiors" builders and adds superior builders to current batch builders
 			local id = units[i]
 			if mexBuilder[id] then
-				if UnitDefs[(mexBuilder[id].building[1])*-1].extractsMetal == maxbatchextracts then
+				if mexIds[(mexBuilder[id].building[1])*-1] == maxbatchextracts then
 					local x,_,z = spGetUnitPosition(id)
 					ux = ux+x
 					uz = uz+z
@@ -290,11 +301,11 @@ function widget:CommandNotify(id, params, options)
 			for i=1,#orderedCommands do
 				local command = orderedCommands[i]
 
-				local Y = Spring.GetGroundHeight(command.x, command.z)
+				local Y = spGetGroundHeight(command.x, command.z)
 				local spotSize = 0 -- GetSpotSize(x, z)
 				if ((i % batchSize == ct % batchSize or i % #orderedCommands == ct % #orderedCommands) and ctrl) or not ctrl then
 					for j=1, mexBuilder[id].buildings do
-						local def = UnitDefs[-mexBuilder[id].building[j]]
+						local def = unitWaterDepth[-mexBuilder[id].building[j]]
 
 						local buildable = 0
 						newx, newz = command.x, command.z
@@ -343,13 +354,13 @@ function widget:CommandNotify(id, params, options)
 						if buildable ~= 0 then
 							spGiveOrderToUnit(id, mexBuilder[id].building[j], {newx,spGetGroundHeight(newx,newz),newz} , {"shift"})
 							break
-						elseif def.maxWaterDepth and -def.maxWaterDepth < Y and def.minWaterDepth and -def.minWaterDepth > Y then
-							local hsize = def.xsize*4
+						elseif def[2] and -def[2] < Y and def[1] and -def[1] > Y then
+							local hsize = unitXsize[-mexBuilder[id].building[j]]*4
 							--local unitsatmex = Spring.GetUnitsInRectangle(command.x-hsize, command.z-hsize, command.x+hsize, command.z + hsize)
 							local blockers = {}
 							for x = command.x - hsize, command.x + hsize, 8 do
 								for z = command.z - hsize, command.z + hsize, 8 do
-									local _,blocker = Spring.GetGroundBlocked(x,z,x+7,z+7)
+									local _,blocker = spGetGroundBlocked(x,z,x+7,z+7)
 									if blocker and not blockers[blocker] then 
 										spGiveOrderToUnit(id, CMD.RECLAIM, {blocker}, {"shift"})
 										blockers[blocker] = true
@@ -398,14 +409,6 @@ function widget:Initialize()
 		widgetHandler:RemoveWidget(self)
 		return
 	end
-	mexIds[UnitDefNames['armmex'].id] = UnitDefNames['armmex'].id 
-	mexIds[UnitDefNames['cormex'].id] = UnitDefNames['cormex'].id 
-	mexIds[UnitDefNames['armmoho'].id] = UnitDefNames['armmoho'].id 
-	mexIds[UnitDefNames['cormoho'].id] = UnitDefNames['cormoho'].id 		
-	mexIds[UnitDefNames['armuwmex'].id] = UnitDefNames['armuwmex'].id 
-	mexIds[UnitDefNames['coruwmex'].id] = UnitDefNames['coruwmex'].id 
-	mexIds[UnitDefNames['armuwmme'].id] = UnitDefNames['armuwmme'].id 
-	mexIds[UnitDefNames['coruwmme'].id] = UnitDefNames['coruwmme'].id 
 	local units = spGetTeamUnits(spGetMyTeamID())
 	for i=1,#units do
 		local id = units[i]

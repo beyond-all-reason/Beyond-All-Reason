@@ -147,7 +147,16 @@ function isBuilder(unitDef)
 end
 
 
-if (gadgetHandler:IsSyncedCode()) then 
+if (gadgetHandler:IsSyncedCode()) then
+
+  local isCommander = {}
+  local unitXsize = {}
+  for unitDefID, unitDef in pairs(UnitDefs) do
+    if unitDef.customParams.iscommander then
+      isCommander[unitDefID] = true
+    end
+    unitXsize[unitDefID] = unitDef.xsize
+  end
 
 -- This part of the code determines who should upgrade what 
 --------------------------------------------------------------------------------------------------------------------------- 
@@ -186,7 +195,7 @@ function gadget:GameFrame(n)
 		local builder = builders[teamID][unitID] 
 		local y = GetGroundHeight(builder.targetX, builder.targetZ) 
 		local blockers = {}
-		local hsize = UnitDefs[builder.targetUpgrade].xsize * 4
+		local hsize = unitXsize[builder.targetUpgrade] * 4
 		for x = builder.targetX - hsize, builder.targetX + hsize, 8 do
 			for z = builder.targetZ - hsize, builder.targetZ + hsize, 8 do
 				local typ,blocker = Spring.GetGroundBlocked(x,z)
@@ -356,13 +365,11 @@ end
 
 function registerUnit(unitID, unitDefID, unitTeam) 
   if builderDefs[unitDefID] then 
-    local builder = {} 
-    local unitDef = UnitDefs[unitDefID] 
-  
+    local builder = {}
     builder.unitDefID = unitDefID    
     builder.autoUpgrade = false 
-    builder.buildDistance = unitDef.buildDistance 
-    builder.humanName = unitDef.humanName 
+    builder.buildDistance = UnitDefs[unitDefID].buildDistance
+    builder.humanName = UnitDefs[unitDefID].humanName
     builder.teamID = unitTeam 
     builders[unitTeam][unitID] = builder 
     
@@ -404,13 +411,13 @@ function assignClosestBuilder(mexID, mex, teamID)
 end 
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID) 
-  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and not ((UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom")) then
+  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and not isCommander[unitDefID] then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end 
 
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam) 
-  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and  not ((UnitDefs[unitDefID].name == "armcom" or UnitDefs[unitDefID].name == "corcom")) then
+  if not ((Spring.GetModOptions().unba or "disabled") == "enabled") and  not isCommander[unitDefID] then
     registerUnit(unitID, unitDefID, unitTeam)
   end
 end 

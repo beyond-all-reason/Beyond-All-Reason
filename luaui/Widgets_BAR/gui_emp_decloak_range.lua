@@ -2,7 +2,7 @@ function widget:GetInfo()
     return {
         name      = "EMP + decloak range",
         desc      = "When spy or gremlin is selected, it displays its decloack range (orange) and emp range (blue)",
-        author    = "[teh]decay aka [teh]undertaker",
+        author    = "[teh]decay",
         date      = "14 feb 2015",
         license   = "The BSD License",
         layer     = 0,

@@ -30,7 +30,8 @@ OPTIONS = {
 
 local givenUnits = {}
 local drawList
-local unitConf = {}
+local unitScale = {}
+local unitHeight = {}
 
 local glDrawListAtUnit			= gl.DrawListAtUnit
 local spIsGUIHidden				= Spring.IsGUIHidden
@@ -41,15 +42,11 @@ local spGetCameraDirection		= Spring.GetCameraDirection
 
 local myTeamID                = Spring.GetLocalTeamID()
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-function SetUnitConf()
-	for udid, unitDef in pairs(UnitDefs) do
-		local xsize, zsize = unitDef.xsize, unitDef.zsize
-		local scale = 6*( xsize^2 + zsize^2 )^0.5
-		unitConf[udid] = 7 + (scale/2.5)
-	end
+for udid, unitDef in pairs(UnitDefs) do
+	local xsize, zsize = unitDef.xsize, unitDef.zsize
+	local scale = 6*( xsize^2 + zsize^2 )^0.5
+	unitScale[udid] = 7 + (scale/2.5)
+	unitHeight[udid] = unitDef.height
 end
 
 
@@ -67,8 +64,8 @@ function AddGivenUnit(unitID)
 	givenUnits[unitID] = {}
 	givenUnits[unitID].osClock			= os.clock()
 	givenUnits[unitID].lastInViewClock	= os.clock()
-	givenUnits[unitID].unitHeight		= UnitDefs[unitDefID].height
-	givenUnits[unitID].unitScale		= unitConf[unitDefID]
+	givenUnits[unitID].unitHeight		= unitHeight[unitDefID]
+	givenUnits[unitID].unitScale		= unitScale[unitDefID]
 	--givenUnits[unitID].lastInViewClock	= Spring.GetGameSeconds() + OPTIONS.timeoutTime
 	--givenUnits[unitID].endSecs			= Spring.GetGameSeconds() + OPTIONS.timeoutTime
 end
@@ -96,7 +93,6 @@ function widget:Initialize()
 	if Spring.IsReplay() or Spring.GetGameFrame() > 0 then
 		maybeRemoveSelf()
 	end
-	SetUnitConf()
 	drawList = gl.CreateList(DrawIcon)
 end
 

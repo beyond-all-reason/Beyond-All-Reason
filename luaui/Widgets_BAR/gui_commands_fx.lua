@@ -242,6 +242,14 @@ local GL_ONE = GL.ONE
 local MAX_UNITS = Game.maxUnits
 local find = string.find
 
+
+local isCritter = {}
+for unitDefID, unitDef in pairs(UnitDefs) do
+	if string.find(unitDef.name, "critter_") then
+		isCritter[unitDefID] = true
+	end
+end
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -491,7 +499,7 @@ end
 local newUnitCommands = {}
 function widget:UnitCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpts, cmdTag, playerID, fromSynced, fromLua)
 	if enabledTeams[teamID] ~= nil then
-		if teamID ~= GaiaTeamID or not string.find(UnitDefs[unitDefID].name, "critter_") then
+		if teamID ~= GaiaTeamID or not isCritter[unitDefID] then
 			if ignoreUnits[unitDefID] == nil then
 				if newUnitCommands[unitID] == nil then		-- only process the first in queue, else when super large queue order is given widget will hog memory and crash
 					addUnitCommand(unitID, unitDefID, cmdID)

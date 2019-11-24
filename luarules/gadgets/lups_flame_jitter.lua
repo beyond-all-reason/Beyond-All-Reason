@@ -71,6 +71,15 @@ else
 
   local lastShoot = {}
 
+  local weaponRange = {}
+  local altflametex = {}
+  for weaponDefID, def in pairs(WeaponDefs) do
+    weaponRange[weaponDefID] = def.range*def.duration*15
+    if def.customParams.altflametex then
+      altflametex[weaponDefID] = def.customParams.altflametex
+    end
+  end
+
   function FlameShot(_,unitID, unitDefID, weapon)
  		if Spring.IsUnitIcon(unitID) then return end 
 	-- why is this even needed? we limited frequency of fire FX back in synced
@@ -84,13 +93,13 @@ else
 	]]--
 
     local posx,posy,posz, dirx,diry,dirz = Spring.GetUnitWeaponVectors(unitID,weapon)
-    local wd  = WeaponDefs[UnitDefs[unitDefID].weapons[weapon].weaponDef]
-    local weaponRange = wd.range*wd.duration*15
+    local wd = UnitDefs[unitDefID].weapons[weapon].weaponDef
+    local weaponRange = weaponRange[wd]
 
     local speedx,speedy,speedz = Spring.GetUnitVelocity(unitID)
     local partpos = "x*delay,y*delay,z*delay|x="..speedx..",y="..speedy..",z="..speedz
 
-	local altFlameTexture = wd.customParams.altflametex	-- FIXME: more elegant solution when this is actually implemented (as in, one that doesn't rely on different unitdef)
+	local altFlameTexture = altflametex[wd]	-- FIXME: more elegant solution when this is actually implemented (as in, one that doesn't rely on different unitdef)
 	
     particleList[particleCnt] = {
       class        = 'JitterParticles2',
