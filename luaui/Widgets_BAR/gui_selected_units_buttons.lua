@@ -96,7 +96,14 @@ local activePress = false
 local mouseIcon = -1
 local currentDef = nil
 local prevUnitCount = spGetSelectedUnitsCounts()
-local oldUnitpics = false
+local alternativeUnitpics = false
+
+local hasAlternativeUnitpic = {}
+for id, def in pairs(UnitDefs) do
+  if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+    hasAlternativeUnitpic[id] = true
+  end
+end
 
 local iconSizeX = 76
 local iconSizeY = 76
@@ -189,7 +196,11 @@ function cacheUnitIcons()
     if cached == nil then
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
+          if alternativeUnitpics and hasAlternativeUnitpic[id] then
+            gl.Texture('unitpics/alternative/'..UnitDefs[id].name..'.dds')
+          else
             gl.Texture('#' .. id)
+          end
             gl.TexRect(-1,-1,0,0)
             gl.Texture(false)
         end
@@ -302,11 +313,11 @@ end
 
 function widget:Initialize()
   WG['selunitbuttons'] = {}
-  WG['selunitbuttons'].getOldUnitIcons = function()
-    return oldUnitpics
+  WG['selunitbuttons'].getAlternativeIcons = function()
+    return alternativeUnitpics
   end
-  WG['selunitbuttons'].setOldUnitIcons = function(value)
-    oldUnitpics = value
+  WG['selunitbuttons'].setAlternativeIcons = function(value)
+    alternativeUnitpics = value
   end
   widget:ViewResize(vsx, vsy)
 end
@@ -404,7 +415,6 @@ function DrawPicList()
   end
 end
 
-
 function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local usedIconImgMult = iconImgMult
   local ypad2 = -usedIconSizeY/50
@@ -432,7 +442,11 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
   local ymid = (ymin + ymax) * 0.5
 
   glColor(color)
-  glTexture('#' .. unitDefID)
+  if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
+    glTexture('unitpics/alternative/'..UnitDefs[unitDefID].name..'.dds')
+  else
+    glTexture('#' .. unitDefID)
+  end
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)
   
@@ -645,12 +659,12 @@ end
 
 
 function widget:GetConfigData()
-  return {oldUnitpics=oldUnitpics}
+  return {alternativeUnitpics=alternativeUnitpics}
 end
 
 function widget:SetConfigData(data) --load config
-  if (data.oldUnitpics ~= nil) then
-    oldUnitpics = data.oldUnitpics
+  if (data.alternativeUnitpics ~= nil) then
+    alternativeUnitpics = data.alternativeUnitpics
   end
 end
 

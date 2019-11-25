@@ -72,7 +72,14 @@ local bopt_inext = {0,0}
 
 local myTeamID = 0
 local inTweak  = 0
-local oldUnitpics = false
+
+local alternativeUnitpics = false
+local hasAlternativeUnitpic = {}
+for id, def in pairs(UnitDefs) do
+  if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+    hasAlternativeUnitpic[id] = true
+  end
+end
 
 -- a nice blur shader
 local useBlurShader   = false   -- it has a fallback, if the gfx don't support glsl
@@ -213,11 +220,11 @@ function widget:Initialize()
   end
 
   WG['buildbar'] = {}
-  WG['buildbar'].getOldUnitIcons = function()
-    return oldUnitpics
+  WG['buildbar'].getAlternativeIcons = function()
+    return alternativeUnitpics
   end
-  WG['buildbar'].setOldUnitIcons = function(value)
-    oldUnitpics = value
+  WG['buildbar'].setAlternativeIcons = function(value)
+    alternativeUnitpics = value
   end
 end
 
@@ -243,7 +250,7 @@ function widget:GetConfigData()
     iconSizeBase = bar_iconSizeBase,
     openByClick  = bar_openByClick,
     autoclose    = bar_autoclose,
-    oldUnitpics  = oldUnitpics,
+    alternativeUnitpics  = alternativeUnitpics,
    -- useBlurShader= useBlurShader
   }
 end
@@ -260,8 +267,8 @@ function widget:SetConfigData(data)
   bar_side         = math.min( math.max(bar_side, 0), 3)
   bar_align        = math.min( math.max(bar_align,-1) ,1)
   --SetupNewScreenAlignment()
-  if data.oldUnitpics ~= nil then
-    oldUnitpics = data.oldUnitpics
+  if data.alternativeUnitpics ~= nil then
+    alternativeUnitpics = data.alternativeUnitpics
   end
   -- shader
   --useBlurShader    = data.useBlurShader or true
@@ -451,8 +458,8 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
   end
 
   local tex = '#' .. unitDefID
-  if oldUnitpics and unitName[unitDefID] ~= nil and VFS.FileExists('unitpics/'..unitName[unitDefID]..'.dds') then
-    tex = 'unitpics/'..unitName[unitDefID]..'.dds'
+  if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
+    tex = 'unitpics/alternative/'..unitName[unitDefID]..'.dds'
   end
 
   DrawTexRect(imgRect, tex, {1,1,1,iconAlpha})

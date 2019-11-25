@@ -48,8 +48,17 @@ local drawRadaricon = true
 local largePrice = true
 local shortcutsInfo = false
 local largeUnitIcons = true
-local mouseClicked = 0
 
+local alternativeUnitpics = false
+local alternativeUnitpicsDir   = "unitpics/alternative/"
+local hasAlternativeUnitpic = {}
+for id, def in pairs(UnitDefs) do
+	if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+		hasAlternativeUnitpic[id] = true
+	end
+end
+
+local mouseClicked = 0
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (1 + (vsx*vsy / 7500000))
 
@@ -735,7 +744,11 @@ local function UpdateGrid(g,cmds,ordertype)
 			}
 
 			if (ordertype == 1) then --build icons
-				icon.texture = "#"..cmd.id*-1
+				if alternativeUnitpics and hasAlternativeUnitpic[cmd.id*-1] then
+					icon.texture = alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds'
+				else
+					icon.texture = "#"..cmd.id*-1
+				end
 				icon.udid = cmd.id*-1
 
 				if (cmd.params[1]) then
@@ -786,12 +799,12 @@ local function UpdateGrid(g,cmds,ordertype)
 							if building == 0 then
 								captionColor = skyblue
 							end
-							shotcutCaption = captionColor.."  "..buildLetters[buildStartKey-96].."→"..buildLetters[buildKeys[i]-96]
+							shotcutCaption = captionColor.."  "..buildLetters[buildStartKey-96].."-"..buildLetters[buildKeys[i]-96]
 						elseif i <= 30 then
 							if building == 1 then
 								captionColor = skyblue
 							end
-							shotcutCaption = captionColor.."  "..buildLetters[buildNextKey-96].."→"..buildLetters[buildKeys[i-15]-96]
+							shotcutCaption = captionColor.."  "..buildLetters[buildNextKey-96].."-"..buildLetters[buildKeys[i-15]-96]
 						end
 					end
 
@@ -801,10 +814,15 @@ local function UpdateGrid(g,cmds,ordertype)
 						-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 						local str = tostring(math.max(metalCost, energyCost))
 						local addedSpaces = "                "			-- too bad 1 space isnt as wide as 1 number in the used font
-						local infoNewline = '\n'
+						local infoNewline = ''
+						if not alternativeUnitpics then
+							infoNewline = '\n'
+						end
 						if largePrice then
 							addedSpaces =   "             "			-- too bad 1 space isnt as wide as 1 number in the used font
-							infoNewline = '\n'
+							if not alternativeUnitpics then
+								infoNewline = '\n'
+							end
 						end
 						metalCost = ' '..metalCost
 						energyCost = ' '..energyCost
@@ -1168,9 +1186,12 @@ function widget:Initialize()
   WG['red_buildmenu'].getConfigPlaySounds = function()
   	return playSounds
   end
-  WG['red_buildmenu'].getConfigLargeUnitIcons = function()
-  	return largeUnitIcons
-  end
+	WG['red_buildmenu'].getConfigLargeUnitIcons = function()
+		return largeUnitIcons
+	end
+	WG['red_buildmenu'].getConfigAlternativeIcons = function()
+		return alternativeUnitpics
+	end
 
   WG['red_buildmenu'].setConfigUnitPrice = function(value)
   	drawPrice = value
@@ -1197,6 +1218,9 @@ function widget:Initialize()
 	largeUnitIcons = value
 	Spring.SendCommands("luarules reloadluaui")
   end
+  WG['red_buildmenu'].setConfigAlternativeIcons = function(value)
+  	alternativeUnitpics = value
+  end
 end
 
 
@@ -1214,7 +1238,7 @@ function widget:GetConfigData() --save config
 		Config.buildmenu.py = buildmenu.background.py * unscale
 		Config.ordermenu.px = ordermenu.background.px * unscale
 		Config.ordermenu.py = ordermenu.background.py * unscale
-		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawRadaricon=drawRadaricon, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, shortcutsInfo=shortcutsInfo, playSounds=playSounds, largeUnitIcons=largeUnitIcons}
+		return {Config=Config, iconScaling=iconScaling, drawPrice=drawPrice, drawRadaricon=drawRadaricon, drawTooltip=drawTooltip, drawBigTooltip=drawBigTooltip, largePrice=largePrice, shortcutsInfo=shortcutsInfo, playSounds=playSounds, largeUnitIcons=largeUnitIcons, alternativeUnitpics=alternativeUnitpics}
 	end
 end
 function widget:SetConfigData(data) --load config
@@ -1249,6 +1273,9 @@ function widget:SetConfigData(data) --load config
 		end
 		if (data.playSounds ~= nil) then
 			playSounds = data.playSounds
+		end
+		if (data.alternativeUnitpics ~= nil) then
+			alternativeUnitpics = data.alternativeUnitpics
 		end
 	end
 end

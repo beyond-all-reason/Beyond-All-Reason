@@ -63,7 +63,13 @@ local bgcorner = "LuaUI/Images/bgcorner.png"
 local buttonhighlight = ":n:LuaUI/Images/button-highlight.dds"
 local buttonpushed = ":n:LuaUI/Images/button-pushed.dds"
 local customScale = 0.95
-local oldUnitpics = false
+local alternativeUnitpics = false
+local hasAlternativeUnitpic = {}
+for id, def in pairs(UnitDefs) do
+	if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+		hasAlternativeUnitpic[id] = true
+	end
+end
 
 -- Colors
 local buildDistanceColor = {0.3, 1.0, 0.3, 0.6}
@@ -414,11 +420,11 @@ end
 
 function widget:Initialize()
 	WG['initialqueue'] = {}
-	WG['initialqueue'].getOldUnitIcons = function()
-		return oldUnitpics
+	WG['initialqueue'].getAlternativeIcons = function()
+		return alternativeUnitpics
 	end
-	WG['initialqueue'].setOldUnitIcons = function(value)
-		oldUnitpics = value
+	WG['initialqueue'].setAlternativeIcons = function(value)
+		alternativeUnitpics = value
 		local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
 		InitializeFaction(UnitDefNames[Spring.GetSideData(mySide)].id)
 	end
@@ -540,8 +546,8 @@ function InitializeFaction(sDefID)
 
 						gl.Color(1, 1, 1, 1)
 
-						if oldUnitpics and UnitDefs[cellRow[c]] ~= nil and VFS.FileExists('unitpics/'..UnitDefs[cellRow[c]].name..'.dds') then
-							gl.Texture('unitpics/'..UnitDefs[cellRow[c]].name..'.dds')
+						if alternativeUnitpics and hasAlternativePic[cellRow[c]] then
+							gl.Texture('unitpics/alternative/'..UnitDefs[cellRow[c]].name..'.dds')
 						else
 							gl.Texture('#' .. cellRow[c])
 						end
@@ -593,7 +599,7 @@ end
 
 function widget:GetConfigData()
 	savedTable = {}
-	savedTable.oldUnitpics	= oldUnitpics
+	savedTable.alternativeUnitpics	= alternativeUnitpics
 	if (Spring.GetSpectatingState()) then return end
 	--local wWidth, wHeight = Spring.GetWindowGeometry()
 	--return {wl / wWidth, wt / wHeight}
@@ -628,8 +634,8 @@ function widget:SetConfigData(data)
 	--local wWidth, wHeight = Spring.GetWindowGeometry()
 	--wl = math.floor(wWidth * (data[1] or 0.40))
 	--wt = math.floor(wHeight * (data[2] or 0.10))
-	if data.oldUnitpics ~= nil then
-		oldUnitpics = data.oldUnitpics
+	if data.alternativeUnitpics ~= nil then
+		alternativeUnitpics = data.alternativeUnitpics
 	end
 	if data.wt ~= nil and data.wl ~= nil and data.bgwidth ~= nil and data.bgheight ~= nil then
 		wt = data.wt

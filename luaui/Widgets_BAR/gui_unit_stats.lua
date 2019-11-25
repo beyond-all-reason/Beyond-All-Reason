@@ -124,7 +124,14 @@ local uDefs = UnitDefs
 local wDefs = WeaponDefs
 
 local triggerKey = KEYSYMS.SPACE
-local oldUnitpics = false
+
+local alternativeUnitpics = false
+local hasAlternativeUnitpic = {}
+for id, def in pairs(UnitDefs) do
+	if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+		hasAlternativeUnitpic[id] = true
+	end
+end
 
 local myTeamID = Spring.GetMyTeamID
 local spGetTeamRulesParam = Spring.GetTeamRulesParam
@@ -232,11 +239,11 @@ end
 
 function widget:Initialize()
 	WG['unitstats'] = {}
-	WG['unitstats'].getOldUnitIcons = function()
-		return oldUnitpics
+	WG['unitstats'].getAlternativeIcons = function()
+		return alternativeUnitpics
 	end
-	WG['unitstats'].setOldUnitIcons = function(value)
-		oldUnitpics = value
+	WG['unitstats'].setAlternativeIcons = function(value)
+		alternativeUnitpics = value
 	end
 	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 		VFS.Include("gamedata/unbaconfigs/stats.lua")
@@ -711,7 +718,11 @@ function widget:DrawScreen()
 	-- icon
 	if uID then
 		glColor(1,1,1,1)
-		glTexture('#' .. uDefID)
+		if alternativeUnitpics and hasAlternativeUnitpic[uDefID] then
+			glTexture('unitpics/alternative/'..UnitDefs[uDefID].name..'.dds')
+		else
+			glTexture('#' .. uDefID)
+		end
 		glTexRect(cX, cYstart+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cYstart+cornersize+iconHalfSize)
 		glTexture(false)
 	end
