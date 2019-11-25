@@ -553,8 +553,8 @@ local function CreateGrid(r)
 
 			local iconsize = 0.28
 			b = New(Copy(radaricon,true))
-			b.px = background.px +r.margin + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/1.33)
-			b.py = background.py +r.margin + (y-1)*(r.ispready + r.isy) -(r.margin/1.33) +(b.sy*(1-iconsize))
+			b.px = background.px +(r.margin/1.5) + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/1.33)
+			b.py = background.py +(r.margin/1.5) + (y-1)*(r.ispready + r.isy) -(r.margin/1.33) +(b.sy*(1-iconsize))
 			b.sx = b.sx*iconsize
 			b.sy = b.sy*iconsize
 			background.movableslaves[#background.movableslaves+1] = b
@@ -799,30 +799,24 @@ local function UpdateGrid(g,cmds,ordertype)
 							if building == 0 then
 								captionColor = skyblue
 							end
-							shotcutCaption = captionColor.."  "..buildLetters[buildStartKey-96].."-"..buildLetters[buildKeys[i]-96]
+							shotcutCaption = captionColor.." "..buildLetters[buildStartKey-96].."-"..buildLetters[buildKeys[i]-96]
 						elseif i <= 30 then
 							if building == 1 then
 								captionColor = skyblue
 							end
-							shotcutCaption = captionColor.."  "..buildLetters[buildNextKey-96].."-"..buildLetters[buildKeys[i-15]-96]
+							shotcutCaption = captionColor.." "..buildLetters[buildNextKey-96].."-"..buildLetters[buildKeys[i-15]-96]
 						end
 					end
 
 					if not drawPrice then
-						text.caption = ""..shotcutCaption.."\n\n\n\n"
+						text.caption = shotcutCaption.."\n\n\n\n"
 					else
 						-- redui adjusts position based on text length, so adding spaces helps us putting it at the left side of the icon
 						local str = tostring(math.max(metalCost, energyCost))
 						local addedSpaces = "                "			-- too bad 1 space isnt as wide as 1 number in the used font
 						local infoNewline = ''
-						if not alternativeUnitpics then
-							infoNewline = '\n'
-						end
 						if largePrice then
-							addedSpaces =   "             "			-- too bad 1 space isnt as wide as 1 number in the used font
-							if not alternativeUnitpics then
-								infoNewline = '\n'
-							end
+							addedSpaces =   "           "			-- too bad 1 space isnt as wide as 1 number in the used font
 						end
 						metalCost = ' '..metalCost
 						energyCost = ' '..energyCost
@@ -838,7 +832,7 @@ local function UpdateGrid(g,cmds,ordertype)
 						for digit in string.gmatch(str, "%d") do
 						  addedSpaces = string.sub(addedSpaces, 0, -2)
 						end
-						text.caption = ""..shotcutCaption.."\n\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces
+						text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces.."\n "
 					end
 					text.options = "bs"
 					if drawRadaricon then
