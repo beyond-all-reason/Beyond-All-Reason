@@ -1,0 +1,14 @@
+
+frame  anims/cursornumber_00.png  0.600
+frame  anims/cursornumber_01.png  0.200
+frame  anims/cursornumber_02.png  0.200
+frame  anims/cursornumber_03.png  0.400
+frame  anims/cursornumber_04.png  0.200
+frame  anims/cursornumber_05.png  0.200
+frame  anims/cursornumber_06.png  0.400
+frame  anims/cursornumber_07.png  0.200
+frame  anims/cursornumber_08.png  0.200
+frame  anims/cursornumber_09.png  0.400
+frame  anims/cursornumber_10.png  0.200
+frame  anims/cursornumber_11.png  0.200
+

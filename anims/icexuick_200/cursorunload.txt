@@ -1,0 +1,22 @@
+hotspot center
+frame  anims/cursorunload_0.png 0.1
+frame  anims/cursorunload_1.png 0.1
+frame  anims/cursorunload_2.png 0.1
+frame  anims/cursorunload_3.png 0.1
+frame  anims/cursorunload_4.png 0.1
+frame  anims/cursorunload_5.png 0.1
+frame  anims/cursorunload_6.png 0.1
+frame  anims/cursorunload_7.png 0.1
+frame  anims/cursorunload_8.png 0.1
+frame  anims/cursorunload_9.png 0.1
+frame  anims/cursorunload_10.png 0.1
+frame  anims/cursorunload_9.png 0.1
+frame  anims/cursorunload_8.png 0.1
+frame  anims/cursorunload_7.png 0.1
+frame  anims/cursorunload_6.png 0.1
+frame  anims/cursorunload_5.png 0.1
+frame  anims/cursorunload_4.png 0.1
+frame  anims/cursorunload_3.png 0.1
+frame  anims/cursorunload_2.png 0.1
+frame  anims/cursorunload_1.png 0.1
+frame  anims/cursorunload_0.png 0.1

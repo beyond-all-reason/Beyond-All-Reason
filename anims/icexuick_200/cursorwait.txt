@@ -1,0 +1,26 @@
+hotspot center
+frame  anims/cursorwait_0.png 0.05
+frame  anims/cursorwait_1.png 0.05
+frame  anims/cursorwait_2.png 0.05
+frame  anims/cursorwait_3.png 0.05
+frame  anims/cursorwait_4.png 0.05
+frame  anims/cursorwait_5.png 0.05
+frame  anims/cursorwait_6.png 0.2
+frame  anims/cursorwait_7.png 0.05
+frame  anims/cursorwait_8.png 0.05
+frame  anims/cursorwait_9.png 0.05
+frame  anims/cursorwait_10.png 0.05
+frame  anims/cursorwait_11.png 0.05
+frame  anims/cursorwait_12.png 0.05
+frame  anims/cursorwait_14.png 0.05
+frame  anims/cursorwait_14.png 0.05
+frame  anims/cursorwait_15.png 0.05
+frame  anims/cursorwait_16.png 0.05
+frame  anims/cursorwait_17.png 0.05
+frame  anims/cursorwait_6.png 0.2
+frame  anims/cursorwait_5.png 0.05
+frame  anims/cursorwait_4.png 0.05
+frame  anims/cursorwait_3.png 0.05
+frame  anims/cursorwait_2.png 0.05
+frame  anims/cursorwait_1.png 0.05
+frame  anims/cursorwait_0.png 0.5
