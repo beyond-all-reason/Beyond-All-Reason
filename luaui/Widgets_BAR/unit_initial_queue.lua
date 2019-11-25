@@ -441,6 +441,7 @@ function widget:Initialize()
 		WG["faction_change"] = InitializeFaction
 	end
 	processGuishader()
+	widget:ViewResize(vsx,vsy)
 end
 
 function processGuishader()
@@ -777,7 +778,7 @@ function widget:DrawWorld()
 		sy = Spring.GetGroundHeight(sx, sz)
 
 		-- Draw the starting unit at start position
-		DrawUnitDef(sDefID, myTeamID, sx, sy, sz)
+		--DrawUnitDef(sDefID, myTeamID, sx, sy, sz)
 
 		-- Draw start units build radius
 		gl.Color(buildDistanceColor)
