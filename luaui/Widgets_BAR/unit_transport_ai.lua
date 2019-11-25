@@ -76,7 +76,7 @@ local isTransport = {}
 local isTransportable = {}
 local unitAssistBuilder = {}
 local isGroundscout = {}
-local unitspeed = {}
+local unitSpeed = {}
 local unitXsize = {}
 local unitMass = {}
 local unitTransportSize = {}
@@ -98,7 +98,7 @@ for uDefID, uDef in pairs(UnitDefs) do
   if uDef.modCategories.groundscout then
     isGroundscout[uDefID] = true
   end
-  unitspeed[uDefID] = uDef.speed
+  unitSpeed[uDefID] = uDef.speed
   unitXsize[uDefID] = uDef.xisze
   unitMass[uDefID] = uDef.mass
   unitTransportSize[uDefID] = uDef.transportSize
