@@ -54,8 +54,8 @@ function NearestValue(table, number)
 end
 
 function widget:ViewResize()
-	local ssx,ssy = Spring.GetScreenGeometry()
-	autoCursorSize = 100 * (0.55 + (ssx*ssy / 6600000)) * sizeMult
+	local ssx,ssy = Spring.GetScreenGeometry()	-- doesnt change when you unplug external display
+	autoCursorSize = 100 * (0.6 + (ssx*ssy / 10000000)) * sizeMult
 	SetCursor(Settings['cursorSet'])
 end
 
@@ -98,6 +98,7 @@ end
 ----------------------------
 -- load cursors
 function SetCursor(cursorSet)
+	--Spring.Echo(autoCursorSize..'   '..cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)])
 	local oldSetName = Settings['cursorSet']..'_'..Settings['cursorSize']
 	Settings['cursorSet'] = cursorSet
 	Settings['cursorSize'] = cursorSets[cursorSet][NearestValue(cursorSets[cursorSet], autoCursorSize)]

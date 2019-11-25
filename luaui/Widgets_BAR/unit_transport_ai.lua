@@ -99,7 +99,7 @@ for uDefID, uDef in pairs(UnitDefs) do
     isGroundscout[uDefID] = true
   end
   unitSpeed[uDefID] = uDef.speed
-  unitXsize[uDefID] = uDef.xisze
+  unitXsize[uDefID] = uDef.xsize
   unitMass[uDefID] = uDef.mass
   unitTransportSize[uDefID] = uDef.transportSize
   unitTransportCapacity[uDefID] = uDef.transportCapacity
