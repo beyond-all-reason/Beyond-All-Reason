@@ -128,8 +128,10 @@ local triggerKey = KEYSYMS.SPACE
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
 for id, def in pairs(UnitDefs) do
-	if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-		hasAlternativeUnitpic[id] = true
+	if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
+		hasAlternativeUnitpic[id] = '.png'
+	elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+		hasAlternativeUnitpic[id] = '.dds'
 	end
 end
 
@@ -719,7 +721,7 @@ function widget:DrawScreen()
 	if uID then
 		glColor(1,1,1,1)
 		if alternativeUnitpics and hasAlternativeUnitpic[uDefID] then
-			glTexture('unitpics/alternative/'..UnitDefs[uDefID].name..'.dds')
+			glTexture('unitpics/alternative/'..UnitDefs[uDefID].name..hasAlternativeUnitpic[uDefID])
 		else
 			glTexture('#' .. uDefID)
 		end

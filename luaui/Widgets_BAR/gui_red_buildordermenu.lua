@@ -53,8 +53,10 @@ local alternativeUnitpics = false
 local alternativeUnitpicsDir   = "unitpics/alternative/"
 local hasAlternativeUnitpic = {}
 for id, def in pairs(UnitDefs) do
-	if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-		hasAlternativeUnitpic[id] = true
+	if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
+		hasAlternativeUnitpic[id] = '.png'
+	elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+		hasAlternativeUnitpic[id] = '.dds'
 	end
 end
 
@@ -745,7 +747,7 @@ local function UpdateGrid(g,cmds,ordertype)
 
 			if (ordertype == 1) then --build icons
 				if alternativeUnitpics and hasAlternativeUnitpic[cmd.id*-1] then
-					icon.texture = alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..'.dds'
+					icon.texture = alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
 				else
 					icon.texture = "#"..cmd.id*-1
 				end

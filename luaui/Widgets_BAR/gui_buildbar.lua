@@ -76,8 +76,10 @@ local inTweak  = 0
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
 for id, def in pairs(UnitDefs) do
-  if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-    hasAlternativeUnitpic[id] = true
+  if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
+    hasAlternativeUnitpic[id] = '.png'
+  elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+    hasAlternativeUnitpic[id] = '.dds'
   end
 end
 
@@ -459,7 +461,7 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 
   local tex = '#' .. unitDefID
   if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
-    tex = 'unitpics/alternative/'..unitName[unitDefID]..'.dds'
+    tex = 'unitpics/alternative/'..unitName[unitDefID]..hasAlternativeUnitpic[unitDefID]
   end
 
   DrawTexRect(imgRect, tex, {1,1,1,iconAlpha})

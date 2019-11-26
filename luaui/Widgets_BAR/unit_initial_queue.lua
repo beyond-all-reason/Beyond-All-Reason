@@ -66,8 +66,10 @@ local customScale = 0.95
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
 for id, def in pairs(UnitDefs) do
-	if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-		hasAlternativeUnitpic[id] = true
+	if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
+		hasAlternativeUnitpic[id] = '.png'
+	elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+		hasAlternativeUnitpic[id] = '.dds'
 	end
 end
 
@@ -546,8 +548,8 @@ function InitializeFaction(sDefID)
 
 						gl.Color(1, 1, 1, 1)
 
-						if alternativeUnitpics and hasAlternativePic[cellRow[c]] then
-							gl.Texture('unitpics/alternative/'..UnitDefs[cellRow[c]].name..'.dds')
+						if alternativeUnitpics and hasAlternativeUnitpic[cellRow[c]] then
+							gl.Texture('unitpics/alternative/'..UnitDefs[cellRow[c]].name..hasAlternativeUnitpic[cellRow[c]])
 						else
 							gl.Texture('#' .. cellRow[c])
 						end

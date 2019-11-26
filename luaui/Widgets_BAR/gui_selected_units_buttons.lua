@@ -100,8 +100,10 @@ local alternativeUnitpics = false
 
 local hasAlternativeUnitpic = {}
 for id, def in pairs(UnitDefs) do
-  if VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-    hasAlternativeUnitpic[id] = true
+  if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
+    hasAlternativeUnitpic[id] = '.png'
+  elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
+    hasAlternativeUnitpic[id] = '.dds'
   end
 end
 
@@ -197,7 +199,7 @@ function cacheUnitIcons()
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
           if alternativeUnitpics and hasAlternativeUnitpic[id] then
-            gl.Texture('unitpics/alternative/'..UnitDefs[id].name..'.dds')
+            gl.Texture('unitpics/alternative/'..UnitDefs[id].name..hasAlternativeUnitpic[id])
           else
             gl.Texture('#' .. id)
           end
@@ -443,7 +445,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   glColor(color)
   if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
-    glTexture('unitpics/alternative/'..UnitDefs[unitDefID].name..'.dds')
+    glTexture('unitpics/alternative/'..UnitDefs[unitDefID].name..hasAlternativeUnitpic[unitDefID])
   else
     glTexture('#' .. unitDefID)
   end
