@@ -721,7 +721,7 @@ function widget:DrawScreen()
 	if uID then
 		glColor(1,1,1,1)
 		if alternativeUnitpics and hasAlternativeUnitpic[uDefID] then
-			glTexture('unitpics/alternative/'..UnitDefs[uDefID].name..hasAlternativeUnitpic[uDefID])
+			glTexture(':lcr80,80:unitpics/alternative/'..UnitDefs[uDefID].name..hasAlternativeUnitpic[uDefID])
 		else
 			glTexture('#' .. uDefID)
 		end

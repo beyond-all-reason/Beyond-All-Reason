@@ -461,7 +461,7 @@ local function DrawButton(rect, unitDefID, options, iconResize, isFac)
 
   local tex = '#' .. unitDefID
   if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
-    tex = 'unitpics/alternative/'..unitName[unitDefID]..hasAlternativeUnitpic[unitDefID]
+    tex = ':lcr128,128:unitpics/alternative/'..unitName[unitDefID]..hasAlternativeUnitpic[unitDefID]
   end
 
   DrawTexRect(imgRect, tex, {1,1,1,iconAlpha})

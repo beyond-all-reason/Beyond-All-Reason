@@ -549,7 +549,7 @@ function InitializeFaction(sDefID)
 						gl.Color(1, 1, 1, 1)
 
 						if alternativeUnitpics and hasAlternativeUnitpic[cellRow[c]] then
-							gl.Texture('unitpics/alternative/'..UnitDefs[cellRow[c]].name..hasAlternativeUnitpic[cellRow[c]])
+							gl.Texture(':lcr128,128:unitpics/alternative/'..UnitDefs[cellRow[c]].name..hasAlternativeUnitpic[cellRow[c]])
 						else
 							gl.Texture('#' .. cellRow[c])
 						end

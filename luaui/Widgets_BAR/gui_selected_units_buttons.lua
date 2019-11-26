@@ -199,7 +199,7 @@ function cacheUnitIcons()
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
           if alternativeUnitpics and hasAlternativeUnitpic[id] then
-            gl.Texture('unitpics/alternative/'..UnitDefs[id].name..hasAlternativeUnitpic[id])
+            gl.Texture(':lcr96,96:unitpics/alternative/'..UnitDefs[id].name..hasAlternativeUnitpic[id])
           else
             gl.Texture('#' .. id)
           end
@@ -445,7 +445,7 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   glColor(color)
   if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
-    glTexture('unitpics/alternative/'..UnitDefs[unitDefID].name..hasAlternativeUnitpic[unitDefID])
+    glTexture(':lcr96,96:unitpics/alternative/'..UnitDefs[unitDefID].name..hasAlternativeUnitpic[unitDefID])
   else
     glTexture('#' .. unitDefID)
   end

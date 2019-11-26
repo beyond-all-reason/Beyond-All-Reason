@@ -747,7 +747,7 @@ local function UpdateGrid(g,cmds,ordertype)
 
 			if (ordertype == 1) then --build icons
 				if alternativeUnitpics and hasAlternativeUnitpic[cmd.id*-1] then
-					icon.texture = alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
+					icon.texture = ':lcr128,128:'..alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
 				else
 					icon.texture = "#"..cmd.id*-1
 				end
