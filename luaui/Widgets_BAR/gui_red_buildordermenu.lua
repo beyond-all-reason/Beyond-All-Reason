@@ -747,7 +747,7 @@ local function UpdateGrid(g,cmds,ordertype)
 
 			if (ordertype == 1) then --build icons
 				if alternativeUnitpics and hasAlternativeUnitpic[cmd.id*-1] then
-					icon.texture = ':lcr128,128:'..alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
+					icon.texture = ':lr128,128:'..alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
 				else
 					icon.texture = "#"..cmd.id*-1
 				end
@@ -838,7 +838,7 @@ local function UpdateGrid(g,cmds,ordertype)
 					end
 					text.options = "bs"
 					if drawRadaricon then
-						g.radaricons[i].texture = iconTypesMap[unitIconType[icon.udid]]
+						g.radaricons[i].texture = ':lr64,64:'..iconTypesMap[unitIconType[icon.udid]]
 					end
 				end
 			else
