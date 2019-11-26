@@ -759,3 +759,15 @@ function widget:DrawScreen()
 
 ------------------------------------------------------------------------------------
 end
+
+function widget:GetConfigData()
+	return {
+		alternativeUnitpics  = alternativeUnitpics,
+	}
+end
+
+function widget:SetConfigData(data)
+	if data.alternativeUnitpics ~= nil then
+		alternativeUnitpics = data.alternativeUnitpics
+	end
+end
