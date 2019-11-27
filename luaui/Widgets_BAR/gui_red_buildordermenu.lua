@@ -818,10 +818,10 @@ local function UpdateGrid(g,cmds,ordertype)
 						local addedSpaces = "                "			-- too bad 1 space isnt as wide as 1 number in the used font
 						local infoNewline = ''
 						if largePrice then
-							addedSpaces =   "             "			-- too bad 1 space isnt as wide as 1 number in the used font
+							addedSpaces =   "               "			-- too bad 1 space isnt as wide as 1 number in the used font
 						end
-						metalCost = ''..metalCost
-						energyCost = ''..energyCost
+						metalCost = metalCost
+						energyCost = energyCost
 						if tonumber(energyCost) < 10 then
 							energyCost = energyCost .. '       '
 						elseif tonumber(energyCost) < 100 then
@@ -834,11 +834,11 @@ local function UpdateGrid(g,cmds,ordertype)
 						for digit in string.gmatch(str, "%d") do
 						  addedSpaces = string.sub(addedSpaces, 0, -2)
 						end
-						text.caption = "\n"..shotcutCaption.."\n\n\n"..infoNewline..'\255\240\240\240'..metalCost.."\n"..yellow..energyCost..addedSpaces.."\n "
+						text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..'\255\240\240\240  '..metalCost.."\n  "..yellow..energyCost..addedSpaces..""
 					end
 					text.options = "bs"
 					if drawRadaricon then
-						g.radaricons[i].texture = ':lr64,64:'..iconTypesMap[unitIconType[icon.udid]]
+						g.radaricons[i].texture = ':lr56,56:'..iconTypesMap[unitIconType[icon.udid]]
 					end
 				end
 			else
