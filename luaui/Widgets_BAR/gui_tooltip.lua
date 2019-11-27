@@ -49,7 +49,7 @@ local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSi
 -- Speedups
 ------------------------------------------------------------------------------------
 
-local bgcorner				= "LuaUI/Images/bgcorner.png"
+local bgcorner				= ":l:LuaUI/Images/bgcorner.png"
 local glColor = gl.Color
 local glText = gl.Text
 local glRect = gl.Rect

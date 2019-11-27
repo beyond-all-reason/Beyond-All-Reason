@@ -38,14 +38,14 @@ local resourceclick = 'LuaUI/Sounds/buildbar_click.wav'
 local middleclick = 'LuaUI/Sounds/buildbar_click.wav'
 local rightclick = 'LuaUI/Sounds/buildbar_rem.wav'
 
-local bgcorner = "LuaUI/Images/bgcorner.png"
-local barbg = ":n:LuaUI/Images/resbar.dds"
-local barGlowCenterTexture = ":n:LuaUI/Images/barglow-center.png"
-local barGlowEdgeTexture = ":n:LuaUI/Images/barglow-edge.png"
-local bladesTexture = ":c:LuaUI/Images/blades.png"
-local poleTexture = "LuaUI/Images/pole.png"
-local comTexture = "LuaUI/Images/comIcon.png"
-local glowTexture = "LuaUI/Images/glow.dds"
+local bgcorner = ":l:LuaUI/Images/bgcorner.png"
+local barbg = ":l:LuaUI/Images/resbar.dds"
+local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
+local barGlowEdgeTexture = ":l:LuaUI/Images/barglow-edge.png"
+local bladesTexture = ":l:LuaUI/Images/blades.png"
+local poleTexture = ":l:LuaUI/Images/pole.png"
+local comTexture = ":l:LuaUI/Images/comIcon.png"
+local glowTexture = ":l:LuaUI/Images/glow.dds"
 
 local vsx, vsy = gl.GetViewSizes()
 local widgetScale = (0.80 + (vsx*vsy / 6000000))
@@ -783,9 +783,9 @@ local function updateResbar(res)
 		glColor(1,1,1,1)
 		local iconPadding = (area[4] - area[2]) / 9
 		if res == 'metal' then
-			glTexture(":lr64,64:LuaUI/Images/metal.png")
+			glTexture(":l:LuaUI/Images/metal.png")
 		else
-			glTexture(":lr64,64:LuaUI/Images/energy.png")
+			glTexture(":l:LuaUI/Images/energy.png")
 		end
 		glTexRect(area[1]+iconPadding, area[2]+iconPadding, area[1]+(height*widgetScale)-iconPadding, area[4]-iconPadding)
 		glTexture(false)

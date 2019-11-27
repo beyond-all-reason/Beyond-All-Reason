@@ -80,8 +80,8 @@ end
 local ui_opacityMultiplier = 0.6
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66) * ui_opacityMultiplier
 
-local bgcorner = ":n:LuaUI/Images/bgcorner.png"
-local highlightImg = ":n:LuaUI/Images/button-highlight.dds"
+local bgcorner = ":l:LuaUI/Images/bgcorner.png"
+local highlightImg = ":l:LuaUI/Images/button-highlight.dds"
 
 local iconsPerRow = 16		-- not functional yet, I doubt I will put this in
 

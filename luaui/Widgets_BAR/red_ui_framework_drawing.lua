@@ -12,7 +12,7 @@ function widget:GetInfo()
 end
 
 local bgcornerSize = 8
-local bgcorner = "LuaUI/Images/bgcorner.png"
+local bgcorner = ":l:LuaUI/Images/bgcorner.png"
 	
 local TN = "Red_Drawing" --WG name for function list
 local version = 9

@@ -90,10 +90,10 @@ local Config = {
 		isx = 45,isy = 40, --icon size
 		ix = 5,iy = 8, --icons x/y
 		
-		roundedPercentage = 0.2,	-- 0.25 == iconsize / 4 == cornersize
+		roundedPercentage = 0.07,	-- 0.25 == iconsize / 4 == cornersize
 		
-		iconscale = 0.9,
-		iconhoverscale = 0.9,
+		iconscale = 0.91,
+		iconhoverscale = 0.91,
 		ispreadx=0,ispready=0, --space between icons
 		
 		margin = 5, --distance from background border
@@ -120,7 +120,7 @@ local Config = {
 		isx = 45,isy = 33,
 		ix = 5,iy = 4,
 		
-		roundedPercentage = 0.28,	-- 0.25 == iconsize / 4 == cornersize
+		roundedPercentage = 0.1,	-- 0.25 == iconsize / 4 == cornersize
 		
 		iconscale = 0.94,
 		iconhoverscale = 0.94,
@@ -553,10 +553,10 @@ local function CreateGrid(r)
 			background.movableslaves[#background.movableslaves+1] = b
 			queuetexts[#queuetexts+1] = b
 
-			local iconsize = 0.28
+			local iconsize = 0.27
 			b = New(Copy(radaricon,true))
-			b.px = background.px +(r.margin/1.5) + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/1.33)
-			b.py = background.py +(r.margin/1.5) + (y-1)*(r.ispready + r.isy) -(r.margin/1.33) +(b.sy*(1-iconsize))
+			b.px = background.px + (r.margin/1.5) + (x-1)*(r.ispreadx + r.isx) + b.sx*(1-iconsize) -(r.margin/1.33)
+			b.py = background.py + (r.margin/1.5) + (y-1)*(r.ispready + r.isy) -(r.margin/1.33) +(b.sy*(1-iconsize))
 			b.sx = b.sx*iconsize
 			b.sy = b.sy*iconsize
 			background.movableslaves[#background.movableslaves+1] = b
@@ -834,7 +834,7 @@ local function UpdateGrid(g,cmds,ordertype)
 						for digit in string.gmatch(str, "%d") do
 						  addedSpaces = string.sub(addedSpaces, 0, -2)
 						end
-						text.caption = "\n"..shotcutCaption.."\n\n"..infoNewline..'\255\240\240\240  '..metalCost.."\n  "..yellow..energyCost..addedSpaces..""
+						text.caption = "  "..shotcutCaption.."\n\n\n"..infoNewline..'\255\240\240\240  '..metalCost.."\n  "..yellow..energyCost..addedSpaces..""
 					end
 					text.options = "bs"
 					if drawRadaricon then

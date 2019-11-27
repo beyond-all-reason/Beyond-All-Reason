@@ -89,7 +89,7 @@ local blured          = false
 local blurFullscreen  = function() return end
 
 local bgcorner		= "LuaUI/Images/bgcorner.png"
-local repeatPic		= ":n:LuaUI/Images/repeat.png"
+local repeatPic		= ":lr64,64:LuaUI/Images/repeat.png"
 
 local GL_ONE                   = GL.ONE
 local GL_ONE_MINUS_SRC_ALPHA   = GL.ONE_MINUS_SRC_ALPHA

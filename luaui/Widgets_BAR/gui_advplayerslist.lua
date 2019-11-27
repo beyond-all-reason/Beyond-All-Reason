@@ -116,7 +116,7 @@ local gl_Text			= gl.Text
 -- IMAGES
 --------------------------------------------------------------------------------
 
-local imageDirectory  = ":n:"..LUAUI_DIRNAME.."Images/advplayerslist/"
+local imageDirectory  = ":l:"..LUAUI_DIRNAME.."Images/advplayerslist/"
 
 local flagsDirectory  = imageDirectory.."flags/"
 
