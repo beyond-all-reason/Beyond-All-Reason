@@ -231,8 +231,12 @@ local UnitEffects = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=5, length=35, piece="thrustb", onActive=true, light=1}},
     },
     [UnitDefNames["corape"].id] = {
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=7, length=22, piece="thrust1b", emitVector= {0,1,0}, onActive=true, xzVelocity=1.5, light=1}},
-        {class='AirJet',options={color={0.1,0.4,0.6}, width=7, length=22, piece="thrust2b", emitVector= {0,1,0}, onActive=true, xzVelocity=1.5, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=16, piece="rthrust", emitVector= {0,0,-1}, onActive=true, xzVelocity=1.5, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=16, piece="lthrust", emitVector= {0,0,-1}, onActive=true, xzVelocity=1.5, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust1", emitVector= {1,0,0}, onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust2", emitVector= {1,0,0}, onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="lhthrust2", emitVector= {-1,0,0}, onActive=true, light=1}},
+        {class='AirJet',options={color={0.1,0.4,0.6}, width=2.2, length=4.7, piece="rhthrust1", emitVector= {-1,0,0}, onActive=true, light=1}},
     },
     [UnitDefNames["corca"].id] = {
         {class='AirJet',options={color={0.1,0.4,0.6}, width=4, length=15, piece="thrust", onActive=true, xzVelocity=1.2}},
