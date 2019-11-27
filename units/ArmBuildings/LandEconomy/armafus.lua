@@ -18,7 +18,7 @@ return {
 		collisionvolumetype = "Box",
 		corpse = "DEAD",
 		damagemodifier = 0.95,
-		description = "Enhanced Energy Output",
+		description = "Produces 3000 Energy (Hazardous)",
 		energymake = 3000,
 		energystorage = 9000,
 		explodeas = "advancedFusionExplosion",

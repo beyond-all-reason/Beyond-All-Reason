@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "3 -5 0",
 		collisionvolumescales = "92 43 71",
 		collisionvolumetype = "Box",
-		description = "Hazardous Energy Source",
+		description = "Produces 1250 Energy (Hazardous)",
 		energymake = 1250,
 		energystorage = 12000,
 		explodeas = "advgeo",

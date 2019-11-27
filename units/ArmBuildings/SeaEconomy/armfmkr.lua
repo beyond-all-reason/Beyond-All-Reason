@@ -10,7 +10,7 @@ return {
 		buildtime = 2958,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
-		description = "Converts up to 70 energy into 1.1 metal per second",
+		description = "Converts 70 Energy into 1.1 Metal",
 		explodeas = "largeBuildingExplosionGeneric",
 		footprintx = 3,
 		footprintz = 3,

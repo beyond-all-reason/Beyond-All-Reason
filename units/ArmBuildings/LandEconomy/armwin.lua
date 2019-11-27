@@ -17,7 +17,7 @@ return {
 		collisionvolumescales = "40 87 40",
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
-		description = "Produces Energy",
+		description = "Produces Energy (depends on map/time)",
 		energystorage = 0.5,
 		explodeas = "windboom",
 		footprintx = 3,

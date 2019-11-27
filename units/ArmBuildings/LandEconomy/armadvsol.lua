@@ -19,7 +19,7 @@ return {
 		collisionvolumetype = "CylY",
 		corpse = "DEAD",
 		damagemodifier = 0.9,
-		description = "Produces Energy",
+		description = "Produces 75 Energy",
 		energymake = 75,
 		energystorage = 100,
 		explodeas = "smallBuildingExplosionGeneric",

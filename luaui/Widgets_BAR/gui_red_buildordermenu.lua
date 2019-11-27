@@ -20,10 +20,10 @@ local buildNextKey = 110
 local buildKeys = {113, 119, 101, 114, 116, 97, 115, 100, 102, 103, 122, 120, 99, 118, 98}
 local buildLetters = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"}
 
-local stateTexture		     = "LuaUI/Images/resbar.dds"
-local buttonTexture		     = "LuaUI/Images/button.dds"
-local barGlowCenterTexture = ":n:LuaUI/Images/barglow-center.png"
-local barGlowEdgeTexture   = ":n:LuaUI/Images/barglow-edge.png"
+local stateTexture		     = ":l:LuaUI/Images/resbar.dds"
+local buttonTexture		     = ":l:LuaUI/Images/button.dds"
+local barGlowCenterTexture = ":l:LuaUI/Images/barglow-center.png"
+local barGlowEdgeTexture   = ":l:LuaUI/Images/barglow-edge.png"
 
 local sound_queue_add = 'LuaUI/Sounds/buildbar_add.wav'
 local sound_queue_rem = 'LuaUI/Sounds/buildbar_rem.wav'
@@ -747,7 +747,7 @@ local function UpdateGrid(g,cmds,ordertype)
 
 			if (ordertype == 1) then --build icons
 				if alternativeUnitpics and hasAlternativeUnitpic[cmd.id*-1] then
-					icon.texture = ':lr102,102:'..alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
+					icon.texture = ':lr128,128:'..alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
 				else
 					icon.texture = "#"..cmd.id*-1
 				end

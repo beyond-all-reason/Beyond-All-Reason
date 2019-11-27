@@ -14,7 +14,7 @@ return {
 		collisionvolumescales = "120 120 120",
 		collisionvolumetype = "Ell",
 		corpse = "DEAD",
-		description = "Converts up to 650 energy into 11.2 metal per second",
+		description = "Converts 650 Energy into 11 Metal",
 		explodeas = "hugeBuildingExplosionGeneric",
 		floater = true,
 		footprintx = 5,

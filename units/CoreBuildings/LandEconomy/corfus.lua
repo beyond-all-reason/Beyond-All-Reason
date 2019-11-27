@@ -15,7 +15,7 @@ return {
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		corpse = "DEAD",
-		description = "Produces Energy / Storage",
+		description = "Produces 1100 Energy",
 		energymake = 1100,
 		energystorage = 2500,
 		explodeas = "fusionExplosion",

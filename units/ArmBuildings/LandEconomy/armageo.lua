@@ -17,7 +17,7 @@ return {
 		collisionvolumeoffsets = "0 10 0",
 		collisionvolumescales = "77 66 77",
 		collisionvolumetype = "CylY",
-		description = "Hazardous Energy Source",
+		description = "Produces 1250 Energy (Hazardous)",
 		energymake = 1250,
 		energystorage = 12000,
 		explodeas = "advgeo",
