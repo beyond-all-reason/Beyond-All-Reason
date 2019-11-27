@@ -152,8 +152,9 @@ uniform sampler2D normalTex;
 uniform samplerCube reflectTex;
 
 uniform vec4 teamColor;
-
 uniform vec3 sunSpecular;
+
+uniform float pbrParams[8];
 
 // Indices of refraction
 const float air = 1.0;
@@ -200,6 +201,9 @@ vec3 SampleEnvironmentWithRoughness(vec3 samplingVec, float roughness) {
 	return texture(reflectTex, samplingVec, lodBias).rgb;
 }
 
+vec3 CustomTM(const vec3 x) {
+	return ((x * (pbrParams[0] * x + pbrParams[1])) / (x * (pbrParams[2] * x + pbrParams[3]) + pbrParams[4]));
+}
 
 void main(void){
 	vec4 tex1Color = texture(tex1, uv);
@@ -237,9 +241,11 @@ void main(void){
 	vec3 reflColor = REFL_MULT * SampleEnvironmentWithRoughness(Rl, roughness).rgb;
 	reflColor *= fresnel;
 
-	reflColor += GetSpecularBlinnPhong(HdotN, roughness);
+	reflColor += pbrParams[6] * GetSpecularBlinnPhong(HdotN, roughness); // pbrParams[6] is sun mult
 
-	gl_FragColor.rgb = diffColor + reflColor;
+	gl_FragColor.rgb  = pbrParams[7] * (diffColor + reflColor); // pbrParams[7] is exposure
+	gl_FragColor.rgb  = CustomTM(gl_FragColor.rgb);
+
 	gl_FragColor.a = NORM2SNORM(tex2Color.a);
 }
 
@@ -300,8 +306,19 @@ local function RenderGlassUnits()
 		glassShader:SetUniformMatrix("viewInvMat", "viewinverse")
 
 		if sunChanged then
-			glassShader:SetUniformFloat("sunSpecular", glGetSun("specular" ,"unit"))
-			glassShader:SetUniformFloat("sunPos", glGetSun("pos"))
+			glassShader:SetUniformFloatAlways("sunSpecular", glGetSun("specular" ,"unit"))
+			glassShader:SetUniformFloatAlways("sunPos", glGetSun("pos"))
+
+			glassShader:SetUniformFloatArrayAlways("pbrParams", {
+				Spring.GetConfigFloat("tonemapA", 0.0),
+				Spring.GetConfigFloat("tonemapB", 1.0),
+				Spring.GetConfigFloat("tonemapC", 0.0),
+				Spring.GetConfigFloat("tonemapD", 0.0),
+				Spring.GetConfigFloat("tonemapE", 1.0),
+				Spring.GetConfigFloat("envAmbient", 0.5),
+				Spring.GetConfigFloat("unitSunMult", 1.5),
+				Spring.GetConfigFloat("unitExposureMult", 1.0),
+			})
 
 			sunChanged = false
 		end
@@ -434,8 +451,12 @@ function gadget:DrawWorld()
 	RenderGlassUnits()
 end
 
-function gadget:SunChanged()
+local function GlassUpdateSun()
 	sunChanged = true
+end
+
+function gadget:SunChanged()
+	GlassUpdateSun()
 end
 
 function gadget:Initialize()
@@ -455,6 +476,7 @@ function gadget:Initialize()
 	glassShader:Initialize()
 
 	gadgetHandler:AddSyncAction("GlassUnitDestroyed", GlassUnitDestroyed)
+	gadgetHandler:AddChatAction("GlassUpdateSun", GlassUpdateSun)
 	UpdateAllGlassUnits()
 end
 
@@ -462,6 +484,7 @@ function gadget:Shutdown()
 	glassShader:Finalize()
 
 	gadgetHandler.RemoveSyncAction("GlassUnitDestroyed")
+	gadgetHandler:RemoveChatAction("GlassUpdateSun")
 end
 
 end -- unsynced
