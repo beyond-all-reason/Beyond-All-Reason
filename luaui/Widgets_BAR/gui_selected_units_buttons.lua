@@ -71,7 +71,7 @@ local spIsGUIHidden            = Spring.IsGUIHidden
 
 local unitNames = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-  unitNames[unitDefID] = unitDef.name
+  unitNames[unitDefID] = unitDef.humanName
 end
 
 -------------------------------------------------------------------------------
