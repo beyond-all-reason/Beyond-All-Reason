@@ -32,7 +32,7 @@ local fadeOutTime = 6.5
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
+local fontfileScale = (0.7 + (vsx*vsy / 7000000))
 local fontfileSize = 36
 local fontfileOutlineSize = 8.5
 local fontfileOutlineStrength = 1.33
@@ -67,14 +67,14 @@ if totalTime > 0 then
 	firstTime = true
 end
 
-local playTex				= ":n:"..LUAUI_DIRNAME.."Images/music/play.png"
-local pauseTex				= ":n:"..LUAUI_DIRNAME.."Images/music/pause.png"
-local nextTex				= ":n:"..LUAUI_DIRNAME.."Images/music/next.png"
-local musicTex				= ":n:"..LUAUI_DIRNAME.."Images/music/music.png"
-local volumeTex				= ":n:"..LUAUI_DIRNAME.."Images/music/volume.png"
-local buttonTex				= ":n:"..LUAUI_DIRNAME.."Images/button.dds"
-local buttonHighlightTex	= ":n:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
-local bgcorner				= ":n:"..LUAUI_DIRNAME.."Images/bgcorner.png"
+local playTex				= ":l:"..LUAUI_DIRNAME.."Images/music/play.png"
+local pauseTex				= ":l:"..LUAUI_DIRNAME.."Images/music/pause.png"
+local nextTex				= ":l:"..LUAUI_DIRNAME.."Images/music/next.png"
+local musicTex				= ":l:"..LUAUI_DIRNAME.."Images/music/music.png"
+local volumeTex				= ":l:"..LUAUI_DIRNAME.."Images/music/volume.png"
+local buttonTex				= ":l:"..LUAUI_DIRNAME.."Images/button.dds"
+local buttonHighlightTex	= ":l:"..LUAUI_DIRNAME.."Images/button-highlight.dds"
+local bgcorner				= ":l:"..LUAUI_DIRNAME.."Images/bgcorner.png"
 
 local widgetScale = 1
 local glBlending     = gl.Blending

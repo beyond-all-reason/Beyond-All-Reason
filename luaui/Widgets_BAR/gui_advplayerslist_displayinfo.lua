@@ -29,14 +29,14 @@ end
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 5.75
+local fontfileScale = (0.7 + (vsx*vsy / 7000000))
+local fontfileSize = 36
+local fontfileOutlineSize = 8
 local fontfileOutlineStrength = 1.33
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local bgcorner				= ":n:LuaUI/Images/bgcorner.png"
+local bgcorner				= ":l:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix

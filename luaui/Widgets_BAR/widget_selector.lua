@@ -46,7 +46,7 @@ local CyanStr    = "\255\001\255\255"
 local YellowStr  = "\255\255\255\001"
 local MagentaStr = "\255\255\001\255"
 
-local cutomScale = 1
+local customScale = 1
 local sizeMultiplier = 1
 
 local floor = math.floor
@@ -331,15 +331,12 @@ end
 
 function widget:ViewResize(n_vsx,n_vsy)
   vsx,vsy = Spring.GetViewGeometry()
-  widgetScale = (0.5 + (vsx*vsy / 5700000))
+  widgetScale = (0.6 + (vsx*vsy / 6000000))
   local fontfileScale = widgetScale
   font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
   font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
-  if customScale == nil then
-	customScale = 1
-  end
-  sizeMultiplier   = 0.6 + (vsx*vsy / 6000000) * customScale
+  sizeMultiplier   = 0.66 + (vsx*vsy / 6500000) * customScale
   
   UpdateGeometry()
 end

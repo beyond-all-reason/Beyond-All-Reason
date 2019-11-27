@@ -47,9 +47,9 @@ local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 local bgcorner = "LuaUI/Images/bgcorner.png"
-local backwardTex = "LuaUI/Images/backward.dds"
-local forwardTex = "LuaUI/Images/forward.dds"
-local glowTex = "LuaUI/Images/glow2.dds"
+local backwardTex = ":l:LuaUI/Images/backward.dds"
+local forwardTex = ":l:LuaUI/Images/forward.dds"
+local glowTex = ":l:LuaUI/Images/glow2.dds"
 
 local bgMargin = 6
 local screenHeight = 520-bgMargin-bgMargin
@@ -1624,7 +1624,7 @@ function init()
 			 Spring.SetConfigInt("VSync",(value and 1 or 0))
 		 end,
 		},
-		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", steps={0,1,2,4}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
+		{id="msaa", group="gfx", basic=true, name="Anti Aliasing", type="slider", steps={0,1,2,4,8}, restart=true, value=tonumber(Spring.GetConfigInt("MSAALevel",1) or 2), description='Enables multisample anti-aliasing. NOTE: Can be expensive!\n\nChanges will be applied next game',
 		 onchange=function(i,value)
 			 Spring.SetConfigInt("MSAALevel",value)
 		 end,
@@ -3002,8 +3002,8 @@ function widget:Initialize()
 		Spring.SetConfigInt("GrassDetail",0)
 	end
 	-- limit MSAA
-	if Spring.GetConfigInt("MSAALevel",0) > 4 then
-		Spring.SetConfigInt("MSAALevel",4)
+	if Spring.GetConfigInt("MSAALevel",0) > 8 then
+		Spring.SetConfigInt("MSAALevel",8)
 	end
 
 	--if Platform ~= nil and Platform.gpuVendor ~= 'Nvidia' then	-- because UsePBO displays tiled map texture bug for ATI/AMD cards

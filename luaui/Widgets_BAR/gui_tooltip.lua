@@ -33,16 +33,16 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 ------------------------------------------------------------------------------------
 
 local defaultDelay = 0.4
-local usedFontSize = 15
+local usedFontSize = 16.5
 local xOffset = 35
 local yOffset = -35-usedFontSize
 
 local fontfile = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font", "Poppins-Regular.otf")
 local vsx,vsy = Spring.GetViewGeometry()
-local fontfileScale = (0.5 + (vsx*vsy / 5700000))
-local fontfileSize = 25
-local fontfileOutlineSize = 4.5
-local fontfileOutlineStrength = 1.8
+local fontfileScale = (0.75 + (vsx*vsy / 7000000))
+local fontfileSize = 40
+local fontfileOutlineSize = 8
+local fontfileOutlineStrength = 1.45
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 ------------------------------------------------------------------------------------
@@ -195,15 +195,15 @@ function drawTooltip(name, x, y)
 	
 	-- draw background
 	local cornersize = 0
-	glColor(0.85,0.85,0.85,(WG['guishader'] and 0.66 or 0.8))
+	glColor(0.45,0.45,0.45,(WG['guishader'] and 0.66 or 0.8))
 	RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
 	if WG['guishader'] then
 		WG['guishader'].InsertScreenDlist( gl.CreateList( function()
 			RectRound(posX-paddingW+cornersize, posY-maxHeight-paddingH+cornersize, posX+maxWidth+paddingW-cornersize, posY+paddingH-cornersize, 5*widgetScale)
 		end), 'tooltip_'..name)
 	end
-	cornersize = 2.25*widgetScale
-	glColor(0,0,0,(WG['guishader'] and 0.22 or 0.3))
+	cornersize = 2.45*widgetScale
+	glColor(0,0,0,(WG['guishader'] and 0.22 or 0.26))
 	RectRound(posX-paddingW+cornersize,
 		posY-maxHeight-paddingH+cornersize,
 		posX+maxWidth+paddingW-cornersize,
