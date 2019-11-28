@@ -33,7 +33,7 @@ Use 'ShowTooltip' to directly show a tooltip, the name you give should be unique
 ------------------------------------------------------------------------------------
 
 local defaultDelay = 0.4
-local usedFontSize = 16.5
+local usedFontSize = 15.5
 local xOffset = 35
 local yOffset = -35-usedFontSize
 
