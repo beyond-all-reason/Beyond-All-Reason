@@ -37,7 +37,7 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local renderOverlay = false
+--local renderOverlay = false
 
 if (gadgetHandler:IsSyncedCode()) then
 --------------------------------------------------------------------------------
@@ -1036,9 +1036,9 @@ end
       gl.TexRect(-1,-1,1,1,
         left/(renderX), bottom/(renderY),
         (left+width)/(renderX), (bottom+height)/(renderY));
-      if renderOverlay then
-        Overlay(udid)	-- draw water drop if water unit
-      end
+      --if renderOverlay then
+      --  Overlay(udid)	-- draw water drop if water unit
+      --end
 
       gl.Blending(false);
       gl.Texture(false);
