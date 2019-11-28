@@ -70,8 +70,10 @@ local spSendCommands           = Spring.SendCommands
 local spIsGUIHidden            = Spring.IsGUIHidden
 
 local unitNames = {}
+local unitHumanNames = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-  unitNames[unitDefID] = unitDef.humanName
+  unitNames[unitDefID] = unitDef.name
+  unitHumanNames[unitDefID] = unitDef.humanName
 end
 
 -------------------------------------------------------------------------------
@@ -199,9 +201,10 @@ function cacheUnitIcons()
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
           if alternativeUnitpics and hasAlternativeUnitpic[id] then
-            gl.Texture(':lcr96,96:unitpics/alternative/'..UnitDefs[id].name..hasAlternativeUnitpic[id])
+            gl.Texture(':lcr96,96:unitpics/alternative/'..unitNames[id]..hasAlternativeUnitpic[id])
           else
-            gl.Texture('#' .. id)
+            --gl.Texture('#' .. id)
+            gl.Texture(':lcr96,96:unitpics/'..unitNames[id]..'.png')
           end
             gl.TexRect(-1,-1,0,0)
             gl.Texture(false)
@@ -253,13 +256,13 @@ function widget:DrawScreen()
         for udid,count in pairs(selectedUnitsCounts) do
           if type(udid) == 'number' then
             if i == mouseIcon then
-              unitName = unitNames[udid]
+              unitName = unitHumanNames[udid]
               break
             end
             i = i + 1
           end
         end
-        WG['tooltip'].ShowTooltip('selectedunitbuttons_unit', "\255\215\255\215"..unitName, x, backgroundDimentions[4]+(usedIconSizeY*0.37))
+        WG['tooltip'].ShowTooltip('selectedunitbuttons_unit', "\255\215\255\215"..unitName, x, backgroundDimentions[4]+(usedIconSizeY*0.4))
       end
       if WG['tooltip'] ~= nil and os.clock() - hoverClock > 0.6 then
         local text = "\255\215\255\215Selected units\n \255\255\255\255Left click\255\210\210\210: Select\n \255\255\255\255   + CTRL\255\210\210\210: Select units of this type on map\n \255\255\255\255   + ALT\255\210\210\210: Remove all by 1 unit of this unit type\n \255\255\255\255Right click\255\210\210\210: Remove\n \255\255\255\255    + CTRL\255\210\210\210: Remove only 1 unit from that unit type\n \255\255\255\255Middle click\255\210\210\210: Move to center location\n \255\255\255\255    + CTRL\255\210\210\210: Move to center off whole selection"
@@ -445,9 +448,10 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   glColor(color)
   if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
-    glTexture(':lcr96,96:unitpics/alternative/'..UnitDefs[unitDefID].name..hasAlternativeUnitpic[unitDefID])
+    glTexture(':lcr96,96:unitpics/alternative/'..unitNames[unitDefID]..hasAlternativeUnitpic[unitDefID])
   else
-    glTexture('#' .. unitDefID)
+    --glTexture('#' .. unitDefID)
+    glTexture(':lcr96,96:unitpics/'..unitNames[unitDefID]..'.png')
   end
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)

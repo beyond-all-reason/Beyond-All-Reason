@@ -749,7 +749,7 @@ local function UpdateGrid(g,cmds,ordertype)
 				if alternativeUnitpics and hasAlternativeUnitpic[cmd.id*-1] then
 					icon.texture = ':lr128,128:'..alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
 				else
-					icon.texture = "#"..cmd.id*-1
+					icon.texture = ':lr128,128:unitpics/'..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
 				end
 				icon.udid = cmd.id*-1
 

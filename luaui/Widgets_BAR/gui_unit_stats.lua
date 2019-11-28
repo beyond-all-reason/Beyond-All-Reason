@@ -723,7 +723,8 @@ function widget:DrawScreen()
 		if alternativeUnitpics and hasAlternativeUnitpic[uDefID] then
 			glTexture(':lcr80,80:unitpics/alternative/'..UnitDefs[uDefID].name..hasAlternativeUnitpic[uDefID])
 		else
-			glTexture('#' .. uDefID)
+			--glTexture('#' .. uDefID)
+			glTexture(':lcr80,80:unitpics/'..UnitDefs[uDefID].name..'.png')
 		end
 		glTexRect(cX, cYstart+cornersize-iconHalfSize, cX+iconHalfSize+iconHalfSize, cYstart+cornersize+iconHalfSize)
 		glTexture(false)

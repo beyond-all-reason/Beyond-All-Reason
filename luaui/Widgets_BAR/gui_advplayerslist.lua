@@ -1966,7 +1966,7 @@ function CreateBackground()
 
 	if WG['guishader'] then
 		BackgroundGuishader = gl_CreateList( function()
-			RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+			RectRound(absLeft,absBottom,absRight,absTop,padding*1.6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		end)
 		WG['guishader'].InsertDlist(BackgroundGuishader, 'advplayerlist')
 		--WG['guishader'].InsertRect(absLeft,absBottom,absRight,absTop,'advplayerlist')
@@ -1974,9 +1974,9 @@ function CreateBackground()
 	Background = gl_CreateList(function()
 
 		gl_Color(0,0,0,ui_opacity)
-		RectRound(absLeft,absBottom,absRight,absTop,padding*2, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		RectRound(absLeft,absBottom,absRight,absTop,padding*1.6, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		gl_Color(1,1,1,ui_opacity*0.055)
-		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.66, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
+		RectRound(absLeft+paddingLeft,absBottom+paddingBottom,absRight-paddingRight,absTop-paddingTop,padding*1.4, math.min(paddingLeft,paddingTop), math.min(paddingTop,paddingRight), math.min(paddingRight,paddingBottom), math.min(paddingBottom,paddingLeft))
 		if collapsed then
 			font:Begin()
 			local text = 'Playerlist'

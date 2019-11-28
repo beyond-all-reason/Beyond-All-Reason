@@ -171,7 +171,7 @@ local function createList()
 	end
 	if WG['guishader'] then
 		drawlist[3] = glCreateList( function()
-			RectRound(left, bottom, right, top, 5.5*widgetScale)
+			RectRound(left, bottom, right, top, 4.5*widgetScale)
 		end)
 		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo')
 	end
@@ -192,7 +192,7 @@ local function createList()
 			borderPaddingLeft = 0
 		end
 		glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.66)
+		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.4)
 		
 	end)
 	updateValues()

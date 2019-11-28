@@ -193,10 +193,10 @@ function widget:DrawWorld()
 		local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
 		if tsx and tsx > 0 then
 			if spGetTeamRulesParam(teamID, 'startUnit') == armcomDefID then
-				glTexture('unitpics/armcom.dds')
+				glTexture('unitpics/armcom.png')
 				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
 			else
-				glTexture('unitpics/corcom.dds')
+				glTexture('unitpics/corcom.png')
 				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
 			end
 		end
