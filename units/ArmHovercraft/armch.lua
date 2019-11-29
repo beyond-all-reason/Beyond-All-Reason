@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 200,
 		builddistance = 112,
 		builder = true,
-		buildpic = "ARMCH.DDS",
+		buildpic = "ARMCH.PNG",
 		buildtime = 4472,
 		canmove = true,
 		category = "ALL HOVER MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR SURFACE EMPABLE",

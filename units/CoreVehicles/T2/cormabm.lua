@@ -4,7 +4,7 @@ return {
 		brakerate = 0.07443,
 		buildcostenergy = 32000,
 		buildcostmetal = 1250,
-		buildpic = "CORMABM.DDS",
+		buildpic = "CORMABM.PNG",
 		buildtime = 42000,
 		canattack = false,
 		canmove = true,

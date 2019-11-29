@@ -7,7 +7,7 @@ return {
 		buildcostmetal = 300,
 		builddistance = 136,
 		builder = true,
-		buildpic = "CORACA.DDS",
+		buildpic = "CORACA.PNG",
 		buildtime = 18001,
 		canfly = true,
 		canmove = true,

@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 12,
 		buildinggrounddecalsizey = 12,
 		buildinggrounddecaltype = "decals/corgant_aoplane.dds",
-		buildpic = "CORGANT.DDS",
+		buildpic = "CORGANT.PNG",
 		buildtime = 67321,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

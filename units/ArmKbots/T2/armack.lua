@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 370,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMACK.DDS",
+		buildpic = "ARMACK.PNG",
 		buildtime = 9432,
 		canmove = true,
 		category = "KBOT MOBILE ALL NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

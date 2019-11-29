@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armrad_aoplane.dds",
-		buildpic = "ARMRAD.DDS",
+		buildpic = "ARMRAD.PNG",
 		buildtime = 1137,
 		canattack = false,
 		canrepeat = false,

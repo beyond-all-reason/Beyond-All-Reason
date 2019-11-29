@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 3700,
 		buildcostmetal = 350,
-		buildpic = "CORTSHIP.DDS",
+		buildpic = "CORTSHIP.PNG",
 		buildtime = 6400,
 		canattack = false,
 		canmove = true,

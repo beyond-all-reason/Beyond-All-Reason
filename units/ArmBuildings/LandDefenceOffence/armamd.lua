@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armamd_aoplane.dds",
-		buildpic = "ARMAMD.DDS",
+		buildpic = "ARMAMD.PNG",
 		buildtime = 60000,
 		canattack = false,
 		canrepeat = false,

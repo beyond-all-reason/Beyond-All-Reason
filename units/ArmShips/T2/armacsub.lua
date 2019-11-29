@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 700,
 		builddistance = 160,
 		builder = true,
-		buildpic = "ARMACSUB.DDS",
+		buildpic = "ARMACSUB.PNG",
 		buildtime = 18000,
 		canmove = true,
 		category = "UNDERWATER ALL NOTLAND MOBILE NOWEAPON NOTAIR NOTHOVER",

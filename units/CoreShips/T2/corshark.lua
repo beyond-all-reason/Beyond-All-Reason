@@ -5,7 +5,7 @@ return {
 		brakerate = 0.02622,
 		buildcostenergy = 18000,
 		buildcostmetal = 900,
-		buildpic = "CORSHARK.DDS",
+		buildpic = "CORSHARK.PNG",
 		buildtime = 22000,
 		canmove = true,
 		category = "ALL MOBILE WEAPON NOTLAND NOTAIR NOTHOVER CANBEUW SURFACE EMPABLE",

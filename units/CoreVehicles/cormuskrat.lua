@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 170,
 		builddistance = 110,
 		builder = true,
-		buildpic = "CORMUSKRAT.DDS",
+		buildpic = "CORMUSKRAT.PNG",
 		buildtime = 6864,
 		canmove = true,
 		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

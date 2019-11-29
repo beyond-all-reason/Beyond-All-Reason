@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/armmercury_aoplane.dds",
-		buildpic = "ARMMERCURY.DDS",
+		buildpic = "ARMMERCURY.PNG",
 		buildtime = 28000,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

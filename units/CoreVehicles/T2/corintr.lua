@@ -5,7 +5,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 16000,
 		buildcostmetal = 1350,
-		buildpic = "CORINTR.DDS",
+		buildpic = "CORINTR.PNG",
 		buildtime = 14177,
 		canmove = true,
 		cantbetransported = true,

@@ -4,7 +4,7 @@ return {
 		brakerate = 0.0196,
 		buildcostenergy = 49000,
 		buildcostmetal = 1850,
-		buildpic = "CORTREM.DDS",
+		buildpic = "CORTREM.PNG",
 		buildtime = 31100,
 		canmove = true,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE TANK EMPABLE",

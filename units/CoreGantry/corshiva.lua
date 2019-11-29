@@ -4,7 +4,7 @@ return {
 		brakerate = 0.8211,
 		buildcostenergy = 23000,
 		buildcostmetal = 1550,
-		buildpic = "CORSHIVA.DDS",
+		buildpic = "CORSHIVA.PNG",
 		buildtime = 30609,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

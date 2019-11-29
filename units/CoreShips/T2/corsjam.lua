@@ -5,7 +5,7 @@ return {
 		brakerate = 0.03574,
 		buildcostenergy = 1800,
 		buildcostmetal = 120,
-		buildpic = "CORSJAM.DDS",
+		buildpic = "CORSJAM.PNG",
 		buildtime = 6322.50049,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE NOTSUB SHIP NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

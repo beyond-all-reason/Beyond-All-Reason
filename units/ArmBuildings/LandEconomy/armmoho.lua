@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizey = 7.55,
 		buildinggrounddecaltype = "decals/armmoho_aoplane.dds",
 		buildingmask = 0,
-		buildpic = "ARMMOHO.DDS",
+		buildpic = "ARMMOHO.PNG",
 		buildtime = 14938,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

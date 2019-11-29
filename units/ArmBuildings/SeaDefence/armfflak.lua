@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 23000,
 		buildcostmetal = 850,
-		buildpic = "ARMFFLAK.DDS",
+		buildpic = "ARMFFLAK.PNG",
 		buildtime = 21855,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

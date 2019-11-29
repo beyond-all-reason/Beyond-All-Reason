@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/corarad_aoplane.dds",
-		buildpic = "CORARAD.DDS",
+		buildpic = "CORARAD.PNG",
 		buildtime = 11960,
 		canattack = false,
 		canrepeat = false,

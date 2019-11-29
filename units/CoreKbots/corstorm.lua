@@ -4,7 +4,7 @@ return {
 		brakerate = 0.6486,
 		buildcostenergy = 1150,
 		buildcostmetal = 110,
-		buildpic = "CORSTORM.DDS",
+		buildpic = "CORSTORM.PNG",
 		buildtime = 1949,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

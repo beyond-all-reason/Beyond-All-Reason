@@ -5,7 +5,7 @@ return {
 		brakerate = 0.05,
 		buildcostenergy = 8600,
 		buildcostmetal = 175,
-		buildpic = "ARMAWAC.DDS",
+		buildpic = "ARMAWAC.PNG",
 		buildtime = 12819,
 		canfly = true,
 		canmove = true,

@@ -5,7 +5,7 @@ return {
 		brakerate = 0.04416,
 		buildcostenergy = 2400,
 		buildcostmetal = 155,
-		buildpic = "CORMIST.DDS",
+		buildpic = "CORMIST.PNG",
 		buildtime = 3435,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

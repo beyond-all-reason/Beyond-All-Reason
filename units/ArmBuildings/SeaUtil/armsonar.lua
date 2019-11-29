@@ -6,7 +6,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 450,
 		buildcostmetal = 20,
-		buildpic = "ARMSONAR.DDS",
+		buildpic = "ARMSONAR.PNG",
 		buildtime = 912,
 		canattack = false,
 		canrepeat = false,

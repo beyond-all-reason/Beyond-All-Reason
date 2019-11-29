@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/cormstor_aoplane.dds",
-		buildpic = "CORMSTOR.DDS",
+		buildpic = "CORMSTOR.PNG",
 		buildtime = 2925,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

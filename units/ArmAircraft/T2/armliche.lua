@@ -5,7 +5,7 @@ return {
 		brakerate = 0.05,
 		buildcostenergy = 46000,
 		buildcostmetal = 2200,
-		buildpic = "ARMLICHE.DDS",
+		buildpic = "ARMLICHE.PNG",
 		buildtime = 57400,
 		canfly = true,
 		canmove = true,

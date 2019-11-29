@@ -4,7 +4,7 @@ return {
 		brakerate = 0.01431,
 		buildcostenergy = 13500,
 		buildcostmetal = 1200,
-		buildpic = "ARMMANNI.DDS",
+		buildpic = "ARMMANNI.PNG",
 		buildtime = 25706,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

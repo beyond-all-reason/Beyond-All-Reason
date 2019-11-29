@@ -6,7 +6,7 @@ return {
 		buildangle = 4400,
 		buildcostenergy = 8500,
 		buildcostmetal = 240,
-		buildpic = "ARMJAMT.DDS",
+		buildpic = "ARMJAMT.PNG",
 		buildtime = 9955,
 		canattack = false,
 		canrepeat = false,

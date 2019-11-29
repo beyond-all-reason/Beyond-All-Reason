@@ -4,7 +4,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 12000,
 		buildcostmetal = 1500,
-		buildpic = "ARMFBOY.DDS",
+		buildpic = "ARMFBOY.PNG",
 		buildtime = 22397,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

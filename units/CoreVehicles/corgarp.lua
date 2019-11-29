@@ -5,7 +5,7 @@ return {
 		brakerate = 0.06453,
 		buildcostenergy = 2600,
 		buildcostmetal = 220,
-		buildpic = "CORGARP.DDS",
+		buildpic = "CORGARP.PNG",
 		buildtime = 3101,
 		canmove = true,
 		category = "ALL TANK PHIB WEAPON NOTSUB NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

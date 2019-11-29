@@ -4,7 +4,7 @@ return {
 		brakerate = 0.04222,
 		buildcostenergy = 2600,
 		buildcostmetal = 240,
-		buildpic = "ARMJANUS.DDS",
+		buildpic = "ARMJANUS.PNG",
 		buildtime = 3545,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

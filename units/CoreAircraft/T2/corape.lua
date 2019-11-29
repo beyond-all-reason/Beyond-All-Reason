@@ -5,7 +5,7 @@ return {
 		brakerate = 0.356,
 		buildcostenergy = 6800,
 		buildcostmetal = 370,
-		buildpic = "CORAPE.DDS",
+		buildpic = "CORAPE.PNG",
 		buildtime = 14500,
 		canfly = true,
 		canmove = true,

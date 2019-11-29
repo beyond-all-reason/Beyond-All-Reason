@@ -3,7 +3,7 @@ return {
 		blocking = true,
 		buildcostenergy = 0,
 		buildcostmetal = 0,
-		buildpic = "CHIP.DDS",
+		buildpic = "CHIP.PNG",
 		buildtime = 255,
 		canattack = false,
 		canmove = true,

@@ -5,7 +5,7 @@ return {
 		brakerate = 0.045,
 		buildcostenergy = 18500,
 		buildcostmetal = 310,
-		buildpic = "CORHURC.DDS",
+		buildpic = "CORHURC.PNG",
 		buildtime = 31000,
 		canfly = true,
 		canmove = true,

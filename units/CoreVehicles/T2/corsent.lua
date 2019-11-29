@@ -5,7 +5,7 @@ return {
 		brakerate = 0.11647,
 		buildcostenergy = 10500,
 		buildcostmetal = 470,
-		buildpic = "CORSENT.DDS",
+		buildpic = "CORSENT.PNG",
 		buildtime = 11986,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

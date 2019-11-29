@@ -7,7 +7,7 @@ return {
 		buildcostmetal = 280,
 		builddistance = 136,
 		builder = true,
-		buildpic = "ARMACA.DDS",
+		buildpic = "ARMACA.PNG",
 		buildtime = 17763,
 		canfly = true,
 		canmove = true,

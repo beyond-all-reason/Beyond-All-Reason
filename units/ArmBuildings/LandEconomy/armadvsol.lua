@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/armadvsol_aoplane.dds",
-		buildpic = "ARMADVSOL.DDS",
+		buildpic = "ARMADVSOL.PNG",
 		buildtime = 7945,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

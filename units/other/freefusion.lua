@@ -6,7 +6,7 @@ return {
 		buildangle = 4096,
 		buildcostenergy = 50,
 		buildcostmetal = 40,
-		buildpic = "FREEFUSION.DDS",
+		buildpic = "FREEFUSION.PNG",
 		buildtime = 800,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE",

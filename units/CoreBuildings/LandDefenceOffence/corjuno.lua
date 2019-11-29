@@ -8,7 +8,7 @@ return {
 		buildinggrounddecalsizex = 5.4,
 		buildinggrounddecalsizey = 5.4,
 		buildinggrounddecaltype = "decals/corjuno_aoplane.dds",
-		buildpic = "CORJUNO.DDS",
+		buildpic = "CORJUNO.PNG",
 		buildtime = 27681,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 -2 0",

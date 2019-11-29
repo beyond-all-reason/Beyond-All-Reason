@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 4,
 		buildinggrounddecaltype = "decals/armbeamer_aoplane.dds",
-		buildpic = "armbeamer.DDS",
+		buildpic = "armbeamer.PNG",
 		buildtime = 5324,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

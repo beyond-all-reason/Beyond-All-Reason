@@ -8,7 +8,7 @@ return {
 		buildcostmetal = 1200,
 		builddistance = 275,
 		builder = true,
-		buildpic = "CORMANDO.DDS",
+		buildpic = "CORMANDO.PNG",
 		buildtime = 17131,
 		canassist = true,
 		canmove = true,

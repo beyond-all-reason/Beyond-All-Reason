@@ -5,7 +5,7 @@ return {
 		brakerate = 0.0725,
 		buildcostenergy = 7200,
 		buildcostmetal = 340,
-		buildpic = "CORTITAN.DDS",
+		buildpic = "CORTITAN.PNG",
 		buildtime = 14722,
 		canfly = true,
 		canmove = true,

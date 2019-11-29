@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armamex_aoplane.dds",
 		buildingmask = 0,
-		buildpic = "ARMAMEX.DDS",
+		buildpic = "ARMAMEX.PNG",
 		buildtime = 1800,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

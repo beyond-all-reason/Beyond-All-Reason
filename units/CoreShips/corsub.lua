@@ -6,7 +6,7 @@ return {
 		brakerate = 0.0451,
 		buildcostenergy = 3600,
 		buildcostmetal = 530,
-		buildpic = "CORSUB.DDS",
+		buildpic = "CORSUB.PNG",
 		buildtime = 6530,
 		canmove = true,
 		category = "ALL UNDERWATER MOBILE WEAPON NOTLAND NOTAIR NOTHOVER",

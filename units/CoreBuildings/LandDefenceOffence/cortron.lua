@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 7.5,
 		buildinggrounddecalsizey = 7.5,
 		buildinggrounddecaltype = "decals/cortron_aoplane.dds",
-		buildpic = "CORTRON.DDS",
+		buildpic = "CORTRON.PNG",
 		buildtime = 58927,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",

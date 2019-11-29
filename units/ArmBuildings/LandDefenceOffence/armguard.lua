@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armguard_aoplane.dds",
-		buildpic = "ARMGUARD.DDS",
+		buildpic = "ARMGUARD.PNG",
 		buildtime = 21377,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

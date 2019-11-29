@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 11,
 		buildinggrounddecalsizey = 11,
 		buildinggrounddecaltype = "decals/armageo_aoplane.dds",
-		buildpic = "ARMAGEO.DDS",
+		buildpic = "ARMAGEO.PNG",
 		buildtime = 33152,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

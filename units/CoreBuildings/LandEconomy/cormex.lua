@@ -11,7 +11,7 @@ return {
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/cormex_aoplane.dds",
 		buildingmask = 0,
-		buildpic = "CORMEX.DDS",
+		buildpic = "CORMEX.PNG",
 		buildtime = 1874,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

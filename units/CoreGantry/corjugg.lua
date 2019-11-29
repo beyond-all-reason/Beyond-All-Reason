@@ -4,7 +4,7 @@ return {
 		brakerate = 0.43125,
 		buildcostenergy = 513000,
 		buildcostmetal = 20000,
-		buildpic = "CORJUGG.DDS",
+		buildpic = "CORJUGG.PNG",
 		buildtime = 629630,
 		canmove = true,
 		category = "KBOT WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE",

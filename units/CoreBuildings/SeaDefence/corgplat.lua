@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 950,
 		buildcostmetal = 120,
-		buildpic = "CORGPLAT.DDS",
+		buildpic = "CORGPLAT.PNG",
 		buildtime = 3003,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

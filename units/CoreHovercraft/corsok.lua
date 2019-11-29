@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 12000,
 		buildcostmetal = 950,
 		builder = false,
-		buildpic = "CORSOK.DDS",
+		buildpic = "CORSOK.PNG",
 		buildtime = 27000,
 		canattack = true,
 		canguard = true,

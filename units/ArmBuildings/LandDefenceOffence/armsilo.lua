@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 10,
 		buildinggrounddecalsizey = 10,
 		buildinggrounddecaltype = "decals/armsilo_aoplane.dds",
-		buildpic = "ARMSILO.DDS",
+		buildpic = "ARMSILO.PNG",
 		buildtime = 178453,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "-1 3 1",

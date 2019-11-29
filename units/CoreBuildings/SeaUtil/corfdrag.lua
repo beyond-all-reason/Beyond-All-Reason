@@ -6,7 +6,7 @@ return {
 		buildangle = 8192,
 		buildcostenergy = 300,
 		buildcostmetal = 15,
-		buildpic = "CORFDRAG.DDS",
+		buildpic = "CORFDRAG.PNG",
 		buildtime = 400,
 		canattack = false,
 		canrepeat = false,

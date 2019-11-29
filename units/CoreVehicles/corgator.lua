@@ -4,7 +4,7 @@ return {
 		brakerate = 0.09262,
 		buildcostenergy = 1150,
 		buildcostmetal = 125,
-		buildpic = "CORGATOR.DDS",
+		buildpic = "CORGATOR.PNG",
 		buildtime = 1761,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

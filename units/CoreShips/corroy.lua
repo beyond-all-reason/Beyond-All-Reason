@@ -6,7 +6,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 4800,
 		buildcostmetal = 960,
-		buildpic = "CORROY.DDS",
+		buildpic = "CORROY.PNG",
 		buildtime = 10600,
 		canmove = true,
 		category = "ALL NOTLAND MOBILE WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

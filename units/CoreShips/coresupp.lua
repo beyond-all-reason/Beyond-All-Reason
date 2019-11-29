@@ -5,7 +5,7 @@ return {
 		buildangle = 16384,
 		buildcostenergy = 1450,
 		buildcostmetal = 150,
-		buildpic = "CORESUPP.DDS",
+		buildpic = "CORESUPP.PNG",
 		buildtime = 2350,
 		canmove = true,
 		category = "ALL WEAPON SHIP NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

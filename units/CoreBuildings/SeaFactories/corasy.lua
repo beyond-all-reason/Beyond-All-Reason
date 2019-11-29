@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 10000,
 		buildcostmetal = 3100,
 		builder = true,
-		buildpic = "CORASY.DDS",
+		buildpic = "CORASY.PNG",
 		buildtime = 15696,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

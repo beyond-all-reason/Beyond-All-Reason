@@ -6,7 +6,7 @@ return {
 		brakerate = 0.075,
 		buildcostenergy = 2900,
 		buildcostmetal = 73,
-		buildpic = "ARMFIG.DDS",
+		buildpic = "ARMFIG.PNG",
 		buildtime = 3500,
 		canfly = true,
 		canmove = true,

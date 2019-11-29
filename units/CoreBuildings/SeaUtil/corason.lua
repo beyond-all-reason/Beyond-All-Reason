@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/corason_aoplane.dds",
-		buildpic = "CORASON.DDS",
+		buildpic = "CORASON.PNG",
 		buildtime = 6096,
 		canattack = false,
 		canrepeat = false,

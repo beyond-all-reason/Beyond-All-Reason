@@ -4,7 +4,7 @@ return {
 		brakerate = 0.04537,
 		buildcostenergy = 23000,
 		buildcostmetal = 1000,
-		buildpic = "CORBAN.DDS",
+		buildpic = "CORBAN.PNG",
 		buildtime = 23129,
 		canmove = true,
 		category = "ALL TANK WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

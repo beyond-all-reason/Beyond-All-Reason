@@ -4,7 +4,7 @@ return {
 		brakerate = 0.60375,
 		buildcostenergy = 12000,
 		buildcostmetal = 700,
-		buildpic = "CORTERMITE.DDS",
+		buildpic = "CORTERMITE.PNG",
 		buildtime = 18834,
 		canmove = true,
 		category = "ALL KBOT WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

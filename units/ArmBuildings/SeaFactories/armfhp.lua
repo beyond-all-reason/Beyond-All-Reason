@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 5300,
 		buildcostmetal = 1100,
 		builder = true,
-		buildpic = "ARMFHP.DDS",
+		buildpic = "ARMFHP.PNG",
 		buildtime = 17362,
 		canmove = true,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

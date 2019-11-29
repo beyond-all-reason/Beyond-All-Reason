@@ -4,7 +4,7 @@ return {
 		brakerate = 0.08113,
 		buildcostenergy = 2400,
 		buildcostmetal = 235,
-		buildpic = "CORRAID.DDS",
+		buildpic = "CORRAID.PNG",
 		buildtime = 3312,
 		canmove = true,
 		category = "ALL TANK MOBILE WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

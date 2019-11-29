@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/armgate_aoplane.dds",
-		buildpic = "ARMGATE.DDS",
+		buildpic = "ARMGATE.PNG",
 		buildtime = 55000,
 		canattack = false,
 		canrepeat = false,

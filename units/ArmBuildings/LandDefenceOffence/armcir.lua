@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 6,
 		buildinggrounddecalsizey = 6,
 		buildinggrounddecaltype = "decals/armcir_aoplane.dds",
-		buildpic = "ARMCIR.DDS",
+		buildpic = "ARMCIR.PNG",
 		buildtime = 12000,
 		canrepeat = false,
 		category = "ALL WEAPON NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",

@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 145,
 		builddistance = 130,
 		builder = true,
-		buildpic = "CORCV.DDS",
+		buildpic = "CORCV.PNG",
 		buildtime = 4160,
 		canmove = true,
 		category = "ALL TANK MOBILE NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

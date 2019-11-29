@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 3.8,
 		buildinggrounddecalsizey = 3.8,
 		buildinggrounddecaltype = "decals/corshroud_aoplane.dds",
-		buildpic = "CORSHROUD.DDS",
+		buildpic = "CORSHROUD.PNG",
 		buildtime = 9392,
 		canattack = false,
 		canrepeat = false,

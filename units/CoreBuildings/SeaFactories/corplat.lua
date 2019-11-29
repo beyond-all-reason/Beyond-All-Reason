@@ -5,7 +5,7 @@ return {
 		buildcostenergy = 5500,
 		buildcostmetal = 1400,
 		builder = true,
-		buildpic = "CORPLAT.DDS",
+		buildpic = "CORPLAT.PNG",
 		buildtime = 11800,
 		canmove = true,
 		category = "ALL NOTLAND NOWEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

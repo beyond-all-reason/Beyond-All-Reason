@@ -5,7 +5,7 @@ return {
 		brakerate = 0,
 		buildcostenergy = 200,
 		buildcostmetal = 10,
-		buildpic = "ARMDRAG.DDS",
+		buildpic = "ARMDRAG.PNG",
 		buildtime = 255,
 		canattack = false,
 		canrepeat = false,

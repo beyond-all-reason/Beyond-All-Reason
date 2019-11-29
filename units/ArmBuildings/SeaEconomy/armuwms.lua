@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 4,
 		buildinggrounddecalsizey = 3.6,
 		buildinggrounddecaltype = "decals/armuwms_aoplane.dds",
-		buildpic = "ARMUWMS.DDS",
+		buildpic = "ARMUWMS.PNG",
 		buildtime = 3741,
 		canrepeat = false,
 		category = "ALL NOTLAND NOTSUB NOWEAPON NOTSHIP NOTAIR NOTHOVER SURFACE UNDERWATER EMPABLE",

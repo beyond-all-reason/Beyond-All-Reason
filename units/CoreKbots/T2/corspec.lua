@@ -5,7 +5,7 @@ return {
 		brakerate = 0.414,
 		buildcostenergy = 1550,
 		buildcostmetal = 75,
-		buildpic = "CORSPEC.DDS",
+		buildpic = "CORSPEC.PNG",
 		buildtime = 5439,
 		canattack = false,
 		canmove = true,

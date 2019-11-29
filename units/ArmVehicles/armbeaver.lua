@@ -6,7 +6,7 @@ return {
 		buildcostmetal = 150,
 		builddistance = 112,
 		builder = true,
-		buildpic = "ARMBEAVER.DDS",
+		buildpic = "ARMBEAVER.PNG",
 		buildtime = 6708,
 		canmove = true,
 		category = "ALL TANK PHIB NOTSUB  NOWEAPON NOTAIR NOTHOVER SURFACE CANBEUW EMPABLE",

@@ -10,7 +10,7 @@ return {
 		buildinggrounddecalsizex = 5,
 		buildinggrounddecalsizey = 5,
 		buildinggrounddecaltype = "decals/armpacko_aoplane.dds",
-		buildpic = "ARMPACKO.DDS",
+		buildpic = "ARMPACKO.PNG",
 		buildtime = 5810,
 		canrepeat = false,
 		category = "ALL NOTLAND WEAPON NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE EMPABLE",

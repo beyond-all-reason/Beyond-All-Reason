@@ -9,7 +9,7 @@ return {
 		buildinggrounddecalsizex = 8,
 		buildinggrounddecalsizey = 8,
 		buildinggrounddecaltype = "decals/armafus_aoplane.dds",
-		buildpic = "ARMAFUS.DDS",
+		buildpic = "ARMAFUS.PNG",
 		buildtime = 312498,
 		canrepeat = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",

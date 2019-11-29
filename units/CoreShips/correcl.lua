@@ -7,7 +7,7 @@ return {
 		buildcostmetal = 200,
 		builddistance = 140,
 		builder = true,
-		buildpic = "CORRECL.DDS",
+		buildpic = "CORRECL.PNG",
 		buildtime = 5962.5,
 		canassist = false,
 		canmove = true,
