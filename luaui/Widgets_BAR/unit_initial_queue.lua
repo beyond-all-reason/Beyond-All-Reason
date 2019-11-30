@@ -341,7 +341,7 @@ local function DrawBuilding(buildData, borderColor, buildingAlpha, drawRanges)
 	gl.DepthTest(false)
 	gl.DepthMask(false)
 end
-local function DrawUnitDef(uDefID, uTeam, ux, uy, uz)
+local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
 
 	gl.Color(1.0, 1.0, 1.0, 1.0)
 	gl.DepthTest(GL.LEQUAL)
@@ -350,6 +350,9 @@ local function DrawUnitDef(uDefID, uTeam, ux, uy, uz)
 
 	gl.PushMatrix()
 		gl.Translate(ux, uy, uz)
+		if scale then
+			gl.Scale(scale, scale, scale)
+		end
 		gl.UnitShape(uDefID, uTeam, false, true, false)
 	gl.PopMatrix()
 
@@ -787,7 +790,7 @@ function widget:DrawWorld()
 		sy = Spring.GetGroundHeight(sx, sz)
 
 		-- Draw the starting unit at start position
-		--DrawUnitDef(sDefID, myTeamID, sx, sy, sz)
+		DrawUnitDef(sDefID, myTeamID, sx, sy, sz, 2)
 
 		-- Draw start units build radius
 		gl.Color(buildDistanceColor)

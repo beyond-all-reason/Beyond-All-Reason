@@ -184,25 +184,25 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 end
 
-function widget:DrawWorld()
-	if chobbyInterface then return end
-	glColor(1, 1, 1, 0.5)
-	glDepthTest(false)
-	for i = 1, #teamList do
-		local teamID = teamList[i]
-		local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
-		if tsx and tsx > 0 then
-			if spGetTeamRulesParam(teamID, 'startUnit') == armcomDefID then
-				glTexture('unitpics/armcom.png')
-				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
-			else
-				glTexture('unitpics/corcom.png')
-				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
-			end
-		end
-	end
-	glTexture(false)
-end
+--function widget:DrawWorld()
+--	if chobbyInterface then return end
+--	glColor(1, 1, 1, 0.5)
+--	glDepthTest(false)
+--	for i = 1, #teamList do
+--		local teamID = teamList[i]
+--		local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
+--		if tsx and tsx > 0 then
+--			if spGetTeamRulesParam(teamID, 'startUnit') == armcomDefID then
+--				glTexture('unitpics/alternative/armcom.png')
+--				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+--			else
+--				glTexture('unitpics/alternative/corcom.png')
+--				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+--			end
+--		end
+--	end
+--	glTexture(false)
+--end
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
