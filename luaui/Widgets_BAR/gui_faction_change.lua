@@ -262,10 +262,10 @@ function GenerateFactionChangeList()
 	end
 		-- Icons
 	glColor(1, 1, 1, 1)
-	glTexture(':la:unitpics/alternative/armcom.png')
-	glTexRect(12*widgetScale, 17*widgetScale, 52*widgetScale, 59*widgetScale)
-	glTexture(':la:unitpics/alternative/corcom.png')
-	glTexRect(76*widgetScale, 20*widgetScale, 116*widgetScale, 60*widgetScale)
+	glTexture(':lr96,96:unitpics/alternative/armcom.png')
+	glTexRect(8*widgetScale, 12*widgetScale, 54*widgetScale, 60*widgetScale)
+	glTexture(':lr96,96:unitpics/alternative/corcom.png')
+	glTexRect(72*widgetScale, 12*widgetScale, 120*widgetScale, 60*widgetScale)
 	glTexture(false)
 	
 		-- Text

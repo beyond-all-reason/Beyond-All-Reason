@@ -216,7 +216,7 @@ local coreToArm = table_invert(armToCore)
 ------------------------------------------------------------
 -- Globals
 ------------------------------------------------------------
-local sDefID -- Starting unit def ID
+local selectedDefID -- Starting unit def ID
 local sDef -- UnitDefs[sDefID]
 
 local selDefID = nil -- Currently selected def ID
@@ -353,7 +353,7 @@ local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
 		if scale then
 			gl.Scale(scale, scale, scale)
 		end
-		gl.UnitShape(uDefID, uTeam, false, true, false)
+		gl.UnitShape(uDefID, uTeam, false, true, true)
 	gl.PopMatrix()
 
 	gl.Lighting(false)
@@ -379,7 +379,7 @@ end
 local function GetUnitCanCompleteQueue(uID)
 
 	local uDefID = Spring.GetUnitDefID(uID)
-	if uDefID == sDefID then
+	if uDefID == selectedDefID then
 		return true
 	end
 
@@ -447,8 +447,8 @@ function widget:Initialize()
 		return
 	else
 		local startUnitName = Spring.GetSideData(mySide)
-		sDefID = UnitDefNames[startUnitName].id
-		InitializeFaction(sDefID)
+		selectedDefID = UnitDefNames[startUnitName].id
+		InitializeFaction(selectedDefID)
 		WG["faction_change"] = InitializeFaction
 	end
 	processGuishader()
@@ -457,7 +457,7 @@ end
 
 function processGuishader()
 	if WG['guishader'] then
-		local sBuilds = UnitDefs[sDefID].buildOptions
+		local sBuilds = UnitDefs[selectedDefID].buildOptions
 		if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 			if sDef.name == "armcom" then
 				sBuilds = armlevel1buildoptions
@@ -512,6 +512,7 @@ function InitializeFaction(sDefID)
 		return
 	end
 
+	selectedDefID = sDefID
 
 	-- Set up cells
 	local numCols = math.min(#sBuilds, maxCols)
@@ -790,7 +791,7 @@ function widget:DrawWorld()
 		sy = Spring.GetGroundHeight(sx, sz)
 
 		-- Draw the starting unit at start position
-		DrawUnitDef(sDefID, myTeamID, sx, sy, sz, 2)
+		DrawUnitDef(selectedDefID, myTeamID, sx, sy, sz)
 
 		-- Draw start units build radius
 		gl.Color(buildDistanceColor)
@@ -1149,7 +1150,7 @@ function widget:ViewResize(newX,newY)
   end
 	processGuishader()
 	
-	local sBuilds = UnitDefs[sDefID].buildOptions
+	local sBuilds = UnitDefs[selectedDefID].buildOptions
 	if (Spring.GetModOptions().unba or "disabled") == "enabled" then
 		if sDef.name == "armcom" then
 			sBuilds = armlevel1buildoptions
