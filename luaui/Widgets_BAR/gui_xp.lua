@@ -51,7 +51,7 @@ local unitHeights  = {}
 local iconsize   = 33
 local iconoffset = 14
 
-local rankTexBase = 'LuaUI/Images/ranks/'
+local rankTexBase = ':alr80,80:LuaUI/Images/ranks/'
 local rankTextures = {
   [0] = nil,
   [1] = rankTexBase .. 'rank1.png',

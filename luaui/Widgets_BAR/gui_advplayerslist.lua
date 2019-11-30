@@ -167,15 +167,14 @@ local pics = {
 	sizednPic       = imageDirectory.."sizedn.dds",
 	sizeupPic       = imageDirectory.."sizeup.dds",
 	
-	rank0      = imageDirectory.."ranks/rank0.dds",
-	rank1      = imageDirectory.."ranks/rank1.dds",
-	rank2      = imageDirectory.."ranks/rank2.dds",
-	rank3      = imageDirectory.."ranks/rank3.dds",
-	rank4      = imageDirectory.."ranks/rank4.dds",
-	rank5      = imageDirectory.."ranks/rank5.dds",
-	rank6      = imageDirectory.."ranks/rank6.dds",
-	rank7      = imageDirectory.."ranks/rank7.dds",
-	rank8      = imageDirectory.."ranks/rank_unknown.dds",
+	rank0      = imageDirectory.."ranks/rank0.png",
+	rank1      = imageDirectory.."ranks/rank1.png",
+	rank2      = imageDirectory.."ranks/rank2.png",
+	rank3      = imageDirectory.."ranks/rank3.png",
+	rank4      = imageDirectory.."ranks/rank4.png",
+	rank5      = imageDirectory.."ranks/rank5.png",
+	rank6      = imageDirectory.."ranks/rank6.png",
+	rank7      = imageDirectory.."ranks/rank7.png",
 }
 
 local sidePics        = {}  -- loaded in SetSidePics function
@@ -2498,7 +2497,7 @@ function DrawRank(rank, posY)
 	elseif rank == 7 then
 		DrawRankImage(pics["rank7"], posY)
 	else
-		--DrawRankImage(rank8, posY)
+
 	end
 	gl_Color(1,1,1,1)
 end

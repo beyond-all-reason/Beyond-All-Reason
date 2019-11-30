@@ -50,6 +50,7 @@ local drawlist = {}
 local advplayerlistPos = {}
 local widgetHeight = 23
 local top, left, bottom, right = 0,0,0,0
+local gameMaxUnits = Game.maxUnits
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -143,7 +144,7 @@ local function updateValues()
 		local valueColor = '\255\230\230\230'
 		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
-		font:Print(titleColor..'total units  '..valueColor..myTotalUnits, left+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print(titleColor..'# units  '..valueColor..myTotalUnits..titleColor..' / '..valueColor..gameMaxUnits, left+textXPadding, bottom+textYPadding, textsize, 'no')
         font:End()
     end)
 end
