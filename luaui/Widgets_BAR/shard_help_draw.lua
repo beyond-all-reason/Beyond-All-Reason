@@ -347,7 +347,6 @@ local function DrawLines(shapes)
 end
 
 local function DrawPoints(shapes)
-    print('drawww2')
 	glDepthTest(false)
 	glPushMatrix()
 	glPointSize(6)
@@ -956,6 +955,13 @@ local function InterpretStringData(data, command)
 	return newData
 end
 
+local function SaveTable(tableinput, tablename, filename)
+	Spring.Echo('Saving ' .. tablename .. ' on ' .. filename)
+	local fileobj = io.open(filename, 'w')
+	fileobj:write(tablename .. " = " .. tableinput)
+	fileobj:close()
+end
+
 local function BindCommand(command, func)
 	widgetHandler:RegisterGlobal(command, func)
 	commandBindings[command] = func
@@ -982,6 +988,7 @@ function widget:Initialize()
 	BindCommand("ShardDrawDisplay", DisplayOnOff)
 	BindCommand("ShardStartTimer", StartTimer)
 	BindCommand("ShardStopTimer", StopTimer)
+	BindCommand("ShardSaveTable", SaveTable)
 	myFont = glLoadFont('luaui/fonts/Xolonium.otf', 16, 4, 5) or glLoadFont('fonts/Xolonium.otf', 16, 4, 5)
 	myMonoFont = glLoadFont('luaui/fonts/Mesmerize-Bold.ttf', 16, 4, 5) or myFont
 	-- myFont:SetAutoOutlineColor(true)

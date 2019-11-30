@@ -34,6 +34,8 @@ local unitWeaponMtypes = {}
 local quadX = { -1, 1, -1, 1 }
 local quadZ = { -1, -1, 1, 1 }
 
+local output = ''
+
 function ConstrainToMap(x, z)
 	x = max(min(x, ai.maxElmosX-mapBuffer), mapBuffer)
 	z = max(min(z, ai.maxElmosZ-mapBuffer), mapBuffer)
@@ -408,5 +410,45 @@ function SimplifyPath(path)
 	end 
 	return path
 end
+
+function serialize (o, keylist,reset)
+	if reset then output = '' end
+	if keylist == nil then keylist = "" end
+	if type(o) == "number" then
+		output = output .. tostring(o)
+	elseif type(o) == "boolean" then
+		output = output ..  tostring(o)
+	elseif type(o) == "string" then
+		output = output .. string.format("%q", o)
+	elseif type(o) == "userdata" then
+		-- assume it's a position
+		output = output .. "api.Position()"
+		table.insert(savepositions, {keylist = keylist, position = o})
+		--mapdatafile:write("{ x = " .. math.ceil(o.x) .. ", y = " .. math.ceil(o.y) .. ", z = " .. math.ceil(o.z) .. " }")
+	elseif type(o) == "table" then
+		output = output .. ("{\n")
+		for k,v in pairs(o) do
+			output = output .. ("  [")
+			serialize(k,keylist)
+			output = output .. ("] = ")
+			local newkeylist
+			if type(v) == "table" or type(v) == "userdata" then
+				if type(k) == "string" then
+				newkeylist = keylist .. "[\""  .. k .. "\"]"
+				elseif type(k) == "number" then
+				newkeylist = keylist .. "["  .. k .. "]"
+				end
+			end
+			serialize(v, newkeylist)
+			output = output .. (",\n")
+		end
+		output = output .. ("}\n")
+	else
+		error("cannot serialize a " .. type(o))
+	end
+	return output
+end
+		
+			
 
 CommonFunctionsLoaded = true -- so that SpringShardLua doesn't load them multiple times
