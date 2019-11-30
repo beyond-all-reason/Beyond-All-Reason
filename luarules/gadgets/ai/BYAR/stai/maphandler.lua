@@ -94,42 +94,6 @@ local function MapDataFilename()
 	return "cache/Shard-" .. game:GameName() .. "-" .. mapName .. ".lua"
 end
 
-local function serialize (o, keylist)
-  if keylist == nil then keylist = "" end
-  if type(o) == "number" then
-    mapdatafile:write(o)
-  elseif type(o) == "boolean" then
-  	mapdatafile:write(tostring(o))
-  elseif type(o) == "string" then
-    mapdatafile:write(string.format("%q", o))
-  elseif type(o) == "userdata" then
-  	-- assume it's a position
-  	mapdatafile:write("api.Position()")
-  	table.insert(savepositions, {keylist = keylist, position = o})
-  	--mapdatafile:write("{ x = " .. math.ceil(o.x) .. ", y = " .. math.ceil(o.y) .. ", z = " .. math.ceil(o.z) .. " }")
-  elseif type(o) == "table" then
-    mapdatafile:write("{\n")
-    for k,v in pairs(o) do
-      mapdatafile:write("  [")
-      serialize(k)
-      mapdatafile:write("] = ")
-      local newkeylist
-      if type(v) == "table" or type(v) == "userdata" then
-      	if type(k) == "string" then
-        	newkeylist = keylist .. "[\""  .. k .. "\"]"
-        elseif type(k) == "number" then
-        	newkeylist = keylist .. "["  .. k .. "]"
-        end
-      end
-      serialize(v, newkeylist)
-      mapdatafile:write(",\n")
-    end
-    mapdatafile:write("}\n")
-  else
-    error("cannot serialize a " .. type(o))
-  end
-end
-
 local function EchoData(name, o)
 	savepositions = {}
 	mapdatafile:write(name)
@@ -442,9 +406,11 @@ function MapHandler:Update()
 -- 	-- workaround for shifting metal spots: map data is reloaded every two minutess
     local f = self.game:Frame()
     self:EchoDebug('frame',f)
-	if f > self.lastDataResetFrame + 3600 then
+	if f > self.lastDataResetFrame + 360 then
 		-- self:LoadMapData()
-		self.lastDataResetFrame = f
+	
+	
+	self.lastDataResetFrame = f
 	end
 end
 
@@ -522,6 +488,7 @@ function MapHandler:Init()
 	end
 
 	self.spots = self.map:GetMetalSpots()
+
 	-- copy metal spots
 	local metalSpots = {}
 	for k, v in pairs(self.spots) do table.insert(metalSpots, v) end
@@ -551,7 +518,8 @@ function MapHandler:Init()
 		end
 		self:EchoDebug(#geoSpots, "geovents")
 	end
-    
+	
+-- 	self.map:SaveTable(serialize(metalSpots,nil,true),'metalSpots','games/Beyond-All-Reason.sdd/luarules/gadgets/ai/BYAR/stai/metalspotstable')
 	if not didMapSpotMobility then
 		UWMetalSpots = {}
 		landMetalSpots = {}
@@ -675,27 +643,6 @@ function MapHandler:Init()
     self:EchoDebug('MapHandler STOP')
     
 end
-
--- gives all kinds of unexpected results
--- function MapHandler:GetFactoryMobilities()
--- 	local factMobs = {}
--- 	for uname, utable in pairs(unitTable) do
--- 		if utable.unitsCanBuild and #utable.unitsCanBuild > 0 then
--- 			factMobs[uname] = {}
--- 			local haveMtype = {}
--- 			for i = 1, #utable.unitsCanBuild do
--- 				local canBuildName = utable.unitsCanBuild[i]
--- 				local mtype = unitTable[canBuildName].mtype
--- 				if not haveMtype[mtype] then
--- 					factMobs[uname][#factMobs[uname]+1] = mtype
--- 					haveMtype[mtype] = true
--- 					self:EchoDebug(uname .. " " .. mtype)
--- 				end
--- 			end
--- 		end
--- 	end
--- 	return factMobs
--- end
 
 function MapHandler:SpotSimplyfier(metalSpots,geoSpots)
 	local spots = {}

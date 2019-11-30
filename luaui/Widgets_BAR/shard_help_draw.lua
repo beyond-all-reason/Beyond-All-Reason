@@ -950,10 +950,13 @@ local function InterpretStringData(data, command)
 	return newData
 end
 
-local function SaveTable(nnn)
-	print('minchiazza')
+local function SaveTable(tableinput, tablename, filename)
+	Spring.Echo('Saving ' .. tablename .. ' on ' .. filename)
+	local fileobj = io.open(filename, 'w')
+	fileobj:write(tablename .. " = " .. tableinput)
+	fileobj:close()
 end
-                      
+
 local function BindCommand(command, func)
 	widgetHandler:RegisterGlobal(command, func)
 	commandBindings[command] = func

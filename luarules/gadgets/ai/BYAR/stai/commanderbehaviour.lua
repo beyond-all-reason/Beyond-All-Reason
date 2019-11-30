@@ -4,19 +4,18 @@ function CommanderBehaviour:Name()
 	return "CommanderBehaviour"
 end
 
-local CMD_GUARD = 25
-local CMD_PATROL = 15
-
 function CommanderBehaviour:Init()
 	self.DebugEnabled = false
 
 	self:EchoDebug("init")
 end
 
+local CMD_GUARD = 25
+local CMD_PATROL = 15
+
 function CommanderBehaviour:Update()
 	local f = self.game:Frame()
 	if self.lowHealth and f >= self.nextHealthCheck then
-		self.map:SaveTable()
 		if self.unit:Internal():GetHealth() >= self.unit:Internal():GetMaxHealth() * 0.75 then
 			self.lowHealth = false
 			self.unit:ElectBehaviour()
@@ -85,7 +84,6 @@ function CommanderBehaviour:HelpFactory()
 		floats:push_back(pos.z)
 		self.unit:Internal():ExecuteCustomCommand(CMD_PATROL, floats, {"shift"})
 	end
-	-- CustomCommand(self.unit:Internal(), CMD_GUARD, {self.factoryToHelp:ID()})
 end
 
 function CommanderBehaviour:FindSafeHouse()
