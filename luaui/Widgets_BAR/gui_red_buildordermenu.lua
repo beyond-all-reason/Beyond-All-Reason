@@ -50,13 +50,12 @@ local shortcutsInfo = false
 local largeUnitIcons = true
 
 local alternativeUnitpics = false
-local alternativeUnitpicsDir   = "unitpics/alternative/"
 local hasAlternativeUnitpic = {}
+local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
+	unitBuildPic[id] = def.buildpicname
 	if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
-		hasAlternativeUnitpic[id] = '.png'
-	elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-		hasAlternativeUnitpic[id] = '.dds'
+		hasAlternativeUnitpic[id] = true
 	end
 end
 
@@ -747,9 +746,9 @@ local function UpdateGrid(g,cmds,ordertype)
 
 			if (ordertype == 1) then --build icons
 				if alternativeUnitpics and hasAlternativeUnitpic[cmd.id*-1] then
-					icon.texture = ':lr128,128:'..alternativeUnitpicsDir..UnitDefs[cmd.id*-1].name..hasAlternativeUnitpic[cmd.id*-1]
+					icon.texture = ':lr128,128:unitpics/alternative/'..unitBuildPic[cmd.id*-1]
 				else
-					icon.texture = ':lr128,128:unitpics/'..UnitDefs[cmd.id*-1].name..'.png'
+					icon.texture = ':lr128,128:unitpics/'..unitBuildPic[cmd.id*-1]
 				end
 				icon.udid = cmd.id*-1
 

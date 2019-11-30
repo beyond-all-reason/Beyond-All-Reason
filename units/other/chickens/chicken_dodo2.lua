@@ -8,7 +8,7 @@ return {
 		buildcostenergy = 9000,
 		buildcostmetal = 350,
 		builder = false,
-		buildpic = "chickens/chicken_dodo2.dds",
+		buildpic = "chickens/chicken_dodo2.PNG",
 		buildtime = 22500,
 		canguard = true,
 		canhover = "1",

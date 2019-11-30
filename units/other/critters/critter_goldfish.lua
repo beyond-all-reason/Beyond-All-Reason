@@ -7,7 +7,7 @@ return {
 		buildcostenergy = 0,
 		buildcostmetal = 0,
 		builder = false,
-		buildpic = "critters/critter_goldfish.dds",
+		buildpic = "critters/critter_goldfish.PNG",
 		buildtime = 600,
 		canattack = true,
 		canguard = true,

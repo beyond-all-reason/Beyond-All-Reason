@@ -101,11 +101,11 @@ local prevUnitCount = spGetSelectedUnitsCounts()
 local alternativeUnitpics = false
 
 local hasAlternativeUnitpic = {}
+local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
+  unitBuildPic[id] = def.buildpicname
   if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
-    hasAlternativeUnitpic[id] = '.png'
-  elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-    hasAlternativeUnitpic[id] = '.dds'
+    hasAlternativeUnitpic[id] = true
   end
 end
 
@@ -201,10 +201,10 @@ function cacheUnitIcons()
         gl.Color(1,1,1,0.001)
         for id, unit in pairs(UnitDefs) do
           if alternativeUnitpics and hasAlternativeUnitpic[id] then
-            gl.Texture(':lcr96,96:unitpics/alternative/'..unitNames[id]..hasAlternativeUnitpic[id])
+            gl.Texture(':lcr96,96:unitpics/alternative/'..unitBuildPic[id])
           else
             --gl.Texture('#' .. id)
-            gl.Texture(':lcr96,96:unitpics/'..unitNames[id]..'.png')
+            gl.Texture(':lcr96,96:unitpics/'..unitBuildPic[id])
           end
             gl.TexRect(-1,-1,0,0)
             gl.Texture(false)
@@ -448,10 +448,10 @@ function DrawUnitDefTexture(unitDefID, iconPos, count, row)
 
   glColor(color)
   if alternativeUnitpics and hasAlternativeUnitpic[unitDefID] then
-    glTexture(':lcr96,96:unitpics/alternative/'..unitNames[unitDefID]..hasAlternativeUnitpic[unitDefID])
+    glTexture(':lcr96,96:unitpics/alternative/'..unitBuildPic[unitDefID])
   else
     --glTexture('#' .. unitDefID)
-    glTexture(':lcr96,96:unitpics/'..unitNames[unitDefID]..'.png')
+    glTexture(':lcr96,96:unitpics/'..unitBuildPic[unitDefID])
   end
   glTexRect(math.floor(xmin+iconMargin), math.floor(ymin+iconMargin+ypad2), math.ceil(xmax-iconMargin), math.ceil(ymax-iconMargin+ypad2))
   glTexture(false)

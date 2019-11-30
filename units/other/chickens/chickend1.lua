@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 120,
 		builddistance = 200,
 		builder = true,
-		buildpic = "chickens/chickend1.dds",
+		buildpic = "chickens/chickend1.PNG",
 		buildtime = 2700,
 		canattack = true,
 		canreclaim = true,

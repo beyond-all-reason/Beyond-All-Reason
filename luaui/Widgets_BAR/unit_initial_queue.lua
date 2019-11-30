@@ -65,11 +65,11 @@ local buttonpushed = ":n:LuaUI/Images/button-pushed.dds"
 local customScale = 0.95
 local alternativeUnitpics = false
 local hasAlternativeUnitpic = {}
+local unitBuildPic = {}
 for id, def in pairs(UnitDefs) do
+	unitBuildPic[id] = def.buildpicname
 	if VFS.FileExists('unitpics/alternative/'..def.name..'.png') then
-		hasAlternativeUnitpic[id] = '.png'
-	elseif VFS.FileExists('unitpics/alternative/'..def.name..'.dds') then
-		hasAlternativeUnitpic[id] = '.dds'
+		hasAlternativeUnitpic[id] = true
 	end
 end
 
@@ -549,10 +549,10 @@ function InitializeFaction(sDefID)
 						gl.Color(1, 1, 1, 1)
 
 						if alternativeUnitpics and hasAlternativeUnitpic[cellRow[c]] then
-							gl.Texture(':lcr110,110:unitpics/alternative/'..UnitDefs[cellRow[c]].name..hasAlternativeUnitpic[cellRow[c]])
+							gl.Texture(':lcr110,110:unitpics/alternative/'..unitBuildPic[cellRow[c]])
 						else
 							--gl.Texture('#' .. cellRow[c])	-- doesnt work for png
-							gl.Texture(':lcr110,110:unitpics/'..UnitDefs[cellRow[c]].name..'.png')
+							gl.Texture(':lcr110,110:unitpics/'..unitBuildPic[cellRow[c]])
 						end
 						DrawRect(iconPadding, iconPadding, (iconWidth-iconPadding), (iconHeight-iconPadding))
 						gl.Texture(false)

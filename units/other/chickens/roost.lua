@@ -9,7 +9,7 @@ return {
 		buildcostmetal = 400,
 		builddistance = 90,
 		builder = true,
-		buildpic = "chickens/roost.dds",
+		buildpic = "chickens/roost.PNG",
 		buildtime = 10500,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTSHIP NOTAIR NOTHOVER SURFACE CHICKEN EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
