@@ -406,7 +406,7 @@ function MapHandler:Update()
 -- 	-- workaround for shifting metal spots: map data is reloaded every two minutess
     local f = self.game:Frame()
     self:EchoDebug('frame',f)
-	if f > self.lastDataResetFrame + 360 then
+	if f > self.lastDataResetFrame + 3600 then
 		-- self:LoadMapData()
 	
 	
@@ -416,22 +416,13 @@ end
 
 function MapHandler:Init()
 	self:EchoDebug('MapHandler START')
-    self:EchoDebug('self',self)
+	self:EchoDebug('self',self)
 	
 --     MapHandler.map = self.map
     self:basicMapInfo()
     for i,v in pairs(self.ai) do
         self:EchoDebug('self.ai',i,v)
     end
---     self:EchoDebug('-------------------------------ai------------------------------------',ai)
---     
---     self:EchoDebug('MapHandler',MapHandler)
---     for i,v in pairs(MapHandler) do
---         self:EchoDebug(i,v)
---     end    
-    
-
-    
 	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)
 	end
@@ -518,7 +509,6 @@ function MapHandler:Init()
 		end
 		self:EchoDebug(#geoSpots, "geovents")
 	end
-	
 -- 	self.map:SaveTable(serialize(metalSpots,nil,true),'metalSpots','games/Beyond-All-Reason.sdd/luarules/gadgets/ai/BYAR/stai/metalspotstable')
 	if not didMapSpotMobility then
 		UWMetalSpots = {}
