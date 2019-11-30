@@ -13,7 +13,7 @@
 
 function widget:GetInfo()
 	return {
-		name	= "Music Player",
+		name	= "AdvPlayersList Music Player",
 		desc	= "Plays music and offers volume controls",
 		author	= "Forboding Angel, Floris, Damgam",
 		date	= "november 2016",
@@ -282,7 +282,7 @@ local function createList()
 			borderPaddingLeft = 0
 		end
 		glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.4)
+		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.1)
 		
 	end)
 	drawlist[2] = glCreateList( function()

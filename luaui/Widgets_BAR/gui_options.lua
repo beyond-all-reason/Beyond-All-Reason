@@ -2011,10 +2011,6 @@ function init()
 		--		 onload = function() end,
 		--		 onchange = function(i, value) Spring.SetConfigFloat("snd_airAbsorption", value) end,
 		--		},
-		{id="musicplayer", group="snd", basic=true, widget="Music Player", name="Music player", type="bool", value=GetWidgetToggleValue("Music Player"), description='Enable music player (on top of advplayerlist)',
-		 onload = function() end,
-		 onchange=function(i,value) if value then Spring.StopSoundStream() end end
-		},
 		--{id="buildmenusounds", group="snd", name="Buildmenu click sounds", type="bool", value=(WG['red_buildmenu']~=nil and WG['red_buildmenu'].getConfigPlaySounds~= nil and WG['red_buildmenu'].getConfigPlaySounds()), description='Plays a sound when clicking on orders or buildmenu icons',
 		--		 onload = function() end,
 		--		 onchange=function(i,value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigPlaySounds', {'playSounds'}, value) end
@@ -2286,7 +2282,12 @@ function init()
 		-- onload = function() end,
 		-- onchange = function(i, value) saveOptionValue('Red Build/Order Menu', 'red_buildmenu', 'setConfigLargeUnitIcons', {'largeUnitIons'}, value) end,
 		--},
-		{id="mascotte", group="ui", basic=true, widget=widgetOptionColor.."Playerlist mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList mascotte"), description='Shows a mascotte on top of the (adv)playerslist'},
+		{id="mascotte", group="ui", basic=true, widget="AdvPlayersList Mascotte", name="Playerlist mascotte", type="bool", value=GetWidgetToggleValue("AdvPlayersList Mascotte"), description='Shows a mascotte on top of the playerslist'},
+		{id="unittotals", group="ui", basic=true, widget="AdvPlayersList Unit Totals", name=widgetOptionColor.."   unit totals", type="bool", value=GetWidgetToggleValue("AdvPlayersList Unit Totals"), description='Show your unit totals on top of the playerlist'},
+		{id="musicplayer", group="ui", basic=true, widget="AdvPlayersList Music Player", name=widgetOptionColor.."   music player", type="bool", value=GetWidgetToggleValue("AdvPlayersList Music Player"), description='Show music player on top of playerlist',
+		 onload = function() end,
+		 onchange = function(i,value) if value then Spring.StopSoundStream() end end
+		},
 
 		{id="displaydps", group="ui", basic=true, name="Display DPS", type="bool", value=tonumber(Spring.GetConfigInt("DisplayDPS",0) or 0) == 1, description='Display the \'Damage Per Second\' done where target are hit',
 		  onload = function()  end,

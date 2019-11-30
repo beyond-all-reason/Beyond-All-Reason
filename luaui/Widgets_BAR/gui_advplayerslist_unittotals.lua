@@ -13,13 +13,13 @@
 
 function widget:GetInfo()
 	return {
-		name	= "AdvPlayersList info",
-		desc	= "Displays current gametime, fps and gamespeed",
+		name	= "AdvPlayersList Unit Totals",
+		desc	= "Displays number of units",
 		author	= "Floris",
-		date	= "april 2017",
+		date	= "december 2019",
 		license	= "GNU GPL, v2 or later",
 		layer	= -3,
-		enabled	= true,	--	loaded by default?
+		enabled	= false,	--	loaded by default?
 	}
 end
 
@@ -36,7 +36,7 @@ local fontfileOutlineStrength = 1.33
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local ui_opacity = tonumber(Spring.GetConfigFloat("ui_opacity",0.66) or 0.66)
-local bgcorner				= ":l:LuaUI/Images/bgcorner.png"
+local bgcorner = ":l:LuaUI/Images/bgcorner.png"
 
 local widgetScale = 1
 local glPushMatrix   = gl.PushMatrix
@@ -51,20 +51,15 @@ local advplayerlistPos = {}
 local widgetHeight = 23
 local top, left, bottom, right = 0,0,0,0
 
-local volume
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 function widget:Initialize()
 	updatePosition()
-	WG['displayinfo'] = {}
-	WG['displayinfo'].GetPosition = function()
+	WG['unittotals'] = {}
+	WG['unittotals'].GetPosition = function()
 		return {top,left,bottom,right,widgetScale}
 	end
-	Spring.SendCommands("fps 0")
-	Spring.SendCommands("clock 0")
-	Spring.SendCommands("speed 0")
 end
 
 
@@ -144,23 +139,11 @@ local function updateValues()
 		glDeleteList(drawlist[2])
 	end
 	drawlist[2] = glCreateList( function()
-		local _,gamespeed,_ = Spring.GetGameSpeed()
-		gamespeed = string.format("%.2f", gamespeed)
-		local fps = Spring.GetFPS()
 		local titleColor = '\255\185\185\185'
 		local valueColor = '\255\230\230\230'
-		local gameframe = Spring.GetGameFrame()
-		local minutes = math.floor((gameframe / 30 / 60))
-		local seconds = math.floor((gameframe - ((minutes*60)*30)) / 30)
-		if seconds == 0 then
-			seconds = '00'
-		elseif seconds < 10 then
-			seconds = '0'..seconds
-		end
-		local time = minutes..':'..seconds
-
+		local myTotalUnits = Spring.GetTeamUnitCount(Spring.GetMyTeamID())
         font:Begin()
-		font:Print(titleColor..'time  '..valueColor..time..titleColor..'      speed  '..valueColor..gamespeed..titleColor..'      fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print(titleColor..'total units  '..valueColor..myTotalUnits, left+textXPadding, bottom+textYPadding, textsize, 'no')
         font:End()
     end)
 end
@@ -173,7 +156,7 @@ local function createList()
 		drawlist[3] = glCreateList( function()
 			RectRound(left, bottom, right, top, 4.5*widgetScale)
 		end)
-		WG['guishader'].InsertDlist(drawlist[3], 'displayinfo')
+		WG['guishader'].InsertDlist(drawlist[3], 'unittotals')
 	end
 	if drawlist[1] ~= nil then
 		glDeleteList(drawlist[1])
@@ -192,7 +175,7 @@ local function createList()
 			borderPaddingLeft = 0
 		end
 		glColor(1,1,1,ui_opacity*0.055)
-		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.4)
+		RectRound(left+borderPaddingLeft, bottom+borderPadding, right-borderPaddingRight, top-borderPadding, borderPadding*1.1)
 		
 	end)
 	updateValues()
@@ -201,16 +184,13 @@ end
 
 function widget:Shutdown()
 	if WG['guishader'] then
-		WG['guishader'].RemoveDlist('displayinfo')
+		WG['guishader'].RemoveDlist('unittotals')
 	end
 	for i=1,#drawlist do
 		glDeleteList(drawlist[i])
 	end
 	gl.DeleteFont(font)
-	Spring.SendCommands("fps 1")
-	Spring.SendCommands("clock 1")
-	Spring.SendCommands("speed 1")
-	WG['displayinfo'] = nil
+	WG['unittotals'] = nil
 end
 
 local guishaderEnabled = (WG['guishader'])
@@ -246,14 +226,9 @@ function updatePosition(force)
 	if (WG['advplayerlist_api'] ~= nil) then
 		local prevPos = advplayerlistPos
 		advplayerlistPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		
 		if WG['music'] and WG['music'].GetPosition and WG['music'].GetPosition() then
             advplayerlistPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		end
-        --if widgetScale ~= advplayerlistPos[5] then
-        --    local fontScale = widgetScale/2
-        --    font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.25)
-        --end
 		left = advplayerlistPos[2]
 		bottom = advplayerlistPos[1]
 		right = advplayerlistPos[4]

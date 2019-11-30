@@ -1,6 +1,6 @@
 function widget:GetInfo()
 	return {
-		name		= "AdvPlayersList mascotte",
+		name		= "AdvPlayersList Mascotte",
 		desc		= "Shows a mascotte sitting on top of the adv-playerlist  (use /mascotte to switch)",
 		author		= "Floris",
 		date		= "23 may 2015",
@@ -13,7 +13,7 @@ end
 --  Config
 ---------------------------------------------------------------------------------------------------
 
-local imageDirectory			= ":n:"..LUAUI_DIRNAME.."Images/advplayerslist_mascotte/"
+local imageDirectory			= ":l:"..LUAUI_DIRNAME.."Images/advplayerslist_mascotte/"
 
 local OPTIONS = {}
 OPTIONS.defaults = {	-- these will be loaded when switching style, but the style will overwrite the those values 
@@ -26,10 +26,10 @@ OPTIONS.defaults = {	-- these will be loaded when switching style, but the style
 }
 table.insert(OPTIONS, {
 	name				= "Floris Cat",
-	body				= imageDirectory.."floriscat_body.dds",
-	head				= imageDirectory.."floriscat_head.dds",
-	headblink			= imageDirectory.."floriscat_headblink.dds",
-	santahat			= imageDirectory.."santahat.dds",
+	body				= imageDirectory.."floriscat_body.png",
+	head				= imageDirectory.."floriscat_head.png",
+	headblink			= imageDirectory.."floriscat_headblink.png",
+	santahat			= imageDirectory.."santahat.png",
 	imageSize			= 53,
 	xOffset				= -1.6,
 	yOffset				= -58/5,
@@ -38,10 +38,10 @@ table.insert(OPTIONS, {
 })
 table.insert(OPTIONS, {
 	name				= "GrumpyCat",
-	body				= imageDirectory.."grumpycat_body.dds",
-	head				= imageDirectory.."grumpycat_head.dds",
-	headblink			= imageDirectory.."grumpycat_headblink.dds",
-	santahat			= imageDirectory.."santahat.dds",
+	body				= imageDirectory.."grumpycat_body.png",
+	head				= imageDirectory.."grumpycat_head.png",
+	headblink			= imageDirectory.."grumpycat_headblink.png",
+	santahat			= imageDirectory.."santahat.png",
 	imageSize			= 53,
 	xOffset				= -1.6,
 	yOffset				= -58/5,
@@ -174,6 +174,8 @@ function updatePosition(force)
 		local prevPos = parentPos
 		if WG['displayinfo'] ~= nil then
 			parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+		elseif WG['unittotals'] ~= nil then
+			parentPos = WG['unittotals'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		elseif WG['music'] ~= nil then
 			parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 		else
