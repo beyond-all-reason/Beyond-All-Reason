@@ -1350,7 +1350,7 @@ function widget:DrawScreen()
 
             if hideQuitWindow == nil then	-- when terminating spring, keep the faded screen
 
-                local width = vsx/5.3
+                local width = 320*widgetScale
                 local height = width/3.5
                 local padding = width/70
                 local buttonPadding = width/90
