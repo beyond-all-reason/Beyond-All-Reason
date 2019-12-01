@@ -1,0 +1,20 @@
+hotspot center
+frame  anims/cursorpickup_0.png 0.1
+frame  anims/cursorpickup_1.png 0.1
+frame  anims/cursorpickup_2.png 0.1
+frame  anims/cursorpickup_3.png 0.1
+frame  anims/cursorpickup_4.png 0.1
+frame  anims/cursorpickup_5.png 0.1
+frame  anims/cursorpickup_6.png 0.1
+frame  anims/cursorpickup_7.png 0.1
+frame  anims/cursorpickup_8.png 0.1
+frame  anims/cursorpickup_9.png 0.1
+frame  anims/cursorpickup_8.png 0.1
+frame  anims/cursorpickup_7.png 0.1
+frame  anims/cursorpickup_6.png 0.1
+frame  anims/cursorpickup_5.png 0.1
+frame  anims/cursorpickup_4.png 0.1
+frame  anims/cursorpickup_3.png 0.1
+frame  anims/cursorpickup_2.png 0.1
+frame  anims/cursorpickup_1.png 0.1
+frame  anims/cursorpickup_0.png 0.1

@@ -1,0 +1,8 @@
+
+frame  anims/cursorgather_0.png  0.100
+frame  anims/cursorgather_1.png  0.100
+frame  anims/cursorgather_2.png  0.100
+frame  anims/cursorgather_3.png  0.100
+frame  anims/cursorgather_2.png  0.100
+frame  anims/cursorgather_1.png  0.100
+
