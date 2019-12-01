@@ -11,11 +11,11 @@ function widget:GetInfo()
 	}
 end
 
-local sizeMult = 1
 local Settings = {}
 Settings['cursorSet'] = 'icexuick'
 Settings['cursorSize'] = 100
-Settings['version'] = 3		-- just so it wont restore configdata on load if it differs format
+Settings['sizeMult'] = 1
+Settings['version'] = 4		-- just so it wont restore configdata on load if it differs format
 
 local force = true
 
@@ -55,7 +55,7 @@ end
 
 function widget:ViewResize()
 	local ssx,ssy = Spring.GetScreenGeometry()	-- doesnt change when you unplug external display
-	autoCursorSize = 100 * (0.6 + (ssx*ssy / 10000000)) * sizeMult
+	autoCursorSize = 100 * (0.6 + (ssx*ssy / 10000000)) * Settings['sizeMult']
 	SetCursor(Settings['cursorSet'])
 end
 
@@ -79,10 +79,10 @@ function widget:Initialize()
 		SetCursor(value)
 	end
 	WG['cursors'].getsizemult = function()
-		return sizeMult
+		return Settings['sizeMult']
 	end
 	WG['cursors'].setsizemult = function(value)
-		sizeMult = value
+        Settings['sizeMult'] = value
 		widget:ViewResize()
 	end
 end
