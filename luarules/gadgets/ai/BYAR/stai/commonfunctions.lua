@@ -66,6 +66,17 @@ function RandomAway(pos, dist, opposite, angle)
 	end
 end
 
+function distance(pos1,pos2)
+	local xd = pos1.x-pos2.x
+	local zd = pos1.z-pos2.z
+	local yd = pos1.y-pos2.y
+	if yd < 0 then
+		yd = -yd
+	end
+	dist = math.sqrt(xd*xd + zd*zd + yd*yd*yd)
+	return dist
+end
+
 function DistanceSq(pos1,pos2)
 	local xd = pos1.x-pos2.x
 	local yd = pos1.z-pos2.z
@@ -85,11 +96,24 @@ function DistanceXZ(x1, z1, x2, z2)
 	return sqrt(xd*xd + zd*zd)
 end
 
+local function Distance3d(pos1, pos2)
+	local dx = pos2.x - pos1.x
+	local dy = pos2.y - pos1.y
+	local dz = pos2.z - pos1.z
+	return mSqrt( dx*dx + dy*dy + dz*dz )
+end
+
 function ManhattanDistance(pos1,pos2)
 	local xd = math.abs(pos1.x-pos2.x)
 	local yd = math.abs(pos1.z-pos2.z)
 	local dist = xd + yd
 	return dist
+end
+
+local function MiddleOfTwo(pos1, pos2)
+	local middle = api.Position()
+	middle.x, middle.y, middle.z = (pos1.x+pos2.x)/2, (pos1.y+pos2.y)/2,(pos1.z+pos2.z)/2
+	return middle
 end
 
 function ApplyVector(x, z, vx, vz, frames)

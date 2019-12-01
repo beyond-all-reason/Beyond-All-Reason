@@ -333,7 +333,6 @@ local anyCommander = {
 	BuildRadar,
 	CommanderAA,
 	BuildPopTorpedo,
-	BuildSonar,
 }
 
 local anyConUnit = {
@@ -364,7 +363,6 @@ local anyConAmphibious = {
 	AmphibiousEconomy,
 	BuildPopTorpedo,
 	BuildFloatLightAA,
-	BuildSonar,
 	BuildFloatRadar,
 	BuildFloatHLT,
 }
@@ -373,7 +371,6 @@ local anyConShip = {
 	BuildAppropriateFactory,
 	EconomyUnderWater,
 	BuildFloatLightAA,
-	BuildSonar,
 	BuildLightTorpedo,
 	BuildFloatRadar,
 	BuildFloatHLT,
@@ -418,7 +415,6 @@ local anyNavalEngineer = {
 	BuildFloatHLT,
 	BuildFloatLightAA,
 	BuildFloatRadar,
-	BuildSonar,
 	BuildLightTorpedo,
 }
 
