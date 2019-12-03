@@ -3,37 +3,57 @@
 #include "sfxtype.h"
 #include "exptype.h"
 
-piece  base, beam, turret;
+#define SIG_BUILD	4
 
-static-var  Static_Var_1, statechg_DesiredState, statechg_StateChanging;
+piece base, tyre2, tyre3, ltyre, lcover, rtyre, rcover,cabin ,w_glass, container, rdoor, ldoor, box, loturret, upturret, nano, beam;
+
+static-var  restore_delay, statechg_DesiredState, statechg_StateChanging, notBuilding, currentSpeed, moveSpeed, wheelSpeed;
 
 
 
 
-SmokeUnit(healthpercent, sleeptime, smoketype)
+activatescr()
 {
-	while( get BUILD_PERCENT_LEFT )
+	turn ldoor to z-axis <0.000000> now;
+	turn ldoor to z-axis <210> speed <240>;
+	turn rdoor to z-axis <0.000000> now;
+	turn rdoor to z-axis <-210> speed <240>;
+	sleep 600;
+
+	move loturret to y-axis [7] speed [12];
+	move upturret to y-axis [7] speed [12];
+	sleep 200;
+}
+
+deactivatescr()
+{
+	set INBUILDSTANCE to 0;
+	turn loturret to y-axis <0.000000> speed <160.038462>;
+	turn upturret to y-axis <0.000000> speed <160.038462>;
+	wait-for-turn loturret around y-axis;
+
+	move loturret to y-axis [0] speed [12];
+	move upturret to y-axis [0] speed [12];
+	sleep 200;
+	
+	turn ldoor to z-axis <0> speed <240>;
+	turn rdoor to z-axis <0> speed <240>;
+	sleep 200;
+
+}
+
+WheelControl()
+{
+	while(TRUE)
 	{
-		sleep 400;
-	}
-	while( TRUE )
-	{
-		healthpercent = get HEALTH;
-		if( healthpercent < 66 )
-		{
-			smoketype = 256 | 2;
-			if( Rand( 1, 66 ) < healthpercent )
-			{
-				smoketype = 256 | 1;
-			}
-			emit-sfx smoketype from base;
-		}
-		sleeptime = healthpercent * 50;
-		if( sleeptime < 200 )
-		{
-			sleeptime = 200;
-		}
-		sleep sleeptime;
+		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
+		wheelSpeed = currentSpeed * 40; //original speed 7
+		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing
+		spin tyre2 around x-axis speed  (<1> * wheelSpeed);         
+		spin tyre3 around x-axis speed  (<1> * wheelSpeed);			
+		spin ltyre around x-axis speed  (<1> * wheelSpeed);
+		spin rtyre around x-axis speed  (<1> * wheelSpeed);			 
+		sleep 50; //200
 	}
 }
 
@@ -47,25 +67,31 @@ HitByWeapon(anglex, anglez)
 	turn base to x-axis <0.000000> speed <30.000000>;
 }
 
-
-Go()
+SmokeUnit(healthpercent, sleeptime, smoketype)
 {
-	turn turret to y-axis Static_Var_1 speed <160.038462>;
-	wait-for-turn turret around y-axis;
-	set INBUILDSTANCE to 1;
-}
-
-Stop()
-{
-	set INBUILDSTANCE to 0;
-	turn turret to y-axis <0.000000> speed <160.038462>;
-	wait-for-turn turret around y-axis;
-}
-
-InitState()
-{
-	statechg_DesiredState = TRUE;
-	statechg_StateChanging = FALSE;
+	while( get BUILD_PERCENT_LEFT )
+	{
+		sleep 500;
+	}
+	while( TRUE )
+	{
+		healthpercent = get HEALTH;
+		if( healthpercent < 66 )
+		{
+			smoketype = 258;
+			if( Rand( 1, 66 ) < healthpercent )
+			{
+				smoketype = 257;
+			}
+			emit-sfx smoketype from base;
+		}
+		sleeptime = healthpercent * 50;
+		if( sleeptime < 200 )
+		{
+			sleeptime = 200;
+		}
+		sleep sleeptime;
+	}
 }
 
 RequestState(requestedstate, currentstate)
@@ -80,15 +106,17 @@ RequestState(requestedstate, currentstate)
 	statechg_DesiredState = requestedstate;
 	while( statechg_DesiredState != currentstate )
 	{
-		if( statechg_DesiredState == 0 )
+		if( statechg_DesiredState )
 		{
-			call-script Go();
-			currentstate = 0;
-		}
-		if( statechg_DesiredState == 1 )
-		{
-			call-script Stop();
+			call-script deactivatescr();
+			notBuilding = 1;
 			currentstate = 1;
+		}
+		else
+		{
+			call-script activatescr();
+			notBuilding = 0;
+			currentstate = 0;
 		}
 	}
 	statechg_StateChanging = FALSE;
@@ -96,9 +124,14 @@ RequestState(requestedstate, currentstate)
 
 Create()
 {
-	Static_Var_1 = 0;
-	call-script InitState();
+	restore_delay = 3000;
+	notBuilding = 1;
+	moveSpeed = get MAX_SPEED;
+	statechg_DesiredState = TRUE;
+	statechg_StateChanging = FALSE;
 	start-script SmokeUnit();
+	return (0);
+	
 }
 
 Activate()
@@ -111,26 +144,32 @@ Deactivate()
 	start-script RequestState(1);
 }
 
-StartBuilding(Func_Var_1)
+StartBuilding(heading, pitch)
 {
-	Static_Var_1 = Func_Var_1;
 	start-script RequestState(0);
+	while( notBuilding ) sleep 100;
+	signal SIG_BUILD;
+	turn upturret to y-axis heading speed <160.038462>;
+	wait-for-turn upturret around y-axis;
+	set INBUILDSTANCE to 1;
 }
 
 StopBuilding()
 {
+	signal SIG_BUILD;	
+	set-signal-mask SIG_BUILD;
+	sleep 6000;
+	set-signal-mask 0;
+	signal SIG_BUILD;	
 	start-script RequestState(1);
 }
 
 QueryNanoPiece(piecenum)
 {
-	piecenum = beam;
+	piecenum = nano;
+
 }
 
-TargetHeading(Func_Var_1)
-{
-	Static_Var_1 = 0 - Func_Var_1;
-}
 
 SweetSpot(piecenum)
 {
@@ -143,29 +182,47 @@ Killed(severity, corpsetype)
 	{
 		corpsetype = 1 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode beam type BITMAPONLY | NOHEATCLOUD;
+		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rdoor type BITMAPONLY | NOHEATCLOUD;
+		explode container type BITMAPONLY | NOHEATCLOUD;
+		explode cabin type BITMAPONLY | NOHEATCLOUD;
+		explode ltyre type BITMAPONLY | NOHEATCLOUD;
+		explode rtyre type BITMAPONLY | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 50 )
 	{
 		corpsetype = 2 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode beam type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rdoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode container type FALL | NOHEATCLOUD;
+		explode cabin type FALL | NOHEATCLOUD;
+		explode ltyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	if( severity <= 99 )
 	{
 		corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
-		explode beam type EXPLODE_ON_HIT | SMOKE | FALL | NOHEATCLOUD;
+		explode ldoor type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rdoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode container type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode cabin type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ltyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rtyre type FIRE | SMOKE | FALL | NOHEATCLOUD;
 		return(corpsetype);
 	}
 	corpsetype = 3 ;
 		explode base type BITMAPONLY | NOHEATCLOUD;
-		explode turret type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
-		explode beam type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode ldoor type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rdoor type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode container type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode cabin type EXPLODE_ON_HIT | FIRE | FALL | NOHEATCLOUD;
+		explode ltyre type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
+		explode rtyre type EXPLODE_ON_HIT | FIRE | SMOKE | FALL | NOHEATCLOUD;
 	return corpsetype;
 }
+
+
