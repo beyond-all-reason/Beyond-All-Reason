@@ -11,26 +11,6 @@ end
 MapHandler.DebugEnabled = false
 MapHandler.lastDataResetFrame = 0
 
-function MapHandler:basicMapInfo()
---[[    for i,v in pairs(self) do
-        print(i.. ' ' ..tostring(v))
-    end
-    for i,v in pairs(MapHandler) do
-        print(i.. ' ' ..tostring(v))
-    end]]   
-    MapHandler.mapSize = self.map:MapDimensions()
-    MapHandler.elmoMapSizeX = MapHandler.mapSize.x * 8
-	MapHandler.elmoMapSizeZ = MapHandler.mapSize.z * 8    
-    MapHandler.mobilityGridSize = math.max( math.floor(math.max(MapHandler.mapSize.x * 8, MapHandler.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
-    MapHandler.mobilityGridSizeHalf = MapHandler.mobilityGridSize/ 2
-	MapHandler.maxX = math.ceil((MapHandler.mapSize.x * 8) / MapHandler.mobilityGridSize)
-	MapHandler.maxZ = math.ceil((MapHandler.mapSize.z * 8) / MapHandler.mobilityGridSize)
-    self:EchoDebug("grid size: " .. MapHandler.mobilityGridSize)
---     self:EchoDebug("Map size in grids: x "..MapHandler.maxX.." z "..MapHandler.maxZ)
-end
-
-
-
 local mapColors = {
 	veh = { 1, 0, 0 },
 	bot = { 0, 1, 0 },
@@ -54,7 +34,6 @@ local mapChannels = {
 -- mobTypes = {}
 local mobUnitTypes = {}
 local UWMetalSpotCheckUnitType
-
 local topology
 local mobMap
 local mobilityGridMaxX, mobilityGridMaxZ
@@ -82,7 +61,17 @@ local savepositions = {}
 local mSqrt = math.sqrt
 local mCeil = math.ceil
 
-
+function MapHandler:basicMapInfo()
+	MapHandler.mapSize = self.map:MapDimensions()
+	MapHandler.elmoMapSizeX = MapHandler.mapSize.x * 8
+	MapHandler.elmoMapSizeZ = MapHandler.mapSize.z * 8    
+	MapHandler.mobilityGridSize = math.max( math.floor(math.max(MapHandler.mapSize.x * 8, MapHandler.mapSize.z * 8) / 128),32)-- don't make grids smaller than 32
+	MapHandler.mobilityGridSizeHalf = MapHandler.mobilityGridSize/ 2
+	MapHandler.maxX = math.ceil((MapHandler.mapSize.x * 8) / MapHandler.mobilityGridSize)
+	MapHandler.maxZ = math.ceil((MapHandler.mapSize.z * 8) / MapHandler.mobilityGridSize)
+	self:EchoDebug("grid size: " .. MapHandler.mobilityGridSize)
+	--     self:EchoDebug("Map size in grids: x "..MapHandler.maxX.." z "..MapHandler.maxZ)
+end
 
 local function MapDataFilename()
 	local mapName = string.gsub(map:MapName(), "%W", "_")
