@@ -37,7 +37,7 @@ return {
 		turninplacespeedlimit = 0.726,
 		turnrate = 265.64999,
 		customparams = {
-			model_author = "FireStorm",
+			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,

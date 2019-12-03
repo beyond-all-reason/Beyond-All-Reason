@@ -2029,12 +2029,12 @@ function init()
 		-- CONTROL
 		{id="containmouse", group="control", basic=true, widget="Grabinput", name="Contain mouse", type="bool", value=GetWidgetToggleValue("Grabinput"), description='When in windowed mode, this prevents your mouse from moving out of it'},
 
-		{id="cursor", group="control", basic=true, name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size',
-		 onchange=function(i, value)
-			 saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
-		 end,
-		},
-		{id="cursorsize", group="control", basic=true, name=widgetOptionColor.."   size", type="slider", min=0.3, max=1.7, step=0.1, value=1, description='Note that cursor already auto scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size (when availible)',
+		--{id="cursor", group="control", basic=true, name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size',
+		-- onchange=function(i, value)
+		--	 saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
+		-- end,
+		--},
+		{id="cursorsize", group="control", basic=true, name="Cursor size", type="slider", min=0.3, max=1.7, step=0.1, value=1, description='Note that cursor already auto scales according to screen resolution\n\nFurther adjust size and snap to a smaller/larger size',
 		 onload = function() end,
 		 onchange = function(i, value) if WG['cursors'] then WG['cursors'].setsizemult(value) end end,
 		},
@@ -2045,7 +2045,7 @@ function init()
 			 Spring.SetConfigInt("HardwareCursor",(value and 1 or 0))
 		 end,
 		},
-		{id="crossalpha", group="control", name="Mouse cross alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)',
+		{id="crossalpha", group="control", name="Cursor 'cross' alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)',
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value) end,
 		},
@@ -2741,8 +2741,10 @@ function init()
 				break
 			end
 		end
-		options[getOptionByID('cursor')].options = cursorsets
-		options[getOptionByID('cursor')].value = cursor
+		if getOptionByID('cursor') then
+			options[getOptionByID('cursor')].options = cursorsets
+			options[getOptionByID('cursor')].value = cursor
+		end
 		if WG['cursors'].getsizemult then
 			options[getOptionByID('cursorsize')].value = WG['cursors'].getsizemult()
 		else

@@ -36,7 +36,7 @@ return {
 		turninplaceanglelimit = 360,
 		turnrate = 600,
 		customparams = {
-			model_author = "Mr Bob",
+			model_author = "Flaka",
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "coreaircraft/t2",
 			techlevel = 2,

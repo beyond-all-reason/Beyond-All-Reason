@@ -278,6 +278,11 @@ void main(void)
 local function DeferredLighting_RegisterFunction(func)
 	collectionFunctionCount = collectionFunctionCount + 1
 	collectionFunctions[collectionFunctionCount] = func
+	return collectionFunctionCount
+end
+
+local function DeferredLighting_UnRegisterFunction(functionID)
+	collectionFunctions[functionID] = nil
 end
 
 function widget:Initialize()
@@ -363,8 +368,9 @@ function widget:Initialize()
 				uniformEyePosBeam     = glGetUniformLocation(depthBeamShader, 'eyePos')
 				uniformViewPrjInvBeam = glGetUniformLocation(depthBeamShader, 'viewProjectionInv')
 			end
-			
+
 			WG.DeferredLighting_RegisterFunction = DeferredLighting_RegisterFunction
+			WG.DeferredLighting_UnRegisterFunction = DeferredLighting_UnRegisterFunction
 		end
 		screenratio = vsy / vsx --so we dont overdraw and only always draw a square
 	else
@@ -490,7 +496,9 @@ function widget:Update()
 	pointLights = {}
 	pointLightCount = 0
 	for i = 1, collectionFunctionCount do
-		beamLights, beamLightCount, pointLights, pointLightCount = collectionFunctions[i](beamLights, beamLightCount, pointLights, pointLightCount)
+		if collectionFunctions[i] then
+			beamLights, beamLightCount, pointLights, pointLightCount = collectionFunctions[i](beamLights, beamLightCount, pointLights, pointLightCount)
+		end
 	end
 end
 

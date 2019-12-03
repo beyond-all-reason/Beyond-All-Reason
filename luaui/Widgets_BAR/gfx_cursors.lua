@@ -15,7 +15,7 @@ local Settings = {}
 Settings['cursorSet'] = 'icexuick'
 Settings['cursorSize'] = 100
 Settings['sizeMult'] = 1
-Settings['version'] = 4		-- just so it wont restore configdata on load if it differs format
+Settings['version'] = 5		-- just so it wont restore configdata on load if it differs format
 
 local force = true
 

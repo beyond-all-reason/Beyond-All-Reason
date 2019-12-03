@@ -36,6 +36,7 @@ return {
 		usebuildinggrounddecal = false,
 		yardmap = "f",
 		customparams = {
+			model_author = "Beherith",
 			nohealthbars = true,
 			normaltex = "unittextures/Core_normal.dds",
 			subfolder = "other",
