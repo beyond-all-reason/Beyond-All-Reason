@@ -77,7 +77,7 @@ local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 
 local bgPadding = 5.5
-local bgcorner	= "LuaUI/Images/bgcorner.png"
+local bgcorner	= ":l:LuaUI/Images/bgcorner.png"
 
 local maxWidth = 0.01
 local borderx = yStep * 0.75

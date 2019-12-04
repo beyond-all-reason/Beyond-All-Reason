@@ -22,7 +22,7 @@ local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2
 local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
 local loadedFontSize = fontfileSize*fontfileScale
 
-local bgcorner = "LuaUI/Images/bgcorner.png"
+local bgcorner = ":l:LuaUI/Images/bgcorner.png"
 
 
 local titlecolor = "\255\255\205\100"
