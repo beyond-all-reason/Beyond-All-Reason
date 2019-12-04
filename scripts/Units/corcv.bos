@@ -15,9 +15,9 @@ static-var  restore_delay, statechg_DesiredState, statechg_StateChanging, notBui
 activatescr()
 {
 	turn ldoor to z-axis <0.000000> now;
-	turn ldoor to z-axis <210> speed <240>;
+	turn ldoor to z-axis <-210> speed <360>;
 	turn rdoor to z-axis <0.000000> now;
-	turn rdoor to z-axis <-210> speed <240>;
+	turn rdoor to z-axis <210> speed <360>;
 	sleep 600;
 
 	move loturret to y-axis [7] speed [12];
@@ -47,7 +47,7 @@ WheelControl()
 	while(TRUE)
 	{
 		currentSpeed = (get CURRENT_SPEED)*20/moveSpeed;
-		wheelSpeed = currentSpeed * 40; //original speed 7
+		wheelSpeed = currentSpeed * 20; //original speed 7
 		if (currentSpeed<1) currentSpeed=1;	// prevent infinite timing
 		spin tyre2 around x-axis speed  (<1> * wheelSpeed);         
 		spin tyre3 around x-axis speed  (<1> * wheelSpeed);			
