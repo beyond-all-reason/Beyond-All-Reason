@@ -933,8 +933,8 @@ local function DisableUnit(unitID)
   Spring.SetUnitStealth(unitID, true)
   Spring.SetUnitNoSelect(unitID, true)
   Spring.SetUnitNoMinimap(unitID, true)
-  Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, {})
-  Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, {})
+  Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
+  Spring.GiveOrderToUnit(unitID, CMD.FIRE_STATE, { 0 }, 0)
   disabledUnits[unitID] = true
 end
 
@@ -1106,7 +1106,7 @@ function gadget:UnitDamaged(unitID, unitDefID, unitTeam, damage, paralyzer,
           local angle = math.atan2((cC[1]-xQ), (cC[3]-zQ))
           local dist = math.sqrt(((cC[1]-xQ)*(cC[1]-xQ))+((cC[3]-zQ)*(cC[3]-zQ))) * 0.75
           if (dist < 1700) then
-            GiveOrderToUnit(queenID, CMD.MOVE, {(xQ + (math.sin(angle) * dist)), cC[2], (zQ + (math.cos(angle) * dist))}, {})
+            GiveOrderToUnit(queenID, CMD.MOVE, {(xQ + (math.sin(angle) * dist)), cC[2], (zQ + (math.cos(angle) * dist))}, 0)
             GiveOrderToUnit(queenID, CMD.FIGHT, cC, {"shift"})
             if targetCache then addChickenTarget(queenID, targetCache) end
             qDamage = 0 - mRandom(50000,250000)

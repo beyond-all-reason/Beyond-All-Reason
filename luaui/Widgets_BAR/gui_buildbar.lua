@@ -1023,7 +1023,7 @@ function MenuHandler(x,y,button)
       local unitID = facs[pressedFac+1].unitID
       local onoff  = {1}
       if select(4,GetUnitStates(unitID,false,true)) then onoff = {0} end
-      Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, { })
+      Spring.GiveOrderToUnit(unitID, CMD.REPEAT, onoff, 0)
       Spring.PlaySoundFile(sound_click, 0.8, 'ui')
     else--if (bar_openByClick) then
       if (not menuHovered)and(openedMenu == pressedFac) then

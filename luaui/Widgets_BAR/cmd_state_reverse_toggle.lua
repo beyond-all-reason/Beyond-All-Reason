@@ -28,7 +28,7 @@ function widget:CommandNotify(id, params, options)
 					state = state + #comButton.params - 1
 				end
 				for _,sid in ipairs(units) do
-					spGiveOrderToUnit(sid, id, { state }, {})	
+					spGiveOrderToUnit(sid, id, { state }, 0)
 				end
 				return true
 			end

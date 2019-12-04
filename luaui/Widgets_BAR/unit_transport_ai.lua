@@ -253,7 +253,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
         else 
           waitingUnits[tuid] = {ST_ROUTE, GetUnitDefID(tuid), fact}
           if (state == ST_STOPPED) then 
-            GiveOrderToUnit(tuid, CMD.WAIT, {}, {})
+            GiveOrderToUnit(tuid, CMD.WAIT, {}, 0)
           end
         end
         DeleteToPickTran(unitID)
@@ -262,7 +262,7 @@ function widget:UnitDestroyed(unitID, unitDefID, teamID)
         pom = GetToPickTransport(unitID)
         if (pom~=0) then 
           DeleteToPickUnit(unitID)
-          GiveOrderToUnit(pom, CMD.STOP, {}, {})
+          GiveOrderToUnit(pom, CMD.STOP, {}, 0)
         end  -- delete form toPick list
      end
   end
@@ -305,7 +305,7 @@ function widget:UnitIdle(unitID, unitDefID, teamID)
       if (marked ~= 0) then  
 --        Echo("to pick unit idle "..unitID)
         DeleteToPickTran(marked)
-        GiveOrderToUnit(marked, CMD.STOP, {}, {})  -- and stop it (when it becomes idle it will be assigned)
+        GiveOrderToUnit(marked, CMD.STOP, {}, 0)  -- and stop it (when it becomes idle it will be assigned)
       end
     end
   end
@@ -406,7 +406,7 @@ function StopCloseUnits() -- stops dune units which are close to transport
           end
         end
         if canStop then 
-          if not IsWaitCommand(unitID) then GiveOrderToUnit(unitID, CMD.WAIT, {},{}) end 
+          if not IsWaitCommand(unitID) then GiveOrderToUnit(unitID, CMD.WAIT, {}, 0) end
           toPick[transportID][2] = ST_STOPPED
         end
       end
@@ -462,7 +462,7 @@ function widget:UnitLoaded(unitID, unitDefID, teamID, transportID)
     end
   end
 
-  GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+  GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
   
   if (vl ~= nil) then 
     GiveOrderToUnit(transportID, CMD.UNLOAD_UNITS, {vl[1], vl[2], vl[3], CONST_UNLOAD_RADIUS}, {"shift"})
@@ -482,14 +482,14 @@ end
 
 function widget:UnitUnloaded(unitID, unitDefID, teamID, transportID) 
   if (teamID ~= myTeamID or storedQueue[unitID] == nil) then return end
-  GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+  GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
   for _, x in ipairs(storedQueue[unitID]) do
     GiveOrderToUnit(unitID, x[1], x[2], x[3])
   end
   storedQueue[unitID] = nil
   local cmdID = Spring.GetUnitCurrentCommand(unitID, 1) --GetCommandQueue(unitID,2) -- not sure if bug or that this old code actually meant to get the 2nd cmd in queue
   if (cmdID and cmdID == CMD.WAIT) then
-    GiveOrderToUnit(unitID, CMD.WAIT, {}, {})  -- workaround: clears wait order if STOP fails to do so
+    GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)  -- workaround: clears wait order if STOP fails to do so
   end
 end
 
@@ -590,7 +590,7 @@ function AssignTransports(transportID, unitID)
       end
       waitingUnits[uid] = nil
       idleTransports[tid] = nil
-      GiveOrderToUnit(tid, CMD.LOAD_UNITS, {uid}, {})
+      GiveOrderToUnit(tid, CMD.LOAD_UNITS, {uid}, 0)
     end
   end 
 end

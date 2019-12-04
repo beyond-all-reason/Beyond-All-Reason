@@ -81,13 +81,13 @@ local notInSpecfullmode = false
 local cmdCloak = 37382
 
 function cloackSpy(unitID)
-    spGiveOrderToUnit(unitID, cmdCloak, { 1 }, {})
+    spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
 end
 
 function processGremlin(unitID)
-    spGiveOrderToUnit(unitID, cmdCloak, { 1 }, {})
-    spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, {}) -- 0 == hold pos
-    spGiveOrderToUnit(unitID, cmdFireState, { 0 }, {}) -- hold fire
+    spGiveOrderToUnit(unitID, cmdCloak, { 1 }, 0)
+    spGiveOrderToUnit(unitID, CMD_MOVE_STATE, { 0 }, 0) -- 0 == hold pos
+    spGiveOrderToUnit(unitID, cmdFireState, { 0 }, 0) -- hold fire
 end
 
 function isSpy(unitDefID)

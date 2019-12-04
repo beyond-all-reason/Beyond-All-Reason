@@ -70,8 +70,8 @@ if (gadgetHandler:IsSyncedCode()) then --SYNCED
 				Spring.SetUnitWeaponState(unitID, 1, "range", hplasmarange)
 				Spring.SetUnitMaxRange(unitID, hplasmarange)
 			end
-			Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, {})
-			Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, {})
+			Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)
+			Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)
 		end
 	end
   end

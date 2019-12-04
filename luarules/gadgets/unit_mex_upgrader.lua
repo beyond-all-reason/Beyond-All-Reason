@@ -232,7 +232,7 @@ function autoUpgradeDisabled(unitID, teamID)
   builder.autoUpgrade = false 
   if getUnitPhase(unitID, teamID) == RECLAIMING then 
     mexes[teamID][builder.targetMex].assignedBuilder = nil 
-    GiveOrderToUnit(unitID, CMD_STOP, {}, {""}) 
+    GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
   end 
 end 
 

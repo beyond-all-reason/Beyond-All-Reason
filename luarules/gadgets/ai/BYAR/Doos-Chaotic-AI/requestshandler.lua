@@ -44,7 +44,7 @@ function RequestsHandler:AddRequest(priority, requestedTask, commrequired)
 	-- if priority == true and commrequired == true then
 		-- local comms = Spring.GetTeamUnitsByDefs(self.ai.id, {UnitDefNames.armcom.id, UnitDefNames.corcom.id})
 		-- for ct, unitID in pairs(comms) do
-			-- Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+			-- Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 		-- end
 	-- end
 end

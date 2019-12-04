@@ -92,7 +92,7 @@ end
 
 function gadget:GameFrame(n)
   for unitID,coords in pairs(orderQueue) do
-	Spring.GiveOrderToUnit(unitID,MINE2*-1,coords,{})
+	Spring.GiveOrderToUnit(unitID,MINE2*-1,coords,0)
     orderQueue[unitID] = nil
   end
 end

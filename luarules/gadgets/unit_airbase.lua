@@ -238,7 +238,7 @@ function FlyAway(unitID, airbaseID)
       local ty = Spring.GetGroundHeight(tx,tz)
       --local uDID = Spring.GetUnitDefID(unitID)
       --local cruiseAlt = UnitDefs[uDID].wantedHeight
-      Spring.GiveOrderToUnit(unitID, CMD.MOVE, {tx,ty,tz}, {})
+      Spring.GiveOrderToUnit(unitID, CMD.MOVE, {tx,ty,tz}, 0)
    end
 end
 
@@ -260,8 +260,8 @@ end
 
 function GiveWaitWaitOrder(unitID)
     -- hack
-   Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, {})
-   Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, {})
+   Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)
+   Spring.GiveOrderToUnit(unitID, CMD.WAIT, {}, 0)
 end
 
 ---------------------------------------

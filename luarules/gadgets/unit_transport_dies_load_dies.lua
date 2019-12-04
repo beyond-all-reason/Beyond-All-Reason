@@ -50,7 +50,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		--Spring.Echo("added killing request for " .. unitID .. " on frame " .. currentFrame+1 .. " from transport " .. transportID )
 	else
 		--commandos are given a move order to the location of the ground below where the transport died; remove it
-		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+		Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 	end
 end
 

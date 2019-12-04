@@ -56,7 +56,7 @@ end
 
 function widget:UnitFinished(unitID, unitDefID, unitTeam)
     if isFactory[unitDefID] then
-        Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, {})
+        Spring.GiveOrderToUnit(unitID, CMD.REPEAT, { 1 }, 0)
     end
 end
 

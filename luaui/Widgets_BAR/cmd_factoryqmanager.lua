@@ -357,7 +357,7 @@ function loadQueue( unitId, unitDef, groupNo )
 		if ( queue[facRepeatIdx] == false ) then 
 			repVal = 0 
 		end
-		Spring.GiveOrderToUnit(unitId, CMD.REPEAT, { repVal }, {})
+		Spring.GiveOrderToUnit(unitId, CMD.REPEAT, { repVal }, 0)
 
 		for i=1,#queue do
 		  local cmd = queue[i]

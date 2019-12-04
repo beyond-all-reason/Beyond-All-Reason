@@ -48,7 +48,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 		local nearchicks = Spring.GetUnitsInCylinder(x,z,390,attackerTeam)
 		for i=1, #nearchicks, 1 do
 			if (nearchicks[i] ~= attackerID) then
-				Spring.GiveOrderToUnit(nearchicks[i], CMD.ATTACK, {unitID}, {})
+				Spring.GiveOrderToUnit(nearchicks[i], CMD.ATTACK, {unitID}, 0)
 				controlled[nearchicks[i]] = attackerID
 			end
 		end
@@ -57,7 +57,7 @@ function gadget:UnitPreDamaged(unitID, unitDefID, unitTeam, damage, paralyzer, w
 			local nearchicks = Spring.GetUnitsInCylinder(x,z,620,attackerTeam)
 			for i=1, #nearchicks, 1 do
 				if (nearchicks[i] ~= attackerID) then
-					Spring.GiveOrderToUnit(nearchicks[i], CMD.ATTACK, {unitID}, {})
+					Spring.GiveOrderToUnit(nearchicks[i], CMD.ATTACK, {unitID}, 0)
 					controlled[nearchicks[i]] = attackerID
 				end
 			end
@@ -80,7 +80,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 	if (controllers[unitID]) then
 		for id,c in pairs(controlled) do
 			if (c == unitID) and Spring.ValidUnitID(id) then
-				Spring.GiveOrderToUnit(id, CMD.STOP, {}, {})
+				Spring.GiveOrderToUnit(id, CMD.STOP, {}, 0)
 			end
 		end
 		controllers[unitID] = nil

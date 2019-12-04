@@ -60,7 +60,7 @@ end
 local function TransportIsFull(transportID)
     for unitID, targetTransporterID in pairs(toBeLoaded) do
         if targetTransporterID == transportID then
-            GiveOrderToUnit(unitID, CMD_STOP, {}, {})
+            GiveOrderToUnit(unitID, CMD_STOP, {}, 0)
             toBeLoaded[unitID] = nil
         end
     end

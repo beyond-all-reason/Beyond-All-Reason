@@ -107,7 +107,7 @@ function widget:UnitFromFactory(unitID, unitDefID, unitTeam, factID, factDefID, 
 	end
 	--- liche: workaround for BAR (liche is fighter)
 	if MustStop(unitID, unitDefID) then
-		Spring.GiveOrderToUnit(unitID,CMD.STOP,{},{})
+		Spring.GiveOrderToUnit(unitID,CMD.STOP,{},0)
 	end
 end
 

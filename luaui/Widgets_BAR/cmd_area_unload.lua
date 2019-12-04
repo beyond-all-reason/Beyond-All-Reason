@@ -55,7 +55,7 @@ function widget:CommandNotify(id, params, options)
 				local phi = (math_sqrt(5)+1)/2
 				for k=1,#units do
 					if not shift then
-					Spring.GiveOrderToUnit(units[k], CMD.STOP, {}, {})
+					Spring.GiveOrderToUnit(units[k], CMD.STOP, {}, 0)
 					end
 					r = radius(k,#units,b)
 					theta = 2*math.pi*k / phi*phi

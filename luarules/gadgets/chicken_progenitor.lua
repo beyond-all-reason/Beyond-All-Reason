@@ -71,7 +71,7 @@ local function spawnChicken(number, ownerID, unitName, unitTeam)
       local x, y, z = getChickenSpawnLoc(ownerID)
       if x then
         local newChicken = CreateUnit(unitName, x,y,z, "n", unitTeam)
-        GiveOrderToUnit(newChicken, CMD.STOP, {}, {})
+        GiveOrderToUnit(newChicken, CMD.STOP, {}, 0)
       end
     end
 end

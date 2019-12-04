@@ -84,11 +84,11 @@ for udid, ud in pairs(UnitDefs) do
 end
 
 local function passivateBuilder(unitID)
-    spGiveOrderToUnit(unitID, CMD_PASSIVE, {1}, {})
+    spGiveOrderToUnit(unitID, CMD_PASSIVE, {1}, 0)
 end
 
 local function activateBuilder(unitID)
-    spGiveOrderToUnit(unitID, CMD_PASSIVE, {0}, {})
+    spGiveOrderToUnit(unitID, CMD_PASSIVE, {0}, 0)
 end
 
 function widget:UnitCreated(unitID, unitDefID, unitTeam)

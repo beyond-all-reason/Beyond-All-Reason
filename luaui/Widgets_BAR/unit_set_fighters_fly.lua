@@ -47,7 +47,7 @@ end
 function switchToFlyMode(unitID, unitDefID)
     if (unitDefID == UnitDefNames["armfig"].id  or unitDefID == UnitDefNames["armsfig"].id or unitDefID == UnitDefNames["armhawk"].id or
         unitDefID == UnitDefNames["corveng"].id or unitDefID == UnitDefNames["corsfig"].id or unitDefID == UnitDefNames["corvamp"].id) then
-        spGiveOrderToUnit(unitID, cmdFly, { 0 }, {})
+        spGiveOrderToUnit(unitID, cmdFly, { 0 }, 0)
     end
 end
 

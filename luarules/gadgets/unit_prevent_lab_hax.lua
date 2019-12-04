@@ -94,7 +94,7 @@ function checkLabs()
 		  end
 		end
 		
-		spGiveOrderToUnit(id, CMD.STOP, {}, {})
+		spGiveOrderToUnit(id, CMD.STOP, {}, 0)
 		--[[
 		local l = abs(ux-Lv.minx)
 		local r = abs(ux-Lv.maxx)

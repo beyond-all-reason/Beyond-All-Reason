@@ -133,7 +133,7 @@ end
 function widget:UnitFromFactory(unitID, unitDefID, unitTeam)
   if unitTeam == myTeamID then
     if unitArray[unitDefID] then
-      Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, {})
+      Spring.GiveOrderToUnit(unitID, CMD.MOVE_STATE, { 0 }, 0)
     end 
   end
 end

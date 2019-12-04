@@ -140,7 +140,7 @@ function widget:Update(dt)
 				if did_shot then
 					local commands = GetCommandQueue(bomber_id,50)
 					if commands and commands[1] and commands[1].id == CMD.ATTACK and commands[2] then
-						GiveOrderToUnit(bomber_id, CMD.REMOVE,{commands[1].tag},{})
+						GiveOrderToUnit(bomber_id, CMD.REMOVE,{commands[1].tag},0)
 						if select(4,GetUnitStates(bomber_id,false,true)) then	-- 4=repeat
 							GiveOrderToUnit(bomber_id, commands[1].id,commands[1].params,{'shift'})
 						end

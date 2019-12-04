@@ -70,7 +70,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam)
   unitSet[name] = unitSet[ud.name] or {}
   if unitTeam == Spring.GetMyTeamID() then
   	for cmdID, cmdParam in pairs(unitSet[name]) do
-      Spring.GiveOrderToUnit(unitID, cmdID , { cmdParam }, {})
+      Spring.GiveOrderToUnit(unitID, cmdID , { cmdParam }, 0)
 	end
   end
 end

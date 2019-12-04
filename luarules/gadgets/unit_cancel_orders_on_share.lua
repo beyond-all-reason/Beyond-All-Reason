@@ -15,7 +15,7 @@ if (not gadgetHandler:IsSyncedCode()) then
  
 function gadget:UnitGiven(unitID, unitDefID, unitTeam, oldTeam)
   -- give all shared units a stop command
-  Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, {})
+  Spring.GiveOrderToUnit(unitID, CMD.STOP, {}, 0)
 
   -- remove their build queue
   local buildQ = Spring.GetFullBuildQueue(unitID) or {}

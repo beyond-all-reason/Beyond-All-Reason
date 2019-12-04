@@ -127,49 +127,49 @@ function ShardUnit:CanBuildWhenNotDeployed()
 end
 
 function ShardUnit:Stop()
-	Spring.GiveOrderToUnit( self.id, CMD.STOP, {}, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.STOP, {}, 0 )
 	return true
 end
 
 function ShardUnit:Stockpile()
-	Spring.GiveOrderToUnit( self.id, CMD.STOCKPILE, {}, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.STOCKPILE, {}, 0 )
 	return true
 end
 
 function ShardUnit:SelfDestruct()
-	Spring.GiveOrderToUnit( self.id, CMD.SELFD, {}, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.SELFD, {}, 0 )
 	return true
 end
 
 function ShardUnit:Cloak()
-	Spring.GiveOrderToUnit( self.id, CMD.CLOAK, { 1 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.CLOAK, { 1 }, 0 )
 	return true
 end
 
 function ShardUnit:UnCloak()
-	Spring.GiveOrderToUnit( self.id, CMD.CLOAK, { 0 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.CLOAK, { 0 }, 0 )
 	return true
 end
 
 function ShardUnit:TurnOn()
-	Spring.GiveOrderToUnit( self.id, CMD.ONOFF, { 1 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.ONOFF, { 1 }, 0 )
 	return true
 end
 
 function ShardUnit:TurnOff()
-	Spring.GiveOrderToUnit( self.id, CMD.ONOFF, { 0 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.ONOFF, { 0 }, 0 )
 	return true
 end
 
 function ShardUnit:Guard( unit )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.GUARD, { gid }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.GUARD, { gid }, 0 )
 	return true
 end
 
 function ShardUnit:Repair( unit )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { gid }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { gid }, 0 )
 	return true
 end
 
@@ -178,12 +178,12 @@ function ShardUnit:DGun(p)
 end
 
 function ShardUnit:ManualFire(p)
-	Spring.GiveOrderToUnit( self.id, CMD.DGUN, { p.x, p.y, p.z }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.DGUN, { p.x, p.y, p.z }, 0 )
 	return true
 end
 
 function ShardUnit:Move(p)
-	Spring.GiveOrderToUnit( self.id, CMD.MOVE, { p.x, p.y, p.z }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.MOVE, { p.x, p.y, p.z }, 0 )
 	return true
 end
 
@@ -192,7 +192,7 @@ function ShardUnit:AttackMove(p)
 end
 
 function ShardUnit:MoveAndFire(p)
-	Spring.GiveOrderToUnit( self.id, CMD.FIGHT, { p.x, p.y, p.z }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.FIGHT, { p.x, p.y, p.z }, 0 )
 	return true
 end
 
@@ -201,7 +201,7 @@ function ShardUnit:Patrol(p)
 end
 
 function ShardUnit:MoveAndPatrol(p)
-	Spring.GiveOrderToUnit( self.id, CMD.PATROL, { p.x, p.y, p.z }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.PATROL, { p.x, p.y, p.z }, 0 )
 	return true
 end
 
@@ -223,15 +223,15 @@ function ShardUnit:Reclaim( thing )--IMapFeature* mapFeature)
 	if not thing then return end
 	local gid = self:Unit_to_id( thing )
 	if thing.className == "feature" then
-		Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { gid + Game.maxUnits }, {} )
+		Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { gid + Game.maxUnits }, 0 )
 	elseif thing.className == "unit" then
-		Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { gid }, {} )
+		Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { gid }, 0 )
 	end
 	return true
 end
 
 function ShardUnit:AreaReclaim( p, radius )--Position p, double radius)
-	Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { p.x, p.y, p.z, radius }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.RECLAIM, { p.x, p.y, p.z, radius }, 0 )
 	return true
 end
 
@@ -240,91 +240,91 @@ function ShardUnit:Ressurect( thing )--IMapFeature* mapFeature)
 	if not thing then return end
 	local gid = self:Unit_to_id( thing )
 	if thing.className == "feature" then
-		Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid + Game.maxUnits }, {} )
+		Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid + Game.maxUnits }, 0 )
 	elseif thing.className == "unit" then
-		Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid }, {} )
+		Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { gid }, 0 )
 	end
 	return true
 end
 
 function ShardUnit:AreaRESURRECT( p, radius )--Position p, double radius)
-	Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { p.x, p.y, p.z, radius }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.RESURRECT, { p.x, p.y, p.z, radius }, 0 )
 	return true
 end
 
 function ShardUnit:Attack( unit )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.ATTACK, { gid }, 0 )
 	return true
 end
 
 function ShardUnit:AreaAttack(p,radius)
-	Spring.GiveOrderToUnit( self.id, CMD.AREA_ATTACK, { p.x, p.y, p.z, radius }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.AREA_ATTACK, { p.x, p.y, p.z, radius }, 0 )
 	return true
 end
 
 function ShardUnit:Repair( unit )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { gid }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { gid }, 0 )
 	return true
 end
 
 function ShardUnit:AreaRepair( p, radius )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { p.x, p.y, p.z, radius }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.REPAIR, { p.x, p.y, p.z, radius }, 0 )
 	return true
 end
 
 function ShardUnit:RestoreTerrain( p, radius )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.RESTORE, { p.x, p.y, p.z, radius }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.RESTORE, { p.x, p.y, p.z, radius }, 0 )
 	return true
 end
 
 function ShardUnit:Capture( unit )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { gid }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { gid }, 0 )
 	return true
 end
 
 function ShardUnit:AreaCapture( p, radius )
 	local gid = self:Unit_to_id( unit )
-	Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { p.x, p.y, p.z, radius }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.CAPTURE, { p.x, p.y, p.z, radius }, 0 )
 	return true
 end
 
 function ShardUnit:MorphInto( type )
-	Spring.GiveOrderToUnit( self.id, CMD.MORPH, { self.id }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.MORPH, { self.id }, 0 )
 	return true
 end
 
 function ShardUnit:HoldFire()
-	Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 0 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 0 }, 0 )
 	return true
 end
 
 function ShardUnit:ReturnFire()
-	Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 1 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 1 }, 0 )
 	return true
 end
 
 function ShardUnit:FireAtWill()
-	Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 2 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.FIRE_STATE, { 2 }, 0 )
 	return true
 end
 
 function ShardUnit:HoldPosition()
-	Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 0 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 0 }, 0 )
 	return true
 end
 
 function ShardUnit:Manoeuvre()
-	Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 1 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 1 }, 0 )
 	return true
 end
 
 function ShardUnit:Roam()
-	Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 2 }, {} )
+	Spring.GiveOrderToUnit( self.id, CMD.MOVE_STATE, { 2 }, 0 )
 	return true
 end
 

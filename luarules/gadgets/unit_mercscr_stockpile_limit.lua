@@ -48,7 +48,7 @@ function gadget:AllowCommand(unitID, unitDefID, teamID, cmdID, cmdParams, cmdOpt
 					local added = 0
 					local needed = pilelimit - pile - pileQ
 					while added < needed do
-					SpGiveOrderToUnit(UnitID, CMD_STOCKPILE, {}, { "" }) -- because SetUnitStockpile can't set the queue!
+					SpGiveOrderToUnit(UnitID, CMD_STOCKPILE, {}, 0) -- because SetUnitStockpile can't set the queue!
 					added = added + 1
 					end
 					return false

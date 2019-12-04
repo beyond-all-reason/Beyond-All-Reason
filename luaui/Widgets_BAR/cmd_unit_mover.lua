@@ -92,7 +92,7 @@ function widget:UnitCreated(unitID, unitDefID, unitTeam,builderID)
 		local x, y, z = GetUnitPosition(unitID)
 		local dx,dy,dz = GetUnitDirection(unitID)
 		local moveDist = 50
-		GiveOrderToUnit(unitID, CMD_MOVE, {x+dx*moveDist, y, z+dz*moveDist}, { "" })
+		GiveOrderToUnit(unitID, CMD_MOVE, {x+dx*moveDist, y, z+dz*moveDist}, 0)
 	end
 end
 
