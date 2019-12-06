@@ -440,7 +440,7 @@ function DrawWindow()
 	else
 		gl.Color(0.33,0.33,0.33,0.15)
 	end
-	RectRound(x,y-screenHeight,x+screenWidth,y,6)
+	RectRound(x,y-screenHeight,x+screenWidth,y,5.5)
 
 	-- title
 	local title = "Basic settings"
