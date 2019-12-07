@@ -56,7 +56,7 @@ local idleCursorTime				= 30		-- fade time cursor (specs only)
 
 local addLights                     = false
 local lightRadiusMult               = 1.15
-local lightStrengthMult             = 0.18
+local lightStrengthMult             = 0.2
 
 -- tweak ui
 local buttonsize					= 18
@@ -161,10 +161,10 @@ local function GetLights(beamLights, beamLightCount, pointLights, pointLightCoun
         params.px, params.py, params.pz = cursor[1],cursor[2],cursor[3]
         params.param.r, params.param.g, params.param.b = teamColors[playerID][1],teamColors[playerID][2],teamColors[playerID][3]
         params.colMult = 1 * lightStrengthMult
-        params.param.radius = 350 * lightRadiusMult
-        params.py = params.py + 50
-        pointLightCount = pointLightCount + 1
-        pointLights[pointLightCount] = params
+        --params.param.radius = 350 * lightRadiusMult
+        --params.py = params.py + 50
+        --pointLightCount = pointLightCount + 1
+        --pointLights[pointLightCount] = params
         params.colMult = params.colMult * 0.4
         params.param.radius = 1000 * lightRadiusMult
         params.py = params.py + 50
@@ -197,6 +197,30 @@ function widget:Initialize()
     end
     WG['allycursors'].getLights = function()
         return addLights
+    end
+    WG['allycursors'].setLightStrength = function(value)
+        lightStrengthMult = value
+        if functionID and WG.DeferredLighting_UnRegisterFunction then
+            WG.DeferredLighting_UnRegisterFunction(functionID)
+        end
+        if WG.DeferredLighting_RegisterFunction then
+            functionID = WG.DeferredLighting_RegisterFunction(GetLights)
+        end
+    end
+    WG['allycursors'].getLightStrength = function()
+        return lightStrengthMult
+    end
+    WG['allycursors'].setLightRadius = function(value)
+        lightRadiusMult = value
+        if functionID and WG.DeferredLighting_UnRegisterFunction then
+            WG.DeferredLighting_UnRegisterFunction(functionID)
+        end
+        if WG.DeferredLighting_RegisterFunction then
+            functionID = WG.DeferredLighting_RegisterFunction(GetLights)
+        end
+    end
+    WG['allycursors'].getLightRadius = function()
+        return lightRadiusMult
     end
 
     local now = clock()
@@ -527,12 +551,16 @@ end
 function widget:GetConfigData(data)
     savedTable = {}
     savedTable.addLights = addLights
+    savedTable.lightRadiusMult = lightRadiusMult
+    savedTable.lightStrengthMult = lightStrengthMult
     return savedTable
 end
 
 function widget:SetConfigData(data)
     if data.addLights then
         addLights = data.addLights
+        lightRadiusMult = data.lightRadiusMult
+        lightStrengthMult = data.lightStrengthMult
     end
 end
 

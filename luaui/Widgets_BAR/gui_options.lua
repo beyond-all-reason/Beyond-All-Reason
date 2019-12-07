@@ -2219,11 +2219,29 @@ function init()
 		 end,
 		},
 
+		{id="cursorlight", group="ui", basic=true, widget="Cursor Light", name="Cursor light", type="bool", value=GetWidgetToggleValue("Cursor Light"), description='Adds a light at/above your cursor position'},
+		{id="cursorlight_lightradius", group="ui", name=widgetOptionColor.."   radius", type="slider", min=0.2, max=1, step=0.05, value=1.5, description='',
+		 onload=function() loadWidgetData("Cursor Light", "cursorlight_lightradius", {'lightRadiusMult'}) end,
+		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', {'lightRadiusMult'}, value) end,
+		},
+		{id="cursorlight_lightstrength", group="ui", name=widgetOptionColor.."   strength", type="slider", min=0.1, max=1, step=0.05, value=0.2, description='',
+		 onload=function() loadWidgetData("Cursor Light", "cursorlight_lightstrength", {'lightStrengthMult'}) end,
+		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', {'lightStrengthMult'}, value) end,
+		},
+
 		{id="allycursors_lights", group="ui", name="Ally cursors lights", type="bool", value=true, description='Adds a colored light to every ally cursor',
 		 onload=function() loadWidgetData("AllyCursors", "allycursors_lights", {'addLights'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('AllyCursors', 'allycursors', 'setLights', {'addLights'}, options[getOptionByID('allycursors_lights')].value)
 		 end,
+		},
+		{id="allycursors_lightradius", group="ui", name=widgetOptionColor.."   radius", type="slider", min=0.2, max=1, step=0.05, value=1.5, description='',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_lightradius", {'lightRadiusMult'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', {'lightRadiusMult'}, value) end,
+		},
+		{id="allycursors_lightstrength", group="ui", name=widgetOptionColor.."   strength", type="slider", min=0.1, max=1, step=0.05, value=0.2, description='',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_lightstrength", {'lightStrengthMult'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightStrength', {'lightStrengthMult'}, value) end,
 		},
 
 		{id="showbuilderqueue", group="ui", basic=true, widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
