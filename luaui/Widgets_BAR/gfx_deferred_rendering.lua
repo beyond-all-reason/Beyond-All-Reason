@@ -511,7 +511,7 @@ function widget:DrawWorld()
 	for i = 1, pointLightCount do
 		local light = lights[i]
 		local param = light.param
-		if param.gib == nil and param.type == "Cannon"then
+		if param.gib == nil and param.type == "Cannon" then
 			size = param.glowradius * 0.44
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)

@@ -14,7 +14,7 @@ function widget:GetInfo()
         author	= "Floris,jK,TheFatController",
         date	= "31 may 2015",
         license	= "GNU GPL, v2 or later",
-        layer	= 0,
+        layer	= 5,
         enabled	= true,
     }
 end
@@ -54,6 +54,10 @@ local NameFadeStartDistance			= 4800
 local NameFadeEndDistance			= 7200
 local idleCursorTime				= 30		-- fade time cursor (specs only)
 
+local addLights                     = false
+local lightRadiusMult               = 1.15
+local lightStrengthMult             = 0.18
+
 -- tweak ui
 local buttonsize					= 18
 local rowgap						= 6
@@ -63,8 +67,47 @@ local vsx, vsy 						= gl.GetViewSizes()
 local tweakUiWidth, tweakUiHeight	= 240, 215
 local tweakUiPosX, tweakUiPosY		= 500, 550
 
--- images
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+local spGetGroundHeight		= Spring.GetGroundHeight
+local spGetPlayerInfo		= Spring.GetPlayerInfo
+local spGetTeamColor		= Spring.GetTeamColor
+local spIsSphereInView		= Spring.IsSphereInView
+local spGetCameraPosition	= Spring.GetCameraPosition
+local spGetCameraDirection	= Spring.GetCameraDirection
+local spIsGUIHidden         = Spring.IsGUIHidden
+
+local glCreateList			= gl.CreateList
+local glDeleteList			= gl.DeleteList
+local glCallList			= gl.CallList
+
+local floor					= math.floor
+local min					= math.min
+local diag					= math.diag
+local GL_QUADS				= GL.QUADS
+local clock					= os.clock
+local Button				= {}
+local Panel					= {}
+local alliedCursorsPos      = {}
+local prevCursorPos			= {}
+local alliedCursorsTime		= {}		-- for API purpose
+local usedCursorSize		= cursorSize
+local prevMouseX,prevMouseY = 0
+local allycursorDrawList	= {}
+local myPlayerID            = Spring.GetMyPlayerID()
+
 local allyCursor      			    = ":n:LuaUI/Images/allycursor.dds"
+local cursors = {}
+local teamColors = {}
+local specList = {}
+local color
+local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,wy --keep memory always allocated for these since they are referenced so frequently
+local notIdle = {}
+local sec = 0
+local updateTime = 2
+local playerPos = {}
+local camDistance, glScale
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -103,39 +146,6 @@ function widget:SetConfigData(data)
     end
 end
 
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
-local spGetGroundHeight		= Spring.GetGroundHeight
-local spGetPlayerInfo		= Spring.GetPlayerInfo
-local spGetTeamColor		= Spring.GetTeamColor
-local spIsSphereInView		= Spring.IsSphereInView
-local spGetCameraPosition	= Spring.GetCameraPosition
-local spGetCameraDirection	= Spring.GetCameraDirection
-local spIsGUIHidden         = Spring.IsGUIHidden
-
-local glCreateList			= gl.CreateList
-local glDeleteList			= gl.DeleteList
-local glCallList			= gl.CallList
-
-local floor					= math.floor
-local min					= math.min
-local diag					= math.diag
-local GL_QUADS				= GL.QUADS
-local clock					= os.clock
-local Button				= {}
-local Panel					= {}
-local alliedCursorsPos      = {}
-local prevCursorPos			= {}
-local alliedCursorsTime		= {}		-- for API purpose
-local usedCursorSize		= cursorSize
-local prevMouseX,prevMouseY = 0
-local allycursorDrawList	= {}
-local myPlayerID            = Spring.GetMyPlayerID()
-
-
-local specList = {}
 function updateSpecList()
     specList = {}
     local t = Spring.GetPlayerList()
@@ -144,23 +154,58 @@ function updateSpecList()
     end
 end
 
+local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
+
+    for playerID,cursor in pairs(cursors) do
+        local params = {param={} }
+        params.px, params.py, params.pz = cursor[1],cursor[2],cursor[3]
+        params.param.r, params.param.g, params.param.b = teamColors[playerID][1],teamColors[playerID][2],teamColors[playerID][3]
+        params.colMult = 1 * lightStrengthMult
+        params.param.radius = 350 * lightRadiusMult
+        params.py = params.py + 50
+        pointLightCount = pointLightCount + 1
+        pointLights[pointLightCount] = params
+        params.colMult = params.colMult * 0.4
+        params.param.radius = 1000 * lightRadiusMult
+        params.py = params.py + 50
+        pointLightCount = pointLightCount + 1
+        pointLights[pointLightCount] = params
+    end
+    return beamLights, beamLightCount, pointLights, pointLightCount
+end
+
 function widget:Initialize()
     widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
-    
+
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
     end
     updateSpecList()
-    
-    WG['allycursor_api'] = {}
-    WG['allycursor_api'].GetCursorTimes = function()
-        return alliedCursorsTime
+
+    WG['allycursors'] = {}
+    WG['allycursors'].setLights = function(value)
+        addLights = value
+        if value then
+            if WG.DeferredLighting_RegisterFunction then
+                functionID = WG.DeferredLighting_RegisterFunction(GetLights)
+            end
+        else
+            if functionID and WG.DeferredLighting_UnRegisterFunction then
+                WG.DeferredLighting_UnRegisterFunction(functionID)
+            end
+        end
     end
-    
+    WG['allycursors'].getLights = function()
+        return addLights
+    end
+
     local now = clock()
     local pList = Spring.GetPlayerList()
     for _,playerID in ipairs(pList) do
         alliedCursorsTime[playerID] = now
+    end
+    if addLights and WG.DeferredLighting_RegisterFunction then
+        functionID = WG.DeferredLighting_RegisterFunction(GetLights)
     end
 end
 
@@ -173,6 +218,10 @@ function widget:Shutdown()
         end
     end
     gl.DeleteFont(font)
+
+    if functionID and WG.DeferredLighting_UnRegisterFunction then
+        WG.DeferredLighting_UnRegisterFunction(functionID)
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -188,7 +237,6 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local playerPos = {}
 function MouseCursorEvent(playerID,x,z,click)
     if myPlayerID == playerID then
         return true
@@ -248,21 +296,16 @@ end
 
 --------------------------------------------------------------------------------
 
-local function DrawGroundquad(wx,gy,wz,size)
+local function DrawGroundquad(wx,wy,wz,size)
     gl.TexCoord(0,0)
-    gl.Vertex(wx-size,gy+size,wz-size)
+    gl.Vertex(wx-size,wy+size,wz-size)
     gl.TexCoord(0,1)
-    gl.Vertex(wx-size,gy+size,wz+size)
+    gl.Vertex(wx-size,wy+size,wz+size)
     gl.TexCoord(1,1)
-    gl.Vertex(wx+size,gy+size,wz+size)
+    gl.Vertex(wx+size,wy+size,wz+size)
     gl.TexCoord(1,0)
-    gl.Vertex(wx+size,gy+size,wz-size)
+    gl.Vertex(wx+size,wy+size,wz-size)
 end
-
-local teamColors = {}
-local color
-local time,wx,wz,lastUpdateDiff,scale,iscale,fscale,gy --keep memory always allocated for these since they are referenced so frequently
-local notIdle = {}
 
 local function SetTeamColor(teamID,playerID,a)
     color = teamColors[playerID]
@@ -283,8 +326,7 @@ local function SetTeamColor(teamID,playerID,a)
     return
 end
 
-local sec = 0
-local updateTime = 2
+
 function widget:Update(dt)
     sec = sec+dt
     if sec > updateTime then
@@ -318,7 +360,7 @@ end
 function createCursorDrawList(playerID, opacityMultiplier)
     local name,_,spec,teamID = spGetPlayerInfo(playerID,false)
     local r, g, b = spGetTeamColor(teamID)
-    local wx,gy,wz = 0,0,0
+    local wx,wy,wz = 0,0,0
     local quadSize = usedCursorSize
     if spec then
         quadSize = usedCursorSize * 0.77
@@ -329,19 +371,19 @@ function createCursorDrawList(playerID, opacityMultiplier)
     if not spec  and not showPlayerName    or    spec  and  not showSpectatorName  then
         --draw a cursor
         gl.Texture(allyCursor)
-        gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,gy,wz,quadSize)
+        gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
         gl.Texture(false)
     else
         if not spec then
             --draw a cursor
             gl.Texture(allyCursor)
-            gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,gy,wz,quadSize)
+            gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
             gl.Texture(false)
         end
         
         --draw the nickname
         gl.PushMatrix()
-        gl.Translate(wx, gy, wz)
+        gl.Translate(wx, wy, wz)
         gl.Rotate(-90,1,0,0)
 
         font:Begin()
@@ -364,18 +406,13 @@ function createCursorDrawList(playerID, opacityMultiplier)
     end   
 end
 
-    
-
-local camDistance, glScale
-
-local function DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
-	local gy = spGetGroundHeight(wx,wz)
-	if not (spIsSphereInView(wx,gy,wz,usedCursorSize)) then
+local function DrawCursor(playerID,wx,wy,wz,camX,camY,camZ,opacity)
+	if not (spIsSphereInView(wx,wy,wz,usedCursorSize)) then
 		return 
 	end
 
 	--calc scale
-	camDistance = diag(camX-wx, camY-gy, camZ-wz) 
+	camDistance = diag(camX-wx, camY-wy, camZ-wz)
 	glScale = 0.83 + camDistance / 5000
 
 	-- calc opacity
@@ -403,7 +440,7 @@ local function DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
 
 		local rotValue = 0
 		gl.PushMatrix()
-		gl.Translate(wx, gy, wz)
+		gl.Translate(wx, wy, wz)
 		gl.Rotate(rotValue,0,1,0)
 		if drawNamesScaling then
 			gl.Scale(glScale,0,glScale)
@@ -422,18 +459,15 @@ function widget:RecvLuaMsg(msg, playerID)
 	end
 end
 
-function widget:DrawWorldPreUnit()
-	if chobbyInterface then return end
+function widget:Update(dt)
+    if chobbyInterface then return end
     if spIsGUIHidden() then return end
-    gl.DepthTest(GL.ALWAYS)
-    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
-    gl.PolygonOffset(-7,-10)
     time = clock()
-    
+
     local camX,camY,camZ = spGetCameraPosition()
     --local camRotX, camRotY, camRotZ = spGetCameraDirection()		-- x is fucked when springstyle camera tries to stay/snap angularly
     --Spring.Echo(camRotX.."   "..camRotY.."   "..camRotZ)
-    for playerID,data in pairs(alliedCursorsPos) do 
+    for playerID,data in pairs(alliedCursorsPos) do
         local wx,wz = data[1],data[2]
         local lastUpdatedDiff = time-data[#data-2] + 0.025
 
@@ -452,24 +486,53 @@ function widget:DrawWorldPreUnit()
                 if opacity > 1 then opacity = 1 end
             end
             if opacity > 0.1 then
-                DrawCursor(playerID,wx,wz,camX,camY,camZ,opacity)
+                local wy = spGetGroundHeight(wx,wz)
+                cursors[playerID] = {wx,wy,wz,camX,camY,camZ,opacity}
+            else
+                cursors[playerID] = nil
             end
         else
             --mark a player as notIdle as soon as they move (and keep them always set notIdle after this)
             if wx and wz and wz_old and wz_old and(math.abs(wx_old-wx)>=1 or math.abs(wz_old-wz)>=1) then --math.abs is needed because of floating point used in interpolation
-              notIdle[playerID] = true
-              wx_old = nil
-              wz_old = nil
+                notIdle[playerID] = true
+                wx_old = nil
+                wz_old = nil
             else
-              wx_old = wx
-              wz_old = wz
+                wx_old = wx
+                wz_old = wz
             end
 
         end
     end
-    --gl.EndText
+
+end
+
+function widget:DrawWorldPreUnit()
+	if chobbyInterface then return end
+    if spIsGUIHidden() then return end
+    gl.DepthTest(GL.ALWAYS)
+    gl.Blending(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA)
+    gl.PolygonOffset(-7,-10)
+
+    for playerID,cursor in pairs(cursors) do
+        DrawCursor(playerID,cursor[1],cursor[2],cursor[3],cursor[4],cursor[5],cursor[6],cursor[7])
+    end
+
     gl.PolygonOffset(false)
     gl.Texture(false)
     gl.DepthTest(false)
+end
+
+
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.addLights = addLights
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+    if data.addLights then
+        addLights = data.addLights
+    end
 end
 

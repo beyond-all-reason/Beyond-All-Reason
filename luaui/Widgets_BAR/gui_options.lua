@@ -2219,6 +2219,13 @@ function init()
 		 end,
 		},
 
+		{id="allycursors_lights", group="ui", name="Ally cursors lights", type="bool", value=true, description='Adds a colored light to every ally cursor',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_lights", {'addLights'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('AllyCursors', 'allycursors', 'setLights', {'addLights'}, options[getOptionByID('allycursors_lights')].value)
+		 end,
+		},
+
 		{id="showbuilderqueue", group="ui", basic=true, widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
 
 		{id="unitenergyicons", group="ui", basic=true, widget="Unit energy icons", name="Unit insufficient energy icons", type="bool", value=GetWidgetToggleValue("Unit energy icons"), description='Shows a red power bolt above units that cant fire their most e consuming weapon\nwhen you haven\'t enough energy availible.'},
