@@ -1,4 +1,4 @@
-#version 150 compatibility
+#version 130 compatibility
 
 #define DEPTH_CLIP01 ###DEPTH_CLIP01###
 #define MAX_POINTS ###MAX_POINTS###

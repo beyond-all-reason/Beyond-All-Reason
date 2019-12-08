@@ -207,7 +207,7 @@ end
 function SimpleParticles:Initialize()
   billShader = gl.CreateShader({
     vertex = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       uniform float size;
       uniform float rot;
       uniform float frame;
@@ -256,7 +256,7 @@ function SimpleParticles:Initialize()
        }
     ]],
     fragment = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       uniform sampler2D tex0;
 
       varying vec2 texCoord;

@@ -256,7 +256,7 @@ function init()
 
 	dofShader = dofShader or glCreateShader({
 		defines = {
-			"#version 150 compatibility\n",
+			"#version 130 compatibility\n",
 			"#define DEPTH_CLIP01 " .. (Platform.glSupportClipSpaceControl and "1" or "0") .. "\n",
 
 			"#define FILTER_SIZE_PASS " .. shaderPasses.filterSize .. "\n",

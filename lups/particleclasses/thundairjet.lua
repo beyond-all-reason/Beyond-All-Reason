@@ -122,7 +122,7 @@ end
 function AirJet.Initialize()
   jetShader = gl.CreateShader({
     vertex = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       uniform int  screenX;
       uniform int  screenY;
 
@@ -151,7 +151,7 @@ function AirJet.Initialize()
       }
     ]],
     fragment = [[
-      #version 150 compatibility
+      #version 130 compatibility
       uniform sampler2D tex0;
       uniform sampler2D noiseMap;
       uniform sampler2D mask;

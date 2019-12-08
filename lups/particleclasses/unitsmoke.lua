@@ -127,7 +127,7 @@ end
 function UnitSmoke.Initialize()
   UnitSmokeShader = gl.CreateShader({
     vertex = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       uniform float width;
       uniform float time;
       uniform float heading;
@@ -162,7 +162,7 @@ function UnitSmoke.Initialize()
       }
     ]],
     fragment = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       uniform sampler2D SmokeTex;
       uniform sampler2D noiseMap;
 

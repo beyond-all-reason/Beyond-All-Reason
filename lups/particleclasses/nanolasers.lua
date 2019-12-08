@@ -186,7 +186,7 @@ end
 function NanoLasers:Initialize()
   laserShader = gl.CreateShader({
     vertex = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       //gl.vertex.xy := length,width
       //gl.vertex.zw := texcoord
 
@@ -228,7 +228,7 @@ function NanoLasers:Initialize()
       }
     ]],
     fragment = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       uniform sampler2D tex0;
 
       varying vec3 texCoord;

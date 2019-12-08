@@ -154,7 +154,7 @@ end
 function UnitPieceLight.Initialize()
   depthShader = gl.CreateShader({
     fragment = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       uniform sampler2D tex0;
       uniform vec2 screenXY;
 
@@ -184,7 +184,7 @@ function UnitPieceLight.Initialize()
 
   blurShader = gl.CreateShader({
     fragment = [[
-	  #version 150 compatibility
+	  #version 130 compatibility
       float kernel[7];
       uniform sampler2D tex0;
       uniform float pixelsize;

@@ -136,7 +136,7 @@ local function MakeBloomShaders()
 
 	combineShader = glCreateShader({
 		fragment = [[
-			#version 150 compatibility
+			#version 130 compatibility
 			uniform sampler2D texture0;
 			uniform int debugDraw;
 
@@ -150,7 +150,7 @@ local function MakeBloomShaders()
 		]],
 		--while this vertex shader seems to do nothing, it actually does the very important world space to screen space mapping for gl.TexRect!
 		vertex = [[
-			#version 150 compatibility
+			#version 130 compatibility
 			void main(void)
 			{
 				gl_TexCoord[0] = gl_MultiTexCoord0;
@@ -173,7 +173,7 @@ local function MakeBloomShaders()
 	 -- TODO:  all this simplification may result in the accumulation of quantizing errors due to the small numbers that get pushed into the BrightTexture
 
 	blurShaderH71 = glCreateShader({
-		fragment = "#version 150 compatibility\n"..
+		fragment = "#version 130 compatibility\n"..
 			"#define inverseRX " .. tostring(ivsx) .. "\n" .. [[
 			uniform sampler2D texture0;
 			uniform int blursize;
@@ -203,7 +203,7 @@ local function MakeBloomShaders()
 	end
 
 	blurShaderV71 = glCreateShader({
-		fragment = "#version 150 compatibility\n"..
+		fragment = "#version 130 compatibility\n"..
 		"#define inverseRY " .. tostring(ivsy) .. "\n" .. [[
 			uniform sampler2D texture0;
 			uniform int blursize;
@@ -235,7 +235,7 @@ local function MakeBloomShaders()
 
 	brightShader = glCreateShader({
 		fragment =   [[
-			#version 150 compatibility
+			#version 130 compatibility
 			uniform sampler2D modelDiffuseTex;
 			uniform sampler2D modelEmitTex;
 
