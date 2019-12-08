@@ -242,7 +242,7 @@ function init()
 
 	shader = glCreateShader({
 		vertex = [[
-	  		#version 130 compatibility
+	  		#version 150 compatibility
 			uniform float time;
 			uniform float scale;
 			uniform vec3 speed;

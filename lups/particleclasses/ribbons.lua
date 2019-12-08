@@ -154,7 +154,7 @@ end
 function Ribbon.Initialize()
   RibbonShader = gl.CreateShader({
     vertex = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform float width;
       uniform int   quads;
       uniform vec3  oldPos[256];
@@ -188,7 +188,7 @@ function Ribbon.Initialize()
       }
     ]],
     fragment = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform sampler2D ribbonTex;
 
       varying vec2 texCoord;

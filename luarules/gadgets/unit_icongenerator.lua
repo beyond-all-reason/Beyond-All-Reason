@@ -285,7 +285,7 @@ local function CreateResources()
 
   pre_shader = gl.CreateShader({
     vertex = [[
-      #version 130 compatibility
+      #version 150 compatibility
       varying vec3 normal;
       varying vec4 pos;
       varying float clamp;
@@ -306,7 +306,7 @@ local function CreateResources()
       }
     ]],
     fragment = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform sampler2D unitTex;
       uniform sampler2D unitTex2;
 	  
@@ -337,7 +337,7 @@ local function CreateResources()
 
   post_shader = gl.CreateShader({
     vertex = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       void main()
       {
          gl_TexCoord[0] = gl_Vertex;
@@ -346,7 +346,7 @@ local function CreateResources()
       }
     ]],
     fragment = [[
-      #version 130 compatibility
+      #version 150 compatibility
       uniform sampler2D albedoTex;
       uniform sampler2D normalTex;
       //////////////////////////////////////////////////
@@ -454,7 +454,7 @@ local function CreateResources()
 
   halo_shader = gl.CreateShader({
     vertex = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       void main()
       {
          gl_TexCoord[0] = gl_MultiTexCoord0;
@@ -463,7 +463,7 @@ local function CreateResources()
       }
     ]],
     fragment = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform sampler2D albedoTex;
       uniform sampler2D normalTex;
 
@@ -517,7 +517,7 @@ local function CreateResources()
 
   clear_shader = gl.CreateShader({
     fragment = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       void main(void) {
         gl_FragData[0] = vec4(0.0);
         gl_FragData[1] = vec4(0.0);

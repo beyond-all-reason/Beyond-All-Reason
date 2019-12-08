@@ -83,7 +83,7 @@ end
 function Jet.Initialize()
   jitShader = gl.CreateShader({
     vertex = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform float timer;
 
       varying float distortion;
@@ -117,7 +117,7 @@ function Jet.Initialize()
       }
     ]],
     fragment = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
       uniform sampler2D mask;
 

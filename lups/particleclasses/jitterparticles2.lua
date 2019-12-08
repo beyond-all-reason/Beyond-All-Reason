@@ -211,7 +211,7 @@ end
 function JitterParticles2:Initialize()
   billShader = gl.CreateShader({
     vertex = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       // global attributes
       #define frame         gl_MultiTexCoord5.x
       #define time          gl_MultiTexCoord5.y
@@ -275,7 +275,7 @@ function JitterParticles2:Initialize()
        }
     ]],
     fragment = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform sampler2D noiseMap;
 
       varying float strength;

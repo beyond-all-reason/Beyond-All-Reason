@@ -103,7 +103,7 @@ local GL_FRONT = GL.FRONT
 
 vertGlass =
 [[
-#version 130 compatibility
+#version 150 compatibility
 #line 100054
 
 uniform vec3 sunPos;
@@ -143,7 +143,7 @@ void main() {
 
 fragGlass =
 [[
-#version 130 compatibility
+#version 150 compatibility
 #line 200094
 
 uniform sampler2D tex1;

@@ -110,7 +110,7 @@ function CreateHighlightShader()
       },
 
       vertex = [[
-		#version 130 compatibility
+		#version 150 compatibility
         // Application to vertex shader
         varying vec3 normal;
         varying vec3 eyeVec;
@@ -133,7 +133,7 @@ function CreateHighlightShader()
       ]],
 
       fragment = [[
-		#version 130 compatibility
+		#version 150 compatibility
         varying vec3 normal;
         varying vec3 eyeVec;
         varying vec3 color;

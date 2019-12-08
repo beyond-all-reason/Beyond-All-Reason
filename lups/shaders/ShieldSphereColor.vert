@@ -1,4 +1,4 @@
-#version 130 compatibility
+#version 150 compatibility
 
 uniform vec4 translationScale;
 uniform vec4 rotMargin;

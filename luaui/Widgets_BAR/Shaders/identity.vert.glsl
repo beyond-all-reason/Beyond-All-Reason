@@ -1,4 +1,4 @@
-#version 130 compatibility
+#version 150 compatibility
 
 void main() {
 	gl_Position = gl_Vertex;

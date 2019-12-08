@@ -101,7 +101,7 @@ end
 function ShieldSphereParticle:Initialize()
 	shieldShader = gl.CreateShader({
 		vertex = [[
-			#version 130 compatibility
+			#version 150 compatibility
 
 			#define pos gl_MultiTexCoord3.xyz
 			#define margin gl_MultiTexCoord4.x
@@ -134,7 +134,7 @@ function ShieldSphereParticle:Initialize()
 			}
 		]],
 		fragment = [[
-			#version 130 compatibility
+			#version 150 compatibility
 
 			in float opac;
 			in float gameFrame;

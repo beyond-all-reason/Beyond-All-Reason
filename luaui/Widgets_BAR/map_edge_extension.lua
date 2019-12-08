@@ -154,7 +154,7 @@ local function SetupShaderTable()
 	  vertex = (options.curvature.value and "#define curvature \n" or '')
 		.. (options.fogEffect.value and "#define edgeFog \n" or '')
 		.. [[
-		#version 130 compatibility
+		#version 150 compatibility
 		// Application to vertex shader
 		uniform float mirrorX;
 		uniform float mirrorZ;
@@ -206,7 +206,7 @@ local function SetupShaderTable()
 		}
 	  ]],
 	 --  fragment = [[
-	 --  #version 130 compatibility
+	 --  #version 150 compatibility
 	 --  uniform float mirrorX;
 	 --  uniform float mirrorZ;
 	 --  uniform float lengthX;

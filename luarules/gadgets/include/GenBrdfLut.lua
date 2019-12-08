@@ -1,6 +1,6 @@
 local lutVS =
 [[
-	#version 130 compatibility
+	#version 150 compatibility
 
 	void main() {
 		gl_Position = gl_Vertex;
@@ -9,7 +9,7 @@ local lutVS =
 
 local lutFS =
 [[
-	#version 130 compatibility
+	#version 150 compatibility
 
 	const uint NUM_SAMPLES = 1024u;
 	const float PI = 3.1415926535897932384626433832795028841971693993751058209749445923078164062;

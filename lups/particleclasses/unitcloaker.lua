@@ -140,7 +140,7 @@ end
 function UnitCloaker.Initialize()
   warpShader = gl.CreateShader({
     vertex = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform vec3 cameraPos;
       uniform vec3 lightPos;
       uniform float life;
@@ -177,7 +177,7 @@ function UnitCloaker.Initialize()
       }
     ]],
     fragment = [[
-	  #version 130 compatibility
+	  #version 150 compatibility
       uniform sampler2D texture1;
       uniform sampler2D texture2;
       uniform sampler2D noiseMap;
