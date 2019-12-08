@@ -33,7 +33,7 @@ local shader = gl.CreateShader({
 	},
 
 	vertex = [[
-	#version 150 compatibility
+	#version 130 compatibility
 	varying vec3 normal;
 	varying vec4 color;
 	varying vec3 color2;
@@ -54,7 +54,7 @@ local shader = gl.CreateShader({
 	]],
 
 	fragment = [[
-	#version 150 compatibility
+	#version 130 compatibility
 	varying vec3 normal;
 	varying vec4 color;
 	varying vec3 color2;

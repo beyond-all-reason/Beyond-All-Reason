@@ -327,7 +327,7 @@ function CreateShaders()
   -- create blur shaders
   blurShader = gl.CreateShader({
     fragment = [[
-		#version 150 compatibility
+		#version 130 compatibility
         uniform sampler2D tex2;
         uniform sampler2D tex0;
         uniform float intensity;

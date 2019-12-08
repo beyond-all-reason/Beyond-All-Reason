@@ -1,4 +1,4 @@
-#version 150 compatibility
+#version 130 compatibility
 
 uniform sampler2D modelDepthTex;
 uniform sampler2D mapDepthTex;

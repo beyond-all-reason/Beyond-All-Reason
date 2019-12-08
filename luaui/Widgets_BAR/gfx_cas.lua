@@ -38,7 +38,7 @@ local luaShaderDir = "LuaUI/Widgets_BAR/Include/"
 -----------------------------------------------------------------
 
 local vsCAS = [[
-#version 150 compatibility
+#version 130 compatibility
 
 void main() {
 	gl_Position = gl_Vertex;
@@ -46,7 +46,7 @@ void main() {
 ]]
 
 local fsCAS = [[
-#version 150 compatibility
+#version 130 compatibility
 #line 20051
 
 uniform sampler2D screenCopyTex;
