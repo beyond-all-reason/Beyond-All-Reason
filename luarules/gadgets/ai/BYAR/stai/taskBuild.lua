@@ -220,16 +220,6 @@ end
 
 --SONAR-RADAR
 
-function BuildSonar()
-	local unitName = DummyUnitName
-	if MyTB.side == CORESideName then
-		unitName = "corsonar"
-	else
-		unitName = "armsonar"
-	end
-	return unitName
-end
-
 function BuildRadar()
 	local unitName = DummyUnitName
 		if MyTB.side == CORESideName then
