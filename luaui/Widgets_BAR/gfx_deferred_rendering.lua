@@ -98,6 +98,13 @@ local collectionFunctionCount = 0
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
+
+function widget:RecvLuaMsg(msg, playerID)
+	if msg:sub(1,18) == 'LobbyOverlayActive' then
+		chobbyInterface = (msg:sub(1,19) == 'LobbyOverlayActive1')
+	end
+end
+
 function widget:ViewResize()
 	vsx, vsy = gl.GetViewSizes()
 	ivsx = 1.0 / vsx --we can do /n here!
@@ -511,7 +518,7 @@ function widget:DrawWorld()
 	for i = 1, pointLightCount do
 		local light = lights[i]
 		local param = light.param
-		if param.gib == nil and param.type == "Cannon"then
+		if param.gib == nil and param.type == "Cannon" then
 			size = param.glowradius * 0.44
 			gl.PushMatrix()
 				local colorMultiplier = 1 / math.max(param.r, param.g, param.b)

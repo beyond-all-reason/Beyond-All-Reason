@@ -353,7 +353,7 @@ function DrawWindow()
 	RectRound(x-bgMargin,y-screenHeight-bgMargin,x+screenWidth+bgMargin,y+bgMargin,8, 0,1,1,1)
 	-- content area
 	gl.Color(0.33,0.33,0.33,0.15)
-	RectRound(x,y-screenHeight,x+screenWidth,y,6)
+	RectRound(x,y-screenHeight,x+screenWidth,y,5.5)
 	
 	-- title
     local title = "Changelog"

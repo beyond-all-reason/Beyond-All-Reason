@@ -440,7 +440,7 @@ function DrawWindow()
 	else
 		gl.Color(0.33,0.33,0.33,0.15)
 	end
-	RectRound(x,y-screenHeight,x+screenWidth,y,6)
+	RectRound(x,y-screenHeight,x+screenWidth,y,5.5)
 
 	-- title
 	local title = "Basic settings"
@@ -1506,10 +1506,11 @@ function init()
 						supportedResolutions[#supportedResolutions+1] = resolution
 					end
 				else
-					break
+					addResolutions = nil
+					--break
 				end
 			end
-			if string.find(line, '	display=') then
+			if string.find(line, '	display=') and not supportedResolutions[1] then
 				if addResolutions then
 					break
 				end
@@ -1518,6 +1519,12 @@ function init()
 				local height = string.sub(string.match(line, 'h=([0-9]*)'), 1)
 				desktop = width..' x '..height
 				supportedResolutions[#supportedResolutions+1] = desktop
+			end
+
+			-- scan for shader version error
+			if string.find(line, 'error: GLSL 1.50 is not supported') then
+				Spring.SetConfigInt("ShaderVersionErrorDetected", 1)
+				Spring.SetConfigInt("ForceShaders", 0)
 			end
 		end
 	end
@@ -2217,6 +2224,44 @@ function init()
 		 onchange=function(i, value)
 			 saveOptionValue('Metalspots', 'metalspots', 'setMetalViewOnly', {'showValue'}, options[getOptionByID('metalspots_metalviewonly')].value)
 		 end,
+		},
+
+		{id="cursorlight", group="ui", basic=true, widget="Cursor Light", name="Cursor light", type="bool", value=GetWidgetToggleValue("Cursor Light"), description='Adds a light at/above your cursor position'},
+		{id="cursorlight_lightradius", group="ui", name=widgetOptionColor.."   radius", type="slider", min=0.15, max=1, step=0.05, value=1.5, description='',
+		 onload=function() loadWidgetData("Cursor Light", "cursorlight_lightradius", {'lightRadiusMult'}) end,
+		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightRadius', {'lightRadiusMult'}, value) end,
+		},
+		{id="cursorlight_lightstrength", group="ui", name=widgetOptionColor.."   strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.2, description='',
+		 onload=function() loadWidgetData("Cursor Light", "cursorlight_lightstrength", {'lightStrengthMult'}) end,
+		 onchange=function(i,value) saveOptionValue('Cursor Light', 'cursorlight', 'setLightStrength', {'lightStrengthMult'}, value) end,
+		},
+
+		{id="allycursors", group="ui", basic=true, widget="AllyCursors", name="Ally cursors", type="bool", value=GetWidgetToggleValue("AllyCursors"), description='Shows the position of ally cursors'},
+		{id="allycursors_playername", group="ui",  name=widgetOptionColor.."   player name", type="bool", value=true, description='Shows the player name next to the cursor',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_playername", {'showPlayerName'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setPlayerName', {'showPlayerName'}, value) end,
+		},
+		{id="allycursors_spectatorname", group="ui",  name=widgetOptionColor.."   spectator name", type="bool", value=true, description='Shows the spectator name next to the cursor',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_spectatorname", {'showSpectatorName'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setSpectatorName', {'showSpectatorName'}, value) end,
+		},
+		{id="allycursors_showdot", group="ui",  name=widgetOptionColor.."   cursor dot", type="bool", value=true, description='Shows a dot at the center of ally cursor position',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_showdot", {'showCursorDot'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', {'showCursorDot'}, value) end,
+		},
+		{id="allycursors_lights", group="ui", name=widgetOptionColor.."   lights", type="bool", value=true, description='Adds a colored light to every ally cursor',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_lights", {'addLights'}) end,
+		 onchange=function(i, value)
+			 saveOptionValue('AllyCursors', 'allycursors', 'setLights', {'addLights'}, options[getOptionByID('allycursors_lights')].value)
+		 end,
+		},
+		{id="allycursors_lightradius", group="ui", name=widgetOptionColor.."      radius", type="slider", min=0.15, max=1, step=0.05, value=1.5, description='',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_lightradius", {'lightRadiusMult'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', {'lightRadiusMult'}, value) end,
+		},
+		{id="allycursors_lightstrength", group="ui", name=widgetOptionColor.."      strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.2, description='',
+		 onload=function() loadWidgetData("AllyCursors", "allycursors_lightstrength", {'lightStrengthMult'}) end,
+		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightStrength', {'lightStrengthMult'}, value) end,
 		},
 
 		{id="showbuilderqueue", group="ui", basic=true, widget="Show builder queue", name="Show Builder Queue", type="bool", value=GetWidgetToggleValue("Show Builder Queue"), description='Shows ghosted buildings about to be built on the map'},
@@ -2980,10 +3025,12 @@ function widget:Initialize()
 	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
 		Spring.SetConfigInt("MaxParticles",10000)
 	end
+
 	-- enable lua shaders
-	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) then
+	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) and not tonumber(Spring.GetConfigInt("ShaderVersionErrorDetected",1) or 0) then
 		Spring.SetConfigInt("ForceShaders", 1)
 	end
+
 	-- enable map/model shading
 	if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
 		Spring.SetConfigInt("AdvMapShading",1)

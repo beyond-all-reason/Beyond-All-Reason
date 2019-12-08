@@ -128,6 +128,7 @@ return {
 				avoidfriendly = false,
 				burnblow = true,
 				canattackground = false,
+				cegtag = "flaktrailaa",
 				collidefriendly = false,
 				craterareaofeffect = 192,
 				craterboost = 0,
@@ -154,7 +155,7 @@ return {
 				turret = true,
 				weapontimer = 1,
 				weapontype = "Cannon",
-				weaponvelocity = 2450,
+				weaponvelocity = 1600,
 				customparams = {
 					expl_light_color = "1 0.4 0.5",
 					expl_light_mult = 0.4,

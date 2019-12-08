@@ -12,8 +12,9 @@ function widget:GetInfo()
 end
 
 local colorR,colorG,colorB = 1, 0.8, 0.6
-local radiusMult = 1.5
-local strengthMult = 0.5
+
+local lightRadiusMult = 1.5
+local lightStrengthMult = 0.5
 
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
@@ -26,13 +27,13 @@ local function GetLights(beamLights, beamLightCount, pointLights, pointLightCoun
         local params = {param={} }
         params.px, params.py, params.pz = tracedScreenRay[1],tracedScreenRay[2],tracedScreenRay[3]
         params.param.r, params.param.g, params.param.b = colorR,colorG,colorB
-        params.colMult = 1 * strengthMult
-        params.param.radius = 350 * radiusMult
-        params.py = params.py + 50
-        pointLightCount = pointLightCount + 1
-        pointLights[pointLightCount] = params
+        params.colMult = 1 * lightStrengthMult
+        --params.param.radius = 350 * lightRadiusMult
+        --params.py = params.py + 50
+        --pointLightCount = pointLightCount + 1
+        --pointLights[pointLightCount] = params
         params.colMult = params.colMult * 0.4
-        params.param.radius = 1000 * radiusMult
+        params.param.radius = 1000 * lightRadiusMult
         params.py = params.py + 50
         pointLightCount = pointLightCount + 1
         pointLights[pointLightCount] = params
@@ -45,11 +46,52 @@ function widget:Initialize()
     if WG.DeferredLighting_RegisterFunction then
         functionID = WG.DeferredLighting_RegisterFunction(GetLights)
     end
+    
+    WG['cursorlight'] = {}
+    WG['cursorlight'].setLightStrength = function(value)
+        lightStrengthMult = value
+        if functionID and WG.DeferredLighting_UnRegisterFunction then
+            WG.DeferredLighting_UnRegisterFunction(functionID)
+        end
+        if WG.DeferredLighting_RegisterFunction then
+            functionID = WG.DeferredLighting_RegisterFunction(GetLights)
+        end
+    end
+    WG['cursorlight'].getLightStrength = function()
+        return lightStrengthMult
+    end
+    WG['cursorlight'].setLightRadius = function(value)
+        lightRadiusMult = value
+        if functionID and WG.DeferredLighting_UnRegisterFunction then
+            WG.DeferredLighting_UnRegisterFunction(functionID)
+        end
+        if WG.DeferredLighting_RegisterFunction then
+            functionID = WG.DeferredLighting_RegisterFunction(GetLights)
+        end
+    end
+    WG['cursorlight'].getLightRadius = function()
+        return lightRadiusMult
+    end
 end
 
 function widget:Shutdown()
     if functionID and WG.DeferredLighting_UnRegisterFunction then
         WG.DeferredLighting_UnRegisterFunction(functionID)
+    end
+end
+
+
+function widget:GetConfigData(data)
+    savedTable = {}
+    savedTable.lightRadiusMult = lightRadiusMult
+    savedTable.lightStrengthMult = lightStrengthMult
+    return savedTable
+end
+
+function widget:SetConfigData(data)
+    if data.lightRadiusMult then
+        lightRadiusMult = data.lightRadiusMult
+        lightStrengthMult = data.lightStrengthMult
     end
 end
 

@@ -25,7 +25,7 @@ if not gadgetHandler:IsSyncedCode() then return end
 
 local unitConf = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
-	if unitDef.weapons and not string.find((unitDef.scriptName), "lua") then
+	if unitDef.weapons and not string.find((string.lower(unitDef.scriptName)), "lua") then
 		for weaponID, weapon in pairs(unitDef.weapons) do
 			local customParamName = 'wpn'..weaponID..'turret'
 			if unitDef.customParams and unitDef.customParams[customParamName..'x'] and unitDef.customParams[customParamName..'y'] then

@@ -25,6 +25,8 @@ local spGetProjectileDefID        = Spring.GetProjectileDefID
 local spGetPieceProjectileParams  = Spring.GetPieceProjectileParams
 local spGetProjectileVelocity     = Spring.GetProjectileVelocity
 
+local math_random = math.random
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 -- Local Variables
@@ -646,6 +648,16 @@ local function GetProjectileLights(beamLights, beamLightCount, pointLights, poin
 
 	-- add explosion/custom lights
 	for i, params in pairs(explosionLights) do
+		if params.randomOffset then
+			if not params.opx then
+				params.opx = params.px
+				params.opy = params.py
+				params.opz = params.pz
+			end
+			params.px = params.opx + (0.5 - math_random()) * params.randomOffset
+			params.py = params.opy + (0.5 - math_random()) * params.randomOffset
+			params.pz = params.opz + (0.5 - math_random()) * params.randomOffset
+		end
 		if not params.life then
 			params.colMult = params.orgMult
 		else
@@ -794,6 +806,8 @@ end
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
 		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
+		local randomOffset = weaponConf[weaponID].radius > 30 and weaponConf[weaponID].radius/11 or nil
+		if randomOffset > 15 then randomOffset = 15 end
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,
@@ -808,6 +822,7 @@ function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 				b = weaponConf[weaponID].b,
 				radius = weaponConf[weaponID].radius,
 			},
+			randomOffset = randomOffset
 		}
 
 		explosionLightsCount = explosionLightsCount + 1

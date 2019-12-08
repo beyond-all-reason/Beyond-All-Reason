@@ -422,7 +422,7 @@ function widget:DrawScreen()
   RectRound(minx-(bgPadding*sizeMultiplier), miny-(bgPadding*sizeMultiplier), maxx+(bgPadding*sizeMultiplier), maxy+(bgPadding*sizeMultiplier), 8*sizeMultiplier)
   
   gl.Color(0.33,0.33,0.33,0.2)
-  RectRound(minx, miny, maxx, maxy, 8*sizeMultiplier)
+  RectRound(minx, miny, maxx, maxy, 5.5*sizeMultiplier)
   
   -- draw the text buttons (at the bottom) & their outlines
   for i,name in ipairs(buttons) do

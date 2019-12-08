@@ -32,8 +32,8 @@ end
 -- set minimun engine version
 local unsupportedEngine = true
 local enabled = false
-local minEngineVersionTitle = '104.0.1-1445'
-if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011445 then
+local minEngineVersionTitle = '104.0.1-1455'
+if (engineVersion < 1000 and engineVersion >= 105) or engineVersion >= 104011455 then
 	unsupportedEngine = false
 	enabled = true
 end
