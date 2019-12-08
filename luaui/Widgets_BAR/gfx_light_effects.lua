@@ -806,7 +806,8 @@ end
 function GadgetWeaponExplosion(px, py, pz, weaponID, ownerID)
 	if weaponConf[weaponID] ~= nil then
 		--Spring.Echo(weaponConf[weaponID].orgMult..'   '..weaponConf[weaponID].radius..'  '..weaponConf[weaponID].life)
-		local randomOffset = weaponConf[weaponID].radius > 25 and weaponConf[weaponID].radius/12 or nil
+		local randomOffset = weaponConf[weaponID].radius > 30 and weaponConf[weaponID].radius/11 or nil
+		if randomOffset > 15 then randomOffset = 15 end
 		local params = {
 			life = weaponConf[weaponID].life,
 			orgMult = weaponConf[weaponID].orgMult,

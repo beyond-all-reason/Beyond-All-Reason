@@ -42,6 +42,7 @@ local numMousePos					= 2 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
 local showPlayerName       			= true
+local showCursorDot                 = true
 local drawNamesScaling				= true
 local drawNamesFade					= true
 
@@ -55,8 +56,8 @@ local NameFadeEndDistance			= 7200
 local idleCursorTime				= 30		-- fade time cursor (specs only)
 
 local addLights                     = false
-local lightRadiusMult               = 1.15
-local lightStrengthMult             = 0.2
+local lightRadiusMult               = 0.75
+local lightStrengthMult             = 0.6
 
 -- tweak ui
 local buttonsize					= 18
@@ -219,6 +220,30 @@ function widget:Initialize()
     end
     WG['allycursors'].getLightRadius = function()
         return lightRadiusMult
+    end
+    WG['allycursors'].setCursorDot = function(value)
+        showCursorDot = value
+    end
+    WG['allycursors'].getCursorDot = function()
+        return showCursorDot
+    end
+    WG['allycursors'].setCursorDot = function(value)
+        showCursorDot = value
+    end
+    WG['allycursors'].getCursorDot = function()
+        return showCursorDot
+    end
+    WG['allycursors'].setPlayerNames = function(value)
+        showPlayerName = value
+    end
+    WG['allycursors'].getPlayerNames = function()
+        return showPlayerName
+    end
+    WG['allycursors'].setSpectatorNames = function(value)
+        showSpectatorName = value
+    end
+    WG['allycursors'].getSpectatorNames = function()
+        return showSpectatorName
     end
 
     local now = clock()
@@ -392,11 +417,13 @@ function createCursorDrawList(playerID, opacityMultiplier)
 
     if not spec  and not showPlayerName    or    spec  and  not showSpectatorName  then
         --draw a cursor
-        gl.Texture(allyCursor)
-        gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
-        gl.Texture(false)
+        if showCursorDot then
+            gl.Texture(allyCursor)
+            gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
+            gl.Texture(false)
+        end
     else
-        if not spec then
+        if not spec and showCursorDot then
             --draw a cursor
             gl.Texture(allyCursor)
             gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
@@ -507,7 +534,7 @@ function widget:Update(dt)
                 opacity = 1 - ((time - alliedCursorsTime[playerID]) / idleCursorTime)
                 if opacity > 1 then opacity = 1 end
             end
-            if opacity > 0.1 then
+            if not specList[playerID] and opacity > 0.1 then
                 local wy = spGetGroundHeight(wx,wz)
                 cursors[playerID] = {wx,wy,wz,camX,camY,camZ,opacity}
             else
@@ -551,6 +578,9 @@ function widget:GetConfigData(data)
     savedTable.addLights = addLights
     savedTable.lightRadiusMult = lightRadiusMult
     savedTable.lightStrengthMult = lightStrengthMult
+    savedTable.showCursorDot = showCursorDot
+    savedTable.showSpectatorName = showSpectatorName
+    savedTable.showPlayerName = showPlayerName
     return savedTable
 end
 
@@ -559,6 +589,9 @@ function widget:SetConfigData(data)
         addLights = data.addLights
         lightRadiusMult = data.lightRadiusMult
         lightStrengthMult = data.lightStrengthMult
+        showCursorDot = data.showCursorDot or true
+        showSpectatorName = data.showSpectatorName or true
+        showPlayerName = data.showPlayerName or true
     end
 end
 
