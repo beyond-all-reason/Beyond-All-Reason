@@ -1506,10 +1506,11 @@ function init()
 						supportedResolutions[#supportedResolutions+1] = resolution
 					end
 				else
-					break
+					addResolutions = nil
+					--break
 				end
 			end
-			if string.find(line, '	display=') then
+			if string.find(line, '	display=') and not supportedResolutions[1] then
 				if addResolutions then
 					break
 				end
@@ -1518,6 +1519,12 @@ function init()
 				local height = string.sub(string.match(line, 'h=([0-9]*)'), 1)
 				desktop = width..' x '..height
 				supportedResolutions[#supportedResolutions+1] = desktop
+			end
+
+			-- scan for shader errors
+			if string.find(line, 'error: GLSL 1.50 is not supported') then
+				Spring.SetConfigInt("ShaderVersionErrorDetected", 1)
+				Spring.SetConfigInt("ForceShaders", 0)
 			end
 		end
 	end
@@ -3018,10 +3025,12 @@ function widget:Initialize()
 	if tonumber(Spring.GetConfigInt("MaxParticles",1) or 10000) <= 10000 then
 		Spring.SetConfigInt("MaxParticles",10000)
 	end
+
 	-- enable lua shaders
-	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) then
+	if not tonumber(Spring.GetConfigInt("ForceShaders",1) or 0) and not tonumber(Spring.GetConfigInt("ShaderVersionErrorDetected",1) or 0) then
 		Spring.SetConfigInt("ForceShaders", 1)
 	end
+
 	-- enable map/model shading
 	if Spring.GetConfigInt("AdvMapShading",0) ~= 1 then
 		Spring.SetConfigInt("AdvMapShading",1)
