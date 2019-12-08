@@ -1,5 +1,3 @@
-local enabled = gl.CreateShader == nil and false or true
-
 function gadget:GetInfo()
 	return {
 		name      = "PBR enabler",
@@ -8,11 +6,16 @@ function gadget:GetInfo()
 		date      = "2019",
 		license   = "PD",
 		layer     = -1,
-		enabled   = enabled,
+		enabled   = true,
 	}
 end
 
 if (not gadgetHandler:IsSyncedCode()) then --unsynced gadget
+	if gl.CreateShader == nil then
+		Spring.Echo("ERROR: PBR enabler: createshader is nil")
+		return
+	end
+
 	local genLut = false
 	local headless = false
 
