@@ -96,11 +96,11 @@ function DistanceXZ(x1, z1, x2, z2)
 	return sqrt(xd*xd + zd*zd)
 end
 
-local function Distance3d(pos1, pos2)
+function Distance3d(pos1, pos2)
 	local dx = pos2.x - pos1.x
 	local dy = pos2.y - pos1.y
 	local dz = pos2.z - pos1.z
-	return mSqrt( dx*dx + dy*dy + dz*dz )
+	return math.sqrt( dx*dx + dy*dy + dz*dz )
 end
 
 function ManhattanDistance(pos1,pos2)
@@ -110,7 +110,7 @@ function ManhattanDistance(pos1,pos2)
 	return dist
 end
 
-local function MiddleOfTwo(pos1, pos2)
+function MiddleOfTwo(pos1, pos2)
 	local middle = api.Position()
 	middle.x, middle.y, middle.z = (pos1.x+pos2.x)/2, (pos1.y+pos2.y)/2,(pos1.z+pos2.z)/2
 	return middle

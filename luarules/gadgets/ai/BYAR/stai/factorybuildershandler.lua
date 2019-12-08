@@ -10,7 +10,6 @@ end
 
 function FactoryBuildersHandler:Init()
 	self.DebugEnabled = false
-
 	self.lastCheckFrameForConName = {}
 	self.lastFactoriesForConName = {}
 	self.conTypesByName = {}
@@ -170,11 +169,10 @@ function FactoryBuildersHandler:ConditionsToBuildFactories(builder)
 		end
 	end
 	if canDoFactory then
-		self:EchoDebug('OK Conditions to build something'  )
-		self:EchoDebug('4')
+		self:EchoDebug('OK Conditions to build factories'  )
 		return factories
 	else
-		self:EchoDebug('5')
+		self:EchoDebug('not enough conditions to build factories')
 		return false
 	end
 end

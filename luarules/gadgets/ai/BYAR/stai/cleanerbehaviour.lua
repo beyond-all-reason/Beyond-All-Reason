@@ -67,7 +67,7 @@ function CleanerBehaviour:UnitDead(unit)
 end
 
 function CleanerBehaviour:Activate()
-	self.unit:Internal():Reclaim(self.cleanThis:ID())
+	self.unit:Internal():Reclaim(self.cleanThis)
 end
 
 function CleanerBehaviour:Priority()

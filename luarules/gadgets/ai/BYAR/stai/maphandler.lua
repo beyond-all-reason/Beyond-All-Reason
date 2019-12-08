@@ -58,7 +58,6 @@ local pathGraphs = {}
 
 local savepositions = {}
 
-local mSqrt = math.sqrt
 local mCeil = math.ceil
 
 function MapHandler:basicMapInfo()
@@ -381,7 +380,6 @@ end
 
 function MapHandler:Init()
 	self:EchoDebug('MapHandler START')
-	self:EchoDebug('self',self)
 	self:basicMapInfo()
 	if DebugDrawEnabled then
 		self.map:EraseAll(4, 5)

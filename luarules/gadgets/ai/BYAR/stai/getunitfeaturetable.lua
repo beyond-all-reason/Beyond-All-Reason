@@ -93,26 +93,33 @@ end
 
 local function getTechTree(sideTechLv)
 	continue = false
+	local tmp = {}
 	for name,lv in pairs(sideTechLv) do
 		if lv == false then
-			sideTechLv[name] = parent
+			print(name)
+			sideTechLv[name] = parent 
 			canBuild = UnitDefNames[name].buildOptions
 			if canBuild and #canBuild > 0 then
 				for index,id in pairs(UnitDefNames[name].buildOptions) do
 					if not sideTechLv[UnitDefs[id].name] then 
-						sideTechLv[UnitDefs[id].name] = false
+						tmp[UnitDefs[id].name] = false
 						continue = true
 					end
 				end
 			end
 		end
 	end
-	parent = parent + 1
+	for name,lv in pairs(tmp) do
+		sideTechLv[name] = lv
+	end
 	if continue  then 
+		parent = parent + 1
 		getTechTree(sideTechLv) 
 	end
 	parent = 0
 end
+
+	
 
 local function GetUnitTable()
 	local builtBy = GetBuiltBy()
@@ -121,8 +128,6 @@ local function GetUnitTable()
 	for unitDefID,unitDef in pairs(UnitDefs) do
 		local side = GetUnitSide(unitDef.name)
 		if unitsLevels[unitDef.name] then
---             print(unitDef.name .. ' is in')
-			
 			-- Spring.Echo(unitDef.name, "build slope", unitDef.maxHeightDif)
 			-- if unitDef.moveDef.maxSlope then
 				-- Spring.Echo(unitDef.name, "move slope", unitDef.moveDef.maxSlope)
@@ -164,10 +169,7 @@ local function GetUnitTable()
 				utable.needsWater = false
 			end
 			
-			utable.techLevel = unitDef.customParams.techLevel or 1
-			if hoverplatform[unitDef["name"]] then
-				utable.techLevel = utable.techLevel - 0.5
-			end
+			utable.techLevel = unitsLevels[unitDef["name"]]
 			
 			if unitDef["canFly"] then 
 				utable.mtype = "air"
@@ -221,8 +223,6 @@ local function GetUnitTable()
 			utable.wreckName = unitDef["wreckName"]
 			wrecks[unitDef["wreckName"]] = unitDef["name"]
 			unitTable[unitDef.name] = utable
-		else
---             print(unitDef.name .. ' is out')
 		end
 	end
 	return unitTable, wrecks
@@ -245,15 +245,12 @@ local function GetFeatureTable(wrecks)
 	return featureTable
 end
 
--- END CODE BLOCK TO COPY AND PASTE INTO shard_help_unit_feature_table.lua
-
-
 getTechTree(armTechLv)
 getTechTree(corTechLv)
 for k,v in pairs(corTechLv) do unitsLevels[k] = v end
 for k,v in pairs(armTechLv) do unitsLevels[k] = v end
-
 local unitTable, wrecks = GetUnitTable()
+
 local featureTable = GetFeatureTable(wrecks)
 
 wrecks = nil
