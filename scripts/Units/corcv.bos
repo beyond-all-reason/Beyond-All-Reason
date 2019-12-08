@@ -21,7 +21,7 @@ activatescr()
 	sleep 600;
 
 	move loturret to y-axis [7] speed [12];
-	move upturret to y-axis [7] speed [12];
+	move upturret to y-axis [5] speed [12];
 	sleep 200;
 }
 
