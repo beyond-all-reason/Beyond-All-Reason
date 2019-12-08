@@ -4,7 +4,7 @@ return {
 		brakerate = 0.9039,
 		buildcostenergy = 68000,
 		buildcostmetal = 3800,
-		buildpic = "ARMRAZ.PNG",
+		buildpic = "ARMRAZ.DDS",
 		buildtime = 88566,
 		canmove = true,
 		category = "KBOT MOBILE WEAPON ALL NOTSUB NOTAIR NOTHOVER SURFACE EMPABLE",
@@ -26,7 +26,7 @@ return {
 		movementclass = "HKBOT4",
 		name = "Razorback",
 		objectname = "Units/ARMRAZ.s3o",
-		script = "Units/armraz_lus.lua",
+		script = "Units/BOTS_LUS.LUA",
 		seismicsignature = 0,
 		selfdestructas = "hugeExplosionGenericSelfd",
 		sightdistance = 450,
@@ -36,10 +36,12 @@ return {
 		turnrate = 768.20001,
 		upright = true,
 		customparams = {
-			--model_author = "PtaQ",
+			normalmaps = "yes",
 			normaltex = "unittextures/Arm_normal.dds",
 			subfolder = "armgantry",
 			techlevel = 3,
+			wpn1turretx = 200,
+			wpn1turrety = 200,
 		},
 		featuredefs = {
 			dead = {
