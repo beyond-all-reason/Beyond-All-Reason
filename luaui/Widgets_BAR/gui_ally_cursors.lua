@@ -155,21 +155,19 @@ function updateSpecList()
 end
 
 local function GetLights(beamLights, beamLightCount, pointLights, pointLightCount)
-
-    for playerID,cursor in pairs(cursors) do
-        local params = {param={} }
-        params.px, params.py, params.pz = cursor[1],cursor[2],cursor[3]
-        params.param.r, params.param.g, params.param.b = teamColors[playerID][1],teamColors[playerID][2],teamColors[playerID][3]
-        params.colMult = 1 * lightStrengthMult
-        --params.param.radius = 350 * lightRadiusMult
-        --params.py = params.py + 50
-        --pointLightCount = pointLightCount + 1
-        --pointLights[pointLightCount] = params
-        params.colMult = params.colMult * 0.4
-        params.param.radius = 1000 * lightRadiusMult
-        params.py = params.py + 50
-        pointLightCount = pointLightCount + 1
-        pointLights[pointLightCount] = params
+    if not Spring.IsGUIHidden() and not chobbyInterface then
+        for playerID,cursor in pairs(cursors) do
+            if teamColors[playerID] then
+                local params = {param={} }
+                params.px, params.py, params.pz = cursor[1],cursor[2],cursor[3]
+                params.param.r, params.param.g, params.param.b = teamColors[playerID][1],teamColors[playerID][2],teamColors[playerID][3]
+                params.colMult = 0.4 * lightStrengthMult
+                params.param.radius = 1000 * lightRadiusMult
+                params.py = params.py + 50
+                pointLightCount = pointLightCount + 1
+                pointLights[pointLightCount] = params
+            end
+        end
     end
     return beamLights, beamLightCount, pointLights, pointLightCount
 end
