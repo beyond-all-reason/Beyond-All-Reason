@@ -15,9 +15,13 @@ pelvis = piece 'pelvis'
 	rthigh = piece 'rthigh'
 		rleg = piece 'rleg'
 			rfoot = piece 'rfoot'
+				rrfinger = piece 'rrfinger'
+				rlfinger = piece 'rlfinger'
 	lthigh = piece 'lthigh'
 		lleg = piece 'lleg'
 			lfoot = piece 'lfoot'
+				llfinger = piece 'llfinger'
+				lrfinger = piece 'lrfinger'
 currentSpeed = 100
 			
 			
