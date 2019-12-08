@@ -1,3 +1,7 @@
+if gl.CreateShader == nil then
+	return
+end
+
 function widget:GetInfo()
 	return {
 		name	  = "Contrast Adaptive Sharpen",
@@ -135,6 +139,13 @@ local fullTexQuad
 
 
 function widget:Initialize()
+
+	if gl.CreateShader == nil then
+		Spring.Echo("CAS: createshader not supported, removing")
+		widgetHandler:RemoveWidget(self)
+		return
+	end
+
 	vsx, vsy, vpx, vpy = Spring.GetViewGeometry()
 
 	local commonTexOpts = {

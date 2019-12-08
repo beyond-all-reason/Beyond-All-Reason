@@ -122,7 +122,7 @@ end
 
 local function RemoveMe(msg)
 	Spring.Echo(msg)
-	widgetHandler:RemoveWidget()
+	widgetHandler:RemoveWidget(self)
 end
 
 local function MakeBloomShaders()
@@ -345,6 +345,22 @@ end
 
 function widget:Initialize()
 
+	if (glCreateShader == nil) then
+		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
+		return
+	end
+
+	hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering")=='1')
+	if hasdeferredmodelrendering == false then
+		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredModelRendering is required")
+	end
+	hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering")=='1')
+	if hasdeferredmaprendering == false then
+		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
+	end
+	MakeBloomShaders()
+
+
 	WG['bloomdeferred'] = {}
 	WG['bloomdeferred'].getBrightness = function()
 		return glowAmplifier
@@ -368,22 +384,6 @@ function widget:Initialize()
 		loadPreset()
 	end
 
-
-	if (glCreateShader == nil) then
-		RemoveMe("[BloomShader::Initialize] removing widget, no shader support")
-		return
-	end
-
-	hasdeferredmodelrendering = (Spring.GetConfigString("AllowDeferredModelRendering")=='1')
-	if hasdeferredmodelrendering == false then
-		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredModelRendering is required")
-	end
-	hasdeferredmaprendering = (Spring.GetConfigString("AllowDeferredMapRendering")=='1')
-	if hasdeferredmaprendering == false then
-		RemoveMe("[BloomShader::Initialize] removing widget, AllowDeferredMapRendering is required")
-	end
-	MakeBloomShaders()
-
 end
 
 function widget:Shutdown()
@@ -396,6 +396,8 @@ function widget:Shutdown()
 		if blurShaderV71 ~= nil then glDeleteShader(blurShaderV71 or 0) end
 		if combineShader ~= nil then glDeleteShader(combineShader or 0) end
 	end
+
+	WG['bloomdeferred'] = nil
 end
 
 

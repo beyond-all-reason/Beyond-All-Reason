@@ -1521,7 +1521,7 @@ function init()
 				supportedResolutions[#supportedResolutions+1] = desktop
 			end
 
-			-- scan for shader errors
+			-- scan for shader version error
 			if string.find(line, 'error: GLSL 1.50 is not supported') then
 				Spring.SetConfigInt("ShaderVersionErrorDetected", 1)
 				Spring.SetConfigInt("ForceShaders", 0)

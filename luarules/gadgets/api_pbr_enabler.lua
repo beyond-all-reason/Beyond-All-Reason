@@ -1,3 +1,5 @@
+local enabled = gl.CreateShader == nil and false or true
+
 function gadget:GetInfo()
 	return {
 		name      = "PBR enabler",
@@ -6,7 +8,7 @@ function gadget:GetInfo()
 		date      = "2019",
 		license   = "PD",
 		layer     = -1,
-		enabled   = true,
+		enabled   = enabled,
 	}
 end
 
