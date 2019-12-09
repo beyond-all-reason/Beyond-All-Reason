@@ -223,24 +223,21 @@ function widget:Initialize()
     end
     WG['allycursors'].setCursorDot = function(value)
         showCursorDot = value
-    end
-    WG['allycursors'].getCursorDot = function()
-        return showCursorDot
-    end
-    WG['allycursors'].setCursorDot = function(value)
-        showCursorDot = value
+        deleteDlists()
     end
     WG['allycursors'].getCursorDot = function()
         return showCursorDot
     end
     WG['allycursors'].setPlayerNames = function(value)
         showPlayerName = value
+        deleteDlists()
     end
     WG['allycursors'].getPlayerNames = function()
         return showPlayerName
     end
     WG['allycursors'].setSpectatorNames = function(value)
         showSpectatorName = value
+        deleteDlists()
     end
     WG['allycursors'].getSpectatorNames = function()
         return showSpectatorName
@@ -256,14 +253,18 @@ function widget:Initialize()
     end
 end
 
-
-function widget:Shutdown()
-    widgetHandler:DeregisterGlobal('MouseCursorEvent')
+function deleteDlists()
     for playerID, dlists in pairs(allycursorDrawList) do
         for opacityMultiplier, dlist in pairs(dlists) do
             gl.DeleteList(allycursorDrawList[playerID][opacityMultiplier])
         end
     end
+    allycursorDrawList = {}
+end
+
+function widget:Shutdown()
+    widgetHandler:DeregisterGlobal('MouseCursorEvent')
+    deleteDlists()
     gl.DeleteFont(font)
 
     if functionID and WG.DeferredLighting_UnRegisterFunction then
