@@ -305,7 +305,7 @@ local function CommanderEconomy(tskqbhvr)
 	if not underwater then 
 		unitName = Economy0()
 	else
-		unitName = EconomyUnderWater()
+		unitName = Economy0uw()
 	end
 	return unitName
 	

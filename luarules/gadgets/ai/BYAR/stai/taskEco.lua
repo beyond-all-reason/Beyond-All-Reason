@@ -21,6 +21,16 @@ function NanoTurret()
 	return unitName
 end
 
+function NanoWater()
+	local unitName = DummyUnitName
+	if MyTB.side == CORESideName then
+		unitName = "cornanotcplat"
+	else
+		unitName = "armnanotcplat"
+	end
+	return unitName
+end
+
 -- MEX
 
 function BuildMex()
@@ -346,6 +356,25 @@ function Economy0()
 	return unitName
 end
 
+function Economy0uw()
+	local unitName = DummyUnitName
+	if ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
+		unitName = buildWEstore1()
+	elseif ai.Metal.full > 0.7 and ai.Metal.income > 30 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 600 then
+		unitName = buildWMstore1()
+	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
+		unitName = buildWMconv1()
+	elseif ai.Energy.full > 0.1 and (ai.Metal.income < 1 or ai.Metal.full < 0.6) then
+		unitName = BuildUWMex()
+	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.income > 3 and ai.Metal.full > 0.1 then
+		unitName = TidalIfTidal()--this can get problems
+	else
+		unitName = BuildUWMex()
+	end
+	EchoDebug('Under water Economy level 1 '..unitName)
+	return unitName
+end
+
 function Economy1()
         local unitName=DummyUnitName
 	if ai.Energy.full > 0.5 and ai.Metal.full > 0.3 and ai.Metal.full < 0.7 and ai.Metal.income > 30 then
@@ -369,7 +398,9 @@ end
 
 function EconomyUnderWater()
 	local unitName = DummyUnitName
-	if ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
+	if (ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100) then
+	unitName = NanoWater()
+	elseif ai.Energy.full > 0.9 and ai.Energy.income > 500  and ai.Metal.reserves > 300 and ai.Energy.capacity < 7000 then
 		unitName = buildWEstore1()
 	elseif ai.Metal.full > 0.7 and ai.Metal.income > 30 and ai.Metal.capacity < 4000 and ai.Energy.reserves > 600 then
 		unitName = buildWMstore1()
