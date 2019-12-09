@@ -428,6 +428,8 @@ commanderList = {
 nanoTurretList = {
 	cornanotc = 1,
 	armnanotc = 1,
+	armnanotcplat = 1,
+	cornanotcplat = 1,
 }
 
 -- cheap construction units that can be built in large numbers
@@ -565,6 +567,8 @@ Eco1={
 
 	armnanotc=1,
 	cornanotc=1,
+	armnanotcplat = 1,
+	cornanotcplat = 1,
 }
 
 Eco2={
