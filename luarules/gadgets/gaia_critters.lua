@@ -14,14 +14,10 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
--- NOTE: adding/removing will break at ´/luarules reload´ (needs to remember var ´critterUnits´)
-local teams = Spring.GetTeamList()
-for i =1, #teams do
-	local luaAI = Spring.GetTeamLuaAI(teams[i])
-	if luaAI ~= "" then
-		if luaAI == "DAI" then
-			shardEnabled = true
-		end
+
+for _,teamID in ipairs(Spring.GetTeamList()) do
+	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		return
 	end
 end
 
@@ -32,7 +28,7 @@ for udid, unitDef in pairs(UnitDefs) do
 	end
 end
 
-if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == 0 or shardEnabled == true then
+if Spring.GetModOptions() == nil or Spring.GetModOptions().critters == nil or Spring.GetModOptions().critters == 0 then
 	return
 end
 
