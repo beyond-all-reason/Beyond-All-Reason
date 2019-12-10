@@ -2034,8 +2034,13 @@ function init()
 		},
 
 		-- CONTROL
-		{id="containmouse", group="control", basic=true, widget="Grabinput", name="Contain mouse", type="bool", value=GetWidgetToggleValue("Grabinput"), description='When in windowed mode, this prevents your mouse from moving out of it'},
-
+		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
+		 onload = function() end,
+		 onchange = function(i, value)
+			 Spring.SendCommands("HardwareCursor "..(value and 1 or 0))
+			 Spring.SetConfigInt("HardwareCursor",(value and 1 or 0))
+		 end,
+		},
 		--{id="cursor", group="control", basic=true, name="Cursor", type="select", options={}, value=1, description='Choose a different mouse cursor style and/or size',
 		-- onchange=function(i, value)
 		--	 saveOptionValue('Cursors', 'cursors', 'setcursor', {'cursorSet'}, options[i].options[value])
@@ -2045,16 +2050,28 @@ function init()
 		 onload = function() end,
 		 onchange = function(i, value) if WG['cursors'] then WG['cursors'].setsizemult(value) end end,
 		},
-		{id="hwcursor", group="control", basic=true, name="Hardware cursor", type="bool", value=tonumber(Spring.GetConfigInt("hardwareCursor",1) or 1) == 1, description="When disabled: mouse cursor refresh rate will equal to your ingame fps",
-		 onload = function() end,
-		 onchange = function(i, value)
-			 Spring.SendCommands("HardwareCursor "..(value and 1 or 0))
-			 Spring.SetConfigInt("HardwareCursor",(value and 1 or 0))
-		 end,
-		},
 		{id="crossalpha", group="control", name="Cursor 'cross' alpha", type="slider", min=0, max=1, step=0.05, value=tonumber(Spring.GetConfigString("CrossAlpha",1) or 1), description='Opacity of mouse icon in center of screen when you are in camera pan mode\n\n(The\'icon\' has a dot in center with 4 arrows pointing in all directions)',
 		 onload = function() end,
 		 onchange = function(i, value) Spring.SendCommands("cross "..tonumber(Spring.GetConfigInt("CrossSize",1) or 10).." "..value) end,
+		},
+
+		{id="containmouse", group="control", basic=true, widget="Grabinput", name="Contain mouse", type="bool", value=GetWidgetToggleValue("Grabinput"), description='When in windowed mode, this prevents your mouse from moving out of it'},
+
+		{id="screenedgemove", group="control", basic=true, name="Screen edge moves camera", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game",
+		 onchange=function(i, value)
+			 Spring.SetConfigInt("FullscreenEdgeMove", value)
+			 Spring.SetConfigInt("WindowedEdgeMove", value)
+		 end,
+		},
+		{id="screenedgemovewidth", group="control", basic=true, name=widgetOptionColor.."   edge width", type="slider", min=0, max=0.1, step=0.01, value=tonumber(Spring.GetConfigFloat("EdgeMoveWidth",1) or 1), description="In percentage of screen border",
+		 onchange=function(i, value)
+			 Spring.SetConfigFloat("EdgeMoveWidth", value)
+		 end,
+		},
+		{id="screenedgemovedynamic", group="control", name=widgetOptionColor.."   variable speed", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("EdgeMoveDynamic",1) or 1) == 1, description="Enable if scrolling speed should fade with edge distance.",
+		 onchange=function(i, value)
+			 Spring.SetConfigInt("EdgeMoveDynamic", value)
+		 end,
 		},
 
 		{id="camera", group="control", basic=true, name="Camera", type="select", options={'fps','overhead','spring','rot overhead','free'}, value=(tonumber((Spring.GetConfigInt("CamMode",1)+1) or 2)),
@@ -2073,7 +2090,7 @@ function init()
 		 onload = function() end,
 		 onchange = function(i, value)
 			 cameraTransitionTime = value
-			 Spring.SetConfigFloat("CamTimeFactor", value)
+			 --Spring.SetConfigFloat("CamTimeFactor", value)
 		 end,
 		},
 		{id="camerapanspeed", group="control", basic=true, name=widgetOptionColor.."   middleclick grab speed", type="slider", min=-0.01, max=-0.00195, step=0.0001, value=Spring.GetConfigFloat("MiddleClickScrollSpeed", 0.0035), description="Smoothness of camera panning mode",
@@ -2123,42 +2140,9 @@ function init()
 		-- end,
 		--},
 
-		{id="screenedgemove", group="control", basic=true, name="Screen edge moves camera", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game",
-		 onchange=function(i, value)
-			 Spring.SetConfigInt("FullscreenEdgeMove", value)
-			 Spring.SetConfigInt("WindowedEdgeMove", value)
-		 end,
-		},
-		{id="screenedgemovewidth", group="control", basic=true, name=widgetOptionColor.."   border width", type="slider", min=0, max=0.1, step=0.01, value=tonumber(Spring.GetConfigFloat("EdgeMoveWidth",1) or 1), description="In percentage of screen border",
-		 onchange=function(i, value)
-			 Spring.SetConfigFloat("EdgeMoveWidth", value)
-		 end,
-		},
-		{id="screenedgemovedynamic", group="control", name=widgetOptionColor.."   variable speed", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("EdgeMoveDynamic",1) or 1) == 1, description="Enable if scrolling speed should fade with edge distance.",
-		 onchange=function(i, value)
-			 Spring.SetConfigInt("EdgeMoveDynamic", value)
-		 end,
-		},
-		{id="playertv_countdown", group="control", name="Player TV countdown", type="slider", min=8, max=60, step=1, value=(WG['playertv']~=nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description="Countdown time before it switches player",
-		 onload = function() loadWidgetData("Player-TV", "playertv_countdown", {'playerChangeDelay'}) end,
-		 onchange = function(i, value) saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value) end,
-		},
-
 		{id="lockcamera_transitiontime", group="control", name="Tracking cam smoothing", type="slider", min=0.4, max=1.5, step=0.01, value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockTransitionTime~=nil and WG['advplayerlist_api'].GetLockTransitionTime()), description="When viewing a players camera...\nhow smooth should the transitions between camera movement be?",
 		 onload = function() loadWidgetData("AdvPlayersList", "lockcamera_transitiontime", {'transitionTime'}) end,
 		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockTransitionTime', {'transitionTime'}, value) end,
-		},
-		{id="allyselunits_select", group="control", name=widgetOptionColor.."   Select units of tracked player", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this selects what the player has selected",
-		 onload = function() loadWidgetData("Ally Selected Units", "allyselunits_select", {'selectPlayerUnits'}) end,
-		 onchange = function(i, value) saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', {'selectPlayerUnits'}, value) end,
-		},
-		{id="lockcamera_hideenemies", group="control", name=widgetOptionColor.."   only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will display what the tracked player sees",
-		 onload = function() loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", {'lockcameraHideEnemies'}) end,
-		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', {'lockcameraHideEnemies'}, value) end,
-		},
-		{id="lockcamera_los", group="control", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too",
-		 onload = function() loadWidgetData("AdvPlayersList", "lockcamera_los", {'lockcameraLos'}) end,
-		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', {'lockcameraLos'}, value) end,
 		},
 
 		-- INTERFACE
@@ -2480,6 +2464,24 @@ function init()
 			 end
 			 saveOptionValue('Defense Range', 'defrange', 'setEnemyNuke', {'enabled','enemy','nuke'}, value)
 		 end,
+		},
+
+		{id="allyselunits_select", group="ui", name="Tracking player: select units", type="bool", value=(WG['allyselectedunits']~=nil and WG['allyselectedunits'].getSelectPlayerUnits()), description="When viewing a players camera, this selects what the player has selected",
+		 onload = function() loadWidgetData("Ally Selected Units", "allyselunits_select", {'selectPlayerUnits'}) end,
+		 onchange = function(i, value) saveOptionValue('Ally Selected Units', 'allyselectedunits', 'setSelectPlayerUnits', {'selectPlayerUnits'}, value) end,
+		},
+		{id="lockcamera_hideenemies", group="ui", name=widgetOptionColor.."   only show tracked player viewpoint", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockHideEnemies()), description="When viewing a players camera, this will display what the tracked player sees",
+		 onload = function() loadWidgetData("AdvPlayersList", "lockcamera_hideenemies", {'lockcameraHideEnemies'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockHideEnemies', {'lockcameraHideEnemies'}, value) end,
+		},
+		{id="lockcamera_los", group="ui", name=widgetOptionColor.."   show tracked player LoS", type="bool", value=(WG['advplayerlist_api']~=nil and WG['advplayerlist_api'].GetLockLos()), description="When viewing a players camera and los, shows shaded los ranges too",
+		 onload = function() loadWidgetData("AdvPlayersList", "lockcamera_los", {'lockcameraLos'}) end,
+		 onchange = function(i, value) saveOptionValue('AdvPlayersList', 'advplayerlist_api', 'SetLockLos', {'lockcameraLos'}, value) end,
+		},
+
+		{id="playertv_countdown", group="ui", name="Player TV countdown", type="slider", min=8, max=60, step=1, value=(WG['playertv']~=nil and WG['playertv'].GetPlayerChangeDelay()) or 40, description="Countdown time before it switches player",
+		 onload = function() loadWidgetData("Player-TV", "playertv_countdown", {'playerChangeDelay'}) end,
+		 onchange = function(i, value) saveOptionValue('Player-TV', 'playertv', 'SetPlayerChangeDelay', {'playerChangeDelay'}, value) end,
 		},
 
 		-- GAME
@@ -3019,6 +3021,8 @@ function checkResolution()
 end
 
 function widget:Initialize()
+
+	Spring.SetConfigFloat("CamTimeFactor", 1)
 
 	if Spring.GetGameFrame() == 0 then
 	-- set minimum particle amount
