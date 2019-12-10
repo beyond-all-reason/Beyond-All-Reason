@@ -538,7 +538,7 @@ function DrawWindow()
 	if currentGroupTab ~= nil then
 		numOptions = 0
 		for oid,option in pairs(options) do
-			if option.group == currentGroupTab then
+			if option.group == currentGroupTab and (advSettings or option.basic) then
 				numOptions = numOptions + 1
 			end
 		end
@@ -1209,6 +1209,7 @@ function mouseEvent(x, y, button, release)
 
 				if titleRect ~= nil and IsOnRect(cx, cy, titleRect[1], titleRect[2], titleRect[3], titleRect[4]) then	-- showhow rightmouse doesnt get triggered :S
 					advSettings = not advSettings
+					startColumn = 1
 					if currentGroupTab == 'dev' then
 						currentGroupTab = 'gfx'
 					end
