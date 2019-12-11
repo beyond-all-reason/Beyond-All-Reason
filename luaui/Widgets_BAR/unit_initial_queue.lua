@@ -791,7 +791,7 @@ function widget:DrawWorld()
 		sy = Spring.GetGroundHeight(sx, sz)
 
 		-- Draw the starting unit at start position
-		DrawUnitDef(selectedDefID, myTeamID, sx, sy, sz)
+		--DrawUnitDef(selectedDefID, myTeamID, sx, sy, sz)		--(disabled: faction change widget does this now)
 
 		-- Draw start units build radius
 		gl.Color(buildDistanceColor)

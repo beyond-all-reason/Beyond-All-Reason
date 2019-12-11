@@ -184,25 +184,48 @@ function widget:Shutdown()
 	gl.DeleteFont(font)
 end
 
---function widget:DrawWorld()
---	if chobbyInterface then return end
---	glColor(1, 1, 1, 0.5)
---	glDepthTest(false)
---	for i = 1, #teamList do
---		local teamID = teamList[i]
---		local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
---		if tsx and tsx > 0 then
---			if spGetTeamRulesParam(teamID, 'startUnit') == armcomDefID then
---				glTexture('unitpics/alternative/armcom.png')
---				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
---			else
---				glTexture('unitpics/alternative/corcom.png')
---				glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
---			end
---		end
---	end
---	glTexture(false)
---end
+local function DrawUnitDef(uDefID, uTeam, ux, uy, uz, scale)
+
+	gl.Color(1.0, 1.0, 1.0, 1.0)
+	gl.DepthTest(GL.LEQUAL)
+	gl.DepthMask(true)
+	gl.Lighting(true)
+
+	gl.PushMatrix()
+	gl.Translate(ux, uy, uz)
+	if scale then
+		gl.Scale(scale, scale, scale)
+	end
+	gl.UnitShape(uDefID, uTeam, false, true, true)
+	gl.PopMatrix()
+
+	gl.Lighting(false)
+	gl.DepthTest(false)
+	gl.DepthMask(false)
+end
+
+function widget:DrawWorld()
+	if chobbyInterface then return end
+	glColor(1, 1, 1, 0.5)
+	glDepthTest(false)
+	for i = 1, #teamList do
+		local teamID = teamList[i]
+		local tsx, tsy, tsz = spGetTeamStartPosition(teamID)
+		if tsx and tsx > 0 then
+			if spGetTeamRulesParam(teamID, 'startUnit') == armcomDefID then
+				--glTexture('unitpics/alternative/armcom.png')
+				--glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+				DrawUnitDef(armcomDefID, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
+			else
+				--glTexture('unitpics/alternative/corcom.png')
+				--glBeginEnd(GL_QUADS, QuadVerts, tsx, spGetGroundHeight(tsx, tsz), tsz, 64)
+				DrawUnitDef(corcomDefID, teamID, tsx, spGetGroundHeight(tsx, tsz), tsz)
+			end
+		end
+	end
+	glColor(1, 1, 1, 1)
+	glTexture(false)
+end
 
 function widget:RecvLuaMsg(msg, playerID)
 	if msg:sub(1,18) == 'LobbyOverlayActive' then
