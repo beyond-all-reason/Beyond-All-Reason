@@ -1026,6 +1026,9 @@ end
 
 function widget:MouseMove(mx, my, dx, dy, mButton)
 	if areDragging then
+		local mySide = select(5,Spring.GetTeamInfo(myTeamID,false))
+		local startUnitName = Spring.GetSideData(mySide)
+		local sDefID = UnitDefNames[startUnitName].id
 		local sBuilds = UnitDefs[sDefID].buildOptions
 		local numCols = math.min(#sBuilds, maxCols)
 		local numRows = math.ceil(#sBuilds / numCols)
