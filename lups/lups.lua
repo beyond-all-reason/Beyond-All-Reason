@@ -768,7 +768,8 @@ end
 local function IsUnitFXVisible(fx)
 	local unitActive = true
 	local unitID = fx.unit
-	if spGetUnitHealth(unitID) <= 0 then
+	local unitHealth = spGetUnitHealth(unitID)
+	if not unitHealth or unitHealth <= 0 then
 		return false
 	end
 	if fx.onActive then
