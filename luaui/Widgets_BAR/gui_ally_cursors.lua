@@ -586,7 +586,7 @@ function widget:GetConfigData(data)
 end
 
 function widget:SetConfigData(data)
-    if data.addLights then
+    if data.addLights ~= nil then
         addLights = data.addLights
         lightRadiusMult = data.lightRadiusMult
         lightStrengthMult = data.lightStrengthMult
