@@ -590,9 +590,11 @@ function widget:SetConfigData(data)
         addLights = data.addLights
         lightRadiusMult = data.lightRadiusMult
         lightStrengthMult = data.lightStrengthMult
-        showCursorDot = data.showCursorDot or true
-        showSpectatorName = data.showSpectatorName or true
-        showPlayerName = data.showPlayerName or true
+        if data.showCursorDot ~= nil then
+            showCursorDot = data.showCursorDot
+            showSpectatorName = data.showSpectatorName
+            showPlayerName = data.showPlayerName
+        end
     end
 end
 

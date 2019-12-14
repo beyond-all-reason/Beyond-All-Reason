@@ -2234,7 +2234,7 @@ function init()
 		 onload=function() loadWidgetData("AllyCursors", "allycursors_showdot", {'showCursorDot'}) end,
 		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setCursorDot', {'showCursorDot'}, value) end,
 		},
-		{id="allycursors_lights", group="ui", name=widgetOptionColor.."   lights", type="bool", value=true, description='Adds a colored light to every ally cursor',
+		{id="allycursors_lights", group="ui", name=widgetOptionColor.."   lights (non-specs)", type="bool", value=true, description='Adds a colored light to every ally cursor',
 		 onload=function() loadWidgetData("AllyCursors", "allycursors_lights", {'addLights'}) end,
 		 onchange=function(i, value)
 			 saveOptionValue('AllyCursors', 'allycursors', 'setLights', {'addLights'}, options[getOptionByID('allycursors_lights')].value)
