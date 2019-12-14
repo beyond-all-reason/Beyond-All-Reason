@@ -33,7 +33,7 @@ return {
 		name = "Kbot Lab",
 		objectname = "Units/CORLAB.s3o",
 		radardistance = 50,
-		script = "Units/CORLAB.cob",
+		script = "Units/CORLAB.lua",
 		seismicsignature = 0,
 		selfdestructas = "largeBuildingExplosionGenericSelfd",
 		sightdistance = 290,

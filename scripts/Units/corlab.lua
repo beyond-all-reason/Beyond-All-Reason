@@ -77,7 +77,6 @@ function script.Deactivate()
 end
 
 function script.StartBuilding()
-	SetUnitValue(COB.INBUILDSTANCE, 1);
 	UnitScript.Move(crane1, x_axis, 20,20);
 	UnitScript.Move (crane2, x_axis, 20,20);
 	sleep(1000)
@@ -87,7 +86,6 @@ function script.StartBuilding()
 end
 
 function script.StopBuilding()
-	UnitScript.SetUnitValue(COB.INBUILDSTANCE, 0);
 	UnitScript.Move(crane1, x_axis, 0);
 	UnitScript.Move(crane2, x_axis, 0);
 end
