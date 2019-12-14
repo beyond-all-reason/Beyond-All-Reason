@@ -14,7 +14,7 @@ function open()
 	UnitScript.Move(door1, x_axis, -17, 17);
 	UnitScript.Move(door2, x_axis, 17, 17);
 	UnitScript.WaitForMove(door1, x_axis);
-	Sleep(1000);	
+	Sleep(1000)	
 	--Open yard
 	open_yard();
 	--Get into buildstance
@@ -32,7 +32,7 @@ function close()
 	UnitScript.Move(door1, x_axis, 0, 17);
 	UnitScript.Move(door2, x_axis, 0, 17);
 	UnitScript.WaitForMove(door1, x_axis);
-	Sleep(500);
+	Sleep(500)
 end
 
 function script.Create()
@@ -68,7 +68,7 @@ end
 function Deactivate_real()
 	UnitScript.Signal(SIG_ACTIVATE);
 	UnitScript.SetSignalMask(SIG_ACTIVATE);
-	Sleep(5000);
+	Sleep(5000)
 	UnitScript.StartThread(close);
 end
 
@@ -77,6 +77,7 @@ function script.Deactivate()
 end
 
 function script.StartBuilding()
+	SetUnitValue(COB.INBUILDSTANCE, 1);
 	UnitScript.Move(crane1, x_axis, 20,20);
 	UnitScript.Move (crane2, x_axis, 20,20);
 	sleep(1000)
@@ -86,6 +87,7 @@ function script.StartBuilding()
 end
 
 function script.StopBuilding()
+	UnitScript.SetUnitValue(COB.INBUILDSTANCE, 0);
 	UnitScript.Move(crane1, x_axis, 0);
 	UnitScript.Move(crane2, x_axis, 0);
 end
