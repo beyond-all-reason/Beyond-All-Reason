@@ -87,16 +87,11 @@ local function GetUnitSide(name)
 	return 'unknown'
 end
 
-
-
-
-
 local function getTechTree(sideTechLv)
 	continue = false
 	local tmp = {}
 	for name,lv in pairs(sideTechLv) do
 		if lv == false then
-			print(name)
 			sideTechLv[name] = parent 
 			canBuild = UnitDefNames[name].buildOptions
 			if canBuild and #canBuild > 0 then
@@ -118,8 +113,6 @@ local function getTechTree(sideTechLv)
 	end
 	parent = 0
 end
-
-	
 
 local function GetUnitTable()
 	local builtBy = GetBuiltBy()

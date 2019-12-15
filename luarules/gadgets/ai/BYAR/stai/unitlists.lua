@@ -686,4 +686,4 @@ ARMSideName = "arm"
 baseFeatureMetal = { rock = 30, heap = 80, wreck = 150 }
 
 UnitListsLoaded = true -- so that SpringShardLua doesn't load them multiple times
-print(UnitListsLoaded)
+print('unitListLoaded ' .. tostring(UnitListsLoaded))
