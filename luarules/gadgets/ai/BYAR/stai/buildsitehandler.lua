@@ -3,34 +3,13 @@ local DebugEnabledPlans = false
 local DebugEnabledDraw = false
 
 
-
 local function EchoDebugPlans(inStr)
 	if DebugEnabledPlans then
 		game:SendToConsole("BuildSiteHandler Plans: " .. inStr)
 	end
 end
 
-local function PlotRectDebug(rect)
-	if DebugEnabledDraw and not rect.drawn then
-		local label
-		local color
-		if rect.unitName then
-			color = {0, 1, 0} -- plan
-		else
-			color = {1, 0, 0} -- don't build here
-		end
-		local pos1 = {x=rect.x1, y=0, z=rect.z1}
-		local pos2 = {x=rect.x2, y=0, z=rect.z2}
-		local id = map:DrawRectangle(pos1, pos2, color)
-		rect.drawn = color
-		self.debugPlotDrawn[#self.debugPlotDrawn+1] = rect
-	end
-end
-
 BuildSiteHandler = class(Module)
-
-local sqrt = math.sqrt
-
 
 function BuildSiteHandler:Name()
 	return "BuildSiteHandler"
@@ -47,7 +26,7 @@ function BuildSiteHandler:Init()
 	local mapSize = self.map:MapDimensions()
 	self.ai.maxElmosX = mapSize.x * 8
 	self.ai.maxElmosZ = mapSize.z * 8
-	self.ai.maxElmosDiag = sqrt(self.ai.maxElmosX^2 + self.ai.maxElmosZ^2)
+	self.ai.maxElmosDiag = math.sqrt(self.ai.maxElmosX^2 + self.ai.maxElmosZ^2)
 	self.ai.lvl1Mexes = 1 -- this way mexupgrading doesn't revert to taskqueuing before it has a chance to find mexes to upgrade
 	self.resurrectionRepair = {}
 	self.dontBuildRects = {}
@@ -55,6 +34,25 @@ function BuildSiteHandler:Init()
 	self.constructing = {}
 	-- self.history = {}
 	self:DontBuildOnMetalOrGeoSpots()
+end
+
+function BuildSiteHandler:GetFacing(p)
+	local x = p.x
+	local z = p.z
+	if math.abs(Game.mapSizeX - 2*x) > math.abs(Game.mapSizeZ - 2*z) then
+		if (2*x>Game.mapSizeX) then
+			facing=3
+		else
+			facing=1
+		end
+	else
+		if (2*z>Game.mapSizeZ) then
+			facing=2
+		else
+			facing=0
+		end
+	end
+	return facing
 end
 
 function BuildSiteHandler:PlansOverlap(position, unitName)
@@ -190,6 +188,7 @@ end
 function BuildSiteHandler:GetBuildSpacing(unitTypeToBuild)
 	local spacing = 1
 	local name = unitTypeToBuild:Name()
+	if Eco1[name] then spacing = 2 end--TODO removing this sistem
 	if unitTable[name].isWeapon then spacing = 8 end
 	if unitTable[name].bigExplosion then spacing = 20 end
 	if unitTable[name].buildOptions then spacing = 4 end
@@ -202,105 +201,59 @@ function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, m
 	if attemptNumber == nil then self:EchoDebug("looking for build spot for " .. builder:Name() .. " to build " .. unitTypeToBuild:Name()) end
 	local minDistance = minimumDistance or self:GetBuildSpacing(unitTypeToBuild)
 	buildDistance = buildDistance or 100
-	if ShardSpringLua then
-		local function validFunction(pos)
-			local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
-			-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
-			return vpos
-		end
-		return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
+	local function validFunction(pos)
+		local vpos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
+		-- Spring.Echo(pos.x, pos.y, pos.z, unitTypeToBuild:Name(), builder:Name(), position.x, position.y, position.z, vpos)
+		return vpos
 	end
-	local tmpAttemptNumber = attemptNumber or 0
-	local pos = nil
-
-	if tmpAttemptNumber > 0 then
-		local searchAngle = (tmpAttemptNumber - 1) / 3 * math.pi
-		local searchRadius = maximumDistance or 2 * buildDistance / 3
-		local searchPos = api.Position()
-		searchPos.x = position.x + searchRadius * math.sin(searchAngle)
-		searchPos.z = position.z + searchRadius * math.cos(searchAngle)
-		searchPos.y = position.y + 0
-		-- self:EchoDebug(math.ceil(searchPos.x) .. ", " .. math.ceil(searchPos.z))
-		pos = map:FindClosestBuildSite(unitTypeToBuild, searchPos, searchRadius / 2, minDistance)
-	else
-		pos = map:FindClosestBuildSite(unitTypeToBuild, position, buildDistance, minDistance)
-	end
-
-	-- if pos == nil then self:EchoDebug("pos is nil before check") end
-
-	-- check that we haven't got an offmap order, that it's possible to build the unit there, that it's not in front of a factory or on top of a metal spot, and that the builder can actually move there
-	pos = self:CheckBuildPos(pos, unitTypeToBuild, builder, position)
-
-	if pos == nil then
-		-- self:EchoDebug("attempt number " .. tmpAttemptNumber .. " nil")
-		-- first try increasing tmpAttemptNumber, up to 7
-		if tmpAttemptNumber < 19 then
-			if tmpAttemptNumber == 7 or tmpAttemptNumber == 13 then
-				buildDistance = buildDistance + 100
-				if minDistance < 5 then
-					minDistance = minDistance + 2
-				elseif minDistance < 21 then
-					minDistance = minDistance - 4
-				end
-			end
-			pos = self:ClosestBuildSpot(builder, position, unitTypeToBuild, minDistance, tmpAttemptNumber + 1, buildDistance, maximumDistance)
-		else
-			-- check manually check in a spiral
-			self:EchoDebug("trying spiral check")
-			pos = self:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, maximumDistance or minDistance * 16)
-		end
-	else
-		self:EchoDebug(builder:Name() .. " building " .. unitTypeToBuild:Name() .. " build position found in " .. tmpAttemptNumber .. " attempts")
-	end
-
-	return pos
+	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
 end
-
-function BuildSiteHandler:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, dist, segmentSize, direction, i)
-	local pos = nil
-	if dist == nil then
-		local ut = unitTable[unitTypeToBuild:Name()]
-		dist = math.max(ut.xsize, ut.zsize) * 8
-		-- dist = 64
-	end
-	if segmentSize == nil then segmentSize = 1 end
-	if direction == nil then direction = 1 end
-	if i == nil then i = 0 end
-	-- have to set it this way, otherwise both just point to the same set of data, and originalPosition doesn't stay the same
-	local searchPos = api.Position()
-	searchPos.x = position.x + 0
-	searchPos.y = position.y + 0
-	searchPos.z = position.z + 0
-
-	self:EchoDebug("new spiral search")
-	while segmentSize < 8 do
-		-- self:EchoDebug(i .. " " .. direction .. " " .. segmentSize .. " : " .. math.ceil(position.x) .. " " .. math.ceil(position.z))
-		if direction == 1 then
-			searchPos.x = searchPos.x + dist
-		elseif direction == 2 then
-			searchPos.z = searchPos.z + dist
-		elseif direction == 3 then
-			searchPos.x = searchPos.x - dist
-		elseif direction == 4 then
-			searchPos.z = searchPos.z - dist
-		end
-		pos = self:CheckBuildPos(searchPos, unitTypeToBuild, builder, position)
-		if pos ~= nil then break end
-		i = i + 1
-		if i == segmentSize then
-			i = 0
-			direction = direction + 1
-			if direction == 3 then
-				segmentSize = segmentSize + 1
-			elseif direction == 5 then
-				segmentSize = segmentSize + 1
-				direction = 1
-			end
-		end
-	end
-
-	return pos
-end
+--TODO deprecated
+-- function BuildSiteHandler:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, dist, segmentSize, direction, i)
+-- 	local pos = nil
+-- 	if dist == nil then
+-- 		local ut = unitTable[unitTypeToBuild:Name()]
+-- 		dist = math.max(ut.xsize, ut.zsize) * 8
+-- 		-- dist = 64
+-- 	end
+-- 	if segmentSize == nil then segmentSize = 1 end
+-- 	if direction == nil then direction = 1 end
+-- 	if i == nil then i = 0 end
+-- 	-- have to set it this way, otherwise both just point to the same set of data, and originalPosition doesn't stay the same
+-- 	local searchPos = api.Position()
+-- 	searchPos.x = position.x + 0
+-- 	searchPos.y = position.y + 0
+-- 	searchPos.z = position.z + 0
+-- 
+-- 	self:EchoDebug("new spiral search")
+-- 	while segmentSize < 8 do
+-- 		-- self:EchoDebug(i .. " " .. direction .. " " .. segmentSize .. " : " .. math.ceil(position.x) .. " " .. math.ceil(position.z))
+-- 		if direction == 1 then
+-- 			searchPos.x = searchPos.x + dist
+-- 		elseif direction == 2 then
+-- 			searchPos.z = searchPos.z + dist
+-- 		elseif direction == 3 then
+-- 			searchPos.x = searchPos.x - dist
+-- 		elseif direction == 4 then
+-- 			searchPos.z = searchPos.z - dist
+-- 		end
+-- 		pos = self:CheckBuildPos(searchPos, unitTypeToBuild, builder, position)
+-- 		if pos ~= nil then break end
+-- 		i = i + 1
+-- 		if i == segmentSize then
+-- 			i = 0
+-- 			direction = direction + 1
+-- 			if direction == 3 then
+-- 				segmentSize = segmentSize + 1
+-- 			elseif direction == 5 then
+-- 				segmentSize = segmentSize + 1
+-- 				direction = 1
+-- 			end
+-- 		end
+-- 	end
+-- 
+-- 	return pos
+-- end
 
 function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 	if not builderPos then return end
@@ -493,17 +446,26 @@ function BuildSiteHandler:CalculateFactoryLane(rect)
 	local position = rect.position
 	local outX = unitTable[unitName].xsize * 4
 	local outZ = unitTable[unitName].zsize * 4
-	rect.x1 = position.x - outX
-	rect.x2 = position.x + outX
-	local tall = outZ * 7
-	local sides = factoryExitSides[unitName]
-	if sides == 1 then
+	local tall = outZ * 10
+	local facing = self:GetFacing(position)
+	if facing == 0 then
+		rect.x1 = position.x - outX
+		rect.x2 = position.x + outX
 		rect.z1 = position.z - outZ
 		rect.z2 = position.z + tall
-	elseif sides >= 2 then
+	elseif facing == 2 then
+		rect.x1 = position.x - outX
+		rect.x2 = position.x + outX
 		rect.z1 = position.z - tall
-		rect.z2 = position.z + tall
-	else
+		rect.z2 = position.z + outZ
+	elseif facing == 1 then
+		rect.x1 = position.x - outX
+		rect.x2 = position.x + tall
+		rect.z1 = position.z - outZ
+		rect.z2 = position.z + outZ
+	elseif facing == 3 then
+		rect.x1 = position.x - tall
+		rect.x2 = position.x + outX
 		rect.z1 = position.z - outZ
 		rect.z2 = position.z + outZ
 	end
@@ -554,15 +516,32 @@ function BuildSiteHandler:ResurrectionRepairedBy(unitID)
 	return self.resurrectionRepair[unitID]
 end
 
+function BuildSiteHandler:PlotRectDebug(rect)
+	if DebugEnabledDraw and not rect.drawn then
+		local label
+		local color
+		if rect.unitName then
+			color = {0, 1, 0} -- plan
+		else
+			color = {1, 0, 0} -- don't build here
+		end
+		local pos1 = {x=rect.x1, y=0, z=rect.z1}
+		local pos2 = {x=rect.x2, y=0, z=rect.z2}
+		local id = self.map:DrawRectangle(pos1, pos2, color)
+		rect.drawn = color
+		self.debugPlotDrawn[#self.debugPlotDrawn+1] = rect
+	end
+end
+
 function BuildSiteHandler:PlotAllDebug()
 	if DebugEnabledDraw then
 		local isThere = {}
 		for i, plan in pairs(self.plans) do
-			PlotRectDebug(plan)
+			self:PlotRectDebug(plan)
 			isThere[plan] = true
 		end
 		for i, rect in pairs(self.dontBuildRects) do
-			PlotRectDebug(rect)
+			self:PlotRectDebug(rect)
 			isThere[rect] = true
 		end
 		for i = #self.debugPlotDrawn, 1, -1 do

@@ -668,7 +668,8 @@ function TaskQueueBehaviour:ProgressQueue()
 									if helpValue ~= nil and helpValue ~= DummyUnitName then
 										self:EchoDebug(utype:Name() .. " has help")
 										ai.buildsitehandler:NewPlan(value, p, self)
-										success = self.unit:Internal():Build(utype, p)
+										local facing = ai.buildsitehandler:GetFacing(p)
+										success = self.unit:Internal():Build(utype, p, facing)
 									end
 								end
 							end
