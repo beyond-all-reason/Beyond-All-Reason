@@ -86,15 +86,11 @@ local function MoveCrane1()
     Signal(SIG_CRANE1);
     SetSignalMask(SIG_CRANE1);
     
-    while true do
+	while true do
         Move(crane1,x_axis, 40,10);
-	--Move(crane2,x-axis, 40,10);
         WaitForMove(crane1, x_axis);
-	--WaitForMove(crane2, x_axis);
         Move(crane1,x_axis, 0, 10);
-	--Move(crane2,x-axis,0,10);
         WaitForMove(crane1, x_axis);
-	--WaitForMove(crane2,x_axis);
     end
 end
 
@@ -104,26 +100,15 @@ local function MoveCrane2()
     
     while true do
         Move(crane2,x_axis, 0,10);
-	--Move(crane2,x-axis, 40,10);
         WaitForMove(crane2, x_axis);
-	--WaitForMove(crane2, x_axis);
         Move(crane2,x_axis, 40, 10);
-	--Move(crane2,x-axis,0,10);
         WaitForMove(crane2, x_axis);
-	--WaitForMove(crane2,x_axis);
     end
 end
 
 function script.StartBuilding(heading, pitch)
-	StartThread(MoveCrane1)
-	StartThread(MoveCrane2)
-	--UnitScript.Move(crane1, x_axis, 20,20);
-	--UnitScript.Move (crane2, x_axis, 20,20);
-	--sleep(1000)
-	--UnitScript.Move(crane1, x_axis, 0,20);
-	--UnitScript.Move (crane2, x_axis, 0,20);
-	--sleep (1000)
-	
+	StartThread(MoveCrane1);
+	StartThread(MoveCrane2);
 end
 
 function script.StopBuilding()
@@ -131,8 +116,6 @@ function script.StopBuilding()
 	Signal (SIG_CRANE2);
 	Move(crane1,x_axis, 20, 20);
 	Move(crane2,x_axis, 20, 20);
-	--UnitScript.Move(crane1, x_axis, 0);
-	--UnitScript.Move(crane2, x_axis, 0);
 end
 
 function script.QueryBuildInfo()
