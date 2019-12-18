@@ -22,6 +22,13 @@ for udefID,def in ipairs(UnitDefs) do
 end
 
 
+for _,teamID in ipairs(Spring.GetTeamList()) do
+	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		return
+	end
+end
+
+
 if gadgetHandler:IsSyncedCode() then
 
 
@@ -152,26 +159,6 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameFrame(n)
-		if not _G.itsXmas then
-			if n == 1 then
-				local xmasRatio = 0
-				for playerID, xmas in pairs(receivedPlayerXmas) do
-					if xmas then
-						xmasRatio = xmasRatio + (1/receivedPlayerCount)
-					end
-				end
-				if xmasRatio > 0.75 then
-					_G.itsXmas = true
-					initiateXmas()
-				else
-					return
-				end
-			else
-				return
-			end
-		elseif n == 1 then	-- only when manually enablinb xmas in gadget to test
-			initiateXmas()
-		end
 
 		if n % 30 == 1 then
 			for unitID, frame in pairs(decorations) do
@@ -321,6 +308,21 @@ if gadgetHandler:IsSyncedCode() then
 	end
 
 	function gadget:GameStart()
+		if not _G.itsXmas then
+			local xmasRatio = 0
+			for playerID, xmas in pairs(receivedPlayerXmas) do
+				if xmas then
+					xmasRatio = xmasRatio + (1/receivedPlayerCount)
+				end
+			end
+			if xmasRatio > 0.75 then
+				_G.itsXmas = true
+				initiateXmas()
+			else
+				return
+			end
+		end
+
 		if not _G.itsXmas then
 			gadgetHandler:RemoveGadget(self)
 		end

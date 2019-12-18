@@ -27,7 +27,7 @@ for udefID,def in ipairs(UnitDefs) do
     corstoneUdefID = udefID
   end
   if def.customParams.iscommander then
-    commanders[def.name] = def.name
+    commanders[udefID] = def.name
   end
 end
 
