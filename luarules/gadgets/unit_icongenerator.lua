@@ -139,17 +139,17 @@ if (gadgetHandler:IsSyncedCode()) then
       end
 
       local msg     = msg:sub(11,msg:len())
-      local d = msg:find("",d,true)
+      local d = msg:find(";",d,true)
       local defname = msg:sub(1,d-1)
-      local a = msg:find("",d+1,true)
+      local a = msg:find(";",d+1,true)
       local attack  = (msg:sub(d+1,a-1) == "1")
-      local m = msg:find("",a+1,true)
+      local m = msg:find(";",a+1,true)
       local move    = (msg:sub(a+1,m-1) == "1")
-      local t = msg:find("",m+1,true)
+      local t = msg:find(";",m+1,true)
       local teamID  = tonumber(msg:sub(m+1,t-1))
-      local w = msg:find("",t+1,true)
+      local w = msg:find(";",t+1,true)
       local wait    = tonumber(msg:sub(t+1,w-1))
-      local sa = msg:find("",w+1,true)
+      local sa = msg:find(";",w+1,true)
       local shotAngle = tonumber(msg:sub(w+1,sa-1))
 
       createunits[#createunits+1] = {defname=defname,team=teamID,move=move,attack=attack,time=wait,shotAngle=shotAngle}
@@ -1087,12 +1087,12 @@ end
       local factionTeam = factionTeams[GetFaction(UnitDefs[udid] or {})]
 
       local msg = "buildicon " ..
-                  UnitDefs[udid].name .. "" ..
-                  ((cfg.attack and "1") or "0") .. "" ..
-                  ((cfg.move and "1") or "0") .. "" ..
-                  factionTeam .. "" ..
-                  (cfg.wait) .. "" ..
-                  (cfg.shotangle or "0") .. ""
+                  UnitDefs[udid].name .. ";" ..
+                  ((cfg.attack and "1") or "0") .. ";" ..
+                  ((cfg.move and "1") or "0") .. ";" ..
+                  factionTeam .. ";" ..
+                  (cfg.wait) .. ";" ..
+                  (cfg.shotangle or "0") .. ";"
 
       Spring.SendLuaRulesMsg(msg)
       return
