@@ -13,11 +13,12 @@ function open()
 	UnitScript.Signal(SIG_OPENCLOSE);
 	UnitScript.SetSignalMask(SIG_OPENCLOSE);
 	--Activate
-	UnitScript.Move(door1, x_axis, -17, 10);
-	UnitScript.Move(door2, x_axis, 17, 10);
+	Move(door1, x_axis, -17, 10);
+	Move(door2, x_axis, 17, 10);
 	UnitScript.WaitForMove(door1, x_axis);
-	UnitScript.Move(crane1,x_axis,21,21);
-	UnitScript.Move(crane2,x_axis,21,21);
+	Move(crane1,x_axis,21,42);
+	Move(crane2,x_axis,21,42);
+	UnitScript.WaitForMove(crane1, x_axis);
 	Sleep(1000);	
 	--Open yard
 	open_yard();
@@ -33,11 +34,11 @@ function close()
 	--Close yard
 	close_yard();
 	--Deactivate
-	UnitScript.Move(crane1,x_axis,2,20);
-	UnitScript.Move(crane2,x_axis,2,20);
+	Move(crane1,x_axis,2,20);
+	Move(crane2,x_axis,2,20);
 	UnitScript.WaitForMove(crane1, x_axis);
-	UnitScript.Move(door1, x_axis, 0, 17);
-	UnitScript.Move(door2, x_axis, 0, 17);
+	Move(door1, x_axis, 0, 17);
+	Move(door2, x_axis, 0, 17);
 	UnitScript.WaitForMove(door1, x_axis);
 	Sleep(500)
 end
