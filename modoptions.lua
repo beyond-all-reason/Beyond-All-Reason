@@ -192,6 +192,17 @@ local options={
 		step   = 0.2,
 	},
 	{
+		key    = 'civilians',
+		name   = 'Civilian amount',
+		desc   = 'This multiplier will be applied on the amount of civilians a map will end up with',
+		type   = 'number',
+		section= 'options',
+		def    = 0,
+		min    = 0,
+		max    = 5,
+		step   = 0.1,
+	},
+	{
 		key    = "newbie_placer",
 		name   = "Newbie Placer",
 		desc   = "Chooses a startpoint and a random faction for all rank 1 accounts (online only)",
