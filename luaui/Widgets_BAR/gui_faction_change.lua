@@ -356,7 +356,7 @@ function widget:MouseMove(mx, my, dx, dy, mButton)
 		if factionChangeList then
 			glDeleteList(factionChangeList)
 		end
-		factionChangeList = glCreateList(FactionChangeList)
+		factionChangeList = glCreateList(GenerateFactionChangeList)
 	end
 end
 
