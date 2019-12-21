@@ -656,6 +656,7 @@ function widget:ViewResize(newX,newY)
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		createList()
 	end
 end
 
