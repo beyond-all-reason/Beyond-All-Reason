@@ -159,8 +159,9 @@ local function updateValues()
 		local time = minutes..':'..seconds
 
         font:Begin()
-		font:Print(titleColor..''..valueColor..time..titleColor..'      speed  '..valueColor..gamespeed..titleColor..'      fps  '..valueColor..fps, left+textXPadding, bottom+textYPadding, textsize, 'no')
-        font:End()
+		font:Print(valueColor..time, left+textXPadding, bottom+textYPadding, textsize, 'no')
+		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'      fps '..valueColor..fps, left+textXPadding+(textsize*3.5), bottom+textYPadding, textsize, 'no')
+		font:End()
     end)
 end
 
