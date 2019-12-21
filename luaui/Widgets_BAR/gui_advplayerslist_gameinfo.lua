@@ -160,7 +160,14 @@ local function updateValues()
 
         font:Begin()
 		font:Print(valueColor..time, left+textXPadding, bottom+textYPadding, textsize, 'no')
-		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'      fps '..valueColor..fps, left+textXPadding+(textsize*3.5), bottom+textYPadding, textsize, 'no')
+		local extraSpacing = 0
+		if minutes > 99 then
+			extraSpacing = 1.34
+		elseif minutes > 9 then
+			extraSpacing = 0.7
+		end
+
+		font:Print(titleColor..' x'..valueColor..gamespeed..titleColor..'      fps '..valueColor..fps, left+textXPadding+(textsize*(3.2+extraSpacing)), bottom+textYPadding, textsize, 'no')
 		font:End()
     end)
 end

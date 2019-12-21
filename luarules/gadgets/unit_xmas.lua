@@ -12,6 +12,13 @@ function gadget:GetInfo()
 	}
 end
 
+
+for _,teamID in ipairs(Spring.GetTeamList()) do
+	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
+		return
+	end
+end
+
 local decorationUdefIDs = {}
 local decorationUdefIDlist = {}
 for udefID,def in ipairs(UnitDefs) do
@@ -21,16 +28,17 @@ for udefID,def in ipairs(UnitDefs) do
 	end
 end
 
-
-for _,teamID in ipairs(Spring.GetTeamList()) do
-	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-		return
-	end
-end
-
-
 if gadgetHandler:IsSyncedCode() then
 
+	local isBuilder = {}
+	local unitSize = {}
+	local unitBuildSpeedTime = {}
+	for unitDefID, unitDef in pairs(UnitDefs) do
+		if unitDef.isBuilder then
+			isBuilder[unitDefID] = true
+		end
+		unitSize[unitDefID] = { ((unitDef.xsize*8)+8)/2, ((unitDef.zsize*8)+8)/2 }
+	end
 
 	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
@@ -297,6 +305,23 @@ if gadgetHandler:IsSyncedCode() then
 			if cmdParams and #cmdParams == 1 then
 				if decorationUdefIDs[Spring.GetUnitDefID(cmdParams[1])] then
 					return false
+				end
+			end
+		end
+		-- remove any xmasball that is blocking queued build order
+		if isBuilder[Spring.GetUnitDefID(unitID)] then
+			if cmdID < 0 then
+				local udefid = math.abs(cmdID)
+				local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
+				for i=1, #units do
+					if decorationUdefIDs[Spring.GetUnitDefID(units[i])] then
+						if Spring.GetUnitIsDead(units[i]) == false then
+							Spring.DestroyUnit(units[i], false, false)
+							decorations[units[i]] = nil
+							decorationsTerminal[units[i]] = nil
+							createdDecorations[units[i]] = nil
+						end
+					end
 				end
 			end
 		end
