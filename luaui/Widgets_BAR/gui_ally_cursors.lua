@@ -147,11 +147,19 @@ function widget:SetConfigData(data)
     end
 end
 
-function updateSpecList()
+function updateSpecList(init)
     specList = {}
     local t = Spring.GetPlayerList()
     for _,playerID in ipairs(t) do
         specList[playerID] = select(3,spGetPlayerInfo(playerID,false))
+    end
+
+    -- update deferred lights function
+    if not init and addLights and WG.DeferredLighting_RegisterFunction then
+        if functionID and WG.DeferredLighting_UnRegisterFunction then
+            WG.DeferredLighting_UnRegisterFunction(functionID)
+        end
+        functionID = WG.DeferredLighting_RegisterFunction(GetLights)
     end
 end
 
@@ -179,7 +187,7 @@ function widget:Initialize()
     if showPlayerName then
         usedCursorSize = drawNamesCursorSize
     end
-    updateSpecList()
+    updateSpecList(true)
 
     WG['allycursors'] = {}
     WG['allycursors'].setLights = function(value)
@@ -375,13 +383,13 @@ local function SetTeamColor(teamID,playerID,a)
 end
 
 
-function widget:Update(dt)
-    sec = sec+dt
-    if sec > updateTime then
-        sec = 0
-        updateSpecList()
-    end
-end
+--function widget:Update(dt)
+--    sec = sec+dt
+--    if sec > updateTime then
+--        sec = 0
+--        updateSpecList()
+--    end
+--end
 
 
 function widget:PlayerChanged(playerID)
@@ -396,6 +404,10 @@ function widget:PlayerChanged(playerID)
     end
     teamColors[playerID] = color
     allycursorDrawList[playerID] = nil
+
+    if isSpec and not specList[playerID] then
+        updateSpecList()
+    end
 end
 function widget:PlayerAdded(playerID)
     widget:PlayerChanged(playerID)
