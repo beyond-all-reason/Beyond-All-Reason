@@ -26,7 +26,7 @@ local parentPos = {}
 local prevPos = {}
 local drawlistsCountdown = {}
 local drawlistsPlayername = {}
-local fontSize = 14	-- 14 to be alike with advplayerslist_lockcamera widget
+local fontSize = 12	-- 14 to be alike with advplayerslist_lockcamera widget
 local top, left, bottom, right, widgetScale = 0,0,0,0,1
 local rejoining = false
 local initGameframe = Spring.GetGameFrame()
@@ -48,7 +48,7 @@ local toggled = false
 local bgcorner = ":n:LuaUI/Images/bgcorner.png"
 
 local drawlist = {}
-local widgetHeight = 23
+local widgetHeight = 22
 
 ---------------------------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------------------------
@@ -233,12 +233,6 @@ local function createList()
 		gl.DeleteList(drawlist[i])
 	end
 	drawlist[1] = gl.CreateList( function()
-		--glColor(0, 0, 0, 0.66)
-		--RectRound(left, bottom, right, top, 5.5*widgetScale)
-		--
-		--local borderPadding = 2.75*widgetScale
-		--glColor(1,1,1,0.025)
-		--RectRound(left+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
 		local fontSize = (widgetHeight*widgetScale) * 0.5
 		local text = '   cancel camera   '
 		local color = '\255\255\222\222'
@@ -253,9 +247,9 @@ local function createList()
 		RectRound(right-textWidth, bottom, right, top, 5.5*widgetScale)
 		toggleButton = {right-textWidth, bottom, right, top }
 
-		local borderPadding = 2.75*widgetScale
+		local borderPadding = 2.5*widgetScale
 		gl.Color(0,0,0,0.18)
-		RectRound(right-textWidth+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4.4*widgetScale)
+		RectRound(right-textWidth+borderPadding, bottom+borderPadding, right-borderPadding, top-borderPadding, 4*widgetScale)
 
 		font:Begin()
         font:Print(color..text, right-(textWidth/2), bottom+(8*widgetScale), fontSize, 'oc')
@@ -311,18 +305,17 @@ end
 
 
 function updatePosition(force)
-	prevPos = parentPos
-	if (WG['advplayerlist_api'] ~= nil) then
-		if WG['displayinfo'] ~= nil then
-			parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		elseif WG['music'] ~= nil then
-			parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		else
-			parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
-		end
+	local prevPos = parentPos
+	if WG['displayinfo'] ~= nil then
+		parentPos = WG['displayinfo'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+	elseif WG['unittotals'] ~= nil then
+		parentPos = WG['unittotals'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+	elseif WG['music'] ~= nil then
+		parentPos = WG['music'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
+	else
+		parentPos = WG['advplayerlist_api'].GetPosition()		-- returns {top,left,bottom,right,widgetScale}
 	end
-
-	if parentPos[1] then
+	if parentPos[5] ~= nil then
 		left = parentPos[2]
 		bottom = parentPos[1]
 		right = parentPos[4]
@@ -502,7 +495,20 @@ function widget:ViewResize(newX,newY)
 	local newFontfileScale = (0.5 + (vsx*vsy / 5700000))
 	if (fontfileScale ~= newFontfileScale) then
 		fontfileScale = newFontfileScale
+		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		for i=1,#drawlistsCountdown do
+			gl.DeleteList(drawlistsCountdown[i])
+		end
+		for i,v in pairs(drawlistsPlayername) do
+			gl.DeleteList(drawlistsPlayername[i])
+		end
+		if WG['guishader'] then
+			WG['guishader'].DeleteDlist('playertv')
+		end
+		for i=1,#drawlist do
+			gl.DeleteList(drawlist[i])
+		end
 	end
 	createCountdownLists()
 end
