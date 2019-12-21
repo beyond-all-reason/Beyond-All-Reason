@@ -64,7 +64,6 @@ function gadget:GameFrame(n)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			
 			local testpos1 = Spring.GetGroundHeight(posx + math.random(-50,50), posz + math.random(-50,50))
-			Spring.Echo(testpos1)
 			local testpos2 = Spring.GetGroundHeight(posx + math.random(-50,50), posz + math.random(-50,50))
 			local testpos3 = Spring.GetGroundHeight(posx + math.random(-50,50), posz + math.random(-50,50))
 			local testpos4 = Spring.GetGroundHeight(posx + math.random(-50,50), posz + math.random(-50,50))
