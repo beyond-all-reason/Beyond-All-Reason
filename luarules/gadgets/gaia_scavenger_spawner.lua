@@ -1,7 +1,7 @@
 function gadget:GetInfo()
   return {
-    name      = "gaia civilian unit spawner",
-    desc      = "units spawn and wander around the map",
+    name      = "gaia scavenger unit spawner",
+    desc      = "Spawner of units",
     author    = "Damgam",
     date      = "2019",
     layer     = -100,
@@ -9,8 +9,8 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 0
-if (Spring.GetModOptions() == nil or Spring.GetModOptions().civilians == nil or Spring.GetModOptions().civilians == 0) and devswitch == 0 then
+local devswitch = 1
+if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or Spring.GetModOptions().scavengers == 0) and devswitch == 0 then
 	return
 end
 
@@ -27,10 +27,11 @@ local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 local teamcount = #Spring.GetTeamList() - 2
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
-local spawnmultiplier = Spring.GetModOptions().civilians or 1
+local spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
 if devswitch == 1 then
 	spawnmultiplier = 1
 end
+--local discoscavengers = tonumber(Spring.GetModOptions().discoscavengers) or 0
 
 local T1KbotUnits = {"corak", "corcrash", "cornecro", "corstorm", "corthud", "armflea", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
 local T2KbotUnits = {}
@@ -58,24 +59,31 @@ local T3SeaBuildings = {}
 
 local timer = Spring.GetGameSeconds()
 
+local red = 125
+local green = 125
+local blue = 125
 
 
 
 ------------------------------------------------------------------------
 
 function gadget:Initialize()
-
+	-- Spring.SetTeamColor(GaiaTeamID, 0, 0, 0)
 	-- local mo = Spring.GetModOptions()
-	-- if mo and tonumber(mo.civilians)==0 then
-		-- Spring.Echo("[Civilians] Disabled via ModOption")
+	-- if mo and tonumber(mo.scavengers)==0 then
+		-- Spring.Echo("[scavengers] Disabled via ModOption")
 		-- gadgetHandler:RemoveGadget(self)
 	-- end
 
 end
 
 function gadget:GameFrame(n)
-	if n%10 == 0 and n > 9000 then
-		Spring.SetTeamColor(GaiaTeamID, math.random(0,255)/255, math.random(0,255)/255, math.random(0,255)/255)
+	if n%5 == 0 and n > 9000 then
+		red = red + math.random(-5,5)
+		green = green + math.random(-5,5)
+		blue = blue + math.random(-5,5)
+		if red < 0 then red = 0 elseif red > 255 then red = 255 elseif green < 0 then green = 0 elseif green > 255 then green = 255 elseif blue < 0 then blue = 0 elseif blue > 255 then blue = 255 end
+		Spring.SetTeamColor(GaiaTeamID, red/255, green/255, blue/255)
 	end
 	if n%30 == 0 and n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
@@ -124,7 +132,7 @@ function gadget:GameFrame(n)
 			
 			--spawn units
 			if not failedspawn then
-				local groupsize = (n/5)*spawnmultiplier*teamcount
+				local groupsize = ((n/6)+#Spring.GetAllUnits())*spawnmultiplier*teamcount
 				local spawnkbot = T1KbotUnits[math.random(1,#T1KbotUnits)]
 				local spawntank = T1TankUnits[math.random(1,#T1TankUnits)]
 				local spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]

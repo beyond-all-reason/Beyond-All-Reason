@@ -192,8 +192,8 @@ local options={
 		step   = 0.2,
 	},
 	{
-		key    = 'civilians',
-		name   = 'Civilian amount',
+		key    = 'scavengers',
+		name   = 'Scavenger amount',
 		desc   = 'This multiplier will be applied on the amount of civilians a map will end up with',
 		type   = 'number',
 		section= 'options',
@@ -202,6 +202,17 @@ local options={
 		max    = 5,
 		step   = 0.1,
 	},
+	-- {
+		-- key    = 'discoscavengers',
+		-- name   = 'Disco Scavengers',
+		-- desc   = 'Replaces Scavenger black color with teamcolor that changes 3 times per second',
+		-- type   = 'number',
+		-- section= 'options',
+		-- def    = 0,
+		-- min    = 0,
+		-- max    = 1,
+		-- step   = 1,
+	-- },
 	{
 		key    = "newbie_placer",
 		name   = "Newbie Placer",
