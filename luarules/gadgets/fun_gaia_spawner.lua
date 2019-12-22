@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 1
+local devswitch = 0
 if (Spring.GetModOptions() == nil or Spring.GetModOptions().civilians == nil or Spring.GetModOptions().civilians == 0) and devswitch == 0 then
 	return
 end
