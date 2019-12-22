@@ -309,18 +309,16 @@ if gadgetHandler:IsSyncedCode() then
 			end
 		end
 		-- remove any xmasball that is blocking queued build order
-		if isBuilder[Spring.GetUnitDefID(unitID)] then
-			if cmdID < 0 then
-				local udefid = math.abs(cmdID)
-				local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
-				for i=1, #units do
-					if decorationUdefIDs[Spring.GetUnitDefID(units[i])] then
-						if Spring.GetUnitIsDead(units[i]) == false then
-							Spring.DestroyUnit(units[i], false, false)
-							decorations[units[i]] = nil
-							decorationsTerminal[units[i]] = nil
-							createdDecorations[units[i]] = nil
-						end
+		if cmdID < 0 and cmdParams[3] and isBuilder[Spring.GetUnitDefID(unitID)] then
+			local udefid = math.abs(cmdID)
+			local units = Spring.GetUnitsInBox(cmdParams[1]-unitSize[udefid][1],cmdParams[2]-200,cmdParams[3]-unitSize[udefid][2],cmdParams[1]+unitSize[udefid][1],cmdParams[2]+50,cmdParams[3]+unitSize[udefid][2])
+			for i=1, #units do
+				if decorationUdefIDs[Spring.GetUnitDefID(units[i])] then
+					if Spring.GetUnitIsDead(units[i]) == false then
+						Spring.DestroyUnit(units[i], false, false)
+						decorations[units[i]] = nil
+						decorationsTerminal[units[i]] = nil
+						createdDecorations[units[i]] = nil
 					end
 				end
 			end
