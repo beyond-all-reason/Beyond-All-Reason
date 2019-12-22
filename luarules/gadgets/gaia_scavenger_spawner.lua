@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 1
+local devswitch = 0
 if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or Spring.GetModOptions().scavengers == 0) and devswitch == 0 then
 	return
 end
@@ -79,9 +79,9 @@ end
 
 function gadget:GameFrame(n)
 	if n%5 == 0 and n > 9000 then
-		red = red + math.random(-5,5)
-		green = green + math.random(-5,5)
-		blue = blue + math.random(-5,5)
+		red = red + math.random(-10,10)
+		green = green + math.random(-10,10)
+		blue = blue + math.random(-10,10)
 		if red < 0 then red = 0 elseif red > 255 then red = 255 elseif green < 0 then green = 0 elseif green > 255 then green = 255 elseif blue < 0 then blue = 0 elseif blue > 255 then blue = 255 end
 		Spring.SetTeamColor(GaiaTeamID, red/255, green/255, blue/255)
 	end
