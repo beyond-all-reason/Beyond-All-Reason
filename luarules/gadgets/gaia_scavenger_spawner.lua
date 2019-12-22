@@ -10,7 +10,7 @@ function gadget:GetInfo()
 end
 
 local devswitch = 0
-if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or Spring.GetModOptions().scavengers == 0) and devswitch == 0 then
+if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or tonumber(Spring.GetModOptions().scavengers) == 0) and devswitch == 0 then
 	return
 end
 
@@ -143,27 +143,27 @@ function gadget:GameFrame(n)
 				if airrng == 0 then
 					local cost = UnitDefNames[spawnair].metalCost + UnitDefNames[spawnair].energyCost
 					local groupsize = math.ceil(groupsize/cost)
-					for i = 1,groupsize do
+					for i=1, groupsize do
 						Spring.CreateUnit(spawnair, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 					end
 				elseif posy > 10 then
 					if kbottankrng == 0 then
 						local cost = UnitDefNames[spawnkbot].metalCost + UnitDefNames[spawnkbot].energyCost
 						local groupsize = math.ceil(groupsize/cost)
-						for i = 1,groupsize do
+						for i=1, groupsize do
 							Spring.CreateUnit(spawnkbot, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
 					else
 						local cost = UnitDefNames[spawntank].metalCost + UnitDefNames[spawntank].energyCost
 						local groupsize = math.ceil(groupsize/cost)
-						for i = 1,math.ceil(groupsize) do
+						for i=1, groupsize do
 							Spring.CreateUnit(spawntank, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
 					end
 				else
 					local cost = UnitDefNames[spawnsea].metalCost + UnitDefNames[spawnsea].energyCost
 					local groupsize = math.ceil(groupsize/cost)
-					for i = 1,math.ceilgroupsize do
+					for i=1, groupsize do
 						Spring.CreateUnit(spawnsea, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 					end
 				end
