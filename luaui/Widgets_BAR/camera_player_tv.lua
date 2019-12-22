@@ -17,6 +17,9 @@ local fontfileSize = 32
 local fontfileOutlineSize = 7
 local fontfileOutlineStrength = 1.18
 local font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+local fontfile2 = LUAUI_DIRNAME .. "fonts/" .. Spring.GetConfigString("bar_font2", "Exo2-SemiBold.otf")
+local fontfileScale2 = fontfileScale * 2.75
+local font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 
 local displayPlayername = true
 
@@ -497,6 +500,8 @@ function widget:ViewResize(newX,newY)
 		fontfileScale = newFontfileScale
 		gl.DeleteFont(font)
 		font = gl.LoadFont(fontfile, fontfileSize*fontfileScale, fontfileOutlineSize*fontfileScale, fontfileOutlineStrength)
+		gl.DeleteFont(font2)
+		font2 = gl.LoadFont(fontfile2, fontfileSize*fontfileScale2, fontfileOutlineSize*fontfileScale2, fontfileOutlineStrength)
 		for i=1,#drawlistsCountdown do
 			gl.DeleteList(drawlistsCountdown[i])
 		end
@@ -573,15 +578,15 @@ function widget:DrawScreen()
 						local posX = vsx * 0.5
 						local posY = vsy * 0.095
 
-						font:Begin()
-						font:SetTextColor(nameColourR,nameColourG,nameColourB,1)
+						font2:Begin()
+						font2:SetTextColor(nameColourR,nameColourG,nameColourB,1)
 						if (nameColourR + nameColourG*1.2 + nameColourB*0.4) < 0.8 then
-							font:SetOutlineColor(1,1,1,1)
+							font2:SetOutlineColor(1,1,1,1)
 						else
-							font:SetOutlineColor(0,0,0,1)
+							font2:SetOutlineColor(0,0,0,1)
 						end
-						font:Print(name, posX, posY, fontSize, "con")
-						font:End()
+						font2:Print(name, posX, posY, fontSize, "con")
+						font2:End()
 					end)
 				end
 			end
@@ -608,7 +613,8 @@ function widget:Shutdown()
 	for i=1,#drawlist do
 		gl.DeleteList(drawlist[i])
 	end
-    gl.DeleteFont(font)
+	gl.DeleteFont(font)
+	gl.DeleteFont(font2)
 	if toggled then
 		WG['advplayerlist_api'].SetLockPlayerID()
 	end
