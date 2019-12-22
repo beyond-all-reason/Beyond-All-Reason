@@ -2,11 +2,15 @@ function gadget:GetInfo()
   return {
     name      = "gaia civilian unit spawner",
     desc      = "units spawn and wander around the map",
-    author    = "Damgam, some code from critters by Floris",
+    author    = "Damgam",
     date      = "2019",
     layer     = -100,
     enabled   = true,
 	}
+end
+
+if Spring.GetModOptions() == nil or Spring.GetModOptions().civilians == nil or Spring.GetModOptions().civilians == 0 then
+	return
 end
 
 -- synced only
@@ -77,19 +81,22 @@ function gadget:GameFrame(n)
 				failedspawn = true
 			end
 			
-			if not failedspawn then	
-				for i = 0,teamcount do
-					if Spring.IsPosInLos(posx, posy, posz, i) == true then
-						failedspawn = true
-						break
-					elseif Spring.IsPosInRadar(posx, posy, posz, i) == true then
-						failedspawn = true
-						break
-					elseif Spring.IsPosInAirLos(posx, posy, posz, i) == true then
-						failedspawn = true
-						break
-					else
-						failedspawn = false
+			if not failedspawn then
+
+				for _,teamID in ipairs(Spring.GetTeamList()) do
+					if teamID ~= GaiaTeamID then
+						if Spring.IsPosInLos(posx, posy, posz, teamID) == true then
+							failedspawn = true
+							break
+						elseif Spring.IsPosInRadar(posx, posy, posz, teamID) == true then
+							failedspawn = true
+							break
+						elseif Spring.IsPosInAirLos(posx, posy, posz, teamID) == true then
+							failedspawn = true
+							break
+						else
+							failedspawn = false
+						end
 					end
 				end
 			end

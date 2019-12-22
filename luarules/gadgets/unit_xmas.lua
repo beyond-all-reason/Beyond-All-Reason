@@ -13,9 +13,10 @@ function gadget:GetInfo()
 end
 
 
+local enableUnitDecorations = true		-- burst out xmas ball after unit death
 for _,teamID in ipairs(Spring.GetTeamList()) do
 	if select(4,Spring.GetTeamInfo(teamID,false)) then	-- is AI?
-		return
+		enableUnitDecorations = false
 	end
 end
 
@@ -40,7 +41,6 @@ if gadgetHandler:IsSyncedCode() then
 		unitSize[unitDefID] = { ((unitDef.xsize*8)+8)/2, ((unitDef.zsize*8)+8)/2 }
 	end
 
-	local enableUnitDecorations = true		-- burst out xmas ball after unit death
 	local maxDecorations = 150
 
 	_G.itsXmas = false
