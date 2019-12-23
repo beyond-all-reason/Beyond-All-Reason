@@ -20,11 +20,15 @@ local airTransportMaxSpeeds = {}
 
 local canFly = {}
 local unitMass = {}
+local unitTransportMass = {}
+local unitSpeed = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.canFly then
 		canFly[unitDefID] = true
+		unitTransportMass[unitDefID] = unitDef.transportMass
 	end
 	unitMass[unitDefID] = unitDef.mass
+	unitSpeed[unitDefID] = unitDef.speed
 end
 
 local massUsageFraction = 0
@@ -32,15 +36,16 @@ local allowedSpeed = 0
 local currentMassUsage = 0
 
 -- update allowed speed for transport
-function updateAllowedSpeed(transportId, transportUnitDef)
-	
+function updateAllowedSpeed(transportId)
+	local uDefID = Spring.GetUnitDefID(transportId)
+
 	-- get sum of mass and size for all transported units                                
 	currentMassUsage = 0
 	for _,tUnitId in pairs(Spring.GetUnitIsTransporting(transportId)) do
 		currentMassUsage = currentMassUsage + unitMass[Spring.GetUnitDefID(tUnitId)]
 	end
-	massUsageFraction = (currentMassUsage / transportUnitDef.transportMass)
-	allowedSpeed = transportUnitDef.speed * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND 
+	massUsageFraction = (currentMassUsage / unitTransportMass[uDefID])
+	allowedSpeed = unitSpeed[uDefID] * (1 - massUsageFraction * TRANSPORTED_MASS_SPEED_PENALTY) / FRAMES_PER_SECOND
 	--Spring.Echo("unit "..transportUnitDef.name.." is air transport at  "..(massUsageFraction*100).."%".." load, curSpeed="..vw.." allowedSpeed="..allowedSpeed)
 
 	airTransportMaxSpeeds[transportId] = allowedSpeed
@@ -50,10 +55,10 @@ end
 -- add transports to table when they load a unit
 function gadget:UnitLoaded(unitId, unitDefId, unitTeam, transportId, transportTeam)
 	if canFly[Spring.GetUnitDefID(transportId)] and not airTransports[transportId] then
-		airTransports[transportId] = UnitDefs[Spring.GetUnitDefID(transportId)]
+		airTransports[transportId] = true
 
 		-- update allowed speed
-		updateAllowedSpeed(transportId, ud)
+		updateAllowedSpeed(transportId)
 	end
 end
 
@@ -70,7 +75,7 @@ function gadget:GameFrame(n)
 	local factor = 1
 	local vx,vy,vz,vw = 0
 	local alSpeed = 0
-	for unitId,ud in pairs(airTransports) do
+	for unitId,_ in pairs(airTransports) do
 		vx,vy,vz,vw = Spring.GetUnitVelocity(unitId)
 		alSpeed = airTransportMaxSpeeds[unitId]
 		if (alSpeed and vw and vw > alSpeed) then
@@ -89,7 +94,7 @@ function gadget:UnitUnloaded(unitId, unitDefId, teamId, transportId)
 			airTransportMaxSpeeds[transportId] = nil
 		else
 			-- update allowed speed
-			updateAllowedSpeed(transportId, airTransports[transportId])
+			updateAllowedSpeed(transportId)
 		end
 	end
 end
