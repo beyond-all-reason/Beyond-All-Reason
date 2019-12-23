@@ -259,7 +259,6 @@ function gadget:GameFrame(n)
 						if r == 0 then
 							spawnsea = Hovercrafts[math.random(1,#Hovercrafts)]
 							spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
-							groupsize = groupsize
 						else
 							spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
 							spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
@@ -269,7 +268,6 @@ function gadget:GameFrame(n)
 						if r == 0 then
 							spawnsea = Hovercrafts[math.random(1,#Hovercrafts)]
 							spawnair = Seaplanes[math.random(1,#Seaplanes)]
-							groupsize = groupsize
 						elseif r == 1 then
 							spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
 							spawnair = Seaplanes[math.random(1,#Seaplanes)]
@@ -302,29 +300,31 @@ function gadget:GameFrame(n)
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		if scavengerunits then
 			for i = 1,#scavengerunits do
-				local givemeorder = scavengerunits[i]
-				if n%900 == 0 then
-					if dx[givemeorder] then
-						olddx[givemeorder] = dx[givemeorder]
+				local scav = scavengerunits[i]
+				local scavDef = Spring.GetUnitDefID(scav)
+				local scavStructure = UnitDefs[scavDef].isBuilding
+				if not scavStructure and n%900 == 0 then
+					if dx[scav] then
+						olddx[scav] = dx[scav]
 					end
-					if dy[givemeorder] then
-						olddy[givemeorder] = dy[givemeorder]
+					if dy[scav] then
+						olddy[scav] = dy[scav]
 					end
-					if dz[givemeorder] then
-						olddz[givemeorder] = dz[givemeorder]
+					if dz[scav] then
+						olddz[scav] = dz[scav]
 					end
-					dx[givemeorder],dy[givemeorder],dz[givemeorder] = Spring.GetUnitPosition(givemeorder)
-					if (olddx[givemeorder] and olddy[givemeorder] and olddz[givemeorder]) and (olddx[givemeorder] > dx[givemeorder]-10 and olddx[givemeorder] < dx[givemeorder]+10) and (olddy[givemeorder] > dy[givemeorder]-10 and olddy[givemeorder] < dy[givemeorder]+10) and (olddz[givemeorder] > dz[givemeorder]-10 and olddz[givemeorder] < dz[givemeorder]+10) then
-						Spring.DestroyUnit(givemeorder, true, false)
+					dx[scav],dy[scav],dz[scav] = Spring.GetUnitPosition(scav)
+					if (olddx[scav] and olddy[scav] and olddz[scav]) and (olddx[scav] > dx[scav]-10 and olddx[scav] < dx[scav]+10) and (olddy[scav] > dy[scav]-10 and olddy[scav] < dy[scav]+10) and (olddz[scav] > dz[scav]-10 and olddz[scav] < dz[scav]+10) then
+						Spring.DestroyUnit(scav, true, false)
 						selfdestructcounter = selfdestructcounter + 1
 					end
 				end
-				if Spring.GetCommandQueue(givemeorder, 0) <= 1 then
-					local nearest = Spring.GetUnitNearestEnemy(givemeorder, 200000, false)
+				if Spring.GetCommandQueue(scav, 0) <= 1 then
+					local nearest = Spring.GetUnitNearestEnemy(scav, 200000, false)
 					local x,y,z = Spring.GetUnitPosition(nearest)
 					local x = x + math.random(-50,50)
 					local z = z + math.random(-50,50)
-					Spring.GiveOrderToUnit(givemeorder, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
+					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
 					
 				end
 			end
