@@ -16,7 +16,7 @@ function widget:GetInfo()
 	}
 end
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = (1 + (vsx*vsy / 4000000))
+local widgetScale = (1 + (vsx*vsy / 7500000))
 
 local NeededFrameworkVersion = 8
 local SoundIncomingChat  = 'beep4'
@@ -54,7 +54,7 @@ local Config = {
 		px = vsx*posX,py = vsy*posY, --default start position
 		sx = vsx*0.4, --background size
 		
-		fontsize = 9.5*widgetScale,
+		fontsize = 11*widgetScale,
 		minlines = 3, --minimal number of lines to display
 		maxlines = 3,
 		maxlinesScrollmode = 3,
@@ -940,8 +940,10 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
+	widgetScale = (1 + (vsx*vsy / 7500000))
 	Config.console.px = posX*vsx
 	Config.console.py = posY*vsy
+	Config.console.sx = vsx*0.4
 	if console ~= nil and console.vars then
 		console.background.px = Config.console.px
 		console.background.py = Config.console.py

@@ -2788,7 +2788,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 			if fps > 99 then
 				fps = 99
 			end
-			grayvalue = 0.95 - (fps/195)
+			grayvalue = 0.95 - (math.min(fps, 99)/450)
 			if fps < 0 then
 				fps = 0
 				greyvalue = 1
