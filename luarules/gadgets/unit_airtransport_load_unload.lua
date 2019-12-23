@@ -2,7 +2,7 @@
 function gadget:GetInfo()
    return {
 	  name = "Load/unload",
-	  desc = "Sets up a constant 8 elmos load/unload radius for air transports and allows unload as soon as distance is reached (104.0.1 - maintenace 686+)",
+	  desc = "Sets up a constant 10 or 15 elmos load/unload radius for air transports and allows unload as soon as distance is reached (104.0.1 - maintenace 686+)",
 	  author = "Doo",
 	  date = "2018",
 	  license = "PD",
@@ -14,10 +14,10 @@ end
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 local AirTransports = {
-	[UnitDefNames["armatlas"].id] = true,
-	[UnitDefNames["armdfly"].id] = true,
-	[UnitDefNames["corvalk"].id] = true,
-	[UnitDefNames["corseah"].id] = true,
+	[UnitDefNames["armatlas"].id] = 20,	-- 10 elmos
+	[UnitDefNames["armdfly"].id] = 30,	-- 15 elmos
+	[UnitDefNames["corvalk"].id] = 20,
+	[UnitDefNames["corseah"].id] = 30,
 }
 
 
@@ -40,7 +40,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
-			if gadget:Distance(pos1, pos2) <= 16 then
+			if gadget:Distance(pos1, pos2) <= AirTransports[transporterUnitDefID] then
 				Spring.SetUnitVelocity(transporterID, 0,0,0)
 				return true
 			else
@@ -57,7 +57,7 @@ if (gadgetHandler:IsSyncedCode()) then
 			--local teeDefs = UnitDefs[transporteeUnitDefID]
 			local pos1 = {Spring.GetUnitPosition(transporterID)}
 			local pos2 = {goalX, goalY, goalZ}
-			if gadget:Distance(pos1, pos2) <= 16 then
+			if gadget:Distance(pos1, pos2) <= AirTransports[transporterUnitDefID] then
 				Spring.SetUnitVelocity(transporterID, 0,0,0)
 				return true
 			else
