@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 0
+local devswitch = 1
 if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or tonumber(Spring.GetModOptions().scavengers) == 0) and devswitch == 0 then
 	return
 end
@@ -27,6 +27,7 @@ local _,_,_,_,_,GaiaAllyTeamID = Spring.GetTeamInfo(GaiaTeamID)
 local teamcount = #Spring.GetTeamList() - 2
 local mapsizeX = Game.mapSizeX
 local mapsizeZ = Game.mapSizeZ
+local deathwater = Game.waterDamage
 local spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
 if devswitch == 1 then
 	spawnmultiplier = 1
@@ -45,8 +46,8 @@ local Hovercrafts = {"corah", "corhal", "cormh", "corsh", "corsnap", "corsok", "
 local T2SeaUnits = {"corarch", "corbats", "corblackhy", "corcrus", "cormship", "corshark", "armbats", "armcrus", "armepoch", "armmship", "armsubk", "coraak", "coramph", "corroach", "corsktl", "armaak", "armamph", "armvader", "corparrow", "corseal", "armcroc", }
 
 local T1AirUnits = {"corbw", "corshad", "corveng", "armfig", "armkam", "armthund",}
-local Seaplanes = {"corcut", "corhunt", "corsb", "corseap", "corsfig", "armsaber", "armsb", "armseap", "armsehak", "armsfig",}
-local T2AirUnits = {"corape", "corcrw", "corhurc", "cortitan", "corvamp", "armblade", "armbrawl", "armhawk", "armlance", "armliche", "armpnix", "armstil",}
+local Seaplanes = {"corcut", "corhunt", "corsb", "corsfig", "armsaber", "armsb", "armsehak", "armsfig",}
+local T2AirUnits = {"corape", "corcrw", "corhurc", "corvamp", "armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
 
 local Tech3Units = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
 
@@ -91,7 +92,7 @@ function gadget:GameFrame(n)
 		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(1,math.ceil(((gaiaUnitCount*5)/teamcount)+2))
+		local spawnchance = math.random(1,math.ceil((((gaiaUnitCount*3)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)))
 		--local spawnchance = 1 -- dev purpose
 		if spawnchance == 1 or failedspawn then
 			failedspawn = false
@@ -99,18 +100,19 @@ function gadget:GameFrame(n)
 			local posx = math.random(400,mapsizeX-400)
 			local posz = math.random(400,mapsizeZ-400)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			
 			testpos1 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
 			testpos2 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
 			testpos3 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
 			testpos4 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
-			if testpos1 < posy - 10 or testpos1 > posy + 10 then
+			if deathwater > 0 and posy <= 0 then
 				failedspawn = true
-			elseif testpos2 < posy - 10 or testpos2 > posy + 10 then
+			elseif testpos1 < posy - 30 or testpos1 > posy + 30 then
 				failedspawn = true
-			elseif testpos3 < posy - 10 or testpos3 > posy + 10 then
+			elseif testpos2 < posy - 30 or testpos2 > posy + 30 then
 				failedspawn = true
-			elseif testpos4 < posy - 10 or testpos4 > posy + 10 then
+			elseif testpos3 < posy - 30 or testpos3 > posy + 30 then
+				failedspawn = true
+			elseif testpos4 < posy - 30 or testpos4 > posy + 30 then
 				failedspawn = true
 			end
 			
@@ -125,14 +127,7 @@ function gadget:GameFrame(n)
 								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
 							end
 							break
-						elseif failcounter < 15 and Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true then
-							failedspawn = true
-							failcounter = failcounter + 1
-							if devswitch == 1 then
-								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
-							end
-							break
-						elseif failcounter < 15 and Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
+						elseif failcounter < 30 and Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true then
 							failedspawn = true
 							failcounter = failcounter + 1
 							if devswitch == 1 then
@@ -149,7 +144,7 @@ function gadget:GameFrame(n)
 			--spawn units
 			if not failedspawn then
 				failcounter = 0
-				local groupsize = ((n/3)+#Spring.GetAllUnits())*spawnmultiplier*teamcount
+				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
 				if airrng == 0 then
@@ -257,33 +252,43 @@ function gadget:GameFrame(n)
 					Spring.CreateUnit("corcsa", posx, posy, posz, math.random(0,3),GaiaTeamID)
 					if Spring.GetGameSeconds() < 600 then
 						spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
+						spawnair = Seaplanes[math.random(1,#Seaplanes)]
 					elseif Spring.GetGameSeconds() >= 600 and Spring.GetGameSeconds() < 1200 then
 						local r = math.random(0,3)
 						if r == 0 then
 							spawnsea = Hovercrafts[math.random(1,#Hovercrafts)]
+							spawnair = Seaplanes[math.random(1,#Seaplanes)]
 							groupsize = groupsize*1.3
 						else
 							spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
+							spawnair = Seaplanes[math.random(1,#Seaplanes)]
 						end
 					elseif Spring.GetGameSeconds() >= 1200 then
 						local r = math.random(0,3)
 						if r == 0 then
 							spawnsea = Hovercrafts[math.random(1,#Hovercrafts)]
-							groupsize = groupsize*1.3
+							spawnair = Seaplanes[math.random(1,#Seaplanes)]
+							groupsize = groupsize*1.6
 						elseif r == 1 then
 							spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
+							spawnair = Seaplanes[math.random(1,#Seaplanes)]
 						else
 							spawnsea = T2SeaUnits[math.random(1,#T2SeaUnits)]
-							groupsize = groupsize*1.6
+							spawnair = Seaplanes[math.random(1,#Seaplanes)]
 						end
 					end
 					
-					local cost = UnitDefNames[spawnsea].metalCost + UnitDefNames[spawnsea].energyCost
+					local cost = (UnitDefNames[spawnsea].metalCost + UnitDefNames[spawnsea].energyCost + UnitDefNames[spawnair].metalCost + UnitDefNames[spawnair].energyCost)/2 
 					local groupsize = math.ceil(groupsize/cost)
 					for i=1, groupsize do
-						Spring.CreateUnit(spawnsea, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+						local r = math.random(0,1)
+						if r == 0 then
+							Spring.CreateUnit(spawnsea, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+						elseif r == 1 then
+							Spring.CreateUnit(spawnair, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+						end
 					end
-					Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnsea].humanName.. "s")
+					Spring.Echo("Spawned Scavenger group: "..groupsize.." "..UnitDefNames[spawnsea].humanName.."s and/or "..UnitDefNames[spawnair].humanName.. "s")
 				end
 			end
 		end
