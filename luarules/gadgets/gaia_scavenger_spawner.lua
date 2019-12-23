@@ -121,14 +121,21 @@ function gadget:GameFrame(n)
 
 				for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 					if allyTeamID ~= GaiaAllyTeamID then
-						if  failcounter < 60 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true then
+						if failcounter < 60 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true  then
 							failedspawn = true
 							failcounter = failcounter + 1
 							if devswitch == 1 then
 								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
 							end
 							break
-						elseif failcounter < 30 and Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true then
+						elseif failcounter < 40 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true and Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
+							failedspawn = true
+							failcounter = failcounter + 1
+							if devswitch == 1 then
+								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
+							end
+							break
+						elseif failcounter < 20 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true and Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true and Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) then
 							failedspawn = true
 							failcounter = failcounter + 1
 							if devswitch == 1 then
