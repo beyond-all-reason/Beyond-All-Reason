@@ -2687,10 +2687,10 @@ function DrawSmallName(name, team, posY, dark, playerID, alpha)
             font2:End()
 		else
             font2:Begin()
-            font2:SetTextColor(0,0,0,0.3)
-            font2:SetOutlineColor(0,0,0,0.3)
-            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
-            font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
+            --font2:SetTextColor(0,0,0,0.3)
+            --font2:SetOutlineColor(0,0,0,0.3)
+            --font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 2, posY + 3.2, 11, "n") -- draws name
+            --font2:Print(name, m_name.posX + textindent + explayerindent + widgetPosX + 4, posY + 3.2, 11, "n") -- draws name
             font2:SetTextColor(1,1,1,0.78)
             font2:SetOutlineColor(0,0,0,0.3)
 			--gl_Color(nameColourR,nameColourG,nameColourB,0.78)
@@ -2788,7 +2788,7 @@ function DrawPingCpu(pingLvl, cpuLvl, posY, spec, alpha, cpu, fps)
 			if fps > 99 then
 				fps = 99
 			end
-			grayvalue = 0.95 - (math.min(fps, 99)/450)
+			grayvalue = 0.95 - (math.min(fps, 99)/400)
 			if fps < 0 then
 				fps = 0
 				greyvalue = 1
