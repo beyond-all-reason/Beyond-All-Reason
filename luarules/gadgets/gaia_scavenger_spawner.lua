@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 1
+local devswitch = 0
 if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or tonumber(Spring.GetModOptions().scavengers) == 0) and devswitch == 0 then
 	return
 end
@@ -36,20 +36,21 @@ local failcounter = 0
 --local discoscavengers = tonumber(Spring.GetModOptions().discoscavengers) or 0
 
 local T1KbotUnits = {"corak", "corcrash", "cornecro", "corstorm", "corthud", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
-local T2KbotUnits = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "corsumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus", }
+local T2KbotUnits = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "corsumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus",}
 
 local T1TankUnits = { "corgarp", "corgator", "corlevlr", "cormist", "corraid", "corwolv", "armart", "armflash", "armjanus", "armpincer", "armsam", "armstump",}
 local T2TankUnits = {"corban", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc", "armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
 
 local T1SeaUnits = {"coresupp", "corpship", "corpt", "correcl", "corroy", "corsub", "corgarp", "armdecade", "armpship", "armpt", "armrecl", "armroy", "armsub","armpincer",}
 local Hovercrafts = {"corah", "corhal", "cormh", "corsh", "corsnap", "corsok", "armah", "armanac", "armlun", "armmh", "armsh", }
-local T2SeaUnits = {"corarch", "corbats", "corblackhy", "corcrus", "cormship", "corshark", "armbats", "armcrus", "armepoch", "armmship", "armsubk", "coraak", "coramph", "corroach", "corsktl", "armaak", "armamph", "armvader", "corparrow", "corseal", "armcroc", }
+local T2SeaUnits = {"corarch", "corcrus", "corshark", "armcrus", "armsubk", "coraak", "coramph", "corroach", "corsktl", "armaak", "armamph", "armvader", "corparrow", "corseal", "armcroc",}
 
 local T1AirUnits = {"corbw", "corshad", "corveng", "armfig", "armkam", "armthund",}
 local Seaplanes = {"corcut", "corhunt", "corsb", "corsfig", "armsaber", "armsb", "armsehak", "armsfig",}
 local T2AirUnits = {"corape", "corcrw", "corhurc", "corvamp", "armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
 
 local Tech3Units = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
+local Tech3Sea = {"armepoch", "corblackhy", "corbats", "cormship", "armbats", "armmship",}
 
 local T1LandBuildings = {}
 local T2LandBuildings = {}
@@ -148,7 +149,7 @@ function gadget:GameFrame(n)
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
 				if airrng == 0 then
-					Spring.CreateUnit("corca", posx, posy, posz, math.random(0,3),GaiaTeamID)
+					--Spring.CreateUnit("corca", posx, posy, posz, math.random(0,3),GaiaTeamID)
 					if Spring.GetGameSeconds() < 600 then
 						spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
 					elseif Spring.GetGameSeconds() >= 600 and Spring.GetGameSeconds() < 1200 then
@@ -179,7 +180,7 @@ function gadget:GameFrame(n)
 						Spring.CreateUnit(spawnair, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 					end
 					Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnair].humanName.. "s")
-				elseif posy > 10 then
+				elseif posy > -10 then
 					Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
 					Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
 					if kbottankrng == 0 then
@@ -249,26 +250,26 @@ function gadget:GameFrame(n)
 						Spring.CreateUnit(spawnT3, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					end
 				else
-					Spring.CreateUnit("corcsa", posx, posy, posz, math.random(0,3),GaiaTeamID)
+					--Spring.CreateUnit("corcsa", posx, posy, posz, math.random(0,3),GaiaTeamID)
 					if Spring.GetGameSeconds() < 600 then
 						spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
-						spawnair = Seaplanes[math.random(1,#Seaplanes)]
+						spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
 					elseif Spring.GetGameSeconds() >= 600 and Spring.GetGameSeconds() < 1200 then
 						local r = math.random(0,3)
 						if r == 0 then
 							spawnsea = Hovercrafts[math.random(1,#Hovercrafts)]
-							spawnair = Seaplanes[math.random(1,#Seaplanes)]
-							groupsize = groupsize*1.3
+							spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
+							groupsize = groupsize
 						else
 							spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
-							spawnair = Seaplanes[math.random(1,#Seaplanes)]
+							spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
 						end
 					elseif Spring.GetGameSeconds() >= 1200 then
 						local r = math.random(0,3)
 						if r == 0 then
 							spawnsea = Hovercrafts[math.random(1,#Hovercrafts)]
 							spawnair = Seaplanes[math.random(1,#Seaplanes)]
-							groupsize = groupsize*1.6
+							groupsize = groupsize
 						elseif r == 1 then
 							spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
 							spawnair = Seaplanes[math.random(1,#Seaplanes)]
@@ -276,6 +277,11 @@ function gadget:GameFrame(n)
 							spawnsea = T2SeaUnits[math.random(1,#T2SeaUnits)]
 							spawnair = Seaplanes[math.random(1,#Seaplanes)]
 						end
+					end
+					local t3random = math.random(0,5)
+					if Spring.GetGameSeconds() > 2400 and t3random == 0 then
+						spawnT3 = Tech3Sea[math.random(1,#Tech3Sea)]
+						Spring.CreateUnit(spawnT3, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					end
 					
 					local cost = (UnitDefNames[spawnsea].metalCost + UnitDefNames[spawnsea].energyCost + UnitDefNames[spawnair].metalCost + UnitDefNames[spawnair].energyCost)/2 
