@@ -16,7 +16,7 @@ local offsetstartcolor = true		-- when false it will always use red as start col
 local useSameTeamColors = false
 
 local GaiaTeam = Spring.GetGaiaTeamID()
-local GaiaTeamColor = {255,0,0 }
+local GaiaTeamColor = {230,230,230}
 
 local myTeamID = Spring.GetMyTeamID()
 
@@ -104,14 +104,7 @@ local function GetColor(i, teams)
 			useHueRGB = false
 		end
 	end
-	if teams > 11 then
-		hueteams = hueteams - 1
-	 	if i == teams-1 then
-			r,g,b = 0.9, 0.9, 0.9
-			useHueRGB = false
-		end
-	end
-	if teams > 19 then
+	if teams > 13 then
 		hueteams = hueteams - 1
 		if i == teams-2 then
 			r,g,b = 0.15, 0.15, 0.15
