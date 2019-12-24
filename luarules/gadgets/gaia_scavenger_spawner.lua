@@ -69,6 +69,10 @@ local olddx = {}
 local olddy = {}
 local olddz = {}
 local selfdestructcounter = 0
+local posx = 0
+local posy = 0
+local posz = 0
+local posradius = 0
 
 
 
@@ -83,6 +87,39 @@ function gadget:Initialize()
 
 end
 
+local function posCheck(posx, posy, posz, posradius)
+	-- if true then can build
+	local testpos1 = Spring.GetGroundHeight(posx + math.random(0,posradius), posz + math.random(-posradius,posradius))
+	local testpos2 = Spring.GetGroundHeight(posx + math.random(-posradius,0), posz + math.random(-posradius,posradius))
+	local testpos3 = Spring.GetGroundHeight(posx + math.random(-posradius,posradius), posz + math.random(0,posradius))
+	local testpos4 = Spring.GetGroundHeight(posx + math.random(-posradius,posradius), posz + math.random(-posradius,0))
+	local testpos5 = Spring.GetGroundHeight(posx + math.random(0,posradius), posz + math.random(0,posradius))
+	local testpos6 = Spring.GetGroundHeight(posx + math.random(-posradius,0), posz + math.random(-posradius,0))
+	local testpos7 = Spring.GetGroundHeight(posx + math.random(-posradius,0), posz + math.random(0,posradius))
+	local testpos8 = Spring.GetGroundHeight(posx + math.random(0,posradius), posz + math.random(-posradius,0))
+	if deathwater > 0 and posy <= 0 then
+		return false
+	elseif testpos1 < posy - 30 or testpos1 > posy + 30 then
+		return false
+	elseif testpos2 < posy - 30 or testpos2 > posy + 30 then
+		return false
+	elseif testpos3 < posy - 30 or testpos3 > posy + 30 then
+		return false
+	elseif testpos4 < posy - 30 or testpos4 > posy + 30 then
+		return false
+	elseif testpos5 < posy - 30 or testpos5 > posy + 30 then
+		return false
+	elseif testpos6 < posy - 30 or testpos6 > posy + 30 then
+		return false
+	elseif testpos7 < posy - 30 or testpos7 > posy + 30 then
+		return false
+	elseif testpos8 < posy - 30 or testpos8 > posy + 30 then
+		return false
+	else
+		return true
+	end
+end
+
 function gadget:GameFrame(n)
 	if n == 100 then
 		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
@@ -95,62 +132,48 @@ function gadget:GameFrame(n)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(1,math.ceil((((gaiaUnitCount*3)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)))
 		--local spawnchance = 1 -- dev purpose
-		if spawnchance == 1 or failedspawn then
-			failedspawn = false
+		if spawnchance == 1 or failcounter > 0 then
 			-- check positions
 			local posx = math.random(400,mapsizeX-400)
 			local posz = math.random(400,mapsizeZ-400)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			testpos1 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
-			testpos2 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
-			testpos3 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
-			testpos4 = Spring.GetGroundHeight(posx + math.random(-100,100), posz + math.random(-100,100))
-			if deathwater > 0 and posy <= 0 then
-				failedspawn = true
-			elseif testpos1 < posy - 30 or testpos1 > posy + 30 then
-				failedspawn = true
-			elseif testpos2 < posy - 30 or testpos2 > posy + 30 then
-				failedspawn = true
-			elseif testpos3 < posy - 30 or testpos3 > posy + 30 then
-				failedspawn = true
-			elseif testpos4 < posy - 30 or testpos4 > posy + 30 then
-				failedspawn = true
-			end
+			local posradius = 100
+			local canBuildHere = posCheck(posx, posy, posz, posradius)
 			
-			if not failedspawn then
+			if canBuildHere then
 
 				for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 					if allyTeamID ~= GaiaAllyTeamID then
 						if failcounter < 60 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true  then
-							failedspawn = true
+							canBuildHere = false
 							failcounter = failcounter + 1
 							if devswitch == 1 then
 								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
 							end
 							break
 						elseif failcounter < 40 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true and Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
-							failedspawn = true
+							canBuildHere = false
 							failcounter = failcounter + 1
 							if devswitch == 1 then
 								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
 							end
 							break
 						elseif failcounter < 20 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true and Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true and Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) then
-							failedspawn = true
+							canBuildHere = false
 							failcounter = failcounter + 1
 							if devswitch == 1 then
 								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
 							end
 							break
 						else
-							failedspawn = false
+							canBuildHere = true
 						end
 					end
 				end
 			end
 			
 			--spawn units
-			if not failedspawn then
+			if canBuildHere then
 				failcounter = 0
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
 				local airrng = math.random(0,5)
