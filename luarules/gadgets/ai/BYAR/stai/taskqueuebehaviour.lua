@@ -300,8 +300,8 @@ function TaskQueueBehaviour:GetHelp(value, position)
 end
 
 function TaskQueueBehaviour:LocationFilter(utype, value)
-	if self.isFactory then return utype, value end -- factories don't need to look for build locations
 	local p
+	if self.isFactory then return utype, value end -- factories don't need to look for build locations
 	local builder = self.unit:Internal()
 	if unitTable[value].extractsMetal > 0 then
 		-- metal extractor
@@ -321,15 +321,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		else
 			utype = nil
 		end
-	elseif assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
-		p = ai.buildsitehandler:BuildNearNano(builder, utype)
-		if not p then
-			local builderPos = builder:GetPosition()
-			p = ai.buildsitehandler:ClosestBuildSpot(builder, builderPos, utype)
-		end
-		if not p then 
-			utype = nil 
-		end
+		
 	elseif geothermalPlant[value] then
 		-- geothermal
 		p = self.ai.maphandler:ClosestFreeGeo(utype, builder)
@@ -377,7 +369,6 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 			p = ai.buildsitehandler:ClosestBuildSpot(builder, factoryPos, utype)
 		end
 		if not p then
-			
 			local factoryPos = ai.buildsitehandler:ClosestHighestLevelFactory(builder:GetPosition(), 5000)
 			if factoryPos then
 				self:EchoDebug("searching for top level factory")
@@ -391,99 +382,40 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 				utype = nil
 			end
 		end
+	elseif assistList[self.name] and not unitTable[value].isBuilding and not nanoTurretList[value] then 
+		p = ai.buildsitehandler:BuildNearNano(builder, utype)
+		
 	elseif (unitTable[value].isWeapon and unitTable[value].isBuilding and not nukeList[value] and not bigPlasmaList[value] and not littlePlasmaList[value]) then
-		self:EchoDebug("looking for least turtled positions")
-		local turtlePosList = ai.turtlehandler:LeastTurtled(builder, value)
-		if turtlePosList then
-			if #turtlePosList ~= 0 then
-				self:EchoDebug("found turtle positions")
-				for i, turtlePos in ipairs(turtlePosList) do
-					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
-					if p ~= nil then break end
-				end
-			end
+		
+		if utype:Name() == (BuildLLT(self) or  BuildLightAA(self)) then 
+			p =  self.ai.buildsitehandler:searchPosInList(self.map:GetMetalSpots(),utype, builder, 'losRadius',30)
+		elseif utype:Name() == (BuildSpecialLT(self) or BuildSpecialLTOnly(self) or BuildMediumAA(self))then 
+			p =  self.ai.buildsitehandler:searchPosInList(self.ai.hotSpot,utype, builder, 'losRadius',0)
+		elseif utype:Name() == (BuildHLT(self) or BuildHeavyishAA(tskqbhvr)) then
+			p =  self.ai.buildsitehandler:searchPosInList(self.ai.turtlehandler:LeastTurtled(builder, utype:Name()),utype, builder, 'losRadius',0)
 		end
-		if p and Distance(p, builder:GetPosition()) > 300 then
-			-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
-			-- this prevents cons from wasting time building defenses very far away
-			utype = nil
-			-- p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
-		end
-		-- if p then
-		-- 	for id,position in pairs(ai.groundDefense) do
-		-- 		if Distance(p, position) < unitTable[self.name].groundRange then
-		-- 			utype = nil 
-		-- 			break
-		-- 		end
-		-- 	end
-		-- end
-		if p == nil then
-			self:EchoDebug("did NOT find build spot near turtle position")
-			utype = nil
-		end
+		
+		if not p then return end
 	elseif nukeList[value] or bigPlasmaList[value] or littlePlasmaList[value] then
 		-- bombarders
-		self:EchoDebug("seeking bombard build spot")
 		local turtlePosList = ai.turtlehandler:MostTurtled(builder, value, value)
-		if turtlePosList then
-			self:EchoDebug("got sorted turtle list")
-			if #turtlePosList ~= 0 then
-				self:EchoDebug("turtle list has turtles")
-				for i, turtlePos in ipairs(turtlePosList) do
-					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
-					if p ~= nil then break end
-				end
-			end
-		end
-		if p == nil then
-			utype = nil
-			self:EchoDebug("could not find bombard build spot")
-		else
-			self:EchoDebug("found bombard build spot")
-		end
+		p =  self.ai.buildsitehandler:searchPosInList(turtlePosList,utype, builder, nil,0)
+		if p == nil then return end
 	elseif shieldList[value] or antinukeList[value] or unitTable[value].jammerRadius ~= 0 or unitTable[value].radarRadius ~= 0 or unitTable[value].sonarRadius ~= 0 or (unitTable[value].isWeapon and unitTable[value].isBuilding and not nukeList[value] and not bigPlasmaList[value] and not littlePlasmaList[value]) then
 		-- shields, defense, antinukes, jammer towers, radar, and sonar
 		self:EchoDebug("looking for least turtled positions")
 		local turtlePosList = ai.turtlehandler:LeastTurtled(builder, value)
-		if turtlePosList then
-			if #turtlePosList ~= 0 then
-				self:EchoDebug("found turtle positions")
-				for i, turtlePos in ipairs(turtlePosList) do
-					p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
-					if p ~= nil then break end
-				end
-			end
-		end
-		if p and Distance(p, builder:GetPosition()) > 300 then
-			-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
-			-- this prevents cons from wasting time building defenses very far away
-			utype = nil
-			-- p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
-		end
-		if p == nil then
-			self:EchoDebug("did NOT find build spot near turtle position")
-			utype = nil
-		end
+		p =  self.ai.buildsitehandler:searchPosInList(turtlePosList,utype, builder, nil,0)
+		if p == nil then return end
 	elseif unitTable[value].isBuilding then
+		EchoDebug('maybe out ' .. value)
 		if Eco2[value] == 1 then
-			p = ai.buildsitehandler:BuildNearNano(builder, utype)
+			p = ai.buildsitehandler:BuildNearNano(builder, utype) 
 		end
 		if not p then
 			-- buildings in defended positions
 			local turtlePosList = ai.turtlehandler:MostTurtled(builder, value)
-			if turtlePosList then
-				if #turtlePosList ~= 0 then
-					for i, turtlePos in ipairs(turtlePosList) do
-						p = ai.buildsitehandler:ClosestBuildSpot(builder, turtlePos, utype)
-						if p ~= nil then break end
-					end
-				end
-			end
-			if p and Distance(p, builder:GetPosition()) > MaxBuildDist(value, self.speed) then
-				-- HERE BECAUSE DEFENSE PLACEMENT SYSTEM SUCKS
-				-- this prevents cons from wasting time building very far away
-				p = ai.buildsitehandler:ClosestBuildSpot(builder, builder:GetPosition(), utype)
-			end
+			p =  self.ai.buildsitehandler:searchPosInList(turtlePosList,utype, builder, nil,0)
 		end
 	end
 	-- last ditch placement
@@ -493,7 +425,6 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 	end
 	return utype, value, p
 end
-
 
 function TaskQueueBehaviour:GetQueue()
 	self.unit:ElectBehaviour()

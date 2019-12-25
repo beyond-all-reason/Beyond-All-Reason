@@ -311,6 +311,36 @@ function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
 	self:PlotAllDebug()
 end
 
+function BuildSiteHandler:unitNearCheck(utype,p,spec)
+	local target = Spring.GetUnitsInCylinder(p.x,p.z,unitTable[utype:Name()][spec])
+	if not target or #target < 1 then return false end
+	for idx, typeDef in pairs(target) do
+		local tgName = self.game:GetUnitByID(typeDef):Name()
+		if utype:Name() == tgName --[[or unitTable[tgName][spec]] then
+			EchoDebug(utype:Name() .. ' block by ' .. tostring(tgName))
+			return true
+		end
+	end
+	return false
+end
+
+function BuildSiteHandler:searchPosInList(list,utype, builder, spaceEquals,minDist)
+-- 	print(utype:Name())
+	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
+	if list and #list > 0 then
+		for index, pos in pairs(list) do
+			if Distance(pos,builder:GetPosition()) < 300 then
+				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
+					local p = ai.buildsitehandler:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, unitTable[utype:Name()][spaceEquals])
+					if p then return p end
+				end
+			end
+		end
+	end
+	return nil
+end
+
+
 function BuildSiteHandler:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
 	local nanoHots = self.ai.nanohandler:GetHotSpots()
