@@ -124,13 +124,13 @@ function gadget:GameFrame(n)
 	if n == 100 then
 		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "es", 100000)
-		Spring.SetGlobalLos(GaiaAllyTeamID, true)
+		Spring.SetGlobalLos(GaiaAllyTeamID, false)
 	end
 	if n%30 == 0 and n > 9000 then
 		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(1,math.ceil((((gaiaUnitCount*3)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)))
+		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
 		if spawnchance == 1 or failcounter > 0 then
 			-- check positions
@@ -144,7 +144,7 @@ function gadget:GameFrame(n)
 
 				for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 					if allyTeamID ~= GaiaAllyTeamID then
-						if failcounter < 60 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true  then
+						if failcounter < 100 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true  then
 							canBuildHere = false
 							failcounter = failcounter + 1
 							if devswitch == 1 then
@@ -209,7 +209,9 @@ function gadget:GameFrame(n)
 					for i=1, groupsize do
 						Spring.CreateUnit(spawnair, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 					end
-					Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnair].humanName.. "s")
+					if devswitch == 1 then
+						Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnair].humanName.. "s")
+					end
 				elseif posy > -10 then
 					Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
 					Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
@@ -236,7 +238,9 @@ function gadget:GameFrame(n)
 						for i=1, groupsize do
 							Spring.CreateUnit(spawnkbot, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
-						Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnkbot].humanName.. "s")
+						if devswitch == 1 then
+							Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnkbot].humanName.. "s")
+						end
 					else
 						if Spring.GetGameSeconds() < 600 then
 							spawntank = T1TankUnits[math.random(1,#T1TankUnits)]
@@ -272,7 +276,9 @@ function gadget:GameFrame(n)
 						for i=1, groupsize do
 							Spring.CreateUnit(spawntank, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
-						Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawntank].humanName.. "s")
+						if devswitch == 1 then
+							Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawntank].humanName.. "s")
+						end
 					end
 					local t3random = math.random(0,5)
 					if Spring.GetGameSeconds() > 2400 and t3random == 0 then
@@ -322,7 +328,9 @@ function gadget:GameFrame(n)
 							Spring.CreateUnit(spawnair, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
 					end
-					Spring.Echo("Spawned Scavenger group: "..groupsize.." "..UnitDefNames[spawnsea].humanName.."s and/or "..UnitDefNames[spawnair].humanName.. "s")
+					if devswitch == 1 then
+						Spring.Echo("Spawned Scavenger group: "..groupsize.." "..UnitDefNames[spawnsea].humanName.."s and/or "..UnitDefNames[spawnair].humanName.. "s")
+					end
 				end
 			end
 		end
@@ -355,7 +363,6 @@ function gadget:GameFrame(n)
 					local x = x + math.random(-50,50)
 					local z = z + math.random(-50,50)
 					Spring.GiveOrderToUnit(scav, CMD.FIGHT,{x,y,z}, {"shift", "alt", "ctrl"})
-					
 				end
 			end
 			if selfdestructcounter and selfdestructcounter > 0 and devswitch == 1 then
