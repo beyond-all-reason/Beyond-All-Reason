@@ -73,6 +73,8 @@ local posx = 0
 local posy = 0
 local posz = 0
 local posradius = 0
+local canBuildHere = false
+
 
 
 
@@ -132,7 +134,7 @@ function gadget:GameFrame(n)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
-		if spawnchance == 0 then
+		if spawnchance == 0 or canBuildHere == false then
 			-- check positions
 			local posx = math.random(400,mapsizeX-400)
 			local posz = math.random(400,mapsizeZ-400)
