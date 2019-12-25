@@ -284,9 +284,9 @@ function StartVote(name, owner)
 		else
 			gl.Color(0.5,0,0,0.7)
 		end
-		RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 5*widgetScale)
+		RectRound(noButtonArea[1], noButtonArea[2], noButtonArea[3], noButtonArea[4], 3.3*widgetScale)
 		gl.Color(0,0,0,0.075)
-		RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 4*widgetScale)
+		RectRound(noButtonArea[1]+buttonPadding, noButtonArea[2]+buttonPadding, noButtonArea[3]-buttonPadding, noButtonArea[4]-buttonPadding, 2.2*widgetScale)
 
 		fontSize = fontSize*0.85
 		local noText = 'NO'
@@ -304,9 +304,9 @@ function StartVote(name, owner)
 			else
 				gl.Color(0,0.5,0,0.35)
 			end
-			RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 5*widgetScale)
+			RectRound(yesButtonArea[1], yesButtonArea[2], yesButtonArea[3], yesButtonArea[4], 3.3*widgetScale)
 			gl.Color(0,0,0,0.075)
-			RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 4*widgetScale)
+			RectRound(yesButtonArea[1]+buttonPadding, yesButtonArea[2]+buttonPadding, yesButtonArea[3]-buttonPadding, yesButtonArea[4]-buttonPadding, 2.2*widgetScale)
 
 			font2:Print("YES", yesButtonArea[1]+((yesButtonArea[3]-yesButtonArea[1])/2), yesButtonArea[2]+((yesButtonArea[4]-yesButtonArea[2])/2)-(fontSize/3), fontSize, "con")
 		end
