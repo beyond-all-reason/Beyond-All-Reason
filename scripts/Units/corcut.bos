@@ -168,6 +168,11 @@ FirePrimary()
 	}
 }
 
+AimPrimary(heading, pitch)
+{
+	return (1);
+}
+
 AimFromPrimary(piecenum)
 {
 	if( gun_1 == 0 )
