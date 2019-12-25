@@ -132,7 +132,7 @@ function gadget:GameFrame(n)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
-		if spawnchance == 1 or failcounter > 0 then
+		if spawnchance == 0 then
 			-- check positions
 			local posx = math.random(400,mapsizeX-400)
 			local posz = math.random(400,mapsizeZ-400)
@@ -144,26 +144,8 @@ function gadget:GameFrame(n)
 
 				for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 					if allyTeamID ~= GaiaAllyTeamID then
-						if failcounter < 100 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true  then
+						if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
 							canBuildHere = false
-							failcounter = failcounter + 1
-							if devswitch == 1 then
-								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
-							end
-							break
-						elseif failcounter < 40 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true and Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
-							canBuildHere = false
-							failcounter = failcounter + 1
-							if devswitch == 1 then
-								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
-							end
-							break
-						elseif failcounter < 20 and Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true and Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true and Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) then
-							canBuildHere = false
-							failcounter = failcounter + 1
-							if devswitch == 1 then
-								Spring.Echo("Failed to spawn Scavenger group. Failcounter: " ..failcounter)
-							end
 							break
 						else
 							canBuildHere = true
@@ -174,7 +156,6 @@ function gadget:GameFrame(n)
 			
 			--spawn units
 			if canBuildHere then
-				failcounter = 0
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
