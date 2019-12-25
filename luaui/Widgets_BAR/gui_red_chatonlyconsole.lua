@@ -16,7 +16,7 @@ function widget:GetInfo()
 	}
 end
 local vsx, vsy = gl.GetViewSizes()
-local widgetScale = (1 + (vsx*vsy / 7500000))
+local widgetScale = vsx/1500
 
 local NeededFrameworkVersion = 8
 local SoundIncomingChat  = 'beep4'
@@ -924,7 +924,7 @@ end
 
 function widget:ViewResize()
 	vsx,vsy = Spring.GetViewGeometry()
-	widgetScale = (1 + (vsx*vsy / 7500000))
+	widgetScale = vsx/1500
 	Config.console.fontsize = fontsize*fontsizeMultiplier*widgetScale
 	Config.console.px = posX*vsx
 	Config.console.py = posY*vsy
