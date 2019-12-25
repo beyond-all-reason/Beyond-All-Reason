@@ -41,8 +41,8 @@ local sendPacketEvery				= 0.6
 local numMousePos					= 2 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
-local showPlayerName       			= true
-local showCursorDot                 = true
+local showPlayerName       			= false
+local showCursorDot                 = false
 local drawNamesScaling				= true
 local drawNamesFade					= true
 
@@ -55,9 +55,9 @@ local NameFadeStartDistance			= 4800
 local NameFadeEndDistance			= 7200
 local idleCursorTime				= 30		-- fade time cursor (specs only)
 
-local addLights                     = false
-local lightRadiusMult               = 0.75
-local lightStrengthMult             = 0.6
+local addLights                     = true
+local lightRadiusMult               = 0.5
+local lightStrengthMult             = 0.85
 
 -- tweak ui
 local buttonsize					= 18

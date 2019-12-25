@@ -2240,11 +2240,11 @@ function init()
 			 saveOptionValue('AllyCursors', 'allycursors', 'setLights', {'addLights'}, options[getOptionByID('allycursors_lights')].value)
 		 end,
 		},
-		{id="allycursors_lightradius", group="ui", name=widgetOptionColor.."      radius", type="slider", min=0.15, max=1, step=0.05, value=1.5, description='',
+		{id="allycursors_lightradius", group="ui", name=widgetOptionColor.."      radius", type="slider", min=0.15, max=1, step=0.05, value=0.5, description='',
 		 onload=function() loadWidgetData("AllyCursors", "allycursors_lightradius", {'lightRadiusMult'}) end,
 		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightRadius', {'lightRadiusMult'}, value) end,
 		},
-		{id="allycursors_lightstrength", group="ui", name=widgetOptionColor.."      strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.2, description='',
+		{id="allycursors_lightstrength", group="ui", name=widgetOptionColor.."      strength", type="slider", min=0.1, max=1.2, step=0.05, value=0.85, description='',
 		 onload=function() loadWidgetData("AllyCursors", "allycursors_lightstrength", {'lightStrengthMult'}) end,
 		 onchange=function(i,value) saveOptionValue('AllyCursors', 'allycursors', 'setLightStrength', {'lightStrengthMult'}, value) end,
 		},
