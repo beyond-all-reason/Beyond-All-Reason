@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 0
+local devswitch = 1
 if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or tonumber(Spring.GetModOptions().scavengers) == 0) and devswitch == 0 then
 	return
 end
@@ -52,7 +52,7 @@ local T2AirUnits = {"corape", "corcrw", "corhurc", "corvamp", "armblade", "armbr
 local Tech3Units = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
 local Tech3Sea = {"armepoch", "corblackhy", "corbats", "cormship", "armbats", "armmship",}
 
-local T1LandBuildings = {}
+local T1LandBuildings = {"armllt", "corllt"}
 local T2LandBuildings = {}
 local T3LandBuildings = {}
 
@@ -73,8 +73,8 @@ local posx = 0
 local posy = 0
 local posz = 0
 local posradius = 0
+local canSpawnHere = false
 local canBuildHere = false
-
 
 
 
@@ -90,7 +90,7 @@ function gadget:Initialize()
 end
 
 local function posCheck(posx, posy, posz, posradius)
-	-- if true then can build
+	-- if true then can spawn
 	local testpos1 = Spring.GetGroundHeight(posx + math.random(0,posradius), posz + math.random(-posradius,posradius))
 	local testpos2 = Spring.GetGroundHeight(posx + math.random(-posradius,0), posz + math.random(-posradius,posradius))
 	local testpos3 = Spring.GetGroundHeight(posx + math.random(-posradius,posradius), posz + math.random(0,posradius))
@@ -122,42 +122,81 @@ local function posCheck(posx, posy, posz, posradius)
 	end
 end
 
+local function posOccupied(posx, posy, posz, posradius)
+	-- if true then can spawn
+	local unitcount = #Spring.GetUnitsInRectangle(posx-posradius, posz-posradius, posx+posradius, posz+posradius)
+	if unitcount > 0 then
+		return false
+	else
+		return true
+	end
+end
+
+local function posLosCheck(posx, posy, posz)
+	-- if true then can spawn
+	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
+		if allyTeamID ~= GaiaAllyTeamID then
+			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
+				return false
+			end
+		end
+	end
+	return true
+end
+
 function gadget:GameFrame(n)
 	if n == 100 then
 		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "es", 100000)
 		Spring.SetGlobalLos(GaiaAllyTeamID, false)
 	end
+	if n%90 == 0 and n > 3000 then
+		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
+		local spawnchance = math.random(0,200)
+		if spawnchance == 0 or canBuildHere == false then
+			local posx = math.random(400,mapsizeX-400)
+			local posz = math.random(400,mapsizeZ-400)
+			local posy = Spring.GetGroundHeight(posx, posz)
+			local posradius = 100
+			
+			canBuildHere = posLosCheck(posx, posy, posz)
+			if canBuildHere then
+				canBuildHere = posOccupied(posx, posy, posz, posradius)
+			end
+			if canBuildHere then
+				canBuildHere = posCheck(posx, posy, posz, posradius)
+			end
+			
+			if canBuildHere then
+				-- let's do this shit
+				local spawnbuilding = T1LandBuildings[math.random(1,#T1LandBuildings)]
+				Spring.CreateUnit(spawnbuilding, posx, posy, posz, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(spawnbuilding, posx-100, posy, posz, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(spawnbuilding, posx+100, posy, posz, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(spawnbuilding, posx, posy, posz-100, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(spawnbuilding, posx, posy, posz+100, math.random(0,3),GaiaTeamID)
+			end
+		end
+	end
+		
 	if n%30 == 0 and n > 9000 then
 		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
-		if spawnchance == 0 or canBuildHere == false then
+		if spawnchance == 0 or canSpawnHere == false then
 			-- check positions
 			local posx = math.random(400,mapsizeX-400)
 			local posz = math.random(400,mapsizeZ-400)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			local posradius = 100
-			local canBuildHere = posCheck(posx, posy, posz, posradius)
-			
-			if canBuildHere then
-
-				for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
-					if allyTeamID ~= GaiaAllyTeamID then
-						if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
-							canBuildHere = false
-							break
-						else
-							canBuildHere = true
-						end
-					end
-				end
+			canSpawnHere = posCheck(posx, posy, posz, posradius)
+			if canSpawnHere then
+				canSpawnHere = posLosCheck(posx, posy, posz)
 			end
-			
 			--spawn units
-			if canBuildHere then
+			if canSpawnHere then
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
