@@ -408,7 +408,7 @@ function TaskQueueBehaviour:LocationFilter(utype, value)
 		p =  self.ai.buildsitehandler:searchPosInList(turtlePosList,utype, builder, nil,0)
 		if p == nil then return end
 	elseif unitTable[value].isBuilding then
-		EchoDebug('maybe out ' .. value)
+		self:EchoDebug('maybe out ' .. value)
 		if Eco2[value] == 1 then
 			p = ai.buildsitehandler:BuildNearNano(builder, utype) 
 		end

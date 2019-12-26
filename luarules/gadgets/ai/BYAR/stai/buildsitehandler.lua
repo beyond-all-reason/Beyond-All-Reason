@@ -317,7 +317,7 @@ function BuildSiteHandler:unitNearCheck(utype,p,spec)
 	for idx, typeDef in pairs(target) do
 		local tgName = self.game:GetUnitByID(typeDef):Name()
 		if utype:Name() == tgName --[[or unitTable[tgName][spec]] then
-			EchoDebug(utype:Name() .. ' block by ' .. tostring(tgName))
+			self:EchoDebug(utype:Name() .. ' block by ' .. tostring(tgName))
 			return true
 		end
 	end
@@ -325,7 +325,6 @@ function BuildSiteHandler:unitNearCheck(utype,p,spec)
 end
 
 function BuildSiteHandler:searchPosInList(list,utype, builder, spaceEquals,minDist)
--- 	print(utype:Name())
 	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
 	if list and #list > 0 then
 		for index, pos in pairs(list) do
