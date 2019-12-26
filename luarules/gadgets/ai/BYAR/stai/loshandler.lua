@@ -401,18 +401,16 @@ function LosHandler:IsInAirLos(pos)
 end
 
 function LosHandler:GroundLos(upos)
-	if ShardSpringLua then
-		local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
-		if inLos then return 2 end
-		if upos.y < 0 then -- underwater
-			if inRadar then return 3 end
-		end
-		if inRadar then return 1 end
-		if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
-			return 4
-		else
-			return 0
-		end
+	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
+	if inLos then return 2 end
+	if upos.y < 0 then -- underwater
+		if inRadar then return 3 end
+	end
+	if inRadar then return 1 end
+	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
+		return 4
+	else
+		return 0
 	end
 	local gx = math.ceil(upos.x / losGridElmos)
 	local gz = math.ceil(upos.z / losGridElmos)

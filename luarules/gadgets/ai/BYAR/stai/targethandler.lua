@@ -76,10 +76,7 @@ local function NewCell(px, pz)
 	local z = pz * cellElmos - cellElmosHalf
 	local position = api.Position()
 	position.x, position.z = x, z
-	position.y = 0
-	if ShardSpringLua then
-		position.y = Spring.GetGroundHeight(x, z)
-	end
+	position.y = Spring.GetGroundHeight(x, z)
 	local newcell = { value = 0, explosionValue = 0, values = values, threat = threat, response = response, buildingIDs = {}, targets = targets, vulnerables = vulnerables, resurrectables = {}, reclaimables = {}, lastDisarmThreat = 0, metal = 0, energy = 0, x = px, z = pz, pos = position }
 	return newcell
 end

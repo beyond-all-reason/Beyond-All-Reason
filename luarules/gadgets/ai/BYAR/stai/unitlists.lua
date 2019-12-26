@@ -659,16 +659,16 @@ UWMetalSpotCheckUnit = "coruwmex"
 
 -- for non-lua only; tests build orders of these units to determine mobility there
 -- multiple units for one mtype function as OR
-mobUnitNames = {
-	veh = {"corcv", "armllt"},
-	bot = {"corck", "armeyes"},
-	amp = {"cormuskrat"},
-	hov = {"corsh", "armfdrag"},
-	shp = {"corcs"},
-	sub = {"coracsub"},
-}
+	mobUnitNames = {
+		veh = {"corcv", "armllt"},
+		bot = {"corck", "armeyes"},
+		amp = {"cormuskrat"},
+		hov = {"corsh", "armfdrag"},
+		shp = {"corcs"},
+		sub = {"coracsub"},
+	}
 
--- for ShardSpringLua only; tests move orders of these units to determine mobility there
+-- tests move orders of these units to determine mobility there
 mobUnitExampleName = {
 	veh = "armcv",
 	bot = "armck",

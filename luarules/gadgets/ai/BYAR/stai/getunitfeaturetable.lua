@@ -148,37 +148,27 @@ local function GetUnitTable()
 				utable.submergedRange = GetLongestWeaponRange(unitDefID, 2)
 				if unitDef.speed == 0 and utable.isWeapon then
 					utable.isTurret = true
--- 					print(unitDef.weapons[1].weapontype
--- 					print(unitDef.name .. ' type ' .. tostring(WeaponDefs[unitDef["weapons"][1]["weaponDef"]]['type']))
 					if unitDef.modCategories.mine then
 						utable.isMine = utable.techLevel
--- 						print(unitDef.name ..'    MINE ' .. tostring(unitDef.modCategories.mine))
 					elseif utable.firstWeapon and utable.firstWeapon['type'] == ('StarburstLauncher' or 'MissileLauncher') then
 						utable.isTacticalTurret =  utable.techLevel
 					elseif utable.firstWeapon and utable.firstWeapon['type'] == 'cannon' then
 						utable.isCannonTurret = utable.techLevel
 					elseif utable.firstWeapon and utable.firstWeapon['type'] == 'BeamLaser' then
-                         utable.isLaserTurret = utable.techLevel
---                          print(unitDef.name)
+						utable.isLaserTurret = utable.techLevel
 					elseif utable.firstWeapon and utable.firstWeapon['type'] == 'TorpedoLauncher' then
-                         utable.isTorpedoTurret = utable.techLevel						
+						utable.isTorpedoTurret = utable.techLevel
 					end
-						
 					if utable.groundRange and utable.groundRange > 0 then
 						utable.isGroundTurret = utable.groundRange
-						print(unitDef.name ..'    ground ' .. utable.isGroundTurret )
 					end
 					if utable.airRange and utable.airRange > 0 then
 						utable.isAirTurret = utable.airRange
--- 						print(unitDef.name ..'    air ' .. utable.isAirTurret )
 					end
 					if utable.submergedRange and utable.submergedRange > 0 then
 						utable.isSubTurret = utable.submergedRange
--- 							print(unitDef.name..'    sub ' .. utable.isSubTurret )
 					end
-					
 				end
-				
 				if fighter[unitDef["name"]] then
 					utable.airRange = utable.groundRange
 				end
