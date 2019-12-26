@@ -14,9 +14,6 @@ static-var  bMoving, bAiming, Static_Var_3, restore_delay, Static_Var_5,
 #define SIG_AIM_3			8
 #define SIG_MOVE			16
 
-#define LASER_DEPTH			-1364387
-#define TORP_DEPTH			-945887
-
 walk()
 {
 	if( bMoving )
@@ -687,9 +684,7 @@ RestoreAfterDelay()
 
 AimSecondary(heading, pitch)
 {
-	Unit_Depth = get GROUND_WATER_HEIGHT(get UNIT_XZ);
-	//get PRINT( Unit_Depth );
-    if ( Unit_Depth > TORP_DEPTH )
+    if ( get IN_WATER(0) == 1 )
     {									  
      return (0);
     }
@@ -722,9 +717,7 @@ QuerySecondary(piecenum)
 
 AimPrimary(heading, pitch)
 {
-	Unit_Depth = get GROUND_WATER_HEIGHT(get UNIT_XZ);
-	//get PRINT( Unit_Depth );
-    if ( Unit_Depth < LASER_DEPTH )
+	if ( get IN_WATER(0) == 0 )
     {
      return (0);
     }
