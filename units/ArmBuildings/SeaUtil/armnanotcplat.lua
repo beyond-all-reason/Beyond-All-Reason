@@ -19,7 +19,7 @@ return {
 		canfight = true,
 		canstop = true,
 		canreclaim = true,
-		cantbetransported = true,
+		cantbetransported = false,
 		category = "ALL NOTSUB NOWEAPON NOTAIR NOTHOVER SURFACE EMPABLE",
 		collisionvolumeoffsets = "0 0 0",
 		collisionvolumescales = "31 50 31",
