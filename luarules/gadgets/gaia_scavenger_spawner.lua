@@ -20,6 +20,17 @@ if (not gadgetHandler:IsSyncedCode()) then
 end
 
 
+ScavengerBlueprintsStart = {}
+ScavengerBlueprintsT1 = {}
+ScavengerBlueprintsT2 = {}
+ScavengerBlueprintsT3 = {}
+
+ConfigsList = VFS.DirList('luarules/configs/ScavengerBlueprints/','*.lua')
+for i = 1,#ConfigsList do
+	VFS.Include(ConfigsList[i])
+	Spring.Echo("Direction: " ..ConfigsList[i])
+end
+
 ------------------------------------------------------------------------
 
 local GaiaTeamID  = Spring.GetGaiaTeamID()
@@ -75,6 +86,8 @@ local posz = 0
 local posradius = 0
 local canSpawnHere = false
 local canBuildHere = false
+local blueprint = 0
+local radiusCheck = false
 
 
 
@@ -91,14 +104,15 @@ end
 
 local function posCheck(posx, posy, posz, posradius)
 	-- if true then can spawn
-	local testpos1 = Spring.GetGroundHeight(posx + math.random(0,posradius), posz + math.random(-posradius,posradius))
-	local testpos2 = Spring.GetGroundHeight(posx + math.random(-posradius,0), posz + math.random(-posradius,posradius))
-	local testpos3 = Spring.GetGroundHeight(posx + math.random(-posradius,posradius), posz + math.random(0,posradius))
-	local testpos4 = Spring.GetGroundHeight(posx + math.random(-posradius,posradius), posz + math.random(-posradius,0))
-	local testpos5 = Spring.GetGroundHeight(posx + math.random(0,posradius), posz + math.random(0,posradius))
-	local testpos6 = Spring.GetGroundHeight(posx + math.random(-posradius,0), posz + math.random(-posradius,0))
-	local testpos7 = Spring.GetGroundHeight(posx + math.random(-posradius,0), posz + math.random(0,posradius))
-	local testpos8 = Spring.GetGroundHeight(posx + math.random(0,posradius), posz + math.random(-posradius,0))
+	local testpos1 = Spring.GetGroundHeight((posx + posradius), (posz + posradius) )
+	local testpos2 = Spring.GetGroundHeight((posx + posradius), (posz - posradius) )
+	local testpos3 = Spring.GetGroundHeight((posx - posradius), (posz + posradius) )
+	local testpos4 = Spring.GetGroundHeight((posx - posradius), (posz - posradius) )
+	local testpos5 = Spring.GetGroundHeight((posx + posradius), posz )
+	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
+	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
+	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
+
 	if deathwater > 0 and posy <= 0 then
 		return false
 	elseif testpos1 < posy - 30 or testpos1 > posy + 30 then
@@ -132,11 +146,26 @@ local function posOccupied(posx, posy, posz, posradius)
 	end
 end
 
-local function posLosCheck(posx, posy, posz)
+local function posLosCheck(posx, posy, posz, posradius)
 	-- if true then can spawn
 	for _,allyTeamID in ipairs(Spring.GetAllyTeamList()) do
 		if allyTeamID ~= GaiaAllyTeamID then
-			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true then
+			if Spring.IsPosInLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInRadar(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInRadar(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInRadar(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInRadar(posx - posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx, posy, posz, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx + posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
+			Spring.IsPosInAirLos(posx - posradius, posy, posz - posradius, allyTeamID) == true then
 				return false
 			end
 		end
@@ -144,22 +173,31 @@ local function posLosCheck(posx, posy, posz)
 	return true
 end
 
+--local function buildBlueprint(blueprint)
+	--blueprint
+--end
+
 function gadget:GameFrame(n)
 	if n == 100 then
 		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "es", 100000)
 		Spring.SetGlobalLos(GaiaAllyTeamID, false)
 	end
+	if n%3000 == 0 then
+		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
+		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
+	end
 	if n%90 == 0 and n > 3000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,200)
+		local spawnchance = math.random(0,120)
 		if spawnchance == 0 or canBuildHere == false then
 			local posx = math.random(400,mapsizeX-400)
 			local posz = math.random(400,mapsizeZ-400)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			local posradius = 100
+			local blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
+			local posradius = blueprint(posx, posy, posz, GaiaTeamID, true)
 			
-			canBuildHere = posLosCheck(posx, posy, posz)
+			canBuildHere = posLosCheck(posx, posy, posz, posradius)
 			if canBuildHere then
 				canBuildHere = posOccupied(posx, posy, posz, posradius)
 			end
@@ -169,19 +207,12 @@ function gadget:GameFrame(n)
 			
 			if canBuildHere then
 				-- let's do this shit
-				local spawnbuilding = T1LandBuildings[math.random(1,#T1LandBuildings)]
-				Spring.CreateUnit(spawnbuilding, posx, posy, posz, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit(spawnbuilding, posx-100, posy, posz, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit(spawnbuilding, posx+100, posy, posz, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit(spawnbuilding, posx, posy, posz-100, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit(spawnbuilding, posx, posy, posz+100, math.random(0,3),GaiaTeamID)
+				blueprint(posx, posy, posz, GaiaTeamID, false)
 			end
 		end
 	end
 		
 	if n%30 == 0 and n > 9000 then
-		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
-		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
@@ -190,10 +221,13 @@ function gadget:GameFrame(n)
 			local posx = math.random(400,mapsizeX-400)
 			local posz = math.random(400,mapsizeZ-400)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			local posradius = 100
+			local posradius = 200
 			canSpawnHere = posCheck(posx, posy, posz, posradius)
 			if canSpawnHere then
-				canSpawnHere = posLosCheck(posx, posy, posz)
+				canSpawnHere = posLosCheck(posx, posy, posz,posradius)
+			end
+			if canSpawnHere then
+				canSpawnHere = posOccupied(posx, posy, posz, posradius)
 			end
 			--spawn units
 			if canSpawnHere then
@@ -379,7 +413,7 @@ function gadget:GameFrame(n)
 						selfdestructcounter = selfdestructcounter + 1
 					end
 				end
-				if Spring.GetCommandQueue(scav, 0) <= 1 then
+				if not scavStructure and Spring.GetCommandQueue(scav, 0) <= 1 then
 					local nearest = Spring.GetUnitNearestEnemy(scav, 200000, false)
 					local x,y,z = Spring.GetUnitPosition(nearest)
 					local x = x + math.random(-50,50)

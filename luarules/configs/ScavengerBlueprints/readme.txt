@@ -1,0 +1,1 @@
+You can add more files with blueprints into this inventory. Script will automatically load all of them
