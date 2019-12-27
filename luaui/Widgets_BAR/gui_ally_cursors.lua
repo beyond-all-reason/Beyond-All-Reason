@@ -41,8 +41,6 @@ local sendPacketEvery				= 0.6
 local numMousePos					= 2 --//num mouse pos in 1 packet
 
 local showSpectatorName    			= true
-local showPlayerName       			= false
-local showCursorDot                 = false
 local drawNamesScaling				= true
 local drawNamesFade					= true
 
@@ -56,7 +54,7 @@ local NameFadeEndDistance			= 7200
 local idleCursorTime				= 30		-- fade time cursor (specs only)
 
 local addLights                     = true
-local lightRadiusMult               = 0.5
+local lightRadiusMult               = 0.55
 local lightStrengthMult             = 0.85
 
 -- tweak ui
@@ -120,32 +118,6 @@ function widget:ViewResize(n_vsx,n_vsy)
     font = gl.LoadFont(fontfile, 52*fontScale, 17*fontScale, 1.5)
 end
 
-function widget:TextCommand(command)
-    local mycommand = false
-    if (string.find(command, "allycursorspecname") == 1  and  string.len(command) == 18) then showSpectatorName = not showSpectatorName end
-
-    if (string.find(command, "allycursorplayername") == 1  and  string.len(command) == 20) then showPlayerName = not showPlayerName end
-
-    if showPlayerName then
-        usedCursorSize = drawNamesCursorSize
-    end
-end
-
-function widget:GetConfigData(data)
-    savedTable = {}
-    savedTable.showSpectatorName  = showSpectatorName
-    savedTable.showPlayerName     = showPlayerName
-    return savedTable
-end
-
-function widget:SetConfigData(data)
-    if data.showSpectatorName ~= nil   then  showSpectatorName   = data.showSpectatorName end
-    if data.showPlayerName ~= nil      then  showPlayerName      = data.showPlayerName end
-    
-    if showPlayerName then
-        usedCursorSize = drawNamesCursorSize
-    end
-end
 
 function updateSpecList(init)
     specList = {}
@@ -184,7 +156,7 @@ end
 function widget:Initialize()
     widgetHandler:RegisterGlobal('MouseCursorEvent', MouseCursorEvent)
 
-    if showPlayerName then
+    if not addLights then
         usedCursorSize = drawNamesCursorSize
     end
     updateSpecList(true)
@@ -228,20 +200,6 @@ function widget:Initialize()
     end
     WG['allycursors'].getLightRadius = function()
         return lightRadiusMult
-    end
-    WG['allycursors'].setCursorDot = function(value)
-        showCursorDot = value
-        deleteDlists()
-    end
-    WG['allycursors'].getCursorDot = function()
-        return showCursorDot
-    end
-    WG['allycursors'].setPlayerNames = function(value)
-        showPlayerName = value
-        deleteDlists()
-    end
-    WG['allycursors'].getPlayerNames = function()
-        return showPlayerName
     end
     WG['allycursors'].setSpectatorNames = function(value)
         showSpectatorName = value
@@ -421,28 +379,15 @@ function createCursorDrawList(playerID, opacityMultiplier)
     local name,_,spec,teamID = spGetPlayerInfo(playerID,false)
     local r, g, b = spGetTeamColor(teamID)
     local wx,wy,wz = 0,0,0
-    local quadSize = usedCursorSize
-    if spec then
-        quadSize = usedCursorSize * 0.77
-    end
 
     SetTeamColor(teamID,playerID,1)
 
-    if not spec  and not showPlayerName    or    spec  and  not showSpectatorName  then
+    if not spec and not addLights then
         --draw a cursor
-        if showCursorDot then
-            gl.Texture(allyCursor)
-            gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
-            gl.Texture(false)
-        end
-    else
-        if not spec and showCursorDot then
-            --draw a cursor
-            gl.Texture(allyCursor)
-            gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,quadSize)
-            gl.Texture(false)
-        end
-        
+        gl.Texture(allyCursor)
+        gl.BeginEnd(GL.QUADS,DrawGroundquad,wx,wy,wz,usedCursorSize)
+        gl.Texture(false)
+
         --draw the nickname
         gl.PushMatrix()
         gl.Translate(wx, wy, wz)
@@ -465,7 +410,7 @@ function createCursorDrawList(playerID, opacityMultiplier)
         end
         font:End()
         gl.PopMatrix()
-    end   
+    end
 end
 
 local function DrawCursor(playerID,wx,wy,wz,camX,camY,camZ,opacity)
@@ -591,9 +536,7 @@ function widget:GetConfigData(data)
     savedTable.addLights = addLights
     savedTable.lightRadiusMult = lightRadiusMult
     savedTable.lightStrengthMult = lightStrengthMult
-    savedTable.showCursorDot = showCursorDot
     savedTable.showSpectatorName = showSpectatorName
-    savedTable.showPlayerName = showPlayerName
     return savedTable
 end
 
@@ -602,11 +545,8 @@ function widget:SetConfigData(data)
         addLights = data.addLights
         lightRadiusMult = data.lightRadiusMult
         lightStrengthMult = data.lightStrengthMult
-        if data.showCursorDot ~= nil then
-            showCursorDot = data.showCursorDot
-            showSpectatorName = data.showSpectatorName
-            showPlayerName = data.showPlayerName
-        end
+        showSpectatorName = data.showSpectatorName
     end
 end
+
 

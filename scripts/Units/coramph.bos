@@ -7,7 +7,7 @@ piece  pelvis, torso, lleg, lfoot, rleg, rfoot, head,
        rflare , lflare , lancher,tflare ,lthigh,rthigh,neck, rbarrel, lbarrel, rtoe, ltoe;
 
 static-var  bMoving, bAiming, Static_Var_3, restore_delay, Static_Var_5,
-            gun_1, Static_Var_7, Static_Var_8, Unit_Depth, wpn1_lasthead, wpn3_lasthead;
+            gun_1, Static_Var_7, Static_Var_8, wpn1_lasthead, wpn3_lasthead;
 
 // Signal definitions
 #define SIG_AIM				2
