@@ -196,7 +196,6 @@ function gadget:GameFrame(n)
 			posx = math.random(400,mapsizeX-400)
 			posz = math.random(400,mapsizeZ-400)
 			posy = Spring.GetGroundHeight(posx, posz)
-			Spring.Echo(posy)
 			--blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
 			if posy > 0 then
 				if n > 54000 then
@@ -264,16 +263,13 @@ function gadget:GameFrame(n)
 			posradius = blueprint(posx, posy, posz, GaiaTeamID, true)
 			canBuildHere = posLosCheck(posx, posy, posz, posradius)
 			if canBuildHere then
-				Spring.Echo("LoS Check Succed")
 				canBuildHere = posOccupied(posx, posy, posz, posradius)
 			end
 			if canBuildHere then
-				Spring.Echo("Occupacy Check Succed")
 				canBuildHere = posCheck(posx, posy, posz, posradius)
 			end
 		
 			if canBuildHere then
-				Spring.Echo("Pos Check Succed")
 				-- let's do this shit
 				blueprint(posx, 5000, posz, GaiaTeamID, false)
 			end
