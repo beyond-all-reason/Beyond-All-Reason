@@ -23,6 +23,32 @@
 -- end
 -- table.insert(ScavengerBlueprintsT1,a)
 
+-- Lonely Buildings
+
+local function cloakedfus(posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 50
+	if radiusCheck then
+		return posradius
+	else
+		Spring.CreateUnit("armckfus", posx, posy, posz, math.random(0,3),GaiaTeamID) 
+
+	end
+end
+table.insert(ScavengerBlueprintsT2,cloakedfus)
+table.insert(ScavengerBlueprintsT3,cloakedfus)
+
+local function underwaterfus(posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 50
+	if radiusCheck then
+		return posradius
+	else
+		Spring.CreateUnit("coruwfus", posx, posy, posz, math.random(0,3),GaiaTeamID) 
+
+	end
+end
+table.insert(ScavengerBlueprintsT3Sea,underwaterfus)
+table.insert(ScavengerBlueprintsT2Sea,underwaterfus)
+
 
 -- Lonely Radars
 
@@ -122,3 +148,29 @@ local posradius = 50
 end
 table.insert(ScavengerBlueprintsT2Sea,asonararm)
 table.insert(ScavengerBlueprintsT3Sea,asonararm)
+
+-- Lonely Torpedolaunchers
+
+local function torpedoblue(posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 50
+	if radiusCheck then
+		return posradius
+	else
+		Spring.CreateUnit("armtl", posx, posy, posz, math.random(0,3),GaiaTeamID, false, false) 
+
+	end
+end
+table.insert(ScavengerBlueprintsT1Sea,torpedoblue)
+table.insert(ScavengerBlueprintsT2Sea,torpedoblue)
+
+local function atorpedored(posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 50
+	if radiusCheck then
+		return posradius
+	else
+		Spring.CreateUnit("coratl", posx, posy, posz, math.random(0,3),GaiaTeamID, false, false) 
+
+	end
+end
+table.insert(ScavengerBlueprintsT2Sea,atorpedored)
+table.insert(ScavengerBlueprintsT3Sea,atorpedored)

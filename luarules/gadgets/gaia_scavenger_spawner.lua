@@ -191,25 +191,21 @@ function gadget:GameFrame(n)
 	end
 	if n%90 == 0 and n > 3000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,120)
+		local spawnchance = math.random(0,20)
 		if spawnchance == 0 or canBuildHere == false then
-			posx = math.random(400,mapsizeX-400)
-			posz = math.random(400,mapsizeZ-400)
+			posx = math.random(200,mapsizeX-200)
+			posz = math.random(200,mapsizeZ-200)
 			posy = Spring.GetGroundHeight(posx, posz)
 			--blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
 			if posy > 0 then
-				if n > 54000 then
-					local r = math.random(0,3)
+				if n > 60000 then
+					local r = math.random(0,1)
 					if r == 0 then
 						blueprint = ScavengerBlueprintsT3[math.random(1,#ScavengerBlueprintsT3)]
-					elseif r == 1 then
-						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
-					elseif r == 2 then
-						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
 					else
-						blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
+						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
 					end
-				elseif n > 36000 then
+				elseif n > 39000 then
 					local r = math.random(0,2)
 					if r == 0 then
 						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
@@ -229,7 +225,7 @@ function gadget:GameFrame(n)
 					blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
 				end
 			elseif posy <= 0 then	
-				if n > 54000 then
+				if n > 60000 then
 					local r = math.random(0,3)
 					if r == 0 then
 						blueprint = ScavengerBlueprintsT3Sea[math.random(1,#ScavengerBlueprintsT3Sea)]
@@ -240,7 +236,7 @@ function gadget:GameFrame(n)
 					else
 						blueprint = ScavengerBlueprintsStartSea[math.random(1,#ScavengerBlueprintsStartSea)]
 					end
-				elseif n > 36000 then
+				elseif n > 39000 then
 					local r = math.random(0,2)
 					if r == 0 then
 						blueprint = ScavengerBlueprintsT2Sea[math.random(1,#ScavengerBlueprintsT2Sea)]
@@ -461,6 +457,9 @@ function gadget:GameFrame(n)
 				local scav = scavengerunits[i]
 				local scavDef = Spring.GetUnitDefID(scav)
 				local scavStructure = UnitDefs[scavDef].isBuilding
+				if UnitDefs[scavDef].name == "cormaw" or UnitDefs[scavDef].name == "armclaw" or UnitDefs[scavDef].name == "cornanotc" or UnitDefs[scavDef].name == "armnanotc" then
+                    scavStructure = true
+                end
 				if not scavStructure and n%900 == 0 then
 					if dx[scav] then
 						olddx[scav] = dx[scav]
