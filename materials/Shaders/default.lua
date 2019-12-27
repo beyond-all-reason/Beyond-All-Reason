@@ -120,7 +120,7 @@ fragment = [[
 	#endif
 
 	%%FRAGMENT_GLOBAL_NAMESPACE%%
-	#line 20109
+	#line 20123
 
 	#if (deferred_mode == 1)
 		#define GBUFFER_NORMTEX_IDX 0
@@ -181,6 +181,25 @@ fragment = [[
 		#define SHADOW_SAMPLES 8 // number of shadowmap samples per fragment
 		#define SHADOW_RANDOMNESS 0.4 // 0.0 - blocky look, 1.0 - random points look
 		#define SHADOW_SAMPLING_DISTANCE 2.5 // how far shadow samples go (in shadowmap texels) as if it was applied to 8192x8192 sized shadow map
+	#endif
+
+	#ifndef ENV_SMPL_NUM
+		#define ENV_SMPL_NUM 0
+	#endif
+
+	#ifndef USE_ENVIRONMENT_DIFFUSE
+		#define USE_ENVIRONMENT_DIFFUSE 0
+	#endif
+
+	#ifndef USE_ENVIRONMENT_SPECULAR
+		#define USE_ENVIRONMENT_SPECULAR 0
+	#endif
+
+	#if (ENV_SMPL_NUM == 0)
+		#undef USE_ENVIRONMENT_DIFFUSE
+		#undef USE_ENVIRONMENT_SPECULAR
+		#define USE_ENVIRONMENT_DIFFUSE 0
+		#define USE_ENVIRONMENT_SPECULAR 0
 	#endif
 
 	#ifdef use_shadows
@@ -414,7 +433,6 @@ fragment = [[
 		return vec3(radius * vec2(cos(theta), sin(theta)), z);
 	}
 
-	#define ENV_SMPL_NUM 64
 	void TextureEnvBlured(in vec3 N, in vec3 Rv, out vec3 iblDiffuse, out vec3 iblSpecular) {
 		iblDiffuse = vec3(0.0);
 		iblSpecular = vec3(0.0);
@@ -448,7 +466,6 @@ fragment = [[
 		iblDiffuse  /= sum.x;
 		iblSpecular /= sum.y;
 	}
-	#undef ENV_SMPL_NUM
 
 
 /***********************************************************************/
@@ -505,7 +522,7 @@ fragment = [[
 	}
 
 	float ComputeSpecularAOBlender(float NoV, float diffuseAO, float roughness2) {
-		#if (defined SPECULAR_AO) && (defined use_vertex_ao)
+		#if defined(SPECULAR_AO) && defined(use_vertex_ao)
 			return clamp(pow(NoV + diffuseAO, roughness2) - 1.0 + diffuseAO, 0.0, 1.0);
 		#else
 			return diffuseAO;
@@ -513,7 +530,7 @@ fragment = [[
 	}
 
 	float ComputeSpecularAOFilament(float NoV, float diffuseAO, float roughness2) {
-	#if (defined SPECULAR_AO) && (defined use_vertex_ao)
+	#if defined(SPECULAR_AO) && defined(use_vertex_ao)
 		return clamp(pow(NoV + diffuseAO, exp2(-16.0 * roughness2 - 1.0)) - 1.0 + diffuseAO, 0.0, 1.0);
 	#else
 		return diffuseAO;
@@ -649,7 +666,7 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20638
+		#line 20669
 
 		#ifdef use_normalmapping
 			vec2 tc = modelUV.st;
@@ -842,12 +859,12 @@ fragment = [[
             ///
 			vec3 iblDiffuse, iblSpecular;
 
-			#if (defined USE_ENVIRONMENT_DIFFUSE) || (defined USE_ENVIRONMENT_SPECULAR)
+			#if (USE_ENVIRONMENT_DIFFUSE == 1) || (USE_ENVIRONMENT_SPECULAR == 1)
 				TextureEnvBlured(N, Rv, iblDiffuse, iblSpecular);
 			#endif
             ///
 
-            #if (defined USE_ENVIRONMENT_DIFFUSE)
+            #if (USE_ENVIRONMENT_DIFFUSE == 1)
 			{
 				#if 0
 					vec3 iblDiffuseYCbCr = RGB2YCBCR * iblDiffuse;
@@ -873,7 +890,7 @@ fragment = [[
             // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
             vec3 reflectionColor = SampleEnvironmentWithRoughness(Rv, roughness);
 
-			#if (defined USE_ENVIRONMENT_SPECULAR)
+			#if (USE_ENVIRONMENT_SPECULAR == 1)
 				reflectionColor = mix(reflectionColor, iblSpecular, roughness);
 			#endif
 
