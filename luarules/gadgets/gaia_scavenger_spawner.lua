@@ -24,6 +24,10 @@ ScavengerBlueprintsStart = {}
 ScavengerBlueprintsT1 = {}
 ScavengerBlueprintsT2 = {}
 ScavengerBlueprintsT3 = {}
+ScavengerBlueprintsStartSea = {}
+ScavengerBlueprintsT1Sea = {}
+ScavengerBlueprintsT2Sea = {}
+ScavengerBlueprintsT3Sea = {}
 
 ConfigsList = VFS.DirList('luarules/configs/ScavengerBlueprints/','*.lua')
 for i = 1,#ConfigsList do
@@ -112,7 +116,6 @@ local function posCheck(posx, posy, posz, posradius)
 	local testpos6 = Spring.GetGroundHeight(posx, (posz + posradius) )
 	local testpos7 = Spring.GetGroundHeight((posx - posradius), posz )
 	local testpos8 = Spring.GetGroundHeight(posx, (posz - posradius) )
-
 	if deathwater > 0 and posy <= 0 then
 		return false
 	elseif testpos1 < posy - 30 or testpos1 > posy + 30 then
@@ -155,7 +158,6 @@ local function posLosCheck(posx, posy, posz, posradius)
 			Spring.IsPosInLos(posx + posradius, posy, posz - posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx - posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
-			Spring.IsPosInLos(posx - posradius, posy, posz - posradius, allyTeamID) == true or
 			Spring.IsPosInRadar(posx, posy, posz, allyTeamID) == true or
 			Spring.IsPosInRadar(posx + posradius, posy, posz + posradius, allyTeamID) == true or
 			Spring.IsPosInRadar(posx + posradius, posy, posz - posradius, allyTeamID) == true or
@@ -191,23 +193,89 @@ function gadget:GameFrame(n)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(0,120)
 		if spawnchance == 0 or canBuildHere == false then
-			local posx = math.random(400,mapsizeX-400)
-			local posz = math.random(400,mapsizeZ-400)
-			local posy = Spring.GetGroundHeight(posx, posz)
-			local blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
-			local posradius = blueprint(posx, posy, posz, GaiaTeamID, true)
-			
+			posx = math.random(400,mapsizeX-400)
+			posz = math.random(400,mapsizeZ-400)
+			posy = Spring.GetGroundHeight(posx, posz)
+			Spring.Echo(posy)
+			--blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
+			if posy > 0 then
+				if n > 54000 then
+					local r = math.random(0,3)
+					if r == 0 then
+						blueprint = ScavengerBlueprintsT3[math.random(1,#ScavengerBlueprintsT3)]
+					elseif r == 1 then
+						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
+					elseif r == 2 then
+						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
+					else
+						blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
+					end
+				elseif n > 36000 then
+					local r = math.random(0,2)
+					if r == 0 then
+						blueprint = ScavengerBlueprintsT2[math.random(1,#ScavengerBlueprintsT2)]
+					elseif r == 1 then
+						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
+					else
+						blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
+					end
+				elseif n > 18000 then
+					local r = math.random(0,1)
+					if r == 0 then
+						blueprint = ScavengerBlueprintsT1[math.random(1,#ScavengerBlueprintsT1)]
+					else
+						blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
+					end
+				else
+					blueprint = ScavengerBlueprintsStart[math.random(1,#ScavengerBlueprintsStart)]
+				end
+			elseif posy <= 0 then	
+				if n > 54000 then
+					local r = math.random(0,3)
+					if r == 0 then
+						blueprint = ScavengerBlueprintsT3Sea[math.random(1,#ScavengerBlueprintsT3Sea)]
+					elseif r == 1 then
+						blueprint = ScavengerBlueprintsT2Sea[math.random(1,#ScavengerBlueprintsT2Sea)]
+					elseif r == 2 then
+						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
+					else
+						blueprint = ScavengerBlueprintsStartSea[math.random(1,#ScavengerBlueprintsStartSea)]
+					end
+				elseif n > 36000 then
+					local r = math.random(0,2)
+					if r == 0 then
+						blueprint = ScavengerBlueprintsT2Sea[math.random(1,#ScavengerBlueprintsT2Sea)]
+					elseif r == 1 then
+						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
+					else
+						blueprint = ScavengerBlueprintsStartSea[math.random(1,#ScavengerBlueprintsStartSea)]
+					end
+				elseif n > 18000 then
+					local r = math.random(0,1)
+					if r == 0 then
+						blueprint = ScavengerBlueprintsT1Sea[math.random(1,#ScavengerBlueprintsT1Sea)]
+					else
+						blueprint = ScavengerBlueprintsStartSea[math.random(1,#ScavengerBlueprintsStartSea)]
+					end
+				else
+					blueprint = ScavengerBlueprintsStartSea[math.random(1,#ScavengerBlueprintsStartSea)]
+				end	
+			end
+			posradius = blueprint(posx, posy, posz, GaiaTeamID, true)
 			canBuildHere = posLosCheck(posx, posy, posz, posradius)
 			if canBuildHere then
+				Spring.Echo("LoS Check Succed")
 				canBuildHere = posOccupied(posx, posy, posz, posradius)
 			end
 			if canBuildHere then
+				Spring.Echo("Occupacy Check Succed")
 				canBuildHere = posCheck(posx, posy, posz, posradius)
 			end
-			
+		
 			if canBuildHere then
+				Spring.Echo("Pos Check Succed")
 				-- let's do this shit
-				blueprint(posx, posy, posz, GaiaTeamID, false)
+				blueprint(posx, 5000, posz, GaiaTeamID, false)
 			end
 		end
 	end
@@ -439,42 +507,3 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		olddz[unitID] = nil
 	end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
