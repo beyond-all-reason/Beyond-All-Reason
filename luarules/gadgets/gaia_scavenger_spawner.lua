@@ -2,7 +2,7 @@ function gadget:GetInfo()
   return {
     name      = "gaia scavenger unit spawner",
     desc      = "Spawner of units",
-    author    = "Damgam",
+    author    = "Damgam + tweaks by IceXuick",
     date      = "2019",
     layer     = -100,
     enabled   = true,
@@ -186,6 +186,8 @@ function gadget:GameFrame(n)
 		Spring.SetGlobalLos(GaiaAllyTeamID, false)
 	end
 	if n%3000 == 0 then
+		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
+		Spring.SetTeamResource(GaiaTeamID, "es", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 	end
