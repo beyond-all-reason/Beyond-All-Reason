@@ -276,7 +276,7 @@ function gadget:GameFrame(n)
 		
 	if n%30 == 0 and n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount/2)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
+		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
 		if spawnchance == 0 or canSpawnHere == false then
 			-- check positions

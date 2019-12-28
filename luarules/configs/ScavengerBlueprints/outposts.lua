@@ -60,36 +60,36 @@ table.insert(ScavengerBlueprintsT2,radaroutpostred2)
 
 -- Outpost ARM
 
-local function radaroutpostblue(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armllt", "armllt", "armllt", "armclaw", "armrl",}
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		Spring.CreateUnit("armarad", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
-		Spring.CreateUnit("armjamt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "south",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "north",GaiaTeamID) 
-	end
-end
-table.insert(ScavengerBlueprintsStart,radaroutpostblue)
-table.insert(ScavengerBlueprintsT1,radaroutpostblue)
+-- local function radaroutpostblue(posx, posy, posz, GaiaTeamID, radiusCheck)
+-- local unitpool = {"armllt", "armllt", "armllt", "armclaw", "armrl",}
+-- local posradius = 100
+-- 	if radiusCheck then
+-- 		return posradius
+-- 	else
+-- 		Spring.CreateUnit("armarad", posx, posy, posz, math.random(0,3),GaiaTeamID) 
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
+-- 		Spring.CreateUnit("armjamt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "south",GaiaTeamID) 
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "north",GaiaTeamID) 
+-- 	end
+-- end
+-- table.insert(ScavengerBlueprintsStart,radaroutpostblue)
+-- table.insert(ScavengerBlueprintsT1,radaroutpostblue)
 
-local function radaroutpostblue2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armllt", "armllt", "armrad", "armdrag", "armcir",}
-local posradius = 100
-	if radiusCheck then
-		return posradius
-	else
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
-		Spring.CreateUnit("armjamt", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "south",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "north",GaiaTeamID) 
-	end
-end
-table.insert(ScavengerBlueprintsT1,radaroutpostblue2)
-table.insert(ScavengerBlueprintsT2,radaroutpostblue2)
+-- local function radaroutpostblue2(posx, posy, posz, GaiaTeamID, radiusCheck)
+-- local unitpool = {"armllt", "armllt", "armrad", "armdrag", "armcir",}
+-- local posradius = 100
+-- 	if radiusCheck then
+-- 		return posradius
+-- 	else
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
+-- 		Spring.CreateUnit("armjamt", posx, posy, posz, math.random(0,3),GaiaTeamID) 
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "south",GaiaTeamID) 
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "north",GaiaTeamID) 
+-- 	end
+-- end
+-- table.insert(ScavengerBlueprintsT1,radaroutpostblue2)
+-- table.insert(ScavengerBlueprintsT2,radaroutpostblue2)
 
 
 -- ROADBLOCKS
@@ -148,19 +148,19 @@ table.insert(ScavengerBlueprintsT3,aaoutpostmediumred)
 
 -- Medium Anti-Air Outpost ARM
 
-local function aaoutpostmediumblue(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 80
-	if radiusCheck then
-		return posradius
-	else
-		Spring.CreateUnit("armflak", posx-50, posy, posz-50, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("armflak", posx+50, posy, posz+50, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("armveil", posx-50, posy, posz+50, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("armarad", posx+50, posy, posz-50, math.random(0,3),GaiaTeamID) 
-	end
-end
-table.insert(ScavengerBlueprintsT2,aaoutpostmediumblue)
-table.insert(ScavengerBlueprintsT3,aaoutpostmediumblue)
+-- local function aaoutpostmediumblue(posx, posy, posz, GaiaTeamID, radiusCheck)
+-- local posradius = 80
+-- 	if radiusCheck then
+-- 		return posradius
+-- 	else
+-- 		Spring.CreateUnit("armflak", posx-50, posy, posz-50, math.random(0,3),GaiaTeamID)
+-- 		Spring.CreateUnit("armflak", posx+50, posy, posz+50, math.random(0,3),GaiaTeamID) 
+-- 		Spring.CreateUnit("armveil", posx-50, posy, posz+50, math.random(0,3),GaiaTeamID) 
+-- 		Spring.CreateUnit("armarad", posx+50, posy, posz-50, math.random(0,3),GaiaTeamID) 
+-- 	end
+-- end
+-- table.insert(ScavengerBlueprintsT2,aaoutpostmediumblue)
+-- table.insert(ScavengerBlueprintsT3,aaoutpostmediumblue)
 
 
 
