@@ -104,6 +104,8 @@ function gadget:Initialize()
 		-- gadgetHandler:RemoveGadget(self)
 	-- end
 
+
+
 end
 
 local function posCheck(posx, posy, posz, posradius)
@@ -283,6 +285,7 @@ function gadget:GameFrame(n)
 			local posx = math.random(200,mapsizeX-200)
 			local posz = math.random(200,mapsizeZ-200)
 			local posy = Spring.GetGroundHeight(posx, posz)
+			-- minimum size needed for succesful spawn
 			local posradius = 100
 			canSpawnHere = posCheck(posx, posy, posz, posradius)
 			if canSpawnHere then
@@ -503,4 +506,13 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		olddy[unitID] = nil
 		olddz[unitID] = nil
 	end
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+    if unitTeam == GaiaTeamID then
+    	-- CMD.CLOAK = 37382
+        Spring.GiveOrderToUnit(unitID,37382,{1},{""})
+        -- Fire At Will
+        Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
+    end
 end
