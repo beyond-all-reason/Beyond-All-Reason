@@ -2060,8 +2060,8 @@ function init()
 
 		{id="screenedgemove", group="control", basic=true, name="Screen edge moves camera", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("FullscreenEdgeMove",1) or 1) == 1, description="If mouse is close to screen edge this will move camera\n\nChanges will be applied next game",
 		 onchange=function(i, value)
-			 Spring.SetConfigInt("FullscreenEdgeMove", value)
-			 Spring.SetConfigInt("WindowedEdgeMove", value)
+			 Spring.SetConfigInt("FullscreenEdgeMove", (value and 1 or 0))
+			 Spring.SetConfigInt("WindowedEdgeMove", (value and 1 or 0))
 		 end,
 		},
 		{id="screenedgemovewidth", group="control", basic=true, name=widgetOptionColor.."   edge width", type="slider", min=0, max=0.1, step=0.01, value=tonumber(Spring.GetConfigFloat("EdgeMoveWidth",1) or 1), description="In percentage of screen border",
@@ -2071,7 +2071,7 @@ function init()
 		},
 		{id="screenedgemovedynamic", group="control", name=widgetOptionColor.."   variable speed", type="bool", restart=true, value=tonumber(Spring.GetConfigInt("EdgeMoveDynamic",1) or 1) == 1, description="Enable if scrolling speed should fade with edge distance.",
 		 onchange=function(i, value)
-			 Spring.SetConfigInt("EdgeMoveDynamic", value)
+			 Spring.SetConfigInt("EdgeMoveDynamic", (value and 1 or 0))
 		 end,
 		},
 
