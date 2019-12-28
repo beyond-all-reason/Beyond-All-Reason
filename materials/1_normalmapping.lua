@@ -39,14 +39,12 @@ local matTemplate = {
 
 		"#define ROUGHNESS_AA 1.0",
 
-		"#define FAKE_ENV_HDR 0.4",
-
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
 		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-		"#define USE_ENVIRONMENT_DIFFUSE " .. tostring(Spring.GetConfigInt("USE_ENVIRONMENT_DIFFUSE", 1)),
-		"#define USE_ENVIRONMENT_SPECULAR " .. tostring(Spring.GetConfigInt("USE_ENVIRONMENT_SPECULAR", 1)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
 
 		--"#define GAMMA 2.2",
 		"#define TONEMAP(c) CustomTM(c)",
@@ -66,14 +64,12 @@ local matTemplate = {
 
 		"#define ROUGHNESS_AA 1.0",
 
-		"#define FAKE_ENV_HDR 0.4",
-
 		--"#define ROUGHNESS_PERTURB_NORMAL 0.025",
 		--"#define ROUGHNESS_PERTURB_COLOR 0.05",
 
 		"#define ENV_SMPL_NUM " .. tostring(Spring.GetConfigInt("ENV_SMPL_NUM", 64)),
-		"#define USE_ENVIRONMENT_DIFFUSE " .. tostring(Spring.GetConfigInt("USE_ENVIRONMENT_DIFFUSE", 1)),
-		"#define USE_ENVIRONMENT_SPECULAR " .. tostring(Spring.GetConfigInt("USE_ENVIRONMENT_SPECULAR", 1)),
+		"#define USE_ENVIRONMENT_DIFFUSE 1",
+		"#define USE_ENVIRONMENT_SPECULAR 1",
 
 		--"#define GAMMA 2.2",
 		"#define TONEMAP(c) CustomTM(c)",
@@ -89,13 +85,14 @@ local matTemplate = {
 	predl  = nil,
 	postdl = nil,
 	texunits  = {
-		[0] = '%%UNITDEFID:0',
-		[1] = '%%UNITDEFID:1',
-		[2] = '$shadow',
-		[4] = '$reflection',
-		[5] = '%NORMALTEX',
-		[6] = "$info",
-		[7] = GG.GetBrdfTexture(),
+		[0] = "%%UNITDEFID:0",
+		[1] = "%%UNITDEFID:1",
+		[2] = "$shadow",
+		[3] = "$reflection",
+		[4] = "%NORMALTEX",
+		[5] = "$info",
+		[6] = GG.GetBrdfTexture(),
+		[7] = GG.GetEnvTexture(),
 	},
 	SunChanged = SunChanged,
 }
