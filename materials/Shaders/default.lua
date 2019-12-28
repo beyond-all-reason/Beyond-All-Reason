@@ -136,6 +136,8 @@ fragment = [[
 	uniform sampler2D textureS3o2;
 	uniform samplerCube reflectTex;
 
+	uniform sampler2D envLUT;
+
 	uniform vec3 sunPos; //light direction in fact
 	#define lightDir sunPos
 
@@ -396,23 +398,100 @@ fragment = [[
 	}
 #endif
 
+
+/***********************************************************************/
+// Spherical Harmonics Lib
+	// Constants, see here: http://en.wikipedia.org/wiki/Table_of_spherical_harmonics
+	#define k01 0.2820947918 // sqrt(  1/PI)/2
+	#define k02 0.4886025119 // sqrt(  3/PI)/2
+	#define k03 1.0925484306 // sqrt( 15/PI)/2
+	#define k04 0.3153915652 // sqrt(  5/PI)/4
+	#define k05 0.5462742153 // sqrt( 15/PI)/4
+	#define k06 0.5900435860 // sqrt( 70/PI)/8
+	#define k07 2.8906114210 // sqrt(105/PI)/2
+	#define k08 0.4570214810 // sqrt( 42/PI)/8
+	#define k09 0.3731763300 // sqrt(  7/PI)/4
+	#define k10 1.4453057110 // sqrt(105/PI)/4
+
+	// Y_l_m(s), where l is the band and m the range in [-l..l]
+	float SphericalHarmonic( in int l, in int m, in vec3 n )
+	{
+		//----------------------------------------------------------
+		if( l==0 )          return   k01;
+
+		//----------------------------------------------------------
+		if( l==1 && m==-1 ) return  -k02*n.y;
+		if( l==1 && m== 0 ) return   k02*n.z;
+		if( l==1 && m== 1 ) return  -k02*n.x;
+
+		//----------------------------------------------------------
+		if( l==2 && m==-2 ) return   k03*n.x*n.y;
+		if( l==2 && m==-1 ) return  -k03*n.y*n.z;
+		if( l==2 && m== 0 ) return   k04*(3.0*n.z*n.z-1.0);
+		if( l==2 && m== 1 ) return  -k03*n.x*n.z;
+		if( l==2 && m== 2 ) return   k05*(n.x*n.x-n.y*n.y);
+		//----------------------------------------------------------
+
+		return 0.0;
+	}
+
+	mat3 shEvaluate(vec3 n) {
+		mat3 r;
+		r[0][0] =  SphericalHarmonic(0,  0, n);
+		r[0][1] = -SphericalHarmonic(1, -1, n);
+		r[0][2] =  SphericalHarmonic(1,  0, n);
+		r[1][0] = -SphericalHarmonic(1,  1, n);
+
+		r[1][1] =  SphericalHarmonic(2, -2, n);
+		r[1][2] = -SphericalHarmonic(2, -1, n);
+		r[2][0] =  SphericalHarmonic(2,  0, n);
+		r[2][1] = -SphericalHarmonic(2,  1, n);
+		r[2][2] =  SphericalHarmonic(2,  2, n);
+		return r;
+	}
+
+	// Recovers the value of a SH function in the direction dir.
+	float shUnproject(mat3 functionSh, vec3 dir)
+	{
+		mat3 sh = shEvaluate(dir);
+		return
+			dot(functionSh[0], sh[0]) +
+			dot(functionSh[1], sh[1]) +
+			dot(functionSh[2], sh[2]);
+	}
+
+	vec3 SH2toColor(mat3 shR, mat3 shG, mat3 shB, vec3 rayDir) {
+		vec3 rgbColor = vec3(
+			shUnproject(shR, rayDir),
+			shUnproject(shG, rayDir),
+			shUnproject(shB, rayDir));
+
+		// A "max" is usually recomended to avoid negative values (can happen with SH)
+		rgbColor = max(vec3(0.0), vec3(rgbColor));
+		return rgbColor;
+	}
+
 /***********************************************************************/
 // Environment sampling functions
-	vec3 SampleReflectionMap(vec3 sp, float lodBias){
-		vec3 color = SRGBtoLINEAR(texture(reflectTex, sp, lodBias).rgb);
+	#define FAKE_ENV_HDR 0.4
+	#define FAKE_ENV_THR 0.55
+	vec3 SampleReflectionMapMod(vec3 colorIn){
+		vec3 color = SRGBtoLINEAR(colorIn);
 		#if defined (FAKE_ENV_HDR)
-			color *= 1.0 + FAKE_ENV_HDR * smoothstep(0.55, 1.0, dot(LUMA, color)); //HDR for poors
+			color *= 1.0 + FAKE_ENV_HDR * smoothstep(FAKE_ENV_THR, 1.0, dot(LUMA, color)); //HDR for poors
 		#endif
 		return color;
 	}
 
-	vec3 SampleReflectionMapLod(vec3 sp, float lodBias){
-		vec3 color = SRGBtoLINEAR(textureLod(reflectTex, sp, lodBias).rgb);
-		#if defined (FAKE_ENV_HDR)
-			color *= 1.0 + FAKE_ENV_HDR * smoothstep(0.55, 1.0, dot(LUMA, color)); //HDR for poors
-		#endif
-		return color;
+	vec3 SampleReflectionMap(vec3 sp, float lodBias){
+		return SampleReflectionMapMod(texture(reflectTex, sp, lodBias).rgb);
 	}
+
+	vec3 SampleReflectionMapLod(vec3 sp, float lodBias){
+		return SampleReflectionMapMod(textureLod(reflectTex, sp, lodBias).rgb);
+	}
+
+
 
 	vec3 SampleEnvironmentWithRoughness(vec3 samplingVec, float roughness) {
 		float maxLodLevel = log2(float(textureSize(reflectTex, 0).x));
@@ -442,29 +521,44 @@ fragment = [[
 		vec2 ts = vec2(textureSize(reflectTex, 0));
 		float maxMipMap = log2(max(ts.x, ts.y));
 
-		vec2 lodBias = vec2(maxMipMap - 6.0, 4.0);
+		vec2 lodBias = vec2(maxMipMap - 4.0, 4.0);
 
-		for (int i=0; i < ENV_SMPL_NUM; ++i) {
-			vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
+		#if 0
+			for (int i=0; i < ENV_SMPL_NUM; ++i) {
+				vec3 sp = SpherePoints_GoldenAngle(float(i), float(ENV_SMPL_NUM));
 
-			vec2 w = vec2(
-				dot(sp, N ) * 0.5 + 0.5,
-				dot(sp, Rv) * 0.5 + 0.5);
+				vec2 w = vec2(
+					dot(sp, N ) * 0.5 + 0.5,
+					dot(sp, Rv) * 0.5 + 0.5);
 
 
-			w = pow(w, vec2(4.0, 32.0));
+				w = pow(w, vec2(4.0, 32.0));
 
-			vec3 iblD = SampleReflectionMapLod(sp, lodBias.x);
-			vec3 iblS = SampleReflectionMapLod(sp, lodBias.y);
+				vec3 iblD = SampleReflectionMapLod(sp, lodBias.x);
+				vec3 iblS = SampleReflectionMapLod(sp, lodBias.y);
 
-			iblDiffuse  += iblD * w.x;
-			iblSpecular += iblS * w.y;
+				iblDiffuse  += iblD * w.x;
+				iblSpecular += iblS * w.y;
 
-			sum += w;
-		}
+				sum += w;
+			}
 
-		iblDiffuse  /= sum.x;
-		iblSpecular /= sum.y;
+			iblDiffuse  /= sum.x;
+			iblSpecular /= sum.y;
+		#else
+			mat3 shR, shG, shB;
+
+			for (int x = 0; x < 3; ++x)
+				for (int y = 0; y < 3; ++y) {
+					vec3 sample = texelFetch(envLUT, ivec2(x, y), 0).rgb;
+					shR[x][y] = sample.r;
+					shG[x][y] = sample.g;
+					shB[x][y] = sample.b;
+				}
+
+			iblDiffuse = SH2toColor(shR, shG, shB, N);
+			iblSpecular = SH2toColor(shR, shG, shB, Rv);
+		#endif
 	}
 
 
@@ -666,7 +760,7 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20669
+		#line 20697
 
 		#ifdef use_normalmapping
 			vec2 tc = modelUV.st;
@@ -953,13 +1047,14 @@ fragment = [[
 	}
 ]],
 	uniformInt = {
-		textureS3o1 = 0,
-		textureS3o2 = 1,
-		shadowTex   = 2,
-		reflectTex  = 4,
-		normalMap   = 5,
-		losMapTex   = 6,
-		brdfLUT     = 7,
+		textureS3o1  = 0,
+		textureS3o2  = 1,
+		shadowTex    = 2,
+		reflectTex   = 3,
+		normalMap    = 4,
+		losMapTex    = 5,
+		brdfLUT      = 6,
+		envLUT       = 7,
 	},
 	uniformFloat = {
 		mapSize = {Game.mapSizeX, Game.mapSizeZ},

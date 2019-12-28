@@ -136,9 +136,11 @@ local function new(class, textureSize, gOption)
 	{
 		gOption = math.min(math.max(gOption or 3, 1), 4), --clamp between 1 and 3
 		textureSize = textureSize or 512,
-		brdfShader = nil,
-		brdfTexture = nil,
-		brdfFBO = nil,
+
+		shader = nil,
+		tex = nil,
+		fbo = nil,
+
 	}, class)
 end
 
@@ -148,7 +150,7 @@ local GenBrdfLut = setmetatable({}, {
 GenBrdfLut.__index = GenBrdfLut
 
 function GenBrdfLut:Initialize()
-	self.brdfTexture = gl.CreateTexture(self.textureSize, self.textureSize, {
+	self.tex = gl.CreateTexture(self.textureSize, self.textureSize, {
 		format = GL_RG16F,
 		border = false,
 		min_filter = GL.LINEAR,
@@ -157,22 +159,22 @@ function GenBrdfLut:Initialize()
 		wrap_t = GL.CLAMP_TO_EDGE,
 	})
 
-	if not self.brdfTexture then
-		Spring.Echo("GenBrdfLut: [%s] brdfTexture creation error:\n%s")
+	if not self.tex then
+		Spring.Echo("GenBrdfLut: tex creation error:\n")
 	end
 
-	self.brdfFBO = gl.CreateFBO({
-		color0 = self.brdfTexture,
+	self.fbo = gl.CreateFBO({
+		color0 = self.tex,
 		drawbuffers = {GL_COLOR_ATTACHMENT0_EXT},
 	})
 
-	if not self.brdfFBO then
-		Spring.Echo("GenBrdfLut: [%s] FBO creation error:\n%s")
+	if not self.fbo then
+		Spring.Echo("GenBrdfLut: FBO creation error:\n")
 	end
 
 	lutFS = lutFS:gsub("###G_OPTION###", tostring(self.gOption))
 
-	self.brdfShader = gl.CreateShader({
+	self.shader = gl.CreateShader({
 		vertex = lutVS,
 		fragment = lutFS,
 		uniformInt = {
@@ -182,7 +184,7 @@ function GenBrdfLut:Initialize()
 
 	local shLog = gl.GetShaderLog() or ""
 
-	if not self.brdfShader then
+	if not self.shader then
 		Spring.Echo(string.format("GenBrdfLut: [%s] shader errors:\n%s", "GenBrdfLut", shLog))
 		return false
 	elseif shLog ~= "" then
@@ -191,13 +193,13 @@ function GenBrdfLut:Initialize()
 end
 
 function GenBrdfLut:GetTexture()
-	return self.brdfTexture
+	return self.tex
 end
 
 function GenBrdfLut:Execute(saveDebug)
-	if self.brdfShader and gl.IsValidFBO(self.brdfFBO) then
-		gl.ActiveShader(self.brdfShader, function ()
-			gl.ActiveFBO(self.brdfFBO, function()
+	if self.shader and gl.IsValidFBO(self.fbo) then
+		gl.ActiveShader(self.shader, function ()
+			gl.ActiveFBO(self.fbo, function()
 				gl.DepthTest(false)
 				gl.Blending(false)
 				gl.PushPopMatrix(function()
@@ -215,9 +217,9 @@ function GenBrdfLut:Execute(saveDebug)
 end
 
 function GenBrdfLut:Finalize()
-	gl.DeleteFBO(self.brdfFBO)
-	gl.DeleteTexture(self.brdfTexture)
-	gl.DeleteShader(self.brdfShader)
+	gl.DeleteFBO(self.fbo)
+	gl.DeleteTexture(self.tex)
+	gl.DeleteShader(self.shader)
 end
 
 return GenBrdfLut
