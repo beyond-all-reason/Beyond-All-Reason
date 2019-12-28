@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 0
+local devswitch = 1
 if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or tonumber(Spring.GetModOptions().scavengers) == 0) and devswitch == 0 then
 	return
 end
@@ -67,13 +67,13 @@ local T2AirUnits = {"corape", "corcrw", "corhurc", "corvamp", "armblade", "armbr
 local Tech3Units = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
 local Tech3Sea = {"armepoch", "corblackhy", "corbats", "cormship", "armbats", "armmship",}
 
-local T1LandBuildings = {"armllt", "corllt"}
-local T2LandBuildings = {}
-local T3LandBuildings = {}
+--local T1LandBuildings = {"armllt", "corllt"}
+--local T2LandBuildings = {}
+--local T3LandBuildings = {}
 
-local T1SeaBuildings = {}
-local T2SeaBuildings = {}
-local T3SeaBuildings = {}
+--local T1SeaBuildings = {}
+--local T2SeaBuildings = {}
+--local T3SeaBuildings = {}
 
 --local timer = Spring.GetGameSeconds()
 
@@ -191,7 +191,7 @@ function gadget:GameFrame(n)
 	end
 	if n%90 == 0 and n > 3000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,20)
+		local spawnchance = math.random(0,60)
 		if spawnchance == 0 or canBuildHere == false then
 			posx = math.random(200,mapsizeX-200)
 			posz = math.random(200,mapsizeZ-200)
@@ -267,21 +267,21 @@ function gadget:GameFrame(n)
 		
 			if canBuildHere then
 				-- let's do this shit
-				blueprint(posx, 5000, posz, GaiaTeamID, false)
+				blueprint(posx, posy, posz, GaiaTeamID, false)
 			end
 		end
 	end
 		
 	if n%30 == 0 and n > 9000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
+		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount/2)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
 		if spawnchance == 0 or canSpawnHere == false then
 			-- check positions
-			local posx = math.random(400,mapsizeX-400)
-			local posz = math.random(400,mapsizeZ-400)
+			local posx = math.random(200,mapsizeX-200)
+			local posz = math.random(200,mapsizeZ-200)
 			local posy = Spring.GetGroundHeight(posx, posz)
-			local posradius = 200
+			local posradius = 100
 			canSpawnHere = posCheck(posx, posy, posz, posradius)
 			if canSpawnHere then
 				canSpawnHere = posLosCheck(posx, posy, posz,posradius)
