@@ -202,17 +202,6 @@ local options={
 		max    = 5,
 		step   = 0.1,
 	},
-	-- {
-		-- key    = 'discoscavengers',
-		-- name   = 'Disco Scavengers',
-		-- desc   = 'Replaces Scavenger black color with teamcolor that changes 3 times per second',
-		-- type   = 'number',
-		-- section= 'options',
-		-- def    = 0,
-		-- min    = 0,
-		-- max    = 1,
-		-- step   = 1,
-	-- },
 	{
 		key    = "newbie_placer",
 		name   = "Newbie Placer",
@@ -221,7 +210,6 @@ local options={
 		def    = false,
 		section= "options",
 	},
-
 
 	{
 		key    = 'restrictions',

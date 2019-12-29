@@ -48,7 +48,6 @@ if devswitch == 1 then
 	spawnmultiplier = 1
 end
 local failcounter = 0
---local discoscavengers = tonumber(Spring.GetModOptions().discoscavengers) or 0
 
 local T1KbotUnits = {"corak", "corcrash", "cornecro", "corstorm", "corthud", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
 local T2KbotUnits = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "corsumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus",}
