@@ -276,7 +276,7 @@ fragment = [[
 	#endif
 
 	// http://blog.marmakoide.org/?p=1
-	const float goldenAngle = PI * (3.0 - sqrt(5.0));
+	const float goldenAngle = 2.3999632297286533222315555066336; // PI * (3.0 - sqrt(5.0));
 	vec2 SpiralSNorm(int i, int N) {
 		float theta = float(i) * goldenAngle;
 		float r = sqrt(float(i)) / sqrt(float(N));
@@ -460,7 +460,26 @@ fragment = [[
 			dot(functionSh[2], sh[2]);
 	}
 
-	vec3 SH2toColor(mat3 shR, mat3 shG, mat3 shB, vec3 rayDir) {
+	const vec3 convCoeff = vec3(1.0, 2.0/3.0, 1.0/4.0);
+	mat3 shDiffuseConvolution(mat3 sh) {
+		mat3 r = sh;
+
+		r[0][0] *= convCoeff.x;
+
+		r[0][1] *= convCoeff.y;
+		r[0][2] *= convCoeff.y;
+		r[1][0] *= convCoeff.y;
+
+		r[1][1] *= convCoeff.z;
+		r[1][2] *= convCoeff.z;
+		r[2][0] *= convCoeff.z;
+		r[2][1] *= convCoeff.z;
+		r[2][2] *= convCoeff.z;
+
+		return r;
+	}
+
+	vec3 shToColor(mat3 shR, mat3 shG, mat3 shB, vec3 rayDir) {
 		vec3 rgbColor = vec3(
 			shUnproject(shR, rayDir),
 			shUnproject(shG, rayDir),
@@ -470,6 +489,7 @@ fragment = [[
 		rgbColor = max(vec3(0.0), vec3(rgbColor));
 		return rgbColor;
 	}
+
 
 /***********************************************************************/
 // Environment sampling functions
@@ -490,8 +510,6 @@ fragment = [[
 	vec3 SampleReflectionMapLod(vec3 sp, float lodBias){
 		return SampleReflectionMapMod(textureLod(reflectTex, sp, lodBias).rgb);
 	}
-
-
 
 	vec3 SampleEnvironmentWithRoughness(vec3 samplingVec, float roughness) {
 		float maxLodLevel = log2(float(textureSize(reflectTex, 0).x));
@@ -548,16 +566,45 @@ fragment = [[
 		#else
 			mat3 shR, shG, shB;
 
-			for (int x = 0; x < 3; ++x)
-				for (int y = 0; y < 3; ++y) {
-					vec3 sample = texelFetch(envLUT, ivec2(x, y), 0).rgb;
-					shR[x][y] = sample.r;
-					shG[x][y] = sample.g;
-					shB[x][y] = sample.b;
+			#if 0 //loop version
+				for (int x = 0; x < 3; ++x)
+					for (int y = 0; y < 3; ++y) {
+						vec3 sample = texelFetch(envLUT, ivec2(x, y), 0).rgb;
+						shR[x][y] = sample.r;
+						shG[x][y] = sample.g;
+						shB[x][y] = sample.b;
+					}
+			#else //unrolled version
+				#define SH_FILL(x, y) \
+				{ \
+					vec3 sample = texelFetch(envLUT, ivec2(x, y), 0).rgb; \
+					shR[x][y] = sample.r; \
+					shG[x][y] = sample.g; \
+					shB[x][y] = sample.b; \
 				}
+				SH_FILL(0, 0)
+				SH_FILL(0, 1)
+				SH_FILL(0, 2)
 
-			iblDiffuse = SH2toColor(shR, shG, shB, N);
-			iblSpecular = SH2toColor(shR, shG, shB, Rv);
+				SH_FILL(1, 0)
+				SH_FILL(1, 1)
+				SH_FILL(1, 2)
+
+				SH_FILL(2, 0)
+				SH_FILL(2, 1)
+				SH_FILL(2, 2)
+
+				#undef SH_FILL
+			#endif
+
+			mat3 shRD = shDiffuseConvolution(shR);
+			mat3 shGD = shDiffuseConvolution(shG);
+			mat3 shBD = shDiffuseConvolution(shB);
+
+			iblDiffuse = shToColor(shRD, shGD, shBD, N);
+			iblSpecular = shToColor(shR, shG, shB, Rv);
+
+			iblSpecular = mix(iblSpecular, SampleReflectionMapLod(Rv, 5.0), 0.2); //add some shininess
 		#endif
 	}
 
@@ -760,7 +807,7 @@ fragment = [[
 
 	void main(void){
 		%%FRAGMENT_PRE_SHADING%%
-		#line 20697
+		#line 20810
 
 		#ifdef use_normalmapping
 			vec2 tc = modelUV.st;
@@ -1027,6 +1074,7 @@ fragment = [[
 
 		// debug hook
 		#if 0
+			//outColor = ambientContrib;
 			//outColor = vec3( NdotV );
 			//outColor = LINEARtoSRGB(FresnelSchlick(F0, F90, NdotV));
 		#endif

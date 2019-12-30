@@ -16,7 +16,7 @@ local lutFS =
 	#define ENV_SMPL_NUM ###ENV_SMPL_NUM###
 
 	const float PI = 3.1415926535897932384626433832795;
-	const float goldenAngle = PI * (3.0 - sqrt(5.0));
+	const float goldenAngle = 2.3999632297286533222315555066336; //PI * (3.0 - sqrt(5.0));
 
 	uniform samplerCube reflectTex;
 
@@ -135,7 +135,7 @@ local lutFS =
 
 		vec3 shRGB = CubeMapToSH2(idx);
 
-		#if 1
+		#if 0
 			shRGB = shDiffuseConvolution(shRGB, idx);
 		#endif
 
