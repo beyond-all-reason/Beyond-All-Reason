@@ -48,7 +48,11 @@ local game = {}
 		return self.ai.id
 		-- return Spring.GetMyTeamID()
 	end
-
+	
+	function game:getUnitsInCylinder(pos, range)
+		return Spring.GetUnitsInCylinder(pos.x, pos.z, range, game:GetTeamID())
+	end
+	
 	function game:GetEnemies()
 		local ev = self.ai.enemyUnitIds
 		if not ev then return {} end
