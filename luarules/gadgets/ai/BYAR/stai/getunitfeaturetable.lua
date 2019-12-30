@@ -152,8 +152,11 @@ local function GetUnitTable()
 						utable.isMine = utable.techLevel
 					elseif utable.firstWeapon and utable.firstWeapon['type'] == ('StarburstLauncher' or 'MissileLauncher') then
 						utable.isTacticalTurret =  utable.techLevel
-					elseif utable.firstWeapon and utable.firstWeapon['type'] == 'cannon' then
+					elseif utable.firstWeapon and utable.firstWeapon['type'] == 'Cannon' then
 						utable.isCannonTurret = utable.techLevel
+						if not utable.firstWeapon.selfExplode then
+							utable.isPlasmaCannon = utable.techLevel
+						end
 					elseif utable.firstWeapon and utable.firstWeapon['type'] == 'BeamLaser' then
 						utable.isLaserTurret = utable.techLevel
 					elseif utable.firstWeapon and utable.firstWeapon['type'] == 'TorpedoLauncher' then
@@ -190,9 +193,7 @@ local function GetUnitTable()
 				else
 					utable.needsWater = false
 				end
-				
-				
-				
+
 				if unitDef["canFly"] then 
 					utable.mtype = "air"
 				elseif	utable.isBuilding and utable.needsWater then
@@ -218,14 +219,20 @@ local function GetUnitTable()
 						utable.mtype = 'veh'
 					end
 				end
+				if unitDef["isBuilder"] and #unitDef["buildOptions"] < 1 and not unitDef.moveDef.name then
+					utable.isNano = true
+				end
 				if unitDef["isBuilder"] and #unitDef["buildOptions"] > 0 then
 					utable.buildOptions = true
 					if unitDef["isBuilding"] then
+						utable['isFactory'] = {}
 						utable.unitsCanBuild = {}
 						for i, oid in pairs (unitDef["buildOptions"]) do
 							local buildDef = UnitDefs[oid]
 							-- if is a factory insert all the units that can build
 							table.insert(utable.unitsCanBuild, buildDef["name"])
+							--and save all the mtype that can andle
+							--utable.isFactory[unitName[buildDef.name].mtype] = TODO
 						end
 						
 					else
