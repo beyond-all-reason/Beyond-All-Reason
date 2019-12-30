@@ -1,9 +1,6 @@
 
 local DebugDrawEnabled = false
 
-
-
-
 local mapColors = {
 	[1] = { 1, 1, 0 },
 	[2] = { 0, 0, 1 },
@@ -97,12 +94,6 @@ function LosHandler:Update()
 			for i, e in pairs(enemies) do
 				local uname = e:Name()
 				local upos = e:GetPosition()
-				if not ShardSpringLua then
-					local utable = unitTable[uname]
-					if utable.jammerRadius > 0 then
-						self:FillCircle(upos.x, upos.z, utable.jammerRadius, 1, true)
-					end
-				end
 				-- so that we only have to poll GetEnemies() once
 				table.insert(enemyList, { unit = e, unitName = uname, position = upos, unitID = e:ID(), cloaked = e:IsCloaked(), beingBuilt = e:IsBeingBuilt(), health = e:GetHealth(), los = 0 })
 			end
@@ -128,23 +119,20 @@ function LosHandler:UpdateEnemies(enemyList)
 		exists[id] = pos
 		if not e.cloaked then
 			local lt
-			if ShardSpringLua then
-				local t = {}
-				t[2] = Spring.IsUnitInLos(id, self.ai.allyId)
-				if Spring.IsUnitInRadar(id, self.ai.allyId) then
-					if pos.y < 0 then -- underwater
-						t[3] = true
-					else
-						t[1] = true
-					end
+			local t = {}
+			t[2] = Spring.IsUnitInLos(id, self.ai.allyId)
+			if Spring.IsUnitInRadar(id, self.ai.allyId) then
+				if pos.y < 0 then -- underwater
+					t[3] = true
+				else
+					t[1] = true
 				end
-				if Spring.IsUnitInAirLos(id, self.ai.allyId) then
-					t[4] = true
-				end
-				lt = t
-			else
-				lt = self:AllLos(pos)
 			end
+			if Spring.IsUnitInAirLos(id, self.ai.allyId) then
+				t[4] = true
+			end
+			lt = t
+
 			local los = 0
 			local persist = false
 			local underWater = (unitTable[ename].mtype == "sub")
@@ -436,31 +424,20 @@ function LosHandler:GroundLos(upos)
 end
 
 function LosHandler:AllLos(upos)
-	if ShardSpringLua then
-		local t = {}
-		local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
-		if inLos then t[2] = true end
-		if inRadar then
-			if upos.y < 0 then -- underwater
-				t[3] = true
-			else
-				t[1] = true
-			end
+	local t = {}
+	local LosOrRadar, inLos, inRadar, jammed = Spring.GetPositionLosState(upos.x, upos.y, upos.z, self.ai.allyId)
+	if inLos then t[2] = true end
+	if inRadar then
+		if upos.y < 0 then -- underwater
+			t[3] = true
+		else
+			t[1] = true
 		end
-		if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
-			t[4] = true
-		end
-		return t
 	end
-	local gx = math.ceil(upos.x / losGridElmos)
-	local gz = math.ceil(upos.z / losGridElmos)
-	if self.losGrid[gx] == nil then
-		return EmptyLosTable()
-	elseif self.losGrid[gx][gz] == nil then
-		return EmptyLosTable()
-	else
-		return self.losGrid[gx][gz]
+	if Spring.IsPosInAirLos(upos.x, upos.y, upos.z, self.ai.allyId) then
+		t[4] = true
 	end
+	return t
 end
 
 function LosHandler:IsKnownEnemy(unit)
