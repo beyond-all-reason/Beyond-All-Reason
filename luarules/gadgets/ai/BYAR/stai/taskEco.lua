@@ -376,7 +376,7 @@ function Economy0uw()
 end
 
 function Economy1()
-        local unitName=DummyUnitName
+	local unitName=DummyUnitName
 	if ai.Energy.full > 0.5 and ai.Metal.full > 0.3 and ai.Metal.full < 0.7 and ai.Metal.income > 30 then
 		unitName = SpecialMex()
 	elseif (ai.Energy.full > 0.5  and ai.Metal.full > 0.3 and ai.Metal.income > 10 and ai.Energy.income > 100) then
@@ -385,7 +385,7 @@ function Economy1()
 		unitName = buildEstore1()
 	elseif ai.Metal.full > 0.8 and ai.Metal.income > 40 and ai.Metal.capacity < 4000  and ai.Energy.reserves > 300 then
 		unitName = buildMstore1()
-	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 200 and ai.Energy.income < 2000 and ai.Metal.full < 0.3 then
+	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.8 and ai.Energy.income > 100 and ai.Energy.income < 2000 and ai.Metal.full < 0.5 then
 		unitName = buildMconv1()
 	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.full > 0.1 then
 		unitName = Energy1()
@@ -423,7 +423,7 @@ function AdvEconomy(tskqbhvr)
 		unitName = buildEstore2()
 	elseif ai.Metal.full > 0.8 and ai.Metal.income > 100 and ai.Metal.capacity < 20000 and ai.Energy.full > 0.3 then
 		unitName = buildMstore2()
-	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.9 and ai.Energy.income > 2000 and ai.Metal.full < 0.3 then
+	elseif ai.Energy.income > ai.Energy.usage and ai.Energy.full > 0.7 and ai.Energy.income > 2000 and ai.Metal.full < 0.5 then
 		unitName = buildMconv2()
 	elseif (ai.Energy.full < 0.3 or ai.Energy.income < ai.Energy.usage * 1.25) and ai.Metal.full > 0.1 and ai.Metal.income > 18 then
 		unitName = BuildAdvEnergy(tskqbhvr)
