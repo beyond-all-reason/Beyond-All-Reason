@@ -23,33 +23,6 @@
 -- end
 -- table.insert(ScavengerBlueprintsT1,a)
 
--- Lonely Buildings
-
-local function cloakedfus(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 50
-	if radiusCheck then
-		return posradius
-	else
-		Spring.CreateUnit("armckfus", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-
-	end
-end
-table.insert(ScavengerBlueprintsT2,cloakedfus)
-table.insert(ScavengerBlueprintsT3,cloakedfus)
-
-local function underwaterfus(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 50
-	if radiusCheck then
-		return posradius
-	else
-		Spring.CreateUnit("coruwfus", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-
-	end
-end
-table.insert(ScavengerBlueprintsT3Sea,underwaterfus)
-table.insert(ScavengerBlueprintsT2Sea,underwaterfus)
-
-
 -- Lonely Radars
 
 local function radarcore(posx, posy, posz, GaiaTeamID, radiusCheck)
