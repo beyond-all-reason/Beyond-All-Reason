@@ -208,7 +208,8 @@ function BuildSiteHandler:ClosestBuildSpot(builder, position, unitTypeToBuild, m
 	end
 	return self.map:FindClosestBuildSite(unitTypeToBuild, position, maximumDistance, minDistance, validFunction)
 end
---TODO deprecated
+
+-- deprecated --]]
 -- function BuildSiteHandler:ClosestBuildSpotInSpiral(builder, unitTypeToBuild, position, dist, segmentSize, direction, i)
 -- 	local pos = nil
 -- 	if dist == nil then
@@ -255,6 +256,7 @@ end
 -- 	return pos
 -- end
 
+
 function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 	if not builderPos then return end
 	local minDist = maxDist
@@ -273,6 +275,7 @@ function BuildSiteHandler:ClosestHighestLevelFactory(builderPos, maxDist)
 		end
 	end
 	if factorybhvr then
+		
 		local factoryPos = factorybhvr.position
 		local newpos = api.Position()
 		newpos.x = factoryPos.x
@@ -309,7 +312,82 @@ function BuildSiteHandler:DontBuildOnMetalOrGeoSpots()
 		self:DontBuildRectangle(p.x-40, p.z-40, p.x+40, p.z+40)
 	end
 	self:PlotAllDebug()
+	
 end
+
+function BuildSiteHandler:unitNearCheck(utype,pos,range)
+	if type(range) ~= 'number' then
+		range = unitTable[utype:Name()][range]
+	end
+	--local target = Spring.GetUnitsInCylinder(p.x,p.z,range,self.game:GetTeamID())
+	local unitsNear = self.game:getUnitsInCylinder(pos, range)
+	if not unitsNear  then return false end
+	for idx, typeDef in pairs(unitsNear) do
+		local unitName = self.game:GetUnitByID(typeDef):Name()
+		if utype:Name() == unitName  then
+			self:EchoDebug(utype:Name() .. ' block by ' .. tostring(unitName))
+			return true
+		end
+	end
+	return false
+end
+		                            
+function BuildSiteHandler:searchPosNearThing(utype,builder,thing,range,spaceEquals,minDist)
+	self:EchoDebug(thing)
+	local pos = builder:GetPosition()
+	local builderName = builder:Name()
+	if not range then
+		range = unitTable[builderName].losRadius
+		if type(spaceEquals) == 'string' then
+			range = unitTable[builderName][spaceEquals]
+		elseif type(spaceEquals) == 'number' then
+			range = spaceEquals
+		end
+	end
+	local unitsNear = self.game:getUnitsInCylinder(pos, range)
+	if not unitsNear then return nil end
+	for idx, typeDef in pairs(unitsNear) do
+		local unitNear = self.game:GetUnitByID(typeDef)
+		local unitNearName = unitNear:Name()
+		self:EchoDebug('around there ', unitNearName)
+		local tg = unitTable[unitNearName][thing]
+		if tg then
+			self:EchoDebug()
+			local tgPos = unitNear:GetPosition()
+			if  spaceEquals then
+				if not self:unitNearCheck(utype,tgPos,spaceEquals)then
+					self:EchoDebug('no same unit near: pass')
+					local p = ai.buildsitehandler:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, unitTable[builderName].losRadius)
+					self:EchoDebug('is ok')
+					if p then return p end
+				else
+					self:EchoDebug('same unit near: skip')
+				end
+			else
+				local p = ai.buildsitehandler:ClosestBuildSpot(builder, tgPos, utype , minDist, nil, nil, unitTable[builderName].losRadius)
+				if p then return p end
+			end
+		end
+	end
+	return nil
+end
+
+function BuildSiteHandler:searchPosInList(list,utype, builder, spaceEquals,minDist)
+	if spaceEquals and self:unitNearCheck(utype,builder:GetPosition(),spaceEquals) then return nil end
+	if list and #list > 0 then
+		for index, pos in pairs(list) do
+			if Distance(pos,builder:GetPosition()) < unitTable[builder:Name()].losRadius then
+				if not spaceEquals or not self:unitNearCheck(utype,pos,spaceEquals)then
+					local p = ai.buildsitehandler:ClosestBuildSpot(builder, pos, utype , minDist, nil, nil, unitTable[utype:Name()][spaceEquals])
+					if p then return p end
+				end
+			end
+		end
+	end
+		                            
+	return nil
+end
+
 
 function BuildSiteHandler:BuildNearNano(builder, utype)
 	self:EchoDebug("looking for spot near nano hotspots")
@@ -328,6 +406,7 @@ function BuildSiteHandler:BuildNearNano(builder, utype)
 		end
 	end
 	return self:BuildNearLastNano(builder, utype)
+	
 end
 
 function BuildSiteHandler:BuildNearLastNano(builder, utype)

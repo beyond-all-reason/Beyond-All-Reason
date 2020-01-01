@@ -109,6 +109,8 @@ function BuildTachyon(tskqbhvr)
 	return GroundDefenseIfNeeded(unitName)
 end
 
+-- torpedos
+
 function BuildLightTorpedo(tskqbhvr)
 	local unitName = DummyUnitName
 	if MyTB.side == CORESideName then
@@ -302,7 +304,7 @@ function BuildAntinuke()
 		else
 			unitName = "armamd"
 		end
-		return unitName
+		return BuildWithLimitedNumber(unitName, 1)
 	end
 	return DummyUnitName
 end
@@ -314,7 +316,7 @@ function BuildNuke()
 	else
 		unitName = "armsilo"
 	end
-	return BuildWithLimitedNumber(unitName, ai.overviewhandler.nukeLimit)
+	return BuildWithLimitedNumber(unitName, 1)--ai.overviewhandler.nukeLimit)
 end
 
 function BuildNukeIfNeeded()
