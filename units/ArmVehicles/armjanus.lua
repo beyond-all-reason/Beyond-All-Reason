@@ -124,7 +124,7 @@ return {
 				areaofeffect = 128,
 				avoidfeature = false,
 				cegtag = "missiletrailsmall-red",
-				craterareaofeffect = 128,
+				--craterareaofeffect = 128,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
