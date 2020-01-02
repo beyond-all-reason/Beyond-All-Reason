@@ -31,10 +31,10 @@ SphereDistortion.Default = {
   layer = 1,
   worldspace = true,
 
-  life     = 25,
+  life     = 20,
   pos      = {0,0,0},
-  growth   = 2.5,
-  strength = 0.15,
+  growth   = 4.5,
+  strength = 0.25,
 
   repeatEffect = false,
   dieGameFrame = math.huge

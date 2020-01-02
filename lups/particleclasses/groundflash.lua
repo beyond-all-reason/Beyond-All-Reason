@@ -53,7 +53,7 @@ end
 
 function GroundFlash:EndDraw()
   gl.PolygonOffset(false)
-  gl.AlphaTest(GL.GREATER, 0.5)
+  gl.AlphaTest(GL.GREATER, 0.6)
   gl.AlphaTest(false)
   gl.Texture(false)
   gl.Color(1,1,1,1)
@@ -124,7 +124,7 @@ function GroundFlash:CreateParticle()
   self.clife  = self.life
 
   self.size      = self.csize or self.size
-  self.life_incr = 1/self.life
+  self.life_incr = 1.7/self.life
   self.life      = 0
   self.color     = self.colormap[1]
 
@@ -144,7 +144,7 @@ function GroundFlash:Visible()
     return Spring.IsUnitVisible(self.unit)
   end
   local pos   = self.pos
-  local radius= self.size*2.5
+  local radius= self.size*3
   return Spring.IsSphereInView(pos[1],pos[2],pos[3],radius)
 end
 
