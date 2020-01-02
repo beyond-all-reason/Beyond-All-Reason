@@ -40,6 +40,11 @@ else
 	-- unsynced
 	--------------------------------------------------------------------------------
 
+	local chobbyLoaded = false
+	if Spring.GetMenuName and string.find(string.lower(Spring.GetMenuName()), 'chobby') ~= nil then
+		chobbyLoaded = true
+	end
+
 	local SendLuaRulesMsg				= Spring.SendLuaRulesMsg
 	local systems						= {}
 	local validation = SYNCED.validationSys
@@ -176,6 +181,10 @@ else
 		end
 		if s_os ~= nil then
 			system = system..'\nOS:  '..s_os
+		end
+
+		if chobbyLoaded then
+			system = system..'\nLobby: Chobby'
 		end
 
 		system = string.sub(system, 2)
