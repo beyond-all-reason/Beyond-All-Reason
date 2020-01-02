@@ -194,7 +194,7 @@ function gadget:GameFrame(n)
 	end
 	if n%90 == 0 and n > 3000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,60)
+		local spawnchance = math.random(0,50)
 		if spawnchance == 0 or canBuildHere == false then
 			posx = math.random(200,mapsizeX-200)
 			posz = math.random(200,mapsizeZ-200)
@@ -281,8 +281,8 @@ function gadget:GameFrame(n)
 		--local spawnchance = 1 -- dev purpose
 		if spawnchance == 0 or canSpawnHere == false then
 			-- check positions
-			local posx = math.random(200,mapsizeX-200)
-			local posz = math.random(200,mapsizeZ-200)
+			local posx = math.random(300,mapsizeX-300)
+			local posz = math.random(300,mapsizeZ-300)
 			local posy = Spring.GetGroundHeight(posx, posz)
 			-- minimum size needed for succesful spawn
 			local posradius = 100
