@@ -94,7 +94,7 @@ return {
 				avoidfriendly = false,
 				cegtag = "missiletrailmedium-red",
 				collidefriendly = false,
-				craterareaofeffect = 256,
+				--craterareaofeffect = 256,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
