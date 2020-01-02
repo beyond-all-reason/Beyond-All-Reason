@@ -122,7 +122,7 @@ return {
 				avoidfeature = false,
 				avoidfriendly = false,
 				collidefriendly = false,
-				craterareaofeffect = 192,
+				--craterareaofeffect = 192,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.65,
