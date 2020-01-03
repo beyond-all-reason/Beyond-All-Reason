@@ -1,19 +1,27 @@
--- this has to be here on top and nowhere else
+-- this has to be here on top of every blueprint file
 local UDN = UnitDefNames
+
+--	 facing:
+--   0 - south
+--   1 - east
+--   2 - north
+--   3 - west
+
 
 
 
 
 local function placeholderradar1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 150
+local unitoptions = {UDN.corllt.id, UDN.corrl.id,}
 	if radiusCheck then
 		return posradius
 	else
 		Spring.GiveOrderToUnit(scav, -(UDN.corrad.id), {posx, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt.id), {posx-100, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt.id), {posx+100, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt.id), {posx, posy, posz-100, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corllt.id), {posx, posy, posz+100, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx-100, posy, posz, 3}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+100, posy, posz, 1}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx, posy, posz-100, 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx, posy, posz+100, 0}, {"shift"})
 	end
 end
 table.insert(ScavengerConstructorBlueprintsStart,placeholderradar1)

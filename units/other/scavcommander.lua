@@ -26,7 +26,7 @@ return {
 		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
-		hidedamage = true,
+		hidedamage = false,
 		icontype = "corcommander",
 		idleautoheal = 5,
 		idletime = 1800,
@@ -50,7 +50,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "commanderExplosion",
 		selfdestructcountdown = 5,
-		showplayername = true,
+		showplayername = false,
 		sightdistance = 450,
 		sonardistance = 450,
 		terraformspeed = 1500,
@@ -300,7 +300,7 @@ return {
 					expl_light_radius_mult = 1.15,
 				},
 				damage = {
-					default = 99999,
+					default = 200,
 				},
 			},
 			repulsor1 = {
