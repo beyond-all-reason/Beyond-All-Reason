@@ -23,7 +23,7 @@ return {
 		corpse = "DEAD",
 		description = "Scavenger Commander",
 		energymake = 25,
-		explodeas = "commanderexplosion",
+		explodeas = "mediumexplosiongeneric",
 		footprintx = 2,
 		footprintz = 2,
 		hidedamage = true,
