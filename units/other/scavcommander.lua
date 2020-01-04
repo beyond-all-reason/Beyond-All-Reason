@@ -85,6 +85,20 @@ return {
 			[23] = "cortl",
 			[24] = "corfrt",
 			[25] = "corfrad",
+			[26] = "corhllt",
+			[27] = "corhlt",
+			[28] = "corerad",
+			[29] = "corjamt",
+			[30] = "corvipe",
+			[31] = "corpun",
+			[32] = "corarad",
+			[33] = "corshroud",
+			[34] = "corflak",
+			[35] = "armpb",
+			[36] = "armpacko",
+			[37] = "armamb",
+			
+
 		},
 		customparams = {
 			area_mex_def = "cormex",
