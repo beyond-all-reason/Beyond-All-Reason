@@ -184,7 +184,7 @@ else
 		end
 
 		if chobbyLoaded then
-			system = system..'\nLobby: Chobby'
+			system = system..'\nLobby:  Chobby'
 		end
 
 		system = string.sub(system, 2)
