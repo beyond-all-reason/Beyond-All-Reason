@@ -11,7 +11,7 @@ local UDN = UnitDefNames
 
 local function scavradaronlyoutpost(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 100
-local unitoptions = {UDN.corllt.id, UDN.corllt.id, UDN.corrl.id, UDN.corhllt.id, UDN.corhllt.id UDN.corhlt.id,}
+local unitoptions = {UDN.corllt.id, UDN.corllt.id, UDN.corrl.id, UDN.corhllt.id, UDN.corhllt.id, UDN.corhlt.id,}
 	if radiusCheck then
 		return posradius
 	else

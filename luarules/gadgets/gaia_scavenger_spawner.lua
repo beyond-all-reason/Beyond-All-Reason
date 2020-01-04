@@ -9,7 +9,7 @@ function gadget:GetInfo()
 	}
 end
 
-local devswitch = 0
+local devswitch = 1
 if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or tonumber(Spring.GetModOptions().scavengers) == 0) and devswitch == 0 then
 	return
 end
@@ -107,6 +107,7 @@ local canBuildHere = false
 local blueprint = 0
 local radiusCheck = false
 local commandertimer = 0
+local commanderlimit = #Spring.GetAllyTeamList()
 
 
 
@@ -315,7 +316,7 @@ function gadget:GameFrame(n)
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
-				if commandertimer >= 120 then
+				if commandertimer >= 120 and commanderlimit > Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.scavcommander.id) then
 					Spring.CreateUnit("scavcommander", posx, posy, posz, math.random(0,3),GaiaTeamID)
 					commandertimer = 0
 				end
@@ -577,8 +578,8 @@ function gadget:GameFrame(n)
 							if canConstructHere then
 								-- let's do this shit
 								blueprint(scav, posx, posy, posz, GaiaTeamID, false)
-								local x = math.random(100,mapsizeX-100)
-								local z = math.random(100,mapsizeZ-100)
+								local x = math.random(x-1000,x+1000)
+								local z = math.random(z-1000,z+1000)
 								local y = Spring.GetGroundHeight(x,z)
 								Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
 								local x = math.random(x-100,x+100)
@@ -589,6 +590,11 @@ function gadget:GameFrame(n)
 								local x,y,z = Spring.GetUnitPosition(scav)
 								local x = math.random(x-500,x+500)
 								local z = math.random(z-500,z+500)
+								local y = Spring.GetGroundHeight(x,z)
+								Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
+								local x,y,z = Spring.GetUnitPosition(scav)
+								local x = math.random(x-100,x+100)
+								local z = math.random(z-100,z+100)
 								local y = Spring.GetGroundHeight(x,z)
 								Spring.GiveOrderToUnit(scav, CMD.MOVE,{x,y,z}, {"shift"})
 							end

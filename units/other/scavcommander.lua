@@ -314,7 +314,7 @@ return {
 					expl_light_radius_mult = 1.15,
 				},
 				damage = {
-					default = 200,
+					default = 150,
 				},
 			},
 			repulsor1 = {
