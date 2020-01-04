@@ -28,7 +28,7 @@ return {
 		footprintz = 2,
 		hidedamage = false,
 		icontype = "corcommander",
-		idleautoheal = 5,
+		idleautoheal = 20,
 		idletime = 1800,
 		losemitheight = 40,
 		mass = 5000,
@@ -97,6 +97,10 @@ return {
 			[35] = "armpb",
 			[36] = "armpacko",
 			[37] = "armamb",
+			[38] = "scallt",
+			[39] = "scahllt",
+			[40] = "scahlt",
+			[41] = "scavape",
 			
 
 		},
@@ -192,7 +196,7 @@ return {
 			},
 		},
 		weapondefs = {
-			corcomlaser = {
+			scavcomlaser = {
 				areaofeffect = 12,
 				avoidfeature = false,
 				beamtime = 0.1,
@@ -202,7 +206,7 @@ return {
 				cratermult = 0,
 				cylindertargeting = 1,
 				edgeeffectiveness = 1,
-				explosiongenerator = "custom:laserhit-small-red",
+				explosiongenerator = "custom:laserhit-small-purple",
 				firestarter = 70,
 				impactonly = 1,
 				impulseboost = 0,
@@ -212,7 +216,7 @@ return {
 				noselfdamage = true,
 				range = 300,
 				reloadtime = 0.4,
-				rgbcolor = "1 0 0",
+				rgbcolor = "0.85 0 1",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
@@ -272,7 +276,7 @@ return {
 					subs = 75,
 				},
 			},
-			disintegrator = {
+			scavdisintegrator = {
 				areaofeffect = 36,
 				avoidfeature = false,
 				avoidfriendly = false,
@@ -284,7 +288,7 @@ return {
 				craterboost = 0,
 				cratermult = 0.75,
 				edgeeffectiveness = 0.15,
-				energypershot = 500,
+				energypershot = 2000,
 				explosiongenerator = "custom:expldgun",
 				firestarter = 100,
 				firesubmersed = false,
@@ -296,6 +300,7 @@ return {
 				noselfdamage = true,
 				range = 250,
 				reloadtime = 0.9,
+				rgbcolor = "0.85 0 1",
 				soundhit = "xplomas2",
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
@@ -339,7 +344,7 @@ return {
 					power = 1000,
 					powerregen = 20,
 					powerregenenergy = 0,
-					radius = 30,
+					radius = 50,
 					repulser = false,
 					smart = true,
 					startingpower = 1000,
@@ -362,7 +367,7 @@ return {
 		},
 		weapons = {
 			[1] = {
-				def = "CORCOMLASER",
+				def = "SCAVCOMLASER",
 				onlytargetcategory = "NOTSUB",
 			},
 			[2] = {
@@ -370,8 +375,11 @@ return {
 				def = "CORCOMSEALASER",
 			},
 			[3] = {
-				def = "DISINTEGRATOR",
+				def = "SCAVDISINTEGRATOR",
 				onlytargetcategory = "NOTSUB",
+			},
+			[4] = {
+				def = "REPULSOR1",
 			},
 		},
 	},

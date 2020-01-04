@@ -211,7 +211,7 @@ function gadget:GameFrame(n)
 	end
 	if n%90 == 0 and n > 3000 then
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
-		local spawnchance = math.random(0,300)
+		local spawnchance = math.random(0,60)
 		if spawnchance == 0 or canBuildHere == false then
 			posx = math.random(200,mapsizeX-200)
 			posz = math.random(200,mapsizeZ-200)
@@ -511,14 +511,14 @@ function gadget:GameFrame(n)
 							local posz = math.random(z-1000,z+1000)
 							local posy = Spring.GetGroundHeight(posx, posz)
 							if posy > 0 then
-								if n > 60000 then
+								if n > 50000 then
 									local r = math.random(0,1)
 									if r == 0 then
 										blueprint = ScavengerConstructorBlueprintsT3[math.random(1,#ScavengerConstructorBlueprintsT3)]
 									else
 										blueprint = ScavengerConstructorBlueprintsT2[math.random(1,#ScavengerConstructorBlueprintsT2)]
 									end
-								elseif n > 39000 then
+								elseif n > 36000 then
 									local r = math.random(0,2)
 									if r == 0 then
 										blueprint = ScavengerConstructorBlueprintsT2[math.random(1,#ScavengerConstructorBlueprintsT2)]

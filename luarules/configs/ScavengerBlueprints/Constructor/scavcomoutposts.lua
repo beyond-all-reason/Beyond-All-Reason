@@ -11,7 +11,7 @@ local UDN = UnitDefNames
 
 local function scavradaronlyoutpost(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 100
-local unitoptions = {UDN.corllt.id, UDN.corllt.id, UDN.corrl.id, UDN.corhllt.id, UDN.corhllt.id, UDN.corhlt.id,}
+local unitoptions = {UDN.scallt.id, UDN.scallt.id, UDN.corrl.id, UDN.scahllt.id, UDN.scahllt.id, UDN.scahlt.id,}
 	if radiusCheck then
 		return posradius
 	else
@@ -27,7 +27,7 @@ table.insert(ScavengerConstructorBlueprintsT1,scavradaronlyoutpost)
 
 local function scavradaroutpostsmallred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 70
-local unitoptions = {UDN.corllt.id, UDN.corhllt.id, UDN.corrl.id,}
+local unitoptions = {UDN.scallt.id, UDN.scahllt.id, UDN.corrl.id,}
 	if radiusCheck then
 		return posradius
 	else
@@ -42,7 +42,7 @@ table.insert(ScavengerConstructorBlueprintsT1,scavradaroutpostsmallred)
 
 local function scavradaroutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 100
-local unitoptions = {UDN.corllt.id, UDN.corllt.id, UDN.corrl.id, UDN.corhllt.id, UDN.corerad.id,}
+local unitoptions = {UDN.scallt.id, UDN.scallt.id, UDN.corrl.id, UDN.scahllt.id, UDN.corerad.id,}
 	if radiusCheck then
 		return posradius
 	else
@@ -72,7 +72,7 @@ table.insert(ScavengerConstructorBlueprintsT2,scavradaroutpostred)
 
 local function scavaaoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 75
-local unitoptions = {UDN.corarad.id, UDN.corvipe.id, UDN.corhlt.id, UDN.corhllt.id,}
+local unitoptions = {UDN.corarad.id, UDN.scavape.id, UDN.scahlt.id, UDN.scahllt.id,}
 	if radiusCheck then
 		return posradius
 	else
@@ -87,7 +87,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavaaoutpostred)
 
 local function scavheavyoutpostcloak(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 100
-local unitoptions = {UDN.armpb.id, UDN.armpacko.id,}
+local unitoptions = {UDN.scavape.id, UDN.armpacko.id,}
 	if radiusCheck then
 		return posradius
 	else

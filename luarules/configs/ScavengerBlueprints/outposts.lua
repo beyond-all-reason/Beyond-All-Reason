@@ -15,10 +15,10 @@
 		-- return posradius
 	-- else
 		-- Spring.CreateUnit("corrad", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx-100, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx, posy, posz-100, math.random(0,3),GaiaTeamID) 
-		-- Spring.CreateUnit("corllt", posx, posy, posz+100, math.random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("scallt", posx-100, posy, posz, math.random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("scallt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("scallt", posx, posy, posz-100, math.random(0,3),GaiaTeamID) 
+		-- Spring.CreateUnit("scallt", posx, posy, posz+100, math.random(0,3),GaiaTeamID) 
 	-- end
 -- end
 -- table.insert(ScavengerBlueprintsT1,a)
@@ -28,7 +28,7 @@
 -- Outpost CORE
 
 local function radaroutpostred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corllt", "corllt", "corhllt", "cormaw", "corrl",}
+local unitpool = {"scallt", "scallt", "scahllt", "cormaw", "corrl",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -44,7 +44,7 @@ table.insert(ScavengerBlueprintsStart,radaroutpostred)
 table.insert(ScavengerBlueprintsT1,radaroutpostred)
 
 local function radaroutpostred2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corllt", "corllt", "corhllt", "corrad", "corerad",}
+local unitpool = {"scallt", "scallt", "scahllt", "corrad", "corerad",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -169,7 +169,7 @@ table.insert(ScavengerBlueprintsT3,aaoutpostmediumred)
 -- Heavy Outpost CORE
 
 local function radaroutpostmediumred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corhlt", "corhlt", "corhllt", "corvipe", "corflak",}
+local unitpool = {"scahlt", "scahlt", "scahllt", "scavape", "corflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -186,7 +186,7 @@ table.insert(ScavengerBlueprintsT2,radaroutpostmediumred)
 table.insert(ScavengerBlueprintsT3,radaroutpostmediumred)
 
 local function radaroutpostheavyred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corhlt", "corhlt", "corhllt", "corvipe", "corflak",}
+local unitpool = {"scahlt", "scahlt", "scahllt", "scavape", "corflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
