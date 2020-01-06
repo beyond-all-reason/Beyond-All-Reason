@@ -40,13 +40,13 @@ ScavengerConstructorBlueprintsT3Sea = {}
 ConfigsList = VFS.DirList('luarules/configs/ScavengerBlueprints/','*.lua')
 for i = 1,#ConfigsList do
 	VFS.Include(ConfigsList[i])
-	Spring.Echo("Direction: " ..ConfigsList[i])
+	Spring.Echo("Scav Blueprints Directory: " ..ConfigsList[i])
 end
 
 ConfigsList2 = VFS.DirList('luarules/configs/ScavengerBlueprints/Constructor/','*.lua')
 for i = 1,#ConfigsList2 do
 	VFS.Include(ConfigsList2[i])
-	Spring.Echo("Direction: " ..ConfigsList2[i])
+	Spring.Echo("Scav Constructor Blueprints Directory: " ..ConfigsList2[i])
 end
 
 ------------------------------------------------------------------------
@@ -65,10 +65,10 @@ local failcounter = 0
 
 local nameSuffix = '_scav'
 
-local T1KbotUnits = {"scaak", "corcrash", "cornecro", "corstorm", "corthud", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
-local T2KbotUnits = {"coraak", "coramph", "scacan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "scasumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus",}
+local T1KbotUnits = {"corak", "corcrash", "cornecro", "corstorm", "corthud", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
+local T2KbotUnits = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "corsumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus",}
 
-local T1TankUnits = {"corgarp", "scagator", "corlevlr", "cormist", "corraid", "corwolv", "armart", "armflash", "armjanus", "armpincer", "armsam", "armstump",}
+local T1TankUnits = {"corgarp", "corgator", "corlevlr", "cormist", "corraid", "corwolv", "armart", "armflash", "armjanus", "armpincer", "armsam", "armstump",}
 local T2TankUnits = {"corban", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc", "armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
 
 local T1SeaUnits = {"coresupp", "corpship", "corpt", "correcl", "corroy", "corsub", "corgarp", "armdecade", "armpship", "armpt", "armrecl", "armroy", "armsub","armpincer",}
@@ -79,7 +79,7 @@ local T1AirUnits = {"corbw", "corshad", "corveng", "armfig", "armkam", "armthund
 local Seaplanes = {"corcut", "corhunt", "corsb", "corsfig", "armsaber", "armsb", "armsehak", "armsfig",}
 local T2AirUnits = {"corape", "corcrw", "corhurc", "corvamp", "armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
 
-local Tech3Units = {"corcat", "corjugg", "corkarg", "scakrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
+local Tech3Units = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
 local Tech3Sea = {"armepoch", "corblackhy", "corbats", "cormship", "armbats", "armmship",}
 
 --local T1LandBuildings = {"armllt", "corllt"}
@@ -200,6 +200,7 @@ end
 
 function gadget:GameFrame(n)
 	if n == 100 then
+		Spring.Echo("Scavenger Spawner initialized")
 		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "es", 100000)
 		Spring.SetGlobalLos(GaiaAllyTeamID, false)
@@ -318,7 +319,12 @@ function gadget:GameFrame(n)
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
 				if commandertimer >= 120 and commanderlimit > Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.scavcommander.id) then
-					Spring.CreateUnit("scavcommander"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+					local r = math.random(0,1)
+					if r == 0 then
+						Spring.CreateUnit("armcom"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+					else
+						Spring.CreateUnit("corcom"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+					end
 					commandertimer = 0
 				end
 				
@@ -485,7 +491,7 @@ function gadget:GameFrame(n)
 				local scav = scavengerunits[i]
 				local scavDef = Spring.GetUnitDefID(scav)
 				local scavStructure = UnitDefs[scavDef].isBuilding
-				if UnitDefs[scavDef].name == "cormaw" or UnitDefs[scavDef].name == "armclaw" or UnitDefs[scavDef].name == "cornanotc" or UnitDefs[scavDef].name == "armnanotc" or UnitDefs[scavDef].name == "scavcommander" then
+				if UnitDefs[scavDef].name == "cormaw"..nameSuffix or UnitDefs[scavDef].name == "armclaw"..nameSuffix or UnitDefs[scavDef].name == "cornanotc"..nameSuffix or UnitDefs[scavDef].name == "armnanotc"..nameSuffix or UnitDefs[scavDef].name == "armcom"..nameSuffix or UnitDefs[scavDef].name == "corcom"..nameSuffix then
                     scavStructure = true
                 end
 				if not scavStructure and n%900 == 0 then
@@ -504,9 +510,9 @@ function gadget:GameFrame(n)
 						selfdestructcounter = selfdestructcounter + 1
 					end
 				end
-				if (not scavStructure and Spring.GetCommandQueue(scav, 0) <= 1) or (string.find(UnitDefs[scavDef].name, "scavcommander") and Spring.GetCommandQueue(scav, 0) <= 1) then
+				if (not scavStructure and Spring.GetCommandQueue(scav, 0) <= 1) or (string.find(UnitDefs[scavDef].name, "com_scav") and Spring.GetCommandQueue(scav, 0) <= 1) then
 						
-						if string.find(UnitDefs[scavDef].name,"scavcommander") then
+						if string.find(UnitDefs[scavDef].name,"com_scav") then
 							local x,y,z = Spring.GetUnitPosition(scav)
 							local posx = math.random(x-1000,x+1000)
 							local posz = math.random(z-1000,z+1000)

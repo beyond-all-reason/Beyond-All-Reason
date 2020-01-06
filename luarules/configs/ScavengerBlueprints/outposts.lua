@@ -29,7 +29,7 @@ local nameSuffix = '_scav'
 -- Outpost CORE
 
 local function radaroutpostred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corllt", "corllt", "coorhllt", "cormaw", "corrl",}
+local unitpool = {"corllt", "corllt", "corhllt", "cormaw", "corrl",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
