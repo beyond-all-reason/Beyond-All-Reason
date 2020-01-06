@@ -25,12 +25,14 @@
 
 -- Lonely Buildings
 
+local nameSuffix = '_scav'
+
 local function cloakedfus(posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armckfus", posx, posy, posz, math.random(0,3),GaiaTeamID, false, false) 
+		Spring.CreateUnit("armckfus"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID, false, false)
 
 	end
 end
@@ -42,7 +44,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("coruwfus", posx, posy, posz, math.random(0,3),GaiaTeamID, false, false) 
+		Spring.CreateUnit("coruwfus"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID, false, false)
 
 	end
 end
@@ -54,7 +56,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armdf", posx, posy, posz, "north",GaiaTeamID) 
+		Spring.CreateUnit("armdf"..nameSuffix, posx, posy, posz, "north",GaiaTeamID)
 
 	end
 end
@@ -65,7 +67,7 @@ local posradius = 50
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armtarg", posx, posy, posz, "north",GaiaTeamID) 
+		Spring.CreateUnit("armtarg"..nameSuffix, posx, posy, posz, "north",GaiaTeamID)
 
 	end
 end

@@ -23,6 +23,7 @@
 -- end
 -- table.insert(ScavengerBlueprintsT1,a)
 
+local nameSuffix = '_scav'
 
 -- LIGHT RADAR OUTPOSTS
 -- Outpost CORE
@@ -33,11 +34,11 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corarad", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
-		Spring.CreateUnit("corjamt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "north",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "south",GaiaTeamID) 
+		Spring.CreateUnit("corarad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("corjamt"..nameSuffix, posx+100, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+100, "south",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsStart,radaroutpostred)
@@ -49,10 +50,10 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
-		Spring.CreateUnit("corjamt", posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "north",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "south",GaiaTeamID) 
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("corjamt"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+100, "south",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT1,radaroutpostred2)
@@ -67,10 +68,10 @@ table.insert(ScavengerBlueprintsT2,radaroutpostred2)
 -- 		return posradius
 -- 	else
 -- 		Spring.CreateUnit("armarad", posx, posy, posz, math.random(0,3),GaiaTeamID) 
--- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
--- 		Spring.CreateUnit("armjamt", posx+100, posy, posz, math.random(0,3),GaiaTeamID) 
--- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "south",GaiaTeamID) 
--- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "north",GaiaTeamID) 
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz, "west",GaiaTeamID)
+-- 		Spring.CreateUnit("armjamt"..nameSuffix, posx+100, posy, posz, math.random(0,3),GaiaTeamID)
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-100, "south",GaiaTeamID)
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+100, "north",GaiaTeamID)
 -- 	end
 -- end
 -- table.insert(ScavengerBlueprintsStart,radaroutpostblue)
@@ -82,10 +83,10 @@ table.insert(ScavengerBlueprintsT2,radaroutpostred2)
 -- 	if radiusCheck then
 -- 		return posradius
 -- 	else
--- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz, "west",GaiaTeamID) 
--- 		Spring.CreateUnit("armjamt", posx, posy, posz, math.random(0,3),GaiaTeamID) 
--- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz-100, "south",GaiaTeamID) 
--- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz+100, "north",GaiaTeamID) 
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz, "west",GaiaTeamID)
+-- 		Spring.CreateUnit("armjamt"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz-100, "south",GaiaTeamID)
+-- 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz+100, "north",GaiaTeamID)
 -- 	end
 -- end
 -- table.insert(ScavengerBlueprintsT1,radaroutpostblue2)
@@ -101,11 +102,11 @@ local posradius = 30
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-60, posy, posz-60, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-30, posy, posz-30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+30, posy, posz+30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+60, posy, posz+60, math.random(0,3),GaiaTeamID) 
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-60, posy, posz-60, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-30, posy, posz-30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+30, posy, posz+30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+60, posy, posz+60, math.random(0,3),GaiaTeamID)
 	end
 end
 --table.insert(ScavengerBlueprintsStart,roadblockred)
@@ -119,11 +120,11 @@ local posradius = 30
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-60, posy, posz-60, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-30, posy, posz-30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+30, posy, posz+30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+60, posy, posz+60, math.random(0,3),GaiaTeamID) 
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-60, posy, posz-60, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-30, posy, posz-30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+30, posy, posz+30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+60, posy, posz+60, math.random(0,3),GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsStart,roadblockblue)
@@ -138,10 +139,10 @@ local posradius = 80
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("scaflak", posx-50, posy, posz-50, "west",GaiaTeamID)
-		Spring.CreateUnit("scaflak", posx+50, posy, posz+50, "east",GaiaTeamID) 
-		Spring.CreateUnit("corshroud", posx-50, posy, posz+50, "south",GaiaTeamID) 
-		Spring.CreateUnit("corarad", posx+50, posy, posz-50, "north",GaiaTeamID) 
+		Spring.CreateUnit("scaflak"..nameSuffix, posx-50, posy, posz-50, "west",GaiaTeamID)
+		Spring.CreateUnit("scaflak"..nameSuffix, posx+50, posy, posz+50, "east",GaiaTeamID)
+		Spring.CreateUnit("corshroud"..nameSuffix, posx-50, posy, posz+50, "south",GaiaTeamID)
+		Spring.CreateUnit("corarad"..nameSuffix, posx+50, posy, posz-50, "north",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT2,aaoutpostmediumred)
@@ -174,12 +175,12 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corarad", posx, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("corfort", posx-30, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("corfort", posx, posy, posz-30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("corfort", posx+30, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("corfort", posx, posy, posz+30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("corshroud", posx+90, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corarad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx-30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx, posy, posz-30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx+30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx, posy, posz+30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corshroud"..nameSuffix, posx+90, posy, posz, math.random(0,3),GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT2,radaroutpostmediumred)
@@ -191,18 +192,18 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corarad", posx, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("corfort", posx-30, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("corfort", posx, posy, posz-30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("corfort", posx+30, posy, posz, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("corfort", posx, posy, posz+30, math.random(0,3),GaiaTeamID) 
-		Spring.CreateUnit("corshroud", posx+90, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-120, posy, posz, "west",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+150, posy, posz, "east",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-30, posy, posz+100, "south",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+60, posy, posz+100, "south",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-30, posy, posz-100, "north",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+60, posy, posz-100, "north",GaiaTeamID) 
+		Spring.CreateUnit("corarad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx-30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx, posy, posz-30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx+30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corfort"..nameSuffix, posx, posy, posz+30, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corshroud"..nameSuffix, posx+90, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+150, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-30, posy, posz+100, "south",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+60, posy, posz+100, "south",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-30, posy, posz-100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+60, posy, posz-100, "north",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT2,radaroutpostheavyred)
@@ -216,14 +217,14 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corarad", posx-30, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("corshroud", posx+30, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-120, posy, posz, "west",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+120, posy, posz, "east",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-40, posy, posz+100, "south",GaiaTeamID)
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+40, posy, posz+100, "south",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-40, posy, posz-100, "north",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+40, posy, posz-100, "north",GaiaTeamID) 
+		Spring.CreateUnit("corarad"..nameSuffix, posx-30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corshroud"..nameSuffix, posx+30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+120, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-40, posy, posz+100, "south",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+40, posy, posz+100, "south",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-40, posy, posz-100, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+40, posy, posz-100, "north",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT2,radaroutpostheavyred2)
@@ -237,8 +238,8 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-60, posy, posz, "west",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+60, posy, posz, "east",GaiaTeamID) 
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-60, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+60, posy, posz, "east",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT2,outpostheavybluesmall)
@@ -253,15 +254,15 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armckfus", posx, posy, posz, "east",GaiaTeamID)
-		Spring.CreateUnit("armpacko", posx-120, posy, posz, "west",GaiaTeamID)
-		Spring.CreateUnit("armpacko", posx+120, posy, posz, "east",GaiaTeamID)
-		Spring.CreateUnit("armeyes", posx, posy, posz+170, "south",GaiaTeamID) 
-		Spring.CreateUnit("armeyes", posx, posy, posz-170, "north",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz+70, "west",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+100, posy, posz+70, "east",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz-70, "west",GaiaTeamID) 
-		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+100, posy, posz-70, "east",GaiaTeamID) 
+		Spring.CreateUnit("armckfus"..nameSuffix, posx, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("armpacko"..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("armpacko"..nameSuffix, posx+120, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("armeyes"..nameSuffix, posx, posy, posz+170, "south",GaiaTeamID)
+		Spring.CreateUnit("armeyes"..nameSuffix, posx, posy, posz-170, "north",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz+70, "west",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz+70, "east",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx-100, posy, posz-70, "west",GaiaTeamID)
+		Spring.CreateUnit(unitpool[math.random(1,#unitpool)]..nameSuffix, posx+100, posy, posz-70, "east",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,heavybaseblue)
@@ -271,9 +272,9 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armckfus", posx, posy, posz, "east",GaiaTeamID)
-		Spring.CreateUnit("armpacko", posx-120, posy, posz, "west",GaiaTeamID)
-		Spring.CreateUnit("armpacko", posx+120, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("armckfus"..nameSuffix, posx, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("armpacko"..nameSuffix, posx-120, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("armpacko"..nameSuffix, posx+120, posy, posz, "east",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,heavybasebluesimple)
@@ -288,9 +289,9 @@ local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corgate", posx, posy, posz, "east",GaiaTeamID)
-		Spring.CreateUnit("scadoom", posx-160, posy, posz, "west",GaiaTeamID)
-		Spring.CreateUnit("scadoom", posx+160, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("corgate"..nameSuffix, posx, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("scadoom"..nameSuffix, posx-160, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("scadoom"..nameSuffix, posx+160, posy, posz, "east",GaiaTeamID)
 		Spring.CreateUnit(unitpoolaa[math.random(1,#unitpoolaa)], posx, posy, posz+150, "south",GaiaTeamID) 
 		Spring.CreateUnit(unitpoolaa[math.random(1,#unitpoolaa)], posx, posy, posz-150, "north",GaiaTeamID) 
 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz+70, "west",GaiaTeamID) 
@@ -308,11 +309,11 @@ table.insert(ScavengerBlueprintsT3,ultraheavybasered3)
 --	if radiusCheck then
 --		return posradius
 --	else
---		Spring.CreateUnit("armflak", posx, posy, posz, "north",GaiaTeamID)
---		Spring.CreateUnit("armanni", posx-60, posy, posz+60, "west",GaiaTeamID)
---		Spring.CreateUnit("armanni", posx+60, posy, posz-60, "east",GaiaTeamID)
---		Spring.CreateUnit("armanni", posx-60, posy, posz-60, "north",GaiaTeamID)
---		Spring.CreateUnit("armanni", posx+60, posy, posz+60, "south",GaiaTeamID)
+--		Spring.CreateUnit("armflak"..nameSuffix, posx, posy, posz, "north",GaiaTeamID)
+--		Spring.CreateUnit("armanni"..nameSuffix, posx-60, posy, posz+60, "west",GaiaTeamID)
+--		Spring.CreateUnit("armanni"..nameSuffix, posx+60, posy, posz-60, "east",GaiaTeamID)
+--		Spring.CreateUnit("armanni"..nameSuffix, posx-60, posy, posz-60, "north",GaiaTeamID)
+--		Spring.CreateUnit("armanni"..nameSuffix, posx+60, posy, posz+60, "south",GaiaTeamID)
 --	end
 --end
 --table.insert(ScavengerBlueprintsT3,ultraheavybaseblueannis)
@@ -324,11 +325,11 @@ local posradius = 110
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("scaflak", posx, posy, posz, "north",GaiaTeamID)
-		Spring.CreateUnit("scadoom", posx-60, posy, posz+60, "west",GaiaTeamID)
-		Spring.CreateUnit("scadoom", posx+60, posy, posz-60, "east",GaiaTeamID)
-		Spring.CreateUnit("scaflak", posx-60, posy, posz-60, "north",GaiaTeamID)
-		Spring.CreateUnit("corarad", posx+60, posy, posz+60, "south",GaiaTeamID)
+		Spring.CreateUnit("scaflak"..nameSuffix, posx, posy, posz, "north",GaiaTeamID)
+		Spring.CreateUnit("scadoom"..nameSuffix, posx-60, posy, posz+60, "west",GaiaTeamID)
+		Spring.CreateUnit("scadoom"..nameSuffix, posx+60, posy, posz-60, "east",GaiaTeamID)
+		Spring.CreateUnit("scaflak"..nameSuffix, posx-60, posy, posz-60, "north",GaiaTeamID)
+		Spring.CreateUnit("corarad"..nameSuffix, posx+60, posy, posz+60, "south",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,ultraheavybasedoomred)
@@ -340,9 +341,9 @@ local posradius = 120
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("scaint", posx, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("armarad", posx-120, posy, posz+30, "west",GaiaTeamID)
-		Spring.CreateUnit("armveil", posx+120, posy, posz-30, "east",GaiaTeamID)
+		Spring.CreateUnit("scaint"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("armarad"..nameSuffix, posx-120, posy, posz+30, "west",GaiaTeamID)
+		Spring.CreateUnit("armveil"..nameSuffix, posx+120, posy, posz-30, "east",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,ultraheavyartybasered)
@@ -354,9 +355,9 @@ local posradius = 130
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("scaflak", posx-20, posy, posz-80, "south",GaiaTeamID)
-		Spring.CreateUnit("scaint", posx-60, posy, posz+20, "south",GaiaTeamID)
-		Spring.CreateUnit("scaint", posx+60, posy, posz-20, "south",GaiaTeamID)
+		Spring.CreateUnit("scaflak"..nameSuffix, posx-20, posy, posz-80, "south",GaiaTeamID)
+		Spring.CreateUnit("scaint"..nameSuffix, posx-60, posy, posz+20, "south",GaiaTeamID)
+		Spring.CreateUnit("scaint"..nameSuffix, posx+60, posy, posz-20, "south",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,ultraheavyartybaseblue)
