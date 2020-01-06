@@ -20,6 +20,7 @@ function deepcopy(orig)
     return copy
 end
 
+-- adjusted tablemerge: converts string 'nil' to an actual nil
 function tableMerge(t1, t2)
     for k,v in pairs(t2) do
         if type(v) == "table" then
@@ -28,6 +29,8 @@ function tableMerge(t1, t2)
             else
                 t1[k] = v
             end
+        elseif v == 'nil' then
+            t1[k] = nil
         else
             t1[k] = v
         end
