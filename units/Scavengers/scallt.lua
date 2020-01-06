@@ -34,7 +34,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORLLT.s3o",
 		script = "Units/CORLLT.cob",
-		seismicsignature = 1,
+		seismicsignature = 0,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 594,
 		usebuildinggrounddecal = true,

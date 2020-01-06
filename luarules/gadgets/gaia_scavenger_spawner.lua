@@ -64,21 +64,21 @@ if devswitch == 1 then
 end
 local failcounter = 0
 
-local T1KbotUnits = {"corak", "corcrash", "cornecro", "corstorm", "corthud", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
-local T2KbotUnits = {"coraak", "coramph", "corcan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "corsumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus",}
+local T1KbotUnits = {"scaak", "corcrash", "cornecro", "corstorm", "corthud", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
+local T2KbotUnits = {"coraak", "coramph", "scacan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "scasumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus",}
 
-local T1TankUnits = { "corgarp", "corgator", "corlevlr", "cormist", "corraid", "corwolv", "armart", "armflash", "armjanus", "armpincer", "armsam", "armstump",}
+local T1TankUnits = {"corgarp", "scagator", "corlevlr", "cormist", "corraid", "corwolv", "armart", "armflash", "armjanus", "armpincer", "armsam", "armstump",}
 local T2TankUnits = {"corban", "corgol", "cormart", "corparrow", "correap", "corseal", "corsent", "cortrem", "corvroc", "armbull", "armcroc", "armlatnk", "armmanni", "armmart", "armmerl", "armst", "armyork",}
 
 local T1SeaUnits = {"coresupp", "corpship", "corpt", "correcl", "corroy", "corsub", "corgarp", "armdecade", "armpship", "armpt", "armrecl", "armroy", "armsub","armpincer",}
-local Hovercrafts = {"corah", "corhal", "cormh", "corsh", "corsnap", "corsok", "armah", "armanac", "armlun", "armmh", "armsh", }
+local Hovercrafts = {"corah", "corhal", "cormh", "corsh", "corsnap", "armah", "armanac", "armmh", "armsh", }
 local T2SeaUnits = {"corarch", "corcrus", "corshark", "armcrus", "armsubk", "coraak", "coramph", "corroach", "corsktl", "armaak", "armamph", "armvader", "corparrow", "corseal", "armcroc",}
 
 local T1AirUnits = {"corbw", "corshad", "corveng", "armfig", "armkam", "armthund",}
 local Seaplanes = {"corcut", "corhunt", "corsb", "corsfig", "armsaber", "armsb", "armsehak", "armsfig",}
 local T2AirUnits = {"corape", "corcrw", "corhurc", "corvamp", "armblade", "armbrawl", "armhawk", "armliche", "armpnix", "armstil",}
 
-local Tech3Units = {"corcat", "corjugg", "corkarg", "corkrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
+local Tech3Units = {"corcat", "corjugg", "corkarg", "scakrog", "corshiva", "armbanth", "armmar", "armraz", "armvang",}
 local Tech3Sea = {"armepoch", "corblackhy", "corbats", "cormship", "armbats", "armmship",}
 
 --local T1LandBuildings = {"armllt", "corllt"}

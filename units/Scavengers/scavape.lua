@@ -31,7 +31,7 @@ return {
 		nochasecategory = "MOBILE",
 		objectname = "Units/CORVIPE.s3o",
 		script = "Units/CORVIPE.lua",
-		seismicsignature = 3,
+		seismicsignature = 0,
 		selfdestructas = "smallBuildingExplosionGenericSelfd",
 		sightdistance = 646,
 		usebuildinggrounddecal = true,

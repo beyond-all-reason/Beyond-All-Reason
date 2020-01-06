@@ -33,7 +33,7 @@ return {
 		name = "SHLLT",
 		objectname = "Units/CORHLLT.s3o",
 		script = "Units/CORHLLT.cob",
-		seismicsignature = 0,
+		seismicsignature = 2,
 		selfdestructas = "mediumBuildingExplosionGenericSelfd",
 		sightdistance = 475,
 		usebuildinggrounddecal = true,

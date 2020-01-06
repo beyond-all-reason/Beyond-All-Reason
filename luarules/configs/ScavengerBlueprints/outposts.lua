@@ -138,8 +138,8 @@ local posradius = 80
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corflak", posx-50, posy, posz-50, "west",GaiaTeamID)
-		Spring.CreateUnit("corflak", posx+50, posy, posz+50, "east",GaiaTeamID) 
+		Spring.CreateUnit("scaflak", posx-50, posy, posz-50, "west",GaiaTeamID)
+		Spring.CreateUnit("scaflak", posx+50, posy, posz+50, "east",GaiaTeamID) 
 		Spring.CreateUnit("corshroud", posx-50, posy, posz+50, "south",GaiaTeamID) 
 		Spring.CreateUnit("corarad", posx+50, posy, posz-50, "north",GaiaTeamID) 
 	end
@@ -169,7 +169,7 @@ table.insert(ScavengerBlueprintsT3,aaoutpostmediumred)
 -- Heavy Outpost CORE
 
 local function radaroutpostmediumred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"scahlt", "scahlt", "scahllt", "scavape", "corflak",}
+local unitpool = {"scahlt", "scahlt", "scahllt", "scavape", "scaflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -186,7 +186,7 @@ table.insert(ScavengerBlueprintsT2,radaroutpostmediumred)
 table.insert(ScavengerBlueprintsT3,radaroutpostmediumred)
 
 local function radaroutpostheavyred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"scahlt", "scahlt", "scahllt", "scavape", "corflak",}
+local unitpool = {"scahlt", "scahlt", "scahllt", "scavape", "scaflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -208,16 +208,16 @@ end
 table.insert(ScavengerBlueprintsT2,radaroutpostheavyred)
 table.insert(ScavengerBlueprintsT3,radaroutpostheavyred)
 
--- Heavy Outpost ARM
+-- Heavy Outpost RED 2
 
-local function radaroutpostheavyblue(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armhlt", "armhlt", "armbeamer", "armpb", "armpacko", "armflak",}
+local function radaroutpostheavyred2(posx, posy, posz, GaiaTeamID, radiusCheck)
+local unitpool = {"scahlt", "scahlt", "scavape", "scavape", "scaflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armarad", posx-30, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.CreateUnit("armveil", posx+30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corarad", posx-30, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("corshroud", posx+30, posy, posz, math.random(0,3),GaiaTeamID)
 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-120, posy, posz, "west",GaiaTeamID) 
 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+120, posy, posz, "east",GaiaTeamID) 
 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-40, posy, posz+100, "south",GaiaTeamID)
@@ -226,8 +226,8 @@ local posradius = 100
 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+40, posy, posz-100, "north",GaiaTeamID) 
 	end
 end
-table.insert(ScavengerBlueprintsT2,radaroutpostheavyblue)
-table.insert(ScavengerBlueprintsT3,radaroutpostheavyblue)
+table.insert(ScavengerBlueprintsT2,radaroutpostheavyred2)
+table.insert(ScavengerBlueprintsT3,radaroutpostheavyred2)
 
 -- Heavy Defense Outpost ARM Cloaked
 
@@ -281,16 +281,16 @@ table.insert(ScavengerBlueprintsT3,heavybasebluesimple)
 -- ULTRA BASES
 -- Ultra Heavy Base
 
-local function ultraheavybaseblue(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"armpb", "armamb", "armarad",}
-local unitpoolaa = {"armmercury", "armflak",}
+local function ultraheavybasered3(posx, posy, posz, GaiaTeamID, radiusCheck)
+local unitpool = {"scavape", "cortoast", "corarad",}
+local unitpoolaa = {"corscreamer", "scaflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armgate", posx, posy, posz, "east",GaiaTeamID)
-		Spring.CreateUnit("armanni", posx-160, posy, posz, "west",GaiaTeamID)
-		Spring.CreateUnit("armanni", posx+160, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("corgate", posx, posy, posz, "east",GaiaTeamID)
+		Spring.CreateUnit("scadoom", posx-160, posy, posz, "west",GaiaTeamID)
+		Spring.CreateUnit("scadoom", posx+160, posy, posz, "east",GaiaTeamID)
 		Spring.CreateUnit(unitpoolaa[math.random(1,#unitpoolaa)], posx, posy, posz+150, "south",GaiaTeamID) 
 		Spring.CreateUnit(unitpoolaa[math.random(1,#unitpoolaa)], posx, posy, posz-150, "north",GaiaTeamID) 
 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx-100, posy, posz+70, "west",GaiaTeamID) 
@@ -299,23 +299,39 @@ local posradius = 100
 		Spring.CreateUnit(unitpool[math.random(1,#unitpool)], posx+100, posy, posz-70, "east",GaiaTeamID) 
 	end
 end
-table.insert(ScavengerBlueprintsT3,ultraheavybaseblue)
+table.insert(ScavengerBlueprintsT3,ultraheavybasered3)
 
 -- Ultra Heavy Base Annis
 
-local function ultraheavybaseblueannis(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 100
+--local function ultraheavybaseblueannis(posx, posy, posz, GaiaTeamID, radiusCheck)
+--local posradius = 100
+--	if radiusCheck then
+--		return posradius
+--	else
+--		Spring.CreateUnit("armflak", posx, posy, posz, "north",GaiaTeamID)
+--		Spring.CreateUnit("armanni", posx-60, posy, posz+60, "west",GaiaTeamID)
+--		Spring.CreateUnit("armanni", posx+60, posy, posz-60, "east",GaiaTeamID)
+--		Spring.CreateUnit("armanni", posx-60, posy, posz-60, "north",GaiaTeamID)
+--		Spring.CreateUnit("armanni", posx+60, posy, posz+60, "south",GaiaTeamID)
+--	end
+--end
+--table.insert(ScavengerBlueprintsT3,ultraheavybaseblueannis)
+
+-- Ultra Heavy Base Doom
+
+local function ultraheavybasedoomred(posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 110
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armflak", posx, posy, posz, "north",GaiaTeamID)
-		Spring.CreateUnit("armanni", posx-60, posy, posz+60, "west",GaiaTeamID)
-		Spring.CreateUnit("armanni", posx+60, posy, posz-60, "east",GaiaTeamID)
-		Spring.CreateUnit("armanni", posx-60, posy, posz-60, "north",GaiaTeamID)
-		Spring.CreateUnit("armanni", posx+60, posy, posz+60, "south",GaiaTeamID)
+		Spring.CreateUnit("scaflak", posx, posy, posz, "north",GaiaTeamID)
+		Spring.CreateUnit("scadoom", posx-60, posy, posz+60, "west",GaiaTeamID)
+		Spring.CreateUnit("scadoom", posx+60, posy, posz-60, "east",GaiaTeamID)
+		Spring.CreateUnit("scaflak", posx-60, posy, posz-60, "north",GaiaTeamID)
+		Spring.CreateUnit("corarad", posx+60, posy, posz+60, "south",GaiaTeamID)
 	end
 end
-table.insert(ScavengerBlueprintsT3,ultraheavybaseblueannis)
+table.insert(ScavengerBlueprintsT3,ultraheavybasedoomred)
 
 -- Ultra Artillery Outpost Jammed
 
@@ -324,7 +340,7 @@ local posradius = 120
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("corint", posx, posy, posz, math.random(0,3),GaiaTeamID)
+		Spring.CreateUnit("scaint", posx, posy, posz, math.random(0,3),GaiaTeamID)
 		Spring.CreateUnit("armarad", posx-120, posy, posz+30, "west",GaiaTeamID)
 		Spring.CreateUnit("armveil", posx+120, posy, posz-30, "east",GaiaTeamID)
 	end
@@ -334,13 +350,13 @@ table.insert(ScavengerBlueprintsT3,ultraheavyartybasered)
 -- Ultra Artillery Outpost Dual
 
 local function ultraheavyartybaseblue(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 120
+local posradius = 130
 	if radiusCheck then
 		return posradius
 	else
-		Spring.CreateUnit("armcir", posx-20, posy, posz-80, "south",GaiaTeamID)
-		Spring.CreateUnit("armbrtha", posx-60, posy, posz+20, "south",GaiaTeamID)
-		Spring.CreateUnit("armbrtha", posx+60, posy, posz-20, "south",GaiaTeamID)
+		Spring.CreateUnit("scaflak", posx-20, posy, posz-80, "south",GaiaTeamID)
+		Spring.CreateUnit("scaint", posx-60, posy, posz+20, "south",GaiaTeamID)
+		Spring.CreateUnit("scaint", posx+60, posy, posz-20, "south",GaiaTeamID)
 	end
 end
 table.insert(ScavengerBlueprintsT3,ultraheavyartybaseblue)
