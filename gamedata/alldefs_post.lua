@@ -138,14 +138,24 @@ function UnitDef_Post(name, uDef)
 	--	Spring.Echo('import file not found: '..filename)
 	--end
 
-	-- usable when baking ... keeping subfolder structure
-	if SaveDefsToCustomParams then
-		local filepath = getFilePath(name..'.lua', 'units/')
-		if filepath then
-			if not uDef.customparams then
-				uDef.customparams = {}
+
+	-- scavengers
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
+		--name = string.gsub(name, '_scav', '')
+		VFS.Include("gamedata/scavengers/unitdef_post.lua")
+		uDef = scav_Udef_Post(name, uDef)
+	else
+
+		-- usable when baking ... keeping subfolder structure
+		if SaveDefsToCustomParams then
+
+			local filepath = getFilePath(name..'.lua', 'units/')
+			if filepath then
+				if not uDef.customparams then
+					uDef.customparams = {}
+				end
+				uDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
 			end
-			uDef.customparams.subfolder = string.sub(filepath, 7, #filepath-1)
 		end
 	end
 end
@@ -220,6 +230,12 @@ function WeaponDef_Post(name, wDef)
 			wDef.beamttl = 3
 			wDef.beamdecay = 0.7
 		end
+	end
+
+	-- scavengers
+	if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 and string.find(name, '_scav')  then
+		VFS.Include("gamedata/scavengers/weapondef_post.lua")
+		wDef = scav_Wdef_Post(name, wDef)
 	end
 
 	ProcessSoundDefaults(wDef)

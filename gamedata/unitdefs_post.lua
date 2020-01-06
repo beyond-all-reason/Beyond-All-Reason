@@ -20,6 +20,21 @@ function deepcopy(orig)
     return copy
 end
 
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+        if type(v) == "table" then
+            if type(t1[k] or false) == "table" then
+                tableMerge(t1[k] or {}, t2[k] or {})
+            else
+                t1[k] = v
+            end
+        else
+            t1[k] = v
+        end
+    end
+    return t1
+end
+
 -- handle unba modoption
 if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptions().unba == "enabled" then
 	VFS.Include("gamedata/unbaconfigs/unbacom_post.lua")
@@ -29,6 +44,24 @@ if (Spring.GetModOptions) and Spring.GetModOptions().unba and Spring.GetModOptio
 	UnbaCom_Post("corcom")
 end
 
+-- create scavenger units
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+    VFS.Include("gamedata/scavengers/unitdef_changes.lua")
+    local scavengerUnitDefs = {}
+     for name,uDef in pairs(UnitDefs) do
+         local faction = string.sub(name, 1, 3)
+         if faction == 'arm' or faction == 'cor' then
+             if customDefs[name] ~= nil then
+                 scavengerUnitDefs[name..'_scav'] = tableMerge(deepcopy(uDef), deepcopy(customDefs[name]))
+             else
+                 scavengerUnitDefs[name..'_scav'] = deepcopy(uDef)
+             end
+         end
+     end
+     for name,ud in pairs(scavengerUnitDefs) do
+         UnitDefs[name] = ud
+     end
+end
 
 -- handle unitdefs and the weapons they contain
 for name,ud in pairs(UnitDefs) do

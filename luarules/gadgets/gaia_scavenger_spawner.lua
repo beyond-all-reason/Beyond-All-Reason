@@ -19,7 +19,6 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-
 ScavengerBlueprintsStart = {}
 ScavengerBlueprintsT1 = {}
 ScavengerBlueprintsT2 = {}
@@ -63,6 +62,8 @@ if devswitch == 1 then
 	spawnmultiplier = 1
 end
 local failcounter = 0
+
+local nameSuffix = '_scav'
 
 local T1KbotUnits = {"scaak", "corcrash", "cornecro", "corstorm", "corthud", "armham", "armjeth", "armpw", "armrectr", "armrock", "armwar",}
 local T2KbotUnits = {"coraak", "coramph", "scacan", "corhrk", "cormando", "cormort", "corpyro", "corroach", "corsktl", "scasumo", "cortermite", "armaak", "armamph", "armfast", "armfboy", "armfido", "armmav", "armsnipe", "armspid", "armsptk", "armvader", "armzeus",}
@@ -317,12 +318,12 @@ function gadget:GameFrame(n)
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
 				if commandertimer >= 120 and commanderlimit > Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.scavcommander.id) then
-					Spring.CreateUnit("scavcommander", posx, posy, posz, math.random(0,3),GaiaTeamID)
+					Spring.CreateUnit("scavcommander"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					commandertimer = 0
 				end
 				
 				if airrng == 0 then
-					--Spring.CreateUnit("corca", posx, posy, posz, math.random(0,3),GaiaTeamID)
+					--Spring.CreateUnit("corca"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					if Spring.GetGameSeconds() < 600 then
 						spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
 					elseif Spring.GetGameSeconds() >= 600 and Spring.GetGameSeconds() < 1200 then
@@ -350,14 +351,14 @@ function gadget:GameFrame(n)
 					local cost = UnitDefNames[spawnair].metalCost + UnitDefNames[spawnair].energyCost
 					local groupsize = math.ceil(groupsize/cost)
 					for i=1, groupsize do
-						Spring.CreateUnit(spawnair, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+						Spring.CreateUnit(spawnair..nameSuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 					end
 					if devswitch == 1 then
 						Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnair].humanName.. "s")
 					end
 				elseif posy > -10 then
-					Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
-					Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
+					Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+					Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					if kbottankrng == 0 then
 						
 						if Spring.GetGameSeconds() < 1200 then
@@ -367,19 +368,19 @@ function gadget:GameFrame(n)
 							if r == 0 then
 								spawnkbot = T1KbotUnits[math.random(1,#T1KbotUnits)]
 								groupsize = groupsize*1.3
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 							else
 								spawnkbot = T2KbotUnits[math.random(1,#T2KbotUnits)]
 								groupsize = groupsize*1.6
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 							end
 						end
 						
 						local cost = UnitDefNames[spawnkbot].metalCost + UnitDefNames[spawnkbot].energyCost
 						local groupsize = math.ceil(groupsize/cost)
 						for i=1, groupsize do
-							Spring.CreateUnit(spawnkbot, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+							Spring.CreateUnit(spawnkbot..nameSuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
 						if devswitch == 1 then
 							Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawnkbot].humanName.. "s")
@@ -392,7 +393,7 @@ function gadget:GameFrame(n)
 							if r == 0 then
 								spawntank = Hovercrafts[math.random(1,#Hovercrafts)]
 								groupsize = groupsize*1.3
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 							else
 								spawntank = T1TankUnits[math.random(1,#T1TankUnits)]
 							end
@@ -401,23 +402,23 @@ function gadget:GameFrame(n)
 							if r == 0 then
 								spawntank = Hovercrafts[math.random(1,#Hovercrafts)]
 								groupsize = groupsize*1.4
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 							elseif r == 1 then
 								spawntank = T1TankUnits[math.random(1,#T1TankUnits)]
 								groupsize = groupsize*1.3
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 							else
 								spawntank = T2TankUnits[math.random(1,#T2TankUnits)]
 								groupsize = groupsize*1.6
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
-								Spring.CreateUnit("cornecro", posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+								Spring.CreateUnit("cornecro"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 							end
 						end
 						
 						local cost = UnitDefNames[spawntank].metalCost + UnitDefNames[spawntank].energyCost
 						local groupsize = math.ceil(groupsize/cost)
 						for i=1, groupsize do
-							Spring.CreateUnit(spawntank, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+							Spring.CreateUnit(spawntank..nameSuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
 						if devswitch == 1 then
 							Spring.Echo("Spawned Scavenger group: " ..groupsize.. " " ..UnitDefNames[spawntank].humanName.. "s")
@@ -426,10 +427,10 @@ function gadget:GameFrame(n)
 					local t3random = math.random(0,5)
 					if Spring.GetGameSeconds() > 2400 and t3random == 0 then
 						spawnT3 = Tech3Units[math.random(1,#Tech3Units)]
-						Spring.CreateUnit(spawnT3, posx, posy, posz, math.random(0,3),GaiaTeamID)
+						Spring.CreateUnit(spawnT3..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					end
 				else
-					--Spring.CreateUnit("corcsa", posx, posy, posz, math.random(0,3),GaiaTeamID)
+					--Spring.CreateUnit("corcsa"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					if Spring.GetGameSeconds() < 600 then
 						spawnsea = T1SeaUnits[math.random(1,#T1SeaUnits)]
 						spawnair = T1AirUnits[math.random(1,#T1AirUnits)]
@@ -458,7 +459,7 @@ function gadget:GameFrame(n)
 					local t3random = math.random(0,5)
 					if Spring.GetGameSeconds() > 2400 and t3random == 0 then
 						spawnT3 = Tech3Sea[math.random(1,#Tech3Sea)]
-						Spring.CreateUnit(spawnT3, posx, posy, posz, math.random(0,3),GaiaTeamID)
+						Spring.CreateUnit(spawnT3..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					end
 					
 					local cost = (UnitDefNames[spawnsea].metalCost + UnitDefNames[spawnsea].energyCost + UnitDefNames[spawnair].metalCost + UnitDefNames[spawnair].energyCost)/2 
@@ -466,9 +467,9 @@ function gadget:GameFrame(n)
 					for i=1, groupsize do
 						local r = math.random(0,1)
 						if r == 0 then
-							Spring.CreateUnit(spawnsea, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+							Spring.CreateUnit(spawnsea..nameSuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						elseif r == 1 then
-							Spring.CreateUnit(spawnair, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+							Spring.CreateUnit(spawnair..nameSuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 						end
 					end
 					if devswitch == 1 then

@@ -268,6 +268,16 @@ local icons = {
     {"blank.user", "blank", 1},
     {"unknown.user", "unknown", 2},
 }
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+    local scavengerAlternatives = {}
+    for i, icon in ipairs(icons) do
+        scavengerAlternatives[#scavengerAlternatives+1] = {'scav_'..icon[1], icon[2], icon[3]}
+    end
+    for i,v in pairs(scavengerAlternatives) do
+        icons[#icons+1] = v
+    end
+    scavengerAlternatives = nil
+end
 
 function getIconID(name)   -- does not check if file exists
     if string.sub(name, #name-4) ~= '.user' then
@@ -307,14 +317,15 @@ function loadUnitIcons()
 
     -- load icons
     for i, icon in ipairs(icons) do
-      icons[i][4] = nil   -- reset
-      --Spring.FreeUnitIcon(icon[1])
-      if VFS.FileExists('icons/'..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
-          addUnitIcon(icon[1], 'icons/'..icon[2]..icon[3]..'.png', icon[3]*iconScale)
-      else
-          addUnitIcon(icon[1], 'icons/'..icon[2]..'.png', icon[3]*iconScale)
-      end
-      loadedIcons[#loadedIcons+1] = icon[1]
+        local subfolder = string.sub(icon[1], 1, 4) == 'scav' and 'inverted/' or ''
+        icons[i][4] = nil   -- reset
+        --Spring.FreeUnitIcon(icon[1])
+        if VFS.FileExists('icons/'..subfolder..icon[2]..icon[3]..'.png') then    -- check if specific custom sized icon is availible
+            addUnitIcon(icon[1], 'icons/'..subfolder..icon[2]..icon[3]..'.png', icon[3]*iconScale)
+        else
+            addUnitIcon(icon[1], 'icons/'..subfolder..icon[2]..'.png', icon[3]*iconScale)
+        end
+        loadedIcons[#loadedIcons+1] = icon[1]
     end
 
     -- load custom unit icons when availible
@@ -357,7 +368,8 @@ function loadUnitIcons()
 
     -- tag all icons that have a valid file
     for i, icon in ipairs(icons) do
-        if VFS.FileExists('icons/'..icon[2]..'.png') then
+        local subfolder = string.sub(icon[1], 1, 4) == 'scav' and 'inverted/' or ''
+        if VFS.FileExists('icons/'..subfolder..icon[2]..'.png') then
             icons[i][4] = true
         end
     end
@@ -366,6 +378,12 @@ function loadUnitIcons()
   local weaponDef
   for udid,ud in pairs(UnitDefs) do
     local name = ud.name
+    local iconPrefix = ''
+    if string.find(name, '_scav') then
+        iconPrefix = 'scav_'
+        name = string.gsub(name, '_scav', '')
+    end
+
     if (ud == nil) then break end
       if ud.weapons[1] then
           weaponDef = WeaponDefs[ud.weapons[1].weaponDef]
@@ -374,101 +392,101 @@ function loadUnitIcons()
       end
 
     if name=="meteor" then
-        Spring.SetUnitDefIcon(udid, "blank.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
     elseif string.sub(name, 0, 7) == "critter" then
-      Spring.SetUnitDefIcon(udid, "blank.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
     elseif name=="chip" or name=="dice" or name=="xmasball" or name=="xmasball2" or name=="corstone" or name=="armstone" then
-      Spring.SetUnitDefIcon(udid, "blank.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
     elseif (name=="mission_command_tower") then
-        Spring.SetUnitDefIcon(udid, "commandtower.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."commandtower.user")
     elseif (name=="corkrog") then
-        Spring.SetUnitDefIcon(udid, "krogoth.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."krogoth.user")
     elseif (name=="armbanth") then
-      Spring.SetUnitDefIcon(udid, "bantha.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."bantha.user")
     elseif (name=="corjugg") and getIconID('juggernaut') then
-        Spring.SetUnitDefIcon(udid, "juggernaut.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."juggernaut.user")
     elseif (name=="corjugg") then
-        Spring.SetUnitDefIcon(udid, "juggernaut2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."juggernaut2.user")
     elseif (name=="cormando") and getIconID('commando') then
-      Spring.SetUnitDefIcon(udid, "commando.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."commando.user")
     elseif (name=="cormando") then
-      Spring.SetUnitDefIcon(udid, "commando2.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."commando2.user")
 
     -- chickens
     elseif (name=="chickenr3") then
-        Spring.SetUnitDefIcon(udid, "chicken4.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken4.user")
     elseif (ud.moveDef ~= nil and ud.moveDef.name=="chickqueen") then
-        Spring.SetUnitDefIcon(udid, "chicken_queen.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken_queen.user")
     elseif name=="roost" or name=="chickend1" then
-        Spring.SetUnitDefIcon(udid, "chicken_roost.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken_roost.user")
     elseif  ud.modCategories["chicken"] and ud.canFly and ud.xsize >= 3 then
-        Spring.SetUnitDefIcon(udid, "chicken_air2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken_air2.user")
     elseif  ud.modCategories["chicken"] and ud.canFly then
-        Spring.SetUnitDefIcon(udid, "chicken_air.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken_air.user")
     elseif  ud.modCategories["chicken"] and ud.xsize >= 5 then
-        Spring.SetUnitDefIcon(udid, "chicken3.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken3.user")
     elseif  ud.modCategories["chicken"] and ud.xsize >= 3 then
-        Spring.SetUnitDefIcon(udid, "chicken2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken2.user")
     elseif  ud.modCategories["chicken"] then
-        Spring.SetUnitDefIcon(udid, "chicken1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."chicken1.user")
 
     -- mines
     elseif (name=="cormine3" or name=="armmine3" or name=="corfmine3" or name=="armfmine3" or name=="corsktl") then
-        Spring.SetUnitDefIcon(udid, "mine3.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."mine3.user")
     elseif (name=="cormine2" or name=="armmine2" or name=="cormine4" or name=="armmine4" or name=="corroach" or name=="armvader") then
-        Spring.SetUnitDefIcon(udid, "mine2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."mine2.user")
     elseif ud.modCategories["mine"] ~= nil then
-        Spring.SetUnitDefIcon(udid, "mine1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."mine1.user")
 
     -- targetting
     elseif ud.targfac then
-      Spring.SetUnitDefIcon(udid, "targetting.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."targetting.user")
 
       -- cloak
     elseif (name=="armeyes" or name=="coreyes") then
-      Spring.SetUnitDefIcon(udid, "eye.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."eye.user")
     elseif (name=="armspy" or name=="corspy" or name=="armst") then
-      Spring.SetUnitDefIcon(udid, "spy.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."spy.user")
     elseif (name=="armpeep" or name=="corfink") then
-      Spring.SetUnitDefIcon(udid, "air_t1_scout.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."air_t1_scout.user")
 
       -- energy
     elseif (name=="armwin") or (name=="corwin") then
-      Spring.SetUnitDefIcon(udid, "wind.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."wind.user")
     elseif (name=="corafus" or name=="armafus") then
-      Spring.SetUnitDefIcon(udid, "energy5.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."energy5.user")
     elseif (name=="armageo" or name=="corageo") then
-      Spring.SetUnitDefIcon(udid, "energy4.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."energy4.user")
     elseif (name=="armgmm") or  (name=="armfus") or (name=="corfus") or (name=="armckfus") or (name=="armdf") or (name=="armuwfus") or (name=="coruwfus") or (name=="freefusion") then
-      Spring.SetUnitDefIcon(udid, "energy3.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."energy3.user")
     elseif name=="armgeo" or name=="corgeo" or name=="corbhmth" then
-      Spring.SetUnitDefIcon(udid, "energy6.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."energy6.user")
     elseif name=="armadvsol" or name=="coradvsol" then
-      Spring.SetUnitDefIcon(udid, "energy2.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."energy2.user")
     elseif name=="armsolar" or name=="corsolar" or name=="armtide" or name=="cortide" then
-        Spring.SetUnitDefIcon(udid, "energy1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."energy1.user")
 
     -- storages
     elseif name=="armestor" or name=="corestor" or name=="armuwes" or name=="coruwes" then
-        Spring.SetUnitDefIcon(udid, "energystorage.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."energystorage.user")
     elseif name=="armuwadves" or name=="coruwadves" then
-        Spring.SetUnitDefIcon(udid, "energystorage_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."energystorage_t2.user")
     elseif name=="armmstor" or name=="cormstor" or name=="armuwms" or name=="coruwms" then
-        Spring.SetUnitDefIcon(udid, "metalstorage.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."metalstorage.user")
     elseif name=="armuwadvms" or name=="coruwadvms" then
-        Spring.SetUnitDefIcon(udid, "metalstorage_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."metalstorage_t2.user")
 
       -- lrpc
     elseif (name=="armvulc") or (name=="corbuzz") then
-      Spring.SetUnitDefIcon(udid, "lrpc_lolcannon.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."lrpc_lolcannon.user")
     elseif (name=="armbrtha") or (name=="corint") then
-      Spring.SetUnitDefIcon(udid, "lrpc.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."lrpc.user")
 
       -- commander
     elseif (name=="armcom") or (name=="armdecom") then
-      Spring.SetUnitDefIcon(udid, "armcom.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."armcom.user")
     elseif (name=="corcom") or (name=="cordecom") then
-      Spring.SetUnitDefIcon(udid, "corcom.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."corcom.user")
 
     --elseif (name=="armclaw") or (name=="cormaw") then
     --  Spring.SetUnitDefIcon(udid, "defence_0.user")
@@ -477,53 +495,53 @@ function loadUnitIcons()
     elseif (ud.isFactory) then
 
       if (name=="armap" or name =="corap" or name=="armplat" or name =="corplat") and getIconID('factory_t1_air') then
-        Spring.SetUnitDefIcon(udid, "factory_t1_air.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_air.user")
       elseif (name=="armaap" or name =="coraap") and getIconID('factory_t1_air') then
-          Spring.SetUnitDefIcon(udid, "factory_t2_air.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2_air.user")
       elseif (name=="armlab" or name =="corlab") and getIconID('factory_t1_kbot') then
-          Spring.SetUnitDefIcon(udid, "factory_t1_kbot.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_kbot.user")
       elseif (name=="armalab" or name =="coralab") and getIconID('factory_t2_kbot') then
-          Spring.SetUnitDefIcon(udid, "factory_t2_kbot.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2_kbot.user")
       elseif (name=="armvp" or name =="corvp") and getIconID('factory_t1_vehicle') then
-          Spring.SetUnitDefIcon(udid, "factory_t1_vehicle.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_vehicle.user")
       elseif (name=="armavp" or name =="coravp") and getIconID('factory_t2_vehicle') then
-          Spring.SetUnitDefIcon(udid, "factory_t2_vehicle.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2_vehicle.user")
       elseif (name=="armsy" or name =="corsy") and getIconID('factory_t1_ship') then
-          Spring.SetUnitDefIcon(udid, "factory_t1_ship.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1_ship.user")
       elseif (name=="armasy" or name =="corasy") and getIconID('factory_t2_ship') then
-          Spring.SetUnitDefIcon(udid, "factory_t2_ship.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2_ship.user")
       elseif (name=="armhp" or name =="corhp" or name=="armfhp" or name =="corfhp") and getIconID('factory_hover') then
-          Spring.SetUnitDefIcon(udid, "factory_hover.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_hover.user")
       elseif (name=="armamsub" or name =="coramsub") and getIconID('factory_amph') then
-          Spring.SetUnitDefIcon(udid, "factory_amph.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_amph.user")
       elseif (name=="armshltx" or name=="armshltxuw" or name=="corgant" or name=="corgantuw") and getIconID('factory_gantry') then
-          Spring.SetUnitDefIcon(udid, "factory_gantry.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."factory_gantry.user")
 
       elseif (name=="armshltx" or name=="armshltxuw" or name=="corgant" or name=="corgantuw") then
-        Spring.SetUnitDefIcon(udid, "factory_t3.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t3.user")
       elseif (name=="armaap" or name=="armavp" or name=="armalab" or name=="armasy" or name=="coraap" or name=="coravp" or name=="coralab" or name=="corasy") then
-        Spring.SetUnitDefIcon(udid, "factory_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t2.user")
       else
-        Spring.SetUnitDefIcon(udid, "factory_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."factory_t1.user")
       end
 
      -- (anti) nuke
     elseif (name=="armemp") and getIconID('emp') then
-        Spring.SetUnitDefIcon(udid,"emp.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."emp.user")
     elseif (name=="cortron") and getIconID('tacnuke') then
-        Spring.SetUnitDefIcon(udid,"tacnuke.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."tacnuke.user")
     elseif (name=="corfmd" or name=="armamd") then
-        Spring.SetUnitDefIcon(udid,"antinuke.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."antinuke.user")
     elseif (name=="cormabm" or name=="armscab") then
-        Spring.SetUnitDefIcon(udid,"antinuke_mobile.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."antinuke_mobile.user")
     elseif (name=="armcarry" or name=="corcarry") then
-        Spring.SetUnitDefIcon(udid,"ship_t2_carrier.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_carrier.user")
     elseif (ud.stockpileWeaponDef ~= nil) and not (name=="armmercury" or name=="corscreamer" or name=="corfmd" or name=="armamd" or name=="cormabm" or name=="armscab") then
         -- nuke( stockpile weapon, but not mercury/screamer or anti nukes)
         if name=="armsilo" or name=="corsilo" then
-            Spring.SetUnitDefIcon(udid, "nuke_big.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."nuke_big.user")
         elseif name=="armjuno" or name=="corjuno" then Spring.SetUnitDefIcon(udid, "jammer_t2.user") else
-            Spring.SetUnitDefIcon(udid, "nuke.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."nuke.user")
         end
 
       -- shield
@@ -536,245 +554,245 @@ function loadUnitIcons()
             (name=="cormakr") or (name=="corfmkr") or (name=="cormmkr") or (name=="coruwmmm") then
       -- metal extractors and makers
       if ud.extractsMetal > 0.001 then
-        Spring.SetUnitDefIcon(udid, "mex_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."mex_t2.user")
       elseif ud.extractsMetal > 0 and ud.extractsMetal <= 0.001 then
-        Spring.SetUnitDefIcon(udid, "mex_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."mex_t1.user")
       elseif name=="armmmkr" or name=="cormmkr" then
-        Spring.SetUnitDefIcon(udid, "metalmaker_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."metalmaker_t2.user")
       else
-        Spring.SetUnitDefIcon(udid, "metalmaker_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."metalmaker_t1.user")
       end
 
     elseif (ud.isTransport) then
       -- transports
       if (name=="armdfly" or name=="corseah") then
-        Spring.SetUnitDefIcon(udid, "air_t2_transport.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2_transport.user")
       elseif (name=="armthovr" or name=="corthovr") then
-        Spring.SetUnitDefIcon(udid, "hover_transport.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."hover_transport.user")
       elseif name=="corintr" then
-        Spring.SetUnitDefIcon(udid, "vehicle_trans.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_trans.user")
       elseif (name=="armtship" or name=="cortship") then
-        Spring.SetUnitDefIcon(udid, "ship_transport.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."ship_transport.user")
       else
-        Spring.SetUnitDefIcon(udid, "air_t1_transport.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."air_t1_transport.user")
       end
 
       -- nanos
     elseif (ud.deathExplosion =="nanoboom") then
-      Spring.SetUnitDefIcon(udid, "worker.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."worker.user")
 
-      -- amphib & t2 subs 
+      -- amphib & t2 subs
     elseif ud.modCategories["phib"] ~= nil or (ud.modCategories["canbeuw"] ~= nil and ud.modCategories["underwater"] == nil) then
       if (name=="armserp" or name=="armsubk" or name=="corshark" or name=="corssub") then
-        Spring.SetUnitDefIcon(udid, "sub_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."sub_t2.user")
       elseif (name=="armpincer" or name=="corgarp") then
-          Spring.SetUnitDefIcon(udid, "amphib_tank.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_tank.user")
       elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
-          Spring.SetUnitDefIcon(udid, "amphib_t3.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_t3.user")
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "amphib_t2_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_t2_aa.user")
         else
-          Spring.SetUnitDefIcon(udid, "amphib_t1_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_t1_aa.user")
         end
       elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
         if (ud.isBuilder) then
-          Spring.SetUnitDefIcon(udid, "amphib_t2_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_t2_worker.user")
         else
-          Spring.SetUnitDefIcon(udid, "amphib_t2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_t2.user")
         end
       else
         if (ud.isBuilder) then
-          Spring.SetUnitDefIcon(udid, "amphib_t1_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_t1_worker.user")
         else
-          Spring.SetUnitDefIcon(udid, "amphib_t1.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."amphib_t1.user")
         end
       end
 
       -- submarines
     elseif ((ud.modCategories["underwater"] ~= nil) and ud.speed > 0) then
       if (name=="armacsub" or name=="coracsub" or name=="armrecl" or name=="correcl" ) then
-        Spring.SetUnitDefIcon(udid, "sub_t2_worker.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."sub_t2_worker.user")
       else
-        Spring.SetUnitDefIcon(udid, "sub_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."sub_t1.user")
       end
 
       -- hovers
     elseif ud.modCategories["hover"] ~= nil then
       if ud.isBuilder then
-        Spring.SetUnitDefIcon(udid, "hover_t1_worker.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."hover_t1_worker.user")
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
-        Spring.SetUnitDefIcon(udid, "hover_t1_aa.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."hover_t1_aa.user")
       elseif name=="corhal" then
-        Spring.SetUnitDefIcon(udid, "hover_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."hover_t2.user")
       elseif name=="armlun" or name=="corsok" then
-        Spring.SetUnitDefIcon(udid, "hover_t3.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."hover_t3.user")
       elseif name=="armmh" or name=="cormh" then
-          Spring.SetUnitDefIcon(udid, "hover_t1_missile.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."hover_t1_missile.user")
       elseif name=="armsh" or name=="corsh" then
-          Spring.SetUnitDefIcon(udid, "hover_raid.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."hover_raid.user")
       elseif name=="armanac" or name=="corsnap" then
-          Spring.SetUnitDefIcon(udid, "hover_gun.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."hover_gun.user")
       else
-        Spring.SetUnitDefIcon(udid, "hover_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."hover_t1.user")
       end
 
       -- aircraft
     elseif (ud.canFly) then
 
       if (name=="armliche") and getIconID('air_liche') then
-          Spring.SetUnitDefIcon(udid, "air_liche.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_liche.user")
       elseif (name=="armliche") then
-          Spring.SetUnitDefIcon(udid, "air_liche2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_liche2.user")
       elseif (name=="corcrw") and getIconID('air_krow') then
-          Spring.SetUnitDefIcon(udid, "air_krow.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_krow.user")
       elseif (name=="corcrw") then
-          Spring.SetUnitDefIcon(udid, "air_krow2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_krow2.user")
       elseif (name=="armstil") then
-          Spring.SetUnitDefIcon(udid, "air_krow2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_krow2.user")
       elseif (name=="armlance" or name=="cortitan") then
-          Spring.SetUnitDefIcon(udid, "air_t2_torpbomber.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2_torpbomber.user")
       elseif (name=="armseap" or name=="corseap") then
-          Spring.SetUnitDefIcon(udid, "air_torp.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_torp.user")
       elseif (name=="armawac" or name=="corawac" or name=="armsehak" or name=="corhunt") then
-        Spring.SetUnitDefIcon(udid, "air_t2_radar.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2_radar.user")
       elseif ud.isBuilder then
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "air_t2_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2_worker.user")
         else
-          Spring.SetUnitDefIcon(udid, "air_t1_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t1_worker.user")
         end
       elseif (ud.hoverAttack) then
         if (name=="corbw") then
-          Spring.SetUnitDefIcon(udid, "air_bladew.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_bladew.user")
         elseif (name=="armblade" or name=="corape") then
-            Spring.SetUnitDefIcon(udid, "air_t2_hover_missile.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2_hover_missile.user")
         elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "air_t2_hover.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2_hover.user")
         else
-          Spring.SetUnitDefIcon(udid, "air_t1_hover.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t1_hover.user")
         end
       elseif #ud.weapons > 0 and WeaponDefs[ud.weapons[1].weaponDef].type == "AircraftBomb" then
         if (name=="armpnix" or name=="corhurc") then
-          Spring.SetUnitDefIcon(udid, "air_t2_bomber.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2_bomber.user")
         else
-          Spring.SetUnitDefIcon(udid, "air_t1_bomber.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t1_bomber.user")
         end
       else
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "air_t2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t2.user")
         else
-          Spring.SetUnitDefIcon(udid, "air_t1.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."air_t1.user")
         end
       end
 
     -- ships
     elseif ud.modCategories["ship"] ~= nil then
       if (name=="armroy" or name=="corroy") then
-        Spring.SetUnitDefIcon(udid, "ship_destroyer.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."ship_destroyer.user")
       elseif (name=="armdecade" or name=="coresupp") then
-          Spring.SetUnitDefIcon(udid, "ship_raid.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_raid.user")
       elseif (name=="armmship" or name=="cormship") then
-          Spring.SetUnitDefIcon(udid, "ship_t2_missile.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_missile.user")
       elseif (name=="armcrus" or name=="corcrus") then
-          Spring.SetUnitDefIcon(udid, "ship_t2_cruiser.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_cruiser.user")
       elseif (name=="armbats" or name=="corbats") then
-        Spring.SetUnitDefIcon(udid, "ship_t2_battleship.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_battleship.user")
       elseif (name=="armepoch" or name=="corblackhy") then
-        Spring.SetUnitDefIcon(udid, "ship_t2_flagship.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_flagship.user")
       elseif (name=="armsjam" or name=="corsjam") then
-          Spring.SetUnitDefIcon(udid, "ship_t2_jammer.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_jammer.user")
       elseif (name=="armpt" or name=="corpt") then
-          Spring.SetUnitDefIcon(udid, "ship_tiny.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_tiny.user")
       elseif (name=="armpship" or name=="corpship") then
-          Spring.SetUnitDefIcon(udid, "ship_pship.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_pship.user")
       elseif ud.isBuilder then
 	if (name=="armmls" or name=="cormls") then
-        Spring.SetUnitDefIcon(udid, "ship_engineer.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."ship_engineer.user")
       elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "ship_t2_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_worker.user")
         else
-          Spring.SetUnitDefIcon(udid, "ship_t1_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t1_worker.user")
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "ship_t2_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2_aa.user")
         else
-          Spring.SetUnitDefIcon(udid, "ship_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_aa.user")
         end
       else
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "ship_t2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship_t2.user")
         else
-          Spring.SetUnitDefIcon(udid, "ship.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."ship.user")
         end
       end
 
       -- sensors
     elseif (ud.seismicRadius > 1) then
-        Spring.SetUnitDefIcon(udid, "seismic.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."seismic.user")
     elseif (((ud.radarRadius > 1) or (ud.sonarRadius > 1)) and (ud.speed <= 0) and (#ud.weapons <= 0)) then
       if (name=="armarad" or name=="armason" or name=="corarad" or name=="corason") then
-        Spring.SetUnitDefIcon(udid, "radar_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."radar_t2.user")
       else
-        Spring.SetUnitDefIcon(udid, "radar_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."radar_t1.user")
       end
 
       -- jammer buildings
     elseif (((ud.jammerRadius > 1) or (ud.sonarJamRadius > 1)) and (ud.speed <= 0)) then
       if (name=="corshroud" or name=="armveil") then
-        Spring.SetUnitDefIcon(udid, "jammer_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."jammer_t2.user")
       else
-        Spring.SetUnitDefIcon(udid, "jammer_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."jammer_t1.user")
       end
 
       -- defenders and other buildings
     elseif (ud.isBuilding or (ud.speed <= 0)) then
       if (#ud.weapons <= 0) then
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "building_t2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."building_t2.user")
         else
-          Spring.SetUnitDefIcon(udid, "building_t1.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."building_t1.user")
         end
       else
         if ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
           if (name=="armmercury" or name=="corscreamer") then
-            Spring.SetUnitDefIcon(udid, "aa_longrange.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."aa_longrange.user")
           elseif WeaponDefs[ud.weapons[1].weaponDef].cegTag == '' then
-            Spring.SetUnitDefIcon(udid, "aa_flak.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."aa_flak.user")
           elseif name=="corerad" or name=="armcir" or name=="armpacko" or name=="cormadsam" then
-            Spring.SetUnitDefIcon(udid, "aa2.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."aa2.user")
           else
-            Spring.SetUnitDefIcon(udid, "aa1.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."aa1.user")
           end
         else
           if (name=="armanni" or name=="cordoom") then
-            Spring.SetUnitDefIcon(udid, "defence_3.user")
+            Spring.SetUnitDefIcon(udid, iconPrefix.."defence_3.user")
           elseif (name=="armguard" or name=="corpun") and getIconID('defence_1_arty') then
-              Spring.SetUnitDefIcon(udid, "defence_1_arty.user")
+              Spring.SetUnitDefIcon(udid, iconPrefix.."defence_1_arty.user")
           elseif (name=="armamb" or name=="cortoast") and getIconID('defence_2_arty') then
-              Spring.SetUnitDefIcon(udid, "defence_2_arty.user")
+              Spring.SetUnitDefIcon(udid, iconPrefix.."defence_2_arty.user")
           elseif ((ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') or name=="armguard" or name=="corpun") then
               if weaponDef and weaponDef.type == 'BeamLaser' then
-                  Spring.SetUnitDefIcon(udid, "defence_2_laser.user")
+                  Spring.SetUnitDefIcon(udid, iconPrefix.."defence_2_laser.user")
               elseif weaponDef and weaponDef.type == 'MissileLauncher' then
-                  Spring.SetUnitDefIcon(udid, "defence_2_missile.user")
+                  Spring.SetUnitDefIcon(udid, iconPrefix.."defence_2_missile.user")
               else
-                  Spring.SetUnitDefIcon(udid, "defence_2.user")
+                  Spring.SetUnitDefIcon(udid, iconPrefix.."defence_2.user")
               end
           elseif (name=="armtl" or name=="cortl" or name=="armptl" or name=="corptl" or name=="armdl" or name=="cordl") then
-              Spring.SetUnitDefIcon(udid, "defence_1_naval.user")
+              Spring.SetUnitDefIcon(udid, iconPrefix.."defence_1_naval.user")
           elseif (name=="armatl" or name=="coratl") then
-              Spring.SetUnitDefIcon(udid, "defence_2_naval.user")
+              Spring.SetUnitDefIcon(udid, iconPrefix.."defence_2_naval.user")
           elseif (name=="armhlt" or name=="corhlt" or name=="armfhlt" or name=="corfhlt") then
-              Spring.SetUnitDefIcon(udid, "defence_1_laser.user")
+              Spring.SetUnitDefIcon(udid, iconPrefix.."defence_1_laser.user")
           elseif (name=="armbeamer" or name=="corhllt") then
-              Spring.SetUnitDefIcon(udid, "defence_0_laser2.user")
+              Spring.SetUnitDefIcon(udid, iconPrefix.."defence_0_laser2.user")
           else
               if weaponDef and weaponDef.type == 'BeamLaser' then
-                  Spring.SetUnitDefIcon(udid, "defence_0_laser.user")
+                  Spring.SetUnitDefIcon(udid, iconPrefix.."defence_0_laser.user")
               else
-                  Spring.SetUnitDefIcon(udid, "defence_0.user")
+                  Spring.SetUnitDefIcon(udid, iconPrefix.."defence_0.user")
               end
           end
         end
@@ -784,42 +802,42 @@ function loadUnitIcons()
     elseif ud.modCategories["tank"] ~= nil then
 
       if (name=="armmanni" or name=="corgol" or name=="cortrem") then
-        Spring.SetUnitDefIcon(udid, "vehicle_t2_big.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t2_big.user")
       elseif name=="corvrad" or name=="armseer" then
-          Spring.SetUnitDefIcon(udid, "vehicle_t2_radar.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t2_radar.user")
       elseif name=="coreter" or name=="armjam" then
-          Spring.SetUnitDefIcon(udid, "vehicle_t2_jammer.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t2_jammer.user")
       elseif name=="corfav" or name=="armfav" then
-        Spring.SetUnitDefIcon(udid, "vehicle_t1_flea.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t1_flea.user")
       elseif name=="armsam" or name=="cormist" then
-        Spring.SetUnitDefIcon(udid, "vehicle_t1_missile.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t1_missile.user")
       elseif name=="armflash" or name=="corgator" then
-        Spring.SetUnitDefIcon(udid, "vehicle_t1_raid.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t1_raid.user")
       elseif name=="armjanus" or name=="corlevlr" then
-          Spring.SetUnitDefIcon(udid, "vehicle_t1_big.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t1_big.user")
       elseif name=="armbull" or name=="correap" then
-          Spring.SetUnitDefIcon(udid, "vehicle_t2_tank.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t2_tank.user")
       elseif name=="armstump" or name=="corraid" then
-          Spring.SetUnitDefIcon(udid, "vehicle_t1_tank.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t1_tank.user")
       elseif ud.isBuilder then
         if name=="armconsul" then
-          Spring.SetUnitDefIcon(udid, "engineer.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."engineer.user")
         elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "vehicle_t2_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t2_worker.user")
         else
-          Spring.SetUnitDefIcon(udid, "vehicle_t1_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t1_worker.user")
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "vehicle_t2_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t2_aa.user")
         else
-          Spring.SetUnitDefIcon(udid, "vehicle_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_aa.user")
         end
       else
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "vehicle_t2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t2.user")
         else
-          Spring.SetUnitDefIcon(udid, "vehicle_t1.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."vehicle_t1.user")
         end
       end
 
@@ -827,63 +845,63 @@ function loadUnitIcons()
     elseif ud.moveDef.name == "tkbot2" or ud.moveDef.name == "tkbot3" or ud.moveDef.name == "htkbot4" then
 
       if name=="armvang" then
-        Spring.SetUnitDefIcon(udid, "allterrain_vanguard.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."allterrain_vanguard.user")
       elseif name=="armspid" then
-        Spring.SetUnitDefIcon(udid, "allterrain_emp.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."allterrain_emp.user")
       elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
-        Spring.SetUnitDefIcon(udid, "allterrain_t3.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."allterrain_t3.user")
       elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-        Spring.SetUnitDefIcon(udid, "allterrain_t2.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."allterrain_t2.user")
       else
-        Spring.SetUnitDefIcon(udid, "allterrain_t1.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."allterrain_t1.user")
       end
 
       -- kbots
     elseif ud.modCategories["kbot"] ~= nil then
 
       if (name=="corsumo") then
-        Spring.SetUnitDefIcon(udid, "kbot_t2_big.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_big.user")
       elseif name=="armflea" then
-        Spring.SetUnitDefIcon(udid, "kbot_t1_flea.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_flea.user")
       elseif name=="corak" or name=="armpw" then
-        Spring.SetUnitDefIcon(udid, "kbot_t1_raid.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_raid.user")
       elseif name=="armfast" then
-          Spring.SetUnitDefIcon(udid, "kbot_t2_raid.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_raid.user")
       elseif name=="corvoyr" or name=="armmark" then
-          Spring.SetUnitDefIcon(udid, "kbot_t2_radar.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_radar.user")
       elseif name=="corspec" or name=="armaser" then
-          Spring.SetUnitDefIcon(udid, "kbot_t2_jammer.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_jammer.user")
       elseif name=="armham" or name=="armwar" or name=="corthud" then
-        Spring.SetUnitDefIcon(udid, "kbot_t1_big.user")
+        Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_big.user")
       elseif ud.isBuilder then
         if (name=="cornecro" or name=="armrectr") then
-          Spring.SetUnitDefIcon(udid, "kbot_t1_tinyworker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_tinyworker.user")
         elseif (name=="armfark" or name=="corfast") then
-          Spring.SetUnitDefIcon(udid, "engineer_small.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."engineer_small.user")
         elseif ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "kbot_t2_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_worker.user")
         else
-          Spring.SetUnitDefIcon(udid, "kbot_t1_worker.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1_worker.user")
         end
       elseif ud.weapons[1] ~= nil and ud.weapons[1].onlyTargets["vtol"] then
         if ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2' then
-          Spring.SetUnitDefIcon(udid, "kbot_t2_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2_aa.user")
         else
-          Spring.SetUnitDefIcon(udid, "kbot_aa.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_aa.user")
         end
       else
         if (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '3') then
-          Spring.SetUnitDefIcon(udid, "kbot_t3.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t3.user")
         elseif (ud.customParams.techlevel ~= nil and ud.customParams.techlevel == '2') then
-          Spring.SetUnitDefIcon(udid, "kbot_t2.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t2.user")
         else
-          Spring.SetUnitDefIcon(udid, "kbot_t1.user")
+          Spring.SetUnitDefIcon(udid, iconPrefix.."kbot_t1.user")
         end
       end
 
       -- unknown
     else
-      Spring.SetUnitDefIcon(udid, "unknown.user")
+      Spring.SetUnitDefIcon(udid, iconPrefix.."unknown.user")
 
     end
 
