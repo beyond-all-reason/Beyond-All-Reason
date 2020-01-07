@@ -38,6 +38,14 @@ function scav_Udef_Post(name, uDef)
 	if uDef.sightdistance then
 		uDef.sightdistance = math.ceil(uDef.sightdistance*1.25)
 	end
+	if uDef.idleautoheal then
+		uDef.idleautoheal = math.ceil(uDef.idleautoheal*4)
+	end
+	if not uDef.cancloak then
+		uDef.cancloak = true
+		uDef.mincloakdistance = math.max(72, math.ceil(uDef.sightdistance/1.8))
+    end
+
 	return uDef
 	
 end

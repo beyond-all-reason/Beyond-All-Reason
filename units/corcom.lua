@@ -11,6 +11,7 @@ return {
 		buildpic = "CORCOM.PNG",
 		buildtime = 75000,
 		cancapture = true,
+		cancloak = true,
 		canmanualfire = true,
 		canmove = true,
 		capturespeed = 1800,
