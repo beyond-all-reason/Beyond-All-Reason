@@ -8,21 +8,18 @@
 customDefs = {}
 
 
-local scavArm = {}
-local scavCor = {}
+local scavUnit = {}
 for name,uDef in pairs(UnitDefs) do
-    local faction = string.sub(name, 1, 3)
-    if faction == 'arm' then
-        scavArm[#scavArm+1] = name..'_scav'
-    end
-    if faction == 'cor' then
-        scavCor[#scavCor+1] = name..'_scav'
-    end
+    scavUnit[#scavUnit+1] = name..'_scav'
 end
 
 
 customDefs.corcom = {		
-	buildoptions = scavCor,
+	hidedamage = false,
+	explodeas = "hugeexplosiongeneric",
+	mincloakdistance = 20,
+	buildoptions = scavUnit,
+	workertime = 500,
 	customparams = {
 		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -31,16 +28,36 @@ customDefs.corcom = {
 			resurrectable = 0,
 		},
 	},
+	weapondefs = {
+		disintegrator = {
+			commandfire = false,
+			damage = {
+				default = 150,
+			},
+		},
+	},
 }
 
 customDefs.armcom = {		
-	buildoptions = scavArm,
+	hidedamage = false,
+	explodeas = "hugeexplosiongeneric",
+	mincloakdistance = 20,
+	buildoptions = scavUnit,
+	workertime = 500,
 	customparams = {
 		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
 	featuredefs = {
 		dead = {
 			resurrectable = 0,
+		},
+	},
+	weapondefs = {
+		disintegrator = {
+			commandfire = false,
+			damage = {
+				default = 150,
+			},
 		},
 	},
 }

@@ -298,7 +298,6 @@ function gadget:GameFrame(n)
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(0,math.ceil((((gaiaUnitCount)/teamcount)+2)*(#Spring.GetAllyTeamList() - 1)/spawnmultiplier))
 		--local spawnchance = 1 -- dev purpose
-		commandertimer = commandertimer + 1
 		if spawnchance == 0 or canSpawnHere == false then
 			-- check positions
 			local posx = math.random(300,mapsizeX-300)
@@ -318,14 +317,13 @@ function gadget:GameFrame(n)
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
 				local airrng = math.random(0,5)
 				local kbottankrng = math.random(0,1)
-				if commandertimer >= 120 and commanderlimit > Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.scavcommander.id) then
+				if commanderlimit > Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.armcom_scav.id) + Spring.GetTeamUnitDefCount(GaiaTeamID, UnitDefNames.corcom_scav.id) then
 					local r = math.random(0,1)
 					if r == 0 then
 						Spring.CreateUnit("armcom"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					else
 						Spring.CreateUnit("corcom"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
 					end
-					commandertimer = 0
 				end
 				
 				if airrng == 0 then

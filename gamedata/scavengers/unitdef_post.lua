@@ -19,6 +19,19 @@ function scav_Udef_Post(name, uDef)
 	if uDef.name then
 		uDef.name = "Scavenger "..uDef.name
 	end
+	
+	if uDef.buildcostenergy then
+		uDef.buildcostenergy = math.ceil(uDef.buildcostenergy*0.5)
+	end
+	if uDef.buildcostmetal then
+		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
+	end
+	if uDef.maxdamage then
+		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
+	end
+	if uDef.maxvelocity then
+		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
+	end
 	return uDef
 	
 end
