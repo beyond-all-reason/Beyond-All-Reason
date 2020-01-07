@@ -1,19 +1,15 @@
-function gadget:GetInfo()
-  return {
-    name      = "gaia scavenger unit spawner",
-    desc      = "Spawner of units",
-    author    = "Damgam + tweaks by IceXuick",
-    date      = "2019",
-    layer     = -100,
-    enabled   = true,
-	}
-end
+-- function gadget:GetInfo()
+  -- return {
+    -- name      = "gaia scavenger unit spawner",
+    -- desc      = "Spawner of units",
+    -- author    = "Damgam + tweaks by IceXuick",
+    -- date      = "2019",
+    -- layer     = -100,
+    -- enabled   = true,
+	-- }
+-- end
 
 local devswitch = 0
-if (Spring.GetModOptions() == nil or Spring.GetModOptions().scavengers == nil or tonumber(Spring.GetModOptions().scavengers) == 0) and devswitch == 0 then
-	return
-end
-
 -- synced only
 if (not gadgetHandler:IsSyncedCode()) then
 	return false

@@ -9,6 +9,11 @@ function gadget:GetInfo()
 	}
 end
 
+-- synced only
+if (not gadgetHandler:IsSyncedCode()) then
+	return false
+end
+
 if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
 	VFS.Include('luarules/gadgets/scavengers/boot.lua')
 end

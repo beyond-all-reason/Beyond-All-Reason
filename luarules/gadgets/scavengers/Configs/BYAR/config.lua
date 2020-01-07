@@ -1,17 +1,27 @@
+Spring.Echo("[Scavengers] Config initialized")
+
 scavconfig = {
-	unitnamesuffix = "_scav"
+	unitnamesuffix = "_scav",
 	modules = {
 		buildingSpawnerModule 			= true,
 		constructorControllerModule 	= true,
 		factoryControllerModule 		= true,
 		unitSpawnerModule 				= true,
-		commanders 						= true,
 	},
 	timers = {
 		-- (30 = 1 second)
-		Tech0Timer 						= 9000,
-		Tech1Timer 						= 18000,
-		Tech2Timer 						= 39000,
-		Tech3Timer 						= 60000,
+		Tech0 							= 9000,
+		Tech1 							= 18000,
+		Tech2							= 39000,
+		Tech3 							= 60000,
 	},
 }
+
+
+-- Modules configs
+if scavconfig.modules.buildingSpawnerModule then
+	buildingSpawnerModuleConfig = {
+		spawnchance 					= 2,
+		useSeaBlueprints 				= false,
+	}
+end
