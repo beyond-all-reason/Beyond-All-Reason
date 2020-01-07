@@ -26,17 +26,17 @@ if new_scavengers == 1 then
 		VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
 	end
 
-	if scavconfig.modules.constructorControllerModule then
-		ScavengerConstructorBlueprintsT0 = {}
-		ScavengerConstructorBlueprintsT1 = {}
-		ScavengerConstructorBlueprintsT2 = {}
-		ScavengerConstructorBlueprintsT3 = {}
-		ScavengerConstructorBlueprintsT0Sea = {}
-		ScavengerConstructorBlueprintsT1Sea = {}
-		ScavengerConstructorBlueprintsT2Sea = {}
-		ScavengerConstructorBlueprintsT3Sea = {}
-		VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
-	end
+	-- if scavconfig.modules.constructorControllerModule then
+		-- ScavengerConstructorBlueprintsT0 = {}
+		-- ScavengerConstructorBlueprintsT1 = {}
+		-- ScavengerConstructorBlueprintsT2 = {}
+		-- ScavengerConstructorBlueprintsT3 = {}
+		-- ScavengerConstructorBlueprintsT0Sea = {}
+		-- ScavengerConstructorBlueprintsT1Sea = {}
+		-- ScavengerConstructorBlueprintsT2Sea = {}
+		-- ScavengerConstructorBlueprintsT3Sea = {}
+		-- VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
+	-- end
 
 	if scavconfig.modules.factoryControllerModule then
 		VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
@@ -71,8 +71,52 @@ function gadget:GameFrame(n)
 		end
 		if n%30 == 0 and scavconfig.modules.unitSpawnerModule then
 			UnitGroupSpawn(n)
+			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
+			if scavengerunits then
+				for i = 1,#scavengerunits do
+					local scav = scavengerunits[i]
+					local scavDef = Spring.GetUnitDefID(scav)
+					local scavStructure = UnitDefs[scavDef].isBuilding
+					for i = 1,#NoSelfdList do
+						if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, NoSelfdList[i]) then
+							scavStructure = true
+						end
+					end
+					if not scavStructure and n%900 == 0 then
+						SelfDestructionControls(n, scav)
+					end
+					if not scavStructure and Spring.GetCommandQueue(scav, 0) <= 1 then
+						ArmyMoveOrders(n, scav)
+					end
+					
+				end
+			end
 		end
 	else
 		OldSpawnGadgetCrap(n)
 	end
+end
+
+function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
+	if unitTeam == GaiaTeamID then
+		selfdx[unitID] = nil
+		selfdy[unitID] = nil
+		selfdz[unitID] = nil
+		oldselfdx[unitID] = nil
+		oldselfdy[unitID] = nil
+		oldselfdz[unitID] = nil
+		scavNoSelfD[unitID] = nil
+	end
+end
+
+function gadget:UnitCreated(unitID, unitDefID, unitTeam)
+    if unitTeam == GaiaTeamID then
+    	-- CMD.CLOAK = 37382
+        Spring.GiveOrderToUnit(unitID,37382,{1},{""})
+        -- Fire At Will
+        Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
+		if UnitDefs[unitDefID].name == "scavcommander" then
+			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},{""})
+		end
+    end
 end

@@ -1,5 +1,5 @@
 
-Spring.Echo("[Scavengers] API spawner initialized")
+Spring.Echo("[Scavengers] API initialized")
 
 	-- variables
 	GaiaTeamID = Spring.GetGaiaTeamID()
@@ -9,6 +9,13 @@ Spring.Echo("[Scavengers] API spawner initialized")
 	teamcount = #Spring.GetTeamList() - 2
 	allyteamcount = #Spring.GetAllyTeamList() - 1
 	spawnmultiplier = tonumber(Spring.GetModOptions().scavengers) or 1
+	selfdx = {}
+	selfdy = {}
+	selfdz = {}
+	oldselfdx = {}
+	oldselfdy = {}
+	oldselfdz = {}
+	scavNoSelfD = {}
 
 
 -- Check height diffrences
