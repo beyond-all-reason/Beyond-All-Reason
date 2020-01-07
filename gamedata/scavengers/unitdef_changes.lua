@@ -27,7 +27,7 @@ customDefs.corcom = {
 	buildoptions = scavUnit,
 	workertime = 500,
 	customparams = {
-		iscommander = true,      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
 	featuredefs = {
 		dead = {
@@ -62,7 +62,7 @@ customDefs.armcom = {
 	buildoptions = scavUnit,
 	workertime = 500,
 	customparams = {
-		iscommander = true,      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
 	featuredefs = {
 		dead = {

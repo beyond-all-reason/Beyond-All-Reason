@@ -1,7 +1,10 @@
 T0LandUnits = {
 "armpw",
-"armflea",
 "corak",
+"armpw",
+"corak",
+"armsh",
+"corsh",
 }
 
 T1LandUnits = {
