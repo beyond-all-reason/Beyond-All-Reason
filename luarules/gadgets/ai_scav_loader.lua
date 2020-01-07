@@ -10,9 +10,5 @@ function gadget:GetInfo()
 end
 
 if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
-    local scripts = VFS.DirList('luarules/gadgets/scavengers/','*.lua')
-    for i = 1,#scripts do
-        VFS.Include(scripts[i])
-        Spring.Echo("Scav Loader Directory: " ..scripts[i])
-    end
+	VFS.Include('luarules/gadgets/scavengers/boot.lua')
 end
