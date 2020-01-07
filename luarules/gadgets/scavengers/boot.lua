@@ -2,7 +2,7 @@ if (not gadgetHandler:IsSyncedCode()) then
 	return false
 end
 
-new_scavengers = 0
+new_scavengers = 1
 if new_scavengers == 1 then
 	GameShortName = Game.gameShortName
 	VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/config.lua")
@@ -26,17 +26,17 @@ if new_scavengers == 1 then
 		VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
 	end
 
-	-- if scavconfig.modules.constructorControllerModule then
-		-- ScavengerConstructorBlueprintsT0 = {}
-		-- ScavengerConstructorBlueprintsT1 = {}
-		-- ScavengerConstructorBlueprintsT2 = {}
-		-- ScavengerConstructorBlueprintsT3 = {}
-		-- ScavengerConstructorBlueprintsT0Sea = {}
-		-- ScavengerConstructorBlueprintsT1Sea = {}
-		-- ScavengerConstructorBlueprintsT2Sea = {}
-		-- ScavengerConstructorBlueprintsT3Sea = {}
-		-- VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
-	-- end
+	if scavconfig.modules.constructorControllerModule then
+		ScavengerConstructorBlueprintsT0 = {}
+		ScavengerConstructorBlueprintsT1 = {}
+		ScavengerConstructorBlueprintsT2 = {}
+		ScavengerConstructorBlueprintsT3 = {}
+		ScavengerConstructorBlueprintsT0Sea = {}
+		ScavengerConstructorBlueprintsT1Sea = {}
+		ScavengerConstructorBlueprintsT2Sea = {}
+		ScavengerConstructorBlueprintsT3Sea = {}
+		VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
+	end
 
 	if scavconfig.modules.factoryControllerModule then
 		VFS.Include("luarules/gadgets/scavengers/Modules/factory_controller.lua")
@@ -71,6 +71,9 @@ function gadget:GameFrame(n)
 		end
 		if n%30 == 0 and scavconfig.modules.unitSpawnerModule then
 			UnitGroupSpawn(n)
+			if n > scavconfig.timers.Tech0 then
+				SpawnConstructor()
+			end
 			local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 			if scavengerunits then
 				for i = 1,#scavengerunits do
@@ -87,6 +90,14 @@ function gadget:GameFrame(n)
 					end
 					if not scavStructure and Spring.GetCommandQueue(scav, 0) <= 1 then
 						ArmyMoveOrders(n, scav)
+					end
+					for i = 1,#ConstructorsList do
+						if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ConstructorsList[i]) then
+							scavConstructor = true
+						end
+					end
+					if scavConstructor and Spring.GetCommandQueue(scav, 0) <= 1 then
+						ConstructNewBlueprint(n, scav)
 					end
 					
 				end
@@ -115,8 +126,5 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
         Spring.GiveOrderToUnit(unitID,37382,{1},{""})
         -- Fire At Will
         Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
-		if UnitDefs[unitDefID].name == "scavcommander" then
-			Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{1},{""})
-		end
     end
 end

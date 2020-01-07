@@ -1,4 +1,6 @@
-	VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")	
+Spring.Echo("[Scavengers] Unit Controller initialized")
+
+VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")	
 
 function SelfDestructionControls(n, scav)
 	if selfdx[scav] then
