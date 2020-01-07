@@ -9,8 +9,10 @@ function gadget:GetInfo()
 	}
 end
 
-local scripts = VFS.DirList('luarules/gadgets/scavengers/','*.lua')
-for i = 1,#scripts do
-	VFS.Include(scripts[i])
-	Spring.Echo("Scav Loader Directory: " ..scripts[i])
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+    local scripts = VFS.DirList('luarules/gadgets/scavengers/','*.lua')
+    for i = 1,#scripts do
+        VFS.Include(scripts[i])
+        Spring.Echo("Scav Loader Directory: " ..scripts[i])
+    end
 end
