@@ -27,10 +27,16 @@ function scav_Udef_Post(name, uDef)
 		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
 	end
 	if uDef.maxdamage then
-		uDef.maxdamage = math.ceil(uDef.maxdamage*0.5)
+		uDef.maxdamage = math.ceil(uDef.maxdamage*0.66)
 	end
 	if uDef.maxvelocity then
 		uDef.maxvelocity = math.ceil(uDef.maxvelocity*1.2)
+	end
+	if uDef.radardistancejam then
+		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.5)
+	end
+	if uDef.sightdistance then
+		uDef.sightdistance = math.ceil(uDef.sightdistance*1.25)
 	end
 	return uDef
 	
