@@ -20,17 +20,21 @@ function deepcopy(orig)
     return copy
 end
 
--- adjusted tablemerge: converts string 'nil' to an actual nil
-function tableMerge(t1, t2)
+-- special tablemerge:
+-- converts value string 'nil' to an actual nil
+-- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
+function tableMergeSpecial(t1, t2)
     for k,v in pairs(t2) do
         if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                tableMerge(t1[k] or {}, t2[k] or {})
-            else
+            if next(v) == nil then
                 t1[k] = v
+            else
+                if type(t1[k] or false) == "table" then
+                    tableMergeSpecial(t1[k] or {}, t2[k] or {})
+                else
+                    t1[k] = v
+                end
             end
-        elseif v == 'nil' then
-            t1[k] = nil
         else
             t1[k] = v
         end
@@ -56,7 +60,7 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~
          local faction = string.sub(name, 1, 3)
          if faction == 'arm' or faction == 'cor' then
              if customDefs[name] ~= nil then
-                 scavengerUnitDefs[name..'_scav'] = tableMerge(deepcopy(uDef), deepcopy(customDefs[name]))
+                 scavengerUnitDefs[name..'_scav'] = tableMergeSpecial(deepcopy(uDef), deepcopy(customDefs[name]))
              else
                  scavengerUnitDefs[name..'_scav'] = deepcopy(uDef)
              end

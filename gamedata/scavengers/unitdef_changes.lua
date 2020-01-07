@@ -1,6 +1,10 @@
--- you only need to put the things you want changed in comparison with the regular unitdef. (use the same table structure)
 -- (note that alldefs_post.lua is still ran afterwards if you change anything there)
+
+-- Special rules:
+-- you only need to put the things you want changed in comparison with the regular unitdef. (use the same table structure)
 -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+-- normally an empty table as value will be ignored when merging, but not here, it will overwrite what it had with an empty table
+
 customDefs = {}
 
 

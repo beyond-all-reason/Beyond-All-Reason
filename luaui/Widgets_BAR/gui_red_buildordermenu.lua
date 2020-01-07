@@ -837,7 +837,11 @@ local function UpdateGrid(g,cmds,ordertype)
 					end
 					text.options = "bs"
 					if drawRadaricon then
-						g.radaricons[i].texture = ':lr56,56:'..iconTypesMap[unitIconType[icon.udid]]
+						if iconTypesMap[unitIconType[icon.udid]] then
+							g.radaricons[i].texture = ':lr56,56:'..iconTypesMap[unitIconType[icon.udid]]
+						else
+							g.radaricons[i].texture = nil
+						end
 					end
 				end
 			else
