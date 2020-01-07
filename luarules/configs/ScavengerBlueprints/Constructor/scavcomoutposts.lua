@@ -73,7 +73,7 @@ table.insert(ScavengerConstructorBlueprintsT2,scavradaroutpostred)
 
 local function scavaaoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 75
-local unitoptions = {UDN.corarad_scav.id, UDN.corvape_scav.id, UDN.corhlt_scav.id, UDN.corhllt_scav.id,}
+local unitoptions = {UDN.corarad_scav.id, UDN.corvipe_scav.id, UDN.corhlt_scav.id, UDN.corhllt_scav.id,}
 	if radiusCheck then
 		return posradius
 	else
@@ -88,7 +88,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavaaoutpostred)
 
 local function scavheavyoutpostcloak(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 100
-local unitoptions = {UDN.corvape_scav.id, UDN.armpacko_scav.id,}
+local unitoptions = {UDN.corvipe_scav.id, UDN.armpacko_scav.id,}
 	if radiusCheck then
 		return posradius
 	else
@@ -113,7 +113,7 @@ table.insert(ScavengerConstructorBlueprintsT3,scavlrpcoutpostred)
 
 local function scavdoomoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 120
-local unitoptions = {UDN.corvape_scav.id, UDN.corvape_scav.id, UDN.corflak_scav.id,}
+local unitoptions = {UDN.corvipe_scav.id, UDN.corvipe_scav.id, UDN.corflak_scav.id,}
 	if radiusCheck then
 		return posradius
 	else

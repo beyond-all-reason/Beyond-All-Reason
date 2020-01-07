@@ -170,7 +170,7 @@ table.insert(ScavengerBlueprintsT3,aaoutpostmediumblue)
 -- Heavy Outpost CORE
 
 local function radaroutpostmediumred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corhlt", "corhlt", "corhllt", "corvape", "corflak",}
+local unitpool = {"corhlt", "corhlt", "corhllt", "corvipe", "corflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -187,7 +187,7 @@ table.insert(ScavengerBlueprintsT2,radaroutpostmediumred)
 table.insert(ScavengerBlueprintsT3,radaroutpostmediumred)
 
 local function radaroutpostheavyred(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corhlt", "corhlt", "corhllt", "corvape", "corflak",}
+local unitpool = {"corhlt", "corhlt", "corhllt", "corvipe", "corflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -212,7 +212,7 @@ table.insert(ScavengerBlueprintsT3,radaroutpostheavyred)
 -- Heavy Outpost RED 2
 
 local function radaroutpostheavyred2(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corhlt", "corhlt", "corvape", "corvape", "corflak",}
+local unitpool = {"corhlt", "corhlt", "corvipe", "corvipe", "corflak",}
 local posradius = 100
 	if radiusCheck then
 		return posradius
@@ -283,7 +283,7 @@ table.insert(ScavengerBlueprintsT3,heavybasebluesimple)
 -- Ultra Heavy Base
 
 local function ultraheavybasered3(posx, posy, posz, GaiaTeamID, radiusCheck)
-local unitpool = {"corvape", "cortoast", "corarad",}
+local unitpool = {"corvipe", "cortoast", "corarad",}
 local unitpoolaa = {"corscreamer", "corflak",}
 local posradius = 100
 	if radiusCheck then
