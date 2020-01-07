@@ -35,9 +35,9 @@ function scav_Udef_Post(name, uDef)
 	if uDef.radardistancejam then
 		uDef.radardistancejam = math.ceil(uDef.radardistancejam*1.5)
 	end
-	if uDef.sightdistance then
-		uDef.sightdistance = math.ceil(uDef.sightdistance*1.25)
-	end
+	-- if uDef.sightdistance then
+	-- 	uDef.sightdistance = math.ceil(uDef.sightdistance*1.25)
+	-- end
 	if uDef.idleautoheal then
 		uDef.idleautoheal = math.ceil(uDef.idleautoheal*4)
 	end

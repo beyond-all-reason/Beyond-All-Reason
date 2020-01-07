@@ -16,7 +16,7 @@ end
 -- Scav Commanders
 
 customDefs.corcom = {		
-	autoheal = 20,
+	autoheal = 15,
 	cloakcost = 100,
 	cloakcostmoving = 200,
 	explodeas = "hugeexplosiongeneric",
@@ -24,7 +24,7 @@ customDefs.corcom = {
 	idleautoheal = 20,
 	mincloakdistance = 20,
 	buildoptions = scavUnit,
-	workertime = 1000,
+	workertime = 500,
 	customparams = {
 		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -37,7 +37,7 @@ customDefs.corcom = {
 		disintegrator = {
 			commandfire = false,
 			damage = {
-				default = 175,
+				default = 150,
 			},
 		},
 	},
@@ -50,7 +50,7 @@ customDefs.corcom = {
 }
 
 customDefs.armcom = {		
-	autoheal = 20,
+	autoheal = 15,
 	cloakcost = 100,
 	cloakcostmoving = 200,
 	explodeas = "hugeexplosiongeneric",
@@ -58,7 +58,7 @@ customDefs.armcom = {
 	idleautoheal = 20,
 	mincloakdistance = 20,
 	buildoptions = scavUnit,
-	workertime = 1000,
+	workertime = 500,
 	customparams = {
 		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -71,7 +71,7 @@ customDefs.armcom = {
 		disintegrator = {
 			commandfire = false,
 			damage = {
-				default = 175,
+				default = 150,
 			},
 		},
 	},
