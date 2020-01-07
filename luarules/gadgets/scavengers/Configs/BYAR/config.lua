@@ -25,3 +25,10 @@ if scavconfig.modules.buildingSpawnerModule then
 		useSeaBlueprints 				= false,
 	}
 end
+
+if scavconfig.modules.unitSpawnerModule then
+	unitSpawnerModuleConfig = {
+		aircraftchance = 5, -- higher number = lower chance
+		groupsizemultiplier = 1,
+	}
+end

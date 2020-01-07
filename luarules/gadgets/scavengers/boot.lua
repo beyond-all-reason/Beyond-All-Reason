@@ -4,7 +4,7 @@ end
 
 new_scavengers = 0
 if new_scavengers == 1 then
-	local GameShortName = Game.gameShortName
+	GameShortName = Game.gameShortName
 	VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/config.lua")
 	--for i = 1,#scavconfig do
 		--Spring.Echo("scavconfig value "..i.." = "..scavconfig[i])
@@ -68,6 +68,9 @@ function gadget:GameFrame(n)
 		
 		if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then
 			SpawnBlueprint(n)
+		end
+		if n%30 == 0 and scavconfig.modules.unitSpawnerModule then
+			UnitGroupSpawn(n)
 		end
 	else
 		OldSpawnGadgetCrap(n)
