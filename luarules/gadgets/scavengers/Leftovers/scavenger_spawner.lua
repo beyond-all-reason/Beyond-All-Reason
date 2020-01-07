@@ -194,7 +194,7 @@ end
 	--blueprint
 --end
 
-function gadget:GameFrame(n)
+function OldSpawnGadgetCrap(n)
 	if n == 100 then
 		Spring.Echo("Scavenger Spawner initialized")
 		Spring.SetTeamResource(GaiaTeamID, "ms", 100000)

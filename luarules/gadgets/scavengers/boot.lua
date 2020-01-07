@@ -69,5 +69,7 @@ function gadget:GameFrame(n)
 		if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then
 			SpawnBlueprint(n)
 		end
+	else
+		OldSpawnGadgetCrap(n)
 	end
 end
