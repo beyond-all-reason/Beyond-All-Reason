@@ -1,19 +1,48 @@
 T0AirUnits = {
-"armthund",
-"corshad",
+"armpeep",
+"armfig",
+"corfink",
+"corbw",
+"corveng",
+
 }
 
 T1AirUnits = {
 "armthund",
+"armsehak",
+"armfig",
 "corshad",
+"corbw",
+"corveng",
+"corhunt",
+
 }
 
 T2AirUnits = {
-"armthund",
-"corshad",
+"armsb",
+"armkam",
+"armawac",
+"armbrawl",
+"corsb",
+"corawac",
+
 }
 
 T3AirUnits = {
-"armthund",
-"corshad",
+"armhawk",
+"armawac",
+"armsb",
+"armblade",
+"armstil",
+"armliche",
+"armpnix",
+"corsb",
+"corvamp",
+"corhurc",
+"corvamp",
+"corape",
+"corape",
+"corcrw",
+"corawac",
+
 }

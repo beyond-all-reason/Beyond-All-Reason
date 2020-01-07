@@ -5,15 +5,41 @@ T0SeaUnits = {
 
 T1SeaUnits = {
 "armpt",
+"armdecade",
+"armrecl",
+"armpship",
+"armsub",
 "corpt",
+"coresupp",
+"correcl",
+"corpship",
+"corsub",
 }
 
 T2SeaUnits = {
-"armpt",
-"corpt",
+"armroy",
+"armsjam",
+"armls",
+"armsubk",
+"armaas",
+"armcrus",
+"armcarry",
+"armserp",
+"armmship",
+"corroy",
+"corsjam",
+"corls",
+"corshark",
+"corarch",
+"corcrus",
+"corcarry",
+"corssub",
+"cormship",
 }
 
 T3SeaUnits = {
-"armpt",
-"corpt",
+"armbats",
+"armepoch",
+"corbats",
+"corblackhy",
 }
