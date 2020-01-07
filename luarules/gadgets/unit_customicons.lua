@@ -280,6 +280,22 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~
     scavengerAlternatives = nil
 end
 
+
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 function tableMerge(t1, t2)
     for k,v in pairs(t2) do
         if type(v) == "table" then
@@ -345,9 +361,22 @@ function loadUnitIcons()
 
     -- load custom unit icons when availible
     local files = VFS.DirList('icons', "*.png")
+    local files2 = VFS.DirList('icons/inverted', "*.png")
+    for k, file in ipairs(files2) do
+        files[#files+1] = file
+    end
     for k, file in ipairs(files) do
+        local scavPrefix = ''
+        local scavSuffix = ''
+        local inverted = ''
+        if string.find(file, 'inverted') then
+            scavPrefix = 'scav_'
+            scavSuffix = '_scav'
+            inverted = 'inverted/'
+        end
         local name = string.gsub(file, 'icons\\', '')   -- when located in spring folder
         name = string.gsub(name, 'icons/', '')   -- when located in game archive
+        name = string.gsub(name, 'inverted/', '')   -- when located in game archive
         local iconname = string.gsub(name, '.png', '')
         if iconname then
             local iconname = string.match(iconname, '([a-z0-9-_]*)')
@@ -359,6 +388,10 @@ function loadUnitIcons()
             end
             for i, icon in ipairs(icons) do
                 if string.gsub(icon[1], '.user', '') == iconname then
+                    local inv = ''
+                    if string.find(icon[2], 'inverted') then
+                        inv = 'inverted/'
+                    end
                     local scalenum = icon[3]
                     if not scale or scale == '' then
                         scale = ''
@@ -366,7 +399,7 @@ function loadUnitIcons()
                         scalenum = scale
                         scale = '_'..scale
                     end
-                    addUnitIcon(icon[1], 'icons/'..iconname..scale..'.png', tonumber(scalenum)*iconScale)
+                    addUnitIcon(icon[1], 'icons/'..inv..iconname..scale..'.png', tonumber(scalenum)*iconScale)
                     loadedIcons[#loadedIcons+1] = icon[1]
                 end
             end
@@ -374,8 +407,8 @@ function loadUnitIcons()
                 local scale = string.gsub(name, unitname, '')
                 scale = string.gsub(scale, '_', '')
                 if scale ~= '' then
-                    addUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
-                    loadedIcons[#loadedIcons+1] = unitname..".user"
+                    addUnitIcon(scavPrefix..unitname..".user", file, tonumber(scale)*iconScale)
+                    loadedIcons[#loadedIcons+1] = scavPrefix..unitname..".user"
                 end
             end
         end
@@ -940,9 +973,20 @@ function loadUnitIcons()
     -- load and assign custom unit icons when availible
     local customUnitIcons = {}
     local files = VFS.DirList('icons', "*.png")
+    local files2 = VFS.DirList('icons/inverted', "*.png")
+    for k, file in ipairs(files2) do
+        files[#files+1] = file
+    end
     for k, file in ipairs(files) do
+        local scavPrefix = ''
+        local scavSuffix = ''
+        if string.find(file, 'inverted') then
+            scavPrefix = 'scav_'
+            scavSuffix = '_scav'
+        end
         local name = string.gsub(file, 'icons\\', '')   -- when located in spring folder
         name = string.gsub(name, 'icons/', '')   -- when located in game archive
+        name = string.gsub(name, 'inverted/', '')   -- when located in game archive
         name = string.gsub(name, '.png', '')
         if name then
             local unitname = string.match(name, '([a-z0-9]*)')
@@ -950,9 +994,9 @@ function loadUnitIcons()
                 local scale = string.gsub(name, unitname, '')
                 scale = string.gsub(scale, '_', '')
                 if scale ~= '' then
-                    addUnitIcon(unitname..".user", file, tonumber(scale)*iconScale)
-                    Spring.SetUnitDefIcon(UnitDefNames[unitname].id, unitname..".user")
-                    loadedIcons[#loadedIcons+1] = unitname..".user"
+                    addUnitIcon(scavPrefix..unitname..".user", file, tonumber(scale)*iconScale)
+                    Spring.SetUnitDefIcon(UnitDefNames[unitname..scavSuffix].id, scavPrefix..unitname..".user")
+                    loadedIcons[#loadedIcons+1] = scavPrefix..unitname..".user"
                 end
             end
         end
