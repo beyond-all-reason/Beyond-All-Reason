@@ -23,10 +23,11 @@ customDefs.corcom = {
 	hidedamage = false,
 	idleautoheal = 20,
 	mincloakdistance = 20,
+	showplayername = false,
 	buildoptions = scavUnit,
 	workertime = 500,
 	customparams = {
-		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = true,      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
 	featuredefs = {
 		dead = {
@@ -57,10 +58,11 @@ customDefs.armcom = {
 	hidedamage = false,
 	idleautoheal = 20,
 	mincloakdistance = 20,
+	showplayername = false,
 	buildoptions = scavUnit,
 	workertime = 500,
 	customparams = {
-		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = true,      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
 	featuredefs = {
 		dead = {
@@ -170,10 +172,10 @@ customDefs.armllt = {
 	mincloakdistance = 144,
 }
 
-customDefs.armbeamer = {
-	cloakcost = 6,
-	mincloakdistance = 144,
-}
+-- customDefs.armbeamer = {
+-- 	cloakcost = 6,
+-- 	mincloakdistance = 144,
+-- }
 
 customDefs.corvipe = {
 	cloakcost = 20,

@@ -12,7 +12,7 @@ scavconfig = {
 		-- (30 = 1 second)
 		Tech0 							= 9000,
 		Tech1 							= 18000,
-		Tech2							= 39000,
+		Tech2							= 36000,
 		Tech3 							= 60000,
 	},
 }
@@ -21,7 +21,7 @@ scavconfig = {
 -- Modules configs
 if scavconfig.modules.buildingSpawnerModule then
 	buildingSpawnerModuleConfig = {
-		spawnchance 					= 120,
+		spawnchance 					= 140,
 		useSeaBlueprints 				= true,
 	}
 end
@@ -36,6 +36,6 @@ end
 
 if scavconfig.modules.constructorControllerModule then
 	constructorControllerModule = {
-		constructortimer 				= 180, -- higher number = longer time between spawns
+		constructortimer 				= 200, -- higher number = longer time between spawns
 	}
 end

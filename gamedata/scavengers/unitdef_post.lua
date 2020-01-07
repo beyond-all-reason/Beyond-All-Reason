@@ -16,6 +16,22 @@ function scav_Udef_Post(name, uDef)
 		end
 	end
 	
+	if uDef.featuredefs then
+		if uDef.featuredefs.dead then
+			if uDef.featuredefs.dead.description then
+				uDef.featuredefs.dead.description = "Scavenger "..uDef.featuredefs.dead.description
+			end
+		end
+	end
+
+	if uDef.featuredefs then
+		if uDef.featuredefs.heap then
+			if uDef.featuredefs.heap.description then
+				uDef.featuredefs.heap.description = "Scavenger "..uDef.featuredefs.heap.description
+			end
+		end
+	end
+	
 	if uDef.name then
 		uDef.name = "Scavenger "..uDef.name
 	end
@@ -41,10 +57,14 @@ function scav_Udef_Post(name, uDef)
 	if uDef.idleautoheal then
 		uDef.idleautoheal = math.ceil(uDef.idleautoheal*4)
 	end
-	if not uDef.cancloak then
-		uDef.cancloak = true
-		uDef.mincloakdistance = math.max(72, math.ceil(uDef.sightdistance/1.8))
-    end
+	-- if not uDef.cancloak then
+	-- 	uDef.cancloak = true
+	-- 	uDef.mincloakdistance = math.max(72, math.ceil(uDef.sightdistance/1.8))
+ --    end
+ 	if not uDef.stealth then
+ 		uDef.stealth = true
+ 	end
+
 
 	return uDef
 	
