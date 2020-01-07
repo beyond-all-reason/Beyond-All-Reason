@@ -21,20 +21,21 @@ scavconfig = {
 -- Modules configs
 if scavconfig.modules.buildingSpawnerModule then
 	buildingSpawnerModuleConfig = {
-		spawnchance 					= 2,
-		useSeaBlueprints 				= false,
+		spawnchance 					= 120,
+		useSeaBlueprints 				= true,
 	}
 end
 
 if scavconfig.modules.unitSpawnerModule then
 	unitSpawnerModuleConfig = {
-		aircraftchance = 5, -- higher number = lower chance
-		groupsizemultiplier = 1,
+		aircraftchance 					= 5, -- higher number = lower chance
+		groupsizemultiplier 			= 1,
+		spawnchance						= 60,
 	}
 end
 
 if scavconfig.modules.constructorControllerModule then
 	constructorControllerModule = {
-		constructortimer = 180, -- higher number = longer time between spawns
+		constructortimer 				= 180, -- higher number = longer time between spawns
 	}
 end
