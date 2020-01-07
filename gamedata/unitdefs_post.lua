@@ -51,6 +51,7 @@ end
 if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
     VFS.Include("gamedata/scavengers/unitdef_changes.lua")
     local scavengerUnitDefs = {}
+
      for name,uDef in pairs(UnitDefs) do
          local faction = string.sub(name, 1, 3)
          if faction == 'arm' or faction == 'cor' then
