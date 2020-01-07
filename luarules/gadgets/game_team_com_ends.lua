@@ -172,7 +172,7 @@ function gadget:GameFrame(t)
 end
 
 function gadget:UnitCreated(u, ud, team)
-	if modeComEnds then
+	if modeComEnds and team~=gaiaTeamID  then
 		isAlive[u] = true
 		if isCommander[ud] then
 			local allyTeam = GetUnitAllyTeam(u)
@@ -182,7 +182,7 @@ function gadget:UnitCreated(u, ud, team)
 end
 
 function gadget:UnitGiven(u, ud, team)
-	if modeComEnds then
+	if modeComEnds and team~=gaiaTeamID then
 		if isCommander[ud] then
 			local allyTeam = GetUnitAllyTeam(u)
 			aliveCount[allyTeam] = aliveCount[allyTeam] + 1
@@ -191,7 +191,7 @@ function gadget:UnitGiven(u, ud, team)
 end
 
 function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
-	if modeComEnds then
+	if modeComEnds and team~=gaiaTeamID then
 		isAlive[u] = nil
 		if isCommander[ud] then
 			local allyTeam = GetUnitAllyTeam(u)
@@ -209,7 +209,7 @@ function gadget:UnitDestroyed(u, ud, team, a, ad, ateam)
 end
 
 function gadget:UnitTaken(u, ud, team, a, ad, ateam)
-	if modeComEnds and isAlive[u] and isCommander[ud] then
+	if modeComEnds and isAlive[u] and isCommander[ud] and team~=gaiaTeamID  then
 		local allyTeam = GetUnitAllyTeam(u)
 		aliveCount[allyTeam] = aliveCount[allyTeam] - 1
 		if aliveCount[allyTeam] <= 0 then
