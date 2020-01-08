@@ -9,16 +9,18 @@ T1SeaUnits = {
 "armrecl",
 "armpship",
 "armsub",
+"armpincer",
 "corpt",
 "coresupp",
 "correcl",
 "corpship",
 "corsub",
+"corgarpike",
 }
 
 T2SeaUnits = {
 "armroy",
-"armsjam",
+--"armsjam",
 "armls",
 "armsubk",
 "armaas",
@@ -26,8 +28,9 @@ T2SeaUnits = {
 "armcarry",
 "armserp",
 "armmship",
+"armcroc",
 "corroy",
-"corsjam",
+--"corsjam",
 "corls",
 "corshark",
 "corarch",
@@ -35,6 +38,7 @@ T2SeaUnits = {
 "corcarry",
 "corssub",
 "cormship",
+"corseal",
 }
 
 T3SeaUnits = {

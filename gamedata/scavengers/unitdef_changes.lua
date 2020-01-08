@@ -157,10 +157,10 @@ customDefs.corllt = {
 	mincloakdistance = 144,
 }
 
-customDefs.corhllt = {
-	cloakcost = 9,
-	mincloakdistance = 144,
-}
+-- customDefs.corhllt = {
+-- 	cloakcost = 9,
+-- 	mincloakdistance = 144,
+-- }
 
 customDefs.corhlt = {
 	cloakcost = 18,
@@ -170,6 +170,16 @@ customDefs.corhlt = {
 customDefs.armllt = {
 	cloakcost = 6,
 	mincloakdistance = 144,
+}
+
+customDefs.armnanotc = {
+	cloakcost = 6,
+	mincloakdistance = 72,
+}
+
+customDefs.cornanotc = {
+	cloakcost = 6,
+	mincloakdistance = 72,
 }
 
 -- customDefs.armbeamer = {

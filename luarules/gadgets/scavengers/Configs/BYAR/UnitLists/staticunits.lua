@@ -5,4 +5,6 @@ NoSelfdList = {
 "armnanotc",
 "armcom",
 "corcom",
+"armnanotcplat",
+"cornanotcplat",
 }

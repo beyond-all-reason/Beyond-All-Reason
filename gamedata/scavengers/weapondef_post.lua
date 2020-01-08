@@ -10,7 +10,8 @@ end
 function scav_Wdef_Post(name, wDef)
     if wDef.weapontype == "Cannon" then
         wDef.rgbcolor = {0.95, 0.32, 1}
-        --wDef.colormap = [[0.95 0.32 1]]   
+        --wDef.colormap = [[0.95 0.32 1]] 
+        --wDef.explosiongenerator = convertToPurple(wDef.explosiongenerator)  
     elseif wDef.weapontype == "LightningCannon" then
     wDef.rgbcolor = {0.95, 0.32, 1}
     wDef.customparams.expl_light_color = {0.95, 0.32, 1}
