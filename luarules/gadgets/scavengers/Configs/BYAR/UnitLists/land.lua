@@ -44,7 +44,7 @@ T1LandUnits = {
 
 T2LandUnits = {
 --bots
-"armrectr"
+"armrectr",
 "armvader",
 "armspy",
 "armspid",
