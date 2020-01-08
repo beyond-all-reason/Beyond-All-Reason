@@ -44,7 +44,7 @@ T1LandUnits = {
 
 T2LandUnits = {
 --bots
-"armpw",
+"armrectr"
 "armvader",
 "armspy",
 "armspid",
@@ -57,6 +57,7 @@ T2LandUnits = {
 "armsnipe",
 "armmav",
 "armfboy",
+"cornecro",
 "corroach",
 "corspy",
 "corpyro",
@@ -95,10 +96,14 @@ T2LandUnits = {
 
 T3LandUnits = {
 --bots
+"armbull",
+"armmanni",
 "armmar",
 "armvang",
 "armraz",
 "armbanth",
+"corgol",
+"corsumo",
 "corkrog",
 "corshiva",
 "corkarg",

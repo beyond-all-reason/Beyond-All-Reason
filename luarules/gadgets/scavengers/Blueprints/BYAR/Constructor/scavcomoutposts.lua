@@ -10,6 +10,23 @@ local UDN = UnitDefNames
 local nameSuffix = '_scav'
 
 
+local function scavsonaroutpost(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 100
+local unitoptions = {UDN.corsonar_scav.id, UDN.armsonar_scav.id,}
+local defenseoptions = {UDN.cortl_scav.id, UDN.armtl_scav.id,}
+	if radiusCheck then
+		return posradius
+	else
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx, posy, posz, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(defenseoptions[math.random(1,#defenseoptions)]), {posx-100, posy, posz, 3}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(defenseoptions[math.random(1,#defenseoptions)]), {posx+100, posy, posz, 1}, {"shift"})
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT0Sea,scavsonaroutpost)
+table.insert(ScavengerConstructorBlueprintsT1Sea,scavsonaroutpost)
+table.insert(ScavengerConstructorBlueprintsT2Sea,scavsonaroutpost)
+table.insert(ScavengerConstructorBlueprintsT3Sea,scavsonaroutpost)
+
 local function scavradaronlyoutpost(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 100
 local unitoptions = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corrl_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id,}
