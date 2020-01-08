@@ -6,7 +6,7 @@ for i = 1,#Blueprints2List do
 	VFS.Include(Blueprints2List[i])
 	Spring.Echo("Scav Blueprints Directory: " ..Blueprints2List[i])
 end
-local constructortimer = constructorControllerModule.constructortimer - 10
+local constructortimer = 0
 
 function SpawnConstructor()
 	local posx = math.random(200,mapsizeX-200)
