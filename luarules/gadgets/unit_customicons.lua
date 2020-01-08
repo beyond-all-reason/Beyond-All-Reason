@@ -993,7 +993,7 @@ function loadUnitIcons()
             if unitname and UnitDefNames[unitname] then
                 local scale = string.gsub(name, unitname, '')
                 scale = string.gsub(scale, '_', '')
-                if scale ~= '' then
+                if scale ~= '' and UnitDefNames[unitname..scavSuffix] then
                     addUnitIcon(scavPrefix..unitname..".user", file, tonumber(scale)*iconScale)
                     Spring.SetUnitDefIcon(UnitDefNames[unitname..scavSuffix].id, scavPrefix..unitname..".user")
                     loadedIcons[#loadedIcons+1] = scavPrefix..unitname..".user"
