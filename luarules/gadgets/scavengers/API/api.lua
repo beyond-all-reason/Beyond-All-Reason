@@ -16,6 +16,11 @@ Spring.Echo("[Scavengers] API initialized")
 	oldselfdy = {}
 	oldselfdz = {}
 	scavNoSelfD = {}
+	UDN = UnitDefNames
+	scavStructure = {}
+	scavConstructor = {}
+	scavAssistant = {}
+	scavResurrector = {}
 
 
 -- Check height diffrences

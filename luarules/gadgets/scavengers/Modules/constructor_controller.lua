@@ -8,6 +8,23 @@ for i = 1,#Blueprints2List do
 end
 local constructortimer = 0
 
+function AssistantOrders(n, scav)
+	local x,y,z = Spring.GetUnitPosition(scav)
+	Spring.GiveOrderToUnit(scav, CMD.PATROL,{x-100,y,z}, {"shift"})
+	Spring.GiveOrderToUnit(scav, CMD.PATROL,{x+100,y,z}, {"shift"})
+	Spring.GiveOrderToUnit(scav, CMD.PATROL,{x,y,z-100}, {"shift"})
+	Spring.GiveOrderToUnit(scav, CMD.PATROL,{x,y,z+100}, {"shift"})
+end
+
+function ResurrectorOrders(n, scav)
+	local mapcenterX = mapsizeX/2
+	local mapcenterZ = mapsizeZ/2
+	local mapcenterY = Spring.GetGroundHeight(mapcenterX, mapcenterZ)
+	local mapdiagonal = math.ceil(math.sqrt((mapsizeX*mapsizeX)+(mapsizeZ*mapsizeZ)))
+	Spring.GiveOrderToUnit(scav, CMD.RESURRECT,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, {})
+	--Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, {"shift"})
+end
+
 function SpawnConstructor()
 	local posx = math.random(200,mapsizeX-200)
 	local posz = math.random(200,mapsizeZ-200)
@@ -24,7 +41,16 @@ function SpawnConstructor()
 		if constructortimer > constructorControllerModule.constructortimer then
 			constructortimer = constructortimer - constructorControllerModule.constructortimer
 			local r = ConstructorsList[math.random(1,#ConstructorsList)]
+			local r2 = Resurrectors[math.random(1,#Resurrectors)]
 			Spring.CreateUnit(r..scavconfig.unitnamesuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz+32, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz-32, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math.random(0,3),GaiaTeamID)
+			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math.random(0,3),GaiaTeamID)
 		else
 			constructortimer = constructortimer + 1
 		end

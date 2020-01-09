@@ -201,3 +201,11 @@ customDefs.cordoom = {
 	cloakcost = 50,
 	mincloakdistance = 432,
 }
+
+customDefs.armrectr = {
+	workertime = 50000,
+}
+
+customDefs.cornecro = {
+	workertime = 50000,
+}

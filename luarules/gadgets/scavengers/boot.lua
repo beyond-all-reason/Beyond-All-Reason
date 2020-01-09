@@ -72,25 +72,43 @@ function gadget:GameFrame(n)
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
 				local scavDef = Spring.GetUnitDefID(scav)
-				local scavStructure = UnitDefs[scavDef].isBuilding
+				scavStructure[scav] = UnitDefs[scavDef].isBuilding
 				for i = 1,#NoSelfdList do
 					if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, NoSelfdList[i]) then
-						scavStructure = true
+						scavStructure[scav] = true
 					end
 				end
-				if not scavStructure and n%900 == 0 then
+				if not scavStructure[scav] and n%900 == 0 then
 					SelfDestructionControls(n, scav)
 				end
-				if not scavStructure and Spring.GetCommandQueue(scav, 0) <= 1 then
+				if not scavStructure[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
 					ArmyMoveOrders(n, scav)
 				end
+				
 				for i = 1,#ConstructorsList do
 					if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ConstructorsList[i]) then
-						scavConstructor = true
+						scavConstructor[scav] = true
 					end
 				end
-				if scavConstructor and Spring.GetCommandQueue(scav, 0) <= 1 then
+				for i = 1,#AssistUnits do
+					if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, AssistUnits[i]) then
+						scavAssistant[scav] = true
+					end
+				end
+				for i = 1,#Resurrectors do
+					if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Resurrectors[i]) then
+						scavResurrector[scav] = true
+					end
+				end
+				
+				if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
 					ConstructNewBlueprint(n, scav)
+				end
+				if scavAssistant[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
+					AssistantOrders(n, scav)
+				end
+				if scavResurrector[scav] then
+					ResurrectorOrders(n, scav)
 				end
 				
 			end
@@ -107,6 +125,10 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		oldselfdy[unitID] = nil
 		oldselfdz[unitID] = nil
 		scavNoSelfD[unitID] = nil
+		scavConstructor[unitID] = nil
+		scavAssistant[unitID] = nil
+		scavResurrector[unitID] = nil
+		scavStructure[unitID] = nil
 	end
 end
 

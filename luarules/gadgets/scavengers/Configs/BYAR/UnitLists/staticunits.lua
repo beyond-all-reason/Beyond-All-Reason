@@ -7,4 +7,6 @@ NoSelfdList = {
 "corcom",
 "armnanotcplat",
 "cornanotcplat",
+"armrectr",
+"cornecro",
 }
