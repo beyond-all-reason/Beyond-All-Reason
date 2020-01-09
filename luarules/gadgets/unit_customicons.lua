@@ -280,37 +280,6 @@ if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~
     scavengerAlternatives = nil
 end
 
-
-function deepcopy(orig)
-    local orig_type = type(orig)
-    local copy
-    if orig_type == 'table' then
-        copy = {}
-        for orig_key, orig_value in next, orig, nil do
-            copy[deepcopy(orig_key)] = deepcopy(orig_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(orig)))
-    else -- number, string, boolean, etc
-        copy = orig
-    end
-    return copy
-end
-
-function tableMerge(t1, t2)
-    for k,v in pairs(t2) do
-        if type(v) == "table" then
-            if type(t1[k] or false) == "table" then
-                tableMerge(t1[k] or {}, t2[k] or {})
-            else
-                t1[k] = v
-            end
-        else
-            t1[k] = v
-        end
-    end
-    return t1
-end
-
 function getIconID(name)   -- does not check if file exists
     if string.sub(name, #name-4) ~= '.user' then
         name = name .. '.user'
