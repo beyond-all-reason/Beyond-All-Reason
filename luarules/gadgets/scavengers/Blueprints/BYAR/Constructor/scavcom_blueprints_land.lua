@@ -363,13 +363,12 @@ local function scavnrgplants(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 				Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx-192, posy, posz, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(UDN.cornanotc_scav.id), {posx+192, posy, posz, 0}, {"shift"})
 				
-				-- temporarily disabled because LUS orbs don't work with Scavengers yet
-				--Spring.GiveOrderToUnit(scav, -(UDN.corfus_scav.id), {posx-96, posy, posz, 0}, {"shift"})
-				--Spring.GiveOrderToUnit(scav, -(UDN.corfus_scav.id), {posx, posy, posz, 0}, {"shift"})
-				--Spring.GiveOrderToUnit(scav, -(UDN.corfus_scav.id), {posx+96, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corfus_scav.id), {posx-96, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corfus_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corfus_scav.id), {posx+96, posy, posz, 0}, {"shift"})
 
-				Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx-64, posy, posz, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx+64, posy, posz, 0}, {"shift"})
+				--Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx-64, posy, posz, 0}, {"shift"})
+				--Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx+64, posy, posz, 0}, {"shift"})
 
 				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-96, posy, posz-64, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-64, posy, posz-64, 0}, {"shift"})
@@ -391,10 +390,10 @@ local function scavnrgplants(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 				Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx-160, posy, posz+160, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+160, posy, posz+160, 0}, {"shift"})
 				
-				-- temporarily disabled because LUS orbs don't work with Scavengers yet
-				-- Spring.GiveOrderToUnit(scav, -(UDN.armafus_scav.id), {posx, posy, posz, 1}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx, posy, posz-40, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx, posy, posz+40, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armafus_scav.id), {posx, posy, posz, 1}, {"shift"})
+				
+				--Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx, posy, posz-40, 0}, {"shift"})
+				--Spring.GiveOrderToUnit(scav, -(UDN.armfus_scav.id), {posx, posy, posz+40, 0}, {"shift"})
 
 				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-80, posy, posz-64, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx-96, posy, posz-32, 0}, {"shift"})

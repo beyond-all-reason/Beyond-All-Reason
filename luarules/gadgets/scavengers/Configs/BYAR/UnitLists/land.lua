@@ -5,6 +5,9 @@ T0LandUnits = {
 "corak",
 "armsh",
 "corsh",
+--vechicles
+"armfav",
+"corfav",
 }
 
 T1LandUnits = {
@@ -18,14 +21,12 @@ T1LandUnits = {
 "corak",
 "cornecro",
 --vechicles
-"armfav",
 "armflash",
 "armstump",
 "armart",
 "armsam",
 "armpincer",
 "armjanus",
-"corfav",
 "corgator",
 "cormist",
 "corwolv",
