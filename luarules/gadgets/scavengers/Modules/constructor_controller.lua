@@ -43,14 +43,16 @@ function SpawnConstructor()
 			local r = ConstructorsList[math.random(1,#ConstructorsList)]
 			local r2 = Resurrectors[math.random(1,#Resurrectors)]
 			Spring.CreateUnit(r..scavconfig.unitnamesuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz+32, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz-32, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math.random(0,3),GaiaTeamID)
-			Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math.random(0,3),GaiaTeamID)
+			if posy > 0 then
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz+32, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx, posy, posz-32, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz+32, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz-32, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx-32, posy, posz+32, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit(r2..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math.random(0,3),GaiaTeamID)
+			end
 		else
 			constructortimer = constructortimer + 1
 		end
