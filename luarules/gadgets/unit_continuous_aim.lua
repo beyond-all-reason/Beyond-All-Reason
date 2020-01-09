@@ -60,6 +60,16 @@ local convertedUnits = {
 	--[UnitDefNames.corjugg.id] = true,
 	[UnitDefNames.armvang.id] = true,
 }
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	local scavengerUnits = {}
+	for k,v in pairs(convertedUnits) do
+		scavengerUnits[k..'_scav'] = v
+	end
+	for k,v in pairs(scavengerUnits) do
+		convertedUnits[k] = v
+	end
+end
+
 local unitWeapons = {}
 for unitDefID, unitDef in pairs(UnitDefs) do
 	if unitDef.scriptName == "scripts/BASICTANKSCRIPT.LUA" then
