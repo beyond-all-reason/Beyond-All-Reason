@@ -28,3 +28,8 @@ Factories = {
 "corplat",
 "corsy",
 }
+
+FactoriesExcludedUnits = {
+"corllt",
+"armllt",
+}
