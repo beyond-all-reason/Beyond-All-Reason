@@ -17,6 +17,10 @@ end
 unitDefID = Spring.GetUnitDefID(unitID)
 defs = UnitDefs[unitDefID]
 unitName = UnitDefs[unitDefID].name
+
+-- rename scavenger unit
+unitName = string.gsub(unitName, '_scav', '')
+
 pi = math.pi
 abs = math.abs
 pi2 = pi*2
