@@ -25,9 +25,9 @@ customDefs.corcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 500,
+	workertime = 250,				-- gets multiplied in unitdef_post (currently x2)
 	customparams = {
-		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
 	featuredefs = {
 		dead = {
@@ -60,9 +60,9 @@ customDefs.armcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 500,
+	workertime = 250,				-- gets multiplied in unitdef_post (currently x2)
 	customparams = {
-		iscommander = 'nil',      -- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
+		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
 	featuredefs = {
 		dead = {
@@ -208,9 +208,9 @@ customDefs.cordoom = {
 }
 
 customDefs.armrectr = {
-	workertime = 50000,
+	workertime = 20000, 	-- gets multiplied in unitdef_post (currently x2)
 }
 
 customDefs.cornecro = {
-	workertime = 50000,
+	workertime = 20000,		-- gets multiplied in unitdef_post (currently x2)
 }
