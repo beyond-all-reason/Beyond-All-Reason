@@ -470,4 +470,27 @@ local armorDefs = {
 	},
 }
 
+-- add scavenger variants
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	function tableMerge(t1, t2)
+		for k,v in pairs(t2) do if type(v) == "table" then if type(t1[k] or false) == "table" then tableMerge(t1[k] or {}, t2[k] or {}) else t1[k] = v end else t1[k] = v end end
+		return t1
+	end
+	local armorDefs2 = {}
+	for category,names in pairs(armorDefs) do
+		local catkeycount = #names
+		for _,name in pairs(names) do
+			local faction = string.sub(name, 1, 3)
+			if faction == 'arm' or faction == 'cor' then
+				if armorDefs2[category] == nil then
+					armorDefs2[category] = {}
+				end
+				catkeycount = catkeycount + 1
+				armorDefs2[category][catkeycount] = name..'_scav'
+			end
+		end
+	end
+	armorDefs = tableMerge(armorDefs, armorDefs2)
+end
+
 return armorDefs
