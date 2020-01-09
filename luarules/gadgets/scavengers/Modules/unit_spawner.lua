@@ -35,85 +35,97 @@ function UnitGroupSpawn(n)
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T3AirUnits[math.random(1,#T3AirUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
 						else
 							groupunit = T2AirUnits[math.random(1,#T2AirUnits)]
-							groupsize = groupsize*2
+							groupsize = groupsize*2*unitSpawnerModuleConfig.airmultiplier
 						end
 					elseif n > scavconfig.timers.Tech2 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T2AirUnits[math.random(1,#T2AirUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
 						else
 							groupunit = T1AirUnits[math.random(1,#T1AirUnits)]
-							groupsize = groupsize*2
+							groupsize = groupsize*2*unitSpawnerModuleConfig.airmultiplier
 						end
 					elseif n > scavconfig.timers.Tech1 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T1AirUnits[math.random(1,#T1AirUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
 						else
 							groupunit = T0AirUnits[math.random(1,#T0AirUnits)]
-							groupsize = groupsize*2
+							groupsize = groupsize*2*unitSpawnerModuleConfig.airmultiplier
 						end
 					elseif n > scavconfig.timers.Tech0 then
 						groupunit = T0AirUnits[math.random(1,#T0AirUnits)]
+						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
 					end
 				elseif posy > -20 then
 					if n > scavconfig.timers.Tech3 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T3LandUnits[math.random(1,#T3LandUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier
 						else
 							groupunit = T2LandUnits[math.random(1,#T2LandUnits)]
-							groupsize = groupsize*2
+							groupsize = groupsize*2*unitSpawnerModuleConfig.landmultiplier
 						end
 					elseif n > scavconfig.timers.Tech2 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T2LandUnits[math.random(1,#T2LandUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier
 						else
 							groupunit = T1LandUnits[math.random(1,#T1LandUnits)]
-							groupsize = groupsize*2
+							groupsize = groupsize*2*unitSpawnerModuleConfig.landmultiplier
 						end
 					elseif n > scavconfig.timers.Tech1 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T1LandUnits[math.random(1,#T1LandUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier
 						else
 							groupunit = T0LandUnits[math.random(1,#T0LandUnits)]
-							groupsize = groupsize*2
+							groupsize = groupsize*2*unitSpawnerModuleConfig.landmultiplier
 						end
 					elseif n > scavconfig.timers.Tech0 then
 						groupunit = T0LandUnits[math.random(1,#T0LandUnits)]
+						groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier
 					end
 				elseif posy <= -20 then
 					if n > scavconfig.timers.Tech3 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T3SeaUnits[math.random(1,#T3SeaUnits)]
-							groupsize = groupsize*0.5
+							groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier
 						else
 							groupunit = T2SeaUnits[math.random(1,#T2SeaUnits)]
+							groupsize = groupsize*2*unitSpawnerModuleConfig.seamultiplier
 						end
 					elseif n > scavconfig.timers.Tech2 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T2SeaUnits[math.random(1,#T2SeaUnits)]
-							groupsize = groupsize*0.5
+							groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier
 						else
 							groupunit = T1SeaUnits[math.random(1,#T1SeaUnits)]
+							groupsize = groupsize*2*unitSpawnerModuleConfig.seamultiplier
 							
 						end
 					elseif n > scavconfig.timers.Tech1 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T1SeaUnits[math.random(1,#T1SeaUnits)]
-							groupsize = groupsize*0.5
+							groupsize = groupsize*2*unitSpawnerModuleConfig.seamultiplier
 						else
 							groupunit = T0SeaUnits[math.random(1,#T0SeaUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier
 						end
 					elseif n > scavconfig.timers.Tech0 then
 						groupunit = T0SeaUnits[math.random(1,#T0SeaUnits)]
+						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier
 					end
 				end
 				local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)

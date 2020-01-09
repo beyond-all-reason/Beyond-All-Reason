@@ -31,6 +31,9 @@ if scavconfig.modules.unitSpawnerModule then
 		aircraftchance 					= 5, -- higher number = lower chance
 		groupsizemultiplier 			= 1,
 		spawnchance						= 60,
+		landmultiplier 					= 1
+		airmultiplier 					= 1
+		seamultiplier 					= 0.5
 	}
 end
 
