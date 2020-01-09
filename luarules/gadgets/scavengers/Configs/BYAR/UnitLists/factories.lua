@@ -32,4 +32,16 @@ Factories = {
 FactoriesExcludedUnits = {
 "corllt",
 "armllt",
+"armatlas",
+"armdfly",
+"armmlv",
+"armbeaver",
+"armtship",
+"armthovr",
+"corvalk",
+"corseah",
+"cormuskrat",
+"corintr",
+"cortship",
+"corthovr",
 }

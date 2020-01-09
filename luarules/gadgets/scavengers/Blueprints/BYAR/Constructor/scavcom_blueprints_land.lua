@@ -23,10 +23,10 @@ local r = math.random(0,1)
 			return posradius
 		else	
 			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.corlab_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corlab_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armlab_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armlab_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 		end
 	end
@@ -42,10 +42,10 @@ local r = math.random(0,1)
 			return posradius
 		else	
 			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.corvp_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corvp_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armvp_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armvp_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 		end
 	end
@@ -61,10 +61,10 @@ local r = math.random(0,1)
 			return posradius
 		else	
 			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.corap_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corap_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armap_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armap_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 		end
 	end
@@ -80,10 +80,10 @@ local r = math.random(0,1)
 			return posradius
 		else	
 			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.coralab_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.coralab_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armalab_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armalab_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 		end
 	end
@@ -99,10 +99,10 @@ local r = math.random(0,1)
 			return posradius
 		else	
 			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.coravp_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.coravp_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armavp_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armavp_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 		end
 	end
@@ -118,10 +118,10 @@ local r = math.random(0,1)
 			return posradius
 		else	
 			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(UDN.coraap_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.coraap_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armaap_scav.id), {posx, posy, posz, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armaap_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 
 		end
 	end
