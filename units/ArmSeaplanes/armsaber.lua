@@ -104,11 +104,11 @@ return {
 				soundhitwet = "sizzle",
 				soundhitwetvolume = 0.5,
 				soundstart = "Lasrhvy2",
-				thickness = 5,
+				thickness = 4,
 				tolerance = 10000,
 				turret = false,
 				weapontype = "LaserCannon",
-				weaponvelocity = 400,
+				weaponvelocity = 1000,
 				damage = {
 					bombers = 10,
 					commanders = 40,

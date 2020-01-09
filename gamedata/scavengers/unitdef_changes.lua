@@ -208,9 +208,9 @@ customDefs.cordoom = {
 }
 
 customDefs.armrectr = {
-	workertime = 20000, 	-- gets multiplied in unitdef_post (currently x2)
+	workertime = 1000, 	-- gets multiplied in unitdef_post (currently x2)
 }
 
 customDefs.cornecro = {
-	workertime = 20000,		-- gets multiplied in unitdef_post (currently x2)
+	workertime = 1000,		-- gets multiplied in unitdef_post (currently x2)
 }

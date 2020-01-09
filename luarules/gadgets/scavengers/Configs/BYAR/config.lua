@@ -32,13 +32,13 @@ if scavconfig.modules.unitSpawnerModule then
 		groupsizemultiplier 			= 1,
 		spawnchance						= 60,
 		landmultiplier 					= 1,
-		airmultiplier 					= 1,
+		airmultiplier 					= 2.5,
 		seamultiplier 					= 0.5,
 	}
 end
 
 if scavconfig.modules.constructorControllerModule then
 	constructorControllerModule = {
-		constructortimer 				= 200, -- higher number = longer time between spawns
+		constructortimer 				= 250, -- higher number = longer time between spawns
 	}
 end
