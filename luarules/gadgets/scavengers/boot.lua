@@ -100,6 +100,11 @@ function gadget:GameFrame(n)
 						scavResurrector[scav] = true
 					end
 				end
+				for i = 1,#Factories do
+					if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Factories[i]) then
+						scavFactory[scav] = true
+					end
+				end
 				
 				if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
 					ConstructNewBlueprint(n, scav)
@@ -109,6 +114,9 @@ function gadget:GameFrame(n)
 				end
 				if scavResurrector[scav] then
 					ResurrectorOrders(n, scav)
+				end
+				if scavFactory[scav] and #Spring.GetFullBuildQueue(scav, 0) <= 1 then
+					FactoryProduction(n, scav, scavDef)
 				end
 				
 			end
@@ -129,6 +137,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavAssistant[unitID] = nil
 		scavResurrector[unitID] = nil
 		scavStructure[unitID] = nil
+		scavFactory[unitID] = nil
 	end
 end
 
