@@ -188,9 +188,9 @@ local posradius = 96
 	if radiusCheck then
 		return posradius
 	else
-		Spring.GiveOrderToUnit(scav, -(UDN.armuwfus_scav.id), {posx, posy, posz-96, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armuwfus_scav.id), {posx, posy, posz-112, 0}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(UDN.armuwfus_scav.id), {posx, posy, posz, 0}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armuwfus_scav.id), {posx, posy, posz+96, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armuwfus_scav.id), {posx, posy, posz+112, 0}, {"shift"})
 
 	end
 end

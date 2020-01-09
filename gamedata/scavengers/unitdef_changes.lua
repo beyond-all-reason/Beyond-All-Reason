@@ -192,6 +192,11 @@ customDefs.corvipe = {
 	mincloakdistance = 288,
 }
 
+customDefs.cortoast = {
+	cloakcost = 20,
+	mincloakdistance = 288,
+}
+
 customDefs.corint = {
 	cloakcost = 75,
 	mincloakdistance = 432,

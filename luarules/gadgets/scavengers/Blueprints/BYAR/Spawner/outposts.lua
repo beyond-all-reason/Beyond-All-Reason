@@ -337,7 +337,7 @@ table.insert(ScavengerBlueprintsT3,ultraheavybasedoomred)
 -- Ultra Artillery Outpost Jammed
 
 local function ultraheavyartybasered(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 120
+local posradius = 110
 	if radiusCheck then
 		return posradius
 	else
@@ -351,7 +351,7 @@ table.insert(ScavengerBlueprintsT3,ultraheavyartybasered)
 -- Ultra Artillery Outpost Dual
 
 local function ultraheavyartybaseblue(posx, posy, posz, GaiaTeamID, radiusCheck)
-local posradius = 130
+local posradius = 100
 	if radiusCheck then
 		return posradius
 	else
