@@ -128,7 +128,7 @@ function UnitGroupSpawn(n)
 						groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier
 					end
 				end
-				local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)
+				local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)*unitSpawnerModuleConfig.spawnchancecostscale
 				local groupsize = math.ceil((groupsize/cost)*unitSpawnerModuleConfig.groupsizemultiplier)
 				for i=1, groupsize do
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)

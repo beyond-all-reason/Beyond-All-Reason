@@ -19,26 +19,24 @@ scavconfig = {
 
 
 -- Modules configs
-if scavconfig.modules.buildingSpawnerModule then
-	buildingSpawnerModuleConfig = {
-		spawnchance 					= 140,
-		useSeaBlueprints 				= true,
-	}
-end
+buildingSpawnerModuleConfig = {
+	spawnchance 						= 140,
+	useSeaBlueprints 					= true,
+}
 
-if scavconfig.modules.unitSpawnerModule then
-	unitSpawnerModuleConfig = {
-		aircraftchance 					= 5, -- higher number = lower chance
-		groupsizemultiplier 			= 1,
-		spawnchance						= 60,
-		landmultiplier 					= 1,
-		airmultiplier 					= 2.5,
-		seamultiplier 					= 0.5,
-	}
-end
+unitSpawnerModuleConfig = {
+	aircraftchance 						= 5, -- higher number = lower chance
+	groupsizemultiplier 				= 1,
+	spawnchance							= 60,
+	spawnchancecostscale				= 1, -- higher = smaller groups (fine tune together with groupsizemultiplier)
+	landmultiplier 						= 1,
+	airmultiplier 						= 2.5,
+	seamultiplier 						= 0.5,
+}
 
-if scavconfig.modules.constructorControllerModule then
-	constructorControllerModule = {
-		constructortimer 				= 250, -- higher number = longer time between spawns
-	}
-end
+constructorControllerModule = {
+	constructortimer 					= 250, -- higher number = longer time between spawns
+	useresurrectors						= true,
+	useconstructors						= true,
+	usecollectors						= true,
+}
