@@ -414,7 +414,6 @@ local scavengerDefs = {}
 for k,v in pairs(definitions) do
     scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
 end
-definitions = tableMerge(definitions, scavengerDefs)
 
 local purpleEffects = {
     fire = {
@@ -453,6 +452,6 @@ for defName, def in pairs(scavengerDefs) do
     end
 end
 
-
+definitions = tableMerge(definitions, scavengerDefs)
 
 return definitions

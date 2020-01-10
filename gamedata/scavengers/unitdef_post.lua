@@ -26,6 +26,17 @@ function scav_Udef_Post(name, uDef)
 			end
 		end
 	end
+	-- make unit explosion purple
+	if uDef.explodeas then
+		if string.find(string.lower(uDef.explodeas), 'explosiongeneric') or string.find(string.lower(uDef.explodeas), 'buildingexplosiongeneric') then
+			uDef.explodeas = uDef.explodeas..'-purple'
+		end
+	end
+	if uDef.selfdestructas then
+		if string.find(string.lower(uDef.selfdestructas), 'explosiongeneric') or string.find(string.lower(uDef.selfdestructas), 'buildingexplosiongeneric') then
+			uDef.selfdestructas = uDef.selfdestructas..'-purple'
+		end
+	end
 
 	if uDef.buildoptions then
         for k, v in pairs(uDef.buildoptions) do
