@@ -492,4 +492,45 @@ defs["deathceg4-builder"].dustparticles.properties.colormap = deepcopy(defs["dea
 --defs["deathceg2-air"] = tableMerge(deepcopy(defs["deathceg2"]), deepcopy(effects))
 --defs["deathceg3-air"] = tableMerge(deepcopy(defs["deathceg3"]), deepcopy(effects))
 
+
+-- add purple scavenger variants
+local scavengerDefs = {}
+for k,v in pairs(defs) do
+  scavengerDefs[k..'-purple'] = deepcopy(defs[k])
+end
+
+local purpleEffects = {
+  fire = {
+    properties = {
+      colormap = [[0.6 0.25 0.8 0.04   0.5 0.35 0.75 0.035   0.3 0.1 0.5 0.03   0.2 0.08 0.3 0.022   0.1 0.04 0.2 0.015   0 0 0 0.01]]
+    }
+  },
+  fireglow = {
+    properties = {
+      colormap = [[0.18 0.07 0.33 0.01   0 0 0 0.01]]
+    }
+  },
+}
+for defName, def in pairs(scavengerDefs) do
+  for effect, effectParams in pairs(purpleEffects) do
+    if scavengerDefs[defName][effect] then
+      for param, paramValue in pairs(effectParams) do
+        if scavengerDefs[defName][effect][param] then
+          if param == 'properties' then
+            for property,propertyValue in pairs(paramValue) do
+              if scavengerDefs[defName][effect][param][property] then
+                scavengerDefs[defName][effect][param][property] = propertyValue
+              end
+            end
+          else
+            scavengerDefs[defName][effect][param] = paramValue
+          end
+        end
+      end
+    end
+  end
+end
+
+defs = tableMerge(defs, scavengerDefs)
+
 return defs

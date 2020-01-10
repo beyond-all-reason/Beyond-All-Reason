@@ -1,7 +1,32 @@
 -- this file gets included in alldefs_post.lua
-local ScavengerName = "Scavenger "
+
 function scav_Udef_Post(name, uDef)
-    
+
+	-- make barrelshot purple
+	if uDef.customparams and uDef.customparams.firingceg then
+		if string.find(uDef.customparams.firingceg, 'barrelshot') then
+			uDef.customparams.firingceg = uDef.customparams.firingceg..'-purple'
+		end
+	end
+	if uDef.sfxtypes then
+		-- make barrelshot purple
+		if uDef.sfxtypes.explosiongenerators then
+			for k,v in pairs(uDef.sfxtypes.explosiongenerators) do
+				if string.find(v, 'barrelshot') then
+					uDef.sfxtypes.explosiongenerators[k] = v..'-purple'
+				end
+			end
+		end
+		-- make deathcegs purple
+		if uDef.sfxtypes.pieceexplosiongenerators then
+			for k,v in pairs(uDef.sfxtypes.pieceexplosiongenerators) do
+				if string.find(v, 'deathceg') then
+					uDef.sfxtypes.pieceexplosiongenerators[k] = v..'-purple'
+				end
+			end
+		end
+	end
+
 	if uDef.buildoptions then
         for k, v in pairs(uDef.buildoptions) do
             if UnitDefs[v..'_scav'] then

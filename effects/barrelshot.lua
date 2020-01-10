@@ -153,6 +153,20 @@ local definitions = {
   },
 }
 
+function tableMerge(t1, t2)
+    for k,v in pairs(t2) do
+        if type(v) == "table" then
+            if type(t1[k] or false) == "table" then
+                tableMerge(t1[k] or {}, t2[k] or {})
+            else
+                t1[k] = v
+            end
+        else
+            t1[k] = v
+        end
+    end
+    return t1
+end
 
 function deepcopy(orig)
     local orig_type = type(orig)
@@ -394,6 +408,51 @@ definitions["barrelshot-lightning"] = {
         },
     },
 }
+
+-- add purple scavenger variants
+local scavengerDefs = {}
+for k,v in pairs(definitions) do
+    scavengerDefs[k..'-purple'] = deepcopy(definitions[k])
+end
+definitions = tableMerge(definitions, scavengerDefs)
+
+local purpleEffects = {
+    fire = {
+        properties = {
+            colormap = [[0.75 0.65 1 0.013   0.3 0.15 0.6 0.01   0.25 0.02 0.4 0.006   0 0 0 0.01]]
+        }
+    },
+    fire2 = {
+        properties = {
+            colormap = [[0.75 0.65 1 0.013   0.3 0.15 0.6 0.01   0.25 0.02 0.4 0.006   0 0 0 0.01]]
+        }
+    },
+    fireglow = {
+        properties = {
+            colormap = [[0.075 0.03 0.12 0.04   0 0 0 0.01]]
+        }
+    },
+}
+for defName, def in pairs(scavengerDefs) do
+    for effect, effectParams in pairs(purpleEffects) do
+        if scavengerDefs[defName][effect] then
+            for param, paramValue in pairs(effectParams) do
+                if scavengerDefs[defName][effect][param] then
+                    if param == 'properties' then
+                        for property,propertyValue in pairs(paramValue) do
+                            if scavengerDefs[defName][effect][param][property] then
+                                scavengerDefs[defName][effect][param][property] = propertyValue
+                            end
+                        end
+                    else
+                        scavengerDefs[defName][effect][param] = paramValue
+                    end
+                end
+            end
+        end
+    end
+end
+
 
 
 return definitions
