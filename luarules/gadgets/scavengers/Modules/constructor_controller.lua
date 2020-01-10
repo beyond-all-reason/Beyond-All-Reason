@@ -26,10 +26,10 @@ function ResurrectorOrders(n, scav)
 end
 
 function SpawnConstructor()
-	local posx = math.random(200,mapsizeX-200)
-	local posz = math.random(200,mapsizeZ-200)
+	local posx = math.random(250,mapsizeX-250)
+	local posz = math.random(250,mapsizeZ-250)
 	local posy = Spring.GetGroundHeight(posx, posz)
-	local posradius = 30
+	local posradius = 48
 	canSpawnCommanderHere = posCheck(posx, posy, posz, posradius)
 	if canSpawnCommanderHere then
 		canSpawnCommanderHere = posLosCheck(posx, posy, posz,posradius)

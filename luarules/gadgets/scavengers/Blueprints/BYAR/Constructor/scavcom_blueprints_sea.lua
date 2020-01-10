@@ -192,10 +192,10 @@ local defenseoptions = {UDN.cortl_scav.id, UDN.coratl_scav.id, UDN.corfrt_scav.i
 	if radiusCheck then
 		return posradius
 	else
-		Spring.GiveOrderToUnit(scav, -(UDN.coruwes_scav.id), {posx-10, posy, posz+48, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.coruwes_scav.id), {posx+10, posy, posz+48, 0}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(UDN.coruwes_scav.id), {posx+10, posy, posz-48, 0}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx-96, posy, posz-16, 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(defenseoptions[math.random(1,#defenseoptions)]), {posx+96, posy, posz-16, 1}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(defenseoptions[math.random(1,#defenseoptions)]), {posx+112, posy, posz-16, 1}, {"shift"})
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT1Sea,scavuwestore)

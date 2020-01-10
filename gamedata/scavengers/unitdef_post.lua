@@ -67,6 +67,9 @@ function scav_Udef_Post(name, uDef)
  	if not uDef.stealth then
  		uDef.stealth = true
  	end
+ 	if not uDef.autoheal then
+ 		uDef.autoheal = 5
+ 	end
 
 
 	return uDef

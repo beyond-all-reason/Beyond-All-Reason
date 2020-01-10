@@ -25,7 +25,7 @@ customDefs.corcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 286,				-- gets multiplied in unitdef_post (currently x1.75)
+	workertime = 343,				-- gets multiplied in unitdef_post (currently x1.75)
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -60,7 +60,7 @@ customDefs.armcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 286,				-- gets multiplied in unitdef_post (currently x1.75)
+	workertime = 343,				-- gets multiplied in unitdef_post (currently x1.75)
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -148,6 +148,21 @@ customDefs.corak = {
 customDefs.corgator = {
 	cloakcost = 6,
 	mincloakdistance = 144,
+}
+
+customDefs.cortermite = {
+	cloakcost = 12,
+	mincloakdistance = 144,
+}
+
+customDefs.cormando = {
+	cloakcost = 12,
+	mincloakdistance = 144,
+}
+
+customDefs.corhrk = {
+	cloakcost = 12,
+	mincloakdistance = 160,
 }
 
 -- Cloaked Defenses

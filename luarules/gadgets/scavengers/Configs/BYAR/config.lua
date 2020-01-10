@@ -29,14 +29,14 @@ unitSpawnerModuleConfig = {
 	groupsizemultiplier 				= 1,
 	spawnchance							= 60,
 	spawnchancecostscale				= 1, -- higher = smaller groups (fine tune together with groupsizemultiplier)
-	landmultiplier 						= 1,
-	airmultiplier 						= 2.5,
-	seamultiplier 						= 0.5,
+	landmultiplier 						= 0.8,
+	airmultiplier 						= 2.0,
+	seamultiplier 						= 0.4,
 }
 
 constructorControllerModuleConfig = {
-	constructortimerstart				= 120, -- ammount of seconds it skips from first spawn (make first spawn earlier - this timer starts on timer-tech0)
-	constructortimer 					= 210, -- higher number = longer time between spawns
+	constructortimerstart				= 150, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-tech0)
+	constructortimer 					= 210, -- time in seconds between commander/constructor spawns
 	useresurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,
