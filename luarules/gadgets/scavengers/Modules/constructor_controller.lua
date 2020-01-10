@@ -38,8 +38,8 @@ function SpawnConstructor()
 		canSpawnCommanderHere = posOccupied(posx, posy, posz, posradius)
 	end
 	if canSpawnCommanderHere then
-		if constructortimer > constructorControllerModule.constructortimer then
-			constructortimer = constructortimer - constructorControllerModule.constructortimer
+		if constructortimer > constructorControllerModuleConfig.constructortimer then
+			constructortimer = constructortimer - constructorControllerModuleConfig.constructortimer
 			local r = ConstructorsList[math.random(1,#ConstructorsList)]
 			local r2 = Resurrectors[math.random(1,#Resurrectors)]
 			Spring.CreateUnit(r..scavconfig.unitnamesuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)

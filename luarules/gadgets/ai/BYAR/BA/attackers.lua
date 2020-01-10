@@ -190,3 +190,59 @@ raiderlist = {
 	"corpship",	--	Era				/	Assault Frigate
 	"corcrus",	--	Executioner		/	Cruiser
 }	
+
+if Spring.GetModOptions and (tonumber(Spring.GetModOptions().scavengers) or 0) ~= 0 then
+	local A = #skirmisherlist
+	for i = 1,A do
+	  local Scavattacker = skirmisherlist[i].."_scav"
+	  table.insert(skirmisherlist, Scavattacker)
+	end
+
+	local B = #artillerylist
+	for i = 1,B do
+	  local Scavattacker = artillerylist[i].."_scav"
+	  table.insert(artillerylist, Scavattacker)
+	end
+
+	local C = #attackerlist
+	for i = 1,C do
+	  local Scavattacker = attackerlist[i].."_scav"
+	  table.insert(attackerlist, Scavattacker)
+	end
+
+	local D = #gunshiplist
+	for i = 1,D do
+	  local Scavattacker = gunshiplist[i].."_scav"
+	  table.insert(gunshiplist, Scavattacker)
+	end
+
+	local E = #unusedlist
+	for i = 1,E do
+	  local Scavattacker = unusedlist[i].."_scav"
+	  table.insert(unusedlist, Scavattacker)
+	end
+
+	local F = #bomberlist
+	for i = 1,F do
+	  local Scavattacker = bomberlist[i].."_scav"
+	  table.insert(bomberlist, Scavattacker)
+	end
+
+	local G = #fighterlist
+	for i = 1,G do
+	  local Scavattacker = fighterlist[i].."_scav"
+	  table.insert(fighterlist, Scavattacker)
+	end
+
+	local H = #mobileaalist
+	for i = 1,H do
+	  local Scavattacker = mobileaalist[i].."_scav"
+	  table.insert(mobileaalist, Scavattacker)
+	end
+
+	local I = #raiderlist
+	for i = 1,I do
+	  local Scavattacker = raiderlist[i].."_scav"
+	  table.insert(raiderlist, Scavattacker)
+	end
+end

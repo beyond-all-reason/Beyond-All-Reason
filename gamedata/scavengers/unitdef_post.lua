@@ -10,11 +10,11 @@ function scav_Udef_Post(name, uDef)
         end
     end
 	
-	if uDef.featuredefs then
-		if uDef.featuredefs.dead then
-			uDef.featuredefs.dead.resurrectable = 0
-		end
-	end
+	-- if uDef.featuredefs then
+		-- if uDef.featuredefs.dead then
+			-- uDef.featuredefs.dead.resurrectable = 0
+		-- end
+	-- end
 	
 	if uDef.featuredefs then
 		if uDef.featuredefs.dead then

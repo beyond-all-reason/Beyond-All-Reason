@@ -34,7 +34,7 @@ unitSpawnerModuleConfig = {
 	seamultiplier 						= 0.5,
 }
 
-constructorControllerModule = {
+constructorControllerModuleConfig = {
 	constructortimer 					= 250, -- higher number = longer time between spawns
 	useresurrectors						= true,
 	useconstructors						= true,

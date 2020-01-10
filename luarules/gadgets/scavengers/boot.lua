@@ -66,7 +66,7 @@ function gadget:GameFrame(n)
 		if scavconfig.modules.unitSpawnerModule then
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.buildingSpawnerModule and constructorControllerModule.useconstructors and n > scavconfig.timers.Tech0 then
+		if scavconfig.modules.buildingSpawnerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.Tech0 then
 			SpawnConstructor()
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
@@ -88,7 +88,7 @@ function gadget:GameFrame(n)
 				end
 				
 				if scavconfig.modules.buildingSpawnerModule then
-					if constructorControllerModule.useconstructors then
+					if constructorControllerModuleConfig.useconstructors then
 						for i = 1,#ConstructorsList do
 							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ConstructorsList[i]) then
 								scavConstructor[scav] = true
@@ -99,7 +99,7 @@ function gadget:GameFrame(n)
 						end
 					end
 					
-					if constructorControllerModule.useresurrectors then
+					if constructorControllerModuleConfig.useresurrectors then
 						for i = 1,#Resurrectors do
 							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Resurrectors[i]) then
 								scavResurrector[scav] = true
