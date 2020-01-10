@@ -90,7 +90,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-small",
+				[1] = "custom:barrelshot-medium",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg2",

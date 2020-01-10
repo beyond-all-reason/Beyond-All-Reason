@@ -43,7 +43,7 @@ function scav_Udef_Post(name, uDef)
 		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
 	end
 	if uDef.workertime then
-		uDef.workertime = math.ceil(uDef.workertime*2)
+		uDef.workertime = math.ceil(uDef.workertime*1.75)
 	end
 	if uDef.maxdamage then
 		uDef.maxdamage = math.ceil(uDef.maxdamage*0.66)

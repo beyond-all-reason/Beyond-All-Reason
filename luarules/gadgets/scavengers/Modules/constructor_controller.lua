@@ -6,7 +6,7 @@ for i = 1,#Blueprints2List do
 	VFS.Include(Blueprints2List[i])
 	Spring.Echo("Scav Blueprints Directory: " ..Blueprints2List[i])
 end
-local constructortimer = 0
+local constructortimer = constructorControllerModuleConfig.constructortimerstart
 
 function AssistantOrders(n, scav)
 	local x,y,z = Spring.GetUnitPosition(scav)

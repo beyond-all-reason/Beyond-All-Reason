@@ -169,7 +169,7 @@ function deepcopy(orig)
     return copy
 end
 
-local size = 0.44
+local size = 0.48
 definitions["barrelshot-tiny"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-tiny"].fire.properties.length										= definitions["barrelshot-tiny"].fire.properties.length * size
 definitions["barrelshot-tiny"].fire.properties.size											= definitions["barrelshot-tiny"].fire.properties.size * size
@@ -184,7 +184,7 @@ definitions["barrelshot-tiny"].smoke2 = nil
 definitions["barrelshot-tiny"].smoke = nil
 --definitions["barrelshot-tiny"].clouddust = nil
 
-size = 0.7
+size = 0.85
 definitions["barrelshot-small"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-small"].fire.properties.length									= definitions["barrelshot-small"].fire.properties.length * size
 definitions["barrelshot-small"].fire.properties.size										= definitions["barrelshot-small"].fire.properties.size * size
@@ -210,7 +210,7 @@ definitions["barrelshot-small"].smoke.properties.particlespeedspread		= definiti
 --definitions["barrelshot-small"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
 --definitions["barrelshot-small"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
-size = 1.6
+size = 1.8
 definitions["barrelshot-large"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-large"].fire.properties.length 									= definitions["barrelshot-large"].fire.properties.length * size
 definitions["barrelshot-large"].fire.properties.size										= definitions["barrelshot-large"].fire.properties.size * size
@@ -236,7 +236,7 @@ definitions["barrelshot-large"].smoke.properties.particlespeedspread		= definiti
 --definitions["barrelshot-large"].clouddust.properties.particlelife			= definitions["barrelshot-small"].clouddust.properties.particlelife * size
 --definitions["barrelshot-large"].clouddust.properties.particlelifespread	= definitions["barrelshot-small"].clouddust.properties.particlelifespread * size
 
-size = 2.9
+size = 3.1
 definitions["barrelshot-huge"] = deepcopy(definitions["barrelshot-medium"])
 definitions["barrelshot-huge"].fire.properties.length 									= definitions["barrelshot-huge"].fire.properties.length * size
 definitions["barrelshot-huge"].fire.properties.size											= definitions["barrelshot-huge"].fire.properties.size * size

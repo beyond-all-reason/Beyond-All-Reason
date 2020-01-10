@@ -15,6 +15,8 @@ local UDN = UnitDefNames
 
 local nameSuffix = '_scav'
 
+-- FACTORIES
+
 local function scavlabt1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local unitoptions = {}
 local r = math.random(0,5)		
@@ -67,6 +69,87 @@ end
 table.insert(ScavengerConstructorBlueprintsT2,scavlabt2)
 table.insert(ScavengerConstructorBlueprintsT3,scavlabt2)
 
+-- ECO BUILDINGS
+
+local function scavmetalmakerst1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 70
+local unitoptions = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
+	if radiusCheck then
+		return posradius
+	else
+		Spring.GiveOrderToUnit(scav, -(UDN.cormakr_scav.id), {posx-32, posy, posz-32, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cormakr_scav.id), {posx+32, posy, posz-32, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cormakr_scav.id), {posx-32, posy, posz+32, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cormakr_scav.id), {posx+32, posy, posz+32, 0}, {"shift"})
+
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx-72, posy, posz-72, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-40, posy, posz-72, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-8, posy, posz-72, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-72, posy, posz-40, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-72, posy, posz-8, 0}, {"shift"})
+
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+72, posy, posz+72, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+72, posy, posz+40, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+72, posy, posz+8, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+40, posy, posz+72, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+8, posy, posz+72, 0}, {"shift"})
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT0,scavmetalmakerst1)
+table.insert(ScavengerConstructorBlueprintsT1,scavmetalmakerst1)
+
+local function scavmetalmakerst2(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 80
+local unitoptions = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
+	if radiusCheck then
+		return posradius
+	else
+		Spring.GiveOrderToUnit(scav, -(UDN.cormmkr_scav.id), {posx-40, posy, posz-40, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cormmkr_scav.id), {posx+40, posy, posz+40, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx-40, posy, posz+40, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx+40, posy, posz-40, 0}, {"shift"})
+
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx-104, posy, posz-104, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-72, posy, posz-104, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-40, posy, posz-104, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-104, posy, posz-72, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-104, posy, posz-40, 0}, {"shift"})
+
+		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+104, posy, posz+104, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+104, posy, posz+72, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+104, posy, posz+40, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+72, posy, posz+104, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+40, posy, posz+104, 0}, {"shift"})
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT2,scavmetalmakerst2)
+table.insert(ScavengerConstructorBlueprintsT3,scavmetalmakerst2)
+
+local function scavmstoredual(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+local posradius = 80
+local unitoptions = {UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cordrag_scav.id, UDN.cormaw_scav.id,}
+	if radiusCheck then
+		return posradius
+	else
+		Spring.GiveOrderToUnit(scav, -(UDN.cormstor_scav.id), {posx-40, posy, posz, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cormstor_scav.id), {posx+40, posy, posz, 0}, {"shift"})
+
+		Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx-96, posy, posz-80, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-96, posy, posz-48, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-64, posy, posz-80, 0}, {"shift"})
+
+		Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+96, posy, posz+80, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+96, posy, posz+48, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+64, posy, posz+80, 0}, {"shift"})
+
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT1,scavmstoredual)
+table.insert(ScavengerConstructorBlueprintsT2,scavmstoredual)
+table.insert(ScavengerConstructorBlueprintsT3,scavmstoredual)
+
+-- SMALL RADAR OUTPOSTS
+
 local function scavradaronlyoutpost(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 90
 local unitoptions = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corrl_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corhlt_scav.id, UDN.cornanotc_scav.id,}
@@ -97,6 +180,8 @@ local defenseoptions = {UDN.corllt_scav.id, UDN.corhllt_scav.id, UDN.corrl_scav.
 end
 table.insert(ScavengerConstructorBlueprintsT0,scavradaroutpostsmallred)
 table.insert(ScavengerConstructorBlueprintsT1,scavradaroutpostsmallred)
+
+-- ROADBLOCKS
 
 local function roadblocks(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptionsblue = {UDN.armdrag_scav.id, UDN.armdrag_scav.id, UDN.armdrag_scav.id, UDN.armdrag_scav.id, UDN.armclaw_scav.id,}
@@ -160,6 +245,8 @@ end
 table.insert(ScavengerConstructorBlueprintsT0,roadblocks)
 table.insert(ScavengerConstructorBlueprintsT1,roadblocks)
 
+-- WALL OF TURRETS (lines)
+
 local function scavwallofturrets(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptions = {UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corllt_scav.id, UDN.corhllt_scav.id,}
 	local posradius = 80
@@ -191,36 +278,6 @@ end
 table.insert(ScavengerConstructorBlueprintsT0,scavwallofturrets)
 table.insert(ScavengerConstructorBlueprintsT1,scavwallofturrets)
 
-local function scavadvsol(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
-	local unitoptions = {UDN.corllt_scav.id, UDN.corrad_scav.id, UDN.corjamt_scav.id,}
-	local unitoptions2 = {UDN.armllt_scav.id, UDN.armrad_scav.id, UDN.armjamt_scav.id,}
-	local r = math.random(0,1)
-	local x1 = math.random(-48,48)
-	local x2 = math.random(-48,48)			
-	local posradius = 80
-		if radiusCheck then
-			return posradius
-		else	
-			if r == 0 then
-				Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+x1, posy, posz-96, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx-32, posy, posz-32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx+32, posy, posz-32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx-32, posy, posz+32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx+32, posy, posz+32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+x2, posy, posz+96, 0}, {"shift"})
-			else
-				Spring.GiveOrderToUnit(scav, -(unitoptions2[math.random(1,#unitoptions2)]), {posx+x1, posy, posz-96, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx-32, posy, posz-32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx+32, posy, posz-32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx-32, posy, posz+32, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx+32, posy, posz+32, 0}, {"shift"})				
-				Spring.GiveOrderToUnit(scav, -(unitoptions2[math.random(1,#unitoptions2)]), {posx+x2, posy, posz+96, 0}, {"shift"})
-		end
-	end
-end
-table.insert(ScavengerConstructorBlueprintsT1,scavadvsol)
-table.insert(ScavengerConstructorBlueprintsT2,scavadvsol)
-
 local function scavwallofturretsadv(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptions = {UDN.corhllt_scav.id, UDN.corhllt_scav.id, UDN.corhllt_scav.id,}
 	local r = math.random(0,1)	
@@ -245,6 +302,38 @@ local function scavwallofturretsadv(scav, posx, posy, posz, GaiaTeamID, radiusCh
 end
 table.insert(ScavengerConstructorBlueprintsT2,scavwallofturretsadv)
 table.insert(ScavengerConstructorBlueprintsT3,scavwallofturretsadv)
+
+local function scavadvsol(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+	local unitoptions = {UDN.corllt_scav.id, UDN.corrad_scav.id, UDN.corjamt_scav.id,}
+	local unitoptions2 = {UDN.armllt_scav.id, UDN.armrad_scav.id, UDN.armjamt_scav.id,}
+	local r = math.random(0,1)
+	local x1 = math.random(-48,48)
+	local x2 = math.random(-48,48)			
+	local posradius = 80
+		if radiusCheck then
+			return posradius
+		else	
+			if r == 0 then
+				Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+x1, posy, posz-120, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx-40, posy, posz-40, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx+40, posy, posz-40, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx-40, posy, posz+40, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.coradvsol_scav.id), {posx+40, posy, posz+40, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+x2, posy, posz+120, 0}, {"shift"})
+			else
+				Spring.GiveOrderToUnit(scav, -(unitoptions2[math.random(1,#unitoptions2)]), {posx+x1, posy, posz-112, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx-32, posy, posz-32, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx+32, posy, posz-32, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx-32, posy, posz+32, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armadvsol_scav.id), {posx+32, posy, posz+32, 0}, {"shift"})				
+				Spring.GiveOrderToUnit(scav, -(unitoptions2[math.random(1,#unitoptions2)]), {posx+x2, posy, posz+112, 0}, {"shift"})
+		end
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT1,scavadvsol)
+table.insert(ScavengerConstructorBlueprintsT2,scavadvsol)
+
+-- MEDIUM RADAR OUTPOSTS
 
 local function scavradaroutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 110
@@ -293,6 +382,8 @@ end
 table.insert(ScavengerConstructorBlueprintsT1,scavartyoutpostred)
 table.insert(ScavengerConstructorBlueprintsT2,scavartyoutpostred)
 
+-- MEDIUM ARTILLERY BASES
+
 local function scavartyoutpostredadv(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 90
 	if radiusCheck then
@@ -315,6 +406,8 @@ end
 table.insert(ScavengerConstructorBlueprintsT2,scavartyoutpostredadv)
 table.insert(ScavengerConstructorBlueprintsT3,scavartyoutpostredadv)
 
+-- JAMMED AA BASES
+
 local function scavaaoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 70
 local unitoptions = {UDN.corarad_scav.id, UDN.corvipe_scav.id, UDN.corhlt_scav.id, UDN.corhllt_scav.id, UDN.cormadsam_scav.id,}
@@ -325,13 +418,20 @@ local unitoptions = {UDN.corarad_scav.id, UDN.corvipe_scav.id, UDN.corhlt_scav.i
 		Spring.GiveOrderToUnit(scav, -(UDN.corflak_scav.id), {posx+48, posy, posz+48, 1}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(UDN.corshroud_scav.id), {posx-48, posy, posz+48, 0}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx+48, posy, posz-48, 2}, {"shift"})
+
 		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-80, posy, posz+48, 0}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-80, posy, posz+80, 0}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-48, posy, posz+80, 0}, {"shift"})
+
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+80, posy, posz-48, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+80, posy, posz-80, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+48, posy, posz-80, 0}, {"shift"})
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT2,scavaaoutpostred)
 table.insert(ScavengerConstructorBlueprintsT3,scavaaoutpostred)
+
+-- CLOAKED BASES
 
 local function scavheavyoutpostcloak(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 100
@@ -345,6 +445,8 @@ local unitoptions = {UDN.corvipe_scav.id, UDN.armpacko_scav.id,}
 end
 table.insert(ScavengerConstructorBlueprintsT2,scavheavyoutpostcloak)
 table.insert(ScavengerConstructorBlueprintsT3,scavheavyoutpostcloak)
+
+-- BIG BASES
 
 local function scavbigoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 120
@@ -379,6 +481,8 @@ end
 table.insert(ScavengerConstructorBlueprintsT2,scavbigoutpostred)
 table.insert(ScavengerConstructorBlueprintsT3,scavbigoutpostred)
 
+-- LONG RANGE PLASMA CANNON BASES
+
 local function scavlrpcoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 120
 	if radiusCheck then
@@ -390,6 +494,8 @@ local posradius = 120
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT3,scavlrpcoutpostred)
+
+-- HEAVY DEFENSIVE BASES
 
 local function scavdoomoutpostred(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 local posradius = 120
@@ -403,6 +509,8 @@ local unitoptions = {UDN.corvipe_scav.id, UDN.corvipe_scav.id, UDN.corflak_scav.
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT3,scavdoomoutpostred)
+
+-- HEAVY POWERPLANT BASES
 
 local function scavnrgplants(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	local unitoptions = {UDN.corhlt_scav.id, UDN.corflak_scav.id, UDN.corshroud_scav.id, UDN.cortarg_scav.id, UDN.corfort_scav.id, UDN.corfort_scav.id,}
@@ -429,13 +537,13 @@ local function scavnrgplants(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+32, posy, posz-64, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+64, posy, posz-64, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+96, posy, posz-64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-96, posy, posz+64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-64, posy, posz+64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx-32, posy, posz+64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx, posy, posz+64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+32, posy, posz+64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+64, posy, posz+64, 0}, {"shift"})
-				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+96, posy, posz+64, 0}, {"shift"})			
+				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-96, posy, posz+80, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx-64, posy, posz+80, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx-32, posy, posz+80, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(unitoptions[math.random(1,#unitoptions)]), {posx, posy, posz+80, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corfort_scav.id), {posx+32, posy, posz+80, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+64, posy, posz+80, 0}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.cordrag_scav.id), {posx+96, posy, posz+80, 0}, {"shift"})			
 			elseif r == 1 then
 				Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx-160, posy, posz-160, 0}, {"shift"})
 				Spring.GiveOrderToUnit(scav, -(UDN.armnanotc_scav.id), {posx+160, posy, posz-160, 0}, {"shift"})
