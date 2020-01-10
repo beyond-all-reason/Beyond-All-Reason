@@ -15,6 +15,15 @@ function scav_Wdef_Post(name, wDef)
                 wDef.explosiongenerator = wDef.explosiongenerator..'-purple'
             end
         end
+    elseif wDef.weapontype == "MissileLauncher" or wDef.weapontype == "StarburstLauncher" then
+        if wDef.explosiongenerator then
+            if string.find(wDef.explosiongenerator, 'genericshellexplosion') or string.find(wDef.explosiongenerator, 'expldgun') then
+                wDef.explosiongenerator = wDef.explosiongenerator..'-purple'
+            end
+        end
+        if wDef.cegtag and string.find(wDef.cegtag, 'missiletrail') then
+            wDef.cegtag = wDef.cegtag..'-purple'
+        end
     elseif wDef.weapontype == "LightningCannon" then
 	    wDef.rgbcolor = {0.95, 0.32, 1}
 	    wDef.customparams.expl_light_color = {0.95, 0.32, 1}
