@@ -22,9 +22,6 @@ function widget:GetInfo()
   }
 end
 
-
-include("Configs/lupsFXs.lua")
-
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -68,8 +65,56 @@ local function blend(a,b,mix)
   return a*(1-mix) + b*mix
 end
 
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
+----------------------------------------------------------------------------
+-- effects ------------------------------------------------------------------
+----------------------------------------------------------------------------
+
+local shieldBursts550 = {
+    layer      = -35,
+    life       = math.huge,
+    piece      = "base",
+    rotSpeed   = 0.90,
+    rotSpread  = 0,
+    arc        = 32,
+    arcSpread  = 8,
+    size       = 525,
+    sizeSpread = 50,
+    texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+    --colormap   = { {1, 0.6, 1, 0.8} },
+    colormap   = { {1, 1, 1, 0.06} },
+    directional= true,
+    repeatEffect = true,
+    count      = 4,
+}
+
+local shieldBursts600 = {
+    layer      = -35,
+    life       = math.huge,
+    piece      = "base",
+    rotSpeed   = 0.85,
+    rotSpread  = 0,
+    arc        = 32,
+    arcSpread  = 8,
+    size       = 575,
+    sizeSpread = 50,
+    texture    = "bitmaps/GPL/Lups/shieldbursts5.png",
+    --colormap   = { {1, 0.6, 1, 0.8} },
+    colormap   = { {1, 1, 1, 0.06} },
+    directional= true,
+    repeatEffect = true,
+    count      = 4,
+}
+
+local cormakrEffect = {
+    life       = math.huge,
+    pos        = {0,24,0},
+    size       = 26,
+    sizeSpread = 7,
+    colormap   = { {0.8, 0.8, 0.5, 0.01} },
+    onActive   = true,
+    texture    = 'bitmaps/flare.TGA',
+}
+
 
 local UnitEffects = {
 
