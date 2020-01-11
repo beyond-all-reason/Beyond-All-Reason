@@ -27,9 +27,9 @@ local r = math.random(0,3)
 			elseif r == 1 then
 				Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 			elseif r == 2 then
-				Spring.GiveOrderToUnit(scav, -(UDN.coramsub_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.corhp_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 			else
-				Spring.GiveOrderToUnit(scav, -(UDN.armamsub_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
+				Spring.GiveOrderToUnit(scav, -(UDN.armhp_scav.id), {posx, posy, posz, math.random(0,3)}, {"shift"})
 		end
 	end
 end
@@ -56,7 +56,6 @@ local r = math.random(0,8)
 		end
 	end
 end
-table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphfactoryt2)
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavamphfactoryt2)
 table.insert(ScavengerConstructorBlueprintsT3Sea,scavamphfactoryt2)
 

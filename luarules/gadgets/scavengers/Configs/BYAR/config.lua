@@ -20,7 +20,7 @@ scavconfig = {
 
 -- Modules configs
 buildingSpawnerModuleConfig = {
-	spawnchance 						= 140,
+	spawnchance 						= 90,
 	useSeaBlueprints 					= true,
 }
 
@@ -30,13 +30,13 @@ unitSpawnerModuleConfig = {
 	spawnchance							= 60,
 	spawnchancecostscale				= 1, -- higher = smaller groups (fine tune together with groupsizemultiplier)
 	landmultiplier 						= 0.8,
-	airmultiplier 						= 2.0,
-	seamultiplier 						= 0.4,
+	airmultiplier 						= 1.5,
+	seamultiplier 						= 0.3,
 }
 
 constructorControllerModuleConfig = {
 	constructortimerstart				= 150, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-tech0)
-	constructortimer 					= 210, -- time in seconds between commander/constructor spawns
+	constructortimer 					= 180, -- time in seconds between commander/constructor spawns
 	useresurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,

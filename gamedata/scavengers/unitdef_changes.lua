@@ -25,7 +25,7 @@ customDefs.corcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 343,				-- gets multiplied in unitdef_post (currently x1.75)
+	workertime = 452,				-- gets multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -38,7 +38,7 @@ customDefs.corcom = {
 		disintegrator = {
 			commandfire = false,
 			damage = {
-				default = 150,
+				default = 140,
 			},
 		},
 	},
@@ -60,7 +60,7 @@ customDefs.armcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 343,				-- gets multiplied in unitdef_post (currently x1.75)
+	workertime = 452,				-- gets multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -73,16 +73,16 @@ customDefs.armcom = {
 		disintegrator = {
 			commandfire = false,
 			damage = {
-				default = 150,
+				default = 140,
 			},
 		},
 	},
 	-- Extra Shield
-	weapons = {
-			[4] = {
-				def = "REPULSOR1",
-			},
-		},
+	--weapons = {
+	--		[4] = {
+	--			def = "REPULSOR1",
+	--		},
+	--	},
 }
 
 -- Cloaked Radar
@@ -113,29 +113,111 @@ customDefs.corarad = {
 customDefs.armjamt = {
 	cloakcost = 10,
 	mincloakdistance = 144,
-	radardistancejam = 1000,
+--	radardistancejam = 700,
 	sightdistance = 250,
 }
 
 customDefs.armveil = {
 	cloakcost = 25,
 	mincloakdistance = 288,
-	radardistancejam = 750,
+--	radardistancejam = 900,
 	sightdistance = 310,
 }
 
 customDefs.corjamt = {
 	cloakcost = 10,
 	mincloakdistance = 144,
-	radardistancejam = 1000,
+--	radardistancejam = 700,
 	sightdistance = 250,
 }
 
 customDefs.corshroud = {
 	cloakcost = 25,
 	mincloakdistance = 288,
-	radardistancejam = 750,
+--	radardistancejam = 900,
 	sightdistance = 310,
+}
+
+-- Cloaked Constructors
+
+customDefs.correcl = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armrecl = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.corck = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.corcv = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.cormuskrat = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.corack = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.coracv = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.corca = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.coraca = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armck = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armcv = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armbeaver = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armack = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armacv = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armca = {
+	cloakcost = 3,
+	mincloakdistance = 72,
+}
+
+customDefs.armaca = {
+	cloakcost = 3,
+	mincloakdistance = 72,
 }
 
 -- Cloaked Units
@@ -165,6 +247,11 @@ customDefs.corhrk = {
 	mincloakdistance = 160,
 }
 
+customDefs.armzeus = {
+	cloakcost = 12,
+	mincloakdistance = 144,
+}
+
 -- Cloaked Defenses
 
 customDefs.corllt = {
@@ -172,12 +259,17 @@ customDefs.corllt = {
 	mincloakdistance = 144,
 }
 
--- customDefs.corhllt = {
--- 	cloakcost = 9,
--- 	mincloakdistance = 144,
--- }
+customDefs.corhllt = {
+ 	cloakcost = 9,
+ 	mincloakdistance = 144,
+ }
 
 customDefs.corhlt = {
+	cloakcost = 18,
+	mincloakdistance = 288,
+}
+
+customDefs.armhlt = {
 	cloakcost = 18,
 	mincloakdistance = 288,
 }
@@ -223,9 +315,9 @@ customDefs.cordoom = {
 }
 
 customDefs.armrectr = {
-	workertime = 1143, 	-- gets multiplied in unitdef_post (currently x1.75)
+	workertime = 1333, 	-- gets multiplied in unitdef_post 
 }
 
 customDefs.cornecro = {
-	workertime = 1143,		-- gets multiplied in unitdef_post (currently x1.75)
+	workertime = 1333,		-- gets multiplied in unitdef_post 
 }

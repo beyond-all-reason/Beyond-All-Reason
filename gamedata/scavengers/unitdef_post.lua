@@ -79,7 +79,7 @@ function scav_Udef_Post(name, uDef)
 		uDef.buildcostmetal = math.ceil(uDef.buildcostmetal*0.5)
 	end
 	if uDef.workertime then
-		uDef.workertime = math.ceil(uDef.workertime*1.75)
+		uDef.workertime = math.ceil(uDef.workertime*1.50)
 	end
 	if uDef.maxdamage then
 		uDef.maxdamage = math.ceil(uDef.maxdamage*0.66)
@@ -96,10 +96,10 @@ function scav_Udef_Post(name, uDef)
 	if uDef.idleautoheal then
 		uDef.idleautoheal = math.ceil(uDef.idleautoheal*4)
 	end
-    if not uDef.cancloak then
- 		uDef.cancloak = true
- 		uDef.mincloakdistance = math.max(72, math.ceil(uDef.sightdistance/1.8))
-    end
+    --if not uDef.cancloak then
+ 	--	uDef.cancloak = true
+ 	--	uDef.mincloakdistance = math.max(72, math.ceil(uDef.sightdistance/1.8))
+    --end
  	--if not uDef.stealth then
  	--	uDef.stealth = true
  	--end
