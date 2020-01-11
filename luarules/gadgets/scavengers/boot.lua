@@ -80,12 +80,6 @@ function gadget:GameFrame(n)
 						scavStructure[scav] = true
 					end
 				end
-				if not scavStructure[scav] and n%900 == 0 then
-					SelfDestructionControls(n, scav)
-				end
-				if not scavStructure[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
-					ArmyMoveOrders(n, scav)
-				end
 				
 				if scavconfig.modules.buildingSpawnerModule then
 					if constructorControllerModuleConfig.useconstructors then
@@ -105,8 +99,24 @@ function gadget:GameFrame(n)
 								scavResurrector[scav] = true
 							end
 						end
+						for i = 1,#ResurrectorsSea do
+							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ResurrectorsSea[i]) then
+								scavResurrector[scav] = true
+							end
+						end
 						if scavResurrector[scav] then
 							ResurrectorOrders(n, scav)
+						end
+					end
+					
+					if constructorControllerModuleConfig.usecollectors then
+						for i = 1,#Collectors do
+							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Collectors[i]) then
+								scavCollector[scav] = true
+							end
+						end
+						if scavCollector[scav] then
+							CollectorOrders(n, scav)
 						end
 					end
 					
@@ -131,6 +141,13 @@ function gadget:GameFrame(n)
 					end
 				end
 				
+				if not scavStructure[scav] and not scavConstructor[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and n%900 == 0 then
+					SelfDestructionControls(n, scav)
+				end
+				if not scavStructure[scav] and not scavConstructor[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
+					ArmyMoveOrders(n, scav)
+				end
+				
 			end
 		end
 	end
@@ -148,6 +165,7 @@ function gadget:UnitDestroyed(unitID, unitDefID, unitTeam)
 		scavConstructor[unitID] = nil
 		scavAssistant[unitID] = nil
 		scavResurrector[unitID] = nil
+		scavCollector[unitID] = nil
 		scavStructure[unitID] = nil
 		scavFactory[unitID] = nil
 	end

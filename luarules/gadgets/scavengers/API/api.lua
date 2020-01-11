@@ -22,6 +22,7 @@ Spring.Echo("[Scavengers] API initialized")
 	scavAssistant = {}
 	scavResurrector = {}
 	scavFactory = {}
+	scavCollector = {}
 
 
 -- Check height diffrences
