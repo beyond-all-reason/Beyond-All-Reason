@@ -113,4 +113,6 @@ T3LandUnits = {
 --hovercraft
 "armlun",
 "corsok",
+--superboss
+"armpwbosst1"
 }

@@ -35,8 +35,8 @@ unitSpawnerModuleConfig = {
 }
 
 constructorControllerModuleConfig = {
-	constructortimerstart				= 150, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-tech0)
-	constructortimer 					= 180, -- time in seconds between commander/constructor spawns
+	constructortimerstart				= 120, -- ammount of seconds it skips from constructortimer for the first spawn (make first spawn earlier - this timer starts on timer-tech0)
+	constructortimer 					= 200, -- time in seconds between commander/constructor spawns
 	useresurrectors						= true,
 	useconstructors						= true,
 	usecollectors						= true,

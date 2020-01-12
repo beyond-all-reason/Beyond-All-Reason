@@ -207,8 +207,8 @@ local posradius = 50
 	else
 		Spring.GiveOrderToUnit(scav, -(UDN.armpincer_scav.id), {posx-50, posy, posz-50, 2}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(UDN.armpincer_scav.id), {posx+50, posy, posz-50, 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpincer_scav.id), {posx-50, posy, posz+50, 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.armpincer_scav.id), {posx+50, posy, posz+50, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armpincer_scav.id), {posx, posy, posz+50, 3}, {"shift"})
+		--Spring.GiveOrderToUnit(scav, -(UDN.armpincer_scav.id), {posx+50, posy, posz+50, 0}, {"shift"})
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT1Sea,scavamphunitsblue)
@@ -221,8 +221,8 @@ local posradius = 50
 	else
 		Spring.GiveOrderToUnit(scav, -(UDN.corseal_scav.id), {posx-50, posy, posz-50, 2}, {"shift"})
 		Spring.GiveOrderToUnit(scav, -(UDN.corseal_scav.id), {posx+50, posy, posz-50, 1}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corseal_scav.id), {posx-50, posy, posz+50, 3}, {"shift"})
-		Spring.GiveOrderToUnit(scav, -(UDN.corseal_scav.id), {posx+50, posy, posz+50, 0}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.corseal_scav.id), {posx, posy, posz+50, 3}, {"shift"})
+		--Spring.GiveOrderToUnit(scav, -(UDN.corseal_scav.id), {posx+50, posy, posz+50, 0}, {"shift"})
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT2Sea,scavamphunitsredadv)

@@ -15,7 +15,7 @@ return {
 		description = "Holy #### it's huge Peewee!",
 		energymake = 0.3,
 		energyuse = 0.3,
-		explodeas = "smallExplosionGeneric",
+		explodeas = "advancedFusionExplosion",
 		footprintx = 20,
 		footprintz = 20,
 		idleautoheal = 5,
@@ -91,7 +91,7 @@ return {
 		},
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-tiny",
+				[1] = "custom:barrelshot-large",
 			},
 			pieceexplosiongenerators = {
 				[1] = "deathceg3",
@@ -129,7 +129,7 @@ return {
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				explosiongenerator = "custom:plasmahit-small",
+				explosiongenerator = "custom:plasmahit-huge",
 				firestarter = 100,
 				impulseboost = 0.123,
 				impulsefactor = 0.123,
@@ -139,7 +139,7 @@ return {
 				range = 1500,
 				reloadtime = 0.5,
 				rgbcolor = "1 0.95 0.4",
-				size = 10,
+				size = 9,
 				soundhitwet = "splshbig",
 				soundhitwetvolume = 0.5,
 				soundstart = "flashemg",

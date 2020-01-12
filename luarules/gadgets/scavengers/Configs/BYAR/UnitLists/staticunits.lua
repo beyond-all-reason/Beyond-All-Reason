@@ -9,4 +9,5 @@ NoSelfdList = {
 "cornanotcplat",
 "armrectr",
 "cornecro",
+"armpwbosst1"
 }
