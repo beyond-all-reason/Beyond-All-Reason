@@ -142,7 +142,7 @@ function gadget:GameFrame(n)
 				end
 				
 				if n%900 == 0 and not scavStructure[scav] and not scavConstructor[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] then
-					SelfDestructionControls(n, scav)
+					SelfDestructionControls(n, scav, scavDef)
 				end
 				if Spring.GetCommandQueue(scav, 0) <= 1 and not scavStructure[scav] and not scavConstructor[scav] and not scavResurrector[scav] and not scavAssistant[scav] and not scavCollector[scav] and not scavFactory[scav] then
 					ArmyMoveOrders(n, scav)

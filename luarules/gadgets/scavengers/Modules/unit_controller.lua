@@ -2,7 +2,7 @@ Spring.Echo("[Scavengers] Unit Controller initialized")
 
 VFS.Include("luarules/gadgets/scavengers/Configs/"..GameShortName.."/UnitLists/staticunits.lua")	
 
-function SelfDestructionControls(n, scav)
+function SelfDestructionControls(n, scav, scavDef)
 	local _,_,_,_,buildProgress = Spring.GetUnitHealth(scav)
 	if buildProgress == 1 then
 		if selfdx[scav] then
@@ -15,7 +15,8 @@ function SelfDestructionControls(n, scav)
 			oldselfdz[scav] = selfdz[scav]
 		end
 		selfdx[scav],selfdy[scav],selfdz[scav] = Spring.GetUnitPosition(scav)
-		if (oldselfdx[scav] and oldselfdy[scav] and oldselfdz[scav]) and (oldselfdx[scav] > selfdx[scav]-10 and oldselfdx[scav] < selfdx[scav]+10) and (oldselfdy[scav] > selfdy[scav]-10 and oldselfdy[scav] < selfdy[scav]+10) and (oldselfdz[scav] > selfdz[scav]-10 and oldselfdz[scav] < selfdz[scav]+10) then
+		local nearest[scav] = Spring.GetUnitNearestEnemy(scav, UnitDefs[scavDef].maxWeaponRange + 200, false)
+		if not nearest[scav] and (oldselfdx[scav] and oldselfdy[scav] and oldselfdz[scav]) and (oldselfdx[scav] > selfdx[scav]-10 and oldselfdx[scav] < selfdx[scav]+10) and (oldselfdy[scav] > selfdy[scav]-10 and oldselfdy[scav] < selfdy[scav]+10) and (oldselfdz[scav] > selfdz[scav]-10 and oldselfdz[scav] < selfdz[scav]+10) then
 			Spring.DestroyUnit(scav, true, false)
 		end
 	end
