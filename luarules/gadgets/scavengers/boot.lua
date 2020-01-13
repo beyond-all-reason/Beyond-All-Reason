@@ -74,68 +74,69 @@ function gadget:GameFrame(n)
 			for i = 1,#scavengerunits do
 				local scav = scavengerunits[i]
 				local scavDef = Spring.GetUnitDefID(scav)
-				scavStructure[scav] = UnitDefs[scavDef].isBuilding
-				for i = 1,#NoSelfdList do
-					if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, NoSelfdList[i]) then
-						scavStructure[scav] = true
-					end
-				end
+				local collectorRNG = math.random(0,5)
+				-- scavStructure[scav] = UnitDefs[scavDef].isBuilding
+				-- for i = 1,#NoSelfdList do
+					-- if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, NoSelfdList[i]) then
+						-- scavStructure[scav] = true
+					-- end
+				-- end
 				
-				if scavconfig.modules.buildingSpawnerModule then
+				if scavconfig.modules.constructorControllerModule then
 					if constructorControllerModuleConfig.useconstructors then
-						for i = 1,#ConstructorsList do
-							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ConstructorsList[i]) then
-								scavConstructor[scav] = true
-							end
-						end
+						-- for i = 1,#ConstructorsList do
+							-- if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ConstructorsList[i]) then
+								-- scavConstructor[scav] = true
+							-- end
+						-- end
 						if scavConstructor[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
 							ConstructNewBlueprint(n, scav)
 						end
 					end
 					
-					if constructorControllerModuleConfig.useresurrectors then
-						for i = 1,#Resurrectors do
-							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Resurrectors[i]) then
-								scavResurrector[scav] = true
-							end
-						end
-						for i = 1,#ResurrectorsSea do
-							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ResurrectorsSea[i]) then
-								scavResurrector[scav] = true
-							end
-						end
+					if constructorControllerModuleConfig.useresurrectors and collectorRNG == 0 then
+						-- for i = 1,#Resurrectors do
+							-- if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Resurrectors[i]) then
+								-- scavResurrector[scav] = true
+							-- end
+						-- end
+						-- for i = 1,#ResurrectorsSea do
+							-- if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, ResurrectorsSea[i]) then
+								-- scavResurrector[scav] = true
+							-- end
+						-- end
 						if scavResurrector[scav] then
 							ResurrectorOrders(n, scav)
 						end
 					end
 					
-					if constructorControllerModuleConfig.usecollectors then
-						for i = 1,#Collectors do
-							if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Collectors[i]) then
-								scavCollector[scav] = true
-							end
-						end
+					if constructorControllerModuleConfig.usecollectors and collectorRNG == 0 then
+						-- for i = 1,#Collectors do
+							-- if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Collectors[i]) then
+								-- scavCollector[scav] = true
+							-- end
+						-- end
 						if scavCollector[scav] then
 							CollectorOrders(n, scav)
 						end
 					end
 					
-					for i = 1,#AssistUnits do
-						if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, AssistUnits[i]) then
-							scavAssistant[scav] = true
-						end
-					end
+					--for i = 1,#AssistUnits do
+						-- if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, AssistUnits[i]) then
+							-- scavAssistant[scav] = true
+						-- end
+					--end
 					if scavAssistant[scav] and Spring.GetCommandQueue(scav, 0) <= 1 then
 						AssistantOrders(n, scav)
 					end
 				end
 				
 				if scavconfig.modules.factoryControllerModule then
-					for i = 1,#Factories do
-						if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Factories[i]) then
-							scavFactory[scav] = true
-						end
-					end
+					-- for i = 1,#Factories do
+						-- if string.find(UnitDefs[scavDef].name..scavconfig.unitnamesuffix, Factories[i]) then
+							-- scavFactory[scav] = true
+						-- end
+					-- end
 					if scavFactory[scav] and #Spring.GetFullBuildQueue(scav, 0) <= 1 then
 						FactoryProduction(n, scav, scavDef)
 					end
@@ -177,5 +178,82 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam)
         Spring.GiveOrderToUnit(unitID,37382,{1},{""})
         -- Fire At Will
         Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
+		scavStructure[unitID] = UnitDefs[unitDefID].isBuilding
+				
+				for i = 1,#NoSelfdList do
+					if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, NoSelfdList[i]) then
+						scavStructure[unitID] = true
+					end
+				end
+				
+				if scavconfig.modules.constructorControllerModule then
+					if constructorControllerModuleConfig.useconstructors then
+						for i = 1,#ConstructorsList do
+							if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, ConstructorsList[i]) then
+								scavConstructor[unitID] = true
+							end
+						end
+						-- if scavConstructor[unitID] and Spring.GetCommandQueue(unitID, 0) <= 1 then
+							-- ConstructNewBlueprint(n, unitID)
+						-- end
+					end
+					
+					if constructorControllerModuleConfig.useresurrectors then
+						for i = 1,#Resurrectors do
+							if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, Resurrectors[i]) then
+								scavResurrector[unitID] = true
+							end
+						end
+						for i = 1,#ResurrectorsSea do
+							if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, ResurrectorsSea[i]) then
+								scavResurrector[unitID] = true
+							end
+						end
+						-- if scavResurrector[unitID] then
+							-- ResurrectorOrders(n, unitID)
+						-- end
+					end
+					
+					if constructorControllerModuleConfig.usecollectors then
+						for i = 1,#Collectors do
+							if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, Collectors[i]) then
+								scavCollector[unitID] = true
+							end
+						end
+						-- if scavCollector[unitID] then
+							-- CollectorOrders(n, unitID)
+						-- end
+					end
+					
+					for i = 1,#AssistUnits do
+						if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, AssistUnits[i]) then
+							scavAssistant[unitID] = true
+						end
+					end
+					-- if scavAssistant[unitID] and Spring.GetCommandQueue(unitID, 0) <= 1 then
+						-- AssistantOrders(n, unitID)
+					-- end
+				end
+				
+				if scavconfig.modules.factoryControllerModule then
+					for i = 1,#Factories do
+						if string.find(UnitDefs[unitDefID].name..scavconfig.unitnamesuffix, Factories[i]) then
+							scavFactory[unitID] = true
+						end
+					end
+					-- if scavFactory[unitID] and #Spring.GetFullBuildQueue(unitID, 0) <= 1 then
+						-- FactoryProduction(n, unitID, unitDefID)
+					-- end
+				end
+				
     end
+end
+
+function gadget:UnitFinished(unitID, unitDefID, unitTeam)
+	if unitTeam == GaiaTeamID then
+    	-- CMD.CLOAK = 37382
+        Spring.GiveOrderToUnit(unitID,37382,{1},{""})
+        -- Fire At Will
+        Spring.GiveOrderToUnit(unitID,CMD.FIRE_STATE,{2},{""})
+	end
 end
