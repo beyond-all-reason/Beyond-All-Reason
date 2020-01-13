@@ -24,6 +24,11 @@ Spring.Echo("[Scavengers] API initialized")
 	scavFactory = {}
 	scavCollector = {}
 
+	-- this doesnt work
+	--if teamcount == 0 then
+   	--teamcount = 1
+   	--if allyteamcount == 0 then
+   	--allyteamcount = 1
 
 -- Check height diffrences
 function posCheck(posx, posy, posz, posradius)

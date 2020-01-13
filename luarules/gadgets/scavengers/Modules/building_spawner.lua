@@ -9,6 +9,11 @@ end
 
 function SpawnBlueprint(n)
 	if n > scavconfig.timers.Tech0 then
+		-- this doesnt work
+		-- if teamcount == 0 then
+  --  		teamcount = 1
+  --  		if allyteamcount == 0 then
+  --  		allyteamcount = 1
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local spawnchance = math.random(0,buildingSpawnerModuleConfig.spawnchance)
 		if spawnchance == 0 or canBuildHere == false then

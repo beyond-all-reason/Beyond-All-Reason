@@ -6,8 +6,17 @@ for i = 1,#UnitLists do
 	Spring.Echo("Scav Units Directory: " ..UnitLists[i])
 end
 local UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
+
+
+
 function UnitGroupSpawn(n)
 	if n > 9000 then
+		-- this doesnt work
+		-- if teamcount == 0 then
+  --  		teamcount = 1
+  --  		if allyteamcount == 0 then
+  --  		allyteamcount = 1
+   		
 		local gaiaUnitCount = Spring.GetTeamUnitCount(GaiaTeamID)
 		local UnitSpawnChance = math.random(0,UnitSpawnChance)
 		--local UnitSpawnChance = 1 -- dev purpose
@@ -29,6 +38,7 @@ function UnitGroupSpawn(n)
 			if canSpawnHere then
 				UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
+				Spring.Echo("groupsize 1: "..groupsize)
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
 				if aircraftchance == 0 then
 					if n > scavconfig.timers.Tech3 then
@@ -130,6 +140,7 @@ function UnitGroupSpawn(n)
 				end
 				local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)*unitSpawnerModuleConfig.spawnchancecostscale
 				local groupsize = math.ceil((groupsize/cost)*unitSpawnerModuleConfig.groupsizemultiplier)
+				Spring.Echo("groupsize 2: "..groupsize)
 				for i=1, groupsize do
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 				end

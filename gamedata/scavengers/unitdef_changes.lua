@@ -25,7 +25,7 @@ customDefs.corcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 600,				-- gets multiplied in unitdef_post 
+	workertime = 600,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -43,11 +43,11 @@ customDefs.corcom = {
 		},
 	},
 	-- Extra Shield
-	weapons = {
-			[4] = {
-				def = "REPULSOR1",
-			},
-		},
+	-- weapons = {
+	-- 		[4] = {
+	-- 			def = "REPULSOR1",
+	-- 		},
+	-- 	},
 }
 
 customDefs.armcom = {		
@@ -60,7 +60,7 @@ customDefs.armcom = {
 	mincloakdistance = 20,
 	showplayername = false,
 	buildoptions = scavUnit,
-	workertime = 600,				-- gets multiplied in unitdef_post 
+	workertime = 600,				-- can get multiplied in unitdef_post 
 	customparams = {
 		iscommander = 'nil',		-- since you cant actually remove parameters normally, it will do it when you set string: 'nil' as value
 	},
@@ -315,9 +315,9 @@ customDefs.cordoom = {
 }
 
 customDefs.armrectr = {
-	workertime = 2000, 	-- gets multiplied in unitdef_post 
+	workertime = 400, 	-- can get multiplied in unitdef_post 
 }
 
 customDefs.cornecro = {
-	workertime = 2000,		-- gets multiplied in unitdef_post 
+	workertime = 400,		-- can get multiplied in unitdef_post 
 }
