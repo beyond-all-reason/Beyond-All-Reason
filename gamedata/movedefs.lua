@@ -404,9 +404,9 @@ local moveDatas = {
 	-- Scavenger Boss units
 	BOSSPEEWEE = {
 		crushstrength = 9999,
-		footprintx = 20,
-		footprintz = 20,
-		maxslope = 36,
+		footprintx = 6,
+		footprintz = 6,
+		maxslope = 50,
 		maxwaterdepth = 80,
 		depthModParams = {
 			minHeight = 4,
