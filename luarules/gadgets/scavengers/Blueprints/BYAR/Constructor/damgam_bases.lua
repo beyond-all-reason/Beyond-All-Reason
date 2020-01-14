@@ -113,3 +113,22 @@ local posradius = 196
 end
 table.insert(ScavengerConstructorBlueprintsT2,DamBase1Blue)
 table.insert(ScavengerConstructorBlueprintsT3,DamBase1Blue)
+
+local function DamBaseEcoBlue1(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
+	local posradius = 136
+	if radiusCheck then
+		return posradius
+	else	
+		Spring.GiveOrderToUnit(scav, -(UDN.armsolar_scav.id), {posx+(56), posy, posz+(56), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armsolar_scav.id), {posx+(56), posy, posz+(-56), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(104), posy, posz+(-136), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armsolar_scav.id), {posx+(-56), posy, posz+(56), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(0), posy, posz+(0), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-104), posy, posz+(136), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(-136), posy, posz+(-104), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armsolar_scav.id), {posx+(-56), posy, posz+(-56), 2}, {"shift"})
+		Spring.GiveOrderToUnit(scav, -(UDN.armllt_scav.id), {posx+(136), posy, posz+(104), 2}, {"shift"})
+	end
+end
+table.insert(ScavengerConstructorBlueprintsT0,DamBaseEcoBlue1)
+table.insert(ScavengerConstructorBlueprintsT1,DamBaseEcoBlue1)
