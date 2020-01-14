@@ -38,7 +38,7 @@ function UnitGroupSpawn(n)
 			if canSpawnHere then
 				UnitSpawnChance = unitSpawnerModuleConfig.spawnchance
 				local groupsize = (((n)+#Spring.GetAllUnits())*spawnmultiplier*teamcount)/(#Spring.GetAllyTeamList())
-				Spring.Echo("groupsize 1: "..groupsize)
+				--Spring.Echo("groupsize 1: "..groupsize)
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
 				if aircraftchance == 0 then
 					if n > scavconfig.timers.Tech3 then
@@ -73,7 +73,19 @@ function UnitGroupSpawn(n)
 						groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
 					end
 				elseif posy > -20 then
-					if n > scavconfig.timers.Tech3 then
+					if n > scavconfig.timers.Tech4 then
+						local r = math.random(0,2)
+						if r == 0 then
+							groupunit = T4LandUnits[math.random(1,#T4LandUnits)]
+							groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier
+						elseif r == 1 then
+							groupunit = T3LandUnits[math.random(1,#T3LandUnits)]
+							groupsize = groupsize*1.5*unitSpawnerModuleConfig.landmultiplier
+						else
+							groupunit = T2LandUnits[math.random(1,#T2LandUnits)]
+							groupsize = groupsize*2.5*unitSpawnerModuleConfig.landmultiplier	
+						end
+					elseif n > scavconfig.timers.Tech3 then
 						local r = math.random(0,1)
 						if r == 0 then
 							groupunit = T3LandUnits[math.random(1,#T3LandUnits)]
@@ -140,7 +152,7 @@ function UnitGroupSpawn(n)
 				end
 				local cost = (UnitDefNames[groupunit].metalCost + UnitDefNames[groupunit].energyCost)*unitSpawnerModuleConfig.spawnchancecostscale
 				local groupsize = math.ceil((groupsize/cost)*unitSpawnerModuleConfig.groupsizemultiplier)
-				Spring.Echo("groupsize 2: "..groupsize)
+				--Spring.Echo("groupsize 2: "..groupsize)
 				for i=1, groupsize do
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 				end

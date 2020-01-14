@@ -14,6 +14,7 @@ scavconfig = {
 		Tech1 							= 18000,
 		Tech2							= 36000,
 		Tech3 							= 60000,
+		Tech4 							= 72000,
 	},
 }
 

@@ -105,14 +105,19 @@ T3LandUnits = {
 "armbanth",
 "corgol",
 "corsumo",
-"corkrog",
+--"corkrog",
 "corshiva",
 "corkarg",
 "corcat",
-"corjugg",
+--"corjugg",
 --hovercraft
 "armlun",
 "corsok",
+}
+
+T4LandUnits = {
+"corkrog",
+"corjugg",
 --superboss
-"armpwbosst1"
+"armpwbosst1",
 }
