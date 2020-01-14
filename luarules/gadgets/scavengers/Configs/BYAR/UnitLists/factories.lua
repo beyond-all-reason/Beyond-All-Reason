@@ -30,8 +30,6 @@ Factories = {
 }
 
 FactoriesExcludedUnits = {
-"corllt",
-"armllt",
 "armatlas",
 "armdfly",
 "armmlv",
