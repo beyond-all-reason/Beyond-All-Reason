@@ -39,10 +39,6 @@ else
 			Spring.Echo(" ")
 			Spring.Echo("Useless Echos to make sure whole thing land in infolog: ")
 			Spring.Echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-			Spring.Echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-			Spring.Echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-			Spring.Echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-			Spring.Echo("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 			Spring.Echo("i think that's enough... Blueprint Created")
 			ClearValues()
 		end 
@@ -69,7 +65,7 @@ else
 		local unitDefNameString = [["]]
 		
 		-- Spring.CreateUnit("corrad"..nameSuffix, posx, posy, posz, math.random(0,3),GaiaTeamID)
-		Spring.Echo("Spring.CreateUnit("..unitDefNameString..unitDefName..unitDefNameString..", posx+("..posx.."), posy, posz+("..posz.."), "..unitIDFacing..",GaiaTeamID)") 
+		Spring.Echo("Spring.CreateUnit("..unitDefNameString..unitDefName.."..nameSuffix"..unitDefNameString..", posx+("..posx.."), posy, posz+("..posz.."), "..unitIDFacing..",GaiaTeamID)") 
 		
 	end
 	
