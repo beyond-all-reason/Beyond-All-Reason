@@ -1,15 +1,37 @@
--- nuketrail-roost
+-- Spawntrail for Scavenger Droppods
 
 return {
   ["scaspawn-trail"] = {
     usedefaultexplosions = false,
+    engine = {
+            air                = true,
+            class              = [[CBitmapMuzzleFlame]],
+            count              = 1,
+            ground             = true,
+            underwater         = 1,
+            water              = true,
+            properties = {
+                alwaysVisible = true,
+                colormap           = [[1 0.7 0.4 0.01   1.0 0.6 0.2 0.01   1.0 0.4 0.1 0.01   0 0 0 0.01]],
+                dir                = [[dir]],
+                frontoffset        = 0,
+                fronttexture       = [[none]],
+                length             = [[-15 r3.5]],
+                sidetexture        = [[muzzleside]],
+                size               = 2.5,
+                sizegrowth         = [[0.2 r0.3]],
+                ttl                = 1,
+            },
+        },
     fireglow = {
+      
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
       water              = true,
       properties = {
+        alwaysVisible      = true,
         airdrag            = 1,
         colormap           = [[0.85 0.05 1.0 0.01   0 0 0 0.01]],
         directional        = false,
@@ -20,7 +42,7 @@ return {
         numparticles       = 1,
         particlelife       = 2,
         particlelifespread = 1,
-        particlesize       = 100,
+        particlesize       = 50,
         particlesizespread = 12,
         particlespeed      = 0,
         particlespeedspread = 0,
@@ -32,12 +54,14 @@ return {
       },
     },
     exhale = {
+      
       air                = true,
       class              = [[CSimpleParticleSystem]],
       count              = 1,
       ground             = true,
       water              = true,
       properties = {
+        alwaysVisible      = true,
         airdrag            = 0.87,
         colormap           = [[0.75 0.08 1.0 0.1   0.45 0.04 0.6 0.1   0.0 0.0 0.0 0.01]],
         directional        = false,
@@ -65,6 +89,7 @@ return {
       ground             = true,
       water              = true,
       properties = {
+        alwaysVisible      = true,
         airdrag            = 0.87,
         colormap           = [[0.8 0.1 1.0 0.15   0.55 0.06 0.7 0.1   0.028 0.005 0.04 0.15   0.0 0.0 0.0 0.01]],
         directional        = false,
@@ -72,7 +97,7 @@ return {
         emitrotspread      = 5,
         emitvector         = [[0, 1, 0]],
         gravity            = [[0, 0, 0]],
-        numparticles       = 1,
+        numparticles       = 2,
         particlelife       = 30,
         particlelifespread = 15,
         particlesize       = 7,
@@ -85,6 +110,27 @@ return {
         texture            = [[smoke-chickens]],
       },
     },
+    trail = {
+        
+        air                = true,
+        class              = [[CBitmapMuzzleFlame]],
+        count              = 1,
+        ground             = true,
+        underwater         = 1,
+        water              = true,
+        properties = {
+            alwaysVisible      = true,
+            colormap           = [[0 0 0 0.01  0.035 0.025 0.015 0.10  0.035 0.025 0.015 0.08  0.035 0.025 0.015 0.05  0.035 0.025 0.015 0.04  0.035 0.025 0.015 0.02  0 0 0 0.01]],
+            dir                = [[dir]],
+            frontoffset        = 0,
+            fronttexture       = [[trans]],
+            length             = -20,
+            sidetexture        = [[smoketrail]],
+            size               = 2.0,
+            sizegrowth         = 0.05,
+            ttl                = 40,
+        },
+      },
     spikes = {
       air                = true,
       class              = [[explspike]],

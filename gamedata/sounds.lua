@@ -119,5 +119,22 @@ for i=1,#files do
    }
 end
 
+-- SCAVENGER SOUNDS
+local files = VFS.DirList("sounds/scavengers/")
+local t = Sounds.SoundItems
+for i=1,#files do
+	local fileName = files[i]
+	fileNames = string.sub(fileName, 16, string.find(fileName, ".wav") -1)
+	t[fileNames] = {
+		file     = fileName;
+		gain = 1.0*0.3,
+		pitchmod = 0.33,
+		gainmod  = 0.1*0.3,
+		dopplerscale = 1.0,
+		maxconcurrent = 8,
+		rolloff = 0.2,
+	}
+end
+
 return Sounds
 
