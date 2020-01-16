@@ -174,7 +174,7 @@ end
 
 function gadget:UnitCreated(unitID, unitDefID, unitTeam)
     if unitTeam == GaiaTeamID then
-    	if UnitDefs[unitDefID].name == "scavengerdroppod" then
+    	if UnitDefs[unitDefID].name == "scavengerdroppod_scav" then
 			Spring.GiveOrderToUnit(unitID, CMD.SELFD,{}, {"shift"})
 		end
 		-- CMD.CLOAK = 37382

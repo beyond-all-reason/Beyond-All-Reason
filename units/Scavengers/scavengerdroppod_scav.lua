@@ -1,5 +1,5 @@
 return {
-	scavengerdroppod = {
+	scavengerdroppod_scav = {
 		acceleration = 0,
 		activatewhenbuilt = true,
 		autoheal = 1.8,

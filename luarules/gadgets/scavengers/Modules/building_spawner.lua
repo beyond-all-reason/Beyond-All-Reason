@@ -92,14 +92,14 @@ function SpawnBlueprint(n)
 			if canBuildHere then
 				-- let's do this shit
 				blueprint(posx, posy, posz, GaiaTeamID, false)
-				Spring.CreateUnit("scavengerdroppod", posx+posradius, posy, posz, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod", posx-posradius, posy, posz, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod", posx, posy, posz+posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod", posx, posy, posz-posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod", posx+posradius, posy, posz+posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod", posx-posradius, posy, posz+posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod", posx-posradius, posy, posz-posradius, math.random(0,3),GaiaTeamID)
-				Spring.CreateUnit("scavengerdroppod", posx+posradius, posy, posz-posradius, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz+posradius, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx, posy, posz-posradius, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz+posradius, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz+posradius, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx-posradius, posy, posz-posradius, math.random(0,3),GaiaTeamID)
+				Spring.CreateUnit("scavengerdroppod_scav", posx+posradius, posy, posz-posradius, math.random(0,3),GaiaTeamID)
 			end
 		end
 	end

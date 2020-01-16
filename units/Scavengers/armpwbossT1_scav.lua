@@ -1,5 +1,5 @@
 return {
-	armpwbossT1 = {
+	armpwbossT1_scav = {
 		acceleration = 0.414,
 		brakerate = 0.69,
 		buildcostenergy = 9600000,

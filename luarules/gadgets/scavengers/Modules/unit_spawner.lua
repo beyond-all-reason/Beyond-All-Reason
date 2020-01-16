@@ -42,7 +42,7 @@ function UnitGroupSpawn(n)
 				local aircraftchance = math.random(0,unitSpawnerModuleConfig.aircraftchance)
 				if aircraftchance == 0 then
 					if n > scavconfig.timers.Tech3 then
-						local r = math.random(0,1)
+						local r = math.random(0,15)
 						if r == 0 then
 							groupunit = T3AirUnits[math.random(1,#T3AirUnits)]
 							groupsize = groupsize*unitSpawnerModuleConfig.airmultiplier
@@ -74,7 +74,7 @@ function UnitGroupSpawn(n)
 					end
 				elseif posy > -20 then
 					if n > scavconfig.timers.Tech4 then
-						local r = math.random(0,2)
+						local r = math.random(0,20)
 						if r == 0 then
 							groupunit = T4LandUnits[math.random(1,#T4LandUnits)]
 							groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier
@@ -86,7 +86,7 @@ function UnitGroupSpawn(n)
 							groupsize = groupsize*2.5*unitSpawnerModuleConfig.landmultiplier	
 						end
 					elseif n > scavconfig.timers.Tech3 then
-						local r = math.random(0,1)
+						local r = math.random(0,15)
 						if r == 0 then
 							groupunit = T3LandUnits[math.random(1,#T3LandUnits)]
 							groupsize = groupsize*unitSpawnerModuleConfig.landmultiplier
@@ -118,7 +118,7 @@ function UnitGroupSpawn(n)
 					end
 				elseif posy <= -20 then
 					if n > scavconfig.timers.Tech3 then
-						local r = math.random(0,1)
+						local r = math.random(0,15)
 						if r == 0 then
 							groupunit = T3SeaUnits[math.random(1,#T3SeaUnits)]
 							groupsize = groupsize*unitSpawnerModuleConfig.seamultiplier
@@ -156,7 +156,7 @@ function UnitGroupSpawn(n)
 				
 				for i=1, groupsize do
 					Spring.CreateUnit(groupunit..scavconfig.unitnamesuffix, posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
-					Spring.CreateUnit("scavengerdroppod", posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
+					Spring.CreateUnit("scavengerdroppod_scav", posx+math.random(-groupsize*10,groupsize*10), posy, posz+math.random(-groupsize*10,groupsize*10), math.random(0,3),GaiaTeamID)
 				end
 			end
 		else
