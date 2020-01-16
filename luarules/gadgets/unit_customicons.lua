@@ -409,6 +409,8 @@ function loadUnitIcons()
 
         if name=="meteor" then
             Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
+        elseif string.find(name, 'droppod') then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."mine3.user")
         elseif string.sub(name, 0, 7) == "critter" then
             Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
         elseif name=="chip" or name=="dice" or name=="xmasball" or name=="xmasball2" or name=="corstone" or name=="armstone" then
