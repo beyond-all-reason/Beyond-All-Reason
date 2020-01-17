@@ -266,6 +266,8 @@ local icons = {
     {"defence_1_naval.user", "defence", 1.05},
     {"defence_2_naval.user", "defence", 1.4},
 
+    {"boss.user", "skull", 2.5},
+
     {"blank.user", "blank", 1},
     {"unknown.user", "unknown", 2},
 }
@@ -409,6 +411,8 @@ function loadUnitIcons()
 
         if name=="meteor" then
             Spring.SetUnitDefIcon(udid, iconPrefix.."blank.user")
+        elseif string.find(name, 'boss') then
+            Spring.SetUnitDefIcon(udid, iconPrefix.."boss.user")
         elseif string.find(name, 'droppod') then
             Spring.SetUnitDefIcon(udid, iconPrefix.."mine3.user")
         elseif string.sub(name, 0, 7) == "critter" then
