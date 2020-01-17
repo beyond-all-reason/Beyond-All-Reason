@@ -120,4 +120,5 @@ T4LandUnits = {
 "corjugg",
 --superboss
 "armpwbosst1",
+"armstumpbosst1",
 }
