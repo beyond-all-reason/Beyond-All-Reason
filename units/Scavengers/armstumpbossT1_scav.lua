@@ -42,7 +42,7 @@ return {
 		turninplace = true,
 		turninplaceanglelimit = 360,
 		turninplacespeedlimit = 1.0,
-		turnrate = 200,
+		turnrate = 150,
 		customparams = {
 			arm_tank = "1",
 			basename = "base",
