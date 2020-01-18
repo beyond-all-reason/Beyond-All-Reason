@@ -57,6 +57,9 @@ function gadget:GameFrame(n)
 		Spring.SetTeamResource(GaiaTeamID, "m", 100000)
 		Spring.SetTeamResource(GaiaTeamID, "e", 100000)
 	end
+	if n%1800 == 0 then
+		UpdateTierChances(n)
+	end
 	
 	
 	if n%90 == 0 and scavconfig.modules.buildingSpawnerModule then
@@ -66,7 +69,7 @@ function gadget:GameFrame(n)
 		if scavconfig.modules.unitSpawnerModule then
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.buildingSpawnerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.Tech0 then
+		if scavconfig.modules.buildingSpawnerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.Timer1 then
 			SpawnConstructor()
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)

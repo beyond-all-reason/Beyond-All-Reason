@@ -95,21 +95,21 @@ function ConstructNewBlueprint(n, scav)
 	local posz = math.random(z-1000,z+1000)
 	local posy = Spring.GetGroundHeight(posx, posz)
 	if posy > 0 then
-		if n > scavconfig.timers.Tech3 then
+		if n > scavconfig.timers.Timer7 then
 			local r = math.random(0,1)
 			if r == 0 then
 				blueprint = ScavengerConstructorBlueprintsT3[math.random(1,#ScavengerConstructorBlueprintsT3)]
 			else
 				blueprint = ScavengerConstructorBlueprintsT2[math.random(1,#ScavengerConstructorBlueprintsT2)]
 			end
-		elseif n > scavconfig.timers.Tech2 then
+		elseif n > scavconfig.timers.Timer5 then
 			local r = math.random(0,1)
 			if r == 0 then
 				blueprint = ScavengerConstructorBlueprintsT2[math.random(1,#ScavengerConstructorBlueprintsT2)]
 			else
 				blueprint = ScavengerConstructorBlueprintsT1[math.random(1,#ScavengerConstructorBlueprintsT1)]
 			end
-		elseif n > scavconfig.timers.Tech1 then
+		elseif n > scavconfig.timers.Timer3 then
 			local r = math.random(0,1)
 			if r == 0 then
 				blueprint = ScavengerConstructorBlueprintsT1[math.random(1,#ScavengerConstructorBlueprintsT1)]
@@ -120,21 +120,21 @@ function ConstructNewBlueprint(n, scav)
 			blueprint = ScavengerConstructorBlueprintsT0[math.random(1,#ScavengerConstructorBlueprintsT0)]
 		end
 	elseif posy <= 0 then	
-		if n > scavconfig.timers.Tech3 then
+		if n > scavconfig.timers.Timer7 then
 			local r = math.random(0,1)
 			if r == 0 then
 				blueprint = ScavengerConstructorBlueprintsT3Sea[math.random(1,#ScavengerConstructorBlueprintsT3Sea)]
 			else
 				blueprint = ScavengerConstructorBlueprintsT2Sea[math.random(1,#ScavengerConstructorBlueprintsT2Sea)]
 			end
-		elseif n > scavconfig.timers.Tech2 then
+		elseif n > scavconfig.timers.Timer5 then
 			local r = math.random(0,1)
 			if r == 0 then
 				blueprint = ScavengerConstructorBlueprintsT2Sea[math.random(1,#ScavengerConstructorBlueprintsT2Sea)]
 			else
 				blueprint = ScavengerConstructorBlueprintsT1Sea[math.random(1,#ScavengerConstructorBlueprintsT1Sea)]
 			end
-		elseif n > scavconfig.timers.Tech1 then
+		elseif n > scavconfig.timers.Timer3 then
 			local r = math.random(0,1)
 			if r == 0 then
 				blueprint = ScavengerConstructorBlueprintsT1Sea[math.random(1,#ScavengerConstructorBlueprintsT1Sea)]
