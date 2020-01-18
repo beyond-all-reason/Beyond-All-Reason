@@ -34,7 +34,7 @@ function CollectorOrders(n, scav)
 	--Spring.GiveOrderToUnit(scav, CMD.RECLAIM,{mapcenterX+math.random(-100,100),mapcenterY,mapcenterZ+math.random(-100,100),mapdiagonal}, {"shift"})
 end
 
-function SpawnConstructor()
+function SpawnConstructor(n)
 	local posx = math.random(250,mapsizeX-250)
 	local posz = math.random(250,mapsizeZ-250)
 	local posy = Spring.GetGroundHeight(posx, posz)
@@ -82,10 +82,10 @@ function SpawnConstructor()
 				Spring.CreateUnit(r3..scavconfig.unitnamesuffix, posx+32, posy, posz-32, math.random(0,3),GaiaTeamID)
 			end
 		else
-			constructortimer = constructortimer + 1
+			constructortimer = constructortimer +  math.ceil(n/36000)
 		end
 	else
-		constructortimer = constructortimer + 1
+		constructortimer =	constructortimer +  math.ceil(n/36000)
 	end
 end			
 	
@@ -94,56 +94,35 @@ function ConstructNewBlueprint(n, scav)
 	local posx = math.random(x-1000,x+1000)
 	local posz = math.random(z-1000,z+1000)
 	local posy = Spring.GetGroundHeight(posx, posz)
+	local spawnTier = math.random(1,100)
 	if posy > 0 then
-		if n > scavconfig.timers.Timer7 then
-			local r = math.random(0,1)
-			if r == 0 then
-				blueprint = ScavengerConstructorBlueprintsT3[math.random(1,#ScavengerConstructorBlueprintsT3)]
-			else
-				blueprint = ScavengerConstructorBlueprintsT2[math.random(1,#ScavengerConstructorBlueprintsT2)]
-			end
-		elseif n > scavconfig.timers.Timer5 then
-			local r = math.random(0,1)
-			if r == 0 then
-				blueprint = ScavengerConstructorBlueprintsT2[math.random(1,#ScavengerConstructorBlueprintsT2)]
-			else
-				blueprint = ScavengerConstructorBlueprintsT1[math.random(1,#ScavengerConstructorBlueprintsT1)]
-			end
-		elseif n > scavconfig.timers.Timer3 then
-			local r = math.random(0,1)
-			if r == 0 then
-				blueprint = ScavengerConstructorBlueprintsT1[math.random(1,#ScavengerConstructorBlueprintsT1)]
-			else
+		if spawnTier <= TierSpawnChances.T0 then
 				blueprint = ScavengerConstructorBlueprintsT0[math.random(1,#ScavengerConstructorBlueprintsT0)]
-			end
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+				blueprint = ScavengerConstructorBlueprintsT1[math.random(1,#ScavengerConstructorBlueprintsT1)]
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+				blueprint = ScavengerConstructorBlueprintsT2[math.random(1,#ScavengerConstructorBlueprintsT2)]
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+				blueprint = ScavengerConstructorBlueprintsT3[math.random(1,#ScavengerConstructorBlueprintsT3)]
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+				blueprint = ScavengerConstructorBlueprintsT3[math.random(1,#ScavengerConstructorBlueprintsT3)]
 		else
 			blueprint = ScavengerConstructorBlueprintsT0[math.random(1,#ScavengerConstructorBlueprintsT0)]
 		end
 	elseif posy <= 0 then	
-		if n > scavconfig.timers.Timer7 then
-			local r = math.random(0,1)
-			if r == 0 then
-				blueprint = ScavengerConstructorBlueprintsT3Sea[math.random(1,#ScavengerConstructorBlueprintsT3Sea)]
-			else
-				blueprint = ScavengerConstructorBlueprintsT2Sea[math.random(1,#ScavengerConstructorBlueprintsT2Sea)]
-			end
-		elseif n > scavconfig.timers.Timer5 then
-			local r = math.random(0,1)
-			if r == 0 then
-				blueprint = ScavengerConstructorBlueprintsT2Sea[math.random(1,#ScavengerConstructorBlueprintsT2Sea)]
-			else
-				blueprint = ScavengerConstructorBlueprintsT1Sea[math.random(1,#ScavengerConstructorBlueprintsT1Sea)]
-			end
-		elseif n > scavconfig.timers.Timer3 then
-			local r = math.random(0,1)
-			if r == 0 then
-				blueprint = ScavengerConstructorBlueprintsT1Sea[math.random(1,#ScavengerConstructorBlueprintsT1Sea)]
-			else
+		if spawnTier <= TierSpawnChances.T0 then
 				blueprint = ScavengerConstructorBlueprintsT0Sea[math.random(1,#ScavengerConstructorBlueprintsT0Sea)]
-			end
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 then
+				blueprint = ScavengerConstructorBlueprintsT1Sea[math.random(1,#ScavengerConstructorBlueprintsT1Sea)]
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 then
+				blueprint = ScavengerConstructorBlueprintsT2Sea[math.random(1,#ScavengerConstructorBlueprintsT2Sea)]
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 then
+				blueprint = ScavengerConstructorBlueprintsT3Sea[math.random(1,#ScavengerConstructorBlueprintsT3Sea)]
+		elseif spawnTier <= TierSpawnChances.T0 + TierSpawnChances.T1 + TierSpawnChances.T2 + TierSpawnChances.T3 + TierSpawnChances.T4 then
+				blueprint = ScavengerConstructorBlueprintsT4Sea[math.random(1,#ScavengerConstructorBlueprintsT4Sea)]
 		else
 			blueprint = ScavengerConstructorBlueprintsT0Sea[math.random(1,#ScavengerConstructorBlueprintsT0Sea)]
-		end	
+		end
 	end
 							
 	posradius = blueprint(scav, posx, posy, posz, GaiaTeamID, true)

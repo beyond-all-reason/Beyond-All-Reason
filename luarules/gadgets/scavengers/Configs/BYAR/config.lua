@@ -3,7 +3,7 @@ Spring.Echo("[Scavengers] Config initialized")
 scavconfig = {
 	unitnamesuffix = "_scav",
 	modules = {
-		buildingSpawnerModule 			= true,
+		buildingSpawnerModule 			= false,
 		constructorControllerModule 	= true,
 		factoryControllerModule 		= true,
 		unitSpawnerModule 				= true,

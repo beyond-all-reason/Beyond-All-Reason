@@ -61,3 +61,8 @@ T3SeaUnits = {
 "armlun",
 "corsok",
 }
+
+T4SeaUnits = {
+"corcrwbosst2",
+"corcrwbosst2",
+}

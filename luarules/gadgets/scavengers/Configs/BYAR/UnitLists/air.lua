@@ -46,3 +46,8 @@ T3AirUnits = {
 "corawac",
 
 }
+
+T4AirUnits = {
+"corcrwbosst2",
+"corcrwbosst2",
+}

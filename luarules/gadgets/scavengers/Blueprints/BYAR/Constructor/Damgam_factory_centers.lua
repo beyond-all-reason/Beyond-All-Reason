@@ -207,3 +207,4 @@ local function DamgamT1Spammer(scav, posx, posy, posz, GaiaTeamID, radiusCheck)
 	end
 end
 table.insert(ScavengerConstructorBlueprintsT3,DamgamT1Spammer)
+table.insert(ScavengerConstructorBlueprintsT4,DamgamT1Spammer)

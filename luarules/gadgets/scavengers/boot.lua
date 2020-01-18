@@ -17,10 +17,12 @@ if scavconfig.modules.buildingSpawnerModule then
 	ScavengerBlueprintsT1 = {}
 	ScavengerBlueprintsT2 = {}
 	ScavengerBlueprintsT3 = {}
+	ScavengerBlueprintsT4 = {}
 	ScavengerBlueprintsT0Sea = {}
 	ScavengerBlueprintsT1Sea = {}
 	ScavengerBlueprintsT2Sea = {}
 	ScavengerBlueprintsT3Sea = {}
+	ScavengerBlueprintsT4Sea = {}
 	VFS.Include("luarules/gadgets/scavengers/Modules/building_spawner.lua")
 end
 
@@ -29,10 +31,12 @@ if scavconfig.modules.constructorControllerModule then
 	ScavengerConstructorBlueprintsT1 = {}
 	ScavengerConstructorBlueprintsT2 = {}
 	ScavengerConstructorBlueprintsT3 = {}
+	ScavengerConstructorBlueprintsT4 = {}
 	ScavengerConstructorBlueprintsT0Sea = {}
 	ScavengerConstructorBlueprintsT1Sea = {}
 	ScavengerConstructorBlueprintsT2Sea = {}
 	ScavengerConstructorBlueprintsT3Sea = {}
+	ScavengerConstructorBlueprintsT4Sea = {}
 	VFS.Include("luarules/gadgets/scavengers/Modules/constructor_controller.lua")
 end
 
@@ -69,8 +73,8 @@ function gadget:GameFrame(n)
 		if scavconfig.modules.unitSpawnerModule then
 			UnitGroupSpawn(n)
 		end
-		if scavconfig.modules.buildingSpawnerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.Timer1 then
-			SpawnConstructor()
+		if scavconfig.modules.constructorControllerModule and constructorControllerModuleConfig.useconstructors and n > scavconfig.timers.Timer0 then
+			SpawnConstructor(n)
 		end
 		local scavengerunits = Spring.GetTeamUnits(GaiaTeamID)
 		if scavengerunits then
