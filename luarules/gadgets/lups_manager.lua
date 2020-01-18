@@ -246,7 +246,7 @@ else
 
 
 	local myTeamID = Spring.GetMyTeamID()
-	local _, fullview = Spring.GetSpectatingState()
+	local mySpec, fullview = Spring.GetSpectatingState()
 
 	local abs = math.abs
 	local spGetSpectatingState = Spring.GetSpectatingState
@@ -301,7 +301,7 @@ else
 	--------------------------------------------------------------------------------
 
 	function gadget:UnitFinished(unitID,unitDefID,unitTeam)
-		if not CallAsTeam(myTeamID, IsUnitInLos, unitID) then return end
+		if not fullview and not CallAsTeam(myTeamID, IsUnitInLos, unitID) then return end
 
 		local effects = UnitEffects[unitDefID]
 		if (effects) then
@@ -326,8 +326,7 @@ else
 	end
 
 	function gadget:UnitEnteredLos(unitID, unitTeam, allyTeam, unitDefID)
-		local spec, fullSpec = spGetSpectatingState()
-		if (spec) then return end
+		if fullview then return end
 
 		local unitDefID = spGetUnitDefID(unitID)
 		local effects   = UnitEffects[unitDefID]
@@ -351,33 +350,15 @@ else
 
 
 	function gadget:UnitLeftLos(unitID, unitTeam, allyTeam, unitDefID)
-		local spec, fullSpec = spGetSpectatingState()
-		if (spec and fullSpec) then return end
+		if (mySpec and fullview) then return end
 
-		if CallAsTeam(myTeamID, IsUnitInLos, unitID) then return end
+		if not fullview and CallAsTeam(myTeamID, IsUnitInLos, unitID) then return end
 
 		ClearFxs(unitID)
 	end
 
 	--------------------------------------------------------------------------------
 	--------------------------------------------------------------------------------
-
-	function gadget:PlayerChanged(playerID)
-		myTeamID = Spring.GetMyTeamID()
-		_, fullview = Spring.GetSpectatingState()
-
-		if (playerID == Spring.GetMyPlayerID()) then
-			--// clear all FXs
-			for _,unitFxIDs in pairs(particleIDs) do
-				for _,fxID in ipairs(unitFxIDs) do
-					Lups.RemoveParticles(fxID)
-				end
-			end
-			particleIDs = {}
-
-			--gadgetHandler:UpdateGadgetCallIn("Update",gadget)
-		end
-	end
 
 	local function CheckForExistingUnits()
 		--// initialize effects for existing units
@@ -395,6 +376,24 @@ else
 
 		--gadgetHandler:RemoveGadgetCallIn("Update",gadget)
 	end
+
+	function gadget:PlayerChanged(playerID)
+		myTeamID = Spring.GetMyTeamID()
+		mySpec, fullview = Spring.GetSpectatingState()
+
+		if playerID == Spring.GetMyPlayerID() then
+			--// clear all FXs
+			for _,unitFxIDs in pairs(particleIDs) do
+				for _,fxID in ipairs(unitFxIDs) do
+					Lups.RemoveParticles(fxID)
+				end
+			end
+			particleIDs = {}
+			CheckForExistingUnits()
+			--gadgetHandler:UpdateGadgetCallIn("Update",gadget)
+		end
+	end
+
 
 	function gadget:Initialize()
 		if not Lups then
